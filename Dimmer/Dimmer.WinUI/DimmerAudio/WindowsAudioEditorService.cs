@@ -106,7 +106,7 @@ public class WindowsAudioEditorService : IDimmerAudioEditorService
         string ext = Path.GetExtension(input);
         // Save to MyMusic or Cache, don't overwrite input
         string cache = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyMusic);
-        
+
         return Path.Combine(cache, $"{name}{suffix}{ext}");
     }
     public async Task<string> CreateInfiniteLoopAsync(string inputFile, TimeSpan duration, IProgress<double> progress)
@@ -115,7 +115,7 @@ public class WindowsAudioEditorService : IDimmerAudioEditorService
 
         try
         {
-           
+
             string args = $"-stream_loop -1 -i \"{inputFile}\" -t {duration.TotalSeconds} -c:a copy \"{outputFile}\"";
 
             // We use a raw conversion for specific flags
@@ -252,3 +252,86 @@ public class WindowsAudioEditorService : IDimmerAudioEditorService
             throw;
         }
     }
+
+    public async Task<string> RemoveSectionAsync(string inputFile, TimeSpan cutStart, TimeSpan cutEnd, IProgress<double> progress)
+    {
+        await GuardEnsureFFmpeg();
+
+        // 1. Get total duration
+        var mediaInfo = await FFmpeg.GetMediaInfo(inputFile);
+        var totalDuration = mediaInfo.Duration;
+
+        // 2. Define temp paths
+        string part1Path = GenerateOutputPath(inputFile, "_part1");
+        string part2Path = GenerateOutputPath(inputFile, "_part2");
+        string finalPath = GenerateOutputPath(inputFile, "_cut");
+
+        try
+        {
+            // 3. Create Part A (Start -> CutStart)
+            // -ss 0 -t cutStart
+            string args1 = $"-y -i \"{inputFile}\" -ss 0 -t {cutStart.TotalSeconds} -c copy -avoid_negative_ts 1 \"{part1Path}\"";
+
+            // 4. Create Part B (CutEnd -> End)
+            // -ss cutEnd
+            string args2 = $"-y -i \"{inputFile}\" -ss {cutEnd.TotalSeconds} -c copy -avoid_negative_ts 1 \"{part2Path}\"";
+
+            var conversion = FFmpeg.Conversions.New();
+
+            progress?.Report(20); // Started
+            await conversion.Start(args1); // Process Part 1
+
+            progress?.Report(50); // Halfway
+            await conversion.Start(args2); // Process Part 2
+
+            // 5. Merge A + B
+            // We reuse your existing Merge Logic here manually to avoid circular dependencies if you like,
+            // or just write the concat list logic directly here for speed.
+
+            string listFile = Path.Combine(Path.GetTempPath(), $"concat_{Guid.NewGuid()}.txt");
+            await File.WriteAllLinesAsync(listFile, new[] { $"file '{part1Path}'", $"file '{part2Path}'" });
+
+            string argsMerge = $"-f concat -safe 0 -i \"{listFile}\" -c copy \"{finalPath}\"";
+            await conversion.Start(argsMerge);
+
+            // Cleanup
+            if (File.Exists(listFile)) File.Delete(listFile);
+            if (File.Exists(part1Path)) File.Delete(part1Path);
+            if (File.Exists(part2Path)) File.Delete(part2Path);
+
+            progress?.Report(100);
+            return finalPath;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Cut Error: {ex}");
+            return null;
+        }
+    }
+
+    // NERD FEATURE: 8D Audio (Spatial Panning)
+    // Makes the audio circle around your head. Very popular for "immersiveness".
+    public async Task<string> Apply8DAudioAsync(string inputFile, IProgress<double> progress)
+    {
+        await GuardEnsureFFmpeg();
+        string outputFile = GenerateOutputPath(inputFile, "_8D");
+
+        // apulsator filter:
+        // mode=sine: shape of the movement
+        // hz=0.125: Speed of rotation (0.125hz = 1 rotation every 8 seconds)
+        // amount=1: Full panning (Hard Left to Hard Right)
+        string filter = "apulsator=mode=sine:hz=0.125:amount=1";
+
+        string args = $"-y -i \"{inputFile}\" -af \"{filter}\" -c:a libmp3lame -q:a 2 \"{outputFile}\"";
+
+        try
+        {
+            var conversion = FFmpeg.Conversions.New();
+            progress?.Report(10);
+            await conversion.Start(args);
+            progress?.Report(100);
+            return outputFile;
+        }
+        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"8D Error: {ex}"); throw; }
+    }
+}

@@ -72,7 +72,7 @@ public partial class NowPlayingFragment : Fragment
         var layout = new LinearLayout(ctx)
         {
             Orientation = Orientation.Horizontal,
-            LayoutParameters = new FrameLayout.LayoutParams(-1, AppUtil.DpToPx(70)),
+            LayoutParameters = new FrameLayout.LayoutParams(-1, AppUtil.DpToPx(85)),
             
         };
         layout.SetGravity(GravityFlags.CenterVertical);

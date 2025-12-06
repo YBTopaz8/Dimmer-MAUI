@@ -148,7 +148,6 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         {
             LayoutParameters = new ViewGroup.LayoutParams(-1, -1),
         };
-        _drawerLayout.SetFitsSystemWindows(false);
         _drawerLayout.Id = View.GenerateViewId();
 
         _mainContentCoordinator = new CoordinatorLayout(this)
@@ -163,9 +162,6 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
             Id = View.GenerateViewId(),
             LayoutParameters = new CoordinatorLayout.LayoutParams(-1, -1)
         };
-        // Padding bottom only for the Mini Player (70dp)
-        _contentContainer.SetPadding(0, 0, 0, AppUtil.DpToPx(70));
-        _contentContainer.SetClipToPadding(false);
         MyStaticID = _contentContainer.Id;
 
         // 2b. Player Sheet Container
@@ -202,7 +198,6 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
             }
         };
 
-        _navigationView.SetFitsSystemWindows(true);
         // Setup Menu Items
         _navigationView.Menu.Add(0, 100, 0, "Home").SetIcon(Resource.Drawable.musicaba);
         _navigationView.Menu.Add(0, 101, 0, "Browser / Graph").SetIcon(Resource.Drawable.heart);
@@ -253,30 +248,30 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         SetContentView(_drawerLayout);
         ViewCompat.SetOnApplyWindowInsetsListener(_drawerLayout, this);
     }
+    private int _systemBarBottom;
     public WindowInsetsCompat OnApplyWindowInsets(View v, WindowInsetsCompat insets)
     {
         var bars = insets.GetInsets(WindowInsetsCompat.Type.SystemBars());
 
-        // 1. Fix Status Bar (Top)
-        // We apply Top Padding to the Main Coordinator so the App Header/Search Bar 
-        // starts BELOW the clock/battery.
-        _mainContentCoordinator.SetPadding(0, bars.Top, 0, 0);
+        int top = bars.Top;
+        int bottom = bars.Bottom;
 
-        // 2. Fix Navigation Bar (Bottom) for Player
-        // We want the Mini Player to sit ABOVE the System Navigation Bar (Gesture pill / 3-buttons).
-        // We use Margin for this.
-        var sheetParams = (CoordinatorLayout.LayoutParams)_sheetContainer.LayoutParameters;
-        sheetParams.BottomMargin = bars.Bottom;
-        _sheetContainer.LayoutParameters = sheetParams;
+        // Content: status bar + mini-player height
+        int miniPlayerHeight = AppUtil.DpToPx(70);
+        _systemBarBottom = bars.Bottom;
+        _contentContainer.SetPadding(
+            0,
+            top,
+            0,
+            bottom + miniPlayerHeight
+        );
 
-        // 3. Fix Navigation Bar (Bottom) for Content
-        // The content container needs extra padding so the last item in the list
-        // isn't hidden behind the Player + System Nav Bar.
-        // Total Padding = System Nav Height + MiniPlayer Height (70dp)
-        _contentContainer.SetPadding(0, 0, 0, bars.Bottom + AppUtil.DpToPx(70));
-
-        // Return insets so other views (like the side drawer) can use them if needed
-        return insets;
+        // Player sheet sits ABOVE system nav bar
+        var lp = (CoordinatorLayout.LayoutParams)_sheetContainer.LayoutParameters;
+        lp.BottomMargin = _systemBarBottom;
+        _sheetContainer.LayoutParameters = lp;
+        SheetBehavior.PeekHeight = miniPlayerHeight + _systemBarBottom;
+        return WindowInsetsCompat.Consumed;
     }
 
     private void NavigateToId(int id)
@@ -411,13 +406,7 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
                 NavBar.Animate()?.Alpha(1f).SetDuration(200).Start();
             }
 
-            // Apply Margin to lift Sheet ABOVE Nav Bar
-            if (sheetParams.BottomMargin != navHeight)
-            {
-                sheetParams.BottomMargin = navHeight;
-                _sheetContainer.LayoutParameters = sheetParams;
-                _sheetContainer.RequestLayout(); // Force UI Update
-            }
+           
         }
         else
         {
@@ -456,27 +445,6 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         }
     }
 
-    class MyInsetsListener : Java.Lang.Object, AndroidX.Core.View.IOnApplyWindowInsetsListener
-    {
-        public AndroidX.Core.View.WindowInsetsCompat OnApplyWindowInsets(View? v, AndroidX.Core.View.WindowInsetsCompat? insets)
-        {
-            var bars = insets?.GetInsets(AndroidX.Core.View.WindowInsetsCompat.Type.SystemBars());
-            
-            v?.SetPadding(bars.Left, bars.Top, bars.Right, v.PaddingBottom);
-            return AndroidX.Core.View.WindowInsetsCompat.Consumed;
-        }
-    }
-
-    class MySheetInsetsListener : Java.Lang.Object, AndroidX.Core.View.IOnApplyWindowInsetsListener
-    {
-        public AndroidX.Core.View.WindowInsetsCompat OnApplyWindowInsets(View? v, AndroidX.Core.View.WindowInsetsCompat? insets)
-        {
-            var bars = insets.GetInsets(AndroidX.Core.View.WindowInsetsCompat.Type.SystemBars());
-            // Add bottom padding so the player controls aren't covered by gesture bar/nav buttons
-            v.SetPadding(0, 0, 0, bars.Bottom);
-            return insets; // Don't consume, let others see it if needed
-        }
-    }
     private void SetupService()
     {
         _serviceConnection = new MediaPlayerServiceConnection();

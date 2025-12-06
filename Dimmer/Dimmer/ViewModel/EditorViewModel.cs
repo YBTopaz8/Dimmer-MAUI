@@ -73,6 +73,12 @@ public partial class EditorViewModel : BaseViewModel
     public partial double ProgressValue {get;set;}
 
     [ObservableProperty]
+    public partial double CutEndTime { get;set;}
+    public string CutRangeText => $"{TimeSpan.FromSeconds(CutStartTime):mm\\:ss} - {TimeSpan.FromSeconds(CutEndTime):mm\\:ss}";
+    [ObservableProperty]
+    public partial double CutStartTime { get;set;}
+
+    [ObservableProperty]
     public partial SongModelView SelectedSong {get;set;} // The song being edited
 
     [ObservableProperty]
@@ -211,6 +217,40 @@ public partial class EditorViewModel : BaseViewModel
         await RunEditorTask("Applying Nightcore...", async (p) =>
         {
             return await _editorService.ApplyAudioEffectsAsync(SourceFilePath, options, p);
+        });
+    }
+
+
+    [RelayCommand]
+    public async Task RemoveSection()
+    {
+        if (string.IsNullOrEmpty(SourceFilePath)) return;
+
+        // Validation
+        if (CutEndTime <= CutStartTime)
+        {
+            StatusMessage = "Error: Cut End must be after Start.";
+            return;
+        }
+
+        await RunEditorTask("Removing Section...", async (p) =>
+        {
+            return await _editorService.RemoveSectionAsync(
+                SourceFilePath,
+                TimeSpan.FromSeconds(CutStartTime),
+                TimeSpan.FromSeconds(CutEndTime),
+                p);
+        });
+    }
+
+    [RelayCommand]
+    public async Task Create8DAudio()
+    {
+        if (string.IsNullOrEmpty(SourceFilePath)) return;
+
+        await RunEditorTask("Applying 8D Spatial Audio...", async (p) =>
+        {
+            return await _editorService.Apply8DAudioAsync(SourceFilePath, p);
         });
     }
 

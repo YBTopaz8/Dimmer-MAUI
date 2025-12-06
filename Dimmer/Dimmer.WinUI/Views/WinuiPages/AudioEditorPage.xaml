@@ -209,6 +209,43 @@
                     </StackPanel>
                 </Border>
 
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+        BorderThickness="1" CornerRadius="8" Padding="20">
+                    <StackPanel Spacing="15">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE738;" FontSize="18"/>
+                            <!-- Remove/Delete Icon -->
+                            <TextBlock Text="Remove Middle Section" Style="{ThemeResource SubtitleTextBlockStyle}"/>
+                        </StackPanel>
+
+                        <TextBlock Text="Select the range you want to DELETE:" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+
+                        <!-- Range Display -->
+                        <TextBlock Text="{x:Bind ViewModel.CutRangeText, Mode=OneWay}" 
+                   HorizontalAlignment="Center" Style="{ThemeResource TitleTextBlockStyle}" Foreground="#FF5555"/>
+
+                        <!-- Sliders -->
+                        <StackPanel>
+                            <TextBlock Text="Cut Start" Style="{ThemeResource CaptionTextBlockStyle}"/>
+                            <Slider Minimum="0" Maximum="{x:Bind ViewModel.TotalDuration, Mode=OneWay}" 
+                    Value="{x:Bind ViewModel.CutStartTime, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                            <TextBlock Text="Cut End" Style="{ThemeResource CaptionTextBlockStyle}" Margin="0,10,0,0"/>
+                            <Slider Minimum="0" Maximum="{x:Bind ViewModel.TotalDuration, Mode=OneWay}" 
+                    Value="{x:Bind ViewModel.CutEndTime, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+
+                        <Button Content="Delete Selected Range" Command="{x:Bind ViewModel.RemoveSectionCommand}" 
+                Style="{ThemeResource AccentButtonStyle}" Background="#CC3333" HorizontalAlignment="Stretch"/>
+                    </StackPanel>
+                </Border>
+                <Button Grid.Column="1" HorizontalAlignment="Stretch" Margin="5,0" Command="{x:Bind ViewModel.Create8DAudioCommand}">
+                    <StackPanel Spacing="5" Padding="10">
+                        <TextBlock Text="🎧 8D Audio" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Spatial panning effect" FontSize="10" Foreground="Gray" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
             </StackPanel>
         </ScrollViewer>
 

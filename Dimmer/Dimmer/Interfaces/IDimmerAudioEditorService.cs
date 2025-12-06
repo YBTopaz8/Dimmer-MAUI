@@ -15,6 +15,8 @@ public interface IDimmerAudioEditorService
     //Task<string?> TrimAudioAsync(string inputFile, string outputFile, TimeSpan start, TimeSpan end);
     Task<string> TrimAudioAsync(string inputFile, TimeSpan start, TimeSpan end, IProgress<double> progress);
     Task<string> ApplyAudioEffectsAsync(string inputFile, AudioEffectOptions options, IProgress<double> progress);
+    Task<string> RemoveSectionAsync(string inputFile, TimeSpan cutStart, TimeSpan cutEnd, IProgress<double> progress);
+    Task<string> Apply8DAudioAsync(string inputFile, IProgress<double> progress);
 }
 
 // Simple options class to pass parameters
