@@ -14,9 +14,18 @@
         <!-- Converter to handle TimeSpan <-> Double for Sliders -->
         <!--  You need to create this class, code provided below  -->
         <converters:TimeSpanToSecondsConverter x:Key="TimeSpanConverter" />
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <converters:IsNullToVisibilityConverter x:Key="IsNullToVisibilityConverter" />
+        <converters:RepeatModeConverter x:Key="RepeatModeConverter" />
+        <converters:BoolToInverseVisibilityConverter x:Key="BoolToInverseVisibilityConverter" />
+        <converters:BoolToPlayingPauseConv x:Key="BoolToPlayingPauseConverter" />
     </Page.Resources>
 
-    <Grid Padding="24" RowDefinitions="Auto, *, Auto">
+    <Grid
+        x:Name="MainGrid"
+        Padding="24"
+        PointerPressed="MainGrid_PointerPressed"
+        RowDefinitions="Auto, *, Auto">
 
         <!--  1. HEADER CARD  -->
         <Border
@@ -143,6 +152,60 @@
                             HorizontalAlignment="Stretch"
                             Command="{x:Bind ViewModel.CreateOneHourLoopCommand}"
                             Content="Make 1-Hour Version" />
+
+                        <Button
+                            HorizontalAlignment="Stretch"
+                            Command="{x:Bind ViewModel.OpenAndSelectedOneHourLoopedFileCommand}"
+                            Content="Make 1-Hour Version"
+                            Visibility="{x:Bind ViewModel.CanViewOneHourFolder, Converter={StaticResource BoolToVisibilityConverter}}" />
+                    </StackPanel>
+                </Border>
+
+
+                <Border
+                    Padding="20"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8">
+                    <StackPanel Spacing="15">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon FontSize="18" Glyph="&#xE7F6;" />
+                            <!--  Music Note / Equalizer Icon  -->
+                            <TextBlock Style="{ThemeResource SubtitleTextBlockStyle}" Text="Remix &amp; Effects" />
+                        </StackPanel>
+
+                        <Grid ColumnDefinitions="*, 10, *">
+                            <!--  Slowed + Reverb Button  -->
+                            <Button
+                                Grid.Column="0"
+                                HorizontalAlignment="Stretch"
+                                Command="{x:Bind ViewModel.CreateSlowedReverbCommand}">
+                                <StackPanel Padding="10" Spacing="5">
+                                    <TextBlock HorizontalAlignment="Center" Text="🌙 Slowed + Reverb" />
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        FontSize="10"
+                                        Foreground="Gray"
+                                        Text="0.85x speed, Echo" />
+                                </StackPanel>
+                            </Button>
+
+                            <!--  Nightcore Button  -->
+                            <Button
+                                Grid.Column="2"
+                                HorizontalAlignment="Stretch"
+                                Command="{x:Bind ViewModel.CreateNightcoreCommand}">
+                                <StackPanel Padding="10" Spacing="5">
+                                    <TextBlock HorizontalAlignment="Center" Text="⚡ Nightcore" />
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        FontSize="10"
+                                        Foreground="Gray"
+                                        Text="1.25x speed, Pitch Up" />
+                                </StackPanel>
+                            </Button>
+                        </Grid>
                     </StackPanel>
                 </Border>
 

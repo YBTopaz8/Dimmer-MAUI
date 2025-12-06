@@ -307,6 +307,7 @@
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="auto" />
                                             <RowDefinition Height="*" />
+                                            <RowDefinition Height="auto" />
 
                                         </Grid.RowDefinitions>
 
@@ -314,6 +315,7 @@
                                         <StackPanel
                                             Grid.Row="0"
                                             Margin="0,0,0,5"
+                                            HorizontalAlignment="Center"
                                             VerticalAlignment="Bottom"
                                             Orientation="Horizontal"
                                             Spacing="15">
@@ -384,6 +386,9 @@
                                                 PointerExited="ButtonHover_PointerExited" />
                                         </StackPanel>
 
+                                        <StackPanel Grid.Row="2" HorizontalAlignment="Center">
+                                            <TextBlock Text="{Binding FileFormat}" />
+                                        </StackPanel>
                                     </Grid>
 
                                 </Border>
@@ -424,7 +429,7 @@
                                         <TextBlock
                                             x:Name="ArtistNameTxt"
                                             HorizontalAlignment="Center"
-                                            Text="{Binding ArtistName}" />
+                                            Text="{Binding OtherArtistsName}" />
                                     </Border>
 
 

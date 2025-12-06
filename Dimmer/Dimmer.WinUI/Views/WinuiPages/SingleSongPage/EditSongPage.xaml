@@ -58,7 +58,7 @@
         <ScrollViewer
             x:Name="PageScrollviewer"
             Grid.Row="1"
-            Visibility="Collapsed">
+            Visibility="Visible">
             <StackPanel Padding="10" Spacing="15">
 
                 <StackPanel
@@ -586,7 +586,7 @@
         <Grid
             x:Name="LastFMSection"
             Grid.Row="1"
-            Visibility="Visible">
+            Visibility="Collapsed">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />

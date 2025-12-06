@@ -897,8 +897,10 @@ public sealed partial class SongDetailPage : Page
         {
             RxSchedulers.Background.Schedule(async () =>
             {
+                var ArtistsInSong = MyViewModel.SelectedSong.ArtistName.
+                Split(",").ToList();
                await MyViewModel.AssignArtistToSongAsync(MyViewModel.SelectedSong.Id,
-                    new List<string>() { MyViewModel.SelectedSong.ArtistName });
+                    ArtistsInSong);
 
             });
         }

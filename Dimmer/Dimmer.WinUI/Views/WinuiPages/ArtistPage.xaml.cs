@@ -1,8 +1,17 @@
+using System.DirectoryServices;
 using System.Globalization;
 
 using CommunityToolkit.Maui.Core.Extensions;
 
+using Windows.ApplicationModel.DataTransfer;
+
 using Button = Microsoft.UI.Xaml.Controls.Button;
+using Colors = Microsoft.UI.Colors;
+using DataPackageOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation;
+using DragEventArgs = Microsoft.UI.Xaml.DragEventArgs;
+using MenuFlyout = Microsoft.UI.Xaml.Controls.MenuFlyout;
+using MenuFlyoutItem = Microsoft.UI.Xaml.Controls.MenuFlyoutItem;
+using SolidColorBrush = Microsoft.UI.Xaml.Media.SolidColorBrush;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -197,16 +206,38 @@ public sealed partial class ArtistPage : Page
 
     private async void AllAlbumsBtn_Loaded(object sender, RoutedEventArgs e)
     {
-        return;
-        DropDownButton send = (DropDownButton)sender;
 
-        var realm = MyViewModel.RealmFactory.GetRealmInstance();
+        var artistAlbumsCount = MyViewModel.RealmFactory.GetRealmInstance()
+            .Find<ArtistModel>(MyViewModel.SelectedArtist!.Id)!
+            .Albums.Count();
+        var allArtistAlbums = MyViewModel.RealmFactory.GetRealmInstance()
+            .Find<ArtistModel>(MyViewModel.SelectedArtist!.Id)!
+            .Albums;
+        var menuFlyout = new MenuFlyout();
+        foreach (var album in allArtistAlbums)
+        {
+            var albumMenuItem = new MenuFlyoutItem
+            {
+                Text = $"{album.Name} ({album.SongsInAlbum?.Count()})"
+            };
+            albumMenuItem.Click += (s, args) =>
+            {
+                MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByAlbum(album.Name));
 
-        var AlbumsByArtist = realm.Find<ArtistModel>(MyViewModel.SelectedArtist.Id).Albums;
+                var count = MyViewModel.SearchResults.Count;
+            };
+            menuFlyout.Items.Add(albumMenuItem);
+        }
+        AllAlbumsBtn.Flyout = menuFlyout;
 
-        ObservableCollection<AlbumModelView> albums = new();
+        AllAlbumsBtn.Click += AllAlbumsBtn_Click;
+    }
 
-        ArtistAlbums.ItemsSource = AlbumsByArtist.AsEnumerable().Select(x=>x.ToAlbumModelView()).ToObservableCollection();
+    private void AllAlbumsBtn_Click(object sender, RoutedEventArgs e)
+    {
+        
+        AllAlbumsBtn.Flyout?.ShowAt(AllAlbumsBtn, new Microsoft.UI.Xaml.Controls.Primitives.FlyoutShowOptions()
+        { Placement = Microsoft.UI.Xaml.Controls.Primitives.FlyoutPlacementMode.Right});
 
     }
 
@@ -239,7 +270,7 @@ public sealed partial class ArtistPage : Page
     private async void MostPlayedSongCoverImg_Loaded(object sender, RoutedEventArgs e)
     {
         var topRankedSong = MyViewModel.RealmFactory.GetRealmInstance()
-            .Find<ArtistModel>(MyViewModel.SelectedArtist.Id)
+            .Find<ArtistModel>(MyViewModel.SelectedArtist!.Id)!
             .Songs
             .OrderByDescending(x => x.RankInArtist)
             .FirstOrDefault();
@@ -249,74 +280,220 @@ public sealed partial class ArtistPage : Page
         }
     }
 
-    int clickCtr = 0;
+    // 1. A flag to prevent double clicks while processing
+    private bool _isTogglingFavorite = false;
+
     private void IsArtFavorite_Loaded(object sender, RoutedEventArgs e)
     {
-        
-        Debug.WriteLine($"IsArtFavorite_Loaded called {clickCtr} times");
-        var dbArtist = MyViewModel.RealmFactory.GetRealmInstance()
-            .Find<ArtistModel>(DetailedSong.Artist.Id);
-        if (dbArtist == null) return;
-        DetailedSong.Artist = dbArtist.ToArtistModelView();
-        Button send = (Button)sender;
-        FontIcon heartIcon = new FontIcon();
-        heartIcon.Glyph = "\uEB51";
+        if (sender is not Button btn) return;
 
-        FontIcon unheartIcon = new FontIcon();
-        unheartIcon.Glyph = "\uEA92";
-        var toggleFavTxt = new TextBlock()
+        // 2. SAFETY: Remove the handler first to ensure we never have duplicates 
+        // if Loaded fires multiple times (e.g. scrolling/virtualization)
+        btn.Click -= OnFavoriteArtistClicked;
+        btn.Click += OnFavoriteArtistClicked;
+
+        // 3. Just update the UI visuals
+        UpdateFavoriteButtonVisuals(btn);
+    }
+
+    private async void OnFavoriteArtistClicked(object sender, RoutedEventArgs e)
+    {
+        // 4. DEBOUNCER: If we are already working, ignore this click
+        if (_isTogglingFavorite) return;
+
+        _isTogglingFavorite = true;
+        var btn = (Button)sender;
+
+        try
         {
-        };
+            // Perform the async DB work
+            await MyViewModel.ToggleFavoriteRatingToArtist(DetailedSong.Artist);
 
+            // Refresh the specific Realm object to get the new state
+            // (Assuming your ViewModel doesn't automatically update DetailedSong.Artist in place)
+            var dbArtist = MyViewModel.RealmFactory.GetRealmInstance()
+                .Find<ArtistModel>(DetailedSong.Artist.Id);
+
+            if (dbArtist != null)
+            {
+                DetailedSong.Artist = dbArtist.ToArtistModelView()!;
+            }
+
+            // Update the UI to match the new state
+            UpdateFavoriteButtonVisuals(btn);
+        }
+        finally
+        {
+            // 5. Release the lock so the user can click again
+            _isTogglingFavorite = false;
+        }
+    }
+
+    // Helper method to draw the button content
+    private void UpdateFavoriteButtonVisuals(Button btn)
+    {
+        // Check if artist is null to prevent crashes
+        if (DetailedSong?.Artist == null) return;
+
+        var fontIcon = new FontIcon();
+        var toggleFavTxt = new TextBlock();
+
+        // Create the StackPanel
         var favStackPanel = new StackPanel()
         {
-            Orientation = Orientation.Horizontal
-        ,
+            Orientation = Orientation.Horizontal,
             Spacing = 10
         };
+
         if (DetailedSong.Artist.IsFavorite)
         {
-            if (clickCtr > 0)
-            {
-                clickCtr = 0;
-                return;
-            }
+            fontIcon.Glyph = "\uEB52"; // Filled Heart
             toggleFavTxt.Text = "Love";
-
-            favStackPanel.Children.Add(heartIcon);
-            favStackPanel.Children.Add(toggleFavTxt);
-
-            send.Click += async (s, e) =>
-            {
-
-                await MyViewModel.ToggleFavoriteRatingToArtist(DetailedSong.Artist);
-                IsArtFavorite_Loaded(sender, e);
-                clickCtr++;
-            };
-
+            btn.Background = new SolidColorBrush(Colors.DarkSlateBlue);
         }
         else
         {
-            if (clickCtr > 0)
-            {
-                clickCtr = 0;
-                return;
-            }
+            fontIcon.Glyph = "\uEA92"; // Empty Heart
             toggleFavTxt.Text = "UnLove";
-
-            favStackPanel.Children.Add(unheartIcon);
-            favStackPanel.Children.Add(toggleFavTxt);
-            send.Click += async (s, e) =>
-            {
-                await MyViewModel.ToggleFavoriteRatingToArtist(DetailedSong.Artist);
-                IsArtFavorite_Loaded(sender, e);
-                clickCtr++;
-            };
+            btn.Background = new SolidColorBrush(Colors.Transparent);
         }
 
+        favStackPanel.Children.Add(fontIcon);
+        favStackPanel.Children.Add(toggleFavTxt);
+
+        btn.Content = favStackPanel;
+    }
+
+    private void ArtistDataTable_Loaded(object sender, RoutedEventArgs e)
+    {
+        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(DetailedSong.Artist.Name));
+        
 
 
-        send.Content = favStackPanel;
+    }
 
+    private void AlbumsIR_Loaded(object sender, RoutedEventArgs e)
+    {
+        ObservableCollection<AlbumModelView?>? albs = MyViewModel.RealmFactory.GetRealmInstance()
+            .Find<ArtistModel>(DetailedSong.Artist.Id)!
+            .Albums.ToList().Select(x => x.ToAlbumModelView()).ToObservableCollection();
+        DetailedSong.Artist.AlbumsByArtist = albs;
+        AlbumsIR.ItemsSource = DetailedSong.Artist.AlbumsByArtist;
+    }
+
+    private void Album_Click(object sender, RoutedEventArgs e)
+    {
+        var send = (Button)sender;
+                var album = (AlbumModelView)send.DataContext;
+
+        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByAlbum(album.Name));
+
+
+    }
+
+    private void CardBorder_DropCompleted(UIElement sender, Microsoft.UI.Xaml.DropCompletedEventArgs args)
+    {
+
+    }
+
+    private async void CardBorder_Drop(object sender, DragEventArgs e)
+    {
+        // 1. Check if the drop contains the data format we expect
+        if (e.DataView.Contains(StandardDataFormats.StorageItems))
+        {
+            // Example: User dragged a file from Windows Explorer onto the Image
+            var items = await e.DataView.GetStorageItemsAsync();
+            if (items.Count > 0 && items[0] is StorageFile file)
+            {
+                // Get the ViewModel associated with the Border we dropped onto
+                if (sender is FrameworkElement border && border.DataContext is SongModelView targetSong)
+                {
+                    // Logic to update the cover image
+                    // await MyViewModel.UpdateCoverImage(targetSong, file);
+                    Debug.WriteLine($"Dropped file {file.Path} onto song {targetSong.Title}");
+                }
+            }
+        }
+        // 2. Check for internal drag (Reordering or swapping)
+        else if (e.DataView.Contains(StandardDataFormats.Text))
+        {
+            var text = await e.DataView.GetTextAsync();
+            // Handle internal logic
+        }
+    }
+
+    private void CardBorder_DragOver(object sender, DragEventArgs e)
+    {
+        // 1. Allow the drop (Change the icon from "No" to "Copy" or "Move")
+        e.AcceptedOperation = (Windows.ApplicationModel.DataTransfer.DataPackageOperation)DataPackageOperation.Copy;
+
+        // Optional: Change the tooltip text next to the cursor
+        e.DragUIOverride.Caption = "Drop to Edit Image";
+        e.DragUIOverride.IsCaptionVisible = true;
+        e.DragUIOverride.IsContentVisible = true;
+        e.DragUIOverride.IsGlyphVisible = true;
+    }
+
+    private void CardBorder_DragEnter(object sender, Microsoft.UI.Xaml.DragEventArgs e)
+    {
+
+    }
+
+    private void CardBorder_DragLeave(object sender, Microsoft.UI.Xaml.DragEventArgs e)
+    {
+
+    }
+
+    private void CardBorder_DragStarting(UIElement sender, Microsoft.UI.Xaml.DragStartingEventArgs args)
+    {
+        if (sender is FrameworkElement element && element.DataContext is SongModelView song)
+        {
+            args.Data.SetText(song.Title);
+
+            args.Data.RequestedOperation = (Windows.ApplicationModel.DataTransfer.DataPackageOperation)DataPackageOperation.Copy;
+        }
+    }
+
+    private void ResetAblums_Click(object sender, RoutedEventArgs e)
+    {
+        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(DetailedSong.ArtistName));
+    }
+
+    private async void TitleSection_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
+    {
+        // e.OriginalSource is the specific UI element that received the tap 
+        // (e.g., a TextBlock, an Image, a Grid, etc.).
+        var element = e.OriginalSource as FrameworkElement;
+        SongModelView? song = null;
+        if (element == null)
+            return;
+
+
+
+        while (element != null && element != sender)
+        {
+            if (element.DataContext is SongModelView currentSong)
+            {
+                song = currentSong;
+                break; // Found it!
+            }
+            element = element.Parent as FrameworkElement;
+        }
+        var songs = ArtistDataTable.Items;
+        
+
+        // now we need items as enumerable of SongModelView
+
+        var SongsEnumerable = songs.OfType<SongModelView>();
+
+        Debug.WriteLine(SongsEnumerable.Count());
+
+
+        if (song != null)
+        {
+            // You found the song! Now you can call your ViewModel command.
+            Debug.WriteLine($"Double-tapped on song: {song.Title}");
+            await MyViewModel.PlaySong(song,curPage:CurrentPage.AllArtistsPage, songs: SongsEnumerable);
+        }
     }
 }

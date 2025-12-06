@@ -49,4 +49,17 @@ public sealed partial class AudioEditorPage : Page
             ViewModel.LoadSong(song);
         }
     }
+
+    private void MainGrid_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        var props = e.GetCurrentPoint(this).Properties;
+        if (props != null)
+        {
+            if(props.PointerUpdateKind == Microsoft.UI.Input.PointerUpdateKind.XButton1Pressed)
+            {
+                if (Frame.CanGoBack)
+                    Frame.GoBack();
+            }
+        }
+    }
 }

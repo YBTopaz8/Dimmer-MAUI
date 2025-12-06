@@ -27,7 +27,8 @@ public partial class ArtistModelView : ObservableObject
     [ObservableProperty]
     public partial bool IsFavorite { get; set; }
 
-
+    [ObservableProperty]
+    public partial ObservableCollection<AlbumModelView>? AlbumsByArtist { get; set; }
     public DateTimeOffset? DateCreated { get; set; } = DateTimeOffset.UtcNow;
     public string? DeviceName { get; set; }
     public string? DeviceFormFactor { get; set; }

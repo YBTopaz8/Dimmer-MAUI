@@ -107,6 +107,7 @@ public static class DimmerMappers
 
             // --- Custom Mappings (From your AutoMapper config) ---
             ArtistName = src.ArtistName,
+            OtherArtistsName = src.OtherArtistsName,
             AlbumName = src.AlbumName,
             GenreName = src.Genre?.Name ?? string.Empty,
 
@@ -132,7 +133,7 @@ public static class DimmerMappers
         };
 
         // Equivalent to AfterMap logic
-        // dest.RefreshDenormalizedProperties(); // Uncomment if you want this logic to run on mapping
+        // dest.RefreshDenormalizedProperties(); 
 
         return dest;
     }
@@ -145,7 +146,7 @@ public static class DimmerMappers
         {
             Id = src.Id,
             Title = src.Title,
-            OtherArtistsName = src.ArtistName, // Reverse Mapping
+            OtherArtistsName = src.OtherArtistsName, // Reverse Mapping
             AlbumName = src.AlbumName,
             GenreName = src.GenreName,
             FilePath = src.FilePath,

@@ -184,7 +184,8 @@ public class FolderMgtService : IFolderMgtService
     {
         var newPathsToAdd = new List<string>();
         var realm = realmFactory.GetRealmInstance();
-        var appModel = realm.All<AppStateModel>().FirstOrDefault();
+        var appModelList = realm.All<AppStateModel>().ToList();
+        var appModel = appModelList.FirstOrDefault();
         if (appModel == null) return;
         var knowPaths = appModel.UserMusicFoldersPreference ?? new List<string>();
 

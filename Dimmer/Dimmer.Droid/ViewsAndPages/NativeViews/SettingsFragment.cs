@@ -176,26 +176,27 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
         }
 
         // Add Button
-        var addBtn = new MaterialButton(ctx)
+        _addFolderButton = new MaterialButton(ctx)
         {
             Text = "Add Folder",
             Icon = AndroidX.Core.Content.ContextCompat.GetDrawable(ctx, Android.Resource.Drawable.IcInputAdd)
         };
-        addBtn.SetBackgroundColor(Android.Graphics.Color.Transparent);
-        addBtn.SetTextColor(IsDark() ? Android.Graphics.Color.White : Android.Graphics.Color.Black);
-        addBtn.Click += async (s, e) =>
+        _addFolderButton.SetBackgroundColor(Android.Graphics.Color.Transparent);
+        _addFolderButton.SetTextColor(IsDark() ? Android.Graphics.Color.White : Android.Graphics.Color.Black);
+        _addFolderButton.Click += async (s, e) =>
         {
             if (Activity is TransitionActivity act)
             {
                 var path = await act.PickFolderAsync();
                 if (!string.IsNullOrEmpty(path))
                 {
+                    MyViewModel.AddMusicFoldersByPassingToService(new List<string> { path });
                     // Refresh view (in a real app, use ObservableCollection or adapter)
                     ParentFragmentManager.BeginTransaction().Detach(this).Attach(this).Commit();
                 }
             }
         };
-        layout.AddView(addBtn);
+        layout.AddView(_addFolderButton);
 
         return WrapInCard(ctx, layout);
     }
