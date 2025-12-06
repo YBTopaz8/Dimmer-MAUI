@@ -183,4 +183,72 @@ public class WindowsAudioEditorService : IDimmerAudioEditorService
             if (File.Exists(listFile)) File.Delete(listFile);
         }
     }
-}
+
+    public async Task<string> ApplyAudioEffectsAsync(string inputFile, AudioEffectOptions options, IProgress<double> progress)
+    {
+        await GuardEnsureFFmpeg();
+
+        // Determine output filename based on effects
+        string suffix = "_edited";
+        if (options.Speed < 1.0) suffix += "_slowed";
+        else if (options.Speed > 1.0) suffix += "_nightcore";
+        if (options.EnableReverb) suffix += "_reverb";
+
+        string outputFile = GenerateOutputPath(inputFile, suffix);
+
+        // --- CONSTRUCT FILTER CHAIN ---
+        var filters = new List<string>();
+
+        // 1. Speed & Pitch (Resampling method links them naturally for that "tape stop" effect)
+        // 44100 is standard sample rate. Adjusting it changes speed+pitch together.
+        if (Math.Abs(options.Speed - 1.0) > 0.01)
+        {
+            // "asetrate=44100*0.8,aresample=44100" -> Slows down and pitches down
+            filters.Add($"asetrate=44100*{options.Speed},aresample=44100");
+        }
+
+        // 2. Reverb (Simple Echo filter as Reverb)
+        // 0.8:0.9 -> Input gain : Output gain
+        // 1000 -> Delay in ms (1 second delay makes it spacious)
+        // 0.3 -> Decay (0.3 is decent tail)
+        if (options.EnableReverb)
+        {
+            filters.Add("aecho=0.8:0.88:60:0.4");
+        }
+
+        // 3. Volume
+        if (Math.Abs(options.VolumeGain - 1.0) > 0.01)
+        {
+            filters.Add($"volume={options.VolumeGain}");
+        }
+
+        // Join filters with comma
+        string filterString = string.Join(",", filters);
+
+        // Safety check: if no filters, just copy
+        string args;
+        if (string.IsNullOrEmpty(filterString))
+        {
+            args = $"-y -i \"{inputFile}\" -c copy \"{outputFile}\"";
+        }
+        else
+        {
+            // Note: Filters require re-encoding. We use libmp3lame (standard mp3 encoder)
+            // -q:a 2 is high quality variable bitrate
+            args = $"-y -i \"{inputFile}\" -af \"{filterString}\" -c:a libmp3lame -q:a 2 \"{outputFile}\"";
+        }
+
+        try
+        {
+            var conversion = FFmpeg.Conversions.New();
+            progress?.Report(10); // Fake start progress
+            await conversion.Start(args);
+            progress?.Report(100);
+            return outputFile;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[Effects Error]: {ex}");
+            throw;
+        }
+    }

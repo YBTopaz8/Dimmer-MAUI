@@ -14,4 +14,14 @@ public interface IDimmerAudioEditorService
     Task<bool> MergeAudioFilesAsync(string[] inputFiles, string outputFile);
     //Task<string?> TrimAudioAsync(string inputFile, string outputFile, TimeSpan start, TimeSpan end);
     Task<string> TrimAudioAsync(string inputFile, TimeSpan start, TimeSpan end, IProgress<double> progress);
+    Task<string> ApplyAudioEffectsAsync(string inputFile, AudioEffectOptions options, IProgress<double> progress);
+}
+
+// Simple options class to pass parameters
+public class AudioEffectOptions
+{
+    public double Speed { get; set; } = 1.0; // 0.5 to 2.0
+    public double Pitch { get; set; } = 1.0; // 0.5 to 2.0 (Linked to speed usually in FFmpeg unless using rubberband)
+    public bool EnableReverb { get; set; }
+    public double VolumeGain { get; set; } = 1.0; // 1.0 = 100%
 }

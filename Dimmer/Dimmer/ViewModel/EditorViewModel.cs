@@ -18,23 +18,56 @@ public partial class EditorViewModel : BaseViewModel
         _editorService = editorService;
         InitializeAsync();
     }
-
-    public async Task MakeOneHourVersionCommand()
+    string oneHourOutputPath = string.Empty;
+    [RelayCommand]
+    public async Task MakeOneHourVersion()
     {
-        IsBusy = true;
+        oneHourOutputPath = string.Empty;
+        IsBusy = true; 
+        CanViewOneHourFolder = false;
         string input = CurrentPlayingSongView.FilePath;
-        string output = Path.Combine(FileSystem.CacheDirectory, $"{CurrentPlayingSongView.Title}_1Hour.mp3");
+        oneHourOutputPath = Path.Combine(FileSystem.CacheDirectory, $"{CurrentPlayingSongView.Title}_1Hour.mp3");
 
-        bool success = await _editorService.CreateOneHourLoopAsync(input, output);
+        bool success = await _editorService.CreateOneHourLoopAsync(input, oneHourOutputPath);
 
-        if (success) { /* Notify User / Add to Library */ }
+        if (success) {
+        var successMessage = $"1-Hour version created at: {oneHourOutputPath}";
+            StatusMessage = successMessage;
+            CanViewOneHourFolder = true;
+        }
         IsBusy = false;
     }
+    [RelayCommand]
+    public async Task OpenAndSelectedOneHourLoopedFile()
+    {
+        IsBusy = true;
+        if (!string.IsNullOrWhiteSpace(oneHourOutputPath) && System.IO.File.Exists(oneHourOutputPath))
+        {
+            string argument = "/select, \"" + oneHourOutputPath + "\"";
+            System.Diagnostics.Process.Start("explorer.exe", argument);
+        }
+
+        IsBusy = false;
+    }
+
+    
+
     [ObservableProperty]
     public partial bool IsBusy { get; set; }
+    
+
+    [ObservableProperty]
+    public partial bool IsReverbEnabled { get; set; }
+    
+
+    [ObservableProperty]
+    public partial bool CanViewOneHourFolder { get; set; }
 
     [ObservableProperty]
     public partial string StatusMessage { get; set; } = "Ready";
+
+    [ObservableProperty]
+    public partial double PlaybackSpeed { get; set; } = 1.0;
 
     [ObservableProperty]
     public partial double ProgressValue {get;set;}
@@ -145,4 +178,40 @@ public partial class EditorViewModel : BaseViewModel
             ProgressValue = 0; // Reset or keep full to show completion
         }
     }
+
+
+    [RelayCommand]
+    public async Task CreateSlowedReverb()
+    {
+        // Preset for Lofi
+        var options = new AudioEffectOptions
+        {
+            Speed = 0.85, // 15% slower
+            EnableReverb = true,
+            VolumeGain = 1.0
+        };
+
+        await RunEditorTask("Applying Slowed + Reverb...", async (p) =>
+        {
+            return await _editorService.ApplyAudioEffectsAsync(SourceFilePath, options, p);
+        });
+    }
+
+    [RelayCommand]
+    public async Task CreateNightcore()
+    {
+        // Preset for Nightcore
+        var options = new AudioEffectOptions
+        {
+            Speed = 1.25, // 25% faster
+            EnableReverb = false,
+            VolumeGain = 1.0
+        };
+
+        await RunEditorTask("Applying Nightcore...", async (p) =>
+        {
+            return await _editorService.ApplyAudioEffectsAsync(SourceFilePath, options, p);
+        });
+    }
+
 }
