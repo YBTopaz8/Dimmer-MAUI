@@ -4,6 +4,8 @@ using System.Reactive.Disposables.Fluent;
 using Android.Graphics;
 using Android.Views.InputMethods;
 
+using AndroidX.CoordinatorLayout.Widget;
+
 using Bumptech.Glide;
 
 using Google.Android.Material.Button;
@@ -74,62 +76,156 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     {
         var ctx = Context;
 
-        // Root
-        var root = new LinearLayout(ctx)
+        // 1. Root: CoordinatorLayout (Crucial for FABs)
+        var root = new CoordinatorLayout(ctx)
         {
-            Orientation = Orientation.Vertical,
             LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent)
         };
 
-        // 1. Search Bar
+        // 2. Main Content Container (Linear Layout inside Coordinator)
+        var contentLinear = new LinearLayout(ctx)
+        {
+            Orientation = Orientation.Vertical,
+            LayoutParameters = new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent)
+        };
+
+        // --- 3. Header Section (Menu + Search + Help) ---
+        var headerLayout = new LinearLayout(ctx)
+        {
+            Orientation = Orientation.Horizontal
+        };
+        headerLayout.SetGravity(GravityFlags.CenterVertical);
+        // Initial padding (will be updated by Insets logic below)
+        headerLayout.SetPadding(20, 20, 20, 20);
+
+        // Menu Button
+        var menuBtn = new Google.Android.Material.Button.MaterialButton(ctx, null, Resource.Attribute.materialIconButtonStyle)
+        {
+            Icon = AndroidX.Core.Content.ContextCompat.GetDrawable(ctx, Resource.Drawable.hamburgermenu),
+            IconTint = Android.Content.Res.ColorStateList.ValueOf(Color.Gray),
+            LayoutParameters = new LinearLayout.LayoutParams(AppUtil.DpToPx(50), AppUtil.DpToPx(50))
+        };
+        menuBtn.Click += (s, e) => { if (Activity is TransitionActivity act) act.OpenDrawer(); };
+
+        // Search Card
         var searchCard = new MaterialCardView(ctx)
         {
             Radius = AppUtil.DpToPx(25),
             CardElevation = AppUtil.DpToPx(4),
-            LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent)
+            LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1f) // Weight 1
         };
-        ((LinearLayout.LayoutParams)searchCard.LayoutParameters).SetMargins(20, 40, 20, 20);
+        ((LinearLayout.LayoutParams)searchCard.LayoutParameters).SetMargins(10, 0, 10, 0);
 
         _searchBar = new TextInputEditText(ctx)
         {
             Hint = "Search library...",
-            Background = null // Removes the underline bar you hated
+            Background = null,
+            TextSize = 14
         };
         _searchBar.SetPadding(40, 30, 40, 30);
-
         searchCard.AddView(_searchBar);
 
-        // 2. RecyclerView
+        // Help Button
+        var helpBtn = new Google.Android.Material.Button.MaterialButton(ctx, null, Resource.Attribute.materialIconButtonStyle)
+        {
+            Icon = AndroidX.Core.Content.ContextCompat.GetDrawable(ctx, Android.Resource.Drawable.IcMenuHelp),
+            IconTint = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.DarkGray),
+            LayoutParameters = new LinearLayout.LayoutParams(AppUtil.DpToPx(50), AppUtil.DpToPx(50))
+        };
+        helpBtn.Click += (s, e) => OpenTqlGuide();
+
+        // Add items to Header
+        headerLayout.AddView(menuBtn);
+        headerLayout.AddView(searchCard);
+        headerLayout.AddView(helpBtn);
+
+        // Add Header to Content
+        contentLinear.AddView(headerLayout);
+
+        // --- 4. RecyclerView ---
         _songListRecycler = new RecyclerView(ctx);
         _songListRecycler.SetLayoutManager(new LinearLayoutManager(ctx));
         _songListRecycler.LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent);
 
-        // Attach Adapter
+        // Add Bottom Padding to Recycler so last item isn't hidden behind MiniPlayer/FAB
+        _songListRecycler.SetPadding(0, 0, 0, AppUtil.DpToPx(160));
+        _songListRecycler.SetClipToPadding(false);
+
         var adapter = new SongAdapter(ctx, MyViewModel, this);
         _songListRecycler.SetAdapter(adapter);
 
-        root.AddView(_songListRecycler);
+        // Add Recycler to Content
+        contentLinear.AddView(_songListRecycler);
 
+        // Add Content to Root
+        root.AddView(contentLinear);
 
-        var helpBtn = new Google.Android.Material.Button.MaterialButton(ctx, null, Resource.Attribute.materialIconButtonStyle)
-        {
-            Icon = AndroidX.Core.Content.ContextCompat.GetDrawable(ctx, Android.Resource.Drawable.IcMenuHelp), // Use a real drawable resource
-            IconTint = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.DarkGray),
-            LayoutParameters = new LinearLayout.LayoutParams(AppUtil.DpToPx(50), AppUtil.DpToPx(50))
-        };
-        ((LinearLayout.LayoutParams)helpBtn.LayoutParameters).Gravity = GravityFlags.CenterVertical;
-        helpBtn.Click += (s, e) => OpenTqlGuide();
+        // --- 5. Extended FAB ---
+        var fab = new Google.Android.Material.FloatingActionButton.ExtendedFloatingActionButton(ctx);
+        fab.Text = "Actions";
+        fab.SetIconResource(Resource.Drawable.addpl); 
+        fab.Extend();
 
-        // Add helpBtn to the searchCard or the layout next to it
-        // If searchCard is horizontal LinearLayout, add it there.
-        // If not, you might want to wrap SearchBar and HelpBtn in a Horizontal LinearLayout.
-        var headerLayout = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
-        headerLayout.AddView(searchCard); // Adjust params to weight=1
-        headerLayout.AddView(helpBtn);
-        root.AddView(headerLayout, 0); // Add at top
+        var fabParams = new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent);
+        fabParams.Gravity = (int)(GravityFlags.Bottom | GravityFlags.End);
+        // Lift FAB above the MiniPlayer (approx 90dp)
+        fabParams.SetMargins(0, 0, AppUtil.DpToPx(20), AppUtil.DpToPx(90));
+        fab.LayoutParameters = fabParams;
+
+        fab.Click += (s, e) => ShowFabMenu(ctx, fab);
+
+        // Add FAB to Root
+        root.AddView(fab);
+
+        // --- 6. Handle Insets ---
+        AndroidX.Core.View.ViewCompat.SetOnApplyWindowInsetsListener(root, new HeaderInsetsListener(headerLayout));
 
         return root;
     }
+    class HeaderInsetsListener : Java.Lang.Object, AndroidX.Core.View.IOnApplyWindowInsetsListener
+    {
+        private readonly View _header;
+        public HeaderInsetsListener(View header) { _header = header; }
+
+        public AndroidX.Core.View.WindowInsetsCompat OnApplyWindowInsets(View? v, AndroidX.Core.View.WindowInsetsCompat? insets)
+        {
+            var bars = insets.GetInsets(AndroidX.Core.View.WindowInsetsCompat.Type.SystemBars());
+            // Apply Top Padding to the Header Layout only
+            _header.SetPadding(_header.PaddingLeft, bars.Top + AppUtil.DpToPx(10), _header.PaddingRight, _header.PaddingBottom);
+            return insets;
+        }
+    }
+    private void ShowFabMenu(Context ctx, View anchor)
+    {
+        var popup = new Android.Widget.PopupMenu(ctx, anchor);
+        popup.Menu.Add(0, 1, 0, "Go to Settings");
+        popup.Menu.Add(0, 2, 0, "Search Library");
+        popup.Menu.Add(0, 3, 0, "Scroll to Playing");
+
+        popup.MenuItemClick += (s, e) =>
+        {
+            switch (e.Item.ItemId)
+            {
+                case 1: // Settings
+                    if (Activity is TransitionActivity act)
+                        act.NavigateTo(new SettingsFragment("sett", MyViewModel), "SettingsFragment");
+                    break;
+                case 2: // Search
+                    _searchBar?.RequestFocus();
+                    // Show Keyboard
+                    var imm = (InputMethodManager)ctx.GetSystemService(Context.InputMethodService);
+                    imm?.ShowSoftInput(_searchBar, ShowFlags.Implicit);
+                    break;
+                case 3: // Scroll To
+                    MyViewModel.TriggerScrollToCurrentSong();
+                    break;
+            }
+        };
+        popup.Show();
+    }
+
+
+
     public void OpenTqlGuide()
     {
         var guideFrag = new TqlGuideFragment(MyViewModel);

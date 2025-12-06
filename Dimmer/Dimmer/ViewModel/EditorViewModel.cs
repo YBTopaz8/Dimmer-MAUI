@@ -80,7 +80,7 @@ public partial class EditorViewModel : BaseViewModel
 
         StatusMessage = $"Loaded: {song.Title}";
     }
-
+    IProgress<double> progress;
     [RelayCommand]
     private async Task TrimAudio()
     {
@@ -92,9 +92,10 @@ public partial class EditorViewModel : BaseViewModel
         }
         var outputPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
             "DimmerTrimOutput");
+        progress = new Progress<double>(val => ProgressValue = val / 100.0);
         await RunEditorTask("Trimming Audio...", async (progress) =>
         {
-            return await _editorService.TrimAudioAsync(SourceFilePath, outputPath,TimeSpan.FromSeconds(StartTime), TimeSpan.FromSeconds(EndTime));
+            return await _editorService.TrimAudioAsync(SourceFilePath, TimeSpan.FromSeconds(StartTime), TimeSpan.FromSeconds(EndTime), progress);
         });
     }
 

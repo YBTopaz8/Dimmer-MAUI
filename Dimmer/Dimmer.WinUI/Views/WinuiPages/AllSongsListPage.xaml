@@ -406,7 +406,7 @@
                         Header="Artist"
                         IsReadOnly="True"
                         ToolTipService.Placement="Mouse"
-                        ToolTipService.ToolTip="{Binding ArtistName}">
+                        ToolTipService.ToolTip="{Binding OtherArtistsName}">
                         <dgView:TableViewTemplateColumn.CellTemplate>
 
                             <DataTemplate>

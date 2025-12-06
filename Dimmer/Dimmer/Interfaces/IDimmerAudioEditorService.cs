@@ -12,5 +12,6 @@ public interface IDimmerAudioEditorService
     Task<bool> CreateOneHourLoopAsync(string inputFile, string outputFile);
     Task<bool> EnsureFFmpegLoadedAsync();
     Task<bool> MergeAudioFilesAsync(string[] inputFiles, string outputFile);
-    Task<string?> TrimAudioAsync(string inputFile, string outputFile, TimeSpan start, TimeSpan end);
+    //Task<string?> TrimAudioAsync(string inputFile, string outputFile, TimeSpan start, TimeSpan end);
+    Task<string> TrimAudioAsync(string inputFile, TimeSpan start, TimeSpan end, IProgress<double> progress);
 }

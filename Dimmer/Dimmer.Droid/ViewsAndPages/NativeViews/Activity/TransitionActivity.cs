@@ -1,6 +1,8 @@
 ﻿
 
 using AndroidX.CoordinatorLayout.Widget;
+using AndroidX.Core.View;
+using AndroidX.DrawerLayout.Widget;
 
 using Dimmer.NativeServices;
 using Dimmer.Utilities.Extensions;
@@ -36,7 +38,7 @@ namespace Dimmer.ViewsAndPages.NativeViews.Activity;
     ConfigChanges.Orientation | ConfigChanges.UiMode |
     ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize |
     ConfigChanges.Density)]
-public class TransitionActivity : AppCompatActivity
+public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListener
 {
     public BottomSheetBehavior SheetBehavior { get; private set; }
      private FrameLayout _sheetContainer;
@@ -69,7 +71,11 @@ public class TransitionActivity : AppCompatActivity
     {
         SetTheme(Resource.Style.Theme_Dimmer);
         base.OnCreate(savedInstanceState);
+        WindowCompat.SetDecorFitsSystemWindows(Window, false);
 
+        // Make bars transparent
+        Window.SetStatusBarColor( Color.Transparent);
+        Window.SetNavigationBarColor( Color.Transparent);
         // 1. Initialize DI
         MainApplication.ServiceProvider ??= Bootstrapper.Init();
         try
@@ -85,7 +91,7 @@ public class TransitionActivity : AppCompatActivity
         Dimmer.Utils.UiThreads.InitializeMainHandler();
 
         // 2. Setup Coordinator Layout Architecture
-        SetupLayout();
+        SetupDrawerLayout();
 
         // 3. Load Fragments (If fresh start)
         if (savedInstanceState == null)
@@ -128,141 +134,192 @@ public class TransitionActivity : AppCompatActivity
         {
             
             Fragment current = SupportFragmentManager.FindFragmentById(_contentContainer.Id);
-            string tag = current?.Tag ?? "";
-
-            // Show Nav Bar ONLY on Home, Graph, or Settings. Hide on Detail/Player pages.
-            bool showNav = tag == "HomePageFragment" || tag == "GraphFragment" || tag == "SettingsFragment";
-            ToggleNavBar(showNav);
-
-            // 3. Update ViewModel (Keep your existing logic)
             MyViewModel.CurrentPage = current;
         };
 
         CheckAndRequestPermissions();
-
-        //_contentContainer.Post(() => {
-        //    bool showNav = true; 
-        //    ToggleNavBar(showNav);
-        //});
     }
-
-    private void SetupLayout()
+    DrawerLayout _drawerLayout;
+    private void SetupDrawerLayout()
     {
         var currentTheme = Resources?.Configuration?.UiMode & UiMode.NightMask;
         var bgColor = currentTheme == UiMode.NightYes ? Color.ParseColor("#121212") : Color.ParseColor("#F5F5F5");
-        // Root Coordinator
-        var coordinator = new CoordinatorLayout(this)
+        _drawerLayout = new DrawerLayout(this)
         {
-            LayoutParameters = new ViewGroup.LayoutParams(-1, -1)
+            LayoutParameters = new ViewGroup.LayoutParams(-1, -1),
         };
-        coordinator.Id = View.GenerateViewId();
-        coordinator.SetBackgroundColor(bgColor);
+        _drawerLayout.SetFitsSystemWindows(false);
+        _drawerLayout.Id = View.GenerateViewId();
 
-        // A. Content Container (Home, Settings, etc.)
+        _mainContentCoordinator = new CoordinatorLayout(this)
+        {
+            LayoutParameters = new DrawerLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent),
+        };
+        _mainContentCoordinator.SetBackgroundColor(bgColor);
+
+        // 2a. Fragment Container (The Page)
         _contentContainer = new FrameLayout(this)
         {
             Id = View.GenerateViewId(),
-            LayoutParameters = new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent)
+            LayoutParameters = new CoordinatorLayout.LayoutParams(-1, -1)
         };
-        // Add bottom margin so the list isn't hidden behind the mini-player (approx 70dp)
-        var contentParams = (CoordinatorLayout.LayoutParams)_contentContainer.LayoutParameters;
-        _contentContainer.SetPadding(0, 0, 0, AppUtil.DpToPx(160));
+        // Padding bottom only for the Mini Player (70dp)
+        _contentContainer.SetPadding(0, 0, 0, AppUtil.DpToPx(70));
         _contentContainer.SetClipToPadding(false);
-
-
         MyStaticID = _contentContainer.Id;
 
-        NavBar = new BottomNavigationView(this)
-        {
-            LayoutParameters = new CoordinatorLayout.LayoutParams(-1, ViewGroup.LayoutParams.WrapContent)
-            {
-                Gravity = (int)(GravityFlags.Bottom)
-            },
-            Elevation = 8 * Resources!.DisplayMetrics!.Density
-        };
-        NavBar.SetBackgroundColor(bgColor);
-        SetupNavItems();
-        NavBar.ItemSelected += NavBar_ItemSelected;
-
-        // B. Bottom Sheet Container (Player)
+        // 2b. Player Sheet Container
         _sheetContainer = new FrameLayout(this)
         {
             Id = View.GenerateViewId(),
-            LayoutParameters = new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent),
+            LayoutParameters = new CoordinatorLayout.LayoutParams(-1, -1)
+            {
+                Gravity = (int)GravityFlags.Bottom
+            },
             Elevation = 16 * Resources.DisplayMetrics.Density,
             Clickable = true,
-            Focusable = true,
-
-
+            Focusable = true
         };
-        _sheetContainer.SetForegroundGravity(GravityFlags.Bottom);
+        _sheetContainer.SetBackgroundColor(currentTheme == UiMode.NightYes ? Color.ParseColor("#1E1E1E") : Color.White);
 
-        // Background must be solid to cover content
-        _sheetContainer.SetBackgroundColor(currentTheme == UiMode.NightYes ? Color.ParseColor("#121212") : Color.White);
-
-        // Configure BottomSheetBehavior
+        // Configure Sheet Behavior
         var sheetParams = (CoordinatorLayout.LayoutParams)_sheetContainer.LayoutParameters;
         SheetBehavior = new BottomSheetBehavior();
-        SheetBehavior.PeekHeight = (int)(Resources.DisplayMetrics.Density * 70); // Mini Player Height
+        SheetBehavior.PeekHeight = AppUtil.DpToPx(70);
         SheetBehavior.State = BottomSheetBehavior.StateCollapsed;
         sheetParams.Behavior = SheetBehavior;
 
-        // Add to Root
-        coordinator.AddView(_contentContainer);
-        coordinator.AddView(NavBar);
-        coordinator.AddView(_sheetContainer);
+        // Add views to Coordinator (Content first, then Player on top)
+        _mainContentCoordinator.AddView(_contentContainer);
+        _mainContentCoordinator.AddView(_sheetContainer);
 
-        SetContentView(coordinator);
+        // 3. Navigation View ( The Side Menu)
+        _navigationView = new NavigationView(this)
+        {
+            LayoutParameters = new DrawerLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.MatchParent)
+            {
+                Gravity = (int)GravityFlags.Start // Slides from Left
+            }
+        };
+
+        _navigationView.SetFitsSystemWindows(true);
+        // Setup Menu Items
+        _navigationView.Menu.Add(0, 100, 0, "Home").SetIcon(Resource.Drawable.musicaba);
+        _navigationView.Menu.Add(0, 101, 0, "Browser / Graph").SetIcon(Resource.Drawable.heart);
+        _navigationView.Menu.Add(0, 102, 0, "Settings").SetIcon(Resource.Drawable.settings);
+
+        // Handle Clicks
+        _navigationView.NavigationItemSelected += (s, e) =>
+        {
+            NavigateToId(e.MenuItem.ItemId);
+            _drawerLayout.CloseDrawer(GravityCompat.Start); // Close after click
+        };
+
+        // 4. Assemble Root
+        _drawerLayout.AddView(_mainContentCoordinator);
+        _drawerLayout.AddView(_navigationView);
 
 
-        AndroidX.Core.View.WindowCompat.SetDecorFitsSystemWindows(Window, false);
-        AndroidX.Core.View.ViewCompat.SetOnApplyWindowInsetsListener(_contentContainer, new MyInsetsListener());
-        //AndroidX.Core.View.ViewCompat.SetOnApplyWindowInsetsListener(_sheetContainer, new MySheetInsetsListener());
-        NavBar.ViewTreeObserver.AddOnPreDrawListener(new NavLayoutListener(this));
+        var headerView = new LinearLayout(this)
+        {
+            Orientation = Orientation.Vertical,
+            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, AppUtil.DpToPx(200)) // Height: 200dp
+        };
+        headerView.SetBackgroundColor(Color.ParseColor("#2D2D30")); // Dark Header BG
+        headerView.SetGravity (GravityFlags.Bottom);
+        headerView.SetPadding(40, 40, 40, 40);
+
+        var appTitle = new TextView(this)
+        {
+            Text = "Dimmer",
+            TextSize = 24,
+            Typeface = Typeface.DefaultBold
+        };
+        appTitle.SetTextColor(Color.White);
+
+        var appSub = new TextView(this)
+        {
+            Text = "Your Library",
+            TextSize = 14
+        };
+        appSub.SetTextColor(Color.LightGray);
+
+        headerView.AddView(appTitle);
+        headerView.AddView(appSub);
+
+        _navigationView.AddHeaderView(headerView);
+
+
+        SetContentView(_drawerLayout);
+        ViewCompat.SetOnApplyWindowInsetsListener(_drawerLayout, this);
     }
-
-    private void SetupNavItems()
+    public WindowInsetsCompat OnApplyWindowInsets(View v, WindowInsetsCompat insets)
     {
-        NavBar.Menu.Clear();
+        var bars = insets.GetInsets(WindowInsetsCompat.Type.SystemBars());
 
-        // 1. Home Item
-        // Create the state list programmatically (Selected = Filled, Default = Outlined)
-        var homeIcon = CreateStateListDrawable(
-            Resource.Drawable.musicaba,       // Filled/Selected Icon ID
-            Resource.Drawable.musicaa // Outlined/Unselected Icon ID
-        );
-        NavBar.Menu.Add(0, 100, 0, "Home").SetIcon(homeIcon);
+        // 1. Fix Status Bar (Top)
+        // We apply Top Padding to the Main Coordinator so the App Header/Search Bar 
+        // starts BELOW the clock/battery.
+        _mainContentCoordinator.SetPadding(0, bars.Top, 0, 0);
 
-        // 2. Browser/Favs Item
-        var browserIcon = CreateStateListDrawable(
-            Resource.Drawable.heart,         // Filled
-            Resource.Drawable.heart  // Outlined
-        );
-        NavBar.Menu.Add(0, 101, 0, "Favs").SetIcon(browserIcon);
+        // 2. Fix Navigation Bar (Bottom) for Player
+        // We want the Mini Player to sit ABOVE the System Navigation Bar (Gesture pill / 3-buttons).
+        // We use Margin for this.
+        var sheetParams = (CoordinatorLayout.LayoutParams)_sheetContainer.LayoutParameters;
+        sheetParams.BottomMargin = bars.Bottom;
+        _sheetContainer.LayoutParameters = sheetParams;
 
-        // 3. Settings Item
-        var settingsIcon = CreateStateListDrawable(
-            Resource.Drawable.settings, // Filled
-            Resource.Drawable.settings         // Outlined
-        );
-        NavBar.Menu.Add(0, 102, 0, "Settings").SetIcon(settingsIcon);
+        // 3. Fix Navigation Bar (Bottom) for Content
+        // The content container needs extra padding so the last item in the list
+        // isn't hidden behind the Player + System Nav Bar.
+        // Total Padding = System Nav Height + MiniPlayer Height (70dp)
+        _contentContainer.SetPadding(0, 0, 0, bars.Bottom + AppUtil.DpToPx(70));
 
-        // Set the color tint logic (Active = Purple, Inactive = Gray)
-        int[][] states = new int[][]
-        {
-            new int[] { Android.Resource.Attribute.StateChecked }, // Checked
-            new int[] { -Android.Resource.Attribute.StateChecked } // Unchecked
-        };
-
-        int[] colors = new int[]
-        {
-            Color.ParseColor("#6200EE"), // Active Color (Purple)
-            Color.ParseColor("#757575")  // Inactive Color (Gray)
-        };
-
-        NavBar.ItemIconTintList = new Android.Content.Res.ColorStateList(states, colors);
-        NavBar.ItemTextColor = new Android.Content.Res.ColorStateList(states, colors);
+        // Return insets so other views (like the side drawer) can use them if needed
+        return insets;
     }
+
+    private void NavigateToId(int id)
+    {
+        Fragment? selectedFrag = null;
+        string tag = "";
+
+        switch (id)
+        {
+            case 100:
+                if (SupportFragmentManager.FindFragmentByTag("HomePageFragment") != null)
+                {
+                    SupportFragmentManager.PopBackStack("HomePageFragment", 0);
+                    return;
+                }
+                selectedFrag = new HomePageFragment(MyViewModel);
+                tag = "HomePageFragment";
+                break;
+            case 101:
+                selectedFrag = new GraphExplorerFragment(MyViewModel);
+                tag = "GraphFragment";
+                break;
+            case 102:
+                selectedFrag = new SettingsFragment("settingsTrans", MyViewModel);
+                tag = "SettingsFragment";
+                break;
+        }
+
+        if (selectedFrag != null)
+        {
+            SupportFragmentManager.BeginTransaction()
+                .SetCustomAnimations(Android.Resource.Animation.FadeIn, Android.Resource.Animation.FadeOut)
+                .Replace(_contentContainer.Id, selectedFrag, tag)
+                .AddToBackStack(tag)
+                .Commit();
+        }
+    }
+
+    public void OpenDrawer()
+    {
+        _drawerLayout.OpenDrawer(GravityCompat.Start);
+    }
+
 
     // Helper to create the animation drawable
     private Android.Graphics.Drawables.StateListDrawable CreateStateListDrawable(int filledResId, int outlinedResId)
@@ -615,6 +672,8 @@ public class TransitionActivity : AppCompatActivity
 
     const int REQUEST_OPEN_FOLDER = 100;
     TaskCompletionSource<string?>? _folderPickerTcs;
+    private NavigationView _navigationView;
+    private CoordinatorLayout _mainContentCoordinator;
 
     public Task<string?> PickFolderAsync()
     {

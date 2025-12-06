@@ -1263,5 +1263,32 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         }
     }
 
+    internal async Task LoadSongImageAsync(SongModelView? songModelView, Microsoft.UI.Xaml.Controls.Image mostPlayedSongCoverImg, FilterType filter=FilterType.Blur)
+    {
+        
+        if (songModelView is null) return;
+        var imgBytes = await ImageFilterUtils.ApplyFilter(songModelView.CoverImagePath
+            , filter);
+        if (imgBytes is null) return;
+        using (var stream = new MemoryStream(imgBytes))
+        {
+            var bitmap = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage();
+            await bitmap.SetSourceAsync(stream.AsRandomAccessStream());
+            mostPlayedSongCoverImg.Source = bitmap;
+        }
 
+    }
+
+    internal async Task ToggleFavoriteRatingToArtist(ArtistModelView artist)
+    {
+        var realm = RealmFactory.GetRealmInstance();
+        var artistInDb = realm.Find<ArtistModel>(artist.Id);
+
+        if (artistInDb is null) return;
+        await realm.WriteAsync(() =>
+        {
+            artistInDb.IsFavorite = !artistInDb.IsFavorite;
+        });
+        realm.Dispose();
+    }
 }

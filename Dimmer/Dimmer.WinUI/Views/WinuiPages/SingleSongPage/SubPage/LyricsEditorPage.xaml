@@ -53,8 +53,9 @@
         <StackPanel Grid.Row="1" Orientation="Horizontal">
 
             <Image
+                x:Name="detailedImage"
                 Width="200"
-                HorizontalAlignment="Left" x:Name="detailedImage"
+                HorizontalAlignment="Left"
                 Source="{Binding SelectedSong.CoverImagePath}" />
             <StackPanel VerticalAlignment="Top">
                 <TextBlock
@@ -142,6 +143,14 @@
                                 <FontIcon Glyph="&#xE721;" />
                                 <!--  Search Icon  -->
                                 <TextBlock Text="Search" />
+                            </StackPanel>
+                        </Button>
+
+                        <Button VerticalAlignment="Bottom" Command="{Binding AutoFillSearchFieldsCommand}">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <SymbolIcon Symbol="Paste" />
+                                <!--  Search Icon  -->
+                                <TextBlock Text="Paste" />
                             </StackPanel>
                         </Button>
                         <Button

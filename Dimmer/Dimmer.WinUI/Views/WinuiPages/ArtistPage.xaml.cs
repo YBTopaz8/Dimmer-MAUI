@@ -1,4 +1,8 @@
+using System.Globalization;
+
 using CommunityToolkit.Maui.Core.Extensions;
+
+using Button = Microsoft.UI.Xaml.Controls.Button;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -20,32 +24,12 @@ public sealed partial class ArtistPage : Page
 
         _rootVisual = ElementCompositionPreview.GetElementVisual(this);
         // TODO: load from user settings or defaults
-        _userPrefAnim = SongTransitionAnimation.Spring;
+        _userPrefAnim = SongTransitionAnimation.Slide;
     }
 
     private readonly Microsoft.UI.Composition.Visual _rootVisual;
     private readonly Microsoft.UI.Composition.Compositor _compositor;
     private readonly SongTransitionAnimation _userPrefAnim;
-    private SongModelView? _storedSong;
-    private void MyPageGrid_Loaded(object sender, RoutedEventArgs e)
-    {
-
-        if (_storedSong != null)
-        {
-            // --- THE FIX ---
-            // 1. Capture the song to animate into a local variable.
-            var songToAnimate = _storedSong;
-
-            // 2. Clear the instance field immediately. This is good practice
-            //    to ensure the page state is clean for future events.
-            _storedSong = null;
-
-            // Ensure the item is visible
-
-
-        }
-
-    }
 
 
     BaseViewModelWin MyViewModel { get; set; }
@@ -252,4 +236,87 @@ public sealed partial class ArtistPage : Page
         }
     }
 
+    private async void MostPlayedSongCoverImg_Loaded(object sender, RoutedEventArgs e)
+    {
+        var topRankedSong = MyViewModel.RealmFactory.GetRealmInstance()
+            .Find<ArtistModel>(MyViewModel.SelectedArtist.Id)
+            .Songs
+            .OrderByDescending(x => x.RankInArtist)
+            .FirstOrDefault();
+        if (topRankedSong != null)
+            {
+            await MyViewModel.LoadSongImageAsync(topRankedSong.ToSongModelView(), MostPlayedSongCoverImg);
+        }
+    }
+
+    int clickCtr = 0;
+    private void IsArtFavorite_Loaded(object sender, RoutedEventArgs e)
+    {
+        
+        Debug.WriteLine($"IsArtFavorite_Loaded called {clickCtr} times");
+        var dbArtist = MyViewModel.RealmFactory.GetRealmInstance()
+            .Find<ArtistModel>(DetailedSong.Artist.Id);
+        if (dbArtist == null) return;
+        DetailedSong.Artist = dbArtist.ToArtistModelView();
+        Button send = (Button)sender;
+        FontIcon heartIcon = new FontIcon();
+        heartIcon.Glyph = "\uEB51";
+
+        FontIcon unheartIcon = new FontIcon();
+        unheartIcon.Glyph = "\uEA92";
+        var toggleFavTxt = new TextBlock()
+        {
+        };
+
+        var favStackPanel = new StackPanel()
+        {
+            Orientation = Orientation.Horizontal
+        ,
+            Spacing = 10
+        };
+        if (DetailedSong.Artist.IsFavorite)
+        {
+            if (clickCtr > 0)
+            {
+                clickCtr = 0;
+                return;
+            }
+            toggleFavTxt.Text = "Love";
+
+            favStackPanel.Children.Add(heartIcon);
+            favStackPanel.Children.Add(toggleFavTxt);
+
+            send.Click += async (s, e) =>
+            {
+
+                await MyViewModel.ToggleFavoriteRatingToArtist(DetailedSong.Artist);
+                IsArtFavorite_Loaded(sender, e);
+                clickCtr++;
+            };
+
+        }
+        else
+        {
+            if (clickCtr > 0)
+            {
+                clickCtr = 0;
+                return;
+            }
+            toggleFavTxt.Text = "UnLove";
+
+            favStackPanel.Children.Add(unheartIcon);
+            favStackPanel.Children.Add(toggleFavTxt);
+            send.Click += async (s, e) =>
+            {
+                await MyViewModel.ToggleFavoriteRatingToArtist(DetailedSong.Artist);
+                IsArtFavorite_Loaded(sender, e);
+                clickCtr++;
+            };
+        }
+
+
+
+        send.Content = favStackPanel;
+
+    }
 }

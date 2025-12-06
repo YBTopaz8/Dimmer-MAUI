@@ -23,17 +23,28 @@
     PointerPressed="MyArtistPage_PointerPressed"
     mc:Ignorable="d">
     <Page.Resources />
+
     <Grid
         Margin="5"
         DataContext="{x:Bind MyViewModel}"
         PointerPressed="MyArtistPage_PointerPressed"
         RowSpacing="10">
         <Grid.RowDefinitions>
-            <RowDefinition Height="auto" />
-            <RowDefinition Height="auto" />
+            <RowDefinition Height="60" />
+            <RowDefinition Height="250" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
+
+        <Image
+            x:Name="MostPlayedSongCoverImg"
+            Grid.Row="0"
+            Grid.RowSpan="2"
+            Height="300"
+            HorizontalAlignment="Center"
+            Loaded="MostPlayedSongCoverImg_Loaded"
+            Opacity="0.1"
+            Stretch="None" />
 
         <Button
             x:Name="CoordinatedPanel2"
@@ -78,18 +89,14 @@
                         <TextBlock Text="{Binding SelectedArtist.TotalSongsByArtist}" />
                         <TextBlock Text="Songs" />
                     </StackPanel>
-                    <ToggleButton
+                    <Button
                         x:Name="IsArtFavorite"
                         Width="50"
                         Height="30"
-                        IsChecked="{Binding SelectedArtist.IsFavorite}"
-                        IsEnabledChanged="IsArtFavorite_IsEnabledChanged">
-                        <Image
-                            Width="25"
-                            Height="25"
-                            Source="/Dimmer/Resources/Images/heartlock.svg"
-                            Visibility="Visible" />
-                    </ToggleButton>
+                        Loaded="IsArtFavorite_Loaded"
+                        >
+                        
+                    </Button>
                     <DropDownButton
                         x:Name="AllAlbumsBtn"
                         Content="All Albums"
@@ -126,7 +133,8 @@
                 Width="300"
                 Height="300"
                 HorizontalAlignment="Right"
-                Source="{Binding SelectedArtist.ImagePath}" />
+                Source="{Binding SelectedArtist.ImagePath}"
+                Visibility="Collapsed" />
         </Grid>
 
         <StackPanel Grid.Row="2" PointerPressed="MyArtistPage_PointerPressed">

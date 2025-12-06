@@ -7,6 +7,8 @@ using System.Windows.Controls;
 
 using Parse.Abstractions.Infrastructure;
 
+using Xabe.FFmpeg.Downloader;
+
 using ProgressBar = Microsoft.UI.Xaml.Controls.ProgressBar;
 
 
@@ -19,43 +21,65 @@ public class WindowsAudioEditorService : IDimmerAudioEditorService
     {
         // Point this to where you ship ffmpeg.exe, or download it dynamically
         // FFmpeg.SetExecutablesPath(@"C:\Path\To\Dimmer\Binaries");
-        _ffmpegPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Dimmer", "ffmpeg");
+        _ffmpegPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Dimmer", "ffmpeg");
         if (!Directory.Exists(_ffmpegPath)) Directory.CreateDirectory(_ffmpegPath);
         FFmpeg.SetExecutablesPath(_ffmpegPath);
     }
     IProgress<int> progress;
-    public async Task<string?> TrimAudioAsync(string inputFile, string outputFile, TimeSpan start, TimeSpan end)
+    private async Task GuardEnsureFFmpeg()
     {
+        bool ready = await EnsureFFmpegLoadedAsync();
+        if (!ready)
+        {
+            throw new FileNotFoundException($"FFmpeg.exe was not found in {_ffmpegPath} and could not be downloaded. Please install manually.");
+        }
+    }
+    public async Task<string> TrimAudioAsync(string inputFile, TimeSpan start, TimeSpan end, IProgress<double> progress)
+    {
+        await GuardEnsureFFmpeg();
+
+        string outputFile = GenerateOutputPath(inputFile, "_trimmed");
+
+        // Calculate duration
+        TimeSpan duration = end - start;
+
+        // RAW COMMAND CONSTRUCTION
+        // -y: Overwrite output files without asking. (Fixes the crash if file exists)
+        // -i: Input file
+        // -ss: Start Position
+        // -t: Duration
+        // -c copy: Copy the stream directly. NO Re-encoding. (Instant speed, 1:1 quality)
+        // -avoid_negative_ts 1: Helps with timestamp issues when cutting
+
+        string args = $"-y -i \"{inputFile}\" -ss {start:c} -t {duration:c} -c copy -avoid_negative_ts 1 \"{outputFile}\"";
+
         try
         {
-            var mediaInfo = await FFmpeg.GetMediaInfo(inputFile);
-            var audioStream = mediaInfo.AudioStreams.FirstOrDefault();
+            var conversion = FFmpeg.Conversions.New();
 
-            if (audioStream == null) throw new Exception("No audio stream found.");
+            // We can't get exact progress percentage easily with raw commands on short files 
+            // because FFmpeg outputs "size=" lines differently for Stream Copy.
+            // We report 50% to show activity.
+            progress?.Report(10);
 
+            // Run the raw command
+            await conversion.Start(args);
 
-            // Simple trim command
-            var conversion = FFmpeg.Conversions.New()
-                .AddStream(audioStream)
-                .SetSeek(start)
-                .SetOutputTime(end - start)
-                .SetOutput(outputFile);
-            progress = new Progress<int>();
-            conversion.OnProgress += (sender, args) =>
-            {
-                progress?.Report(  args.Percent);
-            };
-
-            await conversion.Start();
+            progress?.Report(100);
             return outputFile;
+        }
+        catch (Xabe.FFmpeg.Exceptions.ConversionException cex)
+        {
+            // This will print the ACTUAL error from FFmpeg (not just the version header)
+            System.Diagnostics.Debug.WriteLine($"[FFmpeg Crash Log]: {cex.InputParameters}");
+            throw new Exception($"Trim failed. The output file might be locked or invalid.\nDetails: {cex.Message}", cex);
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"FFmpeg Trim Error: {ex.Message}");
-            return null;
+            System.Diagnostics.Debug.WriteLine($"[Trim Error]: {ex}");
+            throw;
         }
     }
-
 
     public async Task<bool> EnsureFFmpegLoadedAsync()
     {
@@ -66,7 +90,7 @@ public class WindowsAudioEditorService : IDimmerAudioEditorService
             if (File.Exists(exePath)) return true;
 
             // Download if missing (this might take time)
-            //await FFmpegDownloader.GetLatestVersion(FFmpegVersion.Official, _ffmpegPath);
+            await FFmpegDownloader.GetLatestVersion(FFmpegVersion.Official, _ffmpegPath);
             return true;
         }
         catch (Exception ex)
@@ -82,6 +106,7 @@ public class WindowsAudioEditorService : IDimmerAudioEditorService
         string ext = Path.GetExtension(input);
         // Save to MyMusic or Cache, don't overwrite input
         string cache = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyMusic);
+        
         return Path.Combine(cache, $"{name}{suffix}{ext}");
     }
     public async Task<string> CreateInfiniteLoopAsync(string inputFile, TimeSpan duration, IProgress<double> progress)

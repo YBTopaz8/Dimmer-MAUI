@@ -78,6 +78,8 @@
 		<PackageReference Include="CommunityToolkit.WinUI.Helpers" Version="8.2.250402" />
 		<PackageReference Include="CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.1.2" />
 		<PackageReference Include="WinUI.TableView" Version="1.3.3" />
+		<PackageReference Include="Xabe.FFmpeg" Version="6.0.2" />
+		<PackageReference Include="Xabe.FFmpeg.Downloader" Version="6.0.2" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\..\AudioSwitcher-master\AudioSwitcher.AudioApi.CoreAudio\AudioSwitcher.AudioApi.CoreAudio.csproj" />
@@ -104,6 +106,7 @@
 		<ProjectCapability Include="Msix" />
 	</ItemGroup>
 	<ItemGroup>
+	  <Folder Include="Utils\Helpers\" />
 	  <Folder Include="Utils\StaticUtils\TaskBarSection\" />
 	</ItemGroup>
 	<ItemGroup>
