@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using Dimmer.Data.Models;
 using Dimmer.DimmerLive.ParseStatics;
+using Dimmer.Hoarder;
 using Dimmer.Interfaces;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.Resources.Localization;
@@ -60,6 +61,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         ILogger<BaseViewModel> logger)
     {
         Dump();
+        //_hoarderService = hService;
         _stateService = dimmerStateService ?? throw new ArgumentNullException(nameof(dimmerStateService));
         _dialogueService = dialogueService ?? throw new ArgumentNullException(nameof(dialogueService));
         this.lastfmService = _lastfmService ?? throw new ArgumentNullException(nameof(lastfmService));
@@ -1047,6 +1049,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     private readonly MusicDataService _musicDataService;
     private IAppInitializerService appInitializerService;
+    private IHoarderService _hoarderService;
     protected IDimmerStateService _stateService;
     protected SubscriptionManager _subsMgr;
     protected IFolderMgtService _folderMgtService;
@@ -2724,7 +2727,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
 
         // B. Validate the song file path.
-        if (string.IsNullOrEmpty(songToPlay.FilePath) || !File.Exists(songToPlay.FilePath))
+        if (string.IsNullOrEmpty(songToPlay.FilePath) || !TaggingUtils.FileExists(songToPlay.FilePath))
         {
             _logger.LogError("Song file not found for '{Title}'.", songToPlay.Title);
             await ValidateSongAsync(songToPlay);
@@ -2788,13 +2791,13 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
 
             Debug.WriteLine("PlaySong invoked for: " + songToPlay.Title);
-            // Quick exit check. The more detailed check is in PlayInternalAsync.
-            if (string.IsNullOrEmpty(songToPlay.FilePath) || !File.Exists(songToPlay.FilePath))
-            {
-                _logger.LogError("Song file not found for '{Title}'.", songToPlay.Title);
-                await ValidateSongAsync(songToPlay);
-                return;
-            }
+            //// Quick exit check. The more detailed check is in PlayInternalAsync.
+            //if (string.IsNullOrEmpty(songToPlay.FilePath) || !File.Exists(songToPlay.FilePath))
+            //{
+            //    _logger.LogError("Song file not found for '{Title}'.", songToPlay.Title);
+            //    await ValidateSongAsync(songToPlay);
+            //    return;
+            //}
 
 
             var sourceList = new List<SongModelView>();
@@ -3970,8 +3973,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [RelayCommand]
     public async Task ReScanMusicFolderByPassingToService(string folderPath)
     {
+        var uniqueFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
         _logger.LogInformation("User requested to add music folder.");
-        await _folderMgtService.ReScanFolder(folderPath);
+
+        
+            await _folderMgtService.ReScanFolder(folderPath);
         _stateService.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderReScanned, folderPath, null, null));
     }
 
@@ -4426,7 +4433,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             return;
         _logger.LogInformation("Requesting to delete folder path: {Path}", path);
         FolderPaths.Remove(path);
-        _folderMgtService.RemoveFolderFromWatchListAsync(path);
+        _ =  _folderMgtService.RemoveFolderFromWatchListAsync(path);
 
         var realm = RealmFactory.GetRealmInstance();
         var appModel = realm.All<AppStateModel>().FirstOrDefault();
@@ -5941,6 +5948,16 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             string.Join(", ", artistNames),
             songId);
         await _musicDataService.UpdateSongArtists(songId, artistNames);
+        if(songId == SelectedSong.Id)
+        {
+            // Refresh selected song
+            SelectedSong = songRepo.GetById(songId).ToSongModelView();
+        }else
+        if (songId == CurrentPlayingSongView.Id)
+        {
+            // Refresh selected song
+            CurrentPlayingSongView = songRepo.GetById(songId).ToSongModelView();
+        }
         var updatedSong = songRepo.GetById(songId).ToSongModelView();
         
     }
@@ -7132,6 +7149,112 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         if (CurrentPlayingSongView != null && CurrentPlayingSongView.Id == song.Id)
         {
             CurrentPlayingSongView.CurrentPlaySongDominantColor = color;
+        }
+    }
+    [RelayCommand]
+    public async Task LoadAlbumDetails()
+    {
+        var missing = await _hoarderService.GetMissingTracksFromAlbumAsync(SelectedAlbum);
+        if (missing.Any())
+        {
+            // Show a "Missing Tracks" card in UI
+            MissingTracksList = new ObservableCollection<string>(missing);
+            HasMissingTracks = true;
+        }
+    }
+
+
+    [RelayCommand]
+    public async Task PickTargetFolder()
+    {
+#if WINDOWS
+        // WinUI Folder Picker Logic
+        var folderPicker = new Windows.Storage.Pickers.FolderPicker();
+        folderPicker.FileTypeFilter.Add("*");
+        
+        // Boilerplate to associate picker with current window handle (WinUI 3 requirement)
+        var hwnd = ((MauiWinUIWindow)App.Current.Windows[0].Handler.PlatformView).WindowHandle;
+        WinRT.Interop.InitializeWithWindow.Initialize(folderPicker, hwnd);
+
+        var result = await folderPicker.PickSingleFolderAsync();
+        if (result != null)
+        {
+            TargetFolderPath = result.Path;
+        }
+#endif
+    }
+
+    // COMMAND: User clicks "Organize"
+    [RelayCommand]
+    public async Task OrganizeFiles()
+    {
+        if (string.IsNullOrWhiteSpace(TargetFolderPath))
+        {
+            StatusMessage = "Please select or paste a folder path first.";
+            return;
+        }
+
+        if (!SearchResults.Any())
+        {
+            StatusMessage = "No songs selected to organize.";
+            return;
+        }
+
+        IsBusy = true;
+        StatusMessage = "Organizing Library...";
+
+        var progress = new Progress<double>(p => ProgressValue = p / 100);
+
+        var result = await Task.Run(() =>
+            _hoarderService.OrganizeFilesBasedOnMetadataAsync(
+                SearchResults,
+                TargetFolderPath,
+                true, // Delete empty source folders? Yes.
+                progress
+            ));
+
+        StatusMessage = $"Done! Moved: {result.SuccessCount}, Failed: {result.FailureCount}";
+
+        if (result.FailureCount > 0)
+        {
+            // Ideally show a dialog with result.Logs
+            System.Diagnostics.Debug.WriteLine(string.Join("\n", result.Logs));
+        }
+
+        IsBusy = false;
+    }
+
+    [ObservableProperty]
+    public partial string TargetFolderPath { get; set; }
+    [ObservableProperty]
+    public partial double ProgressValue { get; set; }
+    [ObservableProperty]
+    public partial string StatusMessage { get; set; }
+
+
+    [ObservableProperty]
+    public partial ObservableCollection<string> MissingTracksList { get; set; }
+
+    [ObservableProperty]
+    public partial bool HasMissingTracks { get; set; }
+
+    [RelayCommand]
+    public async Task AuditLibrary()
+    {
+        foreach (var song in SearchResults)
+        {
+            var report = await _hoarderService.AnalyzeFileIntegrityAsync(song.FilePath);
+            if (report.IsCorrupted)
+            {
+                // Flag in UI!
+                song.Description += " [CORRUPT FILE DETECTED]";
+            }
+
+            // Store quality rating
+            if (report.Quality == AudioQualityRating.LosslessStandard)
+            {
+                song.Achievement = "Lossless Pure"; // Use your existing property
+            }
         }
     }
 

@@ -54,7 +54,10 @@ public partial class EditorViewModel : BaseViewModel
 
     [ObservableProperty]
     public partial bool IsBusy { get; set; }
-    
+
+    [ObservableProperty]
+    public partial Interfaces.AudioFormat OutputFormat { get; set; } = Interfaces.AudioFormat.Aac;
+
 
     [ObservableProperty]
     public partial bool IsReverbEnabled { get; set; }
@@ -148,7 +151,7 @@ public partial class EditorViewModel : BaseViewModel
             // Loop whatever is currently selected in the trim range (or full song)
             // But usually 1 hour loop implies full song. 
             // Let's loop the WHOLE song for simplicity of the feature.
-            return await _editorService.CreateInfiniteLoopAsync(SourceFilePath, TimeSpan.FromHours(1), progress);
+            return await _editorService.CreateInfiniteLoopAsync(SourceFilePath, TimeSpan.FromHours(1), OutputFormat, progress);
         });
     }
 
@@ -199,7 +202,7 @@ public partial class EditorViewModel : BaseViewModel
 
         await RunEditorTask("Applying Slowed + Reverb...", async (p) =>
         {
-            return await _editorService.ApplyAudioEffectsAsync(SourceFilePath, options, p);
+            return await _editorService.ApplyAudioEffectsAsync(SourceFilePath, options, Interfaces.AudioFormat.Aac, p);
         });
     }
 
@@ -216,7 +219,7 @@ public partial class EditorViewModel : BaseViewModel
 
         await RunEditorTask("Applying Nightcore...", async (p) =>
         {
-            return await _editorService.ApplyAudioEffectsAsync(SourceFilePath, options, p);
+            return await _editorService.ApplyAudioEffectsAsync(SourceFilePath, options, Interfaces.AudioFormat.Aac ,p);
         });
     }
 

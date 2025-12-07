@@ -1,5 +1,7 @@
 ﻿using Android.Graphics;
 
+using Bumptech.Glide;
+
 using Google.Android.Material.Button;
 using Google.Android.Material.Card;
 using Google.Android.Material.Chip;
@@ -191,8 +193,6 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
                 if (!string.IsNullOrEmpty(path))
                 {
                     MyViewModel.AddMusicFoldersByPassingToService(new List<string> { path });
-                    // Refresh view (in a real app, use ObservableCollection or adapter)
-                    ParentFragmentManager.BeginTransaction().Detach(this).Attach(this).Commit();
                 }
             }
         };
@@ -259,7 +259,7 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
         row.SetGravity(GravityFlags.CenterVertical);
 
         var txt = new TextView(ctx) { Text = path, TextSize = 14 };
-        txt.LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 8);
+        txt.LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 6);
 
         var delBtn = new ImageView(ctx);
         delBtn.SetImageResource(Android.Resource.Drawable.IcMenuDelete);
@@ -271,7 +271,22 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
             ParentFragmentManager.BeginTransaction().Detach(this).Attach(this).Commit();
         };
 
+        var rescanBtn = new ImageView(ctx);
+        Glide.With(ctx).Load(Resource.Drawable.reset).Into(rescanBtn);
+        rescanBtn.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.Gray);
+        rescanBtn.LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 2);
+        rescanBtn.SetMaxHeight(AppUtil.DpToPx(18));
+        rescanBtn.SetMaxWidth(AppUtil.DpToPx(18));
+        rescanBtn.Click += async (s, e) =>
+        {
+
+            await MyViewModel.ReScanMusicFolderByPassingToService(path);
+            Toast.MakeText(ctx, $"Rescanning {path}", ToastLength.Short)?.Show();
+        };
+
+
         row.AddView(txt);
+        row.AddView(rescanBtn);
         row.AddView(delBtn);
         return row;
     }

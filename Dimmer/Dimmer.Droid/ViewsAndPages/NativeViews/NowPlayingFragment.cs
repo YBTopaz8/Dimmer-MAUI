@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Reactive.Disposables;
+using System.Threading.Tasks;
 
 using AndroidX.Fragment.App;
 
@@ -38,7 +39,8 @@ public partial class NowPlayingFragment : Fragment
     private ScrollView _mainPlayerLayout;
     private TextView _miniTitle, _miniArtist;
     private ImageView _miniPlayBtn, _miniArt;
-    private MaterialTextView _currentTimeText, _totalTimeText;
+    private MaterialTextView _currentTimeText,
+        _totalTimeText;
     private MaterialButton _playPauseBtn;
     private bool _isDraggingSeek;
 
@@ -47,7 +49,7 @@ public partial class NowPlayingFragment : Fragment
     public NowPlayingFragment(BaseViewModelAnd viewModel) { MyViewModel = viewModel; }
     public NowPlayingFragment() { }
 
-    public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         var ctx = Context;
         _rootView = new FrameLayout(ctx) { LayoutParameters = new ViewGroup.LayoutParams(-1, -1) };
@@ -106,7 +108,59 @@ public partial class NowPlayingFragment : Fragment
         layout.AddView(_miniArt); layout.AddView(infoStack); layout.AddView(_miniPlayBtn);
         return layout;
     }
+    public CompositeDisposable SubsManager => _subsManager;
+    private readonly CompositeDisposable _subsManager = new CompositeDisposable();
 
+    public override void OnResume()
+    {
+        base.OnResume();
+
+
+        var songSubscription = MyViewModel.CurrentSongChanged
+           .Where(song => song != null)
+           .Select(song => song!)
+           .DistinctUntilChanged(s => s.FilePath)
+           .ObserveOn(RxSchedulers.UI)
+          
+       .Subscribe(song =>
+       {
+
+           //SongTitle.Text = song.Title;
+           //ArtistName.Text = song.AlbumName;
+           //AlbumName.Text = song.ArtistName;
+           ////if (homeFrag._playCount is not null)
+           ////    homeFrag._playCount.Text = song.PlayCount.ToString();
+
+
+           //Glide.With(Context).Load(MyViewModel.CurrentPlayingSongView.CoverImagePath)
+           //.Into(CoverImageView);
+
+       },
+       error =>
+       {
+           // Always good to catch errors in image loading so stream doesn't die
+           Console.WriteLine($"Image Load Error: {error.Message}");
+       });
+
+        SubsManager.Add(songSubscription);
+
+
+        // 2. Position Timer Subscription
+        var positionSub = MyViewModel.AudioEnginePositionObservable
+            .Sample(TimeSpan.FromMilliseconds(250)) // 4 times a second is plenty for smooth UI
+            .ObserveOn(RxSchedulers.UI) // Ensure we are on UI thread
+            .Subscribe(songPosition =>
+            {
+                
+            });
+
+        SubsManager.Add(positionSub);
+    }
+    
+    public override void OnDestroy()
+    {
+        base.OnDestroy();
+    }
     private ScrollView BuildMainPlayer(Context ctx)
     {
         var scroll = new ScrollView(ctx) { LayoutParameters = new FrameLayout.LayoutParams(-1, -1), FillViewport = true };

@@ -140,7 +140,7 @@ internal class SongAdapter : RecyclerView.Adapter
             else
             {
                 // Fallback placeholder
-                songHolder.ImageBtn.SetImageResource(Resource.Drawable.musicnotess);
+                songHolder.ImageBtn?.SetImageResource(Resource.Drawable.musicnotess);
             }
             // ensure unique transition name
             var transitionName = $"sharedImage_{song.Id}";
@@ -302,7 +302,7 @@ internal class SongAdapter : RecyclerView.Adapter
         
         imageCard.AddView(imgView);
 
-
+        
         row.AddView(imageCard);
 
         var textCol = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
@@ -344,6 +344,9 @@ internal class SongAdapter : RecyclerView.Adapter
         row.AddView(verticalLayout);
 
         materialCardView.AddView(row);
+
+        imgBtn = imgView;
+
         return new SongViewHolder(MyViewModel, materialCardView, imgBtn, title, album, artist
             ,durationTextView);
     }
@@ -371,7 +374,9 @@ internal class SongAdapter : RecyclerView.Adapter
             ArtistNameView.LongClickable = true;
             
             ArtistNameView.LongClick += ArtistName_LongClick;
-            ImageBtn.Click += ImageBtn_Click;
+            if(ImageBtn != null )
+                ImageBtn.Click += ImageBtn_Click;
+            
             ContainerView.Click += ContainerView_Click;
         }
 

@@ -8,6 +8,6 @@ public interface IFolderMgtService : IDisposable
     Task ClearAllWatchedFoldersAndRescanAsync();
     Task RemoveFolderFromWatchListAsync(string path);
     Task ReScanFolder(string folderPath);
-    Task StartWatchingConfiguredFoldersAsync();
+    Task StartWatchingConfiguredFoldersAsync(List<string>? paths=null);
     Task UpdateFolderInWatchListAsync(string path);
 }

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<UserControl
+    x:Class="Dimmer.WinUI.Views.CustomViews.WinuiViews.MorphContainerView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:Dimmer.WinUI.Views.CustomViews.WinuiViews"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid
+        x:Name="MorphContainer"
+        Width="200"
+        Height="200"
+        PointerEntered="MorphContainer_PointerEntered"
+        PointerExited="MorphContainer_PointerExited">
+
+        <!--  This enables smooth layout resizing  -->
+        <Grid.Resources>
+            <Storyboard x:Name="ExpandStoryboard">
+                <DoubleAnimation
+                    EnableDependentAnimation="True"
+                    Storyboard.TargetName="MorphContainer"
+                    Storyboard.TargetProperty="Width"
+                    To="400"
+                    Duration="0:0:0.3" />
+                <DoubleAnimation
+                    EnableDependentAnimation="True"
+                    Storyboard.TargetName="MorphContainer"
+                    Storyboard.TargetProperty="Height"
+                    To="400"
+                    Duration="0:0:0.3" />
+                <DoubleAnimation
+                    Storyboard.TargetName="SmallView"
+                    Storyboard.TargetProperty="Opacity"
+                    To="0"
+                    Duration="0:0:0.2" />
+                <DoubleAnimation
+                    Storyboard.TargetName="LargeView"
+                    Storyboard.TargetProperty="Opacity"
+                    To="1"
+                    Duration="0:0:0.4" />
+            </Storyboard>
+
+            <Storyboard x:Name="CollapseStoryboard">
+                <DoubleAnimation
+                    EnableDependentAnimation="True"
+                    Storyboard.TargetName="MorphContainer"
+                    Storyboard.TargetProperty="Width"
+                    To="200"
+                    Duration="0:0:0.3" />
+                <DoubleAnimation
+                    EnableDependentAnimation="True"
+                    Storyboard.TargetName="MorphContainer"
+                    Storyboard.TargetProperty="Height"
+                    To="200"
+                    Duration="0:0:0.3" />
+                <DoubleAnimation
+                    Storyboard.TargetName="SmallView"
+                    Storyboard.TargetProperty="Opacity"
+                    To="1"
+                    Duration="0:0:0.4" />
+                <DoubleAnimation
+                    Storyboard.TargetName="LargeView"
+                    Storyboard.TargetProperty="Opacity"
+                    To="0"
+                    Duration="0:0:0.2" />
+            </Storyboard>
+        </Grid.Resources>
+
+        <!--  Small View (The Card)  -->
+        <Grid x:Name="SmallView" Opacity="1">
+            <Image Source="{Binding CoverImagePath}" Stretch="UniformToFill" />
+            <!--  Other small details  -->
+        </Grid>
+
+        <!--  Large View (The Details)  -->
+        <Grid
+            x:Name="LargeView"
+            Background="Black"
+            Opacity="0">
+            <!--  Your detailed content  -->
+            <TextBlock
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Foreground="White"
+                Text="Expanded Details!" />
+        </Grid>
+    </Grid>
+</UserControl>

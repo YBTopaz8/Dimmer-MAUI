@@ -117,7 +117,7 @@ public class LibraryScannerService : ILibraryScannerService
             // --- 4. Process ONLY the new files ---
             var audioFileProcessor = new AudioFileProcessor(_coverArtService, currentScanMetadataService, _config);
             int progress = 0;
-            var processedResults = await Task.Run(async () => await audioFileProcessor.ProcessFilesAsync(newFilesToProcess));
+            var processedResults =  await audioFileProcessor.ProcessFilesAsync(newFilesToProcess);
 
 
             foreach (var result in processedResults)

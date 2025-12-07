@@ -45,6 +45,8 @@ public class MainApplication : Application, Application.IActivityLifecycleCallba
 
         ServiceProvider = Bootstrapper.Init();
 
+        AndroidContentScanner.Initialize();
+
     }
 
 

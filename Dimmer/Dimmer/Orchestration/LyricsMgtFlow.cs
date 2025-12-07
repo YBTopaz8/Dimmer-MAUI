@@ -263,7 +263,7 @@ public class LyricsMgtFlow : IDisposable
     private async Task<IEnumerable<LrcLibLyrics>?> GetLyricsContentAsync(SongModelView song)
     {
         CancellationTokenSource cts = new();
-        var instru = (bool)song.IsInstrumental && song.SyncLyrics.Length < 1;
+        var instru = song.IsInstrumental is null || song.IsInstrumental is false && song.SyncLyrics.Length < 1;
         if (instru)
         {
             return null;
@@ -279,7 +279,7 @@ public class LyricsMgtFlow : IDisposable
                 Duration = song.DurationInSeconds,
                 TrackName = song.Title,
                 SyncedLyrics = song.SyncLyrics,
-                Instrumental = song.IsInstrumental is null ? false : (bool)song.IsInstrumental,
+                Instrumental = song.IsInstrumental is not null && (bool)song.IsInstrumental,
                 PlainLyrics = song.UnSyncLyrics
             };
             List<LrcLibLyrics> list = new List<LrcLibLyrics>();

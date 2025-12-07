@@ -501,7 +501,7 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
     /// </summary>
     public async Task DeleteAsync(ObjectId id)
     {
-        await _realm.WriteAsync(()=>
+        await _realm?.WriteAsync(()=>
         {
             var liveEntity = _realm.Find<T>(id);
             if (liveEntity != null)

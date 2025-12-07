@@ -70,7 +70,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     }
     private CancellationTokenSource? _searchCts;
     private SongAdapter _adapter;
-    private TextInputEditText searchBar;
+
 
     public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
@@ -123,6 +123,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
             TextSize = 14
         };
         _searchBar.SetPadding(40, 30, 40, 30);
+        _searchBar.TextChanged += _searchBar_TextChanged;
         searchCard.AddView(_searchBar);
 
         // Help Button
@@ -182,6 +183,16 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
         return root;
     }
+
+    private void _searchBar_TextChanged(object? sender, Android.Text.TextChangedEventArgs e)
+    {
+        var NewText = e.Text?.ToString();
+        var started = e.Start;
+        var AfterCount = e.AfterCount;
+        var BeforeCount = e.BeforeCount;
+        MyViewModel.SearchSongForSearchResultHolder(NewText);
+    }
+
     class HeaderInsetsListener : Java.Lang.Object, AndroidX.Core.View.IOnApplyWindowInsetsListener
     {
         private readonly View _header;
@@ -256,7 +267,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         MyViewModel.CurrentPage = this;
 
         this.View!.Tag = "HomePageFragment";
-        MyViewModel.SetupSubscriptions();
+      
 
 
         var currentlyPlayingIndex = MyViewModel.SearchResults.IndexOf(MyViewModel.CurrentPlayingSongView);
@@ -296,11 +307,11 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
     private void _pageFAB_LongClick(object? sender, View.LongClickEventArgs e)
     {
-        if (searchBar.RequestFocus())
+        if (_searchBar.RequestFocus())
         {
             InputMethodManager? imm = Context!.GetSystemService(Context.InputMethodService) as InputMethodManager;
             if (imm is null) return;
-            imm.ShowSoftInput(searchBar, ShowFlags.Implicit);
+            imm.ShowSoftInput(_searchBar, ShowFlags.Implicit);
         }
 
 

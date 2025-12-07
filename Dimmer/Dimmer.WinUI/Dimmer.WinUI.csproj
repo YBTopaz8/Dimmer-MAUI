@@ -27,6 +27,7 @@
 	  <None Remove="Views\CustomViews\MauiViews\SyncLyricsPopUpViewWindow.xaml" />
 	  <None Remove="Views\CustomViews\WinuiViews\HoverCardControl.xaml" />
 	  <None Remove="Views\CustomViews\WinuiViews\MediaPlaybackSection.xaml" />
+	  <None Remove="Views\CustomViews\WinuiViews\MorphContainerView.xaml" />
 	  <None Remove="Views\CustomViews\WinuiViews\SongCoverView.xaml" />
 	  <None Remove="Views\CustomViews\WinuiViews\SongLyricsView.xaml" />
 	  <None Remove="Views\CustomViews\WinuiViews\SongMetadataView.xaml" />
@@ -119,6 +120,11 @@
 	  <MauiXaml Include="Views\MAUIPages\HomePage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Update="Views\CustomViews\WinuiViews\MorphContainerView.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
 	</ItemGroup>
 	<ItemGroup>
 	  <Page Update="Views\WinuiPages\CloudDashboardPage.xaml">

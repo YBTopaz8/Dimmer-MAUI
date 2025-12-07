@@ -1,4 +1,6 @@
-﻿namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
+﻿using Dimmer.Utilities;
+
+namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 
 public class AudioFileProcessor : IAudioFileProcessor
 {
@@ -37,10 +39,10 @@ public class AudioFileProcessor : IAudioFileProcessor
 
         return [.. (await Task.WhenAll(tasks))];
     }
-
     public FileProcessingResult ProcessFile(string filePath)
     {
 
+    long actualFileSize = 0;
         try
         {
 
@@ -54,7 +56,35 @@ public class AudioFileProcessor : IAudioFileProcessor
             Track track;
             try
             {
-                track = new Track(filePath);
+                if (filePath.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (TaggingUtils.PlatformGetStreamHook != null)
+                    {
+                        // Get the stream from Android
+                        using (var fileStream = TaggingUtils.PlatformGetStreamHook(filePath)) 
+                        { 
+
+                            if (fileStream == null)
+                            {
+                                result.Errors.Add("Could not open stream for content URI.");
+                                return result;
+                            }
+                            track = new ATL.Track(fileStream, mimeType: null);
+                            actualFileSize = fileStream.Length;
+                        }
+                    }
+                    else
+                    {
+                        result.Errors.Add("Platform stream hook not initialized.");
+                        return result;
+                    }
+                }
+                else
+                {
+                    // 3. Handle Standard Windows/File Paths
+                    track = new ATL.Track(filePath);
+                    actualFileSize = new FileInfo(filePath).Length;
+                }
             }
             catch (FormatException ex)
             {
@@ -124,7 +154,7 @@ public class AudioFileProcessor : IAudioFileProcessor
                 // Technical Info
                 DurationInSeconds = track.Duration,
                 BitRate = track.Bitrate,
-                FileSize = new FileInfo(filePath).Length,
+                FileSize = actualFileSize,
                 FileFormat = Path.GetExtension(filePath).TrimStart('.').ToLowerInvariant(),
 
                 // Tag Info

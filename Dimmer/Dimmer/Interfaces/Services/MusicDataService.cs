@@ -78,8 +78,8 @@ public class MusicDataService
             }
 
             // 4. Update the primary Artist and ArtistName fields for display/simplicity
-            songInDb.Artist = newArtistsList.FirstOrDefault();
-            songInDb.ArtistName = string.Join(" | ", newArtistsList.Select(a => a.Name));
+            songInDb.Artist = newArtistsList.First();
+            songInDb.OtherArtistsName = string.Join(", ", newArtistsList.Select(a => a.Name));
 
             // 5. (Crucial) Clean up orphaned artists.
             foreach (var oldArtist in oldArtists)

@@ -43,17 +43,20 @@ public class FolderMgtService : IFolderMgtService
 
     public IObservable<IReadOnlyList<FolderModel>> AllWatchedFolders => _allFoldersBehaviorSubject.AsObservable();
 
-    public async Task StartWatchingConfiguredFoldersAsync()
+    public async Task StartWatchingConfiguredFoldersAsync(List<string>? paths = null)
     {
-        if (_isCurrentlyWatching)
+        try
+        {
+            if (_isCurrentlyWatching)
         {
             StopWatching();
         }
         var realm = realmFactory.GetRealmInstance();
         var appModel = realm.All<AppStateModel>().FirstOrDefault();
         var foldersToWatchPaths = appModel?.UserMusicFoldersPreference.Freeze().ToList() ?? new List<string>();
-     
-        if (foldersToWatchPaths.Count==0)
+            if (foldersToWatchPaths.Count <= 0)
+                foldersToWatchPaths = paths;
+        if (foldersToWatchPaths?.Count==0)
         {
             _logger.LogInformation("No folders configured to watch.");
             _allFoldersBehaviorSubject.OnNext(Array.Empty<FolderModel>());
@@ -98,6 +101,14 @@ public class FolderMgtService : IFolderMgtService
         await _folderMonitor.StartAsync(foldersToWatchPaths);
         _isCurrentlyWatching = true;
         _state.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderWatchStarted, null, null, null));
+        
+
+        }
+        catch (Exception ex)
+        {
+
+            Debug.WriteLine(ex.Message);
+        }
     }
 
 
@@ -186,18 +197,28 @@ public class FolderMgtService : IFolderMgtService
         var realm = realmFactory.GetRealmInstance();
         var appModelList = realm.All<AppStateModel>().ToList();
         var appModel = appModelList.FirstOrDefault();
-        if (appModel == null) return;
-        var knowPaths = appModel.UserMusicFoldersPreference ?? new List<string>();
 
-        foreach (var path in paths)
+        if (appModel == null)
         {
-            if (!knowPaths?.Contains(path, StringComparer.OrdinalIgnoreCase) == true)
+            appModel = new AppStateModel()
             {
-                appModel.UserMusicFoldersPreference?.Add(path);
-                newPathsToAdd.Add(path);
-            }
-        }
 
+            };
+        }
+        var knowPaths = appModel.UserMusicFoldersPreference ?? new List<string>();
+        await realm.WriteAsync(async () =>
+        {
+            foreach (var path in paths)
+            {
+                if (!knowPaths?.Contains(path, StringComparer.OrdinalIgnoreCase) == true)
+                {
+
+                    appModel.UserMusicFoldersPreference?.Add(path);
+                    newPathsToAdd.Add(path);
+                }
+            }
+            realm.Add<AppStateModel>(appModel,true);
+        });
         if (newPathsToAdd.Count!=0)
         {
             _logger.LogInformation("Adding {Count} new folders to watch list.", newPathsToAdd.Count);

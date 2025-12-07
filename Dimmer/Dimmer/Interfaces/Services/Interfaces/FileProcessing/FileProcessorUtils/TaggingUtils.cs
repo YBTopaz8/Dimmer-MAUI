@@ -150,11 +150,26 @@ public static class TaggingUtils
             prefix = "SONG"; // A more descriptive default
         return $"{prefix.Substring(0, 4).ToUpperInvariant()}_{Guid.NewGuid()}";
     }
+    public static Func<string, IReadOnlySet<string>, bool>? PlatformSpecificFileValidator { get; set; }
 
     public static bool IsValidFile(string filePath, IReadOnlySet<string> supportedExtensions)
     {
-        if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+        if (string.IsNullOrWhiteSpace(filePath))
             return false;
+
+        if (filePath.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
+        {
+            if (PlatformSpecificFileValidator != null)
+            {
+                return PlatformSpecificFileValidator.Invoke(filePath, supportedExtensions);
+            }
+            return false;
+        }
+
+        if (!File.Exists(filePath))
+            return false;
+
+
 
         string extension = Path.GetExtension(filePath);
         if (string.IsNullOrEmpty(extension) || !supportedExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
@@ -165,11 +180,27 @@ public static class TaggingUtils
         FileInfo fileInfo = new FileInfo(filePath);
         return fileInfo.Length > 1024; // 1KB is a reasonable minimum for a real audio file
     }
+    public static Func<string, bool>? PlatformFileExistsHook { get; set; }
 
-    /// <summary>
-    /// Efficiently finds all audio files from a list of paths (which can be files or directories).
-    /// Uses streaming enumeration to minimize memory usage for large directories.
-    /// </summary>
+    public static bool FileExists(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return false;
+
+        // 1. Handle Android Content URI
+        if (path.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
+        {
+            return PlatformFileExistsHook?.Invoke(path) ?? false;
+        }
+
+        // 2. Standard System.IO Logic
+        return File.Exists(path);
+    }
+
+    // 1. Define a delegate that takes a Path + Extensions and returns a list of files
+    // The Android project will assign this function later.
+    public static Func<string, IReadOnlySet<string>, List<string>>? PlatformSpecificScanner { get; set; }
+    public static Func<string, Stream> PlatformGetStreamHook { get; set; }
+
     public static List<string> GetAllAudioFilesFromPaths(IEnumerable<string> pathsToScan, IReadOnlySet<string> supportedExtensions)
     {
         var uniqueFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -178,30 +209,34 @@ public static class TaggingUtils
         {
             try
             {
+                // 2. Check for Content URI
+                if (path.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
+                {
+                    // 3. CHECK IF THE HOOK IS ASSIGNED
+                    if (PlatformSpecificScanner != null)
+                    {
+                        var platformFiles = PlatformSpecificScanner.Invoke(path, supportedExtensions);
+                        foreach (var f in platformFiles) uniqueFiles.Add(f);
+                    }
+                    else
+                    {
+                        Debug.WriteLine("[Scan] Warning: Content URI detected but no PlatformScanner configured.");
+                    }
+                    continue;
+                }
+
+                // Standard System.IO Logic
                 if (File.Exists(path))
                 {
                     if (supportedExtensions.Contains(Path.GetExtension(path), StringComparer.OrdinalIgnoreCase))
-                    {
                         uniqueFiles.Add(path);
-                    }
                 }
                 else if (Directory.Exists(path))
                 {
                     var files = Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories)
                                          .Where(f => supportedExtensions.Contains(Path.GetExtension(f), StringComparer.OrdinalIgnoreCase));
-                    foreach (var file in files)
-                    {
-                        uniqueFiles.Add(file);
-                    }
+                    foreach (var file in files) uniqueFiles.Add(file);
                 }
-                else
-                {
-                    Debug.WriteLine($"Invalid path or unsupported file type: '{path}'");
-                }
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                Debug.WriteLine($"Access denied for path '{path}': {ex.Message}");
             }
             catch (Exception ex)
             {

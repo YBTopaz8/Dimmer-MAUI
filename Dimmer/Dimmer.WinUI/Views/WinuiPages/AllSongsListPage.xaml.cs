@@ -2033,7 +2033,7 @@ public sealed partial class AllSongsListPage : Page
     {
         SmokeGrid.Visibility = WinUIVisibility.Collapsed;
     }
-    private void ViewQueue_Click(object sender, RoutedEventArgs e)
+    private async void ViewQueue_Click(object sender, RoutedEventArgs e)
     {
         ConnectedAnimation? animation;
 
@@ -2046,16 +2046,20 @@ public sealed partial class AllSongsListPage : Page
         // Notice that the stored item is passed in, as well as the name of the connected element.
         // The animation will actually start on the Detailed info page.
         // Prepare the animation, linking the key "ForwardConnectedAnimation" to our image
-        animation = ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("forwardAnimation", ViewQueue);
+         animation = ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("forwardAnimation", ViewQueue);
 
+        // 2. Make Target Visible
+        SmokeGrid.Visibility = Visibility.Visible;
+        viewQueueGrid.Opacity = 0; // Hide it initially so we see the animation fly in
 
-
-
-        SmokeGrid.Visibility = WinUIVisibility.Visible;
-        if (animation != null)
+        // 3. Wait for Layout Update (Crucial Step)
+        // This ensures viewQueueGrid has a valid X,Y width/height
+        await SmokeGrid.DispatcherQueue.EnqueueAsync(() =>
         {
+            // 4. Start Animation
+            viewQueueGrid.Opacity = 1;
             animation.TryStart(viewQueueGrid);
-        }
+        });
     }
 
     private async void RemoveSongFromQueue_Click(object sender, RoutedEventArgs e)

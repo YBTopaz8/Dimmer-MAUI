@@ -38,7 +38,7 @@ public class WindowsAudioEditorService : IDimmerAudioEditorService
     {
         await GuardEnsureFFmpeg();
 
-        string outputFile = GenerateOutputPath(inputFile, "_trimmed");
+        string outputFile = GenerateOutputPath(inputFile, "_trimmed", ".m4a");
 
         // Calculate duration
         TimeSpan duration = end - start;
@@ -99,40 +99,75 @@ public class WindowsAudioEditorService : IDimmerAudioEditorService
             return false;
         }
     }
-    private string GenerateOutputPath(string input, string suffix)
+    private string GenerateOutputPath(string input, string suffix, string extension)
     {
-        string dir = Path.GetDirectoryName(input);
         string name = Path.GetFileNameWithoutExtension(input);
-        string ext = Path.GetExtension(input);
-        // Save to MyMusic or Cache, don't overwrite input
-        string cache = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyMusic);
-
-        return Path.Combine(cache, $"{name}{suffix}{ext}");
+        string cache = Environment.GetFolderPath(Environment.SpecialFolder.MyMusic);
+        return Path.Combine(cache, $"{name}{suffix}{extension}");
     }
-    public async Task<string> CreateInfiniteLoopAsync(string inputFile, TimeSpan duration, IProgress<double> progress)
+    public async Task<string> CreateInfiniteLoopAsync(string inputFile, TimeSpan duration, AudioFormat format, IProgress<double> progress)
     {
-        string outputFile = GenerateOutputPath(inputFile, "_1hour_loop");
+        await GuardEnsureFFmpeg();
+
+        var settings = GetEncoderSettings(format);
+        string outputFile = GenerateOutputPath(inputFile, "_1h_loop", settings.Extension);
 
         try
         {
+            // stream_loop -1 (infinite)
+            // -t duration
+            // settings.EncoderArgs handles the re-encoding (e.g., to Opus)
+            string args = $"-y -stream_loop -1 -i \"{inputFile}\" -t {duration.TotalSeconds} {settings.EncoderArgs} \"{outputFile}\"";
 
-            string args = $"-stream_loop -1 -i \"{inputFile}\" -t {duration.TotalSeconds} -c:a copy \"{outputFile}\"";
-
-            // We use a raw conversion for specific flags
             var conversion = FFmpeg.Conversions.New();
-
-            // Fake progress for raw command (hard to track exact stream_loop progress without parsing stderr)
             progress?.Report(10);
-
             await conversion.Start(args);
-
             progress?.Report(100);
+
             return outputFile;
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Loop Error: {ex}");
             return null;
+        }
+    }
+
+    public async Task<string> CreateStoryVideoAsync(string imagePath, string audioPath, IProgress<double> progress)
+    {
+        await GuardEnsureFFmpeg();
+
+        string outputFile = GenerateOutputPath(audioPath, "_story", ".mp4");
+
+        // FFmpeg Command Logic:
+        // -loop 1: Loop the input image infinitely
+        // -i image: Input image
+        // -i audio: Input audio
+        // -c:v libx264: Use H.264 video codec (Standard for Social Media)
+        // -tune stillimage: Optimization for static images (small file size)
+        // -c:a aac: Audio codec
+        // -b:a 192k: Audio bitrate
+        // -pix_fmt yuv420p: Required pixel format for compatibility with players/Instagram
+        // -shortest: Stop encoding when the shortest input (the audio) ends.
+        // -vf scale...: Ensure even dimensions (required by some encoders) and reasonable size (1080p width)
+
+        string args = $"-y -loop 1 -i \"{imagePath}\" -i \"{audioPath}\" " +
+                      $"-c:v libx264 -tune stillimage -c:a aac -b:a 192k " +
+                      $"-pix_fmt yuv420p -vf \"scale=1080:-2\" " +
+                      $"-shortest \"{outputFile}\"";
+
+        try
+        {
+            var conversion = FFmpeg.Conversions.New();
+            progress?.Report(10);
+            await conversion.Start(args);
+            progress?.Report(100);
+            return outputFile;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Video Gen Error: {ex}");
+            throw;
         }
     }
 
@@ -184,17 +219,18 @@ public class WindowsAudioEditorService : IDimmerAudioEditorService
         }
     }
 
-    public async Task<string> ApplyAudioEffectsAsync(string inputFile, AudioEffectOptions options, IProgress<double> progress)
+    public async Task<string> ApplyAudioEffectsAsync(string inputFile, AudioEffectOptions options, AudioFormat format, IProgress<double> progress)
     {
         await GuardEnsureFFmpeg();
 
-        // Determine output filename based on effects
+        var settings = GetEncoderSettings(format);
+
+        // Create suffix based on effects + format
         string suffix = "_edited";
-        if (options.Speed < 1.0) suffix += "_slowed";
-        else if (options.Speed > 1.0) suffix += "_nightcore";
+        if (options.Speed != 1.0) suffix += "_speed";
         if (options.EnableReverb) suffix += "_reverb";
 
-        string outputFile = GenerateOutputPath(inputFile, suffix);
+        string outputFile = GenerateOutputPath(inputFile, suffix, settings.Extension);
 
         // --- CONSTRUCT FILTER CHAIN ---
         var filters = new List<string>();
@@ -235,7 +271,7 @@ public class WindowsAudioEditorService : IDimmerAudioEditorService
         {
             // Note: Filters require re-encoding. We use libmp3lame (standard mp3 encoder)
             // -q:a 2 is high quality variable bitrate
-            args = $"-y -i \"{inputFile}\" -af \"{filterString}\" -c:a libmp3lame -q:a 2 \"{outputFile}\"";
+             args = $"-y -i \"{inputFile}\" -af \"{filterString}\" {settings.EncoderArgs} \"{outputFile}\"";
         }
 
         try
@@ -262,9 +298,10 @@ public class WindowsAudioEditorService : IDimmerAudioEditorService
         var totalDuration = mediaInfo.Duration;
 
         // 2. Define temp paths
-        string part1Path = GenerateOutputPath(inputFile, "_part1");
-        string part2Path = GenerateOutputPath(inputFile, "_part2");
-        string finalPath = GenerateOutputPath(inputFile, "_cut");
+        string part1Path = GenerateOutputPath(inputFile, "_part1", ".m4a"
+            );
+        string part2Path = GenerateOutputPath(inputFile, "_part2", ".m4a");
+        string finalPath = GenerateOutputPath(inputFile, "_cut", ".m4a");
 
         try
         {
@@ -314,7 +351,7 @@ public class WindowsAudioEditorService : IDimmerAudioEditorService
     public async Task<string> Apply8DAudioAsync(string inputFile, IProgress<double> progress)
     {
         await GuardEnsureFFmpeg();
-        string outputFile = GenerateOutputPath(inputFile, "_8D");
+        string outputFile = GenerateOutputPath(inputFile, "_8D", ".m4a");
 
         // apulsator filter:
         // mode=sine: shape of the movement
@@ -333,5 +370,29 @@ public class WindowsAudioEditorService : IDimmerAudioEditorService
             return outputFile;
         }
         catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"8D Error: {ex}"); throw; }
+    }
+    private (string Extension, string EncoderArgs) GetEncoderSettings(AudioFormat format)
+    {
+        switch (format)
+        {
+            case AudioFormat.Aac:
+                // aac is built-in. -b:a 192k is excellent quality.
+                // .m4a container is standard.
+                return (".m4a", "-c:a aac -b:a 192k");
+
+            case AudioFormat.Opus:
+                // libopus is the best encoder.
+                // .ogg is the standard container for Opus.
+                return (".ogg", "-c:a libopus -b:a 128k -vbr on");
+
+            case AudioFormat.Wav:
+                // pcm_s16le is standard CD quality.
+                return (".wav", "-c:a pcm_s16le");
+
+            case AudioFormat.Mp3:
+            default:
+                // q:a 2 is variable bitrate (VBR) roughly ~190-250kbps
+                return (".mp3", "-c:a libmp3lame -q:a 2");
+        }
     }
 }
