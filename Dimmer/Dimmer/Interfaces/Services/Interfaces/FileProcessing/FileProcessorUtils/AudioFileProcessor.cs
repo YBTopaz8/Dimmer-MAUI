@@ -1,5 +1,7 @@
 ﻿using Dimmer.Utilities;
 
+using Microsoft.Maui.Storage;
+
 namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 
 public class AudioFileProcessor : IAudioFileProcessor
@@ -11,9 +13,7 @@ public class AudioFileProcessor : IAudioFileProcessor
     public AudioFileProcessor(
         ICoverArtService coverArtService,
         IMusicMetadataService metadataService,
-        ProcessingConfig config
-
-        )
+        ProcessingConfig config)
     {
         _coverArtService = coverArtService;
         _metadataService = metadataService;
@@ -114,7 +114,8 @@ public class AudioFileProcessor : IAudioFileProcessor
 
             // --- Step 2: Intelligently coalesce to find the best source of truth ---
             // The rule: Tag is king. If tag is missing, fall back to filename.
-            string bestRawTitle = !string.IsNullOrWhiteSpace(tagTitle) ? tagTitle : filenameTitle ?? Path.GetFileNameWithoutExtension(filePath);
+            string decodedPath = Uri.UnescapeDataString(filePath);
+            string bestRawTitle = !string.IsNullOrWhiteSpace(tagTitle) ? tagTitle : filenameTitle ?? Path.GetFileNameWithoutExtension(decodedPath);
             string? bestRawArtist = !string.IsNullOrWhiteSpace(tagArtist) ? tagArtist : filenameArtist;
             string bestAlbumArtist = tagAlbumArtist; // No filename equivalent for this.
             string bestAlbum = !string.IsNullOrWhiteSpace(tagAlbum) ? tagAlbum : "Unknown Album";
@@ -169,6 +170,7 @@ public class AudioFileProcessor : IAudioFileProcessor
                 PopularityScore = track.Popularity ?? 0, // Map ATL's Popularity to Rating
                 TrackTotal=track.TrackTotal,
                 SampleRate = track.SampleRate,
+                //CoverImagePath = track.EmbeddedPictures.
                 Encoder = track.Encoder,
                 BitDepth = track.BitDepth,
                 NbOfChannels = track.ChannelsArrangement.NbChannels,
@@ -215,8 +217,7 @@ public class AudioFileProcessor : IAudioFileProcessor
         
             result.ProcessedSong = song;
             result.Success = true;
-            // The service layer should be responsible for calling AddSong
-            // _metadataService.AddSong(song); 
+
 
             return result;
         }

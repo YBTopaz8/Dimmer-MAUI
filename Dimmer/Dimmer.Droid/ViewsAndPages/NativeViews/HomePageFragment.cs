@@ -8,6 +8,8 @@ using AndroidX.CoordinatorLayout.Widget;
 
 using Bumptech.Glide;
 
+using Dimmer.ViewsAndPages.NativeViews.Misc;
+
 using Google.Android.Material.Button;
 using Google.Android.Material.Card;
 using Google.Android.Material.Chip;
@@ -212,6 +214,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         popup.Menu.Add(0, 1, 0, "Go to Settings");
         popup.Menu.Add(0, 2, 0, "Search Library");
         popup.Menu.Add(0, 3, 0, "Scroll to Playing");
+        popup.Menu.Add(0, 4, 0, "View Queue");
 
         popup.MenuItemClick += (s, e) =>
         {
@@ -229,6 +232,10 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
                     break;
                 case 3: // Scroll To
                     MyViewModel.TriggerScrollToCurrentSong();
+                    break;
+                case 4: // Scroll To
+                    var queueSheet = new QueueBottomSheetFragment(MyViewModel);
+                    queueSheet.Show(ParentFragmentManager, "QueueSheet");
                     break;
             }
         };
@@ -488,7 +495,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         public bool OnPreDraw()
         {
             // Remove listener so it only fires once
-            _view.ViewTreeObserver.RemoveOnPreDrawListener(this);
+            _view.ViewTreeObserver?.RemoveOnPreDrawListener(this);
 
             // 3. Tell transition system: "Okay, views are ready. Start the animation!"
             _fragment.StartPostponedEnterTransition();

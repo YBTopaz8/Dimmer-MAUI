@@ -498,7 +498,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         if (sourceAlbum != null && albumTransName != null)
             trans.AddSharedElement(sourceAlbum, albumTransName);
 
-        trans.Replace(TransitionActivity.MyStaticID, nowPlayingFrag)
+        trans.Replace(Resource.Id.custom_fragment_container, nowPlayingFrag)
              .AddToBackStack("NowPlaying")
              .Commit();
     }
@@ -521,7 +521,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
             var container = new MaterialContainerTransform
             {
-                DrawingViewId = TransitionActivity.MyStaticID,  // container for fragments
+                DrawingViewId = Resource.Id.custom_fragment_container,  // container for fragments
                 ScrimColor = Color.Transparent,
                 ContainerColor = Color.Transparent,
                 FadeMode = MaterialContainerTransform.FadeModeThrough,
@@ -556,7 +556,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
 
             Hold enterHold = new Hold();
-            enterHold.AddTarget(TransitionActivity.MyStaticID);
+            enterHold.AddTarget(Resource.Id.custom_fragment_container);
             enterHold.SetDuration(80);
             homeFrag.ExitTransition = enterHold;
 
@@ -564,7 +564,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             homeFrag.ParentFragmentManager.BeginTransaction()
                 .SetReorderingAllowed(true)
                 .AddSharedElement(sharedView, transitionName)
-                .Replace(TransitionActivity.MyStaticID, fragment)
+                .Replace(Resource.Id.custom_fragment_container, fragment)
                 .AddToBackStack(transitionName)
                 .Commit();
 
@@ -600,7 +600,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
         var container = new MaterialContainerTransform
         {
-            DrawingViewId = TransitionActivity.MyStaticID,
+            DrawingViewId = Resource.Id.custom_fragment_container,
             ScrimColor = Color.Transparent,
             ContainerColor = Color.Transparent,
             FadeMode = MaterialContainerTransform.FadeModeCross,
@@ -632,14 +632,14 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
 
         Hold enterHold = new Hold();
-        enterHold.AddTarget(TransitionActivity.MyStaticID);
+        enterHold.AddTarget(Resource.Id.custom_fragment_container);
         enterHold.SetDuration(280);
         callerFragment.ExitTransition = enterHold;
         
         callerFragment.ParentFragmentManager.BeginTransaction()
              .SetReorderingAllowed(true)
                 .AddSharedElement(sharedViews[0], transitionName)
-                .Replace(TransitionActivity.MyStaticID, fragment)
+                .Replace(Resource.Id.custom_fragment_container, fragment)
                 .AddToBackStack(transitionName)
                 .Commit();
     }
@@ -658,7 +658,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
         var containerTransform = new MaterialContainerTransform
         {
-            DrawingViewId = TransitionActivity.MyStaticID,
+            DrawingViewId = Resource.Id.custom_fragment_container,
             ScrimColor = Color.Transparent,
             ContainerColor = Color.Transparent, // Let fragment handle background
             FadeMode = MaterialContainerTransform.FadeModeThrough,
@@ -690,7 +690,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         if (sharedImage != null)
             trans.AddSharedElement(sharedImage, transitionName);
 
-        trans.Replace(TransitionActivity.MyStaticID, fragment)
+        trans.Replace(Resource.Id.custom_fragment_container, fragment)
              .AddToBackStack($"Artist_{artistId}")
              .Commit();
     }
@@ -707,7 +707,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         callerFrag.ReenterTransition = new MaterialSharedAxis(MaterialSharedAxis.Z, false);
 
         callerFrag.ParentFragmentManager.BeginTransaction()
-            .Replace(TransitionActivity.MyStaticID, fragment)
+            .Replace(Resource.Id.custom_fragment_container, fragment)
             .AddToBackStack("Settings")
             .Commit();
     }
@@ -730,7 +730,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         callerFrag.ReenterTransition = backward;
 
         callerFrag.ParentFragmentManager.BeginTransaction()
-            .Replace(TransitionActivity.MyStaticID, fragment)
+            .Replace(Resource.Id.custom_fragment_container, fragment)
             .AddToBackStack("ArtistStats")
             .Commit();
     }
@@ -749,7 +749,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         callerFrag.ExitTransition = fadeThrough;
 
         callerFrag.ParentFragmentManager.BeginTransaction()
-            .Replace(TransitionActivity.MyStaticID, destinationFrag)
+            .Replace(Resource.Id.custom_fragment_container, destinationFrag)
             .AddToBackStack(tag)
             .Commit();
     }

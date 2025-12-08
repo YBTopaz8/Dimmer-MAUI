@@ -124,7 +124,7 @@ internal class SongAdapter : RecyclerView.Adapter
             }
 
             // handle image
-            if (!string.IsNullOrEmpty(song.CoverImagePath) && System.IO.File.Exists(song.CoverImagePath))
+            if (!string.IsNullOrEmpty(song.CoverImagePath))
             {
 
                 Glide.With(ctx)
@@ -140,7 +140,7 @@ internal class SongAdapter : RecyclerView.Adapter
             else
             {
                 // Fallback placeholder
-                songHolder.ImageBtn?.SetImageResource(Resource.Drawable.musicnotess);
+                songHolder.ImageBtn.SetImageResource(Resource.Drawable.musicnotess);
             }
             // ensure unique transition name
             var transitionName = $"sharedImage_{song.Id}";
@@ -408,13 +408,14 @@ internal class SongAdapter : RecyclerView.Adapter
             if (song == null)
                 return;
             MyViewModel.SelectedSong = song;
-            var sendBtn = sender as ImageButton;
+            var sendBtn = sender as ImageView;
             //set songAsClicked
             if (sendBtn == null) return;
 
             var transitionName = ViewCompat.GetTransitionName(ImageBtn);
             if (transitionName is null) return;
 
+            
             MyViewModel.NavigateToSingleSongPageFromHome((HomePageFragment)MyViewModel.CurrentPage
                 , transitionName, sendBtn);
         }

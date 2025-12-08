@@ -1,4 +1,9 @@
-﻿using Android.Graphics;
+﻿using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
+
+using Android.Graphics;
+
+using AndroidX.Lifecycle;
 
 using Bumptech.Glide;
 
@@ -30,6 +35,8 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
     private TextInputEditText lastFMPwdTxtField;
     private MaterialSwitch rememberMeSwitch;
     private MaterialButton lastFMSubmitButton;
+    private TextView appStatusText;
+    private CardView systemStatusView;
 
     public SettingsFragment(string transitionName, BaseViewModelAnd myViewModel)
     {
@@ -42,7 +49,33 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
     {
 
     }
-    public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+
+    private CompositeDisposable _disposables = new CompositeDisposable();
+
+    public override void OnStart()
+    {
+        base.OnStart();
+
+        MyViewModel.LogStream
+
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(log =>
+            {
+                appStatusText.Text = log.Log;
+            })
+            .DisposeWith(_disposables);
+    }
+
+    public override void OnStop()
+    {
+        base.OnStop();
+        // Cleans up the subscription when the Fragment is not visible
+        _disposables.Clear();
+    }
+
+
+
+    public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         var ctx = Context;
         var scroll = new ScrollView(ctx)
@@ -69,6 +102,22 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
         header.SetPadding(20, 0, 0, 40);
         header.TransitionName = _transitionName;
         root.AddView(header);
+
+        systemStatusView = new MaterialCardView(ctx)
+            ;
+        systemStatusView.LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent);
+        systemStatusView.SetPadding(20, 20, 20, 20);
+
+        appStatusText = new TextView(ctx)
+        {
+            Text = "App Status: All systems operational",
+            TextSize = 14
+        };
+        
+        systemStatusView.AddView(appStatusText);
+        root.AddView(systemStatusView);
+
+
 
         // --- SECTIONS ---
         root.AddView(CreateSectionHeader(ctx, "Appearance & Behavior"));
@@ -126,32 +175,19 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
     {
         var layout = CreateCardLayout(ctx);
 
-        // Playback Speed Slider
-        //var speedLabel = new TextView(ctx) { Text = $"Playback Speed: {MyViewModel.AppState.PlaybackSpeed}x", TextSize = 16 };
-        //var speedSlider = new Slider(ctx)
-        //{
-        //    ValueFrom = 0.5f,
-        //    ValueTo = 2.0f,
-        //    StepSize = 0.1f,
-        //    Value = (float)MyViewModel.PlaybackSpeed
-        //};
-        //speedSlider.StopTrackingTouch += (s, e) =>
-        //{
-        //    MyViewModel.AppState.PlaybackSpeed = speedSlider.Value;
-        //    speedLabel.Text = $"Playback Speed: {speedSlider.Value:0.0}x";
-        //    // Trigger VM Command if needed
-        //};
+        MaterialButton reloadAllAlbumCovers = new MaterialButton(ctx) { Text = "Reload All Album Covers" };
 
-        var speedContainer = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
-        speedContainer.SetPadding(30, 30, 30, 30);
-        //speedContainer.AddView(speedLabel);
-        //speedContainer.AddView(speedSlider);
-        layout.AddView(speedContainer);
+        reloadAllAlbumCovers.SetBackgroundColor(Color.Transparent);
+        reloadAllAlbumCovers.SetTextColor(IsDark()? Color.White : Color.Black);
+        reloadAllAlbumCovers.Click += async (s, e) =>
+        {
+            await MyViewModel.EnsureAllCoverArtCachedForSongsCommand.ExecuteAsync(null);
+            Toast.MakeText(ctx, "Reloading all album covers...", ToastLength.Short)?.Show();
+        };
+
+        layout.AddView(reloadAllAlbumCovers);
 
         layout.AddView(CreateDivider(ctx));
-
-        //layout.AddView(CreateSwitchRow(ctx, "Close Confirmation", "Warn before closing application",
-        //    MyViewModel.IsShowCloseConfirmation, (v) => MyViewModel.AppState.IsShowCloseConfirmation = v));
 
         return WrapInCard(ctx, layout);
     }
@@ -274,9 +310,9 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
         var rescanBtn = new ImageView(ctx);
         Glide.With(ctx).Load(Resource.Drawable.reset).Into(rescanBtn);
         rescanBtn.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.Gray);
-        rescanBtn.LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 2);
-        rescanBtn.SetMaxHeight(AppUtil.DpToPx(18));
-        rescanBtn.SetMaxWidth(AppUtil.DpToPx(18));
+        rescanBtn.LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1);
+        rescanBtn.SetMaxHeight(AppUtil.DpToPx(10));
+        rescanBtn.SetMaxWidth(AppUtil.DpToPx(10));
         rescanBtn.Click += async (s, e) =>
         {
 

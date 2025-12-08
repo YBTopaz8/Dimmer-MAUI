@@ -299,7 +299,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
                     if (plan.ErrorMessage != null)
                     {
-                        //searchResultsHolder.Edit(u => u.Clear());
+
 
                         // --- DEBUG STEP 4: Did we stop because of a parse error? ---
                         Debug.WriteLine($"[DEBUG] Halting due to parse error: {plan.ErrorMessage}");
@@ -329,17 +329,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                         .ToList();
                         Debug.WriteLine(
                             $"[DEBUG] In-Memory Filter: Reduced result set from {mappedSongs.Count()} to {finalSongs.Count} songs.");
-                        Debug.WriteLine($"Current Query is {query.ElementType}" +
-                            $"{plan.CommandNode}" +
-                            $"ERROR {plan.ErrorMessage}" +
-                            $"RQL FILTER {plan.RqlFilter}" +
-                            $"IN MEM PRED {plan.InMemoryPredicate}" +
-                            $"SORT DESC {plan.SortDescriptions}" +
-                            $"SHUF {plan.Shuffle}" +
-                            $"LIM {plan.Limiter}"
-
-
-                            );
+                     
                         // STAGE 3: Apply post-processing (Shuffle and Limiters)
                         List<SongModelView> processedSongs;
                         if (plan.Shuffle != null)
@@ -1842,14 +1832,14 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public async Task LoadAndCacheCoverArtAsync(SongModelView song)
     {
         
-        if (song.CoverImagePath == "musicnotess.png")
+        if (song.CoverImagePath == "musicnote1.png")
         {
             song.CoverImagePath = string.Empty;
         }
 
         if (!string.IsNullOrEmpty(song.CoverImagePath))
         {
-            if (File.Exists(song.CoverImagePath))
+            if (TaggingUtils.FileExists(song.CoverImagePath))
             {
                 CurrentCoverImagePath = song.CoverImagePath;
 
@@ -1862,7 +1852,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         PictureInfo? embeddedPicture = null;
         try
         {
-            if (!File.Exists(song.FilePath)) return;
+            if (!TaggingUtils.FileExists(song.FilePath)) return;
 
             embeddedPicture = EmbeddedArtValidator.GetValidEmbeddedPicture(song.FilePath);
             if (embeddedPicture != null)
@@ -1969,7 +1959,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             await semaphore.WaitAsync();
             try
             {
-                if (string.IsNullOrEmpty(song.CoverImagePath) || !File.Exists(song.CoverImagePath))
+                if (string.IsNullOrEmpty(song.CoverImagePath) || !TaggingUtils.FileExists(song.CoverImagePath))
                 {
                     await LoadAndCacheCoverArtAsync(song);
                     int current = Interlocked.Increment(ref processed);
@@ -2023,7 +2013,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 await semaphore.WaitAsync();
                 try
                 {
-                    if (string.IsNullOrEmpty(song.CoverImagePath) || !File.Exists(song.CoverImagePath))
+                    if (string.IsNullOrEmpty(song.CoverImagePath) || !TaggingUtils.FileExists(song.CoverImagePath))
                     {
                         _stateService.SetCurrentLogMsg(new AppLogModel()
                         {
@@ -2792,7 +2782,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             Debug.WriteLine("PlaySong invoked for: " + songToPlay.Title);
             //// Quick exit check. The more detailed check is in PlayInternalAsync.
-            //if (string.IsNullOrEmpty(songToPlay.FilePath) || !File.Exists(songToPlay.FilePath))
+            //if (string.IsNullOrEmpty(songToPlay.FilePath) || !TaggingUtils.FileExists(songToPlay.FilePath))
             //{
             //    _logger.LogError("Song file not found for '{Title}'.", songToPlay.Title);
             //    await ValidateSongAsync(songToPlay);
@@ -3559,13 +3549,17 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             playbackStateObservable
             .Where(s => s.State == DimmerUtilityEnum.FolderScanCompleted)
             .ObserveOn(RxSchedulers.UI)
-                .Subscribe(OnFolderScanCompleted, ex => _logger.LogError(ex, "Error on FolderScanCompleted.")));
+                .Subscribe(OnFolderScanCompleted, ex => _logger.LogError(ex, "Error on FolderScanCompleted."))
+
+            .DisposeWith(CompositeDisposables));
 
         _subsMgr.Add(
             playbackStateObservable
             .Where(s => s.State == DimmerUtilityEnum.FolderScanStarted)
             .ObserveOn(RxSchedulers.UI)
-                .Subscribe(OnFolderScanStarted, ex => _logger.LogError(ex, "Error on             .Where(s => s.State == DimmerUtilityEnum.FolderScanStarted)\r\n.")));
+                .Subscribe(OnFolderScanStarted, ex => _logger.LogError(ex, "Error on             .Where(s => s.State == DimmerUtilityEnum.FolderScanStarted)\r\n."))
+
+            .DisposeWith(CompositeDisposables));
 
         _subsMgr.Add(
             _stateService.LatestDeviceLog
@@ -3574,7 +3568,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     obv =>
                      {
                         SetLatestDeviceLog(obv);
-                    }));
+                    })
+            .DisposeWith(CompositeDisposables))
+            ;
     }
 
     private void OnFolderScanStarted(PlaybackStateInfo info)
@@ -3710,14 +3706,15 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     },
                     ex => _logger.LogError(ex, "Error in IsPlayingChanged subscription")));
 
-
-        _subsMgr.Add(
-            Observable.FromEventPattern<double>(
+        var ss = Observable.FromEventPattern<double>(
                 h => _audioService.PositionChanged += h,
                 h => _audioService.PositionChanged -= h)
                 .Select(evt => evt.EventArgs)
                 .ObserveOn(RxSchedulers.UI)
-                .Subscribe(OnPositionChanged, ex => _logger.LogError(ex, "Error in PositionChanged subscription")));
+                .Subscribe(OnPositionChanged, ex => _logger.LogError(ex, "Error in PositionChanged subscription"))
+                ;
+        _subsMgr.Add(ss
+            );
 
         //_subsMgr.Add(Observable.FromEventPattern<double>(
         //        h => _audioService.SeekCompleted += h,
@@ -6563,7 +6560,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             try
             {
                 string sourcePath = song.FilePath;
-                if (!File.Exists(sourcePath))
+                if (!TaggingUtils.FileExists(sourcePath))
                 {
                     _logger.LogWarning(
                         "Skipping file operation for '{Title}' because source file was not found at '{Path}'.",
@@ -7835,10 +7832,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
 
-    #region Dimms Section
-
-
-    #endregion
+    public IObservable<AppLogModel> LogStream => _stateService.LatestDeviceLog.Where(s => s.Log is not null);
 }
 
 

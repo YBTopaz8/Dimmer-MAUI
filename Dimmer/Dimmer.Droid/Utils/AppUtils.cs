@@ -73,7 +73,8 @@ public class AppUtil : IAppUtil
             var actions = recentFiles.Take(count)
                 .Select(filePath =>
                 {
-                    string fileName = Path.GetFileNameWithoutExtension(filePath);
+                    string decodedPath = Uri.UnescapeDataString(filePath);
+                    string fileName = Path.GetFileNameWithoutExtension(decodedPath);
                     // Create a relatively stable ID from the file path
                     string id = $"play_recent_{GenerateStableId(filePath)}";
                     return new AppAction(id, $"Play {fileName}", subtitle: Path.GetFileName(filePath));

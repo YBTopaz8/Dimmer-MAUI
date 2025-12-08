@@ -17,7 +17,8 @@ public static class FilenameParser
         if (string.IsNullOrWhiteSpace(filePath))
             return (null, null);
 
-        string fileName = Path.GetFileNameWithoutExtension(filePath);
+        string decodedPath = Uri.UnescapeDataString(filePath);
+        string fileName = Path.GetFileNameWithoutExtension(decodedPath);
 
         // 1. Strip any leading track number first.
         string cleanFileName = TrackNumberRegex.Replace(fileName, "");

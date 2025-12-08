@@ -162,8 +162,8 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
             Id = View.GenerateViewId(),
             LayoutParameters = new CoordinatorLayout.LayoutParams(-1, -1)
         };
-        MyStaticID = _contentContainer.Id;
-
+        _contentContainer.Id = Resource.Id.custom_fragment_container;
+        MyStaticID = Resource.Id.custom_fragment_container;
         // 2b. Player Sheet Container
         _sheetContainer = new FrameLayout(this)
         {
@@ -482,16 +482,17 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
 
         public override void OnStateChanged(View bottomSheet, int newState)
         {
-            if (newState == BottomSheetBehavior.StateExpanded)
-                _fragment.SetInputActive(true);
-            else if (newState == BottomSheetBehavior.StateCollapsed)
-                _fragment.SetInputActive(false);
+            //if (newState == BottomSheetBehavior.StateExpanded)
+                
+            //    //_fragment.SetInputActive(true);
+            //else if (newState == BottomSheetBehavior.StateCollapsed)
+                //_fragment.SetInputActive(false);
         }
 
         public override void OnSlide(View bottomSheet, float slideOffset)
         {
             // slideOffset: 0.0 (Collapsed) -> 1.0 (Expanded)
-            _fragment.AnimateTransition(slideOffset);
+            //_fragment.AnimateTransition(slideOffset);
         }
     }
 

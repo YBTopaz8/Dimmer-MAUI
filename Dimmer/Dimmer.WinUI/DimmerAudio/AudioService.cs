@@ -787,6 +787,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             var mediaPlaybackItem = new MediaPlaybackItem(mediaSource);
             var props = mediaPlaybackItem.GetDisplayProperties();
             props.Type = MediaPlaybackType.Music;
+
             props.MusicProperties.Title = media.Title ?? Path.GetFileNameWithoutExtension(media.FilePath) ?? "Unknown Title";
             props.MusicProperties.Artist = media.Id.ToString();
             props.MusicProperties.AlbumTitle = media.AlbumName ?? string.Empty;

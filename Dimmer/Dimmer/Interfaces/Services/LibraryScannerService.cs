@@ -229,7 +229,7 @@ public class LibraryScannerService : ILibraryScannerService
                                     }
                                     songToPersist.Artist = songToPersist.ArtistToSong[0];
                                 }
-
+                                songToPersist.ArtistName = songToPersist.Artist?.Name;
                                 songToPersist.IsNew = false;
                                 songToPersist.DeviceModel = DeviceInfo.Current.Model.ToString();
                                 songToPersist.DeviceManufacturer = DeviceInfo.Current.Platform.ToString();

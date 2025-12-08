@@ -279,6 +279,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     public Task SendNextSong(SongModelView nextSong)
     {
-        throw new NotImplementedException();
+        Service?.PrepareNext(nextSong);
+        return Task.CompletedTask;
     }
 }

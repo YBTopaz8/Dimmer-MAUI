@@ -185,8 +185,8 @@ public class SongDetailPage : Fragment
         IsSongFavBtn.LongClick += IsSongFavBtn_LongClick;
         IsSongFavBtn.SetBackgroundColor(
             MyViewModel.SelectedSong.IsFavorite ? Color.DarkSlateBlue : Color.Transparent);
-        IsSongFavBtn.SetIconResource(MyViewModel.SelectedSong.IsFavorite
-            ? Resource.Drawable.heartlock : Resource.Drawable.heartbroken);
+        //IsSongFavBtn.SetIconResource(MyViewModel.SelectedSong.IsFavorite
+        //    ? Resource.Drawable.heartlock : Resource.Drawable.heartbroken);
         IsSongFavBtn.Text = MyViewModel.SelectedSong.NumberOfTimesFaved > 0 ? MyViewModel.SelectedSong.NumberOfTimesFaved.ToString() : string.Empty;
         infoStack.AddView(IsSongFavBtn);
 

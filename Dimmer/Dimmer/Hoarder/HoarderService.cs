@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using Dimmer.Hoarder.Models;
 using Dimmer.Interfaces;
+using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 
 namespace Dimmer.Hoarder;
 
@@ -26,7 +27,7 @@ public class HoarderService : IHoarderService
     {
         var report = new FileIntegrityReport();
 
-        if (!File.Exists(filePath))
+        if (!TaggingUtils.FileExists(filePath))
         {
             report.Issues.Add("File missing.");
             report.IsCorrupted = true;
@@ -340,7 +341,9 @@ public class HoarderService : IHoarderService
                     else
                     {
                         // Rename to keep both: "Song (1).mp3"
-                        string newName = $"{Path.GetFileNameWithoutExtension(fileName)} (1){ext}";
+
+                        string decodedPath = Uri.UnescapeDataString(fileName);
+                        string newName = $"{Path.GetFileNameWithoutExtension(decodedPath)} (1){ext}";
                         destPath = Path.Combine(destDir, newName);
                     }
                 }
