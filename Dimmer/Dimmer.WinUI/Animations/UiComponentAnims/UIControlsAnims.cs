@@ -1,9 +1,6 @@
 ﻿using CommunityToolkit.WinUI;
 
-using Button = Microsoft.UI.Xaml.Controls.Button;
 using Border = Microsoft.UI.Xaml.Controls.Border;
-using Colors = Microsoft.UI.Colors;
-using SolidColorBrush = Microsoft.UI.Xaml.Media.SolidColorBrush;
 
 namespace Dimmer.WinUI.Animations.UiComponentAnims;
 

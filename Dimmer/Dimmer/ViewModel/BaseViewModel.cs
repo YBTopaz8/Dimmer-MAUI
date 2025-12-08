@@ -888,8 +888,13 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     {
                         try
                         {
+                            var safeSongView = lastSong.ToSongView();
+                            RxSchedulers.UI.Schedule(() =>
+                            {
 
-                            CurrentPlayingSongView = lastSong.ToSongView();
+                                CurrentPlayingSongView = safeSongView;
+
+                            });
                         }
                         catch (Exception ex)
                         {

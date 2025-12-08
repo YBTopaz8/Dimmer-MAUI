@@ -5,22 +5,6 @@
 
 using System.Windows.Controls.Primitives;
 
-using CommunityToolkit.Maui.Extensions;
-using CommunityToolkit.WinUI;
-
-using Dimmer.Utilities.Extensions;
-using Dimmer.WinUI.Views.CustomViews.MauiViews;
-
-
-using Colors = Microsoft.UI.Colors;
-using FieldType = Dimmer.DimmerSearch.TQL.FieldType;
-using MenuFlyoutItem = Microsoft.UI.Xaml.Controls.MenuFlyoutItem;
-using MenuFlyoutSeparator = Microsoft.UI.Xaml.Controls.MenuFlyoutSeparator;
-using MenuFlyoutSubItem = Microsoft.UI.Xaml.Controls.MenuFlyoutSubItem;
-using SolidColorBrush = Microsoft.UI.Xaml.Media.SolidColorBrush;
-using TableView = WinUI.TableView.TableView;
-using Thickness = Microsoft.UI.Xaml.Thickness;
-using ToggleMenuFlyoutItem = Microsoft.UI.Xaml.Controls.ToggleMenuFlyoutItem;
 //using TableView = WinUI.TableView.TableView;
 
 namespace Dimmer.WinUI.ViewModel;
@@ -238,7 +222,22 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     [ObservableProperty]
     public partial List<string> DraggedAudioFiles { get; set; }
-    public Page CurrentWinUIPage { get; internal set; }
+    [ObservableProperty]
+    public partial Page CurrentWinUIPage { get; internal set; }
+
+    partial void OnCurrentWinUIPageChanged(Page oldValue, Page newValue)
+    {
+        if(newValue.GetType() == typeof(AllSongsListPage))
+        {
+            if (CoverImageSong is not null)
+                _= LoadSongImageWithFilterAsync(CurrentPlayingSongView, CoverImageSong, FilterType.Glassy);
+
+        }
+        else
+        {
+            CoverImageSong.Source = null;
+        }
+    }
 
     [RelayCommand]
     public void SwapMediaBarPosition()
@@ -444,6 +443,9 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
         if (value.IsCurrentPlayingHighlight)
         {
+            if(CoverImageSong is not null)
+                await LoadSongImageWithFilterAsync(value, CoverImageSong, FilterType.Glassy);
+
 
             _logger.LogInformation($"Song changed and highlighted in ViewModel B: {value.Title}");
 
@@ -468,22 +470,10 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         if (byteData.imgBytes != null)
         {
 
-            BitmapSource? bitmapSource = null;
-            using (var stream = new MemoryStream(byteData.imgBytes))
-            {
-                var bitmap = new BitmapImage();
-                bitmap.BeginInit();
-                bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                bitmap.StreamSource = stream;
-                bitmap.EndInit();
-                bitmap.Freeze(); // Freeze to make it cross-thread accessible
-                bitmapSource = bitmap;
-            }
-
+         
             // listening to, text so, title, artistname, album with app name, and version.
             string clipboardText = $"{song.Title} - {song.ArtistName}\nAlbum: {song.AlbumName}\n\nShared via Dimmer Music Player v{CurrentAppVersion}";
 
-            System.Windows.Clipboard.SetImage(bitmapSource);
             System.Windows.Clipboard.SetText(clipboardText);
 
         }
@@ -1156,6 +1146,8 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     [ObservableProperty]
     public partial AchievementRule? SelectedAchievement { get; set; }
+    [ObservableProperty]
+    public partial Image CoverImageSong { get; internal set; }
 
     public override bool AutoConfirmLastFM(bool val)
     {
@@ -1263,9 +1255,9 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         }
     }
 
-    internal async Task LoadSongImageAsync(SongModelView? songModelView, Microsoft.UI.Xaml.Controls.Image mostPlayedSongCoverImg, FilterType filter=FilterType.Blur)
+    internal async Task LoadSongImageWithFilterAsync(SongModelView? songModelView, Microsoft.UI.Xaml.Controls.Image mostPlayedSongCoverImg, FilterType filter=FilterType.Blur)
     {
-        
+        mostPlayedSongCoverImg.Source = null;
         if (songModelView is null) return;
         var imgBytes = await ImageFilterUtils.ApplyFilter(songModelView.CoverImagePath
             , filter);
@@ -1291,4 +1283,6 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         });
         realm.Dispose();
     }
+
+    
 }

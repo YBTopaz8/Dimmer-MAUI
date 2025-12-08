@@ -14,13 +14,9 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using Windows.Foundation.Metadata;
 
 using Border = Microsoft.UI.Xaml.Controls.Border;
-using Button = Microsoft.UI.Xaml.Controls.Button;
 using ListView = Microsoft.UI.Xaml.Controls.ListView;
 using ListViewSelectionMode = Microsoft.UI.Xaml.Controls.ListViewSelectionMode;
-using MenuFlyout = Microsoft.UI.Xaml.Controls.MenuFlyout;
-using MenuFlyoutItem = Microsoft.UI.Xaml.Controls.MenuFlyoutItem;
 using NavigationEventArgs = Microsoft.UI.Xaml.Navigation.NavigationEventArgs;
-using Thickness = Microsoft.UI.Xaml.Thickness;
 using ToolTip = Microsoft.UI.Xaml.Controls.ToolTip;
 using Visual = Microsoft.UI.Composition.Visual;
 

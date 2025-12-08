@@ -59,7 +59,6 @@
         </ResourceDictionary>
     </Page.Resources>
     <Grid>
-
         <Grid Margin="10" RowSpacing="10">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto" />

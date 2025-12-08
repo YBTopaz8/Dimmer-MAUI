@@ -382,7 +382,7 @@ public partial class NowPlayingFragment : Fragment
                 }
 
                 // Update Lyrics Mock Logic (Replace with actual synced lyrics logic)
-                LyricLineCurrent.Text = $"Lyric at {TimeSpan.FromSeconds(pos):mm\\:ss}";
+                LyricLineCurrent.Text = MyViewModel.CurrentLine?.Text;
             });
 
         SubsManager.Add(posSub);

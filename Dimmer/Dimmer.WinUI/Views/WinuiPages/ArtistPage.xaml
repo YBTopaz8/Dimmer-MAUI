@@ -31,340 +31,311 @@
             <convertersWinUI:BoolToInverseVisibilityConverter x:Key="BoolToInverseVisibilityConverter" />
             <convertersWinUI:IsFavoriteToFontIcon x:Key="IsFavoriteToFontIcon" />
             <convertersWinUI:BoolToPlayingPauseConv x:Key="BoolToPlayingPauseConverter" />
+            <convertersWinUI:BytesToMegabytesConverter x:Key="BytesToMegabytesConverter" />
         </ResourceDictionary>
     </Page.Resources>
 
     <ScrollViewer>
 
-        <Grid
-            Margin="5"
-            DataContext="{x:Bind MyViewModel}"
-            PointerPressed="MyArtistPage_PointerPressed"
-            RowSpacing="10">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="60" />
-                <RowDefinition Height="250" />
-                <RowDefinition Height="250" />
-                <RowDefinition Height="*" />
-                <RowDefinition Height="auto" />
-            </Grid.RowDefinitions>
+        <Grid>
+
 
             <Image
                 x:Name="MostPlayedSongCoverImg"
                 Grid.Row="0"
-                Grid.RowSpan="3"
                 HorizontalAlignment="Center"
                 Loaded="MostPlayedSongCoverImg_Loaded"
-                Opacity="0.2"
-                Stretch="None" />
+                Opacity="1"
+                Stretch="Fill" />
 
-            <Button
-                x:Name="CoordinatedPanel2"
-                Grid.Row="0"
-                VerticalAlignment="Top"
-                Click="CoordinatedPanel2_Click"
-                Content="Back" />
-            <Grid Grid.Row="1" ColumnSpacing="10">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="auto" />
-                </Grid.ColumnDefinitions>
-
-
-                <Grid Grid.Column="0" Background="Transparent">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="auto" />
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="auto" />
-                    </Grid.RowDefinitions>
-
-                    <TextBlock
-                        x:Name="ArtistNameInArtistPage"
-                        Grid.Row="0"
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Top"
-                        FontSize="55"
-                        FontWeight="SemiBold"
-                        PointerReleased="ArtistNameInArtistPage_PointerReleased"
-                        Text="{Binding SelectedArtist.Name}" />
-
-                    <StackPanel
-                        Grid.Row="1"
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Bottom"
-                        Background="Transparent"
-                        BorderThickness="1"
-                        Orientation="Horizontal"
-                        Spacing="15">
-
-                        <StackPanel
-                            Padding="10"
-                            VerticalAlignment="Center"
-                            BorderBrush="DarkSlateBlue"
-                            BorderThickness="1"
-                            CornerRadius="5"
-                            Orientation="Horizontal">
-                            <TextBlock Text="{Binding SelectedArtist.TotalSongsByArtist}" />
-                            <TextBlock Text="Songs" />
-                        </StackPanel>
-                        <Button
-                            x:Name="IsArtFavorite"
-                            Width="45"
-                            Height="42"
-                            Loaded="IsArtFavorite_Loaded" />
-                        <Button
-                            x:Name="AllAlbumsBtn"
-                            Height="42"
-                            Content="All Albums"
-                            Loaded="AllAlbumsBtn_Loaded" />
-
-
-                    </StackPanel>
-                    <StackPanel Grid.Row="2">
-                        <ListView
-                            x:Name="ArtistAlbums"
-                            ItemClick="ArtistAlbums_ItemClick"
-                            SelectionMode="Multiple">
-                            <ListView.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel Orientation="Horizontal" />
-                                </ItemsPanelTemplate>
-                            </ListView.ItemsPanel>
-                            <ListView.ItemTemplate>
-
-                                <DataTemplate>
-                                    <StackPanel>
-
-                                        <TextBlock Text="{Binding Name}" />
-                                    </StackPanel>
-                                </DataTemplate>
-
-                            </ListView.ItemTemplate>
-                        </ListView>
-                    </StackPanel>
-                </Grid>
-                <Image
-                    Grid.Column="1"
-                    Width="300"
-                    Height="300"
-                    HorizontalAlignment="Right"
-                    Source="{Binding SelectedArtist.ImagePath}"
-                    Visibility="Collapsed" />
-            </Grid>
-
-
-            <Grid Grid.Row="2">
+            <Grid
+                Margin="5"
+                DataContext="{x:Bind MyViewModel}"
+                PointerPressed="MyArtistPage_PointerPressed"
+                RowSpacing="10">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <!--  Changed to Auto for better sizing  -->
+                    <RowDefinition Height="50" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <StackPanel Grid.Row="0" Margin="0,0,0,10">
-                    <Button
-                        x:Name="ResetAblums"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        Click="ResetAblums_Click"
-                        Content="Albums" />
+
+                <Button
+                    x:Name="CoordinatedPanel2"
+                    Grid.Row="0"
+                    VerticalAlignment="Top"
+                    Click="CoordinatedPanel2_Click"
+                    Content="Back" />
+                <StackPanel
+                    Grid.Row="1"
+                    Background="Transparent"
+                    Orientation="Horizontal">
+
+                    <Image
+                        x:Name="ArtistImageInArtistPage"
+                        Width="200"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top"
+                        PointerReleased="ArtistImageInArtistPage_PointerReleased"
+                        Source="{Binding SelectedArtist.ImagePath}" />
+                    <StackPanel>
+
+                        <TextBlock
+                            x:Name="ArtistNameInArtistPage"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Top"
+                            FontSize="55"
+                            FontWeight="SemiBold"
+                            PointerReleased="ArtistNameInArtistPage_PointerReleased"
+                            Text="{Binding SelectedArtist.Name}" />
+                    </StackPanel>
                 </StackPanel>
 
-                <!--  1. Wrap in ScrollViewer for scrolling capabilities  -->
-                <ScrollViewer
-                    Grid.Row="1"
-                    HorizontalScrollBarVisibility="Auto"
-                    VerticalScrollBarVisibility="Disabled">
-
-                    <ItemsRepeater x:Name="AlbumsIR" Loaded="AlbumsIR_Loaded">
-                        <!--  2. Set Layout to Horizontal  -->
-                        <ItemsRepeater.Layout>
-                            <StackLayout Orientation="Horizontal" Spacing="20" />
-                        </ItemsRepeater.Layout>
-
-                        <ItemsRepeater.ItemTemplate>
-                            <DataTemplate>
-                                <!--  Added a fixed width to the container so items don't squash  -->
-                                <Button x:Name="Album" Click="Album_Click">
-
-                                    <StackPanel
-                                        Width="120"
-                                        MaxHeight="180"
-                                        VerticalAlignment="Center">
-                                        <Image
-                                            Width="80"
-                                            Height="80"
-                                            Source="{Binding ImagePath}"
-                                            Stretch="UniformToFill" />
-                                        <TextBlock
-                                            Margin="0,5,0,0"
-                                            HorizontalAlignment="Center"
-                                            Text="{Binding Name}"
-                                            TextWrapping="Wrap" />
-                                    </StackPanel>
-
-                                </Button>
-                            </DataTemplate>
-                        </ItemsRepeater.ItemTemplate>
-                    </ItemsRepeater>
-
-                </ScrollViewer>
-            </Grid>
 
 
 
+                <Grid Grid.Row="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <!--  Changed to Auto for better sizing  -->
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
 
-            <dgView:TableView
-                x:Name="ArtistDataTable"
-                Grid.Row="3"
-                MaxHeight="650"
-                Margin="15"
-                AutoGenerateColumns="False"
-                BorderBrush="Transparent"
-                BorderThickness="0"
-                ItemsSource="{Binding SearchResults}"
-                Loaded="ArtistDataTable_Loaded"
-                RowHeight="160">
+                    <StackPanel Grid.Row="0" Margin="0,0,0,10">
+                        <Button
+                            x:Name="ResetAblums"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Click="ResetAblums_Click"
+                            Content="Albums" />
+                    </StackPanel>
 
-                <dgView:TableView.Columns>
+                    <!--  1. Wrap in ScrollViewer for scrolling capabilities  -->
+                    <ScrollViewer
+                        Grid.Row="1"
+                        HorizontalScrollBarVisibility="Auto"
+                        VerticalScrollBarVisibility="Disabled">
 
-                    <!--  Column for the Cover Art  -->
-                    <dgView:TableViewTemplateColumn Width="150" Header="Cover">
-                        <dgView:TableViewTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Border
-                                    x:Name="CardBorder"
-                                    Width="130"
-                                    AllowDrop="True"
-                                    Background="Transparent"
-                                    CanDrag="True"
-                                    DragOver="CardBorder_DragOver"
-                                    DragStarting="CardBorder_DragStarting"
-                                    Drop="CardBorder_Drop">
-                                    <Grid x:Name="CoverImageGrid">
+                        <ItemsRepeater x:Name="AlbumsIR" Loaded="AlbumsIR_Loaded">
+                            <!--  2. Set Layout to Horizontal  -->
+                            <ItemsRepeater.Layout>
+                                <StackLayout Orientation="Horizontal" Spacing="20" />
+                            </ItemsRepeater.Layout>
 
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto" />
-                                            <RowDefinition Height="*" />
-                                            <RowDefinition Height="Auto" />
-                                        </Grid.RowDefinitions>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate>
+                                    <!--  Added a fixed width to the container so items don't squash  -->
+                                    <Button x:Name="Album" Click="Album_Click">
 
                                         <StackPanel
-                                            Grid.Row="0"
-                                            HorizontalAlignment="Center"
-                                            Orientation="Horizontal">
-
-                                            <SymbolIcon
-                                                Foreground="SlateBlue"
-                                                Symbol="Play"
-                                                Visibility="{Binding IsCurrentPlayingHighlight, Converter={StaticResource BoolToVisibilityConverter}}" />
-
-                                            <SymbolIcon
-                                                Width="20"
-                                                Height="20"
-                                                Foreground="SlateBlue"
-                                                Symbol="Microphone"
-                                                Visibility="{Binding HasSyncedLyrics, Converter={StaticResource BoolToVisibilityConverter}}" />
-
-                                            <FontIcon
-                                                Width="20"
-                                                Height="20"
-                                                Foreground="SlateBlue"
-                                                Glyph="&#xEB52;"
-                                                Visibility="{Binding IsFavorite, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                            Width="120"
+                                            Height="180"
+                                            VerticalAlignment="Bottom">
+                                            <Image
+                                                Width="80"
+                                                Height="80"
+                                                VerticalAlignment="Bottom"
+                                                Source="{Binding ImagePath}"
+                                                Stretch="UniformToFill" />
+                                            <TextBlock
+                                                Margin="0,5,0,0"
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Bottom"
+                                                Text="{Binding Name}"
+                                                TextWrapping="Wrap" />
                                         </StackPanel>
-                                        <Image
-                                            x:Name="coverArtImage"
-                                            Grid.Row="1"
-                                            Width="95"
-                                            Height="95"
-                                            x:FieldModifier="Public"
-                                            CanDrag="True"
-                                            IsHitTestVisible="False"
-                                            Source="{Binding CoverImagePath}"
-                                            Stretch="Fill" />
 
-                                        <StackPanel Grid.Row="2" HorizontalAlignment="Center">
-                                            <TextBlock Text="{Binding FileFormat}" />
-                                        </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+
+                    </ScrollViewer>
+                </Grid>
+
+
+                <StackPanel Grid.Row="3" PointerPressed="MyArtistPage_PointerPressed">
+                    <TextBlock x:Name="CoordinatedPanel" Text="{Binding SelectedArtist.Name}" />
+                    <Border HorizontalAlignment="Left">
+
+                        <TextBlock
+                            HorizontalAlignment="Left"
+                            FontSize="13"
+                            FontStretch="SemiCondensed"
+                            IsTextSelectionEnabled="True"
+                            MaxLines="5"
+                            Text="{Binding SelectedArtist.Bio}"
+                            TextTrimming="CharacterEllipsis"
+                            TextWrapping="Wrap" />
+                    </Border>
+                </StackPanel>
+
+                <dgView:TableView
+                    x:Name="ArtistDataTable"
+                    Grid.Row="5"
+                    MaxHeight="650"
+                    Margin="15"
+                    AutoGenerateColumns="False"
+                    BorderBrush="Transparent"
+                    BorderThickness="0"
+                    ItemsSource="{Binding SearchResults}"
+                    Loaded="ArtistDataTable_Loaded"
+                    RowHeight="160">
+
+                    <dgView:TableView.Columns>
+
+                        <!--  Column for the Cover Art  -->
+                        <dgView:TableViewTemplateColumn Width="150" Header="Cover">
+                            <dgView:TableViewTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border
+                                        x:Name="CardBorder"
+                                        Width="130"
+                                        AllowDrop="True"
+                                        Background="Transparent"
+                                        CanDrag="True"
+                                        DragOver="CardBorder_DragOver"
+                                        DragStarting="CardBorder_DragStarting"
+                                        Drop="CardBorder_Drop">
+                                        <Grid x:Name="CoverImageGrid">
+
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="*" />
+                                                <RowDefinition Height="Auto" />
+                                            </Grid.RowDefinitions>
+
+                                            <StackPanel
+                                                Grid.Row="0"
+                                                HorizontalAlignment="Center"
+                                                Orientation="Horizontal">
+
+                                                <SymbolIcon
+                                                    Foreground="SlateBlue"
+                                                    Symbol="Play"
+                                                    Visibility="{Binding IsCurrentPlayingHighlight, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                                                <SymbolIcon
+                                                    Width="20"
+                                                    Height="20"
+                                                    Foreground="SlateBlue"
+                                                    Symbol="Microphone"
+                                                    Visibility="{Binding HasSyncedLyrics, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                                                <FontIcon
+                                                    Width="20"
+                                                    Height="20"
+                                                    Foreground="SlateBlue"
+                                                    Glyph="&#xEB52;"
+                                                    Visibility="{Binding IsFavorite, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                            </StackPanel>
+                                            <Image
+                                                x:Name="coverArtImage"
+                                                Grid.Row="1"
+                                                Width="95"
+                                                Height="95"
+                                                x:FieldModifier="Public"
+                                                CanDrag="True"
+                                                IsHitTestVisible="False"
+                                                Source="{Binding CoverImagePath}"
+                                                Stretch="Fill" />
+
+                                            <StackPanel
+                                                Grid.Row="2"
+                                                HorizontalAlignment="Center"
+                                                Orientation="Horizontal"
+                                                Spacing="5">
+                                                <TextBlock Text="{Binding FileFormat}" />
+                                                <TextBlock Text="{Binding FileSize, Converter={StaticResource BytesToMegabytesConverter}}" />
+                                            </StackPanel>
+
+                                        </Grid>
+
+                                    </Border>
+                                </DataTemplate>
+                            </dgView:TableViewTemplateColumn.CellTemplate>
+                        </dgView:TableViewTemplateColumn>
+
+
+
+
+                        <dgView:TableViewTemplateColumn Width="*" Header="Song">
+                            <dgView:TableViewTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Grid
+                                        x:Name="TitleSection"
+                                        HorizontalAlignment="Stretch"
+                                        Background="Transparent"
+                                        CanDrag="True"
+                                        DoubleTapped="TitleSection_DoubleTapped"
+                                        IsDoubleTapEnabled="True">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0">
+                                                <Button
+                                                    HorizontalContentAlignment="Left"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    Content="{Binding Title}"
+                                                    FontSize="28"
+                                                    FontWeight="ExtraBold" />
+                                                <Button
+                                                    HorizontalContentAlignment="Left"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    Content="{Binding AlbumName}"
+                                                    FontSize="22" />
+                                                <TextBlock
+                                                    Margin="10,0"
+                                                    Text="{Binding RankInArtist}"
+                                                    ToolTipService.ToolTip="Rank In Artist Songs" />
+                                                <TextBlock Margin="10,0" Text="{Binding PlayCompletedCount}" />
+                                            </StackPanel>
+
+                                        </Grid>
 
                                     </Grid>
-
-                                </Border>
-                            </DataTemplate>
-                        </dgView:TableViewTemplateColumn.CellTemplate>
-                    </dgView:TableViewTemplateColumn>
+                                </DataTemplate>
+                            </dgView:TableViewTemplateColumn.CellTemplate>
+                        </dgView:TableViewTemplateColumn>
 
 
 
-
-                    <dgView:TableViewTemplateColumn Width="*" Header="Song">
-                        <dgView:TableViewTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Border
-                                    IsDoubleTapEnabled="True"
-                                    DoubleTapped="TitleSection_DoubleTapped"
-                                    x:Name="TitleSection"
-                                    Background="Transparent"
-                                    CanDrag="True">
-                                    <StackPanel Spacing="10">
-
-                                        <TextBlock Text="{Binding Title}" />
-                                        <TextBlock Text="{Binding AlbumName}" />
-                                        <TextBlock Text="{Binding PlayCompletedCount}" />
+                        <dgView:TableViewTextColumn
+                            Binding="{Binding DurationFormatted}"
+                            Header="Duration"
+                            IsReadOnly="True" />
 
 
+
+                        <dgView:TableViewTemplateColumn Header="Action">
+                            <dgView:TableViewTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel
+                                        Padding="5"
+                                        Orientation="Horizontal"
+                                        Spacing="10">
+
+                                        <Button
+                                            x:Name="PlayBtn"
+                                            Click="PlayBtn_Click"
+                                            Content="Play" />
+                                        <Button Content="Favorite" />
+                                        <Button Content="More" />
                                     </StackPanel>
 
-                                </Border>
-                            </DataTemplate>
-                        </dgView:TableViewTemplateColumn.CellTemplate>
-                    </dgView:TableViewTemplateColumn>
+                                </DataTemplate>
+                            </dgView:TableViewTemplateColumn.CellTemplate>
+                        </dgView:TableViewTemplateColumn>
+                    </dgView:TableView.Columns>
+                </dgView:TableView>
 
 
-
-                    <dgView:TableViewTextColumn
-                        Binding="{Binding DurationFormatted}"
-                        Header="Duration"
-                        IsReadOnly="True" />
-
-
-
-                    <dgView:TableViewTemplateColumn Header="Action">
-                        <dgView:TableViewTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <StackPanel
-                                    Padding="5"
-                                    Orientation="Horizontal"
-                                    Spacing="10">
-
-                                    <Button Content="Favorite" />
-                                    <Button Content="Play" />
-                                    <Button Content="More" />
-                                </StackPanel>
-
-                            </DataTemplate>
-                        </dgView:TableViewTemplateColumn.CellTemplate>
-                    </dgView:TableViewTemplateColumn>
-                </dgView:TableView.Columns>
-            </dgView:TableView>
-
-
-            <StackPanel Grid.Row="4" PointerPressed="MyArtistPage_PointerPressed">
-                <TextBlock x:Name="CoordinatedPanel" Text="{Binding SelectedArtist.Name}" />
-                <Border HorizontalAlignment="Left">
-
-                    <TextBlock
-                        HorizontalAlignment="Left"
-                        FontSize="13"
-                        FontStretch="SemiCondensed"
-                        IsTextSelectionEnabled="True"
-                        MaxLines="5"
-                        Text="{Binding SelectedArtist.Bio}"
-                        TextTrimming="CharacterEllipsis"
-                        TextWrapping="Wrap" />
-                </Border>
-            </StackPanel>
+            </Grid>
         </Grid>
-
     </ScrollViewer>
 </Page>

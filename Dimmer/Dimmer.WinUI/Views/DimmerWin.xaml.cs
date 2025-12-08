@@ -4,8 +4,6 @@ using CommunityToolkit.WinUI;
 
 using Windows.Graphics;
 
-using Button = Microsoft.UI.Xaml.Controls.Button;
-using MenuFlyout = Microsoft.UI.Xaml.Controls.MenuFlyout;
 using Slider = Microsoft.UI.Xaml.Controls.Slider;
 
 using Window = Microsoft.UI.Xaml.Window;
@@ -85,6 +83,7 @@ public sealed partial class DimmerWin : Window
         }
         if (MyViewModel is null)
             return;
+
         await MyViewModel.CheckToCompleteActivation();
     }
 
@@ -298,5 +297,13 @@ public sealed partial class DimmerWin : Window
     {
         
         Debug.WriteLine($"New window size: {args.Size.Width} x {args.Size.Height}");
+    }
+
+    private async void coverImageSong_Loaded(object sender, RoutedEventArgs e)
+    {
+        MyViewModel.CoverImageSong = coverImageSong;
+      
+
+
     }
 }

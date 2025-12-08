@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Color = Windows.UI.Color;
-using SolidColorBrush = Microsoft.UI.Xaml.Media.SolidColorBrush;
 
 namespace Dimmer.WinUI.Utils.Converters;
 

@@ -131,12 +131,11 @@ public class ExoPlayerService : MediaSessionService
         // 1. Convert SongModelView to MediaItem
         var mediaItem = new MediaItem.Builder()
             .SetUri(nextSong.FilePath)
-            .SetMediaId(nextSong.Id.ToString()) // Critical for tracking
+            .SetMediaId(nextSong.Id.ToString()) 
             .SetMediaMetadata(new MediaMetadata.Builder()
                 .SetTitle(nextSong.Title)
                 .SetArtist(nextSong.ArtistName)
                 .SetAlbumTitle(nextSong.AlbumName)
-                .SetArtworkUri(Uri.Parse(nextSong.CoverImagePath)) // Optional
                 .Build())
             .Build();
 

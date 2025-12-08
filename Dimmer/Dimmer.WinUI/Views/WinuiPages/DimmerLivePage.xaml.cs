@@ -12,11 +12,8 @@ using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
-using Microsoft.UI.Xaml.Controls.Primitives;
 
-using Button = Microsoft.UI.Xaml.Controls.Button;
 using Grid = Microsoft.UI.Xaml.Controls.Grid;
-using SolidColorBrush = Microsoft.UI.Xaml.Media.SolidColorBrush;
 using System.Threading.Tasks;
 using Dimmer.Utilities.Extensions;
 
@@ -69,6 +66,7 @@ public sealed partial class DimmerLivePage : Page
             {
                 Debug.WriteLine(ex.Message);
             }
+
         }
     }
 

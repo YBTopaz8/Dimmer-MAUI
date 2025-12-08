@@ -427,7 +427,7 @@ public static class ImageFilterUtils
     /// <param name="imageData">The original image data in bytes.</param>
     /// <param name="filterType">The filter effect to apply.</param>
     /// <returns>A new byte array representing the filtered image, or the original if the filter is None or fails.</returns>
-    public async static Task<byte[]?>? ApplyFilter(string coverfilePath, FilterType filterType)
+    public async static Task<byte[]?>? ApplyFilter(string? coverfilePath, FilterType filterType)
     {
         // --- Step 1: Validate the input ---
         if (string.IsNullOrWhiteSpace(coverfilePath) || !File.Exists(coverfilePath))

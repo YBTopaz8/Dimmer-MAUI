@@ -84,7 +84,32 @@ global using Dimmer.DimmerLive.Interfaces;
 global using Dimmer.Interfaces.Services;
 global using Dimmer.WinUI.Utils.CustomHandlers.CollectionView;
 global using Dimmer.WinUI.Utils.WinMgt;
+global using Windows.ApplicationModel.DataTransfer;
+global using Windows.Storage.Pickers;
 
+global using BitmapImage = Microsoft.UI.Xaml.Media.Imaging.BitmapImage;
+global using Button = Microsoft.UI.Xaml.Controls.Button;
+global using Colors = Microsoft.UI.Colors;
+global using DataPackageOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation;
+global using DragEventArgs = Microsoft.UI.Xaml.DragEventArgs;
+global using Image = Microsoft.UI.Xaml.Controls.Image;
+global using MenuFlyout = Microsoft.UI.Xaml.Controls.MenuFlyout;
+global using MenuFlyoutItem = Microsoft.UI.Xaml.Controls.MenuFlyoutItem;
+global using SolidColorBrush = Microsoft.UI.Xaml.Media.SolidColorBrush;
+
+global using CommunityToolkit.Maui.Extensions;
+global using CommunityToolkit.WinUI;
+
+global using Dimmer.Utilities.Extensions;
+global using Dimmer.WinUI.Views.CustomViews.MauiViews;
+
+
+global using FieldType = Dimmer.DimmerSearch.TQL.FieldType;
+global using MenuFlyoutSeparator = Microsoft.UI.Xaml.Controls.MenuFlyoutSeparator;
+global using MenuFlyoutSubItem = Microsoft.UI.Xaml.Controls.MenuFlyoutSubItem;
+global using TableView = WinUI.TableView.TableView;
+global using Thickness = Microsoft.UI.Xaml.Thickness;
+global using ToggleMenuFlyoutItem = Microsoft.UI.Xaml.Controls.ToggleMenuFlyoutItem;
 namespace Dimmer.WinUI;
 
 internal class GlobalUsings

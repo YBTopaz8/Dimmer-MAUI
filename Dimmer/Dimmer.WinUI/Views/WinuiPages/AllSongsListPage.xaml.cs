@@ -15,15 +15,9 @@ using static Dimmer.DimmerSearch.TQlStaticMethods;
 
 using AnimationStopBehavior = Microsoft.UI.Composition.AnimationStopBehavior;
 using Border = Microsoft.UI.Xaml.Controls.Border;
-using Button = Microsoft.UI.Xaml.Controls.Button;
 using CheckBox = Microsoft.UI.Xaml.Controls.CheckBox;
-using Colors = Microsoft.UI.Colors;
 using DragStartingEventArgs = Microsoft.UI.Xaml.DragStartingEventArgs;
 using Grid = Microsoft.UI.Xaml.Controls.Grid;
-using Image = Microsoft.UI.Xaml.Controls.Image;
-using MenuFlyout = Microsoft.UI.Xaml.Controls.MenuFlyout;
-using MenuFlyoutItem = Microsoft.UI.Xaml.Controls.MenuFlyoutItem;
-using MenuFlyoutSeparator = Microsoft.UI.Xaml.Controls.MenuFlyoutSeparator;
 using ScalarKeyFrameAnimation = Microsoft.UI.Composition.ScalarKeyFrameAnimation;
 using Visibility = Microsoft.UI.Xaml.Visibility;
 
@@ -1146,6 +1140,7 @@ public sealed partial class AllSongsListPage : Page
         {
             MyViewModel.SearchSongForSearchResultHolder(CurrentPageTQL);
         }
+        MyViewModel.CurrentWinUIPage = this;
     }
 
     protected override void OnNavigatedFrom(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
@@ -1193,57 +1188,37 @@ public sealed partial class AllSongsListPage : Page
 
     }
 
-    private void ProcessCellClick(bool isExclusion)
+    private void ProcessCellClick(bool isExclusion, bool isAdditive = false) // Added isAdditive flag
     {
-        return;
-        // 1. Check if we have a valid cell location from the CurrentCellChanged event.
-        if (_lastActiveCellSlot.Equals(default(TableViewCellSlot)))
-        {
-            Debug.WriteLine("[ProcessCellClick] Aborted: _lastActiveCellSlot is not set.");
-            return;
-        }
+        // 1. Validation (Same as yours)
+        if (_lastActiveCellSlot.Equals(default(TableViewCellSlot))) return;
 
-        // 2. Use the TableView's own API to get the content.
+        // 2. Get Content
         string tableViewContent = MySongsTableView.GetCellsContent(
             slots: new[] { _lastActiveCellSlot },
             includeHeaders: true
         );
 
-        Debug.WriteLine($"[ProcessCellClick] GetCellsContent returned: \"{tableViewContent?.Replace("\n", "\\n")}\"");
+        if (string.IsNullOrWhiteSpace(tableViewContent)) return;
 
-        // 3. --- NEW, MORE ROBUST VALIDATION ---
-        // First, check if the string is fundamentally empty.
-        if (string.IsNullOrWhiteSpace(tableViewContent))
-        {
-            Debug.WriteLine("[ProcessCellClick] Aborted: tableViewContent is null or whitespace.");
-            return;
-        }
-
-        // Second, split the content to ensure we have BOTH a header and a value.
+        // 3. Robust Split & Empty Value Check
         var parts = tableViewContent.Split(new[] { '\n' }, 2);
         if (parts.Length < 2 || string.IsNullOrWhiteSpace(parts[1]))
         {
-            // This is the critical check. If parts[1] is empty, it means the cell
-            // had no value, and we should not proceed.
-            Debug.WriteLine("[ProcessCellClick] Aborted: Cell value is empty. No clause generated.");
+            // Important: If user clicks an empty "Genre" cell, we probably don't want to search "Genre:''"
+            // Unless your TQL supports "Genre:null" or "Genre:empty" explicitly.
+            Debug.WriteLine("[ProcessCellClick] Ignored empty cell.");
             return;
         }
-        // --- END OF NEW VALIDATION ---
 
-        // 4. Use your existing TQL converter.
+        // 4. Convert to TQL
         string tqlClause = TqlConverter.ConvertTableViewContentToTql(tableViewContent);
-        if (string.IsNullOrEmpty(tqlClause))
-        {
-            Debug.WriteLine($"[ProcessCellClick] Aborted: TqlConverter failed to convert content.");
-            return;
-        }
+        if (string.IsNullOrEmpty(tqlClause)) return;
 
-        Debug.WriteLine($"[ProcessCellClick] Generated TQL Clause: \"{tqlClause}\" | IsExclusion: {isExclusion}");
-
-        // 5. Call the ViewModel to update the query.
-        MyViewModel?.UpdateQueryWithClause(tqlClause, isExclusion);
+        // 5. ViewModel Integration
+        // Pass the intent: Are we excluding? Are we adding to existing filters?
+        //MyViewModel?.UpdateQueryWithClause(tqlClause, isExclusion, isAdditive);
     }
-
     private void OpenFileExplorer_Click(object sender, RoutedEventArgs e)
     {
 
@@ -1487,15 +1462,18 @@ public sealed partial class AllSongsListPage : Page
             };
             var contextMenuFlyout = new MenuFlyout();
 
-            var dbSongArtists = MyViewModel.RealmFactory.GetRealmInstance()
-                .Find<SongModel>(_storedSong.Id).ArtistToSong.ToList().Select(x => new ArtistModelView()
+            var dbSongArtists = MyViewModel.RealmFactory.GetRealmInstance();
+            var finding = dbSongArtists
+                .Find<SongModel>(_storedSong.Id);
+            var selectingg = finding.ArtistToSong.ToList();
+            var sel2 = selectingg.Select(x => new ArtistModelView()
                 {
                     Id = x.Id,
                     Name = x.Name,
                     Bio = x.Bio,
                     ImagePath = x.ImagePath
                 });
-            var namesOfartists = dbSongArtists.ToList().Select(a => a.Name);
+            var namesOfartists = sel2.Select(a => a.Name);
 
             bool isSingular = namesOfartists.Count() > 1 ? true : false;
             string artistText = string.Empty;
@@ -1572,13 +1550,13 @@ public sealed partial class AllSongsListPage : Page
                     var selectedArtist = MyViewModel.RealmFactory.GetRealmInstance()
                     .Find<SongModel>(_storedSong.Id).ArtistToSong.First()
                     .ToArtistModelView();
-
+                    if (selectedArtist is null) return;
                     await MyViewModel.SetSelectedArtist(selectedArtist);
 
 
-                    if (properties.IsRightButtonPressed)
+                    if (properties.IsRightButtonPressed )
                     {
-                        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(_storedSong.ArtistToSong.First()!.Name!));
+                        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(selectedArtist!.Name!));
                         return;
                     }
 

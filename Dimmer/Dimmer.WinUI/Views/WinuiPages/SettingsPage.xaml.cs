@@ -2,9 +2,7 @@ using CommunityToolkit.WinUI;
 
 using Microsoft.UI.Xaml.Controls.Primitives;
 
-using Button = Microsoft.UI.Xaml.Controls.Button;
 using Grid = Microsoft.UI.Xaml.Controls.Grid;
-using SolidColorBrush = Microsoft.UI.Xaml.Media.SolidColorBrush;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.

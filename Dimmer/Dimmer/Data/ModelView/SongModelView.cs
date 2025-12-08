@@ -10,7 +10,7 @@ public partial class SongModelView : ObservableObject
     public partial string Title { get; set; }
 
     [ObservableProperty]
-    public partial string TitleDurationKey { get; set; }
+    public partial string? TitleDurationKey { get; set; }
 
     [ObservableProperty]
     public partial int NumberOfTimesFaved { get; set; }
