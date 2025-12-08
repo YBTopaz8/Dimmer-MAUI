@@ -227,15 +227,14 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     partial void OnCurrentWinUIPageChanged(Page oldValue, Page newValue)
     {
-        if(newValue.GetType() == typeof(AllSongsListPage))
+        if (CoverImageSong is not null)
         {
-            if (CoverImageSong is not null)
-                _= LoadSongImageWithFilterAsync(CurrentPlayingSongView, CoverImageSong, FilterType.Glassy);
-
-        }
-        else
-        {
-            CoverImageSong.Source = null;
+            if (newValue.GetType() == typeof(AllSongsListPage))
+            {
+                CoverImageSong.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+                return;
+            }
+            CoverImageSong.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
         }
     }
 
@@ -443,9 +442,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
         if (value.IsCurrentPlayingHighlight)
         {
-            if(CoverImageSong is not null)
-                await LoadSongImageWithFilterAsync(value, CoverImageSong, FilterType.Glassy);
-
+            
 
             _logger.LogInformation($"Song changed and highlighted in ViewModel B: {value.Title}");
 
@@ -1146,8 +1143,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     [ObservableProperty]
     public partial AchievementRule? SelectedAchievement { get; set; }
-    [ObservableProperty]
-    public partial Image CoverImageSong { get; internal set; }
+    public Image CoverImageSong { get; internal set; }
 
     public override bool AutoConfirmLastFM(bool val)
     {
@@ -1284,5 +1280,13 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         realm.Dispose();
     }
 
-    
+    internal void UpdateAlbumImage(AlbumModelView album, string? coverImagePath)
+    {
+        var realm = RealmFactory.GetRealmInstance();
+        var realmAlbum = realm
+            .Find<AlbumModel>(album.Id);
+        if (realmAlbum is null) return;
+        realm.Write(()=> { realmAlbum.ImagePath = coverImagePath; });
+
+    }
 }

@@ -44,8 +44,8 @@
                 x:Name="MostPlayedSongCoverImg"
                 Grid.Row="0"
                 HorizontalAlignment="Center"
-                Loaded="MostPlayedSongCoverImg_Loaded"
-                Opacity="1"
+                Opacity="0.12"
+                Source="{Binding SelectedArtist.ImagePath}"
                 Stretch="Fill" />
 
             <Grid
@@ -129,13 +129,8 @@
                                     <!--  Added a fixed width to the container so items don't squash  -->
                                     <Button x:Name="Album" Click="Album_Click">
 
-                                        <StackPanel
-                                            Width="120"
-                                            Height="180"
-                                            VerticalAlignment="Bottom">
+                                        <StackPanel Width="120" VerticalAlignment="Bottom">
                                             <Image
-                                                Width="80"
-                                                Height="80"
                                                 VerticalAlignment="Bottom"
                                                 Source="{Binding ImagePath}"
                                                 Stretch="UniformToFill" />
@@ -143,8 +138,14 @@
                                                 Margin="0,5,0,0"
                                                 HorizontalAlignment="Center"
                                                 VerticalAlignment="Bottom"
+                                                FontWeight="Bold"
                                                 Text="{Binding Name}"
                                                 TextWrapping="Wrap" />
+                                            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                                                <TextBlock Text="Tracks: " />
+
+                                                <TextBlock Text="{Binding NumberOfTracks}" />
+                                            </StackPanel>
                                         </StackPanel>
 
                                     </Button>
@@ -181,8 +182,7 @@
                     BorderBrush="Transparent"
                     BorderThickness="0"
                     ItemsSource="{Binding SearchResults}"
-                    Loaded="ArtistDataTable_Loaded"
-                    RowHeight="160">
+                    Loaded="ArtistDataTable_Loaded">
 
                     <dgView:TableView.Columns>
 
@@ -192,7 +192,8 @@
                                 <DataTemplate>
                                     <Border
                                         x:Name="CardBorder"
-                                        Width="130"
+                                        Margin="25,0"
+                                        HorizontalAlignment="Center"
                                         AllowDrop="True"
                                         Background="Transparent"
                                         CanDrag="True"

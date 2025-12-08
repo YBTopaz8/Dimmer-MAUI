@@ -15,12 +15,10 @@
     SizeChanged="Window_SizeChanged"
     mc:Ignorable="d">
 
-    <Window.SystemBackdrop>
-        <MicaBackdrop />
-    </Window.SystemBackdrop>
+ 
 
 
-    <Grid x:Name="MainGrid">
+    <Grid x:Name="MainGrid" Background="Transparent">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
@@ -29,8 +27,9 @@
         <Image
             x:Name="coverImageSong"
             Grid.RowSpan="2"
+            Opacity="0.05"
             Loaded="coverImageSong_Loaded"
-            Opacity="0.2"
+            Source="{Binding CurrentPlayingSongView.CoverImagePath}"
             Stretch="UniformToFill" />
         <customViews:MediaPlaybackSection x:Name="TopMediaControlSection" Grid.Row="0" />
 

@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 
 using CommunityToolkit.Maui.Core.Extensions;
 
+using Hqub.Lastfm.Entities;
+
 using Microsoft.UI.Xaml.Media.Imaging;
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -299,16 +301,16 @@ public sealed partial class ArtistPage : Page
         try
         {
             // Perform the async DB work
-            await MyViewModel.ToggleFavoriteRatingToArtist(DetailedSong.Artist);
+            await MyViewModel.ToggleFavoriteRatingToArtist(MyViewModel.SelectedArtist);
 
             // Refresh the specific Realm object to get the new state
-            // (Assuming your ViewModel doesn't automatically update DetailedSong.Artist in place)
+            // (Assuming your ViewModel doesn't automatically update MyViewModel.SelectedArtist in place)
             var dbArtist = MyViewModel.RealmFactory.GetRealmInstance()
-                .Find<ArtistModel>(DetailedSong.Artist.Id);
+                .Find<ArtistModel>(MyViewModel.SelectedArtist.Id);
 
             if (dbArtist != null)
             {
-                DetailedSong.Artist = dbArtist.ToArtistModelView()!;
+                MyViewModel.SelectedArtist = dbArtist.ToArtistModelView()!;
             }
 
             // Update the UI to match the new state
@@ -337,7 +339,7 @@ public sealed partial class ArtistPage : Page
             Spacing = 10
         };
 
-        if (DetailedSong.Artist.IsFavorite)
+        if (MyViewModel.SelectedArtist.IsFavorite)
         {
             fontIcon.Glyph = "\uEB52"; // Filled Heart
             toggleFavTxt.Text = "Love";
@@ -358,7 +360,7 @@ public sealed partial class ArtistPage : Page
 
     private void ArtistDataTable_Loaded(object sender, RoutedEventArgs e)
     {
-        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(DetailedSong.Artist.Name));
+        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist.Name));
         
 
 
@@ -366,11 +368,28 @@ public sealed partial class ArtistPage : Page
 
     private void AlbumsIR_Loaded(object sender, RoutedEventArgs e)
     {
+        
         ObservableCollection<AlbumModelView?>? albs = MyViewModel.RealmFactory.GetRealmInstance()
-            .Find<ArtistModel>(DetailedSong.Artist.Id)!
-            .Albums.ToList().Select(x => x.ToAlbumModelView()).ToObservableCollection();
-        DetailedSong.Artist.AlbumsByArtist = albs;
-        AlbumsIR.ItemsSource = DetailedSong.Artist.AlbumsByArtist;
+            .Find<ArtistModel>(MyViewModel.SelectedArtist.Id)!
+            .Albums.ToList().Select(x =>
+            {
+                var modelV = x.ToAlbumModelView();
+                modelV.NumberOfTracks=x.SongsInAlbum.Count();
+                modelV.TrackTotal=x.SongsInAlbum.Count();
+                modelV.Artists = x.Artists.Select(a => a.ToArtistModelView()).ToList();
+                if(modelV.ImagePath == "musicalbum.png" || string.IsNullOrEmpty(modelV.ImagePath))
+            {
+                var firstSongInAlbumWithValidCoverImage = x.SongsInAlbum
+                    .FirstOrDefault(s => !string.IsNullOrEmpty(s.CoverImagePath));
+                if (firstSongInAlbumWithValidCoverImage != null)
+                    modelV.ImagePath = firstSongInAlbumWithValidCoverImage.CoverImagePath;
+                MyViewModel.UpdateAlbumImage(modelV, firstSongInAlbumWithValidCoverImage.CoverImagePath);
+            }
+                return modelV;
+            }).ToObservableCollection();
+     
+        MyViewModel.SelectedArtist.AlbumsByArtist = albs;
+        AlbumsIR.ItemsSource = MyViewModel.SelectedArtist.AlbumsByArtist;
     }
 
     private void Album_Click(object sender, RoutedEventArgs e)
@@ -379,7 +398,21 @@ public sealed partial class ArtistPage : Page
                 var album = (AlbumModelView)send.DataContext;
 
         MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByAlbum(album.Name));
+        var albmInDb = MyViewModel.RealmFactory.GetRealmInstance()
+            .All<SongModel>()
+            .Where(x => x.Album.Name == album.Name);
+        var count = albmInDb.Count();
 
+        if (album != null && album.ImagePath == "musicalbum.png")
+        {
+            var firstSongInAlbumWithValidCoverImage = MyViewModel.RealmFactory.GetRealmInstance()
+                .Find<AlbumModel>(album.Id)!
+                .SongsInAlbum
+                .FirstOrDefault(s => !string.IsNullOrEmpty(s.CoverImagePath));
+            if (firstSongInAlbumWithValidCoverImage != null)
+                album.ImagePath = firstSongInAlbumWithValidCoverImage.CoverImagePath;
+            MyViewModel.UpdateAlbumImage(album, firstSongInAlbumWithValidCoverImage.CoverImagePath);
+        }
 
     }
 
@@ -448,7 +481,7 @@ public sealed partial class ArtistPage : Page
 
     private void ResetAblums_Click(object sender, RoutedEventArgs e)
     {
-        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(DetailedSong.ArtistName));
+        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist.Name));
     }
 
     private async void TitleSection_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)

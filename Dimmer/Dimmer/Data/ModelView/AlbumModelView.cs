@@ -23,7 +23,7 @@ public partial class AlbumModelView : ObservableObject
     [ObservableProperty]
     public partial string? Description { get; set; }
     [ObservableProperty]
-    public partial string? ImagePath { get; set; } = "musicalbum.png";
+    public partial string? ImagePath { get; set; }
     [ObservableProperty] public partial byte[]? ImageBytes { get; set; }
 
   

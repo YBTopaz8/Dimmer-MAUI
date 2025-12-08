@@ -2,10 +2,12 @@ using System.Windows.Controls.Primitives;
 
 using CommunityToolkit.WinUI;
 
+using Microsoft.Extensions.Configuration;
+using Microsoft.UI.Composition.SystemBackdrops;
+
 using Windows.Graphics;
 
 using Slider = Microsoft.UI.Xaml.Controls.Slider;
-
 using Window = Microsoft.UI.Xaml.Window;
 
 
@@ -30,6 +32,7 @@ public sealed partial class DimmerWin : Window
         MainGrid.DataContext = MyViewModel;
         TopMediaControlSection.DataContext = MyViewModel;
 
+        this.SystemBackdrop = new Microsoft.UI.Xaml.Media.DesktopAcrylicBackdrop();
         var appWin = PlatUtils.GetAppWindow(this);
         
         
@@ -76,7 +79,10 @@ public sealed partial class DimmerWin : Window
 
     private async void Window_Activated(object sender, WindowActivatedEventArgs args)
     {
-
+        if (m_configurationSource != null)
+        {
+            m_configurationSource.IsInputActive = args.WindowActivationState != WindowActivationState.Deactivated;
+        }
         if (args.WindowActivationState == WindowActivationState.Deactivated)
         {
             return;
@@ -302,8 +308,90 @@ public sealed partial class DimmerWin : Window
     private async void coverImageSong_Loaded(object sender, RoutedEventArgs e)
     {
         MyViewModel.CoverImageSong = coverImageSong;
-      
 
 
+    }
+
+    DesktopAcrylicController m_acrylicController;
+    SystemBackdropConfiguration m_configurationSource;
+    bool TrySetAcrylicBackdrop()
+    {
+        if (DesktopAcrylicController.IsSupported())
+        {
+            // Ensure the dispatcher queue is available
+            if (Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread() == null)
+            {
+                // If this is in the constructor, the DispatcherQueue might not be ready yet.
+                // Usually not strictly necessary if called from OnNavigatedTo or a Loaded event.
+            }
+
+            // Hooking up the policy object
+            m_configurationSource = new SystemBackdropConfiguration();
+
+            // Window events to handle theme changes and focus
+            this.Activated += Window_Activated;
+            this.Closed += Window_Closed;
+
+            // Assuming 'Content' is a FrameworkElement (like a Grid or Page)
+            if (this.Content is FrameworkElement fe)
+            {
+                fe.ActualThemeChanged += Window_ThemeChanged;
+            }
+
+            // Initial configuration state.
+            m_configurationSource.IsInputActive = true;
+            SetConfigurationSourceTheme();
+
+            // --- THE CHANGE IS HERE ---
+            m_acrylicController = new DesktopAcrylicController();
+
+            // Set the Kind to Thin
+            m_acrylicController.Kind = DesktopAcrylicKind.Thin;
+
+            // Set the Tint Color and Opacity (Optional, but often needed for specific looks)
+            // m_acrylicController.TintColor = Microsoft.UI.Colors.Transparent; 
+            // m_acrylicController.TintOpacity = 0f; 
+
+            // Enable the system backdrop.
+            m_acrylicController.AddSystemBackdropTarget(WinRT.CastExtensions.As<ICompositionSupportsSystemBackdrop>(this)); m_acrylicController.SetSystemBackdropConfiguration(m_configurationSource);
+
+            return true; // Succeeded.
+        }
+
+        return false; // Acrylic is not supported on this system.
+    }
+ 
+    private void Window_Closed(object sender, WindowEventArgs args)
+    {
+        // Make sure the controller is disposed
+        if (m_acrylicController != null)
+        {
+            m_acrylicController.Dispose();
+            m_acrylicController = null;
+        }
+
+        this.Activated -= Window_Activated;
+        m_configurationSource = null;
+    }
+
+    private void Window_ThemeChanged(FrameworkElement sender, object args)
+    {
+        if (m_configurationSource != null)
+        {
+            SetConfigurationSourceTheme();
+        }
+    }
+
+    private void SetConfigurationSourceTheme()
+    {
+        if (this.Content is FrameworkElement fe)
+        {
+            switch (fe.ActualTheme)
+            {
+                case ElementTheme.Dark: m_configurationSource.Theme = SystemBackdropTheme.Dark; break;
+                case ElementTheme.Light: m_configurationSource.Theme = SystemBackdropTheme.Light; break;
+                case ElementTheme.Default: m_configurationSource.Theme = SystemBackdropTheme.Default; break;
+            }
+        }
     }
 }
