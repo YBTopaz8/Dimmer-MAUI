@@ -879,7 +879,7 @@ public sealed partial class AllSongsListPage : Page
 
         // Small visual feedback before navigation
         var visual = ElementCompositionPreview.GetElementVisual(image);
-        switch (SongTransitionAnimation.Slide)
+        switch (_userPrefAnim)
         {
             case SongTransitionAnimation.Fade:
                 var fade = _compositor.CreateScalarKeyFrameAnimation();

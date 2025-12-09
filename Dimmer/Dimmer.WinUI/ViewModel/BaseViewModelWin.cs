@@ -3,7 +3,10 @@
 
 
 
+using System.Threading.Tasks;
 using System.Windows.Controls.Primitives;
+
+using CommunityToolkit.Maui.Core.Extensions;
 
 //using TableView = WinUI.TableView.TableView;
 
@@ -21,7 +24,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     public readonly IWinUIWindowMgrService winUIWindowMgrService;
 
     private readonly LoginViewModel loginViewModel;
-    private readonly IFolderPicker _folderPicker; 
+    private readonly IFolderPicker _folderPicker;
     public DimmerMultiWindowCoordinator DimmerMultiWindowCoordinator;
 
     public BaseViewModelWin(IDimmerStateService dimmerStateService,
@@ -29,7 +32,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         DimmerMultiWindowCoordinator dimmerMultiWindowCoordinator,
         IMauiWindowManagerService mauiWindowManagerService,
         IWinUIWindowMgrService winUIWinMgrService,
-    MusicDataService musicDataService, IAppInitializerService appInitializerService, IDimmerAudioService audioServ, ISettingsService settingsService, ILyricsMetadataService lyricsMetadataService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> _songRepo, IDuplicateFinderService duplicateFinderService, ILastfmService _lastfmService, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, IDialogueService dialogueService, IRepository<PlaylistModel> PlaylistRepo, IRealmFactory RealmFact, IFolderMonitorService FolderServ, ILibraryScannerService LibScannerService, IRepository<DimmerPlayEvent> DimmerPlayEventRepo, BaseAppFlow BaseAppClass, ILogger<BaseViewModel> logger) : base( dimmerStateService, musicDataService, appInitializerService, audioServ, settingsService, lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, _songRepo, duplicateFinderService, _lastfmService, artistRepo, albumModel, genreModel, dialogueService, PlaylistRepo, RealmFact, FolderServ, LibScannerService, DimmerPlayEventRepo, BaseAppClass, logger)
+    MusicDataService musicDataService, IAppInitializerService appInitializerService, IDimmerAudioService audioServ, ISettingsService settingsService, ILyricsMetadataService lyricsMetadataService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> _songRepo, IDuplicateFinderService duplicateFinderService, ILastfmService _lastfmService, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, IDialogueService dialogueService, IRepository<PlaylistModel> PlaylistRepo, IRealmFactory RealmFact, IFolderMonitorService FolderServ, ILibraryScannerService LibScannerService, IRepository<DimmerPlayEvent> DimmerPlayEventRepo, BaseAppFlow BaseAppClass, ILogger<BaseViewModel> logger) : base(dimmerStateService, musicDataService, appInitializerService, audioServ, settingsService, lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, _songRepo, duplicateFinderService, _lastfmService, artistRepo, albumModel, genreModel, dialogueService, PlaylistRepo, RealmFact, FolderServ, LibScannerService, DimmerPlayEventRepo, BaseAppClass, logger)
     {
         this.winUIWindowMgrService = winUIWinMgrService;
         this.loginViewModel = _loginViewModel;
@@ -321,8 +324,8 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     [ObservableProperty]
     public partial bool? CanGoBack { get; set; }
-    
-    
+
+
     public DimmerWin? MainWindow { get; set; }
     public DimmerMAUIWin MainMAUIWindow { get; set; }
 
@@ -362,7 +365,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     internal void ActivateMainWindow()
     {
-        
+
         if (MainMAUIWindow is not null)
         {
             windowManager.ActivateWindow(MainMAUIWindow);
@@ -374,7 +377,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     {
 
         if (!CurrentPlayingSongView.HasSyncedLyrics) return;
-       
+
         var syncLyricsWindow = windowManager.GetOrCreateUniqueWindow(windowFactory: () => new SyncLyricsPopUpViewWindow(this));
         if (syncLyricsWindow is null) return;
         var newPosition = new Windows.Graphics.RectInt32();
@@ -442,7 +445,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
         if (value.IsCurrentPlayingHighlight)
         {
-            
+
 
             _logger.LogInformation($"Song changed and highlighted in ViewModel B: {value.Title}");
 
@@ -467,7 +470,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         if (byteData.imgBytes != null)
         {
 
-         
+
             // listening to, text so, title, artistname, album with app name, and version.
             string clipboardText = $"{song.Title} - {song.ArtistName}\nAlbum: {song.AlbumName}\n\nShared via Dimmer Music Player v{CurrentAppVersion}";
 
@@ -480,7 +483,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     {
         await base.OnPlaybackStarted(args);
         if (args.MediaSong is null) return;
-        CurrentPlayingSongView= args.MediaSong;
+        CurrentPlayingSongView = args.MediaSong;
         // await PlatUtils.ShowNewSongNotification(args.MediaSong.Title, args.MediaSong.ArtistName, args.MediaSong.CoverImagePath);
     }
     [RelayCommand]
@@ -491,11 +494,11 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         //Debug.WriteLine(win.Visible);
         //Debug.WriteLine(win.AppWindow.IsShownInSwitchers);//VERY IMPORTANT FOR WINUI 3 TO SHOW IN TASKBAR
     }
-   
+
     [ObservableProperty]
     public partial TableView MySongsTableView { get; set; }
 
-    
+
 
     internal void AddSongsByIdsToQueue(List<string> songIds)
     {
@@ -525,7 +528,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     {
 
         await Shell.Current.DisplayAlert("Soon...", "Feature Not available Yet...", "OK");
-     
+
 
 
     }
@@ -541,7 +544,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
         try
         {
-            await MySongsTableView.SmoothScrollIntoViewWithItemAsync(CurrentPlayingSongView, ScrollItemPlacement.Center,false, true);
+            await MySongsTableView.SmoothScrollIntoViewWithItemAsync(CurrentPlayingSongView, ScrollItemPlacement.Center, false, true);
         }
         catch (Exception ex)
         {
@@ -554,17 +557,17 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
         try
         {
-            
+
             await MySongsTableView.SmoothScrollIntoViewWithItemAsync(song, ScrollItemPlacement.Center, false, true);
 
             await Task.Delay(200);
-            var itemIndex= MySongsTableView.Items.IndexOf(song);
-           
+            var itemIndex = MySongsTableView.Items.IndexOf(song);
+
             var contentTableRow = MySongsTableView.ContainerFromIndex(itemIndex) as TableViewRow;
             var cellPresenter = contentTableRow?.CellPresenter;
             IList<TableViewCell>? cells = cellPresenter?.Cells;
-            
-            if(cells is null && cells?.Count > 0)
+
+            if (cells is null && cells?.Count > 0)
             {
                 Debug.WriteLine("No cells found");
                 return;
@@ -572,19 +575,19 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
 
 
-            if(contentTableRow is null)
+            if (contentTableRow is null)
             {
                 Debug.WriteLine("No content Table Row found");
                 return;
             }
 
-            if(cellPresenter is null)
+            if (cellPresenter is null)
             {
                 Debug.WriteLine("No cell presenter found");
                 return;
             }
 
-            if(cells is null)
+            if (cells is null)
             {
                 Debug.WriteLine("No cell presenter found");
                 return;
@@ -598,8 +601,8 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
             TableViewCell? coverImageCell = cells[0];
 
-            await PulseWithBorderAsync(coverImageCell,pulses:3, duration:300);
-            
+            await PulseWithBorderAsync(coverImageCell, pulses: 3, duration: 300);
+
         }
         catch (Exception ex)
         {
@@ -607,7 +610,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         }
     }
 
-   
+
     public static async Task PulseWithBorderAsync(
      TableViewCell element,
      int pulses = 2,
@@ -617,9 +620,9 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         if (element is null) return;
 
 
-        
+
         var visual = ElementCompositionPreview.GetElementVisual(element);
-        
+
         var compositor = visual.Compositor;
 
         visual.CenterPoint = new Vector3(
@@ -812,7 +815,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         if (MainWindow is null) return;
 
         await DimmerMultiWindowCoordinator.SnapAllToHomeAsync();
-        
+
 
     }
 
@@ -830,13 +833,13 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
             //tempVar.Url;
             // find matches for any time in search results
             ObservableCollection<string> are = new System.Collections.ObjectModel.ObservableCollection<string>(similar);
-            artist.ListOfSimilarArtists = are;
+            artist.ListOfSimilarArtistsNames = are;
         }
         artist.TotalSongsByArtist = SearchResults.Count(x => x.ArtistToSong.Any(a => a.Name == artist.Name));
         artist.TotalAlbumsByArtist = SearchResults.Count(x => x.Album.Artists.Any(a => a.Name == artist.Name));
 
-        
-        RxSchedulers.UI.Schedule(()=>
+
+        RxSchedulers.UI.Schedule(() =>
         {
             SelectedArtist = artist;
         });
@@ -853,7 +856,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     public void NavigateToAnyPageOfGivenType(Type pageType)
     {
         if (MainWindow is null)
-            MainWindow= winUIWindowMgrService.GetOrCreateUniqueWindow<DimmerWin>(this, () => new DimmerWin());
+            MainWindow = winUIWindowMgrService.GetOrCreateUniqueWindow<DimmerWin>(this, () => new DimmerWin());
 
         MainWindow.NavigateToPage(pageType);
     }
@@ -1088,7 +1091,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         if (string.IsNullOrWhiteSpace(uriStr)) return;
         var uri = new Uri(uriStr);
         await Windows.System.Launcher.LaunchUriAsync(uri);
-        
+
     }
 
     // ---------- URL builders (simple, safe search URLs) ----------
@@ -1122,10 +1125,10 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     public override async Task UpdateSongSpecificUi(SongModelView? song)
     {
         await base.UpdateSongSpecificUi(song);
-        
+
         Microsoft.Maui.Controls.TitleBar mauiTitleBar = new Microsoft.Maui.Controls.TitleBar
         {
-            Title = AppTitle            
+            Title = AppTitle
         };
         if (CurrentPlaySongDominantColor == null) return;
         await mauiTitleBar.BackgroundColorTo(CurrentPlaySongDominantColor);
@@ -1133,7 +1136,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     partial void OnIsBackButtonVisibleChanged(WinUIVisibility oldValue, WinUIVisibility newValue)
     {
-        
+
 
 
     }
@@ -1155,7 +1158,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     public async Task CheckToCompleteActivation()
     {
-        if(ActivationRequestType == "Confirm LastFM")
+        if (ActivationRequestType == "Confirm LastFM")
         {
 
             ContentDialog lastFMConfirmDialog = new ContentDialog
@@ -1178,7 +1181,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
                 ContentDialog cancelledDialog = new ContentDialog
                 {
-                    
+
                     Title = "Action Cancelled",
                     Content = "Last FM Authorization Cancelled",
                     CloseButtonText = "OK",
@@ -1187,7 +1190,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
                 await cancelledDialog.ShowAsync();
 
             }
-            
+
         }
 
 
@@ -1226,7 +1229,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
                 TextWrapping = TextWrapping.Wrap,
                 Height = 200,
                 Width = 400,
-                
+
             },
             PrimaryButtonText = "Save",
             CloseButtonText = "Cancel",
@@ -1240,9 +1243,9 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
             case ContentDialogResult.Primary:
                 var addedNote = (contentDialog.Content as TextBox)?.Text;
                 if (addedNote is null) return;
-                
+
                 await SaveUserNoteToSong(SelectedSong, addedNote);
-                
+
                 break;
             case ContentDialogResult.Secondary:
                 break;
@@ -1251,7 +1254,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         }
     }
 
-    internal async Task LoadSongImageWithFilterAsync(SongModelView? songModelView, Microsoft.UI.Xaml.Controls.Image mostPlayedSongCoverImg, FilterType filter=FilterType.Blur)
+    internal async Task LoadSongImageWithFilterAsync(SongModelView? songModelView, Microsoft.UI.Xaml.Controls.Image mostPlayedSongCoverImg, FilterType filter = FilterType.Blur)
     {
         mostPlayedSongCoverImg.Source = null;
         if (songModelView is null) return;
@@ -1286,7 +1289,30 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         var realmAlbum = realm
             .Find<AlbumModel>(album.Id);
         if (realmAlbum is null) return;
-        realm.Write(()=> { realmAlbum.ImagePath = coverImagePath; });
+        realm.Write(() => { realmAlbum.ImagePath = coverImagePath; });
 
     }
+
+    internal async Task LoadLastFMArtist(ArtistModelView? selectedArtist)
+    {
+        if (selectedArtist is null) return;
+        var lastFmArtist = await lastfmService.GetArtistInfoAsync(selectedArtist.Name!);
+
+        if (lastFmArtist is null) return;
+        SelectedArtist!.ImagePath = lastFmArtist.Images?.Where(x => x.Size == "mega").LastOrDefault()?.Url;
+        SelectedArtist.Bio = lastFmArtist.Biography.Summary;
+        SelectedArtist.ListOfSimilarArtists = lastFmArtist.Similar.ToObservableCollection();
+        SelectedArtist.Url = lastFmArtist.Url;
+        var realmm = RealmFactory.GetRealmInstance();
+        await realmm.WriteAsync(async () =>
+        {
+            var artInDB = realmm.Find<ArtistModel>(selectedArtist.Id);
+            if (artInDB is null) return;
+
+            artInDB.ImagePath = SelectedArtist.ImagePath;
+            artInDB.Bio = SelectedArtist.Bio;
+            artInDB.Url = SelectedArtist.Url;
+
+        });
+    } 
 }

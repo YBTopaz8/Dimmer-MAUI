@@ -157,7 +157,9 @@ public sealed partial class SongDetailPage : Page
         }
 
         MyViewModel.SelectedSong = DetailedSong;
-      
+
+        
+
         detailedImage.Loaded += (s, ee) =>
         {
             DispatcherQueue.TryEnqueue(() =>
@@ -202,6 +204,39 @@ public sealed partial class SongDetailPage : Page
                     detailedImage.Opacity = 1;
 
                 }
+
+                var ArtistToSongDetailsAnim = ConnectedAnimationService.GetForCurrentView().GetAnimation("ArtistToSongDetailsAnim");
+                if (ArtistToSongDetailsAnim != null)
+                {
+                    detailedImage.Opacity = 1;
+                    var animConf = new Microsoft.UI.Xaml.Media.Animation.GravityConnectedAnimationConfiguration();
+
+                    animConf.IsShadowEnabled = true;
+
+                    ArtistToSongDetailsAnim.Configuration = animConf;
+
+
+                    ArtistToSongDetailsAnim.TryStart(detailedImage, new List<UIElement>() { TitleBlock });
+                    detailedImage.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+                    detailedImage.Opacity = 1;
+                }
+
+                var BackConnectedAnimationFromArtistPage = ConnectedAnimationService.GetForCurrentView().GetAnimation("BackConnectedAnimationFromArtistPage");
+                if (BackConnectedAnimationFromArtistPage != null)
+                {
+                    detailedImage.Opacity = 1;
+                    var animConf = new Microsoft.UI.Xaml.Media.Animation.GravityConnectedAnimationConfiguration();
+
+                    animConf.IsShadowEnabled = true;
+
+                    BackConnectedAnimationFromArtistPage.Configuration = animConf;
+
+
+                    BackConnectedAnimationFromArtistPage.TryStart(detailedImage, new List<UIElement>() { TitleBlock });
+                    detailedImage.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+                    detailedImage.Opacity = 1;
+                }
+
             });
         };
         

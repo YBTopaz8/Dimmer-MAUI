@@ -162,4 +162,12 @@ public sealed partial class LyricsEditorPage : Page
     {
         MyViewModel.ReadySearchViewAndProduceSearchText();
     }
+
+    private void ApplyLyric_Click(object sender, RoutedEventArgs e)
+    {
+        if(Frame.CanGoBack)
+        {
+            Frame.GoBack(); 
+        }
+    }
 }

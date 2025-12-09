@@ -29,13 +29,16 @@ public sealed partial class MediaPlaybackSection : UserControl
 
     }
 
-    private void TopPanel_PointerReleased(object sender, PointerRoutedEventArgs e)
+    private async void TopPanel_PointerReleased(object sender, PointerRoutedEventArgs e)
     {
         var props = e.GetCurrentPoint((UIElement)sender).Properties;
         if (props is null) return;
         if (props.PointerUpdateKind == Microsoft.UI.Input.PointerUpdateKind.MiddleButtonReleased)
         {
             MyViewModel?.ScrollToSpecificSongCommand.Execute(MyViewModel.CurrentPlayingSongView);
+        }
+        if (props.PointerUpdateKind == Microsoft.UI.Input.PointerUpdateKind.RightButtonReleased)
+        {
         }
     }
 

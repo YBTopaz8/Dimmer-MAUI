@@ -389,7 +389,7 @@ public static class DimmerMappers
             ParetoPercentage = src.ParetoPercentage,
             TotalSongsByArtist = src.TotalSongsByArtist,
             TotalAlbumsByArtist = src.TotalAlbumsByArtist,
-
+            
             // Relationships Ignored
         };
     }

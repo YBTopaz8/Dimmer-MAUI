@@ -255,6 +255,8 @@
                                         <Button
                                             Command="{Binding ElementName=FetchedLyricsIR, Path=DataContext.SelectLyricsCommand}"
                                             CommandParameter="{x:Bind}"
+                                            x:Name="ApplyLyric"
+                                            Click="ApplyLyric_Click"
                                             Content="Apply"
                                             Style="{StaticResource AccentButtonStyle}" />
 

@@ -359,11 +359,11 @@ public class AchievementService : IDisposable
         // ==============================================================================
         // 8️⃣ EXTREME / CHALLENGE
         // ==============================================================================
-        #region Extreme
+        //#region Extreme
         rules.Add(new AchievementRule { Id = "SONG_7_DAYS_REPEAT", Name = "Hardcore Loop", Description = "Play same song every day for 7 days", Category = AchievementCategory.Streak, Tier = AchievementTier.Platinum, CustomCheck = (r, s, m) => CheckDailyStreakGeneric(r, m, (e, model) => e.SongId == model.Id, 7) });
-        rules.Add(new AchievementRule { Id = "TOP_10_ALL", Name = "Global Listener", Description = "Play a top 10 most played song", Category = AchievementCategory.Misc, Tier = AchievementTier.Gold, CustomCheck = (r, s, m) => { var last10 = GetRecentCompletedEvents(r, 10); if (last10.Count < 10) return false; var top10Ids = r.All<SongModel>().OrderByDescending(x => x.PlayCount).Take(10).ToList().Select(x => x.Id).ToList(); return top10Ids.Contains(m.Id); } });
+        //rules.Add(new AchievementRule { Id = "TOP_10_ALL", Name = "Global Listener", Description = "Play a top 10 most played song", Category = AchievementCategory.Misc, Tier = AchievementTier.Gold, CustomCheck = (r, s, m) => { var last10 = GetRecentCompletedEvents(r, 10); if (last10.Count < 10) return false; var top10Ids = r.All<SongModel>().OrderByDescending(x => x.PlayCount).Take(10).ToList().Select(x => x.Id).ToList(); return top10Ids.Contains(m.Id); } });
         //rules.Add(new AchievementRule { Id = "NIGHT_OWL_CENTURY", Name = "Late Night Century", Description = "Play 100 songs after 9 PM", Category = AchievementCategory.Misc, Tier = AchievementTier.Platinum, CustomCheck = (r, s, m) => r.All<DimmerPlayEvent>().Count(e => e.DatePlayed.Hour >= 21) >= 100 });
-        #endregion
+        
 
         // ==============================================================================
         // 9️⃣ COMMON & OVERLOOKED

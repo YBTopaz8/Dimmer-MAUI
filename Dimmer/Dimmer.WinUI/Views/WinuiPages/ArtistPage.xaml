@@ -41,12 +41,12 @@
 
 
             <Image
-                x:Name="MostPlayedSongCoverImg"
+                x:Name="ArtistImage"
                 Grid.Row="0"
                 HorizontalAlignment="Center"
                 Opacity="0.12"
                 Source="{Binding SelectedArtist.ImagePath}"
-                Stretch="Fill" />
+                Stretch="UniformToFill" />
 
             <Grid
                 Margin="5"
@@ -71,16 +71,17 @@
                 <StackPanel
                     Grid.Row="1"
                     Background="Transparent"
-                    Orientation="Horizontal">
+                    Orientation="Horizontal"
+                    Spacing="10">
 
                     <Image
                         x:Name="ArtistImageInArtistPage"
-                        Width="200"
+                        Width="180"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Top"
                         PointerReleased="ArtistImageInArtistPage_PointerReleased"
                         Source="{Binding SelectedArtist.ImagePath}" />
-                    <StackPanel>
+                    <StackPanel Background="Transparent">
 
                         <TextBlock
                             x:Name="ArtistNameInArtistPage"
@@ -89,14 +90,53 @@
                             FontSize="55"
                             FontWeight="SemiBold"
                             PointerReleased="ArtistNameInArtistPage_PointerReleased"
-                            Text="{Binding SelectedArtist.Name}" />
+                            Text="{Binding SelectedArtist.Name}"
+                            Visibility="Visible" />
+                        <ItemsRepeater ItemsSource="{Binding SelectedArtist.ListOfSimilarArtists}">
+                            <ItemsRepeater.Layout>
+                                <StackLayout Orientation="Horizontal" Spacing="15" />
+                            </ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel CornerRadius="10">
+                                        <Image
+                                            Width="100"
+                                            Height="100"
+                                            Source="{Binding Images[0].Url}" />
+                                        <TextBlock HorizontalAlignment="Center" Text="{Binding Name}" />
+
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+
                     </StackPanel>
                 </StackPanel>
 
 
+                <StackPanel
+                    Grid.Row="2"
+                    Margin="15,0"
+                    CornerRadius="5"
+                    PointerPressed="MyArtistPage_PointerPressed">
+
+                    <Border HorizontalAlignment="Left">
+
+                        <RichTextBlock
+                            x:Name="BioBlock"
+                            HorizontalAlignment="Left"
+                            FontSize="13"
+                            FontStretch="SemiCondensed"
+                            IsTextSelectionEnabled="True"
+                            Loaded="BioBlock_Loaded"
+                            MaxLines="5"
+                            TextTrimming="CharacterEllipsis"
+                            TextWrapping="Wrap" />
+                    </Border>
+                </StackPanel>
 
 
-                <Grid Grid.Row="2">
+                <Grid Grid.Row="3">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <!--  Changed to Auto for better sizing  -->
@@ -109,7 +149,8 @@
                             Background="Transparent"
                             BorderThickness="0"
                             Click="ResetAblums_Click"
-                            Content="Albums" />
+                            Content="Albums"
+                            FontSize="30" />
                     </StackPanel>
 
                     <!--  1. Wrap in ScrollViewer for scrolling capabilities  -->
@@ -157,27 +198,13 @@
                 </Grid>
 
 
-                <StackPanel Grid.Row="3" PointerPressed="MyArtistPage_PointerPressed">
-                    <TextBlock x:Name="CoordinatedPanel" Text="{Binding SelectedArtist.Name}" />
-                    <Border HorizontalAlignment="Left">
-
-                        <TextBlock
-                            HorizontalAlignment="Left"
-                            FontSize="13"
-                            FontStretch="SemiCondensed"
-                            IsTextSelectionEnabled="True"
-                            MaxLines="5"
-                            Text="{Binding SelectedArtist.Bio}"
-                            TextTrimming="CharacterEllipsis"
-                            TextWrapping="Wrap" />
-                    </Border>
-                </StackPanel>
 
                 <dgView:TableView
                     x:Name="ArtistDataTable"
-                    Grid.Row="5"
-                    MaxHeight="650"
+                    Grid.Row="4"
+                    MaxHeight="850"
                     Margin="15"
+                    VerticalAlignment="Top"
                     AutoGenerateColumns="False"
                     BorderBrush="Transparent"
                     BorderThickness="0"
@@ -243,15 +270,25 @@
                                                 Source="{Binding CoverImagePath}"
                                                 Stretch="Fill" />
 
-                                            <StackPanel
-                                                Grid.Row="2"
-                                                HorizontalAlignment="Center"
-                                                Orientation="Horizontal"
-                                                Spacing="5">
-                                                <TextBlock Text="{Binding FileFormat}" />
-                                                <TextBlock Text="{Binding FileSize, Converter={StaticResource BytesToMegabytesConverter}}" />
-                                            </StackPanel>
+                                            <StackPanel Grid.Row="2">
 
+                                                <StackPanel
+                                                    HorizontalAlignment="Center"
+                                                    Orientation="Horizontal"
+                                                    Spacing="5">
+                                                    <Button Background="Transparent" Content="{Binding FileFormat}" />
+                                                    <TextBlock VerticalAlignment="Center" Text="{Binding FileSize, Converter={StaticResource BytesToMegabytesConverter}}" />
+                                                </StackPanel>
+
+                                                <StackPanel
+                                                    HorizontalAlignment="Center"
+                                                    Orientation="Horizontal"
+                                                    Spacing="2">
+                                                    <TextBlock Text="{Binding BitRate}" />
+                                                    <TextBlock Text="kbps" />
+                                                </StackPanel>
+
+                                            </StackPanel>
                                         </Grid>
 
                                     </Border>
@@ -278,9 +315,11 @@
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Grid.Column="0">
                                                 <Button
+                                                    x:Name="ArtistSongTitle"
                                                     HorizontalContentAlignment="Left"
                                                     Background="Transparent"
                                                     BorderThickness="0"
+                                                    Click="ArtistSongTitle_Click"
                                                     Content="{Binding Title}"
                                                     FontSize="28"
                                                     FontWeight="ExtraBold" />
@@ -335,7 +374,19 @@
                     </dgView:TableView.Columns>
                 </dgView:TableView>
 
-
+                <StackPanel
+                    Grid.Row="4"
+                    Padding="10"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    Background="#282828"
+                    Canvas.ZIndex="1"
+                    CornerRadius="10"
+                    Orientation="Horizontal"
+                    Spacing="5">
+                    <TextBlock HorizontalAlignment="Center" Text="{Binding SearchResults.Count}" />
+                    <TextBlock HorizontalAlignment="Center" Text="Songs" />
+                </StackPanel>
             </Grid>
         </Grid>
     </ScrollViewer>
