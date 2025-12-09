@@ -3420,7 +3420,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     /// this song.
     /// </summary>
     [RelayCommand]
-    public void PlayNext(SongModelView? song)
+    public void SetAsNextToPlayInQueue(SongModelView? song)
     {
         if (song == null)
             return;

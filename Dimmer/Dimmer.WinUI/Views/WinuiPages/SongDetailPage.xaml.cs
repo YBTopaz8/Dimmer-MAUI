@@ -1116,5 +1116,17 @@ public sealed partial class SongDetailPage : Page
 
         Frame?.Navigate(typeof(AudioEditorPage), MyViewModel.SelectedSong);
     }
+
+    private void PlaySongBtn_Click(object sender, RoutedEventArgs e)
+    {
+
+        MyViewModel.SetAsNextToPlayInQueue(MyViewModel.SelectedSong);
+
+    }
+
+    private void PlaySongBtn_Loaded(object sender, RoutedEventArgs e)
+    {
+
+    }
 }
 

@@ -440,12 +440,14 @@ public sealed partial class ArtistPage : Page
         var send = (Button)sender;
                 var album = (AlbumModelView)send.DataContext;
 
-        AlbumModelView prevAlb = prevAlbBtn.DataContext as AlbumModelView;
+        AlbumModelView prevAlb ;
         if (prevAlbBtn is not null)
         {
             prevAlbBtn.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Colors.Transparent);
+             prevAlb = prevAlbBtn.DataContext as AlbumModelView;
 
         }
+        prevAlbBtn = send;
 
         send.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Colors.DarkSlateBlue);
         send.BorderThickness = new Microsoft.UI.Xaml.Thickness(2);

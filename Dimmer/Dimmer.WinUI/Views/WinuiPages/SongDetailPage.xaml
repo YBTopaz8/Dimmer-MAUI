@@ -128,6 +128,13 @@
                                     Width="350"
                                     Height="350"
                                     Source="{x:Bind DetailedSong.CoverImagePath}" />
+                                <Button
+                                    x:Name="PlaySongBtn"
+                                    HorizontalAlignment="Center"
+                                    Click="PlaySongBtn_Click"
+                                    Loaded="PlaySongBtn_Loaded">
+                                    <FontIcon FontSize="45" Glyph="&#xF5B0;" />
+                                </Button>
                             </StackPanel>
                             <Border Grid.Column="1">
 
