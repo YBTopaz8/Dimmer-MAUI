@@ -12,7 +12,7 @@ using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media.Imaging;
 
 using Windows.Foundation.Metadata;
-
+using Visibility = Microsoft.UI.Xaml.Visibility;
 using Border = Microsoft.UI.Xaml.Controls.Border;
 using ListView = Microsoft.UI.Xaml.Controls.ListView;
 using ListViewSelectionMode = Microsoft.UI.Xaml.Controls.ListViewSelectionMode;
@@ -882,40 +882,6 @@ public sealed partial class SongDetailPage : Page
 
 
     }
-
-    private async void ArtistNameBtn_Click(object sender, RoutedEventArgs e)
-    {
-        var currentView = (Button)sender;
-
-        var supNavTransInfo = new SuppressNavigationTransitionInfo();
-
-        Type pageType = typeof(ArtistPage);
-        var navParams = new SongDetailNavArgs
-        {
-            Song = DetailedSong!,
-            ExtraParam = MyViewModel,
-            ViewModel = MyViewModel
-        };
-        FrameNavigationOptions navigationOptions = new FrameNavigationOptions
-        {
-            TransitionInfoOverride = supNavTransInfo,
-            IsNavigationStackEnabled = true
-
-        };
-        var detailedImageVisual = ElementCompositionPreview.GetElementVisual(currentView);
-        if (detailedImageVisual != null)
-        {
-            ConnectedAnimationService.GetForCurrentView()
-                .PrepareToAnimate("MoveViewToArtistPageFromSongDetailPage", currentView);
-
-        }
-
-
-        Frame?.NavigateToType(pageType, navParams, navigationOptions);
-
-
-    }
-
     private void ArtistToSong_Loaded(object sender, RoutedEventArgs e)
     {
         if(MyViewModel.SelectedSong is null) return;
@@ -946,56 +912,6 @@ public sealed partial class SongDetailPage : Page
         ArtistToSong.ItemsSource = listOfArtistsModelView;
     }
 
-    private async void ArtistNameFromAllArtistsBtn_Click(object sender, RoutedEventArgs e)
-    {
-        var btn = (Button)sender;
-        var artistChosen = btn.DataContext as ArtistModelView;
-        try
-        {
-            if (DetailedSong is null) return;
-            // Navigate to the detail page, passing the selected song object.
-            // Suppress the default page transition to let ours take over.
-            var supNavTransInfo = new SuppressNavigationTransitionInfo();
-            Type pageType = typeof(ArtistPage);
-            var navParams = new SongDetailNavArgs
-            {
-                Song = DetailedSong!,
-                ExtraParam = MyViewModel,
-                ViewModel = MyViewModel
-            };
-
-            MyViewModel.IsBackButtonVisible = WinUIVisibility.Collapsed;
-            var realm = MyViewModel.RealmFactory.GetRealmInstance();
-            var dbArtist = realm.Find<ArtistModel>(artistChosen.Id)
-                ;
-
-
-            await MyViewModel.SetSelectedArtist(dbArtist.ToArtistModelView());
-
-
-            FrameNavigationOptions navigationOptions = new FrameNavigationOptions
-            {
-                TransitionInfoOverride = supNavTransInfo,
-                IsNavigationStackEnabled = true
-
-            };
-           
-                ConnectedAnimationService.GetForCurrentView()
-                    .PrepareToAnimate("MoveViewToArtistPageFromSongDetailPage", btn);
-            
-            MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(artistChosen.Name));
-            Frame?.NavigateToType(pageType, navParams, navigationOptions);
-
-
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"MenuFlyout.ShowAt failed: {ex.Message}");
-            // fallback: anchor without position
-            //flyout.ShowAt(nativeElement);
-        }
-
-    }
 
     private void StatsCard_Click(object sender, ItemClickEventArgs e)
     {
@@ -1126,6 +1042,126 @@ public sealed partial class SongDetailPage : Page
 
     private void PlaySongBtn_Loaded(object sender, RoutedEventArgs e)
     {
+
+    }
+
+    private FrameworkElement _storedSourceElement;
+
+    private async void Artist_Click(object sender, RoutedEventArgs e)
+    {
+        // 1. Identify the Source
+        // We cast the sender to the Button defined in the template
+        Button clickedButton = (Button)sender;
+
+        var selArtist = clickedButton.DataContext as ArtistModelView;
+        if (selArtist is null) return;
+
+        ArtistDetailBorder.DataContext = selArtist;
+        // We store this button so we know where to return to later
+        _storedSourceElement = clickedButton;
+
+        // 2. Prepare the Connected Animation
+        // Key: "artistPreviewConAnim"
+        // Source: The button the user just clicked
+        ConnectedAnimation animation = ConnectedAnimationService.GetForCurrentView()
+            .PrepareToAnimate("artistPreviewConAnim", clickedButton);
+
+        // 3. Make the Target Visible (The Red Border)
+        ArtistDetailBorder.Visibility = Visibility.Visible;
+        ArtistDetailBorder.Opacity = 0; // Hide initially to prevent flicker before anim starts
+
+        // 4. Wait for Layout Update to ensure Destination has correct coordinates
+        if (ArtistDetailBorder.DispatcherQueue != null)
+        {
+            await ArtistDetailBorder.DispatcherQueue.EnqueueAsync(() =>
+            {
+                // 5. Start the Animation
+                ArtistDetailBorder.Opacity = 1;
+                animation.Configuration = new GravityConnectedAnimationConfiguration();
+                animation.TryStart(ArtistDetailBorder);
+
+            });
+        }
+    }
+
+    private async void CloseArtistDetail_Click(object sender, RoutedEventArgs e)
+    {
+        // 1. Prepare the Animation BACKWARDS
+        // Key: We reuse the name or use a specific return key. 
+        // Usually, we prepare a new animation from the Detail view back to the List.
+        ConnectedAnimation animation = ConnectedAnimationService.GetForCurrentView()
+            .PrepareToAnimate("artistPreviewConAnim_Back", ArtistDetailBorder);
+
+        // 2. Handle Completion (Collapse the Red Border when done)
+        animation.Completed += BackAnimation_Completed;
+
+        // Optional: Add Gravity configuration for the return trip if supported
+        animation.Configuration = new GravityConnectedAnimationConfiguration();
+
+        // 3. Start Animation targeting the stored list item
+        if (_storedSourceElement != null)
+        {
+            await RootGrid.DispatcherQueue.EnqueueAsync(() =>
+            {
+                // Try to animate back to the specific button we clicked earlier
+                bool started = animation.TryStart(_storedSourceElement);
+
+                // Fallback: If the list scrolled or the item is gone, just collapse immediately
+                if (!started)
+                {
+                    ArtistDetailBorder.Visibility = Visibility.Collapsed;
+                }
+            });
+        }
+        else
+        {
+            // Safety fallback if no source is stored
+            ArtistDetailBorder.Visibility = Visibility.Collapsed;
+        }
+    }
+
+    private void BackAnimation_Completed(ConnectedAnimation sender, object args)
+    {
+        // Ensure the Red Border is collapsed after the visual morph is done
+        ArtistDetailBorder.Visibility = Visibility.Collapsed;
+        
+        // Clean up the event handler to avoid memory leaks
+        sender.Completed -= BackAnimation_Completed;
+    }
+
+    private async void ArtistNameBtn_Click(object sender, RoutedEventArgs e)
+    {
+        var currentView = (Button)sender;
+
+        var supNavTransInfo = new SuppressNavigationTransitionInfo();
+
+        Type pageType = typeof(ArtistPage);
+        var navParams = new SongDetailNavArgs
+        {
+            Song = DetailedSong!,
+            ExtraParam = MyViewModel,
+            ViewModel = MyViewModel
+        };
+        var artist = currentView.DataContext as ArtistModelView;
+        MyViewModel.SelectedArtist = artist;
+
+        FrameNavigationOptions navigationOptions = new FrameNavigationOptions
+        {
+            TransitionInfoOverride = supNavTransInfo,
+            IsNavigationStackEnabled = true
+
+        };
+        var detailedImageVisual = ElementCompositionPreview.GetElementVisual(currentView);
+        if (detailedImageVisual != null)
+        {
+            ConnectedAnimationService.GetForCurrentView()
+                .PrepareToAnimate("MoveViewToArtistPageFromSongDetailPage", currentView);
+
+        }
+
+
+        Frame?.NavigateToType(pageType, navParams, navigationOptions);
+
 
     }
 }

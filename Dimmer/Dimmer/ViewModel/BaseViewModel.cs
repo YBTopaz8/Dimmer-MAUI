@@ -7499,15 +7499,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             return;
         }
-        if (SelectedSong.ArtistToSong is null) return;
+        if (SelectedSong.ArtistName is null) return;
 
         var realm = RealmFactory.GetRealmInstance();
         var songInDb = realm.Find<SongModel>(SelectedSong.Id);
 
-        if(songInDb is null  || songInDb.ArtistToSong.Count == 0)
-        {
-            return;
-        }
         var artistName = songInDb.ArtistToSong[0]!.Name;
         artistName ??= string.Empty;
 
@@ -7516,14 +7512,14 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             return;
         }
-        await UpdateSongFromLastFMDataAsync();
+        //await UpdateSongFromLastFMDataAsync();
         SelectedSongLastFMData.Artist = await lastfmService.GetArtistInfoAsync(artistName);
-        
-        SelectedSongLastFMData.Album = await lastfmService.GetAlbumInfoAsync(artistName, songInDb.AlbumName);
-        SimilarTracks = await lastfmService.GetSimilarAsync(artistName, SelectedSongLastFMData.Name);
 
-        await UpdateSongArtistInDbWithLastFMData();
-        await UpdateSongAlbumInDbWithLastFMData();
+        SelectedSongLastFMData.Album = await lastfmService.GetAlbumInfoAsync(artistName, songInDb.AlbumName);
+        //SimilarTracks = await lastfmService.GetSimilarAsync(artistName, SelectedSongLastFMData.Name);
+
+        //await UpdateSongArtistInDbWithLastFMData();
+        //await UpdateSongAlbumInDbWithLastFMData();
     }
 
 
@@ -7603,14 +7599,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         var realm = RealmFactory.GetRealmInstance();
 
-        //var listOfSongsInAlbum = SelectedSongLastFMData.Album.Tracks;
-
-
-        //List<SongModelView>? listOfSongsInSearchResultWithMatchAlbName =
-        //    [.. SearchResults.Where(s => s.AlbumName == SelectedSongLastFMData.Album.Name)];
-
-        //List<SongModelView>? listOfSongsInSearchResultWithMatchTitle =
-        //    [.. SearchResults.Where(s => s.Title == SelectedSongLastFMData.Name)];
 
         await realm.WriteAsync(() => 
         {

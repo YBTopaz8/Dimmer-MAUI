@@ -422,9 +422,11 @@ public sealed partial class ArtistPage : Page
             {
                 var firstSongInAlbumWithValidCoverImage = x.SongsInAlbum
                     .FirstOrDefault(s => !string.IsNullOrEmpty(s.CoverImagePath));
-                if (firstSongInAlbumWithValidCoverImage != null)
-                    modelV.ImagePath = firstSongInAlbumWithValidCoverImage.CoverImagePath;
-                MyViewModel.UpdateAlbumImage(modelV, firstSongInAlbumWithValidCoverImage.CoverImagePath);
+                    if (firstSongInAlbumWithValidCoverImage != null)
+                    {
+                        modelV.ImagePath = firstSongInAlbumWithValidCoverImage.CoverImagePath;
+                        MyViewModel.UpdateAlbumImage(modelV, firstSongInAlbumWithValidCoverImage.CoverImagePath);
+                    }
                     
             }
                 return modelV;
