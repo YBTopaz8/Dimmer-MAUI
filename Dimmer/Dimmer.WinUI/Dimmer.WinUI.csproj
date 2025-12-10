@@ -40,6 +40,9 @@
 	  <None Remove="Views\WinuiPages\AudioEditorPage.xaml" />
 	  <None Remove="Views\WinuiPages\CloudDashboardPage.xaml" />
 	  <None Remove="Views\WinuiPages\DimmerLivePage.xaml" />
+	  <None Remove="Views\WinuiPages\DimmerLive\CloudDataPage.xaml" />
+	  <None Remove="Views\WinuiPages\DimmerLive\LoginPage.xaml" />
+	  <None Remove="Views\WinuiPages\DimmerLive\SocialPage.xaml" />
 	  <None Remove="Views\WinuiPages\DimmsSection\AllDimsView.xaml" />
 	  <None Remove="Views\WinuiPages\GraphAndNodes.xaml" />
 	  <None Remove="Views\WinuiPages\LibraryStatsPage.xaml" />
@@ -120,6 +123,21 @@
 	  <MauiXaml Include="Views\MAUIPages\HomePage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Update="Views\WinuiPages\DimmerLive\LoginPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Update="Views\WinuiPages\DimmerLive\SocialPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Update="Views\WinuiPages\DimmerLive\CloudDataPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
 	</ItemGroup>
 	<ItemGroup>
 	  <Page Update="Views\CustomViews\WinuiViews\MorphContainerView.xaml">

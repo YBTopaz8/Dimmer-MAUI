@@ -183,4 +183,9 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
             IsBusy = false;
         }
     }
+
+    public void OnPageNavigatedTo()
+    {
+
+    }
 }

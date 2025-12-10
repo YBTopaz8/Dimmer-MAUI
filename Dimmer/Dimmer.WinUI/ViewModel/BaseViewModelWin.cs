@@ -1126,12 +1126,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     {
         await base.UpdateSongSpecificUi(song);
 
-        Microsoft.Maui.Controls.TitleBar mauiTitleBar = new Microsoft.Maui.Controls.TitleBar
-        {
-            Title = AppTitle
-        };
-        if (CurrentPlaySongDominantColor == null) return;
-        await mauiTitleBar.BackgroundColorTo(CurrentPlaySongDominantColor);
+       
     }
 
     partial void OnIsBackButtonVisibleChanged(WinUIVisibility oldValue, WinUIVisibility newValue)

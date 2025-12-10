@@ -42,10 +42,7 @@
                         TintOpacity="0.8" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
-            <convertersWinUI:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-            <convertersWinUI:BoolToInverseVisibilityConverter x:Key="BoolToInverseVisibilityConverter" />
-            <convertersWinUI:IsFavoriteToFontIcon x:Key="IsFavoriteToFontIcon" />
-            <convertersWinUI:BoolToPlayingPauseConv x:Key="BoolToPlayingPauseConverter" />
+
 
             <DataTemplate x:Key="ColorTemplate" x:DataType="SolidColorBrush">
                 <StackPanel AutomationProperties.Name="{x:Bind Color}" Orientation="Horizontal">
@@ -605,7 +602,10 @@
                                                 <Border.Shadow>
                                                     <ThemeShadow />
                                                 </Border.Shadow>
-                                                <Image Source="{Binding CoverImagePath}" Stretch="UniformToFill" />
+                                                <Image
+                                                    x:Name="imgInPBQueue"
+                                                    Source="{Binding CoverImagePath}"
+                                                    Stretch="UniformToFill" />
                                             </Border>
 
 

@@ -1,5 +1,7 @@
 ﻿
 
+using Dimmer.WinUI.ViewModel.DimmerLiveWin;
+using Dimmer.WinUI.Views.WinuiPages.DimmerLive;
 using Dimmer.WinUI.Views.WinuiPages.SingleSongPage;
 
 namespace Dimmer.WinUI;
@@ -130,6 +132,14 @@ public static class MauiProgram
         builder.Services.AddSingleton<GraphAndNodes>();
 
         builder.Services.AddSingleton<DimmerMultiWindowCoordinator>();
+        
+        builder.Services.AddSingleton<LoginPage>();
+        builder.Services.AddSingleton<SocialPage>();
+        builder.Services.AddSingleton<CloudDataPage>();
+        builder.Services.AddSingleton<LoginViewModelWin>();
+        builder.Services.AddSingleton<CloudDashboardPage>();
+
+
         return builder.Build();
     }
 

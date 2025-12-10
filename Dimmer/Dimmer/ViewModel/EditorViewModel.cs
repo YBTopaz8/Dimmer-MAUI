@@ -72,8 +72,6 @@ public partial class EditorViewModel : BaseViewModel
     [ObservableProperty]
     public partial double PlaybackSpeed { get; set; } = 1.0;
 
-    [ObservableProperty]
-    public partial double ProgressValue {get;set;}
 
     [ObservableProperty]
     public partial double CutEndTime { get;set;}
@@ -81,8 +79,6 @@ public partial class EditorViewModel : BaseViewModel
     [ObservableProperty]
     public partial double CutStartTime { get;set;}
 
-    [ObservableProperty]
-    public partial SongModelView SelectedSong {get;set;} // The song being edited
 
     [ObservableProperty]
     public partial string SourceFilePath {get;set;}

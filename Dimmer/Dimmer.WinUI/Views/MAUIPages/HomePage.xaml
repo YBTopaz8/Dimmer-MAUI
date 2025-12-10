@@ -83,7 +83,20 @@
                             <toolkit:IconTintColorBehavior TintColor="DarkSlateBlue" />
                         </Button.Behaviors>
                     </Button>
+                    <Border
+                        Padding="5"
+                        Stroke="Gray"
+                        StrokeShape="RoundRectangle 15"
+                        StrokeThickness="1">
 
+                        <ImageButton
+                            Clicked="ImageButton_Clicked"
+                            Loaded="ImageButton_Loaded"
+                            HeightRequest="50"
+                            Source="user.png"
+                            WidthRequest="50" />
+
+                    </Border>
                 </HorizontalStackLayout>
 
             </VerticalStackLayout>

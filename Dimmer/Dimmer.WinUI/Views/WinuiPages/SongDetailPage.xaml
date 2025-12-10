@@ -21,28 +21,7 @@
     x:Name="MyPage"
     Loaded="MyPage_Loaded"
     mc:Ignorable="d">
-    <Page.Resources>
-
-        <converters:CollectionSizeToVisibility x:Key="CollectionSizeToVisibility" />
-        <converters:CollectionSizeToVisibilityInverted x:Key="CollectionSizeToVisibilityInverted" />
-        <converters:EventDateToTimeAgo x:Key="EventDateToTimeAgo" />
-        <converters:PlayTypeToBorderBrush x:Key="PlayTypeToBorderBrush" />
-        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-        <converters:RepeatModeConverter x:Key="RepeatModeConverter" />
-        <converters:BoolToInverseVisibilityConverter x:Key="BoolToInverseVisibilityConverter" />
-        <converters:BoolToPlayingPauseConv x:Key="BoolToPlayingPauseConverter" />
-
-        <converters:StringNullOrEmptyToVisibility x:Key="StringNullOrEmptyToVisibility" />
-        <converters:VolumeToPercentConverter x:Key="VolumeToPercentConverter" />
-        <converters:BoolToImageConverter
-            x:Key="PlayPauseConverter"
-            FalseValue="play.png"
-            TrueValue="pause.png" />
-        <converters:BoolToImageConverter
-            x:Key="FavIconConverter"
-            FalseValue="heartbroken.png"
-            TrueValue="heartlock.png" />
-    </Page.Resources>
+    <Page.Resources />
 
     <Grid>
 
@@ -132,7 +111,8 @@
                                     x:Name="PlaySongBtn"
                                     HorizontalAlignment="Center"
                                     Click="PlaySongBtn_Click"
-                                    Loaded="PlaySongBtn_Loaded">
+                                    Loaded="PlaySongBtn_Loaded"
+                                    Visibility="Collapsed">
                                     <FontIcon FontSize="45" Glyph="&#xF5B0;" />
                                 </Button>
                             </StackPanel>
@@ -165,8 +145,7 @@
                                                 Click="ArtistBtn_Click"
                                                 Content="{x:Bind DetailedSong.ArtistName}"
                                                 FontSize="50"
-                                                FontWeight="Bold"
-                                                Visibility="{x:Bind DetailedSong.ArtistToSong.Count, Converter={StaticResource CollectionSizeToVisibility}}" />
+                                                FontWeight="Bold" />
 
 
                                         </StackPanel>
@@ -217,7 +196,7 @@
                                                 BorderBrush="Transparent"
                                                 Command="{Binding AddFavoriteRatingToSongCommand}"
                                                 Foreground="SlateBlue"
-                                                Visibility="{Binding DetailedSong.IsFavorite, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                Visibility="{x:Bind DetailedSong.IsFavorite, Converter={StaticResource BoolToVisibilityConverter}}">
 
                                                 <FontIcon Glyph="&#xEB52;" />
                                             </Button>

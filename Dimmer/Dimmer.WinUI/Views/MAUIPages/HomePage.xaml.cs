@@ -1,5 +1,8 @@
 ﻿using CommunityToolkit.Maui.Behaviors;
 
+using Dimmer.WinUI.ViewModel.DimmerLiveWin;
+
+
 
 
 //using Dimmer.DimmerLive;
@@ -27,12 +30,13 @@ public partial class HomePage : ContentPage
 
     public BaseViewModelWin MyViewModel { get; internal set; }
     private readonly Compositor _compositor = PlatUtils.MainWindowCompositor;
-    public HomePage(BaseViewModelWin vm, IWinUIWindowMgrService windowManagerService)
+    public HomePage(BaseViewModelWin vm, IWinUIWindowMgrService windowManagerService, LoginViewModelWin LoginVM)
     {
         InitializeComponent();
         BindingContext = vm;
         MyViewModel = vm;
         windowMgrService = windowManagerService;
+        this.loginVM = LoginVM;
         MyViewModel.DumpCommand.Execute(null);
     }
 
@@ -83,6 +87,7 @@ public partial class HomePage : ContentPage
 
     private SongModelView? _storedSong;
     private readonly IWinUIWindowMgrService windowMgrService;
+    private readonly LoginViewModelWin loginVM;
 
     //private async void QuickFilterGest_PointerReleased(object sender, PointerEventArgs e)
     //{
@@ -1351,4 +1356,24 @@ public partial class HomePage : ContentPage
         var currentTheme = Application.Current.RequestedTheme;
         MyViewModel.IsDarkModeOn = currentTheme == AppTheme.Dark;
     }
+
+    private void ImageButton_Clicked(object sender, EventArgs e)
+    {
+        if(loginVM is not null)
+        {
+            loginVM.NavigateToProfilePage();
+        }
+
+    }
+
+    private async void ImageButton_Loaded(object sender, EventArgs e)
+    {
+        var send = (ImageButton)sender;
+        var loginLoggedIn = await loginVM.InitializeAsync();
+        if(loginLoggedIn && loginVM.CurrentUser is not null && !string.IsNullOrEmpty(loginVM.CurrentUser.ProfileImagePath))
+        {
+            send.Source = loginVM.CurrentUser.ProfileImagePath;
+        }
+    }
+
 }

@@ -45,7 +45,8 @@ public partial class LoginViewModel : ObservableObject
     [ObservableProperty]
     public partial int SelectedIndex { get;  set; }
 
-    public LoginViewModel(IAuthenticationService authService, IFilePicker _filePicker, IRealmFactory realmFactory)
+    public LoginViewModel(IAuthenticationService authService, IFilePicker _filePicker, IRealmFactory realmFactory
+        )
     {
         _authService = authService;
         this.filePicker=_filePicker;
@@ -138,7 +139,7 @@ public partial class LoginViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task InitializeAsync()
+    public async Task<bool> InitializeAsync()
     {
         if(Connectivity.NetworkAccess == NetworkAccess.Internet)
         {     
@@ -147,7 +148,9 @@ public partial class LoginViewModel : ObservableObject
 
             CurrentUser = new UserModelOnline(ParseClient.Instance.CurrentUser);
             CurrentUser.IsAuthenticated = ParseClient.Instance.CurrentUser.SessionToken != null;
+            return CurrentUser.IsAuthenticated;
         }
+        return false;
     }
     [RelayCommand]
     public async Task PickImageFromDevice()
@@ -267,5 +270,4 @@ public partial class LoginViewModel : ObservableObject
         OnPropertyChanged(nameof(ToggleLinkText));
     }
 
-   
 }
