@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFramework>net9.0-android</TargetFramework>
-		<SupportedOSPlatformVersion>21.0</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion>23.0</SupportedOSPlatformVersion>
 		<OutputType>Exe</OutputType>
 		<RootNamespace>Dimmer</RootNamespace>
 		<Nullable>enable</Nullable>

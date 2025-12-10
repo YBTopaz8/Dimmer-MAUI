@@ -374,7 +374,8 @@
                                                         Padding="15"
                                                         Background="Transparent"
                                                         BorderThickness="2"
-                                                        Content="View" Click="ArtistNameBtn_Click"
+                                                        Click="ArtistNameBtn_Click"
+                                                        Content="View"
                                                         CornerRadius="12" />
 
                                                 </StackPanel>

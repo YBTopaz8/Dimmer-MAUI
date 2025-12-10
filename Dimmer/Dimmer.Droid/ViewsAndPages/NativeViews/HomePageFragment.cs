@@ -9,6 +9,7 @@ using AndroidX.CoordinatorLayout.Widget;
 using Bumptech.Glide;
 
 using Dimmer.ViewsAndPages.NativeViews.Misc;
+using Dimmer.ViewsAndPages.ViewUtils;
 
 using Google.Android.Material.Button;
 using Google.Android.Material.Card;
@@ -212,7 +213,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     {
         var popup = new Android.Widget.PopupMenu(ctx, anchor);
         popup.Menu.Add(0, 1, 0, "Go to Settings");
-        popup.Menu.Add(0, 2, 0, "Search Library");
+        popup.Menu.Add(0, 2, 0, "Search Library (TQL)");
         popup.Menu.Add(0, 3, 0, "Scroll to Playing");
         popup.Menu.Add(0, 4, 0, "View Queue");
 
@@ -225,10 +226,12 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
                         act.NavigateTo(new SettingsFragment("sett", MyViewModel), "SettingsFragment");
                     break;
                 case 2: // Search
-                    _searchBar?.RequestFocus();
-                    // Show Keyboard
-                    var imm = (InputMethodManager)ctx.GetSystemService(Context.InputMethodService);
-                    imm?.ShowSoftInput(_searchBar, ShowFlags.Implicit);
+                        //_searchBar?.RequestFocus();
+                        //// Show Keyboard
+                        //var imm = (InputMethodManager)ctx.GetSystemService(Context.InputMethodService);
+                        //imm?.ShowSoftInput(_searchBar, ShowFlags.Implicit);
+                    var searchSheet = new TqlSearchBottomSheet(MyViewModel);
+                    searchSheet.Show(ParentFragmentManager, "TqlSearchSheet");
                     break;
                 case 3: // Scroll To
                     MyViewModel.TriggerScrollToCurrentSong();
