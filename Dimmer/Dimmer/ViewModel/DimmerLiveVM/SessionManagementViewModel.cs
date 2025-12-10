@@ -15,7 +15,7 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
     private readonly ReadOnlyObservableCollection<UserDeviceSession> _otherDevices;
     public ReadOnlyObservableCollection<UserDeviceSession> OtherDevices => _otherDevices;
 
-    public UserModelOnline? CurrentUser => LoginViewModel.CurrentUser;
+    public UserModelOnline? CurrentUser => LoginViewModel.CurrentUserOnline;
 
     public bool IsBusy { get; private set; }
     [ObservableProperty]

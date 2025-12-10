@@ -42,6 +42,7 @@
 	  <None Remove="Views\WinuiPages\DimmerLivePage.xaml" />
 	  <None Remove="Views\WinuiPages\DimmerLive\CloudDataPage.xaml" />
 	  <None Remove="Views\WinuiPages\DimmerLive\LoginPage.xaml" />
+	  <None Remove="Views\WinuiPages\DimmerLive\ProfilePage.xaml" />
 	  <None Remove="Views\WinuiPages\DimmerLive\SocialPage.xaml" />
 	  <None Remove="Views\WinuiPages\DimmsSection\AllDimsView.xaml" />
 	  <None Remove="Views\WinuiPages\GraphAndNodes.xaml" />
@@ -123,6 +124,11 @@
 	  <MauiXaml Include="Views\MAUIPages\HomePage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Update="Views\WinuiPages\DimmerLive\ProfilePage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
 	</ItemGroup>
 	<ItemGroup>
 	  <Page Update="Views\WinuiPages\DimmerLive\LoginPage.xaml">

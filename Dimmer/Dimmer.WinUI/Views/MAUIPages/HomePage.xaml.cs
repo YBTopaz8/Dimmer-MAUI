@@ -1362,6 +1362,7 @@ public partial class HomePage : ContentPage
         if(loginVM is not null)
         {
             loginVM.NavigateToProfilePage();
+            
         }
 
     }
@@ -1369,10 +1370,10 @@ public partial class HomePage : ContentPage
     private async void ImageButton_Loaded(object sender, EventArgs e)
     {
         var send = (ImageButton)sender;
-        var loginLoggedIn = await loginVM.InitializeAsync();
-        if(loginLoggedIn && loginVM.CurrentUser is not null && !string.IsNullOrEmpty(loginVM.CurrentUser.ProfileImagePath))
+        await loginVM.InitAsync();
+        if(loginVM.CurrentUserOnline is not null && !string.IsNullOrEmpty(loginVM.CurrentUserOnline.ProfileImagePath))
         {
-            send.Source = loginVM.CurrentUser.ProfileImagePath;
+            send.Source = loginVM.CurrentUserOnline.ProfileImagePath;
         }
     }
 

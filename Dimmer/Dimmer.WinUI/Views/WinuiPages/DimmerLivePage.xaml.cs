@@ -54,8 +54,9 @@ public sealed partial class DimmerLivePage : Page
             try
             {
                 await MyViewModel.LoginViewModel.InitializeAsync();
-                var isAuth =  MyViewModel.LoginViewModel.CurrentUser.IsAuthenticated;
-                if (isAuth)
+                var isAuth =  MyViewModel.LoginViewModel.CurrentUserOnline?.IsAuthenticated;
+                if (isAuth is null) return;
+                if ((bool)isAuth)
                 {
                     GridOfAuth.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
                     GridFullView.Visibility = Microsoft.UI.Xaml.Visibility.Visible;

@@ -60,5 +60,6 @@ public partial class UserModelView : ObservableObject
     public partial LastFMUserView LastFMAccountInfo { get; set; } = new LastFMUserView();
     [ObservableProperty]
     public partial ParseFile? ProfileImageFile { get;  set; }
+    public bool IsPremium { get; set; }
 }
 

@@ -775,7 +775,28 @@ public static class DimmerMappers
             Image = src.Image?.ToLastImage()
         };
     }
-
+    public static UserModel? ParseUserToRealmUser(this UserModelOnline usr)
+    {
+        if (usr is null) return null;
+        return new UserModel
+        {
+            UserName = usr.Username,
+            UserEmail = usr.Email,
+            IsPremium = usr.IsPremium,
+            UserProfileImage = usr.ProfileImagePath
+        };
+    }
+    //public static UserModelView? ParseUserToView(this UserModelOnline usr)
+    //{
+    //    if (usr is null) return null;
+    //    return new UserModelView
+    //    {
+    //        Username = usr.Username,
+    //        Email = usr.Email,
+    //        IsPremium = usr.IsPremium,
+    //        UserProfileImage = usr.ProfileImagePath
+    //    };
+    //}
     public static LastFMUser? ToLastFMUser(this Hqub.Lastfm.Entities.User? src)
     {
         if (src is null) return null;

@@ -15,6 +15,8 @@ using Dimmer.UIUtils;
 using Dimmer.Utilities.TypeConverters;
 using Dimmer.Utils;
 
+using Hqub.Lastfm.Entities;
+
 using Microsoft.Extensions.Logging.Abstractions;
 
 using Parse.LiveQuery;
@@ -79,7 +81,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _lyricsMgtFlow = lyricsMgtFlow;
         _logger = logger ?? NullLogger<BaseViewModel>.Instance;
         this._audioService = audioServ;
-        UserLocal = new UserModelView();
+        //UserLocal = new UserModelView();
         dimmerPlayEventRepo ??= DimmerPlayEventRepo;
         _playlistRepo = PlaylistRepo;
 
@@ -411,7 +413,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
                         if ((!string.IsNullOrEmpty(lastfmService.AuthenticatedUser)))
                         {
-                            UserLocal.Username = lastfmService.AuthenticatedUser;
                             var db = RealmFactory.GetRealmInstance();
                             await db.WriteAsync(
                                 () =>
@@ -420,12 +421,34 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                                     if (usrs is not null && usrs.Count > 0)
                                     {
                                         UserModel usr = usrs.First();
+                                      
                                         usr.UserName = lastfmService.AuthenticatedUser;
-                                        usr.LastFMAccountInfo ??= LastFMUserInfo.ToLastFMUser();
-
+                                        usr.LastFMAccountInfo ??= LastFMUserInfo.ToLastFMUser()!;
+                                        usr.DeviceFormFactor ??= DeviceInfo.Current.DeviceType.ToString();
+                                        usr.DeviceManufacturer ??= DeviceInfo.Current.Manufacturer.ToString();
+                                        usr.DeviceModel ??= DeviceInfo.Current.Model.ToString();
+                                        usr.DeviceName ??= DeviceInfo.Current.Name.ToString();
+                                        usr.DeviceVersion ??= DeviceInfo.Current.VersionString;
                                         db.Add(usr, true);
+                                        CurrentUserLocal = usr.ToUserModelView()!;
+                                    }
+                                    else
+                                    {
+                                        UserModel newUsr = new();
+                                        newUsr.UserName = !string.IsNullOrEmpty(lastfmService.AuthenticatedUser) ?
+                                        lastfmService.AuthenticatedUser : "NewUser_" + DateTimeOffset.UtcNow.ToString();
+                                        newUsr.LastFMAccountInfo ??= LastFMUserInfo.ToLastFMUser()!;
+
+                                        newUsr.DeviceFormFactor ??= DeviceInfo.Current.DeviceType.ToString();
+                                        newUsr.DeviceManufacturer ??= DeviceInfo.Current.Manufacturer.ToString();
+                                        newUsr.DeviceModel ??= DeviceInfo.Current.Model.ToString();
+                                        newUsr.DeviceName ??= DeviceInfo.Current.Name.ToString();
+                                        newUsr.DeviceVersion ??= DeviceInfo.Current.VersionString;
+                                        CurrentUserLocal = newUsr.ToUserModelView()!;
+                                        db.Add(newUsr);
                                     }
                                 });
+                            CurrentUserLocal.Username ??=lastfmService.AuthenticatedUser;
                         }
                     }
                 })
@@ -1745,7 +1768,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     #region public partials
     [ObservableProperty]
-    public partial UserModelView UserLocal { get; set; }
+    public partial UserModelView CurrentUserLocal { get; set; }
 
     [ObservableProperty]
     public partial string? LatestScanningLog { get; set; }
@@ -7312,18 +7335,18 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             _logger.LogWarning("Failed to load Last.fm user info.");
             return;
         }
-        UserLocal.LastFMAccountInfo.Name = usr.Name;
-        UserLocal.LastFMAccountInfo.RealName = usr.RealName;
-        UserLocal.LastFMAccountInfo.Url = usr.Url;
-        UserLocal.LastFMAccountInfo.Country = usr.Country;
-        UserLocal.LastFMAccountInfo.Age = usr.Age;
-        UserLocal.LastFMAccountInfo.Playcount = usr.Playcount;
-        UserLocal.LastFMAccountInfo.Playlists = usr.Playlists;
-        UserLocal.LastFMAccountInfo.Registered = usr.Registered;
-        UserLocal.LastFMAccountInfo.Gender = usr.Gender;
-        UserLocal.LastFMAccountInfo.Image = new LastFMUserView.LastImageView();
-        UserLocal.LastFMAccountInfo.Image.Url = usr.Images.LastOrDefault()?.Url;
-        UserLocal.LastFMAccountInfo.Image.Size = usr.Images.LastOrDefault()?.Size;
+        CurrentUserLocal.LastFMAccountInfo.Name = usr.Name;
+        CurrentUserLocal.LastFMAccountInfo.RealName = usr.RealName;
+        CurrentUserLocal.LastFMAccountInfo.Url = usr.Url;
+        CurrentUserLocal.LastFMAccountInfo.Country = usr.Country;
+        CurrentUserLocal.LastFMAccountInfo.Age = usr.Age;
+        CurrentUserLocal.LastFMAccountInfo.Playcount = usr.Playcount;
+        CurrentUserLocal.LastFMAccountInfo.Playlists = usr.Playlists;
+        CurrentUserLocal.LastFMAccountInfo.Registered = usr.Registered;
+        CurrentUserLocal.LastFMAccountInfo.Gender = usr.Gender;
+        CurrentUserLocal.LastFMAccountInfo.Image = new LastFMUserView.LastImageView();
+        CurrentUserLocal.LastFMAccountInfo.Image.Url = usr.Images.LastOrDefault()?.Url;
+        CurrentUserLocal.LastFMAccountInfo.Image.Size = usr.Images.LastOrDefault()?.Size;
         var rlm = RealmFactory.GetRealmInstance();
         rlm.Write(
             () =>
@@ -7366,8 +7389,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                         usrr.LastFMAccountInfo.Registered = usr.Registered;
                         usrr.LastFMAccountInfo.Gender = usr.Gender;
                         usrr.LastFMAccountInfo.Image = new LastFMUser.LastImage();
-                        usrr.LastFMAccountInfo.Image.Url = usr.Images.LastOrDefault().Url;
-                        usrr.LastFMAccountInfo.Image.Size = usr.Images.LastOrDefault().Size;
+                        usrr.LastFMAccountInfo.Image.Url = usr.Images.LastOrDefault()?.Url;
+                        usrr.LastFMAccountInfo.Image.Size = usr.Images.LastOrDefault()?.Size;
 
                         rlm.Add(usrr, update: true);
                     }

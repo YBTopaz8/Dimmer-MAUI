@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 
 using Dimmer.ViewModel.DimmerLiveVM;
+using Dimmer.WinUI.ViewModel.DimmerLiveWin;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -37,7 +38,7 @@ public sealed partial class LoginPage : Page
     protected override void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
-        ViewModel = IPlatformApplication.Current!.Services.GetService<LoginViewModel>()!;
+        ViewModel = IPlatformApplication.Current!.Services.GetService<LoginViewModelWin>()!;
         this.DataContext = ViewModel; // Set DataContext for binding within DataTemplates
         this.Name = "RootPage"; // Helper for ElementName binding
 

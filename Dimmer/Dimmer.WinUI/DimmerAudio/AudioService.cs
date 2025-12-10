@@ -494,29 +494,6 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             ThrowIfDisposed();
             ArgumentNullException.ThrowIfNull(songModel);
 
-
-
-            CancellationTokenSource? oldCts = null;
-            CancellationTokenSource newCts = new CancellationTokenSource();
-
-            lock (this)
-            {
-                oldCts = _initializationCts;
-                _initializationCts = newCts;
-            }
-
-            if (oldCts != null)
-            {
-                Debug.WriteLine("[AudioService] InitializeAsync: Cancelling previous initialization task.");
-                await oldCts.CancelAsync();
-                oldCts.Dispose();
-            }
-
-
-            var token = newCts.Token;
-
-
-
             _currentTrackMetadata = songModel;
             _currentSong.OnNext(songModel);
             OnPropertyChanged(nameof(CurrentTrackMetadata));
@@ -532,8 +509,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
             try
             {
-                mediaPlaybackItem = await CreateMediaPlaybackItemAsync(songModel, null, token).ConfigureAwait(false);
-                token.ThrowIfCancellationRequested();
+                mediaPlaybackItem = await CreateMediaPlaybackItemAsync(songModel, null).ConfigureAwait(false);
 
                 if (mediaPlaybackItem != null)
                 {
@@ -569,14 +545,6 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             {
 
 
-                lock (_lockObject)
-                {
-                    if (_initializationCts == newCts)
-                    {
-                        _initializationCts = null;
-                    }
-                }
-                newCts.Dispose();
 
                 if (!success)
                 {
@@ -771,9 +739,11 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
                 Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: Attempting StorageFile for path: {fullPath} for '{media.Title}'");
                 storageFile = await StorageFile.GetFileFromPathAsync(fullPath).AsTask(token);
             }
-
-            token.ThrowIfCancellationRequested();
-
+            
+            if(token.IsCancellationRequested)
+            {
+                return null;
+            }
             MediaSource? mediaSource;
             if (storageFile != null)
             {

@@ -6,6 +6,7 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
     private readonly ILogger<ParseDeviceSessionService> _logger;
     private readonly IAuthenticationService _authService;
     private readonly ParseLiveQueryClient _liveQueryClient;
+    private readonly BaseViewModel vm;
     private Subscription<ChatMessage> _messageSubscription;
     private UserDeviceSession _thisDeviceSession; 
     private readonly Subject<DimmerSharedSong> _incomingTransfers = new();
@@ -19,11 +20,12 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
 
     // Public observable property from the interface
 
-    public ParseDeviceSessionService(ILogger<ParseDeviceSessionService> logger, IAuthenticationService authService, ParseLiveQueryClient liveQueryClient)
+    public ParseDeviceSessionService(ILogger<ParseDeviceSessionService> logger, IAuthenticationService authService, ParseLiveQueryClient liveQueryClient,BaseViewModel vm)
     {
         _logger = logger;
         _authService = authService;
         _liveQueryClient = liveQueryClient;
+        this.vm = vm;
     }
 
     public async Task RegisterCurrentDeviceAsync()
@@ -188,27 +190,60 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
 
     public async Task<string> CreateBackupAsync()
     {
+        // 1. Check Login Status
+        if (ParseClient.Instance.CurrentUser == null)
+        {
+            _logger.LogError("Cannot backup: User is not logged in via ParseClient.");
+            return "Not Logged In";
+        }
+
         try
         {
-            _logger.LogInformation("Requesting Cloud Backup...");
+            _logger.LogInformation("Preparing local data for backup...");
 
-            var result = await ParseClient.Instance.CallCloudCodeFunctionAsync<IDictionary<string, object>>("generateCloudBackup", null);
+            // 2. Get Data from Realm
+            // We use ToList() to materialize the query so we can serialize it safely off the Realm thread
+            var realmEvents = vm.RealmFactory.GetRealmInstance()
+                                .All<DimmerPlayEvent>()
+                                .ToList();
+            var currentUser = ParseClient.Instance.CurrentUser;
+            // 3. Convert to DTO/View objects to strip Realm-specific properties
+            var eventViews = realmEvents.Select(x => x.ToDimmerPlayEventView()).ToList();
 
-            if (result.ContainsKey("success") && (bool)result["success"])
+            if (eventViews.Count == 0)
             {
-                var count = result["count"];
-                _logger.LogInformation($"Backup created successfully. Events archived: {count}");
+                return "No events to backup.";
+            }
+
+            // 4. Serialize to JSON String
+            string jsonString = JsonSerializer.Serialize(eventViews);
+
+            // 5. Prepare Parameters
+            var parameters = new Dictionary<string, object>
+        {
+            { "eventsJson", jsonString }
+        };
+
+            _logger.LogInformation($"Uploading backup ({eventViews.Count} events)...");
+
+            // 6. Call Cloud Code
+            var result = await ParseClient.Instance.CallCloudCodeFunctionAsync<IDictionary<string, object>>("generateCloudBackup", parameters);
+
+            if (result != null && result.ContainsKey("success") && (bool)result["success"])
+            {
+                var url = result.ContainsKey("url") ? result["url"].ToString() : "N/A";
+                _logger.LogInformation($"Backup successful. File URL: {url}");
                 return "Backup Successful";
             }
-            return "Backup Failed";
+
+            return "Backup Failed (Server returned failure)";
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating cloud backup");
-            return "Error";
+            return $"Error: {ex.Message}";
         }
     }
-
     public async Task<List<ParseObject>> GetAvailableBackupsAsync()
     {
         if (_authService.CurrentUserValue == null) return new List<ParseObject>();

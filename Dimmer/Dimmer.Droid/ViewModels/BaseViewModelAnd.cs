@@ -295,7 +295,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     public async Task InitializeDimmerLiveData()
     {
-        _loginViewModel.Username=UserLocal.Username;
+        _loginViewModel.Username=CurrentUserLocal.Username;
         await _loginViewModel.InitializeAsync();
     }
  

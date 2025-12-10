@@ -81,8 +81,8 @@
                             HorizontalAlignment="Stretch"
                             Command="{x:Bind ViewModel.BackUpDataToCloudCommand}"
                             Content="Backup Now"
-                            IsEnabled="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource InvBoolToVis}}"
-                            Style="{StaticResource AccentButtonStyle}" />
+                            Style="{StaticResource AccentButtonStyle}"
+                            Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource InvBoolToVis}}" />
 
                         <ProgressRing HorizontalAlignment="Center" IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}" />
                     </Grid>

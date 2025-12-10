@@ -335,7 +335,7 @@ public sealed partial class SettingsPage : Page
         var isPressedKeyEnterOrReturn = e.Key == Windows.System.VirtualKey.Enter;
         if(isPressedKeyEnterOrReturn)
         {
-            MyViewModel?.UserLocal.LastFMAccountInfo.Name = LastFMUname.Text;
+            MyViewModel?.CurrentUserLocal.LastFMAccountInfo.Name = LastFMUname.Text;
             MyViewModel?.LoginToLastfmCommand.Execute(null);
 
         }

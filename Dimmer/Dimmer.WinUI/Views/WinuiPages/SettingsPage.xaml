@@ -220,14 +220,14 @@
 
 
                             <Border CornerRadius="40">
-                                <Image Source="{Binding UserLocal.LastFMAccountInfo.Image.Url}" Stretch="UniformToFill" />
+                                <Image Source="{Binding CurrentUserLocal.LastFMAccountInfo.Image.Url}" Stretch="UniformToFill" />
                             </Border>
                             <TextBlock
                                 Margin="0,0,0,5"
                                 HorizontalAlignment="Center"
                                 FontSize="24"
                                 Foreground="White"
-                                Text="{Binding UserLocal.LastFMAccountInfo.RealName}" />
+                                Text="{Binding CurrentUserLocal.LastFMAccountInfo.RealName}" />
 
 
                             <StackPanel
@@ -238,7 +238,7 @@
                                     Margin="0,0,0,5"
                                     FontSize="24"
                                     Foreground="White"
-                                    Text="{Binding UserLocal.LastFMAccountInfo.Playcount}" />
+                                    Text="{Binding CurrentUserLocal.LastFMAccountInfo.Playcount}" />
                                 <TextBlock
                                     Margin="0,0,0,5"
                                     HorizontalAlignment="Center"
