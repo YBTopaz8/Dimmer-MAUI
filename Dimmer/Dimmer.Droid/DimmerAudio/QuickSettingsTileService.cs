@@ -4,8 +4,6 @@ using AndroidX.Media3.Session;
 
 using Google.Android.Material.Dialog;
 
-using AlertDialog = AndroidX.AppCompat.App.AlertDialog;
-
 namespace Dimmer.DimmerAudio;
 [Service(Name = "com.yvanbrunel.dimmer.QuickSettingsTileService", // <<< CHANGE TO YOUR UNIQUE NAME
            Permission = Android.Manifest.Permission.BindQuickSettingsTile,

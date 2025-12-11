@@ -1,30 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using AndroidX.CoordinatorLayout.Widget;
+﻿using AndroidX.CoordinatorLayout.Widget;
 using AndroidX.Core.Widget;
-
-using Bumptech.Glide;
 
 using Dimmer.ViewsAndPages.NativeViews.Misc;
 using Dimmer.WinUI.UiUtils;
 
 using Google.Android.Material.AppBar;
-using Google.Android.Material.Button;
-using Google.Android.Material.Card;
-using Google.Android.Material.Carousel;
 using Google.Android.Material.Chip;
-using Google.Android.Material.TextField;
-using Google.Android.Material.TextView;
-
-using Microsoft.Maui.Controls.PlatformConfiguration;
-
-using static System.TimeZoneInfo;
-
-using ScrollView = Android.Widget.ScrollView;
 
 namespace Dimmer.ViewsAndPages.NativeViews.SingleSong;
 

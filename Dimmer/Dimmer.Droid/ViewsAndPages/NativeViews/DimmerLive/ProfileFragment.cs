@@ -1,26 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reactive.Disposables;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Reactive.Disposables;
 
 using Bumptech.Glide;
+
+using Dimmer.DimmerLive.Models;
 
 using Google.Android.Material.Dialog;
 
 namespace Dimmer.ViewsAndPages.NativeViews.DimmerLive;
 
 
+
 public class ProfileFragment : Fragment
 {
     private readonly string _transitionName;
-    private readonly LoginViewModel LoginVM;
+    public LoginViewModel LoginVM { get; private set; }
     private readonly CompositeDisposable _disposables = new();
 
     private ImageView _avatar;
     private TextView _username, _email, _bio;
-    private TextView _statBackup, _statJoined; // Stats
+    private TextView _statJoined, _statDevice;
+    private MaterialButton _editBtn, _changePassBtn, _logoutBtn, _pickImageBtn;
 
     public ProfileFragment(string transitionName, LoginViewModel viewModel)
     {
@@ -35,56 +34,84 @@ public class ProfileFragment : Fragment
         var root = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
         root.SetPadding(40, 60, 40, 200);
 
-        // Header Card
+        // --- 1. Header Card (Avatar + Info) ---
         var card = AppUtil.CreateCard(ctx);
         var cardContent = new LinearLayout(ctx) { Orientation = Orientation.Horizontal, WeightSum = 3 };
         cardContent.SetPadding(30, 30, 30, 30);
 
-        _avatar = new ImageView(ctx);
-        _avatar.LayoutParameters = new LinearLayout.LayoutParams(150, 150);
+        // Avatar Layout
+        var avatarLayout = new FrameLayout(ctx);
+        avatarLayout.LayoutParameters = new LinearLayout.LayoutParams(180, 180);
 
+        _avatar = new ImageView(ctx);
+        _avatar.LayoutParameters = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent);
+        _avatar.SetBackgroundColor(Color.DarkGray); // Placeholder
+
+        // Pick Image Button overlay
+        _pickImageBtn = new MaterialButton(ctx, null, Resource.Attribute.materialIconButtonStyle); // Small icon button style if available
+        _pickImageBtn.SetIconResource(Resource.Drawable.album); // Ensure you have a camera icon
+        _pickImageBtn.LayoutParameters = new FrameLayout.LayoutParams(60, 60) { Gravity = GravityFlags.Bottom | GravityFlags.Right };
+        _pickImageBtn.Click += async (s, e) => await LoginVM.PickImageFromDeviceCommand.ExecuteAsync(null);
+
+        avatarLayout.AddView(_avatar);
+        avatarLayout.AddView(_pickImageBtn);
+
+        // Text Info Stack
         var infoStack = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
         infoStack.LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 2);
-        infoStack.SetPadding(20, 0, 0, 0);
+        infoStack.SetPadding(30, 0, 0, 0);
 
         _username = new TextView(ctx) { TextSize = 22, Typeface = Typeface.DefaultBold };
-        _email = new TextView(ctx) { TextSize = 14 };
-        _bio = new TextView(ctx) { TextSize = 12 };
+        _email = new TextView(ctx) { TextSize = 14, Alpha = 0.6f };
+        _bio = new TextView(ctx) { TextSize = 14, Top = 20 };
+        _bio.SetMaxLines(3);
+        _bio.Ellipsize = Android.Text.TextUtils.TruncateAt.End;
 
         infoStack.AddView(_username);
         infoStack.AddView(_email);
         infoStack.AddView(_bio);
 
-        cardContent.AddView(_avatar);
+        // Edit Button (Right Side)
+        _editBtn = new MaterialButton(ctx) { Text = "Edit" };
+        _editBtn.LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent);
+        _editBtn.Click += ShowEditBioDialog;
+
+        cardContent.AddView(avatarLayout);
         cardContent.AddView(infoStack);
+        // We can add the edit button to the stack or separately. 
+        // For simplicity, let's put it below the card in the main flow or inside if layout allows.
+
         card.AddView(cardContent);
         root.AddView(card);
 
-        // Edit Button
-        var editBtn = new MaterialButton(ctx) { Text = "Edit Profile", Icon = Context.GetDrawable(Resource.Drawable.material_ic_edit_black_24dp) }; // Use your icon
-        editBtn.Click += ShowEditDialog;
-        root.AddView(editBtn);
-
-        // Stats Row
-        root.AddView(AppUtil.CreateSectionTitle(ctx, "Statistics"));
+        // --- 2. Stats Row ---
+        root.AddView(AppUtil.CreateSectionTitle(ctx, "Details"));
         var statsRow = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
-        _statJoined = AppUtil.CreateStatItem(ctx, "Joined", "...");
-        _statBackup = AppUtil.CreateStatItem(ctx, "Last Backup", "...");
+        _statJoined = AppUtil.CreateStatItem(ctx, "Joined", "Loading...");
+        _statDevice = AppUtil.CreateStatItem(ctx, "Device", "Unknown"); // From WinUI parity
         statsRow.AddView(_statJoined);
-        statsRow.AddView(_statBackup);
+        statsRow.AddView(_statDevice);
         root.AddView(statsRow);
 
-        // Change Password
+        // --- 3. Security Section ---
         root.AddView(AppUtil.CreateSectionTitle(ctx, "Security"));
-        var passBtn = new MaterialButton(ctx) { Text = "Change Password" };
-        passBtn.Click += ShowChangePassDialog;
-        root.AddView(passBtn);
 
-        // Logout
-        var logoutBtn = new MaterialButton(ctx) { Text = "Sign Out" };
-        logoutBtn.SetBackgroundColor(Color.DarkRed);
-        logoutBtn.Click += async (s, e) => await LoginVM.LogoutCommand.ExecuteAsync(null);
-        root.AddView(logoutBtn);
+        _changePassBtn = new MaterialButton(ctx) { Text = "Change Password" };
+        _changePassBtn.Click += ShowChangePassDialog;
+        root.AddView(_changePassBtn);
+
+        // --- 4. Actions ---
+        var space = new Space(ctx) { LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, 60) };
+        root.AddView(space);
+
+        _logoutBtn = new MaterialButton(ctx) { Text = "Sign Out" };
+        _logoutBtn.SetBackgroundColor(Color.DarkRed);
+        _logoutBtn.Click += async (s, e) => {
+            await LoginVM.LogoutCommand.ExecuteAsync(null);
+            // Navigate back to LoginFragment or handle navigation in VM
+            ParentFragmentManager.PopBackStack();
+        };
+        root.AddView(_logoutBtn);
 
         scroll.AddView(root);
         return scroll;
@@ -94,65 +121,88 @@ public class ProfileFragment : Fragment
     {
         base.OnResume();
 
+        // Observe Changes
         LoginVM.PropertyChanged += OnViewModelPropertyChanged;
-        UpdateProfileUI();
+
+        // Initial Update
+        if (LoginVM.CurrentUserOnline != null)
+            UpdateProfileUI(LoginVM.CurrentUserOnline);
     }
 
     public override void OnPause()
     {
-        base.OnPause(); _disposables.Clear();
+        base.OnPause();
+        _disposables.Clear();
         LoginVM.PropertyChanged -= OnViewModelPropertyChanged;
     }
-
-    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    private void OnViewModelPropertyChanged(object sender, PropertyChangedEventArgs e)
     {
-        RxSchedulers.UI.Schedule(() =>
+        Activity?.RunOnUiThread(() =>
         {
-            if (e.PropertyName == nameof(LoginViewModel.CurrentUser) ||
-                e.PropertyName == nameof(LoginViewModel.CurrentUserOnline))
+            if (e.PropertyName == nameof(LoginViewModel.CurrentUserOnline) ||
+                e.PropertyName == nameof(LoginViewModel.CurrentUser))
             {
-                UpdateProfileUI();
+                if (LoginVM.CurrentUserOnline != null)
+                    UpdateProfileUI(LoginVM.CurrentUserOnline);
             }
-            // Add case for LatestBackup if you implemented that property in VM
         });
     }
 
-    private void UpdateProfileUI()
+    private void UpdateProfileUI(UserModelOnline user)
     {
-        var user = LoginVM.CurrentUserOnline; // Or CurrentUser depending on your VM
-        if (user == null) return;
-
         _username.Text = user.Username;
         _email.Text = user.Email;
-        _bio.Text = user.Bio ?? "No bio set";
+        // Assuming Bio isn't in UserModelOnline standard fields yet, mapped from View
+        _bio.Text = LoginVM.CurrentUser?.UserBio ?? "No bio set";
 
-        if (!string.IsNullOrEmpty(user.ProfileImagePath))
+        // Load Avatar
+        if (!string.IsNullOrEmpty(user.ProfileImagePath)) // Assuming this property exists on your Online model or mapped View
         {
             Glide.With(this).Load(user.ProfileImagePath).CircleCrop().Into(_avatar);
+        }
+        else
+        {
+            // Fallback
+            _avatar.SetBackgroundColor(Color.DarkGray);
         }
 
         _statJoined.Text = user.CreatedAt.HasValue ? user.CreatedAt.Value.ToString("MMM yyyy") : "-";
 
-        // Handle Backup Stats if property exists
-        // _statBackup.Text = ...
+        // Device info isn't standard in ParseUser usually, but if you store it:
+        // _statDevice.Text = ...
     }
+    private void ShareProfile(object sender, EventArgs e)
+    {
+        var user = LoginVM.CurrentUserOnline;
+        if (user == null) return;
 
+        var sendIntent = new Intent();
+        sendIntent.SetAction(Intent.ActionSend);
+        sendIntent.PutExtra(Intent.ExtraText, $"Add me on Dimmer! Username: {user.Username}");
+        sendIntent.SetType("text/plain");
 
-    private void ShowEditDialog(object? sender, EventArgs e)
+        var shareIntent = Intent.CreateChooser(sendIntent, "Share Profile via");
+        StartActivity(shareIntent);
+    }
+    private void ShowEditBioDialog(object sender, EventArgs e)
     {
         var ctx = Context;
         var dialogView = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
         dialogView.SetPadding(50, 50, 50, 50);
 
-        var editBio = new TextInputEditText(ctx) { Hint = "Bio", Text = LoginVM.CurrentUser.UserBio };
+        var editBio = new TextInputEditText(ctx) { Hint = "Bio", Text = LoginVM.CurrentUser?.UserBio };
         dialogView.AddView(editBio);
 
         new MaterialAlertDialogBuilder(ctx)
             .SetTitle("Edit Profile")
             .SetView(dialogView)
             .SetPositiveButton("Save", async (s, a) => {
-                LoginVM.CurrentUser.UserBio = editBio.Text;
-                await LoginVM.SaveProfileChangesCommand.ExecuteAsync(null);
+                if (LoginVM.CurrentUser != null)
+                {
+                    LoginVM.CurrentUser.UserBio = editBio.Text;
+                    // You might need to copy this to CurrentUserOnline if that's what Saves
+                    await LoginVM.SaveProfileChangesCommand.ExecuteAsync(null);
+                }
             })
             .SetNegativeButton("Cancel", (s, a) => { })
             .Show();
@@ -171,10 +221,13 @@ public class ProfileFragment : Fragment
             .SetTitle("Change Password")
             .SetView(dialogView)
             .SetPositiveButton("Update", async (s, a) => {
-                await LoginVM.ChangePasswordCommand.ExecuteAsync(editPass.Text);
+                if (!string.IsNullOrWhiteSpace(editPass.Text))
+                {
+                    await LoginVM.ChangePasswordCommand.ExecuteAsync(editPass.Text);
+                    Toast.MakeText(ctx, "Password updated", ToastLength.Short)?.Show();
+                }
             })
             .SetNegativeButton("Cancel", (s, a) => { })
             .Show();
     }
-
 }

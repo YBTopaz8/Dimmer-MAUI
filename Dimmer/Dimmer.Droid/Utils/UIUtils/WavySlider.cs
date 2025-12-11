@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Paint = Android.Graphics.Paint;
+﻿using Paint = Android.Graphics.Paint;
 using Path = Android.Graphics.Path;
 
 namespace Dimmer.Utils.UIUtils;

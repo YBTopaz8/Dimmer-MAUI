@@ -1,22 +1,9 @@
 ﻿using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 
-using Android.Graphics;
-
-using AndroidX.Lifecycle;
-
 using Bumptech.Glide;
 
-using Google.Android.Material.Button;
-using Google.Android.Material.Card;
-using Google.Android.Material.Chip;
 using Google.Android.Material.MaterialSwitch;
-using Google.Android.Material.TextField;
-using Google.Android.Material.TextView;
-
-using Javax.Crypto.Spec;
-
-using Microsoft.Maui.Graphics.Text;
 
 using ScrollView = Android.Widget.ScrollView;
 
@@ -316,7 +303,7 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
         rescanBtn.Click += async (s, e) =>
         {
 
-            await MyViewModel.ReScanMusicFolderByPassingToService(path);
+            _= MyViewModel.ReScanMusicFolderByPassingToService(path);
             Toast.MakeText(ctx, $"Rescanning {path}", ToastLength.Short)?.Show();
         };
 

@@ -1,21 +1,10 @@
-﻿using System.Reactive.Disposables.Fluent;
-
-using AndroidX.Core.View;
-using AndroidX.Lifecycle;
+﻿using AndroidX.Core.View;
 
 using Bumptech.Glide;
 
 using Dimmer.DimmerSearch;
-using Dimmer.Utilities.Extensions;
-using Dimmer.Utilities.TypeConverters;
 
 using DynamicData;
-
-using Google.Android.Material.Button;
-using Google.Android.Material.Card;
-using Google.Android.Material.TextView;
-
-using ImageButton = Android.Widget.ImageButton;
 
 namespace Dimmer.ViewsAndPages.NativeViews;
 

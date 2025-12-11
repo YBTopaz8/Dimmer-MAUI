@@ -118,6 +118,7 @@ public sealed partial class ArtistPage : Page
       await  MyViewModel.LoadLastFMArtist(MyViewModel.SelectedArtist);
 
         if (MyViewModel.SelectedArtist is null ) return;
+        if (MyViewModel.SelectedArtist.Bio is null ) return;
         var html = MyViewModel.SelectedArtist.Bio;
         BioBlock.Blocks.Clear();
 

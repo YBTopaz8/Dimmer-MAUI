@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Android.Content;
-using Android.Database;
-using Android.Net;
+﻿using Android.Database;
 using Android.Provider;
 
 using AndroidX.DocumentFile.Provider;

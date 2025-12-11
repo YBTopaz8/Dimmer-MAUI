@@ -1,18 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using Bumptech.Glide;
 
-using AndroidX.CardView.Widget;
-using AndroidX.ConstraintLayout.Widget;
-
-using Bumptech.Glide;
-
-using Dimmer.Utilities;
-using Dimmer.Utilities.Extensions;
-
-using Google.Android.Material.Button;
-using Google.Android.Material.Card;
-using Google.Android.Material.Chip;
 using Google.Android.Material.Dialog;
-using Google.Android.Material.TextView;
 
 
 

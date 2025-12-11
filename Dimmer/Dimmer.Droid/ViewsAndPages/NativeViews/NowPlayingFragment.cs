@@ -1,23 +1,13 @@
 ﻿using System.Reactive.Disposables;
-using System.Threading.Tasks;
-
-using AndroidX.Fragment.App;
 
 using Bumptech.Glide;
 
 using Dimmer.Utils.UIUtils;
 
-using Google.Android.Material.Button;
-using Google.Android.Material.Card;
-using Google.Android.Material.Carousel;
 using Google.Android.Material.Chip;
-using Google.Android.Material.Dialog;
-using Google.Android.Material.TextView;
 
-using DialogFragment = AndroidX.Fragment.App.DialogFragment;
 using ImageButton = Android.Widget.ImageButton;
 using ScrollView = Android.Widget.ScrollView;
-using TimePicker = Android.Widget.TimePicker;
 
 namespace Dimmer.ViewsAndPages.NativeViews;
 

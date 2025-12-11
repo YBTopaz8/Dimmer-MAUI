@@ -72,14 +72,10 @@ global using Dimmer.GraphSupport;
 
 global using Google.Android.Material.Slider;
 
-global using Microsoft.Maui.Graphics.Text;
-
 global using SkiaSharp;
 global using SkiaSharp.Views.Android;
 
 global using Slider = Google.Android.Material.Slider.Slider;
-
-global using AndroidX.Interpolator.View.Animation;
 
 global using CommunityToolkit.Maui.Core.Extensions;
 global using CommunityToolkit.Maui.Storage;

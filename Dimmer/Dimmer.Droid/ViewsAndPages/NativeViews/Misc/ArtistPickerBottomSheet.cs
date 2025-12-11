@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Dimmer.WinUI.UiUtils;
+﻿using Dimmer.WinUI.UiUtils;
 
 namespace Dimmer.ViewsAndPages.NativeViews.Misc;
 

@@ -33,10 +33,6 @@ using Android.Media;
 
 using MediaController = AndroidX.Media3.Session.MediaController;
 
-using Dimmer.Utilities.Events;
-
-using AndroidX.ConstraintLayout.Helper.Widget;
-
 namespace Dimmer.DimmerAudio; // Make sure this namespace is correct
 
 [Service(Name = "com.yvanbrunel.dimmer.ExoPlayerService", // Ensure this matches AndroidManifest.xml if needed

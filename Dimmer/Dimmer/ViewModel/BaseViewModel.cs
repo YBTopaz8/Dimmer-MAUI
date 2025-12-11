@@ -4012,8 +4012,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         _logger.LogInformation("User requested to add music folder.");
 
-        
+        await Task.Run(async () =>
+        {
             await _folderMgtService.ReScanFolder(folderPath);
+        });
         _stateService.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderReScanned, folderPath, null, null));
     }
 

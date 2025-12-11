@@ -1,13 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-
-using Microsoft.Maui.Controls.PlatformConfiguration;
-
-namespace Dimmer.WinUI.UiUtils;
+﻿namespace Dimmer.WinUI.UiUtils;
 
 public static class UiBuilder
 {

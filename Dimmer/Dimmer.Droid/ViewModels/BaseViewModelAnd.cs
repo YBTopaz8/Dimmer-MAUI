@@ -1,32 +1,7 @@
 ﻿
 //using System.Reactive.Linq;
 
-using System.Reactive.Subjects;
-using System.Runtime.CompilerServices;
-using System.Text.RegularExpressions;
-
-using Android.Graphics;
-
-using AndroidX.Interpolator.View.Animation;
-
-using CommunityToolkit.Maui.Core.Extensions;
-using CommunityToolkit.Maui.Storage;
-
-using Dimmer.Data;
-using Dimmer.Interfaces.IDatabase;
-using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
-using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
-using Dimmer.LastFM;
-using Dimmer.Utilities.Events;
-using Dimmer.Utilities.Extensions;
-using Dimmer.Utilities.StatsUtils;
-using Dimmer.ViewsAndPages.NativeViews;
 using Dimmer.ViewsAndPages.NativeViews.ArtistSection;
-using Dimmer.ViewsAndPages.NativeViews.SingleSong;
-
-using Google.Android.Material.TextView;
-
-using Microsoft.Extensions.Logging;
 
 
 
@@ -502,6 +477,138 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
              .AddToBackStack("NowPlaying")
              .Commit();
     }
+
+    public void NavigateToEditSongPage(Fragment callerFragment, string transitionName, List<View> sharedViews)
+    {
+        var fragment = new EditSingleSongFragment(this, transitionName, "imageTrans");
+
+        // Ensure transition name exists
+        if (sharedViews.Count > 0 && sharedViews[0] != null)
+            sharedViews[0].TransitionName = transitionName;
+
+        // Container Transform
+        var container = new MaterialContainerTransform
+        {
+            DrawingViewId = Resource.Id.custom_fragment_container,
+            ScrimColor = Color.Transparent,
+            ContainerColor = Color.Transparent,
+            FadeMode = MaterialContainerTransform.FadeModeCross
+        };
+        container.SetDuration(400);
+
+        fragment.SharedElementEnterTransition = container;
+        fragment.SharedElementReturnTransition = container; // Reuse same config
+
+        fragment.EnterTransition = new MaterialElevationScale(true);
+        callerFragment.ExitTransition = new Hold();
+
+        var trans = callerFragment.ParentFragmentManager.BeginTransaction()
+             .SetReorderingAllowed(true);
+
+        if (sharedViews.Count > 0 && sharedViews[0] != null)
+            trans.AddSharedElement(sharedViews[0], transitionName);
+
+        trans.Replace(Resource.Id.custom_fragment_container, fragment)
+             .AddToBackStack("EditSong")
+             .Commit();
+    }
+
+    public void NavigateToArtistPage(Fragment callerFrag, string artistId, string artistName, View sharedImage)
+    {
+        if (callerFrag == null || !callerFrag.IsAdded) return;
+
+        var fragment = new ArtistFragment(this, artistName, artistId);
+        CurrentPage = fragment;
+
+        // Shared Element (Image Morph)
+        string tName = sharedImage?.TransitionName ?? $"artist_{artistId}";
+        if (sharedImage != null) sharedImage.TransitionName = tName;
+
+        var containerTransform = new MaterialContainerTransform
+        {
+            DrawingViewId = Resource.Id.custom_fragment_container,
+            ScrimColor = Color.Transparent,
+            ContainerColor = Color.Transparent,
+            FadeMode = MaterialContainerTransform.FadeModeThrough,
+        };
+        containerTransform.SetDuration(400);
+
+        fragment.SharedElementEnterTransition = containerTransform;
+        fragment.SharedElementReturnTransition = containerTransform;
+
+        fragment.EnterTransition = new MaterialElevationScale(true);
+        fragment.ExitTransition = new MaterialElevationScale(false);
+
+        callerFrag.ExitTransition = new Hold();
+
+        var trans = callerFrag.ParentFragmentManager.BeginTransaction()
+            .SetReorderingAllowed(true);
+
+        if (sharedImage != null)
+            trans.AddSharedElement(sharedImage, tName);
+
+        trans.Replace(Resource.Id.custom_fragment_container, fragment)
+             .AddToBackStack($"Artist_{artistId}")
+             .Commit();
+    }
+
+    public void NavigateToArtistEventsStats(Fragment callerFrag)
+    {
+        if (callerFrag == null || !callerFrag.IsAdded) return;
+
+        var fragment = new ArtistEventsStatsFragment();
+        CurrentPage = fragment;
+
+        // Lateral Slide
+        fragment.EnterTransition = new MaterialSharedAxis(MaterialSharedAxis.X, true);
+        fragment.ReturnTransition = new MaterialSharedAxis(MaterialSharedAxis.X, false);
+        callerFrag.ExitTransition = new MaterialSharedAxis(MaterialSharedAxis.X, true);
+        callerFrag.ReenterTransition = new MaterialSharedAxis(MaterialSharedAxis.X, false);
+
+        callerFrag.ParentFragmentManager.BeginTransaction()
+            .Replace(Resource.Id.custom_fragment_container, fragment)
+            .AddToBackStack("ArtistStats")
+            .Commit();
+    }
+
+    public void NavigateToSettings(Fragment callerFrag)
+    {
+        if (callerFrag == null || !callerFrag.IsAdded) return;
+        var fragment = new SettingsFragment("SettingsTrans", this);
+        CurrentPage = fragment;
+
+        // Z-Axis Depth Transition
+        callerFrag.ExitTransition = new MaterialSharedAxis(MaterialSharedAxis.Z, true);
+        callerFrag.ReenterTransition = new MaterialSharedAxis(MaterialSharedAxis.Z, false);
+
+        callerFrag.ParentFragmentManager.BeginTransaction()
+            .Replace(Resource.Id.custom_fragment_container, fragment)
+            .AddToBackStack("Settings")
+            .Commit();
+    }
+
+    public void NavigateToGeneralPage(Fragment callerFrag, Fragment destinationFrag, string tag)
+    {
+        if (callerFrag == null || !callerFrag.IsAdded) return;
+        CurrentPage = destinationFrag;
+
+        var fade = new MaterialFadeThrough();
+        destinationFrag.EnterTransition = fade;
+        callerFrag.ExitTransition = fade;
+
+        callerFrag.ParentFragmentManager.BeginTransaction()
+            .Replace(Resource.Id.custom_fragment_container, destinationFrag)
+            .AddToBackStack(tag)
+            .Commit();
+    }
+
+    public void NavigateToPlayQueue(Fragment callerFrag) =>
+        NavigateToGeneralPage(callerFrag, new PlayQueueFragment(this), "PlayQueue");
+
+    public void NavigateToLibraryStats(Fragment callerFrag) =>
+        NavigateToGeneralPage(callerFrag, new LibraryStatsFragment(this), "LibraryStats");
+
+
     public void NavigateToSingleSongPageFromHome(Fragment? callerFrag, string transitionName, View sharedView)
     {
         if (callerFrag == null) return;
@@ -575,196 +682,8 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     }
 
-    public void NavigateToEditSongPage(Fragment callerFragment,
-        string transitionName, List<View> sharedViews)
-    {
 
-        var fragment = new EditSingleSongFragment(
-            this,transitionName, "imageTrans")
-            ;
-        var typeOfCaller = callerFragment.GetType();
-
-        sharedViews.FirstOrDefault()?.TransitionName = transitionName;
-
-        var startShapeAppearanceModel
-            = ShapeAppearanceModel.InvokeBuilder()
-            .SetAllCorners(
-                CornerFamily.Rounded, 30f)
-            .Build();
-
-        var endShapeAppearanceModel
-            = ShapeAppearanceModel.InvokeBuilder()
-            .SetAllCorners(
-                CornerFamily.Rounded, 30f)
-            .Build();
-
-        var container = new MaterialContainerTransform
-        {
-            DrawingViewId = Resource.Id.custom_fragment_container,
-            ScrimColor = Color.Transparent,
-            ContainerColor = Color.Transparent,
-            FadeMode = MaterialContainerTransform.FadeModeCross,
-            StartShapeAppearanceModel = startShapeAppearanceModel,
-            EndShapeAppearanceModel = endShapeAppearanceModel
-        };
-
-        var sharedSet = new TransitionSet();
-        sharedSet.AddTransition(new ChangeBounds());
-        sharedSet.AddTransition(new ChangeTransform());
-        sharedSet.AddTransition(new ChangeImageTransform());
-
-        var mArcMotion = new MaterialArcMotion()
-        {
-        };
-        
-        container.PathMotion = mArcMotion;
-        container.SetDuration(400);
-
-        fragment.SharedElementEnterTransition = container;
-        fragment.SharedElementReturnTransition = container.Clone();
-
-        var scaleUp = new MaterialElevationScale(true);
-        scaleUp.SetDuration(300);
-
-        var scaleDown = new MaterialElevationScale(false);
-        scaleDown.SetDuration(200);
-        fragment.EnterTransition = scaleUp;
-
-
-        Hold enterHold = new Hold();
-        enterHold.AddTarget(Resource.Id.custom_fragment_container);
-        enterHold.SetDuration(280);
-        callerFragment.ExitTransition = enterHold;
-        
-        callerFragment.ParentFragmentManager.BeginTransaction()
-             .SetReorderingAllowed(true)
-                .AddSharedElement(sharedViews[0], transitionName)
-                .Replace(Resource.Id.custom_fragment_container, fragment)
-                .AddToBackStack(transitionName)
-                .Commit();
-    }
-
-    // --- ARTIST FRAGMENT NAVIGATION ---
-    public void NavigateToArtistPage(Fragment callerFrag, string artistId, string artistName, View sharedImage)
-    {
-        if (callerFrag == null || !callerFrag.IsAdded) return;
-
-        var fragment = new ArtistFragment(this, artistName, artistId);
-        CurrentPage = fragment;
-
-        // 1. Setup Shared Element Transition (Image Morph)
-        string transitionName = sharedImage?.TransitionName ?? "artist_image_trans";
-        if (sharedImage != null) sharedImage.TransitionName = transitionName;
-
-        var containerTransform = new MaterialContainerTransform
-        {
-            DrawingViewId = Resource.Id.custom_fragment_container,
-            ScrimColor = Color.Transparent,
-            ContainerColor = Color.Transparent, // Let fragment handle background
-            FadeMode = MaterialContainerTransform.FadeModeThrough,
-        };
-        containerTransform.SetDuration(400);
-
-        fragment.SharedElementEnterTransition = containerTransform;
-        fragment.SharedElementReturnTransition = containerTransform; // Clone not needed strictly, but good practice if modifying
-
-        // 2. Setup Page Transition (Fade Scale)
-        var elvScl = new MaterialElevationScale(true) ;
-        elvScl.SetDuration(250);
-        fragment.EnterTransition = elvScl;
-        var deElvScl = new MaterialElevationScale(false) ;
-        elvScl.SetDuration(250);
-        fragment.EnterTransition = elvScl;
-
-        fragment.ExitTransition = deElvScl;
-
-        // 3. Hold Exit for Caller
-        var holdd = new Hold() ;
-        holdd.SetDuration(300);
-        callerFrag.ExitTransition = holdd;
-
-        // 4. Commit
-        var trans = callerFrag.ParentFragmentManager.BeginTransaction()
-            .SetReorderingAllowed(true);
-
-        if (sharedImage != null)
-            trans.AddSharedElement(sharedImage, transitionName);
-
-        trans.Replace(Resource.Id.custom_fragment_container, fragment)
-             .AddToBackStack($"Artist_{artistId}")
-             .Commit();
-    }
-    public void NavigateToSettings(Fragment callerFrag)
-    {
-        if (callerFrag == null || !callerFrag.IsAdded) return;
-
-        var fragment = new SettingsFragment("SettingsTrans", this);
-        CurrentPage = fragment;
-
-        // SettingsFragment constructor already sets Enter/Return Transition (SharedAxis Z)
-        // We just need to handle the caller exit
-        callerFrag.ExitTransition = new MaterialSharedAxis(MaterialSharedAxis.Z, true);
-        callerFrag.ReenterTransition = new MaterialSharedAxis(MaterialSharedAxis.Z, false);
-
-        callerFrag.ParentFragmentManager.BeginTransaction()
-            .Replace(Resource.Id.custom_fragment_container, fragment)
-            .AddToBackStack("Settings")
-            .Commit();
-    }
-    // --- ARTIST EVENTS / STATS SUB-PAGE ---
-    public void NavigateToArtistEventsStats(Fragment callerFrag)
-    {
-        if (callerFrag == null || !callerFrag.IsAdded) return;
-
-        var fragment = new ArtistEventsStatsFragment();
-        CurrentPage = fragment;
-
-        // Use Shared Axis (X) for lateral navigation (Forward/Back)
-        var forward = new MaterialSharedAxis(MaterialSharedAxis.X, true);
-        var backward = new MaterialSharedAxis(MaterialSharedAxis.X, false);
-
-        fragment.EnterTransition = forward;
-        fragment.ReturnTransition = backward;
-
-        callerFrag.ExitTransition = forward;
-        callerFrag.ReenterTransition = backward;
-
-        callerFrag.ParentFragmentManager.BeginTransaction()
-            .Replace(Resource.Id.custom_fragment_container, fragment)
-            .AddToBackStack("ArtistStats")
-            .Commit();
-    }
-
-    // --- QUEUE / LIBRARY STATS (General Pages) ---
-    public void NavigateToGeneralPage(Fragment callerFrag, Fragment destinationFrag, string tag)
-    {
-        if (callerFrag == null || !callerFrag.IsAdded) return;
-
-        CurrentPage = destinationFrag;
-
-        // Fade Through is standard for top-level switches or non-hierarchical moves
-        var fadeThrough = new MaterialFadeThrough();
-
-        destinationFrag.EnterTransition = fadeThrough;
-        callerFrag.ExitTransition = fadeThrough;
-
-        callerFrag.ParentFragmentManager.BeginTransaction()
-            .Replace(Resource.Id.custom_fragment_container, destinationFrag)
-            .AddToBackStack(tag)
-            .Commit();
-    }
-
-    // Convenience wrapper for Queue
-    public void NavigateToPlayQueue(Fragment callerFrag)
-    {
-        NavigateToGeneralPage(callerFrag, new PlayQueueFragment(this), "PlayQueue");
-    }
-
-    // Convenience wrapper for Library Stats
-    public void NavigateToLibraryStats(Fragment callerFrag)
-    {
-        NavigateToGeneralPage(callerFrag, new LibraryStatsFragment(this), "LibraryStats");
-    }
+   
     #endregion
 
     #region Binding Views Section

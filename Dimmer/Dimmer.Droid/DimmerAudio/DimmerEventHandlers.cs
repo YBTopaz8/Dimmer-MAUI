@@ -1,6 +1,4 @@
-﻿using Dimmer.Utilities.Events;
-
-namespace Dimmer.DimmerAudio;
+﻿namespace Dimmer.DimmerAudio;
 
 public delegate void StatusChangedEventHandler(object sender, PlaybackEventArgs e);
 public delegate void BufferingEventHandler(object sender, EventArgs e);

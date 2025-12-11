@@ -1,15 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Bumptech.Glide;
-
-using Google.Android.Material.Button;
-using Google.Android.Material.Card;
-
-namespace Dimmer.ViewsAndPages.NativeViews.Misc;
+﻿namespace Dimmer.ViewsAndPages.NativeViews.Misc;
 
 public class QueueBottomSheetFragment : BottomSheetDialogFragment
 {

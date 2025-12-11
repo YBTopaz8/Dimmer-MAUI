@@ -18,7 +18,7 @@ public class AudioFileProcessor : IAudioFileProcessor
         _metadataService = metadataService;
         _config = config;
     }
-    public async Task<List<FileProcessingResult>> ProcessFilesAsync(IEnumerable<string> filePaths)
+    public async Task<List<FileProcessingResult>> ProcessFilesInParallelForEachAsync(IEnumerable<string> filePaths)
     {
         var results = new ConcurrentBag<FileProcessingResult>();
 

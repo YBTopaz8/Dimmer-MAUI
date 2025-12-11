@@ -5,10 +5,8 @@ using AndroidX.Core.View;
 using AndroidX.DrawerLayout.Widget;
 
 using Dimmer.NativeServices;
-using Dimmer.Utilities.Extensions;
 
 using Google.Android.Material.BottomNavigation;
-using Google.Android.Material.Chip;
 using Google.Android.Material.Dialog;
 using Google.Android.Material.Navigation;
 

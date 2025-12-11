@@ -173,11 +173,12 @@ public static class TaggingUtils
     // The Android project will assign this function later.
     public static Func<string, IReadOnlySet<string>, List<string>>? PlatformSpecificScanner { get; set; }
     public static Func<string, Stream> PlatformGetStreamHook { get; set; }
-    public static List<string> GetAllAudioFilesFromPaths(
+    public static Task<List<string>> GetAllAudioFilesFromPathsAsync(
     IEnumerable<string> pathsToScan,
     IReadOnlySet<string> supportedExtensions)
     {
-        var filesBag = new ConcurrentBag<string>();
+      return Task.Run(() => 
+    {  var filesBag = new ConcurrentBag<string>();
 
         Parallel.ForEach(
             pathsToScan.Where(p => !string.IsNullOrWhiteSpace(p))
@@ -219,6 +220,7 @@ public static class TaggingUtils
             });
 
         return filesBag.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        });
     }
 
 }

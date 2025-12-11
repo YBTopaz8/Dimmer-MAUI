@@ -1,9 +1,5 @@
 ﻿using AndroidX.Media3.Common;
 
-using Dimmer.Utilities.Events;
-
-using System.Runtime.CompilerServices;
-
 
 
 namespace Dimmer.DimmerAudio;

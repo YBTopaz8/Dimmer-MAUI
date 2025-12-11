@@ -1,32 +1,35 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reactive.Disposables;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Reactive.Disposables;
 
 using ProgressBar = Android.Widget.ProgressBar;
 
 namespace Dimmer.ViewsAndPages.NativeViews.DimmerLive;
 
-public class LoginFragment : Fragment, IOnBackInvokedCallback
+public class LoginFragment : Fragment
 {
     private readonly string _transitionName;
-    private readonly BaseViewModelAnd _viewModel;
+    private readonly BaseViewModelAnd _baseViewModel;
+    public LoginViewModel LoginVM { get; private set; } // Property for binding
+
     private readonly CompositeDisposable _disposables = new();
 
-    // UI
+    // UI Elements
     private TextInputLayout _userLayout, _passLayout, _emailLayout;
     private TextInputEditText _userEdit, _passEdit, _emailEdit;
     private MaterialButton _actionBtn, _toggleBtn;
     private TextView _errorText;
     private ProgressBar _progressBar;
-    private LinearLayout _registerContainer;
 
-    public LoginFragment(string transitionName, BaseViewModelAnd viewModel)
+    public LoginFragment(string transitionName, BaseViewModelAnd baseViewModel)
     {
         _transitionName = transitionName;
-        _viewModel = viewModel;
+        _baseViewModel = baseViewModel;
+    }
+
+    public override void OnCreate(Bundle savedInstanceState)
+    {
+        base.OnCreate(savedInstanceState);
+        // Resolve ViewModel here if not passed in ctor, assuming DI setup
+        LoginVM = MainApplication.ServiceProvider.GetRequiredService<LoginViewModel>();
     }
 
     public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
@@ -74,15 +77,20 @@ public class LoginFragment : Fragment, IOnBackInvokedCallback
         _emailLayout.Visibility = ViewStates.Gone;
 
         // Button
-        _actionBtn = new MaterialButton(ctx) { Text = "Log In" };
-        _actionBtn.SetBackgroundColor(Color.ParseColor("#6200EE"));
+        _actionBtn = new MaterialButton(ctx)
+        {
+            Text = "Log In",
+            LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent)
+        };
+        _actionBtn.SetBackgroundColor(Android.Graphics.Color.DarkSlateBlue);
+        _actionBtn.SetTextColor(Color.White);
         ((LinearLayout.LayoutParams)_actionBtn.LayoutParameters).SetMargins(0, 30, 0, 0);
 
         // Toggle Text
         _toggleBtn = new MaterialButton(ctx) { Text = "Don't have an account? Sign Up" };
-        //_toggleBtn.Style = Resource.Style.Widget_MaterialComponents_Button_TextButton; // Requires Theme, doing manual fallback
         _toggleBtn.SetBackgroundColor(Color.Transparent);
         _toggleBtn.SetTextColor(Color.White);
+        _toggleBtn.LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent) { Gravity = GravityFlags.Center };
 
         _progressBar = new ProgressBar(ctx) { Indeterminate = true, Visibility = ViewStates.Gone };
 
@@ -90,7 +98,7 @@ public class LoginFragment : Fragment, IOnBackInvokedCallback
         centerStack.AddView(subTitle);
         centerStack.AddView(_errorText);
         centerStack.AddView(_userLayout);
-        centerStack.AddView(_emailLayout); // Hidden by default
+        centerStack.AddView(_emailLayout);
         centerStack.AddView(_passLayout);
         centerStack.AddView(_actionBtn);
         centerStack.AddView(_toggleBtn);
@@ -104,58 +112,87 @@ public class LoginFragment : Fragment, IOnBackInvokedCallback
     {
         base.OnResume();
 
-        // Bind Inputs
-        //_userEdit.TextChanged += (s, e) => _viewModel.LoginVM.Username = e.Text.ToString();
-        //_passEdit.TextChanged += (s, e) => _viewModel.LoginVM.Password = e.Text.ToString();
-        //_emailEdit.TextChanged += (s, e) => _viewModel.LoginVM.Email = e.Text.ToString();
+        // 1. Two-way binding for Inputs
 
-        //// Bind Toggle Logic
-        //_toggleBtn.Click += (s, e) => _viewModel.LoginVM.ToggleModeCommand.Execute(null);
+        _userEdit.TextChanged += UserEdit_TextChanged;
+        _passEdit.TextChanged += PassEdit_TextChanged;
+        _emailEdit.TextChanged += EmailEdit_TextChanged;
+        // 2. Bind Commands
 
-        //_viewModel.LoginVM.WhenAnyValue(vm => vm.IsRegisterMode)
-        //    .ObserveOn(RxSchedulers.UI)
-        //    .Subscribe(reg =>
-        //    {
-        //        _emailLayout.Visibility = reg ? ViewStates.Visible : ViewStates.Gone;
-        //        _actionBtn.Text = reg ? "Sign Up" : "Log In";
-        //        _toggleBtn.Text = reg ? "Already have an account? Log In" : "Don't have an account? Sign Up";
-        //    })
-        //    .DisposeWith(_disposables);
+        _toggleBtn.Click += ToggleBtn_Click;
+        _actionBtn.Click += ActionBtn_Click;
+       
 
-        //// Bind Action Button
-        //_actionBtn.Click += async (s, e) =>
-        //{
-        //    if (_viewModel.LoginVM.IsRegisterMode)
-        //        await _viewModel.LoginVM.RegisterCommand.ExecuteAsync(null);
-        //    else
-        //        await _viewModel.LoginVM.LoginCommand.ExecuteAsync(null);
-        //};
+        // 3. Reactive UI Bindings (State -> UI)
+        LoginVM.PropertyChanged += OnViewModelPropertyChanged;
 
-        //// Bind Error & Busy
-        //_viewModel.LoginVM.WhenAnyValue(vm => vm.ErrorMessage)
-        //    .ObserveOn(RxSchedulers.UI)
-        //    .Subscribe(err =>
-        //    {
-        //        _errorText.Text = err;
-        //        _errorText.Visibility = string.IsNullOrEmpty(err) ? ViewStates.Gone : ViewStates.Visible;
-        //    })
-        //    .DisposeWith(_disposables);
-
-        //_viewModel.LoginVM.WhenAnyValue(vm => vm.IsBusy)
-        //    .ObserveOn(RxSchedulers.UI)
-        //    .Subscribe(busy =>
-        //    {
-        //        _progressBar.Visibility = busy ? ViewStates.Visible : ViewStates.Gone;
-        //        _actionBtn.Enabled = !busy;
-        //    })
-        //    .DisposeWith(_disposables);
     }
 
     public override void OnPause()
     {
         base.OnPause();
         _disposables.Clear();
+        // Unsubscribe to prevent memory leaks
+        _userEdit.TextChanged -= UserEdit_TextChanged;
+        _passEdit.TextChanged -= PassEdit_TextChanged;
+        _emailEdit.TextChanged -= EmailEdit_TextChanged;
+        _toggleBtn.Click -= ToggleBtn_Click;
+        _actionBtn.Click -= ActionBtn_Click;
+        LoginVM.PropertyChanged -= OnViewModelPropertyChanged;
     }
+
+    private void UserEdit_TextChanged(object? sender, Android.Text.TextChangedEventArgs e) => LoginVM.Username = e.Text.ToString();
+    private void PassEdit_TextChanged(object? sender, Android.Text.TextChangedEventArgs e) => LoginVM.Password = e.Text.ToString();
+    private void EmailEdit_TextChanged(object? sender, Android.Text.TextChangedEventArgs e) => LoginVM.Email = e.Text.ToString();
+
+    private void ToggleBtn_Click(object? sender, EventArgs e) => LoginVM.ToggleModeCommand.Execute(null);
+
+    private async void ActionBtn_Click(object? sender, EventArgs e)
+    {
+        if (LoginVM.IsRegisterMode)
+            await LoginVM.RegisterCommand.ExecuteAsync(null);
+        else
+            await LoginVM.LoginCommand.ExecuteAsync(null);
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        // UI updates must happen on the Main Thread
+        Activity?.RunOnUiThread(() =>
+        {
+            switch (e.PropertyName)
+            {
+                case nameof(LoginViewModel.IsRegisterMode):
+                case nameof(LoginViewModel.IsBusy):
+                case nameof(LoginViewModel.ErrorMessage):
+                    UpdateUiState();
+                    break;
+            }
+        });
+    }
+
+    private void UpdateUiState()
+    {
+        // 1. Toggle Mode
+        bool isRegister = LoginVM.IsRegisterMode;
+        _emailLayout.Visibility = isRegister ? ViewStates.Visible : ViewStates.Gone;
+        _actionBtn.Text = isRegister ? "Sign Up" : "Log In";
+        _toggleBtn.Text = LoginVM.ToggleText;
+
+        // 2. Busy State
+        bool isBusy = LoginVM.IsBusy;
+        _progressBar.Visibility = isBusy ? ViewStates.Visible : ViewStates.Gone;
+        _actionBtn.Enabled = !isBusy;
+        _userEdit.Enabled = !isBusy;
+        _passEdit.Enabled = !isBusy;
+
+        // 3. Error Message
+        var err = LoginVM.ErrorMessage;
+        _errorText.Text = err;
+        _errorText.Visibility = string.IsNullOrEmpty(err) ? ViewStates.Gone : ViewStates.Visible;
+    }
+
+ 
 
     private TextInputLayout CreateInput(Context ctx, string hint, bool isPassword = false)
     {
@@ -169,6 +206,4 @@ public class LoginFragment : Fragment, IOnBackInvokedCallback
         layout.AddView(edit);
         return layout;
     }
-
-    public void OnBackInvoked() { }
 }

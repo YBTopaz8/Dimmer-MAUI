@@ -258,14 +258,14 @@ public sealed partial class EditSongPage : Page
         {
             MyViewModel.SelectedSong?.IsInstrumental = (bool)ischecked;
         }
-        if(MyViewModel.CurrentPlayingSongView.TitleDurationKey == MyViewModel.SelectedSong.TitleDurationKey)
+        if(MyViewModel.CurrentPlayingSongView.TitleDurationKey == MyViewModel.SelectedSong!.TitleDurationKey)
         {
             MyViewModel.CurrentPlayingSongView.CoverImagePath ??= MyViewModel.SelectedSong.CoverImagePath;
         }
 
-        MyViewModel.SelectedSong.ArtistToSong = listOfArtistsModelView.ToObservableCollection();
-        MyViewModel
-      await  MyViewModel.ApplyNewSongEdits(MyViewModel.SelectedSong!);
+        MyViewModel.SelectedSong.ArtistToSong = listOfArtistsModelView!.ToObservableCollection();
+        
+        await MyViewModel.ApplyNewSongEdits(MyViewModel.SelectedSong!);
 
 
 

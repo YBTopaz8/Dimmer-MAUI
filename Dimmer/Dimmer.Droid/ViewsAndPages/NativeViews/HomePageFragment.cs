@@ -1,20 +1,13 @@
 ﻿using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 
-using Android.Graphics;
 using Android.Views.InputMethods;
 
 using AndroidX.CoordinatorLayout.Widget;
 
-using Bumptech.Glide;
-
+using Dimmer.ViewsAndPages.NativeViews.DimmerLive;
 using Dimmer.ViewsAndPages.NativeViews.Misc;
 using Dimmer.ViewsAndPages.ViewUtils;
-
-using Google.Android.Material.Button;
-using Google.Android.Material.Card;
-using Google.Android.Material.Chip;
-using Google.Android.Material.TextField;
 
 using static Dimmer.ViewsAndPages.NativeViews.SongAdapter;
 
@@ -75,7 +68,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     private SongAdapter _adapter;
 
 
-    public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         var ctx = Context;
 
@@ -216,6 +209,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         popup.Menu.Add(0, 2, 0, "Search Library (TQL)");
         popup.Menu.Add(0, 3, 0, "Scroll to Playing");
         popup.Menu.Add(0, 4, 0, "View Queue");
+        popup.Menu.Add(0, 5, 0, "Go to Login");
 
         popup.MenuItemClick += (s, e) =>
         {
@@ -239,6 +233,9 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
                 case 4: // Scroll To
                     var queueSheet = new QueueBottomSheetFragment(MyViewModel);
                     queueSheet.Show(ParentFragmentManager, "QueueSheet");
+                    break;
+                    case 5:
+                    MyViewModel.NavigateToGeneralPage(this, new LoginFragment("IntoLogin", MyViewModel),"loginPageTag");
                     break;
             }
         };

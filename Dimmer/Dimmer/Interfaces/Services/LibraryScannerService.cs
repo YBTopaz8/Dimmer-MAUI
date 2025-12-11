@@ -71,7 +71,7 @@ public class LibraryScannerService : ILibraryScannerService
 
             MusicMetadataService currentScanMetadataService = new();
 
-            List<string> allFiles = TaggingUtils.GetAllAudioFilesFromPaths(folderPaths, _config.SupportedAudioExtensions);
+            List<string> allFiles = await TaggingUtils.GetAllAudioFilesFromPathsAsync(folderPaths, _config.SupportedAudioExtensions);
 
             if (allFiles.Count == 0)
             {
@@ -81,24 +81,28 @@ public class LibraryScannerService : ILibraryScannerService
 
 
             }
-
-            _logger.LogDebug("Loading existing metadata from database and detaching for processing...");
-            var existingArtists = realm.All<ArtistModel>().ToList().Select(x => x.ToArtistModelView());
-            var existingAlbums = realm.All<AlbumModel>().ToList().Select(x => x.ToAlbumModelView());
-            var existingGenres = realm.All<GenreModel>().ToList().Select(x => x.ToGenreModelView());
-            var existingSongs = (realm.All<SongModel>().ToList().Select(x => x.ToSongModelView()));
-
-
-
-            _logger.LogDebug("Loaded {ArtistCount} artists, {AlbumCount} albums, {GenreCount} genres, {SongCount} songs.",
-                existingArtists.Count(), existingAlbums.Count(), existingGenres.Count(), existingSongs.Count());
-
+            using (var realmm = _realmFactory.GetRealmInstance())
+            {
+                _logger.LogDebug("Loading existing metadata from database and detaching for processing...");
+                var existingArtists = realmm.All<ArtistModel>().ToList().Select(x =>
+                {
+                    return x.Freeze().ToArtistModelView();
+                }).ToList();
+                var existingAlbums = realmm.All<AlbumModel>().ToList().Select(x => x.Freeze().ToAlbumModelView()).ToList();
+                var existingGenres = realmm.All<GenreModel>().ToList().Select(x => x.Freeze().ToGenreModelView()).ToList();
+                var existingSongs = realmm.All<SongModel>().ToList().Select(x => x.Freeze().ToSongModelView()).ToList();
 
 
 
+                _logger.LogDebug("Loaded {ArtistCount} artists, {AlbumCount} albums, {GenreCount} genres, {SongCount} songs.",
+                    existingArtists.Count(), existingAlbums.Count(), existingGenres.Count(), existingSongs.Count());
 
-            currentScanMetadataService.LoadExistingData(existingArtists, existingAlbums, existingGenres, existingSongs);
 
+
+
+
+                currentScanMetadataService.LoadExistingData(existingArtists, existingAlbums, existingGenres, existingSongs);
+            }
             var newFilesToProcess = allFiles.Where(file => !currentScanMetadataService.HasFileBeenProcessed(file)).ToList();
 
             int totalFilesToProcess = newFilesToProcess.Count;
@@ -117,13 +121,13 @@ public class LibraryScannerService : ILibraryScannerService
             // --- 4. Process ONLY the new files ---
             var audioFileProcessor = new AudioFileProcessor( currentScanMetadataService, _config);
             int progress = 0;
-            var processedResults =  await audioFileProcessor.ProcessFilesAsync(newFilesToProcess);
+            var processedResults =  await audioFileProcessor.ProcessFilesInParallelForEachAsync(newFilesToProcess);
 
 
             foreach (var result in processedResults)
             {
                 progress++;
-                if (progress % 5 == 0 || progress == processedResults.Count)
+                if (progress % 50 == 0 || progress == processedResults.Count)
                 {
                     _state.SetCurrentLogMsg(new AppLogModel
                     {
