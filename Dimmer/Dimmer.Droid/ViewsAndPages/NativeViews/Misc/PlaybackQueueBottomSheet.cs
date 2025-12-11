@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Bumptech.Glide;
+
 using Google.Android.Material.Button;
 using Google.Android.Material.Card;
 
@@ -83,7 +85,6 @@ public class QueueBottomSheetFragment : BottomSheetDialogFragment
 
         // 5. The Eye Button
         var eyeBtn = new MaterialButton(ctx, null, Resource.Attribute.borderlessButtonStyle);
-        eyeBtn.SetIconResource(Resource.Drawable.eye); // Ensure this drawable exists
         eyeBtn.IconTint = Android.Content.Res.ColorStateList.ValueOf(Color.White);
         eyeBtn.Text = "Focus"; // Optional text, or remove for icon only
         eyeBtn.SetTextColor(Color.White);

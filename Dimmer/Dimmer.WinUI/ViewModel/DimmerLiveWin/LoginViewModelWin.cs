@@ -54,49 +54,7 @@ public partial class LoginViewModelWin : LoginViewModel
         CurrentUser = BaseViewModel.CurrentUserLocal;
     }
 
-    [ObservableProperty]
-    public partial bool IsEditingProfile { get; set; }
-
-    [RelayCommand]
-    public async Task SaveProfileChangesAsync()
-    {
-        if (CurrentUserOnline == null||CurrentUserOnline == null) return;
-        IsBusy = true;
-        try
-        {
-            CurrentUserOnline.Username = CurrentUser.Username;
-           
-            await CurrentUserOnline.SaveAsync();
-
-            await Shell.Current.DisplayAlert("Success", "Profile updated.", "OK");
-            IsEditingProfile = false;
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = $"Failed to save profile: {ex.Message}";
-        }
-        finally { IsBusy = false; }
-    }
-
-    // --- CHANGE PASSWORD ---
-    [RelayCommand]
-    public async Task ChangePasswordAsync(string newPassword)
-    {
-        if (CurrentUser == null) return;
-        IsBusy = true;
-        try
-        {
-            // Parse allows the currently logged-in user to simply set the password
-            CurrentUserOnline.Password = newPassword;
-            await CurrentUserOnline.SaveAsync();
-            await Shell.Current.DisplayAlert("Success", "Password changed successfully.", "OK");
-        }
-        catch (Exception ex)
-        {
-            await Shell.Current.DisplayAlert("Error", $"Could not change password: {ex.Message}", "OK");
-        }
-        finally { IsBusy = false; }
-    }
+    
 
     // --- PREMIUM SUBSCRIPTION ---
     [RelayCommand]

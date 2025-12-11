@@ -29,7 +29,7 @@
             <Image
                 x:Name="BgImage"
                 Opacity="0.05"
-                Source="{x:Bind DetailedSong.CoverImagePath}"
+                Source="{x:Bind DetailedSong.CoverImagePath, Converter={StaticResource StringToImageConverter}}"
                 Stretch="UniformToFill" />
             <Grid x:Name="FgGrid">
                 <Grid.RowDefinitions>
@@ -106,7 +106,7 @@
                                     x:Name="detailedImage"
                                     Width="350"
                                     Height="350"
-                                    Source="{x:Bind DetailedSong.CoverImagePath}" />
+                                    Source="{x:Bind DetailedSong.CoverImagePath, Converter={StaticResource StringToImageConverter}}" />
                                 <Button
                                     x:Name="PlaySongBtn"
                                     HorizontalAlignment="Center"
@@ -328,7 +328,7 @@
                                                 <Image
                                                     MaxWidth="200"
                                                     MaxHeight="200"
-                                                    Source="{Binding ImagePath}" />
+                                                    Source="{Binding ImagePath, Converter={StaticResource StringToImageConverter}}" />
                                                 <TextBlock
                                                     Margin="0,0,0,20"
                                                     HorizontalAlignment="Center"

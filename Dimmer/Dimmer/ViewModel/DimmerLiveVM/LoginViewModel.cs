@@ -279,6 +279,45 @@ public partial class LoginViewModel : ObservableObject
         OnPropertyChanged(nameof(ToggleText));
         OnPropertyChanged(nameof(ToggleLinkText));
     }
-   
+    // --- CHANGE PASSWORD ---
+    [RelayCommand]
+    public async Task ChangePasswordAsync(string newPassword)
+    {
+        if (CurrentUser == null) return;
+        IsBusy = true;
+        try
+        {
+            // Parse allows the currently logged-in user to simply set the password
+            CurrentUserOnline.Password = newPassword;
+            await CurrentUserOnline.SaveAsync();
+        }
+        catch (Exception ex)
+        {
+        }
+        finally { IsBusy = false; }
+    }
+    [ObservableProperty]
+    public partial bool IsEditingProfile { get; set; }
+
+
+    [RelayCommand]
+    public async Task SaveProfileChangesAsync()
+    {
+        if (CurrentUserOnline == null || CurrentUserOnline == null) return;
+        IsBusy = true;
+        try
+        {
+            CurrentUserOnline.Username = CurrentUser.Username;
+
+            await CurrentUserOnline.SaveAsync();
+
+            IsEditingProfile = false;
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to save profile: {ex.Message}";
+        }
+        finally { IsBusy = false; }
+    }
 
 }

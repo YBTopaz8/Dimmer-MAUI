@@ -107,6 +107,7 @@ public class TqlSearchBottomSheet : BottomSheetDialogFragment
             // Call your existing logic
             // Note: You might need to expose your live data collections from ViewModel or pass them in
             // For now, assuming you have access to the data needed for AutocompleteEngine
+            _viewModel.SearchSongForSearchResultHolder(text); // Optional: live search as you type
             UpdateSuggestions(text, cursor);
         };
 

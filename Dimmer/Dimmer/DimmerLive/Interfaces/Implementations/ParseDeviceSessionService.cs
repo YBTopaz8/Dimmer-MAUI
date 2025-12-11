@@ -273,9 +273,45 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
             { "backupObjectId", backupObjectId }
         };
 
-            var result = await ParseClient.Instance.CallCloudCodeFunctionAsync<IDictionary<string, object>>("restoreCloudBackup", parameters);
+            var metaData = await ParseClient.Instance.CallCloudCodeFunctionAsync<IDictionary<string, object>>("getLatestBackupUrl", null);
 
-            _logger.LogInformation("Restore completed.");
+            if (!metaData.ContainsKey("url"))
+            {
+                _logger.LogWarning("No backup URL returned.");
+                return ;
+            }
+
+            string fileUrl = metaData["url"].ToString();
+
+            // 2. Download the JSON File
+            using HttpClient client = new HttpClient();
+            var jsonString = await client.GetStringAsync(fileUrl);
+
+            if (string.IsNullOrEmpty(jsonString)) return ;
+
+            // 3. Deserialize JSON back to Objects
+            var eventsFromCloud = JsonSerializer.Deserialize<List<DimmerPlayEventView>>(jsonString);
+
+            if (eventsFromCloud == null || eventsFromCloud.Count == 0) return ;
+
+            // 4. Write to Realm (UPSERT Logic)
+            var realm = vm.RealmFactory.GetRealmInstance();
+
+            await realm.WriteAsync(() =>
+            {
+                foreach (var view in eventsFromCloud)
+                {
+                    var rEvt = view.ToDimmerPlayEvent();
+                    // The 'true' flag updates if ID exists, inserts if not
+                    realm.Add(rEvt, update: true);
+                }
+            });
+
+            _logger.LogInformation($"Restored {eventsFromCloud.Count} events to local database.");
+          
+        
+       
+    _logger.LogInformation("Restore completed.");
         }
         catch (Exception ex)
         {

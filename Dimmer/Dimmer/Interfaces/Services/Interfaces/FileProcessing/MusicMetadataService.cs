@@ -69,7 +69,9 @@ public class MusicMetadataService : IMusicMetadataService
 
         // GetOrAdd is an atomic operation, making this method thread-safe.
         return _artistsByName.GetOrAdd(name, (key) => {
-            var newArtist = new ArtistModelView { Name = key, Id = ObjectId.GenerateNewId() };
+            var newArtist = new ArtistModelView { Name = key, Id = ObjectId.GenerateNewId() 
+            };
+            newArtist.TotalSongsByArtist++;
             NewArtists.Add(newArtist); // Note: NewArtists list might still need locking if accessed elsewhere during the scan.
             return newArtist;
         });

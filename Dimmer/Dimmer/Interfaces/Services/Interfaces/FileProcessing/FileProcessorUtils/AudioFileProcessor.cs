@@ -1,4 +1,6 @@
-﻿using Dimmer.Utilities;
+﻿using System.Collections.Concurrent;
+
+using Dimmer.Utilities;
 
 using Microsoft.Maui.Storage;
 
@@ -6,39 +8,44 @@ namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtil
 
 public class AudioFileProcessor : IAudioFileProcessor
 {
-    private readonly ICoverArtService _coverArtService;
     private readonly IMusicMetadataService _metadataService;
-    private readonly ProcessingConfig _config;
+    private  readonly ProcessingConfig _config;
 
     public AudioFileProcessor(
-        ICoverArtService coverArtService,
         IMusicMetadataService metadataService,
         ProcessingConfig config)
     {
-        _coverArtService = coverArtService;
         _metadataService = metadataService;
         _config = config;
     }
     public async Task<List<FileProcessingResult>> ProcessFilesAsync(IEnumerable<string> filePaths)
     {
-        var tasks = filePaths.Select(async path =>
-        {
-            try
-            {
-                return ProcessFile(path);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[Critical] {path}: {ex}");
-                return new FileProcessingResult(path)
-                {
-                    Errors = { $"Unhandled: {ex}" }
-                };
-            }
-        });
+        var results = new ConcurrentBag<FileProcessingResult>();
 
-        return [.. (await Task.WhenAll(tasks))];
+        await Parallel.ForEachAsync(
+            filePaths,
+            new ParallelOptions
+            {
+                MaxDegreeOfParallelism = Environment.ProcessorCount // 4, 8, etc.
+            },
+            async (file, ct) =>
+            {
+                try
+                {
+                    var result =  ProcessFile(file);
+                    results.Add(result);
+                }
+                catch (Exception ex)
+                {
+                    var errorListOfString = new List<string> { $"Unhandled: {ex}" };
+                    Debug.WriteLine($"[Critical] {file}: {ex}");
+                    results.Add(new FileProcessingResult(file,errorListOfString));
+                }
+            });
+
+        return results.ToList();
     }
+    
     public FileProcessingResult ProcessFile(string filePath)
     {
 
@@ -50,6 +57,7 @@ public class AudioFileProcessor : IAudioFileProcessor
 
             if (!TaggingUtils.IsValidFile(filePath, _config.SupportedAudioExtensions))
             {
+                
                 result.Errors.Add("File is invalid or has an unsupported extension.");
                 return result;
             }
@@ -60,7 +68,6 @@ public class AudioFileProcessor : IAudioFileProcessor
                 {
                     if (TaggingUtils.PlatformGetStreamHook != null)
                     {
-                        // Get the stream from Android
                         using (var fileStream = TaggingUtils.PlatformGetStreamHook(filePath)) 
                         { 
 
@@ -115,18 +122,21 @@ public class AudioFileProcessor : IAudioFileProcessor
             // --- Step 2: Intelligently coalesce to find the best source of truth ---
             // The rule: Tag is king. If tag is missing, fall back to filename.
             string decodedPath = Uri.UnescapeDataString(filePath);
+
+            //var cleanArtist = StaticUtils.CleanArtist(track.Path, tagArtist, tagTitle);
+            var cleanTitle = StaticUtils.CleanTitle(track.Path, tagTitle, tagAlbum, tagAlbumArtist);
+
             string bestRawTitle = !string.IsNullOrWhiteSpace(tagTitle) ? tagTitle : filenameTitle ?? Path.GetFileNameWithoutExtension(decodedPath);
             string? bestRawArtist = !string.IsNullOrWhiteSpace(tagArtist) ? tagArtist : filenameArtist;
             string bestAlbumArtist = tagAlbumArtist; // No filename equivalent for this.
             string bestAlbum = !string.IsNullOrWhiteSpace(tagAlbum) ? tagAlbum : "Unknown Album";
             string bestGenre = !string.IsNullOrWhiteSpace(tagGenre) ? tagGenre : "Unknown Genre";
 
-            // --- Step 3: Clean and Parse the high-quality raw data ---
-            var (mainTitle, versionInfo) = TaggingUtils.ParseTrackTitle(bestRawTitle);
-            List<string> artistNames = TaggingUtils.ExtractArtists(bestRawArtist, bestAlbumArtist);
+            List<string> artistNames = TaggingUtils.ExtractArtists(bestRawArtist, bestAlbumArtist)
+                .Select(x=> StaticUtils.CleanArtist(track.Path,x,track.Title)).ToList();
 
             // --- Step 4: Final validation and fallbacks ---
-            string finalTitle = string.IsNullOrWhiteSpace(mainTitle) ? Path.GetFileNameWithoutExtension(filePath) : mainTitle;
+            string finalTitle = string.IsNullOrWhiteSpace(cleanTitle) ? Path.GetFileNameWithoutExtension(filePath) : cleanTitle;
             string primaryArtistName = artistNames.FirstOrDefault() ?? "Unknown Artist";
             string allArtistsString = string.Join(", ", artistNames);
 
@@ -138,7 +148,7 @@ public class AudioFileProcessor : IAudioFileProcessor
                 Id = ObjectId.GenerateNewId(), // Assuming you use MongoDB ObjectId
                 FilePath = filePath,
                 Title = finalTitle,
-                Description = versionInfo ?? track.Description ?? string.Empty, // Store version info in Description!
+                Description = track.Description ?? string.Empty, // Store version info in Description!
 
                 // Artist Info
                 ArtistName = primaryArtistName,

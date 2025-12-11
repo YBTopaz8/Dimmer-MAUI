@@ -5,6 +5,8 @@ using AndroidX.Fragment.App;
 
 using Bumptech.Glide;
 
+using Dimmer.Utils.UIUtils;
+
 using Google.Android.Material.Button;
 using Google.Android.Material.Card;
 using Google.Android.Material.Carousel;
@@ -42,11 +44,18 @@ public partial class NowPlayingFragment : Fragment
     public ChipGroup ArtistChipGroup { get; private set; }
     public MaterialButton PlayPauseBtn { get; private set; }
 
+    private ImageView _headerCover;
+    private TextView _headerTitle, _headerArtist, _headerAlbum;
+    private TextView _headerDuration, _headerTimeRemaining;
+    private ImageView _mainCover;
+    private WavySlider _seekSlider;
+    private MaterialButton _playPauseBtn;
     // State
     private bool _isDraggingSeek = false;
     public BaseViewModelAnd MyViewModel { get; private set; }
     public CompositeDisposable SubsManager { get; } = new CompositeDisposable();
 
+    private TextView _lyricPrev, _lyricCurr, _lyricNext;
     public NowPlayingFragment(BaseViewModelAnd viewModel) { MyViewModel = viewModel; }
     public NowPlayingFragment() { }
 

@@ -144,8 +144,7 @@
                         </Expander>
 
                         <!--  Logout  -->
-                        <Button Content="Cloud Space"
-                                Command="{x:Bind ViewModel.NavigateToCloudPageCommand}"/>
+                        <Button Command="{x:Bind ViewModel.NavigateToCloudPageCommand}" Content="Cloud Space" />
                         <Button
                             HorizontalAlignment="Left"
                             Background="DarkRed"

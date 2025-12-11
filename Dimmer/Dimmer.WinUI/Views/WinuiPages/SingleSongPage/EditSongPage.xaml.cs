@@ -262,7 +262,14 @@ public sealed partial class EditSongPage : Page
         {
             MyViewModel.CurrentPlayingSongView.CoverImagePath ??= MyViewModel.SelectedSong.CoverImagePath;
         }
-        MyViewModel.UpdateSongInDB(MyViewModel.SelectedSong!);
+
+        MyViewModel.SelectedSong.ArtistToSong = listOfArtistsModelView.ToObservableCollection();
+        MyViewModel
+      await  MyViewModel.ApplyNewSongEdits(MyViewModel.SelectedSong!);
+
+
+
+
         Visibility = Microsoft.UI.Xaml.Visibility.Visible;
         PageNotificationText.Text = "Changes saved!";
         PlatUtils.ApplyEntranceEffect(vis, PageNotificationText,SongTransitionAnimation.Spring , _compositor);
@@ -287,6 +294,7 @@ public sealed partial class EditSongPage : Page
 
     }
 
+    IEnumerable<ArtistModelView?>? listOfArtistsModelView;
     private void ArtistToSong_Loaded(object sender, RoutedEventArgs e)
     {
         if (MyViewModel.SelectedSong is null) return;
@@ -295,12 +303,12 @@ public sealed partial class EditSongPage : Page
             .FirstOrDefault(s => s.Id == MyViewModel.SelectedSong.Id);
         if (dbSong is null) return;
         var artistToSong = dbSong.ArtistToSong;
-        var listOfArtistsModelView = artistToSong.AsEnumerable().Select(x=>x.ToArtistModelView());
+        listOfArtistsModelView = artistToSong.AsEnumerable().Select(x=>x.ToArtistModelView());
         foreach (var art in listOfArtistsModelView)
         {
             var songs = artistToSong.FirstOrDefault(x => x.Id == art.Id)?
                 .Songs;
-            art.SongsByArtist = songs.AsEnumerable().Select(x=>x.ToSongModelView()).ToObservableCollection();
+            art.SongsByArtist = songs.AsEnumerable().Select(x=>x.ToSongModelView()).ToObservableCollection()!;
         }
         ArtistToSong.ItemsSource = listOfArtistsModelView;
     }

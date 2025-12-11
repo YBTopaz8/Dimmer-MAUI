@@ -4,6 +4,10 @@ using System.Runtime.ConstrainedExecution;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
+using ATL;
+
+using AudioSwitcher.AudioApi;
+
 using Dimmer.Data.Models;
 using Dimmer.Data.ModelView;
 using Dimmer.DimmerLive.ParseStatics;
@@ -20,6 +24,9 @@ using Hqub.Lastfm.Entities;
 using Microsoft.Extensions.Logging.Abstractions;
 
 using Parse.LiveQuery;
+
+using static Microsoft.Maui.ApplicationModel.Permissions;
+
 //using MoreLinq;
 //using MoreLinq.Extensions;
 
@@ -1902,6 +1909,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             //Trying lastfm
             var cleanTitle = StaticUtils.CleanTitle(song.FilePath,song.Title,song.AlbumName,song.ArtistName);
             string cleanArtist = StaticUtils.CleanArtist(song.FilePath, song.ArtistName, song.Title);
+
             var lastfmTrack = await lastfmService.GetTrackInfoAsync(cleanArtist, cleanTitle);
             if (lastfmTrack.IsNull)
                 return;
@@ -4474,23 +4482,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             });
     }
 
-    [RelayCommand]
-    public void UpdateSongInDB(SongModelView songModelView)
-    {
-        if (songModelView == null || songModelView.Id == ObjectId.Empty)
-        {
-            _logger.LogWarning("UpdateSongInDB called with invalid SongModelView.");
-            return;
-        }
-        var songModel = songModelView.ToSongModel();
-        if (songModel == null)
-        {
-            _logger.LogWarning("UpdateSongInDB: Could not map SongModelView to SongModel.");
-            return;
-        }
-        var song = songRepo.Upsert(songModel);
-        _logger.LogInformation("Song '{SongTitle}' updated in database.", songModel.Title);
-    }
 
     [RelayCommand]
     public void RateSong(int newRating)
@@ -5454,75 +5445,122 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
     [RelayCommand]
-    public async Task ApplyNewSongEdits(SongModelView song)
+    public async Task ApplyNewSongEdits(SongModelView src)
     {
-        if (song == null)
+        if (src == null)
             return;
-        _logger.LogInformation("Applying edits to song '{SongTitle}'", song.Title);
+        _logger.LogInformation("Applying edits to song '{SongTitle}'", src.Title);
+        var realm = RealmFactory.GetRealmInstance();
 
-        var songInDb = songRepo.GetById(song.Id);
+        var songInDb = realm.Find<SongModel>(src.Id);
+
         if (songInDb == null)
         {
-            _logger.LogWarning("Song with ID {SongId} not found in database.", song.Id);
+            _logger.LogWarning("Song with ID {SongId} not found in database.", src.Id);
             return;
         }
-        // Update fields
-        songInDb.Title = song.Title;
-        songInDb.ArtistName = song.ArtistName;
-        songInDb.AlbumName = song.AlbumName;
-        songInDb.GenreName = song.GenreName;
-
-
-        songInDb.TrackNumber = song.TrackNumber;
-        songInDb.ReleaseYear = song.ReleaseYear;
-        songInDb.Rating = song.Rating;
-        songInDb.IsFavorite = song.IsFavorite;
-        songInDb.OtherArtistsName = song.OtherArtistsName;
-        songInDb.Composer = song.Composer;
-        // Handle Artist relationship
-        if (!string.IsNullOrWhiteSpace(song.ArtistName))
+        await realm.WriteAsync(() =>
         {
-            var artist = artistRepo.Query(a => a.Name == song.ArtistName).FirstOrDefault();
-            if (artist == null)
-            {
-                artist = artistRepo.Create(new ArtistModel { Name = song.ArtistName });
-            }
-            songInDb.Artist = artist;
-            if (!songInDb.ArtistToSong.Contains(artist))
-            {
-                songInDb.ArtistToSong.Add(artist);
-            }
-        }
-        // Handle Album relationship
-        if (!string.IsNullOrWhiteSpace(song.AlbumName))
-        {
-            var album = albumRepo.Query(a => a.Name == song.AlbumName).FirstOrDefault();
-            if (album == null)
-            {
-                var albumArtist = artistRepo.Query(a => a.Name == song.ArtistName).FirstOrDefault();
-                album = albumRepo.Create(new AlbumModel { Name = song.AlbumName, Artist = albumArtist });
-            }
-            songInDb.Album = album;
-        }
+            // Update fields
+            songInDb.Id = src.Id;
+            songInDb.Title = src.Title;
+            songInDb.FilePath = src.FilePath;
+            songInDb.DurationInSeconds = src.DurationInSeconds;
+            songInDb.IsHidden = src.IsHidden;
+            songInDb.ReleaseYear = src.ReleaseYear;
+            songInDb.NumberOfTimesFaved = src.NumberOfTimesFaved;
+            songInDb.ManualFavoriteCount = src.ManualFavoriteCount;
+            songInDb.TrackNumber = src.TrackNumber;
+            songInDb.FileFormat = src.FileFormat;
+            songInDb.Lyricist = src.Lyricist;
+            songInDb.Composer = src.Composer;
+            songInDb.Conductor = src.Conductor;
+            songInDb.Description = src.Description;
+            songInDb.Language = src.Language;
+            songInDb.DiscNumber = src.DiscNumber;
+            songInDb.DiscTotal = src.DiscTotal;
+            songInDb.FileSize = src.FileSize;
+            songInDb.BitRate = src.BitRate;
+            songInDb.Rating = src.Rating;
+            songInDb.HasLyrics = src.HasLyrics;
+            songInDb.HasSyncedLyrics = src.HasSyncedLyrics;
+            songInDb.IsInstrumental = src.IsInstrumental;
+            songInDb.SyncLyrics = src.SyncLyrics;
+            songInDb.CoverImagePath = src.CoverImagePath;
+            songInDb.TrackTotal = src.TrackTotal;
+            songInDb.SampleRate = src.SampleRate;
+            songInDb.Encoder = src.Encoder;
+            songInDb.BitDepth = src.BitDepth;
+            songInDb.NbOfChannels = src.NbOfChannels;
+            songInDb.UnSyncLyrics = src.UnSyncLyrics;
+            songInDb.IsFavorite = src.IsFavorite;
+            songInDb.Achievement = src.Achievement;
+            songInDb.IsFileExists = src.IsFileExists;
+            songInDb.LastDateUpdated = src.LastDateUpdated;
+            songInDb.DateCreated = src.DateCreated;
+            songInDb.DeviceName = src.DeviceName;
+            songInDb.DeviceFormFactor = src.DeviceFormFactor;
+            songInDb.DeviceModel = src.DeviceModel;
+            songInDb.DeviceManufacturer = src.DeviceManufacturer;
+            songInDb.DeviceVersion = src.DeviceVersion;
+            songInDb.UserIDOnline = src.UserIDOnline;
+            songInDb.IsNew = src.IsNew;
+            songInDb.BPM = src.BPM;
+            songInDb.SetTitleAndDuration(src.Title, src.DurationInSeconds);
+            songInDb.SongTypeValue = src.SongTypeValue;
+            songInDb.ParentSongId = src.ParentSongId;
+            songInDb.SegmentStartTime = src.SegmentStartTime;
+            songInDb.SegmentEndTime = src.SegmentEndTime;
+            songInDb.SegmentEndBehaviorValue = src.SegmentEndBehaviorValue;
+            songInDb.CoverArtHash = src.CoverArtHash;
+            // SearchableText is computed in ViewModel usually; or mapped here if saved
+            // UserNoteAggregatedText is computed
 
-        // Handle Genre relationship
-        if (!string.IsNullOrWhiteSpace(song.GenreName))
-        {
-            var genre = genreRepo.Query(g => g.Name == song.GenreName).FirstOrDefault();
-            if (genre == null)
-            {
-                genre = genreRepo.Create(new GenreModel { Name = song.GenreName });
-            }
-            songInDb.Genre = genre;
-        }
+            // --- Statistics ---
+            songInDb.PlayCount = src.PlayCount;
+            songInDb.PlayCompletedCount = src.PlayCompletedCount;
+            songInDb.SkipCount = src.SkipCount;
+            songInDb.ListenThroughRate = src.ListenThroughRate;
+            songInDb.SkipRate = src.SkipRate;
+            songInDb.FirstPlayed = src.FirstPlayed;
+            songInDb.PopularityScore = src.PopularityScore;
+            songInDb.GlobalRank = src.GlobalRank;
+            songInDb.RankInAlbum = src.RankInAlbum;
+            songInDb.RankInArtist = src.RankInArtist;
+            songInDb.PauseCount = src.PauseCount;
+            songInDb.ResumeCount = src.ResumeCount;
+            songInDb.SeekCount = src.SeekCount;
+            songInDb.LastPlayEventType = src.LastPlayEventType;
+            songInDb.PlayStreakDays = src.PlayStreakDays;
+            songInDb.EddingtonNumber = src.EddingtonNumber;
+            songInDb.EngagementScore = src.EngagementScore;
+            songInDb.TotalPlayDurationSeconds = src.TotalPlayDurationSeconds;
+            songInDb.RepeatCount = src.RepeatCount;
+            songInDb.PreviousCount = src.PreviousCount;
+            songInDb.RestartCount = src.RestartCount;
+            songInDb.DiscoveryDate = src.DiscoveryDate;
 
-        // Save changes
-        await songRepo.UpdateAsync(
-            songInDb.Id,
-            _ =>
+            // --- Custom Mappings (From your AutoMapper config) ---
+            songInDb.ArtistName = src.ArtistName;
+            songInDb.OtherArtistsName = src.OtherArtistsName;
+            songInDb.AlbumName = src.AlbumName;
+            songInDb.GenreName = src.Genre?.Name ?? string.Empty;
+
+            foreach (var artView in src.ArtistToSong)
             {
-            }); // Trigger update
-        var updatedSongView = songRepo.GetById(song.Id).ToSongView();
+                if (artView is not null)
+                {
+                    var art = realm.Find<ArtistModel>(artView.Id);
+                    
+                    if (!songInDb.Album.Artists.Any(a => a.Id == artView.Id))
+                        songInDb.Album.Artists.Add(art);
+                    
+                }
+            }
+            songInDb.Album = realm.All<AlbumModel>().FirstOrDefault(x=>x.Name==src.AlbumName)!;
+
+
+        });
         //MasterListContext.SetSearchQuery(MasterListContext.CurrentTqlQuery);
     }
     #endregion
@@ -7526,10 +7564,57 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         var realm = RealmFactory.GetRealmInstance();
         var songInDb = realm.Find<SongModel>(SelectedSong.Id);
+        if (songInDb is null) return;
+        var artistsToSong = songInDb.ArtistToSong;
+        string? artistName=SelectedSong.ArtistName;
+        if (artistsToSong.Count == 0 || songInDb.ArtistName is null)
+        {
+            var track = new ATL.Track(songInDb.FilePath);
 
-        var artistName = songInDb.ArtistToSong[0]!.Name;
-        artistName ??= string.Empty;
+            string tagTitle = track.Title;
+            string tagArtist = track.Artist;
+            string tagAlbumArtist = track.AlbumArtist;
+            string tagAlbum = track.Album;
+            string decodedPath = Uri.UnescapeDataString(track.Path);
+            var (filenameArtist, filenameTitle) = FilenameParser.Parse(track.Path);
 
+            var cleanArtist = StaticUtils.CleanArtist(track.Path, tagArtist, tagTitle);
+            var cleanTitle = StaticUtils.CleanTitle(track.Path, tagTitle, tagAlbum, tagAlbumArtist);
+            string bestRawTitle = !string.IsNullOrWhiteSpace(tagTitle) ? tagTitle : filenameTitle ?? Path.GetFileNameWithoutExtension(decodedPath);
+            string? bestRawArtist = !string.IsNullOrWhiteSpace(tagArtist) ? tagArtist : filenameArtist;
+            string bestAlbumArtist = tagAlbumArtist; // No filename equivalent for this.
+            List<string> artistNames = TaggingUtils.ExtractArtists(bestRawArtist, bestAlbumArtist)
+               .Select(x => StaticUtils.CleanArtist(track.Path, x, track.Title)).ToList();
+
+            string primaryArtistName = artistNames.FirstOrDefault() ?? "Unknown Artist";
+            string allArtistsString = string.Join(", ", artistNames);
+           await realm.WriteAsync(() =>
+            {
+                songInDb.ArtistName = primaryArtistName;
+                songInDb.OtherArtistsName = allArtistsString;
+
+                var artistModel = realm.All<ArtistModel>().FirstOrDefault(a => a.Name == primaryArtistName);
+                artistModel ??= new ArtistModel
+                    {
+                        Id = ObjectId.GenerateNewId(),
+                        Name = primaryArtistName,                        
+                    };
+                var albumModel = realm.All<AlbumModel>().FirstOrDefault(a => a.Name == songInDb.AlbumName);
+                if (albumModel is not null)
+                {
+                    songInDb.Album = albumModel;
+                    if (albumModel.Artists.Contains(artistModel) == false)
+                    {
+                        albumModel.Artists.Add(artistModel);
+                    }
+                }
+                songInDb.Artist = artistModel;
+                songInDb.ArtistToSong.Add(artistModel);
+
+                artistName = songInDb.ArtistToSong[0]!.Name;
+                artistName ??= string.Empty;
+             });
+                }
         SelectedSongLastFMData = await lastfmService.GetTrackInfoAsync(artistName, songInDb.Title);
         if (SelectedSongLastFMData is null)
         {

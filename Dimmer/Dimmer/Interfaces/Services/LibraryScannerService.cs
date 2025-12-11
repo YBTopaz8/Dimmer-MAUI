@@ -115,7 +115,7 @@ public class LibraryScannerService : ILibraryScannerService
             _state.SetCurrentLogMsg(new AppLogModel { Log = $"Found {totalFilesToProcess} new songs. Starting import..." });
 
             // --- 4. Process ONLY the new files ---
-            var audioFileProcessor = new AudioFileProcessor(_coverArtService, currentScanMetadataService, _config);
+            var audioFileProcessor = new AudioFileProcessor( currentScanMetadataService, _config);
             int progress = 0;
             var processedResults =  await audioFileProcessor.ProcessFilesAsync(newFilesToProcess);
 
@@ -302,10 +302,11 @@ public class LibraryScannerService : ILibraryScannerService
     }
   
 
-    public async Task<LoadSongsResult> ScanSpecificPaths(List<string> pathsToScan, bool isIncremental = true)
+    public async Task ScanSpecificPaths(List<string> pathsToScan, bool isIncremental = true)
     {
         _logger.LogInformation("Starting specific path scan (currently full scan of paths): {Paths}", string.Join(", ", pathsToScan));
-        return await ScanLibrary(pathsToScan);
+
+        await ScanLibrary(pathsToScan);
     }
     public void RemoveDupesFromDB()
     {

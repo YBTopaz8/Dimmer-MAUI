@@ -533,7 +533,7 @@
                             Height="70"
                             VerticalAlignment="Center"
                             PointerPressed="NowPlayingSongImg_PointerPressed"
-                            Source="{Binding CurrentPlayingSongView.CoverImagePath}" />
+                            Source="{x:Bind MyViewModel.CurrentPlayingSongView.CoverImagePath, Converter={StaticResource StringToImageConverter}}" />
 
                         <StackPanel Margin="12">
                             <TextBlock
@@ -572,7 +572,7 @@
                     <Image
                         x:Name="NowPlayingSongImg"
                         Opacity="0.05"
-                        Source="{Binding CurrentPlayingSongView.CoverImagePath}"
+                        Source="{Binding CurrentPlayingSongView.CoverImagePath, Converter={StaticResource StringToImageConverter}}"
                         Stretch="UniformToFill" />
                     <ScrollViewer>
                         <ListView x:Name="NowPlayingPBQueue" ItemsSource="{Binding PlaybackQueue}">

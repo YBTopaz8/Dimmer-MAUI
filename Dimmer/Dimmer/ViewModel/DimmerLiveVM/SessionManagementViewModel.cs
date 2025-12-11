@@ -183,6 +183,31 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
             IsBusy = false;
         }
     }
+    
+    [RelayCommand]
+    public async Task RestoreBackupAsync(string? backupObjectId)
+    {
+        if (backupObjectId is null) return;
+        if (IsBusy) return;
+        IsBusy = true;
+        StatusMessage = "Generating Cloud Backup...";
+
+        try
+        {
+
+
+                await _sessionManager.RestoreBackupAsync(backupObjectId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Cloud backup failed");
+            StatusMessage = "Backup failed.";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
 
     public void OnPageNavigatedTo()
     {
