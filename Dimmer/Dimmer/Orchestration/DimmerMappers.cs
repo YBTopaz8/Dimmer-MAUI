@@ -111,9 +111,13 @@ public static class DimmerMappers
             AlbumName = src.AlbumName,
             GenreName = src.Genre?.Name ?? string.Empty,
 
+
             // --- Nested Objects ---
             // Note: We use ToModelView() recursively. 
             // Warning: Your AutoMapper config IGNORED ArtistToSong list to prevent cycles. We do the same.
+            ArtistToSong = src.ArtistToSong.AsEnumerable().Select(x => x.ToArtistModelView()).ToObservableCollection(),
+
+
             Artist = src.Artist?.ToArtistModelView(),
             Album = src.Album?.ToAlbumModelView(),
             Genre = src.Genre?.ToGenreModelView() ?? new GenreModelView(),

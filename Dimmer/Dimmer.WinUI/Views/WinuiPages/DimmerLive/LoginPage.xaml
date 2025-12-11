@@ -50,8 +50,8 @@
                     Command="{x:Bind ViewModel.LoginCommand}"
                     Content="Log In"
                     IsEnabled="{x:Bind ViewModel.IsBusy, Mode=OneWay}"
-                    Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource InvBoolToVis}}"
-                    Style="{StaticResource AccentButtonStyle}" />
+                    Style="{StaticResource AccentButtonStyle}"
+                    Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource InvBoolToVis}}" />
             </StackPanel>
 
             <!--  Register Form  -->
@@ -65,8 +65,8 @@
                     Command="{x:Bind ViewModel.RegisterCommand}"
                     Content="Sign Up"
                     IsEnabled="{x:Bind ViewModel.IsBusy, Mode=OneWay}"
-                    Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource InvBoolToVis}}"
-                    Style="{StaticResource AccentButtonStyle}" />
+                    Style="{StaticResource AccentButtonStyle}"
+                    Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource InvBoolToVis}}" />
             </StackPanel>
 
             <!--  Toggle Mode  -->

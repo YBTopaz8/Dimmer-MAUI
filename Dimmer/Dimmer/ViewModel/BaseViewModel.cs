@@ -1317,8 +1317,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     [ObservableProperty] public partial bool IsAscending { get; set; }
 
-    [ObservableProperty]
-    public partial SongModelView? SelectedSongForContext { get; set; }
 
 
     [ObservableProperty]
@@ -1559,6 +1557,26 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial ObservableCollection<LyricPhraseModelView>? SelectedSongLyricsObsCol { get; set; }
 
+    partial void OnSelectedSongChanging(SongModelView? oldValue, SongModelView? newValue)
+    {
+        if (newValue is not null)
+        {
+            var realm = RealmFactory.GetRealmInstance();
+            var songInDb = realm.Find<SongModel>(newValue.Id);
+            if (songInDb is not null)
+            {
+                if (!songInDb.PlayHistory.Any())
+                {
+                    newValue.PlayEvents = new();
+                    return;
+                }
+
+                ObservableCollection<DimmerPlayEventView> evts = songInDb.PlayHistory.AsEnumerable().Select(x => x.ToDimmerPlayEventView())
+                    .ToObservableCollection()!;
+                newValue.PlayEvents = evts;
+            }
+        }
+    }
 
     async partial void OnSelectedSongChanged(SongModelView? oldValue, SongModelView? newValue)
     {
@@ -1569,12 +1587,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         
             var lyrics= await _lyricsMetadataService.GetLocalLyricsAsync(newValue);
 
-            SelectedSongLyricsObsCol = LyricsMgtFlow.GetListLyricsCol(lyrics).ToObservableCollection();
+            //SelectedSongLyricsObsCol = LyricsMgtFlow.GetListLyricsCol(lyrics).ToObservableCollection();
+           
         }
 
-
-        //LoadSongLastFMData().ConfigureAwait(false);
-        //LoadSongLastFMMoreData().ConfigureAwait(false);
     }
 
     [ObservableProperty]
@@ -3895,14 +3911,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         return true;
     }
 
-    public void SetCurrentlyPickedSongForContext(SongModelView? song)
-    {
-        _logger.LogTrace("SetCurrentlyPickedSongForContext called with: {SongTitle}", song?.Title ?? "None");
 
-        if (song is null) return;
-        song.PlayEvents = DimmerPlayEventList.Where(x => x.SongId == song.Id).ToObservableCollection();
-        SelectedSongForContext = song;
-    }
 
     [RelayCommand]
     public void LoadInSongsAndEvents()

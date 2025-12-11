@@ -58,7 +58,7 @@
                             Text="Overview" />
                     </StackPanel>
                 </Border>
-                <!--  Main content area  -->
+
                 <ScrollViewer
                     x:Name="Scroller"
                     Grid.Row="1"
@@ -213,7 +213,63 @@
                         </Grid>
 
                         <StackPanel x:Name="SectionPlayback" Background="Transparent" />
+                        <PivotItem Header="History">
+                            <ScrollViewer>
+                                <StackPanel Padding="24" Spacing="16">
+                                    <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Playback History" />
+                                    <TextBlock Text="{x:Bind MyViewModel.SelectedSong.PlayEvents.Count, Mode=OneWay}" />
 
+                                    <!--  Timeline List  -->
+                                    <ListView ItemsSource="{x:Bind MyViewModel.SelectedSong.PlayEvents, Mode=OneWay}" SelectionMode="None">
+                                        <ListView.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid
+                                                    Margin="0,0,0,8"
+                                                    Padding="12"
+                                                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                                    CornerRadius="8">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <!--  Icon  -->
+                                                        <ColumnDefinition Width="*" />
+                                                        <!--  Info  -->
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <!--  Date  -->
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <!--  Status Icon  -->
+                                                    <FontIcon
+                                                        Margin="0,0,16,0"
+                                                        VerticalAlignment="Center"
+                                                        FontSize="20"
+                                                        Foreground="{Binding WasPlayCompleted, Converter={StaticResource BoolToCompleteColorConverter}}"
+                                                        Glyph="{Binding WasPlayCompleted, Converter={StaticResource BoolToCompleteIconConverter}}" />
+
+                                                    <!--  Main Info  -->
+                                                    <StackPanel Grid.Column="1">
+                                                        <TextBlock FontWeight="Bold" Text="{Binding PlayTypeStr}" />
+                                                        <StackPanel
+                                                            Opacity="0.6"
+                                                            Orientation="Horizontal"
+                                                            Spacing="4">
+                                                            <FontIcon FontSize="12" Glyph="&#xE7F4;" />
+                                                        </StackPanel>
+                                                    </StackPanel>
+
+                                                    <!--  Date  -->
+                                                    <TextBlock
+                                                        Grid.Column="2"
+                                                        VerticalAlignment="Center"
+                                                        FontSize="12"
+                                                        Opacity="0.5"
+                                                        Text="{Binding DatePlayed, Converter={StaticResource EventDateToTimeAgoConverter}}" />
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListView.ItemTemplate>
+                                    </ListView>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </PivotItem>
                         <!--  SECTION 3: LYRICS  -->
                         <StackPanel x:Name="SectionLyricsStackPanel" Background="Transparent">
 
@@ -325,17 +381,13 @@
 
                                         <Grid>
                                             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                <Image
-                                                    MaxWidth="200"
-                                                    MaxHeight="200"
-                                                    Source="{Binding ImagePath, Converter={StaticResource StringToImageConverter}}" />
+                                                <Image MaxWidth="200" MaxHeight="200" />
                                                 <TextBlock
                                                     Margin="0,0,0,20"
                                                     HorizontalAlignment="Center"
                                                     FontSize="34"
                                                     FontWeight="Bold"
-                                                    Foreground="White"
-                                                    Text="{Binding Name}" />
+                                                    Foreground="White" />
                                                 <StackPanel Orientation="Horizontal" Spacing="10">
 
                                                     <Button

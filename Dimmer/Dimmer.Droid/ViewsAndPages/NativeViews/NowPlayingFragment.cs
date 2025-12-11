@@ -1,8 +1,10 @@
 ﻿using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 
 using Bumptech.Glide;
 
 using Dimmer.Utils.UIUtils;
+using Dimmer.ViewsAndPages.NativeViews.Misc;
 
 using Google.Android.Material.Chip;
 
@@ -13,383 +15,391 @@ namespace Dimmer.ViewsAndPages.NativeViews;
 
 
 
-public partial class NowPlayingFragment : Fragment
+
+public class NowPlayingFragment : Fragment
 {
-    // --- UI Properties ---
-    public MaterialTextView SongTitle { get; private set; }
-    public ImageView CoverImageView { get; private set; }
+    private readonly BaseViewModelAnd _viewModel;
+    private readonly CompositeDisposable _disposables = new();
 
-    // Lyrics Lines
-    public TextView LyricLinePrev { get; private set; }
-    public TextView LyricLineCurrent { get; private set; }
-    public TextView LyricLineNext { get; private set; }
+    // --- UI REFERENCES ---
+    private View _rootView;
 
-    // Meta Data
-    public TextView GenreText { get; private set; }
-    public TextView YearText { get; private set; }
+    // Mini Player Views
+    private View _miniPlayerContainer;
+    private ImageView _miniCover;
+    private TextView _miniTitle, _miniArtist;
+    private ImageButton _miniPlayBtn;
+
+    // Expanded Player Views
+    private View _expandedContainer;
+    private MaterialTextView _expandedTitle;
+    private ChipGroup _artistChipGroup;
+    private ImageView _mainCoverImage;
+    private MaterialCardView _lyricsCard;
+    private TextView _currentLyricText;
+    private TextView _genreText, _yearText;
 
     // Controls
-    public Slider SeekSlider { get; private set; }
-    public Slider VolumeSlider { get; private set; }
-    public ChipGroup ArtistChipGroup { get; private set; }
-    public MaterialButton PlayPauseBtn { get; private set; }
+    private Slider _seekSlider, _volumeSlider;
+    private TextView _currentTimeText, _totalTimeText;
+    private MaterialButton _prevBtn, _playPauseBtn, _nextBtn;
+    private MaterialButton _queueBtn, _detailsBtn, _optionsBtn;
 
-    private ImageView _headerCover;
-    private TextView _headerTitle, _headerArtist, _headerAlbum;
-    private TextView _headerDuration, _headerTimeRemaining;
-    private ImageView _mainCover;
-    private WavySlider _seekSlider;
-    private MaterialButton _playPauseBtn;
     // State
     private bool _isDraggingSeek = false;
-    public BaseViewModelAnd MyViewModel { get; private set; }
-    public CompositeDisposable SubsManager { get; } = new CompositeDisposable();
 
-    private TextView _lyricPrev, _lyricCurr, _lyricNext;
-    public NowPlayingFragment(BaseViewModelAnd viewModel) { MyViewModel = viewModel; }
-    public NowPlayingFragment() { }
+    public NowPlayingFragment(BaseViewModelAnd viewModel)
+    {
+        _viewModel = viewModel;
+    }
 
-    public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
+    public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
         var ctx = Context;
 
-        // Root Container (White/Black background based on theme)
-        var root = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
-        root.LayoutParameters = new ViewGroup.LayoutParams(-1, -1);
-        root.SetPadding(30, 60, 30, 30); // Global Padding
-
-        // ---------------------------------------------------------
-        // 1. Song Title (5% Height)
-        // ---------------------------------------------------------
-        SongTitle = new MaterialTextView(ctx)
+        // Root is a FrameLayout to stack Mini and Expanded views
+        var root = new FrameLayout(ctx)
         {
-            TextSize = 24,
-            Typeface = Typeface.DefaultBold,
-            Gravity = GravityFlags.Center
+            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent)
         };
-        SongTitle.SetSingleLine(true);
-        SongTitle.Ellipsize = Android.Text.TextUtils.TruncateAt.Marquee;
-        SongTitle.Selected = true; // For Marquee to work
+        root.SetBackgroundColor(IsDark() ? Android.Graphics.Color.ParseColor("#1E1E1E") : Android.Graphics.Color.White);
+        _rootView = root;
 
-        var titleParams = new LinearLayout.LayoutParams(-1, 0, 0.5f); // Weight 0.5 (~5%)
-        root.AddView(SongTitle, titleParams);
+        // 1. Build Mini Player (Visible when collapsed)
+        _miniPlayerContainer = CreateMiniPlayer(ctx);
+        root.AddView(_miniPlayerContainer);
 
-
-        // ---------------------------------------------------------
-        // 2. Cover Art Grid & Lyrics (30% Height)
-        // ---------------------------------------------------------
-        var coverContainer = new FrameLayout(ctx);
-        var coverParams = new LinearLayout.LayoutParams(-1, 0, 3.0f); // Weight 3 (~30%)
-        coverParams.SetMargins(0, 20, 0, 20);
-
-        // Layer A: The Image
-        var card = new MaterialCardView(ctx) { Radius = 40, Elevation = 0 }; // Round corners
-        card.LayoutParameters = new FrameLayout.LayoutParams(-1, -1);
-
-        CoverImageView = new ImageView(ctx);
-        CoverImageView.LayoutParameters = new ViewGroup.LayoutParams(-1, -1);
-        CoverImageView.SetScaleType(ImageView.ScaleType.CenterCrop);
-        card.AddView(CoverImageView);
-        coverContainer.AddView(card);
-
-        // Layer B: Dark Scrim (Blur simulation)
-        var scrim = new View(ctx);
-        scrim.LayoutParameters = new FrameLayout.LayoutParams(-1, -1);
-        scrim.SetBackgroundColor(Color.ParseColor("#99000000")); // 60% Black Overlay
-        coverContainer.AddView(scrim);
-
-        // Layer C: Lyrics (Vertical Stack, Centered)
-        var lyricsStack = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
-        lyricsStack.SetGravity(GravityFlags.Center);
-        lyricsStack.LayoutParameters = new FrameLayout.LayoutParams(-1, -1); // Fill parent
-
-        LyricLinePrev = CreateLyricText(ctx, 16, 0.4f);
-        LyricLineCurrent = CreateLyricText(ctx, 22, 1.0f, true); // Bold
-        LyricLineNext = CreateLyricText(ctx, 16, 0.7f);
-
-        lyricsStack.AddView(LyricLinePrev);
-        lyricsStack.AddView(LyricLineCurrent);
-        lyricsStack.AddView(LyricLineNext);
-        coverContainer.AddView(lyricsStack);
-
-        // Layer D: Meta Data (Bottom Left/Right)
-        var metaContainer = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
-        var metaParams = new FrameLayout.LayoutParams(-1, -2) { Gravity = GravityFlags.Bottom };
-        metaParams.SetMargins(30, 0, 30, 30);
-        metaContainer.LayoutParameters = metaParams;
-
-        GenreText = new TextView(ctx) { Text = "Genre", TextSize = 14 };
-        GenreText.SetTextColor(Color.White);
-
-        YearText = new TextView(ctx) { Text = "Year", TextSize = 14, Gravity = GravityFlags.End };
-        YearText.SetTextColor(Color.White);
-
-        metaContainer.AddView(GenreText, new LinearLayout.LayoutParams(0, -2, 1f));
-        metaContainer.AddView(YearText, new LinearLayout.LayoutParams(0, -2, 1f));
-        coverContainer.AddView(metaContainer);
-
-        root.AddView(coverContainer, coverParams);
-
-
-        // ---------------------------------------------------------
-        // 3. Artist Chips & Action Buttons (Vertical Stack)
-        // ---------------------------------------------------------
-        var midSection = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
-        midSection.LayoutParameters = new LinearLayout.LayoutParams(-1, -2);
-        midSection.SetPadding(0, 20, 0, 20);
-
-        // Left Col: Actions (Fav, Lyrics)
-        var actionStack = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
-        actionStack.LayoutParameters = new LinearLayout.LayoutParams(0, -2, 0.3f); // 30% width
-
-        var favBtn = CreateIconPill(ctx, Resource.Drawable.media3_icon_star_filled, Color.Green);
-        var lyricsBtn = CreateIconPill(ctx, Android.Resource.Drawable.IcMenuInfoDetails, Color.Green); // Placeholder icon
-
-        actionStack.AddView(favBtn);
-        actionStack.AddView(new Space(ctx) { LayoutParameters = new LinearLayout.LayoutParams(-1, 10) }); // Spacer
-        actionStack.AddView(lyricsBtn);
-
-        // Right Col: Artists Chips (Red border)
-        var artistScroll = new ScrollView(ctx);
-        artistScroll.LayoutParameters = new LinearLayout.LayoutParams(0, 250, 0.7f); // 70% width, fixed height constraint
-
-        ArtistChipGroup = new ChipGroup(ctx);
-        artistScroll.AddView(ArtistChipGroup);
-
-        midSection.AddView(actionStack);
-        midSection.AddView(artistScroll);
-        root.AddView(midSection);
-
-
-        // ---------------------------------------------------------
-        // 4. Controls Row 1: Prev (30%) | Play (70%)
-        // ---------------------------------------------------------
-        var row1 = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
-        row1.LayoutParameters = new LinearLayout.LayoutParams(-1, -2);
-        row1.SetGravity(GravityFlags.CenterVertical);
-
-        var prevBtn = new MaterialButton(ctx);
-        prevBtn.Text = "Prev";
-        prevBtn.SetIconResource(Android.Resource.Drawable.IcMediaPrevious);
-        prevBtn.LayoutParameters = new LinearLayout.LayoutParams(0, 150, 0.3f); // Height 150px
-        prevBtn.Click += async (s, e) => await MyViewModel.PreviousTrackASync();
-
-        PlayPauseBtn = new MaterialButton(ctx);
-        PlayPauseBtn.Text = "Pause"; // Initial
-        PlayPauseBtn.SetIconResource(Android.Resource.Drawable.IcMediaPause);
-        PlayPauseBtn.CornerRadius = 75; // Pill shape
-        PlayPauseBtn.LayoutParameters = new LinearLayout.LayoutParams(0, 150, 0.7f) { LeftMargin = 20 };
-        PlayPauseBtn.Click += async (s, e) => await MyViewModel.PlayPauseToggleAsync();
-
-        row1.AddView(prevBtn);
-        row1.AddView(PlayPauseBtn);
-        root.AddView(row1);
-
-
-        // ---------------------------------------------------------
-        // 5. Controls Row 2: Slider (70%) | Next (30%)
-        // ---------------------------------------------------------
-        var row2 = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
-        var row2Params = new LinearLayout.LayoutParams(-1, -2);
-        row2Params.TopMargin = 30;
-        row2.LayoutParameters = row2Params;
-        row2.SetGravity(GravityFlags.CenterVertical);
-
-        // Seek Slider
-        SeekSlider = new Slider(ctx);
-        SeekSlider.ValueFrom = 0f;
-        SeekSlider.ValueTo = 100f;
-        SeekSlider.LayoutParameters = new LinearLayout.LayoutParams(0, -2, 0.7f);
-        // Note: Standard MD3 Slider. Custom "Wavy" requires custom View/Canvas drawing in Android.
-
-        // Touch Logic for Seek
-        SeekSlider.Touch += (s, e) =>
-        {
-            e.Handled = false; // Let slider update visual
-            switch (e.Event.Action)
-            {
-                case MotionEventActions.Down:
-                    _isDraggingSeek = true;
-                    break;
-                case MotionEventActions.Up:
-                case MotionEventActions.Cancel:
-                    _isDraggingSeek = false;
-                    if (MyViewModel.CurrentPlayingSongView?.DurationInSeconds > 0)
-                    {
-                        var newPos = (SeekSlider.Value / 100f) * MyViewModel.CurrentPlayingSongView.DurationInSeconds;
-                        MyViewModel.SeekTrackPositionCommand.Execute(newPos);
-                    }
-                    break;
-            }
-        };
-
-        var nextBtn = new MaterialButton(ctx);
-        nextBtn.Text = "Next";
-        nextBtn.SetIconResource(Android.Resource.Drawable.IcMediaNext);
-        nextBtn.LayoutParameters = new LinearLayout.LayoutParams(0, 150, 0.3f) { LeftMargin = 20 };
-        nextBtn.Click += async (s, e) => await MyViewModel.NextTrackAsync();
-
-        row2.AddView(SeekSlider);
-        row2.AddView(nextBtn);
-        root.AddView(row2);
-
-
-        // ---------------------------------------------------------
-        // 6. Volume Row: Icon(20) | Slider(60) | Speaker(20)
-        // ---------------------------------------------------------
-        var volRow = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
-        var volParams = new LinearLayout.LayoutParams(-1, -2);
-        volParams.TopMargin = 30;
-        volRow.LayoutParameters = volParams;
-        volRow.SetGravity(GravityFlags.CenterVertical);
-
-        var volIcon = new ImageButton(ctx) { Background = null };
-        volIcon.SetImageResource(Android.Resource.Drawable.IcLockSilentModeOff); // Standard Vol Icon
-        volIcon.LayoutParameters = new LinearLayout.LayoutParams(0, -2, 0.2f);
-        volIcon.Click += (s, e) => ShowVolumeMenu(volIcon);
-
-        VolumeSlider = new Slider(ctx) { ValueFrom = 0f, ValueTo = 1f, Value = 0.5f };
-        VolumeSlider.LayoutParameters = new LinearLayout.LayoutParams(0, -2, 0.6f);
-
-        var deviceIcon = new ImageButton(ctx) { Background = null };
-        deviceIcon.SetImageResource(Android.Resource.Drawable.IcLockIdleAlarm); // Speaker/Device Icon
-        deviceIcon.LayoutParameters = new LinearLayout.LayoutParams(0, -2, 0.2f);
-        deviceIcon.Click += (s, e) => Toast.MakeText(ctx, "Show Audio Devices", ToastLength.Short).Show();
-
-        volRow.AddView(volIcon);
-        volRow.AddView(VolumeSlider);
-        volRow.AddView(deviceIcon);
-        root.AddView(volRow);
-
-
-        // ---------------------------------------------------------
-        // 7. Queue Button
-        // ---------------------------------------------------------
-        var queueBtn = new MaterialButton(ctx);
-        queueBtn.Text = "Show Queue";
-        var qParams = new LinearLayout.LayoutParams(-1, 120); // Fixed height
-        qParams.TopMargin = 40;
-        queueBtn.LayoutParameters = qParams;
-        queueBtn.CornerRadius = 60; // Pill
-
-        root.AddView(queueBtn);
+        // 2. Build Expanded Player (Visible when sliding up)
+        _expandedContainer = CreateExpandedPlayer(ctx);
+        _expandedContainer.Alpha = 0f; // Hidden initially
+        _expandedContainer.Visibility = ViewStates.Invisible;
+        root.AddView(_expandedContainer);
 
         return root;
     }
 
-    // --- Helpers ---
-
-    private TextView CreateLyricText(Context ctx, float size, float alpha, bool bold = false)
+    private View CreateMiniPlayer(Context ctx)
     {
-        var tv = new TextView(ctx)
+        var layout = new LinearLayout(ctx)
         {
-            TextSize = size,
-            Alpha = alpha,
-            Gravity = GravityFlags.Center
+            Orientation = Orientation.Horizontal,
+            LayoutParameters = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, AppUtil.DpToPx(70)) { Gravity = GravityFlags.Top },
+            WeightSum = 10
         };
-        tv.SetTextColor(Color.White);
-        if (bold) tv.Typeface = Typeface.DefaultBold;
-        tv.SetPadding(20, 10, 20, 10);
-        return tv;
+        layout.SetPadding(20, 10, 20, 10);
+        layout.SetBackgroundColor(IsDark() ? Android.Graphics.Color.ParseColor("#2D2D2D") : Android.Graphics.Color.LightGray);
+
+        // Mini Cover
+        var card = new MaterialCardView(ctx) { Radius = AppUtil.DpToPx(8), Elevation = 0 };
+        _miniCover = new ImageView(ctx) { };
+        _miniCover.SetScaleType(ImageView.ScaleType.CenterCrop);
+        card.AddView(_miniCover, new ViewGroup.LayoutParams(AppUtil.DpToPx(50), AppUtil.DpToPx(50)));
+        layout.AddView(card, new LinearLayout.LayoutParams(AppUtil.DpToPx(50), AppUtil.DpToPx(50)) { Gravity = GravityFlags.CenterVertical });
+
+        // Text Info
+        var textStack = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
+        textStack.SetPadding(30, 0, 0, 0);
+        _miniTitle = new TextView(ctx) { TextSize = 16, Typeface = Android.Graphics.Typeface.DefaultBold, Ellipsize = Android.Text.TextUtils.TruncateAt.Marquee };
+        _miniTitle.SetSingleLine(true);
+        _miniTitle.Selected = true; // For marquee
+
+        _miniArtist = new TextView(ctx) { TextSize = 12, Alpha = 0.7f };
+        textStack.AddView(_miniTitle);
+        textStack.AddView(_miniArtist);
+
+        var textParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 7f) { Gravity = GravityFlags.CenterVertical };
+        layout.AddView(textStack, textParams);
+
+        // Play Button
+        _miniPlayBtn = new ImageButton(ctx) { Background = null };
+        _miniPlayBtn.SetImageResource(Android.Resource.Drawable.IcMediaPlay);
+        _miniPlayBtn.Click += async (s, e) => await _viewModel.PlayPauseToggleAsync();
+        layout.AddView(_miniPlayBtn, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 2f) { Gravity = GravityFlags.CenterVertical });
+
+        return layout;
     }
 
-    private MaterialButton CreateIconPill(Context ctx, int iconRes, Color bgColor)
+    private View CreateExpandedPlayer(Context ctx)
+    {
+        var scroll = new ScrollView(ctx) { FillViewport = true };
+        scroll.LayoutParameters = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent);
+
+        var root = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
+        root.SetPadding(40, 80, 40, 40); // Top padding for dragging handle area
+
+        // --- A. Marquee Title ---
+        _expandedTitle = new MaterialTextView(ctx) { TextSize = 24, Typeface = Android.Graphics.Typeface.DefaultBold, Gravity = GravityFlags.Center };
+        _expandedTitle.SetSingleLine(true);
+        _expandedTitle.Ellipsize = Android.Text.TextUtils.TruncateAt.Marquee;
+        _expandedTitle.Selected = true;
+        root.AddView(_expandedTitle);
+
+        // --- B. Image & Lyrics Grid ---
+        var gridFrame = new FrameLayout(ctx);
+        var gridParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, AppUtil.DpToPx(350)); // Fixed height or adjust based on screen
+        gridParams.TopMargin = 40;
+        gridParams.BottomMargin = 40;
+        gridFrame.LayoutParameters = gridParams;
+
+        // 1. Main Cover Image
+        var imgCard = new MaterialCardView(ctx) { Radius = AppUtil.DpToPx(24), Elevation = 10 };
+        _mainCoverImage = new ImageView(ctx) { };
+        _mainCoverImage.SetScaleType(ImageView.ScaleType.CenterCrop);
+        imgCard.AddView(_mainCoverImage, new ViewGroup.LayoutParams(-1, -1));
+        gridFrame.AddView(imgCard, new FrameLayout.LayoutParams(-1, -1));
+
+        // 2. Lyrics Overlay (Centered Card)
+        _lyricsCard = new MaterialCardView(ctx)
+        {
+            Radius = AppUtil.DpToPx(13),
+            CardBackgroundColor = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.ParseColor("#CC000000")), // Semi-transparent black
+            Elevation = 20
+        };
+        var lyricsParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent) { Gravity = GravityFlags.Center };
+        // Constrain max width for lyrics card
+        lyricsParams.LeftMargin = 40;
+        lyricsParams.RightMargin = 40;
+        _lyricsCard.LayoutParameters = lyricsParams;
+
+        _currentLyricText = new TextView(ctx)
+        {
+            TextSize = 18,
+            Gravity = GravityFlags.Center,
+            Typeface = Android.Graphics.Typeface.DefaultBold
+        };
+        _currentLyricText.SetTextColor(Android.Graphics.Color.White);
+        _currentLyricText.SetPadding(30, 20, 30, 20);
+
+        _lyricsCard.AddView(_currentLyricText);
+        gridFrame.AddView(_lyricsCard);
+
+        // 3. Meta Data (Bottom of Grid)
+        var metaLay = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
+        var metaParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent) { Gravity = GravityFlags.Bottom };
+        metaParams.SetMargins(20, 0, 20, 20);
+        metaLay.LayoutParameters = metaParams;
+
+        _genreText = new TextView(ctx) { };
+        _yearText = new TextView(ctx) { Gravity = GravityFlags.End };
+
+        metaLay.AddView(_genreText, new LinearLayout.LayoutParams(0, -2, 1));
+        metaLay.AddView(_yearText, new LinearLayout.LayoutParams(0, -2, 1));
+        gridFrame.AddView(metaLay);
+
+        root.AddView(gridFrame);
+
+        // --- C. Artist Chips ---
+        var chipScroll = new HorizontalScrollView(ctx) { ScrollBarSize = 0 };
+        _artistChipGroup = new ChipGroup(ctx) { SingleLine = true };
+        chipScroll.AddView(_artistChipGroup);
+        root.AddView(chipScroll);
+
+        // --- D. Progress Slider ---
+        var timeLay = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
+        timeLay.SetPadding(0, 20, 0, 0);
+        _currentTimeText = new TextView(ctx) { Text = "0:00", TextSize = 12 };
+        _totalTimeText = new TextView(ctx) { Text = "0:00", TextSize = 12, Gravity = GravityFlags.End };
+
+        timeLay.AddView(_currentTimeText, new LinearLayout.LayoutParams(0, -2, 1));
+        timeLay.AddView(_totalTimeText, new LinearLayout.LayoutParams(0, -2, 1));
+        root.AddView(timeLay);
+
+        _seekSlider = new Slider(ctx);
+        _seekSlider.ValueFrom = 0;
+        _seekSlider.ValueTo = 100;
+        // Logic attached in Resume
+        root.AddView(_seekSlider);
+
+        // --- E. Playback Controls (MD3 Style) ---
+        var controlsRow = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
+        controlsRow.SetGravity(GravityFlags.Center);
+        controlsRow.SetPadding(0, 20, 0, 40);
+
+        _prevBtn = CreateControlButton(ctx, Android.Resource.Drawable.IcMediaPrevious, 60);
+        _playPauseBtn = CreateControlButton(ctx, Android.Resource.Drawable.IcMediaPlay, 80, true); // Larger, filled
+        _nextBtn = CreateControlButton(ctx, Android.Resource.Drawable.IcMediaNext, 60);
+
+        controlsRow.AddView(_prevBtn);
+        controlsRow.AddView(_playPauseBtn);
+        controlsRow.AddView(_nextBtn);
+        root.AddView(controlsRow);
+
+        // --- F. Bottom Actions (Queue, View Song, Options) ---
+        var actionRow = new LinearLayout(ctx) { Orientation = Orientation.Horizontal, WeightSum = 3 };
+
+        _queueBtn = new MaterialButton(ctx, null, Resource.Attribute.materialIconButtonFilledStyle) { Text = "Queue" }; // Use Icon Button Style if possible
+        _queueBtn.SetIconResource(Resource.Drawable.hamburgermenu); // Ensure drawable
+
+        _detailsBtn = new MaterialButton(ctx) { Text = "Details" };
+        _optionsBtn = new MaterialButton(ctx) { Text = "..." };
+
+        // Distribute buttons
+        var p = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1);
+        p.SetMargins(10, 0, 10, 0);
+
+        actionRow.AddView(_queueBtn, p);
+        actionRow.AddView(_detailsBtn, p);
+        actionRow.AddView(_optionsBtn, p);
+
+        root.AddView(actionRow);
+
+        // --- G. Volume (Optional) ---
+        // _volumeSlider = ... (similar logic)
+
+        scroll.AddView(root);
+        return scroll;
+    }
+
+    private MaterialButton CreateControlButton(Context ctx, int iconRes, int sizeDp, bool isPrimary = false)
     {
         var btn = new MaterialButton(ctx);
+        btn.Icon = AndroidX.Core.Content.ContextCompat.GetDrawable(ctx, iconRes);
         btn.IconGravity = MaterialButton.IconGravityTextStart;
-        btn.SetIconResource(iconRes);
-        btn.SetBackgroundColor(bgColor);
-        btn.IconTint = Android.Content.Res.ColorStateList.ValueOf(Color.White);
-        btn.CornerRadius = 30;
-        btn.LayoutParameters = new LinearLayout.LayoutParams(-1, 100);
+        btn.IconPadding = 0;
+        btn.InsetTop = 0;
+        btn.InsetBottom = 0;
+
+        var sizePx = AppUtil.DpToPx(sizeDp);
+        btn.LayoutParameters = new LinearLayout.LayoutParams(sizePx, sizePx) { LeftMargin = 20, RightMargin = 20 };
+        btn.CornerRadius = sizePx / 2;
+
+        if (isPrimary)
+        {
+            btn.SetBackgroundColor(Android.Graphics.Color.DarkSlateBlue);
+            btn.IconTint = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.White);
+        }
+        else
+        {
+            btn.SetBackgroundColor(Android.Graphics.Color.Transparent);
+            btn.IconTint = Android.Content.Res.ColorStateList.ValueOf(IsDark() ? Android.Graphics.Color.White : Android.Graphics.Color.Black);
+            btn.StrokeWidth = AppUtil.DpToPx(1);
+            btn.StrokeColor = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.Gray);
+        }
         return btn;
     }
-
-    private void AddArtistChip(string artistName)
-    {
-        var chip = new Chip(Context);
-        chip.Text = artistName;
-        chip.Clickable = true;
-
-        // Style: Red Border
-        chip.ChipStrokeWidth = 5f; // 2dp approx
-        chip.ChipStrokeColor = Android.Content.Res.ColorStateList.ValueOf(Color.Red);
-        chip.ChipBackgroundColor = Android.Content.Res.ColorStateList.ValueOf(Color.Transparent);
-
-        // Vertical stacking is handled by container, but ChipGroup usually flows horizontally.
-        // If you want vertical chips, use a vertical LinearLayout inside the ScrollView instead of ChipGroup.
-        // Assuming standard ChipGroup flow for now.
-
-        ArtistChipGroup.AddView(chip);
-    }
-
-    private void ShowVolumeMenu(View anchor)
-    {
-        var popup = new PopupMenu(Context, anchor);
-        popup.Menu.Add("Mute");
-        popup.Menu.Add("Max Volume");
-        popup.Show();
-    }
-
-    // --- Logic & Subscriptions ---
 
     public override void OnResume()
     {
         base.OnResume();
 
-        // Song Info Subscription
-        var songSub = MyViewModel.CurrentSongChanged
-            .Where(s => s != null)
-            .DistinctUntilChanged(s => s.FilePath)
+        // 1. Observe Playing Song
+        _viewModel.CurrentSongChanged
             .ObserveOn(RxSchedulers.UI)
-            .Subscribe(song =>
-            {
-                SongTitle.Text = song.Title;
-                GenreText.Text = song.GenreName ?? "Unknown Genre";
-                YearText.Text = song.ReleaseYear?.ToString() ?? "----";
+            .Subscribe(song => UpdateSongUI(song))
+            .DisposeWith(_disposables);
 
-                // Update Cover
-                if (!string.IsNullOrEmpty(song.CoverImagePath))
-                {
-                    Glide.With(Context).Load(song.CoverImagePath).Into(CoverImageView);
-                }
-
-                // Update Play/Pause Button State
-                PlayPauseBtn.Text = "Pause"; // Assuming auto-play
-                PlayPauseBtn.SetIconResource(Android.Resource.Drawable.IcMediaPause);
-
-                // Populate Artists (Clear old, add new)
-                ArtistChipGroup.RemoveAllViews();
-                if (!string.IsNullOrEmpty(song.ArtistName))
-                {
-                    // Split if multiple, otherwise just add one
-                    AddArtistChip(song.ArtistName);
-                }
-            });
-
-        SubsManager.Add(songSub);
-
-        // Timer/Seek Subscription
-        var posSub = MyViewModel.AudioEnginePositionObservable
+        // 2. Observe Playback Position (for Slider & Lyrics)
+        _viewModel.AudioEnginePositionObservable
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(pos =>
             {
-                if (!_isDraggingSeek && MyViewModel.CurrentPlayingSongView?.DurationInSeconds > 0)
+                if (!_isDraggingSeek && _viewModel.CurrentPlayingSongView?.DurationInSeconds > 0)
                 {
-                    var percent = (pos / MyViewModel.CurrentPlayingSongView.DurationInSeconds) * 100;
-                    SeekSlider.Value = (float)Math.Min(100, Math.Max(0, percent));
+                    var perc = (pos / _viewModel.CurrentPlayingSongView.DurationInSeconds) * 100;
+                    _seekSlider.Value = (float)Math.Clamp(perc, 0, 100);
+
+                    var ts = TimeSpan.FromSeconds(pos);
+                    _currentTimeText.Text = $"{ts.Minutes}:{ts.Seconds:D2}";
                 }
 
-                // Update Lyrics Mock Logic (Replace with actual synced lyrics logic)
-                LyricLineCurrent.Text = MyViewModel.CurrentLine?.Text;
-            });
+                // Update Lyric Text (Mock logic - replace with real synchronized lyric find)
+                if (_viewModel.CurrentLine != null)
+                {
+                    _currentLyricText.Text = _viewModel.CurrentLine.Text;
+                    _lyricsCard.Visibility = ViewStates.Visible;
+                }
+                else
+                {
+                    _lyricsCard.Visibility = ViewStates.Invisible;
+                }
+            })
+            .DisposeWith(_disposables);
 
-        SubsManager.Add(posSub);
+        // 3. Bind Buttons
+        _playPauseBtn.Click += async (s, e) => await _viewModel.PlayPauseToggleAsync();
+        _prevBtn.Click += async (s, e) => await _viewModel.PreviousTrackASync();
+        _nextBtn.Click += async (s, e) => await _viewModel.NextTrackAsync();
+
+        _queueBtn.Click += (s, e) =>
+        {
+            var queueSheet = new QueueBottomSheetFragment(_viewModel);
+            queueSheet.Show(ParentFragmentManager, "QueueSheet");
+        };
+
+        // Slider Logic
+        _seekSlider.Touch += (s, e) =>
+        {
+            switch (e.Event.Action)
+            {
+                case MotionEventActions.Down: _isDraggingSeek = true; break;
+                case MotionEventActions.Up:
+                case MotionEventActions.Cancel:
+                    _isDraggingSeek = false;
+                    if (_viewModel.CurrentPlayingSongView != null)
+                    {
+                        var newPos = (_seekSlider.Value / 100) * _viewModel.CurrentPlayingSongView.DurationInSeconds;
+                        _viewModel.SeekTrackPositionCommand.Execute(newPos);
+                    }
+                    break;
+            }
+            e.Handled = false;
+        };
     }
 
-    public override void OnDestroy()
+    public override void OnPause()
     {
-        SubsManager.Clear();
-        base.OnDestroy();
+        base.OnPause();
+        _disposables.Clear();
     }
+
+    private void UpdateSongUI(SongModelView song)
+    {
+        if (song == null) return;
+
+        // Mini Player
+        _miniTitle.Text = song.Title;
+        _miniArtist.Text = song.ArtistName;
+
+        // Expanded Player
+        _expandedTitle.Text = song.Title;
+        _genreText.Text = song.GenreName;
+        _yearText.Text = song.ReleaseYear?.ToString();
+
+        var totalTs = TimeSpan.FromSeconds(song.DurationInSeconds);
+        _totalTimeText.Text = $"{totalTs.Minutes}:{totalTs.Seconds:D2}";
+
+        // Artist Chips
+        _artistChipGroup.RemoveAllViews();
+        var chip = new Chip(Context) { Text = song.ArtistName };
+        _artistChipGroup.AddView(chip);
+
+        // Load Images
+        if (!string.IsNullOrEmpty(song.CoverImagePath))
+        {
+            Glide.With(this).Load(song.CoverImagePath).Into(_miniCover);
+            Glide.With(this).Load(song.CoverImagePath).Into(_mainCoverImage);
+        }
+        else
+        {
+            _miniCover.SetImageResource(Resource.Drawable.musicnotess);
+            _mainCoverImage.SetImageResource(Resource.Drawable.musicnotess);
+        }
+    }
+
+    // --- ANIMATION LOGIC ---
+    // Called by TransitionActivity's BottomSheetCallback
+    public void AnimateTransition(float slideOffset)
+    {
+        // slideOffset: 0.0 (Collapsed) -> 1.0 (Expanded)
+
+        // Fade out Mini Player (0 -> 0.2 fade out fast)
+        _miniPlayerContainer.Alpha = 1f - (slideOffset * 5f);
+        _miniPlayerContainer.Visibility = _miniPlayerContainer.Alpha <= 0 ? ViewStates.Invisible : ViewStates.Visible;
+
+        // Fade in Expanded Player (0.2 -> 1.0)
+        _expandedContainer.Alpha = Math.Max(0, (slideOffset - 0.2f) / 0.8f);
+        _expandedContainer.Visibility = _expandedContainer.Alpha <= 0 ? ViewStates.Invisible : ViewStates.Visible;
+    }
+
+    private bool IsDark() => (Resources.Configuration.UiMode & Android.Content.Res.UiMode.NightMask) == Android.Content.Res.UiMode.NightYes;
 }

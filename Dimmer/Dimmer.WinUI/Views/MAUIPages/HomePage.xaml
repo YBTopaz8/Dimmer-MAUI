@@ -91,8 +91,8 @@
 
                         <ImageButton
                             Clicked="ImageButton_Clicked"
-                            Loaded="ImageButton_Loaded"
                             HeightRequest="50"
+                            Loaded="ImageButton_Loaded"
                             Source="user.png"
                             WidthRequest="50" />
 
@@ -320,16 +320,19 @@
                                 ToolTipProperties.Text="{Binding CurrentPlayingSongView.AlbumName}" />
 
                         </VerticalStackLayout>
-                        <Button
-                            x:Name="ViewLyricsChip"
-                            Grid.Column="1"
-                            BackgroundColor="Transparent"
-                            BorderWidth="0"
-                            Clicked="ViewLyricsChip_Clicked"
-                            CornerRadius="20"
-                            ImageSource="lyrics.png"
-                            IsVisible="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
-                            Loaded="ButtonLoaded" />
+                        <VerticalStackLayout Grid.Column="1">
+                            <Label Text="{Binding CurrentPlayingSongView.GenreName}" />
+                            <Button
+                                x:Name="ViewLyricsChip"
+                                BackgroundColor="Transparent"
+                                BorderWidth="0"
+                                Clicked="ViewLyricsChip_Clicked"
+                                CornerRadius="20"
+                                ImageSource="lyrics.png"
+                                IsVisible="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
+                                Loaded="ButtonLoaded" />
+
+                        </VerticalStackLayout>
                     </Grid>
 
 

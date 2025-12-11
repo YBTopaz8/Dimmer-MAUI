@@ -18,7 +18,14 @@
 
                 <!--  Other merged dictionaries here  -->
             </ResourceDictionary.MergedDictionaries>
+            <converters:MsToDurationConverter x:Key="MsToDurationConverter" />
+            <converters:BoolToVisConverter x:Key="BoolToVisConverter" />
+            <converters:EventDateToTimeAgo x:Key="EventDateToTimeAgoConverter" />
+            <converters:TrackImageConverter x:Key="TrackImageConverter" />
+            <converters:BoolToCompleteColorConverter x:Key="BoolToCompleteColorConverter" />
+            <converters:BoolToCompleteIconConverter x:Key="BoolToCompleteIconConverter" />
             <converters:StringToImageSourceConverter x:Key="StringToImageConverter" />
+            <converters:BoolToHeartColorConverter x:Key="BoolToHeartColorConverter" />
             <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
             <converters:BoolToInverseVisibilityConverter x:Key="BoolToInverseVisibilityConverter" />
             <converters:IsFavoriteToFontIcon x:Key="IsFavoriteToFontIcon" />

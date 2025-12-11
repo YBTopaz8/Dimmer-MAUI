@@ -491,6 +491,7 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         {
             // slideOffset: 0.0 (Collapsed) -> 1.0 (Expanded)
             //_fragment.AnimateTransition(slideOffset);
+            _fragment.AnimateTransition(slideOffset);
         }
     }
 

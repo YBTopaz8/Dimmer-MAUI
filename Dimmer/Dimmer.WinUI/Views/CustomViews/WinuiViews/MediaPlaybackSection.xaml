@@ -132,6 +132,13 @@
                         </Button>
 
                         <Button Command="{x:Bind MyViewModel.ToggleRepeatModeCommand}" Content="{Binding CurrentRepeatMode, Converter={StaticResource RepeatModeConverter}}" />
+                        <Button
+                            x:Name="LastFMBtn"
+                            Background="Transparent"
+                            BorderThickness="3"
+                            Click="LastFMBtn_Click"
+                            Content="LastFM"
+                            CornerRadius="10" />
 
 
                         <Button Visibility="{Binding UnlockedAch, Converter={StaticResource IsNullToVisibilityConverter}}">
