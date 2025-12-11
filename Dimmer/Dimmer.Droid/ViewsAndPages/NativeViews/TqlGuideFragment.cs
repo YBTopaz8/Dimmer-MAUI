@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Dimmer.DimmerSearch.TQLDoc;
+﻿using Dimmer.DimmerSearch.TQLDoc;
 using Dimmer.TQL;
 
 using Google.Android.Material.Chip;

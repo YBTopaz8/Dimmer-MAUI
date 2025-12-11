@@ -42,10 +42,7 @@
                         TintOpacity="0.8" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
-            <convertersWinUI:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-            <convertersWinUI:BoolToInverseVisibilityConverter x:Key="BoolToInverseVisibilityConverter" />
-            <convertersWinUI:IsFavoriteToFontIcon x:Key="IsFavoriteToFontIcon" />
-            <convertersWinUI:BoolToPlayingPauseConv x:Key="BoolToPlayingPauseConverter" />
+
 
             <DataTemplate x:Key="ColorTemplate" x:DataType="SolidColorBrush">
                 <StackPanel AutomationProperties.Name="{x:Bind Color}" Orientation="Horizontal">
@@ -59,7 +56,6 @@
         </ResourceDictionary>
     </Page.Resources>
     <Grid>
-
         <Grid Margin="10" RowSpacing="10">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto" />
@@ -537,7 +533,7 @@
                             Height="70"
                             VerticalAlignment="Center"
                             PointerPressed="NowPlayingSongImg_PointerPressed"
-                            Source="{Binding CurrentPlayingSongView.CoverImagePath}" />
+                            Source="{x:Bind MyViewModel.CurrentPlayingSongView.CoverImagePath, Converter={StaticResource StringToImageConverter}}" />
 
                         <StackPanel Margin="12">
                             <TextBlock
@@ -576,7 +572,7 @@
                     <Image
                         x:Name="NowPlayingSongImg"
                         Opacity="0.05"
-                        Source="{Binding CurrentPlayingSongView.CoverImagePath}"
+                        Source="{Binding CurrentPlayingSongView.CoverImagePath, Converter={StaticResource StringToImageConverter}}"
                         Stretch="UniformToFill" />
                     <ScrollViewer>
                         <ListView x:Name="NowPlayingPBQueue" ItemsSource="{Binding PlaybackQueue}">
@@ -606,7 +602,10 @@
                                                 <Border.Shadow>
                                                     <ThemeShadow />
                                                 </Border.Shadow>
-                                                <Image Source="{Binding CoverImagePath}" Stretch="UniformToFill" />
+                                                <Image
+                                                    x:Name="imgInPBQueue"
+                                                    Source="{Binding CoverImagePath}"
+                                                    Stretch="UniformToFill" />
                                             </Border>
 
 

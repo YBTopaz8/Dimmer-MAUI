@@ -11,6 +11,21 @@
     <None Update="Package.appxmanifest">
       <SubType>Designer</SubType>
     </None>
+    <Page Update="Views\WinuiPages\LastFMSection\LastFmPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\DimmerLive\ProfilePage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\DimmerLive\LoginPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\DimmerLive\SocialPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\DimmerLive\CloudDataPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Views\CustomViews\WinuiViews\MorphContainerView.xaml">
       <SubType>Designer</SubType>
     </Page>

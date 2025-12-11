@@ -1,9 +1,5 @@
 ﻿using AndroidX.Media3.Common;
 
-using Dimmer.Utilities.Events;
-
-using System.Runtime.CompilerServices;
-
 
 
 namespace Dimmer.DimmerAudio;
@@ -279,6 +275,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     public Task SendNextSong(SongModelView nextSong)
     {
-        throw new NotImplementedException();
+        Service?.PrepareNext(nextSong);
+        return Task.CompletedTask;
     }
 }

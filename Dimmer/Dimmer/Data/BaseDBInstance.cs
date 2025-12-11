@@ -1,4 +1,6 @@
-﻿namespace Dimmer.Data;
+﻿using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
+
+namespace Dimmer.Data;
 
 
 public interface IRealmFactory
@@ -24,7 +26,7 @@ public class RealmFactory : IRealmFactory
         string filePath = Path.Combine(dbPath, "DimmerDsB.realm");
         //string filePath = Path.Combine(dbPath, "DimmerDbDebug.realm");
 #endif
-        if (!File.Exists(filePath))
+        if (!TaggingUtils.FileExists(filePath))
         {
             AppUtils.IsUserFirstTimeOpening = true;
         }
@@ -32,7 +34,7 @@ public class RealmFactory : IRealmFactory
         // Set schema version to 5.
         _config = new RealmConfiguration(filePath)
         {
-            SchemaVersion = 7,
+            SchemaVersion = 8,
             MigrationCallback = (migration, oldSchemaVersion) =>
             {
 

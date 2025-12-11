@@ -1,14 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Dimmer.Data.Models.LyricsModels;
-
-using Google.Android.Material.Button;
-using Google.Android.Material.Card;
-using Google.Android.Material.TextField;
+﻿using Dimmer.Data.Models.LyricsModels;
 
 using ProgressBar = Android.Widget.ProgressBar;
 
@@ -83,16 +73,15 @@ public partial class DownloadLyricsFragment : Fragment
         loadingBar.Visibility = ViewStates.Gone;
     }
 
-    private void OnLyricsSelected(LrcLibLyrics lyrics)
+    private async void OnLyricsSelected(LrcLibLyrics lyrics)
     {
         // Save logic here
         if (MyViewModel.SelectedSong != null)
         {
             MyViewModel.SelectedSong.UnSyncLyrics = lyrics.SyncedLyrics ?? lyrics.PlainLyrics;
 
-            return;
-            MyViewModel.UpdateSongInDB(MyViewModel.SelectedSong);
-            Toast.MakeText(Context, "Lyrics Saved!", ToastLength.Short).Show();
+            await MyViewModel.ApplyNewSongEdits(MyViewModel.SelectedSong);
+            Toast.MakeText(Context, "Lyrics Saved!", ToastLength.Short)?.Show();
             ParentFragmentManager.PopBackStack();
         }
     }

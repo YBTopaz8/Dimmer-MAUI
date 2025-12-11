@@ -1,17 +1,13 @@
 ﻿using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 
-using Android.Graphics;
 using Android.Views.InputMethods;
 
 using AndroidX.CoordinatorLayout.Widget;
 
-using Bumptech.Glide;
-
-using Google.Android.Material.Button;
-using Google.Android.Material.Card;
-using Google.Android.Material.Chip;
-using Google.Android.Material.TextField;
+using Dimmer.ViewsAndPages.NativeViews.DimmerLive;
+using Dimmer.ViewsAndPages.NativeViews.Misc;
+using Dimmer.ViewsAndPages.ViewUtils;
 
 using static Dimmer.ViewsAndPages.NativeViews.SongAdapter;
 
@@ -72,7 +68,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     private SongAdapter _adapter;
 
 
-    public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         var ctx = Context;
 
@@ -210,8 +206,10 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     {
         var popup = new Android.Widget.PopupMenu(ctx, anchor);
         popup.Menu.Add(0, 1, 0, "Go to Settings");
-        popup.Menu.Add(0, 2, 0, "Search Library");
+        popup.Menu.Add(0, 2, 0, "Search Library (TQL)");
         popup.Menu.Add(0, 3, 0, "Scroll to Playing");
+        popup.Menu.Add(0, 4, 0, "View Queue");
+        popup.Menu.Add(0, 5, 0, "Go to Login");
 
         popup.MenuItemClick += (s, e) =>
         {
@@ -222,13 +220,22 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
                         act.NavigateTo(new SettingsFragment("sett", MyViewModel), "SettingsFragment");
                     break;
                 case 2: // Search
-                    _searchBar?.RequestFocus();
-                    // Show Keyboard
-                    var imm = (InputMethodManager)ctx.GetSystemService(Context.InputMethodService);
-                    imm?.ShowSoftInput(_searchBar, ShowFlags.Implicit);
+                        //_searchBar?.RequestFocus();
+                        //// Show Keyboard
+                        //var imm = (InputMethodManager)ctx.GetSystemService(Context.InputMethodService);
+                        //imm?.ShowSoftInput(_searchBar, ShowFlags.Implicit);
+                    var searchSheet = new TqlSearchBottomSheet(MyViewModel);
+                    searchSheet.Show(ParentFragmentManager, "TqlSearchSheet");
                     break;
                 case 3: // Scroll To
                     MyViewModel.TriggerScrollToCurrentSong();
+                    break;
+                case 4: // Scroll To
+                    var queueSheet = new QueueBottomSheetFragment(MyViewModel);
+                    queueSheet.Show(ParentFragmentManager, "QueueSheet");
+                    break;
+                    case 5:
+                    MyViewModel.NavigateToGeneralPage(this, new LoginFragment("IntoLogin", MyViewModel),"loginPageTag");
                     break;
             }
         };
@@ -488,7 +495,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         public bool OnPreDraw()
         {
             // Remove listener so it only fires once
-            _view.ViewTreeObserver.RemoveOnPreDrawListener(this);
+            _view.ViewTreeObserver?.RemoveOnPreDrawListener(this);
 
             // 3. Tell transition system: "Okay, views are ready. Start the animation!"
             _fragment.StartPostponedEnterTransition();

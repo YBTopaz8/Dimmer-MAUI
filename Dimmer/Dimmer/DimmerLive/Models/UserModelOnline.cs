@@ -37,6 +37,14 @@ public class UserModelOnline : ParseUser
         set => SetProperty(value);
     }
 
+    [ParseFieldName("bio")]
+    public string? Bio 
+    { 
+        get=> GetProperty<string?>();
+
+        set => SetProperty(value);
+    }
+    
     public UserModelOnline() : base() { }
     public UserModelOnline(ParseUser plainUser) : this() // Calls the base parameterless constructor
     {

@@ -20,20 +20,16 @@ using Windows.ApplicationModel.DataTransfer;
 using WinRT;
 using WinRT.Dimmer_WinUIVtableClasses;
 
-using Button = Microsoft.UI.Xaml.Controls.Button;
 using Clipboard = Windows.ApplicationModel.DataTransfer.Clipboard;
 using DataPackage = Windows.ApplicationModel.DataTransfer.DataPackage;
 using DataTemplate = Microsoft.UI.Xaml.DataTemplate;
 using FrameworkElement = Microsoft.UI.Xaml.FrameworkElement;
 using ListView = Microsoft.UI.Xaml.Controls.ListView;
 using ListViewSelectionMode = Microsoft.UI.Xaml.Controls.ListViewSelectionMode;
-using MenuFlyout = Microsoft.UI.Xaml.Controls.MenuFlyout;
-using MenuFlyoutItem = Microsoft.UI.Xaml.Controls.MenuFlyoutItem;
 using NavigationEventArgs = Microsoft.UI.Xaml.Navigation.NavigationEventArgs;
 using PropertyPath = Microsoft.UI.Xaml.PropertyPath;
 using RoutedEventArgs = Microsoft.UI.Xaml.RoutedEventArgs;
 using TextWrapping = Microsoft.UI.Xaml.TextWrapping;
-using Thickness = Microsoft.UI.Xaml.Thickness;
 using ToolTip = Microsoft.UI.Xaml.Controls.ToolTip;
 using UIElement = Microsoft.UI.Xaml.UIElement;
 using Visual = Microsoft.UI.Composition.Visual;
@@ -262,11 +258,18 @@ public sealed partial class EditSongPage : Page
         {
             MyViewModel.SelectedSong?.IsInstrumental = (bool)ischecked;
         }
-        if(MyViewModel.CurrentPlayingSongView.TitleDurationKey == MyViewModel.SelectedSong.TitleDurationKey)
+        if(MyViewModel.CurrentPlayingSongView.TitleDurationKey == MyViewModel.SelectedSong!.TitleDurationKey)
         {
             MyViewModel.CurrentPlayingSongView.CoverImagePath ??= MyViewModel.SelectedSong.CoverImagePath;
         }
-        MyViewModel.UpdateSongInDB(MyViewModel.SelectedSong!);
+
+        MyViewModel.SelectedSong.ArtistToSong = listOfArtistsModelView!.ToObservableCollection();
+        
+        await MyViewModel.ApplyNewSongEdits(MyViewModel.SelectedSong!);
+
+
+
+
         Visibility = Microsoft.UI.Xaml.Visibility.Visible;
         PageNotificationText.Text = "Changes saved!";
         PlatUtils.ApplyEntranceEffect(vis, PageNotificationText,SongTransitionAnimation.Spring , _compositor);
@@ -291,6 +294,7 @@ public sealed partial class EditSongPage : Page
 
     }
 
+    IEnumerable<ArtistModelView?>? listOfArtistsModelView;
     private void ArtistToSong_Loaded(object sender, RoutedEventArgs e)
     {
         if (MyViewModel.SelectedSong is null) return;
@@ -299,12 +303,12 @@ public sealed partial class EditSongPage : Page
             .FirstOrDefault(s => s.Id == MyViewModel.SelectedSong.Id);
         if (dbSong is null) return;
         var artistToSong = dbSong.ArtistToSong;
-        var listOfArtistsModelView = artistToSong.AsEnumerable().Select(x=>x.ToArtistModelView());
+        listOfArtistsModelView = artistToSong.AsEnumerable().Select(x=>x.ToArtistModelView());
         foreach (var art in listOfArtistsModelView)
         {
             var songs = artistToSong.FirstOrDefault(x => x.Id == art.Id)?
                 .Songs;
-            art.SongsByArtist = songs.AsEnumerable().Select(x=>x.ToSongModelView()).ToObservableCollection();
+            art.SongsByArtist = songs.AsEnumerable().Select(x=>x.ToSongModelView()).ToObservableCollection()!;
         }
         ArtistToSong.ItemsSource = listOfArtistsModelView;
     }

@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-
-namespace Dimmer.Utils;
+﻿namespace Dimmer.Utils;
 
 internal class Bootstrapper
 {

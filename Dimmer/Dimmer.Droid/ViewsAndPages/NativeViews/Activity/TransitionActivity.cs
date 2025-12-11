@@ -5,10 +5,8 @@ using AndroidX.Core.View;
 using AndroidX.DrawerLayout.Widget;
 
 using Dimmer.NativeServices;
-using Dimmer.Utilities.Extensions;
 
 using Google.Android.Material.BottomNavigation;
-using Google.Android.Material.Chip;
 using Google.Android.Material.Dialog;
 using Google.Android.Material.Navigation;
 
@@ -162,8 +160,8 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
             Id = View.GenerateViewId(),
             LayoutParameters = new CoordinatorLayout.LayoutParams(-1, -1)
         };
-        MyStaticID = _contentContainer.Id;
-
+        _contentContainer.Id = Resource.Id.custom_fragment_container;
+        MyStaticID = Resource.Id.custom_fragment_container;
         // 2b. Player Sheet Container
         _sheetContainer = new FrameLayout(this)
         {
@@ -353,7 +351,7 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
                 tag = "HomePageFragment";
                 break;
             case 101: // Browser
-                selectedFrag = new SongDetailPage(e.Item.ItemId.ToString(),MyViewModel);
+                selectedFrag = new SongDetailFragment(e.Item.ItemId.ToString(),MyViewModel);
                 tag = "GraphFragment";
                 break;
             case 102: // Settings
@@ -482,15 +480,17 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
 
         public override void OnStateChanged(View bottomSheet, int newState)
         {
-            if (newState == BottomSheetBehavior.StateExpanded)
-                _fragment.SetInputActive(true);
-            else if (newState == BottomSheetBehavior.StateCollapsed)
-                _fragment.SetInputActive(false);
+            //if (newState == BottomSheetBehavior.StateExpanded)
+                
+            //    //_fragment.SetInputActive(true);
+            //else if (newState == BottomSheetBehavior.StateCollapsed)
+                //_fragment.SetInputActive(false);
         }
 
         public override void OnSlide(View bottomSheet, float slideOffset)
         {
             // slideOffset: 0.0 (Collapsed) -> 1.0 (Expanded)
+            //_fragment.AnimateTransition(slideOffset);
             _fragment.AnimateTransition(slideOffset);
         }
     }

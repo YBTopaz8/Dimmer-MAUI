@@ -1,5 +1,8 @@
 ﻿using CommunityToolkit.Maui.Behaviors;
 
+using Dimmer.WinUI.ViewModel.DimmerLiveWin;
+
+
 
 
 //using Dimmer.DimmerLive;
@@ -9,15 +12,11 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 
 using Application = Microsoft.Maui.Controls.Application;
 using Border = Microsoft.Maui.Controls.Border;
-using Button = Microsoft.Maui.Controls.Button;
-using Colors = Microsoft.Maui.Graphics.Colors;
+using ButtonM = Microsoft.Maui.Controls.Button;
+using ColorsM = Microsoft.Maui.Graphics.Colors;
 //using Microsoft.UI.Xaml.Controls;
-using Label = Microsoft.Maui.Controls.Label;
-using MenuFlyout = Microsoft.UI.Xaml.Controls.MenuFlyout;
 using Slider = Microsoft.Maui.Controls.Slider;
 
-//using SortOrder = Dimmer.Utilities.SortOrder;
-using ToggleMenuFlyoutItem = Microsoft.UI.Xaml.Controls.ToggleMenuFlyoutItem;
 using ToolTip = Microsoft.UI.Xaml.Controls.ToolTip;
 using View = Microsoft.Maui.Controls.View;
 
@@ -31,12 +30,13 @@ public partial class HomePage : ContentPage
 
     public BaseViewModelWin MyViewModel { get; internal set; }
     private readonly Compositor _compositor = PlatUtils.MainWindowCompositor;
-    public HomePage(BaseViewModelWin vm, IWinUIWindowMgrService windowManagerService)
+    public HomePage(BaseViewModelWin vm, IWinUIWindowMgrService windowManagerService, LoginViewModelWin LoginVM)
     {
         InitializeComponent();
         BindingContext = vm;
         MyViewModel = vm;
         windowMgrService = windowManagerService;
+        this.loginVM = LoginVM;
         MyViewModel.DumpCommand.Execute(null);
     }
 
@@ -87,6 +87,7 @@ public partial class HomePage : ContentPage
 
     private SongModelView? _storedSong;
     private readonly IWinUIWindowMgrService windowMgrService;
+    private readonly LoginViewModelWin loginVM;
 
     //private async void QuickFilterGest_PointerReleased(object sender, PointerEventArgs e)
     //{
@@ -1043,7 +1044,7 @@ public partial class HomePage : ContentPage
 
     private void ButtonLoaded(object sender, EventArgs e)
     {
-        Button send = (Button)sender;
+        ButtonM send = (ButtonM)sender;
         var native = send.Handler?.PlatformView as Microsoft.UI.Xaml.UIElement;
 
         if (native is not null)
@@ -1054,14 +1055,14 @@ public partial class HomePage : ContentPage
             {
                 Native_PointerEntered(s, e); 
                 send.BorderWidth = 2;
-                send.BorderColor = Colors.DarkSlateBlue;
+                send.BorderColor = ColorsM.DarkSlateBlue;
             };
 
             native.PointerExited += (s, e) =>
             {
                 Native_PointerExited(s, e); 
                 send.BorderWidth = 0;
-                send.BorderColor = Colors.Transparent;
+                send.BorderColor = ColorsM.Transparent;
             };
 
             //stats.Items.Add(new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = $"Total plays: {playCount}", IsEnabled = false });
@@ -1159,7 +1160,7 @@ public partial class HomePage : ContentPage
 
     private void TooltipHSL_Loaded(object sender, EventArgs e)
     {
-        var send = (Button)sender;
+        var send = (ButtonM)sender;
         var native = send.Handler?.PlatformView as Microsoft.UI.Xaml.UIElement;
         if (native is null) return;
         native.PointerEntered += (s, e) =>
@@ -1181,7 +1182,7 @@ public partial class HomePage : ContentPage
             PlatUtils.AnimateHoverUIElement(native, true, _compositor);
 
             send.BorderWidth = 2;
-            send.BorderColor = Colors.DarkSlateBlue;
+            send.BorderColor = ColorsM.DarkSlateBlue;
 
         };
         native.PointerExited += (s, e2) =>
@@ -1193,7 +1194,7 @@ public partial class HomePage : ContentPage
             PlatUtils.AnimateHoverUIElement(native, false, _compositor);
             
             send.BorderWidth = 0;
-            send.BorderColor = Colors.Transparent;
+            send.BorderColor = ColorsM.Transparent;
            
         };
     }
@@ -1300,7 +1301,7 @@ public partial class HomePage : ContentPage
     private void ViewNPQ_Loaded(object sender, EventArgs e)
     {
         ButtonLoaded(sender, e);
-        var senderUIElement = (sender as Button).Handler.PlatformView as Microsoft.UI.Xaml.UIElement;
+        var senderUIElement = (sender as ButtonM).Handler.PlatformView as Microsoft.UI.Xaml.UIElement;
         if(senderUIElement is null) return;
         ElementCompositionPreview.SetIsTranslationEnabled(senderUIElement, true);
 
@@ -1355,4 +1356,25 @@ public partial class HomePage : ContentPage
         var currentTheme = Application.Current.RequestedTheme;
         MyViewModel.IsDarkModeOn = currentTheme == AppTheme.Dark;
     }
+
+    private void ImageButton_Clicked(object sender, EventArgs e)
+    {
+        if(loginVM is not null)
+        {
+            loginVM.NavigateToProfilePage();
+            
+        }
+
+    }
+
+    private async void ImageButton_Loaded(object sender, EventArgs e)
+    {
+        var send = (ImageButton)sender;
+        await loginVM.InitAsync();
+        if(loginVM.CurrentUserOnline is not null && !string.IsNullOrEmpty(loginVM.CurrentUserOnline.ProfileImagePath))
+        {
+            send.Source = loginVM.CurrentUserOnline.ProfileImagePath;
+        }
+    }
+
 }

@@ -33,8 +33,6 @@ using Android.Media;
 
 using MediaController = AndroidX.Media3.Session.MediaController;
 
-using Dimmer.Utilities.Events;
-
 namespace Dimmer.DimmerAudio; // Make sure this namespace is correct
 
 [Service(Name = "com.yvanbrunel.dimmer.ExoPlayerService", // Ensure this matches AndroidManifest.xml if needed
@@ -120,6 +118,30 @@ public class ExoPlayerService : MediaSessionService
     private MediaController? mediaController;
 
     public ExoPlayerServiceBinder? Binder { get => _binder; set => _binder = value; }
+
+
+    public void PrepareNext(SongModelView nextSong)
+    {
+        if (player == null) return;
+
+        // 1. Convert SongModelView to MediaItem
+        var mediaItem = new MediaItem.Builder()
+            .SetUri(nextSong.FilePath)
+            .SetMediaId(nextSong.Id.ToString()) 
+            .SetMediaMetadata(new MediaMetadata.Builder()
+                .SetTitle(nextSong.Title)
+                .SetArtist(nextSong.ArtistName)
+                .SetAlbumTitle(nextSong.AlbumName)
+                .Build())
+            .Build();
+
+
+        int nextIndex = player.CurrentMediaItemIndex + 1;
+         player.AddMediaItem(nextIndex, mediaItem);
+
+        Console.WriteLine($"[ExoPlayerService] Queued next song: {nextSong.Title}");
+    }
+
 
     internal static void GetMaxVolumeLevel()
     {
@@ -373,7 +395,8 @@ public class ExoPlayerService : MediaSessionService
 
     public override void OnDestroy()
     {
-        positionHandler?.RemoveCallbacks(positionRunnable!);
+        positionHandler?.RemoveCallbacksAndMessages(positionRunnable!);
+        positionHandler = null;
 
         mediaSession?.Release();
         player?.Release();
@@ -450,17 +473,17 @@ public class ExoPlayerService : MediaSessionService
 
         }
         var genre = song.Genre?.Name;
-        player.Stop();
+        //player.Stop();
         player.ClearMediaItems();
 
         //player.PlaybackLooper
 
         MediaMetadata.Builder? metadataBuilder = new MediaMetadata.Builder()!
-            .SetTitle(title)
-            .SetArtist(artist)
-            .SetAlbumTitle(album)
+            .SetTitle(title)!
+            .SetArtist(artist)!
+            .SetAlbumTitle(album)!
             .SetMediaType(new Java.Lang.Integer(MediaMetadata.MediaTypeMusic))! // Use Java Integer wrapper
-            .SetGenre(genre)
+            .SetGenre(genre)!
 
             .SetIsPlayable(Java.Lang.Boolean.True)!; // Use Java Boolean wrapper
 
@@ -877,7 +900,7 @@ public class ExoPlayerService : MediaSessionService
                 //builder.Add(_realPlayer.);
                 //builder.Add(IPlayer.CommandSeekToPrevious);
                 // You can also use CommandSeekToNextMediaItem if you prefer
-                // builder.Add(IPlayer.CommandSeekToNextMediaItem); 
+                 //builder.Add(_realPlayer.seekton); 
                 // builder.Add(IPlayer.CommandSeekToPreviousMediaItem);
 
                 // 4. Build and return the new, augmented set of commands.

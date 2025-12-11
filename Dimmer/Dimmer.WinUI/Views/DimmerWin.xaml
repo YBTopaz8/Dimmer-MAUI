@@ -1,34 +1,42 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
 <Window
     x:Class="Dimmer.WinUI.Views.DimmerWin"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:Dimmer.WinUI.Views"
-    xmlns:customViews ="using:Dimmer.WinUI.Views.CustomViews.WinuiViews"
-    xmlns:converters="using:Dimmer.WinUI.Utils.Converters"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d" Activated="Window_Activated" Closed="DimmerWindowClosed"
-    Title="DimmerWin" 
-    SizeChanged="Window_SizeChanged"
     xmlns:animatedvisuals="using:Microsoft.UI.Xaml.Controls.AnimatedVisuals"
-    >
+    xmlns:converters="using:Dimmer.WinUI.Utils.Converters"
+    xmlns:customViews="using:Dimmer.WinUI.Views.CustomViews.WinuiViews"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:Dimmer.WinUI.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="DimmerWin"
+    Activated="Window_Activated"
+    Closed="DimmerWindowClosed"
+    SizeChanged="Window_SizeChanged"
+    mc:Ignorable="d">
 
-    <Window.SystemBackdrop>
-        <MicaBackdrop />
-    </Window.SystemBackdrop>
+ 
 
 
-    <Grid x:Name="MainGrid">
+    <Grid x:Name="MainGrid" Background="Transparent">
         <Grid.RowDefinitions>
-            <RowDefinition Height="auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <customViews:MediaPlaybackSection x:Name="TopMediaControlSection" Grid.Row="0"/>
+        <Image
+            x:Name="coverImageSong"
+            Grid.RowSpan="2"
+            Opacity="0.05"
+            Loaded="coverImageSong_Loaded"
+            Source="{Binding CurrentPlayingSongView.CoverImagePath, Converter={StaticResource StringToImageConverter}}"
+            Stretch="UniformToFill" />
+        <customViews:MediaPlaybackSection x:Name="TopMediaControlSection" Grid.Row="0" />
 
-        <Frame x:Name="ContentFrame" x:FieldModifier="Public" 
-               Grid.Row="1"/>
+        <Frame
+            x:Name="ContentFrame"
+            Grid.Row="1"
+            x:FieldModifier="Public" />
 
     </Grid>
 </Window>

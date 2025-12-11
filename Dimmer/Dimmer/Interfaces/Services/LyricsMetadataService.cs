@@ -512,7 +512,9 @@ IRepository<SongModel> songRepository, // Inject the repository
 
             // --- Step 2: Merge and Sanitize Title ---
             // Prefer tag title, but fall back to parsed filename title.
-            string rawTitle = !string.IsNullOrWhiteSpace(tagTitle) ? tagTitle : parsedTitle ?? Path.GetFileNameWithoutExtension(track.Path);
+
+            string decodedPath = Uri.UnescapeDataString(track.Path);
+            string rawTitle = !string.IsNullOrWhiteSpace(tagTitle) ? tagTitle : parsedTitle ?? Path.GetFileNameWithoutExtension(decodedPath);
             var (finalTitle, versionInfo) = TaggingUtils.ParseTrackTitle(rawTitle);
 
             if (string.IsNullOrWhiteSpace(finalTitle))

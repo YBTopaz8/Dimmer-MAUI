@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Collections.Concurrent;
+using System.Text.RegularExpressions;
 
 namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 
@@ -35,69 +36,41 @@ public static class TaggingUtils
     {
         var uniqueCleanNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        // Combine all provided fields into a single string to parse.
-        // We use a semicolon as a universal separator for our own parsing.
-        string combinedArtists = string.Join(";", artistFields.Where(s => !string.IsNullOrWhiteSpace(s)));
 
-        if (string.IsNullOrWhiteSpace(combinedArtists))
-        {
-            return ["Unknown Artist"];
-        }
+        string combined = string.Join(";", artistFields.Where(s => !string.IsNullOrWhiteSpace(s)));
 
-        // Split the combined string by our robust regex.
-        var potentialArtists = ArtistSeparatorRegex.Split(combinedArtists)
-            .Select(name => name.Trim())
-            .Where(name => !string.IsNullOrWhiteSpace(name));
+        if (string.IsNullOrWhiteSpace(combined))
+            return new List<string> { "Unknown Artist" };
+
+
+        var potentialArtists = ArtistSeparatorRegex.Split(combined);
 
         foreach (var artist in potentialArtists)
         {
-            // Sometimes splitting by a character like ';' leaves remnants.
-            // We re-split by our manual separator to be safe.
-            foreach (var subArtist in artist.Split(';', StringSplitOptions.RemoveEmptyEntries))
+            if (string.IsNullOrWhiteSpace(artist))
+                continue;
+
+
+            var subArtists = artist.Split(';', StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var sub in subArtists)
             {
-                var cleanName = subArtist.Trim('"', '\'').Trim();
-                if (!string.IsNullOrWhiteSpace(cleanName))
-                {
-                    uniqueCleanNames.Add(cleanName);
-                }
+
+                string clean = sub.Trim().Trim('"', '\'').Trim();
+
+
+                if (!string.IsNullOrWhiteSpace(clean))
+                    uniqueCleanNames.Add(clean);
             }
         }
 
         if (uniqueCleanNames.Count == 0)
-        {
-            return ["Unknown Artist"];
-        }
+            return new List<string> { "Unknown Artist" };
 
         return uniqueCleanNames.ToList();
     }
 
-
-    private static void ParseAndAddArtists(string? input, HashSet<string> names)
-    {
-        if (string.IsNullOrWhiteSpace(input))
-            return;
-
-        // Split the string using our robust regex
-        string[] potentialArtists = ArtistSeparatorRegex.Split(input);
-
-        foreach (var artistName in potentialArtists)
-        {
-            if (string.IsNullOrWhiteSpace(artistName))
-                continue;
-
-            // Clean up the resulting name
-            string trimmedName = artistName.Trim();
-
-            // Further clean-up: remove surrounding quotes or stray characters if necessary
-            // This can be expanded with more rules.
-            trimmedName = trimmedName.Trim('"', '\'');
-
-            if (!string.IsNullOrWhiteSpace(trimmedName) && !IsSeparator(trimmedName))
-            {
-                names.Add(trimmedName);
-            }
-        }
-    }
+    
 
     // Helper to prevent adding the separators themselves as artists
     private static bool IsSeparator(string input)
@@ -200,49 +173,54 @@ public static class TaggingUtils
     // The Android project will assign this function later.
     public static Func<string, IReadOnlySet<string>, List<string>>? PlatformSpecificScanner { get; set; }
     public static Func<string, Stream> PlatformGetStreamHook { get; set; }
-
-    public static List<string> GetAllAudioFilesFromPaths(IEnumerable<string> pathsToScan, IReadOnlySet<string> supportedExtensions)
+    public static Task<List<string>> GetAllAudioFilesFromPathsAsync(
+    IEnumerable<string> pathsToScan,
+    IReadOnlySet<string> supportedExtensions)
     {
-        var uniqueFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+      return Task.Run(() => 
+    {  var filesBag = new ConcurrentBag<string>();
 
-        foreach (string path in pathsToScan.Where(p => !string.IsNullOrWhiteSpace(p)).Distinct(StringComparer.OrdinalIgnoreCase))
-        {
-            try
+        Parallel.ForEach(
+            pathsToScan.Where(p => !string.IsNullOrWhiteSpace(p))
+                       .Distinct(StringComparer.OrdinalIgnoreCase),
+            new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount },
+            path =>
             {
-                // 2. Check for Content URI
-                if (path.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
+                try
                 {
-                    // 3. CHECK IF THE HOOK IS ASSIGNED
-                    if (PlatformSpecificScanner != null)
+                    if (path.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
                     {
-                        var platformFiles = PlatformSpecificScanner.Invoke(path, supportedExtensions);
-                        foreach (var f in platformFiles) uniqueFiles.Add(f);
+                        if (PlatformSpecificScanner != null)
+                        {
+                            foreach (var f in PlatformSpecificScanner(path, supportedExtensions))
+                                filesBag.Add(f);
+                        }
+                        return;
                     }
-                    else
-                    {
-                        Debug.WriteLine("[Scan] Warning: Content URI detected but no PlatformScanner configured.");
-                    }
-                    continue;
-                }
 
-                // Standard System.IO Logic
-                if (File.Exists(path))
-                {
-                    if (supportedExtensions.Contains(Path.GetExtension(path), StringComparer.OrdinalIgnoreCase))
-                        uniqueFiles.Add(path);
+                    if (File.Exists(path))
+                    {
+                        var ext = Path.GetExtension(path);
+                        if (!string.IsNullOrEmpty(ext) && supportedExtensions.Contains(ext))
+                            filesBag.Add(path);
+                        return;
+                    }
+
+                    if (Directory.Exists(path))
+                    {
+                        foreach (var file in Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories))
+                        {
+                            var ext = Path.GetExtension(file);
+                            if (!string.IsNullOrEmpty(ext) && supportedExtensions.Contains(ext))
+                                filesBag.Add(file);
+                        }
+                    }
                 }
-                else if (Directory.Exists(path))
-                {
-                    var files = Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories)
-                                         .Where(f => supportedExtensions.Contains(Path.GetExtension(f), StringComparer.OrdinalIgnoreCase));
-                    foreach (var file in files) uniqueFiles.Add(file);
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error processing path '{path}': {ex.Message}");
-            }
-        }
-        return uniqueFiles.ToList();
+                catch { /* ignored */ }
+            });
+
+        return filesBag.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        });
     }
+
 }

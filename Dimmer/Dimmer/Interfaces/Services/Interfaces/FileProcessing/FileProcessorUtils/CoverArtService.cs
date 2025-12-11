@@ -58,7 +58,8 @@ public class CoverArtService : ICoverArtService
         if (string.IsNullOrWhiteSpace(audioFilePath))
             return null;
 
-        string baseFileName = Path.GetFileNameWithoutExtension(audioFilePath);
+        string decodedPath = Uri.UnescapeDataString(audioFilePath);
+        string baseFileName = Path.GetFileNameWithoutExtension(decodedPath);
         string sanitizedBaseFileName = SanitizeFileName(baseFileName);
 
         foreach (var ext in _supportedExtensions)
@@ -82,7 +83,8 @@ public class CoverArtService : ICoverArtService
         try
         {
 
-            string baseFileName = Path.GetFileNameWithoutExtension(audioFilePath);
+            string decodedPath = Uri.UnescapeDataString(audioFilePath);
+            string baseFileName = Path.GetFileNameWithoutExtension(decodedPath);
             string? fileFolderPath = Path.GetDirectoryName(audioFilePath);
             string sanitizedBaseFileName = SanitizeFileName(baseFileName);
             string? extension = ".lrc";
@@ -123,7 +125,8 @@ public class CoverArtService : ICoverArtService
         }
 
         // 3. Save the new image
-        string baseFileName = Path.GetFileNameWithoutExtension(audioFilePath);
+        string decodedPath = Uri.UnescapeDataString(audioFilePath);
+        string baseFileName = Path.GetFileNameWithoutExtension(decodedPath);
         string sanitizedBaseFileName = SanitizeFileName(baseFileName);
         string? extension = GetExtensionFromMimeType(embeddedPictureInfo.MimeType) ?? ".png"; // Default to .png if MIME type is unknown/unsupported
         string targetFilePath = Path.Combine(_config.CoverArtBasePath, sanitizedBaseFileName + extension);
@@ -229,7 +232,7 @@ public class CoverArtService : ICoverArtService
 
     public async Task<bool> SaveCoverArtToSingleSongGivenAudioPathAsync(ObjectId songId, string audioPath, string coverArtSource)
     {
-        if (string.IsNullOrWhiteSpace(coverArtSource) || string.IsNullOrEmpty(audioPath) || !File.Exists(audioPath))
+        if (string.IsNullOrWhiteSpace(coverArtSource) || string.IsNullOrEmpty(audioPath) || !TaggingUtils.FileExists(audioPath))
         {
             _logger.LogWarning("ApplyCoverArtToSongsAsync called with invalid arguments.");
             return false;
@@ -309,7 +312,7 @@ public class CoverArtService : ICoverArtService
                 var client = _httpClientFactory.CreateClient();
                 return await client.GetByteArrayAsync(source);
             }
-            else if (File.Exists(source))
+            else if (TaggingUtils.FileExists(source))
             {
                 return await File.ReadAllBytesAsync(source);
             }

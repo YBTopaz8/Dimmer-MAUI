@@ -336,7 +336,7 @@ public class AchievementService : IDisposable
         // 6️⃣ TIME OF DAY / STREAKS
         // ==============================================================================
         #region Streaks & Time
-        rules.Add(new AchievementRule { Id = "MORNING_3_GENRES", Name = "Morning Explorer", Description = "Play songs from 3 genres before 9 AM", Category = AchievementCategory.Misc, Tier = AchievementTier.Silver, CustomCheck = (r, s, m) => DateTime.Now.Hour < 9 && GetTodayEvents(r).Take(5).Select(x => x.SongId).Distinct().Count() >= 3 });
+        //rules.Add(new AchievementRule { Id = "MORNING_3_GENRES", Name = "Morning Explorer", Description = "Play songs from 3 genres before 9 AM", Category = AchievementCategory.Misc, Tier = AchievementTier.Silver, CustomCheck = (r, s, m) => DateTime.Now.Hour < 9 && GetTodayEvents(r).Take(5).Select(x => x.SongId).Distinct().Count() >= 3 });
         rules.Add(new AchievementRule { Id = "NIGHT_REPEAT_3", Name = "Midnight Loop", Description = "Replay same song 3 times after midnight", Category = AchievementCategory.Streak, Tier = AchievementTier.Silver, CustomCheck = (r, s, m) => DateTime.Now.Hour == 0 && CheckSongHistoryStreak(m, 3) });
         rules.Add(new AchievementRule { Id = "WEEKDAY_STREAK_5", Name = "Workday Tunes", Description = "Play 5 songs every weekday for a week", Category = AchievementCategory.Streak, Tier = AchievementTier.Gold, CustomCheck = (r, s, m) => s.DailyPlayStreak >= 5 && DateTime.Now.DayOfWeek != DayOfWeek.Saturday && DateTime.Now.DayOfWeek != DayOfWeek.Sunday });
 
@@ -359,11 +359,11 @@ public class AchievementService : IDisposable
         // ==============================================================================
         // 8️⃣ EXTREME / CHALLENGE
         // ==============================================================================
-        #region Extreme
+        //#region Extreme
         rules.Add(new AchievementRule { Id = "SONG_7_DAYS_REPEAT", Name = "Hardcore Loop", Description = "Play same song every day for 7 days", Category = AchievementCategory.Streak, Tier = AchievementTier.Platinum, CustomCheck = (r, s, m) => CheckDailyStreakGeneric(r, m, (e, model) => e.SongId == model.Id, 7) });
-        rules.Add(new AchievementRule { Id = "TOP_10_ALL", Name = "Global Listener", Description = "Play a top 10 most played song", Category = AchievementCategory.Misc, Tier = AchievementTier.Gold, CustomCheck = (r, s, m) => { var last10 = GetRecentCompletedEvents(r, 10); if (last10.Count < 10) return false; var top10Ids = r.All<SongModel>().OrderByDescending(x => x.PlayCount).Take(10).ToList().Select(x => x.Id).ToList(); return top10Ids.Contains(m.Id); } });
+        //rules.Add(new AchievementRule { Id = "TOP_10_ALL", Name = "Global Listener", Description = "Play a top 10 most played song", Category = AchievementCategory.Misc, Tier = AchievementTier.Gold, CustomCheck = (r, s, m) => { var last10 = GetRecentCompletedEvents(r, 10); if (last10.Count < 10) return false; var top10Ids = r.All<SongModel>().OrderByDescending(x => x.PlayCount).Take(10).ToList().Select(x => x.Id).ToList(); return top10Ids.Contains(m.Id); } });
         //rules.Add(new AchievementRule { Id = "NIGHT_OWL_CENTURY", Name = "Late Night Century", Description = "Play 100 songs after 9 PM", Category = AchievementCategory.Misc, Tier = AchievementTier.Platinum, CustomCheck = (r, s, m) => r.All<DimmerPlayEvent>().Count(e => e.DatePlayed.Hour >= 21) >= 100 });
-        #endregion
+        
 
         // ==============================================================================
         // 9️⃣ COMMON & OVERLOOKED
@@ -425,13 +425,14 @@ public class AchievementService : IDisposable
 
     private int GetTodayPlayCountForSong(SongModel m)
     {
-        var today = DateTimeOffset.UtcNow.Date;
+        var today = new DateTimeOffset(DateTimeOffset.UtcNow.Date, TimeSpan.Zero);
+
         return m.PlayHistory.Where(e => e.DatePlayed >= today && e.WasPlayCompleted).Count();
     }
 
     private IQueryable<DimmerPlayEvent> GetTodayEvents(Realm r)
     {
-        var today = DateTimeOffset.UtcNow.Date;
+        var today = new DateTimeOffset(DateTimeOffset.UtcNow.Date, TimeSpan.Zero);
         return r.All<DimmerPlayEvent>().Where(e => e.DatePlayed >= today);
     }
 
@@ -504,12 +505,19 @@ public class AchievementService : IDisposable
 
         for (int i = 0; i < days; i++)
         {
-            var targetDate = now.AddDays(-i);
-            var nextDate = targetDate.AddDays(1);
+            var targetDateDt = now.AddDays(-i);
+            var nextDateDt = targetDateDt.AddDays(1);
 
-            // Check if ANY event on this specific day matches the condition
-            bool hasMatch = r.All<DimmerPlayEvent>()
-                .Any(e => e.DatePlayed >= targetDate && e.DatePlayed < nextDate && matchCondition(e, m));
+
+            var targetDate = new DateTimeOffset(targetDateDt, TimeSpan.Zero);
+            var nextDate = new DateTimeOffset(nextDateDt, TimeSpan.Zero);
+
+            var dailyEvents = r.All<DimmerPlayEvent>()
+                .Where(e => e.DatePlayed >= targetDate && e.DatePlayed < nextDate)
+                .ToList(); 
+
+
+            bool hasMatch = dailyEvents.Any(e => matchCondition(e, m));
 
             if (!hasMatch)
             {

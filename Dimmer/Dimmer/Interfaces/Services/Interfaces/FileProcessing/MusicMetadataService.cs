@@ -69,7 +69,9 @@ public class MusicMetadataService : IMusicMetadataService
 
         // GetOrAdd is an atomic operation, making this method thread-safe.
         return _artistsByName.GetOrAdd(name, (key) => {
-            var newArtist = new ArtistModelView { Name = key, Id = ObjectId.GenerateNewId() };
+            var newArtist = new ArtistModelView { Name = key, Id = ObjectId.GenerateNewId() 
+            };
+            newArtist.TotalSongsByArtist++;
             NewArtists.Add(newArtist); // Note: NewArtists list might still need locking if accessed elsewhere during the scan.
             return newArtist;
         });
@@ -82,7 +84,7 @@ public class MusicMetadataService : IMusicMetadataService
         // A unique key for an album is often its name + the primary artist's name
         string albumKey = $"{name}|{artistForContext ?? "Unknown"}";
 
-        return _albumsByName.GetOrAdd(albumKey, (key) => {
+        return _albumsByName.GetOrAdd(albumKey, (Func<string, AlbumModelView>)((key) => {
             var newAlbum = new AlbumModelView
             {
                 Name = name,
@@ -90,7 +92,7 @@ public class MusicMetadataService : IMusicMetadataService
             };
             NewAlbums.Add(newAlbum);
             return newAlbum;
-        });
+        }));
     }
 
     public GenreModelView GetOrCreateGenre(Track track, string name)

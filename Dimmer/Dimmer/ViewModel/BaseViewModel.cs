@@ -4,7 +4,12 @@ using System.Runtime.ConstrainedExecution;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
+using ATL;
+
+using AudioSwitcher.AudioApi;
+
 using Dimmer.Data.Models;
+using Dimmer.Data.ModelView;
 using Dimmer.DimmerLive.ParseStatics;
 using Dimmer.Hoarder;
 using Dimmer.Interfaces;
@@ -14,9 +19,14 @@ using Dimmer.UIUtils;
 using Dimmer.Utilities.TypeConverters;
 using Dimmer.Utils;
 
+using Hqub.Lastfm.Entities;
+
 using Microsoft.Extensions.Logging.Abstractions;
 
 using Parse.LiveQuery;
+
+using static Microsoft.Maui.ApplicationModel.Permissions;
+
 //using MoreLinq;
 //using MoreLinq.Extensions;
 
@@ -78,7 +88,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _lyricsMgtFlow = lyricsMgtFlow;
         _logger = logger ?? NullLogger<BaseViewModel>.Instance;
         this._audioService = audioServ;
-        UserLocal = new UserModelView();
+        //UserLocal = new UserModelView();
         dimmerPlayEventRepo ??= DimmerPlayEventRepo;
         _playlistRepo = PlaylistRepo;
 
@@ -299,7 +309,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
                     if (plan.ErrorMessage != null)
                     {
-                        //searchResultsHolder.Edit(u => u.Clear());
+
 
                         // --- DEBUG STEP 4: Did we stop because of a parse error? ---
                         Debug.WriteLine($"[DEBUG] Halting due to parse error: {plan.ErrorMessage}");
@@ -329,17 +339,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                         .ToList();
                         Debug.WriteLine(
                             $"[DEBUG] In-Memory Filter: Reduced result set from {mappedSongs.Count()} to {finalSongs.Count} songs.");
-                        Debug.WriteLine($"Current Query is {query.ElementType}" +
-                            $"{plan.CommandNode}" +
-                            $"ERROR {plan.ErrorMessage}" +
-                            $"RQL FILTER {plan.RqlFilter}" +
-                            $"IN MEM PRED {plan.InMemoryPredicate}" +
-                            $"SORT DESC {plan.SortDescriptions}" +
-                            $"SHUF {plan.Shuffle}" +
-                            $"LIM {plan.Limiter}"
-
-
-                            );
+                     
                         // STAGE 3: Apply post-processing (Shuffle and Limiters)
                         List<SongModelView> processedSongs;
                         if (plan.Shuffle != null)
@@ -394,8 +394,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         Debug.WriteLine($"{DateTime.Now}: Search query subscription set up.");
 
-        // Initial search to populate the list
-        _searchQuerySubject.OnNext(""); // Confirmed this should be empty string
         _logger.LogInformation(string.Format("{0}: Calculating ranks using RQL sorting...", DateTime.Now));
         // Use a single, large write transaction for performance.
 
@@ -420,7 +418,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
                         if ((!string.IsNullOrEmpty(lastfmService.AuthenticatedUser)))
                         {
-                            UserLocal.Username = lastfmService.AuthenticatedUser;
                             var db = RealmFactory.GetRealmInstance();
                             await db.WriteAsync(
                                 () =>
@@ -429,12 +426,34 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                                     if (usrs is not null && usrs.Count > 0)
                                     {
                                         UserModel usr = usrs.First();
+                                      
                                         usr.UserName = lastfmService.AuthenticatedUser;
-                                        usr.LastFMAccountInfo ??= LastFMUserInfo.ToLastFMUser();
-
+                                        usr.LastFMAccountInfo ??= LastFMUserInfo.ToLastFMUser()!;
+                                        usr.DeviceFormFactor ??= DeviceInfo.Current.DeviceType.ToString();
+                                        usr.DeviceManufacturer ??= DeviceInfo.Current.Manufacturer.ToString();
+                                        usr.DeviceModel ??= DeviceInfo.Current.Model.ToString();
+                                        usr.DeviceName ??= DeviceInfo.Current.Name.ToString();
+                                        usr.DeviceVersion ??= DeviceInfo.Current.VersionString;
                                         db.Add(usr, true);
+                                        CurrentUserLocal = usr.ToUserModelView()!;
+                                    }
+                                    else
+                                    {
+                                        UserModel newUsr = new();
+                                        newUsr.UserName = !string.IsNullOrEmpty(lastfmService.AuthenticatedUser) ?
+                                        lastfmService.AuthenticatedUser : "NewUser_" + DateTimeOffset.UtcNow.ToString();
+                                        newUsr.LastFMAccountInfo ??= LastFMUserInfo.ToLastFMUser()!;
+
+                                        newUsr.DeviceFormFactor ??= DeviceInfo.Current.DeviceType.ToString();
+                                        newUsr.DeviceManufacturer ??= DeviceInfo.Current.Manufacturer.ToString();
+                                        newUsr.DeviceModel ??= DeviceInfo.Current.Model.ToString();
+                                        newUsr.DeviceName ??= DeviceInfo.Current.Name.ToString();
+                                        newUsr.DeviceVersion ??= DeviceInfo.Current.VersionString;
+                                        CurrentUserLocal = newUsr.ToUserModelView()!;
+                                        db.Add(newUsr);
                                     }
                                 });
+                            CurrentUserLocal.Username ??=lastfmService.AuthenticatedUser;
                         }
                     }
                 })
@@ -688,7 +707,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 switch (aia.Position)
                 {
                     case "next":
-                        PlaybackQueueSource.InsertRange(songsToAdd, _playbackQueueIndex + 1);
+                        PlaybackQueueSource.InsertRange(songsToAdd, _currentPlayinSongIndexInPlaybackQueue + 1);
                         //_= ShowNotification($"Added {songsToAdd.Count} songs to next in queue.");
                         break;
                     case "end":
@@ -761,7 +780,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 {
                     appmodel.LastKnownQuery = CurrentTqlQuery;
                     appmodel.LastKnownPlaybackQuery = CurrentPlaybackQuery;
-                    appmodel.LastKnownPlaybackQueueIndex = _playbackQueueIndex;
+                    appmodel.LastKnownPlaybackQueueIndex = _currentPlayinSongIndexInPlaybackQueue;
                     appmodel.LastKnownShuffleState = IsShuffleActive;
                     appmodel.LastKnownRepeatState = (int)CurrentRepeatMode;
                     appmodel.LastKnownPosition = CurrentTrackPositionSeconds;
@@ -776,7 +795,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             {
                 LastKnownQuery = CurrentTqlQuery,
                 LastKnownPlaybackQuery = CurrentPlaybackQuery,
-                LastKnownPlaybackQueueIndex = _playbackQueueIndex,
+                LastKnownPlaybackQueueIndex = _currentPlayinSongIndexInPlaybackQueue,
                 LastKnownShuffleState = IsShuffleActive,
                 LastKnownRepeatState = (int)CurrentRepeatMode,
                 LastKnownPosition = CurrentTrackPositionSeconds,
@@ -837,7 +856,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     CurrentPlaybackQuery = removeCOmmandFromLastSaved;
                 }
 
-                _playbackQueueIndex = appModel.LastKnownPlaybackQueueIndex;
+                _currentPlayinSongIndexInPlaybackQueue = appModel.LastKnownPlaybackQueueIndex;
                 IsShuffleActive = appModel.LastKnownShuffleState;
                 CurrentRepeatMode = (RepeatMode)appModel.LastKnownRepeatState;
                 CurrentTrackPositionSeconds = appModel.LastKnownPosition;
@@ -898,8 +917,13 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     {
                         try
                         {
+                            var safeSongView = lastSong.ToSongView();
+                            RxSchedulers.UI.Schedule(() =>
+                            {
 
-                            CurrentPlayingSongView = lastSong.ToSongView();
+                                CurrentPlayingSongView = safeSongView;
+
+                            });
                         }
                         catch (Exception ex)
                         {
@@ -1216,7 +1240,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [RelayCommand]
     public void Randomize() { SearchSongForSearchResultHolder("random"); }
 
-    private int _playbackQueueIndex = -1;
+    private int _currentPlayinSongIndexInPlaybackQueue = -1;
     [RelayCommand]
     public void BigHold() { SearchSongForSearchResultHolder("Len:<=3:00"); }
 
@@ -1291,8 +1315,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     [ObservableProperty] public partial bool IsAscending { get; set; }
 
-    [ObservableProperty]
-    public partial SongModelView? SelectedSongForContext { get; set; }
 
 
     [ObservableProperty]
@@ -1533,6 +1555,35 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial ObservableCollection<LyricPhraseModelView>? SelectedSongLyricsObsCol { get; set; }
 
+    partial void OnSelectedSongChanging(SongModelView? oldValue, SongModelView? newValue)
+    {
+        if (newValue is not null)
+        {
+            var realm = RealmFactory.GetRealmInstance();
+            var songInDb = realm.Find<SongModel>(newValue.Id);
+            if (songInDb is not null)
+            {
+                if (!string.IsNullOrEmpty(songInDb.SyncLyrics))
+                {
+                    SelectedSongLyricsObsCol = LyricsMgtFlow.GetListLyricsCol(songInDb.SyncLyrics).ToObservableCollection();
+                }
+                else
+                {
+                    SelectedSongLyricsObsCol?.Clear();   
+                }
+                if (!songInDb.PlayHistory.Any())
+                {
+                    newValue.PlayEvents = new();
+                    return;
+                }
+
+                ObservableCollection<DimmerPlayEventView> evts = songInDb.PlayHistory.AsEnumerable().Select(x => x.ToDimmerPlayEventView())
+                    .ToObservableCollection()!;
+                newValue.PlayEvents = evts;
+                
+            }
+        }
+    }
 
     async partial void OnSelectedSongChanged(SongModelView? oldValue, SongModelView? newValue)
     {
@@ -1543,12 +1594,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         
             var lyrics= await _lyricsMetadataService.GetLocalLyricsAsync(newValue);
 
-            SelectedSongLyricsObsCol = LyricsMgtFlow.GetListLyricsCol(lyrics).ToObservableCollection();
+           
         }
 
-
-        //LoadSongLastFMData().ConfigureAwait(false);
-        //LoadSongLastFMMoreData().ConfigureAwait(false);
     }
 
     [ObservableProperty]
@@ -1749,7 +1797,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     #region public partials
     [ObservableProperty]
-    public partial UserModelView UserLocal { get; set; }
+    public partial UserModelView CurrentUserLocal { get; set; }
 
     [ObservableProperty]
     public partial string? LatestScanningLog { get; set; }
@@ -1779,7 +1827,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     [ObservableProperty] public partial ObservableCollection<ArtistModelView>? SelectedSongArtists { get; set; }
 
-    [ObservableProperty] public partial ObservableCollection<AlbumModelView>? SelectedArtistAlbums { get; set; }
+    [ObservableProperty] public partial ObservableCollection<SongModelView>? SelectedArtistAlbums { get; set; }
 
     [ObservableProperty] public partial CollectionStatsSummary? ArtistCurrentColStats { get; private set; }
 
@@ -1842,14 +1890,14 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public async Task LoadAndCacheCoverArtAsync(SongModelView song)
     {
         
-        if (song.CoverImagePath == "musicnotess.png")
+        if (song.CoverImagePath == "musicnote1.png")
         {
             song.CoverImagePath = string.Empty;
         }
 
         if (!string.IsNullOrEmpty(song.CoverImagePath))
         {
-            if (File.Exists(song.CoverImagePath))
+            if (TaggingUtils.FileExists(song.CoverImagePath))
             {
                 CurrentCoverImagePath = song.CoverImagePath;
 
@@ -1862,7 +1910,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         PictureInfo? embeddedPicture = null;
         try
         {
-            if (!File.Exists(song.FilePath)) return;
+            if (!TaggingUtils.FileExists(song.FilePath)) return;
 
             embeddedPicture = EmbeddedArtValidator.GetValidEmbeddedPicture(song.FilePath);
             if (embeddedPicture != null)
@@ -1883,6 +1931,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             //Trying lastfm
             var cleanTitle = StaticUtils.CleanTitle(song.FilePath,song.Title,song.AlbumName,song.ArtistName);
             string cleanArtist = StaticUtils.CleanArtist(song.FilePath, song.ArtistName, song.Title);
+
             var lastfmTrack = await lastfmService.GetTrackInfoAsync(cleanArtist, cleanTitle);
             if (lastfmTrack.IsNull)
                 return;
@@ -1969,7 +2018,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             await semaphore.WaitAsync();
             try
             {
-                if (string.IsNullOrEmpty(song.CoverImagePath) || !File.Exists(song.CoverImagePath))
+                if (string.IsNullOrEmpty(song.CoverImagePath) || !TaggingUtils.FileExists(song.CoverImagePath))
                 {
                     await LoadAndCacheCoverArtAsync(song);
                     int current = Interlocked.Increment(ref processed);
@@ -2023,7 +2072,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 await semaphore.WaitAsync();
                 try
                 {
-                    if (string.IsNullOrEmpty(song.CoverImagePath) || !File.Exists(song.CoverImagePath))
+                    if (string.IsNullOrEmpty(song.CoverImagePath) || !TaggingUtils.FileExists(song.CoverImagePath))
                     {
                         _stateService.SetCurrentLogMsg(new AppLogModel()
                         {
@@ -2250,6 +2299,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             _logger.LogWarning("OnPlaybackPaused was called but the event had no song context.");
             return;
         }
+        _currentPlayinSongIndexInPlaybackQueue = PlaybackQueue.IndexOf(args.MediaSong);
         CurrentPlayingSongView.IsCurrentPlayingHighlight = false;
         CurrentLine = null;
         PreviousLine = null;
@@ -2267,7 +2317,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             StatesMapper.Map(DimmerPlaybackState.Playing),
             0);
         await UpdateSongSpecificUi(CurrentPlayingSongView);
-        await _audioService.SendNextSong(CurrentPlayingSongView);
+        await _audioService.SendNextSong(PlaybackQueue[_currentPlayinSongIndexInPlaybackQueue+1]);
     }
     #endregion
 
@@ -2525,9 +2575,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [RelayCommand]
     public void RemoveRemainingSongsFromQueue()
     {
-        if (_playbackQueueIndex < 0 || _playbackQueueIndex >= PlaybackQueueSource.Items.Count - 1)
+        if (_currentPlayinSongIndexInPlaybackQueue < 0 || _currentPlayinSongIndexInPlaybackQueue >= PlaybackQueueSource.Items.Count - 1)
             return;
-        int itemsToRemove = PlaybackQueueSource.Items.Count - (_playbackQueueIndex + 1);
+        int itemsToRemove = PlaybackQueueSource.Items.Count - (_currentPlayinSongIndexInPlaybackQueue + 1);
         for (int i = 0; i < itemsToRemove; i++)
         {
             PlaybackQueueSource.RemoveAt(PlaybackQueueSource.Items.Count - 1);
@@ -2627,11 +2677,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             return;
         int songIndex = PlaybackQueueSource.Items.IndexOf(song);
         PlaybackQueueSource.RemoveAt(songIndex);
-        if (songIndex < _playbackQueueIndex)
+        if (songIndex < _currentPlayinSongIndexInPlaybackQueue)
         {
-            _playbackQueueIndex--;
+            _currentPlayinSongIndexInPlaybackQueue--;
         }
-        else if (songIndex == _playbackQueueIndex)
+        else if (songIndex == _currentPlayinSongIndexInPlaybackQueue)
         {
             if (_audioService.IsPlaying)
             {
@@ -2639,15 +2689,15 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             }
             if (PlaybackQueueSource.Items.Count > 0)
             {
-                if (_playbackQueueIndex >= PlaybackQueueSource.Items.Count)
+                if (_currentPlayinSongIndexInPlaybackQueue >= PlaybackQueueSource.Items.Count)
                 {
-                    _playbackQueueIndex = 0;
+                    _currentPlayinSongIndexInPlaybackQueue = 0;
                 }
-                _ = PlaySongAtIndexAsync(_playbackQueueIndex);
+                _ = PlaySongAtIndexAsync(_currentPlayinSongIndexInPlaybackQueue);
             }
             else
             {
-                _playbackQueueIndex = -1;
+                _currentPlayinSongIndexInPlaybackQueue = -1;
                 await UpdateSongSpecificUi(null);
             }
         }
@@ -2662,7 +2712,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             _audioService.Stop();
         }
         PlaybackQueueSource.Clear();
-        _playbackQueueIndex = -1;
+        _currentPlayinSongIndexInPlaybackQueue = -1;
         await UpdateSongSpecificUi(null);
         //ClearQueueEvent?.Invoke(this, EventArgs.Empty);
     }
@@ -2679,11 +2729,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             {
                 int songIndex = PlaybackQueueSource.Items.IndexOf(song);
                 PlaybackQueueSource.RemoveAt(songIndex);
-                if (songIndex < _playbackQueueIndex)
+                if (songIndex < _currentPlayinSongIndexInPlaybackQueue)
                 {
-                    _playbackQueueIndex--;
+                    _currentPlayinSongIndexInPlaybackQueue--;
                 }
-                else if (songIndex == _playbackQueueIndex)
+                else if (songIndex == _currentPlayinSongIndexInPlaybackQueue)
                 {
                     if (_audioService.IsPlaying)
                     {
@@ -2691,15 +2741,15 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     }
                     if (PlaybackQueueSource.Items.Count > 0)
                     {
-                        if (_playbackQueueIndex >= PlaybackQueueSource.Items.Count)
+                        if (_currentPlayinSongIndexInPlaybackQueue >= PlaybackQueueSource.Items.Count)
                         {
-                            _playbackQueueIndex = 0;
+                            _currentPlayinSongIndexInPlaybackQueue = 0;
                         }
-                        _ = PlaySongAtIndexAsync(_playbackQueueIndex);
+                        _ = PlaySongAtIndexAsync(_currentPlayinSongIndexInPlaybackQueue);
                     }
                     else
                     {
-                        _playbackQueueIndex = -1;
+                        _currentPlayinSongIndexInPlaybackQueue = -1;
                         await UpdateSongSpecificUi(null);
                     }
                 }
@@ -2792,7 +2842,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             Debug.WriteLine("PlaySong invoked for: " + songToPlay.Title);
             //// Quick exit check. The more detailed check is in PlayInternalAsync.
-            //if (string.IsNullOrEmpty(songToPlay.FilePath) || !File.Exists(songToPlay.FilePath))
+            //if (string.IsNullOrEmpty(songToPlay.FilePath) || !TaggingUtils.FileExists(songToPlay.FilePath))
             //{
             //    _logger.LogError("Song file not found for '{Title}'.", songToPlay.Title);
             //    await ValidateSongAsync(songToPlay);
@@ -2877,10 +2927,13 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             Debug.WriteLine(
                     "Starting new playback queue with " + sourceList.Count + " songs, starting at index " + startIndex);
+
+            _currentPlayinSongIndexInPlaybackQueue = startIndex;
             if (startIndex == -1)
             {
                 _logger.LogWarning("Song not found in current source. Playing standalone.");
                 await PlayInternalAsync(songToPlay);
+                _currentPlayinSongIndexInPlaybackQueue = startIndex;
                 return; // prevent invalid queue creation
             }
 
@@ -2960,8 +3013,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 });
 
         }
-        // The index is a separate variable, we can set it directly.
-        _playbackQueueIndex = finalStartIndex;
 
         // Update context and clear history for the new session
         CurrentPlaybackQuery = contextQuery;
@@ -2987,8 +3038,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             return;
         }
 
-        _playbackQueueIndex = index;
-        var songToPlay = _playbackQueue[_playbackQueueIndex];
+        var songToPlay = _playbackQueue[index];
 
         // If playback fails (e.g., file deleted), automatically skip to the next track.
         if (!await PlayInternalAsync(songToPlay))
@@ -3006,10 +3056,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         if (CurrentRepeatMode == RepeatMode.One)
         {
-            return _playbackQueueIndex;
+            return _currentPlayinSongIndexInPlaybackQueue;
         }
 
-        int nextIndex = _playbackQueueIndex + direction;
+        int nextIndex = _currentPlayinSongIndexInPlaybackQueue + direction;
 
 
         if (nextIndex >= _playbackQueue.Count)
@@ -3059,12 +3109,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         IsShuffleActive = !IsShuffleActive;
         _logger.LogInformation("Shuffle mode toggled to: {ShuffleState}", IsShuffleActive);
 
-        if (IsShuffleActive && _playbackQueue.Any() && _playbackQueueIndex >= 0)
+        if (IsShuffleActive && _playbackQueue.Any() && _currentPlayinSongIndexInPlaybackQueue >= 0)
         {
-            var playedPart = _playbackQueue.Take(_playbackQueueIndex + 1).ToList();
+            var playedPart = _playbackQueue.Take(_currentPlayinSongIndexInPlaybackQueue + 1).ToList();
 
 
-            var upcomingPart = _playbackQueue.Skip(_playbackQueueIndex + 1).ToList();
+            var upcomingPart = _playbackQueue.Skip(_currentPlayinSongIndexInPlaybackQueue + 1).ToList();
 
 
             var shuffledUpcoming = upcomingPart.OrderBy(x => _random.Next()).ToList();
@@ -3165,7 +3215,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         int nextIndex = GetNextIndexInQueue(1);
 
 
-        bool hasLooped = (_playbackQueueIndex == _playbackQueue.Count - 1) && nextIndex == 0;
+        bool hasLooped = (_currentPlayinSongIndexInPlaybackQueue == _playbackQueue.Count - 1) && nextIndex == 0;
 
 
         if (hasLooped && IsShuffleActive && CurrentRepeatMode == RepeatMode.All)
@@ -3326,7 +3376,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         if (!_playbackQueue.Any())
             return;
 
-        var numberToKeep = _playbackQueueIndex + 1;
+        var numberToKeep = _currentPlayinSongIndexInPlaybackQueue + 1;
         if (numberToKeep < PlaybackQueueSource.Count)
         {
             PlaybackQueueSource.RemoveRange(numberToKeep, PlaybackQueueSource.Count - numberToKeep);
@@ -3353,17 +3403,17 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         PlaybackQueueSource.Insert(toIndex, songToMove);
 
         // Important: Update the current playing index if it was affected by the move
-        if (_playbackQueueIndex == fromIndex)
+        if (_currentPlayinSongIndexInPlaybackQueue == fromIndex)
         {
-            _playbackQueueIndex = toIndex;
+            _currentPlayinSongIndexInPlaybackQueue = toIndex;
         }
-        else if (fromIndex < _playbackQueueIndex && toIndex >= _playbackQueueIndex)
+        else if (fromIndex < _currentPlayinSongIndexInPlaybackQueue && toIndex >= _currentPlayinSongIndexInPlaybackQueue)
         {
-            _playbackQueueIndex--;
+            _currentPlayinSongIndexInPlaybackQueue--;
         }
-        else if (fromIndex > _playbackQueueIndex && toIndex <= _playbackQueueIndex)
+        else if (fromIndex > _currentPlayinSongIndexInPlaybackQueue && toIndex <= _currentPlayinSongIndexInPlaybackQueue)
         {
-            _playbackQueueIndex++;
+            _currentPlayinSongIndexInPlaybackQueue++;
         }
     }
 
@@ -3423,12 +3473,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     /// this song.
     /// </summary>
     [RelayCommand]
-    public void PlayNext(SongModelView? song)
+    public void SetAsNextToPlayInQueue(SongModelView? song)
     {
         if (song == null)
             return;
 
-        PlaybackQueueSource.Insert(_playbackQueueIndex + 1, song);
+        PlaybackQueueSource.Insert(_currentPlayinSongIndexInPlaybackQueue + 1, song);
     }
 
     /// <summary>
@@ -3455,13 +3505,13 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     updater.AddRange(distinctSongs);
                 });
 
-            _playbackQueueIndex = 0;
-            await PlaySongAtIndexAsync(_playbackQueueIndex);
+            _currentPlayinSongIndexInPlaybackQueue = 0;
+            await PlaySongAtIndexAsync(_currentPlayinSongIndexInPlaybackQueue);
             return;
         }
 
 
-        var insertIndex = _playbackQueueIndex + 1;
+        var insertIndex = _currentPlayinSongIndexInPlaybackQueue + 1;
         PlaybackQueueSource.InsertRange(distinctSongs, insertIndex);
 
         _logger.LogInformation("Added {Count} song(s) to play next.", distinctSongs.Count());
@@ -3559,13 +3609,17 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             playbackStateObservable
             .Where(s => s.State == DimmerUtilityEnum.FolderScanCompleted)
             .ObserveOn(RxSchedulers.UI)
-                .Subscribe(OnFolderScanCompleted, ex => _logger.LogError(ex, "Error on FolderScanCompleted.")));
+                .Subscribe(OnFolderScanCompleted, ex => _logger.LogError(ex, "Error on FolderScanCompleted."))
+
+            .DisposeWith(CompositeDisposables));
 
         _subsMgr.Add(
             playbackStateObservable
             .Where(s => s.State == DimmerUtilityEnum.FolderScanStarted)
             .ObserveOn(RxSchedulers.UI)
-                .Subscribe(OnFolderScanStarted, ex => _logger.LogError(ex, "Error on             .Where(s => s.State == DimmerUtilityEnum.FolderScanStarted)\r\n.")));
+                .Subscribe(OnFolderScanStarted, ex => _logger.LogError(ex, "Error on             .Where(s => s.State == DimmerUtilityEnum.FolderScanStarted)\r\n."))
+
+            .DisposeWith(CompositeDisposables));
 
         _subsMgr.Add(
             _stateService.LatestDeviceLog
@@ -3574,7 +3628,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     obv =>
                      {
                         SetLatestDeviceLog(obv);
-                    }));
+                    })
+            .DisposeWith(CompositeDisposables))
+            ;
     }
 
     private void OnFolderScanStarted(PlaybackStateInfo info)
@@ -3710,14 +3766,15 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     },
                     ex => _logger.LogError(ex, "Error in IsPlayingChanged subscription")));
 
-
-        _subsMgr.Add(
-            Observable.FromEventPattern<double>(
+        var ss = Observable.FromEventPattern<double>(
                 h => _audioService.PositionChanged += h,
                 h => _audioService.PositionChanged -= h)
                 .Select(evt => evt.EventArgs)
                 .ObserveOn(RxSchedulers.UI)
-                .Subscribe(OnPositionChanged, ex => _logger.LogError(ex, "Error in PositionChanged subscription")));
+                .Subscribe(OnPositionChanged, ex => _logger.LogError(ex, "Error in PositionChanged subscription"))
+                ;
+        _subsMgr.Add(ss
+            );
 
         //_subsMgr.Add(Observable.FromEventPattern<double>(
         //        h => _audioService.SeekCompleted += h,
@@ -3860,14 +3917,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         return true;
     }
 
-    public void SetCurrentlyPickedSongForContext(SongModelView? song)
-    {
-        _logger.LogTrace("SetCurrentlyPickedSongForContext called with: {SongTitle}", song?.Title ?? "None");
 
-        if (song is null) return;
-        song.PlayEvents = DimmerPlayEventList.Where(x => x.SongId == song.Id).ToObservableCollection();
-        SelectedSongForContext = song;
-    }
 
     [RelayCommand]
     public void LoadInSongsAndEvents()
@@ -3977,8 +4027,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         _logger.LogInformation("User requested to add music folder.");
 
-        
+        await Task.Run(async () =>
+        {
             await _folderMgtService.ReScanFolder(folderPath);
+        });
         _stateService.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderReScanned, folderPath, null, null));
     }
 
@@ -4447,23 +4499,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             });
     }
 
-    [RelayCommand]
-    public void UpdateSongInDB(SongModelView songModelView)
-    {
-        if (songModelView == null || songModelView.Id == ObjectId.Empty)
-        {
-            _logger.LogWarning("UpdateSongInDB called with invalid SongModelView.");
-            return;
-        }
-        var songModel = songModelView.ToSongModel();
-        if (songModel == null)
-        {
-            _logger.LogWarning("UpdateSongInDB: Could not map SongModelView to SongModel.");
-            return;
-        }
-        var song = songRepo.Upsert(songModel);
-        _logger.LogInformation("Song '{SongTitle}' updated in database.", songModel.Title);
-    }
 
     [RelayCommand]
     public void RateSong(int newRating)
@@ -5382,7 +5417,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             _logger.LogInformation("Lyrics selected and saved for song '{SongTitle}'", SelectedSong.Title);
 
 
-            SelectedSongLyricsObsCol = LyricsMgtFlow.GetListLyricsCol(selectedResult.SyncedLyrics).ToObservableCollection();
+            //SelectedSongLyricsObsCol = LyricsMgtFlow.GetListLyricsCol(selectedResult.SyncedLyrics).ToObservableCollection();
             LyricsSearchResults.Clear();
             
         }
@@ -5427,75 +5462,122 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
     [RelayCommand]
-    public async Task ApplyNewSongEdits(SongModelView song)
+    public async Task ApplyNewSongEdits(SongModelView src)
     {
-        if (song == null)
+        if (src == null)
             return;
-        _logger.LogInformation("Applying edits to song '{SongTitle}'", song.Title);
+        _logger.LogInformation("Applying edits to song '{SongTitle}'", src.Title);
+        var realm = RealmFactory.GetRealmInstance();
 
-        var songInDb = songRepo.GetById(song.Id);
+        var songInDb = realm.Find<SongModel>(src.Id);
+
         if (songInDb == null)
         {
-            _logger.LogWarning("Song with ID {SongId} not found in database.", song.Id);
+            _logger.LogWarning("Song with ID {SongId} not found in database.", src.Id);
             return;
         }
-        // Update fields
-        songInDb.Title = song.Title;
-        songInDb.ArtistName = song.ArtistName;
-        songInDb.AlbumName = song.AlbumName;
-        songInDb.GenreName = song.GenreName;
-
-
-        songInDb.TrackNumber = song.TrackNumber;
-        songInDb.ReleaseYear = song.ReleaseYear;
-        songInDb.Rating = song.Rating;
-        songInDb.IsFavorite = song.IsFavorite;
-        songInDb.OtherArtistsName = song.OtherArtistsName;
-        songInDb.Composer = song.Composer;
-        // Handle Artist relationship
-        if (!string.IsNullOrWhiteSpace(song.ArtistName))
+        await realm.WriteAsync(() =>
         {
-            var artist = artistRepo.Query(a => a.Name == song.ArtistName).FirstOrDefault();
-            if (artist == null)
-            {
-                artist = artistRepo.Create(new ArtistModel { Name = song.ArtistName });
-            }
-            songInDb.Artist = artist;
-            if (!songInDb.ArtistToSong.Contains(artist))
-            {
-                songInDb.ArtistToSong.Add(artist);
-            }
-        }
-        // Handle Album relationship
-        if (!string.IsNullOrWhiteSpace(song.AlbumName))
-        {
-            var album = albumRepo.Query(a => a.Name == song.AlbumName).FirstOrDefault();
-            if (album == null)
-            {
-                var albumArtist = artistRepo.Query(a => a.Name == song.ArtistName).FirstOrDefault();
-                album = albumRepo.Create(new AlbumModel { Name = song.AlbumName, Artist = albumArtist });
-            }
-            songInDb.Album = album;
-        }
+            // Update fields
+            songInDb.Id = src.Id;
+            songInDb.Title = src.Title;
+            songInDb.FilePath = src.FilePath;
+            songInDb.DurationInSeconds = src.DurationInSeconds;
+            songInDb.IsHidden = src.IsHidden;
+            songInDb.ReleaseYear = src.ReleaseYear;
+            songInDb.NumberOfTimesFaved = src.NumberOfTimesFaved;
+            songInDb.ManualFavoriteCount = src.ManualFavoriteCount;
+            songInDb.TrackNumber = src.TrackNumber;
+            songInDb.FileFormat = src.FileFormat;
+            songInDb.Lyricist = src.Lyricist;
+            songInDb.Composer = src.Composer;
+            songInDb.Conductor = src.Conductor;
+            songInDb.Description = src.Description;
+            songInDb.Language = src.Language;
+            songInDb.DiscNumber = src.DiscNumber;
+            songInDb.DiscTotal = src.DiscTotal;
+            songInDb.FileSize = src.FileSize;
+            songInDb.BitRate = src.BitRate;
+            songInDb.Rating = src.Rating;
+            songInDb.HasLyrics = src.HasLyrics;
+            songInDb.HasSyncedLyrics = src.HasSyncedLyrics;
+            songInDb.IsInstrumental = src.IsInstrumental;
+            songInDb.SyncLyrics = src.SyncLyrics;
+            songInDb.CoverImagePath = src.CoverImagePath;
+            songInDb.TrackTotal = src.TrackTotal;
+            songInDb.SampleRate = src.SampleRate;
+            songInDb.Encoder = src.Encoder;
+            songInDb.BitDepth = src.BitDepth;
+            songInDb.NbOfChannels = src.NbOfChannels;
+            songInDb.UnSyncLyrics = src.UnSyncLyrics;
+            songInDb.IsFavorite = src.IsFavorite;
+            songInDb.Achievement = src.Achievement;
+            songInDb.IsFileExists = src.IsFileExists;
+            songInDb.LastDateUpdated = src.LastDateUpdated;
+            songInDb.DateCreated = src.DateCreated;
+            songInDb.DeviceName = src.DeviceName;
+            songInDb.DeviceFormFactor = src.DeviceFormFactor;
+            songInDb.DeviceModel = src.DeviceModel;
+            songInDb.DeviceManufacturer = src.DeviceManufacturer;
+            songInDb.DeviceVersion = src.DeviceVersion;
+            songInDb.UserIDOnline = src.UserIDOnline;
+            songInDb.IsNew = src.IsNew;
+            songInDb.BPM = src.BPM;
+            songInDb.SetTitleAndDuration(src.Title, src.DurationInSeconds);
+            songInDb.SongTypeValue = src.SongTypeValue;
+            songInDb.ParentSongId = src.ParentSongId;
+            songInDb.SegmentStartTime = src.SegmentStartTime;
+            songInDb.SegmentEndTime = src.SegmentEndTime;
+            songInDb.SegmentEndBehaviorValue = src.SegmentEndBehaviorValue;
+            songInDb.CoverArtHash = src.CoverArtHash;
+            // SearchableText is computed in ViewModel usually; or mapped here if saved
+            // UserNoteAggregatedText is computed
 
-        // Handle Genre relationship
-        if (!string.IsNullOrWhiteSpace(song.GenreName))
-        {
-            var genre = genreRepo.Query(g => g.Name == song.GenreName).FirstOrDefault();
-            if (genre == null)
-            {
-                genre = genreRepo.Create(new GenreModel { Name = song.GenreName });
-            }
-            songInDb.Genre = genre;
-        }
+            // --- Statistics ---
+            songInDb.PlayCount = src.PlayCount;
+            songInDb.PlayCompletedCount = src.PlayCompletedCount;
+            songInDb.SkipCount = src.SkipCount;
+            songInDb.ListenThroughRate = src.ListenThroughRate;
+            songInDb.SkipRate = src.SkipRate;
+            songInDb.FirstPlayed = src.FirstPlayed;
+            songInDb.PopularityScore = src.PopularityScore;
+            songInDb.GlobalRank = src.GlobalRank;
+            songInDb.RankInAlbum = src.RankInAlbum;
+            songInDb.RankInArtist = src.RankInArtist;
+            songInDb.PauseCount = src.PauseCount;
+            songInDb.ResumeCount = src.ResumeCount;
+            songInDb.SeekCount = src.SeekCount;
+            songInDb.LastPlayEventType = src.LastPlayEventType;
+            songInDb.PlayStreakDays = src.PlayStreakDays;
+            songInDb.EddingtonNumber = src.EddingtonNumber;
+            songInDb.EngagementScore = src.EngagementScore;
+            songInDb.TotalPlayDurationSeconds = src.TotalPlayDurationSeconds;
+            songInDb.RepeatCount = src.RepeatCount;
+            songInDb.PreviousCount = src.PreviousCount;
+            songInDb.RestartCount = src.RestartCount;
+            songInDb.DiscoveryDate = src.DiscoveryDate;
 
-        // Save changes
-        await songRepo.UpdateAsync(
-            songInDb.Id,
-            _ =>
+            // --- Custom Mappings (From your AutoMapper config) ---
+            songInDb.ArtistName = src.ArtistName;
+            songInDb.OtherArtistsName = src.OtherArtistsName;
+            songInDb.AlbumName = src.AlbumName;
+            songInDb.GenreName = src.Genre?.Name ?? string.Empty;
+
+            foreach (var artView in src.ArtistToSong)
             {
-            }); // Trigger update
-        var updatedSongView = songRepo.GetById(song.Id).ToSongView();
+                if (artView is not null)
+                {
+                    var art = realm.Find<ArtistModel>(artView.Id);
+                    
+                    if (!songInDb.Album.Artists.Any(a => a.Id == artView.Id))
+                        songInDb.Album.Artists.Add(art);
+                    
+                }
+            }
+            songInDb.Album = realm.All<AlbumModel>().FirstOrDefault(x=>x.Name==src.AlbumName)!;
+
+
+        });
         //MasterListContext.SetSearchQuery(MasterListContext.CurrentTqlQuery);
     }
     #endregion
@@ -6563,7 +6645,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             try
             {
                 string sourcePath = song.FilePath;
-                if (!File.Exists(sourcePath))
+                if (!TaggingUtils.FileExists(sourcePath))
                 {
                     _logger.LogWarning(
                         "Skipping file operation for '{Title}' because source file was not found at '{Path}'.",
@@ -6883,7 +6965,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
     [RelayCommand]
-    public async Task ApplCurrentImageToSong(SongModelView? selectedSong)
+    public async Task AssignImageToSong(SongModelView? selectedSong)
     {
         if (selectedSong is null)
         {
@@ -6921,6 +7003,60 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 // save changes
 
                 realm.Add(songInDb, update: true);
+            });
+    }
+
+    [RelayCommand]
+    public async Task AssignImageToArtist(ArtistModelView? selectedArtist)
+    {
+        if (selectedArtist is null)
+        {
+            return;
+        }
+        
+
+        var realm = RealmFactory.GetRealmInstance();
+        await realm.WriteAsync(
+            () =>
+            {
+                var artistInDB = realm.Find<ArtistModel>(selectedArtist.Id);
+                if (artistInDB is null)
+                {
+                    return;
+                }
+
+                artistInDB.ImagePath = selectedArtist.ImagePath;
+
+                // save changes
+
+                realm.Add(artistInDB, update: true);
+            });
+    }
+
+    [RelayCommand]
+    public async Task AssignImageToAlbum(AlbumModelView? selectedAlbum)
+    {
+        if (selectedAlbum is null)
+        {
+            return;
+        }
+        
+
+        var realm = RealmFactory.GetRealmInstance();
+        await realm.WriteAsync(
+            () =>
+            {
+                var AlbumInDB = realm.Find<AlbumModel>(selectedAlbum.Id);
+                if (AlbumInDB is null)
+                {
+                    return;
+                }
+
+                AlbumInDB.ImagePath = selectedAlbum.ImagePath;
+
+                // save changes
+
+                realm.Add(AlbumInDB, update: true);
             });
     }
 
@@ -7164,25 +7300,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
 
-    [RelayCommand]
-    public async Task PickTargetFolder()
-    {
-#if WINDOWS
-        // WinUI Folder Picker Logic
-        var folderPicker = new Windows.Storage.Pickers.FolderPicker();
-        folderPicker.FileTypeFilter.Add("*");
-        
-        // Boilerplate to associate picker with current window handle (WinUI 3 requirement)
-        var hwnd = ((MauiWinUIWindow)App.Current.Windows[0].Handler.PlatformView).WindowHandle;
-        WinRT.Interop.InitializeWithWindow.Initialize(folderPicker, hwnd);
-
-        var result = await folderPicker.PickSingleFolderAsync();
-        if (result != null)
-        {
-            TargetFolderPath = result.Path;
-        }
-#endif
-    }
 
     // COMMAND: User clicks "Organize"
     [RelayCommand]
@@ -7273,18 +7390,18 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             _logger.LogWarning("Failed to load Last.fm user info.");
             return;
         }
-        UserLocal.LastFMAccountInfo.Name = usr.Name;
-        UserLocal.LastFMAccountInfo.RealName = usr.RealName;
-        UserLocal.LastFMAccountInfo.Url = usr.Url;
-        UserLocal.LastFMAccountInfo.Country = usr.Country;
-        UserLocal.LastFMAccountInfo.Age = usr.Age;
-        UserLocal.LastFMAccountInfo.Playcount = usr.Playcount;
-        UserLocal.LastFMAccountInfo.Playlists = usr.Playlists;
-        UserLocal.LastFMAccountInfo.Registered = usr.Registered;
-        UserLocal.LastFMAccountInfo.Gender = usr.Gender;
-        UserLocal.LastFMAccountInfo.Image = new LastFMUserView.LastImageView();
-        UserLocal.LastFMAccountInfo.Image.Url = usr.Images.LastOrDefault()?.Url;
-        UserLocal.LastFMAccountInfo.Image.Size = usr.Images.LastOrDefault()?.Size;
+        CurrentUserLocal.LastFMAccountInfo.Name = usr.Name;
+        CurrentUserLocal.LastFMAccountInfo.RealName = usr.RealName;
+        CurrentUserLocal.LastFMAccountInfo.Url = usr.Url;
+        CurrentUserLocal.LastFMAccountInfo.Country = usr.Country;
+        CurrentUserLocal.LastFMAccountInfo.Age = usr.Age;
+        CurrentUserLocal.LastFMAccountInfo.Playcount = usr.Playcount;
+        CurrentUserLocal.LastFMAccountInfo.Playlists = usr.Playlists;
+        CurrentUserLocal.LastFMAccountInfo.Registered = usr.Registered;
+        CurrentUserLocal.LastFMAccountInfo.Gender = usr.Gender;
+        CurrentUserLocal.LastFMAccountInfo.Image = new LastFMUserView.LastImageView();
+        CurrentUserLocal.LastFMAccountInfo.Image.Url = usr.Images.LastOrDefault()?.Url;
+        CurrentUserLocal.LastFMAccountInfo.Image.Size = usr.Images.LastOrDefault()?.Size;
         var rlm = RealmFactory.GetRealmInstance();
         rlm.Write(
             () =>
@@ -7327,8 +7444,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                         usrr.LastFMAccountInfo.Registered = usr.Registered;
                         usrr.LastFMAccountInfo.Gender = usr.Gender;
                         usrr.LastFMAccountInfo.Image = new LastFMUser.LastImage();
-                        usrr.LastFMAccountInfo.Image.Url = usr.Images.LastOrDefault().Url;
-                        usrr.LastFMAccountInfo.Image.Size = usr.Images.LastOrDefault().Size;
+                        usrr.LastFMAccountInfo.Image.Url = usr.Images.LastOrDefault()?.Url;
+                        usrr.LastFMAccountInfo.Image.Size = usr.Images.LastOrDefault()?.Size;
 
                         rlm.Add(usrr, update: true);
                     }
@@ -7460,31 +7577,74 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             return;
         }
-        if (SelectedSong.ArtistToSong is null) return;
+        if (SelectedSong.ArtistName is null) return;
 
         var realm = RealmFactory.GetRealmInstance();
         var songInDb = realm.Find<SongModel>(SelectedSong.Id);
-
-        if(songInDb is null  || songInDb.ArtistToSong.Count == 0)
+        if (songInDb is null) return;
+        var artistsToSong = songInDb.ArtistToSong;
+        string? artistName=SelectedSong.ArtistName;
+        if (artistsToSong.Count == 0 || songInDb.ArtistName is null)
         {
-            return;
-        }
-        var artistName = songInDb.ArtistToSong[0]!.Name;
-        artistName ??= string.Empty;
+            var track = new ATL.Track(songInDb.FilePath);
 
+            string tagTitle = track.Title;
+            string tagArtist = track.Artist;
+            string tagAlbumArtist = track.AlbumArtist;
+            string tagAlbum = track.Album;
+            string decodedPath = Uri.UnescapeDataString(track.Path);
+            var (filenameArtist, filenameTitle) = FilenameParser.Parse(track.Path);
+
+            var cleanArtist = StaticUtils.CleanArtist(track.Path, tagArtist, tagTitle);
+            var cleanTitle = StaticUtils.CleanTitle(track.Path, tagTitle, tagAlbum, tagAlbumArtist);
+            string bestRawTitle = !string.IsNullOrWhiteSpace(tagTitle) ? tagTitle : filenameTitle ?? Path.GetFileNameWithoutExtension(decodedPath);
+            string? bestRawArtist = !string.IsNullOrWhiteSpace(tagArtist) ? tagArtist : filenameArtist;
+            string bestAlbumArtist = tagAlbumArtist; // No filename equivalent for this.
+            List<string> artistNames = TaggingUtils.ExtractArtists(bestRawArtist, bestAlbumArtist)
+               .Select(x => StaticUtils.CleanArtist(track.Path, x, track.Title)).ToList();
+
+            string primaryArtistName = artistNames.FirstOrDefault() ?? "Unknown Artist";
+            string allArtistsString = string.Join(", ", artistNames);
+           await realm.WriteAsync(() =>
+            {
+                songInDb.ArtistName = primaryArtistName;
+                songInDb.OtherArtistsName = allArtistsString;
+
+                var artistModel = realm.All<ArtistModel>().FirstOrDefault(a => a.Name == primaryArtistName);
+                artistModel ??= new ArtistModel
+                    {
+                        Id = ObjectId.GenerateNewId(),
+                        Name = primaryArtistName,                        
+                    };
+                var albumModel = realm.All<AlbumModel>().FirstOrDefault(a => a.Name == songInDb.AlbumName);
+                if (albumModel is not null)
+                {
+                    songInDb.Album = albumModel;
+                    if (albumModel.Artists.Contains(artistModel) == false)
+                    {
+                        albumModel.Artists.Add(artistModel);
+                    }
+                }
+                songInDb.Artist = artistModel;
+                songInDb.ArtistToSong.Add(artistModel);
+
+                artistName = songInDb.ArtistToSong[0]!.Name;
+                artistName ??= string.Empty;
+             });
+                }
         SelectedSongLastFMData = await lastfmService.GetTrackInfoAsync(artistName, songInDb.Title);
         if (SelectedSongLastFMData is null)
         {
             return;
         }
-        await UpdateSongFromLastFMDataAsync();
+        //await UpdateSongFromLastFMDataAsync();
         SelectedSongLastFMData.Artist = await lastfmService.GetArtistInfoAsync(artistName);
-        
-        SelectedSongLastFMData.Album = await lastfmService.GetAlbumInfoAsync(artistName, songInDb.AlbumName);
-        SimilarTracks = await lastfmService.GetSimilarAsync(artistName, SelectedSongLastFMData.Name);
 
-        await UpdateSongArtistInDbWithLastFMData();
-        await UpdateSongAlbumInDbWithLastFMData();
+        SelectedSongLastFMData.Album = await lastfmService.GetAlbumInfoAsync(artistName, songInDb.AlbumName);
+        //SimilarTracks = await lastfmService.GetSimilarAsync(artistName, SelectedSongLastFMData.Name);
+
+        //await UpdateSongArtistInDbWithLastFMData();
+        //await UpdateSongAlbumInDbWithLastFMData();
     }
 
 
@@ -7564,14 +7724,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         var realm = RealmFactory.GetRealmInstance();
 
-        //var listOfSongsInAlbum = SelectedSongLastFMData.Album.Tracks;
-
-
-        //List<SongModelView>? listOfSongsInSearchResultWithMatchAlbName =
-        //    [.. SearchResults.Where(s => s.AlbumName == SelectedSongLastFMData.Album.Name)];
-
-        //List<SongModelView>? listOfSongsInSearchResultWithMatchTitle =
-        //    [.. SearchResults.Where(s => s.Title == SelectedSongLastFMData.Name)];
 
         await realm.WriteAsync(() => 
         {
@@ -7835,10 +7987,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
 
-    #region Dimms Section
-
-
-    #endregion
+    public IObservable<AppLogModel> LogStream => _stateService.LatestDeviceLog.Where(s => s.Log is not null);
 }
 
 

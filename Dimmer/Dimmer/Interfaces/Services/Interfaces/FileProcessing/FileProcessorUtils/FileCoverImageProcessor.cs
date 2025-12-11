@@ -18,7 +18,7 @@ public static class FileCoverImageProcessor
             return string.Empty;
         }
 
-        string? determinedMimeType = null;
+        string? determinedMimeType;
         string targetExtension = ".png"; // Default extension if not determined otherwise
 
         // 1. Try to get imageData if it's null
@@ -101,7 +101,8 @@ public static class FileCoverImageProcessor
 
 
         // 4. Sanitize filename and create full file paths for checking/saving
-        string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fullfilePath); // Use this to avoid original extension issues
+        string decodedPath = Uri.UnescapeDataString(fullfilePath);
+        string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(decodedPath); // Use this to avoid original extension issues
         string sanitizedFileName = string.Join("_", fileNameWithoutExtension.Split(Path.GetInvalidFileNameChars()));
 
         // Paths to check for existing files

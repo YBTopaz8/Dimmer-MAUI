@@ -3,7 +3,7 @@
   <PropertyGroup>
     <SelectedDevice>Nothing A142</SelectedDevice>
     <SelectedPlatformGroup>PhysicalDevice</SelectedPlatformGroup>
-    <ActiveDebugProfile>Nothing A142 (Android 15.0 - API 35)</ActiveDebugProfile>
+    <ActiveDebugProfile>Nothing A142 (Android 16.0 - API 36)</ActiveDebugProfile>
     <DefaultDevice>pixel_7_-_api_36</DefaultDevice>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

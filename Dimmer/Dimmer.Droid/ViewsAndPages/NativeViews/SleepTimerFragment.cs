@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Google.Android.Material.Button;
-
-namespace Dimmer.ViewsAndPages.NativeViews;
+﻿namespace Dimmer.ViewsAndPages.NativeViews;
 
 
 public class SleepTimerFragment : Fragment

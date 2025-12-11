@@ -6,9 +6,6 @@ using System.Threading.Tasks;
 
 using Dimmer.Charts;
 
-using Colors = Microsoft.UI.Colors;
-using SolidColorBrush = Microsoft.UI.Xaml.Media.SolidColorBrush;
-
 namespace Dimmer.WinUI.Utils.Converters;
 
 

@@ -111,9 +111,13 @@ public static class DimmerMappers
             AlbumName = src.AlbumName,
             GenreName = src.Genre?.Name ?? string.Empty,
 
+
             // --- Nested Objects ---
             // Note: We use ToModelView() recursively. 
             // Warning: Your AutoMapper config IGNORED ArtistToSong list to prevent cycles. We do the same.
+            ArtistToSong = src.ArtistToSong.AsEnumerable().Select(x => x.ToArtistModelView()).ToObservableCollection(),
+
+
             Artist = src.Artist?.ToArtistModelView(),
             Album = src.Album?.ToAlbumModelView(),
             Genre = src.Genre?.ToGenreModelView() ?? new GenreModelView(),
@@ -389,7 +393,7 @@ public static class DimmerMappers
             ParetoPercentage = src.ParetoPercentage,
             TotalSongsByArtist = src.TotalSongsByArtist,
             TotalAlbumsByArtist = src.TotalAlbumsByArtist,
-
+            
             // Relationships Ignored
         };
     }
@@ -775,7 +779,28 @@ public static class DimmerMappers
             Image = src.Image?.ToLastImage()
         };
     }
-
+    public static UserModel? ParseUserToRealmUser(this UserModelOnline usr)
+    {
+        if (usr is null) return null;
+        return new UserModel
+        {
+            UserName = usr.Username,
+            UserEmail = usr.Email,
+            IsPremium = usr.IsPremium,
+            UserProfileImage = usr.ProfileImagePath
+        };
+    }
+    //public static UserModelView? ParseUserToView(this UserModelOnline usr)
+    //{
+    //    if (usr is null) return null;
+    //    return new UserModelView
+    //    {
+    //        Username = usr.Username,
+    //        Email = usr.Email,
+    //        IsPremium = usr.IsPremium,
+    //        UserProfileImage = usr.ProfileImagePath
+    //    };
+    //}
     public static LastFMUser? ToLastFMUser(this Hqub.Lastfm.Entities.User? src)
     {
         if (src is null) return null;

@@ -4,7 +4,6 @@ using Dimmer.Utilities.Extensions;
 using Windows.Graphics;
 
 using Application = Microsoft.Maui.Controls.Application;
-using Button = Microsoft.Maui.Controls.Button;
 using Window = Microsoft.Maui.Controls.Window;
 namespace Dimmer.WinUI.Views.CustomViews.MauiViews;
 

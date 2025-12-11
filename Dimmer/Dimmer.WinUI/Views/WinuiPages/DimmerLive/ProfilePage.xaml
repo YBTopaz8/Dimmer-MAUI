@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="Dimmer.WinUI.Views.WinuiPages.DimmerLive.ProfilePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:Dimmer.WinUI.Views.WinuiPages.DimmerLive"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:Dimmer.DimmerLive.Models"
+    mc:Ignorable="d">
+
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+        <Pivot>
+            <Pivot.Title>
+                <TextBlock
+                    FontSize="24"
+                    FontWeight="SemiBold"
+                    Text="My Profile" />
+            </Pivot.Title>
+
+            <!--  TAB 1: OVERVIEW & EDIT  -->
+            <PivotItem Header="Overview">
+                <ScrollViewer>
+                    <StackPanel Padding="0,12,24,24" Spacing="24">
+
+                        <!--  Header Card  -->
+                        <Grid
+                            Padding="24"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            CornerRadius="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <PersonPicture
+                                Width="100"
+                                Height="100"
+                                Margin="0,0,24,0"
+                                DisplayName="{x:Bind ViewModel.CurrentUser.Username, Mode=OneWay}"
+                                ProfilePicture="{x:Bind ViewModel.CurrentUser.UserProfileImage, Mode=OneWay, Converter={StaticResource StringToImageConverter}}" />
+                            <StackPanel
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                Spacing="4">
+
+                                <Button Click="ShareProfile" Style="{StaticResource AccentButtonStyle}">
+                                    <!--  Changed from Command binding  -->
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <FontIcon FontSize="14" Glyph="&#xE72D;" />
+                                        <TextBlock Text="Invite / Share" />
+                                    </StackPanel>
+                                </Button>
+
+
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="{x:Bind ViewModel.CurrentUser.Username, Mode=OneWay}" />
+                                    <!--  Premium Badge  -->
+                                    <Border
+                                        Padding="6,2"
+                                        VerticalAlignment="Center"
+                                        Background="Gold"
+                                        CornerRadius="4"
+                                        Visibility="{x:Bind ViewModel.CurrentUser.IsPremium, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                                        <TextBlock
+                                            FontSize="10"
+                                            FontWeight="Bold"
+                                            Foreground="Black"
+                                            Text="PREMIUM" />
+                                    </Border>
+                                </StackPanel>
+
+                                <TextBlock Opacity="0.6" Text="{x:Bind ViewModel.CurrentUser.Email, Mode=OneWay}" />
+                                <TextBlock
+                                    Margin="0,8,0,0"
+                                    Text="{x:Bind ViewModel.CurrentUser.UserBio, Mode=OneWay, FallbackValue='No bio set'}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <!--  Edit Button  -->
+                            <Button
+                                Grid.Column="2"
+                                VerticalAlignment="Top"
+                                Click="ShowEditProfileDialog">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon FontSize="14" Glyph="&#xE70F;" />
+                                    <TextBlock Text="Edit Details" />
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+
+                        <!--  Stats Grid  -->
+                        <Grid ColumnSpacing="12" RowSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border
+                                Grid.Column="0"
+                                Padding="16"
+                                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                CornerRadius="8">
+                                <StackPanel>
+                                    <TextBlock
+                                        FontSize="12"
+                                        Opacity="0.6"
+                                        Text="Last.FM Connected" />
+                                    <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="{x:Bind ViewModel.CurrentUser.LastFMAccountInfo.Name, Mode=OneWay, FallbackValue='No'}" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border
+                                Grid.Column="1"
+                                Padding="16"
+                                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                CornerRadius="8">
+                                <StackPanel>
+                                    <TextBlock
+                                        FontSize="12"
+                                        Opacity="0.6"
+                                        Text="Joined" />
+                                    <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="{x:Bind ViewModel.CurrentUser.UserDateCreated, Mode=OneWay}" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!--  Device Info  -->
+                        <Expander
+                            HorizontalAlignment="Stretch"
+                            Header="Current Device Details"
+                            IsExpanded="True">
+                            <StackPanel Padding="0,12,0,0" Spacing="8">
+                                <TextBlock FontWeight="Bold" Text="{x:Bind ViewModel.CurrentUser.DeviceName}" />
+                                <TextBlock Opacity="0.7" Text="{x:Bind ViewModel.CurrentUser.DeviceModel}" />
+                                <TextBlock
+                                    FontSize="12"
+                                    Opacity="0.5"
+                                    Text="{x:Bind ViewModel.CurrentUser.DeviceVersion}" />
+                            </StackPanel>
+                        </Expander>
+
+                        <!--  Logout  -->
+                        <Button Command="{x:Bind ViewModel.NavigateToCloudPageCommand}" Content="Cloud Space" />
+                        <Button
+                            HorizontalAlignment="Left"
+                            Background="DarkRed"
+                            Command="{x:Bind ViewModel.LogoutCommand}"
+                            Style="{StaticResource AccentButtonStyle}">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE7E8;" />
+                                <TextBlock Text="Sign Out" />
+                            </StackPanel>
+                        </Button>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </PivotItem>
+
+            <!--  TAB 2: SECURITY (Change Password)  -->
+            <PivotItem Header="Security">
+                <StackPanel
+                    Width="850"
+                    Padding="0,12,0,0"
+                    HorizontalAlignment="Center"
+                    Spacing="24">
+                    <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Password Management" />
+
+                    <Border
+                        Padding="24"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        CornerRadius="8">
+                        <StackPanel Spacing="16">
+                            <PasswordBox
+                                x:Name="PbNewPass"
+                                Header="New Password"
+                                PlaceholderText="Enter new password" />
+                            <PasswordBox
+                                x:Name="PbConfirmPass"
+                                Header="Confirm Password"
+                                PlaceholderText="Re-enter new password" />
+
+                            <Button
+                                HorizontalAlignment="Right"
+                                Click="ChangePasswordBtn_Click"
+                                Content="Update Password" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </PivotItem>
+
+            <!--  TAB 3: PREMIUM SUBSCRIPTION  -->
+            <PivotItem Visibility="Collapsed">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="300" />
+                        <!--  Sidebar for active plan  -->
+                    </Grid.ColumnDefinitions>
+
+                    <!--  Marketing Content  -->
+                    <ScrollViewer Grid.Column="0" Padding="0,0,24,0">
+                        <StackPanel Spacing="20">
+                            <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Unlock the full potential of Dimmer." />
+
+                            <!--  Feature List  -->
+                            <StackPanel Spacing="12">
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <FontIcon Foreground="Gold" Glyph="&#xE73E;" />
+                                    <TextBlock Text="Unlimited Cloud Backups" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <FontIcon Foreground="Gold" Glyph="&#xE73E;" />
+                                    <TextBlock Text="High Quality Audio Sharing" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <FontIcon Foreground="Gold" Glyph="&#xE73E;" />
+                                    <TextBlock Text="Exclusive Themes &amp; Badges" />
+                                </StackPanel>
+                            </StackPanel>
+
+                            <!--  Pricing Cards  -->
+                            <GridView SelectionMode="Single">
+                                <Border
+                                    Width="200"
+                                    Height="250"
+                                    Margin="0,0,16,0"
+                                    Padding="16"
+                                    Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                    CornerRadius="8">
+                                    <StackPanel VerticalAlignment="Center" Spacing="12">
+                                        <TextBlock
+                                            HorizontalAlignment="Center"
+                                            FontWeight="Bold"
+                                            Text="Monthly" />
+                                        <TextBlock
+                                            HorizontalAlignment="Center"
+                                            FontSize="32"
+                                            Text="$4.99" />
+                                        <Button
+                                            HorizontalAlignment="Center"
+                                            Command="{x:Bind ViewModel.SubscribeToPremiumCommand}"
+                                            Content="Subscribe" />
+                                    </StackPanel>
+                                </Border>
+                                <Border
+                                    Width="200"
+                                    Height="250"
+                                    Padding="16"
+                                    Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                    CornerRadius="8">
+                                    <StackPanel VerticalAlignment="Center" Spacing="12">
+                                        <TextBlock
+                                            HorizontalAlignment="Center"
+                                            FontWeight="Bold"
+                                            Foreground="White"
+                                            Text="Yearly" />
+                                        <TextBlock
+                                            HorizontalAlignment="Center"
+                                            FontSize="32"
+                                            Foreground="White"
+                                            Text="$49.99" />
+                                        <TextBlock
+                                            HorizontalAlignment="Center"
+                                            FontSize="12"
+                                            Foreground="White"
+                                            Opacity="0.8"
+                                            Text="Save 20%" />
+                                        <Button
+                                            HorizontalAlignment="Center"
+                                            Background="White"
+                                            Command="{x:Bind ViewModel.SubscribeToPremiumCommand}"
+                                            Content="Subscribe"
+                                            Foreground="Black" />
+                                    </StackPanel>
+                                </Border>
+                            </GridView>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!--  Active Status Sidebar  -->
+                    <Border
+                        Grid.Column="1"
+                        Padding="20"
+                        Background="{ThemeResource LayerFillColorAltBrush}"
+                        CornerRadius="8">
+                        <StackPanel Spacing="16">
+                            <TextBlock FontWeight="Bold" Text="Current Plan" />
+
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="{x:Bind ViewModel.CurrentUser.IsPremium, Mode=OneWay, Converter={StaticResource BoolToGlyphConverter}}" />
+                                <TextBlock Text="{x:Bind ViewModel.CurrentUser.IsPremium, Mode=OneWay, Converter={StaticResource BoolToPlanNameConverter}}" />
+                            </StackPanel>
+
+                            <ProgressBar IsIndeterminate="True" Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </PivotItem>
+
+        </Pivot>
+    </Grid>
+</Page>

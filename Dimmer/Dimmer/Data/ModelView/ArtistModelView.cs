@@ -1,5 +1,7 @@
 ﻿
 
+using Hqub.Lastfm.Entities;
+
 namespace Dimmer.Data.ModelView;
 
 [Utils.Preserve(AllMembers = true)]
@@ -77,6 +79,7 @@ public partial class ArtistModelView : ObservableObject
     [ObservableProperty]
     public partial int TotalAlbumsByArtist { get; set; }
     [ObservableProperty]
-    public partial ObservableCollection<string> ListOfSimilarArtists { get;  set; }
+    public partial ObservableCollection<string> ListOfSimilarArtistsNames { get;  set; }
     public ObservableCollection<SongModelView> SongsByArtist { get;  set; }
+    public ObservableCollection<Artist> ListOfSimilarArtists { get; set; }
 }

@@ -89,12 +89,18 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         _ = Task.Run(async () => await GetSetUpOutPutDevices());
     }
 
+   
     private void PlaybackList_CurrentItemChanged(MediaPlaybackList sender, CurrentMediaPlaybackItemChangedEventArgs args)
     {
 
-        if (args.NewItem == null) return;
-        var props = args.NewItem.GetDisplayProperties();
-
+        if (args.Reason == MediaPlaybackItemChangedReason.EndOfStream)
+        {
+            
+            MediaPlayer_MediaEnded(null, args);
+        }
+        if (args.NewItem == null ||_nextSongInList is null) return;
+        var newProps = args.NewItem.GetDisplayProperties();
+        //_currentTrackMetadata = _nextSongInList;
 
     }
 
@@ -401,6 +407,8 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     private bool _isAmbienceEnabled = false;
 
     private double _ambienceVolume = 0.5;
+    private SongModelView _nextSongInList;
+
     public double AmbienceVolume
     {
         get => _ambienceVolume;
@@ -466,9 +474,10 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     public async Task SendNextSong(SongModelView nextSong)
     {
-        var mediaPBItem = await CreateMediaPlaybackItemAsync(nextSong);
-        _playbackList.Items.Add(mediaPBItem);
-
+        _nextSongInList = nextSong;
+        //var mediaPBItem = await CreateMediaPlaybackItemAsync(nextSong);
+        //_playbackList.Items.Add(mediaPBItem);
+        
     }
 
     #region Core Playback Methods (Async)
@@ -485,29 +494,6 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             ThrowIfDisposed();
             ArgumentNullException.ThrowIfNull(songModel);
 
-
-
-            CancellationTokenSource? oldCts = null;
-            CancellationTokenSource newCts = new CancellationTokenSource();
-
-            lock (this)
-            {
-                oldCts = _initializationCts;
-                _initializationCts = newCts;
-            }
-
-            if (oldCts != null)
-            {
-                Debug.WriteLine("[AudioService] InitializeAsync: Cancelling previous initialization task.");
-                await oldCts.CancelAsync();
-                oldCts.Dispose();
-            }
-
-
-            var token = newCts.Token;
-
-
-
             _currentTrackMetadata = songModel;
             _currentSong.OnNext(songModel);
             OnPropertyChanged(nameof(CurrentTrackMetadata));
@@ -523,8 +509,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
             try
             {
-                mediaPlaybackItem = await CreateMediaPlaybackItemAsync(songModel, null, token).ConfigureAwait(false);
-                token.ThrowIfCancellationRequested();
+                mediaPlaybackItem = await CreateMediaPlaybackItemAsync(songModel, null).ConfigureAwait(false);
 
                 if (mediaPlaybackItem != null)
                 {
@@ -560,14 +545,6 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             {
 
 
-                lock (_lockObject)
-                {
-                    if (_initializationCts == newCts)
-                    {
-                        _initializationCts = null;
-                    }
-                }
-                newCts.Dispose();
 
                 if (!success)
                 {
@@ -762,9 +739,11 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
                 Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: Attempting StorageFile for path: {fullPath} for '{media.Title}'");
                 storageFile = await StorageFile.GetFileFromPathAsync(fullPath).AsTask(token);
             }
-
-            token.ThrowIfCancellationRequested();
-
+            
+            if(token.IsCancellationRequested)
+            {
+                return null;
+            }
             MediaSource? mediaSource;
             if (storageFile != null)
             {
@@ -787,6 +766,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             var mediaPlaybackItem = new MediaPlaybackItem(mediaSource);
             var props = mediaPlaybackItem.GetDisplayProperties();
             props.Type = MediaPlaybackType.Music;
+
             props.MusicProperties.Title = media.Title ?? Path.GetFileNameWithoutExtension(media.FilePath) ?? "Unknown Title";
             props.MusicProperties.Artist = media.Id.ToString();
             props.MusicProperties.AlbumTitle = media.AlbumName ?? string.Empty;
@@ -906,6 +886,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     private void MediaPlayer_MediaEnded(MediaPlayer sender, object args)
     {
+        
         Debug.WriteLine($"[AudioService] MediaEnded: {_currentTrackMetadata?.Title ?? "Unknown"}");
         _ambiencePlayer.Pause();
         CurrentPosition = Duration;

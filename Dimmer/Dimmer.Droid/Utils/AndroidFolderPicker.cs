@@ -1,7 +1,4 @@
 ﻿using Application = Android.App.Application;
-using Android.Database;
-using Android.Content;
-using Android.Provider;
 namespace Dimmer.Utils;
 
 

@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 
+using Dimmer.DimmerLive.Orchestration;
 using Dimmer.Interfaces;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.Interfaces.Services.Lyrics;
@@ -137,10 +138,26 @@ public static class ServiceRegistration
         services.AddSingleton<SocialViewModel>();
         services.AddSingleton<ChatViewModel>(); // You'll create this next
 
-
+        RegisterPartAndClasses();
         return services;
     }
 
+    private static void RegisterPartAndClasses()
+    {
+        if (Connectivity.NetworkAccess == NetworkAccess.Internet && ParseSetup.InitializeParseClient())
+        {
+            ParseClient.Instance.RegisterSubclass(typeof(UserDeviceSession));
+            ParseClient.Instance.RegisterSubclass(typeof(ChatConversation));
+            ParseClient.Instance.RegisterSubclass(typeof(ChatMessage));
+            ParseClient.Instance.RegisterSubclass(typeof(DimmerSharedSong));
+            ParseClient.Instance.RegisterSubclass(typeof(UserModelOnline));
+            ParseClient.Instance.RegisterSubclass(typeof(DeviceState));
+            ParseClient.Instance.RegisterSubclass(typeof(UserModelOnline));
+            ParseClient.Instance.RegisterSubclass(typeof(FriendRequest));
+            ParseClient.Instance.RegisterSubclass(typeof(AppUpdateModel));
+
+        }
+    }
     private static IConfigurationRoot? BuildConfiguration()
     {
         var assembly = Assembly.GetExecutingAssembly();

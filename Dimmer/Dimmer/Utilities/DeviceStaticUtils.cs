@@ -58,7 +58,9 @@ public static class LyricsManager // A good practice to put static methods in a 
             }
 
             // Get the name of the audio file without its extension (e.g., "MySong")
-            string baseFileName = Path.GetFileNameWithoutExtension(audioFilePath);
+
+            string decodedPath = Uri.UnescapeDataString(audioFilePath);
+            string baseFileName = Path.GetFileNameWithoutExtension(decodedPath);
             string sanitizedBaseFileName = SanitizeFileName(baseFileName);
 
             const string extension = ".lrc";

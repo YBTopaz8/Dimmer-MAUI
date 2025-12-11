@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="Dimmer.WinUI.Views.WinuiPages.DimmerLive.SocialPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:Dimmer.WinUI.Views.WinuiPages.DimmerLive"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:Dimmer.DimmerLive.Models"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <!--  Templates defined here  -->
+        <DataTemplate x:Key="StandardMessageTemplate" x:DataType="models:ChatMessage">
+            <Grid Margin="0,4">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBlock
+                    Margin="4,0,0,2"
+                    FontSize="10"
+                    Opacity="0.5"
+                    Text="{x:Bind UserName}" />
+                <Border
+                    Padding="12,8"
+                    Background="{ThemeResource LayerFillColorDefaultBrush}"
+                    CornerRadius="12">
+                    <TextBlock Text="{x:Bind Text}" TextWrapping="Wrap" />
+                </Border>
+            </Grid>
+        </DataTemplate>
+
+        <DataTemplate x:Key="SongShareMessageTemplate" x:DataType="models:ChatMessage">
+            <Grid Margin="0,8">
+                <Border
+                    Padding="12"
+                    Background="{ThemeResource AccentFillColorDefaultBrush}"
+                    CornerRadius="8">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <!--  Cover Art Placeholder  -->
+                        <Border
+                            Width="48"
+                            Height="48"
+                            Background="Black"
+                            CornerRadius="4">
+                            <Image Stretch="UniformToFill">
+                                <Image.Source>
+                                    <BitmapImage UriSource="{x:Bind SharedSong.CoverArtFile.Url, Mode=OneWay}" />
+                                </Image.Source>
+                            </Image>
+                        </Border>
+
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock
+                                FontWeight="Bold"
+                                Foreground="White"
+                                Text="{x:Bind SharedSong.Title}" />
+                            <TextBlock
+                                FontSize="12"
+                                Foreground="White"
+                                Opacity="0.8"
+                                Text="{x:Bind SharedSong.ArtistName}" />
+                            <TextBlock
+                                FontSize="10"
+                                Foreground="White"
+                                Opacity="0.6"
+                                Text="Shared Song" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </DataTemplate>
+
+        <!--  Simplified Selector: In production, use the C# logic to pick Left/Right alignment  -->
+        <local:ChatMessageTemplateSelector
+            x:Key="ChatSelector"
+            PeerMessageTemplate="{StaticResource StandardMessageTemplate}"
+            SongShareTemplate="{StaticResource SongShareMessageTemplate}" />
+    </Page.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="300" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!--  LEFT PANE: Friends & Search  -->
+        <Grid
+            Grid.Column="0"
+            Background="{ThemeResource LayerFillColorAltBrush}"
+            BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
+            BorderThickness="0,0,1,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!--  Search  -->
+            <AutoSuggestBox
+                Grid.Row="0"
+                Margin="12"
+                ItemsSource="{x:Bind ChatVM.UserSearchResults, Mode=OneWay}"
+                PlaceholderText="Find users..."
+                Text="{x:Bind ChatVM.UserSearchTerm, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                <AutoSuggestBox.ItemTemplate>
+                    <DataTemplate x:DataType="models:UserModelOnline">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <PersonPicture Width="24" DisplayName="{x:Bind Username}" />
+                            <TextBlock VerticalAlignment="Center" Text="{x:Bind Username}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </AutoSuggestBox.ItemTemplate>
+            </AutoSuggestBox>
+
+            <!--  Conversations / Friends List  -->
+            <Pivot Grid.Row="1">
+                <PivotItem Header="Chats">
+                    <ListView ItemsSource="{x:Bind ChatVM.Conversations, Mode=OneWay}" SelectedItem="{x:Bind ChatVM.SelectedConversation, Mode=TwoWay}">
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="models:ChatConversation">
+                                <StackPanel Padding="8">
+                                    <TextBlock FontWeight="SemiBold" Text="{x:Bind Name}" />
+                                    <TextBlock
+                                        FontSize="12"
+                                        MaxLines="1"
+                                        Opacity="0.6"
+                                        Text="{x:Bind LastMessage.Text}"
+                                        TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </PivotItem>
+                <PivotItem Header="Requests">
+                    <ListView ItemsSource="{x:Bind SocialVM.FriendRequests, Mode=OneWay}">
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="models:FriendRequest">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock VerticalAlignment="Center" Text="{x:Bind Sender.Username}" />
+                                    <Button
+                                        Grid.Column="1"
+                                        Margin="4"
+                                        Command="{Binding ElementName=RootPage, Path=SocialVM.AcceptRequestCommand}"
+                                        CommandParameter="{Binding}"
+                                        Content="&#xE8FB;"
+                                        FontFamily="Segoe MDL2 Assets" />
+                                    <Button
+                                        Grid.Column="2"
+                                        Margin="4"
+                                        Command="{Binding ElementName=RootPage, Path=SocialVM.RejectRequestCommand}"
+                                        CommandParameter="{Binding}"
+                                        Content="&#xE711;"
+                                        FontFamily="Segoe MDL2 Assets" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </PivotItem>
+            </Pivot>
+        </Grid>
+
+        <!--  RIGHT PANE: Chat Area  -->
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!--  Chat Header  -->
+            <Border
+                Grid.Row="0"
+                Padding="16"
+                BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
+                BorderThickness="0,0,0,1">
+                <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="{x:Bind ChatVM.SelectedConversation.Name, Mode=OneWay, FallbackValue='Select a conversation'}" />
+            </Border>
+
+            <!--  Messages List  -->
+            <ListView
+                Grid.Row="1"
+                ItemTemplateSelector="{StaticResource ChatSelector}"
+                ItemsSource="{x:Bind ChatVM.Messages, Mode=OneWay}"
+                Loaded="MessagesList_Loaded"
+                SelectionMode="None">
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    </Style>
+                </ListView.ItemContainerStyle>
+            </ListView>
+
+            <!--  Input Area  -->
+            <Grid
+                Grid.Row="2"
+                Padding="12"
+                Background="{ThemeResource LayerFillColorDefaultBrush}"
+                ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <Button
+                    Grid.Column="0"
+                    Command="{x:Bind ChatVM.ShareCurrentSongCommand}"
+                    Content="&#xE72D;"
+                    FontFamily="Segoe MDL2 Assets"
+                    ToolTipService.ToolTip="Share Current Song" />
+
+                <TextBox
+                    Grid.Column="1"
+                    PlaceholderText="Type a message..."
+                    Text="{x:Bind ChatVM.NewMessageText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                <Button
+                    Grid.Column="2"
+                    Command="{x:Bind ChatVM.SendMessageCommand}"
+                    Content="Send"
+                    Style="{StaticResource AccentButtonStyle}" />
+            </Grid>
+        </Grid>
+    </Grid>
+</Page>

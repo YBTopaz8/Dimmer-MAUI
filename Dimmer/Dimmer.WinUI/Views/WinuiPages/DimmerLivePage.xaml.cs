@@ -12,11 +12,8 @@ using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
-using Microsoft.UI.Xaml.Controls.Primitives;
 
-using Button = Microsoft.UI.Xaml.Controls.Button;
 using Grid = Microsoft.UI.Xaml.Controls.Grid;
-using SolidColorBrush = Microsoft.UI.Xaml.Media.SolidColorBrush;
 using System.Threading.Tasks;
 using Dimmer.Utilities.Extensions;
 
@@ -57,8 +54,9 @@ public sealed partial class DimmerLivePage : Page
             try
             {
                 await MyViewModel.LoginViewModel.InitializeAsync();
-                var isAuth =  MyViewModel.LoginViewModel.CurrentUser.IsAuthenticated;
-                if (isAuth)
+                var isAuth =  MyViewModel.LoginViewModel.CurrentUserOnline?.IsAuthenticated;
+                if (isAuth is null) return;
+                if ((bool)isAuth)
                 {
                     GridOfAuth.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
                     GridFullView.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
@@ -69,6 +67,7 @@ public sealed partial class DimmerLivePage : Page
             {
                 Debug.WriteLine(ex.Message);
             }
+
         }
     }
 

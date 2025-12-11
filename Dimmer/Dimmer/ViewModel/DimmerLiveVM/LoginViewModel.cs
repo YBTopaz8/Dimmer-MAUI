@@ -20,7 +20,13 @@ public partial class LoginViewModel : ObservableObject
 
     [ObservableProperty]
     public partial bool RememberMe { get; set; }
-    public static bool IsAuthenticated => string.IsNullOrEmpty( ParseClient.Instance.CurrentUser?.SessionToken);
+    public static bool IsAuthenticated
+    {
+        get
+        {
+            return string.IsNullOrEmpty(ParseClient.Instance.CurrentUser?.SessionToken);
+        }
+    }
 
     [ObservableProperty]
     public partial bool IsLoginEnabled { get; set; } = true;
@@ -41,11 +47,16 @@ public partial class LoginViewModel : ObservableObject
 
 
     [ObservableProperty]
-    public partial UserModelOnline? CurrentUser { get;  set; }
+    public partial UserModelOnline? CurrentUserOnline { get;  set; }
+
+    [ObservableProperty]
+    public partial UserModelView? CurrentUser { get;  set; }
+
     [ObservableProperty]
     public partial int SelectedIndex { get;  set; }
 
-    public LoginViewModel(IAuthenticationService authService, IFilePicker _filePicker, IRealmFactory realmFactory)
+    public LoginViewModel(IAuthenticationService authService, IFilePicker _filePicker, IRealmFactory realmFactory
+        )
     {
         _authService = authService;
         this.filePicker=_filePicker;
@@ -132,22 +143,24 @@ public partial class LoginViewModel : ObservableObject
     {
         IsBusy = true;
         await _authService.LogoutAsync();
-        CurrentUser=null;
+        CurrentUserOnline=null;
         // await _navigationService.NavigateToLoginPageAsync();
         IsBusy = false;
     }
 
     [RelayCommand]
-    public async Task InitializeAsync()
+    public async Task<bool> InitializeAsync()
     {
         if(Connectivity.NetworkAccess == NetworkAccess.Internet)
         {     
 
             await _authService.AutoLoginAsync();
 
-            CurrentUser = new UserModelOnline(ParseClient.Instance.CurrentUser);
-            CurrentUser.IsAuthenticated = ParseClient.Instance.CurrentUser.SessionToken != null;
+            CurrentUserOnline = new UserModelOnline(ParseClient.Instance.CurrentUser);
+            CurrentUserOnline.IsAuthenticated = ParseClient.Instance.CurrentUser.SessionToken != null;
+            return CurrentUserOnline.IsAuthenticated;
         }
+        return false;
     }
     [RelayCommand]
     public async Task PickImageFromDevice()
@@ -218,7 +231,7 @@ public partial class LoginViewModel : ObservableObject
     public async Task<AuthResult> UpdateProfileImageAsync(Stream imageStream, string fileName)
     {
         
-        if (CurrentUser == null)
+        if (CurrentUserOnline == null)
         {
             return AuthResult.Failure("User is not logged in.");
         }
@@ -236,10 +249,10 @@ public partial class LoginViewModel : ObservableObject
 
             // 3. Associate the uploaded file with the user.
             //    We'll assume your UserModelOnline has a 'profileImage' property of type ParseFile.
-            CurrentUser.ProfileImageFile = imageFile; // You'll need to add this property to your UserModelOnline class.
+            CurrentUserOnline.ProfileImageFile = imageFile; // You'll need to add this property to your UserModelOnline class.
 
             // 4. Save the user object to persist the link to the new file.
-            await CurrentUser.SaveAsync();
+            await CurrentUserOnline.SaveAsync();
 
 
             // 5. Update the local user representation.
@@ -266,6 +279,45 @@ public partial class LoginViewModel : ObservableObject
         OnPropertyChanged(nameof(ToggleText));
         OnPropertyChanged(nameof(ToggleLinkText));
     }
+    // --- CHANGE PASSWORD ---
+    [RelayCommand]
+    public async Task ChangePasswordAsync(string newPassword)
+    {
+        if (CurrentUser == null) return;
+        IsBusy = true;
+        try
+        {
+            // Parse allows the currently logged-in user to simply set the password
+            CurrentUserOnline.Password = newPassword;
+            await CurrentUserOnline.SaveAsync();
+        }
+        catch (Exception ex)
+        {
+        }
+        finally { IsBusy = false; }
+    }
+    [ObservableProperty]
+    public partial bool IsEditingProfile { get; set; }
 
-   
+
+    [RelayCommand]
+    public async Task SaveProfileChangesAsync()
+    {
+        if (CurrentUserOnline == null || CurrentUserOnline == null) return;
+        IsBusy = true;
+        try
+        {
+            CurrentUserOnline.Username = CurrentUser.Username;
+
+            await CurrentUserOnline.SaveAsync();
+
+            IsEditingProfile = false;
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to save profile: {ex.Message}";
+        }
+        finally { IsBusy = false; }
+    }
+
 }

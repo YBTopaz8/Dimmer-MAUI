@@ -155,7 +155,7 @@
                                 x:Name="TitleTextBox"
                                 Width="650"
                                 Margin="0,5,0,15"
-                                Text="{Binding SelectedSong.Title}" />
+                                Text="{x:Bind MyViewModel.SelectedSong.Title, Mode=TwoWay}" />
                         </StackPanel>
 
                         <StackPanel
@@ -174,7 +174,7 @@
                                 x:Name="TrackNumberTextBox"
                                 Width="650"
                                 Margin="0,5,0,15"
-                                Text="{Binding SelectedSong.TrackNumber}" />
+                                Text="{x:Bind MyViewModel.SelectedSong.TrackNumber, Mode=TwoWay}" />
                         </StackPanel>
                     </Grid>
 
@@ -202,7 +202,7 @@
                                 Width="650"
                                 Margin="0,5,0,15"
                                 InputScope="Digits"
-                                Text="{Binding SelectedSong.ReleaseYear}" />
+                                Text="{x:Bind MyViewModel.SelectedSong.ReleaseYear, Mode=TwoWay}" />
                         </StackPanel>
 
 
@@ -223,7 +223,7 @@
                                 x:Name="ConductorTextBox"
                                 Width="650"
                                 Margin="0,5,0,15"
-                                Text="{Binding SelectedSong.Conductor}" />
+                                Text="{x:Bind MyViewModel.SelectedSong.Conductor, Mode=TwoWay}" />
                         </StackPanel>
                     </Grid>
 
@@ -249,7 +249,7 @@
                                 x:Name="ComposerTextBox"
                                 Width="650"
                                 Margin="0,5,0,15"
-                                Text="{Binding SelectedSong.Composer}" />
+                                Text="{x:Bind MyViewModel.SelectedSong.Composer, Mode=TwoWay}" />
                         </StackPanel>
 
 
@@ -295,7 +295,7 @@
                                 Height="20"
                                 Margin="0,5,0,5"
                                 VerticalAlignment="Bottom"
-                                IsChecked="{Binding SelectedSong.IsInstrumental}" />
+                                IsChecked="{x:Bind MyViewModel.SelectedSong.IsInstrumental, Mode=TwoWay}" />
                         </StackPanel>
 
 
@@ -307,7 +307,7 @@
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="auto" />
                     </Grid.ColumnDefinitions>
 
                     <StackPanel

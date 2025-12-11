@@ -18,10 +18,32 @@
 
                 <!--  Other merged dictionaries here  -->
             </ResourceDictionary.MergedDictionaries>
-
+            <converters:MsToDurationConverter x:Key="MsToDurationConverter" />
+            <converters:BoolToVisConverter x:Key="BoolToVisConverter" />
+            <converters:EventDateToTimeAgo x:Key="EventDateToTimeAgoConverter" />
+            <converters:TrackImageConverter x:Key="TrackImageConverter" />
+            <converters:BoolToCompleteColorConverter x:Key="BoolToCompleteColorConverter" />
+            <converters:BoolToCompleteIconConverter x:Key="BoolToCompleteIconConverter" />
+            <converters:StringToImageSourceConverter x:Key="StringToImageConverter" />
+            <converters:BoolToHeartColorConverter x:Key="BoolToHeartColorConverter" />
+            <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+            <converters:BoolToInverseVisibilityConverter x:Key="BoolToInverseVisibilityConverter" />
+            <converters:IsFavoriteToFontIcon x:Key="IsFavoriteToFontIcon" />
+            <converters:BoolToPlayingPauseConv x:Key="BoolToPlayingPauseConverter" />
+            <converters:StringToBoolConverter x:Key="StringToBoolConverter" />
+            <converters:BoolToVisibilityConverter x:Key="BoolToVis" />
+            <converters:InverseBoolToVisibilityConverter x:Key="InvBoolToVis" />
             <converters:VolumeToPercentConverter x:Key="VolumeToPercentConverter" />
             <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter" />
             <converters:CollectionSizeToVisibility x:Key="CollectionSizeToVisibility" />
+            <converters:CollectionSizeToVisibilityInverted x:Key="CollectionSizeToVisibilityInverted" />
+            <converters:EventDateToTimeAgo x:Key="EventDateToTimeAgo" />
+            <converters:PlayTypeToBorderBrush x:Key="PlayTypeToBorderBrush" />
+            <converters:RepeatModeConverter x:Key="RepeatModeConverter" />
+            <converters:BoolToGlyphConverter x:Key="BoolToGlyphConverter" />
+            <converters:BoolToPlanNameConverter x:Key="BoolToPlanNameConverter" />
+
+            <converters:StringNullOrEmptyToVisibility x:Key="StringNullOrEmptyToVisibility" />
             <converters:BoolToImageConverter
                 x:Key="PlayPauseConverter"
                 FalseValue="play.png"

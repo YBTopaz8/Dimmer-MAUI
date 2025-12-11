@@ -46,44 +46,39 @@ public static class StaticUtils
 
         string t = title.Trim();
 
-        // 1️⃣ Strip "by ..." uploader metadata entirely
-        t = ByUploaderRegex.Replace(t, string.Empty);
+        // remove uploader metadata
+        t = ByUploaderRegex.Replace(t, "");
 
-        // 2️⃣ Remove artist prefix if given
+        // remove artist prefix
         if (!string.IsNullOrWhiteSpace(artist) &&
             !artist.StartsWith("Unknown", StringComparison.OrdinalIgnoreCase))
         {
-            string escapedArtist = Regex.Escape(artist.Trim());
-            t = Regex.Replace(t, $"^{escapedArtist}\\s*[-–—:]\\s*",
-                string.Empty,
-                RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            string escaped = Regex.Escape(artist.Trim());
+            t = Regex.Replace(t, $"^{escaped}\\s*[-–—:]\\s*",
+                "", RegexOptions.IgnoreCase);
         }
 
-        // 3️⃣ Remove “ft/feat/featuring ...” from title
-        t = FeatRegex.Replace(t, string.Empty);
+        // remove featuring
+        t = FeatRegex.Replace(t, "");
 
-        // 4️⃣ Remove video/suffix clutter
-        t = VideoSuffixRegex.Replace(t, string.Empty);
-        t = YearOrCopyRegex.Replace(t, string.Empty);
+        // remove clutter
+        t = VideoSuffixRegex.Replace(t, "");
+        t = YearOrCopyRegex.Replace(t, "");
 
-        // 5️⃣ Trim & normalize whitespace
-        t = Regex.Replace(t, @"\s{2,}", " ");
-        t = Regex.Replace(t, @"^[-–—_ ]+|[-–—_ ]+$", string.Empty).Trim();
+        // collapse spaces & trim dashes
+        t = Regex.Replace(t, @"\s{2,}", " ").Trim();
+        t = Regex.Replace(t, @"^[-–—_ ]+|[-–—_ ]+$", "");
 
-        // 6️⃣ Keep last segment only if it looks like "Artist - Title"
+        // If multiple dashes, keep last segment
         if (MultiDashRegex.IsMatch(t))
         {
-            var parts = t.Split('-', StringSplitOptions.RemoveEmptyEntries)
-                         .Select(p => p.Trim()).ToList();
-            if (parts.Count > 1)
-                t = parts.Last();
+            int idx = t.LastIndexOf('-');
+            if (idx > 0 && idx < t.Length - 1)
+                t = t[(idx + 1)..].Trim();
         }
 
-        // 7️⃣ Proper casing
-        if (!string.IsNullOrEmpty(t))
-            t = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(t.ToLower());
-
-        return t;
+        // ToTitleCase
+        return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(t.ToLower());
     }
 
     /// <summary>
@@ -91,31 +86,39 @@ public static class StaticUtils
     /// </summary>
     public static string CleanArtist(string filePath, string artistName, string title)
     {
-        string a = artistName?.Trim() ?? string.Empty;
-        a = a.Replace("�", "").Replace("?", "").Replace("–", "-").Trim();
+        string a = artistName?.Trim() ?? "";
 
-        // 1️⃣ Split & deduplicate
-        var parts = a.Split(new[] { ',', ';', '/', '&' }, StringSplitOptions.RemoveEmptyEntries)
+        if (a.Length == 0)
+            return "Unknown Artist";
+
+        // basic normalization
+        a = a.Replace("�", "")
+             .Replace("?", "")
+             .Replace("–", "-")
+             .Trim();
+
+        // split simple separators first
+        var parts = a.Split(new[] { ',', ';', '/', '&' },
+                            StringSplitOptions.RemoveEmptyEntries)
                      .Select(x => x.Trim())
-                     .Where(x => !string.IsNullOrWhiteSpace(x))
+                     .Where(x => x.Length > 0)
                      .Distinct(StringComparer.OrdinalIgnoreCase)
                      .ToList();
 
-        // 2️⃣ Extract “ft/feat” from title if present
+        // features from title
         var featMatch = FeatArtistFromTitleRegex.Match(title);
         if (featMatch.Success)
         {
-            var feats = featMatch.Groups[1].Value
+            foreach (var f in featMatch.Groups[1].Value
                 .Split(new[] { ',', '&', '/', ';' }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(x => x.Trim())
-                .Where(x => !string.IsNullOrWhiteSpace(x));
-
-            foreach (var f in feats)
+                .Select(x => x.Trim()))
+            {
                 if (!parts.Contains(f, StringComparer.OrdinalIgnoreCase))
                     parts.Add(f);
+            }
         }
 
-        // 3️⃣ Add composer if title indicates soundtrack
+        // soundtrack composer
         if (SoundtrackTitleRegex.IsMatch(title))
         {
             var matchBy = SoundtrackByRegex.Match(title);
@@ -127,16 +130,14 @@ public static class StaticUtils
             }
         }
 
-        // 4️⃣ Final cleanup & normalize
-        parts = parts.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
-        a = parts.Count > 0 ? string.Join(", ", parts) : "Unknown Artist";
+        // final
+        if (parts.Count == 0)
+            return "Unknown Artist";
 
-        if (!string.IsNullOrEmpty(a))
-            a = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(a.ToLower());
+        string final = string.Join(", ", parts);
 
-        return a;
+        return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(final.ToLower());
     }
-
 
     private static readonly ConcurrentDictionary<string, SemaphoreSlim> _coverLocks = new();
 

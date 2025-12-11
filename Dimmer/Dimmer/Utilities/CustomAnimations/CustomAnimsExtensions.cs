@@ -279,7 +279,7 @@ public static class CustomAnimsExtensions
         await island.ScaleTo(1.0, duration / 2, Easing.CubicIn);
     }
 
-    public static async Task AnimateRotate(this View view, double rotation, uint duration = 250, Easing easing = null)
+    public static async Task AnimateRotate(this View view, double rotation, uint duration = 250, Easing? easing = null)
     {
         await view.RotateTo(rotation, duration, easing ?? Easing.Linear);
     }

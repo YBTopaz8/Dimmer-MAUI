@@ -10,7 +10,7 @@ public partial class SongModelView : ObservableObject
     public partial string Title { get; set; }
 
     [ObservableProperty]
-    public partial string TitleDurationKey { get; set; }
+    public partial string? TitleDurationKey { get; set; }
 
     [ObservableProperty]
     public partial int NumberOfTimesFaved { get; set; }
@@ -35,7 +35,7 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial string ArtistName { get; set; } 
     [ObservableProperty]
-    public partial ArtistModelView Artist { get; set; } 
+    public partial ArtistModelView? Artist { get; set; } 
 
     [ObservableProperty]
     public partial string AlbumName { get; set; } 
@@ -44,7 +44,7 @@ public partial class SongModelView : ObservableObject
     public partial bool HasLyricsColumnIsFiltered { get; set; } 
 
     [ObservableProperty]
-    public partial AlbumModelView Album { get; set; } = new();
+    public partial AlbumModelView? Album { get; set; } = new();
     [ObservableProperty]
     public partial ObservableCollection<ArtistModelView?> ArtistToSong { get; set; }
     [ObservableProperty]
@@ -91,7 +91,7 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial bool? IsInstrumental { get; set; }
     [ObservableProperty]
-    public partial string? CoverImagePath { get; set; } = "musicnote1.png";
+    public partial string? CoverImagePath { get; set; }
     [ObservableProperty]
     public partial string? UnSyncLyrics { get; set; } = string.Empty;
     //[ObservableProperty]

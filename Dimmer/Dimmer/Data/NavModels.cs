@@ -16,7 +16,7 @@ public class ArtistDetailNavArgs
 
 public class AlbumDetailNavArgs
 {
-    public required AlbumModelView Album { get; set; }
+    public required SongModelView Album { get; set; }
     public required BaseViewModel ViewModel { get; set; }
     public object? ExtraParam { get; set; }
 }

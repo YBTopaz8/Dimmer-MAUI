@@ -1,9 +1,6 @@
 ﻿using Android;
-using Android.Content.PM;
 using AndroidX.Core.Content;
 using AndroidX.Core.App;
-using Android.OS;
-using Android.App;
 using Application = Android.App.Application;
 
 namespace Dimmer.NativeServices;

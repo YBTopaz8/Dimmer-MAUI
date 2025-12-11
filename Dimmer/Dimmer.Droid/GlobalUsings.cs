@@ -12,7 +12,9 @@ global using Dimmer.Utilities.Enums;
 global using System.Collections.ObjectModel;
 global using System.Reactive.Linq;
 global using System.Threading.Tasks;
-
+global using Google.Android.Material.Button;
+global using Google.Android.Material.Card;
+global using Google.Android.Material.TextField;
 global using Dimmer.Interfaces.Services;
 global using CommunityToolkit.Mvvm.Input;
 global using TextView = Google.Android.Material.TextView.MaterialTextView;
@@ -70,14 +72,10 @@ global using Dimmer.GraphSupport;
 
 global using Google.Android.Material.Slider;
 
-global using Microsoft.Maui.Graphics.Text;
-
 global using SkiaSharp;
 global using SkiaSharp.Views.Android;
 
 global using Slider = Google.Android.Material.Slider.Slider;
-
-global using AndroidX.Interpolator.View.Animation;
 
 global using CommunityToolkit.Maui.Core.Extensions;
 global using CommunityToolkit.Maui.Storage;

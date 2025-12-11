@@ -73,7 +73,7 @@ public partial class DimmerCloudViewModel : ObservableObject, IDisposable
         if (authService.IsLoggedIn) _sessionManager.StartListeners();
     }
 
-    // --- CORRECTED CLOUD BACKUP COMMAND ---
+
     [RelayCommand]
     public async Task CreateCloudBackup()
     {

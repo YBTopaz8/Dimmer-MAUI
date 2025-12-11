@@ -1,17 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Bumptech.Glide;
-
-using Google.Android.Material.Button;
-using Google.Android.Material.Card;
-using Google.Android.Material.TextView;
-
-using static Android.InputMethodServices.Keyboard;
-using static Android.Provider.MediaStore.Audio;
+﻿using Bumptech.Glide;
 
 namespace Dimmer.ViewsAndPages.NativeViews.SingleSong
 {

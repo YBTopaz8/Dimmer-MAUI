@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using AndroidX.Fragment.App;
-
-using Google.Android.Material.Dialog;
+﻿using Google.Android.Material.Dialog;
 
 using DialogFragment = AndroidX.Fragment.App.DialogFragment;
 

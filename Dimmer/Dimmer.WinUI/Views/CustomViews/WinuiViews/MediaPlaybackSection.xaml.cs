@@ -1,6 +1,8 @@
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
+using Dimmer.WinUI.Views.WinuiPages.LastFMSection;
+
 namespace Dimmer.WinUI.Views.CustomViews.WinuiViews;
 
 public sealed partial class MediaPlaybackSection : UserControl
@@ -29,13 +31,16 @@ public sealed partial class MediaPlaybackSection : UserControl
 
     }
 
-    private void TopPanel_PointerReleased(object sender, PointerRoutedEventArgs e)
+    private async void TopPanel_PointerReleased(object sender, PointerRoutedEventArgs e)
     {
         var props = e.GetCurrentPoint((UIElement)sender).Properties;
         if (props is null) return;
         if (props.PointerUpdateKind == Microsoft.UI.Input.PointerUpdateKind.MiddleButtonReleased)
         {
             MyViewModel?.ScrollToSpecificSongCommand.Execute(MyViewModel.CurrentPlayingSongView);
+        }
+        if (props.PointerUpdateKind == Microsoft.UI.Input.PointerUpdateKind.RightButtonReleased)
+        {
         }
     }
 
@@ -84,5 +89,10 @@ public sealed partial class MediaPlaybackSection : UserControl
     private void ViewNodes_Click(object sender, RoutedEventArgs e)
     {
         MyViewModel?.MainWindow?.ContentFrame.Navigate(typeof(GraphAndNodes));
+    }
+
+    private void LastFMBtn_Click(object sender, RoutedEventArgs e)
+    {
+        MyViewModel!.NavigateToAnyPageOfGivenType(typeof(LastFmPage));
     }
 }

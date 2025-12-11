@@ -34,7 +34,9 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
     /// </summary>
     private void ExecuteWrite(Action<Realm> action)
     {
-        GetRealm();
+        _realm = GetRealm();
+        if (_realm is null) return;
+        
         try
         {
             _realm.Write(() => action(_realm));
@@ -53,8 +55,9 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
     /// </summary>
     private TResult ExecuteRead<TResult>(Func<Realm, TResult> function)
     {
-
-        GetRealm();
+        _realm = GetRealm();
+        if (_realm is null) throw new Exception("Cant init realm");
+        
         try
         {
             return function(_realm);
@@ -68,8 +71,9 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
 
     private async Task<TResult> ExecuteReadAsync<TResult>(Func<Realm, Task<TResult>> function)
     {
+        _realm = GetRealm();
+        if (_realm is null) throw new Exception("cant get realm");
         
-        GetRealm();
         try
         {
             return await function(_realm);
@@ -466,7 +470,8 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
         {
             return await CreateAsync(entity);
         }
-
+        _realm = GetRealm();
+        if (_realm is null) return entity;
         var frozenEntity = await _realm.WriteAsync(()=>
         {
             var managedEntity = _realm.Add(entity, update: true);
@@ -483,6 +488,8 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
     public async Task<bool> UpdateAsync(ObjectId id, Action<T> updateAction)
     {
         bool success = false;
+        _realm = GetRealm();
+        if (_realm is null) return false;
         await _realm.WriteAsync(()=>
         {
             var liveEntity = _realm.Find<T>(id);
@@ -501,7 +508,9 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
     /// </summary>
     public async Task DeleteAsync(ObjectId id)
     {
-        await _realm?.WriteAsync(()=>
+        _realm = GetRealm();
+        if(_realm is null) return;
+        await _realm.WriteAsync(()=>
         {
             var liveEntity = _realm.Find<T>(id);
             if (liveEntity != null)

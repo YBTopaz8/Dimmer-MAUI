@@ -7,7 +7,6 @@ using Windows.Foundation;
 using Border = Microsoft.UI.Xaml.Controls.Border;
 using ListView = Microsoft.UI.Xaml.Controls.ListView;
 using ListViewSelectionMode = Microsoft.UI.Xaml.Controls.ListViewSelectionMode;
-using Thickness = Microsoft.UI.Xaml.Thickness;
 
 namespace Dimmer.WinUI.Utils.CustomHandlers.CollectionView;
 public static class CollectionViewCustomization

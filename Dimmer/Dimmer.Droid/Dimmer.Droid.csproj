@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFramework>net9.0-android</TargetFramework>
-		<SupportedOSPlatformVersion>21.0</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion>23.0</SupportedOSPlatformVersion>
 		<OutputType>Exe</OutputType>
 		<RootNamespace>Dimmer</RootNamespace>
 		<Nullable>enable</Nullable>
@@ -96,8 +96,8 @@
 		<PackageReference Include="Xamarin.AndroidX.Media3.ExoPlayer.Hls" Version="1.8.0" />
 		<PackageReference Include="Xamarin.AndroidX.Media3.ExoPlayer.SmoothStreaming" Version="1.8.0" />
 		<PackageReference Include="Xamarin.AndroidX.Palette.Palette.Ktx" Version="1.0.0.27" />
-		<PackageReference Include="Xamarin.AndroidX.SavedState" Version="1.3.3" />
-		<PackageReference Include="Xamarin.AndroidX.SavedState.SavedState.Ktx" Version="1.3.3" />
+		<PackageReference Include="Xamarin.AndroidX.SavedState" Version="1.4.0" />
+		<PackageReference Include="Xamarin.AndroidX.SavedState.SavedState.Ktx" Version="1.4.0" />
 		<PackageReference Include="Xamarin.Google.Android.Material" Version="1.13.0" />
 	</ItemGroup>
 
