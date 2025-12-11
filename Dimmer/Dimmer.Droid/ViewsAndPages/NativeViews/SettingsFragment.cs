@@ -168,7 +168,7 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
         reloadAllAlbumCovers.SetTextColor(IsDark()? Color.White : Color.Black);
         reloadAllAlbumCovers.Click += async (s, e) =>
         {
-            await MyViewModel.EnsureAllCoverArtCachedForSongsCommand.ExecuteAsync(null);
+           _= Task.Run(async ()=> await MyViewModel.EnsureAllCoverArtCachedForSongsCommand.ExecuteAsync(null));
             Toast.MakeText(ctx, "Reloading all album covers...", ToastLength.Short)?.Show();
         };
 

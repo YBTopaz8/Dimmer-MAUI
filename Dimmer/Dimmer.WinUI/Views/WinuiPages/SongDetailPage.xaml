@@ -296,7 +296,7 @@
                                 </Grid.ColumnDefinitions>
 
                                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                                    <ItemsRepeater ItemsSource="{Binding SelectedSongLyricsObsCol}">
+                                    <ItemsRepeater ItemsSource="{x:Bind MyViewModel.SelectedSongLyricsObsCol, Mode=OneWay}">
                                         <ItemsRepeater.ItemTemplate>
                                             <DataTemplate>
                                                 <Border>
@@ -380,15 +380,25 @@
                                         Visibility="Collapsed">
 
                                         <Grid>
+                                            <Image Opacity="0.4">
+                                                <Image.Source>
+                                                    <BitmapImage UriSource="{Binding ImagePath}" />
+                                                </Image.Source>
+                                            </Image>
                                             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                <Image MaxWidth="200" MaxHeight="200" />
+
                                                 <TextBlock
                                                     Margin="0,0,0,20"
                                                     HorizontalAlignment="Center"
                                                     FontSize="34"
                                                     FontWeight="Bold"
-                                                    Foreground="White" />
-                                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                                    Foreground="White"
+                                                    Text="{Binding Name}" />
+                                                <StackPanel
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Bottom"
+                                                    Orientation="Horizontal"
+                                                    Spacing="10">
 
                                                     <Button
                                                         x:Name="ArtistPreviewButton"
@@ -407,7 +417,9 @@
                                                         BorderThickness="2"
                                                         Click="ArtistNameBtn_Click"
                                                         Content="View"
-                                                        CornerRadius="12" />
+                                                        CornerRadius="12"
+                                                        FontSize="19"
+                                                        FontWeight="ExtraBold" />
 
                                                 </StackPanel>
                                             </StackPanel>

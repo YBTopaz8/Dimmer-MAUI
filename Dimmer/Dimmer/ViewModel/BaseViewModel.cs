@@ -394,8 +394,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         Debug.WriteLine($"{DateTime.Now}: Search query subscription set up.");
 
-        // Initial search to populate the list
-        _searchQuerySubject.OnNext(""); // Confirmed this should be empty string
         _logger.LogInformation(string.Format("{0}: Calculating ranks using RQL sorting...", DateTime.Now));
         // Use a single, large write transaction for performance.
 
@@ -1565,6 +1563,14 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             var songInDb = realm.Find<SongModel>(newValue.Id);
             if (songInDb is not null)
             {
+                if (!string.IsNullOrEmpty(songInDb.SyncLyrics))
+                {
+                    SelectedSongLyricsObsCol = LyricsMgtFlow.GetListLyricsCol(songInDb.SyncLyrics).ToObservableCollection();
+                }
+                else
+                {
+                    SelectedSongLyricsObsCol?.Clear();   
+                }
                 if (!songInDb.PlayHistory.Any())
                 {
                     newValue.PlayEvents = new();
@@ -1574,6 +1580,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 ObservableCollection<DimmerPlayEventView> evts = songInDb.PlayHistory.AsEnumerable().Select(x => x.ToDimmerPlayEventView())
                     .ToObservableCollection()!;
                 newValue.PlayEvents = evts;
+                
             }
         }
     }
@@ -1587,7 +1594,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         
             var lyrics= await _lyricsMetadataService.GetLocalLyricsAsync(newValue);
 
-            //SelectedSongLyricsObsCol = LyricsMgtFlow.GetListLyricsCol(lyrics).ToObservableCollection();
            
         }
 
@@ -5411,7 +5417,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             _logger.LogInformation("Lyrics selected and saved for song '{SongTitle}'", SelectedSong.Title);
 
 
-            SelectedSongLyricsObsCol = LyricsMgtFlow.GetListLyricsCol(selectedResult.SyncedLyrics).ToObservableCollection();
+            //SelectedSongLyricsObsCol = LyricsMgtFlow.GetListLyricsCol(selectedResult.SyncedLyrics).ToObservableCollection();
             LyricsSearchResults.Clear();
             
         }

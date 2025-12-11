@@ -1,6 +1,10 @@
 ﻿
 //using System.Reactive.Linq;
 
+using AndroidX.Lifecycle;
+
+using Bumptech.Glide;
+
 using Dimmer.ViewsAndPages.NativeViews.ArtistSection;
 
 
@@ -480,7 +484,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     public void NavigateToEditSongPage(Fragment callerFragment, string transitionName, List<View> sharedViews)
     {
-        var fragment = new EditSingleSongFragment(this, transitionName, "imageTrans");
+        var fragment = new EditSingleSongFragment(this, transitionName);
 
         // Ensure transition name exists
         if (sharedViews.Count > 0 && sharedViews[0] != null)
@@ -621,7 +625,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         if (typeOfFragment == typeof(HomePageFragment))
         {
             HomePageFragment homeFrag = (HomePageFragment)callerFrag;
-            var fragment = new SongDetailPage(transitionName, this);
+            var fragment = new SongDetailFragment(transitionName, this);
             CurrentPage = fragment;
 
             

@@ -82,7 +82,7 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
             // If user.Image is a string URL:
             if (!string.IsNullOrEmpty(user.Image.Url))
             {
-                UserAvatarImg.Source = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(user.Image.Url));
+                //UserAvatarImg.Source = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(user.Image.Url));
             }
         }
         else

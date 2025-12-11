@@ -36,7 +36,43 @@ public class SongOverviewFragment : Fragment
         statsCard.AddView(statsGrid);
         root.AddView(statsCard);
 
+
+        if (_vm.SelectedSongLastFMData?.Wiki?.Summary != null)
+        {
+            var bioTitle = new TextView(ctx) { Text = "About", TextSize = 18, Typeface = Typeface.DefaultBold };
+            ((LinearLayout.LayoutParams)bioTitle.LayoutParameters).TopMargin = AppUtil.DpToPx(24);
+            root.AddView(bioTitle);
+
+            var bioText = new TextView(ctx) { TextSize = 14 };
+            // Native HTML parsing
+            if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.N)
+            {
+                bioText.TextFormatted = Android.Text.Html.FromHtml(_vm.SelectedSongLastFMData.Wiki.Summary, Android.Text.FromHtmlOptions.ModeCompact);
+            }
+            else
+            {
+                bioText.TextFormatted = Android.Text.Html.FromHtml(_vm.SelectedSongLastFMData.Wiki.Summary);
+            }
+            // Make links clickable
+            bioText.MovementMethod = Android.Text.Method.LinkMovementMethod.Instance;
+            root.AddView(bioText);
+        }
+
+        // --- ACHIEVEMENTS SECTION ---
+        // Basic implementation to match WinUI's "AllAchievementsIR"
+        var achTitle = new TextView(ctx) { Text = "Achievements", TextSize = 18, Typeface = Typeface.DefaultBold };
+        //((LinearLayout.LayoutParams)achTitle.LayoutParameters).TopMargin = AppUtil.DpToPx(24);
+        root.AddView(achTitle);
+
+        
+            root.AddView(new TextView(ctx) { Text = "No achievements yet...", Alpha = 0.6f });
+        
+
+
         scroll.AddView(root);
+
+
+
         return scroll;
     }
 

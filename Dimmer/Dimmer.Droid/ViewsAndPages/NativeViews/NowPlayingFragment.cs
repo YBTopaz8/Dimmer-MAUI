@@ -113,7 +113,15 @@ public class NowPlayingFragment : Fragment
         // Play Button
         _miniPlayBtn = new ImageButton(ctx) { Background = null };
         _miniPlayBtn.SetImageResource(Android.Resource.Drawable.IcMediaPlay);
-        _miniPlayBtn.Click += async (s, e) => await _viewModel.PlayPauseToggleAsync();
+        _miniPlayBtn.Click += async (s, e) =>
+        {
+            await _viewModel.PlayPauseToggleAsync();
+            await Task.Delay(1000);
+            if(_viewModel.IsDimmerPlaying)
+                Glide.With(this).Load(Resource.Drawable.media3_icon_pause).Into(_miniPlayBtn);
+            else
+                Glide.With(this).Load(Resource.Drawable.media3_icon_play).Into(_miniPlayBtn);
+        };
         layout.AddView(_miniPlayBtn, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 2f) { Gravity = GravityFlags.CenterVertical });
 
         return layout;
@@ -316,7 +324,16 @@ public class NowPlayingFragment : Fragment
             .DisposeWith(_disposables);
 
         // 3. Bind Buttons
-        _playPauseBtn.Click += async (s, e) => await _viewModel.PlayPauseToggleAsync();
+        _playPauseBtn.Click += async (s, e) =>
+        {
+            await _viewModel.PlayPauseToggleAsync();
+
+            await Task.Delay(1000);
+            if (_viewModel.IsDimmerPlaying)
+                Glide.With(this).Load(Resource.Drawable.media3_icon_pause).Into(_miniPlayBtn);
+            else
+                Glide.With(this).Load(Resource.Drawable.media3_icon_play).Into(_miniPlayBtn);
+        };
         _prevBtn.Click += async (s, e) => await _viewModel.PreviousTrackASync();
         _nextBtn.Click += async (s, e) => await _viewModel.NextTrackAsync();
 
@@ -352,7 +369,7 @@ public class NowPlayingFragment : Fragment
         _disposables.Clear();
     }
 
-    private void UpdateSongUI(SongModelView song)
+    private void UpdateSongUI(SongModelView? song)
     {
         if (song == null) return;
 

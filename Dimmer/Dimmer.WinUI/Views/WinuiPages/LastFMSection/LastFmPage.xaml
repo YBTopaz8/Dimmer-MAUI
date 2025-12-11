@@ -27,10 +27,10 @@
             </Grid.Background>
 
             <!--  User Avatar / Background  -->
-            <Image
+            <!--<Image
                 x:Name="UserAvatarImg"
                 Opacity="0.6"
-                Stretch="UniformToFill" />
+                Stretch="UniformToFill" />-->
 
             <!--  Dark Scrim  -->
             <Rectangle Fill="Black" Opacity="0.4" />

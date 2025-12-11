@@ -6,6 +6,8 @@ using Dimmer.DimmerSearch;
 
 using DynamicData;
 
+using MongoDB.Bson;
+
 namespace Dimmer.ViewsAndPages.NativeViews;
 
 internal class SongAdapter : RecyclerView.Adapter
@@ -27,48 +29,59 @@ internal class SongAdapter : RecyclerView.Adapter
     }
     public SongModelView GetItem(int position) => Songs.ElementAt(position);
 
-    public SongAdapter(Context ctx, BaseViewModelAnd myViewModel, Fragment pFragment, string songsToWatch="main")
+    public SongAdapter(Context ctx, BaseViewModelAnd myViewModel, Fragment pFragment, string songsToWatch = "main")
     {
         ParentFragement = pFragment;
         this.ctx = ctx;
         this.MyViewModel = myViewModel;
 
-        if(songsToWatch=="main")
-        {
-            _songs = MyViewModel.SearchResults.ToList();
-            _subscription = MyViewModel.SearchResultsHolder
-           .Connect()
-           .ObserveOn(RxSchedulers.UI)
-           .Subscribe(changes =>
-           {
-               var diff = DiffUtil.CalculateDiff(new SongDiff(_songs.ToList(), MyViewModel.SearchResults.ToList()));
-               _songs = MyViewModel.SearchResults.ToList();
-               diff.DispatchUpdatesTo(this);
-               //_songs = vm.SearchResults;   // update enumerable reference
+        IObservable<IChangeSet<SongModelView>> sourceStream;
+        IEnumerable<SongModelView> sourceList;
 
-           })
-           ;
-        }
-        else if(songsToWatch=="queue")
+        if (songsToWatch == "queue")
         {
-            _songs = MyViewModel.PlaybackQueue.ToList();
-            _subscription = MyViewModel.PlaybackQueueSource
-           .Connect()
-           .ObserveOn(RxSchedulers.UI)
-           .Subscribe(changes =>
-           {
-           
-               var diff = DiffUtil.CalculateDiff(new SongDiff(_songs.ToList(), MyViewModel.PlaybackQueue.ToList()));
-               _songs = MyViewModel.PlaybackQueue.ToList();
-               diff.DispatchUpdatesTo(this);
-               //_songs = vm.SearchResults;   // update enumerable reference
-
-           });
+            sourceStream = MyViewModel.PlaybackQueueSource.Connect();
+            sourceList = MyViewModel.PlaybackQueue;
         }
-        
-        //AdapterCallbacks = OnItemClick;
+        else
+        {
+            sourceStream = MyViewModel.SearchResultsHolder.Connect();
+            sourceList = MyViewModel.SearchResults;
+        }
+
+        _subscription = sourceStream
+            // 1. Throttle: Wait for a 200ms pause in updates to avoid spamming diff calculations 
+            //    during rapid changes (like initial load or fast typing).
+            .Throttle(TimeSpan.FromMilliseconds(200), RxSchedulers.Background)
+
+            // 2. Project to a Task that calculates the Diff on a BACKGROUND THREAD
+            .Select(_ =>
+            {
+                // Capture the NEW list snapshot (thread-safe copy)
+                var newList = sourceList.ToList();
+                // Capture the OLD list snapshot
+                var oldList = _songs.ToList();
+
+                return Observable.Start(() =>
+                {
+                    // HEAVY WORK: Calculate Diff on ThreadPool
+                    var diffResult = DiffUtil.CalculateDiff(new SongDiff(oldList, newList));
+                    return new { Diff = diffResult, Data = newList };
+                }, RxSchedulers.Background);
+            })
+            // 3. Switch: If a new update comes while calculating, cancel the old calculation
+            .Switch()
+            // 4. Observe on UI Thread: Only for applying the visual update
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(result =>
+            {
+                // Update the backing field
+                _songs = result.Data;
+
+                // Apply the diff (Fast, just dispatches notify events)
+                result.Diff.DispatchUpdatesTo(this);
+            });
     }
-
     public override int ItemCount => _songs.Count();
 
     public override void OnBindViewHolder(AndroidX.RecyclerView.Widget.RecyclerView.ViewHolder holder, int position)
@@ -350,7 +363,7 @@ internal class SongAdapter : RecyclerView.Adapter
         public MaterialTextView ArtistNameView { get; }
         public MaterialTextView SongDurationView { get; }
         public View ContainerView => base.ItemView;
-
+        public Action<View, string, string> OnNavigateRequest;
         public SongViewHolder(BaseViewModelAnd vm,View itemView, ImageView img, MaterialTextView title, MaterialTextView album, MaterialTextView artistName, MaterialTextView songDurView)
             : base(itemView)
         {
@@ -421,23 +434,36 @@ internal class SongAdapter : RecyclerView.Adapter
     }
     class SongDiff : DiffUtil.Callback
     {
-        List<SongModelView> oldList;
-        List<SongModelView> newList;
+        private readonly IList<SongModelView> _oldList;
+        private readonly IList<SongModelView> _newList;
 
-        public SongDiff(List<SongModelView> oldList, List<SongModelView> newList)
+        public SongDiff(IList<SongModelView> oldList, IList<SongModelView> newList)
         {
-            this.oldList = oldList;
-            this.newList = newList;
+            _oldList = oldList;
+            _newList = newList;
         }
 
-        public override int OldListSize => oldList.Count;
-        public override int NewListSize => newList.Count;
+        public override int OldListSize => _oldList.Count;
+        public override int NewListSize => _newList.Count;
 
+        // Fast check: Are these the same object (ID)?
         public override bool AreItemsTheSame(int oldPos, int newPos)
-            => oldList[oldPos].Id == newList[newPos].Id;
+        {
+            return _oldList[oldPos].Id == _newList[newPos].Id;
+        }
 
+        // Slower check: Did the visual content change?
         public override bool AreContentsTheSame(int oldPos, int newPos)
-            => oldList[oldPos].Equals(newList[newPos]);
+        {
+            var oldItem = _oldList[oldPos];
+            var newItem = _newList[newPos];
+
+            // Compare only what is visible in the ViewHolder to be fast
+            return oldItem.Title == newItem.Title &&
+                   oldItem.ArtistName == newItem.ArtistName &&
+                   oldItem.IsFavorite == newItem.IsFavorite &&
+                   oldItem.CoverImagePath == newItem.CoverImagePath;
+        }
     }
 
     public class ItemGestureListener : GestureDetector.SimpleOnGestureListener

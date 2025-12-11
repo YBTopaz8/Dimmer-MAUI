@@ -1,421 +1,288 @@
-﻿using AndroidX.CoordinatorLayout.Widget;
-using AndroidX.Core.Widget;
-
-using Dimmer.ViewsAndPages.NativeViews.Misc;
-using Dimmer.WinUI.UiUtils;
-
-using Google.Android.Material.AppBar;
+﻿using System.Linq;
+using Android.Content;
+using Android.Views;
+using Android.Widget;
+using AndroidX.Fragment.App;
+using Bumptech.Glide;
+using Google.Android.Material.Button;
 using Google.Android.Material.Chip;
+using Google.Android.Material.Dialog;
+using Google.Android.Material.TextField;
+using Google.Android.Material.TextView;
+using Dimmer.ViewModel; // Adjust namespace
 
 namespace Dimmer.ViewsAndPages.NativeViews.SingleSong;
 
-public partial class EditSingleSongFragment :Fragment
+public class EditSingleSongFragment : Fragment
 {
-    private string transitionName;
-    private string TransName2;
-    BaseViewModelAnd MyViewModel { get; set; }
-    ImageView SongImage { get; set; }
-    TextInputEditText SongTitleInput { get; set; }
-    TextInputEditText SongTrackNumberInput { get; set; }
-    TextInputEditText SongYearsInput { get; set; }
-    TextInputEditText SongConductorInput { get; set; }
-    TextInputEditText SongComposerInput { get; set; }
-    TextInputEditText SongDescriptionInput { get; set; }
+    private readonly BaseViewModelAnd _viewModel;
+    private readonly string _transitionName;
+    private SongModelView _song;
 
-    MaterialButton SaveButton { get; set; }
-    MaterialButton CancelButton { get; set; }
-    private const int PICK_IMAGE_REQUEST = 1001;
-
-    public EditSingleSongFragment(BaseViewModelAnd vm, string transName1, string transName2)
-    {
-        MyViewModel = vm;
-        this.transitionName = transName1;
-        this.TransName2 = transName2;
-    }
-
-    public EditSingleSongFragment() { }
-
-    // private EditSongViewModel _viewModel; 
-
-    // UI References for binding
+    // UI References
     private ImageView _coverImage;
-    private TextInputLayout _titleInput, _trackInput, _yearInput, _conductorInput, _composerInput, _descInput;
+    private TextInputEditText _titleInput, _albumInput, _yearInput, _genreInput, _trackInput;
     private ChipGroup _artistChipGroup;
     private LinearLayout _notesContainer;
-    private MaterialButton _saveButton;
+    private MaterialButton _saveBtn;
+
+    public EditSingleSongFragment(BaseViewModelAnd vm, string transitionName)
+    {
+        _viewModel = vm;
+        _transitionName = transitionName;
+        _song = vm.SelectedSong; // Ensure this is set
+    }
 
     public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
-        var context = Context;
+        var ctx = Context;
+        var scroll = new Android.Widget.ScrollView(ctx) { FillViewport = true };
+        var root = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
+        root.SetPadding(40, 40, 40, 40);
 
-        // 1. Root Coordinator Layout (Standard for MD3 Screens)
-        var root = new CoordinatorLayout(context);
+        // --- 1. COVER IMAGE PICKER ---
+        var imgContainer = new FrameLayout(ctx);
+        imgContainer.LayoutParameters = new LinearLayout.LayoutParams(AppUtil.DpToPx(200), AppUtil.DpToPx(200)) { Gravity = GravityFlags.Center };
 
-        // 2. AppBar & Toolbar
-        var appBar = new AppBarLayout(context);
-        var toolbar = new MaterialToolbar(context);
-        toolbar.Title = "Edit Song";
-        toolbar.SetNavigationIcon(Resource.Drawable.ic_arrow_back_black_24); // Ensure you have a drawable
-        toolbar.NavigationClick += (s, e) => ParentFragmentManager.PopBackStack();
+        _coverImage = new ImageView(ctx) {  TransitionName = _transitionName };
+        _coverImage.SetScaleType(ImageView.ScaleType.CenterCrop);
+        if (!string.IsNullOrEmpty(_song?.CoverImagePath)) Glide.With(this).Load(_song.CoverImagePath).Into(_coverImage);
+        else _coverImage.SetImageResource(Resource.Drawable.musicnotess);
 
-        // Add Save Button to Toolbar menu logic would go here, 
-        // but for C# views, we can just add a button to the right or use Menu logic.
-        // Let's keep the "Save" button at the bottom or floating for better reachability.
+        var editIcon = new ImageView(ctx);
+        editIcon.SetImageResource(Resource.Drawable.exo_ic_default_album_image); // Use your icon
+        editIcon.LayoutParameters = new FrameLayout.LayoutParams(60, 60) { Gravity = GravityFlags.Bottom | GravityFlags.Right };
 
-        appBar.AddView(toolbar);
-        root.AddView(appBar, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent));
+        imgContainer.AddView(_coverImage);
+        imgContainer.AddView(editIcon);
+        imgContainer.Click += async (s, e) =>
+        {
+            ShowImageSourceOptions(ctx);
+        }; // VM Call
 
-        // 3. Main Scroll Content
-        var scrollView = new NestedScrollView(context);
-        var scrollingParams = new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent);
-        scrollingParams.Behavior = new AppBarLayout.ScrollingViewBehavior();
-        scrollView.LayoutParameters = scrollingParams;
+        root.AddView(imgContainer);
 
-        var mainStack = new LinearLayout(context) { Orientation = Orientation.Vertical };
-        mainStack.SetPadding(0, 16, 0, 150); // Bottom padding for FAB/Bottom buttons
+        // --- 2. CORE METADATA INPUTS ---
+        root.AddView(CreateSectionTitle(ctx, "Metadata"));
 
-        // --- SECTION 1: CORE EDITS ---
-        var coreContent = new LinearLayout(context) { Orientation = Orientation.Vertical };
+        _titleInput = CreateInput(ctx, "Title", _song?.Title, root);
+        _albumInput = CreateInput(ctx, "Album", _song?.AlbumName, root);
+        _artistChipGroup = CreateArtistEditor(ctx, root); // Special Artist Handler
 
-        // Image
-        _coverImage = new Google.Android.Material.ImageView.ShapeableImageView(context);
-        _coverImage.LayoutParameters = new LinearLayout.LayoutParams(400, 400) { Gravity = GravityFlags.CenterHorizontal };
-        _coverImage.SetBackgroundColor(Android.Graphics.Color.LightGray); // Placeholder
-        _coverImage.Click += OnCoverImageClicked;
-        coreContent.AddView(_coverImage);
+        var row1 = new LinearLayout(ctx) { Orientation = Orientation.Horizontal, WeightSum = 2 };
+        _yearInput = CreateInput(ctx, "Year", _song?.ReleaseYear?.ToString(), row1, 1);
+        _genreInput = CreateInput(ctx, "Genre", _song?.GenreName, row1, 1);
+        root.AddView(row1);
 
-        var editImgBtn = UiBuilder.CreateButton(context, "Edit Image", OnCoverImageClicked, true);
-        coreContent.AddView(editImgBtn);
+        _trackInput = CreateInput(ctx, "Track #", _song?.TrackNumber?.ToString(), root);
 
-        // Fields
-        _titleInput = UiBuilder.CreateInput(context, "Title", "My Song Title");
-        _trackInput = UiBuilder.CreateInput(context, "Track #", "1");
-        _yearInput = UiBuilder.CreateInput(context, "Year", "2023");
-        _conductorInput = UiBuilder.CreateInput(context, "Conductor", "");
-        _composerInput = UiBuilder.CreateInput(context, "Composer", "");
-        _descInput = UiBuilder.CreateInput(context, "Description", "", true);
+        // --- 3. NOTES ---
+        root.AddView(CreateSectionTitle(ctx, "User Notes"));
+        var addNoteBtn = new MaterialButton(ctx, null, Resource.Attribute.borderlessButtonStyle) { Text = "+ Add Note" };
+        addNoteBtn.Click += ShowAddNoteDialog;
+        root.AddView(addNoteBtn);
 
-        var instrumentalSwitch = new Google.Android.Material.MaterialSwitch.MaterialSwitch(context);
-        instrumentalSwitch.Text = "Is Instrumental";
+        _notesContainer = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
+        LoadNotes(ctx); // Populate existing
+        root.AddView(_notesContainer);
 
-        coreContent.AddView(_titleInput);
-        coreContent.AddView(_trackInput);
-        coreContent.AddView(_yearInput);
-        coreContent.AddView(_conductorInput);
-        coreContent.AddView(_composerInput);
-        coreContent.AddView(_descInput);
-        coreContent.AddView(instrumentalSwitch);
+        // --- 4. ACTIONS ---
+        var space = new Space(ctx) { LayoutParameters = new LinearLayout.LayoutParams(-1, 60) };
+        root.AddView(space);
 
-        mainStack.AddView(UiBuilder.CreateSectionCard(context, "Core Details", coreContent));
+        _saveBtn = new MaterialButton(ctx) { Text = "Save Changes" };
+        _saveBtn.SetBackgroundColor(Android.Graphics.Color.DarkSlateBlue);
+        _saveBtn.Click += SaveChanges;
+        root.AddView(_saveBtn);
 
-
-        // --- SECTION 2: ARTISTS ---
-        var artistContent = new LinearLayout(context) { Orientation = Orientation.Vertical };
-
-        _artistChipGroup = new ChipGroup(context);
-        // Populate initial artists
-        AddArtistChip(context, "Adele");
-        AddArtistChip(context, "Featured Artist");
-
-        var addArtistBtn = UiBuilder.CreateButton(context, "Add Artist", (s, e) => {
-            var bottomSheet = new ArtistPickerBottomSheet();
-            bottomSheet.Show(ChildFragmentManager, "ArtistPicker");
-        }, true);
-
-        artistContent.AddView(_artistChipGroup);
-        artistContent.AddView(addArtistBtn);
-        mainStack.AddView(UiBuilder.CreateSectionCard(context, "Artists", artistContent));
-
-
-        // --- SECTION 3: ALBUM & GENRE ---
-        var metaContent = new LinearLayout(context) { Orientation = Orientation.Vertical };
-
-        // Album
-        var albumRow = new LinearLayout(context) { Orientation = Orientation.Horizontal };
-        var albumTxt = new TextView(context) { Text = "Album: 21", TextSize = 18 };
-        var updateAlbumBtn = UiBuilder.CreateButton(context, "Update", (s, e) => { /* Logic */ }, true);
-        albumRow.AddView(albumTxt, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1f));
-        albumRow.AddView(updateAlbumBtn);
-
-        // Genre
-        var genreRow = new LinearLayout(context) { Orientation = Orientation.Horizontal };
-        var genreTxt = new TextView(context) { Text = "Genre: Pop", TextSize = 18 };
-        var updateGenreBtn = UiBuilder.CreateButton(context, "Update", (s, e) => { /* Logic */ }, true);
-        genreRow.AddView(genreTxt, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1f));
-        genreRow.AddView(updateGenreBtn);
-
-        metaContent.AddView(albumRow);
-        metaContent.AddView(genreRow);
-        mainStack.AddView(UiBuilder.CreateSectionCard(context, "Metadata", metaContent));
-
-        // --- SECTION 4: NOTES ---
-        var notesContent = new LinearLayout(context) { Orientation = Orientation.Vertical };
-        var addNoteBtn = UiBuilder.CreateButton(context, "Add Note", OnAddNoteClicked, true);
-        _notesContainer = new LinearLayout(context) { Orientation = Orientation.Vertical };
-
-        notesContent.AddView(addNoteBtn);
-        notesContent.AddView(_notesContainer);
-        mainStack.AddView(UiBuilder.CreateSectionCard(context, "Notes", notesContent));
-
-
-        // --- SECTION 5: LYRICS LINK ---
-        var lyricsBtn = UiBuilder.CreateButton(context, "Edit Lyrics >", (s, e) => {
-            ParentFragmentManager.BeginTransaction()
-                .Replace(Id, new LyricsEditorFragment()) 
-                .AddToBackStack(null)
-                .Commit();
-        });
-        mainStack.AddView(lyricsBtn);
-
-
-        scrollView.AddView(mainStack);
-        root.AddView(scrollView);
-
-        // Floating Save Button (or fixed bottom bar)
-        _saveButton = new MaterialButton(context);
-        _saveButton.Text = "Save Changes";
-        var fabParams = new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent);
-        fabParams.Gravity = (int)GravityFlags.Bottom;
-        fabParams.SetMargins(32, 32, 32, 32);
-        _saveButton.LayoutParameters = fabParams;
-        _saveButton.Click += SaveChanges;
-
-        root.AddView(_saveButton);
-
-        return root;
+        scroll.AddView(root);
+        return scroll;
     }
 
-    private void OnCoverImageClicked(object sender, EventArgs e)
+    // Add Helper Method
+    private void ShowImageSourceOptions(Context ctx)
     {
-        // Show Popup Menu similar to Flyout
-        var popup = new PopupMenu(Context, (View)sender);
-        popup.Menu.Add("Choose From File System");
-        popup.Menu.Add("Choose From Other Songs");
-        popup.Menu.Add("Remove Image");
-        popup.Show();
-    }
-    public class OnClickHelper : Java.Lang.Object, View.IOnClickListener
-    {
-        private readonly Action<View> _action;
-        public OnClickHelper(Action<View> action) => _action = action;
-        public void OnClick(View? v) => _action?.Invoke(v);
-    }
-    private void AddArtistChip(Context ctx, string name)
-    {
-        var chip = new Chip(ctx);
-        chip.Text = name;
-        chip.CloseIconVisible = true;
-        chip.Clickable = true;
-        //chip.CloseIconClicked += (s, e) => _artistChipGroup.RemoveView(chip);
-        _artistChipGroup.AddView(chip);
+        var bottomSheet = new Google.Android.Material.BottomSheet.BottomSheetDialog(ctx);
+        var sheetView = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
+        sheetView.SetPadding(40, 40, 40, 40);
+        // Option 1: File System
+        var btnFile = new MaterialButton(ctx) { Text = "Pick from Device Storage" };
+        btnFile.Click += async (s, e) => {
+            bottomSheet.Dismiss();
+            await _viewModel.PickAndApplyImageToSong(_song);
+        };
+        sheetView.AddView(btnFile);
+
+        // Option 2: From Album Peers (Parity Feature)
+        var btnAlbum = new MaterialButton(ctx) { Text = "Pick from Album Peers" };
+        btnAlbum.Click += (s, e) => {
+            bottomSheet.Dismiss();
+            ShowAlbumPeerPicker(ctx);
+        };
+        sheetView.AddView(btnAlbum);
+
+        bottomSheet.SetContentView(sheetView);
+        bottomSheet.Show();
     }
 
-    private void OnAddNoteClicked(object sender, EventArgs e)
+    private void ShowAlbumPeerPicker(Context ctx)
     {
-        // MD3 Alert Dialog
-        var input = new EditText(Context);
-        new Google.Android.Material.Dialog.MaterialAlertDialogBuilder(Context)
-            .SetTitle("Add Note")
+        // Fetch songs in same album
+        var realm = _viewModel.RealmFactory.GetRealmInstance();
+        var albumName = _song.AlbumName;
+        var peers = realm.All<SongModel>().Where(s => s.AlbumName == albumName && !string.IsNullOrEmpty(s.CoverImagePath)).ToList();
+
+        // Show a Grid Dialog
+        var dialog = new Google.Android.Material.BottomSheet.BottomSheetDialog(ctx);
+        var grid = new GridLayout(ctx) { ColumnCount = 3 };
+        grid.SetPadding(20, 20, 20, 20);
+        foreach (var peer in peers.DistinctBy(p => p.CoverImagePath))
+        {
+            var img = new ImageView(ctx) { LayoutParameters = new ViewGroup.LayoutParams(200, 200) };
+            img.SetScaleType(ImageView.ScaleType.CenterCrop);
+            ((ViewGroup.MarginLayoutParams)img.LayoutParameters).SetMargins(10, 10, 10, 10);
+
+            Glide.With(ctx).Load(peer.CoverImagePath).Into(img);
+            img.Click += async (s, e) => {
+                _song.CoverImagePath = peer.CoverImagePath;
+                // Update UI
+                Glide.With(this).Load(_song.CoverImagePath).Into(_coverImage);
+                dialog.Dismiss();
+            };
+            grid.AddView(img);
+        }
+
+        dialog.SetContentView(grid);
+        dialog.Show();
+    }
+
+    // --- Helper UI Builders ---
+
+    private TextInputEditText CreateInput(Context ctx, string hint, string val, ViewGroup parent, float weight = 0)
+    {
+        var layout = new TextInputLayout(ctx)
+        {
+            Hint = hint,
+            LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, weight == 0 ? 1 : weight)
+        };
+        // If adding to vertical root, set width match_parent
+        if (weight == 0) layout.LayoutParameters.Width = ViewGroup.LayoutParams.MatchParent;
+        else ((LinearLayout.LayoutParams)layout.LayoutParameters).RightMargin = 10; // Spacing for rows
+
+        var edit = new TextInputEditText(ctx) { Text = val };
+        layout.AddView(edit);
+        parent.AddView(layout);
+        return edit;
+    }
+
+    private TextView CreateSectionTitle(Context ctx, string text)
+    {
+        var tv = new TextView(ctx) { Text = text, TextSize = 18, Typeface = Android.Graphics.Typeface.DefaultBold };
+        tv.SetPadding(0, 40, 0, 20);
+        return tv;
+    }
+
+    private ChipGroup CreateArtistEditor(Context ctx, ViewGroup parent)
+    {
+        var label = new TextView(ctx) { Text = "Artists", TextSize = 12 };
+        parent.AddView(label);
+
+        var group = new ChipGroup(ctx);
+        // Load initial artists
+        if (!string.IsNullOrEmpty(_song?.ArtistName))
+        {
+            var artists = _song.ArtistName.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var art in artists) AddArtistChip(ctx, group, art.Trim());
+        }
+
+        // Add Button Chip
+        var addChip = new Chip(ctx) { Text = "+ Add" };
+        addChip.Click += (s, e) => ShowAddArtistDialog(ctx, group);
+        group.AddView(addChip);
+
+        parent.AddView(group);
+        return group;
+    }
+
+    private void AddArtistChip(Context ctx, ChipGroup group, string name)
+    {
+        var chip = new Chip(ctx) { Text = name, CloseIconVisible = true };
+        chip.LongClick += (s, e) => group.RemoveView(chip);
+        chip.LongClickable = true;
+        // Insert before the "+ Add" button (last index)
+        group.AddView(chip, group.ChildCount - 1);
+    }
+
+    // --- Dialogs ---
+
+    private void ShowAddArtistDialog(Context ctx, ChipGroup group)
+    {
+        var input = new TextInputEditText(ctx) { Hint = "Artist Name" };
+        new MaterialAlertDialogBuilder(ctx)
+            .SetTitle("Add Artist")
             .SetView(input)
-            .SetPositiveButton("Save", (s, args) => {
-                var noteTxt = new TextView(Context) { Text = "• " + input.Text, TextSize = 16 };
-                noteTxt.SetPadding(8, 8, 8, 8);
-                _notesContainer.AddView(noteTxt);
+            .SetPositiveButton("Add", (s, e) => {
+                if (!string.IsNullOrWhiteSpace(input.Text))
+                    AddArtistChip(ctx, group, input.Text);
             })
-            .SetNegativeButton("Cancel", (s, args) => { })
             .Show();
     }
 
-    private void SaveChanges(object sender, EventArgs e)
-    {
-        // Invoke ViewModel Update
-        Toast.MakeText(Context, "Changes Saved!", ToastLength.Short).Show();
-    }
-}
-
-    /*
-    public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
+    private void ShowAddNoteDialog(object sender, EventArgs e)
     {
         var ctx = Context;
-        if (ctx == null) return null;
-
-        var mainScrollView = new ScrollView(ctx)
-        {
-            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent),
-            FillViewport = true
-        };
-
-        var root = new LinearLayout(ctx)
-        {
-            Orientation = Orientation.Vertical,
-            LayoutParameters = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent)
-        };
-        root.SetPadding(AppUtil.DpToPx(10), AppUtil.DpToPx(10), AppUtil.DpToPx(10), AppUtil.DpToPx(10));
-
-        // 1. Top Section (Image + Inputs)
-        root.AddView(CreateTopSection(ctx));
-
-        // 2. Middle Section (Album Picker)
-        root.AddView(CreateMiddleSection(ctx));
-
-        // 3. Bottom Section (Notes + Actions)
-        root.AddView(CreateBottomSection(ctx));
-
-        mainScrollView.AddView(root);
-        return mainScrollView;
+        var input = new TextInputEditText(ctx) { Hint = "Note content..." };
+        new MaterialAlertDialogBuilder(ctx)
+            .SetTitle("New Note")
+            .SetView(input)
+            .SetPositiveButton("Save", async (s, a) => {
+                // Call VM to add note
+                await _viewModel.UpdateSongNoteWithGivenNoteModelView(_song, new UserNoteModelView { UserMessageText = input.Text });
+                LoadNotes(ctx); // Refresh UI
+            })
+            .Show();
     }
 
-    private View CreateTopSection(Context ctx)
+    private void LoadNotes(Context ctx)
     {
-        var card = new MaterialCardView(ctx)
+        _notesContainer.RemoveAllViews();
+        // Assuming _song.UserNotes is the collection
+        /* 
+        foreach (var note in _song.UserNotes) 
         {
-            Radius = AppUtil.DpToPx(16),
-            CardElevation = AppUtil.DpToPx(4),
-            UseCompatPadding = true
-        };
-
-        var layout = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
-        layout.SetPadding(AppUtil.DpToPx(16), AppUtil.DpToPx(16), AppUtil.DpToPx(16), AppUtil.DpToPx(16));
-
-        // Header Title
-        var titleText = new MaterialTextView(ctx) { Text = "Edit Details", TextSize = 24 };
-        titleText.TransitionName = transitionName;
-        layout.AddView(titleText);
-
-        // Image Row
-        var imageRow = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
-        SongImage = new ImageView(ctx)
-        {
-            LayoutParameters = new LinearLayout.LayoutParams(AppUtil.DpToPx(100), AppUtil.DpToPx(100)),
-            TransitionName = TransName2
-        };
-        SongImage.SetScaleType(ImageView.ScaleType.CenterCrop);
-
-        if (!string.IsNullOrEmpty(MyViewModel.SelectedSong.CoverImagePath))
-            Glide.With(ctx).Load(MyViewModel.SelectedSong.CoverImagePath).Into(SongImage);
-        else
-            SongImage.SetImageResource(Resource.Drawable.musicnotess); // Ensure you have this drawable
-
-        var changeImgBtn = new MaterialButton(ctx) { Text = "Change Cover" };
-        changeImgBtn.Click += EditImageView_Click;
-
-        imageRow.AddView(SongImage);
-        imageRow.AddView(changeImgBtn);
-        layout.AddView(imageRow);
-
-        // Inputs
-        SongTitleInput = CreateInput(ctx, "Title", MyViewModel.SelectedSong.Title);
-        SongTrackNumberInput = CreateInput(ctx, "Track #", MyViewModel.SelectedSong.TrackNumber?.ToString());
-        SongYearsInput = CreateInput(ctx, "Year", MyViewModel.SelectedSong.ReleaseYear?.ToString());
-        SongConductorInput = CreateInput(ctx, "Conductor", MyViewModel.SelectedSong.Conductor);
-        SongComposerInput = CreateInput(ctx, "Composer", MyViewModel.SelectedSong.Composer);
-        SongDescriptionInput = CreateInput(ctx, "Description", MyViewModel.SelectedSong.Description);
-
-        layout.AddView(SongTitleInput);
-        layout.AddView(SongTrackNumberInput);
-        layout.AddView(SongYearsInput);
-        layout.AddView(SongConductorInput);
-        layout.AddView(SongComposerInput);
-        layout.AddView(SongDescriptionInput);
-
-        card.AddView(layout);
-        return card;
+            var card = new MaterialCardView(ctx);
+            // ... build simple card with note.Text ...
+            _notesContainer.AddView(card);
+        } 
+        */
     }
 
-    private TextInputEditText CreateInput(Context ctx, string hint, string value)
-    {
-        var input = new TextInputEditText(ctx) { Hint = hint, Text = value };
-        input.Background = null; // Remove underline for cleaner look if desired
-        return input;
-    }
+    // --- Save Logic ---
 
-    private View CreateMiddleSection(Context ctx)
+    private async void SaveChanges(object sender, EventArgs e)
     {
-        var card = new MaterialCardView(ctx)
+        // 1. Gather Data
+        _song.Title = _titleInput.Text;
+        _song.AlbumName = _albumInput.Text;
+        if (int.TryParse(_yearInput.Text, out int y)) _song.ReleaseYear = y;
+        if (int.TryParse(_trackInput.Text, out int t)) _song.TrackNumber = t;
+        _song.GenreName = _genreInput.Text;
+
+        // 2. Reconstruct Artist String
+        var artists = new List<string>();
+        for (int i = 0; i < _artistChipGroup.ChildCount - 1; i++) // Skip last "+ Add" chip
         {
-            Radius = AppUtil.DpToPx(16),
-            UseCompatPadding = true
-        };
-        var row = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
-        row.SetPadding(AppUtil.DpToPx(16), 0, AppUtil.DpToPx(16), 0);
-        row.SetGravity(GravityFlags.CenterVertical);
-        var label = new TextView(ctx) { Text = "Album: " };
-        var albumBtn = new MaterialButton(ctx)
-        {
-            Text = MyViewModel.SelectedSong.AlbumName ?? "Select Album",
-            LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent)
-            { Weight = 1 }
-        };
-        albumBtn.Click += (s, e) =>
-        {
-            var albumNames = MyViewModel.SearchResults.Select(x => x.AlbumName).Distinct().ToList();
-            new AlbumPickerDialogFragment(albumNames, MyViewModel.SelectedSong.AlbumName, MyViewModel)
-                .Show(ParentFragmentManager, "albumPicker");
-        };
-
-        row.AddView(label);
-        row.AddView(albumBtn);
-        card.AddView(row);
-        return card;
-    }
-
-    private View CreateBottomSection(Context ctx)
-    {
-        var layout = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
-
-        SaveButton = new MaterialButton(ctx) { Text = "Save Changes" };
-        SaveButton.SetBackgroundColor(Android.Graphics.Color.DarkSlateBlue);
-        SaveButton.Click += SaveButton_Click;
-
-        CancelButton = new MaterialButton(ctx) { Text = "Cancel" };
-        CancelButton.SetBackgroundColor(Android.Graphics.Color.Gray);
-        CancelButton.Click += (s, e) => ParentFragmentManager.PopBackStack();
-
-        layout.AddView(SaveButton);
-        layout.AddView(CancelButton);
-        return layout;
-    }
-
-    private void EditImageView_Click(object sender, EventArgs e)
-    {
-        var intent = new Intent(Intent.ActionPick);
-        intent.SetType("image/*");
-        StartActivityForResult(intent, PICK_IMAGE_REQUEST);
-    }
-
-    public override void OnActivityResult(int requestCode, int resultCode, Intent data)
-    {
-        base.OnActivityResult(requestCode, resultCode, data);
-        if (requestCode == PICK_IMAGE_REQUEST && resultCode == (int)Android.App.Result.Ok && data?.Data != null)
-        {
-            // In a real app, copy this URI to a local file accessible by the app
-            var uri = data.Data;
-            MyViewModel.SelectedSong.CoverImagePath = uri.ToString(); // Simplified
-            SongImage.SetImageURI(uri);
+            if (_artistChipGroup.GetChildAt(i) is Chip c) artists.Add(c.Text);
         }
-    }
+        // This is a simple string join. If your VM requires `ArtistToSong` objects, 
+        // you'd map these strings to that collection here.
+        _song.ArtistName = string.Join(", ", artists);
 
-    private void SaveButton_Click(object sender, EventArgs e)
-    {
-        // 1. Map Inputs to Model
-        MyViewModel.SelectedSong.Title = SongTitleInput.Text;
-        if (int.TryParse(SongTrackNumberInput.Text, out int track)) MyViewModel.SelectedSong.TrackNumber = track;
-        if (int.TryParse(SongYearsInput.Text, out int year)) MyViewModel.SelectedSong.ReleaseYear = year;
-        MyViewModel.SelectedSong.Conductor = SongConductorInput.Text;
-        MyViewModel.SelectedSong.Composer = SongComposerInput.Text;
-        MyViewModel.SelectedSong.Description = SongDescriptionInput.Text;
+        // 3. Call VM
+        await _viewModel.ApplyNewSongEdits(_song);
 
-        // 2. Update DB
-        MyViewModel.UpdateSongInDB(MyViewModel.SelectedSong);
-
-        // 3. Return
-        Toast.MakeText(Context, "Song Updated", ToastLength.Short).Show();
+        // 4. Notify & Exit
+        Toast.MakeText(Context, "Changes Saved!", ToastLength.Short)?.Show();
         ParentFragmentManager.PopBackStack();
     }
-
-    public bool IsDark()
-    {
-        return (Resources?.Configuration?.UiMode & Android.Content.Res.UiMode.NightYes) != 0;
-    }
 }
-    */

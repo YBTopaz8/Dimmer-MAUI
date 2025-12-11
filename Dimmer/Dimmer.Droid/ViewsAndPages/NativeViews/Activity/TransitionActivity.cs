@@ -351,7 +351,7 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
                 tag = "HomePageFragment";
                 break;
             case 101: // Browser
-                selectedFrag = new SongDetailPage(e.Item.ItemId.ToString(),MyViewModel);
+                selectedFrag = new SongDetailFragment(e.Item.ItemId.ToString(),MyViewModel);
                 tag = "GraphFragment";
                 break;
             case 102: // Settings
