@@ -297,7 +297,7 @@ public class AchievementService : IDisposable
         // ==============================================================================
         #region Daily System
         rules.Add(new AchievementRule { Id = "DAY_PLAY_5", Name = "Quick Morning", Description = "Play 5 songs before 9 AM", Category = AchievementCategory.Misc, Tier = AchievementTier.Bronze, CustomCheck = (r, s, m) => DateTime.Now.Hour < 9 && GetTodayEvents(r).Count() >= 5 });
-        rules.Add(new AchievementRule { Id = "DAY_PLAY_5_EVENING", Name = "Night Chill", Description = "Play 5 songs after 9 PM", Category = AchievementCategory.Misc, Tier = AchievementTier.Bronze, CustomCheck = (r, s, m) => DateTime.Now.Hour >= 21 && GetTodayEvents(r).Count(e => e.DatePlayed.Hour >= 21) >= 5 });
+        rules.Add(new AchievementRule { Id = "DAY_PLAY_5_EVENING", Name = "Night Chill", Description = "Play 5 songs after 9 PM", Category = AchievementCategory.Misc, Tier = AchievementTier.Bronze, CustomCheck = (r, s, m) => DateTime.Now.Hour >= 21 && GetTodayEvents(r).AsEnumerable().Count(e => e.DatePlayed.Hour >= 21) >= 5 });
 
         var dailyCounts = new Dictionary<string, int> { { "DAY_PLAY_10", 10 }, { "DAY_PLAY_25", 25 }, { "DAY_PLAY_50", 50 }, { "DAY_PLAY_100", 100 } };
         foreach (var kvp in dailyCounts) rules.Add(new AchievementRule { Id = kvp.Key, Name = "Daily Driver", Description = $"Play {kvp.Value} songs in a day", Category = AchievementCategory.GlobalCount, Threshold = kvp.Value, Tier = CalculateTier(kvp.Value), CustomCheck = (r, s, m) => GetTodayEvents(r).Count(e => e.WasPlayCompleted) >= kvp.Value });
@@ -362,7 +362,7 @@ public class AchievementService : IDisposable
         //#region Extreme
         rules.Add(new AchievementRule { Id = "SONG_7_DAYS_REPEAT", Name = "Hardcore Loop", Description = "Play same song every day for 7 days", Category = AchievementCategory.Streak, Tier = AchievementTier.Platinum, CustomCheck = (r, s, m) => CheckDailyStreakGeneric(r, m, (e, model) => e.SongId == model.Id, 7) });
         //rules.Add(new AchievementRule { Id = "TOP_10_ALL", Name = "Global Listener", Description = "Play a top 10 most played song", Category = AchievementCategory.Misc, Tier = AchievementTier.Gold, CustomCheck = (r, s, m) => { var last10 = GetRecentCompletedEvents(r, 10); if (last10.Count < 10) return false; var top10Ids = r.All<SongModel>().OrderByDescending(x => x.PlayCount).Take(10).ToList().Select(x => x.Id).ToList(); return top10Ids.Contains(m.Id); } });
-        //rules.Add(new AchievementRule { Id = "NIGHT_OWL_CENTURY", Name = "Late Night Century", Description = "Play 100 songs after 9 PM", Category = AchievementCategory.Misc, Tier = AchievementTier.Platinum, CustomCheck = (r, s, m) => r.All<DimmerPlayEvent>().Count(e => e.DatePlayed.Hour >= 21) >= 100 });
+        rules.Add(new AchievementRule { Id = "NIGHT_OWL_CENTURY", Name = "Late Night Century", Description = "Play 100 songs after 9 PM", Category = AchievementCategory.Misc, Tier = AchievementTier.Platinum, CustomCheck = (r, s, m) => r.All<DimmerPlayEvent>().AsEnumerable().Count(e => e.DatePlayed.Hour >= 21) >= 100 });
         
 
         // ==============================================================================
@@ -398,7 +398,7 @@ public class AchievementService : IDisposable
 
         rules.Add(new AchievementRule { Id = "LONG_PLAY_SESSION_10H", Name = "Listening Marathon", Description = "Listen 10 hours in a single session", Category = AchievementCategory.Misc, Tier = AchievementTier.Platinum, CustomCheck = (r, s, m) => GetTodayEvents(r).Count() * 3.5 > 600 });
         rules.Add(new AchievementRule { Id = "EARLY_BIRD_10", Name = "Sunrise Session", Description = "Play 10 songs before 7 AM", Category = AchievementCategory.Misc, Tier = AchievementTier.Silver, CustomCheck = (r, s, m) => DateTime.Now.Hour < 7 && GetTodayEvents(r).Count() >= 10 });
-        rules.Add(new AchievementRule { Id = "NIGHT_OWL_10", Name = "Late Night Marathon", Description = "Play 10 songs after midnight", Category = AchievementCategory.Misc, Tier = AchievementTier.Silver, CustomCheck = (r, s, m) => DateTime.Now.Hour == 0 && GetTodayEvents(r).Count(e => e.DatePlayed.Hour == 0) >= 10 });
+        rules.Add(new AchievementRule { Id = "NIGHT_OWL_10", Name = "Late Night Marathon", Description = "Play 10 songs after midnight", Category = AchievementCategory.Misc, Tier = AchievementTier.Silver, CustomCheck = (r, s, m) => DateTime.Now.Hour == 0 && GetTodayEvents(r).AsEnumerable().Count(e => e.DatePlayed.Hour == 0) >= 10 });
         rules.Add(new AchievementRule { Id = "FAST_FAV_5", Name = "Speed Collector", Description = "Favorite 5 songs quickly", Category = AchievementCategory.Misc, Tier = AchievementTier.Silver, CustomCheck = (r, s, m) => s.TotalFavorites >= 5 });
         rules.Add(new AchievementRule { Id = "TOP_100", Name = "Music Collector", Description = "Play top 100 songs in library", Category = AchievementCategory.GlobalCount, Threshold = 100, Tier = AchievementTier.Gold, CustomCheck = (r, s, m) => s.TotalPlays >= 100 });
         #endregion

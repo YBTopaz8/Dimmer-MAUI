@@ -885,11 +885,11 @@ public sealed partial class SongDetailPage : Page
     private void ArtistToSong_Loaded(object sender, RoutedEventArgs e)
     {
         if(MyViewModel.SelectedSong is null) return;
-        var dbSong = MyViewModel.RealmFactory.GetRealmInstance()
-            
+        var dbSong = MyViewModel.RealmFactory.GetRealmInstance()            
             .Find<SongModel>(MyViewModel.SelectedSong.Id);
 
         if (dbSong is null) return;
+
         if ((dbSong.ArtistToSong.Count <1 || dbSong.Artist is null) && dbSong.ArtistName is not null)
         {
             RxSchedulers.Background.Schedule(async () =>
@@ -909,6 +909,14 @@ public sealed partial class SongDetailPage : Page
             //objView.TotalSongsByArtist = x.Songs.Count();
             return objView;
         });
+
+
+        var TQLList = MyViewModel.SearchResults.Where(x=>x.ArtistName == MyViewModel.SelectedSong.ArtistName
+        ||x.Artist.Id == MyViewModel.SelectedSong.Artist.Id)
+            .DistinctBy(x =>x.ArtistName);
+
+        var tqlcCount = TQLList.Count();
+        var listOfArtistsModelViewCount = listOfArtistsModelView.Count();
         ArtistToSong.ItemsSource = listOfArtistsModelView;
     }
 

@@ -6,7 +6,14 @@ public partial class BoolToVisibilityConverter : IValueConverter
     {
         if (value is bool boolVal)
         {
-            return boolVal ? WinUIVisibility.Visible : WinUIVisibility.Collapsed;
+            if (boolVal)
+            {
+                return WinUIVisibility.Visible;
+            }
+            else
+            {
+                return WinUIVisibility.Collapsed;
+            }
         }
         return WinUIVisibility.Collapsed;
     }

@@ -454,8 +454,8 @@ public sealed partial class ArtistPage : Page
 
         send.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Colors.DarkSlateBlue);
         send.BorderThickness = new Microsoft.UI.Xaml.Thickness(2);
-
-        MyViewModel.SearchSongForSearchResultHolder($"Songs by {MyViewModel.SelectedArtist!.Name} and in album {album.Name}");
+        
+        MyViewModel.SearchSongForSearchResultHolder($"{TQlStaticMethods.PresetQueries.ExactlyByArtist(MyViewModel.SelectedArtist.Name)} and {TQlStaticMethods.PresetQueries.ExactlyByAlbum(album.Name)}");
         var albmInDb = MyViewModel.RealmFactory.GetRealmInstance()
             .All<SongModel>()
             .Where(x => x.AlbumName == album.Name);

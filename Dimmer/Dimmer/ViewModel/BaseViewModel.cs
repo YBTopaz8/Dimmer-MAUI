@@ -168,6 +168,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     [ObservableProperty]
     public partial bool IsInitialized { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsAchievementNotificationVisible { get; set; }
     public void InitializeAllVMCoreComponents()
     {
         if (IsInitialized) return;
@@ -193,11 +196,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             Where(rule => rule is not (null, null))
             .DistinctUntilChanged()
            .ObserveOn(RxSchedulers.UI)
-           .Subscribe(s =>
+           .Subscribe(async s =>
            {
                UnlockedAch = s.Item1;
-
-               ShowAchievementNotificationToUI(UnlockedAch);
+               IsAchievementNotificationVisible = true;
+               await Task.Delay(5000);
+               IsAchievementNotificationVisible = false;
            });
 
 
@@ -938,9 +942,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                         CurrentPlayingSongView = new();
                     }
                     CurrentTrackPositionSeconds = lastAppEvent.PositionInSeconds;
+                    RxSchedulers.UI.Schedule(() =>
+                    {
 
                     IsDarkModeOn = Application.Current?.PlatformAppTheme == AppTheme.Dark;
 
+                    });
                 }
                 
             }
@@ -6487,23 +6494,59 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         IsCreatingSegment = false;
     }
-
+ 
     [RelayCommand]
     public async Task LoadUserLastFMDataAsync()
     {
         if (lastfmService.AuthenticatedUser is null) return;
-        ListOfUserRecentTracks = await lastfmService.GetUserRecentTracksAsync(lastfmService.AuthenticatedUser, 50);
 
-        LastFMUserInfo = await lastfmService.GetUserInfoAsync();
+        // 1. Fetch all data concurrently (much faster than awaiting one by one)
+        var tasks = new
+        {
+            Recent = lastfmService.GetUserRecentTracksAsync(lastfmService.AuthenticatedUser, 50),
+            Info = lastfmService.GetUserInfoAsync(),
+            TopTracks = lastfmService.GetUserTopTracksAsync(),
+            TopAlbums = lastfmService.GetTopUserAlbumsAsync(),
+            Loved = lastfmService.GetLovedTracksAsync()
+        };
 
-        CollectionUserTopTracks = await lastfmService.GetUserTopTracksAsync();
-         CollectionUserTopAlbums = await lastfmService.GetTopUserAlbumsAsync();
+        await Task.WhenAll(tasks.Recent, tasks.Info, tasks.TopTracks, tasks.TopAlbums, tasks.Loved);
 
-        ListOfUserLovedTracks = await lastfmService.GetLovedTracksAsync();
-        ListOfGetTopArtistsChart = await lastfmService.GetTopArtistsChartAsync();
-        ListOfSimilarTracks = await lastfmService.GetSimilarAsync(
-            CurrentPlayingSongView.ArtistName,
-            CurrentPlayingSongView.Title);
+        // 2. Build the Lookup ONE time (O(N))
+        // This creates a hash map of your local library for instant matching
+        var localLibraryLookup = LastFmEnricher.BuildLocalLibraryLookup(SearchResults);
+
+        // 3. Process the results using the Centralized Logic
+        // We pass 'SearchResults' as the second arg for the Fallback Duration check
+
+        // Recent Tracks
+        var recentTracks = await tasks.Recent;
+        ListOfUserRecentTracks = recentTracks
+            .EnrichWithLocalData(localLibraryLookup, SearchResults)
+            .ToObservableCollection();
+
+        // User Info
+        LastFMUserInfo = await tasks.Info;
+
+        // Top Tracks
+        var topTracks = await tasks.TopTracks;
+        CollectionUserTopTracks = topTracks
+            .EnrichWithLocalData(localLibraryLookup, SearchResults)
+            .ToObservableCollection();
+
+        // Loved Tracks
+        var lovedTracks = await tasks.Loved;
+        ListOfUserLovedTracks = lovedTracks
+            .EnrichWithLocalData(localLibraryLookup, SearchResults)
+            .ToObservableCollection();
+
+        // Top Albums 
+        // (Note: Album matching logic is slightly different, usually simpler)
+        var topAlbums = await tasks.TopAlbums;
+        CollectionUserTopAlbums = topAlbums
+            // You can extend the Enricher to handle Albums specifically if needed
+            // .EnrichWithLocalData(localLibraryLookup) 
+            .ToObservableCollection();
     }
 
     [RelayCommand]

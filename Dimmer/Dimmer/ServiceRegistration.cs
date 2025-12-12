@@ -123,6 +123,7 @@ public static class ServiceRegistration
         //services.AddSingleton<ILocalLyricsProvider, EmbeddedLyricsProvider>();
         //services.AddSingleton<ILocalLyricsProvider, LocalLrcFileProvider>();
         services.AddSingleton<IOnlineLyricsProvider, LrcLibProvider>();
+        services.AddSingleton<LastFMViewModel>();
 
         // 2. Register the persistence service.
         services.AddSingleton<ILyricsPersistenceService, LyricsPersistenceService>();

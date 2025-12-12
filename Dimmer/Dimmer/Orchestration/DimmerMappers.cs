@@ -655,7 +655,7 @@ public static class DimmerMappers
             if (concernedSong != null)
             {
                 dest.CoverImagePath = string.IsNullOrEmpty(concernedSong.CoverImagePath)
-                    ? "musicnote1.png"
+                    ? string.Empty
                     : concernedSong.CoverImagePath;
                 dest.IsFav = concernedSong.IsFavorite;
                 dest.ArtistName = concernedSong.ArtistName;

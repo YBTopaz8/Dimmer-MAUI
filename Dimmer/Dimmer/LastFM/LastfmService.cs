@@ -640,7 +640,9 @@ public class LastfmService : ILastfmService
         try
         {
 
-            var res = await _client.User.GetLovedTracksAsync(_username);
+            var res = await _client.User.GetLovedTracksAsync(_username, limit:150)
+                ;
+          
             return res.ToObservableCollection();
         }
         catch  (Exception ex)

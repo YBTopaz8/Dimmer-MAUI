@@ -262,7 +262,7 @@
                                                         VerticalAlignment="Center"
                                                         FontSize="12"
                                                         Opacity="0.5"
-                                                        Text="{Binding DatePlayed, Converter={StaticResource EventDateToTimeAgoConverter}}" />
+                                                        Text="{Binding DatePlayed, Converter={StaticResource EventDateOffsetToTimeAgo}}" />
                                                 </Grid>
                                             </DataTemplate>
                                         </ListView.ItemTemplate>

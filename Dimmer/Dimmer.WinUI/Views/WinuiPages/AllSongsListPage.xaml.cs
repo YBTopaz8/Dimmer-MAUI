@@ -1268,7 +1268,7 @@ public sealed partial class AllSongsListPage : Page
 
         // Small visual feedback before navigation
         var visualImage = ElementCompositionPreview.GetElementVisual(image);
-        PlatUtils.ApplyEntranceEffect(visualImage, row, SongTransitionAnimation.Slide,_compositor);
+        //PlatUtils.ApplyEntranceEffect(visualImage, row, SongTransitionAnimation.Slide,_compositor);
 
         // Suppress the default page transition to let ours take over.
         var supNavTransInfo = new SuppressNavigationTransitionInfo();

@@ -21,6 +21,7 @@
             <converters:MsToDurationConverter x:Key="MsToDurationConverter" />
             <converters:BoolToVisConverter x:Key="BoolToVisConverter" />
             <converters:EventDateToTimeAgo x:Key="EventDateToTimeAgoConverter" />
+            <converters:EventDateOffsetToTimeAgo x:Key="EventDateOffsetToTimeAgo" />
             <converters:TrackImageConverter x:Key="TrackImageConverter" />
             <converters:BoolToCompleteColorConverter x:Key="BoolToCompleteColorConverter" />
             <converters:BoolToCompleteIconConverter x:Key="BoolToCompleteIconConverter" />
@@ -37,7 +38,6 @@
             <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter" />
             <converters:CollectionSizeToVisibility x:Key="CollectionSizeToVisibility" />
             <converters:CollectionSizeToVisibilityInverted x:Key="CollectionSizeToVisibilityInverted" />
-            <converters:EventDateToTimeAgo x:Key="EventDateToTimeAgo" />
             <converters:PlayTypeToBorderBrush x:Key="PlayTypeToBorderBrush" />
             <converters:RepeatModeConverter x:Key="RepeatModeConverter" />
             <converters:BoolToGlyphConverter x:Key="BoolToGlyphConverter" />
