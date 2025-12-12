@@ -13,15 +13,7 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
 {
     private readonly string _transitionName;
     private BaseViewModelAnd MyViewModel;
-    private RecyclerView _folderRecycler;
     private Button _addFolderButton;
-    //private FolderAdapter _adapter;
-    private LinearLayout.LayoutParams cardLayoutParam;
-    private MaterialTextView lastFMMessageTextView;
-    private TextInputEditText lastFMUnameTxtField;
-    private TextInputEditText lastFMPwdTxtField;
-    private MaterialSwitch rememberMeSwitch;
-    private MaterialButton lastFMSubmitButton;
     private TextView appStatusText;
     private CardView systemStatusView;
 
@@ -340,25 +332,6 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
 
         row.AddView(textLayout);
         row.AddView(sw);
-        return row;
-    }
-
-    private View CreateActionRow(Context ctx, string title, string value)
-    {
-        var row = new LinearLayout(ctx) { Orientation = Orientation.Horizontal, WeightSum = 10 };
-        row.SetPadding(30, 30, 30, 30);
-        row.SetGravity(GravityFlags.CenterVertical);
-        
-
-        var t1 = new TextView(ctx) { Text = title, TextSize = 16, Typeface = Android.Graphics.Typeface.DefaultBold };
-        t1.LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 6);
-
-        var t2 = new TextView(ctx) { Text = value, TextSize = 14,  Gravity = GravityFlags.End };
-        t2.SetTextColor(Android.Graphics.Color.DarkSlateBlue);
-        t2.LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 4);
-
-        row.AddView(t1);
-        row.AddView(t2);
         return row;
     }
 

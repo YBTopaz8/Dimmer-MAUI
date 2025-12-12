@@ -1567,7 +1567,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 {
                     SelectedSongLyricsObsCol = LyricsMgtFlow.GetListLyricsCol(songInDb.SyncLyrics).ToObservableCollection();
                 }
-                else
+                else if(SelectedSongLyricsObsCol?.Count >=1)
                 {
                     SelectedSongLyricsObsCol?.Clear();   
                 }

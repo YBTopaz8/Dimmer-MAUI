@@ -4,6 +4,7 @@ using System.Reactive.Disposables.Fluent;
 using Android.Views.InputMethods;
 
 using AndroidX.CoordinatorLayout.Widget;
+using AndroidX.RecyclerView.Widget;
 
 using Dimmer.ViewsAndPages.NativeViews.DimmerLive;
 using Dimmer.ViewsAndPages.NativeViews.Misc;
@@ -29,12 +30,13 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     public float _downY;
     private TextInputEditText _searchBar;
     public FloatingActionButton? cogButton = null!;
-    FrameLayout? root;
+    CoordinatorLayout? root;
     public TextView CurrentTimeTextView;
-    public FrameLayout? Root => root;
+    public ExtendedFloatingActionButton? fab;
+    public CoordinatorLayout? Root => root;
     public BaseViewModelAnd MyViewModel { get; private set; } = null!;
     private bool _isNavigating;
-
+    private FabMorphMenu _morphMenu;
     public HomePageFragment()
     {
         
@@ -73,7 +75,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         var ctx = Context;
 
         // 1. Root: CoordinatorLayout (Crucial for FABs)
-        var root = new CoordinatorLayout(ctx)
+         root = new CoordinatorLayout(ctx)
         {
             LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent)
         };
@@ -158,7 +160,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         root.AddView(contentLinear);
 
         // --- 5. Extended FAB ---
-        var fab = new Google.Android.Material.FloatingActionButton.ExtendedFloatingActionButton(ctx);
+        fab = new Google.Android.Material.FloatingActionButton.ExtendedFloatingActionButton(ctx);
         fab.Text = "Actions";
         fab.SetIconResource(Resource.Drawable.addpl); 
         fab.Extend();
@@ -168,8 +170,6 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         // Lift FAB above the MiniPlayer (approx 90dp)
         fabParams.SetMargins(0, 0, AppUtil.DpToPx(20), AppUtil.DpToPx(90));
         fab.LayoutParameters = fabParams;
-
-        fab.Click += (s, e) => ShowFabMenu(ctx, fab);
 
         // Add FAB to Root
         root.AddView(fab);
@@ -298,6 +298,47 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
             }
         })
         .DisposeWith(CompositeDisposables);
+
+
+        _morphMenu = new FabMorphMenu(Context, root, fab)
+        .AddItem("Settings", Resource.Drawable.settings, () =>
+        {
+            // Logic copied from your old ShowFabMenu
+            if (Activity is TransitionActivity act)
+                act.NavigateTo(new SettingsFragment("sett", MyViewModel), "SettingsFragment");
+        })
+        .AddItem("Search (TQL)", Resource.Drawable.searchd, () =>
+        {
+            var searchSheet = new TqlSearchBottomSheet(MyViewModel);
+            searchSheet.Show(ParentFragmentManager, "TqlSearchSheet");
+        })
+        .AddItem("Scroll to Playing", Resource.Drawable.eye, () =>
+        {
+            MyViewModel.TriggerScrollToCurrentSong();
+        })
+        .AddItem("View Queue", Resource.Drawable.playlistminimalistic3, () =>
+        {
+            var queueSheet = new QueueBottomSheetFragment(MyViewModel);
+            queueSheet.Show(ParentFragmentManager, "QueueSheet");
+        })
+        .AddItem("Login", Resource.Drawable.user, () =>
+        {
+            MyViewModel.NavigateToGeneralPage(this, new LoginFragment("IntoLogin", MyViewModel), "loginPageTag");
+        });
+
+        // 2. Bind the Click event
+        fab.Click += (s, e) =>
+        {
+            _morphMenu.Show();
+        };
+
+
+
+        PostponeEnterTransition();
+        _songListRecycler?.ViewTreeObserver?.AddOnPreDrawListener(new MyPreDrawListener(_songListRecycler, this));
+   
+    
+    
     }
 
     protected CompositeDisposable CompositeDisposables { get; } = new CompositeDisposable();
@@ -481,28 +522,20 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
             transitionName, _albumArt);
     }
 
-    public class MyPreDrawListener : Java.Lang.Object, ViewTreeObserver.IOnPreDrawListener
+    class MyPreDrawListener : Java.Lang.Object, ViewTreeObserver.IOnPreDrawListener
     {
-        private readonly Fragment _fragment;
-        private readonly View _view;
-
-        public MyPreDrawListener(Fragment fragment, View view)
-        {
-            _fragment = fragment;
-            _view = view;
-        }
+        private readonly RecyclerView _rv;
+        private readonly Fragment _frag;
+        public MyPreDrawListener(RecyclerView rv, Fragment frag) { _rv = rv; _frag = frag; }
 
         public bool OnPreDraw()
         {
-            // Remove listener so it only fires once
-            _view.ViewTreeObserver?.RemoveOnPreDrawListener(this);
-
-            // 3. Tell transition system: "Okay, views are ready. Start the animation!"
-            _fragment.StartPostponedEnterTransition();
+            _rv?.ViewTreeObserver?.RemoveOnPreDrawListener(this);
+            // Tell the framework the view is ready, start the animation
+            _frag.StartPostponedEnterTransition();
             return true;
         }
     }
-
     public  bool IsDark()
     {
         return (Resources?.Configuration?.UiMode & Android.Content.Res.UiMode.NightYes) != 0;

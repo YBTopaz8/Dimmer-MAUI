@@ -24,8 +24,6 @@ namespace Dimmer.ViewsAndPages.NativeViews.SingleSong
             }
         }
 
-
-        LinearLayout row;
         public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType)
         {
             var ctx = parent.Context;

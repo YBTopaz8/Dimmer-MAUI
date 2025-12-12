@@ -29,22 +29,9 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     }
     public LoginViewModel LoginViewModel => _loginViewModel;
     private readonly LoginViewModel _loginViewModel;
-    private readonly IAppInitializerService appInitializerService;
     private readonly IDimmerAudioService audioService;
-
-    // _subs is inherited from BaseViewModel as _subsManager and should be used for subscriptions here too
-    // private readonly SubscriptionManager _subsLocal = new(); // Use _subsManager from base
-    private readonly IFolderPicker folderPicker;
     private readonly IAnimationService animService;
-    private readonly IDimmerStateService stateService;
-    private readonly ISettingsService settingsService;
-    private readonly SubscriptionManager subsManager;
     private readonly IRepository<SongModel> songRepository;
-    private readonly IRepository<ArtistModel> artistRepository;
-    private readonly IRepository<AlbumModel> albumRepository;
-    private readonly IRepository<GenreModel> genreRepository;
-    private readonly LyricsMgtFlow lyricsMgtFlow;
-    private readonly IFolderMgtService folderMgtService;
     private readonly BaseViewModel baseVM;
     AndroidFolderPicker fPicker;
     public BaseViewModel BaseVM => baseVM; // Expose BaseViewModel reference if needed
@@ -615,79 +602,43 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     public void NavigateToSingleSongPageFromHome(Fragment? callerFrag, string transitionName, View sharedView)
     {
-        if (callerFrag == null) return;
-        if (!callerFrag.IsAdded || callerFrag.Activity == null) return;
+        if (callerFrag == null || !callerFrag.IsAdded || callerFrag.Activity == null) return;
 
-    
-        sharedView.TransitionName = transitionName;
+        // 1. Setup the Destination
+        var detailFrag = new SongDetailFragment(transitionName, this);
 
-        var typeOfFragment = callerFrag.GetType();
-        if (typeOfFragment == typeof(HomePageFragment))
+        // 2. Configure the "Morph" (The Shared Element Transition)
+        var transform = new MaterialContainerTransform
         {
-            HomePageFragment homeFrag = (HomePageFragment)callerFrag;
-            var fragment = new SongDetailFragment(transitionName, this);
-            CurrentPage = fragment;
-
+            DrawingViewId = Resource.Id.custom_fragment_container,
+            ScrimColor = Color.Transparent,
+            ContainerColor = Color.ParseColor("#121212"), // Set this to your actual page background color!
+            FadeMode = MaterialContainerTransform.FadeModeCross,
             
 
-            var container = new MaterialContainerTransform
-            {
-                DrawingViewId = Resource.Id.custom_fragment_container,  // container for fragments
-                ScrimColor = Color.Transparent,
-                ContainerColor = Color.Transparent,
-                FadeMode = MaterialContainerTransform.FadeModeThrough,
-                StartShapeAppearanceModel = ShapeAppearanceModel.InvokeBuilder().SetAllCorners(CornerFamily.Rounded, 50f).Build(),
-                EndShapeAppearanceModel = ShapeAppearanceModel.InvokeBuilder().SetAllCorners(CornerFamily.Rounded, 0f).Build(),
-            };
+            // This adds the ARC motion you wanted from the second block
+            PathMotion = new MaterialArcMotion()
+        };
+        transform.SetDuration(400);
+        // 3. Assign Transitions
+        detailFrag.SharedElementEnterTransition = transform;
+        detailFrag.SharedElementReturnTransition = transform; // It handles the reverse automatically
 
-            var sharedSet = new TransitionSet();
-            sharedSet.AddTransition(new ChangeBounds());
-            sharedSet.AddTransition(new ChangeTransform());
-            sharedSet.AddTransition(new ChangeImageTransform()); // Crucial for ImageViews
+        // 4. Configure the "Non-Shared" views (The background list)
+        // HOLD prevents the list from disappearing while the card expands
+        callerFrag.ExitTransition = new Hold();
+        callerFrag.ReenterTransition = new Hold();
 
-
-            container.PathMotion = new MaterialArcMotion();
-            container.SetDuration(380);
-
-
-
-            fragment.SharedElementEnterTransition = container;
-            fragment.SharedElementReturnTransition = container.Clone();
-
-
-            var scaleUp = new MaterialElevationScale(true);
-            scaleUp.SetDuration(300);
-
-            var scaleDown = new MaterialElevationScale(false);
-            scaleDown.SetDuration(200);
-            fragment.EnterTransition = scaleUp;
-
-
-
-
-
-            Hold enterHold = new Hold();
-            enterHold.AddTarget(Resource.Id.custom_fragment_container);
-            enterHold.SetDuration(80);
-            homeFrag.ExitTransition = enterHold;
-
-
-            homeFrag.ParentFragmentManager.BeginTransaction()
-                .SetReorderingAllowed(true)
-                .AddSharedElement(sharedView, transitionName)
-                .Replace(Resource.Id.custom_fragment_container, fragment)
-                .AddToBackStack(transitionName)
-                .Commit();
-
-
-            // Set up the transition (this is pseudo-code; actual implementation may vary)
-            // You would typically use a navigation service that supports shared element transitions.
-        }
-
+        // 5. Execute
+        callerFrag.ParentFragmentManager.BeginTransaction()
+            .SetReorderingAllowed(true)
+            .AddSharedElement(sharedView, transitionName)
+            .Replace(Resource.Id.custom_fragment_container, detailFrag)
+            .AddToBackStack(transitionName)
+            .Commit();
     }
 
 
-   
     #endregion
 
     #region Binding Views Section

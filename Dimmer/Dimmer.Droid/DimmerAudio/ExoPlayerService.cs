@@ -112,8 +112,6 @@ public class ExoPlayerService : MediaSessionService
         PlayPreviousPressed?.Invoke(this, new PlaybackEventArgs(CurrentSongContext));
 
     PlayerNotificationManager? _notifMgr;
-
-    private Handler? _positionHandler;
     private Runnable? _positionRunnable;
     private MediaController? mediaController;
 
@@ -550,8 +548,6 @@ public class ExoPlayerService : MediaSessionService
         private readonly ExoPlayerService service;
         public PlayerEventListener(ExoPlayerService service) { this.service = service; }
 
-        private bool _endRaisedForThisItem = false;
-        private string? _lastMediaId;
         public void OnMediaItemTransition(MediaItem? mediaItem, int reason)
         {
 
@@ -772,8 +768,6 @@ public class ExoPlayerService : MediaSessionService
         {
             this.service = service;
         }
-
-        const string TAG = "MediaSessionCallback";
 
         // --- Connection Handling ---
         public MediaSession.ConnectionResult OnConnect(

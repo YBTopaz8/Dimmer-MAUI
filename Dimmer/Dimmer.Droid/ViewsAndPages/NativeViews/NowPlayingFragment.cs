@@ -40,7 +40,7 @@ public class NowPlayingFragment : Fragment
     private TextView _genreText, _yearText;
 
     // Controls
-    private Slider _seekSlider, _volumeSlider;
+    private Slider _seekSlider;
     private TextView _currentTimeText, _totalTimeText;
     private MaterialButton _prevBtn, _playPauseBtn, _nextBtn;
     private MaterialButton _queueBtn, _detailsBtn, _optionsBtn;

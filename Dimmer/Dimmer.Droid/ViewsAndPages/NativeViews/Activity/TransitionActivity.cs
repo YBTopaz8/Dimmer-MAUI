@@ -10,6 +10,11 @@ using Google.Android.Material.BottomNavigation;
 using Google.Android.Material.Dialog;
 using Google.Android.Material.Navigation;
 
+using Explode = AndroidX.Transitions.Explode;
+using Fade = AndroidX.Transitions.Fade;
+using Slide = AndroidX.Transitions.Slide;
+using Transition = AndroidX.Transitions.Transition;
+
 namespace Dimmer.ViewsAndPages.NativeViews.Activity;
 
 
@@ -313,26 +318,6 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         _drawerLayout.OpenDrawer(GravityCompat.Start);
     }
 
-
-    // Helper to create the animation drawable
-    private Android.Graphics.Drawables.StateListDrawable CreateStateListDrawable(int filledResId, int outlinedResId)
-    {
-        var drawable = new Android.Graphics.Drawables.StateListDrawable();
-
-        // State: Checked (Selected)
-        drawable.AddState(
-            new int[] { Android.Resource.Attribute.StateChecked },
-            AndroidX.Core.Content.ContextCompat.GetDrawable(this, filledResId)
-        );
-
-        // State: Default (Unselected)
-        drawable.AddState(
-            new int[] { },
-            AndroidX.Core.Content.ContextCompat.GetDrawable(this, outlinedResId)
-        );
-
-        return drawable;
-    }
     private void NavBar_ItemSelected(object? sender, NavigationBarView.ItemSelectedEventArgs e)
     {
         Fragment? selectedFrag = null;
@@ -596,48 +581,6 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         }
     }
 
-
-    private static Transition? CreateTransition(ActivityTransitionType type)
-    {
-        if (Build.VERSION.SdkInt < BuildVersionCodes.Lollipop)
-            return null;
-
-        Transition? transition = null;
-
-        switch (type)
-        {
-            case ActivityTransitionType.Fade:
-                transition = new Fade();
-                break;
-            case ActivityTransitionType.SlideFromEnd:
-                transition = new Slide(GravityFlags.End);
-                break;
-            case ActivityTransitionType.SlideFromStart:
-                transition = new Slide(GravityFlags.Start);
-                break;
-            case ActivityTransitionType.SlideFromBottom:
-                transition = new Slide(GravityFlags.Bottom);
-                break;
-            case ActivityTransitionType.Explode:
-                transition = new Explode();
-                break;
-            case ActivityTransitionType.None:
-            default:
-                return null;
-        }
-
-        if (transition != null)
-        {
-             transition.SetDuration(PublicStats.ActivityTransitionDurationMs);
-            transition.SetInterpolator(PublicStats.BounceInterpolator); // This is ITimeInterpolator, your PublicStats.DefaultInterpolator should match
-
-            transition.ExcludeTarget(Android.Resource.Id.StatusBarBackground, false);
-            transition.ExcludeTarget(Android.Resource.Id.NavigationBarBackground, false);
-        }
-
-        return transition;
-    }
-
     const int REQUEST_OPEN_FOLDER = 100;
     TaskCompletionSource<string?>? _folderPickerTcs;
     private NavigationView _navigationView;
@@ -683,9 +626,6 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
             }
         }
     }
-
-
-    const int REQUEST_WRITE_STORAGE = 1001;
 
     protected override void OnDestroy()
     {

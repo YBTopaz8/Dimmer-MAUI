@@ -43,6 +43,8 @@ global using Android.Animation;
 global using Android.Views.Animations;
 global using AColor = Android.Graphics.Color;
 global using AndroidX.AppCompat.App;
+global using AndroidX.Transitions;
+global using TransitionManager = AndroidX.Transitions.TransitionManager;
 global using Dimmer.ViewsAndPages.NativeViews.Activity;
 
 global using Google.Android.Material.Shape;
@@ -66,6 +68,7 @@ global using System.Runtime.CompilerServices;
 global using System.Text.RegularExpressions;
 
 global using Android.Graphics;
+global using FragmentManager = AndroidX.Fragment.App.FragmentManager;
 
 
 global using Dimmer.GraphSupport;
