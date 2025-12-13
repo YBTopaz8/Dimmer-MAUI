@@ -59,39 +59,17 @@ public sealed partial class AllSongsListPage : Page
 
             _storedSong = null;
 
-            MySongsTableView.ScrollIntoView(songToAnimate, ScrollIntoViewAlignment.Default);
+            MySongsTableView.SmoothScrollIntoViewWithItemAsync(songToAnimate, (ScrollItemPlacement)ScrollIntoViewAlignment.Default);
             var myTableViewUIElem = MySongsTableView as UIElement;
             myTableViewUIElem.UpdateLayout();
 
 
-            DispatcherQueue.TryEnqueue(() =>
-            {
-
-
-                var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("BackConnectedAnimation");
-
-                if (animation is null)
-                    return;
-
-                var row = MySongsTableView.ContainerFromItem(songToAnimate) as FrameworkElement;
-                if (row is null)
-                    return;
-
-                var image = PlatUtils.FindVisualChild<Image>(row, "coverArtImage");
-                if (image is null)
-                    return;
-
-                var animConf = new Microsoft.UI.Xaml.Media.Animation.GravityConnectedAnimationConfiguration();
-                
-                animConf.IsShadowEnabled = true;
-                
-                animation.Configuration = animConf;
-
-                animation.TryStart(image);
-
-
-
-            });
+            AnimationHelper.PrepareFromList(
+    MySongsTableView, 
+    _storedSong, 
+    "coverArtImage", 
+    AnimationHelper.Key_Forward
+);
         }
     }
 
@@ -329,7 +307,7 @@ public sealed partial class AllSongsListPage : Page
         var isSongInList = MySongsTableView.CollectionView;
 
        
-        MySongsTableView.ScrollIntoView(songToFind, ScrollIntoViewAlignment.Leading);
+        MySongsTableView.SmoothScrollIntoViewWithItemAsync(songToFind, (ScrollItemPlacement)ScrollIntoViewAlignment.Leading);
     }
 
     public Microsoft.UI.Xaml.Data.ICollectionView? GetCurrentVisibleItems()
@@ -1523,13 +1501,11 @@ public sealed partial class AllSongsListPage : Page
                         IsNavigationStackEnabled = true
 
                     };
-                    // prepare the animation BEFORE navigation
-                    var ArtistNameTxt = PlatUtils.FindVisualChild<TextBlock>((UIElement)sender, "ArtistNameTxt");
-                    if (ArtistNameTxt != null)
-                    {
-                        ConnectedAnimationService.GetForCurrentView()
-                            .PrepareToAnimate("ForwardConnectedAnimation", ArtistNameTxt);
-                    }
+                    AnimationHelper.PrepareFromChild(
+     sender as DependencyObject,
+     "ArtistNameTxt",
+     AnimationHelper.Key_Forward
+ );
 
                     Frame?.NavigateToType(pageType, navParams, navigationOptions);
                 };
@@ -1566,13 +1542,11 @@ public sealed partial class AllSongsListPage : Page
                         IsNavigationStackEnabled = true
 
                     };
-                    // prepare the animation BEFORE navigation
-                    var ArtistNameTxt = PlatUtils.FindVisualChild<TextBlock>((UIElement)sender, "ArtistNameTxt");
-                    if (ArtistNameTxt != null)
-                    {
-                        ConnectedAnimationService.GetForCurrentView()
-                            .PrepareToAnimate("ForwardConnectedAnimation", ArtistNameTxt);
-                    }
+                    AnimationHelper.PrepareFromChild(
+     sender as DependencyObject,
+     "ArtistNameTxt",
+     AnimationHelper.Key_Forward
+ );
 
                     Frame?.NavigateToType(pageType, navParams, navigationOptions);
                 }

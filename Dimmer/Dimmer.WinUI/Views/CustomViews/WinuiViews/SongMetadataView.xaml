@@ -81,8 +81,8 @@
                     Grid.Column="0"
                     Header="Genre"
                     Text="{x:Bind ViewModel.SelectedSong.GenreName, Mode=TwoWay}" />
-                
-                
+
+
             </Grid>
 
             <!--  Tags / Notes  -->

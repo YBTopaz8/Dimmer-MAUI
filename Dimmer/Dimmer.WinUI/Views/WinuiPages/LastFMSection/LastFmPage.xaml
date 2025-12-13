@@ -64,7 +64,8 @@
                     x:Name="RecentTracksList"
                     Width="auto"
                     AutoGenerateColumns="False"
-                    ItemsSource="{x:Bind ViewModel.ListOfUserRecentTracks, Mode=OneWay}"
+                    ItemsSource="{x:Bind MyViewModel.ListOfUserRecentTracks, Mode=OneWay}"
+                    Loaded="RecentTracksList_Loaded"
                     SelectionMode="None">
                     <dgView:TableView.Columns>
 
@@ -74,6 +75,7 @@
                                 <DataTemplate>
                                     <Border>
                                         <Image
+                                            x:Name="coverArtImage"
                                             Width="150"
                                             Height="150"
                                             Stretch="UniformToFill">
@@ -93,11 +95,11 @@
                                 <DataTemplate>
                                     <StackPanel>
                                         <Button
+                                            x:Name="SongTitle"
                                             Background="Transparent"
+                                            Click="SongTitle_Click"
                                             Content="{Binding Name}"
                                             FontSize="19"
-                                            x:Name="SongTitle"
-                                            Click="SongTitle_Click"
                                             IsEnabled="{Binding IsOnPresentDevice}" />
                                         <TextBlock FontSize="15" Text="{Binding Album.Name}" />
                                         <FontIcon
@@ -142,7 +144,7 @@
                     x:Name="TopTracksList"
                     Width="auto"
                     AutoGenerateColumns="False"
-                    ItemsSource="{x:Bind ViewModel.CollectionUserTopTracks, Mode=OneWay}"
+                    ItemsSource="{x:Bind MyViewModel.CollectionUserTopTracks, Mode=OneWay}"
                     SelectionMode="None">
                     <dgView:TableView.Columns>
 
@@ -170,15 +172,18 @@
                             <dgView:TableViewTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <StackPanel>
-                                        <TextBlock FontSize="19" Text="{Binding Name}" />
+                                        <Button
+                                            Background="Transparent"
+                                            Click="SongTitle_Click"
+                                            Content="{Binding Name}"
+                                            FontSize="19"
+                                            IsEnabled="{Binding IsOnPresentDevice}" />
                                         <TextBlock FontSize="15" Text="{Binding Album.Name}" />
                                         <FontIcon
                                             HorizontalAlignment="Left"
-                                            FontSize="15"
-                                            Foreground="Red"
-                                            Glyph="&#xEB52;"
-                                            Visibility="{Binding UserLoved, Converter={StaticResource BoolToVisibilityConverter}}" />
-
+                                            Foreground="SlateBlue"
+                                            Glyph="&#xE978;"
+                                            Visibility="{Binding IsOnPresentDevice, Converter={StaticResource BoolToVisibilityConverter}}" />
                                     </StackPanel>
                                 </DataTemplate>
                             </dgView:TableViewTemplateColumn.CellTemplate>
@@ -216,7 +221,7 @@
                     x:Name="TopAlbum"
                     Width="auto"
                     AutoGenerateColumns="False"
-                    ItemsSource="{x:Bind ViewModel.CollectionUserTopAlbums, Mode=OneWay}"
+                    ItemsSource="{x:Bind MyViewModel.CollectionUserTopAlbums, Mode=OneWay}"
                     SelectionMode="None">
                     <dgView:TableView.Columns>
 
@@ -244,9 +249,18 @@
                             <dgView:TableViewTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <StackPanel>
-                                        <TextBlock FontSize="19" Text="{Binding Name}" />
-                                        <TextBlock FontSize="15" Text="{Binding Statistics.PlayCount}" />
-
+                                        <Button
+                                            Background="Transparent"
+                                            Click="SongTitle_Click"
+                                            Content="{Binding Name}"
+                                            FontSize="19"
+                                            IsEnabled="{Binding IsOnPresentDevice}" />
+                                        <TextBlock FontSize="15" Text="{Binding Album.Name}" />
+                                        <FontIcon
+                                            HorizontalAlignment="Left"
+                                            Foreground="SlateBlue"
+                                            Glyph="&#xE978;"
+                                            Visibility="{Binding IsOnPresentDevice, Converter={StaticResource BoolToVisibilityConverter}}" />
                                     </StackPanel>
                                 </DataTemplate>
                             </dgView:TableViewTemplateColumn.CellTemplate>
@@ -285,7 +299,7 @@
                     x:Name="LovedTracksList"
                     Width="auto"
                     AutoGenerateColumns="False"
-                    ItemsSource="{x:Bind ViewModel.ListOfUserLovedTracks, Mode=OneWay}"
+                    ItemsSource="{x:Bind MyViewModel.ListOfUserLovedTracks, Mode=OneWay}"
                     SelectionMode="None">
                     <dgView:TableView.Columns>
 

@@ -1142,6 +1142,8 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     [ObservableProperty]
     public partial AchievementRule? SelectedAchievement { get; set; }
     public Image CoverImageSong { get; internal set; }
+    [ObservableProperty]
+    public partial Hqub.Lastfm.Entities.Track? SelectedTrack { get; internal set; }
 
     public override bool AutoConfirmLastFM(bool val)
     {
@@ -1309,5 +1311,21 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
             artInDB.Url = SelectedArtist.Url;
 
         });
-    } 
+    }
+
+    public async Task DeletePlayEventAsync(DimmerPlayEventView selectedPlayEvent)
+    {
+        var realm = RealmFactory.GetRealmInstance();
+        var playEventInDb = realm.Find<DimmerPlayEvent>(selectedPlayEvent.Id);
+        if (playEventInDb is null) return;
+        await realm.WriteAsync(() =>
+        {
+            realm.Remove(playEventInDb);
+        });
+        if(SelectedSong is null) return;
+        if(SelectedSong.PlayEvents.Contains(selectedPlayEvent))
+        {
+            SelectedSong.PlayEvents.Remove(selectedPlayEvent);
+        }
+    }
 }

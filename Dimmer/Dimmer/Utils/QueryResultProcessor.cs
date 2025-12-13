@@ -45,12 +45,12 @@ public static class QueryResultProcessor
     /// <param name="songs">The materialized list of songs from the database query.</param>
     /// <param name="limiter">The limiter clause parsed from the TQL query.</param>
     /// <returns>A new list of songs with the limiter applied.</returns>
-    public static List<SongModelView> ApplyLimiter(IList<SongModelView> songs, LimiterClause? limiter)
+    public static List<SongModelView> ApplyLimiter(List<SongModelView> songs, LimiterClause? limiter)
     {
         // If there's no limiter, return the original list.
         if (limiter == null)
         {
-            return songs.ToList();
+            return songs;
         }
         switch (limiter.Type)
         {

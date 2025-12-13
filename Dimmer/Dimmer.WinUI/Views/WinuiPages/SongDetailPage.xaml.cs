@@ -160,86 +160,6 @@ public sealed partial class SongDetailPage : Page
 
         
 
-        detailedImage.Loaded += (s, ee) =>
-        {
-            DispatcherQueue.TryEnqueue(() =>
-            {
-
-                var animationBack = ConnectedAnimationService.GetForCurrentView().GetAnimation("BackConnectedAnimation");
-
-                if (animationBack != null)
-                {
-
-                    detailedImage.Opacity = 1;
-                    var animConf = new Microsoft.UI.Xaml.Media.Animation.GravityConnectedAnimationConfiguration();
-
-                    animConf.IsShadowEnabled = true;
-
-                    animationBack.Configuration = animConf;
-
-
-                    animationBack.TryStart(detailedImage);
-                    detailedImage.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
-                    detailedImage.Opacity = 1;
-                    
-                }
-
-
-                var animationFront = ConnectedAnimationService.GetForCurrentView()
-                 .GetAnimation("ForwardConnectedAnimation");
-
-                if (animationFront != null)
-                {
-
-                    detailedImage.Opacity = 1;
-                    var animConf = new Microsoft.UI.Xaml.Media.Animation.GravityConnectedAnimationConfiguration();
-
-                    animConf.IsShadowEnabled = true;
-
-                    animationFront.Configuration = animConf;
-
-
-                    animationFront.TryStart(detailedImage);
-                    detailedImage.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
-                    detailedImage.Opacity = 1;
-
-                }
-
-                var ArtistToSongDetailsAnim = ConnectedAnimationService.GetForCurrentView().GetAnimation("ArtistToSongDetailsAnim");
-                if (ArtistToSongDetailsAnim != null)
-                {
-                    detailedImage.Opacity = 1;
-                    var animConf = new Microsoft.UI.Xaml.Media.Animation.GravityConnectedAnimationConfiguration();
-
-                    animConf.IsShadowEnabled = true;
-
-                    ArtistToSongDetailsAnim.Configuration = animConf;
-
-
-                    ArtistToSongDetailsAnim.TryStart(detailedImage, new List<UIElement>() { TitleBlock });
-                    detailedImage.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
-                    detailedImage.Opacity = 1;
-                }
-
-                var BackConnectedAnimationFromArtistPage = ConnectedAnimationService.GetForCurrentView().GetAnimation("BackConnectedAnimationFromArtistPage");
-                if (BackConnectedAnimationFromArtistPage != null)
-                {
-                    detailedImage.Opacity = 1;
-                    var animConf = new Microsoft.UI.Xaml.Media.Animation.GravityConnectedAnimationConfiguration();
-
-                    animConf.IsShadowEnabled = true;
-
-                    BackConnectedAnimationFromArtistPage.Configuration = animConf;
-
-
-                    BackConnectedAnimationFromArtistPage.TryStart(detailedImage, new List<UIElement>() { TitleBlock });
-                    detailedImage.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
-                    detailedImage.Opacity = 1;
-                }
-
-            });
-        };
-        
         MyViewModel.CurrentWinUIPage = this;
         await MyViewModel.LoadLyricsFromOnlineOrDBIfNeededAsync(MyViewModel.SelectedSong!);
         await MyViewModel.LoadSelectedSongLastFMData();
@@ -287,8 +207,7 @@ public sealed partial class SongDetailPage : Page
         {
             if (detailedImage != null && Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(detailedImage) != null)
             {
-                ConnectedAnimationService.GetForCurrentView()
-                    .PrepareToAnimate("BackConnectedAnimation", detailedImage);
+                AnimationHelper.Prepare(AnimationHelper.Key_DetailToList, detailedImage);
             }
         }
         base.OnNavigatingFrom(e);
@@ -910,13 +829,6 @@ public sealed partial class SongDetailPage : Page
             return objView;
         });
 
-
-        var TQLList = MyViewModel.SearchResults.Where(x=>x.ArtistName == MyViewModel.SelectedSong.ArtistName
-        ||x.Artist.Id == MyViewModel.SelectedSong.Artist.Id)
-            .DistinctBy(x =>x.ArtistName);
-
-        var tqlcCount = TQLList.Count();
-        var listOfArtistsModelViewCount = listOfArtistsModelView.Count();
         ArtistToSong.ItemsSource = listOfArtistsModelView;
     }
 
@@ -962,7 +874,7 @@ public sealed partial class SongDetailPage : Page
         animation.Completed += Animation_Completed;
 
         // If the connected item appears outside the viewport, scroll it into view.
-        AllAchievementsIR.ScrollIntoView(_storedItem, ScrollIntoViewAlignment.Default);
+       await AllAchievementsIR.SmoothScrollIntoViewWithItemAsync(_storedItem, (ScrollItemPlacement)ScrollIntoViewAlignment.Default);
         AllAchievementsIR.UpdateLayout();
 
         // Use the Direct configuration to go back (if the API is available).
@@ -1171,6 +1083,36 @@ public sealed partial class SongDetailPage : Page
         Frame?.NavigateToType(pageType, navParams, navigationOptions);
 
 
+    }
+
+    private void detailedImage_Loaded(object sender, RoutedEventArgs e)
+    {
+        AnimationHelper.TryStart(
+       detailedImage,
+       new List<UIElement> { TitleBlock }, // Coordinated elements (optional)
+       AnimationHelper.Key_DetailToList,       // Check this key
+       AnimationHelper.Key_ListToDetail,       // OR Check this key
+       AnimationHelper.Key_ArtistToSong        // OR Check this key
+   );
+    }
+
+
+    private void SongPlayEvents_Loaded(object sender, RoutedEventArgs e)
+    {
+        var allEvents = MyViewModel.RealmFactory.GetRealmInstance()
+            .Find<SongModel>(MyViewModel.SelectedSong?.Id)?
+            .PlayHistory.OrderByDescending(ev => ev.EventDate)
+            .Select(evt=>evt.ToDimmerPlayEventView());
+        if (allEvents is null) return;
+        SongPlayEvents.ItemsSource = allEvents.ToList();
+    }
+
+    private async void DeleteEventBtn_Click(object sender, RoutedEventArgs e)
+    {
+        var send = (Button)sender;
+        var evt = (send.DataContext as DimmerPlayEventView);
+        if (evt is null) return;
+        await MyViewModel.DeletePlayEventAsync(evt);
     }
 }
 

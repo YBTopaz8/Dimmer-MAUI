@@ -41,8 +41,11 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
     public LastFmPage()
     {
         this.InitializeComponent();
+        _compositor = ElementCompositionPreview.GetElementVisual(this).Compositor;
     }
 
+    private SongTransitionAnimation _userPrefAnim = SongTransitionAnimation.Spring;
+    private readonly Compositor _compositor;
     protected async override void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
@@ -52,9 +55,17 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
 
 
         await LoadUserData();
-         // Initial Load
+
+
+       
     }
 
+    protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
+    {
+        
+        base.OnNavigatingFrom(e);
+
+    }
     private void Pivot_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         var pivot = sender as Pivot;
@@ -91,16 +102,16 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
         }
     }
 
+    Microsoft.UI.Xaml.Controls.Button? SongTitlebutton;
     private void SongTitle_Click(object sender, RoutedEventArgs e)
     {
-        var SongTitlebutton = sender as Button;
-        var trackModel = SongTitlebutton?.DataContext as Track;
+        SongTitlebutton = sender as Button;
+        trackModel = SongTitlebutton?.DataContext as Track;
+        MyViewModel.SelectedTrack = trackModel;
         var songModelView = trackModel.IsOnPresentDevice ? MyViewModel.SearchResults.FirstOrDefault(song => song.Id.ToString() == trackModel?.OnDeviceObjectId)
             :null;
-        if (songModelView == null) return;
-            ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("ForwardConnectedAnimation", SongTitlebutton);
 
-        var visualImage = ElementCompositionPreview.GetElementVisual(SongTitlebutton);
+        AnimationHelper.Prepare(AnimationHelper.Key_ListToDetail, SongTitlebutton);
 
         var supNavTransInfo = new SuppressNavigationTransitionInfo();
         Type songDetailType = typeof(SongDetailPage);
@@ -119,5 +130,22 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
 
         Frame?.NavigateToType(songDetailType, navParams, navigationOptions);
 
+    }
+    Track? trackModel = null;
+    private async void RecentTracksList_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (MyViewModel.SelectedTrack != null)
+        {
+            trackModel = MyViewModel.SelectedTrack;
+            // CLEAN: Handles scrolling, updating layout, finding the image, and starting animation
+           await AnimationHelper.TryStartListReturn(
+                RecentTracksList,
+                trackModel,
+                "coverArtImage",
+                AnimationHelper.Key_DetailToList
+            );
+
+            trackModel = null;
+        }
     }
 }

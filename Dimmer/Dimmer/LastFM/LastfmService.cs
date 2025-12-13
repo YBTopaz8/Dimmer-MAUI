@@ -418,11 +418,7 @@ public class LastfmService : ILastfmService
 
         try
         {
-            // i can have songs like "artst | artst2 | artst3 - title"
-            // We need to split the artist names correctly.
-            // and get only the first artist name.
-            // This is a workaround for the fact that Last.fm API does not handle multiple artists in the same way.
-            if (string.IsNullOrEmpty(song.ArtistName))
+               if (string.IsNullOrEmpty(song.ArtistName))
             {
                 return;
             }

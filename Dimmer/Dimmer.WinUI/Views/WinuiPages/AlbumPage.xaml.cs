@@ -49,18 +49,11 @@ public sealed partial class AlbumPage : Page
         ApplyEntranceEffect(visual2);
 
 
-        var animation = ConnectedAnimationService.GetForCurrentView()
-       .GetAnimation("ForwardConnectedAnimation");
-
-        //CoordinatedPanel.Loaded += (_, __) =>
-        //{
-        //    animation?.TryStart(CoordinatedPanel);
-        //};
-
-        DestinationElement.Loaded += (_, __) =>
-        {
-            animation?.TryStart(DestinationElement, new List<UIElement>() { CoordinatedPanel });
-        };
+        AnimationHelper.TryStart(
+      DestinationElement,
+      new List<UIElement> { CoordinatedPanel },
+      AnimationHelper.Key_Forward
+  );
 
         try
         {

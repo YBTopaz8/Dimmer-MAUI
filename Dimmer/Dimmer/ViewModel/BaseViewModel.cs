@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Net;
 using System.Runtime.ConstrainedExecution;
+using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -337,8 +338,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                             query = query.OrderBy(orderByString);
                         }
 
-                        var mappedSongs = query.ToList().Select(x=>x.ToSongModelView());
-                        var finalSongs = mappedSongs
+                        var mappedSongs = query.AsEnumerable();
+                        var convertedSongs = mappedSongs.Select(x=>x.ToSongModelView());
+                        var finalSongs = convertedSongs
                         .Where(plan.InMemoryPredicate)
                         .ToList();
                         Debug.WriteLine(
@@ -6505,6 +6507,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             Recent = lastfmService.GetUserRecentTracksAsync(lastfmService.AuthenticatedUser, 50),
             Info = lastfmService.GetUserInfoAsync(),
+            
             TopTracks = lastfmService.GetUserTopTracksAsync(),
             TopAlbums = lastfmService.GetTopUserAlbumsAsync(),
             Loved = lastfmService.GetLovedTracksAsync()
@@ -6543,9 +6546,13 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         // Top Albums 
         // (Note: Album matching logic is slightly different, usually simpler)
         var topAlbums = await tasks.TopAlbums;
+
+        var realm = RealmFactory.GetRealmInstance();
+        IQueryable<AlbumModel>? allRealmAlbums = realm.All<AlbumModel>();
+      
+        // 4. Run the Pipeline
         CollectionUserTopAlbums = topAlbums
-            // You can extend the Enricher to handle Albums specifically if needed
-            // .EnrichWithLocalData(localLibraryLookup) 
+            .EnrichWithLocalData(allRealmAlbums) // <--- Only pass the Realm Query
             .ToObservableCollection();
     }
 
