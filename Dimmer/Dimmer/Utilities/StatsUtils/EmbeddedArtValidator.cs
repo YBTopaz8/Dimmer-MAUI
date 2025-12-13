@@ -1,4 +1,6 @@
-﻿namespace Dimmer.Utilities.StatsUtils;
+﻿using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
+
+namespace Dimmer.Utilities.StatsUtils;
 
 
 public static class EmbeddedArtValidator
@@ -10,16 +12,17 @@ public static class EmbeddedArtValidator
     // Main API — returns the first valid embedded picture or null.
     public static PictureInfo? GetValidEmbeddedPicture(string audioPath)
     {
-        if (string.IsNullOrWhiteSpace(audioPath) || !File.Exists(audioPath))
+        if (string.IsNullOrWhiteSpace(audioPath) || !TaggingUtils.FileExists(audioPath))
             return null;
 
-        long fileLen;
-        try { fileLen = new FileInfo(audioPath).Length; }
-        catch { return null; }
+        long fileLen = TaggingUtils.GetFileSize(audioPath);
+        if (fileLen == 0) return null;
+
 
         try
         {
-            var track = new Track(audioPath);
+            using var streamTrack = TaggingUtils.PlatformGetStreamHook(audioPath);
+            var track = new Track(streamTrack);
             var pics = track.EmbeddedPictures; // ATL lazy-loads these
 
             if (pics is null || pics.Count == 0) return null;
@@ -30,9 +33,9 @@ public static class EmbeddedArtValidator
                     return p;
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Swallow: caller just wants "null if invalid/unreadable"
+            System.Diagnostics.Debug.WriteLine($"Failed to read embedded pic: {ex.Message}");
         }
         return null;
     }

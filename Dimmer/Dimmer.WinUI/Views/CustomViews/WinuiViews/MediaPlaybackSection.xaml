@@ -37,13 +37,14 @@
                 <StackPanel Grid.Column="0">
 
                     <StackPanel Orientation="Horizontal" Spacing="10">
-                        <TextBlock
+                        <Button
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
-                            FontSize="30"
-                            IsTextSelectionEnabled="True"
-                            Text="{Binding CurrentPlayingSongView.Title}"
-                            TextDecorations="Underline" />
+                            Background="Transparent"
+                            x:Name="ViewNowPlayingSong"
+                            Click="ViewNowPlayingSong_Click"
+                            Content="{x:Bind MyViewModel.CurrentPlayingSongView.Title, Mode=OneWay}"
+                            FontSize="30" />
 
 
                         <TextBlock
@@ -141,7 +142,7 @@
                             CornerRadius="10" />
 
 
-                        
+
                     </StackPanel>
 
                 </StackPanel>
@@ -150,23 +151,23 @@
 
         </StackPanel>
         <InfoBar
-            Grid.Row="0"
-            IsOpen="{x:Bind MyViewModel.IsAchievementNotificationVisible, Mode=OneWay}"
-            Severity="Success"
             Title="{x:Bind MyViewModel.UnlockedAch.Name, Mode=OneWay}"
-            Message="{x:Bind MyViewModel.UnlockedAch.Description, Mode=OneWay}"
+            Grid.Row="0"
+            Width="350"
+            Margin="0,10,20,0"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Top"
+            Canvas.ZIndex="100"
             IsClosable="True"
             IsIconVisible="True"
-            VerticalAlignment="Top"
-            HorizontalAlignment="Right"
-            Margin="0,10,20,0"
-            Width="350"
-            Canvas.ZIndex="100">
-            <!-- Add a Shadow for depth since it is floating -->
+            IsOpen="{x:Bind MyViewModel.IsAchievementNotificationVisible, Mode=OneWay}"
+            Message="{x:Bind MyViewModel.UnlockedAch.Description, Mode=OneWay}"
+            Severity="Success">
+            <!--  Add a Shadow for depth since it is floating  -->
             <InfoBar.Shadow>
                 <ThemeShadow />
             </InfoBar.Shadow>
-            <!-- Add animation so it slides in nicely -->
+            <!--  Add animation so it slides in nicely  -->
             <InfoBar.Transitions>
                 <TransitionCollection>
                     <EntranceThemeTransition FromVerticalOffset="-50" />

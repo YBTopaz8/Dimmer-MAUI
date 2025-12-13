@@ -95,6 +95,15 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         _duplicateFinderService = duplicateFinderService;
         libScannerService = LibScannerService;
+        AudioEngineIsPlayingObservable = Observable.FromEventPattern<PlaybackEventArgs>
+            (
+            h => audioServ.IsPlayingChanged += h,
+            h => audioServ.IsPlayingChanged -= h)
+            .Select(evt => evt.EventArgs.IsPlaying)
+            .StartWith(false)
+            ;
+            
+
         AudioEnginePositionObservable = Observable.FromEventPattern<double>(
             h => audioServ.PositionChanged += h,
             h => audioServ.PositionChanged -= h)
@@ -485,6 +494,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             await OnAppOpening();
             await HeavierBackGroundLoadings(folders);
+            await EnsureAllCoverArtCachedForSongsAsync();
         });
 
         IsInitialized = true;
@@ -1899,7 +1909,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public async Task LoadAndCacheCoverArtAsync(SongModelView song)
     {
         
-        if (song.CoverImagePath == "musicnote1.png")
+        if (song.CoverImagePath == "musicnote1.png"|| song.CoverImagePath == "musicnotess.png")
         {
             song.CoverImagePath = string.Empty;
         }
@@ -1990,9 +2000,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
 
             if (song.CoverImagePath != finalImagePath)
-            {                
-                song.CoverImagePath = finalImagePath;                
+            {
+
+                song.CoverImagePath = finalImagePath;
+
             }
+            //SearchSongForSearchResultHolder(CurrentTqlQuery);
         }
         catch (Exception ex)
         {
@@ -2047,7 +2060,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
     [ObservableProperty]
-    public partial Progress<(int current, int total, SongModelView song)>? ProgressCoverArtLoad { get; set; }
+    public partial Progress<(int current, int total, SongModelView song)> ProgressCoverArtLoad { get; set; }
     [RelayCommand]
     public async Task EnsureAllCoverArtCachedForSongsAsync()
     {
@@ -2067,13 +2080,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             });
 
         });
-        realm = RealmFactory.GetRealmInstance();
-        var allSongsFromDb = realm.All<SongModel>();
-        var songsToProcess = allSongsFromDb.AsEnumerable().Select(x=>x.ToSongView());
+
+        var songsToProcess = SearchResults;
 
         using var semaphore = new SemaphoreSlim(8); // Limit to 8 concurrent operations
         int processed = 0;
-        int total = songsToProcess.Count();
+        int total = songsToProcess.Count;
 
         var tasks = songsToProcess.Select(
             async song =>
@@ -2833,10 +2845,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             return;
 
         // We pass the full search results as the source for the new queue.
-        await PlaySong(songToPlay, Utilities.Enums.CurrentPage.AllSongs, _searchResults);
+        await PlaySongAsync(songToPlay, Utilities.Enums.CurrentPage.AllSongs, _searchResults);
     }
 
-    public async Task PlaySong(
+    public async Task PlaySongAsync(
         SongModelView? songToPlay,
         CurrentPage curPage = CurrentPage.AllSongs,
         IEnumerable<SongModelView>? songs = null)
@@ -2969,7 +2981,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             // Example for playing from a specific album's song list.
             // You would have a similar property for a selected playlist's songs.
-            await PlaySong(songToPlay, CurrentPage.SpecificAlbumPage, _searchResults);
+            await PlaySongAsync(songToPlay, CurrentPage.SpecificAlbumPage, _searchResults);
         }
         catch (Exception ex)
         {
@@ -3108,7 +3120,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 songToPlay.Title);
             // You would need an "Add Next" method here.
             // For now, let's just play it as a single-song queue.
-            await PlaySong(songToPlay, CurrentPage.NowPlayingPage, new List<SongModelView> { songToPlay });
+            await PlaySongAsync(songToPlay, CurrentPage.NowPlayingPage, new List<SongModelView> { songToPlay });
         }
     }
 
@@ -3152,7 +3164,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             var firstSong = _searchResults.FirstOrDefault();
             if (firstSong != null)
             {
-                await PlaySong(firstSong);
+                await PlaySongAsync(firstSong);
             }
             return;
         }

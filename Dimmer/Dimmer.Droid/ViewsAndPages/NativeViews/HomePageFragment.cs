@@ -378,7 +378,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
         if (song != null)
         {
-            await MyViewModel.PlaySong(song, CurrentPage.AllSongs, MyViewModel.SearchResults);
+            await MyViewModel.PlaySongAsync(song, CurrentPage.AllSongs, MyViewModel.SearchResults);
             _adapter.NotifyDataSetChanged();
         }
         Toast.MakeText(Context, $"Single tap {pos}", ToastLength.Short)?.Show();

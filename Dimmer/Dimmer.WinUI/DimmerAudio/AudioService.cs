@@ -428,7 +428,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     public async Task InitializeAmbienceAsync(string filePath)
     {
-        if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+        if (string.IsNullOrWhiteSpace(filePath) || !TaggingUtils.FileExists(filePath))
             return;
 
         try
@@ -729,7 +729,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             else
             {
                 string fullPath = Path.GetFullPath(media.FilePath);
-                if (!File.Exists(fullPath))
+                if (!TaggingUtils.FileExists(fullPath))
                 {
                     Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: File does not exist at resolved path '{fullPath}' for '{media.Title}'.");
                     return null;

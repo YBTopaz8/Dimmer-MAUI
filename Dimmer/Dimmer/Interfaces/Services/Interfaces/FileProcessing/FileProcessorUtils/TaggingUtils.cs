@@ -173,6 +173,22 @@ public static class TaggingUtils
     // The Android project will assign this function later.
     public static Func<string, IReadOnlySet<string>, List<string>>? PlatformSpecificScanner { get; set; }
     public static Func<string, Stream> PlatformGetStreamHook { get; set; }
+
+    public static Func<string, long>? PlatformGetFileSizeHook { get; set; }
+    public static long GetFileSize(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return 0;
+
+        if (path.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
+        {
+            // Use the Android-specific logic
+            return PlatformGetFileSizeHook?.Invoke(path) ?? 0;
+        }
+
+        // Use standard System.IO logic for Windows/standard paths
+        try { return new FileInfo(path).Length; }
+        catch { return 0; }
+    }
     public static Task<List<string>> GetAllAudioFilesFromPathsAsync(
     IEnumerable<string> pathsToScan,
     IReadOnlySet<string> supportedExtensions)

@@ -62,7 +62,7 @@ public class SongRelatedFragment : Fragment
             if (!string.IsNullOrEmpty(_items[position].CoverImagePath))
                 Glide.With(img.Context).Load(_items[position].CoverImagePath).Into(img);
 
-            img.Click += async (s, e) => await _vm.PlaySong(_items[position], CurrentPage.AllSongs);
+            img.Click += async (s, e) => await _vm.PlaySongAsync(_items[position], CurrentPage.AllSongs);
         }
         class SimpleVH : RecyclerView.ViewHolder { public SimpleVH(View v) : base(v) { } }
     }

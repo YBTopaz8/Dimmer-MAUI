@@ -159,7 +159,7 @@ public partial class DimmerCloudViewModel : ObservableObject, IDisposable
 
         if (localSong != null)
         {
-            await _mainViewModel.PlaySong(localSong);
+            await _mainViewModel.PlaySongAsync(localSong);
             if (request.SharedPositionInSeconds.HasValue)
             {
                 _mainViewModel.SeekTrackPosition(request.SharedPositionInSeconds.Value);

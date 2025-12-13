@@ -116,11 +116,6 @@ public class NowPlayingFragment : Fragment
         _miniPlayBtn.Click += async (s, e) =>
         {
             await _viewModel.PlayPauseToggleAsync();
-            await Task.Delay(1000);
-            if(_viewModel.IsDimmerPlaying)
-                Glide.With(this).Load(Resource.Drawable.media3_icon_pause).Into(_miniPlayBtn);
-            else
-                Glide.With(this).Load(Resource.Drawable.media3_icon_play).Into(_miniPlayBtn);
         };
         layout.AddView(_miniPlayBtn, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 2f) { Gravity = GravityFlags.CenterVertical });
 
@@ -293,7 +288,24 @@ public class NowPlayingFragment : Fragment
         // 1. Observe Playing Song
         _viewModel.CurrentSongChanged
             .ObserveOn(RxSchedulers.UI)
-            .Subscribe(song => UpdateSongUI(song))
+            .Subscribe(UpdateSongUI)
+            .DisposeWith(_disposables);
+
+
+        _viewModel.AudioEngineIsPlayingObservable
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(isPlaying =>
+            {
+                if (_playPauseBtn == null || _miniPlayBtn == null) return;
+
+                int iconRes = isPlaying
+                    ? Resource.Drawable.media3_icon_pause
+                    : Resource.Drawable.media3_icon_play;
+
+                // Native Android calls - much safer for local icons
+                _playPauseBtn.SetIconResource(iconRes);
+                _miniPlayBtn.SetImageResource(iconRes);
+            })
             .DisposeWith(_disposables);
 
         // 2. Observe Playback Position (for Slider & Lyrics)
@@ -328,11 +340,7 @@ public class NowPlayingFragment : Fragment
         {
             await _viewModel.PlayPauseToggleAsync();
 
-            await Task.Delay(1000);
-            if (_viewModel.IsDimmerPlaying)
-                Glide.With(this).Load(Resource.Drawable.media3_icon_pause).Into(_miniPlayBtn);
-            else
-                Glide.With(this).Load(Resource.Drawable.media3_icon_play).Into(_miniPlayBtn);
+          
         };
         _prevBtn.Click += async (s, e) => await _viewModel.PreviousTrackASync();
         _nextBtn.Click += async (s, e) => await _viewModel.NextTrackAsync();
@@ -346,7 +354,7 @@ public class NowPlayingFragment : Fragment
         // Slider Logic
         _seekSlider.Touch += (s, e) =>
         {
-            switch (e.Event.Action)
+            switch (e.Event?.Action)
             {
                 case MotionEventActions.Down: _isDraggingSeek = true; break;
                 case MotionEventActions.Up:
@@ -361,6 +369,8 @@ public class NowPlayingFragment : Fragment
             }
             e.Handled = false;
         };
+
+
     }
 
     public override void OnPause()

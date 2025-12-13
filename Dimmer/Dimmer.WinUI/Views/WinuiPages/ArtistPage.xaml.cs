@@ -623,7 +623,7 @@ public sealed partial class ArtistPage : Page
         {
             // You found the song! Now you can call your ViewModel command.
             Debug.WriteLine($"Double-tapped on song: {song.Title}");
-            await MyViewModel.PlaySong(song, curPage: CurrentPage.AllArtistsPage, songs: SongsEnumerable);
+            await MyViewModel.PlaySongAsync(song, curPage: CurrentPage.AllArtistsPage, songs: SongsEnumerable);
         }
     }
 

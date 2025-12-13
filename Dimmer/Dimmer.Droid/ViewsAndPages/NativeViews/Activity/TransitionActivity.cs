@@ -141,6 +141,8 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         };
 
         CheckAndRequestPermissions();
+
+
     }
     DrawerLayout _drawerLayout;
     private void SetupDrawerLayout()

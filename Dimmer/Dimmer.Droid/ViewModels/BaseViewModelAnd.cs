@@ -367,7 +367,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         {
             try
             {
-                if(File.Exists(song.FilePath))
+                if(TaggingUtils.FileExists(song.FilePath))
                 {
                    await RemoveFromQueue(song);
                     var songsToDelete = new List<SongModelView> { song };

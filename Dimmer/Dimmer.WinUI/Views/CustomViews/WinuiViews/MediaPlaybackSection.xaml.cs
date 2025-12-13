@@ -95,4 +95,9 @@ public sealed partial class MediaPlaybackSection : UserControl
     {
         MyViewModel!.NavigateToAnyPageOfGivenType(typeof(LastFmPage));
     }
+
+    private void ViewNowPlayingSong_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
 }

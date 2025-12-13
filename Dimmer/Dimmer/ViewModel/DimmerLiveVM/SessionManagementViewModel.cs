@@ -129,7 +129,7 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
                 StatusMessage = "Song found locally. Playing...";
 
                 // 2. Play the LOCAL file
-                await _mainViewModel.PlaySong(localSong);
+                await _mainViewModel.PlaySongAsync(localSong);
 
                 // 3. Seek to position
                 if (request.SharedPositionInSeconds.HasValue)

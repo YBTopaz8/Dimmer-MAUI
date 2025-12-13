@@ -297,7 +297,7 @@ public sealed partial class AllSongsListPage : Page
         {
             // You found the song! Now you can call your ViewModel command.
             Debug.WriteLine($"Double-tapped on song: {song.Title}");
-            await MyViewModel.PlaySong(song, songs: SongsEnumerable);
+            await MyViewModel.PlaySongAsync(song, songs: SongsEnumerable);
         }
     }
     public void ScrollToSong(SongModelView songToFind)
@@ -1617,7 +1617,7 @@ public sealed partial class AllSongsListPage : Page
         {
             //MyViewModel.SearchSongForSearchResultHolder(">>addnext!");
         }
-        await MyViewModel.PlaySong(song, CurrentPage.HomePage);
+        await MyViewModel.PlaySongAsync(song, CurrentPage.HomePage);
     }
 
     private void NowPlayingQueueExpander_Expanding(Expander sender, ExpanderExpandingEventArgs args)
@@ -2038,7 +2038,7 @@ public sealed partial class AllSongsListPage : Page
         var send = (Button)sender;
         var song = send.DataContext as SongModelView;
 
-        await MyViewModel.PlaySong(song, CurrentPage.NowPlayingPage, MyViewModel.PlaybackQueue);
+        await MyViewModel.PlaySongAsync(song, CurrentPage.NowPlayingPage, MyViewModel.PlaybackQueue);
     }
 
     private async void NowPlayingSongImg_PointerPressed(object sender, PointerRoutedEventArgs e)
