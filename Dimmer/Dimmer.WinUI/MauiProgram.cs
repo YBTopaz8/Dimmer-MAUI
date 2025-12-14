@@ -138,7 +138,6 @@ public static class MauiProgram
         builder.Services.AddSingleton<SocialPage>();
         builder.Services.AddSingleton<CloudDataPage>();
         builder.Services.AddSingleton<LoginViewModelWin>();
-        builder.Services.AddSingleton<CloudDashboardPage>();
         builder.Services.AddSingleton<LastFmPage>();
 
 

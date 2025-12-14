@@ -92,7 +92,7 @@ public class StatisticsService
 
         
         var filteredEvents =  _eventRepo.GetEventsInDateRangeAsync(startDate, endDate).ToList();
-        int topCount = 10;
+        int topCount = 15;
 
         var bundle = new LibraryStatsBundle
         {

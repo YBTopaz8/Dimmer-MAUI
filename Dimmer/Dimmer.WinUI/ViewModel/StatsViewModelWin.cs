@@ -72,8 +72,6 @@ public partial class StatsViewModelWin : StatisticsViewModel
     // --- 12. Time Investment (Column - Songs by Duration) ---
     public ISeries[] TimeInvestmentSeries { get; set; }
     public ICartesianAxis[] TimeInvestmentAxis { get; set; }
-    [ObservableProperty]
-    public partial LibraryStatsBundle? Stats { get; set; }
 
     [ObservableProperty]
     public partial bool IsLoading { get; set; }
@@ -103,7 +101,7 @@ public partial class StatsViewModelWin : StatisticsViewModel
             RxSchedulers.UI.Schedule(() =>
             {
                 Stats = bundle;
-                ConstructAllCharts();
+                //ConstructAllCharts();
                 IsLoading = false;
             });
         });

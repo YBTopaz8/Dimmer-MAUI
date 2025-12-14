@@ -3,6 +3,8 @@ using Android.Provider;
 
 using AndroidX.DocumentFile.Provider;
 
+using Microsoft.Win32.SafeHandles;
+
 using Application = Android.App.Application;
 using Environment = Android.OS.Environment;
 using Path = System.IO.Path;
@@ -38,7 +40,7 @@ public static class AndroidContentScanner
         TaggingUtils.PlatformFileExistsHook = ContentUriExists;
 
         TaggingUtils.PlatformGetFileSizeHook = GetContentFileSize;
-        TaggingUtils.PlatformGetStreamHook = GetContentStream;
+        TaggingUtils.PlatformGetStreamHook = GetSeekableStream;
     }
     private static bool ContentUriExists(string uriString)
     {
@@ -58,21 +60,22 @@ public static class AndroidContentScanner
             return false;
         }
     }
-    private static Stream GetContentStream(string uriString)
+    public static Stream GetSeekableStream(string contentUriString)
     {
-        try
-        {
-            var uri = Android.Net.Uri.Parse(uriString);
-            var context = Android.App.Application.Context;
+        var uri = Android.Net.Uri.Parse(contentUriString);
+        var context = Android.App.Application.Context;
 
-            // "r" = read-only. Use "w" if you plan to save tags back to the file.
-            return context.ContentResolver.OpenInputStream(uri);
-        }
-        catch (Exception ex)
+        // Open as read-only ("r")
+        var pfd = context.ContentResolver.OpenFileDescriptor(uri, "r");
+
+        if (pfd != null)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to open stream for URI: {ex.Message}");
-            return null;
+            int fd = pfd.DetachFd();
+            pfd.Close();
+            var safeHandle = new SafeFileHandle((nint)fd, ownsHandle: true);
+            return new FileStream(safeHandle, FileAccess.Read);
         }
+        return null;
     }
     private static bool IsValidContentUri(string uriString, IReadOnlySet<string> supportedExtensions)
     {

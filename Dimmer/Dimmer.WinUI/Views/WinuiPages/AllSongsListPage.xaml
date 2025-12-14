@@ -242,27 +242,18 @@
                 AutoGenerateColumns="False"
                 CanDragItems="True"
                 CellContextFlyoutOpening="MySongsTableView_CellContextFlyoutOpening"
-                CellSelectionChanged="MySongsTableView_CellSelectionChanged"
-                ChoosingGroupHeaderContainer="MySongsTableView_ChoosingGroupHeaderContainer"
-                ChoosingItemContainer="MySongsTableView_ChoosingItemContainer"
-                ClearSorting="MySongsTableView_ClearSorting"
-                ContextRequested="MySongsTableView_ContextRequested"
-                CurrentCellChanged="MySongsTableView_CurrentCellChanged"
                 DoubleTapped="TableView_DoubleTapped"
                 DragItemsCompleted="MySongsTableView_DragItemsCompleted"
                 DragItemsStarting="MySongsTableView_DragItemsStarting"
                 DragStarting="MySongsTableView_DragStarting"
                 ExportSelectedContent="TableView_ExportSelectedContent"
-                GettingFocus="MySongsTableView_GettingFocus"
-                GotFocus="MySongsTableView_GotFocus"
-                Holding="MySongsTableView_Holding"
                 IsItemClickEnabled="True"
+                IsMultiSelectCheckBoxEnabled="True"
                 IsRightTapEnabled="True"
-                IsSwipeEnabled="True"
+                IsSwipeEnabled="False"
                 ItemClick="MySongsTableView_ItemClick"
                 ItemsSource="{x:Bind MyViewModel.SearchResults}"
                 Loaded="MySongsTableView_Loaded"
-                Loading="MySongsTableView_Loading"
                 LosingFocus="MySongsTableView_LosingFocus"
                 LostFocus="MySongsTableView_LostFocus"
                 PointerEntered="MySongsTableView_PointerEntered"
@@ -281,12 +272,15 @@
                 <dgView:TableView.Columns>
 
                     <!--  Column for the Cover Art  -->
-                    <dgView:TableViewTemplateColumn Header="Cover">
+                    <dgView:TableViewTemplateColumn
+                        x:Name="ImgCol"
+                        Width="220"
+                        Header="Cover">
                         <dgView:TableViewTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Border
                                     x:Name="CardBorder"
-                                    Height="240"
+                                    Height="200"
                                     Margin="5,0"
                                     AllowFocusOnInteraction="False"
                                     Background="Transparent"
@@ -340,8 +334,8 @@
                                         <Image
                                             x:Name="coverArtImage"
                                             Grid.Row="1"
-                                            Width="180"
-                                            Height="180"
+                                            Width="160"
+                                            Height="160"
                                             x:FieldModifier="Public"
                                             RightTapped="coverArtImage_RightTapped"
                                             Source="{Binding CoverImagePath}"
@@ -395,7 +389,7 @@
 
                     <dgView:TableViewTextColumn
                         x:Name="Title"
-                        MaxWidth="350"
+                        Width="*"
                         Binding="{Binding Title}"
                         Header="Title"
                         IsReadOnly="True"
@@ -403,7 +397,7 @@
                         ToolTipService.ToolTip="{Binding Title}" />
                     <dgView:TableViewTemplateColumn
                         x:Name="Artist"
-                        Width="350"
+                        Width="*"
                         Header="Artist"
                         IsReadOnly="True"
                         ToolTipService.Placement="Mouse"
@@ -413,19 +407,21 @@
                             <DataTemplate>
                                 <Grid
                                     Height="190"
-                                    HorizontalAlignment="Center"
                                     Background="Transparent"
-                                    PointerPressed="Grid_PointerPressed">
+                                    PointerPressed="ArtistCellGrid_PointerPressed">
 
                                     <Border
                                         x:Name="ArtistNameTextOnly"
-                                        HorizontalAlignment="Center"
-                                        VerticalAlignment="Center">
+                                        Padding="10"
+                                        VerticalAlignment="Center"
+                                        Background="Transparent">
 
                                         <TextBlock
                                             x:Name="ArtistNameTxt"
-                                            HorizontalAlignment="Center"
-                                            Text="{Binding OtherArtistsName}" />
+                                            HorizontalAlignment="Stretch"
+                                            FontWeight="Bold"
+                                            Text="{Binding OtherArtistsName}"
+                                            TextWrapping="WrapWholeWords" />
                                     </Border>
 
 
@@ -439,7 +435,7 @@
 
                     <dgView:TableViewTextColumn
                         x:Name="AlbumName"
-                        Width="350"
+                        Width="*"
                         Binding="{Binding AlbumName}"
                         Header="Album"
                         IsReadOnly="True"
@@ -448,7 +444,7 @@
 
                     <dgView:TableViewTextColumn
                         x:Name="GenreName"
-                        MaxWidth="180"
+                        Width="*"
                         Binding="{Binding GenreName}"
                         Header="Genre"
                         IsReadOnly="True" />

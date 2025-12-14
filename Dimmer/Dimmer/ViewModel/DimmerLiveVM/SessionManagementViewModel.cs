@@ -17,7 +17,13 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
 
     public UserModelOnline? CurrentUser => LoginViewModel.CurrentUserOnline;
 
+    public ObservableCollection<CloudBackupModel> AvailableBackups { get; } = new();
     public bool IsBusy { get; private set; }
+    [ObservableProperty]
+    public partial string CurrentReferralCode { get; set; }
+
+    [ObservableProperty]
+    public partial string ReferralStats { get; set; }
     [ObservableProperty]
     public partial string StatusMessage { get; set; }
 
@@ -47,10 +53,69 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(HandleIncomingTransferRequest)
             .DisposeWith(_disposables);
+        _ = LoadCloudDataAsync();
 
-        // Lifecycle management: StartAsync/stop listeners when the viewmodel is used
-        // In a real app, this would be tied to page appearing/disappearing
-        _sessionManager.StartListeners();
+    }
+    private async Task LoadCloudDataAsync()
+    {
+        await LoadBackupsAsync();
+        await LoadReferralInfoAsync();
+    }
+    [RelayCommand]
+    public async Task LoadBackupsAsync()
+    {
+        if (IsBusy) return;
+        IsBusy = true;
+        try
+        {
+            var rawBackups = await _sessionManager.GetAvailableBackupsAsync();
+
+            AvailableBackups.Clear();
+            foreach (var item in rawBackups)
+            {
+                AvailableBackups.Add(new CloudBackupModel(item));
+            }
+        }
+        finally { IsBusy = false; }
+    }
+
+    [RelayCommand]
+    public async Task CreateReferralCode()
+    {
+        IsBusy = true;
+        try
+        {
+            var codeObj = await _sessionManager.GenerateReferralCodeAsync();
+            UpdateReferralUI(codeObj);
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = "Failed to generate code.";
+            _logger.LogError(ex, "Referral generation error");
+        }
+        finally { IsBusy = false; }
+    }
+
+    private async Task LoadReferralInfoAsync()
+    {
+        var codeObj = await _sessionManager.GetMyReferralCodeAsync();
+        UpdateReferralUI(codeObj);
+    }
+
+    private void UpdateReferralUI(Parse.ParseObject? codeObj)
+    {
+        if (codeObj == null)
+        {
+            CurrentReferralCode = null; // UI will show "Generate" button
+            ReferralStats = "Join the program to invite friends.";
+            return;
+        }
+
+        CurrentReferralCode = codeObj.Get<string>("code");
+        int uses = codeObj.ContainsKey("timesUsed") ? codeObj.Get<int>("timesUsed") : 0;
+        int remaining = codeObj.ContainsKey("usesRemaining") ? codeObj.Get<int>("usesRemaining") : 0;
+
+        ReferralStats = $"Used {uses} times ({remaining} remaining)";
     }
     [RelayCommand]
     public async Task RegisterCurrentDeviceAsync()
@@ -121,15 +186,17 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
 
             // 1. Try to find the song locally on THIS device
             // You need a method in your MainViewModel or DataService to find a song by ID or Title
-            var localSong = _mainViewModel.SearchResults.FirstOrDefault(s => s.Id.ToString() == request.OriginalSongId)
-                            ?? _mainViewModel.SearchResults.FirstOrDefault(s => s.Title == request.Title && s.ArtistName == request.ArtistName);
-
+            var localSong = _mainViewModel.RealmFactory.GetRealmInstance()
+      .Find<DimmerPlayEvent>(request.OriginalSongId).SongsLinkingToThisEvent.FirstOrDefault() // Assuming ID matches
+      ?? _mainViewModel.RealmFactory.GetRealmInstance()
+      .All<DimmerPlayEvent>()
+      .FirstOrDefault(s => s.SongName == request.Title && s.ArtistName == request.ArtistName).SongsLinkingToThisEvent.FirstOrDefault();
             if (localSong != null)
             {
                 StatusMessage = "Song found locally. Playing...";
 
                 // 2. Play the LOCAL file
-                await _mainViewModel.PlaySongAsync(localSong);
+                await _mainViewModel.PlaySongAsync(localSong.ToSongModelView());
 
                 // 3. Seek to position
                 if (request.SharedPositionInSeconds.HasValue)

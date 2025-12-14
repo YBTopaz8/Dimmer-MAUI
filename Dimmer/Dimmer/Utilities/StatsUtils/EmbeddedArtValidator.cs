@@ -21,9 +21,26 @@ public static class EmbeddedArtValidator
 
         try
         {
-            using var streamTrack = TaggingUtils.PlatformGetStreamHook(audioPath);
-            var track = new Track(streamTrack);
-            var pics = track.EmbeddedPictures; // ATL lazy-loads these
+            IList<PictureInfo>? pics = null;
+            Track? track = null ;
+            if (audioPath.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
+            {
+                if (TaggingUtils.PlatformGetStreamHook != null)
+                {
+                    using (var fileStream = TaggingUtils.PlatformGetStreamHook(audioPath))
+                    {
+                        track = new Track(fileStream);
+                        pics = track.EmbeddedPictures.ToList();
+                    }
+                }
+            }
+            else
+            {
+                track= new Track(audioPath);
+                pics = track.EmbeddedPictures.ToList();
+            }
+
+               
 
             if (pics is null || pics.Count == 0) return null;
 

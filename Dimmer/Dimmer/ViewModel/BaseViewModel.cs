@@ -208,7 +208,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
            .ObserveOn(RxSchedulers.UI)
            .Subscribe(async s =>
            {
-               UnlockedAch = s.Item1;
+               UnlockedAch = s.ruleUnlocked;
+               AchievementSecondMessage = $"{s.concernedSong?.Title} by {s.concernedSong?.ArtistName}";
                IsAchievementNotificationVisible = true;
                await Task.Delay(5000);
                IsAchievementNotificationVisible = false;
@@ -1574,7 +1575,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial ObservableCollection<LyricPhraseModelView>? SelectedSongLyricsObsCol { get; set; }
 
-    partial void OnSelectedSongChanging(SongModelView? oldValue, SongModelView? newValue)
+    async partial void OnSelectedSongChanging(SongModelView? oldValue, SongModelView? newValue)
     {
         if (newValue is not null)
         {
@@ -1582,6 +1583,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             var songInDb = realm.Find<SongModel>(newValue.Id);
             if (songInDb is not null)
             {
+               
                 if (!string.IsNullOrEmpty(songInDb.SyncLyrics))
                 {
                     SelectedSongLyricsObsCol = LyricsMgtFlow.GetListLyricsCol(songInDb.SyncLyrics).ToObservableCollection();
@@ -1595,7 +1597,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     newValue.PlayEvents = new();
                     return;
                 }
-
+                
                 ObservableCollection<DimmerPlayEventView> evts = songInDb.PlayHistory.AsEnumerable().Select(x => x.ToDimmerPlayEventView())
                     .ToObservableCollection()!;
                 newValue.PlayEvents = evts;
@@ -1809,6 +1811,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     [ObservableProperty]
     public partial AchievementRule UnlockedAch { get; set; }
+
+    [ObservableProperty]
+    public partial string AchievementSecondMessage { get; set; }
     public BaseAppFlow BaseAppFlow;
 
 
@@ -2026,7 +2031,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 _stateService.SetCurrentLogMsg(new AppLogModel()
                 {
                     ViewSongModel = song,
-                    Log = $"[{current}/{total}] {song.Title} by {song.ArtistName}"
+                    Log = $"Loading Cover of index [{current}/{total}] {song.Title} by {song.ArtistName}"
                 });
             });
         });
@@ -2075,7 +2080,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 _stateService.SetCurrentLogMsg(new AppLogModel()
                 {
                     ViewSongModel = song,
-                    Log = $"[{current}/{total}] {song.Title} by {song.ArtistName}"
+                    Log = $"Cover art on song [{current}/{total}] {song.Title} by {song.ArtistName}"
                 });
             });
 
@@ -2102,8 +2107,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                         });
                         await LoadAndCacheCoverArtAsync(song);
                         int current = Interlocked.Increment(ref processed);
-                        ((IProgress<(int, int, SongModelView)>)ProgressCoverArtLoad)
-                            .Report((current, total, song));
+                        ((IProgress<(int, int, SongModelView)>)ProgressCoverArtLoad)?.Report((current, total, song));
                     }
                 }
                 finally
@@ -2115,6 +2119,13 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         await Task.WhenAll(tasks);
 
         _logger.LogInformation("Finished pre-caching ALL cover art process.");
+        _stateService.SetCurrentLogMsg(new AppLogModel()
+        {
+            ViewSongModel = null,
+            Log = $"Finished pre-caching ALL cover art process."
+        });
+
+        
     }
 
     #region Playback Event Handlers
@@ -2413,7 +2424,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             _logger.LogInformation("Adding {Count} new songs to the UI.", newSongs.Count);
             _stateService.SetCurrentLogMsg(new AppLogModel() { Log = $"Adding {newSongs.Count} new songs to the UI.", });
             SearchSongForSearchResultHolder("desc added");
-            _ = EnsureCoverArtCachedForSongsAsync(newSongs);
+            _ = EnsureAllCoverArtCachedForSongsAsync();
 
             //var _lyricsCts = new CancellationTokenSource();
             //_ = LoadSongDataAsync(null, _lyricsCts);
@@ -3275,9 +3286,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
     [RelayCommand]
-    public async Task PreviousTrackASync()
+    public async Task PreviousTrackAsync()
     {
-        if (_audioService.CurrentPosition > 3)
+        if (_audioService.CurrentPosition > 5)
         {
             _audioService.Seek(0);
             return;
@@ -3834,7 +3845,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 h => _audioService.MediaKeyPreviousPressed += h,
                 h => _audioService.MediaKeyPreviousPressed -= h)
                 .Subscribe(
-                    async _ => await PreviousTrackASync(),
+                    async _ => await PreviousTrackAsync(),
                     ex => _logger.LogError(ex, "Error in MediaKeyPreviousPressed subscription")));
     }
 
@@ -6042,10 +6053,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     }
 
-    public async Task AssignArtistToSongAsync(ObjectId songId, IEnumerable<string> artistNames)
+    public async Task<SongModelView?> AssignArtistToSongAsync(ObjectId songId, IEnumerable<string> artistNames)
     {
         if (songId == ObjectId.Empty || artistNames == null || !artistNames.Any())
-            return;
+            return null;
         _logger.LogInformation(
             "Assigning artists '{ArtistNames}' to song ID '{SongId}'",
             string.Join(", ", artistNames),
@@ -6062,7 +6073,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             CurrentPlayingSongView = songRepo.GetById(songId).ToSongModelView();
         }
         var updatedSong = songRepo.GetById(songId).ToSongModelView();
-        
+        return updatedSong;
     }
 
     public async Task AssignSongToGenreAsync((SongModelView Song, GenreModelView TargetGenre) context)

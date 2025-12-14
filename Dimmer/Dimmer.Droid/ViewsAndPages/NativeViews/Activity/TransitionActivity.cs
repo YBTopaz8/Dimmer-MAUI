@@ -5,6 +5,7 @@ using AndroidX.Core.View;
 using AndroidX.DrawerLayout.Widget;
 
 using Dimmer.NativeServices;
+using Dimmer.ViewsAndPages.NativeViews.StatsSection;
 
 using Google.Android.Material.BottomNavigation;
 using Google.Android.Material.Dialog;
@@ -296,9 +297,12 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
                 tag = "HomePageFragment";
                 break;
             case 101:
-                selectedFrag = new GraphExplorerFragment(MyViewModel);
-                tag = "GraphFragment";
-                break;
+                var vm = MainApplication.ServiceProvider.GetRequiredService<StatisticsViewModel>();
+                selectedFrag = new LibraryStatsHostFragment(MyViewModel, vm);
+                tag = "StatsFragment";
+
+                Task.Run(()=> vm.LoadLibraryStatsCommand.Execute(null) );
+                break; 
             case 102:
                 selectedFrag = new SettingsFragment("settingsTrans", MyViewModel);
                 tag = "SettingsFragment";
@@ -320,39 +324,7 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         _drawerLayout.OpenDrawer(GravityCompat.Start);
     }
 
-    private void NavBar_ItemSelected(object? sender, NavigationBarView.ItemSelectedEventArgs e)
-    {
-        Fragment? selectedFrag = null;
-        string tag = "";
-
-        switch (e.Item.ItemId)
-        {
-            case 100: // Home
-                if (SupportFragmentManager.FindFragmentByTag("HomePageFragment") is { } existing)
-                {
-                    // Just pop back to it
-                    SupportFragmentManager.PopBackStack("HomePageFragment", 0);
-                    return;
-                }
-                selectedFrag = new HomePageFragment(MyViewModel);
-                tag = "HomePageFragment";
-                break;
-            case 101: // Browser
-                selectedFrag = new SongDetailFragment(e.Item.ItemId.ToString(),MyViewModel);
-                tag = "GraphFragment";
-                break;
-            case 102: // Settings
-                selectedFrag = new SettingsFragment(e.Item.ItemId.ToString(),MyViewModel);
-                tag = "SettingsFragment";
-                break;
-                // Add Settings...
-        }
-
-        if (selectedFrag != null)
-        {
-            NavigateTo(selectedFrag, tag);
-        }
-    }
+    
     public void NavigateTo(Fragment fragment, string tag)
     {
         var trans = SupportFragmentManager.BeginTransaction();

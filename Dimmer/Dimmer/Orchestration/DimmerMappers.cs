@@ -131,7 +131,6 @@ public static class DimmerMappers
 
             // Explicit Ignores from Config:
             // PlaylistsHavingSong -> Ignored
-            // ArtistToSong -> Ignored
             // HasLyricsColumnIsFiltered -> Ignored
             // IsCurrentPlayingHighlight -> Ignored
             // CurrentPlaySongDominantColor -> Ignored
@@ -277,7 +276,7 @@ public static class DimmerMappers
             TotalSkipCount = src.TotalSkipCount,
             TotalPlayDurationSeconds = src.TotalPlayDurationSeconds,
             IsFavorite = src.IsFavorite,
-
+            
             // Ignores from Config
             // ImageBytes -> Ignored
             // SongsInAlbum -> Ignored
@@ -637,7 +636,6 @@ public static class DimmerMappers
             PlayType = src.PlayType,
             PlayTypeStr = src.PlayTypeStr,
             DatePlayed = src.DatePlayed,
-            DateFinished = src.DateFinished,
             WasPlayCompleted = src.WasPlayCompleted,
             PositionInSeconds = src.PositionInSeconds,
             EventDate = src.EventDate,
@@ -678,7 +676,6 @@ public static class DimmerMappers
             PlayType = src.PlayType,
             PlayTypeStr = src.PlayTypeStr,
             DatePlayed = src.DatePlayed,
-            DateFinished = src.DateFinished,
             WasPlayCompleted = src.WasPlayCompleted,
             PositionInSeconds = src.PositionInSeconds,
             EventDate = src.EventDate ?? DateTimeOffset.MinValue,

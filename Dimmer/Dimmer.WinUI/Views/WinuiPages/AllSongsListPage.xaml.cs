@@ -266,21 +266,21 @@ public sealed partial class AllSongsListPage : Page
 
         // e.OriginalSource is the specific UI element that received the tap 
         // (e.g., a TextBlock, an Image, a Grid, etc.).
-        var element = e.OriginalSource as FrameworkElement;
+        FrameworkElement element = (e.OriginalSource as FrameworkElement)!;
         SongModelView? song = null;
         if (element == null)
             return;
 
 
 
-        while (element != null && element != sender)
+        while (element != null && element != (FrameworkElement)sender)
         {
             if (element.DataContext is SongModelView currentSong)
             {
                 song = currentSong;
                 break; // Found it!
             }
-            element = element.Parent as FrameworkElement;
+            element = (FrameworkElement)element.Parent;
         }
         var songs = MySongsTableView.Items;
         Debug.WriteLine(songs.Count);
@@ -304,8 +304,6 @@ public sealed partial class AllSongsListPage : Page
     {
         if (songToFind == null)
             return;
-        var isSongInList = MySongsTableView.CollectionView;
-
        
         MySongsTableView.SmoothScrollIntoViewWithItemAsync(songToFind, (ScrollItemPlacement)ScrollIntoViewAlignment.Leading);
     }
@@ -635,10 +633,7 @@ public sealed partial class AllSongsListPage : Page
         e.Handled = true;
     }
 
-    private void MySongsTableView_ClearSorting(object sender, TableViewClearSortingEventArgs e)
-    {
-
-    }
+  
 
     private async void MySongsTableView_DragItemsStarting(object sender, DragItemsStartingEventArgs e)
     {
@@ -674,76 +669,8 @@ public sealed partial class AllSongsListPage : Page
 
     }
 
-    private void MySongsTableView_Holding(object sender, HoldingRoutedEventArgs e)
-    {
+    
 
-    }
-
-    private void MySongsTableView_CellSelectionChanged(object sender, TableViewCellSelectionChangedEventArgs e)
-    {
-
-        //    var properties = e.GetCurrentPoint(sender as Microsoft.UI.Xaml.UIElement).Properties;
-
-
-        //    if (properties.IsXButton1Pressed)
-        //    {
-        //    }
-        //    else if (properties.IsXButton2Pressed)
-        //    {
-
-        //    }
-
-        //var isCtlrKeyPressed = e.PointerDeviceType == Microsoft.UI.Input.PointerDeviceType.Mouse &&
-        //       (Windows.UI.Core.CoreWindow.GetForCurrentThread().GetKeyState(Windows.System.VirtualKey.Control) &
-        //        Windows.UI.Core.CoreVirtualKeyStates.Down) == Windows.UI.Core.CoreVirtualKeyStates.Down;
-        //    if (isCtlrKeyPressed)
-        //        ProcessCellClick(isExclusion: false);
-
-        switch (MySongsTableView.SelectionMode)
-        {
-            case Microsoft.UI.Xaml.Controls.ListViewSelectionMode.None:
-                break;
-            case Microsoft.UI.Xaml.Controls.ListViewSelectionMode.Single:
-
-                if (e.AddedCells.Count > 0)
-                {
-                    var currSelection = e.AddedCells[0];
-                    var selectedColumnField = MySongsTableView.Columns[currSelection.Column].Header as string;
-
-                    var currentCellValue = MySongsTableView.GetCellsContent(e.AddedCells, false);
-                    // now i have the field and value, if it's album/artist then we want to update query to find all of said album/artist
-                    if (!string.IsNullOrEmpty(selectedColumnField) && !string.IsNullOrEmpty(currentCellValue))
-                    {
-                        string tqlQuery = string.Empty;
-                        switch (selectedColumnField)
-                        {
-                            case "Album":
-                                tqlQuery = PresetQueries.ByAlbum(currentCellValue);
-                                MyViewModel.SearchSongForSearchResultHolder(tqlQuery);
-                                break;
-                            case "Artist":
-                                tqlQuery = PresetQueries.ByArtist(currentCellValue);
-                                MyViewModel.SearchSongForSearchResultHolder(tqlQuery);
-                                break;
-                            case "Genre":
-                                tqlQuery = PresetQueries.ByGenre(currentCellValue);
-                                MyViewModel.SearchSongForSearchResultHolder(tqlQuery);
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                }
-                break;
-            case Microsoft.UI.Xaml.Controls.ListViewSelectionMode.Multiple:
-                break;
-            case Microsoft.UI.Xaml.Controls.ListViewSelectionMode.Extended:
-                break;
-            default:
-                break;
-        }
-
-    }
 
     private void MySongsTableView_RowContextFlyoutOpening(object sender, TableViewRowContextFlyoutEventArgs e)
     {
@@ -754,10 +681,6 @@ public sealed partial class AllSongsListPage : Page
 
 
 
-    private void MySongsTableView_Loading(FrameworkElement sender, object args)
-    {
-
-    }
 
     private void MySongsTableView_Loaded(object sender, RoutedEventArgs e)
     {
@@ -960,42 +883,6 @@ public sealed partial class AllSongsListPage : Page
 
     }
 
-    private void MySongsTableView_CurrentCellChanged(object sender, DependencyPropertyChangedEventArgs e)
-    {
-        //var OldValue = e.OldValue;
-        //TableViewCellSlot newValue = (TableViewCellSlot)e.NewValue;
-        //var propValue = e.Property;
-        //Debug.WriteLine(propValue?.GetType());
-        //Debug.WriteLine(OldValue?.GetType());
-
-        //List<TableViewCellSlot> cells = new List<TableViewCellSlot>();
-        //cells.Add(newValue);
-
-        //var we=  MySongsTableView.GetCellsContent(cells, true);
-        //var ee =  MySongsTableView.GetSelectedContent(true);
-
-        // This event tells us exactly which cell the user just moved to or clicked on.
-        // We just store its location for the Tapped/RightTapped event to use.
-        if (e.NewValue is TableViewCellSlot newSlot)
-        {
-            _lastActiveCellSlot = newSlot;
-        }
-        var nativeElement = sender as Microsoft.UI.Xaml.UIElement;
-        if (nativeElement == null)
-            return;
-        // figure out if it is right click
-
-        //var properties = e.PlatformArgs.PointerRoutedEventArgs.GetCurrentPoint(nativeElement).Properties;
-
-        //if (properties.IsRightButtonPressed)
-        //{
-        //    MyViewModel.AddToNext();
-        //    return;
-
-
-        //}
-    }
-
     private void MySongsTableView_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
     {
 
@@ -1032,20 +919,13 @@ public sealed partial class AllSongsListPage : Page
 
     }
 
-    private void MySongsTableView_GotFocus(object sender, RoutedEventArgs e)
-    {
-
-    }
 
     private void MySongsTableView_LostFocus(object sender, RoutedEventArgs e)
     {
 
     }
 
-    private void MySongsTableView_ItemClick(object sender, ItemClickEventArgs e)
-    {
-
-    }
+   
 
     private void MySongsTableView_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
     {
@@ -1412,9 +1292,9 @@ public sealed partial class AllSongsListPage : Page
     }
 
 
-    private async void Grid_PointerPressed(object sender, PointerRoutedEventArgs e)
+    private async void ArtistCellGrid_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
-
+        
         try
         {
 
@@ -1441,9 +1321,20 @@ public sealed partial class AllSongsListPage : Page
             var contextMenuFlyout = new MenuFlyout();
 
             var dbSongArtists = MyViewModel.RealmFactory.GetRealmInstance();
-            var finding = dbSongArtists
+            var dbSong = dbSongArtists
                 .Find<SongModel>(_storedSong.Id);
-            var selectingg = finding.ArtistToSong.ToList();
+            if (dbSong is null) return;
+            if ((dbSong.ArtistToSong.Count < 1 || dbSong.Artist is null))
+            {
+                
+                    var ArtistsInSong = MyViewModel.SelectedSong.ArtistName.
+                    Split(",").ToList();
+                    await MyViewModel.AssignArtistToSongAsync(MyViewModel.SelectedSong.Id,
+                         ArtistsInSong);
+
+                
+            }
+            var selectingg = dbSong.ArtistToSong.ToList();
             var sel2 = selectingg.Select(x => new ArtistModelView()
                 {
                     Id = x.Id,
@@ -2048,5 +1939,10 @@ public sealed partial class AllSongsListPage : Page
         await NowPlayingPBQueue.SmoothScrollIntoViewWithIndexAsync(npqIndex,
             ScrollItemPlacement.Top, false,
             true);
+    }
+
+    private void MySongsTableView_ItemClick(object sender, ItemClickEventArgs e)
+    {
+
     }
 }

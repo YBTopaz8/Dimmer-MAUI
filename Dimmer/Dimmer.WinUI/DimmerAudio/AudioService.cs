@@ -673,6 +673,9 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     /// <returns>Task indicating completion of the seek request (not necessarily the completion of the seek operation itself).</returns>
     public void Seek(double positionSeconds)
     {
+        try
+        {
+
         ThrowIfDisposed(); 
 
         if (_mediaPlayer.PlaybackSession.CanSeek)
@@ -698,6 +701,11 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             
             CurrentPosition = positionSeconds;
             Debug.WriteLine("[AudioService] Seek requested but session cannot seek.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
         }
     }
 

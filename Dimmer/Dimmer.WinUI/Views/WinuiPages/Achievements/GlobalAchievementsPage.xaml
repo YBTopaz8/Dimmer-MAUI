@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="Dimmer.WinUI.Views.WinuiPages.Achievements.GlobalAchievementsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:Dimmer.WinUI.Views.WinuiPages.Achievements"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:Dimmer.Data.ModelView"
+    mc:Ignorable="d">
+
+
+    <Grid Padding="24" RowDefinitions="Auto,Auto,*">
+
+        <!--  1. Header & Stats  -->
+        <StackPanel
+            Grid.Row="0"
+            Margin="0,0,0,20"
+            Spacing="8">
+            <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="🏆 Achievements" />
+            <Grid ColumnDefinitions="*,Auto">
+                <ProgressBar
+                    Height="10"
+                    Margin="0,0,12,0"
+                    VerticalAlignment="Center"
+                    Maximum="100"
+                    Value="{x:Bind ViewModel.UnlockProgressValue, Mode=OneWay}" />
+                <TextBlock
+                    Grid.Column="1"
+                    Opacity="0.7"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Text="{x:Bind ViewModel.UnlockProgressText, Mode=OneWay}" />
+            </Grid>
+        </StackPanel>
+
+        <!--  2. Filters  -->
+        <StackPanel
+            Grid.Row="1"
+            Margin="0,0,0,12"
+            Orientation="Horizontal"
+            Spacing="12">
+            <TextBlock VerticalAlignment="Center" Text="Filter by:" />
+            <ComboBox
+                Width="150"
+                ItemsSource="{x:Bind ViewModel.FilterOptions}"
+                SelectedItem="{x:Bind ViewModel.SelectedFilter, Mode=TwoWay}" />
+        </StackPanel>
+
+        <!--  3. Grid of Cards  -->
+        <GridView
+            Grid.Row="2"
+            ItemsSource="{x:Bind ViewModel.FilteredItems, Mode=OneWay}"
+            SelectionMode="None">
+            <GridView.ItemTemplate>
+                <DataTemplate x:DataType="models:AchievementDisplayItem">
+                    <Grid
+                        Width="260"
+                        Height="110"
+                        Padding="4">
+                        <!--  Card Background  -->
+                        <Border
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Opacity="{x:Bind Opacity}">
+
+                            <Grid Padding="12" ColumnDefinitions="Auto,*">
+                                <!--  Icon / Tier  -->
+                                <Border
+                                    Width="50"
+                                    Height="50"
+                                    VerticalAlignment="Center"
+                                    CornerRadius="25">
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        FontSize="24"
+                                        Text="{x:Bind TierIcon}" />
+                                </Border>
+
+                                <!--  Text Info  -->
+                                <StackPanel
+                                    Grid.Column="1"
+                                    Margin="12,0,0,0"
+                                    VerticalAlignment="Center">
+                                    <TextBlock
+                                        Style="{StaticResource SubtitleTextBlockStyle}"
+                                        Text="{x:Bind DisplayTitle}"
+                                        TextTrimming="CharacterEllipsis" />
+
+                                    <TextBlock
+                                        MaxLines="3"
+                                        Opacity="0.8"
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Text="{x:Bind DisplayDescription}"
+                                        TextTrimming="CharacterEllipsis"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </DataTemplate>
+            </GridView.ItemTemplate>
+        </GridView>
+    </Grid>
+</Page>

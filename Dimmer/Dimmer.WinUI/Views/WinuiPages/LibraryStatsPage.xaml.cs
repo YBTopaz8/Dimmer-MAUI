@@ -50,4 +50,26 @@ public sealed partial class LibraryStatsPage : Page
             Frame.GoBack();
         }
     }
+    public string FormatDouble(double val) => val.ToString("F1");
+    public string FormatDate(DateTimeOffset? d) => d?.ToString("MMM dd, yyyy") ?? "-";
+    public string FormatNumber(int val) => val.ToString("N0"); // 1,234
+    public string FormatDurationShort(int sec) => TimeSpan.FromSeconds(sec).ToString(@"mm\:ss");
+    public string FormatDuration(int sec)
+    {
+        var t = TimeSpan.FromSeconds(sec);
+        if (t.TotalHours >= 1) return $"{(int)t.TotalHours}h {t.Minutes}m";
+        return $"{t.Minutes}m {t.Seconds}s";
+    }
+    public string FormatDurationDouble(double sec)
+    {
+        var t = TimeSpan.FromSeconds(sec);
+        if (t.TotalHours >= 1) return $"{(int)t.TotalHours}h {t.Minutes}m";
+        return $"{t.Minutes}m {t.Seconds}s";
+    }
+    // Calculates percentage for text display
+    public string CalcPercent(int part, int total)
+    {
+        if (total == 0) return "0%";
+        return $"{(double)part / total:P1}";
+    }
 }

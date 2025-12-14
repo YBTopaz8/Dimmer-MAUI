@@ -166,84 +166,92 @@ public class LibraryScannerService : ILibraryScannerService
 
                 using (var realmInserts = _realmFactory.GetRealmInstance())
                 {
-                    await realmInserts.WriteAsync(() =>
+                    if (realmInserts is not null)
                     {
-                        // STEP 1: Add all new parent entities to the Realm.
-                        // After this, they become MANAGED objects.
-                        foreach (var artistView in newArtists)
-                            realmInserts.Add(artistView.ToArtistModel());
-
-                        foreach (var albumView in newAlbums)
+                        await realmInserts.WriteAsync(() =>
                         {
-                            if(albumView.Artists==null || albumView.Artists.Count==0)
+                            // STEP 1: Add all new parent entities to the Realm.
+                            // After this, they become MANAGED objects.
+                            foreach (var artistView in newArtists)
+                                realmInserts.Add(artistView.ToArtistModel());
+
+                            foreach (var albumView in newAlbums)
                             {
-                                _logger.LogWarning("Album {AlbumName} has no associated artists. Skipping.", albumView.Name);
-                                continue;
-                            }
-                            var album = albumView.ToAlbumModel();
-
-                            // Link album to its artist(s)
-                            foreach (var artView in albumView.Artists)
-                            {
-                                var managedArtist = realmInserts.Find<ArtistModel>(artView.Id);
-                                if (managedArtist != null)
-                                    album.Artists.Add(managedArtist);
-                            }
-
-                            realmInserts.Add(album, update: true);
-                        }
-                        foreach (var genreView in newGenres)
-                            realmInserts.Add(genreView.ToGenreModel());
-
-                        foreach (var chunk in newSongs.Chunk(500))
-                        {
-                            foreach (var newSongView in chunk)
-                            {
-                                // Create an UNMANAGED model instance.
-                                var songToPersist = newSongView.ToSongModel();
-
-                                // Find the now-MANAGED versions of its relationships.
-                                if (newSongView?.Album?.Id != null)
+                                if (albumView.Artists == null || albumView.Artists.Count == 0)
                                 {
-                                    var alb = realmInserts.Find<AlbumModel>(newSongView.Album.Id);
-                                    if (alb is not null)
-                                    {
-                                        songToPersist.Album = alb;
-                                    }
+                                    _logger.LogWarning("Album {AlbumName} has no associated artists. Skipping.", albumView.Name);
+                                    continue;
                                 }
-                                if (newSongView?.Genre?.Id != null)
+                                var album = albumView.ToAlbumModel();
+
+                                // Link album to its artist(s)
+                                foreach (var artView in albumView.Artists)
                                 {
-                                    var gnr = realmInserts.Find<GenreModel>(newSongView.Genre.Id);
-                                    if (gnr is not null)
-                                    {
-                                        songToPersist.Genre = gnr;
-                                    }
+                                    var managedArtist = realmInserts.Find<ArtistModel>(artView.Id);
+                                    if (managedArtist != null)
+                                        album.Artists.Add(managedArtist);
                                 }
-                                if (newSongView?.ArtistToSong != null && newSongView.ArtistToSong.Count > 0)
+
+                                realmInserts.Add(album, update: true);
+                            }
+                            foreach (var genreView in newGenres)
+                                realmInserts.Add(genreView.ToGenreModel());
+
+                            foreach (var chunk in newSongs.Chunk(500))
+                            {
+                                foreach (var newSongView in chunk)
                                 {
-                                    foreach (var artistView in newSongView.ArtistToSong)
+                                    // Create an UNMANAGED model instance.
+                                    var songToPersist = newSongView.ToSongModel();
+                                    if (songToPersist is not null)
                                     {
-                                        if (artistView is not null)
+                                        // Find the now-MANAGED versions of its relationships.
+                                        if (newSongView?.Album?.Id != null)
                                         {
-
-                                            var managedArtist = realmInserts.Find<ArtistModel>(artistView.Id);
-                                            if (managedArtist != null)
-                                                songToPersist.ArtistToSong.Add(managedArtist);
+                                            var alb = realmInserts.Find<AlbumModel>(newSongView.Album.Id);
+                                            if (alb is not null)
+                                            {
+                                                songToPersist.Album = alb;
+                                            }
                                         }
+                                        if (newSongView?.Genre?.Id != null)
+                                        {
+                                            var gnr = realmInserts.Find<GenreModel>(newSongView.Genre.Id);
+                                            if (gnr is not null)
+                                            {
+                                                songToPersist.Genre = gnr;
+                                            }
+                                        }
+                                        if (newSongView?.ArtistToSong != null && newSongView.ArtistToSong.Count > 0)
+                                        {
+                                            foreach (var artistView in newSongView.ArtistToSong)
+                                            {
+                                                if (artistView is not null)
+                                                {
+
+                                                    var managedArtist = realmInserts.Find<ArtistModel>(artistView.Id);
+                                                    if (managedArtist != null)
+                                                        songToPersist.ArtistToSong.Add(managedArtist);
+                                                }
+                                            }
+                                            if (songToPersist.ArtistToSong.Count > 0)
+                                            {
+                                                songToPersist.Artist = songToPersist.ArtistToSong[0];
+                                            }
+                                        }
+                                        songToPersist.ArtistName = songToPersist.Artist?.Name;
+                                        songToPersist.IsNew = false;
+                                        songToPersist.DeviceModel = DeviceInfo.Current.Model.ToString();
+                                        songToPersist.DeviceManufacturer = DeviceInfo.Current.Platform.ToString();
+                                        songToPersist.DeviceVersion = DeviceInfo.Current.VersionString;
+                                        songToPersist.DeviceFormFactor = DeviceInfo.Current.Idiom.ToString();
+                                        // Finally, upsert the fully-linked song model.
+                                        realmInserts.Add(songToPersist, update: true);
                                     }
-                                    songToPersist.Artist = songToPersist.ArtistToSong[0];
                                 }
-                                songToPersist.ArtistName = songToPersist.Artist?.Name;
-                                songToPersist.IsNew = false;
-                                songToPersist.DeviceModel = DeviceInfo.Current.Model.ToString();
-                                songToPersist.DeviceManufacturer = DeviceInfo.Current.Platform.ToString();
-                                songToPersist.DeviceVersion = DeviceInfo.Current.VersionString;
-                                songToPersist.DeviceFormFactor = DeviceInfo.Current.Idiom.ToString();
-                                // Finally, upsert the fully-linked song model.
-                                realmInserts.Add(songToPersist, update: true);
                             }
-                        }
-                    });
+                        });
+                    }
                 }
 
                 _logger.LogInformation("Metadata changes persisted.");

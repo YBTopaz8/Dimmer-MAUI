@@ -38,7 +38,14 @@ public static class TopStats
             .OrderByDescending(x => x.EventCount)
             .Take(count)
             .Where(x => songLookup.ContainsKey(x.SongId)) // Ensure song still exists in library
-            .Select(x => (new DimmerStats(){Song=songLookup[x.SongId].ToSongModelView(),Count=x.EventCount }))];
+            .Select(x => { 
+                return (new DimmerStats()
+                {
+                    Song=songLookup[x.SongId].ToSongModelView()!,
+                    
+                    Count=x.EventCount 
+                });
+            })];
     }
 
     /// <summary>
@@ -80,13 +87,13 @@ public static class TopStats
         var filteredEvents = FilterEvents(events, null, startDate, endDate);
 
         return [.. filteredEvents
-            .Where(e => e.SongId.HasValue && e.DateFinished > e.DatePlayed)
+            .Where(e => e.SongId.HasValue && e.EventDate > e.DatePlayed)
             .GroupBy(e => e.SongId!.Value)
             .Select(g => new
             {
                 SongId = g.Key,
                 // Sum the duration of each play session
-                Time = g.Sum(ev => (ev.DateFinished - ev.DatePlayed).TotalSeconds)
+                Time = g.Sum(ev => (ev.EventDate - ev.DatePlayed).TotalSeconds)
             })
             .OrderByDescending(x => x.Time)
             .Take(count)
@@ -341,12 +348,12 @@ public static class TopStats
     {
         var songLookup = songs.ToDictionary(s => s.Id);
         return events
-            .Where(e => e.SongId.HasValue && e.DateFinished > e.DatePlayed && songLookup.ContainsKey(e.SongId.Value) && !string.IsNullOrEmpty(songLookup[e.SongId.Value].Genre.Name))
+            .Where(e => e.SongId.HasValue && e.EventDate > e.DatePlayed && songLookup.ContainsKey(e.SongId.Value) && !string.IsNullOrEmpty(songLookup[e.SongId.Value].Genre.Name))
             .GroupBy(e => songLookup[e.SongId.Value].Genre.Name!)
             .Select(g => new DimmerStats
             {
                 Name = g.Key,
-                TotalSecondsNumeric = g.Sum(ev => (ev.DateFinished - ev.DatePlayed).TotalSeconds)
+                TotalSecondsNumeric = g.Sum(ev => (ev.EventDate - ev.DatePlayed).TotalSeconds)
             })
             .OrderByDescending(s => s.TotalSecondsNumeric)
             .Take(count)
@@ -362,7 +369,7 @@ public static class TopStats
     {
         var songLookup = songs.ToDictionary(s => s.Id);
         return events
-            .Where(e => e.SongId.HasValue )
+            .Where(e => e.SongId.HasValue)
             .GroupBy(e => e.SongId.Value).AsEnumerable()
             .Select(g =>
             {
@@ -480,11 +487,16 @@ public static class TopStats
 
         return [.. filteredEvents
             .Where(e => e.SongId.HasValue && songLookup.ContainsKey(e.SongId.Value))
-            .Select(e => propertySelector(songLookup[e.SongId.Value].ToSongModelView())) // Get the property (e.g., ArtistName)
+            .Select(e =>
+            propertySelector(songLookup[e.SongId.Value].ToSongModelView())) // Get the property (e.g., ArtistName)
             .Where(name => !string.IsNullOrEmpty(name))
             .GroupBy(name => name!)
-            .Select(g =>( new DimmerStats(){Name= g.Key, Count= g.Count() }))
-            .OrderByDescending(x => x.Count)
+            .Select(g => 
+            { 
+
+                return  new DimmerStats(){Name= g.Key, Count= g.Count() 
+             }; 
+            }).OrderByDescending(x => x.Count)
             .Take(count)];
     }
 

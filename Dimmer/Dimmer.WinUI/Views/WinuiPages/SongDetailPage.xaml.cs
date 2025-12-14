@@ -450,7 +450,7 @@ public sealed partial class SongDetailPage : Page
             if (DetailedSong is null) return;
             // Navigate to the detail page, passing the selected song object.
             // Suppress the default page transition to let ours take over.
-            var supNavTransInfo = new SuppressNavigationTransitionInfo();
+            var supNavTransInfo = new SlideNavigationTransitionInfo();
             Type pageType = typeof(ArtistPage);
             var navParams = new SongDetailNavArgs
             {
@@ -746,7 +746,7 @@ public sealed partial class SongDetailPage : Page
         }
         // Navigate to the detail page, passing the selected song object.
         // Suppress the default page transition to let ours take over.
-        var supNavTransInfo = new SuppressNavigationTransitionInfo();
+        var supNavTransInfo = new SlideNavigationTransitionInfo();
         Type songDetailType = typeof(EditSongPage);
         var navParams = new SongDetailNavArgs
         {
@@ -773,7 +773,7 @@ public sealed partial class SongDetailPage : Page
 
     private async void LyricsSection_Click(object sender, RoutedEventArgs e)
     {
-        var supNavTransInfo = new SuppressNavigationTransitionInfo();
+        var supNavTransInfo = new SlideNavigationTransitionInfo();
         
         Type pageType = typeof(LyricsEditorPage);
         var navParams = new SongDetailNavArgs
@@ -813,7 +813,7 @@ public sealed partial class SongDetailPage : Page
         {
             RxSchedulers.Background.Schedule(async () =>
             {
-                var ArtistsInSong = MyViewModel.SelectedSong.ArtistName.
+                var ArtistsInSong = MyViewModel.SelectedSong.OtherArtistsName.
                 Split(",").ToList();
                await MyViewModel.AssignArtistToSongAsync(MyViewModel.SelectedSong.Id,
                     ArtistsInSong);
@@ -919,7 +919,7 @@ public sealed partial class SongDetailPage : Page
 
     private void ViewCharts_Click(object sender, RoutedEventArgs e)
     {
-        var supNavTransInfo = new SuppressNavigationTransitionInfo();
+        var supNavTransInfo = new SlideNavigationTransitionInfo();
 
         var pageType = typeof(LibraryStatsPage);
 
@@ -1053,7 +1053,7 @@ public sealed partial class SongDetailPage : Page
     {
         var currentView = (Button)sender;
 
-        var supNavTransInfo = new SuppressNavigationTransitionInfo();
+        var supNavTransInfo = new SlideNavigationTransitionInfo();
 
         Type pageType = typeof(ArtistPage);
         var navParams = new SongDetailNavArgs

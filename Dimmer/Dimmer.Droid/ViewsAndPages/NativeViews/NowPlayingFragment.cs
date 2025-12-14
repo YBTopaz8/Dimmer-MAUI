@@ -44,6 +44,8 @@ public class NowPlayingFragment : Fragment
     private TextView _currentTimeText, _totalTimeText;
     private MaterialButton _prevBtn, _playPauseBtn, _nextBtn;
     private MaterialButton _queueBtn, _detailsBtn, _optionsBtn;
+    private Slider _volumeSlider;
+    private MaterialButton _currentDeviceBtn, _shareBtn, _changeDeviceBtn;
 
     // State
     private bool _isDraggingSeek = false;
@@ -139,7 +141,8 @@ public class NowPlayingFragment : Fragment
 
         // --- B. Image & Lyrics Grid ---
         var gridFrame = new FrameLayout(ctx);
-        var gridParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, AppUtil.DpToPx(350)); // Fixed height or adjust based on screen
+
+        var gridParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, 0, 1f); 
         gridParams.TopMargin = 40;
         gridParams.BottomMargin = 40;
         gridFrame.LayoutParameters = gridParams;
@@ -195,6 +198,8 @@ public class NowPlayingFragment : Fragment
         var chipScroll = new HorizontalScrollView(ctx) { ScrollBarSize = 0 };
         _artistChipGroup = new ChipGroup(ctx) { SingleLine = true };
         chipScroll.AddView(_artistChipGroup);
+
+
         root.AddView(chipScroll);
 
         // --- D. Progress Slider ---
@@ -227,6 +232,51 @@ public class NowPlayingFragment : Fragment
         controlsRow.AddView(_nextBtn);
         root.AddView(controlsRow);
 
+
+        var volumeRow = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
+        volumeRow.SetGravity(GravityFlags.CenterVertical);
+        volumeRow.SetPadding(0, 0, 0, 20);
+
+        var volDownIcon = new ImageView(ctx);
+        volDownIcon.SetImageResource(Resource.Drawable.volumesmall); // Make sure you have this icon
+        volDownIcon.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.Gray);
+
+        _volumeSlider = new Slider(ctx);
+        _volumeSlider.ValueFrom = 0; _volumeSlider.ValueTo = 100;
+        _volumeSlider.Value = 50; // Default
+
+        var volUpIcon = new ImageView(ctx);
+        volUpIcon.SetImageResource(Resource.Drawable.volumeloud); // Make sure you have this icon
+        volUpIcon.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.Gray);
+
+        volumeRow.AddView(volDownIcon, new LinearLayout.LayoutParams(AppUtil.DpToPx(24), AppUtil.DpToPx(24)));
+        volumeRow.AddView(_volumeSlider, new LinearLayout.LayoutParams(0, -2, 1f)); // Stretch slider
+        volumeRow.AddView(volUpIcon, new LinearLayout.LayoutParams(AppUtil.DpToPx(24), AppUtil.DpToPx(24)));
+
+        root.AddView(volumeRow);
+
+        var pillsRow = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
+        pillsRow.SetGravity(GravityFlags.Center);
+        // Add some space at bottom for gesture bar
+        pillsRow.SetPadding(0, 0, 0, AppUtil.DpToPx(30));
+
+        // 1. Current Device Pill
+        _currentDeviceBtn = CreatePillButton(ctx, "This Phone", Resource.Drawable.ic_vol_type_speaker_dark);
+        // 2. Share Pill
+        _shareBtn = CreatePillButton(ctx, "Share", Resource.Drawable.shared);
+        // 3. Switch Device Pill
+        _changeDeviceBtn = CreatePillButton(ctx, "Cast", Resource.Drawable.sharing); // Or 'Change' icon
+
+        // Distribute evenly with weights or margins
+        var pillParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1f);
+        pillParams.SetMargins(AppUtil.DpToPx(4), 0, AppUtil.DpToPx(4), 0);
+
+        pillsRow.AddView(_currentDeviceBtn, pillParams);
+        pillsRow.AddView(_shareBtn, pillParams);
+        pillsRow.AddView(_changeDeviceBtn, pillParams);
+
+        root.AddView(pillsRow);
+
         // --- F. Bottom Actions (Queue, View Song, Options) ---
         var actionRow = new LinearLayout(ctx) { Orientation = Orientation.Horizontal, WeightSum = 3 };
 
@@ -250,7 +300,58 @@ public class NowPlayingFragment : Fragment
         // _volumeSlider = ... (similar logic)
 
         scroll.AddView(root);
+
+        _playPauseBtn.Click += async (s, e) =>
+        {
+            await _viewModel.PlayPauseToggleAsync();
+
+
+        };
+        _prevBtn.Click += async (s, e) => await _viewModel.PreviousTrackAsync();
+        _nextBtn.Click += async (s, e) => await _viewModel.NextTrackAsync();
+
+        _queueBtn.Click += (s, e) =>
+        {
+            var queueSheet = new QueueBottomSheetFragment(_viewModel);
+            queueSheet.Show(ParentFragmentManager, "QueueSheet");
+        };
+
+        // Slider Logic
+        _seekSlider.Touch += (s, e) =>
+        {
+            switch (e.Event?.Action)
+            {
+                case MotionEventActions.Down: _isDraggingSeek = true; break;
+                case MotionEventActions.Up:
+                case MotionEventActions.Cancel:
+                    _isDraggingSeek = false;
+                    if (_viewModel.CurrentPlayingSongView != null)
+                    {
+                        var newPos = (_seekSlider.Value / 100) * _viewModel.CurrentPlayingSongView.DurationInSeconds;
+                        _viewModel.SeekTrackPositionCommand.Execute(newPos);
+                    }
+                    break;
+            }
+            e.Handled = false;
+        };
+
         return scroll;
+    }
+    private MaterialButton CreatePillButton(Context ctx, string text, int iconRes)
+    {
+        var btn = new MaterialButton(ctx, null, Resource.Attribute.materialButtonTonalStyle); // Tonal style looks good for pills
+        btn.Text = text;
+        btn.SetIconResource(iconRes);
+        btn.IconGravity = MaterialButton.IconGravityTextStart;
+        btn.IconPadding = AppUtil.DpToPx(4);
+        btn.CornerRadius = AppUtil.DpToPx(50); // Fully rounded (Pill)
+        btn.SetPadding(AppUtil.DpToPx(12), 0, AppUtil.DpToPx(12), 0);
+        btn.TextSize = 12;
+        btn.SetSingleLine(true);
+        btn.Ellipsize = Android.Text.TextUtils.TruncateAt.End;
+        btn.InsetTop = 0;
+        btn.InsetBottom = 0;
+        return btn;
     }
 
     private MaterialButton CreateControlButton(Context ctx, int iconRes, int sizeDp, bool isPrimary = false)
@@ -336,39 +437,7 @@ public class NowPlayingFragment : Fragment
             .DisposeWith(_disposables);
 
         // 3. Bind Buttons
-        _playPauseBtn.Click += async (s, e) =>
-        {
-            await _viewModel.PlayPauseToggleAsync();
-
-          
-        };
-        _prevBtn.Click += async (s, e) => await _viewModel.PreviousTrackASync();
-        _nextBtn.Click += async (s, e) => await _viewModel.NextTrackAsync();
-
-        _queueBtn.Click += (s, e) =>
-        {
-            var queueSheet = new QueueBottomSheetFragment(_viewModel);
-            queueSheet.Show(ParentFragmentManager, "QueueSheet");
-        };
-
-        // Slider Logic
-        _seekSlider.Touch += (s, e) =>
-        {
-            switch (e.Event?.Action)
-            {
-                case MotionEventActions.Down: _isDraggingSeek = true; break;
-                case MotionEventActions.Up:
-                case MotionEventActions.Cancel:
-                    _isDraggingSeek = false;
-                    if (_viewModel.CurrentPlayingSongView != null)
-                    {
-                        var newPos = (_seekSlider.Value / 100) * _viewModel.CurrentPlayingSongView.DurationInSeconds;
-                        _viewModel.SeekTrackPositionCommand.Execute(newPos);
-                    }
-                    break;
-            }
-            e.Handled = false;
-        };
+     
 
 
     }
@@ -397,7 +466,7 @@ public class NowPlayingFragment : Fragment
 
         // Artist Chips
         _artistChipGroup.RemoveAllViews();
-        var chip = new Chip(Context) { Text = song.ArtistName };
+        var chip = new Chip(Context) { Text = song.OtherArtistsName };
         _artistChipGroup.AddView(chip);
 
         // Load Images

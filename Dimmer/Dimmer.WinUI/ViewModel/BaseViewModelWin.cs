@@ -858,7 +858,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         if (MainWindow is null)
             MainWindow = winUIWindowMgrService.GetOrCreateUniqueWindow<DimmerWin>(this, () => new DimmerWin());
 
-        MainWindow.NavigateToPage(pageType);
+        MainWindow!.NavigateToPage(pageType);
     }
 
     /// <summary>
@@ -1315,6 +1315,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     public async Task DeletePlayEventAsync(DimmerPlayEventView selectedPlayEvent)
     {
+        //var dialogResult = await ContentDialog()
         var realm = RealmFactory.GetRealmInstance();
         var playEventInDb = realm.Find<DimmerPlayEvent>(selectedPlayEvent.Id);
         if (playEventInDb is null) return;
@@ -1323,9 +1324,6 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
             realm.Remove(playEventInDb);
         });
         if(SelectedSong is null) return;
-        if(SelectedSong.PlayEvents.Contains(selectedPlayEvent))
-        {
-            SelectedSong.PlayEvents.Remove(selectedPlayEvent);
-        }
+        SelectedSong.PlayEvents.Remove(selectedPlayEvent);
     }
 }

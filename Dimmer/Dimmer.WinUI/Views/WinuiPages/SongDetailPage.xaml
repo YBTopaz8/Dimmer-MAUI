@@ -4,8 +4,8 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:CustomViews="using:Dimmer.WinUI.Views.CustomViews.WinuiViews"
+    xmlns:achievements="using:Dimmer.WinUI.Views.WinuiPages.Achievements"
     xmlns:converters="using:Dimmer.WinUI.Utils.Converters"
-    xmlns:cw="using:Dimmer.WinUI.Views.WinuiPages"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:dgView="using:WinUI.TableView"
     xmlns:dimmSearch="clr-namespace:Dimmer.Data.ModelView.DimmerSearch;assembly=Dimmer"
@@ -234,10 +234,12 @@
                                             <dgView:TableViewTemplateColumn.CellTemplate>
                                                 <DataTemplate>
                                                     <StackPanel
+                                                        Margin="10"
                                                         Padding="10"
                                                         HorizontalAlignment="Center"
                                                         BorderBrush="{Binding WasPlayCompleted, Converter={StaticResource BoolToCompleteColorConverter}}"
-                                                        BorderThickness="1">
+                                                        BorderThickness="1"
+                                                        CornerRadius="20">
                                                         <TextBlock FontWeight="Bold" Text="{Binding PlayTypeStr}" />
                                                         <TextBlock
                                                             Grid.Column="2"
@@ -263,13 +265,23 @@
                                                             Opacity="0.5"
                                                             Text="{Binding DatePlayed, Converter={StaticResource EventDateOffsetToTimeAgo}}" />
 
+                                                        <TextBlock
+                                                            Grid.Column="2"
+                                                            VerticalAlignment="Center"
+                                                            FontSize="12"
+                                                            Opacity="0.5"
+                                                            Text="{Binding DatePlayed}" />
+
                                                     </StackPanel>
                                                 </DataTemplate>
                                             </dgView:TableViewTemplateColumn.CellTemplate>
                                         </dgView:TableViewTemplateColumn>
 
 
-                                        <dgView:TableViewTemplateColumn Width="*" Header="Options">
+                                        <dgView:TableViewTemplateColumn
+                                            Width="*"
+                                            Header="Options"
+                                            Visibility="Collapsed">
                                             <dgView:TableViewTemplateColumn.CellTemplate>
                                                 <DataTemplate>
                                                     <StackPanel Orientation="Horizontal">
@@ -464,6 +476,7 @@
                                     <FontIcon Glyph="&#xF133;" />
                                 </Button>
                             </StackPanel>
+                            <achievements:SongAchievementsControl x:Name="MySongAchievements" />
                             <ListView
                                 x:Name="AllAchievementsIR"
                                 Grid.Column="0"
@@ -528,7 +541,7 @@
                                 <TextBlock FontSize="24" Text="{Binding SelectedSongLastFMData.Statistics.PlayCount}" />
                                 <TextBlock
                                     FontSize="24"
-                                    Text="Dimms"
+                                    Text="Scrobbles"
                                     ToolTipService.ToolTip="Total LastFM Scrobbles" />
 
                             </StackPanel>

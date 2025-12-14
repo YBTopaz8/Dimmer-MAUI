@@ -331,7 +331,8 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         {
             _morphMenu.Show();
         };
-
+        fab.LongClickable = true;
+        fab.LongClick += Fab_LongClick;
 
 
         PostponeEnterTransition();
@@ -339,6 +340,23 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
    
     
     
+    }
+    private void ScrollToCurrent()
+    {
+        if (MyViewModel.CurrentPlayingSongView == null) return;
+
+        // Since we are using the "queue" mode in adapter, we need to find the index in PlaybackQueue
+        var index = MyViewModel.SearchResults.IndexOf(MyViewModel.CurrentPlayingSongView);
+
+        if (index >= 0)
+        {
+            _songListRecycler?.SmoothScrollToPosition(index);
+            Toast.MakeText(Context, "Scrolled to current song", ToastLength.Short)?.Show();
+        }
+    }
+    private void Fab_LongClick(object? sender, View.LongClickEventArgs e)
+    {
+        ScrollToCurrent();
     }
 
     protected CompositeDisposable CompositeDisposables { get; } = new CompositeDisposable();

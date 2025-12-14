@@ -188,8 +188,15 @@ internal class SongAdapter : RecyclerView.Adapter
             Radius = AppUtil.DpToPx(12),
             CardElevation = AppUtil.DpToPx(0), // Flat style is modern
             StrokeWidth = AppUtil.DpToPx(1),
-            StrokeColor = Color.ParseColor("#E0E0E0")
+            StrokeColor = Color.ParseColor("#E0E0E0"),
+            Clickable = true,
+            Focusable = true
         };
+        var attrs = new int[] { Android.Resource.Attribute.SelectableItemBackground };
+        var typedArray = ctx.ObtainStyledAttributes(attrs);
+        var rippleDrawable = typedArray.GetDrawable(0);
+        typedArray.Recycle();
+        card.Foreground = rippleDrawable;
         card.SetCardBackgroundColor(Color.Transparent); // Let ripple show
 
         var lp = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent);
@@ -301,6 +308,11 @@ internal class SongAdapter : RecyclerView.Adapter
 
         private readonly Button _playBtn;
         private readonly Button _favBtn;
+
+
+        private SongModelView? _currentSong;
+        private Action<int>? _expandAction;
+
         public SongViewHolder(BaseViewModelAnd vm, Fragment parentFrag, MaterialCardView container, ImageView img, TextView title, TextView artist, MaterialButton moreBtn, View expandRow,
             Button playBtn, Button favBtn)
             : base(container)
@@ -315,10 +327,67 @@ internal class SongAdapter : RecyclerView.Adapter
             _expandRow = expandRow;
             _playBtn = playBtn;
             _favBtn = favBtn;
+
+
+            _moreBtn.Click += (s, e) =>
+            {
+                // Always invoke the latest action with the current position
+                _expandAction?.Invoke(BindingAdapterPosition);
+            };
+
+            // 2. Container Click (Play)
+            _container.Click += async (s, e) =>
+            {
+                if (_currentSong != null)
+                    await _vm.PlaySongAsync(_currentSong);
+            };
+
+            // 3. Play Button
+            _playBtn.Click += async (s, e) =>
+            {
+                if (_currentSong != null)
+                    await _vm.PlaySongAsync(_currentSong);
+            };
+
+            // 4. Image Click (Navigate)
+            _img.Click += (s, e) =>
+            {
+                if (_currentSong != null)
+                {
+                    _vm.SelectedSong = _currentSong;
+                    // Note: Transition name must be updated in Bind, but we can read it from the view here
+                    string tName = ViewCompat.GetTransitionName(_img);
+                    _vm.NavigateToSingleSongPageFromHome(_parentFrag, tName, _img);
+                }
+            };
+
+            // 5. Artist Long Click
+            _artist.LongClickable = true;
+            _artist.LongClick += (s, e) =>
+            {
+                if (_currentSong?.ArtistName != null)
+                {
+                    var query = $"artist:\"{_currentSong.ArtistName}\"";
+                    _vm.SearchSongForSearchResultHolder(query);
+                }
+            };
+
+            // 6. Fav Button
+            _favBtn.Click += async (s, e) =>
+            {
+                if (_currentSong != null)
+                {
+                    await _vm.AddFavoriteRatingToSong(_currentSong);
+                    // Instant visual feedback
+                    _favBtn.Text = !_currentSong.IsFavorite ? "Unfav" : "Fav";
+                }
+            };
         }
 
         public void Bind(SongModelView song, bool isExpanded, int position, Action<int> onExpandToggle)
         {
+            _currentSong = song;
+            _expandAction = onExpandToggle;
             var sessionDisposable = new CompositeDisposable();
             _title.Text = song.Title;
             _artist.Text = song.OtherArtistsName ?? "Unknown";
@@ -338,7 +407,6 @@ internal class SongAdapter : RecyclerView.Adapter
                 _img.SetImageResource(Resource.Drawable.musicnotess);
             }
 
-            _artist.SetOnClickListener(null);
             // Accordion Visibility
             _expandRow.Visibility = isExpanded ? ViewStates.Visible : ViewStates.Gone;
             _container.StrokeColor = isExpanded ? Color.DarkSlateBlue : Color.ParseColor("#E0E0E0");
@@ -385,53 +453,6 @@ internal class SongAdapter : RecyclerView.Adapter
 
 
 
-
-
-            // --- CLICK LOGIC ---
-
-            // 1. More Button -> Toggles Accordion
-            _moreBtn.SetOnClickListener(null);
-            _moreBtn.Click += (s, e) =>
-            {
-                onExpandToggle(BindingAdapterPosition);
-            };
-
-
-            _img.SetOnClickListener(null);
-           
-            _img.Click += (s, e) =>
-            {
-                _vm.SelectedSong = song;
-                _vm.NavigateToSingleSongPageFromHome(_parentFrag, tName, _img);
-            };
-
-
-            _artist.SetOnClickListener(null);
-            _artist.LongClickable = true;
-            
-                _artist.LongClick += (s, e) =>
-                {
-                    var query = $"artist:\"{song.ArtistName}\"";
-                    _vm.SearchSongForSearchResultHolder(query);
-                };
-            
-
-            _container.SetOnClickListener(null);
-            
-                _container.Click += async (s,e) =>
-                {
-                    await _vm.PlaySongAsync(song);
-                };
-
-            _playBtn.SetOnClickListener(null);
-            _playBtn.Click += async (s, e) => await _vm.PlaySongAsync(song);
-
-            _favBtn.Text = song.IsFavorite ? "Unfav" : "Fav";
-            _favBtn.SetOnClickListener(null);
-            _favBtn.Click += async (s, e) =>
-            {
-                await _vm.AddFavoriteRatingToSong(song);
-            };
 
 
             _itemSubscription.Disposable = sessionDisposable;
