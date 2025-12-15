@@ -42,12 +42,12 @@
                                 <TextBlock
                                     HorizontalAlignment="Right"
                                     FontWeight="Bold"
-                                    Text="{Binding DatePlayed, Converter={StaticResource DateFormatConverter}}" />
+                                    Text="{Binding DatePlayed, Converter={StaticResource EventDateToTimeAgoConverter}}" />
                                 <TextBlock
                                     HorizontalAlignment="Right"
                                     FontSize="11"
                                     Opacity="0.5"
-                                    Text="{Binding DatePlayed, Converter={StaticResource TimeFormatConverter}}" />
+                                    Text="{Binding DatePlayed, Converter={StaticResource EventDateToTimeAgoConverter}}" />
                             </StackPanel>
 
                             <!--  Timeline Graphic  -->
@@ -91,7 +91,7 @@
                                 <TextBlock
                                     FontSize="11"
                                     Opacity="0.6"
-                                    Text="{Binding PositionInSeconds, Converter={StaticResource SecondsToTimeStr}}"
+                                    Text="{Binding PositionInSeconds, Converter={StaticResource DurationConverter}}"
                                     Visibility="{Binding WasSkipped, Converter={StaticResource BoolToVis}}" />
                             </StackPanel>
                         </Grid>

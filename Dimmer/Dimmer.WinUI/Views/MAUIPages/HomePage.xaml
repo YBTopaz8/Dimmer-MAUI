@@ -28,7 +28,7 @@
     Shell.NavBarIsVisible="False">
 
     <ContentPage.Resources>
-        <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter" />
+        <converters:DurationConverterFromSecondsToTimeSpan x:Key="DurationConverter" />
         <converters:BytesToMegabytesConverter x:Key="FileSizeConverter" />
         <converters:BytesArrayToImageSource x:Key="BytesToImageConverter" />
         <converters:BoolToInverseConverter x:Key="BoolToInverse" />

@@ -1,6 +1,7 @@
 ﻿
 
 using Dimmer.WinUI.ViewModel.DimmerLiveWin;
+using Dimmer.WinUI.Views.WinuiPages.Achievements;
 using Dimmer.WinUI.Views.WinuiPages.DimmerLive;
 using Dimmer.WinUI.Views.WinuiPages.LastFMSection;
 using Dimmer.WinUI.Views.WinuiPages.SingleSongPage;
@@ -139,6 +140,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<CloudDataPage>();
         builder.Services.AddSingleton<LoginViewModelWin>();
         builder.Services.AddSingleton<LastFmPage>();
+        builder.Services.AddSingleton<GlobalAchievementsPage>();
 
 
         return builder.Build();

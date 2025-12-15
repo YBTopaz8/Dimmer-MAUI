@@ -919,9 +919,10 @@ public sealed partial class SongDetailPage : Page
 
     private void ViewCharts_Click(object sender, RoutedEventArgs e)
     {
+        
         var supNavTransInfo = new SlideNavigationTransitionInfo();
 
-        var pageType = typeof(LibraryStatsPage);
+        var pageType = typeof(SongStatsContainerPage);
 
         FrameNavigationOptions navigationOptions = new FrameNavigationOptions
         {
@@ -1113,6 +1114,18 @@ public sealed partial class SongDetailPage : Page
         var evt = (send.DataContext as DimmerPlayEventView);
         if (evt is null) return;
         await MyViewModel.DeletePlayEventAsync(evt);
+    }
+
+    private void MySongAchievements_Loading(FrameworkElement sender, object args)
+    {
+        if(MyViewModel.SelectedSong is null)return;
+
+        MySongAchievements.FinishLoadAll(MyViewModel,MyViewModel.SelectedSong);
+    }
+
+    private void MySongAchievements_Loaded(object sender, RoutedEventArgs e)
+    {
+
     }
 }
 

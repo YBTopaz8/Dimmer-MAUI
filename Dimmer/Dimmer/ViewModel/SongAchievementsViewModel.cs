@@ -39,9 +39,9 @@ public partial class SongAchievementsViewModel : ObservableObject
             }
         }
 
-        // Sort: Unlocked first, then Tier
+        var ee = list.Where(x => x.IsUnlocked).OrderBy(x => x.Rule.Threshold);
         SongAchievements = new ObservableCollection<AchievementDisplayItem>(
-            list.OrderByDescending(x => x.IsUnlocked).ThenBy(x => x.Rule.Threshold)
+        ee    
         );
     }
 

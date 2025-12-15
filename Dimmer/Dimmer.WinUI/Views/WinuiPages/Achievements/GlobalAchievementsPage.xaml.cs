@@ -27,7 +27,7 @@ public sealed partial class GlobalAchievementsPage : Page
     public GlobalAchievementsPage()
     {
         InitializeComponent(); 
-        ViewModel = IPlatformApplication.Current?.Services.GetService<AchievementsViewModel>();
+        ViewModel = IPlatformApplication.Current?.Services.GetService<AchievementsViewModel>()!;
 
     }
 }

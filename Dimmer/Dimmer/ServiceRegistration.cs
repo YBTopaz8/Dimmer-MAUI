@@ -137,6 +137,10 @@ public static class ServiceRegistration
 
         // Transients for ViewModels
         services.AddSingleton<SocialViewModel>();
+
+        services.AddSingleton<AchievementsViewModel>();
+        services.AddSingleton<SongAchievementsViewModel>();
+
         services.AddSingleton<ChatViewModel>(); // You'll create this next
 
         RegisterPartAndClasses();

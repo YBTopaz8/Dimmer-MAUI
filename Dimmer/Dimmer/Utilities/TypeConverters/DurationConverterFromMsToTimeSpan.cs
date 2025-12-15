@@ -1,5 +1,5 @@
 ﻿namespace Dimmer.Utilities.TypeConverters;
-public partial class DurationConverterFromMsToTimeSpan : IValueConverter
+public partial class DurationConverterFromSecondsToTimeSpan : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {

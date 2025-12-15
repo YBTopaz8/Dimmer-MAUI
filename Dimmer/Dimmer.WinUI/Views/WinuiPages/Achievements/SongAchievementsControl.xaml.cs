@@ -23,16 +23,21 @@ namespace Dimmer.WinUI.Views.WinuiPages.Achievements;
 /// </summary>
 public sealed partial class SongAchievementsControl : UserControl
 {
-    public SongAchievementsViewModel ViewModel
-    {
-        get => (SongAchievementsViewModel)GetValue(ViewModelProperty);
-        set => SetValue(ViewModelProperty, value);
-    }
-    public static readonly DependencyProperty ViewModelProperty =
-     DependencyProperty.Register(nameof(ViewModel), typeof(SongAchievementsViewModel), typeof(SongAchievementsControl), new PropertyMetadata(null));
-
+    public SongAchievementsViewModel ViewModel;
     public SongAchievementsControl()
     {
         InitializeComponent();
+
+        ViewModel = IPlatformApplication.Current!.Services.GetService<SongAchievementsViewModel>()!;
+        DataContext = ViewModel;
+    }
+
+    public void FinishLoadAll(BaseViewModelWin parentVM, SongModelView songParam)
+    {
+        parentVM = IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
+        var realm = parentVM.RealmFactory.GetRealmInstance();
+        var findSong = realm.Find<SongModel>(songParam.Id);
+        if (findSong is null) return;
+        ViewModel.Initialize(findSong);
     }
 }

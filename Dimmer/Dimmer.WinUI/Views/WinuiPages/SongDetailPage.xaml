@@ -476,7 +476,11 @@
                                     <FontIcon Glyph="&#xF133;" />
                                 </Button>
                             </StackPanel>
-                            <achievements:SongAchievementsControl x:Name="MySongAchievements" />
+                            <achievements:SongAchievementsControl
+                                Loading="MySongAchievements_Loading"
+                                Loaded="MySongAchievements_Loaded" x:Name="MySongAchievements" Height="450" />
+
+
                             <ListView
                                 x:Name="AllAchievementsIR"
                                 Grid.Column="0"

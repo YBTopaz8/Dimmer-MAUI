@@ -35,7 +35,7 @@
             <converters:BoolToVisibilityConverter x:Key="BoolToVis" />
             <converters:InverseBoolToVisibilityConverter x:Key="InvBoolToVis" />
             <converters:VolumeToPercentConverter x:Key="VolumeToPercentConverter" />
-            <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter" />
+            <converters:DurationConverterFromSecondsToTimeSpan x:Key="DurationConverter" />
             <converters:CollectionSizeToVisibility x:Key="CollectionSizeToVisibility" />
             <converters:CollectionSizeToVisibilityInverted x:Key="CollectionSizeToVisibilityInverted" />
             <converters:PlayTypeToBorderBrush x:Key="PlayTypeToBorderBrush" />
