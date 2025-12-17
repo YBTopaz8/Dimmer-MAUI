@@ -180,21 +180,21 @@ public class SongDetailFragment : Fragment
         }
     }
 
-   
-}
+  
 // PAGER ADAPTER
-class SongDetailPagerAdapter : FragmentStateAdapter
-{
-    private BaseViewModelAnd _vm;
-    public SongDetailPagerAdapter(Fragment f, BaseViewModelAnd vm) : base(f) { _vm = vm; }
-    public override int ItemCount => 4;
-    public override Fragment CreateFragment(int position) => position switch
+    class SongDetailPagerAdapter : FragmentStateAdapter
     {
-        0 => new SongOverviewFragment(_vm),
-        1 => new LyricsEditorFragment(), // Reuse existing
-        2 => new SongPlayHistoryFragment(_vm), // NEW
-        3 => new SongRelatedFragment(_vm), 
-        _ => new Fragment()
-    };
-    
+        private BaseViewModelAnd _vm;
+        public SongDetailPagerAdapter(Fragment f, BaseViewModelAnd vm) : base(f) { _vm = vm; }
+        public override int ItemCount => 4;
+        public override Fragment CreateFragment(int position) => position switch
+        {
+            0 => new SongOverviewFragment(_vm),
+            1 => new LyricsEditorFragment(_vm,_vm.SelectedSong!), // Reuse existing
+            2 => new SongPlayHistoryFragment(_vm), // NEW
+            3 => new SongRelatedFragment(_vm), 
+            _ => new Fragment()
+        };
+
+    }
 }

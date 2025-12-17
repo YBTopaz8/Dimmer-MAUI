@@ -1,4 +1,6 @@
-﻿using Dimmer.WinUI.UiUtils;
+﻿using Bumptech.Glide;
+
+using Dimmer.WinUI.UiUtils;
 
 namespace Dimmer.ViewsAndPages.NativeViews.SingleSong;
 
@@ -6,8 +8,15 @@ public class LyricsEditorFragment : Fragment
 {
     private TextInputLayout _searchTitle, _searchArtist, _searchAlbum;
     private RecyclerView _resultsRecycler;
+    BaseViewModelAnd _viewModel;
+    SongModelView selectedSong;
+    public LyricsEditorFragment(BaseViewModelAnd viewModel, SongModelView selectedSong)
+    {
+        _viewModel = viewModel;
+        this.selectedSong = selectedSong;
+    }
 
-    public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         var context = Context;
 
@@ -41,11 +50,15 @@ public class LyricsEditorFragment : Fragment
         var cover = new ImageView(context); // Set your image
         cover.LayoutParameters = new LinearLayout.LayoutParams(150, 150);
         cover.SetBackgroundColor(Android.Graphics.Color.DarkGray);
+        //Glide.With(context)
+        //    .Load(selectedSong.CoverImagePath)
+        //    .Placeholder(Resource.Drawable.musicaba)
+        //    .Into(infoCard);
 
         var infoTextLayout = new LinearLayout(context) { Orientation = Orientation.Vertical };
         infoTextLayout.LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent) { LeftMargin = 24 };
-        infoTextLayout.AddView(new TextView(context) { Text = "Song Title", TextSize = 18, Typeface = Android.Graphics.Typeface.DefaultBold });
-        infoTextLayout.AddView(new TextView(context) { Text = "Artist Name" });
+        infoTextLayout.AddView(new TextView(context) { Text = selectedSong.Title, TextSize = 18, Typeface = Android.Graphics.Typeface.DefaultBold });
+        infoTextLayout.AddView(new TextView(context) { Text = selectedSong.OtherArtistsName , Ellipsize = Android.Text.TextUtils.TruncateAt.Marquee });
 
         infoLayout.AddView(cover);
         infoLayout.AddView(infoTextLayout);
