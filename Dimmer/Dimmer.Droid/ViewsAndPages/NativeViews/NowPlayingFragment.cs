@@ -21,7 +21,7 @@ namespace Dimmer.ViewsAndPages.NativeViews;
 
 
 
-public class NowPlayingFragment : Fragment
+public partial class NowPlayingFragment : Fragment
 {
     private readonly BaseViewModelAnd _viewModel;
     private readonly CompositeDisposable _disposables = new();

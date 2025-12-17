@@ -31,6 +31,7 @@ public class SongOverviewFragment : Fragment
         var root = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
         root.SetPadding(20, 20, 20, 20);
 
+
         // Title/Artist
         var titleText = new TextView(ctx) 
         {
@@ -38,6 +39,8 @@ public class SongOverviewFragment : Fragment
         };
         
         titleText.SetForegroundGravity(GravityFlags.CenterHorizontal);
+
+
         root.AddView(titleText);
         var artistBtn = new MaterialButton(ctx, null, Resource.Attribute.borderlessButtonStyle) { Text = SelectedSong.ArtistName, TextSize = 18 };
         // Parity: Navigate to Artist
