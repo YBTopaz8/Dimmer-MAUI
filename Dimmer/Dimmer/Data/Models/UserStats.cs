@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-[Dimmer.Utils.Preserve(AllMembers = true)]
+namespace Dimmer.Data.Models;
 public partial class UserStats : RealmObject
 {
     [PrimaryKey]
@@ -18,19 +18,22 @@ public partial class UserStats : RealmObject
 
     // --- Achievements ---
     // We store IDs here so we don't spam notifications
-    public IList<string> UnlockedGlobalAchievementIds { get; }
+    public IList<AchievementRule> UnlockedGlobalAchievements { get; }
 }
 
 
-public class AchievementRule
+public partial class AchievementRule : RealmObject
 {
+    [PrimaryKey]
     public string Id { get; set; }
     public string Name { get; set; }
+    public SongModel SongConcerned { get; set; }
     public string Description { get; set; }
-    public AchievementCategory Category { get; set; }
+    public int Category { get; set; }
     public int Threshold { get; set; }
 
-    public AchievementTier Tier { get; set; }
+    public int Tier { get; set; }
+    [Ignored]
     public Func<Realm, UserStats, SongModel, bool> CustomCheck { get; set; }
 }
 public enum AchievementTier

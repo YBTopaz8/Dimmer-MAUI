@@ -38,10 +38,10 @@ public class StatsRecalculator
                         song.SkipCount = song.PlayHistory.Count(p => p.PlayType == (int)PlayType.Skipped);
                         song.PauseCount = song.PlayHistory.Count(p => p.PlayType == (int)PlayType.Pause);
                         song.ResumeCount = song.PlayHistory.Count(p => p.PlayType == (int)PlayType.Resume);
-                        song.SeekCount = song.PlayHistory.Count(p => p.PlayType == (int)PlayType.Seeked || p.PlayType == (int)PlayType.SeekRestarted);
+                        song.SeekCount = song.PlayHistory.Count(p => p.PlayType == (int)PlayType.Seeked );
                         song.RepeatCount = song.PlayHistory.Count(p => p.PlayType == (int)PlayType.CustomRepeat);
                         song.PreviousCount = song.PlayHistory.Count(p => p.PlayType == (int)PlayType.Previous);
-                        song.RestartCount = song.PlayHistory.Count(p => p.PlayType == (int)PlayType.Restarted);
+                        song.RestartCount = song.PlayHistory.Count(p => p.PlayType == (int)PlayType.Restarted || p.PlayType == (int)PlayType.SeekRestarted);
 
                         // --- Rates ---
                         song.ListenThroughRate = song.PlayCount > 0 ? (double)song.PlayCompletedCount / song.PlayCount : 0;

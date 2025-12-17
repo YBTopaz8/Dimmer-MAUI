@@ -43,23 +43,28 @@ public sealed partial class DimmerWin : Window
 #elif RELEASE
         this.Title = "Dimmer v1.04";
 #endif
-        appWin.Resize(new SizeInt32(1660, 1300));
     }
 
 
-    public async void NavigateToPage(Type pageType)
+    public async void NavigateToPage(Type pageType, object? OptionalParameter=null)
     {
-        if (MyViewModel is not null)
+        if (MyViewModel is not null && OptionalParameter is null)
         {
 
             await DispatcherQueue.EnqueueAsync(() =>
             {
                 WinUIWindowsMgr?.BringToFront(this);
-                ContentFrame.Navigate(pageType, MyViewModel);
+                if(pageType != ContentFrame.CurrentSourcePageType)
+                    ContentFrame.Navigate(pageType, MyViewModel);
 
             });
-
             MyViewModel.DimmerMultiWindowCoordinator?.SnapAllToHomeAsync();
+
+        }
+        if(OptionalParameter is not null)
+        {
+            List<object> parameters = new();
+            parameters.Add(OptionalParameter);
         }
     }
     public BaseViewModelWin? MyViewModel { get; internal set; }

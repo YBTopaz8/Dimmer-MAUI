@@ -13,7 +13,7 @@ public class SleepTimerFragment : Fragment
         root.SetGravity(GravityFlags.Center);
         root.LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent);
 
-        var title = new MaterialTextView(ctx) { Text = "Sleep Timer", TextSize = 24 };
+        var title = new TextView(ctx) { Text = "Sleep Timer", TextSize = 24 };
         title.Gravity = GravityFlags.Center;
 
         var timerStatus = new TextView(ctx) { Text = "Timer is off", TextSize = 16 };

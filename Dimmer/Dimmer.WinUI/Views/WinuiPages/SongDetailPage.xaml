@@ -4,8 +4,8 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:CustomViews="using:Dimmer.WinUI.Views.CustomViews.WinuiViews"
+    xmlns:achievements="using:Dimmer.WinUI.Views.WinuiPages.Achievements"
     xmlns:converters="using:Dimmer.WinUI.Utils.Converters"
-    xmlns:cw="using:Dimmer.WinUI.Views.WinuiPages"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:dgView="using:WinUI.TableView"
     xmlns:dimmSearch="clr-namespace:Dimmer.Data.ModelView.DimmerSearch;assembly=Dimmer"
@@ -106,6 +106,7 @@
                                     x:Name="detailedImage"
                                     Width="350"
                                     Height="350"
+                                    Loaded="detailedImage_Loaded"
                                     Source="{x:Bind DetailedSong.CoverImagePath, Converter={StaticResource StringToImageConverter}}" />
                                 <Button
                                     x:Name="PlaySongBtn"
@@ -214,61 +215,94 @@
 
                         <StackPanel x:Name="SectionPlayback" Background="Transparent" />
                         <PivotItem Header="History">
-                            <ScrollViewer>
-                                <StackPanel Padding="24" Spacing="16">
-                                    <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Playback History" />
-                                    <TextBlock Text="{x:Bind MyViewModel.SelectedSong.PlayEvents.Count, Mode=OneWay}" />
 
-                                    <!--  Timeline List  -->
-                                    <ListView ItemsSource="{x:Bind MyViewModel.SelectedSong.PlayEvents, Mode=OneWay}" SelectionMode="None">
-                                        <ListView.ItemTemplate>
-                                            <DataTemplate>
-                                                <Grid
-                                                    Margin="0,0,0,8"
-                                                    Padding="12"
-                                                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                                                    CornerRadius="8">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="Auto" />
-                                                        <!--  Icon  -->
-                                                        <ColumnDefinition Width="*" />
-                                                        <!--  Info  -->
-                                                        <ColumnDefinition Width="Auto" />
-                                                        <!--  Date  -->
-                                                    </Grid.ColumnDefinitions>
+                            <StackPanel Padding="24" Spacing="16">
+                                <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Playback History" />
+                                <TextBlock Text="{x:Bind MyViewModel.SelectedSong.PlayEvents.Count, Mode=OneWay}" />
 
-                                                    <!--  Status Icon  -->
-                                                    <FontIcon
-                                                        Margin="0,0,16,0"
-                                                        VerticalAlignment="Center"
-                                                        FontSize="20"
-                                                        Foreground="{Binding WasPlayCompleted, Converter={StaticResource BoolToCompleteColorConverter}}"
-                                                        Glyph="{Binding WasPlayCompleted, Converter={StaticResource BoolToCompleteIconConverter}}" />
+                                <dgView:TableView
+                                    x:Name="SongPlayEvents"
+                                    Width="auto"
+                                    AutoGenerateColumns="False"
+                                    ItemsSource="{x:Bind MyViewModel.SelectedSong.PlayEvents, Mode=OneWay}"
+                                    Loaded="SongPlayEvents_Loaded"
+                                    SelectionMode="None">
+                                    <dgView:TableView.Columns>
 
-                                                    <!--  Main Info  -->
-                                                    <StackPanel Grid.Column="1">
+                                        <!--  Column for the Cover Art  -->
+                                        <dgView:TableViewTemplateColumn Width="*" Header="Event">
+                                            <dgView:TableViewTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel
+                                                        Margin="10"
+                                                        Padding="10"
+                                                        HorizontalAlignment="Center"
+                                                        BorderBrush="{Binding WasPlayCompleted, Converter={StaticResource BoolToCompleteColorConverter}}"
+                                                        BorderThickness="1"
+                                                        CornerRadius="20">
                                                         <TextBlock FontWeight="Bold" Text="{Binding PlayTypeStr}" />
-                                                        <StackPanel
-                                                            Opacity="0.6"
-                                                            Orientation="Horizontal"
-                                                            Spacing="4">
-                                                            <FontIcon FontSize="12" Glyph="&#xE7F4;" />
-                                                        </StackPanel>
-                                                    </StackPanel>
+                                                        <TextBlock
+                                                            Grid.Column="2"
+                                                            VerticalAlignment="Center"
+                                                            FontSize="12"
+                                                            Opacity="0.5"
+                                                            Text="{Binding DatePlayed, Converter={StaticResource EventDateOffsetToTimeAgo}}" />
 
-                                                    <!--  Date  -->
-                                                    <TextBlock
-                                                        Grid.Column="2"
-                                                        VerticalAlignment="Center"
-                                                        FontSize="12"
-                                                        Opacity="0.5"
-                                                        Text="{Binding DatePlayed, Converter={StaticResource EventDateToTimeAgoConverter}}" />
-                                                </Grid>
-                                            </DataTemplate>
-                                        </ListView.ItemTemplate>
-                                    </ListView>
-                                </StackPanel>
-                            </ScrollViewer>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </dgView:TableViewTemplateColumn.CellTemplate>
+                                        </dgView:TableViewTemplateColumn>
+
+                                        <dgView:TableViewTemplateColumn Width="*" Header="Time">
+                                            <dgView:TableViewTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel>
+
+                                                        <TextBlock
+                                                            Grid.Column="2"
+                                                            VerticalAlignment="Center"
+                                                            FontSize="12"
+                                                            Opacity="0.5"
+                                                            Text="{Binding DatePlayed, Converter={StaticResource EventDateOffsetToTimeAgo}}" />
+
+                                                        <TextBlock
+                                                            Grid.Column="2"
+                                                            VerticalAlignment="Center"
+                                                            FontSize="12"
+                                                            Opacity="0.5"
+                                                            Text="{Binding DatePlayed}" />
+
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </dgView:TableViewTemplateColumn.CellTemplate>
+                                        </dgView:TableViewTemplateColumn>
+
+
+                                        <dgView:TableViewTemplateColumn
+                                            Width="*"
+                                            Header="Options"
+                                            Visibility="Collapsed">
+                                            <dgView:TableViewTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+
+                                                        <Button
+                                                            x:Name="DeleteEventBtn"
+                                                            Background="Transparent"
+                                                            BorderThickness="0"
+                                                            Click="DeleteEventBtn_Click"
+                                                            Tag="{Binding}">
+                                                            <FontIcon FontSize="24" Glyph="&#xE74D;" />
+                                                        </Button>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </dgView:TableViewTemplateColumn.CellTemplate>
+                                        </dgView:TableViewTemplateColumn>
+
+                                    </dgView:TableView.Columns>
+                                </dgView:TableView>
+
+                            </StackPanel>
                         </PivotItem>
                         <!--  SECTION 3: LYRICS  -->
                         <StackPanel x:Name="SectionLyricsStackPanel" Background="Transparent">
@@ -295,7 +329,7 @@
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
 
-                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ScrollViewer MaxHeight="350" VerticalScrollBarVisibility="Auto">
                                     <ItemsRepeater ItemsSource="{x:Bind MyViewModel.SelectedSongLyricsObsCol, Mode=OneWay}">
                                         <ItemsRepeater.ItemTemplate>
                                             <DataTemplate>
@@ -442,6 +476,11 @@
                                     <FontIcon Glyph="&#xF133;" />
                                 </Button>
                             </StackPanel>
+                            <achievements:SongAchievementsControl
+                                Loading="MySongAchievements_Loading"
+                                Loaded="MySongAchievements_Loaded" x:Name="MySongAchievements" Height="450" />
+
+
                             <ListView
                                 x:Name="AllAchievementsIR"
                                 Grid.Column="0"
@@ -506,7 +545,7 @@
                                 <TextBlock FontSize="24" Text="{Binding SelectedSongLastFMData.Statistics.PlayCount}" />
                                 <TextBlock
                                     FontSize="24"
-                                    Text="Dimms"
+                                    Text="Scrobbles"
                                     ToolTipService.ToolTip="Total LastFM Scrobbles" />
 
                             </StackPanel>

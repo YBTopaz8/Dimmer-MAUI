@@ -161,7 +161,7 @@ public partial class HomePage : ContentPage
         {
             MyViewModel.SearchSongForSearchResultHolder(">>addnext!");
         }
-        await MyViewModel.PlaySong(song, CurrentPage.NowPlayingPage, MyViewModel.PlaybackQueueSource.Items);
+        await MyViewModel.PlaySongAsync(song, CurrentPage.NowPlayingPage, MyViewModel.PlaybackQueueSource.Items);
         //ScrollToSong_Clicked(sender, e);
     }
 
@@ -258,7 +258,7 @@ public partial class HomePage : ContentPage
                 {
                     MyViewModel.SearchSongForSearchResultHolder(">>addnext!");
                 }
-                await MyViewModel.PlaySong(song, CurrentPage.RecentPage, MyViewModel.TopTrackDashBoard?.Where(s => s is not null).Select(x => x!.Song));
+                await MyViewModel.PlaySongAsync(song, CurrentPage.RecentPage, MyViewModel.TopTrackDashBoard?.Where(s => s is not null).Select(x => x!.Song));
             }
         }
     }
@@ -271,7 +271,7 @@ public partial class HomePage : ContentPage
         {
             MyViewModel.SearchSongForSearchResultHolder(">>addnext!");
         }
-        await MyViewModel.PlaySong(song, CurrentPage.HomePage);
+        await MyViewModel.PlaySongAsync(song, CurrentPage.HomePage);
     }
 
     private void PlaySongTap_Tapped(object sender, TappedEventArgs e)
@@ -1357,7 +1357,7 @@ public partial class HomePage : ContentPage
         MyViewModel.IsDarkModeOn = currentTheme == AppTheme.Dark;
     }
 
-    private void ImageButton_Clicked(object sender, EventArgs e)
+    private void UserLoginClicked(object sender, EventArgs e)
     {
         if(loginVM is not null)
         {
@@ -1367,7 +1367,7 @@ public partial class HomePage : ContentPage
 
     }
 
-    private async void ImageButton_Loaded(object sender, EventArgs e)
+    private async void UserLoginClicked_Loaded(object sender, EventArgs e)
     {
         var send = (ImageButton)sender;
         await loginVM.InitAsync();
@@ -1377,4 +1377,8 @@ public partial class HomePage : ContentPage
         }
     }
 
+    private void ViewFullStatsClicked(object sender, EventArgs e)
+    {
+        MyViewModel.NavigateToAnyPageOfGivenType(typeof(LibraryStatsPage));
+    }
 }

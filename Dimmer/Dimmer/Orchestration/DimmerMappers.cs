@@ -19,6 +19,7 @@ public static class DimmerMappers
     // 🎵 SONG MAPPERS
     // ==============================================================================
 
+  
     public static SongModelView? ToSongModelView(this SongModel? src)
     {
         if (src is null) return null;
@@ -130,7 +131,6 @@ public static class DimmerMappers
 
             // Explicit Ignores from Config:
             // PlaylistsHavingSong -> Ignored
-            // ArtistToSong -> Ignored
             // HasLyricsColumnIsFiltered -> Ignored
             // IsCurrentPlayingHighlight -> Ignored
             // CurrentPlaySongDominantColor -> Ignored
@@ -276,7 +276,7 @@ public static class DimmerMappers
             TotalSkipCount = src.TotalSkipCount,
             TotalPlayDurationSeconds = src.TotalPlayDurationSeconds,
             IsFavorite = src.IsFavorite,
-
+            
             // Ignores from Config
             // ImageBytes -> Ignored
             // SongsInAlbum -> Ignored
@@ -636,7 +636,6 @@ public static class DimmerMappers
             PlayType = src.PlayType,
             PlayTypeStr = src.PlayTypeStr,
             DatePlayed = src.DatePlayed,
-            DateFinished = src.DateFinished,
             WasPlayCompleted = src.WasPlayCompleted,
             PositionInSeconds = src.PositionInSeconds,
             EventDate = src.EventDate,
@@ -651,11 +650,11 @@ public static class DimmerMappers
         // Custom AfterMap Logic from your config
         if (src.SongsLinkingToThisEvent != null && src.SongsLinkingToThisEvent.Any())
         {
-            var concernedSong = src.SongsLinkingToThisEvent.FirstOrDefault(x => x.Id == dest.SongId);
+            var concernedSong = src.SongsLinkingToThisEvent.FirstOrDefaultNullSafe();
             if (concernedSong != null)
             {
                 dest.CoverImagePath = string.IsNullOrEmpty(concernedSong.CoverImagePath)
-                    ? "musicnote1.png"
+                    ? string.Empty
                     : concernedSong.CoverImagePath;
                 dest.IsFav = concernedSong.IsFavorite;
                 dest.ArtistName = concernedSong.ArtistName;
@@ -677,7 +676,6 @@ public static class DimmerMappers
             PlayType = src.PlayType,
             PlayTypeStr = src.PlayTypeStr,
             DatePlayed = src.DatePlayed,
-            DateFinished = src.DateFinished,
             WasPlayCompleted = src.WasPlayCompleted,
             PositionInSeconds = src.PositionInSeconds,
             EventDate = src.EventDate ?? DateTimeOffset.MinValue,

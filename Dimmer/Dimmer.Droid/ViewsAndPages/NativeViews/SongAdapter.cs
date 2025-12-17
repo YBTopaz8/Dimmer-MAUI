@@ -1,4 +1,7 @@
-﻿using AndroidX.Core.View;
+﻿using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
+
+using AndroidX.Core.View;
 
 using Bumptech.Glide;
 
@@ -16,17 +19,15 @@ internal class SongAdapter : RecyclerView.Adapter
     public static Action<View, string, int>? AdapterCallbacks;
     private Context ctx;
     public BaseViewModelAnd MyViewModel;
-    private IEnumerable<SongModelView> _songs = Enumerable.Empty<SongModelView>();
+    private IList<SongModelView> _songs = Enumerable.Empty<SongModelView>().ToList();
     private readonly IDisposable _subscription;
-    public IEnumerable<SongModelView> Songs => _songs;
+    public IList<SongModelView> Songs => _songs;
     private Fragment ParentFragement;
-    private void OnItemClick(View sharedView, string transitionName, int position)
-    {
-        var song = _songs.ElementAt(position);
-        MyViewModel.SelectedSong = song;
-        MyViewModel.NavigateToSingleSongPageFromHome(ParentFragement, transitionName, sharedView);
-        //OpenDetailFragment(sharedView, transitionName);
-    }
+
+    // Accordion State
+    private int _expandedPosition = -1;
+    private int _previousExpandedPosition = -1;
+
     public SongModelView GetItem(int position) => Songs.ElementAt(position);
 
     public SongAdapter(Context ctx, BaseViewModelAnd myViewModel, Fragment pFragment, string songsToWatch = "main")
@@ -77,111 +78,22 @@ internal class SongAdapter : RecyclerView.Adapter
             {
                 // Update the backing field
                 _songs = result.Data;
-
+                _expandedPosition = -1;
                 // Apply the diff (Fast, just dispatches notify events)
                 result.Diff.DispatchUpdatesTo(this);
             });
     }
-    public override int ItemCount => _songs.Count();
-
-    public override void OnBindViewHolder(AndroidX.RecyclerView.Widget.RecyclerView.ViewHolder holder, int position)
+    public override int ItemCount => _songs.Count;
+    public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
     {
         if (holder is SongViewHolder songHolder)
         {
-            var isDarkTheme = ctx.Resources.Configuration.UiMode.HasFlag(Android.Content.Res.UiMode.NightYes);
+            var song = _songs[position];
+            bool isExpanded = position == _expandedPosition;
 
-            // find song in given position
-            var song = _songs.ElementAt(position);
-            //songHolder.Bind(song);
-            
-            songHolder.SongTitle.Text = song.Title;
-            
-            songHolder.AlbumNameView.Text = song.AlbumName ?? "Unknown Album";
-            songHolder.ArtistNameView.Text = song.ArtistName ?? "Unknown Artist";
-
-
-            var isCardView = songHolder.ContainerView.GetType() == typeof(CardView);
-            if (isCardView)
-            {
-                CardView card = (CardView)songHolder.ContainerView;
-                card.StrokeWidth = song.IsFavorite ? 4 : 1;
-
-                var colorListBG = new ColorStateList(
-            new int[][] {
-                new int[] { } // default
-            },
-            new int[] {
-                song.IsFavorite ? Color.DarkSlateBlue : Color.ParseColor("#FFFFFF")
-                }
-            );
-                card.SetStrokeColor(colorListBG);
-            }
-
-
-            var dur = song.DurationInSeconds;
-            if (dur is double duration)
-            {
-                TimeSpan time = TimeSpan.FromSeconds(duration);
-                songHolder.SongDurationView.Text = time.ToString(@"mm\:ss");
-            }
-
-            // handle image
-            if (!string.IsNullOrEmpty(song.CoverImagePath))
-            {
-
-                Glide.With(ctx)
-                     .Load(song.CoverImagePath)
-                     .Placeholder(Resource.Drawable.musicnotess)
-                     .Into(songHolder.ImageBtn);
-
-                //// Load from disk
-                //var bmp = Android.Graphics.BitmapFactory.DecodeFile(song.CoverImagePath);
-                //vh.ImageBtn.SetImageBitmap(bmp);
-            }
-
-            else
-            {
-                // Fallback placeholder
-                songHolder.ImageBtn.SetImageResource(Resource.Drawable.musicnotess);
-            }
-            // ensure unique transition name
-            var transitionName = $"sharedImage_{song.Id}";
-            var songIdAsTag = song.Id.ToString();
-            songHolder.ImageBtn.Tag = songIdAsTag;
-            songHolder.ContainerView.Tag = songIdAsTag;
-            ViewCompat.SetTransitionName(songHolder.ImageBtn, transitionName);
-            
-
-
+            songHolder.Bind(song, isExpanded, position, (pos) => ToggleExpand(pos));
         }
     }
-
-    private void OpenDetailFragment(View sharedView, string transitionName)
-    {
-        if (ctx is not AndroidX.Fragment.App.FragmentActivity activity) return;
-
-        var fragment = new DetailFragment(transitionName, MyViewModel);
-
-        var hostFragment = activity.SupportFragmentManager.FindFragmentById(TransitionActivity.MyStaticID);
-        if (hostFragment == null) return;
-
-        // source fragment’s exit transform
-        var exit = new MaterialElevationScale(true);
-        exit.SetDuration(200);
-        var reenter = new MaterialElevationScale(false);
-        reenter.SetDuration(200);
-        hostFragment.ExitTransition = exit;
-        hostFragment.ReenterTransition = reenter;
-
-        activity.SupportFragmentManager
-            .BeginTransaction()
-            .SetReorderingAllowed(true)
-            .AddSharedElement(sharedView, transitionName)
-            .Replace(TransitionActivity.MyStaticID, fragment)
-            .AddToBackStack(null)
-            .Commit();
-    }
-
 
     public class SimpleItemTouchHelperCallback : ItemTouchHelper.Callback
     {
@@ -246,185 +158,321 @@ internal class SongAdapter : RecyclerView.Adapter
         base.Dispose(disposing);
         if (disposing) _subscription.Dispose();
     }
-    ImageView imgBtn;
-    LinearLayout row;
-    MaterialTextView title;
-    MaterialTextView artist;
-    MaterialTextView album; 
-    MaterialButton moreBtn;
-    MaterialTextView durationTextView;
-    public override AndroidX.RecyclerView.Widget.RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType)
+
+    private void ToggleExpand(int position)
     {
+        _previousExpandedPosition = _expandedPosition;
 
-        var materialCardView = new MaterialCardView(ctx)
+        if (_expandedPosition == position)
         {
-            CardElevation = AppUtil.DpToPx(4),
-            Radius = AppUtil.DpToPx(8),
-        };
-        
-        var rippleColorList = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.DarkSlateBlue);
-        materialCardView.RippleColor = rippleColorList;
-        
-        
-
-        var lyParams = new RecyclerView.LayoutParams(
-            ViewGroup.LayoutParams.MatchParent,
-            ViewGroup.LayoutParams.WrapContent
-        );
-        lyParams.SetMargins(AppUtil.DpToPx(5), AppUtil.DpToPx(5), AppUtil.DpToPx(5), AppUtil.DpToPx(5));
-
-        // set color gray if light theme and dark gray if dark theme
-        var isDarkTheme = ctx.Resources.Configuration.UiMode.HasFlag(Android.Content.Res.UiMode.NightYes);
-
-        materialCardView.LayoutParameters = lyParams;
-        materialCardView.StrokeWidth = 1;
-        materialCardView.StrokeColor = isDarkTheme? Color.MidnightBlue : Color.Gray;
-        
-        row = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
-         row.LayoutParameters = new ViewGroup.LayoutParams(
-        ViewGroup.LayoutParams.MatchParent, // Width: Fill the screen
-        ViewGroup.LayoutParams.WrapContent  // Height: Fit content
-                );
-
-        row.SetPadding(AppUtil.DpToPx(5), AppUtil.DpToPx(5), AppUtil.DpToPx(5), AppUtil.DpToPx(5));
-        row.SetGravity(GravityFlags.CenterVertical|GravityFlags.FillHorizontal);
-
-        var imageCard = new MaterialCardView(ctx)
+            // Collapse current
+            _expandedPosition = -1;
+        }
+        else
         {
-            Radius = AppUtil.DpToPx(8), // Round corners for image
-            CardElevation = 0,
-            LayoutParameters = new LinearLayout.LayoutParams(AppUtil.DpToPx(50), AppUtil.DpToPx(50)) // Fixed size
-        };
-        var imgView = new ImageView(ctx)
+            // Expand new
+            _expandedPosition = position;
+        }
+
+        // Only notify the rows that changed to animate/update efficiently
+        if (_previousExpandedPosition != -1) NotifyItemChanged(_previousExpandedPosition);
+        if (_expandedPosition != -1) NotifyItemChanged(_expandedPosition);
+    }
+
+    public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType)
+    {
+        // --- UI CONSTRUCTION (MD3 Style) ---
+        // Root Card
+        var card = new MaterialCardView(ctx)
         {
-            LayoutParameters = new ViewGroup.LayoutParams(-1, -1)
+            Radius = AppUtil.DpToPx(12),
+            CardElevation = AppUtil.DpToPx(0), // Flat style is modern
+            StrokeWidth = AppUtil.DpToPx(1),
+            StrokeColor = Color.ParseColor("#E0E0E0"),
+            Clickable = true,
+            Focusable = true
+        };
+        var attrs = new int[] { Android.Resource.Attribute.SelectableItemBackground };
+        var typedArray = ctx.ObtainStyledAttributes(attrs);
+        var rippleDrawable = typedArray.GetDrawable(0);
+        typedArray.Recycle();
+        card.Foreground = rippleDrawable;
+        card.SetCardBackgroundColor(Color.Transparent); // Let ripple show
+
+        var lp = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent);
+        lp.SetMargins(0, 8, 0, 8);
+        card.LayoutParameters = lp;
+
+        // Main Vertical Layout (Holds TopRow + HiddenActions)
+        var mainContainer = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
+        mainContainer.Clickable = true;
+        mainContainer.LayoutTransition = new LayoutTransition();
+
+        mainContainer.LayoutParameters = new ViewGroup.LayoutParams(-1, -2);
+
+        // --- TOP ROW (Visible) ---
+        var topRow = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
+        topRow.SetGravity(GravityFlags.CenterVertical);
+        topRow.SetPadding(20, 20, 20, 20);
+        topRow.LayoutParameters = new LinearLayout.LayoutParams(-1, -2);
+        topRow.Clickable = true;
+        topRow.Click += (o, s) =>
+        {
+            card.PerformClick();
         };
 
+        // Image
+        var imgCard = new MaterialCardView(ctx) { Radius = AppUtil.DpToPx(8), CardElevation = 0 };
+        var imgView = new ImageView(ctx);
         imgView.SetScaleType(ImageView.ScaleType.CenterCrop);
-        
-        imageCard.AddView(imgView);
+        imgCard.AddView(imgView, new ViewGroup.LayoutParams(AppUtil.DpToPx(56), AppUtil.DpToPx(56)));
+        topRow.AddView(imgCard);
 
-        
-        row.AddView(imageCard);
+        // Texts
+        var textLayout = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
+        var txtLp = new LinearLayout.LayoutParams(0, -2, 1f); // Weight 1
+        txtLp.LeftMargin = AppUtil.DpToPx(16);
+        textLayout.LayoutParameters = txtLp;
 
-        var textCol = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
-        title = new MaterialTextView(ctx) {  TextSize = 19 };
+        var title = new MaterialTextView(ctx) { TextSize = 16, Typeface = Typeface.DefaultBold };
+        title.SetMaxLines(1);
+        title.Ellipsize = Android.Text.TextUtils.TruncateAt.End;
 
-            var playingColorListBG = new ColorStateList(
-        new int[][] {
-                new int[] { } // default
-        },
-        new int[] {
-                    isDarkTheme ? Color.White: Color.Black
-            }
-        );
+        var artist = new MaterialTextView(ctx) { TextSize = 14 };
+        artist.SetTextColor(Color.Gray);
 
-        title.SetTextColor(playingColorListBG);
-        artist = new MaterialTextView(ctx) { TextSize = 15 };
-        album = new MaterialTextView(ctx) { TextSize = 11 };
-        
-        album.SetTextColor(Color.Gray);
-        textCol.AddView(title);
-        textCol.AddView(artist);
-        textCol.AddView(album);
-        var lp2 = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1);
-        row.AddView(textCol, lp2);
+        textLayout.AddView(title);
+        textLayout.AddView(artist);
+        topRow.AddView(textLayout);
 
-        moreBtn = new MaterialButton(ctx);
-        moreBtn.SetBackgroundColor(Color.Transparent);
-        moreBtn.SetIconResource(Resource.Drawable.more1);
+        // More Button (The Trigger)
+        var moreBtn = new MaterialButton(ctx, null, Resource.Attribute.materialIconButtonStyle);
+        moreBtn.SetIconResource(Resource.Drawable.more1); // Ensure this drawable exists
+        moreBtn.IconTint = Android.Content.Res.ColorStateList.ValueOf(Color.Gray);
+        moreBtn.BackgroundTintList = Android.Content.Res.ColorStateList.ValueOf(Color.Transparent);
+        moreBtn.RippleColor = Android.Content.Res.ColorStateList.ValueOf(Color.LightGray);
+        topRow.AddView(moreBtn);
 
-        durationTextView = new MaterialTextView(ctx);
-        durationTextView.LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent,
-            ViewGroup.LayoutParams.MatchParent);
+        // --- EXPANDABLE ROW (Hidden by default) ---
+        var expandRow = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
+        expandRow.SetGravity(GravityFlags.Center);
+        expandRow.Visibility = ViewStates.Gone; // Hidden initially
+        expandRow.LayoutParameters = new LinearLayout.LayoutParams(-1, -2);
+        expandRow.SetPadding(0, 0, 0, 20);
 
-        var verticalLayout = new LinearLayout(ctx);
-        verticalLayout.Orientation = Android.Widget.Orientation.Vertical;
-        verticalLayout.AddView(durationTextView);
-        verticalLayout.AddView(moreBtn);
+        var playBtn = CreateActionButton("Play", Android.Resource.Drawable.IcMediaPlay);
+        expandRow.AddView(playBtn);
 
-        row.AddView(verticalLayout);
+        var favBtn = CreateActionButton("Fav", Android.Resource.Drawable.StarOff);
+        expandRow.AddView(favBtn);
 
-        materialCardView.AddView(row);
+        var addBtn = CreateActionButton("Add", Android.Resource.Drawable.IcInputAdd);
+        expandRow.AddView(addBtn);
+        // Assemble
+        mainContainer.AddView(topRow);
+        mainContainer.AddView(expandRow);
+        card.AddView(mainContainer);
 
-        imgBtn = imgView;
+        return new SongViewHolder(MyViewModel, ParentFragement, card, imgView, title, artist, moreBtn, expandRow, (Button)playBtn, (Button)favBtn);
+    }
 
-        return new SongViewHolder(MyViewModel, materialCardView, imgBtn, title, album, artist
-            ,durationTextView);
+
+    private View CreateActionButton(string text, int iconId)
+    {
+        var btn = new MaterialButton(ctx, null, Resource.Attribute.materialButtonOutlinedStyle);
+        btn.Text = text;
+
+        btn.SetIconResource(iconId);
+        btn.SetPadding(30, 0, 30, 0);
+        var lp = new LinearLayout.LayoutParams(-2, -2);
+        lp.RightMargin = 10;
+        btn.LayoutParameters = lp;
+        return btn;
     }
 
 
     class SongViewHolder : AndroidX.RecyclerView.Widget.RecyclerView.ViewHolder
     {
-        public BaseViewModelAnd MyViewModel { get; }
-        public ImageView ImageBtn { get; }
-        public MaterialTextView SongTitle { get; }
-        public MaterialTextView AlbumNameView { get; }
-        public MaterialTextView ArtistNameView { get; }
-        public MaterialTextView SongDurationView { get; }
+        private readonly SerialDisposable _itemSubscription = new SerialDisposable();
+
+
+        private readonly BaseViewModelAnd _vm;
+        private readonly Fragment _parentFrag;
+        private readonly ImageView _img;
+        private readonly TextView _title, _artist;
+        private readonly View _expandRow;
+        private readonly MaterialButton _moreBtn;
+        private readonly MaterialCardView _container;
         public View ContainerView => base.ItemView;
         public Action<View, string, string> OnNavigateRequest;
-        public SongViewHolder(BaseViewModelAnd vm,View itemView, ImageView img, MaterialTextView title, MaterialTextView album, MaterialTextView artistName, MaterialTextView songDurView)
-            : base(itemView)
+
+        private readonly Button _playBtn;
+        private readonly Button _favBtn;
+
+
+        private SongModelView? _currentSong;
+        private Action<int>? _expandAction;
+
+        public SongViewHolder(BaseViewModelAnd vm, Fragment parentFrag, MaterialCardView container, ImageView img, TextView title, TextView artist, MaterialButton moreBtn, View expandRow,
+            Button playBtn, Button favBtn)
+            : base(container)
         {
-            MyViewModel = vm;
-            ImageBtn = img;
-            SongTitle = title;
-            AlbumNameView = album;
-            ArtistNameView = artistName;
-            SongDurationView = songDurView;
-            ArtistNameView.LongClickable = true;
-            
-            ArtistNameView.LongClick += ArtistName_LongClick;
-            if(ImageBtn != null )
-                ImageBtn.Click += ImageBtn_Click;
-            
-            ContainerView.Click += ContainerView_Click;
+            _vm = vm;
+            _parentFrag = parentFrag;
+            _container = container;
+            _img = img;
+            _title = title;
+            _artist = artist;
+            _moreBtn = moreBtn;
+            _expandRow = expandRow;
+            _playBtn = playBtn;
+            _favBtn = favBtn;
+
+
+            _moreBtn.Click += (s, e) =>
+            {
+                // Always invoke the latest action with the current position
+                _expandAction?.Invoke(BindingAdapterPosition);
+            };
+
+            // 2. Container Click (Play)
+            _container.Click += async (s, e) =>
+            {
+                if (_currentSong != null)
+                    await _vm.PlaySongAsync(_currentSong);
+            };
+
+            // 3. Play Button
+            _playBtn.Click += async (s, e) =>
+            {
+                if (_currentSong != null)
+                    await _vm.PlaySongAsync(_currentSong);
+            };
+
+            // 4. Image Click (Navigate)
+            _img.Click += (s, e) =>
+            {
+                if (_currentSong != null)
+                {
+                    _vm.SelectedSong = _currentSong;
+                    // Note: Transition name must be updated in Bind, but we can read it from the view here
+                    string? tName = ViewCompat.GetTransitionName(_img);
+                    if (tName != null)
+                    {
+                        _vm.NavigateToSingleSongPageFromHome(_parentFrag, tName, _img);
+                    }
+                }
+            };
+
+            // 5. Artist Long Click
+            _artist.LongClickable = true;
+            _artist.LongClick += (s, e) =>
+            {
+                if (_currentSong?.ArtistName != null)
+                {
+                    var query = $"artist:\"{_currentSong.ArtistName}\"";
+                    _vm.SearchSongForSearchResultHolder(query);
+                }
+            };
+
+            // 6. Fav Button
+            _favBtn.Click += async (s, e) =>
+            {
+                if (_currentSong != null)
+                {
+                    await _vm.AddFavoriteRatingToSong(_currentSong);
+                    // Instant visual feedback
+                    _favBtn.Text = !_currentSong.IsFavorite ? "Unfav" : "Fav";
+                }
+            };
         }
 
-        
-        private void ArtistName_LongClick(object? sender, View.LongClickEventArgs e)
+        public void Bind(SongModelView song, bool isExpanded, int position, Action<int> onExpandToggle)
         {
-            var send = (TextView)sender;
-            var artistText = send.Text;
-            MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(artistText));
-        }
-      
-        private async void ContainerView_Click(object? sender, EventArgs e)
-        {
-            var containerView = (View)sender;
-            var songIdAsTag = containerView.Tag.ToString();
-            var song= MyViewModel.SearchResults.FirstOrDefault(x=>x.Id.ToString()==songIdAsTag);
-            if (song == null)
-                return;
-            MyViewModel.SelectedSong = song;
-            // Or call your VM
-            await MyViewModel.PlaySong(song, CurrentPage.AllSongs);
-        }
-      
-        private void ImageBtn_Click(object? sender, EventArgs e)
-        {
-            var containerView = (View)sender;
-            var songIdAsTag = containerView.Tag.ToString();
-            var song = MyViewModel.SearchResults.FirstOrDefault(x => x.Id.ToString() == songIdAsTag);
-            if (song == null)
-                return;
-            MyViewModel.SelectedSong = song;
-            var sendBtn = sender as ImageView;
-            //set songAsClicked
-            if (sendBtn == null) return;
+            _currentSong = song;
+            _expandAction = onExpandToggle;
+            var sessionDisposable = new CompositeDisposable();
+            _title.Text = song.Title;
+            _artist.Text = song.OtherArtistsName ?? "Unknown";
 
-            var transitionName = ViewCompat.GetTransitionName(ImageBtn);
-            if (transitionName is null) return;
+            // Set Transition Name
+            var tName = $"sharedImage_{song.Id}";
+            ViewCompat.SetTransitionName(_img, tName);
 
-            
-            MyViewModel.NavigateToSingleSongPageFromHome((HomePageFragment)MyViewModel.CurrentPage
-                , transitionName, sendBtn);
+            // Image Loading
+            if (!string.IsNullOrEmpty(song.CoverImagePath))
+            {
+                Glide.With(_img.Context).Load(song.CoverImagePath)
+                     .Placeholder(Resource.Drawable.musicnotess).Into(_img);
+            }
+            else
+            {
+                _img.SetImageResource(Resource.Drawable.musicnotess);
+            }
+
+            // Accordion Visibility
+            _expandRow.Visibility = isExpanded ? ViewStates.Visible : ViewStates.Gone;
+            _container.StrokeColor = isExpanded ? Color.DarkSlateBlue : Color.ParseColor("#E0E0E0");
+            _container.StrokeWidth = isExpanded ? 4 : 2;
+
+
+
+            song.WhenPropertyChange(nameof(SongModelView.IsCurrentPlayingHighlight), s => s.IsCurrentPlayingHighlight)
+                        .ObserveOn(RxSchedulers.UI) // Ensure UI Thread
+                        .Subscribe(isPlaying =>
+                        {
+                            if (isPlaying)
+                            {
+                                _title.SetTextColor(Color.DarkSlateBlue); // Highlight Text
+                                                                          // _img.SetImageResource(Resource.Drawable.equalizer_anim); // Maybe show animation?
+                            }
+                            else
+                            {
+                                // Reset to normal
+                                var isDark = _container.Context.Resources.Configuration.UiMode.HasFlag(Android.Content.Res.UiMode.NightYes);
+                                _title.SetTextColor(isDark ? Color.White : Color.Black);
+                            }
+                        })
+                        .DisposeWith(sessionDisposable);
+
+            song.WhenPropertyChange(nameof(SongModelView.CoverImagePath), s => s.CoverImagePath)
+                .ObserveOn(RxSchedulers.UI)
+                .Subscribe(path =>
+                {
+                    if (!string.IsNullOrEmpty(path))
+                    {
+                        Glide.With(_img.Context).Load(path)
+                             .Placeholder(Resource.Drawable.musicnotess)
+                             .Into(_img);
+                    }
+                    else
+                    {
+                        _img.SetImageResource(Resource.Drawable.musicnotess);
+                    }
+                })
+                .DisposeWith(sessionDisposable);
+
+
+
+
+
+
+
+            _itemSubscription.Disposable = sessionDisposable;
+
         }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing) _itemSubscription.Dispose();
+            base.Dispose(disposing);
+        }
+
+
+
 
         ~SongViewHolder()
         {
-            ImageBtn.Click -= ImageBtn_Click;
         }
     }
 
@@ -474,11 +522,6 @@ internal class SongAdapter : RecyclerView.Adapter
 
         private readonly RecyclerView recycler;
         private readonly Handler handler = new Handler(Looper.MainLooper!);
-        private int currentPos = -1;
-
-        private const int Stage1Delay = 3000;
-        private const int Stage2Delay = 6000;
-
 
         public ItemGestureListener(RecyclerView rv)
         {

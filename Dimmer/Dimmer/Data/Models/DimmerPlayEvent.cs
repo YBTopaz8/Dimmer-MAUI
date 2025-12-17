@@ -15,6 +15,7 @@ public partial class DimmerPlayEvent : RealmObject, IRealmObjectWithObjectId
     /// The local device identifier.
     /// </value>
     [PrimaryKey]
+    [Indexed]
     [MapTo("_id")]
     public ObjectId Id { get; set; } = ObjectId.GenerateNewId();
 
@@ -27,6 +28,7 @@ public partial class DimmerPlayEvent : RealmObject, IRealmObjectWithObjectId
     /// <value>
     /// The song identifier.
     /// </value>
+     
     public ObjectId? SongId { get; set; }
     /// <summary>
     /// Gets or sets the song name.
@@ -50,6 +52,7 @@ public partial class DimmerPlayEvent : RealmObject, IRealmObjectWithObjectId
     /// <value>
     /// The date played.
     /// </value>
+     [Indexed]
     public DateTimeOffset DatePlayed { get; set; }
     /// <summary>
     /// Gets or sets the date finished.
@@ -57,7 +60,7 @@ public partial class DimmerPlayEvent : RealmObject, IRealmObjectWithObjectId
     /// <value>
     /// The date finished.
     /// </value>
-    public DateTimeOffset DateFinished { get; set; }
+    /// 
     /// <summary>
     /// Gets or sets a value indicating whether [was play completed].
     /// </summary>

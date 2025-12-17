@@ -47,7 +47,7 @@ public partial class SettingsViewModel : BaseViewModel
     public void AllowBackNavigationWithMouseFour(bool? isChecked)
     {
         var realm = RealmFactory.GetRealmInstance();
-        var appModel = realm.All<AppStateModel>().FirstOrDefault();
+        var appModel = realm.All<AppStateModel>().FirstOrDefaultNullSafe();
         if (appModel != null && isChecked.HasValue)
         {
             realm.Write(() =>
@@ -60,7 +60,7 @@ public partial class SettingsViewModel : BaseViewModel
     public void SetAllowLyricsContribution(string allow)
     {
         var realm = RealmFactory.GetRealmInstance();
-        var appModel = realm.All<AppStateModel>().FirstOrDefault();
+        var appModel = realm.All<AppStateModel>().FirstOrDefaultNullSafe();
         if (appModel != null)
         {
             realm.Write(() =>
@@ -73,7 +73,7 @@ public partial class SettingsViewModel : BaseViewModel
     public void SetPreferredLyricsFormat(string allow)
     {
         var realm = RealmFactory.GetRealmInstance();
-        var appModel = realm.All<AppStateModel>().FirstOrDefault();
+        var appModel = realm.All<AppStateModel>().FirstOrDefaultNullSafe();
         if (appModel != null)
         {
             realm.Write(() =>
@@ -86,7 +86,7 @@ public partial class SettingsViewModel : BaseViewModel
     public void SetPreferredLyricsSource(string v)
     {
         var realm = RealmFactory.GetRealmInstance();
-        var appModel = realm.All<AppStateModel>().FirstOrDefault();
+        var appModel = realm.All<AppStateModel>().FirstOrDefaultNullSafe();
         if (appModel != null)
         {
             realm.Write(() =>
@@ -100,7 +100,7 @@ public partial class SettingsViewModel : BaseViewModel
     public void SetPreferredMiniLyricsViewPosition(string position)
     {
         var realm = RealmFactory.GetRealmInstance();    
-        var appModel = realm.All<AppStateModel>().FirstOrDefault();
+        var appModel = realm.All<AppStateModel>().FirstOrDefaultNullSafe();
         if (appModel != null)
         {
             realm.Write(() =>
@@ -114,7 +114,7 @@ public partial class SettingsViewModel : BaseViewModel
     public void ToggleIsMiniLyricsViewEnable(bool? isChecked)
     {
         var realm = RealmFactory.GetRealmInstance();
-        var appModel = realm.All<AppStateModel>().FirstOrDefault();
+        var appModel = realm.All<AppStateModel>().FirstOrDefaultNullSafe();
         if (appModel != null && isChecked.HasValue)
         {
             realm.Write(() =>

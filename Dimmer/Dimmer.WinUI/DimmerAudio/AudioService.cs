@@ -1,10 +1,14 @@
-﻿using System.Reactive.Subjects;
+﻿using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
+using System.Reactive.Subjects;
+using System.Threading.Tasks;
 
+using AudioSwitcher.AudioApi;
 //using NAudio.CoreAudioApi;
 using AudioSwitcher.AudioApi.CoreAudio;
-using AudioSwitcher.AudioApi;
+
+using Device = AudioSwitcher.AudioApi.Device;
 using DeviceType = AudioSwitcher.AudioApi.DeviceType;
-using System.Threading.Tasks;
 namespace Dimmer.WinUI.DimmerAudio;
 
 
@@ -30,6 +34,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     private SongModelView? _currentTrackMetadata;
     private readonly BehaviorSubject<SongModelView?> _currentSong = new(null);
 
+    private readonly CompositeDisposable _disposables = new();
     public IObservable<SongModelView?> CurrentSong => _currentSong.AsObservable();
     private bool _isDisposed;
     private string? _currentAudioDeviceId;
@@ -79,7 +84,6 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         SubscribeToPlayerEvents();
         SubscribeToSystemEvents();
 
-        MediaDevice.DefaultAudioRenderDeviceChanged += MediaDevice_DefaultAudioRenderDeviceChanged;
 
 
         _volume = _mediaPlayer.Volume;
@@ -128,13 +132,16 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     private void SubscribeToSystemEvents()
     {
+        MediaDevice.DefaultAudioRenderDeviceChanged += MediaDevice_DefaultAudioRenderDeviceChanged;
+        DefaultAudioDevice = _controller.GetDefaultDevice(DeviceType.Playback, AudioSwitcher.AudioApi.Role.Multimedia);
         _controller.AudioDeviceChanged.Subscribe(e =>
         {
             switch (e)
             {
 
                 case DefaultDeviceChangedArgs def: 
-                    Debug.WriteLine($"Default changed: {def.Device.Name}"); 
+                    Debug.WriteLine($"Default changed: {def.Device.Name}");
+                    DefaultAudioDevice = (CoreAudioDevice)def.Device;
                     break;
                 case DeviceAddedArgs add: 
                     Debug.WriteLine($"Device added: {add.Device.Name}"); 
@@ -146,8 +153,16 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
                     Debug.WriteLine($"Device property changed: {chg.Device.Name}"); 
                     break;
             }
-        });
-        
+        }).DisposeWith(_disposables);
+
+        if (DefaultAudioDevice is not null)
+            DefaultAudioDevice.VolumeChanged.Subscribe(newVol =>
+            {
+
+                DeviceVolumeChanged?.Invoke(DefaultAudioDevice, (newVol.Device.Volume, newVol.Device.IsMuted, 100));
+
+            }).DisposeWith(_disposables);
+
     }
     public AudioOutputDevice? GetCurrentAudioOutputDevice()
     {
@@ -181,8 +196,10 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         if (device == null) return;
         await newDev.SetAsDefaultAsync();
     }
+
     public void WatchVolume()
     {
+        
         var dev = _controller.GetDefaultDevice(DeviceType.Playback, AudioSwitcher.AudioApi.Role.Multimedia);
         dev.VolumeChanged.Subscribe(x =>
         {
@@ -202,6 +219,9 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     }
     private void SubscribeToPlayerEvents()
     {
+        
+
+        
         _mediaPlayer.MediaOpened += MediaPlayer_MediaOpened;
         _mediaPlayer.MediaEnded += MediaPlayer_MediaEnded;
         _mediaPlayer.MediaFailed += MediaPlayer_MediaFailed;
@@ -216,6 +236,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         _mediaPlayer.CommandManager.NextReceived += CommandManager_NextReceived;
         _mediaPlayer.CommandManager.PreviousReceived += CommandManager_PreviousReceived;
 
+        _mediaPlayer.VolumeChanged += MediaPlayer_VolumeChanged;
 
         _mediaPlayer.CommandManager.NextBehavior.EnablingRule = MediaCommandEnablingRule.Always;
         _mediaPlayer.CommandManager.PreviousBehavior.EnablingRule = MediaCommandEnablingRule.Always;
@@ -223,14 +244,22 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     private void MediaPlayer_VolumeChanged(MediaPlayer sender, object args)
     {
+      
+        VolumeChanged?.Invoke(sender, sender.Volume);
+    //DeviceVolumeChanged?.Invoke(sender, (sender.Volume,sender.IsMuted,100));
     }
 
+    private void UnsubscribeFromSystemEvents()
+    {
+        _disposables.Clear();
+    }
     private void UnsubscribeFromPlayerEvents()
     {
 
+        MediaDevice.DefaultAudioRenderDeviceChanged -= MediaDevice_DefaultAudioRenderDeviceChanged;
         if (_mediaPlayer == null)
             return;
-
+        _mediaPlayer.VolumeChanged -= MediaPlayer_VolumeChanged;
         _mediaPlayer.MediaOpened -= MediaPlayer_MediaOpened;
         _mediaPlayer.MediaEnded -= MediaPlayer_MediaEnded;
         _mediaPlayer.MediaFailed -= MediaPlayer_MediaFailed;
@@ -291,6 +320,8 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     public event EventHandler<PlaybackEventArgs>? MediaKeyNextPressed;
     public event EventHandler<PlaybackEventArgs>? MediaKeyPreviousPressed;
     public event PropertyChangedEventHandler? PropertyChanged;
+    public event EventHandler<double>? VolumeChanged;
+    public event EventHandler<(double newVol, bool isDeviceMuted, int devMavVol)>? DeviceVolumeChanged;
 
 
 
@@ -426,9 +457,11 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         }
     }
 
+    public CoreAudioDevice DefaultAudioDevice { get; private set; }
+
     public async Task InitializeAmbienceAsync(string filePath)
     {
-        if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+        if (string.IsNullOrWhiteSpace(filePath) || !TaggingUtils.FileExists(filePath))
             return;
 
         try
@@ -673,6 +706,9 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     /// <returns>Task indicating completion of the seek request (not necessarily the completion of the seek operation itself).</returns>
     public void Seek(double positionSeconds)
     {
+        try
+        {
+
         ThrowIfDisposed(); 
 
         if (_mediaPlayer.PlaybackSession.CanSeek)
@@ -698,6 +734,11 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             
             CurrentPosition = positionSeconds;
             Debug.WriteLine("[AudioService] Seek requested but session cannot seek.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
         }
     }
 
@@ -729,7 +770,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             else
             {
                 string fullPath = Path.GetFullPath(media.FilePath);
-                if (!File.Exists(fullPath))
+                if (!TaggingUtils.FileExists(fullPath))
                 {
                     Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: File does not exist at resolved path '{fullPath}' for '{media.Title}'.");
                     return null;
@@ -1212,6 +1253,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         _controller?.Dispose();
 
         UnsubscribeFromPlayerEvents();
+        UnsubscribeFromSystemEvents();
         try
         {
             _ambiencePlayer?.Pause();
@@ -1242,6 +1284,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
         await Task.CompletedTask;
     }
+
 
 
     #endregion

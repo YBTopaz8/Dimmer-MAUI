@@ -45,7 +45,7 @@ public class AppUtil : IAppUtil
         dimmerWinUI.LoadWindowAndPassVM(BaseViewModelWin, this);
        
         dimmerWinUI.NavigateToPage(typeof(AllSongsListPage));
-        PlatUtils.MoveAndResizeCenter(dimmerWinUI, new Windows.Graphics.SizeInt32() { Height = 1200, Width = 1360 });
+        PlatUtils.MoveAndResizeCenter(dimmerWinUI, new Windows.Graphics.SizeInt32() { Height = 800, Width = 1200 });
 
             dimmerMAUIWin ??= new DimmerMAUIWin(BaseViewModelWin, this);
         return dimmerMAUIWin;

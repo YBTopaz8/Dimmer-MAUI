@@ -24,7 +24,11 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     public double Volume
     {
-        get => Player?.Volume ?? 1.0f;
+        get
+        {
+            return Player?.Volume ?? 1.0f;
+        }
+
         set
         {
             if (Player != null)
@@ -40,6 +44,9 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     #endregion
 
+    private readonly BehaviorSubject<SongModelView?> _currentSong = new(null);
+
+    public IObservable<SongModelView?> CurrentSong => _currentSong.AsObservable();
     #region IDimmerAudioService Implementation (Events)
 
     // These events are raised in response to the native service's events.
@@ -50,6 +57,8 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     public event EventHandler<PlaybackEventArgs>? MediaKeyNextPressed;
     public event EventHandler<double>? PositionChanged;
     public event EventHandler<double>? SeekCompleted;
+    public event EventHandler<double>? VolumeChanged;
+    public event EventHandler<(double newVol, bool isDeviceMuted, int devMavVol)>? DeviceVolumeChanged;
     public event EventHandler<PlaybackEventArgs>? ErrorOccurred;
 
     // Unused events from interface, kept for compatibility.
@@ -131,7 +140,9 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         Service.IsPlayingChanged  += OnNativeIsPlayingChanged;
         Service.PlayingEnded += OnNativePlayEnded;
         Service.PositionChanged += OnNativePositionChanged;
+        Service.DeviceVolumeChanged += OnDeviceVolumeChanged;
         Service.SeekCompleted += OnNativeSeekCompleted;
+        Service.VolumeChanged += OnNativeVolumeChanged;
         Service.PlayNextPressed += OnNativePlayNextPressed;
         Service.PlayPreviousPressed += OnNativePlayPreviousPressed;
     }
@@ -147,8 +158,20 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         Service.PlayingEnded -= OnNativePlayEnded;
         Service.PositionChanged -= OnNativePositionChanged;
         Service.SeekCompleted -= OnNativeSeekCompleted;
+        Service.VolumeChanged -= OnNativeVolumeChanged;
+        Service.DeviceVolumeChanged -= OnDeviceVolumeChanged;
         Service.PlayNextPressed -= OnNativePlayNextPressed;
         Service.PlayPreviousPressed -= OnNativePlayPreviousPressed;
+    }
+
+    private void OnDeviceVolumeChanged(object? sender, (double newVol, bool isDeviceMuted, int devMavVol) e)
+    {
+        DeviceVolumeChanged?.Invoke(sender, e);
+    }
+
+    private void OnNativeVolumeChanged(object? sender, double e)
+    {
+        VolumeChanged?.Invoke(this, e);
     }
 
     #endregion
@@ -240,10 +263,6 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         return Task.CompletedTask;
     }
 
-    public void WatchVolume()
-    {
-        throw new NotImplementedException();
-    }
 
     public Task SetVolume(double volume)
     {
@@ -253,6 +272,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     public double GetCurrentVolume()
     {
+        
         return Player.Volume;
     }
 

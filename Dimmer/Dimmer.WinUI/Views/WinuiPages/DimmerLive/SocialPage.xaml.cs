@@ -52,12 +52,12 @@ public sealed partial class SocialPage : Page
         
     }
     // Auto-scroll to bottom when new messages arrive
-    private void MessagesList_Loaded(object sender, RoutedEventArgs e)
+    private async void MessagesList_Loaded(object sender, RoutedEventArgs e)
     {
         var listView = sender as ListView;
         // Hook into collection changed event if needed, or just scroll on load
         if (listView.Items.Count > 0)
-            listView.ScrollIntoView(listView.Items[listView.Items.Count - 1]);
+           await listView.SmoothScrollIntoViewWithItemAsync(listView.Items[listView.Items.Count - 1]);
     }
 }
 

@@ -65,7 +65,7 @@ public static class SongStats
     public static double GetLongestSession(SongModel song, List<DimmerPlayEvent> events)
     {
         return events.Where(e => e.SongId == song.Id)
-                     .Select(e => e.DateFinished.Subtract(e.DatePlayed).TotalSeconds)
+                     .Select(e => e.EventDate.Subtract(e.DatePlayed).TotalSeconds)
                      .DefaultIfEmpty(0)
                      .Max();
     }
@@ -74,7 +74,7 @@ public static class SongStats
     public static double GetTotalListeningTime(SongModel song, List<DimmerPlayEvent> events)
     {
         return events.Where(e => e.SongId == song.Id)
-                     .Sum(e => e.DateFinished.Subtract(e.DatePlayed).TotalSeconds);
+                     .Sum(e => e.EventDate.Subtract(e.DatePlayed).TotalSeconds);
     }
 
     // 11. Most active hour for this song

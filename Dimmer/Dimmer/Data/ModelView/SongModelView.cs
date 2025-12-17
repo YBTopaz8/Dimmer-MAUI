@@ -328,6 +328,13 @@ public partial class SongModelView : ObservableObject
     public partial int BitDepth { get; internal set; }
     [ObservableProperty]
     public partial int NbOfChannels { get; internal set; }
+
+
+    public SongModelView ShallowCopy()
+    {
+        // MemberwiseClone creates a new object reference with the same values
+        return (SongModelView)this.MemberwiseClone();
+    }
 }
 
 public partial class UserNoteModelView : ObservableObject
@@ -350,6 +357,9 @@ public partial class UserNoteModelView : ObservableObject
     public partial int UserRating { get; set; }
     [ObservableProperty]
     public partial string? MessageColor { get; set; }
+
+
+
 }
 
 public enum SongType { Track, Segment }

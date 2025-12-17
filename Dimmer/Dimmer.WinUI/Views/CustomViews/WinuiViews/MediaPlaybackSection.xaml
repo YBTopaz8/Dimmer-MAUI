@@ -21,7 +21,7 @@
         </Grid.Resources>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
         <StackPanel
@@ -34,32 +34,41 @@
                     <ColumnDefinition Width="auto" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0">
+                <StackPanel Grid.Column="0" Spacing="5">
 
                     <StackPanel Orientation="Horizontal" Spacing="10">
-                        <TextBlock
+                        <Button
+                            x:Name="ViewNowPlayingSong"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
-                            FontSize="30"
-                            IsTextSelectionEnabled="True"
-                            Text="{Binding CurrentPlayingSongView.Title}"
-                            TextDecorations="Underline" />
+                            Background="Transparent"
+                            BorderThickness="0.5"
+                            Click="ViewNowPlayingSong_Click"
+                            Content="{x:Bind MyViewModel.CurrentPlayingSongView.Title, Mode=OneWay}"
+                            FontSize="30" />
 
 
                         <TextBlock
+                            x:Name="ArtistBtn"
+                            MaxWidth="350"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Bottom"
                             FontSize="24"
                             FontStyle="Italic"
-                            IsTextSelectionEnabled="True"
-                            Text="{Binding CurrentPlayingSongView.ArtistName}" />
+                            IsTextSelectionEnabled="False"
+                            MaxLines="3"
+                            PointerPressed="ArtistBtn_PointerPressed"
+                            Text="{x:Bind MyViewModel.CurrentPlayingSongView.ArtistName, Mode=OneWay}" />
 
                         <TextBlock
+                            MaxWidth="350"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Bottom"
                             FontSize="20"
                             IsTextSelectionEnabled="True"
-                            Text="{Binding CurrentPlayingSongView.AlbumName}" />
+                            MaxLines="3"
+                            Text="{x:Bind MyViewModel.CurrentPlayingSongView.AlbumName, Mode=OneWay}"
+                            TextWrapping="WrapWholeWords" />
 
                         <StackPanel VerticalAlignment="Bottom" Orientation="Horizontal">
 
@@ -67,7 +76,7 @@
                             <TextBlock
                                 VerticalAlignment="Bottom"
                                 FontSize="22"
-                                Text="{Binding CurrentTrackPositionSeconds, Converter={StaticResource DurationConverter}}" />
+                                Text="{x:Bind MyViewModel.CurrentTrackPositionSeconds, Converter={StaticResource DurationConverter}, Mode=OneWay}" />
                             <TextBlock
                                 VerticalAlignment="Bottom"
                                 FontSize="22"
@@ -76,11 +85,15 @@
                             <TextBlock
                                 VerticalAlignment="Bottom"
                                 FontSize="22"
-                                Text="{Binding CurrentTrackDurationSeconds, Converter={StaticResource DurationConverter}}" />
+                                Text="{x:Bind MyViewModel.CurrentTrackDurationSeconds, Converter={StaticResource DurationConverter}, Mode=OneWay}" />
 
                         </StackPanel>
 
-                        <Button Background="Transparent" Visibility="{Binding CurrentPlayingSongView.HasSyncedLyrics, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <Button
+                            x:Name="ViewLyricsButton"
+                            Background="Transparent"
+                            Click="ViewLyricsButton_Click"
+                            Visibility="{x:Bind MyViewModel.CurrentPlayingSongView.HasSyncedLyrics, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
                             <FontIcon
                                 Width="19"
                                 Height="19"
@@ -107,31 +120,31 @@
                         HorizontalAlignment="Left"
                         Orientation="Horizontal"
                         Spacing="10">
-                        <ToggleButton IsChecked="{Binding IsShuffleActive}">
+                        <ToggleButton IsChecked="{x:Bind MyViewModel.IsShuffleActive, Mode=OneWay}">
                             <SymbolIcon Symbol="Shuffle" />
                         </ToggleButton>
                         <Button
                             x:Name="PrevBtn"
                             AccessKey="B"
-                            Command="{Binding PreviousTrackCommand}">
+                            Command="{x:Bind MyViewModel.PreviousTrackCommand}">
                             <FontIcon Glyph="&#xE892;" />
                         </Button>
                         <ToggleButton
                             x:Name="PlayBtn"
                             AccessKey="P"
-                            Command="{Binding PlayPauseToggleCommand}"
-                            Content="{Binding IsDimmerPlaying, Converter={StaticResource BoolToPlayingPauseConverter}}"
-                            IsChecked="{Binding IsDimmerPlaying}" />
+                            Command="{x:Bind MyViewModel.PlayPauseToggleCommand}"
+                            Content="{x:Bind MyViewModel.IsDimmerPlaying, Converter={StaticResource BoolToPlayingPauseConverter}, Mode=OneWay}"
+                            IsChecked="{x:Bind MyViewModel.IsDimmerPlaying, Mode=OneWay}" />
                         <Button
                             x:Name="NextBtn"
                             AccessKey="N"
                             AccessKeyDisplayRequested="NextBtn_AccessKeyDisplayRequested"
                             AccessKeyInvoked="NextBtn_AccessKeyInvoked"
-                            Command="{Binding NextTrackCommand}">
+                            Command="{x:Bind MyViewModel.NextTrackCommand}">
                             <SymbolIcon Symbol="Next" />
                         </Button>
 
-                        <Button Command="{x:Bind MyViewModel.ToggleRepeatModeCommand}" Content="{Binding CurrentRepeatMode, Converter={StaticResource RepeatModeConverter}}" />
+                        <Button Command="{x:Bind MyViewModel.ToggleRepeatModeCommand}" Content="{x:Bind MyViewModel.CurrentRepeatMode, Converter={StaticResource RepeatModeConverter}, Mode=OneWay}" />
                         <Button
                             x:Name="LastFMBtn"
                             Background="Transparent"
@@ -141,17 +154,58 @@
                             CornerRadius="10" />
 
 
-                        <Button Visibility="{Binding UnlockedAch, Converter={StaticResource IsNullToVisibilityConverter}}">
-                            <StackPanel Orientation="Vertical">
-                                <TextBlock Text="{x:Bind MyViewModel.UnlockedAch.Name}" />
-                                <TextBlock Text="{x:Bind MyViewModel.UnlockedAch.Description}" />
-                            </StackPanel>
-                        </Button>
+
                     </StackPanel>
 
                 </StackPanel>
             </Grid>
 
+
+        </StackPanel>
+        <StackPanel
+            Grid.Row="0"
+            Width="350"
+            Margin="0,10,20,0"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Top"
+            Canvas.ZIndex="100">
+
+            <InfoBar
+                Title="{x:Bind MyViewModel.UnlockedAch.Name, Mode=OneWay}"
+                IsClosable="True"
+                IsIconVisible="True"
+                IsOpen="{x:Bind MyViewModel.IsAchievementNotificationVisible, Mode=OneWay}"
+                Message="{x:Bind MyViewModel.UnlockedAch.Description, Mode=OneWay}"
+                Severity="Success">
+                <!--  Add a Shadow for depth since it is floating  -->
+                <InfoBar.Shadow>
+                    <ThemeShadow />
+                </InfoBar.Shadow>
+                <!--  Add animation so it slides in nicely  -->
+                <InfoBar.Transitions>
+                    <TransitionCollection>
+                        <EntranceThemeTransition FromVerticalOffset="-50" />
+                    </TransitionCollection>
+                </InfoBar.Transitions>
+            </InfoBar>
+            <InfoBar
+                Title="Concerned Song"
+                IsClosable="True"
+                IsIconVisible="True"
+                IsOpen="{x:Bind MyViewModel.IsAchievementNotificationVisible, Mode=OneWay}"
+                Message="{x:Bind MyViewModel.AchievementSecondMessage, Mode=OneWay}"
+                Severity="Success">
+                <!--  Add a Shadow for depth since it is floating  -->
+                <InfoBar.Shadow>
+                    <ThemeShadow />
+                </InfoBar.Shadow>
+                <!--  Add animation so it slides in nicely  -->
+                <InfoBar.Transitions>
+                    <TransitionCollection>
+                        <EntranceThemeTransition FromVerticalOffset="-50" />
+                    </TransitionCollection>
+                </InfoBar.Transitions>
+            </InfoBar>
 
         </StackPanel>
     </Grid>

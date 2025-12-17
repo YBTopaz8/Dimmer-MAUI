@@ -454,8 +454,8 @@ public sealed partial class ArtistPage : Page
 
         send.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Colors.DarkSlateBlue);
         send.BorderThickness = new Microsoft.UI.Xaml.Thickness(2);
-
-        MyViewModel.SearchSongForSearchResultHolder($"Songs by {MyViewModel.SelectedArtist!.Name} and in album {album.Name}");
+        
+        MyViewModel.SearchSongForSearchResultHolder($"{TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist.Name)} and {TQlStaticMethods.PresetQueries.ExactlyByAlbum(album.Name)}");
         var albmInDb = MyViewModel.RealmFactory.GetRealmInstance()
             .All<SongModel>()
             .Where(x => x.AlbumName == album.Name);
@@ -623,7 +623,7 @@ public sealed partial class ArtistPage : Page
         {
             // You found the song! Now you can call your ViewModel command.
             Debug.WriteLine($"Double-tapped on song: {song.Title}");
-            await MyViewModel.PlaySong(song, curPage: CurrentPage.AllArtistsPage, songs: SongsEnumerable);
+            await MyViewModel.PlaySongAsync(song, curPage: CurrentPage.AllArtistsPage, songs: SongsEnumerable);
         }
     }
 

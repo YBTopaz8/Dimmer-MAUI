@@ -1,6 +1,6 @@
 ﻿namespace Dimmer.WinUI.Utils.Converters
 {
-    public sealed partial class DurationConverterFromMsToTimeSpan : IValueConverter
+    public sealed partial class DurationConverterFromSecondsToTimeSpan : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language)
         {

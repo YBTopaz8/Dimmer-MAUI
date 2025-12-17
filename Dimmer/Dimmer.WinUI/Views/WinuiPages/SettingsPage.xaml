@@ -38,7 +38,7 @@
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
             Background="Transparent">
-            <TextBlock Text="{Binding LatestAppLog, Mode=OneWay}" />
+            <TextBlock Text="{x:Bind MyViewModel.LatestAppLog.Log, Mode=OneWay}" />
             <StackPanel
                 HorizontalAlignment="Center"
                 Orientation="Horizontal"

@@ -317,13 +317,14 @@ public sealed partial class SettingsPage : Page
 
         };
 
-
-        await DispatcherQueue.EnqueueAsync(() =>
+        if (Connectivity.Current.NetworkAccess == NetworkAccess.Internet)
         {
+            await DispatcherQueue.EnqueueAsync(() =>
+            {
 
-            Frame?.NavigateToType(songDetailType, null, navigationOptions);
-        });
-
+                Frame?.NavigateToType(songDetailType, null, navigationOptions);
+            });
+        }
     }
 
     private void LastFMUname_KeyUp(object sender, KeyRoutedEventArgs e)

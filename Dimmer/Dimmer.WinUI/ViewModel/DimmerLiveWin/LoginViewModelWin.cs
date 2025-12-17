@@ -21,30 +21,35 @@ public partial class LoginViewModelWin : LoginViewModel
 
      internal void NavigateToProfilePage()
     {
-        if(CurrentUserOnline is null)return;
-        LoginCurrentStatus = IsAuthenticated ? "Logged In 😊" : "Logged Out";
-        if (!CurrentUserOnline.IsAuthenticated)
-        { 
-            BaseViewModel.NavigateToAnyPageOfGivenType(typeof(LoginPage)); 
+        if (Connectivity.Current.NetworkAccess == NetworkAccess.Internet)
+        {
+            
+            LoginCurrentStatus = IsAuthenticated ? "Logged In 😊" : "Logged Out";
+            if (!IsAuthenticated)
+            {
+                BaseViewModel.NavigateToAnyPageOfGivenType(typeof(LoginPage));
+            }
+            else
+            {
+                BaseViewModel.NavigateToAnyPageOfGivenType(typeof(ProfilePage));
+            }
         }
-        else 
-        { 
-            BaseViewModel.NavigateToAnyPageOfGivenType(typeof (ProfilePage));
-        }
-
     }
     [RelayCommand]
      internal void NavigateToCloudPage()
     {
-        if (CurrentUserOnline is null) return;
-        if (CurrentUserOnline.IsAuthenticated)
-        { 
-            BaseViewModel.NavigateToAnyPageOfGivenType(typeof(CloudDataPage)); 
-        }
-        else 
-        { 
-        }
+        if (Connectivity.Current.NetworkAccess == NetworkAccess.Internet)
+        {
 
+            if (CurrentUserOnline is null) return;
+            if (CurrentUserOnline.IsAuthenticated)
+            {
+                BaseViewModel.NavigateToAnyPageOfGivenType(typeof(CloudDataPage));
+            }
+            else
+            {
+            }
+        }
     }
 
     [RelayCommand]

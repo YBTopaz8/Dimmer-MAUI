@@ -1,4 +1,5 @@
 ﻿
+
 namespace Dimmer.DimmerLive.Interfaces;
 
 public interface ILiveSessionManagerService
@@ -16,4 +17,7 @@ public interface ILiveSessionManagerService
     Task InitiateSessionTransferAsync(UserDeviceSession targetDevice, DimmerPlayEventView currentSongView);
     Task<string> CreateBackupAsync();
     Task RestoreBackupAsync(string backupObjectId);
+    Task<List<ParseObject>> GetAvailableBackupsAsync();
+    Task<ParseObject?> GetMyReferralCodeAsync();
+    Task<ParseObject?> GenerateReferralCodeAsync();
 }

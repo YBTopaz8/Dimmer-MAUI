@@ -6,7 +6,6 @@ public class LyricsEditorFragment : Fragment
 {
     private TextInputLayout _searchTitle, _searchArtist, _searchAlbum;
     private RecyclerView _resultsRecycler;
-    private TextView _plainLyricsTxt, _syncLyricsTxt;
 
     public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {

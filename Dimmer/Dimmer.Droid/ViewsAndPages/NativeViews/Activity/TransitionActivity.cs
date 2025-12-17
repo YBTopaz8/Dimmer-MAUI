@@ -5,10 +5,16 @@ using AndroidX.Core.View;
 using AndroidX.DrawerLayout.Widget;
 
 using Dimmer.NativeServices;
+using Dimmer.ViewsAndPages.NativeViews.StatsSection;
 
 using Google.Android.Material.BottomNavigation;
 using Google.Android.Material.Dialog;
 using Google.Android.Material.Navigation;
+
+using Explode = AndroidX.Transitions.Explode;
+using Fade = AndroidX.Transitions.Fade;
+using Slide = AndroidX.Transitions.Slide;
+using Transition = AndroidX.Transitions.Transition;
 
 namespace Dimmer.ViewsAndPages.NativeViews.Activity;
 
@@ -136,6 +142,8 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         };
 
         CheckAndRequestPermissions();
+
+
     }
     DrawerLayout _drawerLayout;
     private void SetupDrawerLayout()
@@ -289,9 +297,12 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
                 tag = "HomePageFragment";
                 break;
             case 101:
-                selectedFrag = new GraphExplorerFragment(MyViewModel);
-                tag = "GraphFragment";
-                break;
+                var vm = MainApplication.ServiceProvider.GetRequiredService<StatisticsViewModel>();
+                selectedFrag = new LibraryStatsHostFragment(MyViewModel, vm);
+                tag = "StatsFragment";
+
+                Task.Run(()=> vm.LoadLibraryStatsCommand.Execute(null) );
+                break; 
             case 102:
                 selectedFrag = new SettingsFragment("settingsTrans", MyViewModel);
                 tag = "SettingsFragment";
@@ -313,59 +324,7 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         _drawerLayout.OpenDrawer(GravityCompat.Start);
     }
 
-
-    // Helper to create the animation drawable
-    private Android.Graphics.Drawables.StateListDrawable CreateStateListDrawable(int filledResId, int outlinedResId)
-    {
-        var drawable = new Android.Graphics.Drawables.StateListDrawable();
-
-        // State: Checked (Selected)
-        drawable.AddState(
-            new int[] { Android.Resource.Attribute.StateChecked },
-            AndroidX.Core.Content.ContextCompat.GetDrawable(this, filledResId)
-        );
-
-        // State: Default (Unselected)
-        drawable.AddState(
-            new int[] { },
-            AndroidX.Core.Content.ContextCompat.GetDrawable(this, outlinedResId)
-        );
-
-        return drawable;
-    }
-    private void NavBar_ItemSelected(object? sender, NavigationBarView.ItemSelectedEventArgs e)
-    {
-        Fragment? selectedFrag = null;
-        string tag = "";
-
-        switch (e.Item.ItemId)
-        {
-            case 100: // Home
-                if (SupportFragmentManager.FindFragmentByTag("HomePageFragment") is { } existing)
-                {
-                    // Just pop back to it
-                    SupportFragmentManager.PopBackStack("HomePageFragment", 0);
-                    return;
-                }
-                selectedFrag = new HomePageFragment(MyViewModel);
-                tag = "HomePageFragment";
-                break;
-            case 101: // Browser
-                selectedFrag = new SongDetailFragment(e.Item.ItemId.ToString(),MyViewModel);
-                tag = "GraphFragment";
-                break;
-            case 102: // Settings
-                selectedFrag = new SettingsFragment(e.Item.ItemId.ToString(),MyViewModel);
-                tag = "SettingsFragment";
-                break;
-                // Add Settings...
-        }
-
-        if (selectedFrag != null)
-        {
-            NavigateTo(selectedFrag, tag);
-        }
-    }
+    
     public void NavigateTo(Fragment fragment, string tag)
     {
         var trans = SupportFragmentManager.BeginTransaction();
@@ -596,48 +555,6 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         }
     }
 
-
-    private static Transition? CreateTransition(ActivityTransitionType type)
-    {
-        if (Build.VERSION.SdkInt < BuildVersionCodes.Lollipop)
-            return null;
-
-        Transition? transition = null;
-
-        switch (type)
-        {
-            case ActivityTransitionType.Fade:
-                transition = new Fade();
-                break;
-            case ActivityTransitionType.SlideFromEnd:
-                transition = new Slide(GravityFlags.End);
-                break;
-            case ActivityTransitionType.SlideFromStart:
-                transition = new Slide(GravityFlags.Start);
-                break;
-            case ActivityTransitionType.SlideFromBottom:
-                transition = new Slide(GravityFlags.Bottom);
-                break;
-            case ActivityTransitionType.Explode:
-                transition = new Explode();
-                break;
-            case ActivityTransitionType.None:
-            default:
-                return null;
-        }
-
-        if (transition != null)
-        {
-             transition.SetDuration(PublicStats.ActivityTransitionDurationMs);
-            transition.SetInterpolator(PublicStats.BounceInterpolator); // This is ITimeInterpolator, your PublicStats.DefaultInterpolator should match
-
-            transition.ExcludeTarget(Android.Resource.Id.StatusBarBackground, false);
-            transition.ExcludeTarget(Android.Resource.Id.NavigationBarBackground, false);
-        }
-
-        return transition;
-    }
-
     const int REQUEST_OPEN_FOLDER = 100;
     TaskCompletionSource<string?>? _folderPickerTcs;
     private NavigationView _navigationView;
@@ -683,9 +600,6 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
             }
         }
     }
-
-
-    const int REQUEST_WRITE_STORAGE = 1001;
 
     protected override void OnDestroy()
     {

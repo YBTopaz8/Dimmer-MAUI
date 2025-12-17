@@ -52,7 +52,7 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
             // This now returns the full object, not just a dictionary
             var result = await ParseClient.Instance.CallCloudCodeFunctionAsync<UserDeviceSession>("setActiveChatDevice", parameters);
             _thisDeviceSession = result;
-
+            StartListeners();
             _logger.LogInformation("Successfully registered and activated this device session: {SessionId}", _thisDeviceSession.ObjectId);
             await FetchOtherDevicesAsync();
         }
@@ -210,6 +210,8 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
             // 3. Convert to DTO/View objects to strip Realm-specific properties
             var eventViews = realmEvents.Select(x => x.ToDimmerPlayEventView()).ToList();
 
+
+
             if (eventViews.Count == 0)
             {
                 return "No events to backup.";
@@ -217,6 +219,11 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
 
             // 4. Serialize to JSON String
             string jsonString = JsonSerializer.Serialize(eventViews);
+            byte[] data = System.Text.Encoding.UTF8.GetBytes(jsonString);
+
+            ParseFile backupFile = new ParseFile("backup.json", data);
+            await backupFile.SaveAsync(ParseClient.Instance);
+
 
             // 5. Prepare Parameters
             var parameters = new Dictionary<string, object>
@@ -263,7 +270,31 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
             return new List<ParseObject>();
         }
     }
-
+    public async Task<ParseObject?> GenerateReferralCodeAsync()
+    {
+        if (_authService.CurrentUserValue == null) return null;
+        try
+        {
+            // Calls the Cloud Code function we wrote
+            return await ParseClient.Instance.CallCloudCodeFunctionAsync<ParseObject>("generateReferralCode", null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to generate referral code.");
+            return null;
+        }
+    }
+    public async Task<ParseObject?> GetMyReferralCodeAsync()
+    {
+        if (_authService.CurrentUserValue == null) return null;
+        try
+        {
+            var query = new ParseQuery<ParseObject>(ParseClient.Instance, "ReferralCode")
+                .WhereEqualTo("owner", _authService.CurrentUserValue);
+            return await query.FirstAsync();
+        }
+        catch { return null; } // Return null if none exists
+    }
     public async Task RestoreBackupAsync(string backupObjectId)
     {
         try

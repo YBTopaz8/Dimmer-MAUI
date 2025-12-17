@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 
 using Hqub.Lastfm.Entities;
 
@@ -35,44 +36,52 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
     public ObservableCollection<Track> TopTracks { get; } = new();
     public ObservableCollection<Track> LovedTracks { get; } = new();
 
-    public BaseViewModelWin ViewModel { get; private set; }
+    public BaseViewModelWin MyViewModel { get; private set; }
 
     public LastFmPage()
     {
         this.InitializeComponent();
+        _compositor = ElementCompositionPreview.GetElementVisual(this).Compositor;
     }
 
-    protected override void OnNavigatedTo(NavigationEventArgs e)
+    private SongTransitionAnimation _userPrefAnim = SongTransitionAnimation.Spring;
+    private readonly Compositor _compositor;
+    protected async override void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
 
         // Resolve VM
-        ViewModel = IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
+        MyViewModel = IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
 
-        // Bind Sources
-        RecentTracksList.ItemsSource = RecentTracks;
-        TopTracksList.ItemsSource = TopTracks;
-        LovedTracksList.ItemsSource = LovedTracks;
 
-        LoadUserData();
-        LoadRecentTracks(); // Initial Load
+        await LoadUserData();
+
+
+       
     }
 
+    protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
+    {
+        
+        base.OnNavigatingFrom(e);
+
+    }
     private void Pivot_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         var pivot = sender as Pivot;
-        switch (pivot.SelectedIndex)
-        {
-            case 0: LoadRecentTracks(); break;
-            case 1: LoadTopTracks(); break;
-            case 2: LoadLovedTracks(); break;
-        }
+        if (pivot != null)
+            switch (pivot.SelectedIndex)
+            {
+                //case 0: LoadRecentTracks(); break;
+                //case 1: LoadTopTracks(); break;
+                //case 2: LoadLovedTracks(); break;
+            }
     }
 
-    private void LoadUserData()
+    private async Task LoadUserData()
     {
         // 1. Get Data from VM
-        var user = ViewModel.CurrentUserLocal?.LastFMAccountInfo; // Assuming this property exists on your VM parity
+        var user = MyViewModel.CurrentUserLocal?.LastFMAccountInfo; // Assuming this property exists on your VM parity
 
         if (user != null)
         {
@@ -82,8 +91,9 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
             // If user.Image is a string URL:
             if (!string.IsNullOrEmpty(user.Image.Url))
             {
-                //UserAvatarImg.Source = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(user.Image.Url));
+                UserAvatarImg.Source = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(user.Image.Url));
             }
+            await MyViewModel.LoadUserLastFMDataAsync();
         }
         else
         {
@@ -92,46 +102,50 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
         }
     }
 
-    private async void LoadRecentTracks()
+    Microsoft.UI.Xaml.Controls.Button? SongTitlebutton;
+    private void SongTitle_Click(object sender, RoutedEventArgs e)
     {
-        // Simulate Fetching Data (Replace with: await ViewModel.LastFmService.GetRecentTracks())
-        // Parity with Android Logic
-        RecentTracks.Clear();
+        SongTitlebutton = sender as Button;
+        trackModel = SongTitlebutton?.DataContext as Track;
+        MyViewModel.SelectedTrack = trackModel;
+        var songModelView = trackModel.IsOnPresentDevice ? MyViewModel.SearchResults.FirstOrDefault(song => song.Id.ToString() == trackModel?.OnDeviceObjectId)
+            :null;
 
-        // Dummy Data for Preview Parity
-        var dummyTracks = new List<Track>
+        AnimationHelper.Prepare(AnimationHelper.Key_ListToDetail, SongTitlebutton);
+
+        var supNavTransInfo = new SuppressNavigationTransitionInfo();
+        Type songDetailType = typeof(SongDetailPage);
+        var navParams = new SongDetailNavArgs
         {
-            new Track
-            {
-                Name = "Starlight",
-                Artist = new Artist { Name = "Muse" },
-                Duration = 240000,
-                UserLoved = true,
-            },
-            new Track
-            {
-                Name = "Time",
-                Artist = new Artist { Name = "Pink Floyd" },
-                Duration = 420000,
-                UserLoved = false,
-                NowPlaying = true,
-            }
+            Song = songModelView,
+            ViewModel = MyViewModel,
         };
 
-        foreach (var t in dummyTracks) RecentTracks.Add(t);
-    }
+        FrameNavigationOptions navigationOptions = new FrameNavigationOptions
+        {
+            TransitionInfoOverride = supNavTransInfo,
+            IsNavigationStackEnabled = true
 
-    private void LoadTopTracks()
-    {
-        if (TopTracks.Count > 0) return; // Don't reload if populated
-        TopTracks.Clear();
-        // Add Dummy Top Tracks...
-    }
+        };
 
-    private void LoadLovedTracks()
+        Frame?.NavigateToType(songDetailType, navParams, navigationOptions);
+
+    }
+    Track? trackModel = null;
+    private async void RecentTracksList_Loaded(object sender, RoutedEventArgs e)
     {
-        if (LovedTracks.Count > 0) return;
-        LovedTracks.Clear();
-        // Add Dummy Loved Tracks...
+        if (MyViewModel.SelectedTrack != null)
+        {
+            trackModel = MyViewModel.SelectedTrack;
+            // CLEAN: Handles scrolling, updating layout, finding the image, and starting animation
+           await AnimationHelper.TryStartListReturn(
+                RecentTracksList,
+                trackModel,
+                "coverArtImage",
+                AnimationHelper.Key_DetailToList
+            );
+
+            trackModel = null;
+        }
     }
 }

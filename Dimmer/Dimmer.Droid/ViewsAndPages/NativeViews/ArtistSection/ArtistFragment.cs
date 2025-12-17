@@ -153,7 +153,13 @@ public class ArtistFragment : Fragment
                 Radius = 20,
                 LayoutParameters = new ViewGroup.LayoutParams(300, 300)
             };
-            ((ViewGroup.MarginLayoutParams)card.LayoutParameters).SetMargins(10, 10, 10, 10);
+
+            var t = card.LayoutParameters;
+            if(t is (ViewGroup.MarginLayoutParams))
+            {
+                var s = (ViewGroup.MarginLayoutParams)t;
+                s.SetMargins(10, 10, 10, 10);
+            }
             var txt = new TextView(parent.Context) { Gravity = GravityFlags.Center, TextSize = 12 };
             card.AddView(txt);
             return new VH(card, txt);
@@ -182,7 +188,7 @@ public class ArtistFragment : Fragment
         public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
         {
             (holder as VH).Text.Text = $"{position + 1}. {_songs[position].Title}";
-            holder.ItemView.Click += async (s, e) => await _vm.PlaySong(_songs[position], CurrentPage.AllSongs, _songs);
+            holder.ItemView.Click += async (s, e) => await _vm.PlaySongAsync(_songs[position], CurrentPage.AllSongs, _songs);
         }
         class VH : RecyclerView.ViewHolder { public TextView Text; public VH(View v) : base(v) { Text = (TextView)v; } }
     }

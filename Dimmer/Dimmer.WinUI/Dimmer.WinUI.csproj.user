@@ -11,6 +11,15 @@
     <None Update="Package.appxmanifest">
       <SubType>Designer</SubType>
     </None>
+    <Page Update="Views\WinuiPages\Achievements\SongAchievementsControl.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\Achievements\GlobalAchievementsPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\AlbumSection\AlbumsStats.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Views\WinuiPages\LastFMSection\LastFmPage.xaml">
       <SubType>Designer</SubType>
     </Page>
@@ -27,9 +36,6 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\CustomViews\WinuiViews\MorphContainerView.xaml">
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Update="Views\WinuiPages\CloudDashboardPage.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\WinuiPages\AudioEditorPage.xaml">

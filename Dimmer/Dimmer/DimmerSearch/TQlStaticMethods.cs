@@ -51,6 +51,7 @@ public static class TQlStaticMethods
         // --- Filters with Parameters ---
         public static string ByArtist(string artistName) => $"artist:\"{artistName}\"";
         public static string ByAlbum(string albumName) => $"album:\"{albumName}\"";
+        public static string ExactlyByAlbum(string albumName) => $"album:=\"{albumName}\"";
         public static string ByGenre(string genreName) => $"genre:\"{genreName}\"";
         public static string FromYear(int year) => $"year:>={year}";
 

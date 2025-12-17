@@ -57,22 +57,6 @@ public class QuickSettingsTileService : TileService
         // Optional: Pause expensive updates if any
     }
 
-    private void SendCommandToMediaService(string action)
-    {
-        try
-        {
-            Intent serviceIntent = new Intent(this, typeof(ExoPlayerService)); // <<< YOUR MEDIA SERVICE
-            serviceIntent.SetAction(action);
-            StartService(serviceIntent); // Or StartForegroundService if appropriate for your media service's needs
-            Log.Debug(TAG, $"Sent command to MediaService: {action}");
-        }
-        catch (Exception ex)
-        {
-            Log.Error(TAG, $"Error sending command '{action}': {ex.Message}");
-            Toast.MakeText(this, $"Error: {action.Split('.').LastOrDefault()}", ToastLength.Short)?.Show();
-        }
-    }
-
     private void LaunchMainActivity()
     {
         Intent mainActivityIntent = new Intent(this, typeof(TransitionActivity)); // <<< YOUR MAIN ACTIVITY
@@ -102,16 +86,6 @@ public class QuickSettingsTileService : TileService
         {
             Log.Error(TAG, $"Error launching MainActivity: {ex.Message}");
         }
-    }
-
-    // --- State Update Logic ---
-
-
-    private static string TruncateString(string value, int maxLength)
-    {
-        if (string.IsNullOrEmpty(value))
-            return string.Empty;
-        return value.Length <= maxLength ? value : value.Substring(0, maxLength - 3) + "...";
     }
 
     public override void OnClick()

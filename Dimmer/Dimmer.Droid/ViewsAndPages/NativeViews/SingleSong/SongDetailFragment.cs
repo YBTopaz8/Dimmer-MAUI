@@ -72,6 +72,13 @@ public class SongDetailFragment : Fragment
         {
             CollapseMode = CollapsingToolbarLayout.LayoutParams.CollapseModeParallax
         };
+        var androidDomColor = _viewModel.SelectedSecondDominantColor;
+        if (androidDomColor is not null)
+        {
+            var domCol = androidDomColor.ToHex();
+            _collapsingToolbar.SetBackgroundColor(Color.ParseColor(domCol));
+            _heroImage.SetBackgroundColor(Color.ParseColor(domCol));
+        }
         _collapsingToolbar.AddView(_heroImage, imgParams);
 
         if (!string.IsNullOrEmpty(_song?.CoverImagePath))
@@ -99,7 +106,9 @@ public class SongDetailFragment : Fragment
 
         // This behavior ensures the Linear Layout sits BELOW the AppBar and scrolls with it
         var contentParams = (CoordinatorLayout.LayoutParams)contentLinear.LayoutParameters;
-        contentParams.Behavior = new AppBarLayout.ScrollingViewBehavior();
+        var scrollBehav = new AppBarLayout.ScrollingViewBehavior(); 
+        
+        contentParams.Behavior = scrollBehav;
 
         // TabLayout
         _tabLayout = new TabLayout(ctx);
@@ -109,8 +118,7 @@ public class SongDetailFragment : Fragment
         _tabLayout.TabMode = TabLayout.ModeScrollable; // Allows many tabs
         _tabLayout.SetSelectedTabIndicatorColor(Color.ParseColor("#6750A4")); // MD3 Purple
         _tabLayout.SetTabTextColors(Color.Gray, Color.White);
-        _tabLayout.SetBackgroundColor(Color.ParseColor("#121212")); // Match background
-
+       
         // ViewPager
         _viewPager = new ViewPager2(ctx);
         _viewPager.LayoutParameters = new LinearLayout.LayoutParams(
@@ -126,25 +134,28 @@ public class SongDetailFragment : Fragment
         // --- 3. Logic Wiring ---
         var adapter = new SongDetailPagerAdapter(this, _viewModel);
         _viewPager.Adapter = adapter;
+        
 
         new TabLayoutMediator(_tabLayout, _viewPager, new TabStrategy()).Attach();
 
         
-        // --- 4. CINEMATIC INTERACTION (Fixed) ---
-        // Use C# Events instead of a custom Java class to avoid build errors
         _tabLayout.TabSelected += (s, e) =>
         {
             var tab = e.Tab;
-            if (tab.Position != 0)
+            if (tab != null)
             {
-                // Collapse header and change title
-                _appBarLayout.SetExpanded(false, true);
-                _collapsingToolbar.Title = tab.Text;
-            }
-            else
-            {
-                // Reset to Song Title if Overview
-                _collapsingToolbar.Title = _song?.Title;
+                if (tab.Position != 0)
+                {
+                    // Collapse header and change title
+                    _appBarLayout.SetExpanded(false, true);
+                    _collapsingToolbar.Title = tab.Text;
+                }
+                else
+                {
+                    _appBarLayout.SetExpanded(true, true);
+
+                    _collapsingToolbar.Title = $"{_song?.Title} • {_song?.ArtistName}";
+                }
             }
         };
 
@@ -185,4 +196,5 @@ class SongDetailPagerAdapter : FragmentStateAdapter
         3 => new SongRelatedFragment(_vm), 
         _ => new Fragment()
     };
+    
 }

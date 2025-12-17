@@ -1,4 +1,6 @@
-﻿namespace Dimmer.Utilities.StatsUtils;
+﻿using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
+
+namespace Dimmer.Utilities.StatsUtils;
 
 
 public static class EmbeddedArtValidator
@@ -10,17 +12,35 @@ public static class EmbeddedArtValidator
     // Main API — returns the first valid embedded picture or null.
     public static PictureInfo? GetValidEmbeddedPicture(string audioPath)
     {
-        if (string.IsNullOrWhiteSpace(audioPath) || !File.Exists(audioPath))
+        if (string.IsNullOrWhiteSpace(audioPath) || !TaggingUtils.FileExists(audioPath))
             return null;
 
-        long fileLen;
-        try { fileLen = new FileInfo(audioPath).Length; }
-        catch { return null; }
+        long fileLen = TaggingUtils.GetFileSize(audioPath);
+        if (fileLen == 0) return null;
+
 
         try
         {
-            var track = new Track(audioPath);
-            var pics = track.EmbeddedPictures; // ATL lazy-loads these
+            IList<PictureInfo>? pics = null;
+            Track? track = null ;
+            if (audioPath.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
+            {
+                if (TaggingUtils.PlatformGetStreamHook != null)
+                {
+                    using (var fileStream = TaggingUtils.PlatformGetStreamHook(audioPath))
+                    {
+                        track = new Track(fileStream);
+                        pics = track.EmbeddedPictures.ToList();
+                    }
+                }
+            }
+            else
+            {
+                track= new Track(audioPath);
+                pics = track.EmbeddedPictures.ToList();
+            }
+
+               
 
             if (pics is null || pics.Count == 0) return null;
 
@@ -30,9 +50,9 @@ public static class EmbeddedArtValidator
                     return p;
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Swallow: caller just wants "null if invalid/unreadable"
+            System.Diagnostics.Debug.WriteLine($"Failed to read embedded pic: {ex.Message}");
         }
         return null;
     }

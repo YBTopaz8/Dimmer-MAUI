@@ -28,7 +28,7 @@
     Shell.NavBarIsVisible="False">
 
     <ContentPage.Resources>
-        <converters:DurationConverterFromMsToTimeSpan x:Key="DurationConverter" />
+        <converters:DurationConverterFromSecondsToTimeSpan x:Key="DurationConverter" />
         <converters:BytesToMegabytesConverter x:Key="FileSizeConverter" />
         <converters:BytesArrayToImageSource x:Key="BytesToImageConverter" />
         <converters:BoolToInverseConverter x:Key="BoolToInverse" />
@@ -47,16 +47,17 @@
     </ContentPage.Resources>
     <ScrollView x:Name="MainScrollView" VerticalScrollBarVisibility="Default">
 
-        <Grid RowDefinitions="auto,*,auto,*">
+        <Grid RowDefinitions="*,*,auto,auto">
             <Image
                 Grid.Row="0"
                 Grid.RowSpan="3"
                 Aspect="AspectFit"
                 BackgroundColor="Transparent"
                 HorizontalOptions="Center"
-                Opacity="0.05"
+                Opacity="0.10"
                 Source="{Binding CurrentPlayingSongView.CoverImagePath, Converter={converters:PathToImageConverter}}"
-                ToolTipProperties.Text="Click to view song details" />
+                ToolTipProperties.Text="Click to view song details"
+                VerticalOptions="Center" />
             <VerticalStackLayout
                 Grid.Row="0"
                 Margin="10,5"
@@ -65,6 +66,12 @@
                 <Label IsVisible="{Binding IsAppScanning}" Text="{Binding LatestAppLog.Log}" />
                 <HorizontalStackLayout HorizontalOptions="End" Spacing="10">
 
+                    <Button
+                        BackgroundColor="Transparent"
+                        BorderWidth="1"
+                        Clicked="ViewFullStatsClicked"
+                        ImageSource="chart.png"
+                        WidthRequest="60" />
                     <Button
                         BackgroundColor="Transparent"
                         BorderWidth="1"
@@ -90,9 +97,9 @@
                         StrokeThickness="1">
 
                         <ImageButton
-                            Clicked="ImageButton_Clicked"
+                            Clicked="UserLoginClicked"
                             HeightRequest="50"
-                            Loaded="ImageButton_Loaded"
+                            Loaded="UserLoginClicked_Loaded"
                             Source="user.png"
                             WidthRequest="50" />
 
@@ -135,28 +142,6 @@
                         RowDefinitions="auto,*"
                         VerticalOptions="Start">
                         <Grid Grid.Row="0" Margin="5">
-
-                            <Image
-                                x:Name="NowPlayingSong"
-                                Aspect="AspectFit"
-                                BackgroundColor="Transparent"
-                                HeightRequest="210"
-                                HorizontalOptions="Center"
-                                Opacity="1"
-                                Source="{Binding CurrentPlayingSongView.CoverImagePath, Converter={converters:PathToImageConverter}}"
-                                ToolTipProperties.Text="Click to view song details">
-
-                                <Image.Triggers>
-                                    <DataTrigger
-                                        Binding="{Binding AllLines, Converter={converters:IsEnumerableNullOrEmptyConverter}}"
-                                        TargetType="Image"
-                                        Value="True">
-                                        <Setter Property="Opacity" Value="1" />
-                                    </DataTrigger>
-
-                                </Image.Triggers>
-                            </Image>
-
 
                             <VerticalStackLayout
                                 x:Name="LyricsSection"
@@ -222,7 +207,6 @@
                             Grid.Row="1"
                             Margin="10"
                             Padding="10"
-                            BackgroundColor="Transparent"
                             Spacing="5">
                             <Button
                                 BackgroundColor="Transparent"

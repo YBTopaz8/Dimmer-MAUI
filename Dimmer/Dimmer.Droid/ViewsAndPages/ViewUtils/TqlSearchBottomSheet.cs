@@ -12,7 +12,7 @@ public class TqlSearchBottomSheet : BottomSheetDialogFragment
     private readonly BaseViewModelAnd _viewModel;
     private TextInputEditText _searchInput = null!;
     private ObservableCollection<string> _suggestions = new();
-
+    private System.Timers.Timer? _debounceTimer;
     public TqlSearchBottomSheet(BaseViewModelAnd viewModel)
     {
         _viewModel = viewModel;
@@ -23,6 +23,21 @@ public class TqlSearchBottomSheet : BottomSheetDialogFragment
         base.OnCreate(savedInstanceState);
         // Style to ensure rounded corners and proper keyboard handling
         SetStyle(StyleNormal, Resource.Style.ThemeOverlay_Material3_BottomSheetDialog);
+
+        _debounceTimer = new System.Timers.Timer(400); // Wait 400ms after typing stops
+        _debounceTimer.AutoReset = false;
+        _debounceTimer.Elapsed += (s, e) =>
+        {
+            
+
+            _searchInput?.Post(() =>
+            {
+                if (_searchInput == null || !_searchInput.IsAttachedToWindow) return;
+
+                var text = _searchInput.Text?.ToString();
+                ExecuteSearch(text);
+            });
+        };
     }
 
     public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
@@ -74,8 +89,8 @@ public class TqlSearchBottomSheet : BottomSheetDialogFragment
 
         AddChip(chipGroup, "Shuffle", "shuffle ");
         AddChip(chipGroup, "Artist", "artist:");
-        AddChip(chipGroup, "Year", "year:>");
-        AddChip(chipGroup, "Favs", "fav:true ");
+        AddChip(chipGroup, "Album", "album:>");
+        AddChip(chipGroup, "My Fav", "fav:true ");
         AddChip(chipGroup, "Recently Added", "added:today ");
 
         hScroll.AddView(chipGroup);
@@ -96,13 +111,9 @@ public class TqlSearchBottomSheet : BottomSheetDialogFragment
         _searchInput.TextChanged += (s, e) =>
         {
             var text = e.Text?.ToString() ?? "";
-            var cursor = _searchInput.SelectionStart;
-
-            // Call your existing logic
-            // Note: You might need to expose your live data collections from ViewModel or pass them in
-            // For now, assuming you have access to the data needed for AutocompleteEngine
-            _viewModel.SearchSongForSearchResultHolder(text); // Optional: live search as you type
-            UpdateSuggestions(text, cursor);
+            _debounceTimer?.Stop();
+            _debounceTimer?.Start();
+            UpdateSuggestions(text, _searchInput.SelectionStart);
         };
 
         // Editor Action (Enter/Search key)
@@ -174,7 +185,14 @@ public class TqlSearchBottomSheet : BottomSheetDialogFragment
         _suggestions.Clear();
         foreach (var item in results) _suggestions.Add(item);
     }
-
+    public override void OnDestroyView()
+    {
+        base.OnDestroyView();
+        _debounceTimer?.Stop();
+        _debounceTimer?.Dispose();
+        _debounceTimer = null;
+        _searchInput = null!;
+    }
     private void OnSuggestionClicked(string suggestion)
     {
         // Replace current word with suggestion

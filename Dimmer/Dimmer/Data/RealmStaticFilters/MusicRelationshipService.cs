@@ -1,4 +1,6 @@
-﻿namespace Dimmer.Data.RealmStaticFilters;
+﻿using System.Linq;
+
+namespace Dimmer.Data.RealmStaticFilters;
 
 public class MusicRelationshipService
 {
@@ -207,7 +209,7 @@ public class MusicRelationshipService
         // bypassing the broken Realm query provider.
         //
         var firstEvent = allEventsInMemory
-            .Where(e => e.SongId.HasValue && artistSongIds.Contains(e.SongId.Value))
+            .Where(e => e.SongId.HasValue && artistSongIds.Contains((ObjectId)e.SongId))
             .OrderBy(e => e.DatePlayed)
             .FirstOrDefault();
         // ========================================================================
