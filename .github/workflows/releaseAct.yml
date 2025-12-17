@@ -89,17 +89,21 @@ jobs:
               exit 1
           }
 
+
       # 5. PATCH CSPROJ PATHS 
       - name: Fix Dependency Paths
         shell: pwsh
         run: |
           Get-ChildItem -Recurse -Filter *.csproj | ForEach-Object {
             $content = Get-Content $_.FullName
-            $content = $content -replace '(\.\.\\)+Last.fm', '..\ExternalDeps\Last.fm'
-            $content = $content -replace '(\.\.\\)+Parse-LiveQueries-DOTNET', '..\ExternalDeps\Parse-LiveQueries-DOTNET'
-            $content = $content -replace '(\.\.\\)+atldotnet-main', '..\ExternalDeps\atldotnet-main'
-            $content = $content -replace '(\.\.\\)+AudioSwitcher-master', '..\ExternalDeps\AudioSwitcher-master'
+            
+            $content = $content -replace '(\.\.\\)+Last.fm', "$depsPath\Last.fm"
+            $content = $content -replace '(\.\.\\)+Parse-LiveQueries-DOTNET', "$depsPath\Parse-LiveQueries-DOTNET"
+            $content = $content -replace '(\.\.\\)+atldotnet-main', "$depsPath\atldotnet-main"
+            $content = $content -replace '(\.\.\\)+AudioSwitcher-master', "$depsPath\AudioSwitcher-master"
+            
             Set-Content $_.FullName $content
+            Write-Host "Patched: $($_.Name)"
           }
 
       # 6. SETUP .NET
