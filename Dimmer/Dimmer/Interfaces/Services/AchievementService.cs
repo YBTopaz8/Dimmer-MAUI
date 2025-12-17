@@ -212,7 +212,14 @@ public class AchievementService : IDisposable
             }
             else
             {
-                stats.UnlockedGlobalAchievements.Add(rule);
+                if(stats.UnlockedGlobalAchievements.Contains(rule))
+                {
+                    // Already unlocked, do nothing
+                }
+                else
+                {
+                    stats.UnlockedGlobalAchievements.Add(rule);
+                }
             }
         });
 
