@@ -8,6 +8,7 @@ using Bumptech.Glide;
 
 using Dimmer.DimmerAudio;
 using Dimmer.ViewsAndPages.NativeViews.Misc;
+using Dimmer.WinUI.UiUtils;
 
 using Google.Android.Material.Chip;
 
@@ -71,7 +72,7 @@ public partial class NowPlayingFragment : Fragment
         {
             LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent)
         };
-        root.SetBackgroundColor(IsDark() ? Android.Graphics.Color.ParseColor("#1E1E1E") : Android.Graphics.Color.White);
+        root.SetBackgroundColor(UiBuilder.IsDark(this.Resources.Configuration) ? Android.Graphics.Color.ParseColor("#1E1E1E") : Android.Graphics.Color.White);
         _rootView = root;
 
         // 1. Build Mini Player (Visible when collapsed)
@@ -96,7 +97,7 @@ public partial class NowPlayingFragment : Fragment
             WeightSum = 10
         };
         layout.SetPadding(20, 10, 20, 10);
-        layout.SetBackgroundColor(IsDark() ? Android.Graphics.Color.ParseColor("#2D2D2D") : Android.Graphics.Color.LightGray);
+        layout.SetBackgroundColor(UiBuilder.IsDark(this.Resources.Configuration) ? Android.Graphics.Color.ParseColor("#2D2D2D") : Android.Graphics.Color.LightGray);
 
 
         // Mini Cover
@@ -447,7 +448,7 @@ public partial class NowPlayingFragment : Fragment
         else
         {
             btn.SetBackgroundColor(Android.Graphics.Color.Transparent);
-            btn.IconTint = Android.Content.Res.ColorStateList.ValueOf(IsDark() ? Android.Graphics.Color.White : Android.Graphics.Color.Black);
+            btn.IconTint = Android.Content.Res.ColorStateList.ValueOf(UiBuilder.IsDark(this.Resources.Configuration) ? Android.Graphics.Color.White : Android.Graphics.Color.Black);
             btn.StrokeWidth = AppUtil.DpToPx(1);
             btn.StrokeColor = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.Gray);
         }
@@ -598,5 +599,5 @@ public partial class NowPlayingFragment : Fragment
         _expandedContainer.Visibility = _expandedContainer.Alpha <= 0 ? ViewStates.Invisible : ViewStates.Visible;
     }
 
-    private bool IsDark() => (Resources.Configuration.UiMode & Android.Content.Res.UiMode.NightMask) == Android.Content.Res.UiMode.NightYes;
+  
 }

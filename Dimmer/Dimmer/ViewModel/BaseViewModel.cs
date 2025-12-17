@@ -5257,6 +5257,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial bool IsLyricsSearchBusy { get; set; }
 
     [ObservableProperty]
+    public partial bool IsLyricsFound { get; set; }
+
+    [ObservableProperty]
     public partial bool IsReconcilingLibrary { get; set; }
 
 
@@ -5265,7 +5268,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     {
         if (SelectedSong == null)
             return;
-
+        IsLyricsFound = false;
         IsLyricsSearchBusy = true;
         LyricsSearchResults.Clear();
 
@@ -5281,9 +5284,15 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 cts.Token);
             if(results == null)
             {
+                IsLyricsSearchBusy = false;
+                IsLyricsFound = false;
+                LyricsSearchResults.Clear();
                 _logger.LogInformation("No lyrics results returned from search for query: {Query}", query);
                 return;
             }
+
+            IsLyricsSearchBusy = false;
+            IsLyricsFound = true;
             foreach (var result in results)
             {
                 LyricsSearchResults.Add(result);
@@ -5296,8 +5305,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             if (LyricsSearchResults.Count == 0)
             {
                 _logger.LogInformation("No lyrics found for the search query: {Query}", query);
-                await Shell.Current
-                    .DisplayAlert("No Results", "No lyrics found for the specified search criteria.", "OK");
+
+                LyricsSearchResults.Clear();
+                //await Shell.Current
+                //    .DisplayAlert("No Results", "No lyrics found for the specified search criteria.", "OK");
             }
             else
             {
@@ -5307,24 +5318,14 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     query);
             }
 
-            await Shell.Current
-                .DisplayAlert("Search Complete", $"Found {LyricsSearchResults.Count} results for '{query}'", "OK");
-
-
-            LyricsArtistNameSearch = string.Empty;
-            LyricsAlbumNameSearch = string.Empty;
-            LyricsTrackNameSearch = string.Empty;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to search for lyrics online.");
 
-
-            await Shell.Current.DisplayAlert("Error", "Failed to search for lyrics. Please try again later.", "OK");
         }
         finally
         {
-            IsLyricsSearchBusy = false;
         }
     }
 
@@ -5347,10 +5348,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         if (!string.IsNullOrWhiteSpace(title)) searchParts.Add(title);
         if (!string.IsNullOrWhiteSpace(artist)) searchParts.Add(artist);
-        // Optional: Only add album if the others are too short, or maybe exclude it entirely for lyrics
-        // if (!string.IsNullOrWhiteSpace(validAlbum)) searchParts.Add(validAlbum); 
-
-        // 3. Join and Return
+      
         return string.Join(" ", searchParts).Trim();
     }
     [RelayCommand]
@@ -5360,7 +5358,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         // Now we explicitly update the UI properties because the user ASKED for it
         LyricsTrackNameSearch = CleanSongTitle(SelectedSong.Title);
-        LyricsArtistNameSearch = GetPrimaryArtist(SelectedSong.ArtistName);
+        LyricsArtistNameSearch = GetPrimaryArtist(SelectedSong.OtherArtistsName);
 
         var rawAlbum = SelectedSong.AlbumName;
         LyricsAlbumNameSearch = !IsGenericAlbumName(rawAlbum) ? rawAlbum : string.Empty;
@@ -5446,8 +5444,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             SelectedSong.HasLyrics = SelectedSong.HasSyncedLyrics || (!string.IsNullOrEmpty(selectedResult.PlainLyrics) && selectedResult.PlainLyrics.Length > 10);
             _logger.LogInformation("Lyrics selected and saved for song '{SongTitle}'", SelectedSong.Title);
 
-
-            //SelectedSongLyricsObsCol = LyricsMgtFlow.GetListLyricsCol(selectedResult.SyncedLyrics).ToObservableCollection();
+            
             LyricsSearchResults.Clear();
             
         }
@@ -5855,8 +5852,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
     [ObservableProperty]
     public partial int SingleSongPageTabIndex { get; set; }
-    [ObservableProperty]
-    public partial bool IsSearchingLyricsOnline { get; set; }
+   
+    
     [RelayCommand]
     public async Task ContributeToLrcLib()
     {
@@ -5869,7 +5866,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             if (!ress) return;
 
             SingleSongPageTabIndex = 1;
-            IsSearchingLyricsOnline = true;
+            
             ListOfPlainLyricsFromLrcLib = await _lyricsMetadataService.GetAllPlainLyricsOnlineAsync(SelectedSong, cts.Token);
             if (ListOfPlainLyricsFromLrcLib is not null)
             {
@@ -5883,7 +5880,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     }
                 }
             }
-            IsSearchingLyricsOnline = false;
+            
             return;
         }
         var syncedLyrics = SelectedSong.SyncLyrics;

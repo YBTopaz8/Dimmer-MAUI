@@ -19,7 +19,7 @@ internal class SongAdapter : RecyclerView.Adapter
     public static Action<View, string, int>? AdapterCallbacks;
     private Context ctx;
     public BaseViewModelAnd MyViewModel;
-    private IList<SongModelView> _songs = Enumerable.Empty<SongModelView>().ToList();
+    private List<SongModelView> _songs = Enumerable.Empty<SongModelView>().ToList();
     private readonly IDisposable _subscription;
     public IList<SongModelView> Songs => _songs;
     private Fragment ParentFragement;
@@ -30,14 +30,14 @@ internal class SongAdapter : RecyclerView.Adapter
 
     public SongModelView GetItem(int position) => Songs.ElementAt(position);
 
+    IObservable<IChangeSet<SongModelView>> sourceStream;
+    IEnumerable<SongModelView> sourceList;
     public SongAdapter(Context ctx, BaseViewModelAnd myViewModel, Fragment pFragment, string songsToWatch = "main")
     {
         ParentFragement = pFragment;
         this.ctx = ctx;
         this.MyViewModel = myViewModel;
 
-        IObservable<IChangeSet<SongModelView>> sourceStream;
-        IEnumerable<SongModelView> sourceList;
 
         if (songsToWatch == "queue")
         {
@@ -91,7 +91,7 @@ internal class SongAdapter : RecyclerView.Adapter
             var song = _songs[position];
             bool isExpanded = position == _expandedPosition;
 
-            songHolder.Bind(song, isExpanded, position, (pos) => ToggleExpand(pos));
+            songHolder.Bind(song, isExpanded,  (pos) => ToggleExpand(pos));
         }
     }
 
@@ -387,7 +387,7 @@ internal class SongAdapter : RecyclerView.Adapter
             };
         }
 
-        public void Bind(SongModelView song, bool isExpanded, int position, Action<int> onExpandToggle)
+        public void Bind(SongModelView song, bool isExpanded, Action<int> onExpandToggle)
         {
             _currentSong = song;
             _expandAction = onExpandToggle;
@@ -471,9 +471,6 @@ internal class SongAdapter : RecyclerView.Adapter
 
 
 
-        ~SongViewHolder()
-        {
-        }
     }
 
     ~SongAdapter()
@@ -537,7 +534,9 @@ internal class SongAdapter : RecyclerView.Adapter
             Console.WriteLine(child.GetType().FullName);
             // get adapter
             var adapter = recycler.GetAdapter() as SongAdapter; // replace SongAdapter with your actual adapter type
+
             var song = adapter?.GetItem(pos); // this assumes your adapter has a GetItem method
+            if (song == null) return false;
 
             SingleTap?.Invoke(pos, child, song); // pass song too if you want
 

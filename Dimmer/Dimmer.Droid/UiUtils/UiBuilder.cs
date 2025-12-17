@@ -37,29 +37,59 @@ public static class UiBuilder
 
         var paramsEdit = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent);
 
-        var editText = new TextInputEditText(layout.Context);
+        var editText = new TextInputEditText(layout.Context!);
         editText.Text = value;
         editText.LayoutParameters = paramsEdit;
 
         if (isMultiLine)
         {
             editText.InputType = Android.Text.InputTypes.TextFlagMultiLine;
-            editText.SetMinLines(3);
+            editText.SetMinLines(2);
             editText.Gravity = GravityFlags.Top;
         }
 
         layout.AddView(editText);
         return layout;
     }
-
-    public static MaterialButton CreateButton(Context context, string text, EventHandler clickAction, bool isOutlined = false)
+    public static bool IsDark(Configuration? CallerFragConfig)
     {
-        int style = isOutlined
-            ? Resource.Style.Widget_Material3_Button_OutlinedButton
-            : Resource.Style.Widget_Material3_Button;
+        if(CallerFragConfig == null) { return false; }
+        return (CallerFragConfig.UiMode & Android.Content.Res.UiMode.NightMask) == Android.Content.Res.UiMode.NightYes;
+    }
 
-        var btn = new MaterialButton(context, null, style) { Text = text };
-        btn.Click += clickAction;
+    public static MaterialButton CreateMaterialButton(Context ctx, Android.Content.Res.Configuration? callerConfig, EventHandler? clickAction=null, bool isPrimary = false, int sizeDp = 50, int? iconRes=null)
+    {
+        
+        var btn = new MaterialButton(ctx);
+        if (iconRes is not null)
+        {
+
+            btn.Icon = AndroidX.Core.Content.ContextCompat.GetDrawable(ctx, (int)iconRes);
+            btn.IconGravity = MaterialButton.IconGravityTextStart;
+        }
+        btn.IconPadding = 0;
+        btn.InsetTop = 0;
+        btn.InsetBottom = 0;
+        
+        var sizePx = AppUtil.DpToPx(sizeDp);
+        btn.LayoutParameters = new LinearLayout.LayoutParams(sizePx, sizePx) { LeftMargin = 20, RightMargin = 20 };
+        btn.CornerRadius = sizePx / 2;
+
+        if (isPrimary)
+        {
+            btn.SetBackgroundColor(Android.Graphics.Color.DarkSlateBlue);
+            btn.IconTint = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.White);
+        }
+        else
+        {
+            btn.SetBackgroundColor(Android.Graphics.Color.Transparent);
+            btn.IconTint = Android.Content.Res.ColorStateList.ValueOf(IsDark(callerConfig) ? Android.Graphics.Color.White : Android.Graphics.Color.Black);
+            btn.StrokeWidth = AppUtil.DpToPx(1);
+            btn.StrokeColor = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.Gray);
+        }
+        if(clickAction is not null)
+            btn.Click += clickAction;
         return btn;
     }
+
 }
