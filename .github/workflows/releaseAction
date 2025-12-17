@@ -1,0 +1,138 @@
+name: Build & Release Native Clients
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+    permissions:
+      contents: write # Needed to upload files to the release
+
+    steps:
+      # 1. CHECKOUT MAIN REPO
+      - name: Checkout Main Repo
+        uses: actions/checkout@v4
+
+      # 2. CHECKOUT DEPENDENCIES
+      - name: Checkout Last.fm
+        uses: actions/checkout@v4
+        with:
+          repository: YBTopaz8/Last.fm
+          path: ExternalDeps/Last.fm
+
+      - name: Checkout ParseLiveQuery
+        uses: actions/checkout@v4
+        with:
+          repository: YBTopaz8/Parse-LiveQueries-DOTNET
+          path: ExternalDeps/Parse-LiveQueries-DOTNET
+
+      - name: Checkout ATL
+        uses: actions/checkout@v4
+        with:
+          repository: Zeugma440/atldotnet
+          path: ExternalDeps/atldotnet-main
+
+      - name: Checkout AudioSwitcher
+        uses: actions/checkout@v4
+        with:
+          repository: xenolightning/AudioSwitcher
+          path: ExternalDeps/AudioSwitcher-master
+
+      # 3. CREATE APPSETTINGS.JSON
+      - name: Create appsettings.json
+        shell: pwsh
+        run: |
+          # Define path relative to the root of the repo
+          $targetPath = "Dimmer/appsettings.json"
+          
+          # Get the secret content
+          $jsonContent = @'
+          ${{ secrets.appsettings }}
+          '@
+          
+          # Write to file
+          Set-Content -Path $targetPath -Value $jsonContent
+          
+          if (Test-Path $targetPath) {
+              Write-Host "✅ appsettings.json created successfully."
+          } else {
+              Write-Error "❌ Failed to create appsettings.json"
+              exit 1
+          }
+
+      # 4. PATCH CSPROJ PATHS 
+      - name: Fix Dependency Paths
+        shell: pwsh
+        run: |
+          Get-ChildItem -Recurse -Filter *.csproj | ForEach-Object {
+            $content = Get-Content $_.FullName
+            $content = $content -replace '(\.\.\\)+Last.fm', '..\ExternalDeps\Last.fm'
+            $content = $content -replace '(\.\.\\)+Parse-LiveQueries-DOTNET', '..\ExternalDeps\Parse-LiveQueries-DOTNET'
+            $content = $content -replace '(\.\.\\)+atldotnet-main', '..\ExternalDeps\atldotnet-main'
+            $content = $content -replace '(\.\.\\)+AudioSwitcher-master', '..\ExternalDeps\AudioSwitcher-master'
+            Set-Content $_.FullName $content
+          }
+
+      # 5. SETUP .NET
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Install MAUI Workloads
+        run: dotnet workload install maui-android maui-windows
+
+      # 6. BUILD WINDOWS (Output to RawBuild\WinUI)
+      - name: Build Windows
+        run: |
+          dotnet publish .\Dimmer.WinUI\Dimmer.WinUI.csproj `
+            -f net9.0-windows10.0.19041.0 `
+            -c Release `
+            -r win-x64 `
+            -p:WindowsPackageType=None `
+            -p:GenerateAppxPackageOnBuild=false `
+            -p:AppxPackageSigningEnabled=false `
+            -p:EnableMrtResourceGeneration=false `
+            --self-contained=false `
+            -o .\RawBuild\WinUI
+
+      # 7. ZIP WINDOWS (From RawBuild to Artifacts)
+      - name: Zip Windows Build
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path .\Artifacts
+          Compress-Archive -Path .\RawBuild\WinUI\* -DestinationPath .\Artifacts\Dimmer-Win-x64.zip
+
+      # 8. BUILD ANDROID (Output to RawBuild\Android)
+      - name: Build Android
+        run: |
+          dotnet publish .\Dimmer.Droid\Dimmer.Droid.csproj `
+            -f net9.0-android `
+            -c Release `
+            -r android-arm64 `
+            -p:AndroidPackageFormat=apk `
+            -o .\RawBuild\Android
+
+      # 9. UPLOAD TO RELEASE (Read from Artifacts & RawBuild)
+      - name: Upload Artifacts to Release
+        uses: softprops/action-gh-release@v1
+        if: github.event_name == 'release'
+        with:
+          files: |
+            .\RawBuild\Android\*.apk
+            .\Artifacts\Dimmer-Win-x64.zip
+
+      # 10. NOTIFY DISCORD
+      - name: Notify Discord
+        uses: Ilshidur/action-discord@master
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        with:
+          args: |
+            ✅ **Dimmer New Release!**
+            **Version:** ${{ github.event.release.tag_name }}
+            
+            Artifacts uploaded successfully.
+            [View Release](${{ github.event.release.html_url }})
