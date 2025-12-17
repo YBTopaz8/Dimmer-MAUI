@@ -1,40 +1,3 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
-# This workflow will build, test, sign and package a WPF or Windows Forms desktop application
-# built on .NET Core.
-# To learn how to migrate your existing application to .NET Core,
-# refer to https://docs.microsoft.com/en-us/dotnet/desktop-wpf/migration/convert-project-from-net-framework
-#
-# To configure this workflow:
-#
-# 1. Configure environment variables
-# GitHub sets default environment variables for every workflow run.
-# Replace the variables relative to your project in the "env" section below.
-#
-# 2. Signing
-# Generate a signing certificate in the Windows Application
-# Packaging Project or add an existing signing certificate to the project.
-# Next, use PowerShell to encode the .pfx file using Base64 encoding
-# by running the following Powershell script to generate the output string:
-#
-# $pfx_cert = Get-Content '.\SigningCertificate.pfx' -Encoding Byte
-# [System.Convert]::ToBase64String($pfx_cert) | Out-File 'SigningCertificate_Encoded.txt'
-#
-# Open the output file, SigningCertificate_Encoded.txt, and copy the
-# string inside. Then, add the string to the repo as a GitHub secret
-# and name it "Base64_Encoded_Pfx."
-# For more information on how to configure your signing certificate for
-# this workflow, refer to https://github.com/microsoft/github-actions-for-desktop-apps#signing
-#
-# Finally, add the signing certificate password to the repo as a secret and name it "Pfx_Key".
-# See "Build the Windows Application Packaging project" below to see how the secret is used.
-#
-# For more information on GitHub Actions, refer to https://github.com/features/actions
-# For a complete CI/CD sample to get started with GitHub Action workflows for Desktop Applications,
-# refer to https://github.com/microsoft/github-actions-for-desktop-apps
 name: Build & Release Native Clients
 
 on:
@@ -45,7 +8,7 @@ on:
     branches:
       - Dev-Official
       - master
-      
+
 jobs:
   build-and-release:
     runs-on: windows-latest
@@ -82,6 +45,7 @@ jobs:
           repository: xenolightning/AudioSwitcher
           path: ExternalDeps/AudioSwitcher-master
           
+      # 3. LOCATE PROJECT FILES (Finds the real paths)
       - name: Locate Project Files
         shell: pwsh
         run: |
@@ -103,12 +67,12 @@ jobs:
           echo "PATH_DROID=$($droid.FullName)" >> $env:GITHUB_ENV
           echo "DIR_CORE=$($core.Directory.FullName)" >> $env:GITHUB_ENV
           
-      # 3. CREATE APPSETTINGS.JSON
+      # 4. CREATE APPSETTINGS.JSON (Uses detected Core Directory)
       - name: Create appsettings.json
         shell: pwsh
         run: |
-          # Define path relative to the root of the repo
-          $targetPath = "Dimmer/appsettings.json"
+          # Use the Core Directory found in the previous step
+          $targetPath = Join-Path "${{ env.DIR_CORE }}" "appsettings.json"
           
           # Get the secret content
           $jsonContent = @'
@@ -119,13 +83,13 @@ jobs:
           Set-Content -Path $targetPath -Value $jsonContent
           
           if (Test-Path $targetPath) {
-              Write-Host "✅ appsettings.json created successfully."
+              Write-Host "✅ appsettings.json created successfully at $targetPath"
           } else {
               Write-Error "❌ Failed to create appsettings.json"
               exit 1
           }
 
-      # 4. PATCH CSPROJ PATHS 
+      # 5. PATCH CSPROJ PATHS 
       - name: Fix Dependency Paths
         shell: pwsh
         run: |
@@ -138,7 +102,7 @@ jobs:
             Set-Content $_.FullName $content
           }
 
-      # 5. SETUP .NET
+      # 6. SETUP .NET
       - name: Setup .NET 9
         uses: actions/setup-dotnet@v4
         with:
@@ -147,10 +111,10 @@ jobs:
       - name: Install MAUI Workloads
         run: dotnet workload install maui-android maui-windows
 
-      # 6. BUILD WINDOWS (Output to RawBuild\WinUI)
+      # 7. BUILD WINDOWS (Uses env.PATH_WINUI)
       - name: Build Windows
         run: |
-          dotnet publish .\Dimmer.WinUI\Dimmer.WinUI.csproj `
+          dotnet publish "${{ env.PATH_WINUI }}" `
             -f net9.0-windows10.0.19041.0 `
             -c Release `
             -r win-x64 `
@@ -161,24 +125,24 @@ jobs:
             --self-contained=false `
             -o .\RawBuild\WinUI
 
-      # 7. ZIP WINDOWS (From RawBuild to Artifacts)
+      # 8. ZIP WINDOWS (From RawBuild to Artifacts)
       - name: Zip Windows Build
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path .\Artifacts
           Compress-Archive -Path .\RawBuild\WinUI\* -DestinationPath .\Artifacts\Dimmer-Win-x64.zip
 
-      # 8. BUILD ANDROID (Output to RawBuild\Android)
+      # 9. BUILD ANDROID (Uses env.PATH_DROID)
       - name: Build Android
         run: |
-          dotnet publish .\Dimmer.Droid\Dimmer.Droid.csproj `
+          dotnet publish "${{ env.PATH_DROID }}" `
             -f net9.0-android `
             -c Release `
             -r android-arm64 `
             -p:AndroidPackageFormat=apk `
             -o .\RawBuild\Android
 
-      # 9. UPLOAD TO RELEASE (Read from Artifacts & RawBuild)
+      # 10. UPLOAD TO RELEASE
       - name: Upload Artifacts to Release
         uses: softprops/action-gh-release@v1
         if: github.event_name == 'release'
@@ -187,15 +151,15 @@ jobs:
             .\RawBuild\Android\*.apk
             .\Artifacts\Dimmer-Win-x64.zip
 
-      # 10. NOTIFY DISCORD
+      # 11. NOTIFY DISCORD
       - name: Notify Discord
         uses: Ilshidur/action-discord@master
+        if: always() # Runs even if build fails, so you know why
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         with:
           args: |
-            ✅ **Dimmer New Release!**
-            **Version:** ${{ github.event.release.tag_name }}
+            Build Status: **${{ job.status }}**
+            Version: ${{ github.event.release.tag_name || 'Manual/Push' }}
             
-            Artifacts uploaded successfully.
-            [View Release](${{ github.event.release.html_url }})
+            [View Run Logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
