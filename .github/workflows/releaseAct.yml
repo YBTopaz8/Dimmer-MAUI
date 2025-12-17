@@ -119,6 +119,23 @@ jobs:
       - name: Install MAUI Workloads
         run: dotnet workload install maui-android maui-windows
 
+      - name: Disable AudioSwitcher Signing
+        shell: pwsh
+        run: |
+          # Find all AudioSwitcher csproj files
+          Get-ChildItem -Recurse -Filter "AudioSwitcher*.csproj" | ForEach-Object {
+            $content = Get-Content $_.FullName
+            
+            # Remove the <AssemblyOriginatorKeyFile> line
+            $content = $content -replace '<AssemblyOriginatorKeyFile>.*?</AssemblyOriginatorKeyFile>', ''
+            
+            # Force SignAssembly to false just in case
+            $content = $content -replace '<SignAssembly>true</SignAssembly>', '<SignAssembly>false</SignAssembly>'
+            
+            Set-Content $_.FullName $content
+            Write-Host "✅ Disabled signing in: $($_.Name)"
+          }
+
       # 7. BUILD WINDOWS (Uses env.PATH_WINUI)
       - name: Build Windows
         run: |
