@@ -190,6 +190,14 @@ jobs:
             -r android-arm64 `
             -p:AndroidPackageFormat=apk `
             -o .\RawBuild\Android
+            
+      - name: List Build Files
+        shell: pwsh
+        run: |
+          Write-Host "--- Checking Android ---"
+          Get-ChildItem -Recurse .\RawBuild\Android
+          Write-Host "--- Checking Artifacts ---"
+          Get-ChildItem -Recurse .\Artifacts
       
       # 12. UPLOAD ARTIFACTS TO ACTIONS (History)
       - name: Upload Build Artifacts
@@ -197,8 +205,8 @@ jobs:
         with:
           name: Dimmer-Builds-${{ env.NEW_TAG }}
           path: |
-            .\RawBuild\Android\*.apk
-            .\Artifacts\Dimmer-Win-x64.zip
+            RawBuild/Android/*.apk
+            Artifacts/Dimmer-Win-x64.zip
             
       # ----------------------------------------------------------------
       # 13. PUSH TAG & RELEASE (Only if builds succeeded)
@@ -211,8 +219,8 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            .\RawBuild\Android\*.apk
-            .\Artifacts\Dimmer-Win-x64.zip
+            RawBuild/Android/*.apk
+            Artifacts/Dimmer-Win-x64.zip
       
       # 14. NOTIFY DISCORD
       - name: Notify Discord
