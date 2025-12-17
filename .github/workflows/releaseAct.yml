@@ -94,6 +94,10 @@ jobs:
       - name: Fix Dependency Paths
         shell: pwsh
         run: |
+        
+          $depsPath = Join-Path $env:GITHUB_WORKSPACE "ExternalDeps"
+          Write-Host "Pointing dependencies to: $depsPath"
+          
           Get-ChildItem -Recurse -Filter *.csproj | ForEach-Object {
             $content = Get-Content $_.FullName
             
