@@ -11,6 +11,8 @@ using Microsoft.Extensions.Configuration;
 
 using Parse.LiveQuery;
 
+using static Dimmer.DimmerLive.Orchestration.ParseSetup;
+
 namespace Dimmer;
 
 public static class ServiceRegistration
@@ -117,6 +119,10 @@ public static class ServiceRegistration
             services.AddSingleton<IConfiguration>(config);
             // Map the "Lastfm" section to the LastfmSettings class
             services.Configure<LastfmSettings>(config.GetSection("Lastfm"));
+            var parseSection =config.GetSection("Parse");
+            YBParse.ApplicationId = parseSection.GetValue<string>("ApplicationId");
+            YBParse.ServerUri = parseSection.GetValue<string>("ServerUri");
+            YBParse.DotNetKEY = parseSection.GetValue<string>("DotNetKEY");
         }
 
 

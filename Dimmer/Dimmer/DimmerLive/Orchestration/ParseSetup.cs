@@ -11,6 +11,14 @@ using NetworkAccess = Microsoft.Maui.Networking.NetworkAccess;
 namespace Dimmer.DimmerLive.Orchestration;
 public static class ParseSetup
 {
+    public static class YBParse
+    {
+        public static string? ApplicationId { get;  set; } 
+        public static string? ServerUri { get;  set; } 
+        public static string? DotNetKEY { get;  set; } 
+
+
+    }
 
 
     public static bool InitializeParseClient()
@@ -18,11 +26,11 @@ public static class ParseSetup
           try
         {
         
-
+            
             // Validate API Keys
-            if (string.IsNullOrEmpty(ApiKeys.ApplicationId) || // PUT IN YOUR APP ID HERE
-                string.IsNullOrEmpty(ApiKeys.ServerUri) || // PUT IN YOUR ServerUri ID HERE
-                string.IsNullOrEmpty(ApiKeys.DotNetKEY)) // PUT IN YOUR DotNetKEY ID HERE
+            if (string.IsNullOrEmpty(YBParse.ApplicationId) || // PUT IN YOUR APP ID HERE
+                string.IsNullOrEmpty(YBParse.ServerUri) || // PUT IN YOUR ServerUri ID HERE
+                string.IsNullOrEmpty(YBParse.DotNetKEY)) // PUT IN YOUR DotNetKEY ID HERE
                                                          //You can use your Master Key instead of DOTNET but beware as it is the...Master Key
             {
                 Console.WriteLine("Invalid API Keys: Unable to initialize ParseClient.");
@@ -32,9 +40,9 @@ public static class ParseSetup
             // Create ParseClient
             ParseClient client = new ParseClient(new ServerConnectionData
             {
-                ApplicationID = ApiKeys.ApplicationId,
-                ServerURI = ApiKeys.ServerUri,
-                Key = ApiKeys.DotNetKEY,
+                ApplicationID = YBParse.ApplicationId,
+                ServerURI = YBParse.ServerUri,
+                Key = YBParse.DotNetKEY,
 
             }
             );
