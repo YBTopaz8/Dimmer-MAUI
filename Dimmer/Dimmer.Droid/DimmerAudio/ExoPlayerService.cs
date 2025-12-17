@@ -90,6 +90,8 @@ public class ExoPlayerService : MediaSessionService
     public event EventHandler<PlaybackEventArgs>? PlayNextPressed;
     public event EventHandler<PlaybackEventArgs>? PlayPreviousPressed;
 
+    public event EventHandler<double>? VolumeChanged;
+    public event EventHandler<(double newVol,bool isDeviceMuted, int devMavVol)>? DeviceVolumeChanged;
     internal void RaisePlaybackStateChanged(DimmerPlaybackState state) =>
     PlaybackStateChanged?.Invoke(this, new PlaybackEventArgs(CurrentSongContext) { EventType = state });
 
@@ -111,12 +113,20 @@ public class ExoPlayerService : MediaSessionService
     internal void RaisePlayPreviousPressed() =>
         PlayPreviousPressed?.Invoke(this, new PlaybackEventArgs(CurrentSongContext));
 
+    internal void RaiseVolumeChanged(float newVolume) =>
+        VolumeChanged?.Invoke(this, newVolume);
+
+    internal void RaiseOnDeviceVolumeChanged(float newVolume, bool IsMuted)
+    {
+        var devMavVol = GetMaxVolumeLevel();
+        DeviceVolumeChanged?.Invoke(this, (newVolume, IsMuted,devMavVol));
+    }
+
     PlayerNotificationManager? _notifMgr;
     private Runnable? _positionRunnable;
     private MediaController? mediaController;
 
     public ExoPlayerServiceBinder? Binder { get => _binder; set => _binder = value; }
-
 
     public void PrepareNext(SongModelView nextSong)
     {
@@ -141,13 +151,14 @@ public class ExoPlayerService : MediaSessionService
     }
 
 
-    internal static void GetMaxVolumeLevel()
+    internal static int GetMaxVolumeLevel()
     {
         // 1) grab the Android AudioManager
         var audioManager = Platform.AppContext
             .GetSystemService(AudioService) as AudioManager;
-        var ss = audioManager.GetStreamMaxVolume(Android.Media.Stream.Music);
-        Console.WriteLine($"Max Volume Level: {ss}");
+        if (audioManager == null) return 0;
+        return audioManager.GetStreamMaxVolume(Android.Media.Stream.Music);
+        
     }
     public AudioOutputDevice GetCurrentAudioOutputDevice()
     {
@@ -704,7 +715,8 @@ public class ExoPlayerService : MediaSessionService
         }
         public void OnDeviceVolumeChanged(int volume, bool muted)
         {
-
+            
+            service.RaiseOnDeviceVolumeChanged(volume,muted);
             /* Log if needed */
         }
 
@@ -745,14 +757,16 @@ public class ExoPlayerService : MediaSessionService
         public void OnVideoSizeChanged(VideoSize? p0) { /* Video related */ }
         public void OnVolumeChanged(float volume)
         {
-
+            service.RaiseVolumeChanged(volume);
         }
+
         
         public void OnPlayerError(PlaybackException? error)
         {
             // It's crucial to have this method to handle errors.
             // At a minimum, you should log it.
             Console.WriteLine($"[ExoPlayerService] PLAYER ERROR: {error?.Message}");
+            
             // You could also raise a service event here to notify the UI.
         }
 

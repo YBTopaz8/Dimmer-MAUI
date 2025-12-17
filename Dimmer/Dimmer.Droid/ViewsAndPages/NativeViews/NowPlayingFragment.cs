@@ -1,12 +1,17 @@
 ﻿using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 
+using AndroidX.Core.Content;
+using AndroidX.Core.View;
+
 using Bumptech.Glide;
 
-using Dimmer.Utils.UIUtils;
+using Dimmer.DimmerAudio;
 using Dimmer.ViewsAndPages.NativeViews.Misc;
 
 using Google.Android.Material.Chip;
+
+using Kotlin.Jvm;
 
 using ImageButton = Android.Widget.ImageButton;
 using ScrollView = Android.Widget.ScrollView;
@@ -28,8 +33,9 @@ public class NowPlayingFragment : Fragment
     private View _miniPlayerContainer;
     private ImageView _miniCover;
     private TextView _miniTitle, _miniArtist;
-    private ImageButton _miniPlayBtn;
-
+    private MaterialButton _miniPlayBtn;
+    MaterialButton _skipPrevBtn;
+    MaterialButton _skipNextBtn;
     // Expanded Player Views
     private View _expandedContainer;
     private MaterialTextView _expandedTitle;
@@ -49,6 +55,7 @@ public class NowPlayingFragment : Fragment
 
     // State
     private bool _isDraggingSeek = false;
+    private bool _isDraggingVolume;
 
     public NowPlayingFragment(BaseViewModelAnd viewModel)
     {
@@ -91,35 +98,69 @@ public class NowPlayingFragment : Fragment
         layout.SetPadding(20, 10, 20, 10);
         layout.SetBackgroundColor(IsDark() ? Android.Graphics.Color.ParseColor("#2D2D2D") : Android.Graphics.Color.LightGray);
 
+
         // Mini Cover
         var card = new MaterialCardView(ctx) { Radius = AppUtil.DpToPx(8), Elevation = 0 };
         _miniCover = new ImageView(ctx) { };
         _miniCover.SetScaleType(ImageView.ScaleType.CenterCrop);
-        card.AddView(_miniCover, new ViewGroup.LayoutParams(AppUtil.DpToPx(50), AppUtil.DpToPx(50)));
-        layout.AddView(card, new LinearLayout.LayoutParams(AppUtil.DpToPx(50), AppUtil.DpToPx(50)) { Gravity = GravityFlags.CenterVertical });
+
+        // Set Transition Name
+        var tName = $"sharedImage_{_viewModel.CurrentPlayingSongView.Id}";
+        ViewCompat.SetTransitionName(_miniCover, tName);
+        card.Click += (s, e) =>
+        {
+            string? tName = ViewCompat.GetTransitionName(_miniCover);
+            if (tName != null)
+            {
+                _viewModel.SelectedSong = _viewModel.CurrentPlayingSongView;
+                _viewModel.NavigateToSingleSongPageFromHome(this, tName, _miniCover);
+            }
+        }
+        ;
+
+        card.AddView(_miniCover, new ViewGroup.LayoutParams(AppUtil.DpToPx(60), AppUtil.DpToPx(60)));
+       
+
+        layout.AddView(card, new LinearLayout.LayoutParams(AppUtil.DpToPx(60), AppUtil.DpToPx(60)) { Gravity = GravityFlags.CenterVertical });
+
 
         // Text Info
         var textStack = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
         textStack.SetPadding(30, 0, 0, 0);
-        _miniTitle = new TextView(ctx) { TextSize = 16, Typeface = Android.Graphics.Typeface.DefaultBold, Ellipsize = Android.Text.TextUtils.TruncateAt.Marquee };
+        _miniTitle = new TextView(ctx) { TextSize = 18, Typeface = Android.Graphics.Typeface.DefaultBold, Ellipsize = Android.Text.TextUtils.TruncateAt.Marquee };
         _miniTitle.SetSingleLine(true);
         _miniTitle.Selected = true; // For marquee
 
-        _miniArtist = new TextView(ctx) { TextSize = 12, Alpha = 0.7f };
+        _miniArtist = new TextView(ctx) { TextSize = 14, Alpha = 0.7f };
         textStack.AddView(_miniTitle);
         textStack.AddView(_miniArtist);
 
-        var textParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 7f) { Gravity = GravityFlags.CenterVertical };
+        var textParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 6f) { Gravity = GravityFlags.CenterVertical };
         layout.AddView(textStack, textParams);
 
-        // Play Button
-        _miniPlayBtn = new ImageButton(ctx) { Background = null };
-        _miniPlayBtn.SetImageResource(Android.Resource.Drawable.IcMediaPlay);
+        
+        _miniPlayBtn= CreateControlButton(ctx, Resource.Drawable.media3_icon_play, 40, true);
         _miniPlayBtn.Click += async (s, e) =>
         {
             await _viewModel.PlayPauseToggleAsync();
         };
-        layout.AddView(_miniPlayBtn, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 2f) { Gravity = GravityFlags.CenterVertical });
+
+        _skipPrevBtn = CreateControlButton(ctx, Resource.Drawable.media3_icon_previous, 30);
+        _skipPrevBtn.Click += async (s, e) =>
+        {
+            await _viewModel.PreviousTrackAsync();
+        };
+        
+        _skipNextBtn = CreateControlButton(ctx,Resource.Drawable.media3_icon_next, 35);
+        _skipNextBtn.Click += async (s, e) =>
+        {
+            await _viewModel.NextTrackAsync();
+        };
+        var lyParams= new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1f) { Gravity = GravityFlags.Right };
+        lyParams.SetMargins(10, 10, 10, 10);
+        layout.AddView(_skipPrevBtn, lyParams);
+        layout.AddView(_miniPlayBtn, lyParams);
+        layout.AddView(_skipNextBtn, lyParams);
 
         return layout;
     }
@@ -223,9 +264,9 @@ public class NowPlayingFragment : Fragment
         controlsRow.SetGravity(GravityFlags.Center);
         controlsRow.SetPadding(0, 20, 0, 40);
 
-        _prevBtn = CreateControlButton(ctx, Android.Resource.Drawable.IcMediaPrevious, 60);
-        _playPauseBtn = CreateControlButton(ctx, Android.Resource.Drawable.IcMediaPlay, 80, true); // Larger, filled
-        _nextBtn = CreateControlButton(ctx, Android.Resource.Drawable.IcMediaNext, 60);
+        _prevBtn = CreateControlButton(ctx, Resource.Drawable.media3_icon_previous, 60);
+        _playPauseBtn = CreateControlButton(ctx, Resource.Drawable.media3_icon_play, 80, true); // Larger, filled
+        _nextBtn = CreateControlButton(ctx, Resource.Drawable.media3_icon_next, 60);
 
         controlsRow.AddView(_prevBtn);
         controlsRow.AddView(_playPauseBtn);
@@ -240,6 +281,10 @@ public class NowPlayingFragment : Fragment
         var volDownIcon = new ImageView(ctx);
         volDownIcon.SetImageResource(Resource.Drawable.volumesmall); // Make sure you have this icon
         volDownIcon.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.Gray);
+        volDownIcon.Click += (s, e) =>
+        {
+            _viewModel.DecreaseVolumeLevel();
+        };
 
         _volumeSlider = new Slider(ctx);
         _volumeSlider.ValueFrom = 0; _volumeSlider.ValueTo = 100;
@@ -248,6 +293,11 @@ public class NowPlayingFragment : Fragment
         var volUpIcon = new ImageView(ctx);
         volUpIcon.SetImageResource(Resource.Drawable.volumeloud); // Make sure you have this icon
         volUpIcon.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.Gray);
+        volUpIcon.Click += (s, e) =>
+        {
+            _viewModel.IncreaseVolumeLevel();
+        };
+
 
         volumeRow.AddView(volDownIcon, new LinearLayout.LayoutParams(AppUtil.DpToPx(24), AppUtil.DpToPx(24)));
         volumeRow.AddView(_volumeSlider, new LinearLayout.LayoutParams(0, -2, 1f)); // Stretch slider
@@ -264,6 +314,11 @@ public class NowPlayingFragment : Fragment
         _currentDeviceBtn = CreatePillButton(ctx, "This Phone", Resource.Drawable.ic_vol_type_speaker_dark);
         // 2. Share Pill
         _shareBtn = CreatePillButton(ctx, "Share", Resource.Drawable.shared);
+        _shareBtn.Click += async (s, e) =>
+        {
+            await _viewModel.ShareSongViewClipboard(_viewModel.CurrentPlayingSongView);
+        };
+
         // 3. Switch Device Pill
         _changeDeviceBtn = CreatePillButton(ctx, "Cast", Resource.Drawable.sharing); // Or 'Change' icon
 
@@ -334,7 +389,24 @@ public class NowPlayingFragment : Fragment
             }
             e.Handled = false;
         };
-
+        
+        _volumeSlider.Touch += async (s, e) =>
+        {
+            switch (e.Event?.Action)
+            {
+                case MotionEventActions.Down: _isDraggingVolume = true; break;
+                case MotionEventActions.Up:
+                case MotionEventActions.Cancel:
+                    _isDraggingVolume = false;
+                    await Task.Delay(350); // delay so the value updates and we now get it to set new vol
+                    var newVolume = (_volumeSlider.Value / 100);
+                    _viewModel.SetVolumeLevel((double)newVolume);
+                    break;
+                default:
+                    break;
+            }
+            e.Handled = false;
+        };
         return scroll;
     }
     private MaterialButton CreatePillButton(Context ctx, string text, int iconRes)
@@ -401,13 +473,28 @@ public class NowPlayingFragment : Fragment
 
                 int iconRes = isPlaying
                     ? Resource.Drawable.media3_icon_pause
-                    : Resource.Drawable.media3_icon_play;
+                    : Resource.Drawable.media3_icon_circular_play;
 
                 // Native Android calls - much safer for local icons
                 _playPauseBtn.SetIconResource(iconRes);
-                _miniPlayBtn.SetImageResource(iconRes);
+                //_miniPlayBtn.Icon = ContextCompat.GetDrawable(Context, iconRes);
+                _miniPlayBtn.SetIconResource(iconRes);
+
+                // Set Transition Name
+                var tName = $"sharedImage_{_viewModel.CurrentPlayingSongView.Id}";
+                ViewCompat.SetTransitionName(_miniCover, tName);
             })
             .DisposeWith(_disposables);
+        Observable.FromEventPattern<(double newVol, bool isDeviceMuted, int devMavVol)>(
+           h => _viewModel.AudioService.DeviceVolumeChanged += h,
+           h => _viewModel.AudioService.DeviceVolumeChanged -= h)
+           .Select(evt => evt.EventArgs)
+           .ObserveOn(RxSchedulers.UI)
+           .Subscribe(UpdateDeviceVolumeChangedUI, ex => Debug.WriteLine("error on vol changed"))
+           .DisposeWith(_disposables);
+    
+
+
 
         // 2. Observe Playback Position (for Slider & Lyrics)
         _viewModel.AudioEnginePositionObservable
@@ -423,7 +510,6 @@ public class NowPlayingFragment : Fragment
                     _currentTimeText.Text = $"{ts.Minutes}:{ts.Seconds:D2}";
                 }
 
-                // Update Lyric Text (Mock logic - replace with real synchronized lyric find)
                 if (_viewModel.CurrentLine != null)
                 {
                     _currentLyricText.Text = _viewModel.CurrentLine.Text;
@@ -436,10 +522,20 @@ public class NowPlayingFragment : Fragment
             })
             .DisposeWith(_disposables);
 
-        // 3. Bind Buttons
-     
+        
+    }
 
+    private void UpdateDeviceVolumeChangedUI((double newVol, bool isDeviceMuted, int devMavVol) tuple)
+    {
+        var newVal = tuple.Item1;
+        var devMaxVol = tuple.Item3;
+        _volumeSlider.ValueTo = devMaxVol;
+        _volumeSlider.Value = (float)newVal;
+    }
 
+    private void UpdateVolumeChangedUI(double obj)
+    {
+        _volumeSlider.ValueTo=(float)obj;
     }
 
     public override void OnPause()
@@ -454,7 +550,7 @@ public class NowPlayingFragment : Fragment
 
         // Mini Player
         _miniTitle.Text = song.Title;
-        _miniArtist.Text = song.ArtistName;
+        _miniArtist.Text = song.OtherArtistsName;
 
         // Expanded Player
         _expandedTitle.Text = song.Title;

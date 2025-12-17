@@ -43,7 +43,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     private IDuplicateFinderService _duplicateFinderService;
 
 
-    
+
 
     public BaseViewModel(
         IDimmerStateService dimmerStateService,
@@ -102,7 +102,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             .Select(evt => evt.EventArgs.IsPlaying)
             .StartWith(false)
             ;
-            
+
 
         AudioEnginePositionObservable = Observable.FromEventPattern<double>(
             h => audioServ.PositionChanged += h,
@@ -151,11 +151,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             .DisposeWith(_subsManager);
     }
 
-
-    
-
-    
-    
     [RelayCommand] void Dump() => Debug.WriteLine($"VM: {InstanceId}");
     [ObservableProperty]
     public partial bool IsAppToDate { get; set; }
@@ -1110,6 +1105,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     private MusicStatsService musicStatsService;
     protected ILogger<BaseViewModel> _logger;
     private IDimmerAudioService _audioService;
+    public IDimmerAudioService AudioService => _audioService;
     private ILibraryScannerService libScannerService;
 
     public CompositeDisposable SubsManager => _subsManager;
@@ -3899,6 +3895,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public void SetVolumeLevel(double newVolume)
     {
         newVolume = Math.Clamp(newVolume, 0.0, 1.0);
+        _audioService.SetVolume(newVolume);
         _logger.LogDebug("SetVolumeLevel called by UI to: {Volume}", newVolume);
     }
 

@@ -394,14 +394,16 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
 
         var byteData = await ShareCurrentPlayingAsStoryInCardLikeGradient(song, true);
+        
+        string clipboardText = $"{song.Title} - {song.ArtistName}\nAlbum: {song.AlbumName}\n\nShared via Dimmer Music Player v{CurrentAppVersion}";
 
         if (byteData.imgBytes != null)
         {
-            string clipboardText = $"{song.Title} - {song.ArtistName}\nAlbum: {song.AlbumName}\n\nShared via Dimmer Music Player v{CurrentAppVersion}";
-
+            
              await Clipboard.Default.SetTextAsync(clipboardText);
 
         }
+      
     }
 
 

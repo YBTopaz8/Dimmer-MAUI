@@ -356,8 +356,11 @@ internal class SongAdapter : RecyclerView.Adapter
                 {
                     _vm.SelectedSong = _currentSong;
                     // Note: Transition name must be updated in Bind, but we can read it from the view here
-                    string tName = ViewCompat.GetTransitionName(_img);
-                    _vm.NavigateToSingleSongPageFromHome(_parentFrag, tName, _img);
+                    string? tName = ViewCompat.GetTransitionName(_img);
+                    if (tName != null)
+                    {
+                        _vm.NavigateToSingleSongPageFromHome(_parentFrag, tName, _img);
+                    }
                 }
             };
 

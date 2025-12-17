@@ -535,9 +535,6 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     {
         if (!IsAdded || Activity == null) return;
 
-        MyViewModel.NavigateToSingleSongPageFromHome(
-            this,
-            transitionName, _albumArt);
     }
 
     class MyPreDrawListener : Java.Lang.Object, ViewTreeObserver.IOnPreDrawListener

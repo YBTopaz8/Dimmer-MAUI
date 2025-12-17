@@ -47,6 +47,8 @@ public interface IDimmerAudioService
 
 
     event EventHandler<double>? SeekCompleted;
+    event EventHandler<double>? VolumeChanged;
+    event EventHandler<(double newVol, bool isDeviceMuted, int devMavVol)>? DeviceVolumeChanged;
 
 
 
