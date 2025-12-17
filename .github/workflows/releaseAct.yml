@@ -166,25 +166,44 @@ jobs:
             -r android-arm64 `
             -p:AndroidPackageFormat=apk `
             -o .\RawBuild\Android
-
+      - name: Upload Build Artifacts (For Manual/Push)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Dimmer-Builds-Manual
+          path: |
+            .\RawBuild\Android\*.apk
+            .\Artifacts\Dimmer-Win-x64.zip
+            
       # 10. UPLOAD TO RELEASE
       - name: Upload Artifacts to Release
-        uses: softprops/action-gh-release@v1
-        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v1        
         with:
           files: |
             .\RawBuild\Android\*.apk
             .\Artifacts\Dimmer-Win-x64.zip
-
-      # 11. NOTIFY DISCORD
       - name: Notify Discord
-        uses: Ilshidur/action-discord@master
-        if: always() # Runs even if build fails, so you know why
+        if: always()
+        shell: pwsh
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-        with:
-          args: |
-            Build Status: **${{ job.status }}**
-            Version: ${{ github.event.release.tag_name || 'Manual/Push' }}
-            
-            [View Run Logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+        run: |
+          if (-not $env:DISCORD_WEBHOOK) { Write-Host "No Webhook found"; exit 0 }
+          
+          $status = "${{ job.status }}"
+          if ($status -eq 'success') { $color = 3066993 } else { $color = 15158332 }
+          
+          $body = @{
+            embeds = @(
+              @{
+                title = "Dimmer Build: $status"
+                description = "Event: ${{ github.event_name }}`nRef: ${{ github.ref_name }}"
+                color = $color
+                fields = @(
+                  @{ name = "View Run"; value = "[Click Here](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" }
+                )
+              }
+            )
+          } | ConvertTo-Json -Depth 4
+          
+          Invoke-RestMethod -Uri $env:DISCORD_WEBHOOK -Method Post -ContentType 'application/json' -Body $body
+     
