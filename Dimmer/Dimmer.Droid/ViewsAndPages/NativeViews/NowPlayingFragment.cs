@@ -521,8 +521,14 @@ public class NowPlayingFragment : Fragment
                 }
             })
             .DisposeWith(_disposables);
+        if(_viewModel.IsDimmerPlaying)
+        {
+            if (_playPauseBtn == null || _miniPlayBtn == null) return;
+            _miniPlayBtn.SetIconResource(Resource.Drawable.media3_icon_pause);
+            _playPauseBtn.SetIconResource(Resource.Drawable.media3_icon_pause);
+        }
 
-        
+
     }
 
     private void UpdateDeviceVolumeChangedUI((double newVol, bool isDeviceMuted, int devMavVol) tuple)
@@ -532,7 +538,6 @@ public class NowPlayingFragment : Fragment
         _volumeSlider.ValueTo = devMaxVol;
         _volumeSlider.Value = (float)newVal;
     }
-
     private void UpdateVolumeChangedUI(double obj)
     {
         _volumeSlider.ValueTo=(float)obj;

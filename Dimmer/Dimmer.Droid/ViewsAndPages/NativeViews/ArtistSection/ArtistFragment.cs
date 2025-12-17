@@ -153,7 +153,13 @@ public class ArtistFragment : Fragment
                 Radius = 20,
                 LayoutParameters = new ViewGroup.LayoutParams(300, 300)
             };
-            ((ViewGroup.MarginLayoutParams)card.LayoutParameters).SetMargins(10, 10, 10, 10);
+
+            var t = card.LayoutParameters;
+            if(t is (ViewGroup.MarginLayoutParams))
+            {
+                var s = (ViewGroup.MarginLayoutParams)t;
+                s.SetMargins(10, 10, 10, 10);
+            }
             var txt = new TextView(parent.Context) { Gravity = GravityFlags.Center, TextSize = 12 };
             card.AddView(txt);
             return new VH(card, txt);

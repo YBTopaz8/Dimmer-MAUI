@@ -54,8 +54,12 @@ public class LastfmService : ILastfmService
             throw new InvalidOperationException("Last.fm API Key must be configured in appsettings.json");
         }
 
-        var cacheLocation = Path.Combine(FileSystem.AppDataDirectory, "lastfm_cache");
-        Directory.CreateDirectory(cacheLocation);
+        var cacheLocation = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "lastfm_cache");
+
+        if (!Directory.Exists(cacheLocation))
+        { 
+            Directory.CreateDirectory(cacheLocation);
+        }
 
         _client = new LastfmClient(_settings.ApiKey, _settings.ApiSecret)
         {
@@ -149,6 +153,7 @@ public class LastfmService : ILastfmService
     }
 
     private SongModelView? _songToScrobble; // Internal state
+    private int numberOfTries;
 
 
 
@@ -201,15 +206,32 @@ public class LastfmService : ILastfmService
 
     public void LoadSession()
     {
-        var sessionKey = Preferences.Get("LastfmSessionKey", string.Empty);
-        var username = Preferences.Get("LastfmUsername", string.Empty);
-
-        if (!string.IsNullOrEmpty(sessionKey) && !string.IsNullOrEmpty(username))
+        try
         {
-            _client.Session.SessionKey = sessionKey;
-            _username = username;
-            _isAuthenticatedSubject.OnNext(true);
+
+            var sessionKey = Preferences.Default.Get("LastfmSessionKey", string.Empty);
+            var username = Preferences.Default.Get("LastfmUsername", string.Empty);
+
+            if (!string.IsNullOrEmpty(sessionKey) && !string.IsNullOrEmpty(username))
+            {
+                _client.Session.SessionKey = sessionKey;
+                _username = username;
+                _isAuthenticatedSubject.OnNext(true);
+            }
         }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message); 
+            _ = Task.Run(async ()
+                =>
+            {
+                numberOfTries++;
+                if (numberOfTries > 5) return;
+                await Task.Delay(4000);
+                LoadSession();
+            });
+        }
+       
     }
 
     private void ClearSession()

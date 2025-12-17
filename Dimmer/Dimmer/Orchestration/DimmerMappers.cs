@@ -650,7 +650,7 @@ public static class DimmerMappers
         // Custom AfterMap Logic from your config
         if (src.SongsLinkingToThisEvent != null && src.SongsLinkingToThisEvent.Any())
         {
-            var concernedSong = src.SongsLinkingToThisEvent.FirstOrDefault(x => x.Id == dest.SongId);
+            var concernedSong = src.SongsLinkingToThisEvent.FirstOrDefaultNullSafe();
             if (concernedSong != null)
             {
                 dest.CoverImagePath = string.IsNullOrEmpty(concernedSong.CoverImagePath)

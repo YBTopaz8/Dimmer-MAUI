@@ -44,6 +44,9 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     #endregion
 
+    private readonly BehaviorSubject<SongModelView?> _currentSong = new(null);
+
+    public IObservable<SongModelView?> CurrentSong => _currentSong.AsObservable();
     #region IDimmerAudioService Implementation (Events)
 
     // These events are raised in response to the native service's events.
@@ -260,10 +263,6 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         return Task.CompletedTask;
     }
 
-    public void WatchVolume()
-    {
-        throw new NotImplementedException();
-    }
 
     public Task SetVolume(double volume)
     {

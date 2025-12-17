@@ -506,7 +506,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
              .Commit();
     }
 
-    public void NavigateToArtistPage(Fragment callerFrag, string artistId, string artistName, View sharedImage)
+    public void NavigateToArtistPage(Fragment callerFrag, string artistId, string artistName, View sharedView)
     {
         if (callerFrag == null || !callerFrag.IsAdded) return;
 
@@ -514,8 +514,8 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         CurrentPage = fragment;
 
         // Shared Element (Image Morph)
-        string tName = sharedImage?.TransitionName ?? $"artist_{artistId}";
-        if (sharedImage != null) sharedImage.TransitionName = tName;
+        string tName = sharedView?.TransitionName ?? $"artist_{artistId}";
+        if (sharedView != null) sharedView.TransitionName = tName;
 
         var containerTransform = new MaterialContainerTransform
         {
@@ -537,8 +537,8 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         var trans = callerFrag.ParentFragmentManager.BeginTransaction()
             .SetReorderingAllowed(true);
 
-        if (sharedImage != null)
-            trans.AddSharedElement(sharedImage, tName);
+        if (sharedView != null)
+            trans.AddSharedElement(sharedView, tName);
 
         trans.Replace(Resource.Id.custom_fragment_container, fragment)
              .AddToBackStack($"Artist_{artistId}")

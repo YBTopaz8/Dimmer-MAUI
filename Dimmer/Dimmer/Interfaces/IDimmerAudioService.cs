@@ -75,7 +75,6 @@ public interface IDimmerAudioService
     Task InitializeAsync(SongModelView songModel, double pos);
     Task SetDefaultAsync(AudioOutputDevice device);
     Task MuteDevice(bool mute);
-    void WatchVolume();
     Task SetVolume(double volume);
     double GetCurrentVolume();
     AudioOutputDevice? GetCurrentAudioOutputDevice();
@@ -96,4 +95,5 @@ public interface IDimmerAudioService
     /// Gets or sets the volume of the ambience track (0.0 to 1.0), independent of main volume.
     /// </summary>
     double AmbienceVolume { get; set; }
+    IObservable<SongModelView?> CurrentSong { get; }
 }

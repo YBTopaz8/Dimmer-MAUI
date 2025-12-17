@@ -255,9 +255,13 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         Debug.WriteLine($"{DateTime.Now}: Starting InitializeAllVMCoreComponentsAsync...");
 
         realm = RealmFactory.GetRealmInstance();
-        var folders = realm.All<AppStateModel>().FirstOrDefault()?.Freeze().UserMusicFoldersPreference.ToList();
+        var stateApp = realm.All<AppStateModel>().FirstOrDefaultNullSafe();
+        if(stateApp is not null)
+        {
+           FolderPaths= stateApp.Freeze().UserMusicFoldersPreference.ToObservableCollection();
 
-       
+        }
+
         Debug.WriteLine($"{DateTime.Now}: Folder monitoring started.");
 
         //SubscribeToCommandEvaluatorEvents();
@@ -489,7 +493,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _ = Task.Run(async () =>
         {
             await OnAppOpening();
-            await HeavierBackGroundLoadings(folders);
+            await HeavierBackGroundLoadings(FolderPaths);
             await EnsureAllCoverArtCachedForSongsAsync();
         });
 
@@ -497,7 +501,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         return;
     }
 
-    private async Task HeavierBackGroundLoadings(List<string>? folders)
+    private async Task HeavierBackGroundLoadings(IEnumerable<string>? folders)
     {
         try
         {            
@@ -506,7 +510,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             // 2. Perform the slow initial scan in the background
 
-            if (folders is not null && folders.Count != 0)
+            if (folders is not null && folders.Any())
             {
                 //_ = await libScannerService.ScanLibrary(folders);
             }
@@ -836,12 +840,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             var realm = RealmFactory.GetRealmInstance();
             // Use FirstOrDefault() to be safer and slightly more efficient than .ToList()
-            var appModel = realm.All<AppStateModel>().FirstOrDefault();
+            var appModel = realm.All<AppStateModel>().FirstOrDefaultNullSafe();
 
             // get last dimmerevent
 
             //await LoadLastPlaybackSession();
-            var lastAppEvent = realm.All<DimmerPlayEvent>().LastOrDefault();
+            var lastAppEvent = realm.All<DimmerPlayEvent>().LastOrDefaultNullSafe();
             if (appModel != null && appModel.Id != ObjectId.Empty)
             {
                 
@@ -988,25 +992,23 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         realm.Write(
             () =>
             {
-                var existingSettings = realm.All<AppStateModel>().ToList();
-                if (existingSettings != null)
+                var setting = realm.All<AppStateModel>().LastOrDefaultNullSafe();
+                
+                if (setting != null)
                 {
-                    var setting = existingSettings.FirstOrDefault();
-                    if (setting != null)
-                    {
-                        setting.IsDarkModePreference = CurrentTheme == CurrentAppTheme.Dark;
-                        setting.AppTheme = (int)CurrentTheme;
-                    }
-                    else
-                    {
-                        setting = new AppStateModel
-                        {
-                            IsDarkModePreference = Application.Current?.UserAppTheme == AppTheme.Dark
-                        };
-                    }
-
-                    realm.Add(setting);
+                    setting.IsDarkModePreference = CurrentTheme == CurrentAppTheme.Dark;
+                    setting.AppTheme = (int)CurrentTheme;
                 }
+                else
+                {
+                    setting = new AppStateModel
+                    {
+                        IsDarkModePreference = Application.Current?.UserAppTheme == AppTheme.Dark
+                    };
+                }
+
+                realm.Add(setting);
+                
             });
         IsDarkModeOn = Application.Current?.UserAppTheme == AppTheme.Dark;
     }
@@ -1609,7 +1611,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             SelectedSecondDominantColor = await ImageResizer.GetDominantMauiColorAsync(newValue.CoverImagePath);
         
-            var lyrics= await _lyricsMetadataService.GetLocalLyricsAsync(newValue);
 
            
         }
@@ -7637,7 +7638,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             SelectedSongLastFMData = null;
             CorrectedSelectedSongLastFMData = null;
 
-            SelectedSecondDominantColor = await ImageResizer.GetDominantMauiColorAsync(SelectedSong.CoverImagePath);
             await LoadSongLastFMDataAsync();
         }
     }

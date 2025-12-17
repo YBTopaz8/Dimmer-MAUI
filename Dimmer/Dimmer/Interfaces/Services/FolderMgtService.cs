@@ -52,8 +52,8 @@ public class FolderMgtService : IFolderMgtService
             StopWatching();
         }
         var realm = realmFactory.GetRealmInstance();
-        var appModel = realm.All<AppStateModel>().FirstOrDefault();
-        var foldersToWatchPaths = appModel?.UserMusicFoldersPreference.Freeze().ToList() ?? new List<string>();
+        var appModel = realm.All<AppStateModel>().FirstOrDefaultNullSafe();
+            var foldersToWatchPaths = appModel?.UserMusicFoldersPreference.Freeze().ToList() ?? new List<string>();
             if (foldersToWatchPaths.Count <= 0)
                 foldersToWatchPaths = paths;
         if (foldersToWatchPaths?.Count==0)
@@ -62,7 +62,7 @@ public class FolderMgtService : IFolderMgtService
             _allFoldersBehaviorSubject.OnNext(Array.Empty<FolderModel>());
             return;
         }
-
+            if (foldersToWatchPaths is null || foldersToWatchPaths.Count < 1) return;
         _logger.LogInformation("Starting to watch folders: {Folders}", string.Join(", ", foldersToWatchPaths));
 
         // check if some paths are actually just subfolders of others and remove them, leaving topmost only
@@ -138,21 +138,19 @@ public class FolderMgtService : IFolderMgtService
         }
         _logger.LogInformation("Updating folder in watch list: {Path}", path);
         var realm = realmFactory.GetRealmInstance();
-        var appModel = realm.All<AppStateModel>().FirstOrDefault();
-        if (appModel != null)
+        var foldersToWatchPaths = realm.All<AppStateModel>().FirstOrDefaultNullSafe()?.UserMusicFoldersPreference;
+        
+        if (foldersToWatchPaths != null)
         {
-            var foldersToWatchPaths = appModel.UserMusicFoldersPreference;
-            if (foldersToWatchPaths != null)
+            var indexx = foldersToWatchPaths.IndexOf(path);
+            if (indexx != -1)
             {
-                var indexx = foldersToWatchPaths.IndexOf(path);
-                if (indexx != -1)
-                {
-                    // For simplicity, we just re-add the same path to trigger any internal updates.
-                    foldersToWatchPaths[indexx] = path;
-                }
-                await StartWatchingConfiguredFoldersAsync();
+                // For simplicity, we just re-add the same path to trigger any internal updates.
+                foldersToWatchPaths[indexx] = path;
             }
+            await StartWatchingConfiguredFoldersAsync();
         }
+        
     }
     public async Task AddFolderToWatchListAndScan(string path)
     {
@@ -195,15 +193,11 @@ public class FolderMgtService : IFolderMgtService
     {
         var newPathsToAdd = new List<string>();
         var realm = realmFactory.GetRealmInstance();
-        var appModelList = realm.All<AppStateModel>().ToList();
-        var appModel = appModelList.FirstOrDefault();
+        var appModel = realm.All<AppStateModel>().FirstOrDefaultNullSafe();
 
         if (appModel == null)
         {
-            appModel = new AppStateModel()
-            {
-
-            };
+            return;
         }
         var knowPaths = appModel.UserMusicFoldersPreference ?? new List<string>();
         await realm.WriteAsync(async () =>

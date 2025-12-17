@@ -261,6 +261,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         base.OnResume();
         
         _isNavigating = false;
+
     }
     public override void OnViewCreated(View view, Bundle? savedInstanceState)
     {
@@ -279,7 +280,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
         var currentlyPlayingIndex = MyViewModel.SearchResults.IndexOf(MyViewModel.CurrentPlayingSongView);
         if (currentlyPlayingIndex >= 0)
-            _songListRecycler?.SmoothScrollToPosition(currentlyPlayingIndex);
+            _songListRecycler?.ScrollToPosition(currentlyPlayingIndex);
 
         MyViewModel.ScrollToCurrentSongRequest
         .ObserveOn(RxSchedulers.UI) // Ensure runs on UI thread
@@ -291,7 +292,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
                 if (index >= 0)
                 {
                     // Smooth scroll looks nicer
-                    _songListRecycler.SmoothScrollToPosition(index);
+                    _songListRecycler.ScrollToPosition(index);
 
                     // Flash the item? (Requires access to ViewHolder, maybe for later)
                 }
@@ -314,7 +315,11 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         })
         .AddItem("Scroll to Playing", Resource.Drawable.eye, () =>
         {
-            MyViewModel.TriggerScrollToCurrentSong();
+
+            var songPos = MyViewModel.SearchResults.IndexOf(MyViewModel.CurrentPlayingSongView);
+            _songListRecycler?.SmoothScrollToPosition(songPos);
+
+            Toast.MakeText(Context, $"Scrolled To Song {MyViewModel.CurrentPlayingSongView.Title}", ToastLength.Short)?.Show();
         })
         .AddItem("View Queue", Resource.Drawable.playlistminimalistic3, () =>
         {
