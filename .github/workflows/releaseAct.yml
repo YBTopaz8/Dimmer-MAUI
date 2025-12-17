@@ -41,7 +41,11 @@ on:
   workflow_dispatch:
   release:
     types: [published]
-
+  push:
+    branches:
+      - Dev-Official
+      - master
+      
 jobs:
   build-and-release:
     runs-on: windows-latest
