@@ -81,7 +81,28 @@ jobs:
         with:
           repository: xenolightning/AudioSwitcher
           path: ExternalDeps/AudioSwitcher-master
+          
+      - name: Locate Project Files
+        shell: pwsh
+        run: |
+          # Find the files anywhere in the repo
+          $winui = Get-ChildItem -Recurse -Filter "Dimmer.WinUI.csproj" | Select-Object -First 1
+          $droid = Get-ChildItem -Recurse -Filter "Dimmer.Droid.csproj" | Select-Object -First 1
+          $core  = Get-ChildItem -Recurse -Filter "Dimmer.csproj" | Select-Object -First 1
 
+          if (-not $winui) { Write-Error " Could not find Dimmer.WinUI.csproj"; exit 1 }
+          if (-not $droid) { Write-Error " Could not find Dimmer.Droid.csproj"; exit 1 }
+          if (-not $core)  { Write-Error " Could not find Dimmer.csproj (Core)"; exit 1 }
+
+          Write-Host " Found WinUI: $($winui.FullName)"
+          Write-Host " Found Droid: $($droid.FullName)"
+          Write-Host " Found Core:  $($core.FullName)"
+
+          # Save paths to Environment Variables
+          echo "PATH_WINUI=$($winui.FullName)" >> $env:GITHUB_ENV
+          echo "PATH_DROID=$($droid.FullName)" >> $env:GITHUB_ENV
+          echo "DIR_CORE=$($core.Directory.FullName)" >> $env:GITHUB_ENV
+          
       # 3. CREATE APPSETTINGS.JSON
       - name: Create appsettings.json
         shell: pwsh
