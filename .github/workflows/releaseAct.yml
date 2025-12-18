@@ -50,15 +50,20 @@ jobs:
           }
 
           $branch = "${{ github.ref_name }}"
+          
           if ($branch -eq 'master') {
              $minor++
              $patch = 0
-             Write-Host "Master: Incrementing Minor"
+             Write-Host "Master: Incrementing Minor (Production Release)"
+             echo "IS_PRE=false" >> $env:GITHUB_ENV
           } elseif ($branch -eq 'Dev-Official') {
              $patch++
-             Write-Host "Dev: Incrementing Patch"
+             Write-Host "Dev: Incrementing Patch (Pre-Release)"
+             echo "IS_PRE=true" >> $env:GITHUB_ENV
           } else {
+             # Fallback for other branches (treat as pre-release)
              $patch++
+             echo "IS_PRE=true" >> $env:GITHUB_ENV
           }
 
           $newTag = "v$major.$minor.$patch"
@@ -217,7 +222,7 @@ jobs:
           tag_name: ${{ env.NEW_TAG }}
           name: Release ${{ env.NEW_TAG }}
           draft: false
-          prerelease: false
+          prerelease: ${{ env.IS_PRE }}
           files: |
             RawBuild/Android/*.apk
             Artifacts/Dimmer-Win-x64.zip
@@ -234,10 +239,14 @@ jobs:
           $status = "${{ job.status }}"
           if ($status -eq 'success') { $color = 3066993 } else { $color = 15158332 }
           
+          # Add Pre-release info to Discord message
+          $type = "Production Release"
+          if ("${{ env.IS_PRE }}" -eq "true") { $type = "Pre-Release" }
+
           $body = @{
             embeds = @(
               @{
-                title = "Dimmer Release: ${{ env.NEW_TAG }}"
+                title = "Dimmer $type: ${{ env.NEW_TAG }}"
                 description = "Status: $status`nBranch: ${{ github.ref_name }}"
                 color = $color
                 fields = @(
