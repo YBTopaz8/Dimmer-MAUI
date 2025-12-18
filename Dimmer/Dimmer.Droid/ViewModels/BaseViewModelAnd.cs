@@ -595,8 +595,6 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             .Commit();
     }
 
-    public void NavigateToPlayQueue(Fragment callerFrag) =>
-        NavigateToGeneralPage(callerFrag, new PlayQueueFragment(this), "PlayQueue");
 
     public void NavigateToLibraryStats(Fragment callerFrag) =>
         NavigateToGeneralPage(callerFrag, new LibraryStatsFragment(this), "LibraryStats");

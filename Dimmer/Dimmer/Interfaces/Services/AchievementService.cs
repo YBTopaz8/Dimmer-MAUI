@@ -137,13 +137,14 @@ public class AchievementService : IDisposable
 
     private void CheckRules(UserStats stats, SongModel song, PlayType type)
     {
-
         var songEarnedSet = new HashSet<AchievementRule>(song.EarnedAchievementIds);
         var globalEarnedSet = new HashSet<AchievementRule>(stats.UnlockedGlobalAchievements);
 
         foreach (var rule in _rules)
         {
-            // Optimization: Skip if already earned
+            // ---------------------------------------------------------
+            // 1. OPTIMIZATION: Skip if already earned
+            // ---------------------------------------------------------
             if (IsSongSpecific((AchievementCategory)rule.Category))
             {
                 if (songEarnedSet.Contains(rule)) continue;
@@ -153,39 +154,71 @@ public class AchievementService : IDisposable
                 if (globalEarnedSet.Contains(rule)) continue;
             }
 
+            // ---------------------------------------------------------
+            // 2. LOGIC FIX: Gatekeeper - Ignore rules irrelevant to this event
+            // ---------------------------------------------------------
+            if (!IsRuleRelevantForEvent(rule, type))
+            {
+                continue;
+            }
+
             bool passed = false;
 
-            // --- DISPATCHER ---
             try
             {
-                switch (rule.Category)
+                switch ((AchievementCategory)rule.Category)
                 {
-                    case (int)AchievementCategory.SongCount:
-                        passed = (type == PlayType.Completed) && song.PlayCount >= rule.Threshold;
+                    case AchievementCategory.SongCount:
+                        // We already know type == Completed because of Gatekeeper
+                        passed = song.PlayCount >= rule.Threshold;
                         break;
-                    case (int)AchievementCategory.SongSkip:
-                        passed = (type == PlayType.Skipped) && song.SkipCount >= rule.Threshold;
-                        break;
-                    case (int)AchievementCategory.SongFav:
-                        passed = (type == PlayType.Favorited) && song.IsFavorite;
-                        break;
-                    case (int)AchievementCategory.GlobalCount:
 
-                        if (rule.Id.Contains("SKIP")) passed = stats.TotalSkips >= rule.Threshold;
-                        else if (rule.Id.Contains("FAV")) passed = stats.TotalFavorites >= rule.Threshold;
-                        else passed = stats.TotalPlays >= rule.Threshold;
-
-                        if (rule.CustomCheck != null) passed = rule.CustomCheck(_realm, stats, song);
+                    case AchievementCategory.SongSkip:
+                        passed = song.SkipCount >= rule.Threshold;
                         break;
+
+                    case AchievementCategory.SongFav:
+                        passed = song.IsFavorite;
+                        break;
+
+                    case AchievementCategory.GlobalCount:
+                        // Specific logic to distinguish Skips/Favs/Plays within "Global" category
+                        if (rule.Id.Contains("SKIP"))
+                        {
+                            if (type == PlayType.Skipped) passed = stats.TotalSkips >= rule.Threshold;
+                        }
+                        else if (rule.Id.Contains("FAV") || rule.Id.Contains("COLLECTOR"))
+                        {
+                            if (type == PlayType.Favorited) passed = stats.TotalFavorites >= rule.Threshold;
+                        }
+                        else
+                        {
+                            // Default to Play Count
+                            if (type == PlayType.Completed) passed = stats.TotalPlays >= rule.Threshold;
+                        }
+
+                        // Run Custom check if standard threshold passed (or if no threshold)
+                        if (rule.CustomCheck != null)
+                        {
+                            // Only run custom check if the basic type check above didn't fail us
+                            // (Logic: If it's a play rule, don't run custom check if we just favorited)
+                            passed = passed && rule.CustomCheck(_realm, stats, song);
+                        }
+                        break;
+
                     default:
                         // Streak, Misc, Album, Artist
-                        if (rule.CustomCheck != null) passed = rule.CustomCheck(_realm, stats, song);
+                        // The Gatekeeper ensures we only run expensive CustomChecks 
+                        // on the correct event type.
+                        if (rule.CustomCheck != null)
+                        {
+                            passed = rule.CustomCheck(_realm, stats, song);
+                        }
                         break;
                 }
             }
             catch (Exception ex)
             {
-                // Logging
                 System.Diagnostics.Debug.WriteLine($"Error checking rule {rule.Id}: {ex.Message}");
             }
 
@@ -197,6 +230,63 @@ public class AchievementService : IDisposable
             }
         }
     }
+    private bool IsRuleRelevantForEvent(AchievementRule rule, PlayType type)
+    {
+        var cat = (AchievementCategory)rule.Category;
+
+        switch (cat)
+        {
+            // --- PLAY EVENTS ---
+            case AchievementCategory.SongCount:
+            case AchievementCategory.AlbumCount:
+            case AchievementCategory.ArtistCount:
+            case AchievementCategory.Streak:
+                return type == PlayType.Completed;
+
+            // --- FAVORITE EVENTS ---
+            case AchievementCategory.SongFav:
+            case AchievementCategory.AlbumFav:
+            case AchievementCategory.ArtistFav:
+                return type == PlayType.Favorited;
+
+            // --- SKIP EVENTS ---
+            case AchievementCategory.SongSkip:
+                return type == PlayType.Skipped;
+
+            // --- MIXED / SPECIAL CASES ---
+            case AchievementCategory.GlobalCount:
+                // "Global" is messy, it contains Plays, Skips, and Favs.
+                // We differentiate by ID string convention used in your BuildAllRules
+                if (rule.Id.Contains("SKIP")) return type == PlayType.Skipped;
+                if (rule.Id.Contains("FAV")) return type == PlayType.Favorited;
+                return type == PlayType.Completed; // Default Global is Play Count
+
+            case AchievementCategory.Misc:
+                // Misc contains "Genre Collector" (Fav) and "Night Owl" (Play).
+                // We have to inspect the definition or be permissive.
+
+                // If the rule involves favorites (Naming convention check)
+                if (rule.Id.Contains("FAV") || rule.Id.Contains("COLLECTOR") || rule.Name.Contains("Collector"))
+                {
+                    if (type == PlayType.Favorited) return true;
+                    // Some collector rules might be play-based, but most are fav based.
+                    // If you have "Play 5 Genres" (Explorer), that is a Play event.
+                    if (rule.Id.Contains("EXPLORER") || rule.Id.Contains("GENRE_PLAY")) return type == PlayType.Completed;
+                }
+
+                // Default Misc to Completed (Time of day, etc)
+                if (type == PlayType.Completed) return true;
+
+                // If we are favoriting, only allow specific Misc Fav rules
+                if (type == PlayType.Favorited && (rule.Id.Contains("GENRE_COMPLETE") || rule.Id.Contains("GENRE_FAV"))) return true;
+
+                return false;
+
+            default:
+                return false;
+        }
+    }
+
     private bool IsSongSpecific(AchievementCategory cat) =>
         cat == AchievementCategory.SongCount || cat == AchievementCategory.SongSkip || cat == AchievementCategory.SongFav;
 

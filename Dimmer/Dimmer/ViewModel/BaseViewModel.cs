@@ -197,18 +197,18 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
 
 
-        BaseAppFlow.AchievementService.UnlockedAchievement.
-            Where(rule => rule is not (null, null))
-            .DistinctUntilChanged()
-           .ObserveOn(RxSchedulers.UI)
-           .Subscribe(async s =>
-           {
-               UnlockedAch = s.ruleUnlocked;
-               AchievementSecondMessage = $"{s.concernedSong?.Title} by {s.concernedSong?.ArtistName}";
-               IsAchievementNotificationVisible = true;
-               await Task.Delay(5000);
-               IsAchievementNotificationVisible = false;
-           });
+        //BaseAppFlow.AchievementService.UnlockedAchievement.
+        //    Where(rule => rule is not (null, null))
+        //    .DistinctUntilChanged()
+        //   .ObserveOn(RxSchedulers.UI)
+        //   .Subscribe(async s =>
+        //   {
+        //       UnlockedAch = s.ruleUnlocked;
+        //       AchievementSecondMessage = $"{s.concernedSong?.Title} by {s.concernedSong?.ArtistName}";
+        //       IsAchievementNotificationVisible = true;
+        //       await Task.Delay(5000);
+        //       IsAchievementNotificationVisible = false;
+        //   });
 
 
         var realmSub = realm.All<SongModel>()

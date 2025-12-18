@@ -75,16 +75,15 @@ public class QueueBottomSheetFragment : BottomSheetDialogFragment
         // 5. The Eye Button
         var eyeBtn = new MaterialButton(ctx, null, Resource.Attribute.borderlessButtonStyle);
         eyeBtn.IconTint = Android.Content.Res.ColorStateList.ValueOf(Color.White);
-        eyeBtn.Text = "Focus"; // Optional text, or remove for icon only
-        eyeBtn.SetTextColor(Color.White);
+        eyeBtn.Text = "Scroll To"; // Optional text, or remove for icon only
+        eyeBtn.SetIconResource(Resource.Drawable.eye);
         eyeBtn.BackgroundTintList = Android.Content.Res.ColorStateList.ValueOf(Color.Transparent);
 
         // Button Action: Scroll to currently playing
-        eyeBtn.Click += (s, e) => ScrollToCurrent();
+        eyeBtn.Click += (s, e) => ScrollToSong();
 
-        // 6. (Optional) Another Button placeholder
-        // var otherBtn = ...
-        // pillContent.AddView(otherBtn);
+       
+
 
         pillContent.AddView(eyeBtn);
         pillCard.AddView(pillContent);
@@ -95,9 +94,10 @@ public class QueueBottomSheetFragment : BottomSheetDialogFragment
         return rootFrame;
     }
 
-    private void ScrollToCurrent()
+    public void ScrollToSong(SongModelView? requestedSong=null)
     {
         if (MyViewModel.CurrentPlayingSongView == null) return;
+        requestedSong ??= MyViewModel.CurrentPlayingSongView;
 
         // Since we are using the "queue" mode in adapter, we need to find the index in PlaybackQueue
         var index = MyViewModel.PlaybackQueue.IndexOf(MyViewModel.CurrentPlayingSongView);

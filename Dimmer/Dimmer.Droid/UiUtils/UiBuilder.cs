@@ -1,4 +1,8 @@
-﻿namespace Dimmer.WinUI.UiUtils;
+﻿using Google.Android.Material.Snackbar;
+
+using TextAlignment = Android.Views.TextAlignment;
+
+namespace Dimmer.WinUI.UiUtils;
 
 public static class UiBuilder
 {
@@ -92,4 +96,59 @@ public static class UiBuilder
         return btn;
     }
 
+
+    public static void ShowSnackBar(
+            View anchorView,
+            string message,
+            Color? bgColor = null,
+            Color? textColor = null,
+            float textSizeSp = 14f,
+            Typeface? typeface = null,
+            int duration = Snackbar.LengthShort,
+            int? iconResId = null,
+            string? actionText = null,
+            Action<View>? actionCallback = null
+        )
+    {
+        var context = anchorView.Context;
+        var snackbar = Snackbar.Make(anchorView, message, duration);
+
+        // Snackbar.View is actually Snackbar.SnackbarLayout
+        if (snackbar.View is ViewGroup snackbarLayout)
+        {
+            // Background color
+            snackbarLayout.SetBackgroundColor(bgColor ?? Color.ParseColor("#323232"));
+
+            // Find the default TextView
+            var textView = snackbarLayout.GetChildAt(0) as TextView;
+            if (textView != null)
+            {
+                textView.SetTextColor(textColor ?? Color.White);
+                textView.TextSize = textSizeSp;
+                if (typeface != null)
+                    textView.Typeface = typeface;
+
+                // Optional icon
+                if (iconResId.HasValue)
+                {
+                    var drawable = context.GetDrawable(iconResId.Value);
+                    textView.SetCompoundDrawablesWithIntrinsicBounds(drawable, null, null, null);
+                    textView.CompoundDrawablePadding = (int)(8 * context.Resources.DisplayMetrics.Density);
+                }
+            }
+        }
+
+        // Optional action button
+        if (!string.IsNullOrEmpty(actionText) && actionCallback != null)
+        {
+            snackbar.SetAction(actionText, v => actionCallback(v));
+        }
+
+        snackbar.Show();
+    }
 }
+
+
+
+
+

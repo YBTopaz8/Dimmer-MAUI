@@ -6,6 +6,8 @@ using AndroidX.Core.View;
 using Bumptech.Glide;
 
 using Dimmer.DimmerSearch;
+using Dimmer.ViewsAndPages.NativeViews.Misc;
+using Dimmer.WinUI.UiUtils;
 
 using DynamicData;
 
@@ -260,10 +262,10 @@ internal class SongAdapter : RecyclerView.Adapter
         expandRow.LayoutParameters = new LinearLayout.LayoutParams(-1, -2);
         expandRow.SetPadding(0, 0, 0, 20);
 
-        var playBtn = CreateActionButton("Play", Android.Resource.Drawable.IcMediaPlay);
+        var playBtn = CreateActionButton("Play Next", Resource.Drawable.exo_icon_play);
         expandRow.AddView(playBtn);
 
-        var favBtn = CreateActionButton("Fav", Android.Resource.Drawable.StarOff);
+        var favBtn = CreateActionButton("Fav", Resource.Drawable.heart);
         expandRow.AddView(favBtn);
 
         var addBtn = CreateActionButton("Add", Android.Resource.Drawable.IcInputAdd);
@@ -273,7 +275,7 @@ internal class SongAdapter : RecyclerView.Adapter
         mainContainer.AddView(expandRow);
         card.AddView(mainContainer);
 
-        return new SongViewHolder(MyViewModel, ParentFragement, card, imgView, title, artist, moreBtn, expandRow, (Button)playBtn, (Button)favBtn);
+        return new SongViewHolder(MyViewModel, ParentFragement, card, imgView, title, artist, moreBtn, expandRow, (Button)playBtn, (Button)favBtn, (Button)addBtn);
     }
 
 
@@ -287,6 +289,7 @@ internal class SongAdapter : RecyclerView.Adapter
         var lp = new LinearLayout.LayoutParams(-2, -2);
         lp.RightMargin = 10;
         btn.LayoutParameters = lp;
+        btn.IconSize = AppUtil.DpToPx(20);
         return btn;
     }
 
@@ -306,15 +309,16 @@ internal class SongAdapter : RecyclerView.Adapter
         public View ContainerView => base.ItemView;
         public Action<View, string, string> OnNavigateRequest;
 
-        private readonly Button _playBtn;
+        private readonly Button _playNextBtn;
         private readonly Button _favBtn;
+        private readonly Button _addBtn;
 
 
         private SongModelView? _currentSong;
         private Action<int>? _expandAction;
 
         public SongViewHolder(BaseViewModelAnd vm, Fragment parentFrag, MaterialCardView container, ImageView img, TextView title, TextView artist, MaterialButton moreBtn, View expandRow,
-            Button playBtn, Button favBtn)
+            Button playBtn, Button favBtn, Button addBtn)
             : base(container)
         {
             _vm = vm;
@@ -325,9 +329,9 @@ internal class SongAdapter : RecyclerView.Adapter
             _artist = artist;
             _moreBtn = moreBtn;
             _expandRow = expandRow;
-            _playBtn = playBtn;
+            _playNextBtn = playBtn;
             _favBtn = favBtn;
-
+            _addBtn = addBtn;
 
             _moreBtn.Click += (s, e) =>
             {
@@ -342,11 +346,27 @@ internal class SongAdapter : RecyclerView.Adapter
                     await _vm.PlaySongAsync(_currentSong);
             };
 
+            _container.LongClick += (s, e) =>
+            {
+                _container.PerformHapticFeedback(FeedbackConstants.LongPress);
+                // view in playbackQUeue
+                _vm.SelectedSong=_currentSong;
+
+                var queueSheet = new QueueBottomSheetFragment(_vm);
+                queueSheet.Show(parentFrag.ParentFragmentManager, "QueueSheet");
+
+                queueSheet.ScrollToSong(_currentSong);
+            };
+
             // 3. Play Button
-            _playBtn.Click += async (s, e) =>
+            _playNextBtn.Click += async (s, e) =>
             {
                 if (_currentSong != null)
-                    await _vm.PlaySongAsync(_currentSong);
+                {
+                    _vm.SetAsNextToPlayInQueue(_currentSong);
+                    
+                }
+                    
             };
 
             // 4. Image Click (Navigate)
@@ -383,6 +403,24 @@ internal class SongAdapter : RecyclerView.Adapter
                     await _vm.AddFavoriteRatingToSong(_currentSong);
                     // Instant visual feedback
                     _favBtn.Text = !_currentSong.IsFavorite ? "Unfav" : "Fav";
+                    _favBtn.SetIconResource(_currentSong.IsFavorite ? Resource.Drawable.heartlock : Resource.Drawable.heart);
+                }
+            };
+            _favBtn.LongClick += async (s, e) =>
+            {
+                if (_currentSong != null)
+                {
+                    await _vm.RemoveSongFromFavorite(_currentSong);
+                    var iconRes = _currentSong.IsFavorite ? Resource.Drawable.heartlock : Resource.Drawable.heart;
+                    // Instant visual feedback
+                    _favBtn.Text = !_currentSong.IsFavorite ? "Unfav" : "Fav";
+                    _favBtn.SetIconResource(iconRes);
+                    UiBuilder.ShowSnackBar(
+    _favBtn,
+    _currentSong.IsFavorite ? "Added to Favorites" : "Removed from Favorites",
+    textColor: Color.Black,
+    iconResId: iconRes
+);
                 }
             };
         }
