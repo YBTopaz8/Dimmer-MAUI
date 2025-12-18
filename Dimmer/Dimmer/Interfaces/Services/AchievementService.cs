@@ -208,11 +208,19 @@ public class AchievementService : IDisposable
         {
             if (IsSongSpecific((AchievementCategory)rule.Category))
             {
-                song.EarnedAchievementIds.Add(rule);
+                var containsRule = stats.UnlockedGlobalAchievements.FirstOrDefault
+                (x => x.Id == rule.Id);
+                if (containsRule is  null)
+                {
+
+
+                }
             }
             else
             {
-                if(stats.UnlockedGlobalAchievements.Contains(rule))
+                var containsRule = stats.UnlockedGlobalAchievements.FirstOrDefault
+                (x=>x.Id == rule.Id);
+                if(containsRule is not null)
                 {
                     // Already unlocked, do nothing
                 }
@@ -509,8 +517,8 @@ public class AchievementService : IDisposable
 
     private bool CheckDailyStreakGeneric(Realm r, SongModel m, Func<DimmerPlayEvent, SongModel, bool> matchCondition, int days = 3)
     {
-        var endDate = DateTimeOffset.UtcNow.Date.AddDays(1); // Tomorrow midnight
-        var startDate = DateTimeOffset.UtcNow.Date.AddDays(-(days));
+        DateTimeOffset endDate = DateTimeOffset.UtcNow.Date.AddDays(1); // Tomorrow midnight
+        DateTimeOffset startDate = DateTimeOffset.UtcNow.Date.AddDays(-(days));
 
         // 1. Get all candidates in the date range for this song/artist context
         // If checking a specific song, use m.PlayHistory (Much Faster)

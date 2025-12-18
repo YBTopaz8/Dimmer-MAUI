@@ -953,10 +953,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     {
                         CurrentPlayingSongView = new();
                     }
-                    CurrentTrackPositionSeconds = lastAppEvent.PositionInSeconds;
                     RxSchedulers.UI.Schedule(() =>
                     {
 
+                    //CurrentTrackPositionSeconds = lastAppEvent.PositionInSeconds;
                     IsDarkModeOn = Application.Current?.PlatformAppTheme == AppTheme.Dark;
 
                     });
@@ -2346,7 +2346,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             StatesMapper.Map(DimmerPlaybackState.Playing),
             0);
         await UpdateSongSpecificUi(CurrentPlayingSongView);
-        await _audioService.SendNextSong(PlaybackQueue[_currentPlayinSongIndexInPlaybackQueue+1]);
     }
     #endregion
 
