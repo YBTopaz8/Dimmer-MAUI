@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="Dimmer.WinUI.Views.WinuiPages.SingleSongPage.SubPage.Stats.SongAlbumStatsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:Dimmer.WinUI.Views.WinuiPages.SingleSongPage.SubPage.Stats"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+    <StackPanel Spacing="24">
+        <TextBlock Style="{ThemeResource SubtitleTextBlockStyle}" Text="Contribution to Album" />
+
+        <!--  Visualizing "Share of Voice"  -->
+        <Grid Height="60">
+            <Grid.ColumnDefinitions>
+                <!--  This Song's Percentage  -->
+                <ColumnDefinition Width="auto" />
+                <!--  Rest of Album  -->
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Border
+                Grid.Column="0"
+                Background="DeepSkyBlue"
+                CornerRadius="8,0,0,8">
+                <TextBlock
+                    x:Name="SongPlayPercentageStr"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    FontWeight="Bold"
+                    Foreground="White" />
+            </Border>
+            <Border
+                Grid.Column="1"
+                Background="{ThemeResource SurfaceStrokeColorDefaultBrush}"
+                CornerRadius="0,8,8,0">
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Opacity="0.5"
+                    Text="Rest of Album" />
+            </Border>
+        </Grid>
+
+        <!--  Rank List  -->
+        <TextBlock
+            Margin="0,10,0,0"
+            FontWeight="SemiBold"
+            Text="Rank on Album (By Plays)" />
+        <ListView>
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="30" />
+                            <!--  Rank #  -->
+                            <ColumnDefinition Width="*" />
+                            <!--  Title  -->
+                            <ColumnDefinition Width="Auto" />
+                            <!--  Plays  -->
+                        </Grid.ColumnDefinitions>
+                        <!--  Highlight if it is the current song  -->
+                        <TextBlock
+                            FontWeight="Bold"
+                            Foreground="Gray"
+                            Text="{Binding Rank}" />
+                        <TextBlock Grid.Column="1" Text="{Binding Title}" />
+                        <TextBlock Grid.Column="2" Text="{Binding PlayCount}" />
+                    </Grid>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </StackPanel>
+</Page>

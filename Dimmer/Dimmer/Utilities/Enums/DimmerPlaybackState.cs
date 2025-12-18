@@ -1,0 +1,43 @@
+﻿namespace Dimmer.Utilities.Enums;
+public enum DimmerPlaybackState
+{
+    Opening,
+    Playing,
+    PlaylistPlay,
+    Resumed,
+    PausedDimmer,
+    PausedUser,
+    Loading,
+    ShowPlayBtn,
+    ShowPauseBtn,
+    None,
+   
+
+    Seeked,
+    PlaylistExhaused,
+    PlayCompleted,
+    PlayPreviousUI,
+    PlayPreviousUser,
+    PlayNextUI,
+    PlayNextUser,
+    Skipped,
+    RepeatSame,
+    RepeatAll,
+    RepeatPlaylist,
+    MoveToNextSongInQueue,
+    ShuffleEnabled,
+    ShuffleDisabled,
+   
+    PlaySongFrommOutsideApp,
+    ChatJoinedGeneralChannel,
+    ChatJoinedAlbumChannel,
+    ChatJoinedSongChannel,
+    ChatJoinedGenreChannel,
+    ChatJoinedArtistChannel,
+    ChatJoinedPrivateChannel,
+    ChatLeftChannel,
+    Buffering,
+    Error,
+    ErrorAudioSourceNotSupported,
+    Favorited,
+}

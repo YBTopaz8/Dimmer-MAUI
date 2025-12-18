@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="Dimmer.WinUI.Views.WinuiPages.AudioEditorPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="using:Dimmer.WinUI.Utils.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:Dimmer.WinUI.Views.WinuiPages"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <!-- Converter to handle TimeSpan <-> Double for Sliders -->
+        <!--  You need to create this class, code provided below  -->
+        <converters:TimeSpanToSecondsConverter x:Key="TimeSpanConverter" />
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <converters:IsNullToVisibilityConverter x:Key="IsNullToVisibilityConverter" />
+        <converters:RepeatModeConverter x:Key="RepeatModeConverter" />
+        <converters:BoolToInverseVisibilityConverter x:Key="BoolToInverseVisibilityConverter" />
+        <converters:BoolToPlayingPauseConv x:Key="BoolToPlayingPauseConverter" />
+    </Page.Resources>
+
+    <Grid
+        x:Name="MainGrid"
+        Padding="24"
+        PointerPressed="MainGrid_PointerPressed">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!--  1. HEADER CARD  -->
+        <Border
+            Grid.Row="0"
+            Margin="0,0,0,20"
+            Padding="16"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Image
+                    Grid.Column="0"
+                    Width="80"
+                    Height="80"
+                    Source="{x:Bind ViewModel.SelectedSong.CoverImagePath, Mode=OneWay, FallbackValue='ms-appx:///Assets/StoreLogo.png'}"
+                    Stretch="UniformToFill">
+                    <Image.Clip>
+                        <RectangleGeometry Rect="0,0,80,80" />
+                    </Image.Clip>
+                </Image>
+
+                <StackPanel
+                    Grid.Column="1"
+                    Margin="16,0,0,0"
+                    VerticalAlignment="Center">
+                    <TextBlock Style="{ThemeResource TitleTextBlockStyle}" Text="{x:Bind ViewModel.SelectedSong.Title, Mode=OneWay, FallbackValue='Select a Song'}" />
+                    <TextBlock
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Style="{ThemeResource BodyTextBlockStyle}"
+                        Text="{x:Bind ViewModel.SelectedSong.ArtistName, Mode=OneWay, FallbackValue='Unknown Artist'}" />
+                    <TextBlock
+                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                        Style="{ThemeResource CaptionTextBlockStyle}"
+                        Text="{x:Bind ViewModel.SourceFilePath, Mode=OneWay}"
+                        TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!--  2. EDITOR TOOLS (Scrollable)  -->
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Spacing="20">
+
+                <!--  TRIM SECTION  -->
+                <Border
+                    Padding="20"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8">
+                    <StackPanel Spacing="15">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon FontSize="18" Glyph="&#xE7ad;" />
+                            <!--  Cut Icon  -->
+                            <TextBlock Style="{ThemeResource SubtitleTextBlockStyle}" Text="Trim / Cut" />
+                        </StackPanel>
+
+                        <!--  Time Display  -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock
+                                Grid.Column="0"
+                                HorizontalAlignment="Left"
+                                Style="{ThemeResource TitleTextBlockStyle}"
+                                Text="{x:Bind ViewModel.StartTime, Mode=OneWay}" />
+                            <TextBlock
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="to" />
+                            <TextBlock
+                                Grid.Column="2"
+                                HorizontalAlignment="Right"
+                                Style="{ThemeResource TitleTextBlockStyle}"
+                                Text="{x:Bind ViewModel.EndTime, Mode=OneWay}" />
+                        </Grid>
+
+                        <!--  Sliders  -->
+                        <StackPanel>
+                            <TextBlock Style="{ThemeResource CaptionTextBlockStyle}" Text="Start Time" />
+                            <Slider
+                                Maximum="{x:Bind ViewModel.TotalDuration, Mode=OneWay, Converter={StaticResource TimeSpanConverter}}"
+                                Minimum="0"
+                                Value="{x:Bind ViewModel.StartTime, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource DurationConverter}}" />
+
+                            <TextBlock
+                                Margin="0,10,0,0"
+                                Style="{ThemeResource CaptionTextBlockStyle}"
+                                Text="End Time" />
+                            <Slider
+                                Maximum="{x:Bind ViewModel.TotalDuration, Mode=OneWay, Converter={StaticResource TimeSpanConverter}}"
+                                Minimum="0"
+                                Value="{x:Bind ViewModel.EndTime, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource DurationConverter}}" />
+                        </StackPanel>
+
+                        <Button
+                            HorizontalAlignment="Stretch"
+                            Command="{x:Bind ViewModel.TrimAudioCommand}"
+                            Content="Process Trim"
+                            Style="{ThemeResource AccentButtonStyle}" />
+                    </StackPanel>
+                </Border>
+
+                <!--  1 HOUR LOOP SECTION  -->
+                <Border
+                    Padding="20"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8">
+                    <StackPanel Spacing="10">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon FontSize="18" Glyph="&#xE72C;" />
+                            <!--  Refresh/Loop Icon  -->
+                            <TextBlock Style="{ThemeResource SubtitleTextBlockStyle}" Text="Infinite Loop Generator" />
+                        </StackPanel>
+
+                        <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{ThemeResource BodyTextBlockStyle}"
+                            Text="Create a 1-hour version of this track instantly." />
+
+                        <Button
+                            HorizontalAlignment="Stretch"
+                            Command="{x:Bind ViewModel.CreateOneHourLoopCommand}"
+                            Content="Make 1-Hour Version" />
+
+                        <Button
+                            HorizontalAlignment="Stretch"
+                            Command="{x:Bind ViewModel.OpenAndSelectedOneHourLoopedFileCommand}"
+                            Content="Make 1-Hour Version"
+                            Visibility="{x:Bind ViewModel.CanViewOneHourFolder, Converter={StaticResource BoolToVisibilityConverter}}" />
+                    </StackPanel>
+                </Border>
+
+
+                <Border
+                    Padding="20"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8">
+                    <StackPanel Spacing="15">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon FontSize="18" Glyph="&#xE7F6;" />
+                            <!--  Music Note / Equalizer Icon  -->
+                            <TextBlock Style="{ThemeResource SubtitleTextBlockStyle}" Text="Remix &amp; Effects" />
+                        </StackPanel>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <!--  Slowed + Reverb Button  -->
+                            <Button
+                                Grid.Column="0"
+                                HorizontalAlignment="Stretch"
+                                Command="{x:Bind ViewModel.CreateSlowedReverbCommand}">
+                                <StackPanel Padding="10" Spacing="5">
+                                    <TextBlock HorizontalAlignment="Center" Text="🌙 Slowed + Reverb" />
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        FontSize="10"
+                                        Foreground="Gray"
+                                        Text="0.85x speed, Echo" />
+                                </StackPanel>
+                            </Button>
+
+                            <!--  Nightcore Button  -->
+                            <Button
+                                Grid.Column="2"
+                                HorizontalAlignment="Stretch"
+                                Command="{x:Bind ViewModel.CreateNightcoreCommand}">
+                                <StackPanel Padding="10" Spacing="5">
+                                    <TextBlock HorizontalAlignment="Center" Text="⚡ Nightcore" />
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        FontSize="10"
+                                        Foreground="Gray"
+                                        Text="1.25x speed, Pitch Up" />
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+
+                <Button
+                    Grid.Column="1"
+                    Margin="5,0"
+                    HorizontalAlignment="Stretch"
+                    Command="{x:Bind ViewModel.Create8DAudioCommand}">
+                    <StackPanel Padding="10" Spacing="5">
+                        <TextBlock HorizontalAlignment="Center" Text="🎧 8D Audio" />
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            FontSize="10"
+                            Foreground="Gray"
+                            Text="Spatial panning effect" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!--  3. STATUS FOOTER  -->
+        <Grid
+            Grid.Row="2"
+            Margin="0,20,0,0"
+            Padding="12"
+            Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
+            CornerRadius="4">
+            <StackPanel Spacing="8">
+                <!--  Status Text  -->
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    Style="{ThemeResource BodyStrongTextBlockStyle}"
+                    Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}" />
+
+                <!--  Progress Bar  -->
+                <ProgressBar
+                    Maximum="1"
+                    Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay}"
+                    Value="{x:Bind ViewModel.ProgressValue, Mode=OneWay}" />
+
+                <!--  Busy Indicator  -->
+                <StackPanel
+                    HorizontalAlignment="Center"
+                    Orientation="Horizontal"
+                    Spacing="8"
+                    Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay}">
+                    <ProgressRing
+                        Width="20"
+                        Height="20"
+                        IsActive="True" />
+                    <TextBlock VerticalAlignment="Center" Text="Processing..." />
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+
+    </Grid>
+</Page>

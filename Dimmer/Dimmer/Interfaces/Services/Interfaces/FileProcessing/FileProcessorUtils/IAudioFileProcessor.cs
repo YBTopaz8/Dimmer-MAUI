@@ -1,0 +1,7 @@
+﻿
+namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
+public interface IAudioFileProcessor
+{
+    FileProcessingResult ProcessFile(string filePath);
+    Task<List<FileProcessingResult>> ProcessFilesInParallelForEachAsync(IEnumerable<string> filePaths);
+}

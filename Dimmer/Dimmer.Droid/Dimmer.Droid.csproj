@@ -1,0 +1,117 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net9.0-android</TargetFramework>
+		<SupportedOSPlatformVersion>23.0</SupportedOSPlatformVersion>
+		<OutputType>Exe</OutputType>
+		<RootNamespace>Dimmer</RootNamespace>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<LangVersion>preview</LangVersion>
+		<UseMaui>false</UseMaui>
+	</PropertyGroup>
+
+
+
+	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+		<DebugSymbols>false</DebugSymbols>
+		<DebugType>portable</DebugType>
+		<RunAOTCompilation>false</RunAOTCompilation>
+		<AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
+		<Optimize>false</Optimize>
+		<AndroidLinkSkip>Dimmer;Dimmer.Droid;Realm;System.Reactive;CommunityToolkit.Mvvm;System.Linq.Expressions</AndroidLinkSkip>
+		<OutputPath>bin\Release\</OutputPath>
+
+		<!-- FIX 1: Disable Resource Shrinking temporarily -->
+		<AndroidLinkResources>false</AndroidLinkResources>
+
+		<AndroidLinkMode>None</AndroidLinkMode>
+		<!-- FIX 2: Make Linker less aggressive -->
+		<AndroidLinkMode>SdkOnly</AndroidLinkMode>
+		<!-- "SdkOnly" links Android assemblies but leaves YOUR code and NuGet packages alone. -->
+
+		<EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+	</PropertyGroup>
+
+
+
+	<ItemGroup>
+	  <Compile Remove="ViewsAndPages\NativeViews\GraphFragment.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Remove="Linker.xml" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!--<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.120" />-->
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
+		<PackageReference Include="SkiaSharp.Views" Version="3.119.1" />
+		<PackageReference Include="Xamarin.AndroidX.Activity.Ktx" Version="1.11.0" />
+
+
+
+		<PackageReference Include="Xamarin.AndroidX.Fragment" Version="1.8.9" />
+
+
+
+		<PackageReference Include="Xamarin.AndroidX.Fragment.Ktx" Version="1.8.9" />
+
+
+
+		<PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData" Version="2.9.4" />
+
+
+		<!--<PackageReference Include="CommunityToolkit.Maui" Version="12.2.0" />-->
+
+		<PackageReference Include="Xamarin.AndroidX.Lifecycle.Process" Version="2.9.4" />
+
+
+
+		<PackageReference Include="Xamarin.AndroidX.Lifecycle.Runtime.Ktx" Version="2.9.4" />
+
+
+
+		<PackageReference Include="Xamarin.AndroidX.Lifecycle.ViewModel.Ktx" Version="2.9.4" />
+
+
+
+		<PackageReference Include="Xamarin.AndroidX.Lifecycle.ViewModelSavedState" Version="2.9.4" />
+
+
+
+		<PackageReference Include="Xamarin.AndroidX.MediaRouter" Version="1.8.1.1" />
+
+		<PackageReference Include="Xamarin.AndroidX.Palette" Version="1.0.0.34" />
+
+		<!-- Media3 Dependencies (Consolidated & Updated) -->
+		<PackageReference Include="Xamarin.AndroidX.Media3.Common" Version="1.8.0" />
+		<PackageReference Include="Xamarin.AndroidX.Media3.ExoPlayer" Version="1.8.0" />
+		<PackageReference Include="morelinq" Version="4.4.0" />
+		<!-- Use only ONE reference -->
+		<PackageReference Include="Xamarin.AndroidX.Media3.Extractor" Version="1.8.0" />
+		<PackageReference Include="Xamarin.AndroidX.Media3.Session" Version="1.8.0" />
+		<PackageReference Include="Xamarin.AndroidX.Media3.Ui" Version="1.8.0" />
+		<PackageReference Include="Xamarin.AndroidX.Media3.ExoPlayer.Dash" Version="1.8.0" />
+		<PackageReference Include="Xamarin.AndroidX.Media3.ExoPlayer.Hls" Version="1.8.0" />
+		<PackageReference Include="Xamarin.AndroidX.Media3.ExoPlayer.SmoothStreaming" Version="1.8.0" />
+		<PackageReference Include="Xamarin.AndroidX.Palette.Palette.Ktx" Version="1.0.0.27" />
+		<PackageReference Include="Xamarin.AndroidX.SavedState" Version="1.4.0" />
+		<PackageReference Include="Xamarin.AndroidX.SavedState.SavedState.Ktx" Version="1.4.0" />
+		<PackageReference Include="Xamarin.Google.Android.Material" Version="1.13.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Dimmer\Dimmer.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Adapters\HomePage\" />
+	  <Folder Include="Utils\CustomObjects\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <LinkDescription Include="Linker.xml" />
+	</ItemGroup>
+
+</Project>

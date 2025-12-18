@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="Dimmer.WinUI.Views.WinuiPages.LastFMSection.LastFmPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:dgView="using:WinUI.TableView"
+    xmlns:entities="using:Hqub.Lastfm.Entities"
+    xmlns:local="using:Dimmer.WinUI.Views.WinuiPages.LastFMSection"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!--  1. HEADER (Profile Info)  -->
+        <!--  Mimics the Android FrameLayout with Image + Scrim + Text  -->
+        <Grid
+            Grid.Row="0"
+            Margin="0,0,0,12"
+            CornerRadius="0,0,12,12">
+            <Grid.Background>
+                <SolidColorBrush Color="#FF202020" />
+            </Grid.Background>
+
+
+            <StackPanel
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                Spacing="4">
+                <Image
+                    x:Name="UserAvatarImg"
+                    Width="100"
+                    Height="100"
+                    Opacity="0.6"
+                    Stretch="UniformToFill" />
+                <TextBlock
+                    x:Name="UserNameTxt"
+                    FontSize="28"
+                    FontWeight="Bold"
+                    Foreground="White"
+                    HorizontalTextAlignment="Center"
+                    Style="{StaticResource TitleTextBlockStyle}"
+                    Text="Loading..." />
+
+                <TextBlock
+                    x:Name="TotalScrobblesTxt"
+                    Foreground="LightGray"
+                    HorizontalTextAlignment="Center"
+                    Style="{StaticResource BodyTextBlockStyle}"
+                    Text="0 Scrobbles" />
+            </StackPanel>
+        </Grid>
+
+        <!--  2. TABS (Pivot)  -->
+        <Pivot Grid.Row="1" SelectionChanged="Pivot_SelectionChanged">
+
+            <!--  RECENT TRACKS  -->
+            <PivotItem Header="Recent">
+                <dgView:TableView
+                    x:Name="RecentTracksList"
+                    Width="auto"
+                    AutoGenerateColumns="False"
+                    ItemsSource="{x:Bind MyViewModel.ListOfUserRecentTracks, Mode=OneWay}"
+                    Loaded="RecentTracksList_Loaded"
+                    SelectionMode="None">
+                    <dgView:TableView.Columns>
+
+                        <!--  Column for the Cover Art  -->
+                        <dgView:TableViewTemplateColumn Header="Cover">
+                            <dgView:TableViewTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border>
+                                        <Image
+                                            x:Name="coverArtImage"
+                                            Width="150"
+                                            Height="150"
+                                            Stretch="UniformToFill">
+                                            <Image.Source>
+
+                                                <BitmapImage UriSource="{Binding Images[3].Url}" />
+                                            </Image.Source>
+                                        </Image>
+                                    </Border>
+                                </DataTemplate>
+                            </dgView:TableViewTemplateColumn.CellTemplate>
+                        </dgView:TableViewTemplateColumn>
+
+
+                        <dgView:TableViewTemplateColumn Header="Track">
+                            <dgView:TableViewTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel>
+                                        <Button
+                                            x:Name="SongTitle"
+                                            Background="Transparent"
+                                            Click="SongTitle_Click"
+                                            Content="{Binding Name}"
+                                            FontSize="19"
+                                            IsEnabled="{Binding IsOnPresentDevice}" />
+                                        <TextBlock FontSize="15" Text="{Binding Album.Name}" />
+                                        <FontIcon
+                                            HorizontalAlignment="Left"
+                                            Foreground="SlateBlue"
+                                            Glyph="&#xE978;"
+                                            Visibility="{Binding IsOnPresentDevice, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </dgView:TableViewTemplateColumn.CellTemplate>
+                        </dgView:TableViewTemplateColumn>
+
+                        <dgView:TableViewTemplateColumn Header="Artist">
+                            <dgView:TableViewTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel>
+                                        <TextBlock FontSize="19" Text="{Binding Artist.Name}" />
+                                        <TextBlock FontSize="15" Text="{Binding UserLoved}" />
+
+                                    </StackPanel>
+                                </DataTemplate>
+                            </dgView:TableViewTemplateColumn.CellTemplate>
+                        </dgView:TableViewTemplateColumn>
+
+                        <dgView:TableViewTemplateColumn Header="Time">
+                            <dgView:TableViewTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel>
+                                        <TextBlock FontSize="19" Text="{Binding Date, Converter={StaticResource EventDateToTimeAgoConverter}}" />
+
+                                    </StackPanel>
+                                </DataTemplate>
+                            </dgView:TableViewTemplateColumn.CellTemplate>
+                        </dgView:TableViewTemplateColumn>
+                    </dgView:TableView.Columns>
+                </dgView:TableView>
+            </PivotItem>
+
+            <!--  TOP TRACKS  -->
+            <PivotItem Header="Top Tracks">
+                <dgView:TableView
+                    x:Name="TopTracksList"
+                    Width="auto"
+                    AutoGenerateColumns="False"
+                    ItemsSource="{x:Bind MyViewModel.CollectionUserTopTracks, Mode=OneWay}"
+                    SelectionMode="None">
+                    <dgView:TableView.Columns>
+
+                        <!--  Column for the Cover Art  -->
+                        <dgView:TableViewTemplateColumn Header="Cover">
+                            <dgView:TableViewTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border>
+                                        <Image
+                                            Width="150"
+                                            Height="150"
+                                            Stretch="UniformToFill">
+                                            <Image.Source>
+
+                                                <BitmapImage UriSource="{Binding Images[3].Url}" />
+                                            </Image.Source>
+                                        </Image>
+                                    </Border>
+                                </DataTemplate>
+                            </dgView:TableViewTemplateColumn.CellTemplate>
+                        </dgView:TableViewTemplateColumn>
+
+
+                        <dgView:TableViewTemplateColumn Header="Track">
+                            <dgView:TableViewTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel>
+                                        <Button
+                                            Background="Transparent"
+                                            Click="SongTitle_Click"
+                                            Content="{Binding Name}"
+                                            FontSize="19"
+                                            IsEnabled="{Binding IsOnPresentDevice}" />
+                                        <TextBlock FontSize="15" Text="{Binding Album.Name}" />
+                                        <FontIcon
+                                            HorizontalAlignment="Left"
+                                            Foreground="SlateBlue"
+                                            Glyph="&#xE978;"
+                                            Visibility="{Binding IsOnPresentDevice, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </dgView:TableViewTemplateColumn.CellTemplate>
+                        </dgView:TableViewTemplateColumn>
+
+                        <dgView:TableViewTemplateColumn Header="Artist">
+                            <dgView:TableViewTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel>
+                                        <TextBlock FontSize="19" Text="{Binding Artist.Name}" />
+                                        <TextBlock FontSize="15" Text="{Binding UserLoved}" />
+
+                                    </StackPanel>
+                                </DataTemplate>
+                            </dgView:TableViewTemplateColumn.CellTemplate>
+                        </dgView:TableViewTemplateColumn>
+
+                        <dgView:TableViewTemplateColumn Header="Time">
+                            <dgView:TableViewTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel>
+                                        <TextBlock FontSize="19" Text="{Binding Date, Converter={StaticResource EventDateToTimeAgoConverter}}" />
+
+                                    </StackPanel>
+                                </DataTemplate>
+                            </dgView:TableViewTemplateColumn.CellTemplate>
+                        </dgView:TableViewTemplateColumn>
+                    </dgView:TableView.Columns>
+                </dgView:TableView>
+            </PivotItem>
+
+            <!--  Albums  -->
+            <PivotItem Header="Top Album">
+                <dgView:TableView
+                    x:Name="TopAlbum"
+                    Width="auto"
+                    AutoGenerateColumns="False"
+                    ItemsSource="{x:Bind MyViewModel.CollectionUserTopAlbums, Mode=OneWay}"
+                    SelectionMode="None">
+                    <dgView:TableView.Columns>
+
+                        <!--  Column for the Cover Art  -->
+                        <dgView:TableViewTemplateColumn Header="Cover">
+                            <dgView:TableViewTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border>
+                                        <Image
+                                            Width="150"
+                                            Height="150"
+                                            Stretch="UniformToFill">
+                                            <Image.Source>
+
+                                                <BitmapImage UriSource="{Binding Images[3].Url}" />
+                                            </Image.Source>
+                                        </Image>
+                                    </Border>
+                                </DataTemplate>
+                            </dgView:TableViewTemplateColumn.CellTemplate>
+                        </dgView:TableViewTemplateColumn>
+
+
+                        <dgView:TableViewTemplateColumn Header="Track">
+                            <dgView:TableViewTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel>
+                                        <Button
+                                            Background="Transparent"
+                                            Click="SongTitle_Click"
+                                            Content="{Binding Name}"
+                                            FontSize="19"
+                                            IsEnabled="{Binding IsOnPresentDevice}" />
+                                        <TextBlock FontSize="15" Text="{Binding Album.Name}" />
+                                        <FontIcon
+                                            HorizontalAlignment="Left"
+                                            Foreground="SlateBlue"
+                                            Glyph="&#xE978;"
+                                            Visibility="{Binding IsOnPresentDevice, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </dgView:TableViewTemplateColumn.CellTemplate>
+                        </dgView:TableViewTemplateColumn>
+
+                        <dgView:TableViewTemplateColumn Header="Artist">
+                            <dgView:TableViewTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel>
+                                        <TextBlock FontSize="19" Text="{Binding Artist.Name}" />
+                                        <TextBlock FontSize="15" Text="{Binding UserLoved}" />
+
+                                    </StackPanel>
+                                </DataTemplate>
+                            </dgView:TableViewTemplateColumn.CellTemplate>
+                        </dgView:TableViewTemplateColumn>
+
+                        <dgView:TableViewTemplateColumn Header="Time">
+                            <dgView:TableViewTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel>
+                                        <TextBlock FontSize="19" Text="{Binding Date, Converter={StaticResource EventDateToTimeAgoConverter}}" />
+
+                                    </StackPanel>
+                                </DataTemplate>
+                            </dgView:TableViewTemplateColumn.CellTemplate>
+                        </dgView:TableViewTemplateColumn>
+                    </dgView:TableView.Columns>
+                </dgView:TableView>
+            </PivotItem>
+
+
+            <!--  Loved TRACKS  -->
+            <PivotItem Header="Loved">
+                <dgView:TableView
+                    x:Name="LovedTracksList"
+                    Width="auto"
+                    AutoGenerateColumns="False"
+                    ItemsSource="{x:Bind MyViewModel.ListOfUserLovedTracks, Mode=OneWay}"
+                    SelectionMode="None">
+                    <dgView:TableView.Columns>
+
+                        <!--  Column for the Cover Art  -->
+                        <dgView:TableViewTemplateColumn Header="Cover">
+                            <dgView:TableViewTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border>
+                                        <Image
+                                            Width="150"
+                                            Height="150"
+                                            Stretch="UniformToFill">
+                                            <Image.Source>
+
+                                                <BitmapImage UriSource="{Binding Images[3].Url}" />
+                                            </Image.Source>
+                                        </Image>
+                                    </Border>
+                                </DataTemplate>
+                            </dgView:TableViewTemplateColumn.CellTemplate>
+                        </dgView:TableViewTemplateColumn>
+
+
+                        <dgView:TableViewTemplateColumn Header="Track">
+                            <dgView:TableViewTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel>
+                                        <Button
+                                            Content="{Binding Name}"
+                                            FontSize="19"
+                                            IsEnabled="{Binding IsOnPresentDevice}" />
+                                        <TextBlock FontSize="15" Text="{Binding Album.Name}" />
+                                        <Rectangle
+                                            Width="10"
+                                            Height="10"
+                                            HorizontalAlignment="Left"
+                                            Fill="Green" />
+                                        <TextBlock FontSize="15" Text="{Binding IsOnPresentDevice}" />
+
+                                    </StackPanel>
+                                </DataTemplate>
+                            </dgView:TableViewTemplateColumn.CellTemplate>
+                        </dgView:TableViewTemplateColumn>
+
+                        <dgView:TableViewTemplateColumn Header="Artist">
+                            <dgView:TableViewTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel>
+                                        <TextBlock FontSize="19" Text="{Binding Artist.Name}" />
+                                        <FontIcon
+                                            HorizontalAlignment="Left"
+                                            FontSize="15"
+                                            Foreground="Red"
+                                            Glyph="&#xEB52;"
+                                            Visibility="{Binding UserLoved, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                                    </StackPanel>
+                                </DataTemplate>
+                            </dgView:TableViewTemplateColumn.CellTemplate>
+                        </dgView:TableViewTemplateColumn>
+
+                        <dgView:TableViewTemplateColumn Header="Time">
+                            <dgView:TableViewTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel>
+                                        <TextBlock FontSize="19" Text="{Binding Date, Converter={StaticResource EventDateToTimeAgoConverter}}" />
+
+                                    </StackPanel>
+                                </DataTemplate>
+                            </dgView:TableViewTemplateColumn.CellTemplate>
+                        </dgView:TableViewTemplateColumn>
+                    </dgView:TableView.Columns>
+                </dgView:TableView>
+            </PivotItem>
+
+        </Pivot>
+    </Grid>
+</Page>

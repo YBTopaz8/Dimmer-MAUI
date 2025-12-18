@@ -1,0 +1,149 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup />
+  <ItemGroup>
+    <None Update="App.xaml">
+      <SubType>Designer</SubType>
+    </None>
+    <MauiXaml Update="AppShell.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
+    <None Update="Package.appxmanifest">
+      <SubType>Designer</SubType>
+    </None>
+    <Page Update="Views\WinuiPages\Achievements\SongAchievementsControl.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\Achievements\GlobalAchievementsPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\AlbumSection\AlbumsStats.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\LastFMSection\LastFmPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\DimmerLive\ProfilePage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\DimmerLive\LoginPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\DimmerLive\SocialPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\DimmerLive\CloudDataPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\CustomViews\WinuiViews\MorphContainerView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\AudioEditorPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\Wrapped\WrappedContainerPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\Wrapped\WrappedSummaryView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\Wrapped\WrappedTopArtistView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\Wrapped\WrappedTopSongView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\DimmsSection\AllDimsView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\GraphAndNodes.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\LibraryStatsPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\SingleSongPage\SubPage\Stats\SongJourneyPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\SingleSongPage\SubPage\Stats\SongArtistStatsPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\SingleSongPage\SubPage\Stats\SongAlbumStatsPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\SingleSongPage\SubPage\Stats\SongOverviewStatsPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\SingleSongPage\SongStatsContainerPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\SingleSongPage\SubPage\LyricsEditorPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\SingleSongPage\SubPage\OnlineLyricsSearchPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\SingleSongPage\SubPage\LyricsOverViewPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\SingleSongPage\SingleSongLyrics.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\SingleSongPage\EditSongPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\DimmerLivePage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\CustomViews\WinuiViews\SongCoverView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\CustomViews\WinuiViews\SongLyricsView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\CustomViews\WinuiViews\SongMetadataView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\CustomViews\WinuiViews\SongStatsView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <MauiXaml Update="Views\CustomViews\MauiViews\SyncLyricsPopUpViewWindow.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
+    <Page Update="Views\CustomViews\WinuiViews\MediaPlaybackSection.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\CustomViews\WinuiViews\AudioDeviceListTab.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\CustomViews\WinuiViews\VolumeTab.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\SettingsPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\AlbumPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\ArtistPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\SongDetailPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WinuiPages\AllSongsListPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\CustomViews\WinuiViews\HoverCardControl.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <MauiXaml Update="Views\MAUIPages\HomePage.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\DimmerWin.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+</Project>

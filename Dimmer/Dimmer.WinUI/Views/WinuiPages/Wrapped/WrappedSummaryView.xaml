@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<UserControl
+    x:Class="Dimmer.WinUI.Views.WinuiPages.Wrapped.WrappedSummaryView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:Dimmer.WinUI.Views.WinuiPages.Wrapped"
+    xmlns:lvc="using:LiveChartsCore.SkiaSharpView.WinUI"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Background="{ThemeResource SolidBackgroundFillColorBaseBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <TextBlock
+            Margin="0,40,0,20"
+            HorizontalAlignment="Center"
+            FontSize="60"
+            FontWeight="Bold"
+            Foreground="{ThemeResource AccentFillColorDefaultBrush}"
+            Text="THE WRAP UP" />
+
+        <Grid
+            Grid.Row="1"
+            Padding="40"
+            ColumnSpacing="40">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!--  Left: Stats  -->
+            <StackPanel VerticalAlignment="Center" Spacing="30">
+                <Grid
+                    Padding="24"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    CornerRadius="12">
+                    <StackPanel>
+                        <TextBlock Opacity="0.6" Text="Total Time" />
+                        <TextBlock
+                            FontSize="36"
+                            FontWeight="Bold"
+                            Text="{Binding TotalMinutes}" />
+                    </StackPanel>
+                </Grid>
+
+                <Grid
+                    Padding="24"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    CornerRadius="12">
+                    <StackPanel>
+                        <TextBlock Opacity="0.6" Text="Different Songs" />
+                        <TextBlock
+                            FontSize="36"
+                            FontWeight="Bold"
+                            Text="{Binding TotalSongs}" />
+                    </StackPanel>
+                </Grid>
+
+                <Grid
+                    Padding="24"
+                    Background="{ThemeResource AccentFillColorDefaultBrush}"
+                    CornerRadius="12">
+                    <StackPanel>
+                        <TextBlock
+                            Foreground="White"
+                            Opacity="0.8"
+                            Text="Listening Personality" />
+                        <TextBlock
+                            FontSize="32"
+                            FontWeight="Bold"
+                            Foreground="White"
+                            Text="{Binding MusicPersonality}" />
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+
+            <!--  Right: Genre Chart  -->
+            <Grid
+                Grid.Column="1"
+                Padding="20"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                CornerRadius="12">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    Style="{StaticResource SubtitleTextBlockStyle}"
+                    Text="Top Genres" />
+                <lvc:PieChart
+                    Grid.Row="1"
+                    InitialRotation="-90"
+                    LegendPosition="Right"
+                    Series="{Binding GenreChart}" />
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

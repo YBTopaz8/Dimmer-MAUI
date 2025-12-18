@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<linker>
+	<!-- Keep your Shared Project Code -->
+	<assembly fullname="Dimmer" preserve="all" >
+		<type fullname="Dimmer.Data.Models.*" />
+		<type fullname="Dimmer.Data.ModelView.*" />
+		<type fullname="Dimmer.Orchestration.*" />
+		<type fullname="*" />
+	</assembly>
+
+	<!-- Keep Android Project Code -->
+	<assembly fullname="Dimmer.Droid" preserve="all" >
+		<type fullname="*" />
+	</assembly>
+
+	
+	<!-- Keep Configuration/JSON libraries -->
+	<assembly fullname="Microsoft.Extensions.Configuration" />
+	<assembly fullname="Microsoft.Extensions.Configuration.Json" />
+	<assembly fullname="System.Text.Json" />
+
+	<assembly fullname="System.Linq.Expressions" preserve="all" />
+	<assembly fullname="System.Core" preserve="all" />
+
+
+	<assembly fullname="mscorlib" preserve="all" />
+	<assembly fullname="System" preserve="all" />
+	<assembly fullname="System.Core" preserve="all" />
+	<assembly fullname="System.Runtime" preserve="all" />
+	<assembly fullname="System.Linq.Expressions" preserve="all" />
+	<assembly fullname="System.ObjectModel" preserve="all" />
+	<assembly fullname="Xamarin.AndroidX.AppCompat" />
+	<assembly fullname="Xamarin.AndroidX.Fragment" />
+	<assembly fullname="Xamarin.AndroidX.Core" />
+	<assembly fullname="Xamarin.Google.Android.Material" />
+	<assembly fullname="Realm" preserve="all">
+		<type fullname="*" />
+	</assembly>
+</linker>
