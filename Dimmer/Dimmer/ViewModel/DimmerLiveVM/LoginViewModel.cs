@@ -24,7 +24,7 @@ public partial class LoginViewModel : ObservableObject
     {
         get
         {
-            return string.IsNullOrEmpty(ParseClient.Instance.CurrentUser?.SessionToken);
+            return !string.IsNullOrEmpty(ParseClient.Instance.CurrentUser?.SessionToken);
         }
     }
 
@@ -81,6 +81,7 @@ public partial class LoginViewModel : ObservableObject
         {
             await InitializeAsync();
             SelectedIndex= 1;
+
             // Navigate to the main part of the app
             // e.g., await Shell.Current.GoToAsync("//MainPage");
         }
@@ -109,7 +110,9 @@ public partial class LoginViewModel : ObservableObject
         {
             // Successful registration, navigate to the main part of the app.
             // await _navigationService.NavigateToMainPageAsync();
-            await Shell.Current.DisplayAlert("Welcome!", "Your account has been created.", "OK");
+            await Shell.Current.DisplayAlert("Welcome!", $"Your account has been created." +
+                $"{Environment.NewLine} Verify Your Account Via Emails", "OK");
+            
         }
         else
         {
@@ -158,6 +161,7 @@ public partial class LoginViewModel : ObservableObject
 
             CurrentUserOnline = new UserModelOnline(ParseClient.Instance.CurrentUser);
             CurrentUserOnline.IsAuthenticated = ParseClient.Instance.CurrentUser.SessionToken != null;
+            Debug.WriteLine(ParseClient.Instance.CurrentUser?.SessionToken+" SessTok");
             return CurrentUserOnline.IsAuthenticated;
         }
         return false;

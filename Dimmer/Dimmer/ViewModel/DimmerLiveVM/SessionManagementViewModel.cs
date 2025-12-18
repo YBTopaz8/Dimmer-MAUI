@@ -76,7 +76,10 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
                 AvailableBackups.Add(new CloudBackupModel(item));
             }
         }
-        finally { IsBusy = false; }
+        finally 
+        { 
+            IsBusy = false; 
+        }
     }
 
     [RelayCommand]
@@ -111,7 +114,7 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
             return;
         }
 
-        CurrentReferralCode = codeObj.Get<string>("code");
+        CurrentReferralCode = codeObj.Get<string>("referralCode");
         int uses = codeObj.ContainsKey("timesUsed") ? codeObj.Get<int>("timesUsed") : 0;
         int remaining = codeObj.ContainsKey("usesRemaining") ? codeObj.Get<int>("usesRemaining") : 0;
 

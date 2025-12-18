@@ -30,7 +30,7 @@ namespace Dimmer.WinUI.Views.WinuiPages.DimmerLive;
 /// </summary>
 public sealed partial class LoginPage : Page
 {
-    public LoginViewModel ViewModel { get; set; }
+    public LoginViewModelWin ViewModel { get; set; }
     public LoginPage()
     {
         InitializeComponent();

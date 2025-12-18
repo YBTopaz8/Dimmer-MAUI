@@ -951,7 +951,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     }
                     else
                     {
-                        CurrentPlayingSongView = new();
                     }
                     RxSchedulers.UI.Schedule(() =>
                     {

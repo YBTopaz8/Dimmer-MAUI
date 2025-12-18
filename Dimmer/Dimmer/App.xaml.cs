@@ -60,6 +60,11 @@ public partial class App : Application
             // Just return and don't log it.
             return;
         }
+        if (ex.Message.Contains("Unable to read data from the transport connection: The I/O operation has been aborted because of either a thread exit or an application request"))
+        {
+            return;
+        }
+                
         if (ex is System.IO.FileNotFoundException
      && ex.Message.StartsWith("Could not load file or assembly 'ReactiveUI."))
         {
