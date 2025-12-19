@@ -195,6 +195,7 @@ public class FolderMgtService : IFolderMgtService
         var realm = realmFactory.GetRealmInstance();
         var appModel = realm.All<AppStateModel>().FirstOrDefaultNullSafe();
 
+
         if (appModel == null)
         {
             return;

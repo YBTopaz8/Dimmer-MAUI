@@ -26,6 +26,8 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 using Parse.LiveQuery;
 
+using Realms;
+
 using static Microsoft.Maui.ApplicationModel.Permissions;
 
 //using MoreLinq;
@@ -927,6 +929,31 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             }
             else
             {
+                var newAppModel = new AppStateModel
+                {
+                    Id=ObjectId.GenerateNewId(),
+                    LastKnownQuery = CurrentTqlQuery,
+                    LastKnownPlaybackQuery = CurrentPlaybackQuery,
+                    LastKnownPlaybackQueueIndex = _currentPlayinSongIndexInPlaybackQueue,
+                    LastKnownShuffleState = IsShuffleActive,
+                    LastKnownRepeatState = (int)CurrentRepeatMode,
+                    LastKnownPosition = CurrentTrackPositionSeconds,
+                    CurrentSongId = CurrentPlayingSongView.Id.ToString(),
+                    VolumeLevelPreference = _audioService.Volume,
+                    IsDarkModePreference = Application.Current?.UserAppTheme == AppTheme.Dark,
+                    RepeatModePreference = (int)CurrentRepeatMode,
+                    ShuffleStatePreference = IsShuffleActive,
+                    IsStickToTop = IsStickToTop,
+                    CurrentTheme = Application.Current?.UserAppTheme.ToString() ?? "Unspecified",
+                    CurrentLanguage = CultureInfo.CurrentCulture.TwoLetterISOLanguageName,
+                    CurrentCountry = RegionInfo.CurrentRegion.TwoLetterISORegionName,
+                };
+
+               await realm.WriteAsync(() =>
+                {
+                        realm.Add(newAppModel);
+                });
+
                 if (lastAppEvent is not null)
                 {
                     var lastSong = lastAppEvent.SongsLinkingToThisEvent.ToList().FirstOrDefault();
