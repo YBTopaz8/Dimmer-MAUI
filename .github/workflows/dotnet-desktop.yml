@@ -184,7 +184,7 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path .\Artifacts
-          Compress-Archive -Path .\RawBuild\WinUI\* -DestinationPath .\Artifacts\Dimmer-Win-x64.zip
+          Compress-Archive -Path .\RawBuild\WinUI\* -DestinationPath .\Artifacts\Dimmer-Windows-Portable-${{ env.NEW_TAG }}.zip
 
       # 11. BUILD ANDROID
       - name: Build Android
@@ -211,7 +211,7 @@ jobs:
           name: Dimmer-Builds-${{ env.NEW_TAG }}
           path: |
             RawBuild/Android/*.apk
-            Artifacts/Dimmer-Win-x64.zip
+            Artifacts/Dimmer-Windows-Portable-${{ env.NEW_TAG }}.zip
             
       # ----------------------------------------------------------------
       # 13. PUSH TAG & RELEASE (Only if builds succeeded)
@@ -225,7 +225,7 @@ jobs:
           prerelease: ${{ env.IS_PRE }}
           files: |
             RawBuild/Android/*.apk
-            Artifacts/Dimmer-Win-x64.zip
+            Artifacts/Dimmer-Windows-Portable-${{ env.NEW_TAG }}.zip
       
       # 14. NOTIFY DISCORD
       - name: Notify Discord
