@@ -94,7 +94,7 @@ public sealed partial class DimmerLivePage : Page
 
         MyViewModel.LoginViewModel.Username = DimmerUserName.Text;
         MyViewModel.LoginViewModel.Password = DimmerPassword.Text;
-        await MyViewModel.LoginViewModel.LoginCommand.ExecuteAsync(null);
+        await MyViewModel.LoginViewModel.LoginAsync();
         MyViewModel.LoginViewModel.Username = string.Empty;
         MyViewModel.LoginViewModel.Password = string.Empty;
 

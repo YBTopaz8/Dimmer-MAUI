@@ -47,7 +47,6 @@
 
                 <Button
                     HorizontalAlignment="Stretch"
-                    Command="{x:Bind ViewModel.LoginCommand}"
                     Click="LogIn_Click"
                     Content="Log In"
                     x:Name="LogIn"

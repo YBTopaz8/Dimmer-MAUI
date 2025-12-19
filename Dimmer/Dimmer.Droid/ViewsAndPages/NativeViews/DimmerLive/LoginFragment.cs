@@ -164,7 +164,7 @@ public class LoginFragment : Fragment
             await loginViewModel.RegisterCommand.ExecuteAsync(null);
         else
         {
-            await loginViewModel.LoginCommand.ExecuteAsync(null);
+            await loginViewModel.LoginAsync();
             if(loginViewModel.CurrentUserOnline is not null && loginViewModel.CurrentUserOnline.IsAuthenticated)
             {
                 loginViewModel.NavigateToProfilePage(this, new ProfileFragment(_transitionName, loginViewModel), "ProfileFragment");

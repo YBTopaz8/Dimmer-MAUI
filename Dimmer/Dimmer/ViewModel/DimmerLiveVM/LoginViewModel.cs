@@ -40,7 +40,6 @@ public partial class LoginViewModel : ObservableObject
     public partial string? ErrorMessage{ get; set; }
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(LoginCommand))]
     [NotifyCanExecuteChangedFor(nameof(RegisterCommand))]
     [NotifyCanExecuteChangedFor(nameof(ForgotPasswordCommand))]
     public partial bool IsBusy{ get; set; }
