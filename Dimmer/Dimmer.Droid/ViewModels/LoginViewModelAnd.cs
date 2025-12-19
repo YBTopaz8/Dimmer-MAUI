@@ -52,24 +52,26 @@ internal void NavigateToProfilePage(Fragment callerFrag, Fragment destinationFra
     }
 }
 
-public void NavigateToCloudPage(Fragment callerFrag, Fragment destinationFrag, string tag)
+public bool NavigateToCloudPage(Fragment callerFrag, Fragment destinationFrag, string tag)
 {
     if (Connectivity.Current.NetworkAccess == NetworkAccess.Internet)
     {
 
-        if (CurrentUserOnline is null) return;
+        if (CurrentUserOnline is null) return false;
 
         if (CurrentUserOnline.IsAuthenticated)
         {
             BaseViewModel.NavigateToAnyPageOfGivenType(callerFrag, destinationFrag, tag);
-        }
+                return true;
+            }
         else
         {
+                return false;
         }
     }
+    return false;
 }
 
-[RelayCommand]
 public async Task InitAsync()
 {
     await InitializeAsync();

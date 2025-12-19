@@ -109,12 +109,22 @@ public class LoginFragment : Fragment
         return root;
     }
 
-    public override void OnResume()
+    public async override void OnResume()
     {
         base.OnResume();
+        loginViewModel.IsBusy = true;
+        await loginViewModel.InitAsync();
 
+        SessionManagementViewModel sessionMgtVM= MainApplication.ServiceProvider.GetRequiredService<SessionManagementViewModel>();
+         
+        if(loginViewModel.NavigateToCloudPage(this, new CloudDataFragment(_transitionName, sessionMgtVM), "CloudDataFragment"))
+        {
+            loginViewModel.IsBusy = false;
+            return;
+        }
         // 1. Two-way binding for Inputs
 
+        loginViewModel.IsBusy = false;
         _userEdit.TextChanged += UserEdit_TextChanged;
         _passEdit.TextChanged += PassEdit_TextChanged;
         _emailEdit.TextChanged += EmailEdit_TextChanged;

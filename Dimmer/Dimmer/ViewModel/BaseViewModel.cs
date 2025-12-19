@@ -411,7 +411,39 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         _logger.LogInformation(string.Format("{0}: Calculating ranks using RQL sorting...", DateTime.Now));
         // Use a single, large write transaction for performance.
+        var db = RealmFactory.GetRealmInstance();
+        var usrs = db.All<UserModel>().FirstOrDefaultNullSafe();
 
+        UserModel usr = new();
+        db.Write(
+            () =>
+            {
+                if (usrs is not null)
+                {
+                    usr = usrs;
+
+                    usr.UserName = lastfmService.AuthenticatedUser;
+                    usr.DeviceFormFactor ??= DeviceInfo.Current.DeviceType.ToString();
+                    usr.DeviceManufacturer ??= DeviceInfo.Current.Manufacturer.ToString();
+                    usr.DeviceModel ??= DeviceInfo.Current.Model.ToString();
+                    usr.DeviceName ??= DeviceInfo.Current.Name.ToString();
+                    usr.DeviceVersion ??= DeviceInfo.Current.VersionString;
+                    db.Add(usr, true);
+                }
+                else
+                {
+                   
+
+                    usr.DeviceFormFactor ??= DeviceInfo.Current.DeviceType.ToString();
+                    usr.DeviceManufacturer ??= DeviceInfo.Current.Manufacturer.ToString();
+                    usr.DeviceModel ??= DeviceInfo.Current.Model.ToString();
+                    usr.DeviceName ??= DeviceInfo.Current.Name.ToString();
+                    usr.DeviceVersion ??= DeviceInfo.Current.VersionString;
+                    db.Add(usr);
+                }
+
+                CurrentUserLocal = usr.ToUserModelView()!;
+            });
 
         lastfmService.IsAuthenticatedChanged
             .ObserveOn(RxSchedulers.UI)
@@ -431,43 +463,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                         lastFMCOmpleteLoginBtnVisible = false;
                         LastFMLoginBtnVisible = false;
 
-                        if ((!string.IsNullOrEmpty(lastfmService.AuthenticatedUser)))
+                        if ((!string.IsNullOrEmpty(lastfmService.AuthenticatedUser)) && usr is not null)
                         {
-                            var db = RealmFactory.GetRealmInstance();
-                            await db.WriteAsync(
-                                () =>
-                                {
-                                    var usrs = db.All<UserModel>().ToList();
-                                    if (usrs is not null && usrs.Count > 0)
-                                    {
-                                        UserModel usr = usrs.First();
-                                      
-                                        usr.UserName = lastfmService.AuthenticatedUser;
-                                        usr.LastFMAccountInfo ??= LastFMUserInfo.ToLastFMUser()!;
-                                        usr.DeviceFormFactor ??= DeviceInfo.Current.DeviceType.ToString();
-                                        usr.DeviceManufacturer ??= DeviceInfo.Current.Manufacturer.ToString();
-                                        usr.DeviceModel ??= DeviceInfo.Current.Model.ToString();
-                                        usr.DeviceName ??= DeviceInfo.Current.Name.ToString();
-                                        usr.DeviceVersion ??= DeviceInfo.Current.VersionString;
-                                        db.Add(usr, true);
-                                        CurrentUserLocal = usr.ToUserModelView()!;
-                                    }
-                                    else
-                                    {
-                                        UserModel newUsr = new();
-                                        newUsr.UserName = !string.IsNullOrEmpty(lastfmService.AuthenticatedUser) ?
-                                        lastfmService.AuthenticatedUser : "NewUser_" + DateTimeOffset.UtcNow.ToString();
-                                        newUsr.LastFMAccountInfo ??= LastFMUserInfo.ToLastFMUser()!;
+                            usr.UserName = !string.IsNullOrEmpty(lastfmService.AuthenticatedUser) ?
+                   lastfmService.AuthenticatedUser : "NewUser_" + DateTimeOffset.UtcNow.ToString();
+                            usr.LastFMAccountInfo ??= LastFMUserInfo.ToLastFMUser()!;
 
-                                        newUsr.DeviceFormFactor ??= DeviceInfo.Current.DeviceType.ToString();
-                                        newUsr.DeviceManufacturer ??= DeviceInfo.Current.Manufacturer.ToString();
-                                        newUsr.DeviceModel ??= DeviceInfo.Current.Model.ToString();
-                                        newUsr.DeviceName ??= DeviceInfo.Current.Name.ToString();
-                                        newUsr.DeviceVersion ??= DeviceInfo.Current.VersionString;
-                                        CurrentUserLocal = newUsr.ToUserModelView()!;
-                                        db.Add(newUsr);
-                                    }
-                                });
                             CurrentUserLocal.Username ??=lastfmService.AuthenticatedUser;
                         }
                     }

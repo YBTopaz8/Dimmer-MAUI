@@ -1,4 +1,11 @@
-﻿using Google.Android.Material.ProgressIndicator;
+﻿using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
+
+using Dimmer.DimmerLive.Models;
+
+using DynamicData;
+
+using Google.Android.Material.ProgressIndicator;
 
 using static Dimmer.Utils.AppUtil;
 
@@ -23,7 +30,7 @@ public class CloudDataFragment : Fragment
         _viewModel = viewModel;
     }
 
-    public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         var ctx = Context;
         var scroll = new Android.Widget.ScrollView(ctx) { FillViewport = true };
@@ -35,7 +42,7 @@ public class CloudDataFragment : Fragment
         root.AddView(AppUtil.CreateHeader(ctx, "Cloud & Sync"));
 
         // Status Card
-        var statusCard = AppUtil.CreateCard(ctx);
+        var statusCard = CreateCard(ctx);
         var statusLayout = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
         statusLayout.SetPadding(30, 30, 30, 30);
 
@@ -129,16 +136,39 @@ public class CloudDataFragment : Fragment
     class DevicesAdapter : RecyclerView.Adapter
     {
         Context ctx; SessionManagementViewModel vm;
-        public DevicesAdapter(Context c, SessionManagementViewModel v) { ctx = c; vm = v; }
+
+        IObservable<IChangeSet<UserDeviceSession>> sourceStream;
+        ReadOnlyObservableCollection<UserDeviceSession> sourceList;
+        public DevicesAdapter(Context c, SessionManagementViewModel v) 
+        { 
+            ctx = c; vm = v;
+            vm.SessionManager.OtherAvailableDevices.
+                ObserveOn(RxSchedulers.UI)
+                .Bind(out sourceList)
+                .Subscribe(chng
+                =>
+                {
+                    NotifyDataSetChanged(); 
+                })
+                .DisposeWith(_disposables);
+
+        }
+        CompositeDisposable _disposables=new();
         public override int ItemCount => vm.OtherDevices.Count;
         public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
         {
             var vh = holder as SimpleVH;
-            var dev = vm.OtherDevices[position];
-            vh.Title.Text = dev.DeviceName;
-            vh.Subtitle.Text = dev.DevicePlatform;
-            vh.Btn.Text = "Transfer";
-            vh.Btn.Click += async (s, e) => await vm.TransferToDeviceCommand.ExecuteAsync(dev);
+            if (vh != null)
+            {
+                var dev = sourceList[position];
+                vh.Title.Text = dev.DeviceName;
+                vh.Subtitle.Text = dev.DevicePlatform;
+                vh.Btn.Text = "Transfer";
+                vh.Btn.Click += async (s, e) =>
+                {
+                    await vm.TransferToDevice(dev);
+                };
+            }
         }
         public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType) => AppUtil.CreateListItemVH(ctx);
     }

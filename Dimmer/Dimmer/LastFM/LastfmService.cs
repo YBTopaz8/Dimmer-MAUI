@@ -200,28 +200,43 @@ public class LastfmService : ILastfmService
 
     private void SaveSession()
     {
-        Preferences.Set("LastfmSessionKey", _client.Session.SessionKey);
-        Preferences.Set("LastfmUsername", _username);
+        Realm realmm = _realmFactory.GetRealmInstance()!;
+        var appModel = realmm.All<AppStateModel>().FirstOrDefaultNullSafe();
+        if (appModel != null && _username is not null)
+        {
+            realmm.Write(() =>
+            {
+                appModel.LastFMSessionKey = _client.Session.SessionKey;
+                appModel.LastfmUsername = _username;
+
+            });
+        }
     }
 
     public void LoadSession()
     {
         try
         {
-
-            var sessionKey = Preferences.Default.Get("LastfmSessionKey", string.Empty);
-            var username = Preferences.Default.Get("LastfmUsername", string.Empty);
-
-            if (!string.IsNullOrEmpty(sessionKey) && !string.IsNullOrEmpty(username))
+            Realm realmm = _realmFactory.GetRealmInstance()!;
+            var appModel = realmm.All<AppStateModel>().FirstOrDefaultNullSafe();
+            if (appModel != null)
             {
-                _client.Session.SessionKey = sessionKey;
-                _username = username;
-                _isAuthenticatedSubject.OnNext(true);
+
+                var sessionKey = appModel.LastFMSessionKey;
+                var LastfmUsername = appModel.LastfmUsername;
+
+
+                if (!string.IsNullOrEmpty(sessionKey) && !string.IsNullOrEmpty(LastfmUsername))
+                {
+                    _client.Session.SessionKey = sessionKey;
+                    _username = LastfmUsername;
+                    _isAuthenticatedSubject.OnNext(true);
+                }
             }
         }
         catch (Exception ex)
         {
-            Debug.WriteLine(ex.Message); 
+            Debug.WriteLine(ex.Message);
             _ = Task.Run(async ()
                 =>
             {
@@ -236,8 +251,17 @@ public class LastfmService : ILastfmService
 
     private void ClearSession()
     {
-        Preferences.Remove("LastfmSessionKey");
-        Preferences.Remove("LastfmUsername");
+        Realm realmm = _realmFactory.GetRealmInstance()!;
+        var appModel = realmm.All<AppStateModel>().FirstOrDefaultNullSafe();
+        if (appModel != null)
+        {
+            realmm.Write(() =>
+            {
+                appModel.LastFMSessionKey = string.Empty;
+                appModel.LastfmUsername = string.Empty;
+
+            });
+        }
     }
 
     #endregion
