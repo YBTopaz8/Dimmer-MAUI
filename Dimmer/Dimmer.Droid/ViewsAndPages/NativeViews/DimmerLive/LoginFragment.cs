@@ -8,7 +8,7 @@ public class LoginFragment : Fragment
 {
     private readonly string _transitionName;
     private readonly BaseViewModelAnd _baseViewModel;
-    public LoginViewModel LoginVM { get; private set; } // Property for binding
+    public LoginViewModelAnd loginViewModel { get; private set; } // Property for binding
 
     private readonly CompositeDisposable _disposables = new();
 
@@ -25,14 +25,14 @@ public class LoginFragment : Fragment
         _baseViewModel = baseViewModel;
     }
 
-    public override void OnCreate(Bundle savedInstanceState)
+    public override void OnCreate(Bundle? savedInstanceState)
     {
         base.OnCreate(savedInstanceState);
         // Resolve ViewModel here if not passed in ctor, assuming DI setup
-        LoginVM = MainApplication.ServiceProvider.GetRequiredService<LoginViewModel>();
+        loginViewModel = MainApplication.ServiceProvider.GetRequiredService<LoginViewModelAnd>();
     }
 
-    public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         var ctx = Context;
 
@@ -67,13 +67,13 @@ public class LoginFragment : Fragment
 
         // Inputs
         _userLayout = CreateInput(ctx, "Username");
-        _userEdit = (TextInputEditText)_userLayout.EditText;
+        _userEdit = (TextInputEditText)_userLayout.EditText!;
 
         _passLayout = CreateInput(ctx, "Password", true);
-        _passEdit = (TextInputEditText)_passLayout.EditText;
-
+        _passEdit = (TextInputEditText)_passLayout.EditText!;
+        
         _emailLayout = CreateInput(ctx, "Email"); // Initially hidden
-        _emailEdit = (TextInputEditText)_emailLayout.EditText;
+        _emailEdit = (TextInputEditText)_emailLayout.EditText!;
         _emailLayout.Visibility = ViewStates.Gone;
 
         // Button
@@ -82,6 +82,7 @@ public class LoginFragment : Fragment
             Text = "Log In",
             LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent)
         };
+
         _actionBtn.SetBackgroundColor(Android.Graphics.Color.DarkSlateBlue);
         _actionBtn.SetTextColor(Color.White);
         ((LinearLayout.LayoutParams)_actionBtn.LayoutParameters).SetMargins(0, 30, 0, 0);
@@ -124,7 +125,7 @@ public class LoginFragment : Fragment
        
 
         // 3. Reactive UI Bindings (State -> UI)
-        LoginVM.PropertyChanged += OnViewModelPropertyChanged;
+        loginViewModel.PropertyChanged += OnViewModelPropertyChanged;
 
     }
 
@@ -138,21 +139,28 @@ public class LoginFragment : Fragment
         _emailEdit.TextChanged -= EmailEdit_TextChanged;
         _toggleBtn.Click -= ToggleBtn_Click;
         _actionBtn.Click -= ActionBtn_Click;
-        LoginVM.PropertyChanged -= OnViewModelPropertyChanged;
+        loginViewModel.PropertyChanged -= OnViewModelPropertyChanged;
     }
 
-    private void UserEdit_TextChanged(object? sender, Android.Text.TextChangedEventArgs e) => LoginVM.Username = e.Text.ToString();
-    private void PassEdit_TextChanged(object? sender, Android.Text.TextChangedEventArgs e) => LoginVM.Password = e.Text.ToString();
-    private void EmailEdit_TextChanged(object? sender, Android.Text.TextChangedEventArgs e) => LoginVM.Email = e.Text.ToString();
+    private void UserEdit_TextChanged(object? sender, Android.Text.TextChangedEventArgs e) => loginViewModel.Username = e.Text.ToString();
+    private void PassEdit_TextChanged(object? sender, Android.Text.TextChangedEventArgs e) => loginViewModel.Password = e.Text.ToString();
+    private void EmailEdit_TextChanged(object? sender, Android.Text.TextChangedEventArgs e) => loginViewModel.Email = e.Text.ToString();
 
-    private void ToggleBtn_Click(object? sender, EventArgs e) => LoginVM.ToggleModeCommand.Execute(null);
+    private void ToggleBtn_Click(object? sender, EventArgs e) => loginViewModel.ToggleModeCommand.Execute(null);
 
     private async void ActionBtn_Click(object? sender, EventArgs e)
     {
-        if (LoginVM.IsRegisterMode)
-            await LoginVM.RegisterCommand.ExecuteAsync(null);
+        if (loginViewModel.IsRegisterMode)
+            await loginViewModel.RegisterCommand.ExecuteAsync(null);
         else
-            await LoginVM.LoginCommand.ExecuteAsync(null);
+        {
+            await loginViewModel.LoginCommand.ExecuteAsync(null);
+            if(loginViewModel.CurrentUserOnline is not null && loginViewModel.CurrentUserOnline.IsAuthenticated)
+            {
+                loginViewModel.NavigateToProfilePage(this, new ProfileFragment(_transitionName, loginViewModel), "ProfileFragment");
+            }
+        }
+
     }
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -174,20 +182,20 @@ public class LoginFragment : Fragment
     private void UpdateUiState()
     {
         // 1. Toggle Mode
-        bool isRegister = LoginVM.IsRegisterMode;
+        bool isRegister = loginViewModel.IsRegisterMode;
         _emailLayout.Visibility = isRegister ? ViewStates.Visible : ViewStates.Gone;
         _actionBtn.Text = isRegister ? "Sign Up" : "Log In";
-        _toggleBtn.Text = LoginVM.ToggleText;
+        _toggleBtn.Text = loginViewModel.ToggleText;
 
         // 2. Busy State
-        bool isBusy = LoginVM.IsBusy;
+        bool isBusy = loginViewModel.IsBusy;
         _progressBar.Visibility = isBusy ? ViewStates.Visible : ViewStates.Gone;
         _actionBtn.Enabled = !isBusy;
         _userEdit.Enabled = !isBusy;
         _passEdit.Enabled = !isBusy;
 
         // 3. Error Message
-        var err = LoginVM.ErrorMessage;
+        var err = loginViewModel.ErrorMessage;
         _errorText.Text = err;
         _errorText.Visibility = string.IsNullOrEmpty(err) ? ViewStates.Gone : ViewStates.Visible;
     }
@@ -203,6 +211,7 @@ public class LoginFragment : Fragment
         };
         var edit = new TextInputEditText(ctx);
         if (isPassword) edit.InputType = Android.Text.InputTypes.TextVariationPassword | Android.Text.InputTypes.ClassText;
+        
         layout.AddView(edit);
         return layout;
     }

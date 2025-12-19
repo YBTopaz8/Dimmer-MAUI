@@ -71,7 +71,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         BaseAppFlow BaseAppClass,
         ILogger<BaseViewModel> logger)
     {
-        Dump();
+
         //_hoarderService = hService;
         _stateService = dimmerStateService ?? throw new ArgumentNullException(nameof(dimmerStateService));
         _dialogueService = dialogueService ?? throw new ArgumentNullException(nameof(dialogueService));

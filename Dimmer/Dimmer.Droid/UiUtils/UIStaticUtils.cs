@@ -1,4 +1,4 @@
-﻿namespace Dimmer.Utils;
+﻿namespace Dimmer.UiUtils;
 
 internal static class UIStaticUtils
 {

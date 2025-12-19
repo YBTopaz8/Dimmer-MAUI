@@ -850,7 +850,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         base.ShowAllSongsWindowActivate();
 
         await OpenDimmerWindow();
-        MainWindow.NavigateToPage(typeof(AllSongsListPage));
+        MainWindow?.NavigateToPage(typeof(AllSongsListPage));
     }
 
     public void NavigateToAnyPageOfGivenType(Type pageType)

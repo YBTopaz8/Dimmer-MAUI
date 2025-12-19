@@ -235,7 +235,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
                     queueSheet.Show(ParentFragmentManager, "QueueSheet");
                     break;
                     case 5:
-                    MyViewModel.NavigateToGeneralPage(this, new LoginFragment("IntoLogin", MyViewModel),"loginPageTag");
+                    MyViewModel.NavigateToAnyPageOfGivenType(this, new LoginFragment("IntoLogin", MyViewModel),"loginPageTag");
                     break;
             }
         };
@@ -328,7 +328,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         })
         .AddItem("Login", Resource.Drawable.user, () =>
         {
-            MyViewModel.NavigateToGeneralPage(this, new LoginFragment("IntoLogin", MyViewModel), "loginPageTag");
+            MyViewModel.NavigateToAnyPageOfGivenType(this, new LoginFragment("IntoLogin", MyViewModel), "loginPageTag");
         });
 
         // 2. Bind the Click event

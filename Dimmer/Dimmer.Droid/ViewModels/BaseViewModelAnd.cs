@@ -580,7 +580,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             .Commit();
     }
 
-    public void NavigateToGeneralPage(Fragment callerFrag, Fragment destinationFrag, string tag)
+    public void NavigateToAnyPageOfGivenType(Fragment callerFrag, Fragment destinationFrag, string tag)
     {
         if (callerFrag == null || !callerFrag.IsAdded) return;
         CurrentPage = destinationFrag;
@@ -597,7 +597,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
 
     public void NavigateToLibraryStats(Fragment callerFrag) =>
-        NavigateToGeneralPage(callerFrag, new LibraryStatsFragment(this), "LibraryStats");
+        NavigateToAnyPageOfGivenType(callerFrag, new LibraryStatsFragment(this), "LibraryStats");
 
 
     public void NavigateToSingleSongPageFromHome(Fragment? callerFrag, string transitionName, View sharedView)

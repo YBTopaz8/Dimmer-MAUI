@@ -57,7 +57,10 @@ public partial class NowPlayingFragment : Fragment
     // State
     private bool _isDraggingSeek = false;
     private bool _isDraggingVolume;
-
+    public NowPlayingFragment()
+    {
+        
+    }
     public NowPlayingFragment(BaseViewModelAnd viewModel)
     {
         _viewModel = viewModel;

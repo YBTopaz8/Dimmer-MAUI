@@ -13,7 +13,7 @@ namespace Dimmer.ViewsAndPages.NativeViews.DimmerLive;
 public class ProfileFragment : Fragment
 {
     private readonly string _transitionName;
-    public LoginViewModel LoginVM { get; private set; }
+    public LoginViewModelAnd LoginVM { get; private set; }
     private readonly CompositeDisposable _disposables = new();
 
     private ImageView _avatar;
@@ -21,13 +21,14 @@ public class ProfileFragment : Fragment
     private TextView _statJoined, _statDevice;
     private MaterialButton _editBtn, _changePassBtn, _logoutBtn, _pickImageBtn;
 
-    public ProfileFragment(string transitionName, LoginViewModel viewModel)
+    public ProfileFragment(string transitionName, LoginViewModelAnd viewModel
+        )
     {
         _transitionName = transitionName;
         LoginVM = viewModel;
     }
 
-    public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle savedInstanceState)
     {
         var ctx = Context;
         var scroll = new Android.Widget.ScrollView(ctx);
@@ -97,6 +98,8 @@ public class ProfileFragment : Fragment
         root.AddView(AppUtil.CreateSectionTitle(ctx, "Security"));
 
         _changePassBtn = new MaterialButton(ctx) { Text = "Change Password" };
+        _changePassBtn.SetTextColor(AppUtil.ToColorStateList(AppUtil.IsDark(Context) ?
+            Color.White : Color.DarkSlateBlue));
         _changePassBtn.Click += ShowChangePassDialog;
         root.AddView(_changePassBtn);
 
@@ -208,7 +211,7 @@ public class ProfileFragment : Fragment
             .Show();
     }
 
-    private void ShowChangePassDialog(object sender, EventArgs e)
+    private void ShowChangePassDialog(object? sender, EventArgs e)
     {
         var ctx = Context;
         var dialogView = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
