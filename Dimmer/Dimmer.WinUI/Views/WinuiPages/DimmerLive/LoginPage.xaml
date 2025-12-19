@@ -48,7 +48,9 @@
                 <Button
                     HorizontalAlignment="Stretch"
                     Command="{x:Bind ViewModel.LoginCommand}"
+                    Click="LogIn_Click"
                     Content="Log In"
+                    x:Name="LogIn"
                     IsEnabled="{x:Bind ViewModel.IsBusy, Converter={StaticResource BoolToInverseConverter}, Mode=OneWay}"
                     Style="{StaticResource AccentButtonStyle}"
                     Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource InvBoolToVis}}" />

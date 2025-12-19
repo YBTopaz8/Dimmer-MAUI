@@ -68,8 +68,7 @@ public partial class LoginViewModel : ObservableObject
         return !IsBusy && !string.IsNullOrWhiteSpace(Username) && !string.IsNullOrWhiteSpace(Password);
     }
 
-    [RelayCommand]
-    private async Task LoginAsync()
+    public async Task LoginAsync()
     {
         IsBusy = true;
         ErrorMessage = string.Empty;
@@ -158,7 +157,10 @@ public partial class LoginViewModel : ObservableObject
         {     
 
             await _authService.AutoLoginAsync();
-
+            if(ParseClient.Instance.CurrentUser is null)
+            {
+                return false;
+            }
             CurrentUserOnline = new UserModelOnline(ParseClient.Instance.CurrentUser);
             CurrentUserOnline.IsAuthenticated = ParseClient.Instance.CurrentUser.SessionToken != null;
             Debug.WriteLine(ParseClient.Instance.CurrentUser?.SessionToken+" SessTok");

@@ -1152,7 +1152,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
         return AutoConfirmLastFMVar;
     }
-
+    bool IsCheckingLastFMConfirmation = false;
     public async Task CheckToCompleteActivation()
     {
         if (ActivationRequestType == "Confirm LastFM")
@@ -1167,8 +1167,9 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
                 XamlRoot = MainWindow?.ContentFrame.XamlRoot
 
             };
+            IsCheckingLastFMConfirmation=true;
             var isLastFMAuthorized = await lastFMConfirmDialog.ShowAsync() == ContentDialogResult.Primary;
-
+            IsCheckingLastFMConfirmation = false;
             if (isLastFMAuthorized)
             {
                 await CompleteLastFMLoginAsync();

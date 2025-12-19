@@ -1,4 +1,6 @@
-﻿namespace Dimmer.DimmerLive.Interfaces.Implementations;
+﻿using Parse.Infrastructure;
+
+namespace Dimmer.DimmerLive.Interfaces.Implementations;
 
 
 public class ParseAuthenticationService : IAuthenticationService
@@ -28,21 +30,32 @@ public class ParseAuthenticationService : IAuthenticationService
 
             if (Tokenn != null)
             {
+                try
+                {
+
                  await ParseClient.Instance.BecomeAsync(Tokenn);
                 var realm = _realmFactory.GetRealmInstance();
-                if (realm != null)
-                {
-                    var curUsr = realm.All<UserModel>().FirstOrDefaultNullSafe();
-
-                    if (curUsr != null)
+                    if (realm != null)
                     {
-                        await realm.WriteAsync(() =>
-                        {
-                            curUsr.UserIDOnline = ParseClient.Instance.CurrentUser.ObjectId;
-                            curUsr.UsernameOnline = ParseClient.Instance.CurrentUser.Username;
-                            curUsr.UserName ??= ParseClient.Instance.CurrentUser.Username;
+                        var curUsr = realm.All<UserModel>().FirstOrDefaultNullSafe();
 
-                        });
+                        if (curUsr != null)
+                        {
+                            await realm.WriteAsync(() =>
+                            {
+                                curUsr.UserIDOnline = ParseClient.Instance.CurrentUser.ObjectId;
+                                curUsr.UsernameOnline = ParseClient.Instance.CurrentUser.Username;
+                                curUsr.UserName ??= ParseClient.Instance.CurrentUser.Username;
+
+                            });
+                        }
+                    }
+                }
+                catch (ParseFailureException ex)
+                {
+                    if(ex.Message == "Invalid session token")
+                    {
+                        SecureStorage.Default.Remove("userToken");
                     }
                 }
             }
