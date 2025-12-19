@@ -7554,8 +7554,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             _ = LoadUserLastFMInfo();
         }
     }
-
-    public string WindowActivationRequestType = string.Empty;
+    [ObservableProperty]
+    public partial string WindowActivationRequestType { get; set; }
     public static string LastFMName = string.Empty;
   
     [RelayCommand]
