@@ -17,11 +17,11 @@ namespace Dimmer.ViewsAndPages.NativeViews;
 
 internal class SongAdapter : RecyclerView.Adapter
 {
+    private ReadOnlyObservableCollection<SongModelView> _songs;
     public enum ViewId { Image, Title, Artist, Container }
     public static Action<View, string, int>? AdapterCallbacks;
     private Context ctx;
     public BaseViewModelAnd MyViewModel;
-    private List<SongModelView> _songs = Enumerable.Empty<SongModelView>().ToList();
     private readonly IDisposable _subscription;
     public IList<SongModelView> Songs => _songs;
     private Fragment ParentFragement;
@@ -40,51 +40,67 @@ internal class SongAdapter : RecyclerView.Adapter
         this.ctx = ctx;
         this.MyViewModel = myViewModel;
 
+        IObservable<IChangeSet<SongModelView>> sourceStream = songsToWatch == "queue"
+           ? myViewModel.PlaybackQueueSource.Connect()
+           : myViewModel.SearchResultsHolder.Connect();
 
-        if (songsToWatch == "queue")
-        {
-            sourceStream = MyViewModel.PlaybackQueueSource.Connect();
-            sourceList = MyViewModel.PlaybackQueue;
-        }
-        else
-        {
-            sourceStream = MyViewModel.SearchResultsHolder.Connect();
-            sourceList = MyViewModel.SearchResults;
-        }
-
-        _subscription = sourceStream
-            // 1. Throttle: Wait for a 200ms pause in updates to avoid spamming diff calculations 
-            //    during rapid changes (like initial load or fast typing).
-            .Throttle(TimeSpan.FromMilliseconds(200), RxSchedulers.Background)
-
-            // 2. Project to a Task that calculates the Diff on a BACKGROUND THREAD
-            .Select(_ =>
+        // 3. The "DynamicData" Pipeline
+        sourceStream
+            .ObserveOn(RxSchedulers.UI) // Must be on UI thread to update RecyclerView
+            .Bind(out _songs)           // Automatically keeps _songs in sync with the source
+            .Subscribe(changes =>
             {
-                // Capture the NEW list snapshot (thread-safe copy)
-                var newList = sourceList.ToList();
-                // Capture the OLD list snapshot
-                var oldList = _songs.ToList();
-
-                return Observable.Start(() =>
+                // 4. Manual Dispatching (The Secret Sauce for Animations)
+                // Instead of NotifyDataSetChanged, we loop through the changes 
+                // DynamicData detected and tell Android exactly what happened.
+                foreach (var change in changes)
                 {
-                    // HEAVY WORK: Calculate Diff on ThreadPool
-                    var diffResult = DiffUtil.CalculateDiff(new SongDiff(oldList, newList));
-                    return new { Diff = diffResult, Data = newList };
-                }, RxSchedulers.Background);
+                    switch (change.Reason)
+                    {
+                        case ListChangeReason.AddRange:
+                            NotifyItemRangeInserted(change.Range.Index, change.Range.Count);
+                            break;
+                            case ListChangeReason.RemoveRange:
+                                NotifyItemRangeRemoved(change.Range.Index, change.Range.Count);
+                                break;
+                        case ListChangeReason.Refresh:
+                            
+                            
+
+                                break;
+                        case ListChangeReason.Add:
+                            NotifyItemInserted(change.Item.CurrentIndex);
+                            break;
+                        case ListChangeReason.Remove:
+                            NotifyItemRemoved(change.Item.CurrentIndex);
+                            break;
+                        case ListChangeReason.Moved:
+                            NotifyItemMoved(change.Item.PreviousIndex, change.Item.CurrentIndex);
+                            break;
+                        case ListChangeReason.Replace:
+                            NotifyItemChanged(change.Item.CurrentIndex);
+                            break;
+                        case ListChangeReason.Clear:
+                             NotifyDataSetChanged();
+                            break;
+                    }
+                }
+
+                // If you prefer simplicity over animations, 
+                // replace the foreach above with: NotifyDataSetChanged();
             })
-            // 3. Switch: If a new update comes while calculating, cancel the old calculation
-            .Switch()
-            // 4. Observe on UI Thread: Only for applying the visual update
-            .ObserveOn(RxSchedulers.UI)
-            .Subscribe(result =>
-            {
-                // Update the backing field
-                _songs = result.Data;
-                _expandedPosition = -1;
-                // Apply the diff (Fast, just dispatches notify events)
-                result.Diff.DispatchUpdatesTo(this);
-            });
+            .DisposeWith(_disposables);
     }
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            if (disposing) _subscription.Dispose();
+            _disposables.Dispose();
+        }
+        base.Dispose(disposing);
+    }
+    private readonly CompositeDisposable _disposables = new();
     public override int ItemCount => _songs.Count;
     public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
     {
@@ -112,7 +128,7 @@ internal class SongAdapter : RecyclerView.Adapter
         public override bool OnMove(RecyclerView recyclerView, RecyclerView.ViewHolder source, RecyclerView.ViewHolder target)
         {
             // Notify Adapter to swap items in the ObservableCollection
-            _adapter.OnItemMove(source.BindingAdapterPosition, target.AdapterPosition);
+            _adapter.OnItemMove(source.BindingAdapterPosition, target.BindingAdapterPosition);
             return true;
         }
 
@@ -155,11 +171,7 @@ internal class SongAdapter : RecyclerView.Adapter
         // 3. Optional: Notify Playback service that the queue changed?
         // _viewModel.UpdateQueueService(); 
     }
-    protected override void Dispose(bool disposing)
-    {
-        base.Dispose(disposing);
-        if (disposing) _subscription.Dispose();
-    }
+  
 
     private void ToggleExpand(int position)
     {

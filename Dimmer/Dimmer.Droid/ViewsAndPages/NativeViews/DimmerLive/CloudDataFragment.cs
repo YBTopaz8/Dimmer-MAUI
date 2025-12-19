@@ -17,6 +17,8 @@ public class CloudDataFragment : Fragment
     private readonly string _transitionName;
     private readonly SessionManagementViewModel _viewModel;
 
+    CompositeDisposable _disposables = new();
+
     // UI References
     private MaterialTextView _statusText;
     private CircularProgressIndicator _loadingIndicator;
@@ -78,12 +80,23 @@ public class CloudDataFragment : Fragment
         root.AddView(AppUtil.CreateSectionTitle(ctx, "Nearby Devices"));
         _devicesRecycler = new RecyclerView(ctx);
         _devicesRecycler.SetLayoutManager(new LinearLayoutManager(ctx));
-        _adapter = new DevicesAdapter(ctx, _viewModel);
+
+        _adapter = new DevicesAdapter(ctx, _viewModel,  _disposables);
         _devicesRecycler.SetAdapter(_adapter);
         root.AddView(_devicesRecycler);
 
         scroll.AddView(root);
         return scroll;
+    }
+    
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _disposables.Dispose();
+        }
+        base.Dispose(disposing);
     }
 
     public override void OnResume()
@@ -139,7 +152,7 @@ public class CloudDataFragment : Fragment
 
         IObservable<IChangeSet<UserDeviceSession>> sourceStream;
         ReadOnlyObservableCollection<UserDeviceSession> sourceList;
-        public DevicesAdapter(Context c, SessionManagementViewModel v) 
+        public DevicesAdapter(Context c, SessionManagementViewModel v, CompositeDisposable _disposables) 
         { 
             ctx = c; vm = v;
             vm.SessionManager.OtherAvailableDevices.
@@ -153,7 +166,6 @@ public class CloudDataFragment : Fragment
                 .DisposeWith(_disposables);
 
         }
-        CompositeDisposable _disposables=new();
         public override int ItemCount => vm.OtherDevices.Count;
         public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
         {
