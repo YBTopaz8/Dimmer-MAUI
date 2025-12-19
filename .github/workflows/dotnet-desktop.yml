@@ -246,7 +246,7 @@ jobs:
           $body = @{
             embeds = @(
               @{
-                title = "Dimmer $type: ${{ env.NEW_TAG }}"
+                title = "Dimmer Pre ${type}: ${{ env.NEW_TAG }}"
                 description = "Status: $status`nBranch: ${{ github.ref_name }}"
                 color = $color
                 fields = @(
