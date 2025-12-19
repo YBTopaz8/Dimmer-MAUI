@@ -7555,7 +7555,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
     }
 
-    public static string ActivationRequestType = string.Empty;
+    public string WindowActivationRequestType = string.Empty;
     public static string LastFMName = string.Empty;
   
     [RelayCommand]
@@ -7581,7 +7581,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             LastFMLoginBtnVisible = false;
             lastFMCOmpleteLoginBtnVisible = true;
             //IsLastFMNeedsToConfirm = true;
-            ActivationRequestType = "Confirm LastFM";
+            WindowActivationRequestType = "Confirm LastFM";
             await Launcher.Default.OpenAsync(new Uri(webUrl));
        
         }

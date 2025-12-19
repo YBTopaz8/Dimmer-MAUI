@@ -1152,12 +1152,12 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
         return AutoConfirmLastFMVar;
     }
-    bool IsCheckingLastFMConfirmation = false;
-    public async Task CheckToCompleteActivation()
+    public async Task<bool> CheckToCompleteActivation()
     {
-        if (ActivationRequestType == "Confirm LastFM")
-        {
+        if (WindowActivationRequestType != "Confirm LastFM") return false;
 
+        try
+        {
             ContentDialog lastFMConfirmDialog = new ContentDialog
             {
                 Title = "LAST FM Confirm",
@@ -1167,33 +1167,37 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
                 XamlRoot = MainWindow?.ContentFrame.XamlRoot
 
             };
-            IsCheckingLastFMConfirmation=true;
-            var isLastFMAuthorized = await lastFMConfirmDialog.ShowAsync() == ContentDialogResult.Primary;
-            IsCheckingLastFMConfirmation = false;
-            if (isLastFMAuthorized)
+
+            var result = await lastFMConfirmDialog.ShowAsync();
+
+            if (result == ContentDialogResult.Primary)
             {
                 await CompleteLastFMLoginAsync();
             }
             else
             {
-
                 ContentDialog cancelledDialog = new ContentDialog
                 {
-
                     Title = "Action Cancelled",
                     Content = "Last FM Authorization Cancelled",
                     CloseButtonText = "OK",
                     XamlRoot = MainWindow?.ContentFrame.XamlRoot
                 };
                 await cancelledDialog.ShowAsync();
-
             }
-
+        }
+        catch (Exception ex)
+        {
+            // Log error: "Only a single ContentDialog can be open" 
+            // We catch this to prevent the app from crashing.
+            System.Diagnostics.Debug.WriteLine(ex.Message);
+        }
+        finally
+        {
+            WindowActivationRequestType = string.Empty;
         }
 
-
-        ActivationRequestType = string.Empty;
-
+        return true;
     }
 
     internal void UpdateSongWithNoArtistToNewArtist(string? chosen)

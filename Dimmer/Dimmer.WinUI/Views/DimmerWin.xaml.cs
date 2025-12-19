@@ -88,16 +88,28 @@ public sealed partial class DimmerWin : Window
         {
             m_configurationSource.IsInputActive = args.WindowActivationState != WindowActivationState.Deactivated;
         }
-        if (args.WindowActivationState == WindowActivationState.Deactivated)
+        if (args.WindowActivationState == WindowActivationState.Deactivated || MyViewModel == null)
         {
             return;
         }
-        if (MyViewModel is null)
+        if (_isDialogActive)
             return;
 
-        await MyViewModel.CheckToCompleteActivation();
+        if (MyViewModel.WindowActivationRequestType == "Confirm LastFM")
+        {
+            _isDialogActive = true;
+            try
+            {
+                await MyViewModel.CheckToCompleteActivation();
+            }
+            finally
+            {
+                // Ensure the flag is reset even if an error occurs
+                _isDialogActive = false;
+            }
+        }
     }
-
+    private bool _isDialogActive = false;
     private readonly Microsoft.UI.Composition.Compositor _compositorMainGrid;
     private void CurrentlyPlayingBtn_Click(object sender, RoutedEventArgs e)
     {
