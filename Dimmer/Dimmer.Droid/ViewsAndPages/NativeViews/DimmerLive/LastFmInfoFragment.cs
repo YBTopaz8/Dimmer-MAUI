@@ -13,7 +13,7 @@ using Hqub.Lastfm.Entities;
 namespace Dimmer.ViewsAndPages.NativeViews.DimmerLive;
 
 
-public class ViewLastFmInfoFragment : Fragment
+public class LastFmInfoFragment : Fragment
 {
     private readonly BaseViewModelAnd _viewModel;
     private ImageView _userAvatar;
@@ -22,12 +22,12 @@ public class ViewLastFmInfoFragment : Fragment
     private RecyclerView _tracksRecycler;
     private LastFmTrackAdapter _adapter;
 
-    public ViewLastFmInfoFragment(BaseViewModelAnd vm)
+    public LastFmInfoFragment(BaseViewModelAnd vm)
     {
         _viewModel = vm;
     }
 
-    public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         var ctx = Context;
         var root = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
@@ -116,8 +116,13 @@ public class ViewLastFmInfoFragment : Fragment
         {
             _userName.Text = user.Name;
             _totalScrobbles.Text = $"{user.Playcount:N0} Scrobbles"; // Format number
-            // Load Avatar
-             Glide.With(this).Load(user.Image.Url).Into(_userAvatar);
+
+            if (user.Image is not null)
+            {
+                Glide.With(this).Load(user.Image.Url)
+                .Placeholder(Resource.Drawable.usercircle).Into(_userAvatar)
+                ;
+            }
         }
     }
 
