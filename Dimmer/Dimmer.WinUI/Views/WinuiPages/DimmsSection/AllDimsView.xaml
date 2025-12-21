@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:dgView="using:WinUI.TableView"
     xmlns:local="using:Dimmer.WinUI.Views.WinuiPages.DimmsSection"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
@@ -19,37 +20,30 @@
 
         <StackPanel Grid.Row="0" />
 
-        <StackPanel Grid.Row="1">
-            <ItemsRepeater>
-                <ItemsRepeater.ItemTemplate>
-                    <DataTemplate>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="60" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="40" />
-                            </Grid.ColumnDefinitions>
+        <dgView:TableView
+            x:Name="MyEventsTableView"
+            Grid.Row="1"
+            AutoGenerateColumns="False"
+            ItemsSource="{x:Bind MyViewModel.DimmerPlayEventList, Mode=OneWay}">
 
-                            <StackPanel Grid.Column="0">
-                                <Image x:Name="SongImg" />
-                            </StackPanel>
+            <dgView:TableView.Columns>
 
-                            <StackPanel Grid.Column="1">
-                                <TextBlock x:Name="Title" FontSize="22" />
-                                <TextBlock x:Name="artistText" FontSize="19" />
-                                <TextBlock x:Name="albumText" FontSize="15" />
-                            </StackPanel>
+                <dgView:TableViewTemplateColumn x:Name="ImageCol">
 
-                            <Button x:Name="MoreBtn" Click="MoreBtn_Click">
-                                <SymbolIcon Symbol="More" />
-                            </Button>
-                        </Grid>
-                    </DataTemplate>
-                </ItemsRepeater.ItemTemplate>
 
-            </ItemsRepeater>
+                    <dgView:TableViewTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Border x:Name="CardBorder" Height="200" />
+                        </DataTemplate>
 
-        </StackPanel>
+                    </dgView:TableViewTemplateColumn.CellTemplate>
+
+
+                </dgView:TableViewTemplateColumn>
+
+            </dgView:TableView.Columns>
+
+        </dgView:TableView>
 
     </Grid>
 </Page>

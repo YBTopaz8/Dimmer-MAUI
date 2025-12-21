@@ -32,6 +32,8 @@ public class DimmerPlayEventView
     public string? DeviceModel { get; set; }
     public string? DeviceManufacturer { get; set; }
     public string? DeviceVersion { get; set; }
+    public SongModelView? SongViewObject { get; internal set; }
+    public ObservableCollection<SongModelView?> ListOfSongViewObjects { get; internal set; }
 
     public DimmerPlayEventView()
     {

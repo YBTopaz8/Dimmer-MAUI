@@ -79,7 +79,14 @@
                         ImageSource="playlistminimalistic3.png"
                         WidthRequest="60" />
                     <Button
-                        x:Name="ShowPlaylistHistory"
+                        BackgroundColor="Transparent"
+                        BorderWidth="1"
+                        Clicked="ViewDimmerSection_Clicked"
+                        x:Name="ViewDimmerSection"
+                        ImageSource="playcircle.png"
+                        WidthRequest="60" />
+                    <Button
+                        x:Name="SettingsNavChip"
                         BackgroundColor="Transparent"
                         BorderWidth="1"
                         Clicked="SettingsNavChips_ChipClicked"

@@ -45,7 +45,11 @@ public sealed partial class DimmerWin : Window
 #endif
     }
 
-
+    /// <summary>
+    /// Navigates to page. and Snaps MAUI Panel to WinUI
+    /// </summary>
+    /// <param name="pageType"></param>
+    /// <param name="OptionalParameter"></param>
     public async void NavigateToPage(Type pageType, object? OptionalParameter=null)
     {
         if (MyViewModel is not null && OptionalParameter is null)

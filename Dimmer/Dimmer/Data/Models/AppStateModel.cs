@@ -7,7 +7,7 @@ using Dimmer.UIUtils;
 namespace Dimmer.Data.Models;
 
 [Dimmer.Utils.Preserve(AllMembers = true)]
-public class AppStateModel : RealmObject, IRealmObjectWithObjectId
+public partial class AppStateModel : RealmObject, IRealmObjectWithObjectId
 {
 
     public bool IsNew { get; set; }

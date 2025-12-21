@@ -484,6 +484,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             await OnAppOpening();
             await HeavierBackGroundLoadings(FolderPaths);
+
+            await Task.Delay(3000);
             await EnsureAllCoverArtCachedForSongsAsync();
         });
 
@@ -2019,8 +2021,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             if (song.CoverImagePath != finalImagePath)
             {
-
-                song.CoverImagePath = finalImagePath;
+                RxSchedulers.UI.Schedule(()=> CurrentCoverImagePath = finalImagePath);
 
             }
             //SearchSongForSearchResultHolder(CurrentTqlQuery);
@@ -2292,7 +2293,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 _logger.LogInformation("Removed {Count} duplicate play events from the database.", eventsToRemove.Count);
             });
 
-        LoadLastHundredPlayEvents();
+        
     }
 
 
@@ -3994,17 +3995,13 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
     [RelayCommand]
-    public void LoadLastHundredPlayEvents()
+    public void LoadPlayEvents()
     {
         DimmerPlayEventList?.Clear();
 
         var realm = RealmFactory.GetRealmInstance();
-        var allQSongs = realm.All<SongModel>();
-        SongToEventsDict = allQSongs.ToDictionary(s => s, s => s.PlayHistory.ToList());
-
-        var eventsFromDb = dimmerPlayEventRepo.GetAll().OrderByDescending(e => e.EventDate).Take(200).ToList();
-        DimmerPlayEventList = eventsFromDb.AsEnumerable()
-            .Select(x=>x.ToDimmerPlayEventView()).ToObservableCollection();
+     
+        DimmerPlayEventList = dimmerPlayEventRepo.GetAll().OrderByDescending(e => e.EventDate).Select(x=>x.ToDimmerPlayEventView()).ToObservableCollection();
 
         _logger.LogInformation("Loaded {Count} recent play events from the database.", DimmerPlayEventList.Count);
     }

@@ -22,7 +22,7 @@ namespace Dimmer.ViewsAndPages.NativeViews;
 
 
 
-public partial class NowPlayingFragment : Fragment
+public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
 {
     private readonly BaseViewModelAnd _viewModel;
     private readonly CompositeDisposable _disposables = new();
@@ -618,5 +618,12 @@ public partial class NowPlayingFragment : Fragment
         _expandedContainer.Visibility = _expandedContainer.Alpha <= 0 ? ViewStates.Invisible : ViewStates.Visible;
     }
 
-  
+    public void OnBackInvoked()
+    {
+        var myAct = this.Activity as TransitionActivity;
+        if (myAct != null)
+        {
+            myAct.TogglePlayer();
+        }
+    }
 }

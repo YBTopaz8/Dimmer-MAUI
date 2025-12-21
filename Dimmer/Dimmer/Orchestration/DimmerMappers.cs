@@ -661,6 +661,10 @@ public static class DimmerMappers
                 dest.AlbumName = concernedSong.AlbumName;
             }
         }
+        //dest.SongViewObject = src.SongsLinkingToThisEvent != null && src.SongsLinkingToThisEvent.Any()
+        //    ? src.SongsLinkingToThisEvent.FirstOrDefaultNullSafe()?.ToSongModelView()
+        //    : null;
+        //dest.ListOfSongViewObjects = src.SongsLinkingToThisEvent.AsEnumerable().Select(x => x.ToSongModelView()).ToObservableCollection();
 
         return dest;
     }
