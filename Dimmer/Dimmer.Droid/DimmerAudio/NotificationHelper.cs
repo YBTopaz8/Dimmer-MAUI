@@ -1,7 +1,9 @@
-﻿using AndroidX.Media3.Session;
-using AndroidX.Media3.UI;
+﻿using Android.Content;
+
 using AndroidX.Core.App;
 using AndroidX.Media3.Common;
+using AndroidX.Media3.Session;
+using AndroidX.Media3.UI;
 
 namespace Dimmer.DimmerAudio;
 
@@ -97,7 +99,7 @@ public static class NotificationHelper
         );
 
 
-        var customActionReceiver = new LyricsActionReceiver(service);
+        var customActionReceiver = new DimmerActionReceiver(service);
 
         var descrAdapter = new DefaultMediaDescriptionAdapter(pi);
 
@@ -114,6 +116,12 @@ public static class NotificationHelper
 
         mgr.SetShowPlayButtonIfPlaybackIsSuppressed(true);
         mgr.SetMediaSessionToken(session.PlatformToken);
+        var actionList = new List<string> {
+        DimmerActionReceiver.ActionFavorite,
+        DimmerActionReceiver.ActionShuffle,
+        DimmerActionReceiver.ActionLyrics
+    };
+
         if (song != null)
         {
             mgr.SetUseChronometer(song.HasSyncedLyrics); // optional: show time counter if lyrics exist
@@ -126,6 +134,8 @@ public static class NotificationHelper
         mgr.SetUsePreviousActionInCompactView(true);
         mgr.SetUseNextAction(true);
         mgr.SetUseRewindActionInCompactView(false);
+
+
 
         Log.Debug("NotifHelper", "Manager built");
         return mgr;
@@ -195,57 +205,122 @@ public static class NotificationHelper
 
         return builder.Build();
     }
-    class LyricsActionReceiver : Java.Lang.Object, PlayerNotificationManager.ICustomActionReceiver
+    class DimmerActionReceiver : Java.Lang.Object, PlayerNotificationManager.ICustomActionReceiver
     {
+        private readonly ExoPlayerService _service;
         private readonly Context _ctx;
-        private const string ActionLyrics = "ACTION_LYRICS";
+        public const string ActionLyrics = "ACTION_LYRICS";
         private const string ServiceAction = "com.yvanbrunel.dimmer.ACTION_LYRICS";
-        public LyricsActionReceiver(Context ctx) => _ctx = ctx;
+        public DimmerActionReceiver(Context ctx) => _ctx = ctx;
+        public const string ActionFavorite = "ACTION_FAVORITE";
+        public const string ActionShuffle = "ACTION_SHUFFLE";
 
-        // List of actions this receiver supports
-        public IList<string> CreateCustomActions(Context context, PlayerNotificationManager manager)
-              => new List<string> { ActionLyrics };
+        public IList<string> GetCustomActions(IPlayer? player)
+        {
+            return new List<string> { ActionFavorite, ActionShuffle, ActionLyrics };
+        }
 
-        // Build the action for the notification
+        // 2. Create the actual Button UI (C# logic)
         public NotificationCompat.Action? GetCustomAction(Context context, string action)
         {
-            if (action != ActionLyrics) return null;
+            switch (action)
+            {
+                case ActionFavorite:
+                    // Check your VM for current favorite status to pick icon
+                    int heartIcon = ExoPlayerService.CurrentSongContext?.IsFavorite == true
+                        ? Resource.Drawable.media3_icon_heart_filled
+                        : Resource.Drawable.heart;
+                    return CreateAction(context, heartIcon, "Favorite", ActionFavorite);
 
-            var intent = new Intent(context, typeof(ExoPlayerService))
-                .SetAction("com.yvanbrunel.dimmer.ACTION_LYRICS");
+                case ActionShuffle:
+                    return CreateAction(context, Resource.Drawable.shuffle, "Shuffle", ActionShuffle);
 
-            var pendingIntent = PendingIntent.GetService(context, 0, intent, PendingIntentFlags.Immutable);
-            //var iconRes = Resource.Drawable.lyricist;
-
-            return new NotificationCompat.Action(null, new Java.Lang.String("Lyrics"), pendingIntent);
+                case ActionLyrics:
+                    return CreateAction(context, Resource.Drawable.lyrics, "Lyrics", ActionLyrics);
+            }
+            return null;
         }
 
-        // Handle when user taps the action
+        private NotificationCompat.Action CreateAction(Context context, int icon, string title, string action)
+        {
+            var intent = new Intent(context, typeof(ExoPlayerService)).SetAction(action);
+            var pi = PendingIntent.GetService(context, 0, intent, PendingIntentFlags.Immutable | PendingIntentFlags.UpdateCurrent);
+            return new NotificationCompat.Action(icon, new Java.Lang.String(title), pi);
+        }
+
+        // 3. Handle the Click in C#
         public void OnCustomAction(IPlayer? player, string? action, Intent? intent)
         {
-            if (action == ActionLyrics)
+            //if (action == ActionFavorite)
+            //{
+            //    _service.MyViewModel.ToggleFavorite(_service.CurrentSongContext);
+            //    _service.RefreshNotification(); // Helper to redraw the heart
+            //}
+            //else if (action == ActionShuffle)
+            //{
+            //    _service.ToggleShuffle();
+            //}
+            //else if (action == ActionLyrics)
+            //{
+            //    // Trigger your C# lyrics overlay
+            //}
+        }
+        private NotificationCompat.Action BuildNotificationAction(Context context, int icon, string title, string action)
+        {
+            // Create an intent that points back to your ExoPlayerService
+            var intent = new Intent(context, typeof(ExoPlayerService)).SetAction(action);
+
+            // For Android 12+, we MUST use Immutable or Mutable. Background actions are usually Immutable.
+            var flags = PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable;
+            var pi = PendingIntent.GetService(context, 0, intent, flags);
+
+            return new NotificationCompat.Action(icon, new Java.Lang.String(title), pi);
+        }
+        public IDictionary<string, NotificationCompat.Action>? CreateCustomActions(Context? context, int p1)
+        {
+            var actions = new Dictionary<string, NotificationCompat.Action>();
+
+            // 1. Create the Favorite Action
+            // We check the ViewModel state to decide which icon to "register"
+            //bool isFav = _service.MyViewModel.CurrentPlayingSongView?.IsFavorite ?? false;
+            bool isFav = true;
+            int heartIcon = isFav ? Resource.Drawable.media3_icon_heart_filled : Resource.Drawable.heartbroken;
+            actions.Add(ActionFavorite, BuildNotificationAction(context, heartIcon, "Favorite", ActionFavorite));
+
+            // 2. Create the Shuffle Action
+            actions.Add(ActionShuffle, BuildNotificationAction(context, Resource.Drawable.shuffle, "Shuffle", ActionShuffle));
+
+            // 3. Create the Lyrics Action
+            actions.Add(ActionLyrics, BuildNotificationAction(context, Resource.Drawable.lyrics, "Lyrics", ActionLyrics));
+
+            return actions;
+        }
+        public NotificationCompat.Action? CreateCustomAction(Context context, string action, int instanceId)
+        {
+            switch (action)
             {
-                Toast.MakeText(_ctx, "Opening synced lyrics...", ToastLength.Short)?.Show();
-                // TODO: trigger your overlay / lyrics view
+                case ActionFavorite:
+                    // Check C# state for the heart icon
+                    //bool isFav = _service.MyViewModel.CurrentPlayingSongView?.IsFavorite ?? false;
+                    //int heartIcon = isFav ? Resource.Drawable.heart_filled : Resource.Drawable.heart_outline;
+                    //return BuildAction(context, heartIcon, "Favorite", ActionFavorite);
+
+                case ActionShuffle:
+                    return BuildAction(context, Resource.Drawable.shuffle, "Shuffle", ActionShuffle);
+
+                case ActionLyrics:
+                    //return BuildAction(context, Resource.Drawable.lyrics_icon, "Lyrics", ActionLyrics);
+                    break;
             }
+            return null;
         }
-        public IList<string>? GetCustomActions(IPlayer? player)
-        => new List<string> { ActionLyrics };
-
-        // Return a map of actionId -> Action
-        public IDictionary<string, NotificationCompat.Action>? CreateCustomActions(Context? context, int instanceId)
+        private NotificationCompat.Action BuildAction(Context context, int icon, string title, string action)
         {
-            if (context == null) return null;
-            var act = BuildLyricsAction(context);
-            return new Dictionary<string, NotificationCompat.Action> { { ActionLyrics, act } };
-        }
-
-        private static NotificationCompat.Action BuildLyricsAction(Context context)
-        {
-            var intent = new Intent(context, typeof(ExoPlayerService)).SetAction(ServiceAction);
+            var intent = new Intent(context, typeof(ExoPlayerService)).SetAction(action);
             var pi = PendingIntent.GetService(context, 0, intent, PendingIntentFlags.Immutable | PendingIntentFlags.UpdateCurrent);
-            return new NotificationCompat.Action(null, new Java.Lang.String ("Lyrics"), pi);
+            return new NotificationCompat.Action(icon, new Java.Lang.String(title), pi);
         }
+
     }
 
 
