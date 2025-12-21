@@ -494,6 +494,10 @@ internal class SongAdapter : RecyclerView.Adapter
                         Glide.With(_img.Context).Load(path)
                              .Placeholder(Resource.Drawable.musicnotess)
                              .Into(_img);
+                        if(song == _vm.CurrentPlayingSongView)
+                        {
+                          
+                        }
                     }
                     else
                     {

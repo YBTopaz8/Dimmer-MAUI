@@ -6,16 +6,16 @@ public class MusicMetadataService : IMusicMetadataService
 {
     private readonly ConcurrentDictionary<string, ArtistModelView> _artistsByName = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, AlbumModelView> _albumsByName = new(StringComparer.OrdinalIgnoreCase);
-    private readonly ConcurrentDictionary<string, GenreModelView> _genresByName = new(StringComparer.OrdinalIgnoreCase); private readonly HashSet<string> _existingFilePaths = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, GenreModelView> _genresByName = new(StringComparer.OrdinalIgnoreCase);
 
+    // Use ConcurrentBag for thread-safe additions during parallel processing
+    public ConcurrentBag<ArtistModelView> NewArtists { get; } = new();
+    public ConcurrentBag<AlbumModelView> NewAlbums { get; } = new();
+    public ConcurrentBag<GenreModelView> NewGenres { get; } = new();
 
-    public List<ArtistModelView> NewArtists { get; } = new();
-    public List<AlbumModelView> NewAlbums { get; } = new();
-    public List<GenreModelView> NewGenres { get; } = new();
-
-
-    public MusicMetadataService() { }
-
+    private readonly HashSet<string> _existingFilePaths = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> _existingSongKeys = new();
+    private readonly List<SongModelView> _processedSongsInThisScan = new();
 
     public void LoadExistingData(
         IEnumerable<ArtistModelView> existingArtists,
@@ -25,67 +25,67 @@ public class MusicMetadataService : IMusicMetadataService
     {
         foreach (var artist in existingArtists)
         {
-
             if (!string.IsNullOrEmpty(artist.Name))
-            {
                 _artistsByName.TryAdd(artist.Name, artist);
-            }
         }
+
         foreach (var album in existingAlbums)
         {
             if (!string.IsNullOrEmpty(album.Name))
             {
-                _albumsByName.TryAdd(album.Name, album);
+                // FIX: Key must match the logic in GetOrCreateAlbum
+                // Since we don't always know the artist here, we use a helper or the first associated artist
+                var artistName = album.Artists?.FirstOrDefault()?.Name ?? "Unknown";
+                string albumKey = $"{album.Name.Trim()}|{artistName.Trim()}";
+                _albumsByName.TryAdd(albumKey, album);
             }
         }
+
         foreach (var genre in existingGenres)
         {
             if (!string.IsNullOrEmpty(genre.Name))
-            {
                 _genresByName.TryAdd(genre.Name, genre);
-            }
         }
+
         foreach (var song in existingSongs)
         {
             _existingSongKeys.Add(song.TitleDurationKey);
+            if (!string.IsNullOrWhiteSpace(song.FilePath))
+                _existingFilePaths.Add(song.FilePath);
         }
         _processedSongsInThisScan.AddRange(existingSongs);
-
-        foreach (var song in existingSongs)
-        {
-            if (!string.IsNullOrWhiteSpace(song.FilePath))
-            {
-                _existingFilePaths.Add(song.FilePath);
-            }
-        }
     }
-    private readonly List<SongModelView> _processedSongsInThisScan = new();
-
-    private readonly HashSet<string> _existingSongKeys = new();
 
     public ArtistModelView GetOrCreateArtist(Track track, string name)
     {
         name = string.IsNullOrWhiteSpace(name) ? "Unknown Artist" : name.Trim();
-        var containsOrNo = _artistsByName.ContainsKey(name);
-        // GetOrAdd is an atomic operation, making this method thread-safe.
-        return _artistsByName.GetOrAdd(name, (key) => 
+
+        var artist = _artistsByName.GetOrAdd(name, (key) =>
         {
-            var newArtist = new ArtistModelView { Name = key, Id = ObjectId.GenerateNewId() 
+            var newArtist = new ArtistModelView
+            {
+                Name = key,
+                Id = ObjectId.GenerateNewId()
             };
-            newArtist.TotalSongsByArtist++;
-            NewArtists.Add(newArtist); // Note: NewArtists list might still need locking if accessed elsewhere during the scan.
+            NewArtists.Add(newArtist);
             return newArtist;
         });
+
+        lock (artist)
+        {
+            artist.TotalSongsByArtist++;
+        }
+        return artist;
     }
 
     public AlbumModelView GetOrCreateAlbum(Track track, string name, string? artistForContext = null)
     {
         name = string.IsNullOrWhiteSpace(name) ? "Unknown Album" : name.Trim();
+        string artistName = (artistForContext ?? "Unknown").Trim();
+        string albumKey = $"{name}|{artistName}";
 
-        // A unique key for an album is often its name + the primary artist's name
-        string albumKey = $"{name}|{artistForContext ?? "Unknown"}";
-
-        return _albumsByName.GetOrAdd(albumKey, (Func<string, AlbumModelView>)((key) => {
+        return _albumsByName.GetOrAdd(albumKey, (key) =>
+        {
             var newAlbum = new AlbumModelView
             {
                 Name = name,
@@ -93,7 +93,7 @@ public class MusicMetadataService : IMusicMetadataService
             };
             NewAlbums.Add(newAlbum);
             return newAlbum;
-        }));
+        });
     }
 
     public GenreModelView GetOrCreateGenre(Track track, string name)
@@ -101,11 +101,18 @@ public class MusicMetadataService : IMusicMetadataService
         name = string.IsNullOrWhiteSpace(name) ? "Unknown Genre" : name.Trim();
 
         return _genresByName.GetOrAdd(name, (key) => {
-            var newGenre = new GenreModelView { Name = key, Id = ObjectId.GenerateNewId() };
+            var newGenre = new GenreModelView
+            {
+                Name = key,
+                Id = ObjectId.GenerateNewId()
+            };
             NewGenres.Add(newGenre);
             return newGenre;
         });
     }
+
+
+
     public void AddSong(SongModelView song)
     {
         _processedSongsInThisScan.Add(song);
@@ -172,8 +179,10 @@ public class MusicMetadataService : IMusicMetadataService
             _processedSongsInThisScan.Clear();
             _existingSongKeys.Clear();
             _updatedEntityIds.Clear();
+        while (NewArtists.TryTake(out _)) ;
+        while (NewAlbums.TryTake(out _)) ;
+        while (NewGenres.TryTake(out _)) ;
 
-
-        }
+    }
 
     }

@@ -1966,10 +1966,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             _logger.LogTrace("No embedded cover art found in audio file: {FilePath}", song.FilePath);
             //Trying lastfm
-            var cleanTitle = StaticUtils.CleanTitle(song.FilePath,song.Title,song.AlbumName,song.ArtistName);
-            string cleanArtist = StaticUtils.CleanArtist(song.FilePath, song.ArtistName, song.Title);
+            var cleanTitle = TaggingUtils.CleanTitle(song.FilePath,song.Title,song.AlbumName,song.ArtistName);
+            var cleanArtist = TaggingUtils.CleanArtist(song.FilePath, song.ArtistName, song.Title);
 
-            var lastfmTrack = await lastfmService.GetTrackInfoAsync(cleanArtist, cleanTitle);
+            var lastfmTrack = await lastfmService.GetTrackInfoAsync(cleanArtist.First(), cleanTitle);
             if (lastfmTrack.IsNull)
                 return;
             if (lastfmTrack.Album is null || lastfmTrack.Album?.Images is null)
@@ -6592,9 +6592,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [RelayCommand]
     public async Task FetchSongOnlineOnLastFM(SongModelView song)
     {
-        var cleanTitle = StaticUtils.CleanTitle(song.FilePath, song.Title, song.AlbumName, song.ArtistName);
-        string cleanArtist = StaticUtils.CleanArtist(song.FilePath, song.ArtistName, song.Title);
-        LastFMTrackOnEditPage = await lastfmService.GetTrackInfoAsync(cleanArtist, cleanTitle);
+        var cleanTitle = TaggingUtils.CleanTitle(song.FilePath, song.Title, song.AlbumName, song.ArtistName);
+        var cleanArtist = TaggingUtils.CleanArtist(song.FilePath, song.ArtistName, song.Title);
+        LastFMTrackOnEditPage = await lastfmService.GetTrackInfoAsync(cleanArtist.First(), cleanTitle);
     }
    
 
@@ -7674,23 +7674,31 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             string tagArtist = track.Artist;
             string tagAlbumArtist = track.AlbumArtist;
             string tagAlbum = track.Album;
+            string tagGenre = track.Genre;
             string decodedPath = Uri.UnescapeDataString(track.Path);
             var (filenameArtist, filenameTitle) = FilenameParser.Parse(track.Path);
 
-            var cleanArtist = StaticUtils.CleanArtist(track.Path, tagArtist, tagTitle);
-            var cleanTitle = StaticUtils.CleanTitle(track.Path, tagTitle, tagAlbum, tagAlbumArtist);
+
             string bestRawTitle = !string.IsNullOrWhiteSpace(tagTitle) ? tagTitle : filenameTitle ?? Path.GetFileNameWithoutExtension(decodedPath);
             string? bestRawArtist = !string.IsNullOrWhiteSpace(tagArtist) ? tagArtist : filenameArtist;
             string bestAlbumArtist = tagAlbumArtist; // No filename equivalent for this.
-            List<string> artistNames = TaggingUtils.ExtractArtists(bestRawArtist, bestAlbumArtist)
-               .Select(x => StaticUtils.CleanArtist(track.Path, x, track.Title)).ToList();
+            string bestAlbum = !string.IsNullOrWhiteSpace(tagAlbum) ? tagAlbum : "Unknown Album";
+            string bestGenre = !string.IsNullOrWhiteSpace(tagGenre) ? tagGenre : "Unknown Genre";
+
+
+            List<string> rawArtists = TaggingUtils.ExtractArtists(bestRawArtist, bestAlbumArtist);
+
+            // 2. Run each raw artist through the cleaner and "flatten" the resulting lists
+            List<string> artistNames = rawArtists
+                .SelectMany(x => TaggingUtils.CleanArtist(track.Path, x, track.Title))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
 
             string primaryArtistName = artistNames.FirstOrDefault() ?? "Unknown Artist";
-            string allArtistsString = string.Join(", ", artistNames);
-           await realm.WriteAsync(() =>
+            await realm.WriteAsync(() =>
             {
                 songInDb.ArtistName = primaryArtistName;
-                songInDb.OtherArtistsName = allArtistsString;
+                songInDb.OtherArtistsName = string.Join(", ", artistNames)!;
 
                 var artistModel = realm.All<ArtistModel>().FirstOrDefault(a => a.Name == primaryArtistName);
                 artistModel ??= new ArtistModel

@@ -532,7 +532,23 @@ public partial class NowPlayingFragment : Fragment
             _playPauseBtn.SetIconResource(Resource.Drawable.media3_icon_pause);
         }
 
-
+        _viewModel.CurrentPlayingSongView
+            .WhenPropertyChange
+            (nameof(SongModelView.CoverImagePath), s => s.CoverImagePath)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(path =>
+            {
+                if (!string.IsNullOrEmpty(path))
+                {
+                    Glide.With(this).Load(path).Into(_miniCover);
+                    Glide.With(this).Load(path).Into(_mainCoverImage);
+                }
+                else
+                {
+                    _miniCover.SetImageResource(Resource.Drawable.musicnotess);
+                    _mainCoverImage.SetImageResource(Resource.Drawable.musicnotess);
+                }
+            });
     }
 
     private void UpdateDeviceVolumeChangedUI((double newVol, bool isDeviceMuted, int devMavVol) tuple)

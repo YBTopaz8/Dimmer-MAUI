@@ -819,17 +819,58 @@ public class ExoPlayerService : MediaSessionService
         public bool OnMediaButtonEvent(global::AndroidX.Media3.Session.MediaSession? session, global::AndroidX.Media3.Session.MediaSession.ControllerInfo? controllerInfo, global::Android.Content.Intent? intent)
         {
 
-            if (intent == null || intent.Action == null)
+            if (intent?.Action != Intent.ActionMediaButton)
                 return false;
 
+            var keyEvent = (KeyEvent?)intent.GetParcelableExtra(Intent.ExtraKeyEvent, Java.Lang.Class.FromType(typeof(KeyEvent)));
 
-            
-            return true;
+            if (keyEvent == null || keyEvent.Action != KeyEventActions.Down)
+                return false;
+
+            switch (keyEvent.KeyCode)
+            {
+                case Keycode.MediaNext:
+                    service.RaisePlayNextPressed();
+                    return true; // We handled it
+
+                case Keycode.MediaPrevious:
+                    service.RaisePlayPreviousPressed();
+                    return true;
+
+                case Keycode.MediaPlay:
+                case Keycode.MediaPause:
+                case Keycode.MediaPlayPause:
+                    // Toggle Play/Pause logic
+                    if (service.player.IsPlaying) service.player.Pause();
+                    else service.player.Play();
+                    return true;
+            }
+
+            return false; // Let default logic handle other buttons (like volume)
         }
+
+        //IPlayer Player = service.player;
         // Decide whether to allow a specific PLAYER command requested by a controllerInfo
         public int OnPlayerCommandRequest(MediaSession? session, MediaSession.ControllerInfo? controller, int playerCommand)
         {
 
+            // playerCommand 9 = CommandNextMediaItem
+            // playerCommand 7 = CommandPreviousMediaItem
+
+            switch (playerCommand)
+            {
+                case 9:
+                    service.RaisePlayNextPressed();
+                    return SessionResult.ResultSuccess;
+
+                case 7:
+                    service.RaisePlayPreviousPressed();
+                    return SessionResult.ResultSuccess;
+
+                case 4:
+                    // Handle Play/Pause
+                    return SessionResult.ResultSuccess;
+            }
 
             return SessionResult.ResultSuccess;
         }
@@ -837,39 +878,39 @@ public class ExoPlayerService : MediaSessionService
         {
 
 
-            #region Old code. still useful in case
-            if (playerCommands == null || playerCommands.Size() == 0)
-            {
+            //#region Old code. still useful in case
+            //if (playerCommands == null || playerCommands.Size() == 0)
+            //{
 
-                return;
-            }
+            //    return;
+            //}
 
-            for (int i = 0; i < playerCommands.Size(); i++)
-            {
-                int command = playerCommands.Get(i);
+            //for (int i = 0; i < playerCommands.Size(); i++)
+            //{
+            //    int command = playerCommands.Get(i);
 
-                switch (command)
-                {
+            //    switch (command)
+            //    {
 
-                    case 9:
-                        service.player?.Pause();
-                        service.RaisePlayNextPressed();
-                        break;
+            //        case 9:
+            //            service.player?.Pause();
+            //            service.RaisePlayNextPressed();
+            //            break;
 
-                    case 7:
-                        service.player?.Pause();
-                        service.player?.Pause();
-                        service.RaisePlayPreviousPressed();
+            //        case 7:
+            //            service.player?.Pause();
+            //            service.player?.Pause();
+            //            service.RaisePlayPreviousPressed();
 
-                        break;
+            //            break;
 
-                    default:
+            //        default:
 
-                        break;
-                }
-            }
+            //            break;
+            //    }
+            //}
 
-            #endregion
+            //#endregion
         }
 
 
