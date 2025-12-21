@@ -18,11 +18,11 @@ public class AchievementService : IDisposable
 
         public AchievementService(IRealmFactory realmFactory)
         {
-            _realmFactory = realmFactory;
-            _realm = _realmFactory.GetRealmInstance();
-            _rules = BuildAllRules(); // The big list of 40
-            EnsureStatsExist();
-        InitializeReactiveListeners();
+        //    _realmFactory = realmFactory;
+        //    _realm = _realmFactory.GetRealmInstance();
+        //    _rules = BuildAllRules(); // The big list of 40
+        //    EnsureStatsExist();
+        //InitializeReactiveListeners();
     }
 
         private void EnsureStatsExist()

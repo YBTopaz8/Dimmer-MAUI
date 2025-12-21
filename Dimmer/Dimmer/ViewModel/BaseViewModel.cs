@@ -199,19 +199,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
 
 
-        //BaseAppFlow.AchievementService.UnlockedAchievement.
-        //    Where(rule => rule is not (null, null))
-        //    .DistinctUntilChanged()
-        //   .ObserveOn(RxSchedulers.UI)
-        //   .Subscribe(async s =>
-        //   {
-        //       UnlockedAch = s.ruleUnlocked;
-        //       AchievementSecondMessage = $"{s.concernedSong?.Title} by {s.concernedSong?.ArtistName}";
-        //       IsAchievementNotificationVisible = true;
-        //       await Task.Delay(5000);
-        //       IsAchievementNotificationVisible = false;
-        //   });
-
 
         var realmSub = realm.All<SongModel>()
             .AsObservableChangeSet()
@@ -268,16 +255,16 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         //SubscribeToCommandEvaluatorEvents();
 
-        _duplicateSource.Connect()
-            .ObserveOn(RxSchedulers.UI)
-            .Bind(out _duplicateSets)
-            .Subscribe(
-                x =>
-                {
-                    OnPropertyChanged(nameof(DuplicateSets)); // Manually notify that the collection has changed
-                })
-            .DisposeWith(CompositeDisposables);
-        Debug.WriteLine($"{DateTime.Now}: Duplicate sets subscription set up.");
+        //_duplicateSource.Connect()
+        //    .ObserveOn(RxSchedulers.UI)
+        //    .Bind(out _duplicateSets)
+        //    .Subscribe(
+        //        x =>
+        //        {
+        //            OnPropertyChanged(nameof(DuplicateSets)); // Manually notify that the collection has changed
+        //        })
+        //    .DisposeWith(CompositeDisposables);
+        //Debug.WriteLine($"{DateTime.Now}: Duplicate sets subscription set up.");
 
         PlaybackQueueSource.Connect()
             .ObserveOn(RxSchedulers.UI)
@@ -851,7 +838,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             var lastAppEvent = realm.All<DimmerPlayEvent>().LastOrDefaultNullSafe();
             if (appModel != null && appModel.Id != ObjectId.Empty)
             {
-                
+
                 if (appModel.LastKnownPlaybackQuery is not null)
                 {
                     var removeCOmmandFromLastSaved = appModel.LastKnownPlaybackQuery.Replace(">>addnext!", "");
@@ -900,7 +887,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                         _logger.LogWarning(
                             "Last played song with ID {SongId} not found in the database. It may have been deleted.",
                             songId);
-                        CurrentPlayingSongView = new();
+
                     }
                 }
                 else
@@ -910,28 +897,30 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 }
 
 
-                if (IsDarkModeOn)
+                //if (IsDarkModeOn)
+                //{
+                //    Application.Current?.UserAppTheme = AppTheme.Dark;
+                //}
+                //else
+                //{
+                //    Application.Current?.UserAppTheme = AppTheme.Light;
+                //}
+                if (lastAppEvent is not null)
                 {
-                    Application.Current?.UserAppTheme = AppTheme.Dark;
+                    var songsLinked = lastAppEvent.SongsLinkingToThisEvent.AsEnumerable().Select(x => x.ToSongView());
+                    PlaybackQueueSource.Edit(
+                        updater =>
+                        {
+                            updater.Clear();
+                            updater.Add(songsLinked);
+                        });
                 }
-                else
-                {
-                    Application.Current?.UserAppTheme = AppTheme.Light;
-                }
-
-                var songsLinked = lastAppEvent.SongsLinkingToThisEvent.AsEnumerable().Select(x=>x.ToSongView());
-                PlaybackQueueSource.Edit(
-                    updater =>
-                    {
-                        updater.Clear();
-                        updater.Add(songsLinked);
-                    });
             }
             else
             {
                 var newAppModel = new AppStateModel
                 {
-                    Id=ObjectId.GenerateNewId(),
+                    Id = ObjectId.GenerateNewId(),
                     LastKnownQuery = CurrentTqlQuery,
                     LastKnownPlaybackQuery = CurrentPlaybackQuery,
                     LastKnownPlaybackQueueIndex = _currentPlayinSongIndexInPlaybackQueue,
@@ -949,10 +938,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     CurrentCountry = RegionInfo.CurrentRegion.TwoLetterISORegionName,
                 };
 
-               await realm.WriteAsync(() =>
-                {
-                        realm.Add(newAppModel);
-                });
+                await realm.WriteAsync(() =>
+                 {
+                     realm.Add(newAppModel);
+                 });
 
                 if (lastAppEvent is not null)
                 {
@@ -983,12 +972,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     RxSchedulers.UI.Schedule(() =>
                     {
 
-                    //CurrentTrackPositionSeconds = lastAppEvent.PositionInSeconds;
-                    IsDarkModeOn = Application.Current?.PlatformAppTheme == AppTheme.Dark;
+                        //CurrentTrackPositionSeconds = lastAppEvent.PositionInSeconds;
+                        IsDarkModeOn = Application.Current?.PlatformAppTheme == AppTheme.Dark;
 
                     });
                 }
-                
+
             }
         }
 

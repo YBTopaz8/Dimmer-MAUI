@@ -177,8 +177,8 @@
                                 </StackPanel>
 
                                 <Button
-                                    Grid.Column="2"
                                     x:Name="RestorebackBtn"
+                                    Grid.Column="2"
                                     Click="RestorebackBtn_Click"
                                     CommandParameter="{x:Bind ObjectId}"
                                     Content="Restore" />

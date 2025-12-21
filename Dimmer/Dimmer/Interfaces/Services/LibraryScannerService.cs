@@ -95,11 +95,7 @@ public class LibraryScannerService : ILibraryScannerService
 
 
                 _logger.LogDebug("Loaded {ArtistCount} artists, {AlbumCount} albums, {GenreCount} genres, {SongCount} songs.",
-                    existingArtists.Count(), existingAlbums.Count(), existingGenres.Count(), existingSongs.Count());
-
-
-
-
+                    existingArtists.Count, existingAlbums.Count, existingGenres.Count, existingSongs.Count);
 
                 currentScanMetadataService.LoadExistingData(existingArtists, existingAlbums, existingGenres, existingSongs);
             }
@@ -144,9 +140,9 @@ public class LibraryScannerService : ILibraryScannerService
 
             _logger.LogInformation("File processing complete. Consolidating metadata changes.");
 
-            var newArtists = currentScanMetadataService.NewArtists;
-            var newAlbums = currentScanMetadataService.NewAlbums;
-            var newGenres = currentScanMetadataService.NewGenres;
+            var newArtists = currentScanMetadataService.NewArtists.DistinctBy(x=>x.Name).ToList();
+            var newAlbums = currentScanMetadataService.NewAlbums.DistinctBy(x => x.Name).ToList();
+            var newGenres = currentScanMetadataService.NewGenres.DistinctBy(x => x.Name).ToList();
             var newSongs = processedResults.Where(r => r.Success && r.ProcessedSong != null).Select(r => r.ProcessedSong).ToList();
 
             if (newSongs.Count!=0)

@@ -700,4 +700,26 @@ public sealed partial class ArtistPage : Page
     {
       await  LoadWikiOfArtist();
     }
+
+    private void ArtistFav_Loaded(object sender, RoutedEventArgs e)
+    {
+        var send = (Button)sender;
+        if(send != null && MyViewModel.SelectedArtist is not null)
+        {
+            if(MyViewModel.SelectedArtist.IsFavorite)
+            {
+                FontIcon FavedIcon= new FontIcon();
+                FavedIcon.Glyph = "\uEB52";
+                FavedIcon.Foreground = new SolidColorBrush(Colors.DarkSlateBlue);
+                send.Content = FavedIcon;
+            }
+            else
+            {
+                FontIcon UnFavedIcon = new FontIcon();
+                UnFavedIcon.Glyph = "\uEB51";
+                send.Content = UnFavedIcon;
+
+            }
+        }
+    }
 }

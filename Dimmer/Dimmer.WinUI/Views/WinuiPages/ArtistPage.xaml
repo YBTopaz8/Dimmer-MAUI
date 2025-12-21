@@ -92,24 +92,12 @@
                             PointerReleased="ArtistNameInArtistPage_PointerReleased"
                             Text="{Binding SelectedArtist.Name}"
                             Visibility="Visible" />
-                        <ItemsRepeater ItemsSource="{Binding SelectedArtist.ListOfSimilarArtists}">
-                            <ItemsRepeater.Layout>
-                                <StackLayout Orientation="Horizontal" Spacing="15" />
-                            </ItemsRepeater.Layout>
-                            <ItemsRepeater.ItemTemplate>
-                                <DataTemplate>
-                                    <StackPanel CornerRadius="10">
-                                        <Image
-                                            Width="100"
-                                            Height="100"
-                                            Source="{Binding Images[0].Url}" />
-                                        <TextBlock HorizontalAlignment="Center" Text="{Binding Name}" />
 
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ItemsRepeater.ItemTemplate>
-                        </ItemsRepeater>
+                        <TextBlock x:Name="ArtistSongCount" Text="{x:Bind MyViewModel.SelectedArtist.TotalSongsByArtist, Mode=OneWay}" />
+                        <Button x:Name="ArtistFav"
+                                Loaded="ArtistFav_Loaded">
 
+                        </Button>
                     </StackPanel>
                 </StackPanel>
 

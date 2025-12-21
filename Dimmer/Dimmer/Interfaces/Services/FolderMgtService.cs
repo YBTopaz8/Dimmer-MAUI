@@ -146,7 +146,7 @@ public class FolderMgtService : IFolderMgtService
             if (indexx != -1)
             {
                 // For simplicity, we just re-add the same path to trigger any internal updates.
-                foldersToWatchPaths[indexx] = path;
+                realm.Write(() => foldersToWatchPaths[indexx] = path);
             }
             await StartWatchingConfiguredFoldersAsync();
         }

@@ -66,9 +66,10 @@ public class MusicMetadataService : IMusicMetadataService
     public ArtistModelView GetOrCreateArtist(Track track, string name)
     {
         name = string.IsNullOrWhiteSpace(name) ? "Unknown Artist" : name.Trim();
-
+        var containsOrNo = _artistsByName.ContainsKey(name);
         // GetOrAdd is an atomic operation, making this method thread-safe.
-        return _artistsByName.GetOrAdd(name, (key) => {
+        return _artistsByName.GetOrAdd(name, (key) => 
+        {
             var newArtist = new ArtistModelView { Name = key, Id = ObjectId.GenerateNewId() 
             };
             newArtist.TotalSongsByArtist++;

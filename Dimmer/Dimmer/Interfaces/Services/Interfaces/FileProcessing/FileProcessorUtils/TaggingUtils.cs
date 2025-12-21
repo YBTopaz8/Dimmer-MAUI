@@ -13,7 +13,7 @@ public static class TaggingUtils
     // to avoid splitting words like "feat." inside an artist's name (e.g., "The Feat. Masters").
     // It's case-insensitive.
     private static readonly Regex ArtistSeparatorRegex = new(
-       @"\s*(?:\b(?:feat|ft|featuring|vs|versus|with)\b\.?|&|,|;| x)\s*",
+       @"\s*(?:\b(?:feat|ft|featuring|vs|versus|with)\b\.?|&|;| x)\s*",
     RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     // Regex to find "version" information in a track title, like (Remix), [Live], - Radio Edit, etc.
