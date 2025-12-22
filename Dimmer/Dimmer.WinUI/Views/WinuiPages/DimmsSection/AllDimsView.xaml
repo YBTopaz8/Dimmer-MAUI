@@ -23,7 +23,7 @@
         <dgView:TableView
             x:Name="MyEventsTableView"
             Grid.Row="1"
-            AutoGenerateColumns="False"
+            AutoGenerateColumns="True"
             ItemsSource="{x:Bind MyViewModel.DimmerPlayEventList, Mode=OneWay}">
 
             <dgView:TableView.Columns>

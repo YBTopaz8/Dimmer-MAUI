@@ -4001,7 +4001,13 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         var realm = RealmFactory.GetRealmInstance();
      
-        DimmerPlayEventList = dimmerPlayEventRepo.GetAll().OrderByDescending(e => e.EventDate).Select(x=>x.ToDimmerPlayEventView()).ToObservableCollection();
+        DimmerPlayEventList = dimmerPlayEventRepo.GetAll().OrderByDescending(e => e.EventDate).Select(x =>
+        {
+            DimmerPlayEventView dimEvt = x.ToDimmerPlayEventView()!;
+            dimEvt.SongViewObject = SearchResults.First(x => x.Id == dimEvt.SongId);
+
+            return x.ToDimmerPlayEventView();
+        }).ToObservableCollection();
 
         _logger.LogInformation("Loaded {Count} recent play events from the database.", DimmerPlayEventList.Count);
     }
