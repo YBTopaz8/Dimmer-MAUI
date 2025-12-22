@@ -129,9 +129,14 @@
                             <StackPanel x:Name="MoreCardBorder">
                                 <TextBlock
                                     HorizontalAlignment="Center"
+                                    Text="{Binding PlayTypeStr}"
+                                    TextWrapping="WrapWholeWords" />
+                                <TextBlock
+                                    HorizontalAlignment="Center"
                                     Text="{Binding EventDate, Converter={StaticResource EventDateOffsetToTimeAgo}}"
                                     TextWrapping="WrapWholeWords"
                                     ToolTipService.ToolTip="{Binding EventDate.Value.LocalDateTime}" />
+
                                 <Button
                                     x:Name="MoreBtn"
                                     Background="Transparent"

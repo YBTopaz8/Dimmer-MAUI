@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Linq;
 using System.Net;
 using System.Runtime.ConstrainedExecution;
 using System.Security.Cryptography;
@@ -235,7 +236,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     {
         if (CurrentPager >= TotalPages) return;
 
-        CurrentPageContext++;
+        CurrentPager++;
         UpdatePageStatus();
 
         // Calculate new window: Start Index, Size
@@ -250,7 +251,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     {
         if (CurrentPager <= 1) return;
 
-        CurrentPageContext--;
+        CurrentPager--;
         UpdatePageStatus();
 
         int startIndex = (CurrentPager - 1) * PAGE_SIZE;
@@ -263,7 +264,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     private bool _isPipelineActive = false;
     private void UpdatePageStatus()
     {
-        PageStatusString = $"Page {CurrentPageContext} of {TotalPages}";
+        PageStatusString = $"Page {CurrentPager} of {TotalPages}";
         CanGoNext = CurrentPager < TotalPages;
         CanGoPrev = CurrentPager > 1;
     }
@@ -324,6 +325,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     }
 
+   
+    private Realm? _songsRealm;
 
     public void InitializeAllVMCoreComponents()
     {
@@ -334,13 +337,20 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         // subscribe to realm's directChanges for certain models to keep in sync
 
         ReloadFolderPaths();
-        var realm = RealmFactory.GetRealmInstance();
+        using (var checkRealm = RealmFactory.GetRealmInstance())
+        {
+            IsLibraryEmpty = !checkRealm.All<SongModel>().Any();
+            ShowWelcomeScreen = IsLibraryEmpty;
 
-
-        IsLibraryEmpty = !realm.All<SongModel>().Any();
-        
-        ShowWelcomeScreen = IsLibraryEmpty;
-        if(!IsLibraryEmpty)
+            // Grab FolderPaths while we have this instance
+            var stateApp = checkRealm.All<AppStateModel>().FirstOrDefaultNullSafe();
+            if (stateApp is not null)
+            {
+                // Freeze allows this collection to survive outside the 'using' block
+                FolderPaths = stateApp.Freeze().UserMusicFoldersPreference.ToObservableCollection();
+            }
+        }
+        if (!IsLibraryEmpty)
         {
             ShowAllSongsWindowActivate();
         }
@@ -389,13 +399,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         Debug.WriteLine($"{DateTime.Now}: Starting InitializeAllVMCoreComponentsAsync...");
 
-        realm = RealmFactory.GetRealmInstance();
-        var stateApp = realm.All<AppStateModel>().FirstOrDefaultNullSafe();
-        if(stateApp is not null)
-        {
-           FolderPaths= stateApp.Freeze().UserMusicFoldersPreference.ToObservableCollection();
-
-        }
+      
 
         Debug.WriteLine($"{DateTime.Now}: Folder monitoring started.");
 
@@ -414,91 +418,87 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         Debug.WriteLine($"{DateTime.Now}: Playback queue subscription set up.");
 
 
-        _searchQuerySubject
-            .Throttle(TimeSpan.FromMilliseconds(380), RxSchedulers.Background)
-            .Select(
-                query =>
-                {
-                    // --- DEBUG STEP 2: Is the query being processed? ---
-                    Debug.WriteLine($"[DEBUG] Rx Pipeline: Processing query text: '{query}'");
 
-                    var tqlQuery = string.IsNullOrWhiteSpace(query) ? "" : NaturalLanguageProcessor.Process(query);
-                    var plan = MetaParser.Parse(tqlQuery);
+        var searchStream = _searchQuerySubject
+    .Throttle(TimeSpan.FromMilliseconds(300), RxSchedulers.Background)
+    .Select(query => new { Query = query, Page = 1 });
+        var pageStream = _songPageSubject
+    .Select(page => new { Query = _searchQuerySubject.Value, Page = page });
 
-                    // --- DEBUG STEP 3: What is the parser producing? ---
-                    Debug.WriteLine(
-                        $"[DEBUG] Parser Plan: RQL='{plan.RqlFilter}', Error='{plan.ErrorMessage ?? "None"}'");
+        Observable.Merge(searchStream, pageStream)
+    .Select(inputs =>
+    {
+        // --- DEBUG STEP 2: Is the query being processed? ---
+        Debug.WriteLine($"[DEBUG] Rx Pipeline: Processing query text: '{inputs.Query}'");
 
-                    return (Query: tqlQuery, Plan: plan);
-                })
+                    var tqlQuery = string.IsNullOrWhiteSpace(inputs.Query) ? "" : NaturalLanguageProcessor.Process(inputs.Query);
+            var plan = MetaParser.Parse(tqlQuery);
+            return (Inputs: inputs, Plan: plan);
+        })
             .SubscribeOn(RxSchedulers.Background)
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(
                 payload =>
                 {
                     var plan = payload.Plan;
-                    
-
-                        NLPQuery = payload.Query;
-
-                        TQLUserSearchErrorMessage = plan.ErrorMessage ?? "";
-                    
-
-                    if (plan.ErrorMessage != null)
-                    {
-
-
-                        // --- DEBUG STEP 4: Did we stop because of a parse error? ---
-                        Debug.WriteLine($"[DEBUG] Halting due to parse error: {plan.ErrorMessage}");
-                        return;
-                    }
+                    var page = payload.Inputs.Page;
+                    if (plan.ErrorMessage != null) return;
 
                     try
                     {
-                       using var realm = RealmFactory.GetRealmInstance();
+                        using var realm = RealmFactory.GetRealmInstance();
 
+                        // 2. Build Query (Filter & Sort)
                         IQueryable<SongModel> query = realm.All<SongModel>().Filter(plan.RqlFilter);
-
-                        // --- DEBUG STEP 5: How many results did Realm return BEFORE sorting? ---
-                        Debug.WriteLine(
-                            $"[DEBUG] {DateTime.Now} Realm Query: Returned {query.Count()} songs for filter '{plan.RqlFilter}'.");
 
                         if (plan.SortDescriptions.Count > 0)
                         {
-                            var orderByString = string.Join(", ",plan.SortDescriptions.Select(
-                                        desc => $"{desc.PropertyName} {(desc.Direction == SortDirection.Ascending ? "asc" : "desc")}"));
+                            var orderByString = string.Join(", ", plan.SortDescriptions.Select(
+                                desc => $"{desc.PropertyName} {(desc.Direction == SortDirection.Ascending ? "asc" : "desc")}"));
                             query = query.OrderBy(orderByString);
-                        }
-
-                        var mappedSongs = query.AsEnumerable();
-                        var convertedSongs = mappedSongs.Select(x=>x.ToSongModelView());
-                        var finalSongs = convertedSongs
-                        .Where(plan.InMemoryPredicate)
-                        .ToList();
-                        Debug.WriteLine(
-                            $"[DEBUG] In-Memory Filter: Reduced result set from {mappedSongs.Count()} to {finalSongs.Count} songs.");
-                     
-                        // STAGE 3: Apply post-processing (Shuffle and Limiters)
-                        List<SongModelView> processedSongs;
-                        if (plan.Shuffle != null)
-                        {
-                            processedSongs = QueryResultProcessor.ApplyShuffle(finalSongs, plan.Shuffle);
                         }
                         else
                         {
-                            processedSongs = QueryResultProcessor.ApplyLimiter(finalSongs, plan.Limiter);
+                            // Default sort is required for Paging to be stable
+                            query = query.OrderBy(x => x.Title);
                         }
 
-                        SearchResultsHolder.Edit(
-                            updater =>
-                            {
-                                updater.Clear();
-                                updater.AddRange(processedSongs);
-                            });
+                        int totalMatches = query.Count();
+                        TotalSongPages = (int)Math.Ceiling((double)totalMatches / SONG_PAGE_SIZE);
+                        if (TotalSongPages == 0) TotalSongPages = 1;
 
+                        RxSchedulers.UI.Schedule(() => {
+                            SongPageStatus = $"Page {page} of {TotalSongPages}";
+                            CanGoNextSong = page < TotalSongPages;
+                            CanGoPrevSong = page > 1;
+                            CurrentSongPage = page; // Sync property
+                        });
+
+                        var pagedSongs = System.Linq.Enumerable.ToList(
+            System.Linq.Enumerable.Take(
+                System.Linq.Enumerable.Skip(
+                    System.Linq.Enumerable.Where(
+                        System.Linq.Enumerable.Select(
+                            query.AsEnumerable(), // Stream from DB
+                            x => x.ToSongModelView() // Lazy Convert to ViewModel
+                        ),
+                        plan.InMemoryPredicate // Now checking ViewModel (Types match!)
+                    ),
+                    (page - 1) * SONG_PAGE_SIZE // Skip
+                ),
+                SONG_PAGE_SIZE // Take
+            )
+        );
+
+                        // 5. Update UI List
+                        SearchResultsHolder.Edit(updater =>
+                        {
+                            updater.Clear();
+                            updater.AddRange(pagedSongs);
+                        });
                         if (plan.CommandNode is not null)
                         {
-                            var commandAction = commandEvaluator.Evaluate(plan.CommandNode, processedSongs);
+                            var commandAction = commandEvaluator.Evaluate(plan.CommandNode, pagedSongs);
                            
                              RxSchedulers.UI.Schedule(
                                 () =>
@@ -533,41 +533,36 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         Debug.WriteLine($"{DateTime.Now}: Search query subscription set up.");
 
         _logger.LogInformation(string.Format("{0}: Calculating ranks using RQL sorting...", DateTime.Now));
+
+        UserModel usr = new UserModel();
         // Use a single, large write transaction for performance.
-        var db = RealmFactory.GetRealmInstance();
-        var usrs = db.All<UserModel>().FirstOrDefaultNullSafe();
+        using (var db = RealmFactory.GetRealmInstance())
+        {
+            var usrs = db.All<UserModel>().FirstOrDefaultNullSafe();
 
-        UserModel usr = new();
-        db.Write(
-            () =>
+            db.Write(() =>
             {
-                if (usrs is not null)
-                {
-                    usr = usrs;
 
-                    usr.UserName = lastfmService.AuthenticatedUser;
-                    usr.DeviceFormFactor ??= DeviceInfo.Current.DeviceType.ToString();
-                    usr.DeviceManufacturer ??= DeviceInfo.Current.Manufacturer.ToString();
-                    usr.DeviceModel ??= DeviceInfo.Current.Model.ToString();
-                    usr.DeviceName ??= DeviceInfo.Current.Name.ToString();
-                    usr.DeviceVersion ??= DeviceInfo.Current.VersionString;
-                    db.Add(usr, true);
-                }
-                else
+                usr= usrs ?? new UserModel
                 {
-                   
+                    Id = ObjectId.GenerateNewId(),
+                    UserDateCreated = DateTimeOffset.UtcNow,
+                    IsNew = true,
+                };
+                // Only update if logged in, or set defaults
+                if (usrs != null) usr.UserName = lastfmService.AuthenticatedUser;
 
-                    usr.DeviceFormFactor ??= DeviceInfo.Current.DeviceType.ToString();
-                    usr.DeviceManufacturer ??= DeviceInfo.Current.Manufacturer.ToString();
-                    usr.DeviceModel ??= DeviceInfo.Current.Model.ToString();
-                    usr.DeviceName ??= DeviceInfo.Current.Name.ToString();
-                    usr.DeviceVersion ??= DeviceInfo.Current.VersionString;
-                    db.Add(usr);
-                }
+                usr.DeviceFormFactor ??= DeviceInfo.Current.DeviceType.ToString();
+                usr.DeviceManufacturer ??= DeviceInfo.Current.Manufacturer.ToString();
+                usr.DeviceModel ??= DeviceInfo.Current.Model.ToString();
+                usr.DeviceName ??= DeviceInfo.Current.Name.ToString();
+                usr.DeviceVersion ??= DeviceInfo.Current.VersionString;
+
+                db.Add(usr, update: true); // update: true handles both Add and Update logic safely
 
                 CurrentUserLocal = usr.ToUserModelView()!;
             });
-
+        }
         lastfmService.IsAuthenticatedChanged
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(
@@ -627,6 +622,16 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         return;
     }
 
+
+    [ObservableProperty] public partial int CurrentSongPage { get; set; } = 1;
+    [ObservableProperty] public partial double TotalSongPages { get; set; } = 1;
+    [ObservableProperty] public partial string SongPageStatus { get; set; } = "Page 1";
+    [ObservableProperty] public partial bool CanGoNextSong { get; set; }
+    [ObservableProperty] public partial bool CanGoPrevSong { get; set; }
+    private readonly BehaviorSubject<int> _songPageSubject = new(1);
+    private const int SONG_PAGE_SIZE = 50;
+
+ 
     private async Task HeavierBackGroundLoadings(IEnumerable<string>? folders)
     {
         try
@@ -751,7 +756,106 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         
         _searchQuerySubject.OnNext(searchText);
+
     }
+
+    [RelayCommand]
+    public void NextSongPage()
+    {
+        if (CurrentSongPage >= TotalSongPages) return;
+
+        
+        _songPageSubject.OnNext(CurrentSongPage + 1);
+    }
+
+    [RelayCommand]
+    public void PrevSongPage()
+    {
+        if (CurrentSongPage <= 1) return;
+
+        _songPageSubject.OnNext(CurrentSongPage - 1);
+    }
+    [RelayCommand]
+    public void JumpToCurrentSongPage()
+    {
+        // 1. Safety Checks
+        if (CurrentPlayingSongView == null) return;
+
+        // REMOVED: if (!string.IsNullOrEmpty(NLPQuery)) return; 
+        // We WANT to support jumping even inside a search!
+
+        using var realm = RealmFactory.GetRealmInstance();
+        IQueryable<SongModel> query = realm.All<SongModel>();
+
+        // 2. RECONSTRUCT THE CURRENT UI CONTEXT
+        // We need to apply the exact same filters/sorts the Pipeline is using.
+
+        var currentSearchText = NLPQuery ?? "";
+        // Note: If you store the 'Plan' globally, you can use that. 
+        // Otherwise, fast-parse it again:
+        var tqlQuery = string.IsNullOrWhiteSpace(currentSearchText) ? "" : NaturalLanguageProcessor.Process(currentSearchText);
+        var plan = MetaParser.Parse(tqlQuery);
+
+        // 2a. Apply Filter
+        if (!string.IsNullOrEmpty(plan.RqlFilter))
+        {
+            try
+            {
+                query = query.Filter(plan.RqlFilter);
+            }
+            catch
+            {
+                return; // Filter was invalid, can't jump
+            }
+        }
+
+        // 2b. Apply Sort (CRITICAL: Must match pipeline exactly)
+        if (plan.SortDescriptions.Count > 0)
+        {
+            var orderByString = string.Join(", ", plan.SortDescriptions.Select(
+                desc => $"{desc.PropertyName} {(desc.Direction == SortDirection.Ascending ? "asc" : "desc")}"));
+            query = query.OrderBy(orderByString);
+        }
+        else
+        {
+            // Pipeline Default
+            query = query.OrderBy(x => x.Title);
+        }
+
+        // 3. FIND THE INDEX
+        // We pull ONLY the IDs to keep memory low (~100KB for 5k songs).
+        // We cannot use .IndexOf on IQueryable directly in Realm.
+        var filteredIdList = query.ToList().Select(x => x.Id).ToList();
+
+        var targetId = CurrentPlayingSongView.Id;
+        var index = filteredIdList.IndexOf(targetId);
+
+        if (index == -1)
+        {
+            // The currently playing song is HIDDEN by the current search filter.
+            // e.g. Playing "Hello", but Search is "Eminem".
+            // We do nothing (or show a Toast: "Song not in current view").
+            return;
+        }
+
+        // 4. CALCULATE PAGE
+        // Math: Index 50 (51st song) / Size 50 = 1.  1 + 1 = Page 2.
+        int newPage = (index / SONG_PAGE_SIZE) + 1;
+
+        // 5. UPDATE
+        if (newPage != CurrentSongPage)
+        {
+            Debug.WriteLine($"[Jump] Found song at Index {index}. Moving to Page {newPage}...");
+            _songPageSubject.OnNext(newPage);
+        }
+        else
+        {
+            Debug.WriteLine($"[Jump] Song is already on the current page ({newPage}).");
+            // Optional: If you want to scroll to the specific row in the TableView,
+            // you would send a message to the View here.
+        }
+    }
+
 
     partial void OnCurrentTqlQueryChanged(string oldValue, string newValue)
     {
