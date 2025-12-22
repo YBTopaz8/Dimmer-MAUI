@@ -94,10 +94,7 @@
                             Visibility="Visible" />
 
                         <TextBlock x:Name="ArtistSongCount" Text="{x:Bind MyViewModel.SelectedArtist.TotalSongsByArtist, Mode=OneWay}" />
-                        <Button x:Name="ArtistFav"
-                                Loaded="ArtistFav_Loaded">
-
-                        </Button>
+                        <Button x:Name="ArtistFav" Loaded="ArtistFav_Loaded" />
                     </StackPanel>
                 </StackPanel>
 

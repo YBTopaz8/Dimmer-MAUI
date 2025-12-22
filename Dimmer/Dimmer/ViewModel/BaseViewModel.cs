@@ -1093,9 +1093,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     #region private fields
     public SourceList<SongModelView> SearchResultsHolder = new SourceList<SongModelView>();
+    public SourceList<DimmerPlayEventView> DimmerPlayEvtsHolder = new ();
 
     private readonly ReadOnlyObservableCollection<SongModelView> _searchResults;
+    private readonly ReadOnlyObservableCollection<DimmerPlayEventView> _dimmerEvents;
     public ReadOnlyObservableCollection<SongModelView> SearchResults => _searchResults;
+    public ReadOnlyObservableCollection<DimmerPlayEventView> DimmerEvents => _dimmerEvents;
 
 
     private readonly CommandEvaluator commandEvaluator = new();
@@ -4004,9 +4007,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         DimmerPlayEventList = dimmerPlayEventRepo.GetAll().OrderByDescending(e => e.EventDate).Select(x =>
         {
             DimmerPlayEventView dimEvt = x.ToDimmerPlayEventView()!;
-            dimEvt.SongViewObject = SearchResults.First(x => x.Id == dimEvt.SongId);
+            dimEvt.SongViewObject = SearchResults.FirstOrDefault(x => x.Id == dimEvt.SongId);
 
-            return x.ToDimmerPlayEventView();
+            return dimEvt;
         }).ToObservableCollection();
 
         _logger.LogInformation("Loaded {Count} recent play events from the database.", DimmerPlayEventList.Count);
@@ -6075,7 +6078,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             string.Join(", ", artistNames),
             songId);
         await _musicDataService.UpdateSongArtists(songId, artistNames);
-        if(songId == SelectedSong.Id)
+        if(songId == SelectedSong?.Id)
         {
             // Refresh selected song
             SelectedSong = songRepo.GetById(songId).ToSongModelView();

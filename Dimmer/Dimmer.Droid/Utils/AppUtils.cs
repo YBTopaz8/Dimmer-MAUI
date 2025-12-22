@@ -269,64 +269,6 @@ public class AppUtil : IAppUtil
        );
         return colorListBtxtColor;
     }
-    public static MaterialTextView CreateHeader(Context ctx, string text)
-    {
-        var tv = new MaterialTextView(ctx) { Text = text, TextSize = 28, Typeface = Typeface.DefaultBold };
-        tv.SetTextColor(IsDark(ctx) ? Color.White : Color.Black);
-        return tv;
-    }
-
-    public static MaterialTextView CreateSectionTitle(Context ctx, string text)
-    {
-        var tv = new MaterialTextView(ctx) { Text = text, TextSize = 14, Typeface = Typeface.DefaultBold };
-        tv.SetTextColor(IsDark(ctx) ? Color.LightGray : Color.DarkGray);
-        tv.SetPadding(10, 40, 0, 10);
-        return tv;
-    }
-
-    public static MaterialCardView CreateCard(Context ctx)
-    {
-        var card = new MaterialCardView(ctx)
-        {
-            Radius = DpToPx(16),
-            CardElevation = DpToPx(2),
-            UseCompatPadding = true
-        };
-        card.SetBackgroundColor(IsDark(ctx) ? Color.ParseColor("#1E1E1E") : Color.White);
-        return card;
-    }
-
-    public static TextView CreateStatItem(Context ctx, string label, string value)
-    {
-        // Simple Vertical Stack for stats
-        // Implementation detail...
-        return new TextView(ctx) { Text = value, TextSize = 18, Typeface = Typeface.DefaultBold };
-    }
-
-    // Standard List Item ViewHolder for Devices/Friends
-    public static RecyclerView.ViewHolder CreateListItemVH(Context ctx)
-    {
-        var root = new LinearLayout(ctx) { Orientation = Orientation.Horizontal, WeightSum = 4 };
-        root.SetPadding(20, 20, 20, 20);
-
-        var textStack = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
-        textStack.LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 3);
-
-        var title = new TextView(ctx) { TextSize = 16, Typeface = Typeface.DefaultBold };
-        var sub = new TextView(ctx) { TextSize = 12 };
-        textStack.AddView(title);
-        textStack.AddView(sub);
-
-        var btn = new MaterialButton(ctx);
-        btn.LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1);
-
-        root.AddView(textStack);
-        root.AddView(btn);
-
-        return new SimpleVH(root, title, sub, btn);
-    }
-
-    public static bool IsDark(Context ctx) => (ctx.Resources.Configuration.UiMode & Android.Content.Res.UiMode.NightMask) == Android.Content.Res.UiMode.NightYes;
     public class SimpleVH : RecyclerView.ViewHolder
     {
         public TextView Title, Subtitle;

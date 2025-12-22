@@ -22,23 +22,119 @@
 
         <dgView:TableView
             x:Name="MyEventsTableView"
-            Grid.Row="1"
-            AutoGenerateColumns="True"
-            ItemsSource="{x:Bind MyViewModel.DimmerPlayEventList, Mode=OneWay}">
+            Grid.Row="1" Loaded="MyEventsTableView_Loaded"
+            AutoGenerateColumns="False"
+            ItemsSource="{x:Bind MyViewModel.DimmerPlayEventList, Mode=OneWay}"
+            RowHeight="120">
 
             <dgView:TableView.Columns>
 
-                <dgView:TableViewTemplateColumn x:Name="ImageCol">
-
-
+                <dgView:TableViewTemplateColumn x:Name="ImageCol" Header="Image Col">
                     <dgView:TableViewTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Border x:Name="CardBorder" Height="200" />
+                            <Border
+                                x:Name="CardBorder"
+                                Height="90"
+                                HorizontalAlignment="Left">
+                                <Grid HorizontalAlignment="Left">
+                                    <Image x:Name="SongImg">
+                                        <Image.Source>
+                                            <BitmapImage UriSource="{Binding CoverImagePath}" />
+                                        </Image.Source>
+                                    </Image>
+
+
+                                </Grid>
+                            </Border>
                         </DataTemplate>
 
                     </dgView:TableViewTemplateColumn.CellTemplate>
+                </dgView:TableViewTemplateColumn>
 
+                <dgView:TableViewTemplateColumn
+                    x:Name="TextsCol"
+                    Width="*" 
+                    Header="Song">
+                    <dgView:TableViewTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel
+                                x:Name="TextsCardBorder"
+                                HorizontalAlignment="Stretch"
+                                Background="Transparent"
+                                Spacing="5">
 
+                                <StackPanel Orientation="Horizontal" Spacing="5">
+                                    <Button Background="Transparent" BorderThickness="0"
+                                            Click="SongTitle_Click">
+                                        <TextBlock
+                                            FontSize="21"
+                                            FontWeight="Bold"
+                                            Text="{Binding SongViewObject.Title}"
+                                            TextWrapping="WrapWholeWords" />
+
+                                    </Button>
+
+                                    <Border
+                                        HorizontalAlignment="Right"
+                                        Canvas.ZIndex="1"
+                                        Visibility="{Binding SongViewObject.IsFavorite, Converter={StaticResource BoolToVis}}">
+                                        <FontIcon
+                                            Foreground="DarkSlateBlue"
+                                            Glyph="&#xEB52;"
+                                            Rotation="37" />
+                                    </Border>
+                                </StackPanel>
+
+                                <Button Background="Transparent"
+                                        x:Name="SongArtists"
+                                        Click="SongArtists_Click"
+                                        BorderThickness="0">
+                                    <TextBlock
+                                        FontSize="19"
+                                        Text="{Binding SongViewObject.OtherArtistsName}"
+                                        TextWrapping="WrapWholeWords" />
+                                </Button>
+
+                                <Button 
+                                        x:Name="SongAlbum"
+                                        Click="SongAlbum_Click"
+                                    Background="Transparent" BorderThickness="0">
+
+                                    <TextBlock
+                                        FontSize="12"
+                                        FontStyle="Oblique"
+                                        FontWeight="Light"
+                                        Text="{Binding SongViewObject.AlbumName}"
+                                        TextWrapping="WrapWholeWords" />
+                                </Button>
+                            </StackPanel>
+                        </DataTemplate>
+
+                    </dgView:TableViewTemplateColumn.CellTemplate>
+                </dgView:TableViewTemplateColumn>
+
+                <dgView:TableViewTemplateColumn
+                    x:Name="MoreCol"
+                    Width="auto"
+                    Header="More">
+                    <dgView:TableViewTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel x:Name="MoreCardBorder">
+                                <TextBlock
+                                    HorizontalAlignment="Center"
+                                    Text="{Binding EventDate, Converter={StaticResource EventDateOffsetToTimeAgo}}"
+                                    TextWrapping="WrapWholeWords"
+                                    ToolTipService.ToolTip="{Binding EventDate.Value.LocalDateTime}" />
+                                <Button
+                                    x:Name="MoreBtn"
+                                    Background="Transparent"
+                                    Click="MoreBtn_Click">
+                                    <SymbolIcon Symbol="More" />
+                                </Button>
+                            </StackPanel>
+                        </DataTemplate>
+
+                    </dgView:TableViewTemplateColumn.CellTemplate>
                 </dgView:TableViewTemplateColumn>
 
             </dgView:TableView.Columns>

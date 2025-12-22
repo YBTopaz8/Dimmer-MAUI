@@ -2,6 +2,7 @@
 using System.Reactive.Disposables.Fluent;
 
 using Dimmer.DimmerLive.Models;
+using Dimmer.WinUI.UiUtils;
 
 using DynamicData;
 
@@ -41,10 +42,10 @@ public class CloudDataFragment : Fragment
         root.SetPadding(40, 60, 40, 200);
 
         // Header
-        root.AddView(AppUtil.CreateHeader(ctx, "Cloud & Sync"));
+        root.AddView(UiBuilder.CreateHeader(ctx, "Cloud & Sync"));
 
         // Status Card
-        var statusCard = CreateCard(ctx);
+        var statusCard = UiBuilder.CreateCard(ctx);
         var statusLayout = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
         statusLayout.SetPadding(30, 30, 30, 30);
 
@@ -61,7 +62,7 @@ public class CloudDataFragment : Fragment
         root.AddView(statusCard);
 
         // Backup Actions
-        root.AddView(AppUtil.CreateSectionTitle(ctx, "Data Management"));
+        root.AddView(UiBuilder.CreateSectionTitle(ctx, "Data Management"));
         var actionLayout = new LinearLayout(ctx) { Orientation = Orientation.Horizontal, WeightSum = 2 };
 
         _backupBtn = new MaterialButton(ctx) { Text = "Backup" };
@@ -77,7 +78,7 @@ public class CloudDataFragment : Fragment
         root.AddView(actionLayout);
 
         // Devices List
-        root.AddView(AppUtil.CreateSectionTitle(ctx, "Nearby Devices"));
+        root.AddView(UiBuilder.CreateSectionTitle(ctx, "Nearby Devices"));
         _devicesRecycler = new RecyclerView(ctx);
         _devicesRecycler.SetLayoutManager(new LinearLayoutManager(ctx));
 
@@ -182,6 +183,6 @@ public class CloudDataFragment : Fragment
                 };
             }
         }
-        public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType) => AppUtil.CreateListItemVH(ctx);
+        public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType) => UiBuilder.CreateListItemVH(ctx);
     }
 }
