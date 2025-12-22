@@ -30,6 +30,7 @@ public sealed partial class AllDimsView : Page
     public AllDimsView()
     {
         InitializeComponent();
+        //MyEventsTableView
     }
 
     BaseViewModelWin MyViewModel;
@@ -37,11 +38,22 @@ public sealed partial class AllDimsView : Page
     protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
-        MyViewModel  = e.Parameter as BaseViewModelWin;
-        
+        MyViewModel = e.Parameter as BaseViewModelWin;
+        if (MyViewModel == null)
+        {
+            throw new InvalidOperationException("Navigation to AllDimsView requires a BaseViewModelWin parameter.");
+        }
         this.DataContext = MyViewModel;
 
-        MyViewModel.LoadPlayEvents();
+       
+            MyViewModel.ActivateHistory();
+
+
+            MyEventsTableView.ItemsSource = MyViewModel.DimmerEvents;
+            var items = MyEventsTableView.Items.Count;
+            Debug.WriteLine($"Items in EventsTableView: {items}");
+
+            var dims = MyViewModel.DimmerEvents.Count;
     }
     private void MoreBtn_Click(object sender, RoutedEventArgs e)
     {
@@ -185,9 +197,67 @@ public sealed partial class AllDimsView : Page
 
         Frame?.NavigateToType(songDetailType, navParams, navigationOptions);
     }
+    
+    private ScrollViewer? _innerScrollViewer;
+    
+    private void InnerScrollViewer_ViewChanged(object? sender, ScrollViewerViewChangedEventArgs e)
+    {
+        CalculateVirtualRange();
+    }
+    private int _lastStartIndex = -1;
+    private int _lastVisibleCount = -1;
+    private void CalculateVirtualRange()
+    {
+        if (_innerScrollViewer == null) return;
 
+        const double rowHeight = 120;
+
+        // Current State
+        int firstVisibleIndex = (int)(_innerScrollViewer.VerticalOffset / rowHeight);
+        int visibleRowCount = (int)(_innerScrollViewer.ViewportHeight / rowHeight);
+
+        // Define your Buffer (Keep it generous)
+        int buffer = 20;
+
+        int proposedStart = Math.Max(0, firstVisibleIndex - 10);
+        int proposedCount = visibleRowCount + buffer;
+
+
+        bool countChanged = Math.Abs(proposedCount - _lastVisibleCount) > 1;
+
+        bool scrollChangedSignificant = Math.Abs(proposedStart - _lastStartIndex) > 5;
+
+        if (!countChanged && !scrollChangedSignificant)
+        {
+            return;
+        }
+
+        // 4. Update State
+        _lastStartIndex = proposedStart;
+        _lastVisibleCount = proposedCount;
+
+        RxSchedulers.UI.Schedule(() =>
+        {
+            MyViewModel.UpdateHistoryVirtualRange(proposedStart, proposedCount);
+            Debug.WriteLine($"[Virtualize] UPDATE SENT -> Start: {proposedStart}, Count: {proposedCount}");
+        });
+    }
+    private void MyEventsTableView_Unloaded(object sender, RoutedEventArgs e)
+    {
+        if (_innerScrollViewer != null)
+        {
+            // Unsubscribe from the SCROLL event to prevent memory leaks
+            _innerScrollViewer.ViewChanged -= InnerScrollViewer_ViewChanged;
+            _innerScrollViewer = null;
+        }
+    }
     private async void MyEventsTableView_Loaded(object sender, RoutedEventArgs e)
     {
+        
+        var items = MyEventsTableView.Items.Count;
+        Debug.WriteLine($"Items in EventsTableView: {items}");
+
+
         if (MyViewModel.SelectedSong != null)
         {
             trackModel = MyViewModel.SelectedSong;
@@ -364,5 +434,28 @@ public sealed partial class AllDimsView : Page
     private void SongAlbum_Click(object sender, RoutedEventArgs e)
     {
 
+    }
+  private ScrollViewer? GetScrollViewer(DependencyObject depObj)
+    {
+        if (depObj is ScrollViewer scrollViewer)
+        { 
+            return scrollViewer; 
+        }
+
+        for (int i = 0; i < Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChildrenCount(depObj); i++)
+        {
+            var child = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChild(depObj, i);
+            var result = GetScrollViewer(child);
+            if (result != null)
+            {
+                return result;
+            }
+        }
+        return null;
+    }
+
+    private void MyEventsTableView_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        CalculateVirtualRange();
     }
 }

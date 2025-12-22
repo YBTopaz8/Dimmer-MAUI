@@ -187,42 +187,38 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         // --- B. Image & Lyrics Grid ---
         var gridFrame = new FrameLayout(ctx);
 
-        var gridParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, 0, 1f); 
-        gridParams.TopMargin = 40;
-        gridParams.BottomMargin = 40;
+        var gridParams = new LinearLayout.LayoutParams(-1, AppUtil.DpToPx(320));
+        gridParams.SetMargins(0, 30, 0, 30);
         gridFrame.LayoutParameters = gridParams;
 
-        // 1. Main Cover Image
-        var imgCard = new MaterialCardView(ctx) { Radius = AppUtil.DpToPx(24), Elevation = 10 };
-        _mainCoverImage = new ImageView(ctx) { };
+        var imgCard = new MaterialCardView(ctx) { Radius = AppUtil.DpToPx(20), Elevation = 4 };
+        _mainCoverImage = new ImageView(ctx);
         _mainCoverImage.SetScaleType(ImageView.ScaleType.CenterCrop);
-        imgCard.AddView(_mainCoverImage, new ViewGroup.LayoutParams(-1, -1));
-        gridFrame.AddView(imgCard, new FrameLayout.LayoutParams(-1, -1));
+        imgCard.AddView(_mainCoverImage, new FrameLayout.LayoutParams(-1, -1));
+        gridFrame.AddView(imgCard);
 
-        // 2. Lyrics Overlay (Centered Card)
+        // 2. Lyrics Overlay (MUST be added after image to be on top)
         _lyricsCard = new MaterialCardView(ctx)
         {
-            Radius = AppUtil.DpToPx(13),
-            CardBackgroundColor = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.ParseColor("#CC000000")), // Semi-transparent black
-            Elevation = 20
+            Radius = AppUtil.DpToPx(12),
+            CardBackgroundColor = ColorStateList.ValueOf(Color.ParseColor("#AA000000")), // Darker semi-transparent
+            Elevation = 8,
+            Visibility = ViewStates.Invisible // Hidden by default
         };
-        var lyricsParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent) { Gravity = GravityFlags.Center };
-        // Constrain max width for lyrics card
-        lyricsParams.LeftMargin = 40;
-        lyricsParams.RightMargin = 40;
-        _lyricsCard.LayoutParameters = lyricsParams;
-
-        _currentLyricText = new TextView(ctx)
+        var lParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent)
         {
-            TextSize = 18,
             Gravity = GravityFlags.Center,
-            Typeface = Android.Graphics.Typeface.DefaultBold
+            LeftMargin = 40,
+            RightMargin = 40
         };
-        _currentLyricText.SetTextColor(Android.Graphics.Color.White);
-        _currentLyricText.SetPadding(30, 20, 30, 20);
-
+        _currentLyricText = new TextView(ctx) { TextSize = 20, Gravity = GravityFlags.Center, Typeface = Typeface.DefaultBold };
+        _currentLyricText.SetTextColor(Color.White);
+        _currentLyricText.SetPadding(40, 30, 40, 30);
         _lyricsCard.AddView(_currentLyricText);
-        gridFrame.AddView(_lyricsCard);
+
+        gridFrame.AddView(_lyricsCard, lParams); // This sits on top of the image
+        
+
 
         // 3. Meta Data (Bottom of Grid)
         var metaLay = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
@@ -239,13 +235,37 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
 
         root.AddView(gridFrame);
 
-        // --- C. Artist Chips ---
+        // --- C. Artist Row (Chips + Vertical Action Stack) ---
+        var artistActionRow = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
+        artistActionRow.SetGravity(GravityFlags.CenterVertical);
+
+        // 1. Artist Chips (Left side, weighted)
         var chipScroll = new HorizontalScrollView(ctx) { ScrollBarSize = 0 };
         _artistChipGroup = new ChipGroup(ctx) { SingleLine = true };
         chipScroll.AddView(_artistChipGroup);
+        artistActionRow.AddView(chipScroll, new LinearLayout.LayoutParams(0, -2, 1f));
 
+        // 2. Vertical Action Stack (Right side)
+        var actionStack = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
+        actionStack.SetGravity(GravityFlags.Center);
 
-        root.AddView(chipScroll);
+        var favBtn = new ImageButton(ctx) { Background = null };
+        favBtn.SetImageResource(Resource.Drawable.heart);
+        favBtn.SetPadding(10, 10, 10, 10);
+        favBtn.Click += async (s, e) => await _viewModel.AddFavoriteRatingToSong(_viewModel.CurrentPlayingSongView);
+
+        var lyrBtn = new ImageButton(ctx) { Background = null };
+        lyrBtn.SetImageResource(Resource.Drawable.lyrics); // Ensure this drawable exists
+        lyrBtn.SetPadding(10, 10, 10, 10);
+        lyrBtn.Click += (s, e) => {
+            _lyricsCard.Visibility = _lyricsCard.Visibility == ViewStates.Visible ? ViewStates.Invisible : ViewStates.Visible;
+        };
+
+        actionStack.AddView(favBtn, new LinearLayout.LayoutParams(AppUtil.DpToPx(40), AppUtil.DpToPx(40)));
+        actionStack.AddView(lyrBtn, new LinearLayout.LayoutParams(AppUtil.DpToPx(40), AppUtil.DpToPx(40)));
+
+        artistActionRow.AddView(actionStack);
+        root.AddView(artistActionRow);
 
         // --- D. Progress Slider ---
         var timeLay = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
@@ -462,6 +482,13 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
     {
         base.OnResume();
 
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu)
+        {
+            Activity?.OnBackInvokedDispatcher.RegisterOnBackInvokedCallback(
+                (int)IOnBackInvokedDispatcher.PriorityDefault, this);
+        }
+
+
         // 1. Observe Playing Song
         _viewModel.CurrentSongChanged
             .ObserveOn(RxSchedulers.UI)
@@ -549,6 +576,8 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
                     _mainCoverImage.SetImageResource(Resource.Drawable.musicnotess);
                 }
             });
+
+
     }
 
     private void UpdateDeviceVolumeChangedUI((double newVol, bool isDeviceMuted, int devMavVol) tuple)

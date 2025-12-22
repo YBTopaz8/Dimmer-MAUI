@@ -14,6 +14,7 @@
 
             <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="auto" />
 
 
         </Grid.RowDefinitions>
@@ -22,10 +23,12 @@
 
         <dgView:TableView
             x:Name="MyEventsTableView"
-            Grid.Row="1" Loaded="MyEventsTableView_Loaded"
+            Grid.Row="1"
             AutoGenerateColumns="False"
-            ItemsSource="{x:Bind MyViewModel.DimmerPlayEventList, Mode=OneWay}"
-            RowHeight="120">
+            ItemsSource="{x:Bind MyViewModel.DimmerEvents, Mode=OneWay}"
+            Loaded="MyEventsTableView_Loaded"
+            RowHeight="120"
+            Unloaded="MyEventsTableView_Unloaded">
 
             <dgView:TableView.Columns>
 
@@ -53,7 +56,7 @@
 
                 <dgView:TableViewTemplateColumn
                     x:Name="TextsCol"
-                    Width="*" 
+                    Width="*"
                     Header="Song">
                     <dgView:TableViewTemplateColumn.CellTemplate>
                         <DataTemplate>
@@ -64,8 +67,10 @@
                                 Spacing="5">
 
                                 <StackPanel Orientation="Horizontal" Spacing="5">
-                                    <Button Background="Transparent" BorderThickness="0"
-                                            Click="SongTitle_Click">
+                                    <Button
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Click="SongTitle_Click">
                                         <TextBlock
                                             FontSize="21"
                                             FontWeight="Bold"
@@ -85,20 +90,22 @@
                                     </Border>
                                 </StackPanel>
 
-                                <Button Background="Transparent"
-                                        x:Name="SongArtists"
-                                        Click="SongArtists_Click"
-                                        BorderThickness="0">
+                                <Button
+                                    x:Name="SongArtists"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Click="SongArtists_Click">
                                     <TextBlock
                                         FontSize="19"
                                         Text="{Binding SongViewObject.OtherArtistsName}"
                                         TextWrapping="WrapWholeWords" />
                                 </Button>
 
-                                <Button 
-                                        x:Name="SongAlbum"
-                                        Click="SongAlbum_Click"
-                                    Background="Transparent" BorderThickness="0">
+                                <Button
+                                    x:Name="SongAlbum"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Click="SongAlbum_Click">
 
                                     <TextBlock
                                         FontSize="12"
@@ -140,6 +147,47 @@
             </dgView:TableView.Columns>
 
         </dgView:TableView>
+        <StackPanel
+            Grid.Row="1"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Visibility="{x:Bind MyViewModel.IsPlayEventsLoading, Mode=OneWay, Converter={StaticResource BoolToVis}}">
 
+            <ProgressRing
+                Width="60"
+                Height="60"
+                IsActive="True" />
+            <TextBlock
+                Margin="0,10,0,0"
+                HorizontalAlignment="Center"
+                Text="Loading History..." />
+        </StackPanel>
+        <Border
+            Grid.Row="2"
+            Padding="10"
+            Background="{ThemeResource LayerFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+            BorderThickness="0,1,0,0">
+
+            <StackPanel
+                HorizontalAlignment="Center"
+                Orientation="Horizontal"
+                Spacing="20">
+
+                <Button Command="{x:Bind MyViewModel.PrevEvtPageCommand}" IsEnabled="{x:Bind MyViewModel.CanGoPrev, Mode=OneWay}">
+                    <SymbolIcon Symbol="Back" />
+                </Button>
+
+                <TextBlock
+                    VerticalAlignment="Center"
+                    FontWeight="SemiBold"
+                    Text="{x:Bind MyViewModel.PageStatusString, Mode=OneWay}" />
+
+                <Button Command="{x:Bind MyViewModel.NextEvtPageCommand}" IsEnabled="{x:Bind MyViewModel.CanGoNext, Mode=OneWay}">
+                    <SymbolIcon Symbol="Forward" />
+                </Button>
+
+            </StackPanel>
+        </Border>
     </Grid>
 </Page>

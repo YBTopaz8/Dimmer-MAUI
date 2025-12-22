@@ -53,6 +53,11 @@ public partial class HomePage : ContentPage
         base.OnAppearing();
 
         _ = InitializeAsync();
+
+
+
+        Debug.WriteLine($"[UI VIEW] Bound to ViewModel Instance: {MyViewModel.InstanceId}");
+
     }
 
     private async Task InitializeAsync()

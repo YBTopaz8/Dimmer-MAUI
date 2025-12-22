@@ -43,8 +43,33 @@ public partial class AllDimsFragment : Fragment
 
         _adapter = new PlayEventAdapter(ctx, MyViewModel, this);
         _eventsRecycler.SetAdapter(_adapter);
-
+        _eventsRecycler.AddOnScrollListener(new HistoryScrollListener(MyViewModel));
         root.AddView(_eventsRecycler);
         return root;
+    }
+}
+
+internal class HistoryScrollListener : RecyclerView.OnScrollListener
+{
+    private readonly BaseViewModelAnd _vm;
+    public HistoryScrollListener(BaseViewModelAnd vm) => _vm = vm;
+
+    public override void OnScrolled(RecyclerView recyclerView, int dx, int dy)
+    {
+        base.OnScrolled(recyclerView, dx, dy);
+
+        var layoutManager = (LinearLayoutManager)recyclerView.GetLayoutManager();
+        if (layoutManager == null) return;
+
+        // Get the first visible item index
+        int firstVisible = layoutManager.FindFirstVisibleItemPosition();
+        int visibleCount = layoutManager.ChildCount;
+
+        // Update the virtual window. 
+        // We add a "buffer" (e.g., 20) so the user doesn't see blank spaces while scrolling
+        if (firstVisible >= 0)
+        {
+            _vm.UpdateHistoryVirtualRange(firstVisible, visibleCount + 20);
+        }
     }
 }

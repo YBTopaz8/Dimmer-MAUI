@@ -20,6 +20,8 @@ using Dimmer.UIUtils;
 using Dimmer.Utilities.TypeConverters;
 using Dimmer.Utils;
 
+using DynamicData.Binding;
+
 using Hqub.Lastfm.Entities;
 
 using Microsoft.Extensions.Logging.Abstractions;
@@ -44,7 +46,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 {
     private IDuplicateFinderService _duplicateFinderService;
 
-
+    public readonly Guid InstanceId = Guid.NewGuid();
 
 
     public BaseViewModel(
@@ -141,8 +143,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 Debug.WriteLine(x.Count);
             })
             .DisposeWith(CompositeDisposables);
+        realm = RealmFactory.GetRealmInstance();
 
-
+        
         // 4. Handle Logging. Remove the temporary `if (pos == 0)` check.
         Observable.FromEventPattern<double>(
             h => _audioService.SeekCompleted += h,
@@ -153,19 +156,168 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             .DisposeWith(_subsManager);
     }
 
-    [RelayCommand] void Dump() => Debug.WriteLine($"VM: {InstanceId}");
+
+    private readonly BehaviorSubject<IVirtualRequest> _historyRequest =
+    new(new VirtualRequest(0, 150));
+    public void UpdateHistoryVirtualRange(int startIndex, int size)
+    {
+        _historyRequest.OnNext(new VirtualRequest(startIndex, size));
+    }
+    private Realm? _historyRealm;
+    private static readonly IComparer<DimmerPlayEventView> _eventComparer =
+    SortExpressionComparer<DimmerPlayEventView>.Descending(p => p.EventDate);
+
+
     [ObservableProperty]
-    public partial bool IsAppToDate { get; set; }
+    public partial bool IsPlayEventsLoading { get; set; }
 
-    private SourceList<DuplicateSetViewModel> _duplicateSource = new();
+    private void SetupHistoryPipeline()
+    {
+        IsPlayEventsLoading=true;
+        Debug.WriteLine($"[Instance: {InstanceId}] [PIPELINE] ");
+
+        _historyRealm?.Dispose();
+        _historyRealm = RealmFactory.GetRealmInstance();
+
+            _historyRealm.All<DimmerPlayEvent>()
+            
+            .OrderByDescending(p => p.EventDate)
+            .AsObservableChangeSet()
+
+            .Virtualise(_historyRequest)
+            .Transform(x =>
+            {
+                // 2. Convert to ViewObject and project/enrich
+                var viewObj = x.Freeze().ToDimmerPlayEventView()!;
+
+                // Use Freeze() here to make the object safe to move across threads 
+                // until it reaches the UI
+                var frozenEvent = x.Freeze();
+                var song = frozenEvent.SongsLinkingToThisEvent.FirstOrDefaultNullSafe();
+
+                if (song != null)
+                {
+                    viewObj.SongViewObject = song.ToSongModelView();
+                }
+                else
+                {
+
+                    viewObj.SongViewObject = SearchResults.FirstOrDefault(s => s.Id == frozenEvent.SongId);
+
+                    var eventId = frozenEvent.Id;
+                    ObjectId? songId = frozenEvent.SongId;
+                    if (songId is not null)
+                    { 
+                        FixMissingEventRelationship(eventId, (ObjectId)songId); 
+                    }
+                }
+                return viewObj;
+            })
+            .ObserveOn(RxSchedulers.UI)
+            .Bind(out _dimmerEvents)
+            .Subscribe(changes =>
+            {
+                IsPlayEventsLoading = false;
+                
+                OnPropertyChanged(nameof(DimmerEvents));
+            },
+            ex =>
+            {
+
+                Debug.WriteLine($"[Instance: {InstanceId}] [PIPELINE ERROR] {ex.Message}");
+            })
+            .DisposeWith(CompositeDisposables);
+        Debug.WriteLine("History pipeline setup complete.");
+    }
+
+    [RelayCommand]
+    public void NextEvtPage()
+    {
+        if (CurrentPager >= TotalPages) return;
+
+        CurrentPageContext++;
+        UpdatePageStatus();
+
+        // Calculate new window: Start Index, Size
+        int startIndex = (CurrentPager - 1) * PAGE_SIZE;
+
+        // Push new request to pipeline
+        _historyRequest.OnNext(new VirtualRequest(startIndex, PAGE_SIZE));
+    }
+
+    [RelayCommand]
+    public void PrevEvtPage()
+    {
+        if (CurrentPager <= 1) return;
+
+        CurrentPageContext--;
+        UpdatePageStatus();
+
+        int startIndex = (CurrentPager - 1) * PAGE_SIZE;
+        _historyRequest.OnNext(new VirtualRequest(startIndex, PAGE_SIZE));
+    }
+    private const int PAGE_SIZE = 50; // Keep this small and snappy
+    private int _totalItemsCount = 0;
+
+    
+    private bool _isPipelineActive = false;
+    private void UpdatePageStatus()
+    {
+        PageStatusString = $"Page {CurrentPageContext} of {TotalPages}";
+        CanGoNext = CurrentPager < TotalPages;
+        CanGoPrev = CurrentPager > 1;
+    }
+    [ObservableProperty] public partial int CurrentPager { get; set; } = 1;
+    [ObservableProperty] public partial int TotalPages { get; set; } = 0;
+    [ObservableProperty] public partial string PageStatusString { get; set; } = "Page 1";
+    [ObservableProperty] public partial bool CanGoNext { get; set; }
+    [ObservableProperty] public partial bool CanGoPrev { get; set; }
+    [ObservableProperty] public partial bool IsLoading { get; set; }
 
 
-    private ReadOnlyObservableCollection<DuplicateSetViewModel> _duplicateSets;
+    public void ActivateHistory()
+    {
+        if (_isPipelineActive) return;
 
+        using var tmpRealm = RealmFactory.GetRealmInstance();
+        _totalItemsCount = tmpRealm.All<DimmerPlayEvent>().Count();
+        TotalPages = (int)Math.Ceiling((double)_totalItemsCount / PAGE_SIZE);
+        UpdatePageStatus();
+        // Now that we are called from the View, RxSchedulers.UI will be valid
+        SetupHistoryPipeline();
+        _isPipelineActive = true;
+    }
 
-    public ReadOnlyObservableCollection<DuplicateSetViewModel> DuplicateSets => _duplicateSets;
+    private void FixMissingEventRelationship(ObjectId eventId, ObjectId songId)
+    {
+        Task.Run(async () =>
+        {
+            try
+            {
+                using var realm = RealmFactory.GetRealmInstance();
+                var realmSong = realm.Find<SongModel>(songId);
+                var realmEvent = realm.Find<DimmerPlayEvent>(eventId);
 
-    Timer? _bootTimer;
+                if (realmSong != null && realmEvent != null)
+                {
+                    // In Realm, you don't add to a Backlink. 
+                    // You add the Event to the Song's PlayHistory.
+                    if (!realmSong.PlayHistory.Contains(realmEvent))
+                    {
+                        await realm.WriteAsync(() =>
+                        {
+                            realmSong.PlayHistory.Add(realmEvent);
+                        });
+                        _logger.LogInformation($"Healed relationship between Song {songId} and Event {eventId}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to heal Realm relationship");
+            }
+        });
+    }
 
     public virtual void ShowAchievementNotificationToUI(AchievementRule ruleUnlocked)
     {
@@ -173,11 +325,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
 
-    [ObservableProperty]
-    public partial bool IsInitialized { get; set; }
-
-    [ObservableProperty]
-    public partial bool IsAchievementNotificationVisible { get; set; }
     public void InitializeAllVMCoreComponents()
     {
         if (IsInitialized) return;
@@ -197,7 +344,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             ShowAllSongsWindowActivate();
         }
-
 
 
         var realmSub = realm.All<SongModel>()
@@ -253,18 +399,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         Debug.WriteLine($"{DateTime.Now}: Folder monitoring started.");
 
-        //SubscribeToCommandEvaluatorEvents();
-
-        //_duplicateSource.Connect()
-        //    .ObserveOn(RxSchedulers.UI)
-        //    .Bind(out _duplicateSets)
-        //    .Subscribe(
-        //        x =>
-        //        {
-        //            OnPropertyChanged(nameof(DuplicateSets)); // Manually notify that the collection has changed
-        //        })
-        //    .DisposeWith(CompositeDisposables);
-        //Debug.WriteLine($"{DateTime.Now}: Duplicate sets subscription set up.");
 
         PlaybackQueueSource.Connect()
             .ObserveOn(RxSchedulers.UI)
@@ -514,7 +648,25 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             _logger.LogError(ex.Message, ex);
         }
     }
+    [RelayCommand] void Dump() => Debug.WriteLine($"VM: {InstanceId}");
+    [ObservableProperty]
+    public partial bool IsAppToDate { get; set; }
 
+    private SourceList<DuplicateSetViewModel> _duplicateSource = new();
+
+
+    private ReadOnlyObservableCollection<DuplicateSetViewModel> _duplicateSets;
+
+
+    public ReadOnlyObservableCollection<DuplicateSetViewModel> DuplicateSets => _duplicateSets;
+
+    Timer? _bootTimer;
+
+    [ObservableProperty]
+    public partial bool IsInitialized { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsAchievementNotificationVisible { get; set; }
     /// <summary>
     /// Contains all long-running, non-essential initialization tasks that can be performed in the background without
     /// blocking the UI.
@@ -1096,7 +1248,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public SourceList<DimmerPlayEventView> DimmerPlayEvtsHolder = new ();
 
     private readonly ReadOnlyObservableCollection<SongModelView> _searchResults;
-    private readonly ReadOnlyObservableCollection<DimmerPlayEventView> _dimmerEvents;
+    private  ReadOnlyObservableCollection<DimmerPlayEventView> _dimmerEvents;
     public ReadOnlyObservableCollection<SongModelView> SearchResults => _searchResults;
     public ReadOnlyObservableCollection<DimmerPlayEventView> DimmerEvents => _dimmerEvents;
 
@@ -1321,8 +1473,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial LyricPhraseModelView? NextLine { get; set; }
 
-    [ObservableProperty]
-    public partial ObservableCollection<DimmerPlayEventView?>? DimmerPlayEventList { get; set; } = new();
 
     [ObservableProperty]
     public partial ObservableCollection<PlaylistModelView> AllPlaylists { get; set; } = new();
@@ -3211,7 +3361,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             _audioService.Play(CurrentTrackPositionSeconds);
         }
     }
-    public Guid InstanceId { get; } = Guid.NewGuid();
 
     [ObservableProperty]
     public partial bool ScrobbleOnSkip { get; set; } = true;
@@ -3997,23 +4146,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
     }
 
-    [RelayCommand]
-    public void LoadPlayEvents()
-    {
-        DimmerPlayEventList?.Clear();
-
-        var realm = RealmFactory.GetRealmInstance();
-     
-        DimmerPlayEventList = dimmerPlayEventRepo.GetAll().OrderByDescending(e => e.EventDate).Select(x =>
-        {
-            DimmerPlayEventView dimEvt = x.ToDimmerPlayEventView()!;
-            dimEvt.SongViewObject = SearchResults.FirstOrDefault(x => x.Id == dimEvt.SongId);
-
-            return dimEvt;
-        }).ToObservableCollection();
-
-        _logger.LogInformation("Loaded {Count} recent play events from the database.", DimmerPlayEventList.Count);
-    }
 
     [ObservableProperty]
     public partial Dictionary<SongModel, List<DimmerPlayEvent>>? SongToEventsDict { get; set; }
@@ -4461,8 +4593,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial List<DimmerStats> ReportData { get; set; }
 
-    [ObservableProperty]
-    public partial bool IsLoading { get; set; }
+
 
     private void ClearSingleSongStats()
     {
