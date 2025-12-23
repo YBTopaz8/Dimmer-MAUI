@@ -101,7 +101,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
             WeightSum = 10
         };
         layout.SetPadding(20, 10, 20, 10);
-        layout.SetBackgroundColor(UiBuilder.ThemedBGColor(ctx));
+        layout.SetBackgroundColor(UiBuilder.IsDark(ctx) ? Color.ParseColor("#2D1C7F") : Color.ParseColor("#DEDFF0"));
 
 
         // Mini Cover

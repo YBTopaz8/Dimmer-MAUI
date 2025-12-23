@@ -171,6 +171,7 @@ public static class UiBuilder
             Radius = DpToPx(16),
             CardElevation = DpToPx(2),
             UseCompatPadding = true
+            
         };
         card.SetBackgroundColor(IsDark(ctx) ? Color.ParseColor("#1E1E1E") : Color.White);
         return card;

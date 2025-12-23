@@ -1,6 +1,7 @@
 ﻿using Android.Views.InputMethods;
 
 using Dimmer.DimmerSearch.TQL;
+using Dimmer.WinUI.UiUtils;
 
 using Google.Android.Material.Chip;
 
@@ -75,6 +76,7 @@ public class TqlSearchBottomSheet : BottomSheetDialogFragment
 
         _searchInput = new TextInputEditText(ctx) { ImeOptions = ImeAction.Search, InputType = Android.Text.InputTypes.ClassText };
         _searchInput.SetSingleLine(true);
+        _searchInput.SetTextColor(UiBuilder.IsDark(ctx) ? Color.White : Color.Black);
         inputLayout.AddView(_searchInput);
         root.AddView(inputLayout);
 
