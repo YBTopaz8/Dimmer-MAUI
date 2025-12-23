@@ -272,9 +272,9 @@ public sealed partial class EditSongPage : Page
 
         Visibility = Microsoft.UI.Xaml.Visibility.Visible;
         PageNotificationText.Text = "Changes saved!";
-        PlatUtils.ApplyEntranceEffect(vis, PageNotificationText,SongTransitionAnimation.Spring , _compositor);
+        PlatUtils.ApplyEntranceEffect(vis, PageNotificationText,SongTransitionAnimation.Fade , _compositor);
 
-        await Task.Delay(1600); // slight delay to ensure smoothness
+        await Task.Delay(2600); 
         PageNotificationText.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
 
     }

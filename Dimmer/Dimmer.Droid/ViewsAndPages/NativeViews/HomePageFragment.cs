@@ -9,6 +9,7 @@ using AndroidX.RecyclerView.Widget;
 using Dimmer.ViewsAndPages.NativeViews.DimmerLive;
 using Dimmer.ViewsAndPages.NativeViews.Misc;
 using Dimmer.ViewsAndPages.ViewUtils;
+using Dimmer.WinUI.UiUtils;
 
 using static Dimmer.ViewsAndPages.NativeViews.SongAdapter;
 
@@ -37,6 +38,11 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     public BaseViewModelAnd MyViewModel { get; private set; } = null!;
     private bool _isNavigating;
     private FabMorphMenu _morphMenu;
+    private TextView _pageStatusText;
+    private MaterialButton _prevBtn;
+    private MaterialButton _nextBtn;
+    private MaterialButton _jumpBtn;
+
     public HomePageFragment()
     {
         
@@ -152,6 +158,11 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
         var adapter = new SongAdapter(ctx, MyViewModel, this);
         _songListRecycler.SetAdapter(adapter);
+        _songListRecycler.AddOnScrollListener(new LoadMoreListener(MyViewModel));
+
+        var pagerView = CreatePaginationBar(ctx);
+        contentLinear.AddView(pagerView);
+
 
         // Add Recycler to Content
         contentLinear.AddView(_songListRecycler);
@@ -179,7 +190,59 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
         return root;
     }
+    private View CreatePaginationBar(Context ctx)
+    {
+        var card = new MaterialCardView(ctx)
+        {
+            Radius = 0,
+            CardElevation = AppUtil.DpToPx(8),
+            LayoutParameters = new LinearLayout.LayoutParams(-1, ViewGroup.LayoutParams.WrapContent)
+        };
+        card.SetCardBackgroundColor(UiBuilder.IsDark(this.Resources.Configuration) ? Color.ParseColor("#1E1E1E") : Color.White);
 
+        var bar = new LinearLayout(ctx)
+        {
+            Orientation = Orientation.Horizontal,
+            LayoutParameters = new ViewGroup.LayoutParams(-1, ViewGroup.LayoutParams.WrapContent)
+        };
+        bar.SetGravity(GravityFlags.Center);
+        bar.SetPadding(20, 20, 20, 20);
+
+        // 1. Jump Button
+        _jumpBtn = UiBuilder.CreateMaterialButton(ctx, this.Resources.Configuration,
+            (s, e) =>
+            {
+                //MyViewModel.JumpToCurrentSongCommand.Execute(null);
+            },
+            false, 40, Resource.Drawable.eye); // Ensure you have a target/locate icon
+
+        // 2. Prev Button
+        _prevBtn = UiBuilder.CreateMaterialButton(ctx, this.Resources.Configuration,
+            (s, e) => MyViewModel.PrevSongPageCommand.Execute(null),
+            false, 40, Resource.Drawable.media3_icon_previous);
+
+        // 3. Status Text
+        _pageStatusText = new TextView(ctx)
+        {
+            Text = "Page 1",
+            TextSize = 14,
+            Typeface = Typeface.DefaultBold
+        };
+        _pageStatusText.SetPadding(30, 0, 30, 0);
+
+        // 4. Next Button
+        _nextBtn = UiBuilder.CreateMaterialButton(ctx, this.Resources.Configuration,
+            (s, e) => MyViewModel.NextSongPageCommand.Execute(null),
+            false, 40, Resource.Drawable.media3_icon_next);
+
+        bar.AddView(_jumpBtn);
+        bar.AddView(_prevBtn);
+        bar.AddView(_pageStatusText);
+        bar.AddView(_nextBtn);
+
+        card.AddView(bar);
+        return card;
+    }
     private void _searchBar_TextChanged(object? sender, Android.Text.TextChangedEventArgs e)
     {
         var NewText = e.Text?.ToString();
@@ -259,9 +322,37 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     public override void OnResume()
     {
         base.OnResume();
-        
+        MyViewModel.PropertyChanged += ViewModel_PropertyChanged;
+
         _isNavigating = false;
 
+    }
+    public override void OnPause()
+    {
+        base.OnPause();
+        MyViewModel.PropertyChanged -= ViewModel_PropertyChanged;
+    }
+
+    private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(MyViewModel.SongPageStatus) ||
+            e.PropertyName == nameof(MyViewModel.CanGoNextSong) ||
+            e.PropertyName == nameof(MyViewModel.CanGoPrevSong))
+        {
+            RxSchedulers.UI.Schedule(()=>UpdatePagerState());
+        }
+    }
+    private void UpdatePagerState()
+    {
+        if (_pageStatusText == null) return;
+
+        _pageStatusText.Text = MyViewModel.SongPageStatus;
+        _prevBtn.Enabled = MyViewModel.CanGoPrevSong;
+        _nextBtn.Enabled = MyViewModel.CanGoNextSong;
+
+        // Dim buttons visually if disabled
+        _prevBtn.Alpha = MyViewModel.CanGoPrevSong ? 1f : 0.5f;
+        _nextBtn.Alpha = MyViewModel.CanGoNextSong ? 1f : 0.5f;
     }
     public override void OnViewCreated(View view, Bundle? savedInstanceState)
     {
@@ -499,42 +590,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         Android.Widget.Toast.MakeText(Context, "hey!", ToastLength.Short).Show();
     }
 
-    partial class RecyclerViewOnScrollListener : RecyclerView.OnScrollListener
-    {
-        private readonly Action<int> _onScrolledAction;
-        private readonly Action<int> _scrollStateChanged = _ => { };
 
-        public RecyclerViewOnScrollListener(Action<int> onScrolledAction)
-        {
-            _onScrolledAction = onScrolledAction;
-        }
-        public override void OnScrolled(RecyclerView recyclerView, int dx, int dy)
-        {
-            base.OnScrolled(recyclerView, dx, dy);
-            _onScrolledAction(dy);
-        }
-        public override void OnScrollStateChanged(RecyclerView rv, int newState)
-        {
-
-            if (newState == RecyclerView.ScrollStateIdle)
-            {
-                // load higher-quality images
-
-            }
-            else if (newState == RecyclerView.ScrollStateDragging)
-            {
-                // pause image loading
-            }
-            else if (newState == RecyclerView.ScrollStateSettling)
-            {
-                // pause image loading
-            }
-            _scrollStateChanged(newState);
-
-
-            base.OnScrollStateChanged(rv, newState);
-        }
-    }
 
     public void NavToAlbumaPage(string transitionName)
     {
@@ -564,5 +620,31 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     public void OnBackInvoked()
     {
         Toast.MakeText(Context!, "Back invoked in HomePageFragment", ToastLength.Short)?.Show();
+    }
+}
+
+class LoadMoreListener : RecyclerView.OnScrollListener
+{
+    BaseViewModelAnd _vm;
+    public LoadMoreListener(BaseViewModelAnd vm) => _vm = vm;
+
+    public override void OnScrolled(RecyclerView recyclerView, int dx, int dy)
+    {
+        if (dy > 0) // Scrolling down
+        {
+            var layoutManager = (LinearLayoutManager)recyclerView.GetLayoutManager();
+            int visibleItemCount = layoutManager.ChildCount;
+            int totalItemCount = layoutManager.ItemCount;
+            int pastVisiblesItems = layoutManager.FindFirstVisibleItemPosition();
+
+            if ((visibleItemCount + pastVisiblesItems) >= totalItemCount)
+            {
+                // Reached Bottom -> Load Next Page
+                if (_vm.CanGoNextSong)
+                {
+                    _vm.NextSongPage();
+                }
+            }
+        }
     }
 }

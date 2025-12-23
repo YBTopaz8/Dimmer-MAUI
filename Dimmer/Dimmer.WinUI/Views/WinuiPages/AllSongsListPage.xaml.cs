@@ -1226,6 +1226,22 @@ public sealed partial class AllSongsListPage : Page
                 Placement = FlyoutPlacementMode.Top,
                 ShowMode = FlyoutShowMode.Auto
             };
+
+        FontIcon LocateIcon = new FontIcon();
+        LocateIcon.Glyph = "\uE890";
+
+        var locateSongInFolder = new MenuFlyoutItem()
+        {
+            Text = "Locate In Folder"
+        ,
+            Icon = LocateIcon
+        };
+        locateSongInFolder.Click += (s, e) =>
+        {
+            MyViewModel.OpenAndSelectFileInExplorer(selectedSong);
+        };
+        menuFlyout.Items.Add(locateSongInFolder);
+
         menuFlyout.ShowAt(UIElt, flyoutShowOpt);
 
     }

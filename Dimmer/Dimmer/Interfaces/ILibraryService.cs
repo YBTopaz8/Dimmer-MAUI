@@ -2,17 +2,15 @@
 
 public class LoadSongsResult // Define this class (or similar) if needed
 {
-    public IReadOnlyList<SongModelView> Songs { get; set; } = Array.Empty<SongModelView>();
-    public IReadOnlyList<ArtistModelView> Artists { get; set; } = Array.Empty<ArtistModelView>();
-    public IReadOnlyList<AlbumModelView> Albums { get; set; } = Array.Empty<AlbumModelView>();
-    public IReadOnlyList<GenreModelView> Genres { get; set; } = Array.Empty<GenreModelView>();
     public int FilesProcessed { get; set; }
     public int FilesSkipped { get; set; }
     public int NewSongsAddedCount { get; set; }
     public List<FileProcessingResult>? ProcessingResults { get; internal set; }
-    public List<SongModelView?>? NewSongsAdded { get; internal set; }
     public string? ErrorMessage { get; internal set; }
     public bool IsError { get; internal set; }
+    public int AlbumsCount { get; internal set; }
+    public int ArtistsCount { get; internal set; }
+    public int GenresCount { get; internal set; }
 }
 
 //public interface ILibraryService

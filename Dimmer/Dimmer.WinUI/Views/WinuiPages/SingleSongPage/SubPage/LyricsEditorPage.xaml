@@ -137,7 +137,7 @@
 
                         <Button
                             VerticalAlignment="Bottom"
-                            Command="{Binding SearchLyricsCommand}"
+                            Command="{x:Bind MyViewModel.SearchLyricsCommand, Mode=OneWay}"
                             Style="{StaticResource AccentButtonStyle}">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE721;" />
@@ -175,7 +175,9 @@
                 </Grid>
             </Border>
 
-
+            <StackPanel Grid.Row="1" Visibility="{x:Bind MyViewModel.IsLyricsFound, Mode=OneWay}">
+                <TextBlock HorizontalAlignment="Center" Text="No Lyrics Found" />
+            </StackPanel>
             <ScrollViewer Grid.Row="1">
                 <ItemsRepeater x:Name="FetchedLyricsIR" ItemsSource="{x:Bind MyViewModel.LyricsSearchResults}">
                     <ItemsRepeater.Layout>
@@ -253,10 +255,10 @@
                                         <!--  Apply Command  -->
                                         <!--  Note: We pass the current item (LrcLibLyrics) as the parameter  -->
                                         <Button
-                                            Command="{Binding ElementName=FetchedLyricsIR, Path=DataContext.SelectLyricsCommand}"
-                                            CommandParameter="{x:Bind}"
                                             x:Name="ApplyLyric"
                                             Click="ApplyLyric_Click"
+                                            Command="{Binding ElementName=FetchedLyricsIR, Path=DataContext.SelectLyricsCommand}"
+                                            CommandParameter="{x:Bind}"
                                             Content="Apply"
                                             Style="{StaticResource AccentButtonStyle}" />
 
@@ -273,11 +275,11 @@
                 </ItemsRepeater>
             </ScrollViewer>
 
-            <ScrollViewer Grid.Row="2" MaxHeight="300">
+            <ScrollViewer Grid.Row="2">
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="auto" />
-                        <ColumnDefinition Width="auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="1">
@@ -295,16 +297,16 @@
                             Margin="0,0,0,10"
                             FontSize="24"
                             FontWeight="Bold"
-                            Text="Sync Lyrics" />
+                            Text="Synchornized Lyrics" />
                         <Grid>
 
                             <Button
                                 x:Name="EditIconBtn"
-                                HorizontalAlignment="Right"
+                                HorizontalAlignment="Center"
                                 VerticalAlignment="Top"
                                 Background="Transparent"
                                 BorderThickness="2"
-                                Visibility="Collapsed">
+                                Visibility="Visible">
                                 <FontIcon FontSize="24" Glyph="&#xE70F;" />
                             </Button>
                             <TextBlock FontSize="18" Text="{Binding SelectedSong.SyncLyrics}" />

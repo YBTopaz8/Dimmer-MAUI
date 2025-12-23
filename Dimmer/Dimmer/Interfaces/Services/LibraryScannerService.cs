@@ -272,25 +272,29 @@ public class LibraryScannerService : ILibraryScannerService
                 });
             }
 
-            _state.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderScanCompleted, extParam: newSongs,null, null));
+            _state.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderScanCompleted, extParam: null,null, null));
 
 
             // clear up and clean memory 
             currentScanMetadataService.ClearAll();
-            //audioFileProcessor.Cleanup();
+            
             
             _state.SetCurrentLogMsg(new AppLogModel { Log = "Music scan complete." });
             _logger.LogInformation("Library scan completed successfully.");
+            newSongs.Clear();
+            newArtists.Clear();
+            newAlbums.Clear();
+            newGenres.Clear();
+            processedResults.Clear();
 
 
             return new LoadSongsResult
             {
                 
                 NewSongsAddedCount = newSongs.Count,
-                NewSongsAdded = newSongs,
-                Albums = newAlbums,
-                Artists = newArtists,
-                Genres = newGenres,
+                AlbumsCount = newAlbums.Count,
+                ArtistsCount = newArtists.Count,
+                GenresCount = newGenres.Count,
                 ProcessingResults = processedResults
             };
         }

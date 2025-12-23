@@ -207,9 +207,26 @@ public class AudioFileProcessor : IAudioFileProcessor
             {
                 var artView = _metadataService.GetOrCreateArtist(track, name);
                 song.ArtistToSong.Add(artView);
-                
 
-                if (albumView.Artists == null) albumView.Artists = new List<ArtistModelView>();
+                if (albumView.Artists == null)
+                {
+                    albumView.Artists = new List<ArtistModelView>();
+                }
+
+                if (albumView.Artists.Count>0)
+                {
+                    var anyNull = albumView.Artists.Any(x => x is null);
+                    if (anyNull)
+                    {
+                        foreach (var nullOnes in albumView.Artists)
+                        {
+                            if (nullOnes is null)
+                            {
+                                albumView.Artists.Remove(nullOnes);
+                            }
+                        }
+                    }
+                }
                 if (!albumView.Artists.Any(a => a.Id == artView.Id))
                 {
                     albumView.Artists.Add(artView);

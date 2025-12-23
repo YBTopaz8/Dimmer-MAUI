@@ -105,14 +105,6 @@ public class CoverArtService : ICoverArtService
         if (string.IsNullOrWhiteSpace(audioFilePath))
             return null;
 
-        // 1. Check if an image already exists for this file name
-        //string? existingPath = GetExistingCoverImageAsync(audioFilePath);
-        //if (existingPath != null)
-        //{
-        //    return existingPath;
-        //}
-
-        // 2. If no existing image and no embedded data, nothing to save
         if (embeddedPictureInfo?.PictureData == null || embeddedPictureInfo.PictureData.Length == 0)
         {
             var fallback = GetFolderCoverImages(audioFilePath).FirstOrDefault();
@@ -134,9 +126,11 @@ public class CoverArtService : ICoverArtService
         try
         {
 
-            await File.WriteAllBytesAsync(targetFilePath, embeddedPictureInfo.PictureData);
             
             await SaveCoverArtToSingleSongGivenAudioPathAsync(songId, audioFilePath, targetFilePath);
+
+
+            await File.WriteAllBytesAsync(targetFilePath, embeddedPictureInfo.PictureData);
             return targetFilePath;
             
         }
