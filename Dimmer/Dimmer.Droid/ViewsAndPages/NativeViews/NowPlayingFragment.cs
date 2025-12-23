@@ -93,6 +93,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
 
     private LinearLayout CreateMiniPlayer(Context ctx)
     {
+        if(_viewModel is null)return null!;
         var layout = new LinearLayout(ctx)
         {
             Orientation = Orientation.Horizontal,

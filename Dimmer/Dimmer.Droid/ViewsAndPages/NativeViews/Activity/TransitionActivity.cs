@@ -7,6 +7,7 @@ using AndroidX.DrawerLayout.Widget;
 using Dimmer.NativeServices;
 using Dimmer.ViewsAndPages.NativeViews.DimmerLive;
 using Dimmer.ViewsAndPages.NativeViews.StatsSection;
+using Dimmer.WinUI.UiUtils;
 
 using Google.Android.Material.BottomNavigation;
 using Google.Android.Material.Dialog;
@@ -79,9 +80,7 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         WindowCompat.SetDecorFitsSystemWindows(Window, false);
 
         // Make bars transparent
-        Window.SetStatusBarColor( Color.Transparent);
-        Window.SetNavigationBarColor( Color.Transparent);
-        // 1. Initialize DI
+         // 1. Initialize DI
         MainApplication.ServiceProvider ??= Bootstrapper.Init();
         try
         {
@@ -550,10 +549,14 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
             base.OnResume();
 
             if (MyViewModel is null) return;
-         
+
+            Window.SetStatusBarColor(UiBuilder.ThemedBGColor(this.ApplicationContext));
+            Window.SetNavigationBarColor(UiBuilder.ThemedBGColor(this.ApplicationContext));
+
             SetupBackNavigation();
             // Log that the activity resumed
             Console.WriteLine("TransitionActivity: OnResume called.");
+
         }
         catch (Exception ex)
         {

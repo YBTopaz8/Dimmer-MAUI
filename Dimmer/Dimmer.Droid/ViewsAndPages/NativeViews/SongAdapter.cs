@@ -269,6 +269,7 @@ internal class SongAdapter : RecyclerView.Adapter
         var durationView = new TextView(ctx) { TextSize = 16, Typeface = Typeface.DefaultBold };
         durationView.SetTextColor(UiBuilder.IsDark(this.ParentFragement.Resources.Configuration) ? Color.Gray : Color.Black);
         durationView.TextSize = 10;
+        durationView.Gravity = GravityFlags.CenterHorizontal;
 
         var rightLinearLayout = new LinearLayout(ctx)
         { 
@@ -293,23 +294,30 @@ internal class SongAdapter : RecyclerView.Adapter
         var favBtn = CreateActionButton("Fav", Resource.Drawable.heart);
         expandRow.AddView(favBtn);
 
-        var addBtn = CreateActionButton("Add", Android.Resource.Drawable.IcInputAdd);
-        expandRow.AddView(addBtn);
+        var infoBtn = CreateActionButton("Info", Resource.Drawable.infocircle);
+        MaterialButton? ShareBtn = CreateActionButton("Share", Resource.Drawable.media3_icon_share);
+        
+        expandRow.AddView(infoBtn);
+        expandRow.AddView(ShareBtn);
         // Assemble
         mainContainer.AddView(topRow);
         mainContainer.AddView(expandRow);
+
         card.AddView(mainContainer);
 
-        return new SongViewHolder(MyViewModel, ParentFragement, card, imgView, title, artist, moreBtn, durationView,expandRow, (Button)playBtn, (Button)favBtn, (Button)addBtn);
+        return new SongViewHolder(MyViewModel, ParentFragement, card, imgView, title, artist, moreBtn, durationView,expandRow, (Button)playBtn, (Button)favBtn, (Button)infoBtn,
+            ShareBtn);
     }
 
 
-    private View CreateActionButton(string text, int iconId)
+    private MaterialButton CreateActionButton(string text, int iconId)
     {
         var btn = new MaterialButton(ctx, null, Resource.Attribute.materialButtonOutlinedStyle);
         btn.Text = text;
-
+        btn.SetTextColor(UiBuilder.IsDark(this.ParentFragement.Resources.Configuration) ? Color.Gray : Color.ParseColor("#294159"));
         btn.SetIconResource(iconId);
+
+        btn.IconTint = Android.Content.Res.ColorStateList.ValueOf(UiBuilder.IsDark(this.ParentFragement.Resources.Configuration) ? Color.Gray : Color.ParseColor("#294159"));
         btn.SetPadding(30, 0, 30, 0);
         var lp = new LinearLayout.LayoutParams(-2, -2);
         lp.RightMargin = 10;
@@ -337,14 +345,13 @@ internal class SongAdapter : RecyclerView.Adapter
 
         private readonly Button _playNextBtn;
         private readonly Button _favBtn;
-        private readonly Button _addBtn;
-
-
+        private readonly Button _infoBtn;
+        private readonly Button _shareBtn;
         private SongModelView? _currentSong;
         private Action<int>? _expandAction;
 
         public SongViewHolder(BaseViewModelAnd vm, Fragment parentFrag, MaterialCardView container, ImageView img, TextView title, TextView artist, MaterialButton moreBtn, TextView durationView,
- View expandRow, Button playBtn, Button favBtn, Button addBtn)
+ View expandRow, Button playBtn, Button favBtn, Button infoBtn, Button shareBtn)
             : base(container)
         {
             _vm = vm;
@@ -358,7 +365,8 @@ internal class SongAdapter : RecyclerView.Adapter
             _expandRow = expandRow;
             _playNextBtn = playBtn;
             _favBtn = favBtn;
-            _addBtn = addBtn;
+            _infoBtn = infoBtn;
+            _shareBtn = shareBtn;
 
             _moreBtn.Click += (s, e) =>
             {
@@ -385,6 +393,13 @@ internal class SongAdapter : RecyclerView.Adapter
                 queueSheet.ScrollToSong(_currentSong);
             };
 
+            _infoBtn.Click += (s, e) =>
+            {
+                var infoSheet = new SongInfoBottomSheetFragment(_vm, _currentSong);
+                infoSheet.Show(_parentFrag.ParentFragmentManager, "SongInfoSheet");
+            };
+
+
             // 3. Play Button
             _playNextBtn.Click += async (s, e) =>
             {
@@ -395,6 +410,17 @@ internal class SongAdapter : RecyclerView.Adapter
                 }
                     
             };
+
+            shareBtn.Click += async (s, e) =>
+            {
+                if (_currentSong != null)
+                {
+                    await _vm.ShareSongViewClipboard(_currentSong);
+                }
+            };
+
+
+
 
             // 4. Image Click (Navigate)
             _img.Click += (s, e) =>
