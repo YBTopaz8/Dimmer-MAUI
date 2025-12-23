@@ -13,7 +13,7 @@ public static class TaggingUtils
     // to avoid splitting words like "feat." inside an artist's name (e.g., "The Feat. Masters").
     // It's case-insensitive.
     private static readonly Regex ArtistSeparatorRegex = new(
-       @"\s*(?:\b(?:feat|ft|featuring|vs|versus|with)\b\.?|&|,|;| x)\s*",
+       @"\s*(?:\b(?:feat|ft|featuring|vs|versus|with)\b\.?|&|;| x)\s*",
     RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     // Regex to find "version" information in a track title, like (Remix), [Live], - Radio Edit, etc.
@@ -26,51 +26,172 @@ public static class TaggingUtils
     private static readonly Regex TitleFeatRegex = new(
         @"[\(\{\[]\s*\b(feat|ft|featuring)\b\.?.*[\)\}\]]",
         RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static readonly Regex ByUploaderRegex =
+        new(@"\s+by\s+[A-Za-z0-9$'_.\- ]+$",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
+    private static readonly Regex FeatRegex =
+        new(@"\b(ft|feat|featuring)\b.*",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    private static readonly Regex VideoSuffixRegex =
+        new(@"[\(\[\{](official|video|clip|lyrics?|audio|hd|4k|music|remix|officiel|bonus|version|produced\s+by\s+[a-z0-9 ]+)[^\)\]\}]*[\)\]\}]",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    private static readonly Regex YearOrCopyRegex =
+        new(@"[_\- ]*(copy|19\d{2}|20\d{2}|[0-9]+)$",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    private static readonly Regex MultiDashRegex =
+        new(@"\s-\s", RegexOptions.Compiled);
+
+    private static readonly Regex FeatArtistFromTitleRegex =
+        new(@"\b(?:ft|feat|featuring)\s+([\p{L}0-9$'_.\- ,&]+)",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    private static readonly Regex SoundtrackByRegex =
+        new(@"\bby\s+([A-Za-z0-9$'_.\- ]+)$",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    private static readonly Regex SoundtrackTitleRegex =
+        new(@"(soundtrack|theme|ost|score)",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    private static readonly string[] Suffixes = { "II", "III", "IV", "Jr", "Sr", "Junior", "Senior" };
+
+    private static List<string> SmartSplitArtistString(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input)) return new List<string>();
+
+        // The Regex: 
+        // Split by: ; OR / OR & OR " x " OR " feat " 
+        // OR Split by , (COMMA) ONLY IF it is NOT followed by a suffix (II, III, Jr)
+        string suffixPattern = string.Join("|", Suffixes);
+        string pattern = $@"\s*(?:;|/|&|\bx\b|\b(?:feat|ft|featuring|with|vs)\b\.?)\s*|,(?!\s*(?i:{suffixPattern})\b)";
+
+        return Regex.Split(input, pattern, RegexOptions.IgnoreCase)
+                    .Select(x => x.Trim())
+                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                    .ToList();
+    }
 
     /// <summary>
-    /// Intelligently extracts a list of unique, clean artist names from multiple tag fields.
-    /// It correctly handles a wide variety of separators.
+    /// Cleans a song title by removing uploader metadata, artist prefixes, suffix clutter, etc.
     /// </summary>
+    public static string CleanTitle(string path, string title, string album = "", string artist = "")
+    {
+        if (string.IsNullOrWhiteSpace(title))
+            return string.Empty;
+
+        string t = title.Trim();
+
+        // remove uploader metadata
+        t = ByUploaderRegex.Replace(t, "");
+
+        // remove artist prefix
+        if (!string.IsNullOrWhiteSpace(artist) &&
+            !artist.StartsWith("Unknown", StringComparison.OrdinalIgnoreCase))
+        {
+            string escaped = Regex.Escape(artist.Trim());
+            t = Regex.Replace(t, $"^{escaped}\\s*[-–—:]\\s*",
+                "", RegexOptions.IgnoreCase);
+        }
+
+        // remove featuring
+        t = FeatRegex.Replace(t, "");
+
+        // remove clutter
+        t = VideoSuffixRegex.Replace(t, "");
+        t = YearOrCopyRegex.Replace(t, "");
+
+        // collapse spaces & trim dashes
+        t = Regex.Replace(t, @"\s{2,}", " ").Trim();
+        t = Regex.Replace(t, @"^[-–—_ ]+|[-–—_ ]+$", "");
+
+        // If multiple dashes, keep last segment
+        if (MultiDashRegex.IsMatch(t))
+        {
+            int idx = t.LastIndexOf('-');
+            if (idx > 0 && idx < t.Length - 1)
+                t = t[(idx + 1)..].Trim();
+        }
+
+        // ToTitleCase
+        return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(t.ToLower());
+    }
+
+    /// <summary>
+    /// Cleans and normalizes artist metadata, merging 'ft/feat' references and deduplicating.
+    /// </summary>
+    public static List<string> CleanArtist(string filePath, string artistName, string title)
+    {
+        if (string.IsNullOrWhiteSpace(artistName))
+            return new List<string> { "Unknown Artist" };
+
+        string a = artistName
+    .Replace("\uFFFD", "") // Removes the '' character specifically
+    .Replace("\0", "")     // Removes null characters
+    .Replace("–", "-")     // Normalizes en-dash to hyphen
+    .Trim();
+
+        // 2. Split using the Smart Splitter
+        var parts = SmartSplitArtistString(a);
+
+        // 3. Features from title
+        if (!string.IsNullOrEmpty(title))
+        {
+            var featMatch = FeatArtistFromTitleRegex.Match(title);
+            if (featMatch.Success)
+            {
+                var featParts = SmartSplitArtistString(featMatch.Groups[1].Value);
+                parts.AddRange(featParts);
+            }
+        }
+
+        // 4. Soundtrack composer logic
+        if (!string.IsNullOrEmpty(title) && SoundtrackTitleRegex.IsMatch(title))
+        {
+            var matchBy = SoundtrackByRegex.Match(title);
+            if (matchBy.Success)
+            {
+                parts.Add(matchBy.Groups[1].Value.Trim());
+            }
+        }
+
+        // Final Clean: Distinct, TitleCase, and filter empty
+        var textInfo = CultureInfo.CurrentCulture.TextInfo;
+        return parts
+            .Where(p => !string.IsNullOrWhiteSpace(p))
+            .Select(p => textInfo.ToTitleCase(p.Trim().ToLower()))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+    
+    /// <summary>
+     /// Intelligently extracts a list of unique, clean artist names from multiple tag fields.
+     /// It correctly handles a wide variety of separators.
+     /// </summary>
     public static List<string> ExtractArtists(params string?[] artistFields)
     {
         var uniqueCleanNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-
-        string combined = string.Join(";", artistFields.Where(s => !string.IsNullOrWhiteSpace(s)));
-
-        if (string.IsNullOrWhiteSpace(combined))
-            return new List<string> { "Unknown Artist" };
-
-
-        var potentialArtists = ArtistSeparatorRegex.Split(combined);
-
-        foreach (var artist in potentialArtists)
+        foreach (var field in artistFields)
         {
-            if (string.IsNullOrWhiteSpace(artist))
-                continue;
+            if (string.IsNullOrWhiteSpace(field)) continue;
 
-
-            var subArtists = artist.Split(';', StringSplitOptions.RemoveEmptyEntries);
-
-            foreach (var sub in subArtists)
+            // Use the smart splitter on each field
+            var names = SmartSplitArtistString(field);
+            foreach (var name in names)
             {
-
-                string clean = sub.Trim().Trim('"', '\'').Trim();
-
-
-                if (!string.IsNullOrWhiteSpace(clean))
-                    uniqueCleanNames.Add(clean);
+                if (!string.IsNullOrWhiteSpace(name))
+                    uniqueCleanNames.Add(name.Trim());
             }
         }
 
-        if (uniqueCleanNames.Count == 0)
-            return new List<string> { "Unknown Artist" };
-
-        return uniqueCleanNames.ToList();
+        return uniqueCleanNames.Count == 0
+            ? new List<string> { "Unknown Artist" }
+            : uniqueCleanNames.ToList();
     }
-
-    
 
     // Helper to prevent adding the separators themselves as artists
     private static bool IsSeparator(string input)

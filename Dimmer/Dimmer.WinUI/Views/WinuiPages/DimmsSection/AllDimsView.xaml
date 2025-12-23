@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:dgView="using:WinUI.TableView"
     xmlns:local="using:Dimmer.WinUI.Views.WinuiPages.DimmsSection"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
@@ -13,43 +14,185 @@
 
             <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="auto" />
 
 
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" />
 
-        <StackPanel Grid.Row="1">
-            <ItemsRepeater>
-                <ItemsRepeater.ItemTemplate>
-                    <DataTemplate>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="60" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="40" />
-                            </Grid.ColumnDefinitions>
+        <dgView:TableView
+            x:Name="MyEventsTableView"
+            Grid.Row="1"
+            AutoGenerateColumns="False"
+            ItemsSource="{x:Bind MyViewModel.DimmerEvents, Mode=OneWay}"
+            Loaded="MyEventsTableView_Loaded"
+            RowHeight="120"
+            Unloaded="MyEventsTableView_Unloaded">
 
-                            <StackPanel Grid.Column="0">
-                                <Image x:Name="SongImg" />
+            <dgView:TableView.Columns>
+
+                <dgView:TableViewTemplateColumn x:Name="ImageCol" Header="Image Col">
+                    <dgView:TableViewTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Border
+                                x:Name="CardBorder"
+                                Height="90"
+                                HorizontalAlignment="Left">
+                                <Grid HorizontalAlignment="Left">
+                                    <Image x:Name="SongImg">
+                                        <Image.Source>
+                                            <BitmapImage UriSource="{Binding CoverImagePath}" />
+                                        </Image.Source>
+                                    </Image>
+
+
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+
+                    </dgView:TableViewTemplateColumn.CellTemplate>
+                </dgView:TableViewTemplateColumn>
+
+                <dgView:TableViewTemplateColumn
+                    x:Name="TextsCol"
+                    Width="*"
+                    Header="Song">
+                    <dgView:TableViewTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel
+                                x:Name="TextsCardBorder"
+                                HorizontalAlignment="Stretch"
+                                Background="Transparent"
+                                Spacing="5">
+
+                                <StackPanel Orientation="Horizontal" Spacing="5">
+                                    <Button
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Click="SongTitle_Click">
+                                        <TextBlock
+                                            FontSize="21"
+                                            FontWeight="Bold"
+                                            Text="{Binding SongViewObject.Title}"
+                                            TextWrapping="WrapWholeWords" />
+
+                                    </Button>
+
+                                    <Border
+                                        HorizontalAlignment="Right"
+                                        Canvas.ZIndex="1"
+                                        Visibility="{Binding SongViewObject.IsFavorite, Converter={StaticResource BoolToVis}}">
+                                        <FontIcon
+                                            Foreground="DarkSlateBlue"
+                                            Glyph="&#xEB52;"
+                                            Rotation="37" />
+                                    </Border>
+                                </StackPanel>
+
+                                <Button
+                                    x:Name="SongArtists"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Click="SongArtists_Click">
+                                    <TextBlock
+                                        FontSize="19"
+                                        Text="{Binding SongViewObject.OtherArtistsName}"
+                                        TextWrapping="WrapWholeWords" />
+                                </Button>
+
+                                <Button
+                                    x:Name="SongAlbum"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Click="SongAlbum_Click">
+
+                                    <TextBlock
+                                        FontSize="12"
+                                        FontStyle="Oblique"
+                                        FontWeight="Light"
+                                        Text="{Binding SongViewObject.AlbumName}"
+                                        TextWrapping="WrapWholeWords" />
+                                </Button>
                             </StackPanel>
+                        </DataTemplate>
 
-                            <StackPanel Grid.Column="1">
-                                <TextBlock x:Name="Title" FontSize="22" />
-                                <TextBlock x:Name="artistText" FontSize="19" />
-                                <TextBlock x:Name="albumText" FontSize="15" />
+                    </dgView:TableViewTemplateColumn.CellTemplate>
+                </dgView:TableViewTemplateColumn>
+
+                <dgView:TableViewTemplateColumn
+                    x:Name="MoreCol"
+                    Width="auto"
+                    Header="More">
+                    <dgView:TableViewTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel x:Name="MoreCardBorder">
+                                <TextBlock
+                                    HorizontalAlignment="Center"
+                                    Text="{Binding PlayTypeStr}"
+                                    TextWrapping="WrapWholeWords" />
+                                <TextBlock
+                                    HorizontalAlignment="Center"
+                                    Text="{Binding EventDate, Converter={StaticResource EventDateOffsetToTimeAgo}}"
+                                    TextWrapping="WrapWholeWords"
+                                    ToolTipService.ToolTip="{Binding EventDate.Value.LocalDateTime}" />
+
+                                <Button
+                                    x:Name="MoreBtn"
+                                    Background="Transparent"
+                                    Click="MoreBtn_Click">
+                                    <SymbolIcon Symbol="More" />
+                                </Button>
                             </StackPanel>
+                        </DataTemplate>
 
-                            <Button x:Name="MoreBtn" Click="MoreBtn_Click">
-                                <SymbolIcon Symbol="More" />
-                            </Button>
-                        </Grid>
-                    </DataTemplate>
-                </ItemsRepeater.ItemTemplate>
+                    </dgView:TableViewTemplateColumn.CellTemplate>
+                </dgView:TableViewTemplateColumn>
 
-            </ItemsRepeater>
+            </dgView:TableView.Columns>
 
+        </dgView:TableView>
+        <StackPanel
+            Grid.Row="1"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Visibility="{x:Bind MyViewModel.IsPlayEventsLoading, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+
+            <ProgressRing
+                Width="60"
+                Height="60"
+                IsActive="True" />
+            <TextBlock
+                Margin="0,10,0,0"
+                HorizontalAlignment="Center"
+                Text="Loading History..." />
         </StackPanel>
+        <Border
+            Grid.Row="2"
+            Padding="10"
+            Background="{ThemeResource LayerFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+            BorderThickness="0,1,0,0">
 
+            <StackPanel
+                HorizontalAlignment="Center"
+                Orientation="Horizontal"
+                Spacing="20">
+
+                <Button Command="{x:Bind MyViewModel.PrevEvtPageCommand}" IsEnabled="{x:Bind MyViewModel.CanGoPrev, Mode=OneWay}">
+                    <SymbolIcon Symbol="Back" />
+                </Button>
+
+                <TextBlock
+                    VerticalAlignment="Center"
+                    FontWeight="SemiBold"
+                    Text="{x:Bind MyViewModel.PageStatusString, Mode=OneWay}" />
+
+                <Button Command="{x:Bind MyViewModel.NextEvtPageCommand}" IsEnabled="{x:Bind MyViewModel.CanGoNext, Mode=OneWay}">
+                    <SymbolIcon Symbol="Forward" />
+                </Button>
+
+            </StackPanel>
+        </Border>
     </Grid>
 </Page>

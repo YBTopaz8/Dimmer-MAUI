@@ -1,5 +1,7 @@
 ﻿using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 
+using static Dimmer.Data.Models.LastFMUser;
+
 namespace Dimmer.Data;
 
 
@@ -34,7 +36,28 @@ public class RealmFactory : IRealmFactory
         // Set schema version to 5.
         _config = new RealmConfiguration(filePath)
         {
-            SchemaVersion = 12,
+            SchemaVersion = 14,
+        //    Schema = new[]
+        //    {
+        //        typeof(AppStateModel),
+        //        typeof(SongModel),
+        //        typeof(PlaylistModel),
+        //        typeof(AlbumModel),
+        //        typeof(ArtistModel),
+        //        typeof(DimmerPlayEvent),
+        //        typeof(SyncLyrics),
+        //        typeof(TagModel),
+        //        typeof(UserModel),
+        //typeof(GenreModel),
+        //typeof(UserStats),
+        //typeof(AchievementRule),
+
+        //typeof(UserNoteModel),
+        //typeof(PlaylistEvent),
+        //typeof(LastFMUser),
+        //typeof(LastImage), // Nested inside LastFMUser
+        //typeof(SyncLyrics)  // Used in SongModel
+        //    },
             MigrationCallback = (migration, oldSchemaVersion) =>
             {
 

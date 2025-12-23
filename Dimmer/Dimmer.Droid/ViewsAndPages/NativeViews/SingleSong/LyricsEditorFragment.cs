@@ -1,6 +1,13 @@
-﻿using Bumptech.Glide;
+﻿using AndroidX.Lifecycle.ViewModels;
 
+using Bumptech.Glide;
+
+using Dimmer.Data.Models.LyricsModels;
 using Dimmer.WinUI.UiUtils;
+
+using Google.Android.Material.ProgressIndicator;
+
+using ScrollView = Android.Widget.ScrollView;
 
 namespace Dimmer.ViewsAndPages.NativeViews.SingleSong;
 
@@ -10,6 +17,8 @@ public class LyricsEditorFragment : Fragment
     private RecyclerView _resultsRecycler;
     BaseViewModelAnd _viewModel;
     SongModelView selectedSong;
+    CircularProgressIndicator progressIndicator;
+
     public LyricsEditorFragment(BaseViewModelAnd viewModel, SongModelView selectedSong)
     {
         _viewModel = viewModel;
@@ -19,7 +28,11 @@ public class LyricsEditorFragment : Fragment
     public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         var context = Context;
-
+        var scrollView = new ScrollView(context)
+        {
+            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent),
+            FillViewport = true
+        };
         // Root
         var root = new LinearLayout(context) { Orientation = Orientation.Vertical };
         root.LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent);
@@ -33,7 +46,7 @@ public class LyricsEditorFragment : Fragment
         backBtn.SetIconResource(Resource.Drawable.ic_arrow_back_black_24);
         backBtn.Click += (s, e) => ParentFragmentManager.PopBackStack();
 
-        var headerTitle = new TextView(context) { Text = "Edit Lyrics", TextSize = 24 };
+        var headerTitle = new TextView(context) { Text = "Fetch Lyrics", TextSize = 24 };
         headerTitle.SetTypeface(null, Android.Graphics.TypefaceStyle.Bold);
         headerTitle.LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent) { LeftMargin = 24 };
 
@@ -81,29 +94,55 @@ public class LyricsEditorFragment : Fragment
         resultsLabel.SetPadding(32, 16, 32, 0);
         root.AddView(resultsLabel);
 
+         progressIndicator = new CircularProgressIndicator(context);
+        progressIndicator.Indeterminate = true;
+        progressIndicator.Visibility = ViewStates.Gone;
+        progressIndicator.LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent) { Gravity = GravityFlags.CenterHorizontal };
+        root.AddView(progressIndicator);
+
+
+
         _resultsRecycler = new RecyclerView(context);
         _resultsRecycler.SetLayoutManager(new LinearLayoutManager(context));
         _resultsRecycler.LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, 0, 1f); // Weight 1 to fill space
 
-        // Set Adapter (Mocking the LrcLibLyrics results)
-        _resultsRecycler.SetAdapter(new LyricsResultAdapter(context));
+        
+        _resultsRecycler.SetAdapter(new LyricsResultAdapter(context, _viewModel, progressIndicator));
 
         root.AddView(_resultsRecycler);
 
-        return root;
+        scrollView.AddView(root);
+        return scrollView;
     }
 
-    private View CreateSearchForm(Context context)
+    private LinearLayout CreateSearchForm(Context context)
     {
-        var form = new LinearLayout(context) { Orientation = Orientation.Vertical };
+        LinearLayout? form = new LinearLayout(context) { Orientation = Orientation.Vertical };
 
         _searchTitle = UiBuilder.CreateInput(context, "Title", "");
         _searchArtist = UiBuilder.CreateInput(context, "Artist", "");
         _searchAlbum = UiBuilder.CreateInput(context, "Album", "");
 
         var btnRow = new LinearLayout(context) { Orientation = Orientation.Horizontal };
-        var searchBtn = UiBuilder.CreateButton(context, "Search", (s, e) => { /* ViewModel Search Command */ });
-        var pasteBtn = UiBuilder.CreateButton(context, "Paste", (s, e) => { /* ViewModel Paste Command */ }, true);
+        var searchBtn = UiBuilder.CreateMaterialButton(context,this.Resources.Configuration, clickAction: (s, e) => 
+        { 
+            _viewModel.SearchLyricsCommand.ExecuteAsync(null);
+            progressIndicator.Visibility = ViewStates.Visible;
+        }, iconRes: Resource.Drawable.searchd);
+        var pasteBtn = UiBuilder.CreateMaterialButton(context, this.Resources.Configuration, clickAction: (s, e) => 
+        {
+            _viewModel.AutoFillSearchFields();
+
+        }, true,iconRes:Resource.Drawable.clipboard);
+
+
+
+        _viewModel.AutoFillSearchFields();
+        _searchTitle.EditText?.Text = _viewModel.LyricsTrackNameSearch;
+
+        _searchArtist.EditText?.Text = _viewModel.LyricsArtistNameSearch;
+
+        _searchAlbum.EditText?.Text = _viewModel.LyricsAlbumNameSearch;
 
         btnRow.AddView(searchBtn);
         btnRow.AddView(pasteBtn);
@@ -119,16 +158,48 @@ public class LyricsEditorFragment : Fragment
     class LyricsResultAdapter : RecyclerView.Adapter
     {
         Context _ctx;
-        public LyricsResultAdapter(Context ctx) { _ctx = ctx; }
-        public override int ItemCount => 3; // Mock count
+        private Button viewBtnResult;
+        private Button applyBtnResult;
+        private readonly ObservableCollection<LrcLibLyrics> _items;
+        readonly BaseViewModelAnd viewModel;
+        readonly CircularProgressIndicator progressIndicator;
+        public LyricsResultAdapter(Context ctx, BaseViewModelAnd baseVM, CircularProgressIndicator progressIndicator) 
+        {
+            _ctx = ctx;
+             this.progressIndicator = progressIndicator;
+
+            viewModel = baseVM;
+            _items = baseVM.LyricsSearchResults;
+
+
+            _items.CollectionChanged += (s, e) =>
+            {
+                if (!baseVM.IsLyricsSearchBusy)
+                {
+                    this.progressIndicator.Visibility = ViewStates.Gone;                    
+                }
+
+
+                NotifyDataSetChanged();
+            }; 
+        }
+        public override int ItemCount => _items.Count;
+
+        public TextView titleResult { get; private set; }
+        public TextView syncLyricsResult { get; private set; }
 
         public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
         {
-            var vh = holder as ResultVH;
-            vh.Title.Text = "Mock Lyric Result " + position;
-            vh.Subtitle.Text = "Artist • Album • 3:45";
-            vh.ApplyBtn.Click += (s, e) => Toast.MakeText(_ctx, "Applied!", ToastLength.Short).Show();
+            var vh = holder as LyricsResultViewHolder;
+            if (vh != null)
+            {
+                var lyrObj = _items[position];
+                vh.Bind(lyrObj);
+               
+            }
         }
+
+      
 
         public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType)
         {
@@ -140,30 +211,68 @@ public class LyricsEditorFragment : Fragment
             var layout = new LinearLayout(parent.Context) { Orientation = Orientation.Vertical };
             layout.SetPadding(24, 24, 24, 24);
 
-            var title = new TextView(parent.Context) { TextSize = 16, Typeface = Android.Graphics.Typeface.DefaultBold };
-            var sub = new TextView(parent.Context) { TextSize = 12 };
+            titleResult = new TextView(parent.Context!) { TextSize = 16, Typeface = Android.Graphics.Typeface.DefaultBold };
+            syncLyricsResult = new TextView(parent.Context!) { TextSize = 12 };
 
             var btnPanel = new LinearLayout(parent.Context) { Orientation = Orientation.Horizontal};
             btnPanel.SetGravity(GravityFlags.Right);
-            var viewBtn = new Button(parent.Context) { Text = "View" };
-            var applyBtn = new Button(parent.Context) { Text = "Apply" };
+            
+            viewBtnResult = UiBuilder.CreateMaterialButton(_ctx, parent.Resources?.Configuration
+                 , null, sizeDp:30, iconRes:Resource.Drawable.eye);
 
-            btnPanel.AddView(viewBtn);
-            btnPanel.AddView(applyBtn);
+            applyBtnResult = UiBuilder.CreateMaterialButton(parent.Context!, parent.Resources?.Configuration
+                ,null, sizeDp:30, iconRes:Resource.Drawable.savea);
 
-            layout.AddView(title);
-            layout.AddView(sub);
+
+
+            btnPanel.AddView(viewBtnResult);
+            btnPanel.AddView(applyBtnResult);
+
+            layout.AddView(titleResult);
+            layout.AddView(syncLyricsResult);
             layout.AddView(btnPanel);
             card.AddView(layout);
 
-            return new ResultVH(card, title, sub, applyBtn);
+            return new LyricsResultViewHolder(viewModel, card, titleResult, syncLyricsResult, applyBtnResult);
         }
 
-        class ResultVH : RecyclerView.ViewHolder
+        class LyricsResultViewHolder : RecyclerView.ViewHolder
         {
-            public TextView Title, Subtitle;
-            public Button ApplyBtn;
-            public ResultVH(View v, TextView t, TextView s, Button b) : base(v) { Title = t; Subtitle = s; ApplyBtn = b; }
+            private readonly BaseViewModelAnd _vm;
+            public TextView Title;
+            public TextView Duration, IsSyncLyrics;
+            public TextView ArtistName, SyncedLyrics;
+            public TextView TrackName, PlainLyrics;
+            public TextView AlbumName, Instrumental;
+            public Button ApplyBtn; 
+            public LyricsResultViewHolder(BaseViewModelAnd viewModel, View ContainerView, TextView t, TextView s, Button b) : base(ContainerView) 
+            {
+                _vm = viewModel;
+                Title = t; SyncedLyrics = s; ApplyBtn = b;
+                ApplyBtn.Click += (sender, args) =>
+                {
+                    
+                    int pos = BindingAdapterPosition;
+
+                    var selectedLyric = _vm.LyricsSearchResults.ElementAt(pos);
+                    _vm.SelectLyricsCommand.ExecuteAsync(selectedLyric);
+
+                    Toast.MakeText(ContainerView.Context, $"Applied at {pos}", ToastLength.Short)?.Show();
+                };
+            }
+
+            public void Bind(LrcLibLyrics lyrObj)
+            {
+                SyncedLyrics.Text = lyrObj.SyncedLyrics;
+               //IsSyncLyrics.Text  = (!(lyrObj.SyncedLyrics?.Length <1)).ToString();
+                //ArtistName.Text = lyrObj.ArtistName;
+                //AlbumName.Text = lyrObj.AlbumName;
+                //Duration.Text = lyrObj.Duration.ToString();
+                //Instrumental.Text = lyrObj.Instrumental.ToString();
+                Title.Text = lyrObj.TrackName;
+                //PlainLyrics.Text = lyrObj.PlainLyrics;
+            }
+
         }
     }
 }

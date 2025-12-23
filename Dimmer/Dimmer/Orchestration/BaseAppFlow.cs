@@ -165,9 +165,11 @@ public class BaseAppFlow : IDisposable
                 PlayTypeStr = type.ToString(),
                 EventDate = DateTimeOffset.UtcNow,
                 DatePlayed = DateTimeOffset.UtcNow,
+                
                 PositionInSeconds = position ?? 0,
                 WasPlayCompleted = type == PlayType.Completed,
             };
+            
             // Use the IRepository<DimmerPlayEvent> to create it.
 
 

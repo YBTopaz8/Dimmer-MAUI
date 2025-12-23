@@ -7,6 +7,7 @@ namespace Dimmer.ViewModel;
 public partial class SessionManagementViewModel : ObservableObject, IDisposable
 {
     private readonly ILiveSessionManagerService _sessionManager;
+    public ILiveSessionManagerService SessionManager => _sessionManager;
     public LoginViewModel LoginViewModel;
     private BaseViewModel _mainViewModel; // To get current song state
     private readonly ILogger<SessionManagementViewModel> _logger;
@@ -76,7 +77,10 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
                 AvailableBackups.Add(new CloudBackupModel(item));
             }
         }
-        finally { IsBusy = false; }
+        finally 
+        { 
+            IsBusy = false; 
+        }
     }
 
     [RelayCommand]
@@ -111,7 +115,7 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
             return;
         }
 
-        CurrentReferralCode = codeObj.Get<string>("code");
+        CurrentReferralCode = codeObj.Get<string>("referralCode");
         int uses = codeObj.ContainsKey("timesUsed") ? codeObj.Get<int>("timesUsed") : 0;
         int remaining = codeObj.ContainsKey("usesRemaining") ? codeObj.Get<int>("usesRemaining") : 0;
 
@@ -135,7 +139,7 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
     [RelayCommand]
     public async Task TransferToDevice(UserDeviceSession targetDevice)
     {
-        // 1. Validate we have a song
+        // 1. Validate we have a a2ng
         var currentSong = _mainViewModel.CurrentPlayingSongView;
         if (targetDevice == null || currentSong == null)
         {
@@ -238,7 +242,7 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
 
                 var result = await _sessionManager.CreateBackupAsync();
                 StatusMessage = result;
-                await Shell.Current.DisplayAlert("Backup", result, "OK");
+                
         }
         catch (Exception ex)
         {

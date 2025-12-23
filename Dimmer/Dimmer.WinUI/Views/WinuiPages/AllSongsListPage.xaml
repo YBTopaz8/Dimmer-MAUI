@@ -60,7 +60,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto" />
                 <RowDefinition Height="*" />
-                <RowDefinition Height="25" />
+                <RowDefinition Height="auto" />
             </Grid.RowDefinitions>
 
             <Grid Grid.Row="0">
@@ -232,265 +232,344 @@
                 </StackPanel>
             </Grid>
 
-            <dgView:TableView
-                x:Name="MySongsTableView"
-                Grid.Row="1"
-                HorizontalAlignment="Stretch"
-                HorizontalContentAlignment="Stretch"
-                AllowFocusOnInteraction="False"
-                AllowFocusWhenDisabled="False"
-                AutoGenerateColumns="False"
-                CanDragItems="True"
-                CellContextFlyoutOpening="MySongsTableView_CellContextFlyoutOpening"
-                DoubleTapped="TableView_DoubleTapped"
-                DragItemsCompleted="MySongsTableView_DragItemsCompleted"
-                DragItemsStarting="MySongsTableView_DragItemsStarting"
-                DragStarting="MySongsTableView_DragStarting"
-                ExportSelectedContent="TableView_ExportSelectedContent"
-                IsItemClickEnabled="True"
-                IsMultiSelectCheckBoxEnabled="True"
-                IsRightTapEnabled="True"
-                IsSwipeEnabled="False"
-                ItemClick="MySongsTableView_ItemClick"
-                ItemsSource="{x:Bind MyViewModel.SearchResults}"
-                Loaded="MySongsTableView_Loaded"
-                LosingFocus="MySongsTableView_LosingFocus"
-                LostFocus="MySongsTableView_LostFocus"
-                PointerEntered="MySongsTableView_PointerEntered"
-                PointerExited="MySongsTableView_PointerExited"
-                PointerPressed="TableView_PointerPressed"
-                PointerReleased="MySongsTableView_PointerReleased"
-                ProcessKeyboardAccelerators="MySongsTableView_ProcessKeyboardAccelerators"
-                RightTapped="TableView_RightTapped"
-                RowContextFlyoutOpening="MySongsTableView_RowContextFlyoutOpening"
-                SelectionChanged="MySongsTableView_SelectionChanged"
-                SelectionMode="Single"
-                Sorting="MySongsTableView_Sorting"
-                Style="{StaticResource AcrylicDataGridStyle}"
-                Tapped="MySongsTableView_Tapped">
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="auto" />
+                </Grid.ColumnDefinitions>
 
-                <dgView:TableView.Columns>
+                <dgView:TableView
+                    x:Name="MySongsTableView"
+                    Grid.Column="0"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Stretch"
+                    AllowFocusOnInteraction="False"
+                    AllowFocusWhenDisabled="False"
+                    AutoGenerateColumns="False"
+                    CanDragItems="True"
+                    CellContextFlyoutOpening="MySongsTableView_CellContextFlyoutOpening"
+                    DoubleTapped="TableView_DoubleTapped"
+                    DragItemsCompleted="MySongsTableView_DragItemsCompleted"
+                    DragItemsStarting="MySongsTableView_DragItemsStarting"
+                    DragStarting="MySongsTableView_DragStarting"
+                    ExportSelectedContent="TableView_ExportSelectedContent"
+                    IsItemClickEnabled="True"
+                    IsMultiSelectCheckBoxEnabled="True"
+                    IsRightTapEnabled="True"
+                    IsSwipeEnabled="False"
+                    ItemClick="MySongsTableView_ItemClick"
+                    ItemsSource="{x:Bind MyViewModel.SearchResults}"
+                    Loaded="MySongsTableView_Loaded"
+                    LosingFocus="MySongsTableView_LosingFocus"
+                    LostFocus="MySongsTableView_LostFocus"
+                    PointerEntered="MySongsTableView_PointerEntered"
+                    PointerExited="MySongsTableView_PointerExited"
+                    PointerPressed="TableView_PointerPressed"
+                    PointerReleased="MySongsTableView_PointerReleased"
+                    ProcessKeyboardAccelerators="MySongsTableView_ProcessKeyboardAccelerators"
+                    RightTapped="TableView_RightTapped"
+                    RowContextFlyoutOpening="MySongsTableView_RowContextFlyoutOpening"
+                    SelectionChanged="MySongsTableView_SelectionChanged"
+                    SelectionMode="Single"
+                    Sorting="MySongsTableView_Sorting"
+                    Style="{StaticResource AcrylicDataGridStyle}"
+                    Tapped="MySongsTableView_Tapped">
 
-                    <!--  Column for the Cover Art  -->
-                    <dgView:TableViewTemplateColumn
-                        x:Name="ImgCol"
-                        Width="220"
-                        Header="Cover">
-                        <dgView:TableViewTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Border
-                                    x:Name="CardBorder"
-                                    Height="200"
-                                    Margin="5,0"
-                                    AllowFocusOnInteraction="False"
-                                    Background="Transparent"
-                                    BorderThickness="1"
-                                    CornerRadius="12"
-                                    DoubleTapped="CardBorder_DoubleTapped"
-                                    IsDoubleTapEnabled="True"
-                                    IsHitTestVisible="True"
-                                    Loaded="CardBorder_Loaded"
-                                    PointerEntered="CardBorder_PointerEntered"
-                                    PointerExited="CardBorder_PointerExited">
-                                    <Grid x:Name="CoverImageGrid" PointerReleased="CardBorder_PointerReleased">
+                    <dgView:TableView.Columns>
 
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="auto" />
-                                            <RowDefinition Height="*" />
-                                            <RowDefinition Height="auto" />
-
-                                        </Grid.RowDefinitions>
-
-                                        <!--  You can even overlay a "favorite" icon like in your example  -->
-                                        <StackPanel
-                                            Grid.Row="0"
-                                            Margin="0,0,0,5"
-                                            HorizontalAlignment="Center"
-                                            VerticalAlignment="Bottom"
-                                            Orientation="Horizontal"
-                                            Spacing="15">
-
-
-
-                                            <SymbolIcon
-                                                Foreground="SlateBlue"
-                                                Symbol="Play"
-                                                Visibility="{Binding IsCurrentPlayingHighlight, Converter={StaticResource BoolToVisibilityConverter}}" />
-
-                                            <SymbolIcon
-                                                Width="20"
-                                                Height="20"
-                                                Foreground="SlateBlue"
-                                                Symbol="Microphone"
-                                                Visibility="{Binding HasSyncedLyrics, Converter={StaticResource BoolToVisibilityConverter}}" />
-
-                                            <FontIcon
-                                                Width="20"
-                                                Height="20"
-                                                Foreground="SlateBlue"
-                                                Glyph="&#xEB52;"
-                                                Visibility="{Binding IsFavorite, Converter={StaticResource BoolToVisibilityConverter}}" />
-                                        </StackPanel>
-                                        <Image
-                                            x:Name="coverArtImage"
-                                            Grid.Row="1"
-                                            Width="160"
-                                            Height="160"
-                                            x:FieldModifier="Public"
-                                            RightTapped="coverArtImage_RightTapped"
-                                            Source="{Binding CoverImagePath}"
-                                            Stretch="UniformToFill" />
-
-                                        <StackPanel
-                                            x:Name="ExtraPanel"
-                                            Grid.Row="1"
-                                            HorizontalAlignment="Right"
-                                            VerticalAlignment="Bottom"
-                                            Loaded="ExtraPanel_Loaded"
-                                            Opacity="0"
-                                            Orientation="Horizontal"
-                                            RenderTransformOrigin="0.5,0.5"
-                                            Spacing="10"
-                                            Visibility="Visible">
-                                            <StackPanel.RenderTransform>
-                                                <TranslateTransform Y="150" />
-                                            </StackPanel.RenderTransform>
-                                            <Button
-                                                x:Name="ViewSongBtn"
-                                                Margin="30,0,0,0"
-                                                HorizontalAlignment="Center"
-                                                Background="DarkSlateBlue"
-                                                Click="ViewSongBtn_Click"
-                                                Content="View"
-                                                Opacity="0.8"
-                                                PointerEntered="ButtonHover_PointerEntered"
-                                                PointerExited="ButtonHover_PointerExited" />
-                                            <Button
-                                                x:Name="ViewOtherBtn"
-                                                HorizontalAlignment="Center"
-                                                Background="DarkSlateBlue"
-                                                Click="ViewOtherBtn_Click"
-                                                Content="Options"
-                                                Opacity="0.8"
-                                                PointerEntered="ButtonHover_PointerEntered"
-                                                PointerExited="ButtonHover_PointerExited" />
-                                        </StackPanel>
-
-                                        <StackPanel Grid.Row="2" HorizontalAlignment="Center">
-                                            <TextBlock Text="{Binding FileFormat}" />
-                                        </StackPanel>
-                                    </Grid>
-
-                                </Border>
-                            </DataTemplate>
-                        </dgView:TableViewTemplateColumn.CellTemplate>
-                    </dgView:TableViewTemplateColumn>
-
-
-                    <dgView:TableViewTextColumn
-                        x:Name="Title"
-                        Width="*"
-                        Binding="{Binding Title}"
-                        Header="Title"
-                        IsReadOnly="True"
-                        ToolTipService.Placement="Mouse"
-                        ToolTipService.ToolTip="{Binding Title}" />
-                    <dgView:TableViewTemplateColumn
-                        x:Name="Artist"
-                        Width="*"
-                        Header="Artist"
-                        IsReadOnly="True"
-                        ToolTipService.Placement="Mouse"
-                        ToolTipService.ToolTip="{Binding OtherArtistsName}">
-                        <dgView:TableViewTemplateColumn.CellTemplate>
-
-                            <DataTemplate>
-                                <Grid
-                                    Height="190"
-                                    Background="Transparent"
-                                    PointerPressed="ArtistCellGrid_PointerPressed">
-
+                        <!--  Column for the Cover Art  -->
+                        <dgView:TableViewTemplateColumn x:Name="ImgCol" Header="Cover">
+                            <dgView:TableViewTemplateColumn.CellTemplate>
+                                <DataTemplate>
                                     <Border
-                                        x:Name="ArtistNameTextOnly"
-                                        Padding="10"
-                                        VerticalAlignment="Center"
-                                        Background="Transparent">
+                                        x:Name="CardBorder"
+                                        Margin="5,0"
+                                        AllowFocusOnInteraction="False"
+                                        Background="Transparent"
+                                        BorderThickness="1"
+                                        CornerRadius="12"
+                                        DoubleTapped="CardBorder_DoubleTapped"
+                                        IsDoubleTapEnabled="True"
+                                        IsHitTestVisible="True"
+                                        Loaded="CardBorder_Loaded"
+                                        PointerEntered="CardBorder_PointerEntered"
+                                        PointerExited="CardBorder_PointerExited">
+                                        <Grid x:Name="CoverImageGrid" PointerReleased="CardBorder_PointerReleased">
 
-                                        <TextBlock
-                                            x:Name="ArtistNameTxt"
-                                            HorizontalAlignment="Stretch"
-                                            FontWeight="Bold"
-                                            Text="{Binding OtherArtistsName}"
-                                            TextWrapping="WrapWholeWords" />
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="auto" />
+                                                <RowDefinition Height="*" />
+                                                <RowDefinition Height="auto" />
+
+                                            </Grid.RowDefinitions>
+
+                                            <!--  You can even overlay a "favorite" icon like in your example  -->
+                                            <StackPanel
+                                                Grid.Row="0"
+                                                Margin="0,0,0,5"
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Bottom"
+                                                Orientation="Horizontal"
+                                                Spacing="15">
+
+
+
+                                                <SymbolIcon
+                                                    Foreground="SlateBlue"
+                                                    Symbol="Play"
+                                                    Visibility="{Binding IsCurrentPlayingHighlight, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                                                <SymbolIcon
+                                                    Width="20"
+                                                    Height="20"
+                                                    Foreground="SlateBlue"
+                                                    Symbol="Microphone"
+                                                    Visibility="{Binding HasSyncedLyrics, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                                                <FontIcon
+                                                    Width="20"
+                                                    Height="20"
+                                                    Foreground="SlateBlue"
+                                                    Glyph="&#xEB52;"
+                                                    Visibility="{Binding IsFavorite, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                            </StackPanel>
+                                            <Image
+                                                x:Name="coverArtImage"
+                                                Grid.Row="1"
+                                                Width="50"
+                                                x:FieldModifier="Public"
+                                                PointerPressed="coverArtImage_PointerPressed"
+                                                RightTapped="coverArtImage_RightTapped"
+                                                Source="{Binding CoverImagePath}"
+                                                Stretch="UniformToFill" />
+
+                                            <StackPanel
+                                                x:Name="ExtraPanel"
+                                                Grid.Row="1"
+                                                HorizontalAlignment="Right"
+                                                VerticalAlignment="Bottom"
+                                                Loaded="ExtraPanel_Loaded"
+                                                Opacity="0"
+                                                Orientation="Horizontal"
+                                                RenderTransformOrigin="0.5,0.5"
+                                                Spacing="10"
+                                                Visibility="Visible">
+                                                <StackPanel.RenderTransform>
+                                                    <TranslateTransform Y="150" />
+                                                </StackPanel.RenderTransform>
+                                                <Button
+                                                    x:Name="ViewSongBtn"
+                                                    Margin="30,0,0,0"
+                                                    HorizontalAlignment="Center"
+                                                    Background="DarkSlateBlue"
+                                                    Click="ViewSongBtn_Click"
+                                                    Content="View"
+                                                    Opacity="0.8"
+                                                    PointerEntered="ButtonHover_PointerEntered"
+                                                    PointerExited="ButtonHover_PointerExited" />
+                                                <Button
+                                                    x:Name="ViewOtherBtn"
+                                                    HorizontalAlignment="Center"
+                                                    Background="DarkSlateBlue"
+                                                    Click="ViewOtherBtn_Click"
+                                                    Content="Options"
+                                                    Opacity="0.8"
+                                                    PointerEntered="ButtonHover_PointerEntered"
+                                                    PointerExited="ButtonHover_PointerExited" />
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Row="2" HorizontalAlignment="Center">
+                                                <TextBlock Text="{Binding FileFormat}" />
+                                            </StackPanel>
+                                        </Grid>
+
                                     </Border>
+                                </DataTemplate>
+                            </dgView:TableViewTemplateColumn.CellTemplate>
+                        </dgView:TableViewTemplateColumn>
 
 
-                                </Grid>
-                            </DataTemplate>
+                        <dgView:TableViewTemplateColumn
+                            x:Name="Title"
+                            Width="*"
+                            Header="Title"
+                            IsReadOnly="True"
+                            ToolTipService.Placement="Mouse"
+                            ToolTipService.ToolTip="{Binding Title}">
+                            <dgView:TableViewTemplateColumn.CellTemplate>
+                                <DataTemplate>
 
-                        </dgView:TableViewTemplateColumn.CellTemplate>
+                                    <StackPanel>
 
+                                        <Button Background="Transparent" BorderThickness="0">
+                                            <TextBlock Text="{Binding Title}" TextWrapping="WrapWholeWords" />
+                                        </Button>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="150" />
+                                                <ColumnDefinition Width="auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <Button
+                                                x:Name="ArtistBtn"
+                                                Grid.Column="0"
+                                                Background="Transparent"
+                                                BorderThickness="0"
+                                                PointerReleased="ArtistBtn_PointerReleased">
 
-                    </dgView:TableViewTemplateColumn>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <FontIcon FontSize="12" Glyph="&#xF8B1;" />
+                                                    <TextBlock Text="{Binding OtherArtistsName}" TextWrapping="WrapWholeWords" />
+                                                </StackPanel>
+                                            </Button>
 
-                    <dgView:TableViewTextColumn
-                        x:Name="AlbumName"
-                        Width="*"
-                        Binding="{Binding AlbumName}"
-                        Header="Album"
-                        IsReadOnly="True"
-                        ToolTipService.Placement="Mouse"
-                        ToolTipService.ToolTip="{Binding AlbumName}" />
-
-                    <dgView:TableViewTextColumn
-                        x:Name="GenreName"
-                        Width="*"
-                        Binding="{Binding GenreName}"
-                        Header="Genre"
-                        IsReadOnly="True" />
-                    <dgView:TableViewTextColumn
-                        x:Name="FileFormat"
-                        Binding="{Binding FileFormat}"
-                        Header="Format"
-                        IsReadOnly="True" />
-                    <dgView:TableViewTextColumn
-                        x:Name="DurationFormatted"
-                        Binding="{Binding DurationFormatted}"
-                        Header="Duration"
-                        IsReadOnly="True" />
-                    <dgView:TableViewTextColumn
-                        x:Name="ReleaseYear"
-                        Binding="{Binding ReleaseYear}"
-                        CanFilter="False"
-                        CanSort="True"
-                        Header="Year"
-                        IsFiltered="False"
-                        IsReadOnly="True" />
-                    <dgView:TableViewTextColumn
-                        x:Name="PlayCompletedCount"
-                        Binding="{Binding PlayCompletedCount}"
-                        Header="Dims"
-                        IsReadOnly="True" />
+                                            <Button
+                                                x:Name="AlbumBtn"
+                                                Grid.Column="1"
+                                                Background="Transparent"
+                                                BorderThickness="0"
+                                                PointerReleased="AlbumBtn_PointerReleased">
 
 
-                </dgView:TableView.Columns>
-            </dgView:TableView>
+                                                <StackPanel Orientation="Horizontal" Spacing="2">
+                                                    <FontIcon FontSize="14" Glyph="&#xE93C;" />
+                                                    <TextBlock
+                                                        VerticalAlignment="Bottom"
+                                                        Text="{Binding AlbumName}"
+                                                        TextWrapping="WrapWholeWords" />
+                                                </StackPanel>
+                                            </Button>
+
+                                        </Grid>
+                                    </StackPanel>
+
+                                </DataTemplate>
+
+                            </dgView:TableViewTemplateColumn.CellTemplate>
+
+                        </dgView:TableViewTemplateColumn>
 
 
 
-            <StackPanel
-                x:Name="BtmLogPanel"
-                Grid.Row="2"
-                Orientation="Horizontal">
-                <Button
-                    x:Name="HideBtmPart"
-                    VerticalAlignment="Top"
-                    Background="Transparent"
-                    BorderBrush="Transparent"
-                    Click="HideBtmPart_Click"
-                    Content="X"
-                    FontSize="9" />
-                <TextBlock VerticalAlignment="Center" Text="{Binding LatestAppLog.Log}" />
+                        <dgView:TableViewTemplateColumn x:Name="DurationFormatted" IsReadOnly="True">
+                            <dgView:TableViewTemplateColumn.Header>
+                                <FontIcon Glyph="&#xE823;" />
+                            </dgView:TableViewTemplateColumn.Header>
+                            <dgView:TableViewTemplateColumn.CellTemplate>
+                                <DataTemplate>
+
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <TextBlock
+                                            HorizontalAlignment="Center"
+                                            Text="{Binding DurationFormatted}"
+                                            TextWrapping="WrapWholeWords" />
+                                    </StackPanel>
+                                </DataTemplate>
+
+                            </dgView:TableViewTemplateColumn.CellTemplate>
+
+                        </dgView:TableViewTemplateColumn>
+
+                        <dgView:TableViewTemplateColumn
+                            x:Name="PlayCompletedCount"
+                            Header="Dims"
+                            IsReadOnly="True">
+                            <dgView:TableViewTemplateColumn.CellTemplate>
+                                <DataTemplate>
+
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <TextBlock
+                                            HorizontalAlignment="Center"
+                                            Text="{Binding PlayCompletedCount}"
+                                            TextWrapping="WrapWholeWords" />
+                                    </StackPanel>
+                                </DataTemplate>
+
+                            </dgView:TableViewTemplateColumn.CellTemplate>
+
+                        </dgView:TableViewTemplateColumn>
+
+
+                    </dgView:TableView.Columns>
+                </dgView:TableView>
+
+                <StackPanel
+                    Grid.Column="1"
+                    Width="250"
+                    HorizontalAlignment="Center"
+                    Spacing="10"
+                    Visibility="{x:Bind MyViewModel.SelectedSong, Mode=OneWay, Converter={StaticResource IsObjNullToVisInverseConverter}}">
+                    <Image x:Name="SelectedSongImg">
+                        <Image.Source>
+                            <BitmapImage UriSource="{x:Bind MyViewModel.SelectedSong.CoverImagePath, Mode=OneWay}" />
+                        </Image.Source>
+                    </Image>
+
+                    <Button HorizontalAlignment="Center" Content="{x:Bind MyViewModel.SelectedSong.Title, Mode=OneWay}" />
+                    <Button HorizontalAlignment="Center" Content="{x:Bind MyViewModel.SelectedSong.GenreName, Mode=OneWay}" />
+                    <Button HorizontalAlignment="Center" Content="{x:Bind MyViewModel.SelectedSong.PlayCompletedCount, Mode=OneWay}" />
+                    <Button HorizontalAlignment="Center" Content="{x:Bind MyViewModel.SelectedSong.ReleaseYear, Mode=OneWay}" />
+                    <Button HorizontalAlignment="Center" Content="{x:Bind MyViewModel.SelectedSong.UserNoteAggregatedText, Mode=OneWay}" />
+                </StackPanel>
+            </Grid>
+
+
+            <StackPanel x:Name="BtmLogPanel" Grid.Row="2">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!--  Left: Jump Button  -->
+                    <Button
+                        Grid.Column="0"
+                        HorizontalAlignment="Left"
+                        Command="{x:Bind MyViewModel.JumpToCurrentSongPageCommand}"
+                        ToolTipService.ToolTip="Go to Playing Song">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <SymbolIcon Symbol="Target" />
+                            <TextBlock Text="Locate Playing" />
+                        </StackPanel>
+                    </Button>
+
+                    <!--  Center: Pager  -->
+                    <StackPanel
+                        Grid.Column="1"
+                        Orientation="Horizontal"
+                        Spacing="20">
+
+                        <Button Command="{x:Bind MyViewModel.PrevSongPageCommand}" IsEnabled="{x:Bind MyViewModel.CanGoPrevSong, Mode=OneWay}">
+                            <SymbolIcon Symbol="Back" />
+                        </Button>
+
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            FontWeight="SemiBold"
+                            Text="{x:Bind MyViewModel.SongPageStatus, Mode=OneWay}" />
+
+                        <Button Command="{x:Bind MyViewModel.NextSongPageCommand}" IsEnabled="{x:Bind MyViewModel.CanGoNextSong, Mode=OneWay}">
+                            <SymbolIcon Symbol="Forward" />
+                        </Button>
+
+                    </StackPanel>
+
+                    <!--  Right: Spacer (Optional, keeps center aligned)  -->
+                    <Border Grid.Column="2" />
+
+                </Grid>
+
+                <StackPanel Orientation="Horizontal">
+                    <Button
+                        x:Name="HideBtmPart"
+                        VerticalAlignment="Top"
+                        Background="Transparent"
+                        BorderBrush="Transparent"
+                        Click="HideBtmPart_Click"
+                        Content="X"
+                        FontSize="9" />
+                    <TextBlock VerticalAlignment="Center" Text="{Binding LatestAppLog.Log}" />
+                </StackPanel>
             </StackPanel>
         </Grid>
 
@@ -633,8 +712,15 @@
                                                 Text="{Binding Title}"
                                                 TextTrimming="CharacterEllipsis" />
 
-                                            <StackPanel Orientation="Vertical" Spacing="4">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="150" />
+                                                    <ColumnDefinition Width="auto" />
+                                                </Grid.ColumnDefinitions>
+
+
                                                 <TextBlock
+                                                    Grid.Column="0"
                                                     FontSize="15"
                                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                     Style="{ThemeResource CaptionTextBlockStyle}"
@@ -642,12 +728,13 @@
                                                     TextTrimming="CharacterEllipsis" />
 
                                                 <TextBlock
+                                                    Grid.Column="1"
                                                     FontSize="14"
                                                     Foreground="{ThemeResource TextFillColorTertiaryBrush}"
                                                     Style="{ThemeResource CaptionTextBlockStyle}"
                                                     Text="{Binding AlbumName}"
                                                     TextTrimming="CharacterEllipsis" />
-                                            </StackPanel>
+                                            </Grid>
                                         </StackPanel>
 
                                         <StackPanel

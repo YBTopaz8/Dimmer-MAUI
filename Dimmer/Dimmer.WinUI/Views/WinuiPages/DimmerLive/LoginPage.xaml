@@ -47,9 +47,10 @@
 
                 <Button
                     HorizontalAlignment="Stretch"
-                    Command="{x:Bind ViewModel.LoginCommand}"
+                    Click="LogIn_Click"
                     Content="Log In"
-                    IsEnabled="{x:Bind ViewModel.IsBusy, Mode=OneWay}"
+                    x:Name="LogIn"
+                    IsEnabled="{x:Bind ViewModel.IsBusy, Converter={StaticResource BoolToInverseConverter}, Mode=OneWay}"
                     Style="{StaticResource AccentButtonStyle}"
                     Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource InvBoolToVis}}" />
             </StackPanel>
@@ -64,7 +65,7 @@
                     HorizontalAlignment="Stretch"
                     Command="{x:Bind ViewModel.RegisterCommand}"
                     Content="Sign Up"
-                    IsEnabled="{x:Bind ViewModel.IsBusy, Mode=OneWay}"
+                    IsEnabled="{x:Bind ViewModel.IsBusy, Converter={StaticResource BoolToInverseConverter}, Mode=OneWay}"
                     Style="{StaticResource AccentButtonStyle}"
                     Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource InvBoolToVis}}" />
             </StackPanel>
@@ -74,7 +75,10 @@
                 Margin="0,10,0,0"
                 HorizontalAlignment="Center"
                 Orientation="Horizontal">
-                <TextBlock Opacity="0.7" Text="{x:Bind ViewModel.ToggleText, Mode=OneWay}" />
+                <TextBlock
+                    VerticalAlignment="Center"
+                    Opacity="0.7"
+                    Text="{x:Bind ViewModel.ToggleText, Mode=OneWay}" />
                 <HyperlinkButton Command="{x:Bind ViewModel.ToggleModeCommand}" Content="{x:Bind ViewModel.ToggleLinkText, Mode=OneWay}" />
             </StackPanel>
 

@@ -3,6 +3,7 @@
 using Bumptech.Glide;
 
 using Dimmer.DimmerLive.Models;
+using Dimmer.WinUI.UiUtils;
 
 using Google.Android.Material.Dialog;
 
@@ -13,7 +14,7 @@ namespace Dimmer.ViewsAndPages.NativeViews.DimmerLive;
 public class ProfileFragment : Fragment
 {
     private readonly string _transitionName;
-    public LoginViewModel LoginVM { get; private set; }
+    public LoginViewModelAnd LoginVM { get; private set; }
     private readonly CompositeDisposable _disposables = new();
 
     private ImageView _avatar;
@@ -21,13 +22,14 @@ public class ProfileFragment : Fragment
     private TextView _statJoined, _statDevice;
     private MaterialButton _editBtn, _changePassBtn, _logoutBtn, _pickImageBtn;
 
-    public ProfileFragment(string transitionName, LoginViewModel viewModel)
+    public ProfileFragment(string transitionName, LoginViewModelAnd viewModel
+        )
     {
         _transitionName = transitionName;
         LoginVM = viewModel;
     }
 
-    public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         var ctx = Context;
         var scroll = new Android.Widget.ScrollView(ctx);
@@ -35,7 +37,7 @@ public class ProfileFragment : Fragment
         root.SetPadding(40, 60, 40, 200);
 
         // --- 1. Header Card (Avatar + Info) ---
-        var card = AppUtil.CreateCard(ctx);
+        var card = UiBuilder.CreateCard(ctx);
         var cardContent = new LinearLayout(ctx) { Orientation = Orientation.Horizontal, WeightSum = 3 };
         cardContent.SetPadding(30, 30, 30, 30);
 
@@ -85,18 +87,20 @@ public class ProfileFragment : Fragment
         root.AddView(card);
 
         // --- 2. Stats Row ---
-        root.AddView(AppUtil.CreateSectionTitle(ctx, "Details"));
+        root.AddView(UiBuilder.CreateSectionTitle(ctx, "Details"));
         var statsRow = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
-        _statJoined = AppUtil.CreateStatItem(ctx, "Joined", "Loading...");
-        _statDevice = AppUtil.CreateStatItem(ctx, "Device", "Unknown"); // From WinUI parity
+        _statJoined = UiBuilder.CreateStatItem(ctx, "Joined", "Loading...");
+        _statDevice = UiBuilder.CreateStatItem(ctx, "Device", "Unknown"); // From WinUI parity
         statsRow.AddView(_statJoined);
         statsRow.AddView(_statDevice);
         root.AddView(statsRow);
 
         // --- 3. Security Section ---
-        root.AddView(AppUtil.CreateSectionTitle(ctx, "Security"));
+        root.AddView(UiBuilder.CreateSectionTitle(ctx, "Security"));
 
         _changePassBtn = new MaterialButton(ctx) { Text = "Change Password" };
+        _changePassBtn.SetTextColor(AppUtil.ToColorStateList(UiBuilder.IsDark(Context) ?
+            Color.White : Color.DarkSlateBlue));
         _changePassBtn.Click += ShowChangePassDialog;
         root.AddView(_changePassBtn);
 
@@ -184,7 +188,7 @@ public class ProfileFragment : Fragment
         var shareIntent = Intent.CreateChooser(sendIntent, "Share Profile via");
         StartActivity(shareIntent);
     }
-    private void ShowEditBioDialog(object sender, EventArgs e)
+    private void ShowEditBioDialog(object? sender, EventArgs e)
     {
         var ctx = Context;
         var dialogView = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
@@ -208,7 +212,7 @@ public class ProfileFragment : Fragment
             .Show();
     }
 
-    private void ShowChangePassDialog(object sender, EventArgs e)
+    private void ShowChangePassDialog(object? sender, EventArgs e)
     {
         var ctx = Context;
         var dialogView = new LinearLayout(ctx) { Orientation = Orientation.Vertical };

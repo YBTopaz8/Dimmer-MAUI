@@ -17,7 +17,7 @@ public class ArtistFragment : Fragment
         _artistId = artistId;
     }
 
-    public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         var ctx = Context;
         var scrollView = new ScrollView(ctx)

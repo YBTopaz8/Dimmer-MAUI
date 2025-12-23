@@ -21,6 +21,8 @@ public partial class SettingsViewModel : BaseViewModel
 
     [ObservableProperty]
     public partial int WizardCurrentViewIndex { get; set; }
+    public string ErrorMessage { get; set; }
+
     public async Task AddMusicFolderViaPickerAsync()
     {
         try

@@ -119,10 +119,19 @@ public static class ServiceRegistration
             services.AddSingleton<IConfiguration>(config);
             // Map the "Lastfm" section to the LastfmSettings class
             services.Configure<LastfmSettings>(config.GetSection("Lastfm"));
-            var parseSection =config.GetSection("Parse");
-            YBParse.ApplicationId = parseSection.GetValue<string>("ApplicationId");
-            YBParse.ServerUri = parseSection.GetValue<string>("ServerUri");
-            YBParse.DotNetKEY = parseSection.GetValue<string>("DotNetKEY");
+            var parseSection = config.GetSection("YBParse");
+
+            if (parseSection.Exists())
+            {
+                // You must access the keys relative to the section, OR use the full path "YBParse:ApplicationId"
+                YBParse.ApplicationId = parseSection["ApplicationId"];
+                YBParse.ServerUri = parseSection["ServerUri"];
+                YBParse.DotNetKEY = parseSection["DotNetKEY"];
+            }
+            else
+            {
+                Console.WriteLine("CRITICAL: 'YBParse' section missing in appsettings.json");
+            }
         }
 
 

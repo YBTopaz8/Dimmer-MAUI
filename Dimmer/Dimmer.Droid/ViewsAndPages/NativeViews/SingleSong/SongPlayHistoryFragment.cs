@@ -36,9 +36,9 @@ public class SongPlayHistoryFragment : Fragment
             var card = new MaterialCardView(parent.Context) { Radius = 8, Elevation = 2 };
             var ly = new LinearLayout(parent.Context) { Orientation = Orientation.Vertical };
             ; ly.SetPadding(16, 16, 16, 16);
-            var type = new TextView(parent.Context) { Typeface = Typeface.DefaultBold };
-            var date = new TextView(parent.Context);
-            var device = new TextView(parent.Context) { TextSize = 12, Alpha = 0.7f };
+            var type = new TextView(parent.Context!) { Typeface = Typeface.DefaultBold };
+            var date = new TextView(parent.Context!);
+            var device = new TextView(parent.Context!) { TextSize = 12, Alpha = 0.7f };
 
             ly.AddView(type); ly.AddView(date); ly.AddView(device);
             card.AddView(ly);
@@ -50,12 +50,54 @@ public class SongPlayHistoryFragment : Fragment
         {
             var vh = holder as VH;
             var item = _items[position];
-            vh.Type.Text = item.PlayTypeStr ?? "Unknown Action";
+            vh.Type.Text = ((PlayType)item.PlayType).ToString() ?? "Unknown Action";
             vh.Date.Text = item.DatePlayed.ToString("g"); // General date/time
-            vh.Device.Text = $"{item.DeviceName} ({item.DeviceModel})";
+          
 
             // Color code based on PlayType (Completed vs Skipped)
-            vh.Type.SetTextColor(item.WasPlayCompleted ? Color.Green : Color.Red);
+
+            PlayType playType = (PlayType)item.PlayType;
+            switch (playType)
+            {
+                case PlayType.Play:
+                    vh.Type.SetTextColor(Color.Gray);
+                    break;
+                case PlayType.Pause:
+                    vh.Type.SetTextColor(Color.IndianRed);
+                    break;
+                case PlayType.Resume:
+                    vh.Type.SetTextColor(Color.Lavender);
+                    break;
+                case PlayType.Completed:
+                    vh.Type.SetTextColor(Color.Green);
+                    break;
+                case PlayType.Seeked:
+                    vh.Type.SetTextColor(Color.MediumSlateBlue);
+                    break;
+                case PlayType.Skipped:
+                    vh.Type.SetTextColor(Color.Beige);
+                    break;
+                case PlayType.Restarted:
+                    vh.Type.SetTextColor(Color.LimeGreen);
+                    break;
+                case PlayType.SeekRestarted:
+                    break;
+                case PlayType.CustomRepeat:
+                    break;
+                case PlayType.Previous:
+                    break;
+                case PlayType.ShareSong:
+                    break;
+                case PlayType.ReceiveShare:
+                    break;
+                case PlayType.Favorited:
+                    vh.Type.SetTextColor(Color.DeepPink);
+
+                    break;
+                default:
+                    break;
+            }
+
         }
 
         class VH : RecyclerView.ViewHolder

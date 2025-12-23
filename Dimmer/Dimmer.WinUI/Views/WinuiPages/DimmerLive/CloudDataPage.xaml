@@ -100,7 +100,7 @@
                     VerticalAlignment="Center"
                     Command="{x:Bind ViewModel.CreateReferralCodeCommand}"
                     Content="Generate Code"
-                    Visibility="{x:Bind ViewModel.CurrentReferralCode, Mode=OneWay, Converter={StaticResource InvObjToVis}}" />
+                    Visibility="{x:Bind ViewModel.CurrentReferralCode, Mode=OneWay, Converter={StaticResource IsObjNullToVisConverter}}" />
             </Grid>
         </Grid>
 
@@ -144,30 +144,44 @@
 
                 <!--  Backup List  -->
 
-                <ListView Grid.Row="1" 
-          ItemsSource="{x:Bind ViewModel.AvailableBackups, Mode=OneWay}"
-          SelectionMode="None">
+                <ListView
+                    Grid.Row="1"
+                    ItemsSource="{x:Bind ViewModel.AvailableBackups, Mode=OneWay}"
+                    SelectionMode="None">
                     <ListView.ItemTemplate>
                         <DataTemplate x:DataType="models:CloudBackupModel">
-                            <Grid Padding="12" Margin="0,0,0,8" Background="{ThemeResource LayerFillColorDefaultBrush}" CornerRadius="4">
+                            <Grid
+                                Margin="0,0,0,8"
+                                Padding="12"
+                                Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                CornerRadius="4">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
 
-                                <FontIcon Glyph="&#xE967;" FontSize="20" Margin="0,0,12,0" Opacity="0.5"/>
+                                <FontIcon
+                                    Margin="0,0,12,0"
+                                    FontSize="20"
+                                    Glyph="&#xE967;"
+                                    Opacity="0.5" />
 
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                    <!-- Bind to the formatted string properties -->
-                                    <TextBlock Text="{x:Bind CreatedAtDisplay}" Style="{StaticResource BodyStrongTextBlockStyle}"/>
-                                    <TextBlock Text="{x:Bind EventCountDisplay}" Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.6"/>
+                                    <!--  Bind to the formatted string properties  -->
+                                    <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="{x:Bind CreatedAtDisplay}" />
+                                    <TextBlock
+                                        Opacity="0.6"
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Text="{x:Bind EventCountDisplay}" />
                                 </StackPanel>
 
-                                <Button Grid.Column="2" 
-                        Content="Restore" 
-                        Command="{Binding ElementName=RootPage, Path=ViewModel.RestoreBackupCommand}"
-                        CommandParameter="{x:Bind ObjectId}"/>
+                                <Button
+                                    x:Name="RestorebackBtn"
+                                    Grid.Column="2"
+                                    Click="RestorebackBtn_Click"
+                                    CommandParameter="{x:Bind ObjectId}"
+                                    Content="Restore" />
                             </Grid>
                         </DataTemplate>
                     </ListView.ItemTemplate>
@@ -176,7 +190,7 @@
 
 
                 <!--  Loading Indicator for Backup/Restore  -->
-                <Grid
+                <!--<Grid
                     Grid.RowSpan="2"
                     Background="{ThemeResource SolidBackgroundFillColorBaseAltBrush}"
                     Opacity="0.8"
@@ -185,7 +199,7 @@
                         Width="50"
                         Height="50"
                         IsActive="True" />
-                </Grid>
+                </Grid>-->
             </Grid>
 
             <!--  RIGHT: Remote Devices  -->

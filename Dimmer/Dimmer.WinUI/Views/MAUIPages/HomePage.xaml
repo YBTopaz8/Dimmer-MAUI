@@ -79,7 +79,14 @@
                         ImageSource="playlistminimalistic3.png"
                         WidthRequest="60" />
                     <Button
-                        x:Name="ShowPlaylistHistory"
+                        BackgroundColor="Transparent"
+                        BorderWidth="1"
+                        Clicked="ViewDimmerSection_Clicked"
+                        x:Name="ViewDimmerSection"
+                        ImageSource="playcircle.png"
+                        WidthRequest="60" />
+                    <Button
+                        x:Name="SettingsNavChip"
                         BackgroundColor="Transparent"
                         BorderWidth="1"
                         Clicked="SettingsNavChips_ChipClicked"
@@ -369,7 +376,7 @@
                                 windows:VisualElement.AccessKeyPlacement="Bottom"
                                 Background="Transparent"
                                 BorderWidth="0"
-                                Command="{Binding PreviousTrackASyncCommand}"
+                                Command="{Binding PreviousTrackCommand}"
                                 ImageSource="skipprevious.png"
                                 IsEnabled="{Binding IsTimestampingInProgress, Converter={converters:BoolToInverseConverter}}"
                                 Loaded="ButtonLoaded">

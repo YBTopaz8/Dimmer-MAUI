@@ -22,6 +22,11 @@ public partial class SongAchievementsViewModel : ObservableObject
     public void Initialize(SongModel song)
     {
         var allRules = _svc.GetAllRules();
+        if(allRules is null)
+        {
+            SongAchievements = new ObservableCollection<AchievementDisplayItem>();
+            return;
+        }
         var earnedIds = song.EarnedAchievementIds.ToHashSet();
 
         var list = new List<AchievementDisplayItem>();

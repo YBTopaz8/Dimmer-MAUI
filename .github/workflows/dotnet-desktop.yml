@@ -1,50 +1,259 @@
+name: Build & Release Native Clients
+
 on:
-  release:
-    types: [published]
+  workflow_dispatch:
   push:
     branches:
-      - Dev-Official
-      - master  # Or 'main' if that's your main branch
+      - IntegrateAll
+      - master
 
 jobs:
-  notify:
-    runs-on: ubuntu-latest
+  build-and-release:
+    runs-on: windows-latest
+    permissions:
+      contents: write # Required for Tagging and Releasing
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4  # Needed for commit info and release tag.
+      # 1. CHECKOUT
+      - name: Checkout Main Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 
 
-      - name: Get Release Tag (Release Event)
-        if: github.event_name == 'release'
-        id: get_release_tag
-        run: echo "tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+      # 2. CACHE NUGET PACKAGES (Speed Optimization)
+      - name: Cache NuGet Packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
 
-      - name: Send Discord Notification (Release)
-        if: github.event_name == 'release'
-        uses: Ilshidur/action-discord@master
+      # 3. CALCULATE VERSION
+      - name: Calculate Next Version
+        id: calculator
+        shell: pwsh
+        run: |
+          git fetch --tags --force
+          $latestTag = git describe --tags --abbrev=0 2>$null
+          if (-not $latestTag) { $latestTag = "v0.0.0" }
+          Write-Host "Current Tag: $latestTag"
+
+          $cleanVer = $latestTag -replace "^v", ""
+          try {
+            $parts = $cleanVer.Split('.')
+            [int]$major = $parts[0]
+            [int]$minor = $parts[1]
+            [int]$patch = $parts[2]
+          } catch {
+            $major=0; $minor=0; $patch=0
+          }
+
+          $branch = "${{ github.ref_name }}"
+          
+          if ($branch -eq 'master') {
+             $minor++
+             $patch = 0
+             Write-Host "Master: Incrementing Minor (Production Release)"
+             echo "IS_PRE=false" >> $env:GITHUB_ENV
+          } elseif ($branch -eq 'Dev-Official') {
+             $patch++
+             Write-Host "Dev: Incrementing Patch (Pre-Release)"
+             echo "IS_PRE=true" >> $env:GITHUB_ENV
+          } else {
+             # Fallback for other branches (treat as pre-release)
+             $patch++
+             echo "IS_PRE=true" >> $env:GITHUB_ENV
+          }
+
+          $newTag = "v$major.$minor.$patch"
+          Write-Host "Target Tag: $newTag"
+          echo "NEW_TAG=$newTag" >> $env:GITHUB_ENV
+
+      # 4. CHECKOUT DEPENDENCIES
+      - name: Checkout Last.fm
+        uses: actions/checkout@v4
+        with:
+          repository: YBTopaz8/Last.fm
+          path: ExternalDeps/Last.fm
+
+      - name: Checkout ParseLiveQuery
+        uses: actions/checkout@v4
+        with:
+          repository: YBTopaz8/Parse-LiveQueries-DOTNET
+          path: ExternalDeps/Parse-LiveQueries-DOTNET
+
+      - name: Checkout ATL
+        uses: actions/checkout@v4
+        with:
+          repository: Zeugma440/atldotnet
+          path: ExternalDeps/atldotnet-main
+
+      - name: Checkout AudioSwitcher
+        uses: actions/checkout@v4
+        with:
+          repository: xenolightning/AudioSwitcher
+          path: ExternalDeps/AudioSwitcher-master
+          
+      # 5. LOCATE PROJECT FILES
+      - name: Locate Project Files
+        shell: pwsh
+        run: |
+          $winui = Get-ChildItem -Recurse -Filter "Dimmer.WinUI.csproj" | Select-Object -First 1
+          $droid = Get-ChildItem -Recurse -Filter "Dimmer.Droid.csproj" | Select-Object -First 1
+          $core  = Get-ChildItem -Recurse -Filter "Dimmer.csproj" | Select-Object -First 1
+
+          if (-not $winui) { Write-Error "❌ Missing Dimmer.WinUI.csproj"; exit 1 }
+          if (-not $droid) { Write-Error "❌ Missing Dimmer.Droid.csproj"; exit 1 }
+          if (-not $core)  { Write-Error "❌ Missing Dimmer.csproj"; exit 1 }
+
+          echo "PATH_WINUI=$($winui.FullName)" >> $env:GITHUB_ENV
+          echo "PATH_DROID=$($droid.FullName)" >> $env:GITHUB_ENV
+          echo "DIR_CORE=$($core.Directory.FullName)" >> $env:GITHUB_ENV
+          
+      # 6. CREATE APPSETTINGS.JSON
+      - name: Create appsettings.json
+        shell: pwsh
+        run: |
+          $targetPath = Join-Path "${{ env.DIR_CORE }}" "appsettings.json"
+          $jsonContent = @'
+          ${{ secrets.appsettings }}
+          '@
+          # Using UTF8 explicitly for safety
+          Set-Content -Path $targetPath -Value $jsonContent -Encoding UTF8
+
+      # 7. PATCH CSPROJ PATHS 
+      - name: Fix Dependency Paths
+        shell: pwsh
+        run: |
+          $depsPath = Join-Path $env:GITHUB_WORKSPACE "ExternalDeps"
+          # Escape for Regex safety (though we use it in replacement, good practice)
+          $safeDepsPath = [Regex]::Escape($depsPath) 
+          
+          # We use the unescaped path for the actual replacement string because PowerShell 
+          # handles the file path string literals correctly in replacement.
+          
+          Get-ChildItem -Recurse -Filter *.csproj | ForEach-Object {
+            $content = Get-Content $_.FullName
+            # Replace relative dots with absolute path
+            $content = $content -replace '(\.\.\\)+Last.fm', "$depsPath\Last.fm"
+            $content = $content -replace '(\.\.\\)+Parse-LiveQueries-DOTNET', "$depsPath\Parse-LiveQueries-DOTNET"
+            $content = $content -replace '(\.\.\\)+atldotnet-main', "$depsPath\atldotnet-main"
+            $content = $content -replace '(\.\.\\)+AudioSwitcher-master', "$depsPath\AudioSwitcher-master"
+            
+            Set-Content $_.FullName $content -Encoding UTF8
+          }
+
+      # 8. SETUP .NET & WORKLOADS
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      # Workload caching is unstable on hosted runners, so we just install.
+      # The NuGet cache above (Step 2) will speed up the restore significantly.
+      - name: Install MAUI Workloads
+        run: dotnet workload install maui-android maui-windows
+
+      - name: Disable AudioSwitcher Signing
+        shell: pwsh
+        run: |
+          Get-ChildItem -Recurse -Filter "AudioSwitcher*.csproj" | ForEach-Object {
+            $content = Get-Content $_.FullName
+            $content = $content -replace '<AssemblyOriginatorKeyFile>.*?</AssemblyOriginatorKeyFile>', ''
+            $content = $content -replace '<SignAssembly>true</SignAssembly>', '<SignAssembly>false</SignAssembly>'
+            Set-Content $_.FullName $content -Encoding UTF8
+          }
+
+      # 9. BUILD WINDOWS
+      - name: Build Windows
+        run: |
+          dotnet publish "${{ env.PATH_WINUI }}" `
+            -f net9.0-windows10.0.19041.0 `
+            -c Release `
+            -r win-x64 `
+            -p:WindowsPackageType=None `
+            -p:GenerateAppxPackageOnBuild=false `
+            -p:AppxPackageSigningEnabled=false `
+            -p:EnableMrtResourceGeneration=false `
+            --self-contained=false `
+            -o .\RawBuild\WinUI
+
+      # 10. ZIP WINDOWS
+      - name: Zip Windows Build
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path .\Artifacts
+          Compress-Archive -Path .\RawBuild\WinUI\* -DestinationPath .\Artifacts\Dimmer-Windows-Portable-${{ env.NEW_TAG }}.zip
+
+      # 11. BUILD ANDROID
+      - name: Build Android
+        run: |
+          dotnet publish "${{ env.PATH_DROID }}" `
+            -f net9.0-android `
+            -c Release `
+            -r android-arm64 `
+            -p:AndroidPackageFormat=apk `
+            -o .\RawBuild\Android
+            
+      - name: List Build Files
+        shell: pwsh
+        run: |
+          Write-Host "--- Checking Android ---"
+          Get-ChildItem -Recurse .\RawBuild\Android
+          Write-Host "--- Checking Artifacts ---"
+          Get-ChildItem -Recurse .\Artifacts
+      
+      # 12. UPLOAD ARTIFACTS TO ACTIONS (History)
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Dimmer-Builds-${{ env.NEW_TAG }}
+          path: |
+            RawBuild/Android/*.apk
+            Artifacts/Dimmer-Windows-Portable-${{ env.NEW_TAG }}.zip
+            
+      # ----------------------------------------------------------------
+      # 13. PUSH TAG & RELEASE (Only if builds succeeded)
+      # ----------------------------------------------------------------
+      - name: Push Tag & Create Release
+        uses: softprops/action-gh-release@v1        
+        with:
+          tag_name: ${{ env.NEW_TAG }}
+          name: Release ${{ env.NEW_TAG }}
+          draft: false
+          prerelease: ${{ env.IS_PRE }}
+          files: |
+            RawBuild/Android/*.apk
+            Artifacts/Dimmer-Windows-Portable-${{ env.NEW_TAG }}.zip
+      
+      # 14. NOTIFY DISCORD
+      - name: Notify Discord
+        if: always()
+        shell: pwsh
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-        with:
-          args: |  # Use multiline string for readability
-            New release **${{ steps.get_release_tag.outputs.tag }}** of Dimmer is now available!
-            
-            ${{ github.event.release.body }}  #  Include the actual release body!
+        run: |
+          if (-not $env:DISCORD_WEBHOOK) { Write-Host "No Webhook found"; exit 0 }
+          
+          $status = "${{ job.status }}"
+          if ($status -eq 'success') { $color = 3066993 } else { $color = 15158332 }
+          
+          # Add Pre-release info to Discord message
+          $type = "Production Release"
+          if ("${{ env.IS_PRE }}" -eq "true") { $type = "Pre-Release" }
 
-            Release URL: ${{ github.event.release.html_url }}
-            Published by: ${{ github.event.release.author.login }}
-
-      - name: Send Discord Notification (Push)
-        if: github.event_name == 'push'
-        uses: Ilshidur/action-discord@master
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-        with:
-          args: |
-            New push to **${{ github.ref_name }}** branch in Dimmer!
-            
-            Commit message: ${{ github.event.head_commit.message }}
-            Committer: ${{ github.event.head_commit.author.name }} (<${{ github.event.head_commit.author.email }}>)
-            Commit URL: ${{ github.event.head_commit.url }}
-            Pushed by: ${{ github.actor }}
-            
-            ${{ github.event.compare }} 
+          $body = @{
+            embeds = @(
+              @{
+                title = "Dimmer Pre ${type}: ${{ env.NEW_TAG }}"
+                description = "Status: $status`nBranch: ${{ github.ref_name }}"
+                color = $color
+                fields = @(
+                  @{ name = "View Release"; value = "[Click Here](${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ env.NEW_TAG }})" }
+                )
+              }
+            )
+          } | ConvertTo-Json -Depth 4
+          
+          Invoke-RestMethod -Uri $env:DISCORD_WEBHOOK -Method Post -ContentType 'application/json' -Body $body

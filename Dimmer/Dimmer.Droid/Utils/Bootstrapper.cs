@@ -22,6 +22,7 @@ internal class Bootstrapper
 
         // 3. Register ViewModels
         services.AddSingleton<BaseViewModelAnd>();
+        services.AddSingleton<LoginViewModelAnd>();
 
         // 4. Register Logic/Data Services
         services.AddScoped<IAppUtil, AppUtil>();

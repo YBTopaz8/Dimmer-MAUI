@@ -19,7 +19,7 @@ public class PasswordEncryptionService
             return _encryptionKey;
         }
 
-        string? keyBase64 = await SecureStorage.GetAsync(EncryptionKeyAlias);
+        string? keyBase64 = await SecureStorage.Default.GetAsync(EncryptionKeyAlias);
         if (!string.IsNullOrEmpty(keyBase64))
         {
             _encryptionKey = Convert.FromBase64String(keyBase64);

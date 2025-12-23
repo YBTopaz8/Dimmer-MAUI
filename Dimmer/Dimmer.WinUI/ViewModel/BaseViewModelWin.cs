@@ -835,8 +835,13 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
             ObservableCollection<string> are = new System.Collections.ObjectModel.ObservableCollection<string>(similar);
             artist.ListOfSimilarArtistsNames = are;
         }
-        artist.TotalSongsByArtist = SearchResults.Count(x => x.ArtistToSong.Any(a => a.Name == artist.Name));
-        artist.TotalAlbumsByArtist = SearchResults.Count(x => x.Album.Artists.Any(a => a.Name == artist.Name));
+        artist.TotalSongsByArtist = SearchResults.
+            Where(x => x.OtherArtistsName.Contains(artist.Name))
+            .Count();
+
+        artist.TotalAlbumsByArtist = SearchResults.
+            Where(x=> x.OtherArtistsName.Contains(artist.Name))
+            .Count();
 
 
         RxSchedulers.UI.Schedule(() =>
@@ -850,7 +855,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         base.ShowAllSongsWindowActivate();
 
         await OpenDimmerWindow();
-        MainWindow.NavigateToPage(typeof(AllSongsListPage));
+        MainWindow?.NavigateToPage(typeof(AllSongsListPage));
     }
 
     public void NavigateToAnyPageOfGivenType(Type pageType)
@@ -1152,12 +1157,12 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
         return AutoConfirmLastFMVar;
     }
-
-    public async Task CheckToCompleteActivation()
+    public async Task<bool> CheckToCompleteActivation()
     {
-        if (ActivationRequestType == "Confirm LastFM")
-        {
+        if (WindowActivationRequestType != "Confirm LastFM") return false;
 
+        try
+        {
             ContentDialog lastFMConfirmDialog = new ContentDialog
             {
                 Title = "LAST FM Confirm",
@@ -1167,32 +1172,37 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
                 XamlRoot = MainWindow?.ContentFrame.XamlRoot
 
             };
-            var isLastFMAuthorized = await lastFMConfirmDialog.ShowAsync() == ContentDialogResult.Primary;
 
-            if (isLastFMAuthorized)
+            var result = await lastFMConfirmDialog.ShowAsync();
+
+            if (result == ContentDialogResult.Primary)
             {
                 await CompleteLastFMLoginAsync();
             }
             else
             {
-
                 ContentDialog cancelledDialog = new ContentDialog
                 {
-
                     Title = "Action Cancelled",
                     Content = "Last FM Authorization Cancelled",
                     CloseButtonText = "OK",
                     XamlRoot = MainWindow?.ContentFrame.XamlRoot
                 };
                 await cancelledDialog.ShowAsync();
-
             }
-
+        }
+        catch (Exception ex)
+        {
+            // Log error: "Only a single ContentDialog can be open" 
+            // We catch this to prevent the app from crashing.
+            System.Diagnostics.Debug.WriteLine(ex.Message);
+        }
+        finally
+        {
+            WindowActivationRequestType = string.Empty;
         }
 
-
-        ActivationRequestType = string.Empty;
-
+        return true;
     }
 
     internal void UpdateSongWithNoArtistToNewArtist(string? chosen)

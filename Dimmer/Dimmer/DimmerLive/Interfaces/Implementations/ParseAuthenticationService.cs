@@ -1,18 +1,22 @@
-﻿namespace Dimmer.DimmerLive.Interfaces.Implementations;
+﻿using Parse.Infrastructure;
+
+namespace Dimmer.DimmerLive.Interfaces.Implementations;
 
 
 public class ParseAuthenticationService : IAuthenticationService
 {
     private readonly ILogger<ParseAuthenticationService> _logger;
+    private readonly IRealmFactory _realmFactory;
     private readonly BehaviorSubject<UserModelOnline?> _currentUserSubject = new(null);
 
     public IObservable<UserModelOnline?> CurrentUser => _currentUserSubject.AsObservable();
     public UserModelOnline? CurrentUserValue => _currentUserSubject.Value;
     public bool IsLoggedIn => CurrentUserValue != null;
 
-    public ParseAuthenticationService(ILogger<ParseAuthenticationService> logger)
+    public ParseAuthenticationService(ILogger<ParseAuthenticationService> logger, IRealmFactory realmFactory)
     {
         _logger = logger;
+        _realmFactory = realmFactory;
     }
 
     public async Task AutoLoginAsync()
@@ -26,8 +30,34 @@ public class ParseAuthenticationService : IAuthenticationService
 
             if (Tokenn != null)
             {
+                try
+                {
+
                  await ParseClient.Instance.BecomeAsync(Tokenn);
-                
+                var realm = _realmFactory.GetRealmInstance();
+                    if (realm != null)
+                    {
+                        var curUsr = realm.All<UserModel>().FirstOrDefaultNullSafe();
+
+                        if (curUsr != null)
+                        {
+                            await realm.WriteAsync(() =>
+                            {
+                                curUsr.UserIDOnline = ParseClient.Instance.CurrentUser.ObjectId;
+                                curUsr.UsernameOnline = ParseClient.Instance.CurrentUser.Username;
+                                curUsr.UserName ??= ParseClient.Instance.CurrentUser.Username;
+
+                            });
+                        }
+                    }
+                }
+                catch (ParseFailureException ex)
+                {
+                    if(ex.Message == "Invalid session token")
+                    {
+                        SecureStorage.Default.Remove("userToken");
+                    }
+                }
             }
 
         }
@@ -45,14 +75,26 @@ public class ParseAuthenticationService : IAuthenticationService
     // method to save to token to secure storage if remember me is checked
     public async Task SaveTokenAsync()
     {
-        if ( ParseClient.Instance.CurrentUser != null)
+        var realm = _realmFactory.GetRealmInstance();
+        if (realm != null)
         {
+            var curUsr = realm.All<UserModel>().FirstOrDefaultNullSafe();
+
+            if (curUsr != null)
+            {
+               await realm.WriteAsync(() =>
+                {
+                    curUsr.UserIDOnline = ParseClient.Instance.CurrentUser.ObjectId;
+                    curUsr.UsernameOnline = ParseClient.Instance.CurrentUser.Username;
+                    curUsr.UserName ??= ParseClient.Instance.CurrentUser.Username;
+                } );
+            }
+        }
+       
             await SecureStorage.Default.SetAsync("userToken", ParseClient.Instance.CurrentUser.SessionToken);
-        }
-        else
-        {
-            SecureStorage.Default.Remove("userToken");
-        }
+        
+           //SecureStorage.Default.Remove("userToken");
+        
     }
     public async Task<bool> InitializeAsync()
     {

@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 
+using Dimmer.ViewModel;
 using Dimmer.ViewModel.DimmerLiveVM;
 using Dimmer.WinUI.ViewModel.DimmerLiveWin;
 
@@ -30,7 +32,7 @@ namespace Dimmer.WinUI.Views.WinuiPages.DimmerLive;
 /// </summary>
 public sealed partial class LoginPage : Page
 {
-    public LoginViewModel ViewModel { get; set; }
+    public LoginViewModelWin ViewModel { get; set; }
     public LoginPage()
     {
         InitializeComponent();
@@ -42,5 +44,14 @@ public sealed partial class LoginPage : Page
         this.DataContext = ViewModel; // Set DataContext for binding within DataTemplates
         this.Name = "RootPage"; // Helper for ElementName binding
 
+    }
+
+    private async void LogIn_Click(object sender, RoutedEventArgs e)
+    {
+        await ViewModel.LoginAsync();
+        if (ViewModel.CurrentUserOnline is not null && ViewModel.CurrentUserOnline.IsAuthenticated)
+        {
+            ViewModel.NavigateToProfilePage();
+        }
     }
 }

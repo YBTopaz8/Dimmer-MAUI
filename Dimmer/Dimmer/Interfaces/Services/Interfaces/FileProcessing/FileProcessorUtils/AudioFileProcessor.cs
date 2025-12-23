@@ -124,7 +124,7 @@ public class AudioFileProcessor : IAudioFileProcessor
             string decodedPath = Uri.UnescapeDataString(filePath);
 
             //var cleanArtist = StaticUtils.CleanArtist(track.Path, tagArtist, tagTitle);
-            var cleanTitle = StaticUtils.CleanTitle(track.Path, tagTitle, tagAlbum, tagAlbumArtist);
+            var cleanTitle = TaggingUtils.CleanTitle(track.Path, tagTitle, tagAlbum, tagAlbumArtist);
 
             string bestRawTitle = !string.IsNullOrWhiteSpace(tagTitle) ? tagTitle : filenameTitle ?? Path.GetFileNameWithoutExtension(decodedPath);
             string? bestRawArtist = !string.IsNullOrWhiteSpace(tagArtist) ? tagArtist : filenameArtist;
@@ -132,16 +132,25 @@ public class AudioFileProcessor : IAudioFileProcessor
             string bestAlbum = !string.IsNullOrWhiteSpace(tagAlbum) ? tagAlbum : "Unknown Album";
             string bestGenre = !string.IsNullOrWhiteSpace(tagGenre) ? tagGenre : "Unknown Genre";
 
-            List<string> artistNames = TaggingUtils.ExtractArtists(bestRawArtist, bestAlbumArtist)
-                .Select(x=> StaticUtils.CleanArtist(track.Path,x,track.Title)).ToList();
-
+            
             // --- Step 4: Final validation and fallbacks ---
             string finalTitle = string.IsNullOrWhiteSpace(cleanTitle) ? Path.GetFileNameWithoutExtension(filePath) : cleanTitle;
+
+            List<string> rawArtists = TaggingUtils.ExtractArtists(bestRawArtist, bestAlbumArtist);
+
+            // 2. Run each raw artist through the cleaner and "flatten" the resulting lists
+            List<string> artistNames = rawArtists
+                .SelectMany(x => TaggingUtils.CleanArtist(filePath, x, track.Title))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            // artistNames will now be: ["Lorien Testard", "Alice Duport-Percier", "Ben Starr"]
+            // and "Wilbert Roget, II" will remain as one single string.
+
             string primaryArtistName = artistNames.FirstOrDefault() ?? "Unknown Artist";
-            string allArtistsString = string.Join(", ", artistNames);
 
             // --- Step 5: Create and Populate the Rich Data Model ---
-            var album = _metadataService.GetOrCreateAlbum(track, bestAlbum.Trim(), primaryArtistName);
+            var albumView = _metadataService.GetOrCreateAlbum(track, bestAlbum.Trim(), primaryArtistName);
             var genre = _metadataService.GetOrCreateGenre(track, bestGenre.Trim());
             var song = new SongModelView
             {
@@ -152,11 +161,11 @@ public class AudioFileProcessor : IAudioFileProcessor
 
                 // Artist Info
                 ArtistName = primaryArtistName,
-                OtherArtistsName = allArtistsString,
+                OtherArtistsName = string.Join(", ", artistNames)!,
 
                 // Album Info
-                Album = album,
-                AlbumName = album.Name,
+                Album = albumView,
+                AlbumName = albumView.Name,
 
                 // Genre Info
                 Genre = genre,
@@ -196,10 +205,34 @@ public class AudioFileProcessor : IAudioFileProcessor
             song.ArtistToSong = [];
             foreach (var name in artistNames)
             {
-                var artistModel = _metadataService.GetOrCreateArtist(track, name);
-                song.ArtistToSong.Add(artistModel);
-            }
+                var artView = _metadataService.GetOrCreateArtist(track, name);
+                song.ArtistToSong.Add(artView);
 
+                if (albumView.Artists == null)
+                {
+                    albumView.Artists = new List<ArtistModelView>();
+                }
+
+                if (albumView.Artists.Count>0)
+                {
+                    var anyNull = albumView.Artists.Any(x => x is null);
+                    if (anyNull)
+                    {
+                        foreach (var nullOnes in albumView.Artists)
+                        {
+                            if (nullOnes is null)
+                            {
+                                albumView.Artists.Remove(nullOnes);
+                            }
+                        }
+                    }
+                }
+                if (!albumView.Artists.Any(a => a.Id == artView.Id))
+                {
+                    albumView.Artists.Add(artView);
+                }
+            }
+            song.Artist = song.ArtistToSong.First();
             // Lyrics Processing
             song.HasLyrics = track.Lyrics is { Count: > 0 };
             if (song.HasLyrics)
@@ -209,21 +242,7 @@ public class AudioFileProcessor : IAudioFileProcessor
                 song.EmbeddedSync = new(lyricsInfo.SynchronizedLyrics.Select(p => new LyricPhraseModelView(p)));
             }
         
-            foreach (var artView in song.ArtistToSong)
-            {
-                if (artView is not null)
-                {
-                    if (album.Artists is null)
-                    {
-                        album.Artists = [artView];
-                    }
-                    else
-                    {
-                        if (!album.Artists.Any(a => a.Id == artView.Id))
-                            album.Artists.Add(artView);
-                    }
-                }
-            }
+          
         
             result.ProcessedSong = song;
             result.Success = true;

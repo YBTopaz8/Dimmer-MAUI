@@ -1226,6 +1226,94 @@ public sealed partial class AllSongsListPage : Page
                 Placement = FlyoutPlacementMode.Top,
                 ShowMode = FlyoutShowMode.Auto
             };
+
+        FontIcon LocateIcon = new FontIcon();
+        LocateIcon.Glyph = "\uE890";
+
+        var locateSongInFolder = new MenuFlyoutItem()
+        {
+            Text = "Locate In Folder"
+        ,
+            Icon = LocateIcon
+        };
+        locateSongInFolder.Click += (s, e) =>
+        {
+            MyViewModel.OpenAndSelectFileInExplorer(selectedSong);
+        };
+        menuFlyout.Items.Add(locateSongInFolder);
+
+        FontIcon LocateArtist = new FontIcon();
+        LocateArtist.Glyph = "\uE720";
+        var toArtistMFI = new MenuFlyoutItem()
+        {
+            Text = $"To Artist : {selectedSong.ArtistName}",
+            Icon = LocateArtist
+        };
+        toArtistMFI.Click += (s, e) =>
+        {
+            var supNavTransInfo = new SuppressNavigationTransitionInfo();
+
+            FrameNavigationOptions navigationOptions = new FrameNavigationOptions
+            {
+                TransitionInfoOverride = supNavTransInfo,
+                IsNavigationStackEnabled = true
+
+            };
+            AnimationHelper.PrepareFromChild(
+sender as DependencyObject,
+"ArtistNameTxt",
+AnimationHelper.Key_Forward
+);
+            var navParams = new SongDetailNavArgs
+            {
+                Song = _storedSong!,
+                ExtraParam = MyViewModel,
+                ViewModel = MyViewModel
+            };
+            Type pageType = typeof(ArtistPage);
+
+            Frame?.NavigateToType(pageType, navParams, navigationOptions);
+
+        };
+
+        menuFlyout.Items.Add(toArtistMFI);
+
+        FontIcon musicAlbumIcon = new FontIcon();
+        musicAlbumIcon.Glyph = "\uE93C";
+
+        var toAlbumMFI = new MenuFlyoutItem()
+        {
+            Text = $"To Album : {selectedSong.AlbumName}",
+            Icon = musicAlbumIcon,
+        };
+        toAlbumMFI.Click += (s,e)=>
+        {
+            var supNavTransInfo = new SuppressNavigationTransitionInfo();
+
+            FrameNavigationOptions navigationOptions = new FrameNavigationOptions
+            {
+                TransitionInfoOverride = supNavTransInfo,
+                IsNavigationStackEnabled = true
+
+            };
+            AnimationHelper.PrepareFromChild(
+sender as DependencyObject,
+"ArtistNameTxt",
+AnimationHelper.Key_Forward
+); 
+            var navParams = new SongDetailNavArgs
+{
+    Song = _storedSong!,
+    ExtraParam = MyViewModel,
+    ViewModel = MyViewModel
+};
+            Type pageType = typeof(AlbumPage);
+
+            Frame?.NavigateToType(pageType, navParams, navigationOptions);
+        };
+
+        menuFlyout.Items.Add(toAlbumMFI);
+
         menuFlyout.ShowAt(UIElt, flyoutShowOpt);
 
     }
@@ -1295,166 +1383,6 @@ public sealed partial class AllSongsListPage : Page
     private async void ArtistCellGrid_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
         
-        try
-        {
-
-            var nativeElement = (Microsoft.UI.Xaml.UIElement)sender;
-            var properties = e.GetCurrentPoint(nativeElement).Properties;
-
-
-
-            var point = e.GetCurrentPoint(nativeElement);
-            MyViewModel.SelectedSong = ((Grid)sender).DataContext as SongModelView;
-            _storedSong = ((Grid)sender).DataContext as SongModelView;
-
-
-            // Navigate to the detail page, passing the selected song object.
-            // Suppress the default page transition to let ours take over.
-            var supNavTransInfo = new SuppressNavigationTransitionInfo();
-            Type pageType = typeof(ArtistPage);
-            var navParams = new SongDetailNavArgs
-            {
-                Song = _storedSong!,
-                ExtraParam = MyViewModel,
-                ViewModel = MyViewModel
-            };
-            var contextMenuFlyout = new MenuFlyout();
-
-            var dbSongArtists = MyViewModel.RealmFactory.GetRealmInstance();
-            var dbSong = dbSongArtists
-                .Find<SongModel>(_storedSong.Id);
-            if (dbSong is null) return;
-            if ((dbSong.ArtistToSong.Count < 1 || dbSong.Artist is null))
-            {
-                
-                    var ArtistsInSong = MyViewModel.SelectedSong.ArtistName.
-                    Split(",").ToList();
-                    await MyViewModel.AssignArtistToSongAsync(MyViewModel.SelectedSong.Id,
-                         ArtistsInSong);
-
-                
-            }
-            var selectingg = dbSong.ArtistToSong.ToList();
-            var sel2 = selectingg.Select(x => new ArtistModelView()
-                {
-                    Id = x.Id,
-                    Name = x.Name,
-                    Bio = x.Bio,
-                    ImagePath = x.ImagePath
-                });
-            var namesOfartists = sel2.Select(a => a.Name);
-
-            bool isSingular = namesOfartists.Count() > 1 ? true : false;
-            string artistText = string.Empty;
-            if (isSingular)
-            {
-                artistText = "artist";
-            }
-            else
-            {
-                artistText = "artists";
-            }
-            contextMenuFlyout.Items.Add(
-                new MenuFlyoutItem
-                {
-                    Text = $"{namesOfartists.Count()} {artistText} linked",
-                    IsTapEnabled = false
-
-                });
-
-            foreach (var artistName in namesOfartists)
-            {
-                var root = new MenuFlyoutItem { Text = artistName };
-
-                root.Click += async (obj, routedEv) =>
-                {
-
-                    var songContext = ((MenuFlyoutItem)obj).Text;
-
-                    var selectedArtist = MyViewModel.RealmFactory.GetRealmInstance()
-                    .Find<SongModel>(_storedSong.Id).ArtistToSong.First(x => x.Name == songContext)
-                    .ToArtistModelView();
-
-
-                    var nativeElementMenuFlyout = (Microsoft.UI.Xaml.UIElement)obj;
-                    var propertiesMenuFlyout = e.GetCurrentPoint(nativeElementMenuFlyout).Properties;
-                    if (propertiesMenuFlyout.IsRightButtonPressed)
-                    {
-                        MyViewModel.SearchSongForSearchResultHolder(PresetQueries.ByArtist(selectedArtist.Name))
-                        ;
-                    }
-                    await MyViewModel.SetSelectedArtist(selectedArtist);
-
-
-                    FrameNavigationOptions navigationOptions = new FrameNavigationOptions
-                    {
-                        TransitionInfoOverride = supNavTransInfo,
-                        IsNavigationStackEnabled = true
-
-                    };
-                    AnimationHelper.PrepareFromChild(
-     sender as DependencyObject,
-     "ArtistNameTxt",
-     AnimationHelper.Key_Forward
- );
-
-                    Frame?.NavigateToType(pageType, navParams, navigationOptions);
-                };
-
-                contextMenuFlyout.Items.Add(root);
-            }
-
-
-            try
-            {
-                if (namesOfartists.Count() > 1)
-                {
-                    contextMenuFlyout.ShowAt(nativeElement, point.Position);
-                }
-                else
-                {
-
-                    var selectedArtist = MyViewModel.RealmFactory.GetRealmInstance()
-                    .Find<SongModel>(_storedSong.Id).ArtistToSong.First()
-                    .ToArtistModelView();
-                    if (selectedArtist is null) return;
-                    await MyViewModel.SetSelectedArtist(selectedArtist);
-
-
-                    if (properties.IsRightButtonPressed )
-                    {
-                        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(selectedArtist!.Name!));
-                        return;
-                    }
-
-                    FrameNavigationOptions navigationOptions = new FrameNavigationOptions
-                    {
-                        TransitionInfoOverride = supNavTransInfo,
-                        IsNavigationStackEnabled = true
-
-                    };
-                    AnimationHelper.PrepareFromChild(
-     sender as DependencyObject,
-     "ArtistNameTxt",
-     AnimationHelper.Key_Forward
- );
-
-                    Frame?.NavigateToType(pageType, navParams, navigationOptions);
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"MenuFlyout.ShowAt failed: {ex.Message}");
-                // fallback: anchor without position
-                //flyout.ShowAt(nativeElement);
-            }
-
-
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex.Message);
-        }
 
     }
 
@@ -1944,5 +1872,217 @@ public sealed partial class AllSongsListPage : Page
     private void MySongsTableView_ItemClick(object sender, ItemClickEventArgs e)
     {
 
+    }
+
+    private async void AlbumBtn_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private async void AlbumBtn_PointerReleased(object sender, PointerRoutedEventArgs e)
+    {
+        var supNavTransInfo = new SuppressNavigationTransitionInfo();
+
+        FrameNavigationOptions navigationOptions = new FrameNavigationOptions
+        {
+            TransitionInfoOverride = supNavTransInfo,
+            IsNavigationStackEnabled = true
+
+        };
+        AnimationHelper.Prepare(
+
+AnimationHelper.Key_ListToDetail, sender as UIElement,
+true
+);
+        var navParams = new SongDetailNavArgs
+        {
+            Song = _storedSong!,
+            ExtraParam = MyViewModel,
+            ViewModel = MyViewModel
+        };
+        Type pageType = typeof(AlbumPage);
+
+        Frame?.NavigateToType(pageType, navParams, navigationOptions);
+
+    }
+
+    private async void ArtistBtn_PointerReleased(object sender, PointerRoutedEventArgs e)
+    {
+
+        try
+        {
+
+            var nativeElement = (Microsoft.UI.Xaml.UIElement)sender;
+            var properties = e.GetCurrentPoint(nativeElement).Properties;
+
+
+
+            var point = e.GetCurrentPoint(nativeElement);
+            MyViewModel.SelectedSong = ((Grid)sender).DataContext as SongModelView;
+            _storedSong = ((Grid)sender).DataContext as SongModelView;
+
+
+            // Navigate to the detail page, passing the selected song object.
+            // Suppress the default page transition to let ours take over.
+            var supNavTransInfo = new SuppressNavigationTransitionInfo();
+            Type pageType = typeof(ArtistPage);
+            var navParams = new SongDetailNavArgs
+            {
+                Song = _storedSong!,
+                ExtraParam = MyViewModel,
+                ViewModel = MyViewModel
+            };
+            var contextMenuFlyout = new MenuFlyout();
+
+            var dbSongArtists = MyViewModel.RealmFactory.GetRealmInstance();
+            var dbSong = dbSongArtists
+                .Find<SongModel>(_storedSong.Id);
+            if (dbSong is null) return;
+            if ((dbSong.ArtistToSong.Count < 1 || dbSong.Artist is null))
+            {
+
+                var ArtistsInSong = MyViewModel.SelectedSong.ArtistName.
+                Split(",").ToList();
+                await MyViewModel.AssignArtistToSongAsync(MyViewModel.SelectedSong.Id,
+                     ArtistsInSong);
+
+
+            }
+            var selectingg = dbSong.ArtistToSong.ToList();
+            var sel2 = selectingg.Select(x => new ArtistModelView()
+            {
+                Id = x.Id,
+                Name = x.Name,
+                Bio = x.Bio,
+                ImagePath = x.ImagePath
+            });
+            var namesOfartists = sel2.Select(a => a.Name);
+
+            bool isSingular = namesOfartists.Count() > 1 ? true : false;
+            string artistText = string.Empty;
+            if (isSingular)
+            {
+                artistText = "artist";
+            }
+            else
+            {
+                artistText = "artists";
+            }
+            contextMenuFlyout.Items.Add(
+                new MenuFlyoutItem
+                {
+                    Text = $"{namesOfartists.Count()} {artistText} linked",
+                    IsTapEnabled = false
+
+                });
+
+            foreach (var artistName in namesOfartists)
+            {
+                var root = new MenuFlyoutItem { Text = artistName };
+
+                root.Click += async (obj, routedEv) =>
+                {
+
+                    var songContext = ((MenuFlyoutItem)obj).Text;
+
+                    var selectedArtist = MyViewModel.RealmFactory.GetRealmInstance()
+                    .Find<SongModel>(_storedSong.Id).ArtistToSong.First(x => x.Name == songContext)
+                    .ToArtistModelView();
+
+
+                    var nativeElementMenuFlyout = (Microsoft.UI.Xaml.UIElement)obj;
+                    var propertiesMenuFlyout = e.GetCurrentPoint(nativeElementMenuFlyout).Properties;
+                    if (propertiesMenuFlyout.IsRightButtonPressed)
+                    {
+                        MyViewModel.SearchSongForSearchResultHolder(PresetQueries.ByArtist(selectedArtist.Name))
+                        ;
+                    }
+                    await MyViewModel.SetSelectedArtist(selectedArtist);
+
+
+                    FrameNavigationOptions navigationOptions = new FrameNavigationOptions
+                    {
+                        TransitionInfoOverride = supNavTransInfo,
+                        IsNavigationStackEnabled = true
+
+                    };
+                    AnimationHelper.PrepareFromChild(
+     sender as DependencyObject,
+     "ArtistNameTxt",
+     AnimationHelper.Key_Forward
+ );
+
+                    Frame?.NavigateToType(pageType, navParams, navigationOptions);
+                };
+
+                contextMenuFlyout.Items.Add(root);
+            }
+
+
+            try
+            {
+                if (namesOfartists.Count() > 1)
+                {
+                    contextMenuFlyout.ShowAt(nativeElement, point.Position);
+                }
+                else
+                {
+
+                    var selectedArtist = MyViewModel.RealmFactory.GetRealmInstance()
+                    .Find<SongModel>(_storedSong.Id).ArtistToSong.First()
+                    .ToArtistModelView();
+                    if (selectedArtist is null) return;
+                    await MyViewModel.SetSelectedArtist(selectedArtist);
+
+
+                    if (properties.IsRightButtonPressed)
+                    {
+                        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(selectedArtist!.Name!));
+                        return;
+                    }
+
+                    FrameNavigationOptions navigationOptions = new FrameNavigationOptions
+                    {
+                        TransitionInfoOverride = supNavTransInfo,
+                        IsNavigationStackEnabled = true
+
+                    };
+                    AnimationHelper.PrepareFromChild(
+     sender as DependencyObject,
+     "ArtistNameTxt",
+     AnimationHelper.Key_Forward
+ );
+
+                    Frame?.NavigateToType(pageType, navParams, navigationOptions);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"MenuFlyout.ShowAt failed: {ex.Message}");
+                // fallback: anchor without position
+                //flyout.ShowAt(nativeElement);
+            }
+
+
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
+    }
+
+    private void coverArtImage_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        var send = (Image)sender;
+        var song = send.DataContext as SongModelView;
+
+        if (song != null)
+        {
+            if (song.TitleDurationKey != MyViewModel.SelectedSong?.TitleDurationKey)
+            {
+                MyViewModel.SelectedSong = song;
+            }
+
+        }
     }
 }

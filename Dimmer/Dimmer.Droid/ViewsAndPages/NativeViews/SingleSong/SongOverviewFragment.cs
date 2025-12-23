@@ -4,7 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using AndroidX.Lifecycle;
+
 using CommunityToolkit.Diagnostics;
+
+using Dimmer.WinUI.UiUtils;
 
 using Microsoft.Maui;
 
@@ -12,16 +16,16 @@ namespace Dimmer.ViewsAndPages.NativeViews.SingleSong;
 
 public class SongOverviewFragment : Fragment
 {
-    private BaseViewModelAnd _vm;
+    private BaseViewModelAnd viewModel;
 
     public SongModelView
         SelectedSong { get; }
 
-    public SongOverviewFragment(BaseViewModelAnd vm) { _vm = vm;
+    public SongOverviewFragment(BaseViewModelAnd vm) { viewModel = vm;
 
         if(vm.SelectedSong == null)
             throw new ArgumentNullException(nameof(vm.SelectedSong),"Specifically Selected Song");
-        SelectedSong = _vm.SelectedSong!;
+        SelectedSong = viewModel.SelectedSong!;
     }
 
     public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
@@ -46,7 +50,7 @@ public class SongOverviewFragment : Fragment
         // Parity: Navigate to Artist
         artistBtn.Click += (s, e) =>
         {
-            _vm.NavigateToArtistPage(ParentFragment, "artist_trans", SelectedSong.OtherArtistsName, artistBtn);
+            viewModel.NavigateToArtistPage(ParentFragment, "artist_trans", SelectedSong.OtherArtistsName, artistBtn);
         };
         root.AddView(artistBtn);
 
@@ -60,8 +64,12 @@ public class SongOverviewFragment : Fragment
         root.AddView(statsCard);
 
 
-        // --- ACHIEVEMENTS SECTION ---
-        // Basic implementation to match WinUI's "AllAchievementsIR"
+        var lyricsCardView = UiBuilder.CreateSectionCard(ctx
+            ,"Lyrics",(CreateLyricsView(ctx, viewModel.SelectedSong?.SyncLyrics))
+            );
+
+        root.AddView(lyricsCardView);
+
         var achTitle = new TextView(ctx) { Text = "Achievements", TextSize = 18, Typeface = Typeface.DefaultBold };
         //((LinearLayout.LayoutParams)achTitle.LayoutParameters).TopMargin = AppUtil.DpToPx(24);
         root.AddView(achTitle);
@@ -71,11 +79,24 @@ public class SongOverviewFragment : Fragment
         scroll.SetBackgroundColor(Color.Transparent);
 
 
+
+
         scroll.AddView(root);
 
 
 
         return scroll;
+    }
+    private LinearLayout CreateLyricsView(Context context, string? lyrics)
+    {
+        lyrics ??= "No lyrics available for this song.";
+
+        LinearLayout? form = new LinearLayout(context) { Orientation = Orientation.Vertical };
+
+        var syncLyricsResult = new TextView(context!) { TextSize = 12 };
+        syncLyricsResult.Text = lyrics;
+        form.AddView(syncLyricsResult);
+        return form;
     }
 
     private View CreateStat(Context ctx, string label, string val)

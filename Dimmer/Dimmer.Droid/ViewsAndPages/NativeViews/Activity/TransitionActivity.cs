@@ -5,6 +5,7 @@ using AndroidX.Core.View;
 using AndroidX.DrawerLayout.Widget;
 
 using Dimmer.NativeServices;
+using Dimmer.ViewsAndPages.NativeViews.DimmerLive;
 using Dimmer.ViewsAndPages.NativeViews.StatsSection;
 
 using Google.Android.Material.BottomNavigation;
@@ -207,7 +208,8 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         // Setup Menu Items
         _navigationView.Menu.Add(0, 100, 0, "Home").SetIcon(Resource.Drawable.musicaba);
         _navigationView.Menu.Add(0, 101, 0, "Browser / Graph").SetIcon(Resource.Drawable.heart);
-        _navigationView.Menu.Add(0, 102, 0, "Settings").SetIcon(Resource.Drawable.settings);
+        _navigationView.Menu.Add(0, 102, 0, "Last FM").SetIcon(Resource.Drawable.lastfm);
+        _navigationView.Menu.Add(0, 103, 0, "Settings").SetIcon(Resource.Drawable.settings);
 
         // Handle Clicks
         _navigationView.NavigationItemSelected += (s, e) =>
@@ -304,6 +306,10 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
                 Task.Run(()=> vm.LoadLibraryStatsCommand.Execute(null) );
                 break; 
             case 102:
+                selectedFrag = new LastFmInfoFragment( MyViewModel);
+                tag = "LastFMFragment";
+                break; 
+            case 103:
                 selectedFrag = new SettingsFragment("settingsTrans", MyViewModel);
                 tag = "SettingsFragment";
                 break;
@@ -612,7 +618,7 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
             OnBackInvokedDispatcher.UnregisterOnBackInvokedCallback(_onBackInvokedCallback);
             _isBackCallbackRegistered = false;
         }
-
+        MyViewModel.OnAppClosing();
         base.OnDestroy();
     }
 

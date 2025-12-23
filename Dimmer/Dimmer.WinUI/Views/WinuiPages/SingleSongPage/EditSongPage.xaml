@@ -36,6 +36,7 @@
         </Grid.RowDefinitions>
         <StackPanel
             Grid.Row="0"
+            Margin="10,0"
             Orientation="Horizontal"
             Spacing="15">
             <Button
@@ -312,7 +313,6 @@
 
                     <StackPanel
                         Grid.Column="0"
-                        Margin="10"
                         Padding="10"
                         BorderBrush="DarkSlateGray"
                         BorderThickness="1"

@@ -39,13 +39,17 @@ public sealed partial class DimmerWin : Window
         _compositorMainGrid = ElementCompositionPreview.GetElementVisual(MainGrid).Compositor;
 
 #if DEBUG
-        this.Title = "DimmerDebug";
+        this.Title = $"DimmerDebug {BaseViewModel.CurrentAppVersion}";
 #elif RELEASE
-        this.Title = "Dimmer v1.04";
+        this.Title = $"Dimmer {BaseViewModel.CurrentAppVersion}";
 #endif
     }
 
-
+    /// <summary>
+    /// Navigates to page. and Snaps MAUI Panel to WinUI
+    /// </summary>
+    /// <param name="pageType"></param>
+    /// <param name="OptionalParameter"></param>
     public async void NavigateToPage(Type pageType, object? OptionalParameter=null)
     {
         if (MyViewModel is not null && OptionalParameter is null)
@@ -88,16 +92,28 @@ public sealed partial class DimmerWin : Window
         {
             m_configurationSource.IsInputActive = args.WindowActivationState != WindowActivationState.Deactivated;
         }
-        if (args.WindowActivationState == WindowActivationState.Deactivated)
+        if (args.WindowActivationState == WindowActivationState.Deactivated || MyViewModel == null)
         {
             return;
         }
-        if (MyViewModel is null)
+        if (_isDialogActive)
             return;
 
-        await MyViewModel.CheckToCompleteActivation();
+        if (MyViewModel.WindowActivationRequestType == "Confirm LastFM")
+        {
+            _isDialogActive = true;
+            try
+            {
+                await MyViewModel.CheckToCompleteActivation();
+            }
+            finally
+            {
+                // Ensure the flag is reset even if an error occurs
+                _isDialogActive = false;
+            }
+        }
     }
-
+    private bool _isDialogActive = false;
     private readonly Microsoft.UI.Composition.Compositor _compositorMainGrid;
     private void CurrentlyPlayingBtn_Click(object sender, RoutedEventArgs e)
     {

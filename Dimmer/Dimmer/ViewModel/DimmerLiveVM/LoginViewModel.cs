@@ -24,7 +24,7 @@ public partial class LoginViewModel : ObservableObject
     {
         get
         {
-            return string.IsNullOrEmpty(ParseClient.Instance.CurrentUser?.SessionToken);
+            return !string.IsNullOrEmpty(ParseClient.Instance.CurrentUser?.SessionToken);
         }
     }
 
@@ -40,7 +40,6 @@ public partial class LoginViewModel : ObservableObject
     public partial string? ErrorMessage{ get; set; }
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(LoginCommand))]
     [NotifyCanExecuteChangedFor(nameof(RegisterCommand))]
     [NotifyCanExecuteChangedFor(nameof(ForgotPasswordCommand))]
     public partial bool IsBusy{ get; set; }
@@ -68,8 +67,7 @@ public partial class LoginViewModel : ObservableObject
         return !IsBusy && !string.IsNullOrWhiteSpace(Username) && !string.IsNullOrWhiteSpace(Password);
     }
 
-    [RelayCommand]
-    private async Task LoginAsync()
+    public async Task LoginAsync()
     {
         IsBusy = true;
         ErrorMessage = string.Empty;
@@ -81,6 +79,7 @@ public partial class LoginViewModel : ObservableObject
         {
             await InitializeAsync();
             SelectedIndex= 1;
+
             // Navigate to the main part of the app
             // e.g., await Shell.Current.GoToAsync("//MainPage");
         }
@@ -109,7 +108,9 @@ public partial class LoginViewModel : ObservableObject
         {
             // Successful registration, navigate to the main part of the app.
             // await _navigationService.NavigateToMainPageAsync();
-            await Shell.Current.DisplayAlert("Welcome!", "Your account has been created.", "OK");
+            await Shell.Current.DisplayAlert("Welcome!", $"Your account has been created." +
+                $"{Environment.NewLine} Verify Your Account Via Emails", "OK");
+            
         }
         else
         {
@@ -155,9 +156,13 @@ public partial class LoginViewModel : ObservableObject
         {     
 
             await _authService.AutoLoginAsync();
-
+            if(ParseClient.Instance.CurrentUser is null)
+            {
+                return false;
+            }
             CurrentUserOnline = new UserModelOnline(ParseClient.Instance.CurrentUser);
             CurrentUserOnline.IsAuthenticated = ParseClient.Instance.CurrentUser.SessionToken != null;
+            Debug.WriteLine(ParseClient.Instance.CurrentUser?.SessionToken+" SessTok");
             return CurrentUserOnline.IsAuthenticated;
         }
         return false;

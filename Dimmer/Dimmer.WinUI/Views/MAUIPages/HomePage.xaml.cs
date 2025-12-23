@@ -1,6 +1,8 @@
 ﻿using CommunityToolkit.Maui.Behaviors;
 
 using Dimmer.WinUI.ViewModel.DimmerLiveWin;
+using Dimmer.WinUI.Views.WinuiPages.DimmsSection;
+
 
 
 
@@ -51,6 +53,11 @@ public partial class HomePage : ContentPage
         base.OnAppearing();
 
         _ = InitializeAsync();
+
+
+
+        Debug.WriteLine($"[UI VIEW] Bound to ViewModel Instance: {MyViewModel.InstanceId}");
+
     }
 
     private async Task InitializeAsync()
@@ -1380,5 +1387,10 @@ public partial class HomePage : ContentPage
     private void ViewFullStatsClicked(object sender, EventArgs e)
     {
         MyViewModel.NavigateToAnyPageOfGivenType(typeof(LibraryStatsPage));
+    }
+
+    private void ViewDimmerSection_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.NavigateToAnyPageOfGivenType(typeof(AllDimsView));
     }
 }

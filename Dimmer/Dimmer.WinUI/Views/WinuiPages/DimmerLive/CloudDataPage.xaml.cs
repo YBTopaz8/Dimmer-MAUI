@@ -13,6 +13,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using NavigationEventArgs = Microsoft.UI.Xaml.Navigation.NavigationEventArgs;
+using System.Threading.Tasks;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -32,12 +33,20 @@ public sealed partial class CloudDataPage : Page
 
         // Resolve the ViewModel from your DI Container / App.Services
     }
-    protected override void OnNavigatedTo(NavigationEventArgs e)
+    protected override async void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
         ViewModel = IPlatformApplication.Current!.Services.GetService<SessionManagementViewModel>()!;
         ViewModel.OnPageNavigatedTo();
         this.DataContext = ViewModel; // Set DataContext for binding within DataTemplates
         this.Name = "RootPage"; // Helper for ElementName binding
+        await ViewModel.LoadBackupsAsync();
+    }
+
+    private async void RestorebackBtn_Click(object sender, RoutedEventArgs e)
+    {
+        var send = (Button)sender;
+        var objId = send.CommandParameter as string;
+        await ViewModel.RestoreBackupAsync(objId);
     }
 }

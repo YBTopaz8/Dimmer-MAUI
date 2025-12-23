@@ -37,7 +37,7 @@ public class SongDetailFragment : Fragment
         _song = vm.SelectedSong;
     }
 
-    public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         var ctx = Context;
         var root = new CoordinatorLayout(ctx) { LayoutParameters = new ViewGroup.LayoutParams(-1, -1) };
@@ -190,8 +190,8 @@ public class SongDetailFragment : Fragment
         public override Fragment CreateFragment(int position) => position switch
         {
             0 => new SongOverviewFragment(_vm),
-            1 => new LyricsEditorFragment(_vm,_vm.SelectedSong!), // Reuse existing
-            2 => new SongPlayHistoryFragment(_vm), // NEW
+            1 => new LyricsEditorFragment(_vm,_vm.SelectedSong!),
+            2 => new SongPlayHistoryFragment(_vm), 
             3 => new SongRelatedFragment(_vm), 
             _ => new Fragment()
         };

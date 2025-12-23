@@ -6,6 +6,8 @@ using AndroidX.Core.View;
 using Bumptech.Glide;
 
 using Dimmer.DimmerSearch;
+using Dimmer.ViewsAndPages.NativeViews.Misc;
+using Dimmer.WinUI.UiUtils;
 
 using DynamicData;
 
@@ -15,11 +17,11 @@ namespace Dimmer.ViewsAndPages.NativeViews;
 
 internal class SongAdapter : RecyclerView.Adapter
 {
+    private ReadOnlyObservableCollection<SongModelView> _songs;
     public enum ViewId { Image, Title, Artist, Container }
     public static Action<View, string, int>? AdapterCallbacks;
     private Context ctx;
     public BaseViewModelAnd MyViewModel;
-    private IList<SongModelView> _songs = Enumerable.Empty<SongModelView>().ToList();
     private readonly IDisposable _subscription;
     public IList<SongModelView> Songs => _songs;
     private Fragment ParentFragement;
@@ -30,59 +32,75 @@ internal class SongAdapter : RecyclerView.Adapter
 
     public SongModelView GetItem(int position) => Songs.ElementAt(position);
 
+    IObservable<IChangeSet<SongModelView>> sourceStream;
+    IEnumerable<SongModelView> sourceList;
     public SongAdapter(Context ctx, BaseViewModelAnd myViewModel, Fragment pFragment, string songsToWatch = "main")
     {
         ParentFragement = pFragment;
         this.ctx = ctx;
         this.MyViewModel = myViewModel;
 
-        IObservable<IChangeSet<SongModelView>> sourceStream;
-        IEnumerable<SongModelView> sourceList;
+        IObservable<IChangeSet<SongModelView>> sourceStream = songsToWatch == "queue"
+           ? myViewModel.PlaybackQueueSource.Connect()
+           : myViewModel.SearchResultsHolder.Connect();
 
-        if (songsToWatch == "queue")
-        {
-            sourceStream = MyViewModel.PlaybackQueueSource.Connect();
-            sourceList = MyViewModel.PlaybackQueue;
-        }
-        else
-        {
-            sourceStream = MyViewModel.SearchResultsHolder.Connect();
-            sourceList = MyViewModel.SearchResults;
-        }
-
-        _subscription = sourceStream
-            // 1. Throttle: Wait for a 200ms pause in updates to avoid spamming diff calculations 
-            //    during rapid changes (like initial load or fast typing).
-            .Throttle(TimeSpan.FromMilliseconds(200), RxSchedulers.Background)
-
-            // 2. Project to a Task that calculates the Diff on a BACKGROUND THREAD
-            .Select(_ =>
+        // 3. The "DynamicData" Pipeline
+        sourceStream
+            .ObserveOn(RxSchedulers.UI) // Must be on UI thread to update RecyclerView
+            .Bind(out _songs)           // Automatically keeps _songs in sync with the source
+            .Subscribe(changes =>
             {
-                // Capture the NEW list snapshot (thread-safe copy)
-                var newList = sourceList.ToList();
-                // Capture the OLD list snapshot
-                var oldList = _songs.ToList();
-
-                return Observable.Start(() =>
+                // 4. Manual Dispatching (The Secret Sauce for Animations)
+                // Instead of NotifyDataSetChanged, we loop through the changes 
+                // DynamicData detected and tell Android exactly what happened.
+                foreach (var change in changes)
                 {
-                    // HEAVY WORK: Calculate Diff on ThreadPool
-                    var diffResult = DiffUtil.CalculateDiff(new SongDiff(oldList, newList));
-                    return new { Diff = diffResult, Data = newList };
-                }, RxSchedulers.Background);
+                    switch (change.Reason)
+                    {
+                        case ListChangeReason.AddRange:
+                            NotifyItemRangeInserted(change.Range.Index, change.Range.Count);
+                            break;
+                            case ListChangeReason.RemoveRange:
+                                NotifyItemRangeRemoved(change.Range.Index, change.Range.Count);
+                                break;
+                        case ListChangeReason.Refresh:
+                            
+                            
+
+                                break;
+                        case ListChangeReason.Add:
+                            NotifyItemInserted(change.Item.CurrentIndex);
+                            break;
+                        case ListChangeReason.Remove:
+                            NotifyItemRemoved(change.Item.CurrentIndex);
+                            break;
+                        case ListChangeReason.Moved:
+                            NotifyItemMoved(change.Item.PreviousIndex, change.Item.CurrentIndex);
+                            break;
+                        case ListChangeReason.Replace:
+                            NotifyItemChanged(change.Item.CurrentIndex);
+                            break;
+                        case ListChangeReason.Clear:
+                             NotifyDataSetChanged();
+                            break;
+                    }
+                }
+
+                // If you prefer simplicity over animations, 
+                // replace the foreach above with: NotifyDataSetChanged();
             })
-            // 3. Switch: If a new update comes while calculating, cancel the old calculation
-            .Switch()
-            // 4. Observe on UI Thread: Only for applying the visual update
-            .ObserveOn(RxSchedulers.UI)
-            .Subscribe(result =>
-            {
-                // Update the backing field
-                _songs = result.Data;
-                _expandedPosition = -1;
-                // Apply the diff (Fast, just dispatches notify events)
-                result.Diff.DispatchUpdatesTo(this);
-            });
+            .DisposeWith(_disposables);
     }
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            if (disposing) _subscription.Dispose();
+            _disposables.Dispose();
+        }
+        base.Dispose(disposing);
+    }
+    private readonly CompositeDisposable _disposables = new();
     public override int ItemCount => _songs.Count;
     public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
     {
@@ -91,7 +109,7 @@ internal class SongAdapter : RecyclerView.Adapter
             var song = _songs[position];
             bool isExpanded = position == _expandedPosition;
 
-            songHolder.Bind(song, isExpanded, position, (pos) => ToggleExpand(pos));
+            songHolder.Bind(song, isExpanded,  (pos) => ToggleExpand(pos));
         }
     }
 
@@ -110,7 +128,7 @@ internal class SongAdapter : RecyclerView.Adapter
         public override bool OnMove(RecyclerView recyclerView, RecyclerView.ViewHolder source, RecyclerView.ViewHolder target)
         {
             // Notify Adapter to swap items in the ObservableCollection
-            _adapter.OnItemMove(source.BindingAdapterPosition, target.AdapterPosition);
+            _adapter.OnItemMove(source.BindingAdapterPosition, target.BindingAdapterPosition);
             return true;
         }
 
@@ -153,11 +171,7 @@ internal class SongAdapter : RecyclerView.Adapter
         // 3. Optional: Notify Playback service that the queue changed?
         // _viewModel.UpdateQueueService(); 
     }
-    protected override void Dispose(bool disposing)
-    {
-        base.Dispose(disposing);
-        if (disposing) _subscription.Dispose();
-    }
+  
 
     private void ToggleExpand(int position)
     {
@@ -260,10 +274,10 @@ internal class SongAdapter : RecyclerView.Adapter
         expandRow.LayoutParameters = new LinearLayout.LayoutParams(-1, -2);
         expandRow.SetPadding(0, 0, 0, 20);
 
-        var playBtn = CreateActionButton("Play", Android.Resource.Drawable.IcMediaPlay);
+        var playBtn = CreateActionButton("Play Next", Resource.Drawable.exo_icon_play);
         expandRow.AddView(playBtn);
 
-        var favBtn = CreateActionButton("Fav", Android.Resource.Drawable.StarOff);
+        var favBtn = CreateActionButton("Fav", Resource.Drawable.heart);
         expandRow.AddView(favBtn);
 
         var addBtn = CreateActionButton("Add", Android.Resource.Drawable.IcInputAdd);
@@ -273,7 +287,7 @@ internal class SongAdapter : RecyclerView.Adapter
         mainContainer.AddView(expandRow);
         card.AddView(mainContainer);
 
-        return new SongViewHolder(MyViewModel, ParentFragement, card, imgView, title, artist, moreBtn, expandRow, (Button)playBtn, (Button)favBtn);
+        return new SongViewHolder(MyViewModel, ParentFragement, card, imgView, title, artist, moreBtn, expandRow, (Button)playBtn, (Button)favBtn, (Button)addBtn);
     }
 
 
@@ -287,6 +301,7 @@ internal class SongAdapter : RecyclerView.Adapter
         var lp = new LinearLayout.LayoutParams(-2, -2);
         lp.RightMargin = 10;
         btn.LayoutParameters = lp;
+        btn.IconSize = AppUtil.DpToPx(20);
         return btn;
     }
 
@@ -306,15 +321,16 @@ internal class SongAdapter : RecyclerView.Adapter
         public View ContainerView => base.ItemView;
         public Action<View, string, string> OnNavigateRequest;
 
-        private readonly Button _playBtn;
+        private readonly Button _playNextBtn;
         private readonly Button _favBtn;
+        private readonly Button _addBtn;
 
 
         private SongModelView? _currentSong;
         private Action<int>? _expandAction;
 
         public SongViewHolder(BaseViewModelAnd vm, Fragment parentFrag, MaterialCardView container, ImageView img, TextView title, TextView artist, MaterialButton moreBtn, View expandRow,
-            Button playBtn, Button favBtn)
+            Button playBtn, Button favBtn, Button addBtn)
             : base(container)
         {
             _vm = vm;
@@ -325,9 +341,9 @@ internal class SongAdapter : RecyclerView.Adapter
             _artist = artist;
             _moreBtn = moreBtn;
             _expandRow = expandRow;
-            _playBtn = playBtn;
+            _playNextBtn = playBtn;
             _favBtn = favBtn;
-
+            _addBtn = addBtn;
 
             _moreBtn.Click += (s, e) =>
             {
@@ -342,11 +358,27 @@ internal class SongAdapter : RecyclerView.Adapter
                     await _vm.PlaySongAsync(_currentSong);
             };
 
+            _container.LongClick += (s, e) =>
+            {
+                _container.PerformHapticFeedback(FeedbackConstants.LongPress);
+                // view in playbackQUeue
+                _vm.SelectedSong=_currentSong;
+
+                var queueSheet = new QueueBottomSheetFragment(_vm);
+                queueSheet.Show(parentFrag.ParentFragmentManager, "QueueSheet");
+
+                queueSheet.ScrollToSong(_currentSong);
+            };
+
             // 3. Play Button
-            _playBtn.Click += async (s, e) =>
+            _playNextBtn.Click += async (s, e) =>
             {
                 if (_currentSong != null)
-                    await _vm.PlaySongAsync(_currentSong);
+                {
+                    _vm.SetAsNextToPlayInQueue(_currentSong);
+                    
+                }
+                    
             };
 
             // 4. Image Click (Navigate)
@@ -383,11 +415,29 @@ internal class SongAdapter : RecyclerView.Adapter
                     await _vm.AddFavoriteRatingToSong(_currentSong);
                     // Instant visual feedback
                     _favBtn.Text = !_currentSong.IsFavorite ? "Unfav" : "Fav";
+                    _favBtn.SetIconResource(_currentSong.IsFavorite ? Resource.Drawable.heartlock : Resource.Drawable.heart);
+                }
+            };
+            _favBtn.LongClick += async (s, e) =>
+            {
+                if (_currentSong != null)
+                {
+                    await _vm.RemoveSongFromFavorite(_currentSong);
+                    var iconRes = _currentSong.IsFavorite ? Resource.Drawable.heartlock : Resource.Drawable.heart;
+                    // Instant visual feedback
+                    _favBtn.Text = !_currentSong.IsFavorite ? "Unfav" : "Fav";
+                    _favBtn.SetIconResource(iconRes);
+                    UiBuilder.ShowSnackBar(
+    _favBtn,
+    _currentSong.IsFavorite ? "Added to Favorites" : "Removed from Favorites",
+    textColor: Color.Black,
+    iconResId: iconRes
+);
                 }
             };
         }
 
-        public void Bind(SongModelView song, bool isExpanded, int position, Action<int> onExpandToggle)
+        public void Bind(SongModelView song, bool isExpanded, Action<int> onExpandToggle)
         {
             _currentSong = song;
             _expandAction = onExpandToggle;
@@ -444,6 +494,10 @@ internal class SongAdapter : RecyclerView.Adapter
                         Glide.With(_img.Context).Load(path)
                              .Placeholder(Resource.Drawable.musicnotess)
                              .Into(_img);
+                        if(song == _vm.CurrentPlayingSongView)
+                        {
+                          
+                        }
                     }
                     else
                     {
@@ -471,9 +525,6 @@ internal class SongAdapter : RecyclerView.Adapter
 
 
 
-        ~SongViewHolder()
-        {
-        }
     }
 
     ~SongAdapter()
@@ -537,7 +588,9 @@ internal class SongAdapter : RecyclerView.Adapter
             Console.WriteLine(child.GetType().FullName);
             // get adapter
             var adapter = recycler.GetAdapter() as SongAdapter; // replace SongAdapter with your actual adapter type
+
             var song = adapter?.GetItem(pos); // this assumes your adapter has a GetItem method
+            if (song == null) return false;
 
             SingleTap?.Invoke(pos, child, song); // pass song too if you want
 
