@@ -26,6 +26,7 @@
             <converters:BoolToCompleteColorConverter x:Key="BoolToCompleteColorConverter" />
             <converters:BoolToCompleteIconConverter x:Key="BoolToCompleteIconConverter" />
             <converters:StringToImageSourceConverter x:Key="StringToImageConverter" />
+            <converters:IsObjNullToVisInverseConverter x:Key="IsObjNullToVisInverseConverter" />
             <converters:BoolToHeartColorConverter x:Key="BoolToHeartColorConverter" />
             <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
             <converters:BoolToInverseVisibilityConverter x:Key="BoolToInverseVisibilityConverter" />

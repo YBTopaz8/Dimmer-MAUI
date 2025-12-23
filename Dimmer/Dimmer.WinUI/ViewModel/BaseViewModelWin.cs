@@ -835,8 +835,13 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
             ObservableCollection<string> are = new System.Collections.ObjectModel.ObservableCollection<string>(similar);
             artist.ListOfSimilarArtistsNames = are;
         }
-        artist.TotalSongsByArtist = SearchResults.Count(x => x.ArtistToSong.Any(a => a.Name == artist.Name));
-        artist.TotalAlbumsByArtist = SearchResults.Count(x => x.Album.Artists.Any(a => a.Name == artist.Name));
+        artist.TotalSongsByArtist = SearchResults.
+            Where(x => x.OtherArtistsName.Contains(artist.Name))
+            .Count();
+
+        artist.TotalAlbumsByArtist = SearchResults.
+            Where(x=> x.OtherArtistsName.Contains(artist.Name))
+            .Count();
 
 
         RxSchedulers.UI.Schedule(() =>
