@@ -1037,7 +1037,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
 
 
-    #region appc cycle 
+    #region app cycle 
     public void OnAppClosing()
     {
         var realmm = RealmFactory.GetRealmInstance();

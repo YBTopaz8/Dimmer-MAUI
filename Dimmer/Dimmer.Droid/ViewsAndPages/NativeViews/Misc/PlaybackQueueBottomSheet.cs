@@ -77,6 +77,7 @@ public class QueueBottomSheetFragment : BottomSheetDialogFragment
         eyeBtn.IconTint = Android.Content.Res.ColorStateList.ValueOf(Color.White);
         eyeBtn.Text = "Scroll To"; // Optional text, or remove for icon only
         eyeBtn.SetIconResource(Resource.Drawable.eye);
+        eyeBtn.IconSize = AppUtil.DpToPx(18);
         eyeBtn.BackgroundTintList = Android.Content.Res.ColorStateList.ValueOf(Color.Transparent);
 
         // Button Action: Scroll to currently playing

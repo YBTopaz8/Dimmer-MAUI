@@ -9,7 +9,7 @@ public class LibraryStatsFragment : Fragment
     private BaseViewModelAnd MyViewModel;
     public LibraryStatsFragment(BaseViewModelAnd vm) { MyViewModel = vm; }
 
-    public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         var ctx = Context;
         var scroll = new ScrollView(ctx) { FillViewport = true };
