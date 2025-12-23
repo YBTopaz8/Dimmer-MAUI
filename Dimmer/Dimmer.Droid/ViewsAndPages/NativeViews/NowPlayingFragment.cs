@@ -66,7 +66,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         _viewModel = viewModel;
     }
 
-    public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         var ctx = Context;
 
@@ -91,7 +91,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         return root;
     }
 
-    private View CreateMiniPlayer(Context ctx)
+    private LinearLayout CreateMiniPlayer(Context ctx)
     {
         var layout = new LinearLayout(ctx)
         {
@@ -100,7 +100,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
             WeightSum = 10
         };
         layout.SetPadding(20, 10, 20, 10);
-        layout.SetBackgroundColor(UiBuilder.IsDark(this.Resources.Configuration) ? Android.Graphics.Color.ParseColor("#2D2D2D") : Android.Graphics.Color.LightGray);
+        layout.SetBackgroundColor(UiBuilder.ThemedBGColor(ctx));
 
 
         // Mini Cover
@@ -169,13 +169,15 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         return layout;
     }
 
-    private View CreateExpandedPlayer(Context ctx)
-    {
+    private ScrollView CreateExpandedPlayer(Context ctx)
+    { 
         var scroll = new ScrollView(ctx) { FillViewport = true };
         scroll.LayoutParameters = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent);
 
         var root = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
         root.SetPadding(40, 80, 40, 40); // Top padding for dragging handle area
+
+        root.SetBackgroundColor(UiBuilder.ThemedBGColor(ctx));
 
         // --- A. Marquee Title ---
         _expandedTitle = new MaterialTextView(ctx) { TextSize = 24, Typeface = Android.Graphics.Typeface.DefaultBold, Gravity = GravityFlags.Center };
@@ -187,7 +189,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         // --- B. Image & Lyrics Grid ---
         var gridFrame = new FrameLayout(ctx);
 
-        var gridParams = new LinearLayout.LayoutParams(-1, AppUtil.DpToPx(320));
+        var gridParams = new LinearLayout.LayoutParams(-1, AppUtil.DpToPx(420));
         gridParams.SetMargins(0, 30, 0, 30);
         gridFrame.LayoutParameters = gridParams;
 

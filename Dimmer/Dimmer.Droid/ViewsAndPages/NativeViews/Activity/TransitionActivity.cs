@@ -641,7 +641,7 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         }
         else
         {
-             }
+        }
     }
 
     private void HandleBackPressInternal()

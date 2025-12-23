@@ -43,22 +43,22 @@ public sealed partial class AlbumPage : Page
         this.DataContext = MyViewModel;
 
         MyViewModel.IsBackButtonVisible = WinUIVisibility.Visible;
-        Visual? visual = ElementCompositionPreview.GetElementVisual(CoordinatedPanel);
+        
         Visual? visual2 = ElementCompositionPreview.GetElementVisual(DestinationElement);
-        ApplyEntranceEffect(visual);
+        
         ApplyEntranceEffect(visual2);
 
 
         AnimationHelper.TryStart(
       DestinationElement,
-      new List<UIElement> { CoordinatedPanel },
+      null,
       AnimationHelper.Key_Forward
   );
 
         try
         {
 
-            await MyViewModel.LoadFullArtistDetails(MyViewModel.SelectedArtist);
+            
         }
         catch (Exception ex)
         {

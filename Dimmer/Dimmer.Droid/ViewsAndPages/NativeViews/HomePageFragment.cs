@@ -158,17 +158,21 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
         var adapter = new SongAdapter(ctx, MyViewModel, this);
         _songListRecycler.SetAdapter(adapter);
-        _songListRecycler.AddOnScrollListener(new LoadMoreListener(MyViewModel));
+        //_songListRecycler.AddOnScrollListener(new LoadMoreListener(MyViewModel));
 
-        var pagerView = CreatePaginationBar(ctx);
-        contentLinear.AddView(pagerView);
+        //var pagerView = CreatePaginationBar(MyViewModel,ctx);
 
 
         // Add Recycler to Content
         contentLinear.AddView(_songListRecycler);
+        //contentLinear.AddView(pagerView);
 
         // Add Content to Root
         root.AddView(contentLinear);
+
+        var s = CreatePaginationBar(MyViewModel,ctx);
+        root.AddView(s);
+
 
         // --- 5. Extended FAB ---
         fab = new Google.Android.Material.FloatingActionButton.ExtendedFloatingActionButton(ctx);
@@ -190,7 +194,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
         return root;
     }
-    private View CreatePaginationBar(Context ctx)
+    private MaterialCardView CreatePaginationBar(BaseViewModelAnd viewModel,Context ctx)
     {
         var card = new MaterialCardView(ctx)
         {
@@ -219,7 +223,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         // 2. Prev Button
         _prevBtn = UiBuilder.CreateMaterialButton(ctx, this.Resources.Configuration,
             (s, e) => MyViewModel.PrevSongPageCommand.Execute(null),
-            false, 40, Resource.Drawable.media3_icon_previous);
+            false, 40, Resource.Drawable.exo_styled_controls_previous);
 
         // 3. Status Text
         _pageStatusText = new TextView(ctx)
@@ -233,7 +237,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         // 4. Next Button
         _nextBtn = UiBuilder.CreateMaterialButton(ctx, this.Resources.Configuration,
             (s, e) => MyViewModel.NextSongPageCommand.Execute(null),
-            false, 40, Resource.Drawable.media3_icon_next);
+            false, 40, Resource.Drawable.exo_styled_controls_next);
 
         bar.AddView(_jumpBtn);
         bar.AddView(_prevBtn);
@@ -630,21 +634,21 @@ class LoadMoreListener : RecyclerView.OnScrollListener
 
     public override void OnScrolled(RecyclerView recyclerView, int dx, int dy)
     {
-        if (dy > 0) // Scrolling down
-        {
-            var layoutManager = (LinearLayoutManager)recyclerView.GetLayoutManager();
-            int visibleItemCount = layoutManager.ChildCount;
-            int totalItemCount = layoutManager.ItemCount;
-            int pastVisiblesItems = layoutManager.FindFirstVisibleItemPosition();
+        //if (dy > 0) // Scrolling down
+        //{
+        //    var layoutManager = (LinearLayoutManager)recyclerView.GetLayoutManager();
+        //    int visibleItemCount = layoutManager.ChildCount;
+        //    int totalItemCount = layoutManager.ItemCount;
+        //    int pastVisiblesItems = layoutManager.FindFirstVisibleItemPosition();
 
-            if ((visibleItemCount + pastVisiblesItems) >= totalItemCount)
-            {
-                // Reached Bottom -> Load Next Page
-                if (_vm.CanGoNextSong)
-                {
-                    _vm.NextSongPage();
-                }
-            }
-        }
+        //    if ((visibleItemCount + pastVisiblesItems) >= totalItemCount)
+        //    {
+        //        // Reached Bottom -> Load Next Page
+        //        if (_vm.CanGoNextSong)
+        //        {
+        //            _vm.NextSongPage();
+        //        }
+        //    }
+        //}
     }
 }

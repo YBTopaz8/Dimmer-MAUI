@@ -372,9 +372,14 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
     }
 
     private bool IsDark() => (Resources.Configuration.UiMode & Android.Content.Res.UiMode.NightMask) == Android.Content.Res.UiMode.NightYes;
+
     public void OnBackInvoked()
     {
-        Toast.MakeText(Context!, "Back invoked in Settings Fragment", ToastLength.Short)?.Show();
+        throw new NotImplementedException();
     }
+    //public void OnBackInvoked()
+    //{
+    //    Toast.MakeText(Context!, "Back invoked in Settings Fragment", ToastLength.Short)?.Show();
+    //}
 
 }

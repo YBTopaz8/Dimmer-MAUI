@@ -223,6 +223,7 @@ internal class SongAdapter : RecyclerView.Adapter
         mainContainer.LayoutTransition = new LayoutTransition();
 
         mainContainer.LayoutParameters = new ViewGroup.LayoutParams(-1, -2);
+        mainContainer.SetBackgroundColor(UiBuilder.ThemedBGColor(ctx));
 
         // --- TOP ROW (Visible) ---
         var topRow = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
@@ -265,8 +266,20 @@ internal class SongAdapter : RecyclerView.Adapter
         moreBtn.IconTint = Android.Content.Res.ColorStateList.ValueOf(Color.Gray);
         moreBtn.BackgroundTintList = Android.Content.Res.ColorStateList.ValueOf(Color.Transparent);
         moreBtn.RippleColor = Android.Content.Res.ColorStateList.ValueOf(Color.LightGray);
-        topRow.AddView(moreBtn);
+        var durationView = new TextView(ctx) { TextSize = 16, Typeface = Typeface.DefaultBold };
+        durationView.SetTextColor(UiBuilder.IsDark(this.ParentFragement.Resources.Configuration) ? Color.Gray : Color.Black);
+        durationView.TextSize = 10;
 
+        var rightLinearLayout = new LinearLayout(ctx)
+        { 
+            Orientation = Android.Widget.Orientation.Vertical 
+        };
+        rightLinearLayout.AddView(moreBtn);
+        rightLinearLayout.AddView(durationView);
+
+
+
+        topRow.AddView(rightLinearLayout);
         // --- EXPANDABLE ROW (Hidden by default) ---
         var expandRow = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
         expandRow.SetGravity(GravityFlags.Center);
@@ -287,7 +300,7 @@ internal class SongAdapter : RecyclerView.Adapter
         mainContainer.AddView(expandRow);
         card.AddView(mainContainer);
 
-        return new SongViewHolder(MyViewModel, ParentFragement, card, imgView, title, artist, moreBtn, expandRow, (Button)playBtn, (Button)favBtn, (Button)addBtn);
+        return new SongViewHolder(MyViewModel, ParentFragement, card, imgView, title, artist, moreBtn, durationView,expandRow, (Button)playBtn, (Button)favBtn, (Button)addBtn);
     }
 
 
@@ -317,6 +330,7 @@ internal class SongAdapter : RecyclerView.Adapter
         private readonly TextView _title, _artist;
         private readonly View _expandRow;
         private readonly MaterialButton _moreBtn;
+        private readonly TextView _durationView;
         private readonly MaterialCardView _container;
         public View ContainerView => base.ItemView;
         public Action<View, string, string> OnNavigateRequest;
@@ -329,8 +343,8 @@ internal class SongAdapter : RecyclerView.Adapter
         private SongModelView? _currentSong;
         private Action<int>? _expandAction;
 
-        public SongViewHolder(BaseViewModelAnd vm, Fragment parentFrag, MaterialCardView container, ImageView img, TextView title, TextView artist, MaterialButton moreBtn, View expandRow,
-            Button playBtn, Button favBtn, Button addBtn)
+        public SongViewHolder(BaseViewModelAnd vm, Fragment parentFrag, MaterialCardView container, ImageView img, TextView title, TextView artist, MaterialButton moreBtn, TextView durationView,
+ View expandRow, Button playBtn, Button favBtn, Button addBtn)
             : base(container)
         {
             _vm = vm;
@@ -340,6 +354,7 @@ internal class SongAdapter : RecyclerView.Adapter
             _title = title;
             _artist = artist;
             _moreBtn = moreBtn;
+            _durationView= durationView;
             _expandRow = expandRow;
             _playNextBtn = playBtn;
             _favBtn = favBtn;
@@ -444,6 +459,13 @@ internal class SongAdapter : RecyclerView.Adapter
             var sessionDisposable = new CompositeDisposable();
             _title.Text = song.Title;
             _artist.Text = song.OtherArtistsName ?? "Unknown";
+            _durationView.Text = $"{song.DurationFormatted}";
+                
+            if(song.HasSyncedLyrics)
+            {
+                _container.StrokeWidth = 4;
+                _container.SetStrokeColor(AppUtil.ToColorStateList(Color.DarkSlateBlue));
+            }
 
             // Set Transition Name
             var tName = $"sharedImage_{song.Id}";
@@ -463,7 +485,7 @@ internal class SongAdapter : RecyclerView.Adapter
             // Accordion Visibility
             _expandRow.Visibility = isExpanded ? ViewStates.Visible : ViewStates.Gone;
             _container.StrokeColor = isExpanded ? Color.DarkSlateBlue : Color.ParseColor("#E0E0E0");
-            _container.StrokeWidth = isExpanded ? 4 : 2;
+            _container.StrokeWidth = isExpanded ? 6 : 2;
 
 
 
@@ -481,6 +503,24 @@ internal class SongAdapter : RecyclerView.Adapter
                                 // Reset to normal
                                 var isDark = _container.Context.Resources.Configuration.UiMode.HasFlag(Android.Content.Res.UiMode.NightYes);
                                 _title.SetTextColor(isDark ? Color.White : Color.Black);
+                            }
+                        })
+                        .DisposeWith(sessionDisposable);
+
+            song.WhenPropertyChange(nameof(SongModelView.HasSyncedLyrics), s => s.HasSyncedLyrics)
+                        .ObserveOn(RxSchedulers.UI) // Ensure UI Thread
+                        .Subscribe(hasSyncLyrics =>
+                        {
+                            if (hasSyncLyrics)
+                            {
+                                _container.StrokeWidth = 4;
+                                _container.SetStrokeColor(AppUtil.ToColorStateList(Color.DarkSlateBlue));
+                            }
+                            else
+                            {
+                                _container.StrokeWidth = 2;
+                                
+
                             }
                         })
                         .DisposeWith(sessionDisposable);

@@ -331,7 +331,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
    
-    private Realm? _songsRealm;
 
     public void InitializeAllVMCoreComponents()
     {
@@ -359,8 +358,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             ShowAllSongsWindowActivate();
         }
 
-
-        var realmSub = realm.All<SongModel>()
+        var realmSub = RealmFactory.GetRealmInstance();
+    var songRealmSub = realmSub.All<SongModel>()
             .AsObservableChangeSet()
 
             .Where(changes => changes.Any())
@@ -2375,7 +2374,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     if (songModel != null)
                     {
                         // Convert to POCO (View) immediately so we can use it after Realm closes
-                        songsInBatch.Add(songModel.ToSongModelView());
+                        songsInBatch.Add(songModel.ToSongModelView()!);
                     }
                 }
             }
@@ -2702,9 +2701,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         if (stateInfo.ExtraParameter is List<SongModelView> newSongs && newSongs.Count > 0)
         {
             _logger.LogInformation("Adding {Count} new songs to the UI.", newSongs.Count);
+
             _stateService.SetCurrentLogMsg(new AppLogModel() { Log = $"Adding {newSongs.Count} new songs to the UI.", });
+
             SearchSongForSearchResultHolder("desc added");
             _ = EnsureAllCoverArtCachedForSongsAsync();
+
 
             //var _lyricsCts = new CancellationTokenSource();
             //_ = LoadSongDataAsync(null, _lyricsCts);
@@ -7632,14 +7634,29 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
     }
     [RelayCommand]
-    public async Task LoadAlbumDetails()
+    public async Task FindMissingTracksInAlbum(AlbumModelView? album)
     {
-        var missing = await _hoarderService.GetMissingTracksFromAlbumAsync(SelectedAlbum);
+        var missing = await _hoarderService.GetMissingTracksFromAlbumAsync(album);
         if (missing.Any())
         {
             // Show a "Missing Tracks" card in UI
             MissingTracksList = new ObservableCollection<string>(missing);
             HasMissingTracks = true;
+        }
+    }
+    
+    [RelayCommand]
+    public void LoadAlbumDetails(SongModelView song)
+    {
+        
+        if(song.Album is null)
+        {
+            var albumInDB = RealmFactory.GetRealmInstance()
+                 .All<AlbumModel>().FirstOrDefaultNullSafe(x => x.Name == song.AlbumName)
+                 .ToAlbumModelView();
+            song.Album = albumInDB;
+            
+            OnPropertyChanged(nameof(song));
         }
     }
 
@@ -8189,7 +8206,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         if (song is null)
             return;
 
-     
            string?  WelDoneMessage = AppUtils.GetWellFormattedSharingTextHavingSongStats(song);
             await  Clipboard.Default.SetTextAsync(WelDoneMessage);
             
@@ -8205,7 +8221,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     new ShareFileRequest
                     {
                         Title = WelDoneMessage,
-                        File = new ShareFile(song.CoverImagePath),
+                        File = new ShareFile(song.FilePath),
                     });
            
         

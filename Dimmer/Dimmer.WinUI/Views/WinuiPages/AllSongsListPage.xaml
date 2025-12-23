@@ -135,100 +135,15 @@
                             BorderThickness="2"
                             KeyboardAcceleratorPlacementMode="Auto"
                             PlaceholderText="Search with TQL..."
-                            Text="{x:Bind MyViewModel.CurrentTqlQuery}"
+                            Text="{x:Bind MyViewModel.CurrentTqlQuery, Mode=OneWay}"
                             TextChanged="SearchAutoSuggestBox_TextChanged" />
-                        <TextBlock VerticalAlignment="Center" Text="{Binding SearchResults.Count}" />
+                        <TextBlock VerticalAlignment="Center" Text="{x:Bind MyViewModel.SearchResults.Count, Mode=OneWay}" />
 
                     </StackPanel>
 
-                    <TextBlock Text="{Binding CurrentTqlQueryUI}" />
+                    <TextBlock Text="{x:Bind MyViewModel.CurrentTqlQueryUI, Mode=OneWay}" />
 
-                    <StackPanel
-                        x:Name="ViewQueueStackPanel"
-                        Grid.Column="0"
-                        Background="Transparent"
-                        Orientation="Horizontal"
-                        Spacing="15"
-                        Visibility="Collapsed">
-                        <ScrollViewer
-                            x:Name="AnimatedScrollViewer"
-                            MinWidth="250"
-                            MaxWidth="450"
-                            MaxHeight="375"
-                            HorizontalAlignment="Left"
-                            ViewChanging="AnimatedScrollViewer_ViewChanging">
 
-                            <Expander
-                                x:Name="NowPlayingQueueExpander"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Top"
-                                BorderBrush="Transparent"
-                                BorderThickness="3"
-                                CornerRadius="12"
-                                Expanding="NowPlayingQueueExpander_Expanding"
-                                IsExpanded="{x:Bind MyViewModel.IsNowPlayingQueueExpanded}">
-                                <Expander.Header>
-                                    <StackPanel Orientation="Horizontal" Spacing="15">
-                                        <TextBlock Text="Queue" />
-                                        <TextBlock Text="{x:Bind MyViewModel.PlaybackQueue.Count, Mode=OneWay}" />
-                                    </StackPanel>
-                                </Expander.Header>
-                                <Expander.Content>
-                                    <ItemsRepeater ItemsSource="{x:Bind MyViewModel.PlaybackQueue}">
-                                        <ItemsRepeater.Layout>
-                                            <UniformGridLayout MinRowSpacing="3" Orientation="Vertical" />
-                                        </ItemsRepeater.Layout>
-                                        <ItemsRepeater.ItemTemplate>
-                                            <DataTemplate>
-                                                <Border
-                                                    x:Name="BorderOfSongInPBQueue"
-                                                    Width="200"
-                                                    Padding="5"
-                                                    BorderBrush="Gray"
-                                                    BorderThickness="1"
-                                                    CornerRadius="5"
-                                                    DoubleTapped="PlaySongBtn_DoubleTapped"
-                                                    PointerEntered="BorderOfSongInPBQueue_PointerEntered"
-                                                    PointerExited="BorderOfSongInPBQueue_PointerExited">
-                                                    <StackPanel>
-                                                        <TextBlock FontSize="19" Text="{Binding Title}" />
-                                                        <TextBlock FontSize="14" Text="{Binding ArtistName}" />
-                                                    </StackPanel>
-                                                </Border>
-                                            </DataTemplate>
-                                        </ItemsRepeater.ItemTemplate>
-                                    </ItemsRepeater>
-                                </Expander.Content>
-                            </Expander>
-
-                        </ScrollViewer>
-                        <StackPanel
-                            x:Name="SidePanelForSelectedSong"
-                            HorizontalAlignment="Center"
-                            Spacing="15"
-                            Visibility="Collapsed">
-                            <Grid Height="150">
-
-                                <Image
-                                    Grid.Row="0"
-                                    Height="40"
-                                    Source="/Dimmer/Resources/Images/lyrics.svg" />
-                                <Image
-                                    x:Name="FocusedSongImage"
-                                    MaxWidth="150"
-                                    MaxHeight="150"
-                                    HorizontalAlignment="Left" />
-                            </Grid>
-                            <Button x:Name="FocusedSongTextBlockTitle" Content="Title" />
-                            <Button x:Name="FocusedSongTextBlockArtistName" Content="Artist Name" />
-                            <Button x:Name="FocusedSongTextBlockAlbumName" Content="Album Name" />
-                            <Button x:Name="FocusedSongTextBlockGenre" Content="Genre" />
-                            <Button x:Name="FocusedSongTextBlockLastTimePlayed" />
-                            <Button x:Name="FocusedSongTextBlockIsFav" />
-                            <Button x:Name="FocusedSongTextBlockHasSyncLyrics" />
-
-                        </StackPanel>
-                    </StackPanel>
                 </StackPanel>
             </Grid>
 
@@ -395,7 +310,7 @@
                             Header="Title"
                             IsReadOnly="True"
                             ToolTipService.Placement="Mouse"
-                            ToolTipService.ToolTip="{Binding Title}">
+                            ToolTipService.ToolTip="{x:Bind MyViewModel.CurrentPlayingSongView.Title}">
                             <dgView:TableViewTemplateColumn.CellTemplate>
                                 <DataTemplate>
 
@@ -409,16 +324,14 @@
                                                 <ColumnDefinition Width="150" />
                                                 <ColumnDefinition Width="auto" />
                                             </Grid.ColumnDefinitions>
-                                            <Button
-                                                x:Name="ArtistBtn"
-                                                Grid.Column="0"
-                                                Background="Transparent"
-                                                BorderThickness="0"
-                                                PointerReleased="ArtistBtn_PointerReleased">
 
-                                                <StackPanel Orientation="Horizontal">
+                                            <Button Background="Transparent">
+                                                <StackPanel Orientation="Horizontal" PointerPressed="ArtistBtnStackPanel_PointerPressed">
                                                     <FontIcon FontSize="12" Glyph="&#xF8B1;" />
-                                                    <TextBlock Text="{Binding OtherArtistsName}" TextWrapping="WrapWholeWords" />
+                                                    <TextBlock
+                                                        VerticalAlignment="Center"
+                                                        Text="{Binding OtherArtistsName}"
+                                                        TextWrapping="WrapWholeWords" />
                                                 </StackPanel>
                                             </Button>
 
@@ -427,7 +340,7 @@
                                                 Grid.Column="1"
                                                 Background="Transparent"
                                                 BorderThickness="0"
-                                                PointerReleased="AlbumBtn_PointerReleased">
+                                                Click="AlbumBtn_Click">
 
 
                                                 <StackPanel Orientation="Horizontal" Spacing="2">
@@ -493,17 +406,34 @@
                 </dgView:TableView>
 
                 <StackPanel
+                    x:Name="SidePanel"
                     Grid.Column="1"
                     Width="250"
                     HorizontalAlignment="Center"
+                    PointerEntered="SidePanel_PointerEntered"
+                    PointerExited="SidePanel_PointerExited"
                     Spacing="10"
                     Visibility="{x:Bind MyViewModel.SelectedSong, Mode=OneWay, Converter={StaticResource IsObjNullToVisInverseConverter}}">
-                    <Image x:Name="SelectedSongImg">
-                        <Image.Source>
-                            <BitmapImage UriSource="{x:Bind MyViewModel.SelectedSong.CoverImagePath, Mode=OneWay}" />
-                        </Image.Source>
-                    </Image>
+                    <Button
+                        x:Name="ClosePanel"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Top"
+                        Background="Transparent"
+                        Canvas.ZIndex="1"
+                        Click="ClosePanel_Click"
+                        Content="X" />
+                    <Grid>
 
+                        <Image
+                            x:Name="SelectedSongImg"
+                            Canvas.ZIndex="0"
+                            Visibility="Visible">
+                            <Image.Source>
+                                <BitmapImage UriSource="{x:Bind MyViewModel.SelectedSong.CoverImagePath, Mode=OneWay}" />
+                            </Image.Source>
+                        </Image>
+
+                    </Grid>
                     <Button HorizontalAlignment="Center" Content="{x:Bind MyViewModel.SelectedSong.Title, Mode=OneWay}" />
                     <Button HorizontalAlignment="Center" Content="{x:Bind MyViewModel.SelectedSong.GenreName, Mode=OneWay}" />
                     <Button HorizontalAlignment="Center" Content="{x:Bind MyViewModel.SelectedSong.PlayCompletedCount, Mode=OneWay}" />

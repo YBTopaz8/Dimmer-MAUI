@@ -1439,15 +1439,7 @@ AnimationHelper.Key_Forward
         await MyViewModel.PlaySongAsync(song, CurrentPage.HomePage);
     }
 
-    private void NowPlayingQueueExpander_Expanding(Expander sender, ExpanderExpandingEventArgs args)
-    {
-        SidePanelForSelectedSong.Visibility= Visibility.Visible;
-        SidePanelForSelectedSong.Width = 600;
-
-
-        //PlayPauseImg.Source = new SvgImageSource(new Uri(uri));
-
-    }
+ 
 
     private void AnimatedScrollViewer_ViewChanging(object sender, ScrollViewerViewChangingEventArgs e)
     {
@@ -1465,7 +1457,6 @@ AnimationHelper.Key_Forward
             if(song is null) return;
             
 
-            await btn.DispatcherQueue.EnqueueAsync(() => { });
             var compositor = ElementCompositionPreview.GetElementVisual(btn).Compositor;
             var rootVisual = ElementCompositionPreview.GetElementVisual(btn);
 
@@ -1474,21 +1465,6 @@ AnimationHelper.Key_Forward
             scale.Duration = TimeSpan.FromMilliseconds(350);
             rootVisual.CenterPoint = new Vector3((float)btn.ActualWidth / 2, (float)btn.ActualHeight / 2, 0);
             rootVisual.StartAnimation("Scale", scale);
-
-            if (song.CoverImagePath is not null)
-            {
-
-                var img = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(song.CoverImagePath, UriKind.Absolute));
-                FocusedSongImage.Source = img;
-            }
-            FocusedSongTextBlockTitle.Content = song.Title;
-            FocusedSongTextBlockArtistName.Content = song.ArtistName;
-            FocusedSongTextBlockAlbumName.Content = song.AlbumName;
-            FocusedSongTextBlockGenre.Content = song.GenreName;
-            FocusedSongTextBlockHasSyncLyrics.Content = song.HasSyncedLyrics ? "Has Synced Lyrics" : "No Synced Lyrics";
-            FocusedSongTextBlockIsFav.Content = song.IsFavorite ? "Favorite Song" : "Not Favorite";
-            FocusedSongTextBlockIsFav.Visibility = song.IsFavorite ? Visibility.Visible : Visibility.Collapsed;
-            FocusedSongTextBlockLastTimePlayed.Content = song.LastPlayed != null ? $"Last Played: {song.LastPlayed.Value.ToLocalTime().ToString("g")}" : "Never Played";
 
         }
         catch (Exception ex)
@@ -1876,11 +1852,9 @@ AnimationHelper.Key_Forward
 
     private async void AlbumBtn_Click(object sender, RoutedEventArgs e)
     {
-
-    }
-
-    private async void AlbumBtn_PointerReleased(object sender, PointerRoutedEventArgs e)
-    {
+        var song = ((Button)sender).DataContext as SongModelView;
+        
+        if(song is null) return;
         var supNavTransInfo = new SuppressNavigationTransitionInfo();
 
         FrameNavigationOptions navigationOptions = new FrameNavigationOptions
@@ -1902,13 +1876,61 @@ true
         };
         Type pageType = typeof(AlbumPage);
 
-        Frame?.NavigateToType(pageType, navParams, navigationOptions);
+        if (song.Artist is not null)
+        {
+            MyViewModel.SelectedAlbum= song.Album;
+        }
+        else
+        {
+            MyViewModel.LoadAlbumDetails(song);
+        }
 
+            Frame?.NavigateToType(pageType, navParams, navigationOptions);
+
+    }
+
+    private async void AlbumBtn_PointerReleased(object sender, PointerRoutedEventArgs e)
+    {
+       
     }
 
     private async void ArtistBtn_PointerReleased(object sender, PointerRoutedEventArgs e)
     {
 
+    }
+
+    private void coverArtImage_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        var send = (Image)sender;
+        var song = send.DataContext as SongModelView;
+
+        if (song != null)
+        {
+            if (song.TitleDurationKey != MyViewModel.SelectedSong?.TitleDurationKey)
+            {
+                MyViewModel.SelectedSong = song;
+            }
+
+        }
+    }
+
+    private void AlbumBtn_PointerReleased_1(object sender, PointerRoutedEventArgs e)
+    {
+
+    }
+
+    private void AlbumBtn_Click_1(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void ArtistBtn_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+
+    }
+
+    private async void ArtistBtnStackPanel_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
         try
         {
 
@@ -1918,8 +1940,8 @@ true
 
 
             var point = e.GetCurrentPoint(nativeElement);
-            MyViewModel.SelectedSong = ((Grid)sender).DataContext as SongModelView;
-            _storedSong = ((Grid)sender).DataContext as SongModelView;
+            MyViewModel.SelectedSong = ((StackPanel)sender).DataContext as SongModelView;
+            _storedSong = ((StackPanel)sender).DataContext as SongModelView;
 
 
             // Navigate to the detail page, passing the selected song object.
@@ -2071,18 +2093,25 @@ true
         }
     }
 
-    private void coverArtImage_PointerPressed(object sender, PointerRoutedEventArgs e)
+    private void ClosePanel_Click(object sender, RoutedEventArgs e)
     {
-        var send = (Image)sender;
-        var song = send.DataContext as SongModelView;
+        MyViewModel.SelectedSong = null;
+    }
 
-        if (song != null)
-        {
-            if (song.TitleDurationKey != MyViewModel.SelectedSong?.TitleDurationKey)
-            {
-                MyViewModel.SelectedSong = song;
-            }
+    private void SidePanel_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
 
-        }
+        ClosePanel.Visibility = Visibility.Visible;
+    }
+
+    private async void SidePanel_PointerReleased(object sender, PointerRoutedEventArgs e)
+    {
+        
+    }
+
+    private void SidePanel_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        ClosePanel.Visibility = Visibility.Collapsed;
+
     }
 }

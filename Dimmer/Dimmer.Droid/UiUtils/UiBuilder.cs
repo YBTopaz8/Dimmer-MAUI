@@ -208,6 +208,11 @@ public static class UiBuilder
 
     public static bool IsDark(Context ctx) => (ctx.Resources.Configuration.UiMode & Android.Content.Res.UiMode.NightMask) == Android.Content.Res.UiMode.NightYes;
 
+    public static Color ThemedBGColor( Context ctx)
+    {
+        return UiBuilder.IsDark(ctx) ? Color.ParseColor("#0D0E20") : Color.ParseColor("#E7EEF3");
+        
+    }
 }
 
 
