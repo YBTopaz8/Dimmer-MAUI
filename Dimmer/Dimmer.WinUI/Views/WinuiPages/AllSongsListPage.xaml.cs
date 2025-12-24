@@ -1870,22 +1870,19 @@ true
 );
         var navParams = new SongDetailNavArgs
         {
-            Song = _storedSong!,
+            Song = song!,
             ExtraParam = MyViewModel,
             ViewModel = MyViewModel
         };
         Type pageType = typeof(AlbumPage);
 
-        if (song.Artist is not null)
-        {
-            MyViewModel.SelectedAlbum= song.Album;
-        }
-        else
+        if (song.Album is null)
         {
             MyViewModel.LoadAlbumDetails(song);
         }
-
-            Frame?.NavigateToType(pageType, navParams, navigationOptions);
+        MyViewModel.SelectedAlbum = song.Album;
+        MyViewModel.SelectedSong = song;
+        Frame?.NavigateToType(pageType, navParams, navigationOptions);
 
     }
 

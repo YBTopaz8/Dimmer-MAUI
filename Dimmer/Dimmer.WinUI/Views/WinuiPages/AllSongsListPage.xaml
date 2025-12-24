@@ -317,9 +317,7 @@
                             <dgView:TableViewTemplateColumn.CellTemplate>
                                 <DataTemplate>
 
-                                    <StackPanel 
-                                        x:Name="TitleColumn"
-                                        PointerPressed="TitleColumn_PointerPressed">
+                                    <StackPanel x:Name="TitleColumn" PointerPressed="TitleColumn_PointerPressed">
 
                                         <Button Background="Transparent" BorderThickness="0">
                                             <TextBlock Text="{Binding Title}" TextWrapping="WrapWholeWords" />

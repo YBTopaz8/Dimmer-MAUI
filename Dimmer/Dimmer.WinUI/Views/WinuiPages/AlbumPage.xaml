@@ -1,10 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
 <Page
     x:Class="Dimmer.WinUI.Views.WinuiPages.AlbumPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:Dimmer.WinUI.Views.WinuiPages"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:Dimmer.WinUI.Views.WinuiPages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
@@ -13,30 +13,40 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
+        <Image
+            x:Name="CoverImageAlbumPage"
+            Grid.RowSpan="2"
+            Opacity="0.05"
+            Stretch="UniformToFill">
+            <Image.Source>
+                <BitmapImage UriSource="{x:Bind DetailedSong.Album.ImagePath, Mode=OneWay}" />
+            </Image.Source>
+        </Image>
 
-        <StackPanel 
-            x:Name="CoordinatedPanel"
-                    Grid.Row="0">
+        <StackPanel Grid.Row="0">
             <Button
-    x:Name="CoordinatedPanel2"
-    Grid.Row="0"
-    VerticalAlignment="Top"
-    Click="CoordinatedPanel2_Click"
-    Content="Back" />
-            <TextBlock Text="Album Title"
-                       FontSize="24" x:Name="DestinationElement"
-                       FontWeight="Bold"
-                       Margin="10" />
+                Grid.Row="0"
+                VerticalAlignment="Top"
+                Click="CoordinatedPanel2_Click"
+                Content="Back" />
+            <TextBlock
+                x:Name="DestinationElement"
+                Margin="10"
+                FontSize="24"
+                FontWeight="Bold"
+                Text="{x:Bind DetailedSong.AlbumName, Mode=OneWay}" />
         </StackPanel>
 
-        <StackPanel x:Name="PanelBtm" 
-                    Grid.Row="1"
-                    Margin="10">
+        <StackPanel
+            x:Name="PanelBtm"
+            Grid.Row="1"
+            Margin="10">
 
-            <TextBlock Text="Album Details"
-                       FontSize="18"
-                       FontWeight="SemiBold"
-                       Margin="0,0,0,10" />
+            <TextBlock
+                Margin="0,0,0,10"
+                FontSize="18"
+                FontWeight="SemiBold"
+                Text="{x:Bind DetailedSong.Artist.Name, Mode=OneWay}" />
         </StackPanel>
     </Grid>
 </Page>

@@ -455,6 +455,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     .Throttle(TimeSpan.FromMilliseconds(300), RxSchedulers.Background) // Ensure we don't spam
     .Select(inputs =>
     {
+
+        RxSchedulers.UI.ScheduleToUI(() =>
+        {
+            CanGoNextSong = false;
+            CanGoPrevSong = false;
+        });
         // 1. NLP Parsing (Lightweight)
         Debug.WriteLine($"[DEBUG] Processing: '{inputs.Query}'");
         var tqlQuery = string.IsNullOrWhiteSpace(inputs.Query) ? "" : NaturalLanguageProcessor.Process(inputs.Query);
@@ -559,7 +565,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         SongPageStatus = $"Page {result.CurrentPage} of {result.TotalPages}";
         CanGoNextSong = result.CurrentPage < result.TotalPages;
         CanGoPrevSong = result.CurrentPage > 1;
-
+        CurrentSongPage = result.CurrentPage;
+        
         // 3. Update NLP Text Debugger
         if (CurrentTqlQuery != NLPQuery)
         {
@@ -691,6 +698,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
 
+    [ObservableProperty] public partial bool CanSkipPage { get; set; } 
     [ObservableProperty] public partial int CurrentSongPage { get; set; } = 1;
     [ObservableProperty] public partial double TotalSongPages { get; set; } = 1;
     [ObservableProperty] public partial string SongPageStatus { get; set; } = "Page 1";
@@ -7701,7 +7709,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public async Task FindMissingTracksInAlbum(AlbumModelView? album)
     {
         var missing = await _hoarderService.GetMissingTracksFromAlbumAsync(album);
-        if (missing.Any())
+        if (missing.Count != 0)
         {
             // Show a "Missing Tracks" card in UI
             MissingTracksList = new ObservableCollection<string>(missing);

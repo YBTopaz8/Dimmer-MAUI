@@ -44,10 +44,7 @@ public sealed partial class AlbumPage : Page
 
         MyViewModel.IsBackButtonVisible = WinUIVisibility.Visible;
         
-        Visual? visual2 = ElementCompositionPreview.GetElementVisual(DestinationElement);
-        
-        ApplyEntranceEffect(visual2);
-
+    
 
         AnimationHelper.TryStart(
       DestinationElement,
@@ -79,15 +76,7 @@ public sealed partial class AlbumPage : Page
                 visual.StartAnimation("Opacity", fade);
                 break;
 
-            case SongTransitionAnimation.Scale:
-                visual.CenterPoint = new Vector3((float)CoordinatedPanel.ActualWidth / 2,
-                                                 (float)CoordinatedPanel.ActualHeight / 2, 0);
-                visual.Scale = new Vector3(0.8f);
-                var scale = _compositor.CreateVector3KeyFrameAnimation();
-                scale.InsertKeyFrame(1f, Vector3.One);
-                scale.Duration = TimeSpan.FromMilliseconds(350);
-                visual.StartAnimation("Scale", scale);
-                break;
+            
 
             case SongTransitionAnimation.Slide:
                 visual.Offset = new Vector3(80f, 0, 0);
