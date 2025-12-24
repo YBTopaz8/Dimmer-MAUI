@@ -11,16 +11,16 @@ jobs:
   build-and-release:
     runs-on: windows-latest
     permissions:
-      contents: write # Required for Tagging and Releasing
+      contents: write # REQUIRED for pushing tags
 
     steps:
-      # 1. CHECKOUT
+      # 1. CHECKOUT (Fetch all history so we can find tags)
       - name: Checkout Main Repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0 
 
-      # 2. CACHE NUGET PACKAGES (Speed Optimization)
+      # 2. CACHE NUGET
       - name: Cache NuGet Packages
         uses: actions/cache@v4
         with:
@@ -29,16 +29,23 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nuget-
 
-      # 3. CALCULATE VERSION
+      # 3. CALCULATE VERSION (The Logic You Requested)
       - name: Calculate Next Version
         id: calculator
         shell: pwsh
         run: |
+          # Ensure tags are actually here
           git fetch --tags --force
+          
+          # Get the very latest tag (e.g., v1.4.1)
           $latestTag = git describe --tags --abbrev=0 2>$null
           if (-not $latestTag) { $latestTag = "v0.0.0" }
-          Write-Host "Current Tag: $latestTag"
+          Write-Host "Current Base Tag: $latestTag"
+          
+          # Pass to Env for Changelog step
+          echo "LATEST_TAG=$latestTag" >> $env:GITHUB_ENV
 
+          # Strip 'v' and parse
           $cleanVer = $latestTag -replace "^v", ""
           try {
             $parts = $cleanVer.Split('.')
@@ -51,24 +58,41 @@ jobs:
 
           $branch = "${{ github.ref_name }}"
           
+          # --- VERSIONING LOGIC ---
           if ($branch -eq 'master') {
+             # MASTER: 1.4.1 -> 1.5.0
              $minor++
              $patch = 0
-             Write-Host "Master: Incrementing Minor (Production Release)"
+             Write-Host "Master Branch: Incrementing Minor"
              echo "IS_PRE=false" >> $env:GITHUB_ENV
-          } elseif ($branch -eq 'Dev-Official') {
-             $patch++
-             Write-Host "Dev: Incrementing Patch (Pre-Release)"
-             echo "IS_PRE=true" >> $env:GITHUB_ENV
           } else {
-             # Fallback for other branches (treat as pre-release)
+             # INTEGRATEALL / DEV: 1.4.1 -> 1.4.2
              $patch++
+             Write-Host "Branch ($branch): Incrementing Patch"
              echo "IS_PRE=true" >> $env:GITHUB_ENV
           }
 
           $newTag = "v$major.$minor.$patch"
           Write-Host "Target Tag: $newTag"
           echo "NEW_TAG=$newTag" >> $env:GITHUB_ENV
+
+      # 3.5 GENERATE CHANGELOG
+      - name: Generate Changelog
+        shell: pwsh
+        run: |
+          $prevTag = $env:LATEST_TAG
+          $newTag = $env:NEW_TAG
+          Write-Host "Generating changelog from $prevTag to HEAD..."
+          
+          # Get the commit messages
+          $log = git log $prevTag..HEAD --pretty=format:"- %s (%h)" --no-merges
+          
+          # Build the Markdown content
+          $content = "## Changes in $newTag`n`n$log"
+          
+          # Save to file
+          Set-Content -Path "release_notes.md" -Value $content -Encoding UTF8
+          Write-Host $content
 
       # 4. CHECKOUT DEPENDENCIES
       - name: Checkout Last.fm
@@ -119,7 +143,6 @@ jobs:
           $jsonContent = @'
           ${{ secrets.appsettings }}
           '@
-          # Using UTF8 explicitly for safety
           Set-Content -Path $targetPath -Value $jsonContent -Encoding UTF8
 
       # 7. PATCH CSPROJ PATHS 
@@ -127,20 +150,13 @@ jobs:
         shell: pwsh
         run: |
           $depsPath = Join-Path $env:GITHUB_WORKSPACE "ExternalDeps"
-          # Escape for Regex safety (though we use it in replacement, good practice)
-          $safeDepsPath = [Regex]::Escape($depsPath) 
-          
-          # We use the unescaped path for the actual replacement string because PowerShell 
-          # handles the file path string literals correctly in replacement.
           
           Get-ChildItem -Recurse -Filter *.csproj | ForEach-Object {
             $content = Get-Content $_.FullName
-            # Replace relative dots with absolute path
             $content = $content -replace '(\.\.\\)+Last.fm', "$depsPath\Last.fm"
             $content = $content -replace '(\.\.\\)+Parse-LiveQueries-DOTNET', "$depsPath\Parse-LiveQueries-DOTNET"
             $content = $content -replace '(\.\.\\)+atldotnet-main', "$depsPath\atldotnet-main"
             $content = $content -replace '(\.\.\\)+AudioSwitcher-master', "$depsPath\AudioSwitcher-master"
-            
             Set-Content $_.FullName $content -Encoding UTF8
           }
 
@@ -150,8 +166,6 @@ jobs:
         with:
           dotnet-version: 9.0.x
 
-      # Workload caching is unstable on hosted runners, so we just install.
-      # The NuGet cache above (Step 2) will speed up the restore significantly.
       - name: Install MAUI Workloads
         run: dotnet workload install maui-android maui-windows
 
@@ -199,12 +213,10 @@ jobs:
       - name: List Build Files
         shell: pwsh
         run: |
-          Write-Host "--- Checking Android ---"
           Get-ChildItem -Recurse .\RawBuild\Android
-          Write-Host "--- Checking Artifacts ---"
           Get-ChildItem -Recurse .\Artifacts
       
-      # 12. UPLOAD ARTIFACTS TO ACTIONS (History)
+      # 12. UPLOAD ARTIFACTS
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -213,9 +225,7 @@ jobs:
             RawBuild/Android/*.apk
             Artifacts/Dimmer-Windows-Portable-${{ env.NEW_TAG }}.zip
             
-      # ----------------------------------------------------------------
-      # 13. PUSH TAG & RELEASE (Only if builds succeeded)
-      # ----------------------------------------------------------------
+      # 13. PUSH TAG & RELEASE
       - name: Push Tag & Create Release
         uses: softprops/action-gh-release@v1        
         with:
@@ -223,6 +233,7 @@ jobs:
           name: Release ${{ env.NEW_TAG }}
           draft: false
           prerelease: ${{ env.IS_PRE }}
+          body_path: release_notes.md  # <--- Loads the Changelog here
           files: |
             RawBuild/Android/*.apk
             Artifacts/Dimmer-Windows-Portable-${{ env.NEW_TAG }}.zip
@@ -239,14 +250,13 @@ jobs:
           $status = "${{ job.status }}"
           if ($status -eq 'success') { $color = 3066993 } else { $color = 15158332 }
           
-          # Add Pre-release info to Discord message
           $type = "Production Release"
           if ("${{ env.IS_PRE }}" -eq "true") { $type = "Pre-Release" }
 
           $body = @{
             embeds = @(
               @{
-                title = "Dimmer Pre ${type}: ${{ env.NEW_TAG }}"
+                title = "Dimmer ${type}: ${{ env.NEW_TAG }}"
                 description = "Status: $status`nBranch: ${{ github.ref_name }}"
                 color = $color
                 fields = @(
