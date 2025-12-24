@@ -52,6 +52,12 @@
                     HorizontalTextAlignment="Center"
                     Style="{StaticResource BodyTextBlockStyle}"
                     Text="0 Scrobbles" />
+
+                <TextBlock
+                    x:Name="UserTopTrack"
+                    Foreground="LightGray"
+                    HorizontalTextAlignment="Center"
+                    Style="{StaticResource BodyTextBlockStyle}" />
             </StackPanel>
         </Grid>
 
@@ -90,7 +96,7 @@
                         </dgView:TableViewTemplateColumn>
 
 
-                        <dgView:TableViewTemplateColumn Header="Track">
+                        <dgView:TableViewTemplateColumn Width="*" Header="Track">
                             <dgView:TableViewTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <StackPanel>
@@ -112,7 +118,7 @@
                             </dgView:TableViewTemplateColumn.CellTemplate>
                         </dgView:TableViewTemplateColumn>
 
-                        <dgView:TableViewTemplateColumn Header="Artist">
+                        <dgView:TableViewTemplateColumn Width="*" Header="Artist">
                             <dgView:TableViewTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <StackPanel>
@@ -124,7 +130,7 @@
                             </dgView:TableViewTemplateColumn.CellTemplate>
                         </dgView:TableViewTemplateColumn>
 
-                        <dgView:TableViewTemplateColumn Header="Time">
+                        <dgView:TableViewTemplateColumn Width="*" Header="Time">
                             <dgView:TableViewTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <StackPanel>
@@ -168,7 +174,8 @@
                         </dgView:TableViewTemplateColumn>
 
 
-                        <dgView:TableViewTemplateColumn Header="Track">
+                        <dgView:TableViewTemplateColumn Header="Track" 
+                            Width="*">
                             <dgView:TableViewTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <StackPanel>
@@ -189,7 +196,8 @@
                             </dgView:TableViewTemplateColumn.CellTemplate>
                         </dgView:TableViewTemplateColumn>
 
-                        <dgView:TableViewTemplateColumn Header="Artist">
+                        <dgView:TableViewTemplateColumn Header="Artist" 
+                            Width="*">
                             <dgView:TableViewTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <StackPanel>
@@ -201,16 +209,10 @@
                             </dgView:TableViewTemplateColumn.CellTemplate>
                         </dgView:TableViewTemplateColumn>
 
-                        <dgView:TableViewTemplateColumn Header="Time">
-                            <dgView:TableViewTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <StackPanel>
-                                        <TextBlock FontSize="19" Text="{Binding Date, Converter={StaticResource EventDateToTimeAgoConverter}}" />
-
-                                    </StackPanel>
-                                </DataTemplate>
-                            </dgView:TableViewTemplateColumn.CellTemplate>
-                        </dgView:TableViewTemplateColumn>
+                        <dgView:TableViewTextColumn
+                            Width="*"
+                            Binding="{Binding Statistics.PlayCount}"
+                            Header="Times Played" />
                     </dgView:TableView.Columns>
                 </dgView:TableView>
             </PivotItem>

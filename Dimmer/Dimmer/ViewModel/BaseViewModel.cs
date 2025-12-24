@@ -33,6 +33,8 @@ using Realms;
 
 using static Microsoft.Maui.ApplicationModel.Permissions;
 
+
+
 //using MoreLinq;
 //using MoreLinq.Extensions;
 
@@ -470,7 +472,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                             SongPageStatus = $"Page {page} of {TotalSongPages}";
                             CanGoNextSong = page < TotalSongPages;
                             CanGoPrevSong = page > 1;
-                            CurrentSongPage = page; // Sync property
                         });
 
                         var pagedSongs = System.Linq.Enumerable.ToList(
@@ -579,15 +580,21 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     {
                         lastFMCOmpleteLoginBtnVisible = false;
                         LastFMLoginBtnVisible = false;
-
-                        if ((!string.IsNullOrEmpty(lastfmService.AuthenticatedUser)) && usr is not null)
+                        
+                        var lastFMRealm = RealmFactory.GetRealmInstance();
+                        var currentUser = lastFMRealm
+                        .All<UserModel>().FirstOrDefaultNullSafe();
+                        await lastFMRealm.WriteAsync(() =>
                         {
-                            usr.UserName = !string.IsNullOrEmpty(lastfmService.AuthenticatedUser) ?
-                   lastfmService.AuthenticatedUser : "NewUser_" + DateTimeOffset.UtcNow.ToString();
-                            usr.LastFMAccountInfo ??= LastFMUserInfo.ToLastFMUser()!;
+                            if ((!string.IsNullOrEmpty(lastfmService.AuthenticatedUser)) && currentUser is not null)
+                            {
+                                currentUser.UserName ??= !string.IsNullOrEmpty(lastfmService.AuthenticatedUser) ?
+                       lastfmService.AuthenticatedUser : "NewUser_" + DateTimeOffset.UtcNow.ToString();
+                                currentUser.LastFMAccountInfo ??= LastFMUserInfo.ToLastFMUser()!;
 
-                            CurrentUserLocal.Username ??=lastfmService.AuthenticatedUser;
-                        }
+                                CurrentUserLocal.Username ??= lastfmService.AuthenticatedUser;
+                            }
+                        });
                     }
                 })
             .DisposeWith(CompositeDisposables);
@@ -6802,7 +6809,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             
             TopTracks = lastfmService.GetUserTopTracksAsync(),
             TopAlbums = lastfmService.GetTopUserAlbumsAsync(),
-            Loved = lastfmService.GetLovedTracksAsync()
+            Loved = lastfmService.GetLovedTracksAsync(),
+            
         };
 
         await Task.WhenAll(tasks.Recent, tasks.Info, tasks.TopTracks, tasks.TopAlbums, tasks.Loved);
@@ -6835,8 +6843,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             .EnrichWithLocalData(localLibraryLookup, SearchResults)
             .ToObservableCollection();
 
-        // Top Albums 
-        // (Note: Album matching logic is slightly different, usually simpler)
         var topAlbums = await tasks.TopAlbums;
 
         var realm = RealmFactory.GetRealmInstance();
@@ -6844,7 +6850,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
       
         // 4. Run the Pipeline
         CollectionUserTopAlbums = topAlbums
-            .EnrichWithLocalData(allRealmAlbums) // <--- Only pass the Realm Query
+            .EnrichWithLocalData(allRealmAlbums) 
             .ToObservableCollection();
     }
 
@@ -7846,6 +7852,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
     [ObservableProperty]
     public partial string WindowActivationRequestType { get; set; }
+
+    public static string WindowActivationRequestTypeStatic;
     public static string LastFMName = string.Empty;
   
     [RelayCommand]
@@ -7872,8 +7880,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             lastFMCOmpleteLoginBtnVisible = true;
             //IsLastFMNeedsToConfirm = true;
             WindowActivationRequestType = "Confirm LastFM";
+            WindowActivationRequestTypeStatic = "Confirm LastFM";
+
             await Launcher.Default.OpenAsync(new Uri(webUrl));
-       
+           
+
         }
         catch (Exception ex)
         {
@@ -7882,7 +7893,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             return;
         }
     }
+    partial void OnWindowActivationRequestTypeChanging(string oldValue, string newValue)
+    {
+        
 
+    }
     [RelayCommand]
     public async Task CompleteLastFMLoginAsync()
     {
@@ -8326,12 +8341,29 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [RelayCommand]
     public void CopyAllSongsInNowPlayingQueueToMainSearchResult()
     {
-        var latestPL = GetLastPlaylist();
-        if (latestPL is null) return;
-        CurrentTqlQueryUI = latestPL.QueryText;
-        SearchSongForSearchResultHolder(CurrentTqlQueryUI);
-      
-      
+
+        var currentSongIndexInQueue = PlaybackQueue.IndexOf(CurrentPlayingSongView);
+        int totalMatches = PlaybackQueue.Count;
+        TotalSongPages = (int)Math.Ceiling((double)totalMatches / SONG_PAGE_SIZE);
+        if (TotalSongPages == 0) TotalSongPages = 1;
+
+        int currentSongPage = (currentSongIndexInQueue / SONG_PAGE_SIZE) + 1;
+
+        SearchResultsHolder.Edit(updater =>
+        {
+            updater.Clear();
+            updater.AddRange(PlaybackQueue);
+        });
+
+
+
+        RxSchedulers.UI.Schedule(() => {
+            SongPageStatus = $"Page {currentSongPage} of {TotalSongPages}";
+            CanGoNextSong = currentSongPage < TotalSongPages;
+            CanGoPrevSong = currentSongPage > 1;
+            CurrentSongPage = currentSongPage; // Sync property
+        });
+
     }
 
     public PlaylistModelView? GetLastPlaylist()

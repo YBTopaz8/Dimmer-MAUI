@@ -82,7 +82,7 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
     {
         // 1. Get Data from VM
         var user = MyViewModel.CurrentUserLocal?.LastFMAccountInfo; // Assuming this property exists on your VM parity
-
+        
         if (user != null)
         {
             UserNameTxt.Text = user.Name;
