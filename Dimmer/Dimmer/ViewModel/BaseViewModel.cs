@@ -6859,7 +6859,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
  
     [RelayCommand]
-    public async Task LoadUserLastFMDataAsync()
+    public async Task LoadUserLastFMDataAsync(LastFMUserView user)
     {
         if (lastfmService.AuthenticatedUser is null) return;
 
@@ -6874,7 +6874,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             Loved = lastfmService.GetLovedTracksAsync(),
             
         };
-
+        
         await Task.WhenAll(tasks.Recent, tasks.Info, tasks.TopTracks, tasks.TopAlbums, tasks.Loved);
 
         // 2. Build the Lookup ONE time (O(N))

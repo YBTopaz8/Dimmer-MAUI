@@ -19,8 +19,15 @@ public sealed partial class EventDateToTimeAgo : IValueConverter
                 return $"{(int)timeSpan.TotalSeconds} seconds ago";
             if (timeSpan.TotalMinutes < 60)
                 return $"{(int)timeSpan.TotalMinutes} minutes ago";
+            if(timeSpan.TotalHours < 1)
+                return "less than an hour ago";
+            if(timeSpan.TotalHours == 1)
+                return "an hour ago";
+
             if (timeSpan.TotalHours < 24)
                 return $"{(int)timeSpan.TotalHours} hours ago";
+            if(timeSpan.TotalDays == 1)
+                return "yesterday";
             if (timeSpan.TotalDays < 30)
                 return $"{(int)timeSpan.TotalDays} days ago";
             if (timeSpan.TotalDays < 365)

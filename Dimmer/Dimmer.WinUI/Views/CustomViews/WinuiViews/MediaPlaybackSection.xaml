@@ -146,12 +146,13 @@
 
                         <Button Command="{x:Bind MyViewModel.ToggleRepeatModeCommand}" Content="{x:Bind MyViewModel.CurrentRepeatMode, Converter={StaticResource RepeatModeConverter}, Mode=OneWay}" />
                         <Button
-                            x:Name="LastFMBtn"
+                            x:Name="HomeBtn"
                             Background="Transparent"
-                            BorderThickness="3"
-                            Click="LastFMBtn_Click"
-                            Content="LastFM"
-                            CornerRadius="10" />
+                            BorderThickness="0"
+                            Click="HomeBtn_Click"
+                            CornerRadius="10">
+                            <FontIcon FontSize="25" Glyph="&#xE80F;" />
+                        </Button>
 
 
 

@@ -331,4 +331,9 @@ public sealed partial class MediaPlaybackSection : UserControl
 
         }
     }
+
+    private async void HomeBtn_Click(object sender, RoutedEventArgs e)
+    {
+        await MyViewModel.DimmerMultiWindowCoordinator.SnapAllToHomeAsync();
+    }
 }

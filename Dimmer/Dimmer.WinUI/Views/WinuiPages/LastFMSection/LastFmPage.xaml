@@ -26,38 +26,51 @@
                 <SolidColorBrush Color="#FF202020" />
             </Grid.Background>
 
+            <Image
+                Height="250"
+                VerticalAlignment="Top"
+                Opacity="0.1"
+                Stretch="UniformToFill">
+                <Image.Source>
+                    <BitmapImage UriSource="{x:Bind MyViewModel.CurrentUserLocal.LastFMAccountInfo.Image.Url, Mode=OneWay}" />
 
-            <StackPanel
-                HorizontalAlignment="Left"
-                VerticalAlignment="Center"
-                Spacing="4">
-                <Image
+                </Image.Source>
+            </Image>
+
+            <StackPanel Orientation="Horizontal" Spacing="15">
+
+                <PersonPicture
                     x:Name="UserAvatarImg"
                     Width="100"
                     Height="100"
-                    Opacity="0.6"
-                    Stretch="UniformToFill" />
-                <TextBlock
-                    x:Name="UserNameTxt"
-                    FontSize="28"
-                    FontWeight="Bold"
-                    Foreground="White"
-                    HorizontalTextAlignment="Center"
-                    Style="{StaticResource TitleTextBlockStyle}"
-                    Text="Loading..." />
+                    Opacity="0.6" />
+                <StackPanel
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    Spacing="4">
+                    <TextBlock
+                        x:Name="UserNameTxt"
+                        FontSize="28"
+                        FontWeight="Bold"
+                        Foreground="White"
+                        HorizontalTextAlignment="Center"
+                        Style="{StaticResource TitleTextBlockStyle}"
+                        Text="Loading..." />
 
-                <TextBlock
-                    x:Name="TotalScrobblesTxt"
-                    Foreground="LightGray"
-                    HorizontalTextAlignment="Center"
-                    Style="{StaticResource BodyTextBlockStyle}"
-                    Text="0 Scrobbles" />
+                    <TextBlock
+                        x:Name="TotalScrobblesTxt"
+                        Foreground="LightGray"
+                        HorizontalTextAlignment="Center"
+                        Style="{StaticResource BodyTextBlockStyle}"
+                        Text="0 Scrobbles" />
 
-                <TextBlock
-                    x:Name="UserTopTrack"
-                    Foreground="LightGray"
-                    HorizontalTextAlignment="Center"
-                    Style="{StaticResource BodyTextBlockStyle}" />
+                    <TextBlock
+                        x:Name="scrobblingSince"
+                        Foreground="LightGray"
+                        HorizontalTextAlignment="Center"
+                        Style="{StaticResource BodyTextBlockStyle}" />
+                </StackPanel>
+
             </StackPanel>
         </Grid>
 
@@ -123,7 +136,9 @@
                                 <DataTemplate>
                                     <StackPanel>
                                         <TextBlock FontSize="19" Text="{Binding Artist.Name}" />
-                                        <TextBlock FontSize="15" Text="{Binding UserLoved}" />
+                                        <Button FontSize="15" Visibility="{Binding UserLoved, Converter={StaticResource BoolToVis}}">
+                                            <FontIcon Foreground="DarkSlateBlue" Glyph="&#xEB52;" />
+                                        </Button>
 
                                     </StackPanel>
                                 </DataTemplate>
@@ -135,6 +150,11 @@
                                 <DataTemplate>
                                     <StackPanel>
                                         <TextBlock FontSize="19" Text="{Binding Date, Converter={StaticResource EventDateToTimeAgoConverter}}" />
+                                        <TextBlock
+                                            FontSize="12"
+                                            FontStyle="Italic"
+                                            Foreground="Gray"
+                                            Text="{Binding Date}" />
 
                                     </StackPanel>
                                 </DataTemplate>
@@ -174,8 +194,7 @@
                         </dgView:TableViewTemplateColumn>
 
 
-                        <dgView:TableViewTemplateColumn Header="Track" 
-                            Width="*">
+                        <dgView:TableViewTemplateColumn Width="*" Header="Track">
                             <dgView:TableViewTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <StackPanel>
@@ -196,8 +215,7 @@
                             </dgView:TableViewTemplateColumn.CellTemplate>
                         </dgView:TableViewTemplateColumn>
 
-                        <dgView:TableViewTemplateColumn Header="Artist" 
-                            Width="*">
+                        <dgView:TableViewTemplateColumn Width="*" Header="Artist">
                             <dgView:TableViewTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <StackPanel>

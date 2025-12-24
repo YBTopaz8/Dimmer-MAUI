@@ -78,22 +78,26 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
             }
     }
 
+    LastFMUserView? user;
     private async Task LoadUserData()
     {
         // 1. Get Data from VM
-        var user = MyViewModel.CurrentUserLocal?.LastFMAccountInfo; // Assuming this property exists on your VM parity
+        user = MyViewModel.CurrentUserLocal?.LastFMAccountInfo; // Assuming this property exists on your VM parity
         
         if (user != null)
         {
             UserNameTxt.Text = user.Name;
             TotalScrobblesTxt.Text = $"{user.Playcount:N0} Scrobbles";
-
+            scrobblingSince.Text = $"Scrobbling since {user.Registered:dd MMM yyyy}";
             // If user.Image is a string URL:
             if (!string.IsNullOrEmpty(user.Image.Url))
             {
-                UserAvatarImg.Source = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(user.Image.Url));
+                UserAvatarImg.ProfilePicture
+                    = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(user.Image.Url));
+                UserAvatarImg.DisplayName = user.Name;
             }
-            await MyViewModel.LoadUserLastFMDataAsync();
+            await MyViewModel.LoadUserLastFMDataAsync(user);
+
         }
         else
         {
