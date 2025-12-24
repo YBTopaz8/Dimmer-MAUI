@@ -460,11 +460,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                                 desc => $"{desc.PropertyName} {(desc.Direction == SortDirection.Ascending ? "asc" : "desc")}"));
                             query = query.OrderBy(orderByString);
                         }
-                        else
-                        {
-                            // Default sort is required for Paging to be stable
-                            query = query.OrderBy(x => x.Title);
-                        }
+                        
 
                         int totalMatches = query.Count();
                         TotalSongPages = (int)Math.Ceiling((double)totalMatches / SONG_PAGE_SIZE);
@@ -753,11 +749,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 searchText.StartsWith("with ", StringComparison.OrdinalIgnoreCase)) &&
             !string.IsNullOrWhiteSpace(searchText))
         {
-            CurrentTqlQuery = $"{searchText} {processedNewText}";
+            CurrentTqlQueryUI = $"{searchText} {processedNewText}";
         }
         else
         {
-            CurrentTqlQuery = processedNewText;
+            //CurrentTqlQuery = processedNewText;
         }
 
         
@@ -2239,7 +2235,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             var cleanArtist = TaggingUtils.CleanArtist(song.FilePath, song.ArtistName, song.Title);
 
             var lastfmTrack = await lastfmService.GetTrackInfoAsync(cleanArtist.First(), cleanTitle);
-            if (!lastfmTrack.IsNull)
+            if (lastfmTrack is not null && !lastfmTrack.IsNull)
             {
                 if (lastfmTrack.Album is not null && lastfmTrack.Album?.Images is not null)
                 {

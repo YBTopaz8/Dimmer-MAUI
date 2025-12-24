@@ -193,7 +193,7 @@
                     <dgView:TableView.Columns>
 
                         <!--  Column for the Cover Art  -->
-                        <dgView:TableViewTemplateColumn x:Name="ImgCol" Header="Cover">
+                        <dgView:TableViewTemplateColumn x:Name="ImgCol" Width="75">
                             <dgView:TableViewTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Border
@@ -202,14 +202,17 @@
                                         AllowFocusOnInteraction="False"
                                         Background="Transparent"
                                         BorderThickness="1"
-                                        CornerRadius="12"
+                                        CornerRadius="5"
                                         DoubleTapped="CardBorder_DoubleTapped"
                                         IsDoubleTapEnabled="True"
                                         IsHitTestVisible="True"
                                         Loaded="CardBorder_Loaded"
                                         PointerEntered="CardBorder_PointerEntered"
                                         PointerExited="CardBorder_PointerExited">
-                                        <Grid x:Name="CoverImageGrid" PointerReleased="CardBorder_PointerReleased">
+                                        <Grid
+                                            x:Name="CoverImageGrid"
+                                            HorizontalAlignment="Left"
+                                            PointerReleased="CardBorder_PointerReleased">
 
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="auto" />
@@ -222,10 +225,10 @@
                                             <StackPanel
                                                 Grid.Row="0"
                                                 Margin="0,0,0,5"
-                                                HorizontalAlignment="Center"
+                                                HorizontalAlignment="Left"
                                                 VerticalAlignment="Bottom"
                                                 Orientation="Horizontal"
-                                                Spacing="15">
+                                                Spacing="5">
 
 
 
@@ -251,7 +254,8 @@
                                             <Image
                                                 x:Name="coverArtImage"
                                                 Grid.Row="1"
-                                                Width="50"
+                                                Width="55"
+                                                HorizontalAlignment="Left"
                                                 x:FieldModifier="Public"
                                                 PointerPressed="coverArtImage_PointerPressed"
                                                 RightTapped="coverArtImage_RightTapped"
@@ -261,7 +265,7 @@
                                             <StackPanel
                                                 x:Name="ExtraPanel"
                                                 Grid.Row="1"
-                                                HorizontalAlignment="Right"
+                                                HorizontalAlignment="Left"
                                                 VerticalAlignment="Bottom"
                                                 Loaded="ExtraPanel_Loaded"
                                                 Opacity="0"
@@ -293,7 +297,7 @@
                                                     PointerExited="ButtonHover_PointerExited" />
                                             </StackPanel>
 
-                                            <StackPanel Grid.Row="2" HorizontalAlignment="Center">
+                                            <StackPanel Grid.Row="2" HorizontalAlignment="Left">
                                                 <TextBlock Text="{Binding FileFormat}" />
                                             </StackPanel>
                                         </Grid>
@@ -307,14 +311,15 @@
                         <dgView:TableViewTemplateColumn
                             x:Name="Title"
                             Width="*"
-                            Header="Title"
                             IsReadOnly="True"
                             ToolTipService.Placement="Mouse"
                             ToolTipService.ToolTip="{x:Bind MyViewModel.CurrentPlayingSongView.Title}">
                             <dgView:TableViewTemplateColumn.CellTemplate>
                                 <DataTemplate>
 
-                                    <StackPanel>
+                                    <StackPanel 
+                                        x:Name="TitleColumn"
+                                        PointerPressed="TitleColumn_PointerPressed">
 
                                         <Button Background="Transparent" BorderThickness="0">
                                             <TextBlock Text="{Binding Title}" TextWrapping="WrapWholeWords" />
@@ -414,16 +419,16 @@
                     PointerExited="SidePanel_PointerExited"
                     Spacing="10"
                     Visibility="{x:Bind MyViewModel.SelectedSong, Mode=OneWay, Converter={StaticResource IsObjNullToVisInverseConverter}}">
-                    <Button
-                        x:Name="ClosePanel"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Top"
-                        Background="Transparent"
-                        Canvas.ZIndex="1"
-                        Click="ClosePanel_Click"
-                        Content="X" />
-                    <Grid>
 
+                    <Grid>
+                        <Button
+                            x:Name="ClosePanel"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Top"
+                            Background="Transparent"
+                            Canvas.ZIndex="1"
+                            Click="ClosePanel_Click"
+                            Content="X" />
                         <Image
                             x:Name="SelectedSongImg"
                             Canvas.ZIndex="0"

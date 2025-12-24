@@ -196,6 +196,8 @@ public sealed partial class DimmerWin : Window
 
     }
 
+    
+
     private async void CurrentPositionSlider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
     {
         var slider = (Slider)sender;

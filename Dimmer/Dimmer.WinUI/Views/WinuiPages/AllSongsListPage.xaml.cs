@@ -2114,4 +2114,19 @@ true
         ClosePanel.Visibility = Visibility.Collapsed;
 
     }
+
+    private void TitleColumn_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        var send = (FrameworkElement)sender;
+        var song = send.DataContext as SongModelView;
+
+        if (song != null)
+        {
+            if (song.TitleDurationKey != MyViewModel.SelectedSong?.TitleDurationKey)
+            {
+                MyViewModel.SelectedSong = song;
+            }
+
+        }
+    }
 }
