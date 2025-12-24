@@ -174,7 +174,7 @@ public class ExoPlayerService : MediaSessionService
         return audioManager.GetStreamMaxVolume(Android.Media.Stream.Music);
         
     }
-    public AudioOutputDevice GetCurrentAudioOutputDevice()
+    public static AudioOutputDevice GetCurrentAudioOutputDevice()
     {
         var audioManager = Platform.AppContext.GetSystemService(AudioService) as AudioManager;
         var devices = audioManager?
@@ -186,9 +186,11 @@ public class ExoPlayerService : MediaSessionService
             return new AudioOutputDevice
             {
                 Id = currentDevice.Id.ToString(),
-                Name = currentDevice.ProductNameFormatted?.ToString() ?? currentDevice.Type.ToString(),
+                ProductName = currentDevice.ProductNameFormatted?.ToString() ?? currentDevice.Type.ToString(),
+                Name = currentDevice.ProductName,
                 Type = currentDevice.Type.ToString(),
                 IsSource = currentDevice.IsSource
+                
             };
         }
         return new AudioOutputDevice

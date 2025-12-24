@@ -621,9 +621,48 @@ public static class DimmerMappers
         return dest;
     }
 
-    // ==============================================================================
-    // 📜 EVENTS & OTHERS
-    // ==============================================================================
+    public static AudioOutputDevice? ToAudioOutputDeviceModelView(this AudioOutputDeviceModel? src)
+    {
+        if (src is null) return null;
+        return new AudioOutputDevice
+        {
+            Id= src.Id,
+            Type= src.Type,
+            ProductName= src.ProductName,
+            IsSource= src.IsSource,
+            Name= src.Name,
+            IsDefaultDevice= src.IsDefaultDevice,
+            IsDefaultCommunicationsDevice= src.IsDefaultCommunicationsDevice,
+            IsMuted= src.IsMuted,
+            State= src.State,
+            IconString= src.IconString,
+            IsPlaybackDevice= src.IsPlaybackDevice,
+            Volume= src.Volume,
+            
+        };
+    }
+
+    public static AudioOutputDeviceModel? ToAudioOutputDevice(this AudioOutputDevice? src)
+    {
+        if (src is null) return null;
+        return new AudioOutputDeviceModel
+        {
+            Id= src.Id,
+            Type= src.Type,
+            ProductName= src.ProductName,
+            IsSource= src.IsSource,
+            Name= src.Name,
+            IsDefaultDevice= src.IsDefaultDevice,
+            IsDefaultCommunicationsDevice= src.IsDefaultCommunicationsDevice,
+            IsMuted= src.IsMuted,
+            State= src.State,
+            IconString= src.IconString,
+            IsPlaybackDevice= src.IsPlaybackDevice,
+            Volume= src.Volume,
+            
+        };
+    }
+
 
     public static DimmerPlayEventView? ToDimmerPlayEventView(this DimmerPlayEvent? src)
     {
@@ -644,6 +683,7 @@ public static class DimmerMappers
             DeviceModel = src.DeviceModel,
             DeviceManufacturer = src.DeviceManufacturer,
             DeviceVersion = src.DeviceVersion,
+            AudioPlaybackDevice = src.AudioOutputDevice.ToAudioOutputDeviceModelView()
             // IsNewOrModified -> Ignored
         };
 
@@ -821,6 +861,8 @@ public static class DimmerMappers
             Image = src.Images.LastOrDefault().ToLastImage()
         };
     }
+
+
 
     public static LastImageView? ToLastImageView(this LastImage? src)
     {
