@@ -69,8 +69,11 @@
                         Foreground="LightGray"
                         HorizontalTextAlignment="Center"
                         Style="{StaticResource BodyTextBlockStyle}" />
-                </StackPanel>
 
+                    <CheckBox Content="Auto-Scrobble"
+                              
+                              IsChecked="{x:Bind MyViewModel.ScrobbleToLastFM, Mode=OneWay}" />
+                </StackPanel>
             </StackPanel>
         </Grid>
 

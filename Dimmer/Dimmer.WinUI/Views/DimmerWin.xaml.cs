@@ -125,7 +125,7 @@ public sealed partial class DimmerWin : Window
 
     private async void coverImageSong_Loaded(object sender, RoutedEventArgs e)
     {
-        MyViewModel.CoverImageSong = coverImageSong;
+        //MyViewModel.CoverImageSong = coverImageSong;
 
 
     }

@@ -1205,7 +1205,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 CurrentTrackPositionSeconds = appModel.LastKnownPosition;
                 DeviceVolumeLevel = appModel.VolumeLevelPreference;
                 IsDarkModeOn = appModel.IsDarkModePreference;
-
+                ScrobbleToLastFM = appModel.ScrobbleToLastFM;
                 // --- REPLACED: Logic to load the last played song ---
                 if (!string.IsNullOrEmpty(appModel.CurrentSongId) &&
                     ObjectId.TryParse(appModel.CurrentSongId, out var songId))
@@ -1270,6 +1270,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     RepeatModePreference = (int)CurrentRepeatMode,
                     ShuffleStatePreference = IsShuffleActive,
                     IsStickToTop = IsStickToTop,
+                    ScrobbleToLastFM= true,
                     CurrentTheme = Application.Current?.UserAppTheme.ToString() ?? "Unspecified",
                     CurrentLanguage = CultureInfo.CurrentCulture.TwoLetterISOLanguageName,
                     CurrentCountry = RegionInfo.CurrentRegion.TwoLetterISORegionName,
@@ -1329,6 +1330,24 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     {
         
     }
+
+    [RelayCommand]
+    public void ToggleLastFMScrobbling(bool isOn)
+    {
+        ScrobbleToLastFM = isOn;
+        var realmm = RealmFactory.GetRealmInstance();
+        var appModel = realmm.All<AppStateModel>().FirstOrDefaultNullSafe();
+        if(appModel != null)
+        {
+            realmm.Write(
+                () =>
+                {
+                    appModel.ScrobbleToLastFM = isOn;
+                });
+            realmm.Add(appModel, true);
+        }
+    }
+
     public virtual CurrentAppTheme GetCurrentAppTheme()
     {
         return CurrentTheme;
@@ -7262,6 +7281,13 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     [ObservableProperty]
     public partial bool IsDarkModeOn { get; set; }
+
+    [ObservableProperty]
+    public partial bool ScrobbleToLastFM { get; set; }
+    partial void OnScrobbleToLastFMChanging(bool oldValue, bool newValue)
+    {
+        ToggleLastFMScrobbling(newValue);
+    }
 
     public ObservableCollection<string> QueryChips { get; } = new();
 

@@ -319,7 +319,11 @@
 
                                     <StackPanel x:Name="TitleColumn" PointerPressed="TitleColumn_PointerPressed">
 
-                                        <Button Background="Transparent" BorderThickness="0">
+                                        <Button
+                                            x:Name="SongTitle"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Click="SongTitle_Click">
                                             <TextBlock Text="{Binding Title}" TextWrapping="WrapWholeWords" />
                                         </Button>
                                         <Grid>
@@ -430,6 +434,7 @@
                         <Image
                             x:Name="SelectedSongImg"
                             Canvas.ZIndex="0"
+                            PointerPressed="SelectedSongImg_PointerPressed"
                             Visibility="Visible">
                             <Image.Source>
                                 <BitmapImage UriSource="{x:Bind MyViewModel.SelectedSong.CoverImagePath, Mode=OneWay}" />

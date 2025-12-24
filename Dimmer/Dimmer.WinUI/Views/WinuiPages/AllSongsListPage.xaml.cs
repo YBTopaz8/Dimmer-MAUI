@@ -1293,4 +1293,14 @@ true
 
         }
     }
+
+    private void SongTitle_Click(object sender, RoutedEventArgs e)
+    {
+        ViewSongBtn_Click(sender, e);
+    }
+
+    private void SelectedSongImg_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        ViewSongBtn_Click(sender, e);
+    }
 }

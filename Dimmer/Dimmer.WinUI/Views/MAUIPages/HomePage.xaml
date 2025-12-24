@@ -54,7 +54,7 @@
                 Aspect="AspectFit"
                 BackgroundColor="Transparent"
                 HorizontalOptions="Center"
-                Opacity="0.10"
+                Opacity="0.20"
                 Source="{Binding CurrentPlayingSongView.CoverImagePath, Converter={converters:PathToImageConverter}}"
                 ToolTipProperties.Text="Click to view song details"
                 VerticalOptions="Center" />
