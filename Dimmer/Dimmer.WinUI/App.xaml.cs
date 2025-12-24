@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Reactive.Concurrency;
 
 using Dimmer.Utilities.Extensions;
 using Dimmer.Utils;
@@ -122,7 +123,7 @@ public partial class App : MauiWinUIApplication
         }
     }
 
-
+    public static SynchronizationContext MainSyncContext { get; private set; }
     // A thread-safe collection to gather file paths from multiple, rapid activations.
     private readonly ConcurrentQueue<string> _activatedFilePaths = new();
 
@@ -132,7 +133,11 @@ public partial class App : MauiWinUIApplication
     protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
     {
         base.OnLaunched(args);
-        
+        MainSyncContext = SynchronizationContext.Current;
+
+
+
+        Dimmer.WinUI.Utils.StaticUtils.UiThreads.EnsureInitialized();
     }
     //protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
     //{

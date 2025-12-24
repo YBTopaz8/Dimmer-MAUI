@@ -306,7 +306,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
             e.PropertyName == nameof(MyViewModel.CanGoNextSong) ||
             e.PropertyName == nameof(MyViewModel.CanGoPrevSong))
         {
-            RxSchedulers.UI.Schedule(()=>UpdatePagerState());
+            RxSchedulers.UI.ScheduleToUI(()=>UpdatePagerState());
         }
     }
     private void UpdatePagerState()

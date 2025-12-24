@@ -158,15 +158,14 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
     {
         if (callerVM == null) return null;
 
-        
+        T targetWindow = null;
 
         if (_trackedUniqueTypedWindows.TryGetValue(typeof(T), out var existingGenericWindow) && existingGenericWindow is T existingTypedWindow)
         {
-            
             if (IsWindowOpen(existingTypedWindow))
             {
                 BringToFront(existingTypedWindow);
-                return existingTypedWindow;
+                targetWindow = existingTypedWindow;
             }
             else
             {
@@ -174,22 +173,13 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
                 UntrackWindow(existingGenericWindow);
             }
         }
-
-        windowFactory ??= () => Activator.CreateInstance<T>();
-        T newWindow = windowFactory();
-
-        var typeOfWindow = typeof(T);
-        if (typeOfWindow == typeof(DimmerWin))
+        if (targetWindow == null)
         {
-            var dimmer = newWindow as DimmerWin;
-            if (dimmer is not null)
-            {
-                UiThreads.InitializeWinUIDispatcher(dimmer.DispatcherQueue);
-                dimmer?.LoadWindowAndPassVM(callerVM);
-                PlatUtils.MoveAndResizeCenter(dimmer!, new Windows.Graphics.SizeInt32() { Height = 800, Width = 1200 });
-            }
+            windowFactory ??= () => Activator.CreateInstance<T>();
+           
         }
-
+      
+            T newWindow = windowFactory();
 
         void OnNewWindowClosed(object sender, WindowEventArgs args)
         {

@@ -13,6 +13,7 @@ using AudioSwitcher.AudioApi;
 using Dimmer.Data.Models;
 using Dimmer.Data.ModelView;
 using Dimmer.DimmerLive.ParseStatics;
+using Dimmer.DimmerSearch.TQL.RealmSection;
 using Dimmer.Hoarder;
 using Dimmer.Interfaces;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
@@ -269,6 +270,25 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     
     private bool _isPipelineActive = false;
+
+
+    private class SearchResult
+    {
+        public List<SongModelView> PagedSongs { get; set; } = new();
+        public int TotalPages { get; set; } = 1;
+        public int CurrentPage { get; set; } = 1;
+        public RealmQueryPlan Plan { get; set; }
+        public string ErrorMessage { get; set; }
+    }
+
+
+
+
+
+
+
+
+
     private void UpdatePageStatus()
     {
         PageStatusString = $"Page {CurrentPager} of {TotalPages}";
@@ -430,105 +450,147 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         var pageStream = _songPageSubject
     .Select(page => new { Query = _searchQuerySubject.Value, Page = page });
 
+
         Observable.Merge(searchStream, pageStream)
+    .Throttle(TimeSpan.FromMilliseconds(300), RxSchedulers.Background) // Ensure we don't spam
     .Select(inputs =>
     {
-        // --- DEBUG STEP 2: Is the query being processed? ---
-        Debug.WriteLine($"[DEBUG] Rx Pipeline: Processing query text: '{inputs.Query}'");
+        // 1. NLP Parsing (Lightweight)
+        Debug.WriteLine($"[DEBUG] Processing: '{inputs.Query}'");
+        var tqlQuery = string.IsNullOrWhiteSpace(inputs.Query) ? "" : NaturalLanguageProcessor.Process(inputs.Query);
+        var plan = MetaParser.Parse(tqlQuery);
+        return (Inputs: inputs, Plan: plan);
+    })
+    .ObserveOn(RxSchedulers.Background) // Explicitly move to Background for DB work
+    .Select(payload =>
+    {
 
-                    var tqlQuery = string.IsNullOrWhiteSpace(inputs.Query) ? "" : NaturalLanguageProcessor.Process(inputs.Query);
-            var plan = MetaParser.Parse(tqlQuery);
-            return (Inputs: inputs, Plan: plan);
-        })
-            .SubscribeOn(RxSchedulers.Background)
-            .ObserveOn(RxSchedulers.UI)
-            .Subscribe(
-                payload =>
-                {
-                    var plan = payload.Plan;
-                    var page = payload.Inputs.Page;
-                    if (plan.ErrorMessage != null) return;
+        DimmerSearch.TQL.RealmSection.RealmQueryPlan? plan = payload.Plan;
+        var page = payload.Inputs.Page;
 
-                    try
-                    {
-                        using var realm = RealmFactory.GetRealmInstance();
+        // Validation
+        if (plan.ErrorMessage != null)
+        {
+            return new SearchResult { ErrorMessage = plan.ErrorMessage, Plan = plan };
+        }
 
-                        // 2. Build Query (Filter & Sort)
-                        IQueryable<SongModel> query = realm.All<SongModel>().Filter(plan.RqlFilter);
+        try
+        {
+            using var realm = RealmFactory.GetRealmInstance();
 
-                        if (plan.SortDescriptions.Count > 0)
-                        {
-                            var orderByString = string.Join(", ", plan.SortDescriptions.Select(
-                                desc => $"{desc.PropertyName} {(desc.Direction == SortDirection.Ascending ? "asc" : "desc")}"));
-                            query = query.OrderBy(orderByString);
-                        }
-                        
+            // A. Realm Filter (Fast, DB level)
+            var query = realm.All<SongModel>().Filter(plan.RqlFilter);
 
-                        int totalMatches = query.Count();
-                        TotalSongPages = (int)Math.Ceiling((double)totalMatches / SONG_PAGE_SIZE);
-                        if (TotalSongPages == 0) TotalSongPages = 1;
+            // B. Realm Sort (Fast, DB level)
+            if (plan.SortDescriptions.Count > 0)
+            {
+                var orderByString = string.Join(", ", plan.SortDescriptions.Select(
+                    desc => $"{desc.PropertyName} {(desc.Direction == SortDirection.Ascending ? "asc" : "desc")}"));
+                query = query.OrderBy(orderByString);
+            }
 
-                        RxSchedulers.UI.Schedule(() => {
-                            SongPageStatus = $"Page {page} of {TotalSongPages}";
-                            CanGoNextSong = page < TotalSongPages;
-                            CanGoPrevSong = page > 1;
-                        });
-
-                        var pagedSongs = System.Linq.Enumerable.ToList(
-            System.Linq.Enumerable.Take(
-                System.Linq.Enumerable.Skip(
-                    System.Linq.Enumerable.Where(
-                        System.Linq.Enumerable.Select(
-                            query.AsEnumerable(), // Stream from DB
-                            x => x.ToSongModelView() // Lazy Convert to ViewModel
-                        ),
-                        plan.InMemoryPredicate // Now checking ViewModel (Types match!)
-                    ),
-                    (page - 1) * SONG_PAGE_SIZE // Skip
-                ),
-                SONG_PAGE_SIZE // Take
-            )
-        );
-
-                        // 5. Update UI List
-                        SearchResultsHolder.Edit(updater =>
-                        {
-                            updater.Clear();
-                            updater.AddRange(pagedSongs);
-                        });
-                        if (plan.CommandNode is not null)
-                        {
-                            var commandAction = commandEvaluator.Evaluate(plan.CommandNode, pagedSongs);
-                           
-                             RxSchedulers.UI.Schedule(
-                                () =>
-                                {
-                                    HandleCommandAction(commandAction);
-                                });
-                            RxSchedulers.UI.Schedule(() =>
+            var memoryFilteredList = query.AsEnumerable()
+                            .Where(model =>
                             {
+                                // Check if we need to filter at all
+                                if (plan.InMemoryPredicate == null) return true;
 
-                                if (CurrentTqlQuery != NLPQuery)
-                                {
-                                    CurrentTqlQuery = NLPQuery;
-                                }
-                            });
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Failed to execute Realm query.");
-                        TQLUserSearchErrorMessage = "Error executing query. Check syntax.";
-                        // --- DEBUG STEP 8: Did an exception happen during the query? ---
-                        Debug.WriteLine($"[DEBUG] EXCEPTION during Realm query execution: {ex.Message}");
-                    }
-                },
-                ex =>
-                {
-                    _logger.LogError(ex, "FATAL: Search control pipeline has crashed.");
-                    Debug.WriteLine($"[DEBUG] FATAL RX EXCEPTION: {ex.Message}");
-                })
-            .DisposeWith(CompositeDisposables);
+                                return plan.InMemoryPredicate(model.ToSongModelView());
+                            })
+                            .ToList();
+            if (plan.Shuffle != null)
+            {
+                var rng = new Random();
+                memoryFilteredList = memoryFilteredList.OrderBy(_ => rng.Next()).ToList();
+            }
+
+
+            // D. Calculate Counts (On the ALREADY FILTERED data)
+            int totalMatches = memoryFilteredList.Count;
+            int totalPages = (int)Math.Ceiling((double)totalMatches / SONG_PAGE_SIZE);
+            if (totalPages == 0) totalPages = 1;
+
+            // Ensure page bounds
+            if (page > totalPages) page = totalPages;
+            if (page < 1) page = 1;
+
+            // E. Pagination & Conversion (Only convert the 20 items we need)
+            var pagedSongs = memoryFilteredList
+                .Skip((page - 1) * SONG_PAGE_SIZE)
+                .Take(SONG_PAGE_SIZE)
+                .Select(x => x.ToSongModelView()) // Map to ViewModel here
+                .ToList();
+
+            return new SearchResult
+            {
+                PagedSongs = pagedSongs,
+                TotalPages = totalPages,
+                CurrentPage = page,
+                Plan = plan
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Search Pipeline Error");
+            return new SearchResult { ErrorMessage = "Error executing query.", Plan = plan };
+        }
+    })
+    .ObserveOn(RxSchedulers.UI) 
+
+    .Subscribe(result =>
+    {
+
+        if (!string.IsNullOrEmpty(result.ErrorMessage) || result.Plan.ErrorMessage != null)
+        {
+            TQLUserSearchErrorMessage = result.ErrorMessage ?? result.Plan.ErrorMessage;
+            SearchResultsHolder.Edit(u => u.Clear()); // Clear list on error
+            return;
+        }
+
+
+        SearchResultsHolder.Edit(updater =>
+        {
+            updater.Clear();
+            updater.AddRange(result.PagedSongs);
+        });
+
+        // 2. Update Status Text
+        TotalSongPages = result.TotalPages;
+        SongPageStatus = $"Page {result.CurrentPage} of {result.TotalPages}";
+        CanGoNextSong = result.CurrentPage < result.TotalPages;
+        CanGoPrevSong = result.CurrentPage > 1;
+
+        // 3. Update NLP Text Debugger
+        if (CurrentTqlQuery != NLPQuery)
+        {
+            CurrentTqlQuery = NLPQuery;
+        }
+
+        // 4. Handle Post-Search Commands (Play, Add to Queue, etc)
+        if (result.Plan.CommandNode is not null)
+        {
+            try
+            {
+                // Note: Ensure CommandEvaluator can handle ViewModels, 
+                // or you might need to re-fetch specific IDs if it needs Realm objects.
+                var commandAction = commandEvaluator.Evaluate(result.Plan.CommandNode, result.PagedSongs);
+                HandleCommandAction(commandAction);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Command Execution Failed: {ex.Message}");
+            }
+        }
+    },
+    ex =>
+    {
+        // Fatal Pipeline Error
+        _logger.LogError(ex, "FATAL: Search pipeline crashed.");
+        Debug.WriteLine($"[DEBUG] FATAL RX EXCEPTION: {ex}");
+    })
+    .DisposeWith(CompositeDisposables);
+
+
 
         Debug.WriteLine($"{DateTime.Now}: Search query subscription set up.");
 
@@ -1218,7 +1280,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                         try
                         {
                             var safeSongView = lastSong.ToSongView();
-                            RxSchedulers.UI.Schedule(() =>
+                            RxSchedulers.UI.ScheduleToUI(() =>
                             {
 
                                 CurrentPlayingSongView = safeSongView;
@@ -1236,7 +1298,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     else
                     {
                     }
-                    RxSchedulers.UI.Schedule(() =>
+                    RxSchedulers.UI.ScheduleToUI(() =>
                     {
 
                         //CurrentTrackPositionSeconds = lastAppEvent.PositionInSeconds;
@@ -1972,7 +2034,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             if (addedNote != null)
             {
-                RxSchedulers.UI.Schedule(()=> songObject.UserNoteAggregatedCol.Add(new
+                RxSchedulers.UI.ScheduleToUI(()=> songObject.UserNoteAggregatedCol.Add(new
                     UserNoteModelView() { UserMessageText=uNote}));
 
                 _logger.LogInformation("Successfully added user note for song: {SongTitle}", songObject.Title);
@@ -2321,7 +2383,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             if (song.CoverImagePath != finalImagePath)
             {
-                RxSchedulers.UI.Schedule(()=> CurrentCoverImagePath = finalImagePath);
+                RxSchedulers.UI.ScheduleToUI(()=> CurrentCoverImagePath = finalImagePath);
                 Debug.WriteLine($"Count is {counterr}");
                 _stateService.SetCurrentLogMsg(new AppLogModel()
                 {
@@ -2394,7 +2456,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
                         if (current % 10 == 0 || current == totalCount)
                         {
-                            RxSchedulers.UI.Schedule(() =>
+                            RxSchedulers.UI.ScheduleToUI(() =>
                             {
                                 _stateService.SetCurrentLogMsg(new AppLogModel()
                                 {
@@ -2771,7 +2833,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 if (song is null) continue;
 
                 var songView = song.ToSongView();
-                RxSchedulers.UI.Schedule(() =>
+                RxSchedulers.UI.ScheduleToUI(() =>
                 {
                     PlaybackQueueSource.Add(songView);
                 });
@@ -4141,7 +4203,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     private void SetLatestDeviceLog(AppLogModel model)
     {
 
-        RxSchedulers.UI.Schedule(() =>
+        RxSchedulers.UI.ScheduleToUI(() =>
         {
             LatestAppLog = model;
             LatestScanningLog = model.Log;
@@ -4388,7 +4450,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     _logger.LogInformation(
                         "No songs found that require artist linking. Database is already up-to-date!");
 
-                    RxSchedulers.UI.Schedule(
+                    RxSchedulers.UI.ScheduleToUI(
                         async () =>
                         {
                             await Shell.Current
@@ -4472,7 +4534,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     stopwatch.ElapsedMilliseconds);
 
 
-                RxSchedulers.UI.Schedule(
+                RxSchedulers.UI.ScheduleToUI(
                     async () =>
                     {
                         await Shell.Current
@@ -4855,7 +4917,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             concernedSong.NumberOfTimesFaved = 0;
             var updated = await Task.Run(() => songRepo.Upsert(concernedSong.ToSongModel()).ToSongModelView());
             if (updated is not null)
-                RxSchedulers.UI.Schedule(() => concernedSong = updated);
+                RxSchedulers.UI.ScheduleToUI(() => concernedSong = updated);
             await lastfmService.UnloveTrackAsync(concernedSong);
             
 
@@ -4898,7 +4960,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             // persist Realm update off-UI thread
             var updated = await Task.Run(() => songRepo.Upsert(songModel.ToSongModel()).ToSongModelView());
             if (updated is not null)
-                RxSchedulers.UI.Schedule(() => songModel =updated);
+                RxSchedulers.UI.ScheduleToUI(() => songModel =updated);
 
 
             // network side effect only once per manual first love
@@ -8357,7 +8419,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
 
 
-        RxSchedulers.UI.Schedule(() => {
+        RxSchedulers.UI.ScheduleToUI(() => {
             SongPageStatus = $"Page {currentSongPage} of {TotalSongPages}";
             CanGoNextSong = currentSongPage < TotalSongPages;
             CanGoPrevSong = currentSongPage > 1;

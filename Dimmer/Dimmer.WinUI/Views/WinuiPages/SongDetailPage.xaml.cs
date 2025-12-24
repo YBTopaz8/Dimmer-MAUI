@@ -811,7 +811,7 @@ public sealed partial class SongDetailPage : Page
 
         if ((dbSong.ArtistToSong.Count <1 || dbSong.Artist is null) && dbSong.ArtistName is not null)
         {
-            RxSchedulers.Background.Schedule(async () =>
+            RxSchedulers.Background.ScheduleToUI(async () =>
             {
                 var ArtistsInSong = MyViewModel.SelectedSong.OtherArtistsName.
                 Split(",").ToList();

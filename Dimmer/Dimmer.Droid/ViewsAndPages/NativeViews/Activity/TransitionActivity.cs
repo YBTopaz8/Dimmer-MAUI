@@ -685,7 +685,7 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
                 System.Diagnostics.Debug.WriteLine($"Voice Search Query Received: '{searchQuery}'");
 
 
-                RxSchedulers.UI.Schedule(() =>
+                RxSchedulers.UI.ScheduleToUI(() =>
                 {
                     Intent mainActivityIntent = new Intent(this, typeof(TransitionActivity)); // <<< YOUR MAIN ACTIVITY
                     mainActivityIntent.AddFlags(ActivityFlags.NewTask | ActivityFlags.ClearTop);
