@@ -19,11 +19,6 @@ public sealed partial class SettingsPage : Page
         InitializeComponent();
     }
 
-
-    private readonly Microsoft.UI.Composition.Compositor _compositor;
-    private readonly SongTransitionAnimation _userPrefAnim;
-    private SongModelView? _storedSong;
-
     SettingsViewModel? MyViewModel { get; set; }
 
     string CurrentPageTQL = string.Empty;
@@ -41,11 +36,6 @@ public sealed partial class SettingsPage : Page
             this.DataContext = baseVM;
         }
 
-    }
-
-    private void Finish_Click(object sender, RoutedEventArgs e)
-    {
-        
     }
 
     private void NextButton_Click(object sender, RoutedEventArgs e)
@@ -119,30 +109,6 @@ public sealed partial class SettingsPage : Page
         MyViewModel?.AddMusicFolderViaPickerAsync();
     }
 
-    private void DeletePathBtn_Click(object sender, RoutedEventArgs e)
-    {
-        Button btn = (Button)sender;
-        var folderPath = ((Button)sender).DataContext as string;
-        if (folderPath is null) return;
-
-        MyViewModel?.DeleteFolderPathCommand.Execute(folderPath);
-    }
-
-    private void ChangePathBtn_Click(object sender, RoutedEventArgs e)
-    {
-        
-    }
-
-    private void FolderPathView_Loaded(object sender, RoutedEventArgs e)
-    {
-        
-        //if (MyViewModel?.FolderPaths.Count==0)
-        //{
-        //    FolderPathView.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
-        //}
-        
-    }
-
     private void LogoutLastFM_Click(object sender, RoutedEventArgs e)
     {
         MyViewModel?.LogoutFromLastfmCommand.Execute(null);
@@ -177,21 +143,6 @@ public sealed partial class SettingsPage : Page
 
         MiniLyricsExpander.IsExpanded = !MiniLyricsExpander.IsExpanded;
         MyViewModel?.ToggleIsMiniLyricsViewEnableCommand.Execute(send.IsChecked);
-    }
-    private void SetPreferredMiniLyricsViewPosition_Click(object sender, RoutedEventArgs e)
-    {
-       
-    }
-
-    private void PreferredPosition_TopRight_Click(object sender, RoutedEventArgs e)
-    {
-        RadioMenuFlyoutItem send = (RadioMenuFlyoutItem)sender;
-
-    }
-
-    private void TopLeftPosition_Click(object sender, RoutedEventArgs e)
-    {
-
     }
 
     private void PositionChange_Click(object sender, RoutedEventArgs e)

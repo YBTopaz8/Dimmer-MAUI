@@ -44,7 +44,6 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
         _compositor = ElementCompositionPreview.GetElementVisual(this).Compositor;
     }
 
-    private SongTransitionAnimation _userPrefAnim = SongTransitionAnimation.Spring;
     private readonly Compositor _compositor;
     protected async override void OnNavigatedTo(NavigationEventArgs e)
     {

@@ -17,10 +17,6 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 {
 
     public readonly IMauiWindowManagerService windowManager;
-    private readonly IRepository<SongModel> songRepository;
-    private readonly IRepository<ArtistModel> artistRepository;
-    private readonly IRepository<AlbumModel> albumRepository;
-    private readonly IRepository<GenreModel> genreRepository;
     public readonly IWinUIWindowMgrService winUIWindowMgrService;
 
     private readonly LoginViewModel loginViewModel;
@@ -663,64 +659,6 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
             }
 
             await Task.Delay(duration);
-        }
-    }
-
-
-
-
-    private async void AnimateScaleControlUp(FrameworkElement btn)
-    {
-        try
-        {
-            if (btn.DataContext is not SongModelView song) return;
-            if (song.CoverImagePath is null)
-                return;
-
-            await btn.DispatcherQueue.EnqueueAsync(() => { });
-            var compositor = ElementCompositionPreview.GetElementVisual(btn).Compositor;
-            var rootVisual = ElementCompositionPreview.GetElementVisual(btn);
-
-            var scale = compositor.CreateVector3KeyFrameAnimation();
-            scale.InsertKeyFrame(1f, new Vector3(1.05f));
-            scale.Duration = TimeSpan.FromMilliseconds(350);
-            rootVisual.CenterPoint = new Vector3((float)btn.ActualWidth / 2, (float)btn.ActualHeight / 2, 0);
-            rootVisual.StartAnimation("Scale", scale);
-
-            //var img = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(song.CoverImagePath, UriKind.Absolute));
-            //FocusedSongImage.Source = img;
-
-            //FocusedSongTextBlockTitle.Content = song.Title;
-            //FocusedSongTextBlockArtistName.Content = song.ArtistName;
-            //FocusedSongTextBlockAlbumName.Content = song.AlbumName;
-            //FocusedSongTextBlockGenre.Content = song.GenreName;
-
-
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"AnimateExpand Exception: {ex.Message}");
-        }
-    }
-
-    private void AnimateCollapseControlDown(FrameworkElement framework)
-    {
-        try
-        {
-
-            // collapse animation (optional)
-            var compositor = ElementCompositionPreview.GetElementVisual(framework).Compositor;
-            var rootVisual = ElementCompositionPreview.GetElementVisual(framework);
-            var scaleBack = compositor.CreateVector3KeyFrameAnimation();
-            scaleBack.InsertKeyFrame(1f, new Vector3(1f));
-            scaleBack.Duration = TimeSpan.FromMilliseconds(300);
-            rootVisual.StartAnimation("Scale", scaleBack);
-
-        }
-        catch (Exception ex)
-        {
-
-            Debug.WriteLine($"AnimateCollapse Exception: {ex.Message}");
         }
     }
 

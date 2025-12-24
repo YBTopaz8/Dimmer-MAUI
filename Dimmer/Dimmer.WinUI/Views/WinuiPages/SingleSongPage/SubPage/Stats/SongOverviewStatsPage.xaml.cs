@@ -23,7 +23,6 @@ namespace Dimmer.WinUI.Views.WinuiPages.SingleSongPage.SubPage.Stats;
 /// </summary>
 public sealed partial class SongOverviewStatsPage : Page
 {
-    BaseViewModelWin ViewModel { get; set; }
     public SongOverviewStatsPage()
     {
         InitializeComponent();

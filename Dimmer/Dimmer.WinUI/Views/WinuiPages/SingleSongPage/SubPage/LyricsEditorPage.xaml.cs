@@ -94,10 +94,7 @@ public sealed partial class LyricsEditorPage : Page
             }
         }
     }
-    private void LyricsTextBox_Loaded(object sender, RoutedEventArgs e)
-    {
 
-    }
     private void Grid_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
         var props = e.GetCurrentPoint((UIElement)sender).Properties;
@@ -111,10 +108,6 @@ public sealed partial class LyricsEditorPage : Page
                 Frame.GoBack();
             }
         }
-    }
-    private void Button_Click(object sender, RoutedEventArgs e)
-    {
-
     }
 
     private void BackBtnClick(object sender, RoutedEventArgs e)
@@ -140,23 +133,6 @@ public sealed partial class LyricsEditorPage : Page
 
         await LyricsPreviewDialog.ShowAsync(ContentDialogPlacement.Popup);
     }
-
-    private async void PasteFromTitleFromClipboard_Click(object sender, RoutedEventArgs e)
-    {
-        var dataPackageView = Windows.ApplicationModel.DataTransfer.Clipboard.GetContent();
-        if (dataPackageView.Contains(Windows.ApplicationModel.DataTransfer.StandardDataFormats.Text))
-        {
-            var clipboardText = await dataPackageView.GetTextAsync();
-            
-
-            EditLyricsTxt.Text = clipboardText;
-        }
-        else
-        {
-            // No text found in clipboard
-            EditLyricsTxt.Text = string.Empty;
-        }
-        }
 
     private void ReadySearchViewAndProduceSearchText_Click(object sender, RoutedEventArgs e)
     {

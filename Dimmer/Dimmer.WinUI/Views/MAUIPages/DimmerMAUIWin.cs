@@ -53,17 +53,6 @@ public partial class DimmerMAUIWin : Microsoft.Maui.Controls.Window
 
 
     }
-    private void CloseAllWindows()
-    {
-        if (Microsoft.Maui.Controls.Application.Current!.Windows.Count < 2)
-        {
-            return;
-        }
-
-        
-
-
-    }
 
     public event EventHandler? WindowActivated;
     int count;

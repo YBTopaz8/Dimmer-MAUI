@@ -222,42 +222,6 @@ public partial class App : MauiWinUIApplication
         });
     }
 
-
-
-    private static async void HandleFiles(string[] paths) // paths now comes as string?[]
-    {
-        if (paths == null || paths.Length == 0)
-            return;
-
-        // Filter out null or empty paths and get a List<string>
-        var validPaths = paths.Where(p => !string.IsNullOrEmpty(p)).ToList<string>();
-
-        if (validPaths.Count == 0)
-            return;
-
-        // It's generally safer to resolve services when needed,
-        // especially if they might have a scoped lifetime or depend on UI thread.
-        // Also, ensure HomePageVM is registered as a singleton or transient as appropriate.
-        var homePageVM = IPlatformApplication.Current?.Services.GetService<BaseViewModel>(); // Assuming HomePageVM is your MyViewModel class
-        if (homePageVM != null)
-        {
-            
-                 homePageVM.AddMusicFoldersByPassingToService(validPaths);
-            
-
-            // Consider if LoadLocalSongFromOutSideApp needs to be thread-safe
-            // or dispatched to the UI thread if it updates UI-bound properties directly.
-            // e.g., RxSchedulers.UI.Schedule(() => homePageVM.LoadLocalSongFromOutSideApp(validPaths));
-            //homePageVM.LoadLocalSongFromOutSideApp(validPaths);
-        }
-        else
-        {
-            // Log error: HomePageVM not found
-            Debug.WriteLine("Error: HomePageVM could not be resolved.");
-        }
-    }
-
-
     private static void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
     {
         string errorDetails = $"********** UNHANDLED EXCEPTION! **********\n" +

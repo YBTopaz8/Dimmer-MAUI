@@ -73,23 +73,10 @@ public sealed partial class AllSongsListPage : Page
         }
     }
 
-
-    private void CoverImageGrid_PointerReleased(object sender, PointerRoutedEventArgs e)
-    {
-
-      
-        //Frame?.Navigate(songDetailType, _storedSong, supNavTransInfo);
-    }
-
     private void MyPageGrid_Unloaded(object sender, RoutedEventArgs e)
     {
 
     }
-
-
-
-
-    private readonly Microsoft.UI.Composition.Visual _rootVisual;
 
     private void ButtonHover_PointerEntered(object sender, PointerRoutedEventArgs e)
     {
@@ -118,7 +105,6 @@ public sealed partial class AllSongsListPage : Page
     }
 
     private bool _isHovered;
-    private bool _isAnimating;
     Border cardBorder;
 
     private void StartHoverDelay()
@@ -188,50 +174,6 @@ public sealed partial class AllSongsListPage : Page
         }
     }
 
-
-    private void ApplyDepthZoomEffect(UIElement element)
-    {
-        var visual = ElementCompositionPreview.GetElementVisual(element);
-        var compositor = visual.Compositor;
-
-        // Build the effect graph (Win2D-based)
-        var blurEffect = new GaussianBlurEffect
-        {
-            Name = "Blur",
-            BlurAmount = 15f,
-            BorderMode = EffectBorderMode.Hard,
-            Source = new Windows.UI.Composition.CompositionEffectSourceParameter("Backdrop")
-        };
-
-        // Create the brush
-        var effectFactory = compositor.CreateEffectFactory(blurEffect);
-        var backdropBrush = compositor.CreateBackdropBrush();
-        var effectBrush = effectFactory.CreateBrush();
-        effectBrush.SetSourceParameter("Backdrop", backdropBrush);
-
-        // Apply to a sprite visual
-        var sprite = compositor.CreateSpriteVisual();
-        sprite.Brush = effectBrush;
-        sprite.Size = new Vector2((float)element.RenderSize.Width, (float)element.RenderSize.Height);
-        ElementCompositionPreview.SetElementChildVisual(element, sprite);
-
-        // Add zoom effect
-        visual.CenterPoint = new Vector3((float)element.RenderSize.Width / 2, (float)element.RenderSize.Height / 2, 0);
-        visual.Scale = new Vector3(0.85f);
-
-        var zoom = compositor.CreateVector3KeyFrameAnimation();
-        zoom.InsertKeyFrame(1f, Vector3.One);
-        zoom.Duration = TimeSpan.FromMilliseconds(400);
-        visual.StartAnimation("Scale", zoom);
-    }
-
-
-
-    private void CloseButton_Click(object sender, RoutedEventArgs e)
-    {
-
-    }
-
     private void TableView_RightTapped(object sender, RightTappedRoutedEventArgs e)
     {
         return;
@@ -242,11 +184,6 @@ public sealed partial class AllSongsListPage : Page
             ProcessCellClick(isExclusion: false);
     }
     private void TableView_PointerPressed(object sender, PointerRoutedEventArgs e)
-    {
-
-    }
-
-    private void TableView_BringIntoViewRequested(UIElement sender, BringIntoViewRequestedEventArgs args)
     {
 
     }
@@ -314,11 +251,6 @@ public sealed partial class AllSongsListPage : Page
         return visibleItems;
     }
 
-    private void ScrollToSong_Click(object sender, RoutedEventArgs e)
-    {
-        ScrollToSong(MyViewModel.CurrentPlayingSongView);
-    }
-
     private void MySongsTableView_Sorting(object sender, TableViewSortingEventArgs e)
     {
         Debug.WriteLine(e.Column?.Header);
@@ -379,30 +311,6 @@ public sealed partial class AllSongsListPage : Page
         MyViewModel.SearchSongForSearchResultHolder(combined);
     }
 
-    private void SearchSongSB_Text
-        (object sender, RoutedEventArgs e)
-    {
-        var send = sender as TextBox;
-        if (send == null)
-            return;
-        // This is the text changed event handler for the search box.
-        // You can access the text like this:
-        var text = send.Text;
-
-
-
-    }
-
-    private void DeleteBtn_Click(object sender, RoutedEventArgs e)
-    {
-        MyViewModel.DeleteSongsCommand.Execute(MyViewModel.SearchResults);
-    }
-
-    private void AddToQueue_Click(object sender, RoutedEventArgs e)
-    {
-
-    }
-
     private void MySongsTableView_Tapped(object sender, TappedRoutedEventArgs e)
     {
         return;
@@ -412,169 +320,6 @@ public sealed partial class AllSongsListPage : Page
         if (isCtlrKeyPressed)
             ProcessCellClick(isExclusion: true);
 
-    }
-
-    private void SearchSongSB_TextChanged_1(object sender, Microsoft.UI.Xaml.Controls.TextChangedEventArgs e)
-    {
-        var send = sender as TextBox;
-        if (send == null)
-            return;
-        // This is the text changed event handler for the search box.
-        // You can access the text like this:
-        var text = send.Text;
-        MyViewModel.SearchSongForSearchResultHolder(text);
-    }
-
-
-    private void HighlightSyntax(Microsoft.UI.Text.RichEditTextDocument document, string text)
-    {
-        // First, clear all previous formatting by setting the whole range to the default color
-        document.GetRange(0, TextConstants.MaxUnitCount).CharacterFormat.ForegroundColor = Colors.White;
-
-        // Use your existing, powerful Lexer
-        var tokens = Lexer.Tokenize(text);
-
-        foreach (var token in tokens)
-        {
-            if (string.IsNullOrEmpty(token.Text))
-                continue;
-
-            // Define colors for different token types
-            var color = token.Type switch
-            {
-                TokenType.Identifier when FieldRegistry.FieldsByAlias.ContainsKey(token.Text) => Colors.CornflowerBlue,
-                TokenType.And or TokenType.Or or TokenType.Not => Colors.HotPink,
-                TokenType.Asc or TokenType.Desc or TokenType.First or TokenType.Last or TokenType.Random => Colors.MediumPurple,
-                TokenType.StringLiteral => Colors.SandyBrown,
-                TokenType.Number => Colors.LightGreen,
-                TokenType.GreaterThan or TokenType.LessThan or TokenType.Equals => Colors.IndianRed,
-                TokenType.Error => Colors.Red,
-                _ => Colors.White // Default
-            };
-
-            // Apply the color to the specific range of the token
-            var range = document.GetRange(token.Position, token.Position + token.Text.Length);
-            if (range != null)
-            {
-                if (token.Type == TokenType.Identifier && FieldRegistry.FieldsByAlias.ContainsKey(token.Text))
-                {
-                    range.CharacterFormat.ForegroundColor = Colors.CornflowerBlue;
-                    range.CharacterFormat.Bold = Microsoft.UI.Text.FormatEffect.On; // Make keywords bold
-                }
-                else // Reset for other token types
-                {
-                    range.CharacterFormat.Bold = Microsoft.UI.Text.FormatEffect.Off;
-                }
-                range.CharacterFormat.ForegroundColor = color;
-            }
-        }
-    }
-    private void SearchSongSB_FocusEngaged(Control sender, FocusEngagedEventArgs args)
-    {
-
-    }
-
-    private void SearchSongSB_FocusDisengaged(Control sender, FocusDisengagedEventArgs args)
-    {
-
-    }
-
-    private void SearchSongSB_BeforeTextChanging(TextBox sender, TextBoxBeforeTextChangingEventArgs args)
-    {
-
-    }
-
-    private void SearchSongSB_CharacterReceived(UIElement sender, CharacterReceivedRoutedEventArgs args)
-    {
-
-    }
-
-    private void SearchSongSB_ContextMenuOpening(object sender, ContextMenuEventArgs e)
-    {
-
-    }
-
-    private void SearchSongSB_KeyDown(object sender, KeyRoutedEventArgs e)
-    {
-
-    }
-
-    private void SearchSongSB_Paste(object sender, TextControlPasteEventArgs e)
-    {
-
-    }
-
-    private void SearchSongSB_PointerWheelChanged(object sender, PointerRoutedEventArgs e)
-    {
-
-    }
-
-    private void SearchSongSB_SelectionChanged(object sender, RoutedEventArgs e)
-    {
-
-    }
-
-
-
-
-    private void SearchSongSB_TextCompositionStarted(TextBox sender, TextCompositionStartedEventArgs args)
-    {
-
-    }
-
-    private void SearchAutoSuggestBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
-    {
-
-    }
-
-    private void SearchAutoSuggestBox_SuggestionChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args)
-    {  // --- MODIFIED: Use the helper here as well ---
-       // 1. Find the start of the word the user is currently typing.
-        string currentText = sender.Text;
-        int wordStart = FindWordStart(currentText);
-
-        // 2. Extract the prefix (e.g., "artist:", "title:"). The prefix is everything
-        //    from the start of the word up to the last separator (like ':').
-        string currentWordFragment = currentText.Substring(wordStart);
-        int separatorIndex = currentWordFragment.LastIndexOf(':');
-
-        string fullChip;
-        if (separatorIndex != -1)
-        {
-            // Case: A prefix exists, like "artist:".
-            string prefix = currentWordFragment.Substring(0, separatorIndex + 1);
-            // Combine prefix with the chosen suggestion.
-            fullChip = prefix + args.SelectedItem.ToString();
-        }
-        else
-        {
-            // Case: No prefix, it's a simple word.
-            fullChip = args.SelectedItem.ToString();
-        }
-
-    }
-    private void SearchAutoSuggestBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
-    {
-        {
-            string queryText = "";
-
-            if (args.ChosenSuggestion != null)
-            {
-                // This case is already handled by SuggestionChosen, but we can leave it
-                // and just let that handler do its work. No extra code needed here for this case.
-            }
-            else if (!string.IsNullOrWhiteSpace(args.QueryText))
-            {
-                // User typed text and pressed Enter without choosing a suggestion.
-                // Treat the text as a new chip.
-                queryText = args.QueryText;
-                MyViewModel.QueryChips.Add(queryText);
-
-                // Clear the box and trigger the search
-                sender.Text = string.Empty;
-                MyViewModel.TriggerSearch(string.Empty);
-            }
-        }
     }
 
 
@@ -600,24 +345,6 @@ public sealed partial class AllSongsListPage : Page
             // The word starts one character after the last space.
             return lastSeparator + 1;
         }
-    }
-    private void Grid_ContextRequested(UIElement sender, ContextRequestedEventArgs args)
-    {
-        // Get the Grid that was right-clicked
-        var grid = sender as Grid;
-        if (grid == null)
-            return;
-
-        // Get the SongModelView associated with that Grid's row
-        var song = grid.DataContext as SongModelView;
-        if (song == null)
-            return;
-
-        // Get our predefined MenuFlyout from the page's resources
-        var flyout = MyPageGrid.Resources["SongRowMenuFlyout"] as MenuFlyout;
-        if (flyout == null)
-            return;
-        flyout.ShowAt(grid);
     }
 
     public string Format(string format, object arg)
@@ -694,151 +421,9 @@ public sealed partial class AllSongsListPage : Page
 
     }
 
-    private void SearchAutoSuggestBox_QuerySubmitted_1(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
-    {
-    }
-
-    private void RemoveChipButton_Click(object sender, RoutedEventArgs e)
-    {
-        if ((sender as FrameworkElement)?.DataContext is string chipToRemove)
-        {
-            MyViewModel.QueryChips.Remove(chipToRemove);
-            // The CollectionChanged event in the ViewModel will automatically trigger a new search.
-        }
-        //MyViewModel.QueryChips.Remove(e.);
-    }
-
-    private void MySongsTableView_ContextRequested(UIElement sender, ContextRequestedEventArgs args)
-    {
-
-    }
-
     private void SearchAutoSuggestBox_AccessKeyInvoked(UIElement sender, AccessKeyInvokedEventArgs args)
     {
 
-    }
-
-    private void SearchAutoSuggestBox_CharacterReceived(UIElement sender, CharacterReceivedRoutedEventArgs args)
-    {
-        var xterPressed = args.Character;
-        var box = sender as TextBox;
-
-        // Get the full text from the box
-        var text = box.Text;
-        //Debug.WriteLine($"Character received: {xterPressed}");
-        if (xterPressed == '\r' || xterPressed == '\n')
-        {
-
-            MyViewModel.SearchSongForSearchResultHolder(text);
-            // Handle Enter key press
-            Debug.WriteLine("Enter key pressed.");
-            return;
-            // You can trigger your search or any other action here
-
-        }
-        MyViewModel.SearchSongForSearchResultHolder(text);
-    }
-
-    private void SearchAutoSuggestBox_CopyingToClipboard(TextBox sender, TextControlCopyingToClipboardEventArgs args)
-    {
-
-    }
-
-    private void SearchAutoSuggestBox_CuttingToClipboard(TextBox sender, TextControlCuttingToClipboardEventArgs args)
-    {
-
-    }
-
-    private void SearchAutoSuggestBox_GettingFocus(UIElement sender, GettingFocusEventArgs args)
-    {
-        if (args.FocusState == FocusState.Programmatic)
-        {
-            return;
-        }
-    }
-
-    private void SearchAutoSuggestBox_BeforeTextChanging(TextBox sender, TextBoxBeforeTextChangingEventArgs args)
-    {
-
-    }
-
-    private void ViewSong_Click(object sender, RoutedEventArgs e)
-    {
-        var selectedSong = (sender as FrameworkElement)?.DataContext as SongModelView;
-
-        // Store the item for the return trip
-        _storedSong = selectedSong;
-
-        // Find the specific UI element (the Image) that was clicked on
-        var row = MySongsTableView.ContainerFromItem(selectedSong) as FrameworkElement;
-        var image = PlatUtils.FindVisualChild<Image>(row, "coverArtImage");
-        if (image == null) return;
-
-        // Prepare the animation, linking the key "ForwardConnectedAnimation" to our image
-        ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("ForwardConnectedAnimation", image);
-
-
-        // Small visual feedback before navigation
-        var visual = ElementCompositionPreview.GetElementVisual(image);
-        switch (_userPrefAnim)
-        {
-            case SongTransitionAnimation.Fade:
-                var fade = _compositor.CreateScalarKeyFrameAnimation();
-                fade.InsertKeyFrame(0f, 0.3f);
-                fade.InsertKeyFrame(1f, 0f);
-                fade.Duration = TimeSpan.FromMilliseconds(150);
-                visual.StartAnimation("Opacity", fade);
-                break;
-
-            case SongTransitionAnimation.Scale:
-                var scaleAnim = _compositor.CreateVector3KeyFrameAnimation();
-                visual.CenterPoint = new Vector3(
-                    (float)(image.ActualWidth / 2),
-                    (float)(image.ActualHeight / 2),
-                    0);
-                scaleAnim.InsertKeyFrame(0f, new Vector3(1f));
-                scaleAnim.InsertKeyFrame(1f, new Vector3(1.15f));
-                scaleAnim.Duration = TimeSpan.FromMilliseconds(150);
-                visual.StartAnimation("Scale", scaleAnim);
-                break;
-
-            case SongTransitionAnimation.Slide:
-                var offsetAnim = _compositor.CreateVector3KeyFrameAnimation();
-                offsetAnim.InsertKeyFrame(0f, Vector3.Zero);
-                offsetAnim.InsertKeyFrame(1f, new Vector3(30f, 0f, 0f));
-                offsetAnim.Duration = TimeSpan.FromMilliseconds(150);
-                visual.StartAnimation("Offset", offsetAnim);
-                break;
-
-            case SongTransitionAnimation.Spring:
-            default:
-                var spring = _compositor.CreateSpringVector3Animation();
-                spring.DampingRatio = 0.7f;
-                spring.Period = TimeSpan.FromMilliseconds(200);
-                spring.FinalValue = new Vector3(0, -25, 0);
-                visual.StartAnimation("Offset", spring);
-                break;
-        }
-
-
-        // Navigate to the detail page, passing the selected song object.
-        // Suppress the default page transition to let ours take over.
-        var supNavTransInfo = new SuppressNavigationTransitionInfo();
-        Type songDetailType = typeof(SongDetailPage);
-        var navParams = new SongDetailNavArgs
-        {
-            Song = _storedSong!,
-            ViewModel = MyViewModel
-        };
-
-        FrameNavigationOptions navigationOptions = new FrameNavigationOptions
-        {
-            TransitionInfoOverride = supNavTransInfo,
-            IsNavigationStackEnabled = true
-
-        };
-
-        Frame?.NavigateToType(songDetailType, navParams, navigationOptions);
     }
 
     private async void MySongsTableView_PointerReleased(object sender, PointerRoutedEventArgs e)
@@ -868,49 +453,13 @@ public sealed partial class AllSongsListPage : Page
 
     }
 
-    private void MySongsTableView_PointerEntered_1(object sender, PointerRoutedEventArgs e)
-    {
-
-    }
-
     private void MySongsTableView_PointerExited(object sender, PointerRoutedEventArgs e)
-    {
-
-    }
-
-    private void MySongsTableView_PointerPressed(object sender, PointerRoutedEventArgs e)
-    {
-
-    }
-
-    private void MySongsTableView_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
-    {
-
-    }
-
-    private void MySongsTableView_DragItemsStarting_1(object sender, DragItemsStartingEventArgs e)
     {
 
     }
 
     private void MySongsTableView_DragItemsCompleted(ListViewBase sender, DragItemsCompletedEventArgs args)
     {
-
-    }
-
-    private void MySongsTableView_ChoosingGroupHeaderContainer(ListViewBase sender, ChoosingGroupHeaderContainerEventArgs args)
-    {
-
-    }
-
-    private void MySongsTableView_ChoosingItemContainer(ListViewBase sender, ChoosingItemContainerEventArgs args)
-    {
-
-    }
-
-    private void MySongsTableView_GettingFocus(UIElement sender, GettingFocusEventArgs args)
-    {
-        //var oldElementFOcused = args.OldFocusedElement as TextBox; for example!
 
     }
 
@@ -930,26 +479,6 @@ public sealed partial class AllSongsListPage : Page
     private void MySongsTableView_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
     {
 
-    }
-
-    private async void CheckBox_Click(object sender, RoutedEventArgs e)
-    {
-        try
-        {
-
-            var ee = (CheckBox)e.OriginalSource;
-            var song = (SongModelView)ee.DataContext;
-            if (song == null)
-            {
-
-                return;
-            }
-            await MyViewModel.AddFavoriteRatingToSong(song);
-        }
-        catch (Exception ex)
-        {
-
-        }
     }
 
     private void MySongsTableView_DragStarting(UIElement sender, Microsoft.UI.Xaml.DragStartingEventArgs args)
@@ -1009,33 +538,6 @@ public sealed partial class AllSongsListPage : Page
         CurrentPageTQL = MyViewModel.CurrentTqlQuery;
     }
 
-
-
-
-    private void ApplyReturnFloatie(UIElement element)
-    {
-        var visual = ElementCompositionPreview.GetElementVisual(element);
-        var compositor = visual.Compositor;
-
-        // set starting offset slightly below
-        visual.Offset = new Vector3(0, 40, 0);
-
-        // spring animation toward neutral position
-        var spring = compositor.CreateSpringVector3Animation();
-        spring.FinalValue = Vector3.Zero;
-        spring.DampingRatio = 0.55f;                     // how “bouncy” it feels
-        spring.Period = TimeSpan.FromMilliseconds(280); // shorter = snappier
-        spring.InitialValue = new Vector3(0, 40, 0);     // make sure start matches
-        spring.StopBehavior = AnimationStopBehavior.SetToFinalValue;
-
-        visual.StartAnimation("Offset", spring);
-    }
-
-    private void SearchAutoSuggestBox_TextChanged_1(object sender, Microsoft.UI.Xaml.Controls.TextChangedEventArgs e)
-    {
-
-    }
-
     private void SearchAutoSuggestBox_TextChanged(object sender, Microsoft.UI.Xaml.Controls.TextChangedEventArgs e)
     {
         MyViewModel.SearchSongForSearchResultHolder(SearchTextBox.Text);
@@ -1076,29 +578,6 @@ public sealed partial class AllSongsListPage : Page
         // 5. ViewModel Integration
         // Pass the intent: Are we excluding? Are we adding to existing filters?
         //MyViewModel?.UpdateQueryWithClause(tqlClause, isExclusion, isAdditive);
-    }
-    private void OpenFileExplorer_Click(object sender, RoutedEventArgs e)
-    {
-
-
-        //MyViewModel.OpenAndSelectFileInExplorer()
-    }
-
-    private void AddToEnd_Click(object sender, RoutedEventArgs e)
-    {
-        //Command = "{x:Bind MyViewModel.AddListOfSongsToQueueEndCommand}"
-        //                CommandParameter = "{x:Bind MySongsTableView.ItemsSource}"
-        Debug.WriteLine(MySongsTableView.Items.GetType());
-        var firstTen = MySongsTableView.Items.Take(10) as IEnumerable<SongModelView>;
-
-        Debug.WriteLine(firstTen is null);
-        //MyViewModel.AddListOfSongsToQueueEnd();
-    }
-
-    private void AddToNext_Click(object sender, RoutedEventArgs e)
-    {
-
-        //MyViewModel.AddToNext()
     }
 
     private void ExtraPanel_Loaded(object sender, RoutedEventArgs e)
@@ -1323,66 +802,10 @@ AnimationHelper.Key_Forward
         MyViewModel.AddToNext(new List<SongModelView>() { MyViewModel.SelectedSong! });
     }
 
-    private ScalarKeyFrameAnimation _fadeInAnim;
-    private ScalarKeyFrameAnimation _fadeOutAnim;
     private SongModelView? _storedItem;
 
     private void CardBorder_Loaded(object sender, RoutedEventArgs e)
     {
-
-    }
-
-
-    private void ViewOtherBtn_PointerReleased(object sender, PointerRoutedEventArgs e)
-    {
-
-    }
-
-    private void QuickTQLBtn_PointerReleased(object sender, PointerRoutedEventArgs e)
-    {
-
-    }
-
-    private void QuickTQLBtn_Click(object sender, RoutedEventArgs e)
-    {
-
-    }
-
-
-    private ConnectedAnimationConfiguration? GetConfiguration()
-    {
-        var listOfNames = new List<string>
-        {
-            "Gravity",
-            "Direct",
-            "Basic",
-        };
-        var randomNameFromList = new Random();
-        var selectedName = listOfNames[randomNameFromList.Next(listOfNames.Count)];
-
-
-        switch (selectedName)
-        {
-            case "Gravity":
-                return new GravityConnectedAnimationConfiguration();
-            case "Direct":
-                return new DirectConnectedAnimationConfiguration();
-            case "Basic":
-                return new BasicConnectedAnimationConfiguration();
-            default:
-                return null;
-        }
-    }
-
-    private void BackButton_Click(object sender, RoutedEventArgs e)
-    {
-
-    }
-
-
-    private async void ArtistCellGrid_PointerPressed(object sender, PointerRoutedEventArgs e)
-    {
-        
 
     }
 
@@ -1410,43 +833,6 @@ AnimationHelper.Key_Forward
 
             Frame?.NavigateToType(songDetailType, navParams, navigationOptions);
         });
-    }
-
-    private void MySongsTableView_Loaded_1()
-    {
-
-    }
-
-
-    private void NowPlayingQueueExpander_Loaded(object sender, RoutedEventArgs e)
-    {
-        
-    }
-
-    private void Animated_ScrollViewer_ViewChanging(object sender, ScrollViewerViewChangingEventArgs e)
-    {
-
-    }
-
-    private async void PlaySongBtn_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
-    {
-        var send = (FrameworkElement)sender;
-        var song = send.DataContext as SongModelView;
-        if (MyViewModel.PlaybackQueue.Count < 1)
-        {
-            //MyViewModel.SearchSongForSearchResultHolder(">>addnext!");
-        }
-        await MyViewModel.PlaySongAsync(song, CurrentPage.HomePage);
-    }
-
- 
-
-    private void AnimatedScrollViewer_ViewChanging(object sender, ScrollViewerViewChangingEventArgs e)
-    {
-        //Button SelectedItem = GetSelectedItemFromViewport() as Button;
-        
-        //var song = SelectedItem.DataContext as SongModelView;
-
     }
 
     private async void AnimateScaleControlUp(FrameworkElement btn)
@@ -1493,51 +879,6 @@ AnimationHelper.Key_Forward
             Debug.WriteLine($"AnimateCollapse Exception: {ex.Message}");
         }
     }
-    private void ApplyEntranceEffect(FrameworkElement frameElt, SongTransitionAnimation defAnim = SongTransitionAnimation.Spring)
-    {
-        
-        var visual = ElementCompositionPreview.GetElementVisual(frameElt);
-
-        
-        switch (defAnim)
-        {
-            case SongTransitionAnimation.Fade:
-                visual.Opacity = 0f;
-                var fade = _compositor.CreateScalarKeyFrameAnimation();
-                fade.InsertKeyFrame(1f, 1f);
-                fade.Duration = TimeSpan.FromMilliseconds(350);
-                visual.StartAnimation("Opacity", fade);
-                break;
-
-            case SongTransitionAnimation.Scale:
-                visual.CenterPoint = new Vector3((float)frameElt.ActualWidth / 2,
-                                                 (float)frameElt.ActualHeight / 2, 0);
-                visual.Scale = new Vector3(0.8f);
-                var scale = _compositor.CreateVector3KeyFrameAnimation();
-                scale.InsertKeyFrame(1f, Vector3.One);
-                scale.Duration = TimeSpan.FromMilliseconds(350);
-                visual.StartAnimation("Scale", scale);
-                break;
-
-            case SongTransitionAnimation.Slide:
-                visual.Offset = new Vector3(80f, 0, 0);
-                var slide = _compositor.CreateVector3KeyFrameAnimation();
-                slide.InsertKeyFrame(1f, Vector3.Zero);
-                slide.Duration = TimeSpan.FromMilliseconds(350);
-                visual.StartAnimation("Offset", slide);
-                break;
-
-            case SongTransitionAnimation.Spring:
-            default:
-                var spring = _compositor.CreateSpringVector3Animation();
-                spring.FinalValue = new Vector3(0, 0, 0);
-                spring.DampingRatio = 0.5f;
-                spring.Period = TimeSpan.FromMilliseconds(350);
-                visual.Offset = new Vector3(0, 40, 0);//c matching
-                visual.StartAnimation("Offset", spring);
-                break;
-        }
-    }
 
     private void AnimateCollapse()
     {
@@ -1567,99 +908,6 @@ AnimationHelper.Key_Forward
         }
     }
 
-    private void PlaySongBtn_PointerExited(object sender, PointerRoutedEventArgs e)
-    {
-        Button send = (Button)sender;
-        if (!_isHovered) return;
-        _isHovered = false;
-        AnimateCollapseControlDown(send);
-    }
-
- 
-
-    private void NowPlayingQueueExpander_IsEnabledChanged(object sender, DependencyPropertyChangedEventArgs e)
-    {
-        Debug.WriteLine(e.GetType());
-        Debug.WriteLine(e.OldValue);
-        Debug.WriteLine(e.OldValue.GetType());
-        Debug.WriteLine(e.NewValue);
-        Debug.WriteLine(e.NewValue.GetType());
-    }
-
-    private async void coverArtImage_DragStarting(UIElement sender, DragStartingEventArgs e)
-    {
-        var img = (Image)sender;
-        var song = img.DataContext as SongModelView;
-        if (song == null || string.IsNullOrWhiteSpace(song.CoverImagePath))
-            return;
-
-        e.Data.Properties["drag-origin"] = "dimmer-app";
-        e.Data.Properties["drag-type"] = "song-item"; // identify item
-
-
-        e.Data.Properties["drag-origin"] = "dimmer-app";
-        e.Data.Properties["drag-type"] = "cover-image";
-        e.Data.Properties["cover-path"] = ((SongModelView)((FrameworkElement)sender).DataContext).Id;
-
-    }
-
-    private void coverArtImage_DropCompleted(UIElement sender, Microsoft.UI.Xaml.DropCompletedEventArgs e)
-    {
-        //var data = e.DropResult;
-        
-        //Debug.WriteLine(data.GetType());
-        //Debug.WriteLine(e.OriginalSource.GetType());
-        //Debug.WriteLine(e.OriginalSource);
-        //Debug.WriteLine(e.GetType());
-        //// 1. Check if internal drag
-        //if (data.Properties.TryGetValue("drag-origin", out var originObj) &&
-        //    originObj is string origin &&
-        //    origin == "dimmer-app")
-        //{
-        //    // INTERNAL drag
-        //    data.Properties.TryGetValue("drag-type", out var dragTypeObj);
-        //    var dragType = dragTypeObj as string;
-
-        //    switch (dragType)
-        //    {
-        //        case "song-item":
-        //            // REORDER QUEUE
-        //            data.Properties.TryGetValue("item-id", out var idObj);
-        //            var songId = (int)idObj;
-        //            QueueService.Reorder(songId, e.GetPosition((UIElement)sender));
-        //            return;
-
-        //        case "cover-image":
-        //            // ASSIGN COVER (internal)
-        //            data.Properties.TryGetValue("cover-path", out var pathObj);
-        //            AssignCoverToHoveredSong(pathObj as string);
-        //            return;
-        //    }
-
-        //    return;
-        //}
-
-        //// 2. If external → check if files
-        //if (data.Contains(StandardDataFormats.StorageItems))
-        //{
-        //    var items = await data.GetStorageItemsAsync();
-        //    var file = items.FirstOrDefault() as StorageFile;
-        //    if (file != null)
-        //    {
-        //        if (IsImageFile(file))
-        //        {
-        //            // EXTERNAL image → assign cover
-        //            var newCoverPath = await SaveExternalCover(file);
-        //            AssignCoverToHoveredSong(newCoverPath);
-        //            return;
-        //        }
-        //    }
-        //}
-
-        //// 3. External stuff you don’t want → OS drop
-        //OSHandleExternalDrop(e);
-    }
-
     private void StackPanel_PointerReleased(object sender, PointerRoutedEventArgs e)
     {
         var prop = e.GetCurrentPoint((UIElement)sender).Properties;
@@ -1678,27 +926,6 @@ AnimationHelper.Key_Forward
 
     }
 
-    private void ViewSongBtn_Click_1(object sender, RoutedEventArgs e)
-    {
-
-    }
-
-
-
-    private void BorderOfSongInPBQueue_PointerEntered(object sender, PointerRoutedEventArgs e)
-    {
-        var btn = (FrameworkElement)sender;
-
-        AnimateScaleControlUp(btn);
-
-    }
-
-    private void BorderOfSongInPBQueue_PointerExited(object sender, PointerRoutedEventArgs e)
-    {
-        Border send = (Border)sender;
-        UIControlsAnims.AnimateBorderPointerExited(send, _compositor);
-    }
-
     private void CardBorder_PointerReleased(object sender, PointerRoutedEventArgs e)
     {
         ViewSongBtn_Click(sender, e);
@@ -1710,40 +937,10 @@ AnimationHelper.Key_Forward
         ViewOtherBtn_Click(sender, e);
     }
 
-    private void MenuFlyoutItem_Click(object sender, RoutedEventArgs e)
-    {
-
-    }
-
     private void ArAscending_Click(object sender, RoutedEventArgs e)
     {
         //var myCurrentQueue = MyViewModel.CurrentTqlQueryUI;
         
-    }
-
-    private void AlbumAscending_Click(object sender, RoutedEventArgs e)
-    {
-
-    }
-
-    private void TitleAscending_Click(object sender, RoutedEventArgs e)
-    {
-
-    }
-
-    private void TitleDescending_Click(object sender, RoutedEventArgs e)
-    {
-
-    }
-
-    private void ArtistDescending_Click(object sender, RoutedEventArgs e)
-    {
-
-    }
-
-    private void AlbumDescending_Click(object sender, RoutedEventArgs e)
-    {
-
     }
 
     private void HideBtmPart_Click(object sender, RoutedEventArgs e)
@@ -1886,16 +1083,6 @@ true
 
     }
 
-    private async void AlbumBtn_PointerReleased(object sender, PointerRoutedEventArgs e)
-    {
-       
-    }
-
-    private async void ArtistBtn_PointerReleased(object sender, PointerRoutedEventArgs e)
-    {
-
-    }
-
     private void coverArtImage_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
         var send = (Image)sender;
@@ -1909,21 +1096,6 @@ true
             }
 
         }
-    }
-
-    private void AlbumBtn_PointerReleased_1(object sender, PointerRoutedEventArgs e)
-    {
-
-    }
-
-    private void AlbumBtn_Click_1(object sender, RoutedEventArgs e)
-    {
-
-    }
-
-    private void ArtistBtn_PointerPressed(object sender, PointerRoutedEventArgs e)
-    {
-
     }
 
     private async void ArtistBtnStackPanel_PointerPressed(object sender, PointerRoutedEventArgs e)
@@ -2099,11 +1271,6 @@ true
     {
 
         ClosePanel.Visibility = Visibility.Visible;
-    }
-
-    private async void SidePanel_PointerReleased(object sender, PointerRoutedEventArgs e)
-    {
-        
     }
 
     private void SidePanel_PointerExited(object sender, PointerRoutedEventArgs e)

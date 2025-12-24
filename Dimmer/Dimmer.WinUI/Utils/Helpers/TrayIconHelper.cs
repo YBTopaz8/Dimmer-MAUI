@@ -12,7 +12,6 @@ public class TrayIconHelper
     public const uint WM_TRAYICON = 0x8000 + 1; // WM_APP + 1 (32769)
     private const uint WM_LBUTTONUP = 0x0202;
     private const uint WM_RBUTTONUP = 0x0205;
-    private const uint WM_COMMAND = 0x0111;
     private const uint MF_BYPOSITION = 0x00000400;
     private const uint TPM_LEFTALIGN = 0x0000;
     private const uint TPM_RIGHTBUTTON = 0x0002;

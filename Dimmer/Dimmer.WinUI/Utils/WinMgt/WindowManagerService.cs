@@ -227,11 +227,6 @@ internal class WindowManagerService : IMauiWindowManagerService
             _trackedUniqueContentWindows.Remove(uniqueContentKey);
     }
 
-    private void OnWindowClosed(object sender, WindowEventArgs args)
-    {
-
-    }
-
     private bool IsWindowOpen(MWindow window)
     {
         // A simple check is if it's in our tracked list.

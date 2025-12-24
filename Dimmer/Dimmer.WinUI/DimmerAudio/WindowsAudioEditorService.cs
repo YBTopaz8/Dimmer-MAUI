@@ -25,7 +25,7 @@ public class WindowsAudioEditorService : IDimmerAudioEditorService
         if (!Directory.Exists(_ffmpegPath)) Directory.CreateDirectory(_ffmpegPath);
         FFmpeg.SetExecutablesPath(_ffmpegPath);
     }
-    IProgress<int> progress;
+
     private async Task GuardEnsureFFmpeg()
     {
         bool ready = await EnsureFFmpegLoadedAsync();

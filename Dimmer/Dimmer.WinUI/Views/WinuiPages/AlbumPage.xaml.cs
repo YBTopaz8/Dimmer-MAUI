@@ -21,13 +21,8 @@ public sealed partial class AlbumPage : Page
 
     private readonly Microsoft.UI.Composition.Visual _rootVisual;
     private readonly Microsoft.UI.Composition.Compositor _compositor;
-    private readonly SongTransitionAnimation _userPrefAnim;
-    private SongModelView? _storedSong;
-
 
     BaseViewModelWin MyViewModel { get; set; }
-
-    private TableViewCellSlot _lastActiveCellSlot;
 
     public SongModelView? DetailedSong { get; set; }
     protected override async void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
@@ -63,40 +58,7 @@ public sealed partial class AlbumPage : Page
         }
 
     }
-    private void ApplyEntranceEffect(Visual visual, SongTransitionAnimation defAnim = SongTransitionAnimation.Spring)
-    {
 
-        switch (defAnim)
-        {
-            case SongTransitionAnimation.Fade:
-                visual.Opacity = 0f;
-                var fade = _compositor.CreateScalarKeyFrameAnimation();
-                fade.InsertKeyFrame(1f, 1f);
-                fade.Duration = TimeSpan.FromMilliseconds(350);
-                visual.StartAnimation("Opacity", fade);
-                break;
-
-            
-
-            case SongTransitionAnimation.Slide:
-                visual.Offset = new Vector3(80f, 0, 0);
-                var slide = _compositor.CreateVector3KeyFrameAnimation();
-                slide.InsertKeyFrame(1f, Vector3.Zero);
-                slide.Duration = TimeSpan.FromMilliseconds(350);
-                visual.StartAnimation("Offset", slide);
-                break;
-
-            case SongTransitionAnimation.Spring:
-            default:
-                var spring = _compositor.CreateSpringVector3Animation();
-                spring.FinalValue = new Vector3(0, 0, 0);
-                spring.DampingRatio = 0.5f;
-                spring.Period = TimeSpan.FromMilliseconds(350);
-                visual.Offset = new Vector3(0, 40, 0);//c matching
-                visual.StartAnimation("Offset", spring);
-                break;
-        }
-    }
     protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
     {
         base.OnNavigatingFrom(e);
@@ -109,11 +71,11 @@ public sealed partial class AlbumPage : Page
             //    ConnectedAnimationService.GetForCurrentView()
             //        .PrepareToAnimate("BackConnectedAnimation", DestinationElement);
             //}
-            if (CoordinatedPanel != null && VisualTreeHelper.GetParent(CoordinatedPanel) != null)
-            {
-                ConnectedAnimationService.GetForCurrentView()
-                    .PrepareToAnimate("BackConnectedAnimation", CoordinatedPanel);
-            }
+            //if (CoordinatedPanel != null && VisualTreeHelper.GetParent(CoordinatedPanel) != null)
+            //{
+            //    ConnectedAnimationService.GetForCurrentView()
+            //        .PrepareToAnimate("BackConnectedAnimation", CoordinatedPanel);
+            //}
         }
 
     }

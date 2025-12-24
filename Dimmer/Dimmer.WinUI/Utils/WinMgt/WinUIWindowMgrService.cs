@@ -320,26 +320,6 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
 
     }
 
-    private void OnAppWindowChanged(AppWindow sender, AppWindowChangedEventArgs args)
-    {
-       
-    }
-
-    private void OnAppWindowClosing(Microsoft.UI.Windowing.AppWindow sender, Microsoft.UI.Windowing.AppWindowClosingEventArgs args)
-    {
-        var ss = sender.Id.Value;
-        var e = WinRT.Interop.WindowNative.GetWindowHandle(ss);
-        var isEqual = e == (nint)ss;
-        // Find the XAML Window corresponding to this AppWindow
-        var xamlWindow = _openWindows.FirstOrDefault(w => isEqual);
-        if (xamlWindow != null)
-        {
-            var customArgs = new WindowClosingEventArgs(xamlWindow);
-            WindowClosing?.Invoke(this, customArgs);
-            args.Cancel = customArgs.Cancel; // Respect if a subscriber cancelled the close
-        }
-    }
-
     public void UntrackWindow(Window window)
     {
         _openWindows.Remove(window);

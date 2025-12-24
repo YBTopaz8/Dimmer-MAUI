@@ -44,7 +44,6 @@ namespace Dimmer.WinUI.Views.WinuiPages.SingleSongPage;
 /// </summary>
 public sealed partial class EditSongPage : Page
 {
-    readonly Microsoft.UI.Xaml.Controls.Page? NativeWinUIPage;
     private SongTransitionAnimation _userPrefAnim = SongTransitionAnimation.Spring;
 
     private readonly Compositor _compositor;
@@ -98,12 +97,6 @@ public sealed partial class EditSongPage : Page
 
             Frame.GoBack();
         }
-    }
-
-    private void UserNoteBtn_Click(object sender, RoutedEventArgs e)
-    {
-        var isMiddleClick = e is Microsoft.UI.Xaml.Input.PointerRoutedEventArgs ptrArgs &&
-            ptrArgs.GetCurrentPoint(null).Properties.IsMiddleButtonPressed;
     }
 
     private async void UserNoteBtn_PointerPressed(object sender, PointerRoutedEventArgs e)
@@ -205,19 +198,6 @@ public sealed partial class EditSongPage : Page
     private void GridOfOtherImagesCloseButton_Click(object sender, RoutedEventArgs e)
     {
         GridOfOtherImages.Visibility= WinUIVisibility.Collapsed;
-    }
-
-    private async void ArtistBtn_RightTapped(object sender, RightTappedRoutedEventArgs e)
-    {
-        var
-            button = sender as Button;
-        var artistModel = button?.DataContext as ArtistModelView;
-        var clipBoardText = artistModel?.Name;
-        if (clipBoardText is null) return;
-        var dataPackage = new DataPackage();
-        dataPackage.SetText(clipBoardText);
-        Clipboard.SetContent(dataPackage);
-        await ToastToolTipNotif2Secs(button);
     }
 
     private static async Task ToastToolTipNotif2Secs(UIElement? Elt)
@@ -359,11 +339,6 @@ public sealed partial class EditSongPage : Page
         ListOfFirstLetters.ItemsSource = listOfOnlyFirstLetterOfArtist.ToList();
     }
 
-    private void MyImagePickerBtn_Click(SplitButton sender, SplitButtonClickEventArgs args)
-    {
-
-    }
-
     private void ChooseImageFromOtherSongsInAlbum_Click(SplitButton sender, SplitButtonClickEventArgs args)
     {
         ChooseImageFromOtherSongsInAlbum_Click(sender, args);
@@ -392,11 +367,6 @@ public sealed partial class EditSongPage : Page
         var artName = artNameFontIcon.DataContext as string;
         if(artName == null) return;
         selectedItems.Remove(artName);
-    }
-
-    private void ArtistToSong_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
-    {
-
     }
 
     List<string> selectedItems;

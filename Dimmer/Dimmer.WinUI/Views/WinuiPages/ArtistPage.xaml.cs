@@ -41,8 +41,6 @@ public sealed partial class ArtistPage : Page
 
     BaseViewModelWin MyViewModel { get; set; }
 
-    private TableViewCellSlot? _lastActiveCellSlot;
-
     public SongModelView? DetailedSong { get; set; }
     protected override async void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
     {
@@ -240,96 +238,16 @@ public sealed partial class ArtistPage : Page
 
     }
 
-    private void IsArtFavorite_IsEnabledChanged(object sender, DependencyPropertyChangedEventArgs e)
-    {
-
-    }
-
-    private void CheckBox_Click(object sender, RoutedEventArgs e)
-    {
-
-    }
-
-    private async void AllAlbumsBtn_Loaded(object sender, RoutedEventArgs e)
-    {
-
-        //var artistAlbumsCount = MyViewModel.RealmFactory.GetRealmInstance()
-        //    .Find<ArtistModel>(MyViewModel.SelectedArtist!.Id)!
-        //    .Albums.Count();
-        //var allArtistAlbums = MyViewModel.RealmFactory.GetRealmInstance()
-        //    .Find<ArtistModel>(MyViewModel.SelectedArtist!.Id)!
-        //    .Albums;
-        //var menuFlyout = new MenuFlyout();
-        //foreach (var album in allArtistAlbums)
-        //{
-        //    var albumMenuItem = new MenuFlyoutItem
-        //    {
-        //        Text = $"{album.Name} ({album.SongsInAlbum?.Count()})"
-        //    };
-        //    albumMenuItem.Click += (s, args) =>
-        //    {
-        //        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByAlbum(album.Name));
-
-        //        var count = MyViewModel.SearchResults.Count;
-        //    };
-        //    menuFlyout.Items.Add(albumMenuItem);
-        //}
-        //AllAlbumsBtn.Flyout = menuFlyout;
-
-        //AllAlbumsBtn.Click += AllAlbumsBtn_Click;
-    }
-
-    private void AllAlbumsBtn_Click(object sender, RoutedEventArgs e)
-    {
-        
-        //AllAlbumsBtn.Flyout?.ShowAt(AllAlbumsBtn, new Microsoft.UI.Xaml.Controls.Primitives.FlyoutShowOptions()
-        //{ Placement = Microsoft.UI.Xaml.Controls.Primitives.FlyoutPlacementMode.Right});
-
-    }
-
     private void ArtistNameInArtistPage_PointerReleased(object sender, PointerRoutedEventArgs e)
     {
         MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist.Name));
 
     }
 
-    private void ArtistAlbums_ItemClick(object sender, ItemClickEventArgs e)
-    {
 
-    }
-
-    private void Grid_PointerPressed(object sender, PointerRoutedEventArgs e)
-    {
-        var props = e.GetCurrentPoint((UIElement)sender).Properties;
-        if (props.IsXButton1Pressed)
-        {
-            if (Frame.CanGoBack)
-            {
-                //var image = detailedImage;
-                //ConnectedAnimationService.GetForCurrentView()
-                //    .PrepareToAnimate("BackwardConnectedAnimation", image);
-                Frame.GoBack();
-            }
-        }
-    }
-
-    
 
     // 1. A flag to prevent double clicks while processing
     private bool _isTogglingFavorite = false;
-
-    private void IsArtFavorite_Loaded(object sender, RoutedEventArgs e)
-    {
-        if (sender is not Button btn) return;
-
-        // 2. SAFETY: Remove the handler first to ensure we never have duplicates 
-        // if Loaded fires multiple times (e.g. scrolling/virtualization)
-        btn.Click -= OnFavoriteArtistClicked;
-        btn.Click += OnFavoriteArtistClicked;
-
-        // 3. Just update the UI visuals
-        UpdateFavoriteButtonVisuals(btn);
-    }
 
     private async void OnFavoriteArtistClicked(object sender, RoutedEventArgs e)
     {
@@ -517,11 +435,6 @@ public sealed partial class ArtistPage : Page
         }
     }
 
-    private void CardBorder_DropCompleted(UIElement sender, Microsoft.UI.Xaml.DropCompletedEventArgs args)
-    {
-
-    }
-
     private async void CardBorder_Drop(object sender, DragEventArgs e)
     {
         var frameworkElt = (FrameworkElement)sender;
@@ -564,16 +477,6 @@ public sealed partial class ArtistPage : Page
         e.DragUIOverride.IsCaptionVisible = true;
         e.DragUIOverride.IsContentVisible = true;
         e.DragUIOverride.IsGlyphVisible = true;
-    }
-
-    private void CardBorder_DragEnter(object sender, Microsoft.UI.Xaml.DragEventArgs e)
-    {
-
-    }
-
-    private void CardBorder_DragLeave(object sender, Microsoft.UI.Xaml.DragEventArgs e)
-    {
-
     }
 
     private void CardBorder_DragStarting(UIElement sender, Microsoft.UI.Xaml.DragStartingEventArgs args)

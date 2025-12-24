@@ -599,14 +599,6 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         }
     }
 
-    private void HandleSegmentEnd()
-    {
-        if (_currentSong == null)
-            return;
-
-        
-    }
-
     /// <summary>
     /// Starts or resumes playback.
     /// </summary>

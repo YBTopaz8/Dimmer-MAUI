@@ -38,11 +38,6 @@ public sealed partial class LibraryStatsPage : Page
         this.DataContext = ViewModel;
     }
 
-    private void Button_Click(object sender, RoutedEventArgs e)
-    {
-
-    }
-
     private void BackBtnClick(object sender, RoutedEventArgs e)
     {
         if(Frame.CanGoBack)
