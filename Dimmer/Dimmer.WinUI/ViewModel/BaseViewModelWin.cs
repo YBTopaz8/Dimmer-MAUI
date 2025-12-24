@@ -1157,9 +1157,9 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
         return AutoConfirmLastFMVar;
     }
-    public async Task<bool> CheckToCompleteActivation()
+    public async Task<bool> CheckToCompleteActivation(string typee)
     {
-        if (WindowActivationRequestType != "Confirm LastFM") return false;
+        if (typee != "Confirm LastFM") return false;
 
         try
         {
@@ -1199,7 +1199,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         }
         finally
         {
-            WindowActivationRequestType = string.Empty;
+            WindowActivationRequestTypeStatic = string.Empty;
         }
 
         return true;
