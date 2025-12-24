@@ -29,7 +29,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nuget-
 
-      # 3. CALCULATE VERSION
       - name: Calculate Next Version
         id: calculator
         shell: pwsh
@@ -38,6 +37,9 @@ jobs:
           $latestTag = git describe --tags --abbrev=0 2>$null
           if (-not $latestTag) { $latestTag = "v0.0.0" }
           Write-Host "Current Tag: $latestTag"
+          
+          # Save Latest Tag for Changelog generation
+          echo "LATEST_TAG=$latestTag" >> $env:GITHUB_ENV
 
           $cleanVer = $latestTag -replace "^v", ""
           try {
@@ -51,17 +53,17 @@ jobs:
 
           $branch = "${{ github.ref_name }}"
           
-          if ($branch -eq 'master') {
+          # FIX: Added IntegrateAll to the list of branches that trigger a Minor bump
+          if ($branch -eq 'master' -or $branch -eq 'IntegrateAll') {
              $minor++
              $patch = 0
-             Write-Host "Master: Incrementing Minor (Production Release)"
+             Write-Host "Production Branch: Incrementing Minor"
              echo "IS_PRE=false" >> $env:GITHUB_ENV
           } elseif ($branch -eq 'Dev-Official') {
              $patch++
              Write-Host "Dev: Incrementing Patch (Pre-Release)"
              echo "IS_PRE=true" >> $env:GITHUB_ENV
           } else {
-             # Fallback for other branches (treat as pre-release)
              $patch++
              echo "IS_PRE=true" >> $env:GITHUB_ENV
           }
@@ -69,6 +71,24 @@ jobs:
           $newTag = "v$major.$minor.$patch"
           Write-Host "Target Tag: $newTag"
           echo "NEW_TAG=$newTag" >> $env:GITHUB_ENV
+
+      - name: Generate Changelog
+        shell: pwsh
+        run: |
+          $prevTag = $env:LATEST_TAG
+          Write-Host "Generating changelog from $prevTag to HEAD..."
+          
+          # Get logs: "hash - message"
+          $log = git log $prevTag..HEAD --pretty=format:"- %s (%h)" --no-merges
+          
+          # Create a header
+          $content = "## Changes in ${{ env.NEW_TAG }}`n`n$log"
+          
+          # Save to file for the release action to read
+          Set-Content -Path "release_notes.md" -Value $content -Encoding UTF8
+          
+          # Print for debug
+          Write-Host $content
 
       # 4. CHECKOUT DEPENDENCIES
       - name: Checkout Last.fm
@@ -223,6 +243,7 @@ jobs:
           name: Release ${{ env.NEW_TAG }}
           draft: false
           prerelease: ${{ env.IS_PRE }}
+          body_path: release_notes.md
           files: |
             RawBuild/Android/*.apk
             Artifacts/Dimmer-Windows-Portable-${{ env.NEW_TAG }}.zip
