@@ -209,11 +209,13 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         {
             switch (e.Event?.Action)
             {
+                
+
                 case MotionEventActions.Down:
                     startRawX = e.Event.RawX;
                     startRawY = e.Event.RawY;
 
-                     break;
+                    break;
 
                 case MotionEventActions.Move:
 
@@ -250,7 +252,6 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
                         }
                     }
 
-                    // 3. Check Y-Axis Logic (Up/Down) - Non-implemented for now
                     if (Math.Abs(finalDeltaY) > SwipeThreshold)
                     {
                         if (finalDeltaY < 0)
@@ -415,15 +416,6 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         {
             MyViewModel.NavigateToAnyPageOfGivenType(this, new LoginFragment("IntoLogin", MyViewModel), "loginPageTag");
         });
-
-        fab.Clickable = true;
-        // 2. Bind the Click event
-        fab.Click += (s, e) =>
-        {
-            _morphMenu.Show();
-        };
-        fab.LongClickable = true;
-        fab.LongClick += Fab_LongClick;
 
 
         PostponeEnterTransition();
