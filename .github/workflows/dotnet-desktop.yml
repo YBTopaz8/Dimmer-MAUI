@@ -29,23 +29,24 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nuget-
 
-      # 3. CALCULATE VERSION (The Logic You Requested)
+      # 3. CALCULATE VERSION 
       - name: Calculate Next Version
         id: calculator
         shell: pwsh
         run: |
-          # Ensure tags are actually here
+          # 1. Fetch all tags to ensure we see tags from other branches
           git fetch --tags --force
           
-          # Get the very latest tag (e.g., v1.4.1)
-          $latestTag = git describe --tags --abbrev=0 2>$null
-          if (-not $latestTag) { $latestTag = "v0.0.0" }
-          Write-Host "Current Base Tag: $latestTag"
+          # 2. Get the absolute latest tag from ANY branch (sorted by semantic version)
+          # We use 'git tag' instead of 'git describe' to see global history
+          $latestTag = git tag --sort=-version:refname | Select-Object -First 1
           
-          # Pass to Env for Changelog step
+          if (-not $latestTag) { $latestTag = "v0.0.0" }
+          Write-Host "Global Latest Tag: $latestTag"
+          
           echo "LATEST_TAG=$latestTag" >> $env:GITHUB_ENV
 
-          # Strip 'v' and parse
+          # 3. Parse Major.Minor.Patch
           $cleanVer = $latestTag -replace "^v", ""
           try {
             $parts = $cleanVer.Split('.')
@@ -57,23 +58,26 @@ jobs:
           }
 
           $branch = "${{ github.ref_name }}"
+          Write-Host "Current Branch: $branch"
           
-          # --- VERSIONING LOGIC ---
+          # 4. Versioning Logic
           if ($branch -eq 'master') {
-             # MASTER: 1.4.1 -> 1.5.0
+             # MASTER: Always bump Minor, reset Patch
+             # e.g., 1.4.1 -> 1.5.0
              $minor++
              $patch = 0
-             Write-Host "Master Branch: Incrementing Minor"
+             Write-Host "Master Branch detected: Incrementing Minor (Release)"
              echo "IS_PRE=false" >> $env:GITHUB_ENV
           } else {
-             # INTEGRATEALL / DEV: 1.4.1 -> 1.4.2
+             # INTEGRATEALL / OTHERS: Bump Patch
+             # e.g., 1.5.0 -> 1.5.1
              $patch++
-             Write-Host "Branch ($branch): Incrementing Patch"
+             Write-Host "Dev Branch detected: Incrementing Patch (Pre-Release)"
              echo "IS_PRE=true" >> $env:GITHUB_ENV
           }
 
           $newTag = "v$major.$minor.$patch"
-          Write-Host "Target Tag: $newTag"
+          Write-Host "Calculated Target Tag: $newTag"
           echo "NEW_TAG=$newTag" >> $env:GITHUB_ENV
 
       # 3.5 GENERATE CHANGELOG
@@ -248,8 +252,13 @@ jobs:
           if (-not $env:DISCORD_WEBHOOK) { Write-Host "No Webhook found"; exit 0 }
           
           $status = "${{ job.status }}"
-          if ($status -eq 'success') { $color = 3066993 } else { $color = 15158332 }
-          
+          if ($status -eq 'success') { 
+              $title = "Dimmer ${type}: ${{ env.NEW_TAG }}"
+              $color = 3066993 
+          } else { 
+              $title = "❌ Dimmer Build Failed"
+              $color = 15158332 
+          }
           $type = "Production Release"
           if ("${{ env.IS_PRE }}" -eq "true") { $type = "Pre-Release" }
 
@@ -260,7 +269,7 @@ jobs:
                 description = "Status: $status`nBranch: ${{ github.ref_name }}"
                 color = $color
                 fields = @(
-                  @{ name = "View Release"; value = "[Click Here](${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ env.NEW_TAG }})" }
+                  @{ name = "View Release on GitHub"; value = "[Click Here](${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ env.NEW_TAG }})" }
                 )
               }
             )
