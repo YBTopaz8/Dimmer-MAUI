@@ -128,9 +128,10 @@ public partial class DimmerMAUIWin : Microsoft.Maui.Controls.Window
         MaximumWidth = 500;
 
 #if DEBUG
-        Title = "Debug104a";
+        this.Title = $"DimmerDebug {BaseViewModel.CurrentAppVersion}";
+
 #elif RELEASE
-        Title = "Dimmer v1.04a";
+        this.Title = $"Dimmer {BaseViewModel.CurrentAppVersion}";
 #endif
 
         MyViewModel.DimmerMultiWindowCoordinator.SetHomeWindow(PlatUtils.GetNativeWindowFromMAUIWindow(this));
