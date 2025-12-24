@@ -357,7 +357,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
         if (!IsLibraryEmpty)
         {
-            ShowAllSongsWindowActivate();
+            //ShowAllSongsWindowActivate();
         }
 
         var realmSub = RealmFactory.GetRealmInstance();

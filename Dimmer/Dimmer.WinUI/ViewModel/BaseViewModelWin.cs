@@ -858,10 +858,10 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         MainWindow?.NavigateToPage(typeof(AllSongsListPage));
     }
 
-    public void NavigateToAnyPageOfGivenType(Type pageType)
+    public async void NavigateToAnyPageOfGivenType(Type pageType)
     {
-        if (MainWindow is null)
-            MainWindow = winUIWindowMgrService.GetOrCreateUniqueWindow<DimmerWin>(this, () => new DimmerWin());
+
+        await OpenDimmerWindow();
 
         MainWindow!.NavigateToPage(pageType);
     }

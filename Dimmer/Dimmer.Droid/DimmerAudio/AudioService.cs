@@ -273,12 +273,12 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     public double GetCurrentVolume()
     {
         
-        return Player.Volume;
+        return Player is null? 0: Player.Volume;
     }
 
     public AudioOutputDevice? GetCurrentAudioOutputDevice()
     {
-        var currentDevice = Service.GetCurrentAudioOutputDevice();
+        var currentDevice = ExoPlayerService.GetCurrentAudioOutputDevice();
         return currentDevice;
 
     }

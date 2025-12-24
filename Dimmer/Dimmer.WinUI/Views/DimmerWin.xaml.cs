@@ -79,10 +79,9 @@ public sealed partial class DimmerWin : Window
         this.Closed -= DimmerWindowClosed;
 
     }
-    public void LoadWindowAndPassVM(BaseViewModelWin baseViewModelWin, AppUtil appUtil)
+    public void LoadWindowAndPassVM(BaseViewModelWin baseViewModelWin)
     {
         this.MyViewModel ??= baseViewModelWin;
-        this.appUtil = appUtil;
 
     }
 

@@ -25,28 +25,17 @@ public class AppUtil : IAppUtil
 
         if (this.dimmerWinUI is null)
         {
-            dimmerWinUI = winUIWindowMgrService.GetOrCreateUniqueWindow<DimmerWin>(BaseViewModelWin, () => new DimmerWin());
+            //dimmerWinUI = winUIWindowMgrService.GetOrCreateUniqueWindow<DimmerWin>(BaseViewModelWin, () => new DimmerWin());
 
-            UiThreads.InitializeWinUIDispatcher(dimmerWinUI!.DispatcherQueue);
+            //UiThreads.InitializeWinUIDispatcher(dimmerWinUI!.DispatcherQueue);
         }
         else
         {
-            UiThreads.InitializeWinUIDispatcher(dimmerWinUI.DispatcherQueue);
+            //UiThreads.InitializeWinUIDispatcher(dimmerWinUI.DispatcherQueue);
             dimmerMAUIWin = BaseViewModelWin.MainMAUIWindow;
 
         }
         
-        
-
-        if (dimmerWinUI == null)
-        {
-            throw new Exception("DimmerWin is null");
-        }
-        dimmerWinUI.LoadWindowAndPassVM(BaseViewModelWin, this);
-       
-        dimmerWinUI.NavigateToPage(typeof(AllSongsListPage));
-        PlatUtils.MoveAndResizeCenter(dimmerWinUI, new Windows.Graphics.SizeInt32() { Height = 800, Width = 1200 });
-
             dimmerMAUIWin ??= new DimmerMAUIWin(BaseViewModelWin, this);
         return dimmerMAUIWin;
     }
