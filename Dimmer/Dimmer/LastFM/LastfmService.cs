@@ -681,7 +681,7 @@ public class LastfmService : ILastfmService
         if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         try
         {
-
+            
             var res = await _client.User.GetLovedTracksAsync(_username, limit:150)
                 ;
           

@@ -79,12 +79,23 @@
                         ImageSource="playlistminimalistic3.png"
                         WidthRequest="60" />
                     <Button
+                        x:Name="ViewDimmerSection"
                         BackgroundColor="Transparent"
                         BorderWidth="1"
                         Clicked="ViewDimmerSection_Clicked"
-                        x:Name="ViewDimmerSection"
                         ImageSource="playcircle.png"
                         WidthRequest="60" />
+                    <Button
+                        x:Name="ViewLastFM"
+                        BackgroundColor="Transparent"
+                        BorderWidth="1"
+                        Clicked="ViewLastFM_Clicked"
+                        ImageSource="lastfm.png"
+                        WidthRequest="60">
+                        <Button.Behaviors>
+                            <toolkit:IconTintColorBehavior TintColor="#BE0606" />
+                        </Button.Behaviors>
+                    </Button>
                     <Button
                         x:Name="SettingsNavChip"
                         BackgroundColor="Transparent"

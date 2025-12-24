@@ -2,6 +2,8 @@
 
 using Dimmer.WinUI.ViewModel.DimmerLiveWin;
 using Dimmer.WinUI.Views.WinuiPages.DimmsSection;
+using Dimmer.WinUI.Views.WinuiPages.LastFMSection;
+
 
 
 
@@ -1392,5 +1394,10 @@ public partial class HomePage : ContentPage
     private void ViewDimmerSection_Clicked(object sender, EventArgs e)
     {
         MyViewModel.NavigateToAnyPageOfGivenType(typeof(AllDimsView));
+    }
+
+    private void ViewLastFM_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.NavigateToAnyPageOfGivenType(typeof(LastFmPage));
     }
 }
