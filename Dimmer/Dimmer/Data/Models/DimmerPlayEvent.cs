@@ -45,6 +45,7 @@ public partial class DimmerPlayEvent : RealmObject, IRealmObjectWithObjectId
     public int PlayType { get; set; }
     public string? PlayTypeStr { get; set; }
 
+    public AudioOutputDeviceModel? AudioOutputDevice { get; set; }
 
     /// <summary>
     /// Gets or sets the date played.
@@ -52,7 +53,7 @@ public partial class DimmerPlayEvent : RealmObject, IRealmObjectWithObjectId
     /// <value>
     /// The date played.
     /// </value>
-     [Indexed]
+    [Indexed]
     public DateTimeOffset DatePlayed { get; set; }
     /// <summary>
     /// Gets or sets the date finished.
