@@ -5,7 +5,7 @@ public class QueueBottomSheetFragment : BottomSheetDialogFragment
     private BaseViewModelAnd MyViewModel;
     private RecyclerView _recyclerView;
     private SongAdapter _adapter;
-
+    private bool _pendingScrollToCurrent;
     public QueueBottomSheetFragment(BaseViewModelAnd viewModel)
     {
         MyViewModel = viewModel;
@@ -95,18 +95,42 @@ public class QueueBottomSheetFragment : BottomSheetDialogFragment
         return rootFrame;
     }
 
+
+    public override void OnViewCreated(View? view, Bundle? savedInstanceState)
+    {
+        base.OnViewCreated(view, savedInstanceState);
+        if (_pendingScrollToCurrent)
+        {
+            
+            view.Post(() =>
+            {
+                ScrollToSong();
+            });
+        }
+    }
+
+
+
     public void ScrollToSong(SongModelView? requestedSong=null)
     {
+        if (_recyclerView == null)
+        {
+            _pendingScrollToCurrent = true;
+            return;
+        }
         if (MyViewModel.CurrentPlayingSongView == null) return;
         requestedSong ??= MyViewModel.CurrentPlayingSongView;
 
         // Since we are using the "queue" mode in adapter, we need to find the index in PlaybackQueue
         var index = MyViewModel.PlaybackQueue.IndexOf(MyViewModel.CurrentPlayingSongView);
-
-        if (index >= 0)
+        if (_pendingScrollToCurrent)
         {
-            _recyclerView.SmoothScrollToPosition(index);
-            Toast.MakeText(Context, "Scrolled to current song", ToastLength.Short)?.Show();
+            _recyclerView.ScrollToPosition(index); 
+            _pendingScrollToCurrent = false;
+        }
+        else
+        {
+            _recyclerView.SmoothScrollToPosition(index); 
         }
     }
 }

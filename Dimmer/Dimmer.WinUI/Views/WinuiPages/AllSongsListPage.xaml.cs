@@ -1303,4 +1303,9 @@ true
     {
         ViewSongBtn_Click(sender, e);
     }
+
+    private void SongTitle_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
+    {
+
+    }
 }

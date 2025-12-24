@@ -70,9 +70,10 @@
                         HorizontalTextAlignment="Center"
                         Style="{StaticResource BodyTextBlockStyle}" />
 
-                    <CheckBox Content="Auto-Scrobble"
-                              
-                              IsChecked="{x:Bind MyViewModel.ScrobbleToLastFM, Mode=OneWay}" />
+                    <CheckBox
+                        x:Name="AutoScrobbleCheck"
+                        Content="Auto-Scrobble"
+                        IsChecked="{x:Bind MyViewModel.ScrobbleToLastFM, Mode=TwoWay}" />
                 </StackPanel>
             </StackPanel>
         </Grid>

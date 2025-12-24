@@ -323,6 +323,7 @@
                                             x:Name="SongTitle"
                                             Background="Transparent"
                                             BorderThickness="0"
+                                            
                                             Click="SongTitle_Click">
                                             <TextBlock Text="{Binding Title}" TextWrapping="WrapWholeWords" />
                                         </Button>

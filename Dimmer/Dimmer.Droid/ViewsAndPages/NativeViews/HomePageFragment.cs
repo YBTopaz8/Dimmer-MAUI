@@ -33,7 +33,8 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     public FloatingActionButton? cogButton = null!;
     CoordinatorLayout? root;
     public TextView CurrentTimeTextView;
-    public ExtendedFloatingActionButton? fab;
+    public FloatingActionButton? fab;
+    private float dX, dY;
     public CoordinatorLayout? Root => root;
     public BaseViewModelAnd MyViewModel { get; private set; } = null!;
     private bool _isNavigating;
@@ -172,22 +173,22 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         // Add Content to Root
         root.AddView(contentLinear);
 
-        var s = CreatePaginationBar(MyViewModel, ctx);
-        s.SetForegroundGravity(GravityFlags.Bottom | GravityFlags.CenterHorizontal);
-        contentLinear.AddView(s);
 
 
         // --- 5. Extended FAB ---
-        fab = new Google.Android.Material.FloatingActionButton.ExtendedFloatingActionButton(ctx);
-        fab.Text = "Actions";
-        fab.SetIconResource(Resource.Drawable.addpl); 
-        fab.Extend();
+        fab = new Google.Android.Material.FloatingActionButton.FloatingActionButton(ctx);
+        ;
+        fab.SetImageResource(Resource.Drawable.musicaba); 
+        
 
         var fabParams = new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent);
         fabParams.Gravity = (int)(GravityFlags.Bottom | GravityFlags.End);
         // Lift FAB above the MiniPlayer (approx 90dp)
         fabParams.SetMargins(0, 0, AppUtil.DpToPx(20), AppUtil.DpToPx(90));
         fab.LayoutParameters = fabParams;
+
+        SetupSwipeableFab(fab);
+
 
         // Add FAB to Root
         root.AddView(fab);
@@ -197,59 +198,96 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
         return root;
     }
-    private MaterialCardView CreatePaginationBar(BaseViewModelAnd viewModel,Context ctx)
+    private void SetupSwipeableFab(View view)
     {
-        var card = new MaterialCardView(ctx)
-        {
-            Radius = 0,
-            CardElevation = AppUtil.DpToPx(8),
-            LayoutParameters = new LinearLayout.LayoutParams(-1, ViewGroup.LayoutParams.WrapContent)
-        };
-        card.SetCardBackgroundColor(UiBuilder.IsDark(this.Resources.Configuration) ? Color.ParseColor("#1E1E1E") : Color.White);
+        float startRawX = 0;
+        float startRawY = 0;
 
-        var bar = new LinearLayout(ctx)
-        {
-            Orientation = Orientation.Horizontal,
-            LayoutParameters = new ViewGroup.LayoutParams(-1, ViewGroup.LayoutParams.WrapContent)
-        };
-        bar.SetGravity(GravityFlags.Center);
-        bar.SetPadding(20, 20, 20, 20);
+        const int SwipeThreshold = 50;
 
-        // 1. Jump Button
-        _jumpBtn = UiBuilder.CreateMaterialButton(ctx, this.Resources.Configuration,
-            (s, e) =>
+        view.Touch += (s, e) =>
+        {
+            switch (e.Event?.Action)
             {
-                //MyViewModel.JumpToCurrentSongCommand.Execute(null);
-            },
-            false, 40, Resource.Drawable.eye); // Ensure you have a target/locate icon
+                case MotionEventActions.Down:
+                    startRawX = e.Event.RawX;
+                    startRawY = e.Event.RawY;
 
-        // 2. Prev Button
-        _prevBtn = UiBuilder.CreateMaterialButton(ctx, this.Resources.Configuration,
-            (s, e) => MyViewModel.PrevSongPageCommand.Execute(null),
-            false, 40, Resource.Drawable.exo_styled_controls_previous);
+                     break;
 
-        // 3. Status Text
-        _pageStatusText = new TextView(ctx)
-        {
-            Text = "Page 1",
-            TextSize = 14,
-            Typeface = Typeface.DefaultBold
+                case MotionEventActions.Move:
+
+                    float curRawX = e.Event.RawX;
+                    float curRawY = e.Event.RawY;
+
+                    float deltaX = curRawX - startRawX;
+                    float deltaY = curRawY - startRawY;
+
+
+                    view.TranslationX = deltaX;
+                    view.TranslationY = deltaY;
+                    break;
+
+                case MotionEventActions.Up:
+                case MotionEventActions.Cancel:
+                    // 1. Calculate final deltas
+                    float finalDeltaX = view.TranslationX;
+                    float finalDeltaY = view.TranslationY;
+
+                    // 2. Check X-Axis Logic (Left/Right)
+                    if (Math.Abs(finalDeltaX) > SwipeThreshold)
+                    {
+                        if (finalDeltaX > 0)
+                        {
+                            
+                             Android.Widget.Toast.MakeText(Context, "Next Page >>", ToastLength.Short)?.Show();
+                            MyViewModel?.NextSongPageCommand?.Execute(null);
+                        }
+                        else
+                        {
+                            Android.Widget.Toast.MakeText(Context, "<< Prev Page", ToastLength.Short)?.Show();
+                            MyViewModel?.PrevSongPage();
+                        }
+                    }
+
+                    // 3. Check Y-Axis Logic (Up/Down) - Non-implemented for now
+                    if (Math.Abs(finalDeltaY) > SwipeThreshold)
+                    {
+                        if (finalDeltaY < 0)
+                        {
+
+                            var queueSheet = new QueueBottomSheetFragment(MyViewModel);
+                            queueSheet.ScrollToSong();
+
+                            queueSheet.Show(ParentFragmentManager, "QueueSheet");
+                            
+                        }
+                        else
+                        {
+
+                            MyViewModel.JumpToCurrentSongPage();
+                            //_songListRecycler.SmoothScrollToPosition(MyViewModel.songpo)
+                        }
+                    }
+
+
+                    view.Animate()?
+                        .TranslationX(0)
+                        .TranslationY(0)
+                        .SetDuration(300) 
+
+                        .SetInterpolator(new Android.Views.Animations.OvershootInterpolator(1.0f))
+                        .Start();
+
+                    break;
+            }
         };
-        _pageStatusText.SetPadding(30, 0, 30, 0);
-
-        // 4. Next Button
-        _nextBtn = UiBuilder.CreateMaterialButton(ctx, this.Resources.Configuration,
-            (s, e) => MyViewModel.NextSongPageCommand.Execute(null),
-            false, 40, Resource.Drawable.exo_styled_controls_next);
-
-        bar.AddView(_jumpBtn);
-        bar.AddView(_prevBtn);
-        bar.AddView(_pageStatusText);
-        bar.AddView(_nextBtn);
-
-        card.AddView(bar);
-        return card;
     }
+
+
+
+
+
     private void _searchBar_TextChanged(object? sender, Android.Text.TextChangedEventArgs e)
     {
         var NewText = e.Text?.ToString();
@@ -306,21 +344,10 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
             e.PropertyName == nameof(MyViewModel.CanGoNextSong) ||
             e.PropertyName == nameof(MyViewModel.CanGoPrevSong))
         {
-            RxSchedulers.UI.ScheduleToUI(()=>UpdatePagerState());
+            
         }
     }
-    private void UpdatePagerState()
-    {
-        if (_pageStatusText == null) return;
 
-        _pageStatusText.Text = MyViewModel.SongPageStatus;
-        _prevBtn.Enabled = MyViewModel.CanGoPrevSong;
-        _nextBtn.Enabled = MyViewModel.CanGoNextSong;
-
-        // Dim buttons visually if disabled
-        _prevBtn.Alpha = MyViewModel.CanGoPrevSong ? 1f : 0.5f;
-        _nextBtn.Alpha = MyViewModel.CanGoNextSong ? 1f : 0.5f;
-    }
     public override void OnViewCreated(View view, Bundle? savedInstanceState)
     {
         base.OnViewCreated(view, savedInstanceState);
@@ -389,6 +416,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
             MyViewModel.NavigateToAnyPageOfGivenType(this, new LoginFragment("IntoLogin", MyViewModel), "loginPageTag");
         });
 
+        fab.Clickable = true;
         // 2. Bind the Click event
         fab.Click += (s, e) =>
         {
@@ -445,113 +473,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
 
     }
-
-    private void AlbumArt_Click(object? sender, EventArgs e)
-    {
-        MyViewModel.NavigateToNowPlayingFragmentFromHome
-            (this, _albumArt,
-            _titleTxt, _artistTxt,
-            _albumTxt);
-    }
-
-    private async void Touch_SingleTap(int pos, View arg2, SongModelView song)
-    {
-
-        if (song != null)
-        {
-            await MyViewModel.PlaySongAsync(song, CurrentPage.AllSongs, MyViewModel.SearchResults);
-            _adapter.NotifyDataSetChanged();
-        }
-        Toast.MakeText(Context, $"Single tap {pos}", ToastLength.Short)?.Show();
-    }
-
     
-    public void PageFAB_Click(object? sender, EventArgs e)
-    {
-        var graphFrag = new GraphExplorerFragment(MyViewModel);
-        ParentFragmentManager.BeginTransaction()
-            .Replace(TransitionActivity.MyStaticID, graphFrag)
-            .AddToBackStack(null)
-            .Commit();
-        return;
-
-        var bottomSheetDialog = new BottomSheetDialog(Context!);
-
-        var layout = new LinearLayout(Context!)
-        {
-            Orientation = Orientation.Vertical,
-            LayoutParameters = new ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MatchParent,
-                ViewGroup.LayoutParams.WrapContent)
-        };
-        layout.SetPadding(0, 20, 0, 40); // Add some bottom padding for safety
-
-        var title = new TextView(Context!)
-        {
-            Text = $"Current Queue {MyViewModel.PlaybackQueue.Count} Songs",
-            TextSize = 20f,
-            Gravity = GravityFlags.Center,
-
-        };
-        title.SetPadding(0, 20, 0, 20);
-
-        title.SetTypeface(null, TypefaceStyle.Bold);
-
-        layout.AddView(title);
-        var recyclerView = new RecyclerView(Context!)
-        {
-            LayoutParameters = new ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MatchParent,
-                ViewGroup.LayoutParams.WrapContent)
-        };
-        recyclerView.SetLayoutManager(new LinearLayoutManager(Context!));
-        var adapter = new SongAdapter(Context!, MyViewModel, this, "queue");
-        recyclerView.SetAdapter(adapter);
-        var callback = new SimpleItemTouchHelperCallback(adapter);
-        var itemTouchHelper = new ItemTouchHelper(callback);
-        itemTouchHelper.AttachToRecyclerView(recyclerView);
-
-
-        var behavior = bottomSheetDialog.Behavior;
-
-        var displayMetrics = Context.Resources.DisplayMetrics;
-        int height = displayMetrics.HeightPixels;
-        behavior.PeekHeight = (int)(height * 0.6); // 60% of screen height
-        behavior.State = BottomSheetBehavior.StateCollapsed;
-
-        recyclerView.NestedScrollingEnabled = true;
-
-        var index = MyViewModel.PlaybackQueue.IndexOf(MyViewModel.CurrentPlayingSongView);
-        int currentIndex = index; // Assuming you have this in VM
-        if (currentIndex >= 0 && currentIndex < adapter.ItemCount)
-        {
-            recyclerView.ScrollToPosition(currentIndex);
-        }
-
-        layout.AddView(recyclerView);
-        bottomSheetDialog.SetContentView(layout);
-        bottomSheetDialog.Show();
-
-        // Dismiss when touching outside
-        bottomSheetDialog.SetCanceledOnTouchOutside(true);
-        
-        bottomSheetDialog.DismissWithAnimation = true;
-        bottomSheetDialog.DismissEvent += BottomSheetDialog_DismissEvent;
-
-
-    }
-
-    private void BottomSheetDialog_DismissEvent(object? sender, EventArgs e)
-    {
-        var ctx = Context;
-        if (ctx != null)
-        {
-            _adapter = new SongAdapter(ctx, MyViewModel, this
-                );
-            _songListRecycler?.SetAdapter(_adapter);
-        }
-    }
-
     private void CurrentTime_Click(object? sender, EventArgs e)
     {
         Android.Widget.Toast.MakeText(Context, "hey!", ToastLength.Short).Show();
@@ -587,31 +509,5 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     public void OnBackInvoked()
     {
         Toast.MakeText(Context!, "Back invoked in HomePageFragment", ToastLength.Short)?.Show();
-    }
-}
-
-class LoadMoreListener : RecyclerView.OnScrollListener
-{
-    BaseViewModelAnd _vm;
-    public LoadMoreListener(BaseViewModelAnd vm) => _vm = vm;
-
-    public override void OnScrolled(RecyclerView recyclerView, int dx, int dy)
-    {
-        //if (dy > 0) // Scrolling down
-        //{
-        //    var layoutManager = (LinearLayoutManager)recyclerView.GetLayoutManager();
-        //    int visibleItemCount = layoutManager.ChildCount;
-        //    int totalItemCount = layoutManager.ItemCount;
-        //    int pastVisiblesItems = layoutManager.FindFirstVisibleItemPosition();
-
-        //    if ((visibleItemCount + pastVisiblesItems) >= totalItemCount)
-        //    {
-        //        // Reached Bottom -> Load Next Page
-        //        if (_vm.CanGoNextSong)
-        //        {
-        //            _vm.NextSongPage();
-        //        }
-        //    }
-        //}
     }
 }
