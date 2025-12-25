@@ -177,6 +177,8 @@
 
             <StackPanel Grid.Row="1" Visibility="{x:Bind MyViewModel.IsLyricsFound, Mode=OneWay}">
                 <TextBlock HorizontalAlignment="Center" Text="No Lyrics Found" />
+                <Button HorizontalAlignment="Center" Content="Google it?"
+                        Command="{x:Bind MyViewModel.SearchSongPlainLyricsnOnlineSearchCommand}"/>
             </StackPanel>
             <ScrollViewer Grid.Row="1">
                 <ItemsRepeater x:Name="FetchedLyricsIR" ItemsSource="{x:Bind MyViewModel.LyricsSearchResults}">

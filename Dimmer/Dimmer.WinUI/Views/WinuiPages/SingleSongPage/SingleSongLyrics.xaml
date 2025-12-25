@@ -8,20 +8,36 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid >
+    <Grid RowSpacing="10">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
+            <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        
-        <SelectorBar x:Name="SelectorBar2" SelectionChanged="SelectorBar2_SelectionChanged">
-            <SelectorBarItem x:Name="SelectorBarItemPage1" Text="Page1" IsSelected="True" />
-            <SelectorBarItem x:Name="SelectorBarItemPage2" Text="Page2" />
-            <SelectorBarItem x:Name="SelectorBarItemPage3" Text="Page3" />
-            <SelectorBarItem x:Name="SelectorBarItemPage4" Text="Page4" />
-            <SelectorBarItem x:Name="SelectorBarItemPage5" Text="Page5" />
+
+        <SelectorBar
+            x:Name="SelectorBar2"
+            Grid.Row="0"
+            SelectionChanged="SelectorBar2_SelectionChanged">
+            <SelectorBarItem
+                x:Name="LyricsOverViewPage"
+                IsSelected="True"
+                Text="LyricsOverView Page"
+                Visibility="Collapsed" />
+            <SelectorBarItem x:Name="LyricsEditorPage" Text="Online Lyric via LibLRC" />
+            <SelectorBarItem
+                x:Name="OnlineLyricsSearchPage"
+                Text="OnlineLyricsSearch Page"
+                Visibility="Collapsed" />
+            <SelectorBarItem x:Name="LyricsManualSyncPage" Text="LyricsManualSync Page" />
+            <SelectorBarItem
+                x:Name="SelectorBarItemPage5"
+                Text="Page5"
+                Visibility="Collapsed" />
         </SelectorBar>
 
-        <Frame x:Name="ContentFrame" IsNavigationStackEnabled="False" />
+        <Frame
+            x:Name="ContentFrame"
+            Grid.Row="1"
+            IsNavigationStackEnabled="False" />
     </Grid>
 </Page>

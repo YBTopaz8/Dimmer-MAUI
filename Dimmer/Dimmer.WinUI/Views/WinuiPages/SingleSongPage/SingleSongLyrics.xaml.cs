@@ -44,10 +44,13 @@ public sealed partial class SingleSongLyrics : Page
                 pageType = typeof(LyricsOverViewPage);
                 break;
                 case 1:
-                    pageType = typeof(LyricsEditorPage);
-                    break;
+                pageType = typeof(LyricsEditorPage);
+                break;
                 case 2:
-                    pageType = typeof(OnlineLyricsSearchPage);
+                    //pageType = typeof(OnlineLyricsSearchPage);
+                    break;
+            case 3:
+                    pageType = typeof(LyricsManualSyncPage);
                     break;
             default:
                 break;

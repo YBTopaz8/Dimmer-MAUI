@@ -5990,6 +5990,36 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     #region lyrics editing region
     [RelayCommand]
+    public void DuplicateAndTimestampLastLine()
+    {
+        if (!IsLyricEditorActive || LyricsInEditor == null) return;
+
+        
+        int previousIndex = _currentLineIndexToTimestamp - 1;
+
+        if (previousIndex < 0 || previousIndex >= LyricsInEditor.Count)
+            return;
+
+        var lineToCopy = LyricsInEditor[previousIndex];
+
+        // Create the new repeated line
+        var newLine = new LyricEditingLineViewModel
+        {
+            Text = lineToCopy.Text,
+            IsRepeated = true,
+            SectionType = lineToCopy.SectionType,
+            BelongsToSection = lineToCopy.BelongsToSection,
+            Timestamp = "[--:--.--]",
+            IsTimed = false,
+            IsCurrentLine = true
+        };
+
+        LyricsInEditor.Insert(_currentLineIndexToTimestamp, newLine);
+
+        TimestampCurrentLyricLine(newLine);
+
+    }
+    [RelayCommand]
     private void LoadLyricsForEditing(LrcLibLyrics? selectedResult)
     {
         if (selectedResult == null || selectedResult.SyncedLyrics is null) return;
@@ -5997,6 +6027,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         // Logic to populate the editor without saving to DB yet
         StartLyricsEditingSession(selectedResult.SyncedLyrics);
     }
+
     /// <summary>
     /// Takes plain text, splits it into lines, and prepares the editor UI.
     /// </summary>
@@ -8276,7 +8307,20 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     {
         // searhc for lyrics online similar to searching for song only 
         //await Launcher.Default.OpenAsync(new Uri(url));
-
+        service ??= "google";
+        if (SelectedSong is null && CurrentPlayingSongView is not null)
+        {
+            SelectedSong = CurrentPlayingSongView;
+        }
+        if (SelectedSong is null)
+            return;
+        string query = $"{SelectedSong.Title} {SelectedSong.ArtistName}";
+        string url = service.ToLower() switch
+        {
+            "google" => $"https://www.google.com/search?q={Uri.EscapeDataString(query)} lyrics",
+          
+        };
+        await Launcher.Default.OpenAsync(new Uri(url));
     }
 
     [RelayCommand]

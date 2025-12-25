@@ -103,15 +103,6 @@ public sealed partial class SongDetailPage : Page
             this.DataContext = MyViewModel;
             DetailedSong = MyViewModel.SelectedSong;
 
-            var allAchievementsForSong = MyViewModel.RealmFactory.GetRealmInstance()
-                .All<SongModel>()
-                .Where(x => x.Id == MyViewModel.SelectedSong.Id)
-                .FirstOrDefault().EarnedAchievementIds.ToArray();
-            Debug.WriteLine(allAchievementsForSong.Length);
-
-
-            
-            Debug.WriteLine(allAchievementsForSong.Length);
             
 
 
@@ -506,7 +497,7 @@ public sealed partial class SongDetailPage : Page
     {
         var supNavTransInfo = new SlideNavigationTransitionInfo();
         
-        Type pageType = typeof(LyricsEditorPage);
+        Type pageType = typeof(SingleSongLyrics);
         var navParams = new SongDetailNavArgs
         {
             Song = DetailedSong!,
