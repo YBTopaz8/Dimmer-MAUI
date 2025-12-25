@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 
 using Dimmer.Data.Models.LyricsModels;
 
@@ -113,11 +114,11 @@ public sealed partial class LyricsEditorPage : Page
 
     private void BackBtnClick(object sender, RoutedEventArgs e)
     {
-        if(Frame.CanGoBack)
+        
+        if (Frame.CanGoBack)
         {
             // Prepare the animation, linking the key "ForwardConnectedAnimation" to our image
             ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("ForwardConnectedAnimation", EditLyricsTxt);
-
             Frame.GoBack();
         }
     }
@@ -146,5 +147,10 @@ public sealed partial class LyricsEditorPage : Page
         {
             Frame.GoBack(); 
         }
+    }
+
+    private async void GoogleItBtn_Click(object sender, RoutedEventArgs e)
+    {
+        await MyViewModel.SearchSongPlainLyricsnOnlineSearch(null);
     }
 }

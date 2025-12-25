@@ -183,7 +183,8 @@
                 <TextBlock HorizontalAlignment="Center" Text="No Lyrics Found" />
                 <Button
                     HorizontalAlignment="Center"
-                    Command="{x:Bind MyViewModel.SearchSongPlainLyricsnOnlineSearchCommand}"
+                    Click="GoogleItBtn_Click"
+                    x:Name="GoogleItBtn"
                     Content="Google it?" />
             </StackPanel>
             <ScrollViewer Grid.Row="1">

@@ -187,6 +187,13 @@
                                             <Button Content="{x:Bind DetailedSong.PlayCompletedCount}" />
                                         </StackPanel>
 
+                                        <Button
+                                            x:Name="ViewInFolder"
+                                            Command="{x:Bind MyViewModel.OpenAndSelectFileInExplorerCommand}"
+                                            CommandParameter="{x:Bind DetailedSong}">
+                                            <FontIcon Glyph="&#xE838;" />
+                                        </Button>
+
                                         <Button x:Name="ViewCharts" Click="ViewCharts_Click">
                                             <FontIcon Glyph="&#xEB05;" />
                                         </Button>
