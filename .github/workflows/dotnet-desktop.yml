@@ -14,7 +14,7 @@ jobs:
       contents: write # REQUIRED for pushing tags
 
     steps:
-      # 1. CHECKOUT (Fetch all history so we can find tags)
+      # 1. CHECKOUT
       - name: Checkout Main Repo
         uses: actions/checkout@v4
         with:
@@ -29,73 +29,84 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nuget-
 
-      # 3. READ VERSION FROM CSPROJ (Manual Source of Truth)
-      - name: Read Version from CSPROJ
+      # 3. READ VERSION & FIND PREVIOUS TAG
+      - name: Read Version & Find Previous Tag
         id: version_reader
         shell: pwsh
         run: |
-          # 1. Find the csproj file (Recursive search for Dimmer.csproj)
+          # --- A. READ CSPROJ ---
           $projectFile = Get-ChildItem -Recurse -Filter "Dimmer.csproj" | Select-Object -First 1
-          
-          if (-not $projectFile) {
-            Write-Error "❌ Could not find Dimmer.csproj."
-            exit 1
-          }
+          if (-not $projectFile) { Write-Error "❌ Dimmer.csproj not found"; exit 1 }
 
-          # 2. Read the <Version> tag from XML
           [xml]$xml = Get-Content $projectFile.FullName
           $manualVersion = $xml.Project.PropertyGroup.Version
           
           if ([string]::IsNullOrWhiteSpace($manualVersion)) {
-            Write-Error "❌ No <Version> tag found in Dimmer.csproj. Please add <Version>0.0.1</Version> inside <PropertyGroup>."
+            Write-Error "❌ No <Version> tag found in Dimmer.csproj."
             exit 1
           }
 
-          # 3. Format the Tag (Standardize with 'v' prefix)
           $newTag = "v$manualVersion"
-          Write-Host "🔹 Version found in file: $manualVersion"
-          Write-Host "🔹 Target Release Tag: $newTag"
-          
+          Write-Host "🔹 Version in file: $manualVersion"
+          Write-Host "🔹 Target Tag: $newTag"
           echo "NEW_TAG=$newTag" >> $env:GITHUB_ENV
 
-          # 4. Determine Release Type based on Branch
+          # --- B. SET BRANCH TYPE ---
           $branch = "${{ github.ref_name }}"
-          Write-Host "🔹 Current Branch: $branch"
-
           if ($branch -eq 'master') {
-             Write-Host "✅ Master Branch: Setting as Production Release"
              echo "IS_PRE=false" >> $env:GITHUB_ENV
           } else {
-             Write-Host "⚠️ IntegrateAll/Dev Branch: Setting as Pre-Release"
              echo "IS_PRE=true" >> $env:GITHUB_ENV
           }
 
-          # 5. Find Previous Tag (For Changelog generation)
+          # --- C. FIND PREVIOUS TAG ---
           git fetch --tags --force
-          # Get the latest tag that is NOT the current one (to see what changed since last time)
+          
+          # Find any tag that is NOT the current target tag
           $prevTag = git tag --sort=-version:refname | Where-Object { $_ -ne $newTag } | Select-Object -First 1
           
-          if (-not $prevTag) { $prevTag = $newTag } # Fallback if this is the very first tag
-          Write-Host "🔹 Previous Tag for Changelog: $prevTag"
+          if (-not $prevTag) { 
+             Write-Host "⚠️ No previous tag found (First Release?)"
+             $prevTag = "" 
+          } else {
+             Write-Host "🔹 Previous Tag found: $prevTag"
+          }
+          
           echo "LATEST_TAG=$prevTag" >> $env:GITHUB_ENV
 
-      # 3.5 GENERATE CHANGELOG
+      # 3.5 GENERATE CHANGELOG 
       - name: Generate Changelog
         shell: pwsh
         run: |
           $prevTag = $env:LATEST_TAG
           $newTag = $env:NEW_TAG
           
-          if ($prevTag -eq $newTag) {
-             $content = "## Initial Release $newTag"
+          Write-Host "Generating log from '$prevTag' to 'HEAD'"
+
+          if ([string]::IsNullOrEmpty($prevTag)) {
+              # No previous tag? Get ALL history.
+              $log = git log --pretty=format:"- %s (%h)" --no-merges
           } else {
-             Write-Host "Generating changelog from $prevTag to HEAD..."
-             $log = git log $prevTag..HEAD --pretty=format:"- %s (%h)" --no-merges
-             $content = "## Changes in $newTag`n`n$log"
+              # Get history since last tag
+              $log = git log $prevTag..HEAD --pretty=format:"- %s (%h)" --no-merges
           }
+
+          # --- FIX: Handle PowerShell Array to String conversion ---
+          if ($log -is [Array]) {
+              $logString = $log -join "`n"
+          } else {
+              $logString = $log
+          }
+
+          # If log is empty (e.g. no changes?), putting a placeholder
+          if ([string]::IsNullOrWhiteSpace($logString)) {
+              $logString = "- No commit messages found since last tag."
+          }
+
+          $content = "## Changes in $newTag`n`n$logString"
           
-          # Save to file
           Set-Content -Path "release_notes.md" -Value $content -Encoding UTF8
+          Write-Host "✅ Changelog Generated:"
           Write-Host $content
 
       # 4. CHECKOUT DEPENDENCIES
