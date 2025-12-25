@@ -151,7 +151,8 @@ public sealed partial class SongDetailPage : Page
 
         MyViewModel.SelectedSong = DetailedSong;
 
-        
+        EventsCount.Text = MyViewModel.SelectedSong.PlayEvents.Count.ToString();
+
 
         MyViewModel.CurrentWinUIPage = this;
         await MyViewModel.LoadLyricsFromOnlineOrDBIfNeededAsync(MyViewModel.SelectedSong!);
@@ -872,8 +873,10 @@ public sealed partial class SongDetailPage : Page
 
         if (btnContetnt == "All")
         {
-            SongPlayEvents.ItemsSource = MyViewModel.SelectedSong.PlayEvents.OrderByDescending(ev => ev.EventDate)
+            var defList = MyViewModel.SelectedSong.PlayEvents.OrderByDescending(ev => ev.EventDate)
                 .ToList();
+            SongPlayEvents.ItemsSource = defList;
+            EventsCount.Text = defList.Count.ToString();
             return;
         }
 
@@ -898,7 +901,7 @@ public sealed partial class SongDetailPage : Page
             .OrderByDescending(ev => ev.EventDate)
             .Select(evt => evt.ToDimmerPlayEventView());
             SongPlayEvents.ItemsSource = filteredEvents.ToList();
-
+            EventsCount.Text = filteredEvents.Count().ToString();
         }
 
     }

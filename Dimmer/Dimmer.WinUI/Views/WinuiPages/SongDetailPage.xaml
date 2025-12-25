@@ -284,7 +284,7 @@
                                             Background="Transparent"
                                             Click="FilterEventButton_Click"
                                             CommandParameter="Pause"
-                                            Content="Paused"
+                                            Content="Pause"
                                             CornerRadius="10" />
                                         <Button
                                             Background="Transparent"
@@ -298,6 +298,16 @@
 
                                 </StackPanel>
 
+                                <StackPanel
+                                    Padding="5"
+                                    HorizontalAlignment="Center"
+                                    Background="#291B22"
+                                    CornerRadius="5"
+                                    Orientation="Horizontal"
+                                    Spacing="2">
+                                    <TextBlock x:Name="EventsCount" />
+                                    <TextBlock Text="Events" />
+                                </StackPanel>
                                 <dgView:TableView
                                     x:Name="SongPlayEvents"
                                     Width="auto"
@@ -341,7 +351,6 @@
                                                             Grid.Column="2"
                                                             VerticalAlignment="Center"
                                                             FontSize="12"
-                                                            Opacity="0.5"
                                                             Text="{Binding DatePlayed, Converter={StaticResource EventDateOffsetToTimeAgo}}" />
 
                                                         <TextBlock

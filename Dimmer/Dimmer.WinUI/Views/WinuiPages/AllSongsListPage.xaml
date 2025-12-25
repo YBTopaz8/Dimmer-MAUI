@@ -323,7 +323,6 @@
                                             x:Name="SongTitle"
                                             Background="Transparent"
                                             BorderThickness="0"
-                                            
                                             Click="SongTitle_Click">
                                             <TextBlock Text="{Binding Title}" TextWrapping="WrapWholeWords" />
                                         </Button>
@@ -397,11 +396,29 @@
                             <dgView:TableViewTemplateColumn.CellTemplate>
                                 <DataTemplate>
 
+
                                     <StackPanel HorizontalAlignment="Center">
+
                                         <TextBlock
                                             HorizontalAlignment="Center"
-                                            Text="{Binding PlayCompletedCount}"
+                                            FontSize="15"
+                                            Text="{Binding PlayCount}"
                                             TextWrapping="WrapWholeWords" />
+                                        <StackPanel
+                                            HorizontalAlignment="Center"
+                                            Orientation="Horizontal"
+                                            Spacing="2">
+                                            <TextBlock
+                                                HorizontalAlignment="Center"
+                                                FontSize="9"
+                                                Text="{Binding PlayCompletedCount}"
+                                                TextWrapping="WrapWholeWords" />
+                                            <TextBlock
+                                                HorizontalAlignment="Center"
+                                                FontSize="9"
+                                                Text="Completed"
+                                                TextWrapping="WrapWholeWords" />
+                                        </StackPanel>
                                     </StackPanel>
                                 </DataTemplate>
 
