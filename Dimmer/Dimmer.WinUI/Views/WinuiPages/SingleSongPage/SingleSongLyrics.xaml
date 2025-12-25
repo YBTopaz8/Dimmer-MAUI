@@ -8,7 +8,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid RowSpacing="10">
+    <Grid Background="Transparent" RowSpacing="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
@@ -18,12 +18,11 @@
             x:Name="SelectorBar2"
             Grid.Row="0"
             SelectionChanged="SelectorBar2_SelectionChanged">
+
             <SelectorBarItem
-                x:Name="LyricsOverViewPage"
+                x:Name="LyricsEditorPage"
                 IsSelected="True"
-                Text="LyricsOverView Page"
-                Visibility="Collapsed" />
-            <SelectorBarItem x:Name="LyricsEditorPage" Text="Online Lyric via LibLRC" />
+                Text="Online Lyric via LibLRC" />
             <SelectorBarItem
                 x:Name="OnlineLyricsSearchPage"
                 Text="OnlineLyricsSearch Page"

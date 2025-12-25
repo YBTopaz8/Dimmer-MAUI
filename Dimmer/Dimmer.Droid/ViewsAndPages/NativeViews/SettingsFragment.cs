@@ -3,6 +3,8 @@ using System.Reactive.Disposables.Fluent;
 
 using Bumptech.Glide;
 
+using Dimmer.WinUI.UiUtils;
+
 using Google.Android.Material.MaterialSwitch;
 
 using ScrollView = Android.Widget.ScrollView;
@@ -71,6 +73,23 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
         };
         root.SetPadding(40, 60, 40, 200); // Bottom padding for player sheet
 
+        var horizontalLayout = new LinearLayout(ctx)
+        {
+            Orientation = Orientation.Horizontal,
+            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent)
+        };
+        var backBtn = new MaterialButton(ctx)
+        { CornerRadius = AppUtil.DpToPx(8) };
+        backBtn.SetIconResource(Resource.Drawable.backb);
+        backBtn.SetBackgroundColor(Color.Transparent);
+        backBtn.Click += (s,e) =>
+        {
+            if (Activity is TransitionActivity act)
+            {
+                act.OnBackPressedDispatcher.OnBackPressed();
+            }
+        };
+
         // Header
         var header = new TextView(ctx)
         {
@@ -80,7 +99,11 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
         };
         header.SetPadding(20, 0, 0, 40);
         header.TransitionName = _transitionName;
-        root.AddView(header);
+
+        horizontalLayout.AddView(backBtn);
+        horizontalLayout.AddView(header);
+
+        root.AddView(horizontalLayout);
 
         systemStatusView = new MaterialCardView(ctx)
             ;
@@ -92,6 +115,7 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
             Text = "App Status: All systems operational",
             TextSize = 14
         };
+        appStatusText.SetPadding(15, 15, 15, 15);
         
         systemStatusView.AddView(appStatusText);
         root.AddView(systemStatusView);
@@ -128,6 +152,11 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
         return scroll;
     }
 
+    private void BackBtn_Click(object? sender, EventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
     // --- SECTION BUILDERS ---
 
     private View CreateAppearanceSection(Context ctx)
@@ -135,7 +164,7 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
         var layout = CreateCardLayout(ctx);
 
         layout.AddView(CreateSwitchRow(ctx, "Dark Mode", "Use dark theme application-wide",
-            MyViewModel.IsDarkModeOn, (v) => MyViewModel.ToggleAppTheme()));
+            MyViewModel.IsDarkModeOn, (v) => MyViewModel.ToggleAppThemeAnd()));
 
         layout.AddView(CreateDivider(ctx));
 
@@ -250,17 +279,7 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
 
         layout.AddView(CreateDivider(ctx));
 
-        var resetBtn = new MaterialButton(ctx) { Text = "Reset Onboarding" };
-        resetBtn.SetBackgroundColor(Android.Graphics.Color.ParseColor("#8B0000")); // Dark Red
-        resetBtn.Click += (s, e) =>
-        {
-            //MyViewModel.AppState.IsFirstTimeUser = true;
-        };
 
-        var btnContainer = new LinearLayout(ctx);
-        btnContainer.SetPadding(30, 30, 30, 30);
-        btnContainer.AddView(resetBtn);
-        layout.AddView(btnContainer);
 
         return WrapInCard(ctx, layout);
     }

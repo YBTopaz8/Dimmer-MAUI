@@ -122,8 +122,11 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
             // If user.Image is a string URL:
             if (!string.IsNullOrEmpty(user.Image.Url))
             {
-                UserAvatarImg.ProfilePicture
-                    = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(user.Image.Url));
+                if (!string.IsNullOrEmpty(user.Image.Url))
+                {
+                    UserAvatarImg.ProfilePicture
+                        = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(user.Image.Url));
+                }
                 UserAvatarImg.DisplayName = user.Name;
             }
             await MyViewModel.LoadUserLastFMDataAsync(user);

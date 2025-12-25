@@ -1375,7 +1375,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [RelayCommand]
     public void ToggleAppTheme()
     {
-        ToggleDimmerTheme();
+        
+        
 
         //save to db for next boot
         using var realm = RealmFactory.GetRealmInstance();
@@ -5713,6 +5714,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [RelayCommand]
     public void AutoFillSearchFields()
     {
+        IsLyricsFound = false;
+        IsSearchingLyrics = false;
+        IsSearching = false;
         if (SelectedSong is null) return;
 
         // Now we explicitly update the UI properties because the user ASKED for it

@@ -28,11 +28,16 @@ public sealed partial class SingleSongLyrics : Page
     private Type pageType;
     private int previousSelectedIndex;
 
+    public BaseViewModelWin? MyViewModel { get; private set; }
+
+    private SongModelView? _storedSong;
+
     public SingleSongLyrics()
     {
         InitializeComponent();
         
     }
+    
 
     private void SelectorBar2_SelectionChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs args)
     {
@@ -41,25 +46,31 @@ public sealed partial class SingleSongLyrics : Page
         switch (currentSelectedIndex)
         {
             case 0:
-                pageType = typeof(LyricsOverViewPage);
-                break;
-                case 1:
                 pageType = typeof(LyricsEditorPage);
                 break;
+                case 1:
+                break;
                 case 2:
-                    //pageType = typeof(OnlineLyricsSearchPage);
-                    break;
+                pageType = typeof(LyricsManualSyncPage);
+                break;
             case 3:
-                    pageType = typeof(LyricsManualSyncPage);
                     break;
             default:
                 break;
         }
+        MyViewModel = IPlatformApplication.Current.Services.GetService<BaseViewModelWin>();
+        _storedSong = MyViewModel!.SelectedSong;
+        var navParams = new SongDetailNavArgs
+        {
+            Song = _storedSong!,
+            ViewModel = MyViewModel
+        };
+
 
         var sliderNavigationTransitionEffect = currentSelectedIndex - previousSelectedIndex > 0
             ? SlideNavigationTransitionEffect.FromRight : SlideNavigationTransitionEffect.FromBottom;
 
-        ContentFrame.Navigate(pageType, null,
+        ContentFrame.Navigate(pageType, navParams,
             new SlideNavigationTransitionInfo { Effect = sliderNavigationTransitionEffect });
     }
 }

@@ -89,7 +89,7 @@ public sealed partial class LyricsEditorPage : Page
                 EditLyricsTxt.Opacity = 1;
                 MyViewModel.ReadySearchViewAndProduceSearchText();
             });
-        };
+                };
                 MyViewModel.AutoFillSearchFields();
                 MyViewModel.CurrentWinUIPage = this;
             }

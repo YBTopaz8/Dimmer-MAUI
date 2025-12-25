@@ -168,17 +168,23 @@
                     </StackPanel>
                     <!--  Progress Ring  -->
                     <ProgressBar
+                        x:Name="LyricsSearchProgressBar"
                         Grid.Row="1"
                         Grid.ColumnSpan="4"
                         IsIndeterminate="True"
-                        Visibility="{x:Bind MyViewModel.IsLyricsSearchBusy, Mode=OneWay}" />
+                        Visibility="{x:Bind MyViewModel.IsSearchingLyrics, Converter={StaticResource BoolToVisConverter}}" />
                 </Grid>
             </Border>
 
-            <StackPanel Grid.Row="1" Visibility="{x:Bind MyViewModel.IsLyricsFound, Mode=OneWay}">
+            <StackPanel
+                x:Name="LyricsSearchNotFound"
+                Grid.Row="1"
+                Visibility="{x:Bind MyViewModel.IsLyricsFound, Converter={StaticResource BoolToVisConverter}, Mode=OneWay}">
                 <TextBlock HorizontalAlignment="Center" Text="No Lyrics Found" />
-                <Button HorizontalAlignment="Center" Content="Google it?"
-                        Command="{x:Bind MyViewModel.SearchSongPlainLyricsnOnlineSearchCommand}"/>
+                <Button
+                    HorizontalAlignment="Center"
+                    Command="{x:Bind MyViewModel.SearchSongPlainLyricsnOnlineSearchCommand}"
+                    Content="Google it?" />
             </StackPanel>
             <ScrollViewer Grid.Row="1">
                 <ItemsRepeater x:Name="FetchedLyricsIR" ItemsSource="{x:Bind MyViewModel.LyricsSearchResults}">

@@ -6,6 +6,7 @@ using AndroidX.Lifecycle;
 using Bumptech.Glide;
 
 using Dimmer.ViewsAndPages.NativeViews.ArtistSection;
+using Dimmer.WinUI.UiUtils;
 
 
 
@@ -680,4 +681,17 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         CurrentDeviceLogTextView.Text = LatestScanningLog;
     }
 
+    internal void ToggleAppThemeAnd()
+    {
+        var isDarkMode = UiBuilder.IsDark(CurrentPage.Context);
+        if (isDarkMode)
+        {
+            //set white theme aka light mode reload/refresh app as if light mode was toggled in system
+        }
+        else
+        {
+        }
+        CurrentTheme = isDarkMode ? UIUtils.CurrentAppTheme.Dark : UIUtils.CurrentAppTheme.Light;
+        ToggleAppTheme();
+    }
 }

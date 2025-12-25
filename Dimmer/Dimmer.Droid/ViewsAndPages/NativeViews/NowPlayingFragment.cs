@@ -14,6 +14,8 @@ using Google.Android.Material.Chip;
 
 using Kotlin.Jvm;
 
+using static Android.Provider.DocumentsContract;
+
 using ImageButton = Android.Widget.ImageButton;
 using ScrollView = Android.Widget.ScrollView;
 
@@ -101,7 +103,8 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
             WeightSum = 10
         };
         layout.SetPadding(20, 10, 20, 10);
-        layout.SetBackgroundColor(UiBuilder.IsDark(ctx) ? Color.ParseColor("#2D1C7F") : Color.ParseColor("#DEDFF0"));
+        //layout.SetBackgroundColor(UiBuilder.IsDark(ctx) ? Color.ParseColor("#291B22") : Color.ParseColor("#DEDFF0"));
+        layout.SetBackgroundColor(UiBuilder.IsDark(ctx) ? Color.ParseColor("#1a1a1a") : Color.ParseColor("#DEDFF0"));
 
 
         // Mini Cover
@@ -178,7 +181,9 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         var root = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
         root.SetPadding(40, 80, 40, 40); // Top padding for dragging handle area
 
-        root.SetBackgroundColor(UiBuilder.ThemedBGColor(ctx));
+        //root.SetBackgroundColor(UiBuilder.ThemedBGColor(ctx));
+        root.SetBackgroundColor(UiBuilder.IsDark(ctx) ? Color.ParseColor("#1a1a1a") : Color.ParseColor("#DEDFF0"));
+
 
         // --- A. Marquee Title ---
         _expandedTitle = new MaterialTextView(ctx) { TextSize = 24, Typeface = Android.Graphics.Typeface.DefaultBold, Gravity = GravityFlags.Center };
@@ -605,6 +610,10 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
     {
         if (song == null) return;
 
+        var songInDB = _viewModel.RealmFactory.GetRealmInstance()
+            .Find<SongModel>(song.Id);
+
+        
         // Mini Player
         _miniTitle.Text = song.Title;
         _miniArtist.Text = song.OtherArtistsName;

@@ -33,7 +33,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     public FloatingActionButton? cogButton = null!;
     CoordinatorLayout? root;
     public TextView CurrentTimeTextView;
-    public FloatingActionButton? fab;
+    public ExtendedFloatingActionButton? fab;
     private float dX, dY;
     public CoordinatorLayout? Root => root;
     public BaseViewModelAnd MyViewModel { get; private set; } = null!;
@@ -176,9 +176,10 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
 
         // --- 5. Extended FAB ---
-        fab = new Google.Android.Material.FloatingActionButton.FloatingActionButton(ctx);
+        fab = new Google.Android.Material.FloatingActionButton.ExtendedFloatingActionButton(ctx);
         ;
-        fab.SetImageResource(Resource.Drawable.musicaba); 
+        fab.Extended = false;
+        fab.SetIconResource(Resource.Drawable.musicaba); 
         
 
         var fabParams = new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent);
@@ -214,7 +215,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
                 case MotionEventActions.Down:
                     startRawX = e.Event.RawX;
                     startRawY = e.Event.RawY;
-
+                    
                     break;
 
                 case MotionEventActions.Move:
@@ -241,14 +242,25 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
                     {
                         if (finalDeltaX > 0)
                         {
-                            
-                             Android.Widget.Toast.MakeText(Context, "Next Page >>", ToastLength.Short)?.Show();
-                            MyViewModel?.NextSongPageCommand?.Execute(null);
+
+                            if (MyViewModel.CanGoNextSong)
+                            {
+                                Android.Widget.Toast.MakeText(Context, "Next Page >>", ToastLength.Short)?.Show();
+                                MyViewModel?.NextSongPageCommand?.Execute(null);
+                                fab?.Text = $"{MyViewModel?.CurrentSongPage} of {MyViewModel?.TotalSongPages}";
+                                fab?.Extend();
+                            }
                         }
                         else
                         {
-                            Android.Widget.Toast.MakeText(Context, "<< Prev Page", ToastLength.Short)?.Show();
-                            MyViewModel?.PrevSongPage();
+                            if (MyViewModel.CanGoPrevSong)
+                            {
+                                Android.Widget.Toast.MakeText(Context, "<< Prev Page", ToastLength.Short)?.Show();
+                                MyViewModel?.PrevSongPage();
+                                fab?.Text = $"{MyViewModel?.CurrentSongPage} of {MyViewModel?.TotalSongPages}";
+                                fab?.Extend();
+
+                            }
                         }
                     }
 
