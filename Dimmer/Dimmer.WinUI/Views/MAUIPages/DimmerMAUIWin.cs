@@ -117,7 +117,7 @@ public partial class DimmerMAUIWin : Microsoft.Maui.Controls.Window
         MaximumWidth = 600;
 
 #if DEBUG
-        this.Title = $"{MyViewModel?.AppTitle} {BaseViewModel.CurrentAppVersion}  {BaseViewModel.CurrentAppStage}";
+        this.Title = $"{MyViewModel?.AppTitle} Debug {BaseViewModel.CurrentAppVersion}  {BaseViewModel.CurrentAppStage}";
 
 #elif RELEASE
         this.Title = $"{MyViewModel?.AppTitle} {BaseViewModel.CurrentAppVersion}  {BaseViewModel.CurrentAppStage}";

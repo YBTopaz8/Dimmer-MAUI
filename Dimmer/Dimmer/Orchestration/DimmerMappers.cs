@@ -784,6 +784,26 @@ public static class DimmerMappers
         };
     }
 
+    public static LastFMUserView? ToLastFMUserView(this Hqub.Lastfm.Entities.User? src)
+    {
+        if (src is null) return null;
+        return new LastFMUserView
+        {
+            Name = src.Name,
+            RealName = src.RealName,
+            Url = src.Url,
+            Country = src.Country,
+            Age = src.Age,
+            Gender = src.Gender,
+            Playcount = src.Playcount,
+            Playlists = src.Playlists,
+            Registered = src.Registered,
+            Type = src.Type,
+           Image = src.Images.LastOrDefault()?.ToLastImageView() ?? new LastImageView()
+        };
+        
+    }
+
     public static LastFMUserView? ToLastFMUserView(this LastFMUser? src)
     {
         if (src is null) return null;
@@ -865,6 +885,16 @@ public static class DimmerMappers
 
 
     public static LastImageView? ToLastImageView(this LastImage? src)
+    {
+        if (src is null) return null;
+        return new LastImageView
+        {
+            Size = src.Size,
+            Url = src.Url
+        };
+    }
+
+    public static LastImageView? ToLastImageView(this Hqub.Lastfm.Entities.Image? src)
     {
         if (src is null) return null;
         return new LastImageView

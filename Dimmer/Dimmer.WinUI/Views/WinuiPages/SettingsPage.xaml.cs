@@ -109,16 +109,8 @@ public sealed partial class SettingsPage : Page
         MyViewModel?.AddMusicFolderViaPickerAsync();
     }
 
-    private void LogoutLastFM_Click(object sender, RoutedEventArgs e)
-    {
-        MyViewModel?.LogoutFromLastfmCommand.Execute(null);
-    }
-
-    private void LoginLastFM_Click(object sender, RoutedEventArgs e)
-    {
-        BaseViewModel.LastFMName = LastFMUname.Text;
-        MyViewModel?.LoginToLastfmCommand.Execute(null);
-    }
+  
+  
 
     private void ThemeToggle_Click(object sender, RoutedEventArgs e)
     {
@@ -278,19 +270,5 @@ public sealed partial class SettingsPage : Page
         }
     }
 
-    private void LastFMUname_KeyUp(object sender, KeyRoutedEventArgs e)
-    {
-        var send = (TextBox)sender;
-        if (send is null) return;
-        if (MyViewModel is null) return;
-        
-        var isPressedKeyEnterOrReturn = e.Key == Windows.System.VirtualKey.Enter;
-        if(isPressedKeyEnterOrReturn)
-        {
-            BaseViewModel.LastFMName = LastFMUname.Text;
-            
-            MyViewModel?.LoginToLastfmCommand.Execute(null);
-
-        }
-    }
+   
 }

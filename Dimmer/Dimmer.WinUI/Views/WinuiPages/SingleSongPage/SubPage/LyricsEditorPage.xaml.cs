@@ -90,6 +90,7 @@ public sealed partial class LyricsEditorPage : Page
                 MyViewModel.ReadySearchViewAndProduceSearchText();
             });
         };
+                MyViewModel.AutoFillSearchFields();
                 MyViewModel.CurrentWinUIPage = this;
             }
         }

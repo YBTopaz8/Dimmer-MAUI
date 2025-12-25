@@ -2422,7 +2422,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 Debug.WriteLine($"Count is {counterr}");
                 _stateService.SetCurrentLogMsg(new AppLogModel()
                 {
-                    Log = $"done with song {song.Title}"
+                    Log = $"done loading cover for song {song.Title}"
                 });
                 counterr++;
             }
@@ -6902,7 +6902,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         var tasks = new
         {
             Recent = lastfmService.GetUserRecentTracksAsync(lastfmService.AuthenticatedUser, 50),
-            Info = lastfmService.GetUserInfoAsync(),
+            
             
             TopTracks = lastfmService.GetUserTopTracksAsync(),
             TopAlbums = lastfmService.GetTopUserAlbumsAsync(),
@@ -6910,7 +6910,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             
         };
         
-        await Task.WhenAll(tasks.Recent, tasks.Info, tasks.TopTracks, tasks.TopAlbums, tasks.Loved);
+        await Task.WhenAll(tasks.Recent, tasks.TopTracks, tasks.TopAlbums, tasks.Loved);
 
         // 2. Build the Lookup ONE time (O(N))
         // This creates a hash map of your local library for instant matching
@@ -6925,8 +6925,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             .EnrichWithLocalData(localLibraryLookup, SearchResults)
             .ToObservableCollection();
 
-        // User Info
-        LastFMUserInfo = await tasks.Info;
 
         // Top Tracks
         var topTracks = await tasks.TopTracks;
