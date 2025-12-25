@@ -4299,12 +4299,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
 
         SelectedArtist = artist;
-        //artist.ListOfSimilarArtists = SearchResults
-        //    .SelectMany(s => s.ArtistToSong)
-        //    .Where(a => similar.Contains(a.Name) && a.Name != artist.Name)
-        //    .DistinctBy(a => a.Name)
-        //    .Take(10)
-        //    .ToList();
+       
     }
     public async Task<bool> SelectedArtistAndNavtoPage(SongModelView? song)
     {

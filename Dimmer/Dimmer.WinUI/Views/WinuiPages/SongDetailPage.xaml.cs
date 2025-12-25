@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 
 using CommunityToolkit.Maui.Core.Extensions;
 
+using Dimmer.Charts;
 using Dimmer.Interfaces.Services;
 using Dimmer.Utilities.Extensions;
 using Dimmer.WinUI.Views.WinuiPages.SingleSongPage;
@@ -12,12 +13,14 @@ using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media.Imaging;
 
 using Windows.Foundation.Metadata;
-using Visibility = Microsoft.UI.Xaml.Visibility;
+
 using Border = Microsoft.UI.Xaml.Controls.Border;
 using ListView = Microsoft.UI.Xaml.Controls.ListView;
 using ListViewSelectionMode = Microsoft.UI.Xaml.Controls.ListViewSelectionMode;
 using NavigationEventArgs = Microsoft.UI.Xaml.Navigation.NavigationEventArgs;
+using RadioButton = Microsoft.UI.Xaml.Controls.RadioButton;
 using ToolTip = Microsoft.UI.Xaml.Controls.ToolTip;
+using Visibility = Microsoft.UI.Xaml.Visibility;
 using Visual = Microsoft.UI.Composition.Visual;
 
 
@@ -230,7 +233,7 @@ public sealed partial class SongDetailPage : Page
             MyViewModel.IsBackButtonVisible = WinUIVisibility.Collapsed;
             var realm = MyViewModel.RealmFactory.GetRealmInstance();
             var dbArtist = realm.All<ArtistModel>()
-                .FirstOrDefault(a => a.Name == DetailedSong.Artist.Name);
+                .FirstOrDefault(a => a.Name == DetailedSong.ArtistName);
 
                   
             await MyViewModel.SetSelectedArtist(dbArtist.ToArtistModelView());
@@ -842,6 +845,45 @@ public sealed partial class SongDetailPage : Page
     private void MySongAchievements_Loaded(object sender, RoutedEventArgs e)
     {
 
+    }
+
+    private void RadioButton_Checked(object sender, RoutedEventArgs e)
+    {
+        
+    }
+
+    private void RadioButton_Checked_1(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void Button_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void FilterEventButton_Click(object sender, RoutedEventArgs e)
+    {
+        var send = (Button)sender;
+
+        if (send.Content is null) return;
+        var btnContetnt = send.Content as string;
+        if (btnContetnt == null) return;
+
+        if (btnContetnt == "All")
+        {
+            SongPlayEvents.ItemsSource = MyViewModel.SelectedSong.PlayEvents.OrderByDescending(ev => ev.EventDate)
+                .ToList();
+            return;
+        }
+
+        var eventType = int.Parse(btnContetnt);
+        PlayEventType evtType = (PlayEventType)eventType;
+        var filteredEvents = MyViewModel.RealmFactory.GetRealmInstance()
+            .Find<SongModel>(MyViewModel.SelectedSong?.Id)?
+            .PlayHistory.Where(ev => ev.PlayType == eventType)
+            .OrderByDescending(ev => ev.EventDate)
+            .Select(evt => evt.ToDimmerPlayEventView());
     }
 }
 

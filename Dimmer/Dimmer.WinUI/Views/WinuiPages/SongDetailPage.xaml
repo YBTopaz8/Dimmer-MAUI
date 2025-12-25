@@ -218,11 +218,90 @@
 
                             <StackPanel Padding="24" Spacing="16">
                                 <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Playback History" />
-                                <TextBlock Text="{x:Bind MyViewModel.SelectedSong.PlayEvents.Count, Mode=OneWay}" />
+
+                                <StackPanel Orientation="Horizontal" Spacing="5">
+
+                                    <Button x:Name="TotalDims" Background="Transparent">
+                                        <StackPanel Orientation="Horizontal" Spacing="5">
+
+                                            <TextBlock Text="Total Dims : " />
+                                            <TextBlock Text="{x:Bind MyViewModel.SelectedSong.PlayEvents.Count, Mode=OneWay}" />
+                                        </StackPanel>
+                                    </Button>
+
+                                    <Button x:Name="TotalCompleted" Background="Transparent">
+                                        <StackPanel Orientation="Horizontal" Spacing="5">
+
+                                            <TextBlock Text="Dims Completed" />
+                                            <TextBlock Text="{x:Bind MyViewModel.SelectedSong.PlayCompletedCount, Mode=OneWay}" />
+                                        </StackPanel>
+                                    </Button>
+
+                                    <Button x:Name="TotalSkipped" Background="Transparent">
+                                        <StackPanel Orientation="Horizontal">
+
+                                            <TextBlock Text="{x:Bind MyViewModel.SelectedSong.SkipCount, Mode=OneWay}" />
+                                        </StackPanel>
+                                    </Button>
+
+                                    <Button x:Name="TotalStreaks" Background="Transparent">
+                                        <StackPanel Orientation="Horizontal">
+
+                                            <TextBlock Text="{x:Bind MyViewModel.SelectedSong.PauseCount, Mode=OneWay}" />
+                                            <TextBlock Text="{x:Bind MyViewModel.SelectedSong.PlayStreakDays, Mode=OneWay}" />
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+
+                                <StackPanel
+                                    Padding="10"
+                                    BorderBrush="#291B22"
+                                    BorderThickness="1"
+                                    CornerRadius="20"
+                                    Orientation="Horizontal"
+                                    Spacing="5">
+                                    <Button
+                                        Background="Transparent"
+                                        Click="FilterEventButton_Click"
+                                        Content="All"
+                                        CornerRadius="10" />
+
+                                    <StackPanel Orientation="Horizontal" Spacing="5">
+
+                                        <Button
+                                            Background="Transparent"
+                                            Click="FilterEventButton_Click"
+                                            CommandParameter="Started"
+                                            Content="Started"
+                                            CornerRadius="10" />
+                                        <Button
+                                            Background="Transparent"
+                                            Click="FilterEventButton_Click"
+                                            CommandParameter="Completed"
+                                            Content="Completed"
+                                            CornerRadius="10" />
+                                        <Button
+                                            Background="Transparent"
+                                            Click="FilterEventButton_Click"
+                                            CommandParameter="Paused"
+                                            Content="Paused"
+                                            CornerRadius="10" />
+                                        <Button
+                                            Background="Transparent"
+                                            Click="FilterEventButton_Click"
+                                            CommandParameter="Skipped"
+                                            Content="Skipped"
+                                            CornerRadius="10" />
+
+                                    </StackPanel>
+
+
+                                </StackPanel>
 
                                 <dgView:TableView
                                     x:Name="SongPlayEvents"
                                     Width="auto"
+                                    Height="400"
                                     AutoGenerateColumns="False"
                                     ItemsSource="{x:Bind MyViewModel.SelectedSong.PlayEvents, Mode=OneWay}"
                                     Loaded="SongPlayEvents_Loaded"
@@ -237,8 +316,8 @@
                                                         Margin="10"
                                                         Padding="10"
                                                         HorizontalAlignment="Center"
-                                                        BorderBrush="{Binding PlayType, Converter={StaticResource PlayEventToColorBrush}}"
-                                                        BorderThickness="1"
+                                                        BorderBrush="{Binding PlayType, Converter={StaticResource PlayTypeToBorderBrush}}"
+                                                        BorderThickness="1.5"
                                                         CornerRadius="20">
                                                         <TextBlock FontWeight="Bold" Text="{Binding PlayTypeStr}" />
                                                         <TextBlock
