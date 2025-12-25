@@ -137,18 +137,19 @@
                                             Text="{x:Bind DetailedSong.Title}"
                                             TextWrapping="Wrap" />
 
-                                        <StackPanel Orientation="Horizontal">
+                                        <StackPanel Orientation="Horizontal" Spacing="5">
                                             <Button
                                                 x:Name="ArtistBtn"
                                                 HorizontalAlignment="Left"
                                                 Background="Transparent"
                                                 BorderThickness="2"
                                                 Click="ArtistBtn_Click"
-                                                Content="{x:Bind DetailedSong.ArtistName}"
+                                                Content="{x:Bind DetailedSong.OtherArtistsName}"
                                                 FontSize="50"
                                                 FontWeight="Bold" />
-
-
+                                            <Button x:Name="EditArtist" Click="EditArtist_Click">
+                                                <FontIcon FontSize="25" Glyph="&#xE70F;" />
+                                            </Button>
                                         </StackPanel>
                                         <StackPanel
                                             Margin="0,10,0,0"
@@ -190,7 +191,8 @@
                                         <Button
                                             x:Name="ViewInFolder"
                                             Command="{x:Bind MyViewModel.OpenAndSelectFileInExplorerCommand}"
-                                            CommandParameter="{x:Bind DetailedSong}">
+                                            CommandParameter="{x:Bind DetailedSong}"
+                                            ToolTipService.ToolTip="{x:Bind DetailedSong.FilePath}">
                                             <FontIcon Glyph="&#xE838;" />
                                         </Button>
 

@@ -234,7 +234,7 @@ public sealed partial class SongDetailPage : Page
             MyViewModel.IsBackButtonVisible = WinUIVisibility.Collapsed;
             var realm = MyViewModel.RealmFactory.GetRealmInstance();
             var dbArtist = realm.All<ArtistModel>()
-                .FirstOrDefault(a => a.Name == DetailedSong.ArtistName);
+                .FirstOrDefault(a => a.Name == DetailedSong.ArtistToSong.First()!.Name);
 
                   
             await MyViewModel.SetSelectedArtist(dbArtist.ToArtistModelView());
@@ -903,6 +903,11 @@ public sealed partial class SongDetailPage : Page
             SongPlayEvents.ItemsSource = filteredEvents.ToList();
             EventsCount.Text = filteredEvents.Count().ToString();
         }
+
+    }
+
+    private void EditArtist_Click(object sender, RoutedEventArgs e)
+    {
 
     }
 }
