@@ -523,10 +523,10 @@ public sealed partial class AllSongsListPage : Page
             this.DataContext = MyViewModel;
         }
 
-        if (CurrentPageTQL != MyViewModel.CurrentTqlQuery)
-        {
-            MyViewModel.SearchSongForSearchResultHolder(CurrentPageTQL);
-        }
+        //if (CurrentPageTQL != MyViewModel.CurrentTqlQuery)
+        //{
+        //    MyViewModel.SearchSongForSearchResultHolder(CurrentPageTQL);
+        //}
         MyViewModel.CurrentWinUIPage = this;
     }
 

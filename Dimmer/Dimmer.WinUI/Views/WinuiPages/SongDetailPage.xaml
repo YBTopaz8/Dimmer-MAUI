@@ -237,7 +237,7 @@
                                                         Margin="10"
                                                         Padding="10"
                                                         HorizontalAlignment="Center"
-                                                        BorderBrush="{Binding WasPlayCompleted, Converter={StaticResource BoolToCompleteColorConverter}}"
+                                                        BorderBrush="{Binding PlayType, Converter={StaticResource PlayEventToColorBrush}}"
                                                         BorderThickness="1"
                                                         CornerRadius="20">
                                                         <TextBlock FontWeight="Bold" Text="{Binding PlayTypeStr}" />
@@ -477,8 +477,10 @@
                                 </Button>
                             </StackPanel>
                             <achievements:SongAchievementsControl
-                                Loading="MySongAchievements_Loading"
-                                Loaded="MySongAchievements_Loaded" x:Name="MySongAchievements" Height="450" />
+                                x:Name="MySongAchievements"
+                                Height="450"
+                                Loaded="MySongAchievements_Loaded"
+                                Loading="MySongAchievements_Loading" />
 
 
                             <ListView

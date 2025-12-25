@@ -20,6 +20,7 @@
             </ResourceDictionary.MergedDictionaries>
             <converters:MsToDurationConverter x:Key="MsToDurationConverter" />
             <converters:BoolToVisConverter x:Key="BoolToVisConverter" />
+            <converters:PlayEventToColorBrush x:Key="PlayEventToColorBrush" />
             <converters:EventDateToTimeAgo x:Key="EventDateToTimeAgoConverter" />
             <converters:EventDateOffsetToTimeAgo x:Key="EventDateOffsetToTimeAgo" />
             <converters:TrackImageConverter x:Key="TrackImageConverter" />

@@ -91,6 +91,7 @@
                         BorderWidth="1"
                         Clicked="ViewLastFM_Clicked"
                         ImageSource="lastfm.png"
+                        ToolTipProperties.Text="LastFM Page"
                         WidthRequest="60">
                         <Button.Behaviors>
                             <toolkit:IconTintColorBehavior TintColor="#BE0606" />

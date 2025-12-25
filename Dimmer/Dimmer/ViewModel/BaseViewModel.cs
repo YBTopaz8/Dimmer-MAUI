@@ -447,9 +447,15 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         var searchStream = _searchQuerySubject
     .Throttle(TimeSpan.FromMilliseconds(300), RxSchedulers.Background)
-    .Select(query => new { Query = query, Page = 1 });
+    .Select(query =>
+    {
+        return new { Query = query, Page = 1 };
+    });
         var pageStream = _songPageSubject
-    .Select(page => new { Query = _searchQuerySubject.Value, Page = page });
+    .Select(page =>
+    {
+        return new { Query = _searchQuerySubject.Value, Page = page };
+    });
 
 
         Observable.Merge(searchStream, pageStream)
