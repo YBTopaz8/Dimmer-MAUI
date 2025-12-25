@@ -38,9 +38,9 @@ public sealed partial class DimmerWin : Window
         _compositorMainGrid = ElementCompositionPreview.GetElementVisual(MainGrid).Compositor;
 
 #if DEBUG
-        this.Title = $"DimmerDebug {BaseViewModel.CurrentAppVersion}";
+        this.Title = $"{MyViewModel?.AppTitle} {BaseViewModel.CurrentAppVersion}";
 #elif RELEASE
-        this.Title = $"Dimmer {BaseViewModel.CurrentAppVersion}";
+        this.Title = $"{MyViewModel?.AppTitle} {BaseViewModel.CurrentAppVersion}";
 #endif
     }
 

@@ -565,29 +565,29 @@ public sealed partial class SongDetailPage : Page
 
     private void AllAchievementsIR_Loaded(object sender, RoutedEventArgs e)
     {
-        // 1. Get the current song
-        var currentSongId = MyViewModel.SelectedSong?.Id;
-        if (currentSongId == null) return;
+        //// 1. Get the current song
+        //var currentSongId = MyViewModel.SelectedSong?.Id;
+        //if (currentSongId == null) return;
 
-        // 2. Open Realm to get the song's data
-        var realm = MyViewModel.RealmFactory.GetRealmInstance();
-        var song = realm.Find<SongModel>(currentSongId);
+        //// 2. Open Realm to get the song's data
+        //var realm = MyViewModel.RealmFactory.GetRealmInstance();
+        //var song = realm.Find<SongModel>(currentSongId);
 
-        if (song == null) return;
+        //if (song == null) return;
 
-        var earnedIds = song.EarnedAchievementIds.ToList();
-        if (earnedIds?.Count < 1)
-        {
-            AllAchievementsIR.Header = "No Achievements Yet..";
+        //var earnedIds = song.EarnedAchievementIds.ToList();
+        //if (earnedIds?.Count < 1)
+        //{
+        //    AllAchievementsIR.Header = "No Achievements Yet..";
 
-        }
-        else
-        {
-            var unlockedRules = MyViewModel.BaseAppFlow.AchievementService.GetAchievementsByIds(earnedIds);
+        //}
+        //else
+        //{
+        //    var unlockedRules = MyViewModel.BaseAppFlow.AchievementService.GetAchievementsByIds(earnedIds);
         
-            AllAchievementsIR.ItemsSource = unlockedRules;
+        //    AllAchievementsIR.ItemsSource = unlockedRules;
         
-        }
+        //}
     }
     AchievementRule _storedItem;
     private async void PopUpBackButton_Click(object sender, RoutedEventArgs e)

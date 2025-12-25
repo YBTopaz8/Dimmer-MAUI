@@ -1751,9 +1751,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
     [ObservableProperty]
-    public partial string AppTitle { get; set; } = "Dimmer";
+    public partial string AppTitle { get; set; } = "🎄Dimmer";
 
-    public static string CurrentAppVersion = "1.5.1";
+    public static string CurrentAppVersion = "1.5.2";
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]
