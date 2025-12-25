@@ -392,7 +392,7 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
         {
             // .Filter() returns an IQueryable, so we still use LINQ's FirstOrDefault() here,
             // but the core filtering has already been done by the more reliable RQL engine.
-            var obj = realm.All<T>().Filter(rqlQuery, args).FirstOrDefault();
+            var obj = realm.All<T>().Filter(rqlQuery, args).FirstOrDefaultNullSafe();
             return obj?.Freeze();
         });
     }

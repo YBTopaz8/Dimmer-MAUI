@@ -32,6 +32,7 @@ using Parse.LiveQuery;
 
 using Realms;
 
+using static Dimmer.Data.ModelView.LastFMUserView;
 using static Microsoft.Maui.ApplicationModel.Permissions;
 
 
@@ -7899,7 +7900,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         CurrentUserLocal.LastFMAccountInfo.Playlists = usr.Playlists;
         CurrentUserLocal.LastFMAccountInfo.Registered = usr.Registered;
         CurrentUserLocal.LastFMAccountInfo.Gender = usr.Gender;
-        CurrentUserLocal.LastFMAccountInfo.Image = new LastFMUserView.LastImageView();
+        CurrentUserLocal.LastFMAccountInfo.Image ??= new LastImageView();
         CurrentUserLocal.LastFMAccountInfo.Image.Url = usr.Images.LastOrDefault()?.Url;
         CurrentUserLocal.LastFMAccountInfo.Image.Size = usr.Images.LastOrDefault()?.Size;
         var rlm = RealmFactory.GetRealmInstance();
