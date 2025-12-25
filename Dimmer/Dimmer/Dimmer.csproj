@@ -8,6 +8,8 @@
 		<UseMaui>true</UseMaui>
 		<Nullable>enable</Nullable>
 		<LangVersion>preview</LangVersion>
+		<Version>1.5.2</Version>
+
 	</PropertyGroup>
 
 	<ItemGroup>
