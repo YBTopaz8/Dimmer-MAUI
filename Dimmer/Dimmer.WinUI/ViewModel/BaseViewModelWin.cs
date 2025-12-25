@@ -1247,7 +1247,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         SelectedArtist!.ImagePath = lastFmArtist.Images?.Where(x => x.Size == "mega").LastOrDefault()?.Url;
         if(lastFmArtist.Biography is not null)
             SelectedArtist.Bio = lastFmArtist.Biography.Summary;
-        SelectedArtist.ListOfSimilarArtists = lastFmArtist.Similar.ToObservableCollection();
+        SelectedArtist.ListOfSimilarArtists = lastFmArtist.Similar?.ToObservableCollection();
         SelectedArtist.Url = lastFmArtist.Url;
         var realmm = RealmFactory.GetRealmInstance();
         await realmm.WriteAsync(async () =>

@@ -2387,15 +2387,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         if (finalImagePath is null)
         {
-            //var v11 = RealmFactory.GetRealmInstance()
-            //    .All<SongModel>()
-            //    .Where(x => x.AlbumName == song.AlbumName);
-
-            //foreach (var item in v11)
-            //{
-            //    Debug.WriteLine(item.CoverImagePath);
-            //}
-
+          
             var pickedSong = RealmFactory.GetRealmInstance()
                 .All<SongModel>()
                 .Where(x => x.AlbumName == song.AlbumName)
@@ -2429,12 +2421,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             if (song.CoverImagePath != finalImagePath)
             {
                 RxSchedulers.UI.ScheduleToUI(()=> CurrentCoverImagePath = finalImagePath);
-                Debug.WriteLine($"Count is {counterr}");
-                _stateService.SetCurrentLogMsg(new AppLogModel()
-                {
-                    Log = $"done loading cover for song {song.Title}"
-                });
-                counterr++;
+               
             }
 
         }
@@ -2808,23 +2795,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _logger.LogInformation("Folder scan completed. Refreshing UI.");
 
         IsAppScanning = false;
-        if (stateInfo.ExtraParameter is List<SongModelView> newSongs && newSongs.Count > 0)
-        {
-            _logger.LogInformation("Adding {Count} new songs to the UI.", newSongs.Count);
+       
+        SearchSongForSearchResultHolder("desc added");
+        _ = EnsureAllCoverArtCachedForSongsAsync();
 
-            _stateService.SetCurrentLogMsg(new AppLogModel() { Log = $"Adding {newSongs.Count} new songs to the UI.", });
-
-            SearchSongForSearchResultHolder("desc added");
-            _ = EnsureAllCoverArtCachedForSongsAsync();
-
-
-            //var _lyricsCts = new CancellationTokenSource();
-            //_ = LoadSongDataAsync(null, _lyricsCts);
-        }
-        else
-        {
-            _logger.LogInformation("Scan completed, but no new songs were passed to the UI.");
-        }
+        
+        _logger.LogInformation("Scan completed, but no new songs were passed to the UI.");
 
         IsLibraryEmpty = false;
         ReloadFolderPaths();

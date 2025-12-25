@@ -311,7 +311,7 @@
                                 <dgView:TableView
                                     x:Name="SongPlayEvents"
                                     Width="auto"
-                                    Height="400"
+                                    MaxHeight="400"
                                     AutoGenerateColumns="False"
                                     ItemsSource="{x:Bind MyViewModel.SelectedSong.PlayEvents, Mode=OneWay}"
                                     Loaded="SongPlayEvents_Loaded"
