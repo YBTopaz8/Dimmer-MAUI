@@ -877,13 +877,30 @@ public sealed partial class SongDetailPage : Page
             return;
         }
 
-        var eventType = int.Parse(btnContetnt);
-        PlayEventType evtType = (PlayEventType)eventType;
-        var filteredEvents = MyViewModel.RealmFactory.GetRealmInstance()
+        else
+        {
+            int eventType=0; 
+            if (btnContetnt == "Started")
+            {
+                eventType = (int)PlayEventType.Play;
+            }
+            else
+            {
+
+                if (Enum.TryParse<PlayEventType>(btnContetnt, ignoreCase: true, out var parsedType))
+                {
+                    eventType = (int)parsedType;
+                }
+            }
+            var filteredEvents = MyViewModel.RealmFactory.GetRealmInstance()
             .Find<SongModel>(MyViewModel.SelectedSong?.Id)?
             .PlayHistory.Where(ev => ev.PlayType == eventType)
             .OrderByDescending(ev => ev.EventDate)
             .Select(evt => evt.ToDimmerPlayEventView());
+            SongPlayEvents.ItemsSource = filteredEvents.ToList();
+
+        }
+
     }
 }
 

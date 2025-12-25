@@ -283,7 +283,7 @@
                                         <Button
                                             Background="Transparent"
                                             Click="FilterEventButton_Click"
-                                            CommandParameter="Paused"
+                                            CommandParameter="Pause"
                                             Content="Paused"
                                             CornerRadius="10" />
                                         <Button

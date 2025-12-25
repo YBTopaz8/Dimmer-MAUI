@@ -28,6 +28,7 @@ public partial class PlayTypeToGlyphConverter : IValueConverter
         {
             glyph = GetGlyph(parsedType);
         }
+       
 
         return glyph;
     }

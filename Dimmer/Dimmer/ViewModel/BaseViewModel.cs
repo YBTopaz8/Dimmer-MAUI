@@ -1153,6 +1153,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 VolumeLevelPreference = _audioService.Volume,
                 IsDarkModePreference = Application.Current?.UserAppTheme == AppTheme.Dark,
                 RepeatModePreference = (int)CurrentRepeatMode,
+                
                 ShuffleStatePreference = IsShuffleActive,
                 IsStickToTop = IsStickToTop,
                 ScrobbleToLastFM = ScrobbleToLastFM,
@@ -1208,7 +1209,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 }
 
                 _currentPlayinSongIndexInPlaybackQueue = appModel.LastKnownPlaybackQueueIndex;
-                IsShuffleActive = appModel.LastKnownShuffleState;
+                IsShuffleActive = appModel.ShuffleStatePreference;
                 CurrentRepeatMode = (RepeatMode)appModel.LastKnownRepeatState;
                 CurrentTrackPositionSeconds = appModel.LastKnownPosition;
                 DeviceVolumeLevel = appModel.VolumeLevelPreference;
@@ -1218,12 +1219,20 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 if (!string.IsNullOrEmpty(appModel.CurrentSongId) &&
                     ObjectId.TryParse(appModel.CurrentSongId, out var songId))
                 {
-                    // Step 1: Query the database directly for the song by its ID.
-                    var songModel = songRepo.GetById(songId); // Assuming GetById is synchronous. If not, make this method async.
+                    if (songId == ObjectId.Empty)
+                    {
+
+                        var existingPlaylist = _playlistRepo.FirstOrDefaultWithRQL("PlaylistName == $0", LastSessionPlaylistName);
+                        if (existingPlaylist != null)
+                        {
+                            songId = existingPlaylist.SongsIdsInPlaylist.FirstOrDefault();
+                        }
+                    }
+                    var songModel = songRepo.GetById(songId); 
 
                     if (songModel != null)
                     {
-                        // Step 2: If found, map the database model to a view model for the UI.
+                        
                         CurrentPlayingSongView = songModel.ToSongModelView();
                     }
                     else
