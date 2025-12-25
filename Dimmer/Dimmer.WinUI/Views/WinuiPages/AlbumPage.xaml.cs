@@ -102,4 +102,14 @@ public sealed partial class AlbumPage : Page
             Frame.GoBack();
         }
     }
+
+    private void CoverImageAlbumPage_Loaded(object sender, RoutedEventArgs e)
+    {
+        var UriSource = DetailedSong?.Album?.ImagePath;
+        if (!string.IsNullOrEmpty(UriSource))
+        {
+            CoverImageAlbumPage.Source = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(UriSource));
+        }
+
+    }
 }

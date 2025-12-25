@@ -17,10 +17,9 @@
             x:Name="CoverImageAlbumPage"
             Grid.RowSpan="2"
             Opacity="0.05"
+            Loaded="CoverImageAlbumPage_Loaded"
             Stretch="UniformToFill">
-            <Image.Source>
-                <BitmapImage UriSource="{x:Bind DetailedSong.Album.ImagePath, Mode=OneWay}" />
-            </Image.Source>
+           
         </Image>
 
         <StackPanel Grid.Row="0">
