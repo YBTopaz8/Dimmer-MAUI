@@ -637,6 +637,7 @@ IRepository<SongModel> songRepository, // Inject the repository
             //_mapper.Map(songModel, song);
 
             _logger.LogInformation("Successfully updated lyrics in database for {SongTitle}", song.Title);
+            Console.WriteLine($"Successfully updated lyrics in database for {song.Title}");
         }
         catch (Exception ex)
         {

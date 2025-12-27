@@ -331,9 +331,11 @@
                                 BorderWidth="0"
                                 Clicked="ViewLyricsChip_Clicked"
                                 CornerRadius="20"
+                                HeightRequest="60"
                                 ImageSource="lyrics.png"
                                 IsVisible="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
-                                Loaded="ButtonLoaded" />
+                                Loaded="ButtonLoaded"
+                                WidthRequest="50" />
 
                         </VerticalStackLayout>
                     </Grid>

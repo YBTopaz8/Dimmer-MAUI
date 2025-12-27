@@ -135,7 +135,7 @@ public partial class SyncLyricsPopUpViewWindow : Window
 
         //move to top y - (height - 400)
         //move to top y + (height - 400)
-        newPosition.Height = 400; newPosition.Width = 400;
+        newPosition.Height = 700; newPosition.Width = 600;
         this.MoveAndResizeWindow(newPosition);
     }
 
