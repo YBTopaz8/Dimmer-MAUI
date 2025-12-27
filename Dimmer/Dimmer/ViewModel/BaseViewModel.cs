@@ -668,6 +668,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             await Task.Delay(3000);
             await EnsureAllCoverArtCachedForSongsAsync();
+            CancellationTokenSource cts = new();
+            await LoadAllSongsLyricsFromOnlineAsync(cts);
         });
 
         IsInitialized = true;
@@ -2373,6 +2375,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         _stateService.SetCurrentLogMsg(new AppLogModel { Log = "Cover art check complete." });
     }
+    
     #region Playback Event Handlers
     private async void OnPlaybackPaused(PlaybackEventArgs args)
     {
@@ -5101,18 +5104,14 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial ObservableCollection<DimmerStats> DailyListeningRoutineOHLC { get; set; }
 
 
-    public async Task LoadSongDataAsync(
-        Progress<LyricsProcessingProgress>? progressReporter,
+    public async Task LoadAllSongsLyricsFromOnlineAsync(
         CancellationTokenSource _lyricsCts)
     {
-        var allSongsFromDb = await songRepo.GetAllAsync();
-
-
+        
         await SongDataProcessor.ProcessLyricsAsync(
             RealmFactory,
-            allSongsFromDb,
             _lyricsMetadataService,
-            progressReporter,
+            null,
             _lyricsCts.Token);
     }
 

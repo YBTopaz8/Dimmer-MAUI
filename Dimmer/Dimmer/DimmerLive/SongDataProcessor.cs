@@ -30,13 +30,13 @@ public static class SongDataProcessor
 {
     public static async Task ProcessLyricsAsync(
         IRealmFactory RealmFactory,
-        IReadOnlyCollection<SongModel> songsToProcess,
         ILyricsMetadataService lyricsService,
         IProgress<LyricsProcessingProgress>? progress,
         CancellationToken cancellationToken)
     {
-        var songList = songsToProcess;
-        int totalCount = songList.Count;
+        var songs = RealmFactory.GetRealmInstance().All<SongModel>().Freeze();
+        var songList = songs;
+        int totalCount = songs.Count();
         int processedCount = 0;
 
         // --- THE ACTION BLOCK ---
@@ -64,7 +64,7 @@ public static class SongDataProcessor
                 {
                     // Pass the cancellationToken to the service! This is crucial.
                     var onlineResults = await lyricsService.SearchLyricsAsync(song.Title,song.ArtistName,song.AlbumName, cancellationToken);
-                    var onlineResult = onlineResults.FirstOrDefault();
+                    var onlineResult = onlineResults?.FirstOrDefault(x=>!string.IsNullOrEmpty(x.SyncedLyrics));
                     if (onlineResult is not null)
                     {
 
