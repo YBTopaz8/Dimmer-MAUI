@@ -275,12 +275,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     private class SearchResult
     {
-        public List<SongModelView> PagedSongs { get; set; } = new();
-        public int TotalPages { get; set; } = 1;
-        public int CurrentPage { get; set; } = 1;
+       
         public RealmQueryPlan Plan { get; set; }
+        public IEnumerable<SongModelView> SongsResult { get; set; }
         public string ErrorMessage { get; set; }
-        public int PageOfCurrentSong { get; internal set; }
     }
 
 
@@ -450,25 +448,17 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     .Throttle(TimeSpan.FromMilliseconds(300), RxSchedulers.Background)
     .Select(query =>
     {
-        return new { Query = query, Page = 1 };
-    });
-        var pageStream = _songPageSubject
-    .Select(page =>
-    {
-        return new { Query = _searchQuerySubject.Value, Page = page };
+        return new { Query = query};
     });
 
+       
 
-        Observable.Merge(searchStream, pageStream)
+
+        Observable.Merge(searchStream)
     .Throttle(TimeSpan.FromMilliseconds(300), RxSchedulers.Background) // Ensure we don't spam
     .Select(inputs =>
     {
 
-        RxSchedulers.UI.ScheduleToUI(() =>
-        {
-            CanGoNextSong = false;
-            CanGoPrevSong = false;
-        });
         // 1. NLP Parsing (Lightweight)
         Debug.WriteLine($"[DEBUG] Processing: '{inputs.Query}'");
         var tqlQuery = string.IsNullOrWhiteSpace(inputs.Query) ? "" : NaturalLanguageProcessor.Process(inputs.Query);
@@ -480,7 +470,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     {
 
         DimmerSearch.TQL.RealmSection.RealmQueryPlan? plan = payload.Plan;
-        var page = payload.Inputs.Page;
+  
 
         // Validation
         if (plan.ErrorMessage != null)
@@ -510,50 +500,22 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                                 if (plan.InMemoryPredicate == null) return true;
 
                                 return plan.InMemoryPredicate(model.ToSongModelView());
-                            })
-                            .ToList();
+                            });
             if (plan.Shuffle != null)
             {
                 var rng = new Random();
-                memoryFilteredList = memoryFilteredList.OrderBy(_ => rng.Next()).ToList();
+                memoryFilteredList = memoryFilteredList.OrderBy(_ => rng.Next());
             }
 
+            var pagedSongs = memoryFilteredList
 
-            int totalMatches = memoryFilteredList.Count;
-            int totalPages = (int)Math.Ceiling((double)totalMatches / SONG_PAGE_SIZE);
-            if (totalPages == 0) totalPages = 1;
-
-            // Ensure page bounds
-            if (page > totalPages) page = totalPages;
-            if (page < 1) page = 1;
-            if (CurrentPlayingSongView != null)
-            {
-                var globalIndex = memoryFilteredList.FindIndex(x => x.Id == CurrentPlayingSongView.Id);
-
-                if (globalIndex != -1)
-                {
-                    targetPageForCurrentSong = (int)Math.Floor((double)globalIndex / SONG_PAGE_SIZE) + 1;
-                }
-            }
-                    var pagedSongs = memoryFilteredList
-                .Skip((page - 1) * SONG_PAGE_SIZE)
-                .Take(SONG_PAGE_SIZE)
-                .Select(x => x.ToSongModelView()) 
-
-                .ToList();
-
-            var currentSongId = CurrentPlayingSongView?.Id;
-            var indexOnPage = pagedSongs.FindIndex(x => x.Id == currentSongId);
-
-            bool isPlayingSongOnThisPage = indexOnPage != -1;
+               .Select(x => x.ToSongModelView())
+                            .ToList();
 
             return new SearchResult
             {
-                PagedSongs = pagedSongs,
-                TotalPages = totalPages,
-                CurrentPage = page,
-                PageOfCurrentSong = targetPageForCurrentSong,
                 Plan = plan
+                ,SongsResult = pagedSongs
             };
         }
         catch (Exception ex)
@@ -578,16 +540,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         SearchResultsHolder.Edit(updater =>
         {
             updater.Clear();
-            updater.AddRange(result.PagedSongs);
+            updater.AddRange(result.SongsResult);
         });
 
-        // 2. Update Status Text
-        TotalSongPages = result.TotalPages;
-        SongPageStatus = $"Page {result.CurrentPage} of {result.TotalPages}";
-        CanGoNextSong = result.CurrentPage < result.TotalPages;
-        CanGoPrevSong = result.CurrentPage > 1;
-        CurrentSongPage = result.CurrentPage;
-        PageOfCurrentSong = result.PageOfCurrentSong;
         
         // 3. Update NLP Text Debugger
         if (CurrentTqlQuery != NLPQuery)
@@ -602,7 +557,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             {
                 // Note: Ensure CommandEvaluator can handle ViewModels, 
                 // or you might need to re-fetch specific IDs if it needs Realm objects.
-                var commandAction = commandEvaluator.Evaluate(result.Plan.CommandNode, result.PagedSongs);
+                var commandAction = commandEvaluator.Evaluate(result.Plan.CommandNode, result.SongsResult);
                 HandleCommandAction(commandAction);
             }
             catch (Exception ex)
@@ -721,15 +676,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
 
     [ObservableProperty] public partial bool CanSkipPage { get; set; } 
-    [ObservableProperty] public partial int CurrentSongPage { get; set; } = 1;
-    public int PageOfCurrentSong { get; private set; }
-    [ObservableProperty] public partial double TotalSongPages { get; set; } = 1;
-    [ObservableProperty] public partial string SongPageStatus { get; set; } = "Page 1";
-    [ObservableProperty] public partial bool CanGoNextSong { get; set; }
-    [ObservableProperty] public partial bool CanGoPrevSong { get; set; }
-    private readonly BehaviorSubject<int> _songPageSubject = new(1);
-    private const int SONG_PAGE_SIZE = 50;
-
  
     private async Task HeavierBackGroundLoadings(IEnumerable<string>? folders)
     {
@@ -861,87 +807,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     }
 
-    [RelayCommand]
-    public void NextSongPage()
-    {
-        if (CurrentSongPage >= TotalSongPages) return;
-
-        
-        _songPageSubject.OnNext(CurrentSongPage + 1);
-    }
-
-    [RelayCommand]
-    public void PrevSongPage()
-    {
-        if (CurrentSongPage <= 1) return;
-
-        _songPageSubject.OnNext(CurrentSongPage - 1);
-    }
-    [RelayCommand]
-    public void JumpToCurrentSongPage()
-    {
-        if (CurrentPlayingSongView == null) return;
-
-
-        using var realm = RealmFactory.GetRealmInstance();
-        IQueryable<SongModel> query = realm.All<SongModel>();
-
-
-        var currentSearchText = NLPQuery ?? "";
-        var tqlQuery = string.IsNullOrWhiteSpace(currentSearchText) ? "" : NaturalLanguageProcessor.Process(currentSearchText);
-        var plan = MetaParser.Parse(tqlQuery);
-
-        // 2a. Apply Filter
-        if (!string.IsNullOrEmpty(plan.RqlFilter))
-        {
-            try
-            {
-                query = query.Filter(plan.RqlFilter);
-            }
-            catch
-            {
-                return; // Filter was invalid, can't jump
-            }
-        }
-
-        if (plan.SortDescriptions.Count > 0)
-        {
-            var orderByString = string.Join(", ", plan.SortDescriptions.Select(
-                desc => $"{desc.PropertyName} {(desc.Direction == SortDirection.Ascending ? "asc" : "desc")}"));
-            query = query.OrderBy(orderByString);
-        }
-        else
-        {
-            // Pipeline Default
-            query = query.OrderBy(x => x.Title);
-        }
-
-      
-        var filteredIdList = query.ToList().Select(x => x.Id).ToList();
-
-        var targetId = CurrentPlayingSongView.Id;
-        var index = filteredIdList.IndexOf(targetId);
-
-        if (index == -1)
-        {
-           
-            return;
-        }
-
-        int newPage = (index / SONG_PAGE_SIZE) + 1;
-
-        if (newPage != CurrentSongPage)
-        {
-            Debug.WriteLine($"[Jump] Found song at Index {index}. Moving to Page {newPage}...");
-            _songPageSubject.OnNext(newPage);
-        }
-        else
-        {
-            Debug.WriteLine($"[Jump] Song is already on the current page ({newPage}).");
-         
-        }
-    }
-
+  
+   
 
     partial void OnCurrentTqlQueryChanged(string oldValue, string newValue)
     {
@@ -1151,7 +1018,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 LastKnownRepeatState = (int)CurrentRepeatMode,
                 LastKnownPosition = CurrentTrackPositionSeconds,
                 CurrentSongId = CurrentPlayingSongView.Id.ToString(),
-                VolumeLevelPreference = _audioService.Volume,
+                //VolumeLevelPreference = _audioService.Volume,
                 IsDarkModePreference = Application.Current?.UserAppTheme == AppTheme.Dark,
                 RepeatModePreference = (int)CurrentRepeatMode,
                 
@@ -1283,7 +1150,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     LastKnownRepeatState = (int)CurrentRepeatMode,
                     LastKnownPosition = CurrentTrackPositionSeconds,
                     CurrentSongId = CurrentPlayingSongView.Id.ToString(),
-                    VolumeLevelPreference = _audioService.Volume,
+                    VolumeLevelPreference = 1,
                     IsDarkModePreference = Application.Current?.UserAppTheme == AppTheme.Dark,
                     RepeatModePreference = (int)CurrentRepeatMode,
                     ShuffleStatePreference = IsShuffleActive,
@@ -2792,6 +2659,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     private void OnFolderScanCompleted(PlaybackStateInfo stateInfo)
     {
+        ReloadFolderPaths();
         _stateService.SetCurrentLogMsg(new AppLogModel() { Log = "Folder scan completed. Refreshing UI." });
         _logger.LogInformation("Folder scan completed. Refreshing UI.");
 
@@ -2804,7 +2672,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _logger.LogInformation("Scan completed, but no new songs were passed to the UI.");
 
         IsLibraryEmpty = false;
-        ReloadFolderPaths();
     }
 
     [RelayCommand]
@@ -2816,8 +2683,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         if (appModel is not null && appModel.Count > 0)
         {
             var appmodel = appModel[0];
-
-            FolderPaths = appmodel.UserMusicFoldersPreference.ToObservableCollection();
+            if(appmodel is null)return;
+            FolderPaths.Clear();
+            FolderPaths.AddRange(appmodel.UserMusicFoldersPreference);
+            OnPropertyChanged(nameof(this.FolderPaths)); 
         }
     }
 
@@ -3505,7 +3374,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
     [RelayCommand]
-    private void ToggleShuffle()
+    public void ToggleShuffle()
     {
         IsShuffleActive = !IsShuffleActive;
         _logger.LogInformation("Shuffle mode toggled to: {ShuffleState}", IsShuffleActive);
@@ -3748,7 +3617,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [RelayCommand]
     public void ToggleRepeatMode()
     {
-        CurrentRepeatMode = (RepeatMode)(((int)CurrentRepeatMode + 1) % Enum.GetNames(typeof(RepeatMode)).Length);
+        CurrentRepeatMode = (RepeatMode)(((int)CurrentRepeatMode + 1) % Enum.GetNames<RepeatMode>().Length);
 
 
         _logger.LogInformation("Repeat mode toggled to: {RepeatMode}", CurrentRepeatMode);
@@ -7607,7 +7476,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             return (result.stream, result.memStream);
         }
-        var imagePath = result.filePath;
+        var imagePath = result.filePathResult;
         if (string.IsNullOrEmpty(imagePath))
         {
             await Shell.Current.DisplayAlert("Error", "Failed to create story image.", "OK");
@@ -8476,10 +8345,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         var currentSongIndexInQueue = PlaybackQueue.IndexOf(CurrentPlayingSongView);
         int totalMatches = PlaybackQueue.Count;
-        TotalSongPages = (int)Math.Ceiling((double)totalMatches / SONG_PAGE_SIZE);
-        if (TotalSongPages == 0) TotalSongPages = 1;
-
-        int currentSongPage = (currentSongIndexInQueue / SONG_PAGE_SIZE) + 1;
 
         SearchResultsHolder.Edit(updater =>
         {
@@ -8488,13 +8353,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         });
 
 
-
-        RxSchedulers.UI.ScheduleToUI(() => {
-            SongPageStatus = $"Page {currentSongPage} of {TotalSongPages}";
-            CanGoNextSong = currentSongPage < TotalSongPages;
-            CanGoPrevSong = currentSongPage > 1;
-            CurrentSongPage = currentSongPage; // Sync property
-        });
 
     }
 
