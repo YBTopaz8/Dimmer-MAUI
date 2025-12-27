@@ -234,7 +234,7 @@ public sealed partial class SongDetailPage : Page
             MyViewModel.IsBackButtonVisible = WinUIVisibility.Collapsed;
             var realm = MyViewModel.RealmFactory.GetRealmInstance();
             var dbArtist = realm.All<ArtistModel>()
-                .FirstOrDefault(a => a.Name == DetailedSong.ArtistToSong.First()!.Name);
+                .FirstOrDefaultNullSafe(a => a.Name == DetailedSong.ArtistToSong.First()!.Name);
 
                   
             await MyViewModel.SetSelectedArtist(dbArtist.ToArtistModelView());
@@ -253,7 +253,7 @@ public sealed partial class SongDetailPage : Page
                 ConnectedAnimationService.GetForCurrentView()
                     .PrepareToAnimate("MoveViewToArtistPageFromSongDetailPage", ArtistNameTxt);
             }
-            MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(DetailedSong.Artist.Name));
+            MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(DetailedSong.ArtistName));
             Frame?.NavigateToType(pageType, navParams, navigationOptions);
                
              

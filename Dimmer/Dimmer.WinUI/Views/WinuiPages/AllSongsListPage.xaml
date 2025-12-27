@@ -470,50 +470,7 @@
 
 
             <StackPanel x:Name="BtmLogPanel" Grid.Row="2">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
 
-                    <!--  Left: Jump Button  -->
-                    <Button
-                        Grid.Column="0"
-                        HorizontalAlignment="Left"
-                        Command="{x:Bind MyViewModel.JumpToCurrentSongPageCommand}"
-                        ToolTipService.ToolTip="Go to Playing Song">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <SymbolIcon Symbol="Target" />
-                            <TextBlock Text="Locate Playing" />
-                        </StackPanel>
-                    </Button>
-
-                    <!--  Center: Pager  -->
-                    <StackPanel
-                        Grid.Column="1"
-                        Orientation="Horizontal"
-                        Spacing="20">
-
-                        <Button Command="{x:Bind MyViewModel.PrevSongPageCommand}" IsEnabled="{x:Bind MyViewModel.CanGoPrevSong, Mode=OneWay}">
-                            <SymbolIcon Symbol="Back" />
-                        </Button>
-
-                        <TextBlock
-                            VerticalAlignment="Center"
-                            FontWeight="SemiBold"
-                            Text="{x:Bind MyViewModel.SongPageStatus, Mode=OneWay}" />
-
-                        <Button Command="{x:Bind MyViewModel.NextSongPageCommand}" IsEnabled="{x:Bind MyViewModel.CanGoNextSong, Mode=OneWay}">
-                            <SymbolIcon Symbol="Forward" />
-                        </Button>
-
-                    </StackPanel>
-
-                    <!--  Right: Spacer (Optional, keeps center aligned)  -->
-                    <Border Grid.Column="2" />
-
-                </Grid>
 
                 <StackPanel Orientation="Horizontal">
                     <Button
