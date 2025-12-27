@@ -1,4 +1,5 @@
-﻿namespace Dimmer.Data.ModelView;
+﻿
+namespace Dimmer.Data.ModelView;
 
 [Utils.Preserve(AllMembers = true)]
 public class DimmerPlayEventView
@@ -34,6 +35,7 @@ public class DimmerPlayEventView
     public string? DeviceVersion { get; set; }
     public SongModelView? SongViewObject { get; internal set; }
     public ObservableCollection<SongModelView?> ListOfSongViewObjects { get; internal set; }
+    public AudioOutputDevice? AudioPlaybackDevice { get; internal set; }
 
     public DimmerPlayEventView()
     {

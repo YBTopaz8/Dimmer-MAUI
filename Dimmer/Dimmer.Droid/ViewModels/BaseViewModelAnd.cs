@@ -6,6 +6,7 @@ using AndroidX.Lifecycle;
 using Bumptech.Glide;
 
 using Dimmer.ViewsAndPages.NativeViews.ArtistSection;
+using Dimmer.WinUI.UiUtils;
 
 
 
@@ -394,16 +395,16 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
 
         var byteData = await ShareCurrentPlayingAsStoryInCardLikeGradient(song, true);
-        
+
         string clipboardText = $"{song.Title} - {song.ArtistName}\nAlbum: {song.AlbumName}\n\nShared via Dimmer Music Player v{CurrentAppVersion}";
 
         if (byteData.imgBytes != null)
         {
+           //await Clipboard.SetTextAsync(clipboardText);
             
-             await Clipboard.Default.SetTextAsync(clipboardText);
 
         }
-      
+
     }
 
 
@@ -680,4 +681,17 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         CurrentDeviceLogTextView.Text = LatestScanningLog;
     }
 
+    internal void ToggleAppThemeAnd()
+    {
+        var isDarkMode = UiBuilder.IsDark(CurrentPage.Context);
+        if (isDarkMode)
+        {
+            //set white theme aka light mode reload/refresh app as if light mode was toggled in system
+        }
+        else
+        {
+        }
+        CurrentTheme = isDarkMode ? UIUtils.CurrentAppTheme.Dark : UIUtils.CurrentAppTheme.Light;
+        ToggleAppTheme();
+    }
 }

@@ -209,7 +209,8 @@ public class LibraryScannerService : ILibraryScannerService
                             foreach (var songView in newSongs)
                             {
                                 var songModel = songView.ToSongModel();
-
+                                songModel.Artist = songView.Artist.ToArtistModel();
+                                
                                 // LINK ALBUM (Using our dictionary)
                                 if (songView.Album != null && managedAlbums.TryGetValue(songView.Album.Id, out var mAlb))
                                 {
@@ -236,7 +237,8 @@ public class LibraryScannerService : ILibraryScannerService
                                     if (songModel.ArtistToSong.Count > 0)
                                         songModel.Artist = songModel.ArtistToSong[0];
                                 }
-
+                                songModel.Album = songView.Album.ToAlbumModel();
+                                songModel.Genre = songView.Genre.ToGenreModel();
                                 songModel.ArtistName = songModel.Artist?.Name ?? "Unknown Artist";
                                 songModel.IsNew = false;
 

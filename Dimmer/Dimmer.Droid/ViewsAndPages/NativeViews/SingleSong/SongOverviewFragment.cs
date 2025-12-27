@@ -46,7 +46,7 @@ public class SongOverviewFragment : Fragment
 
 
         root.AddView(titleText);
-        var artistBtn = new MaterialButton(ctx, null, Resource.Attribute.borderlessButtonStyle) { Text = SelectedSong.ArtistName, TextSize = 18 };
+        var artistBtn = new MaterialButton(ctx, null, Resource.Attribute.borderlessButtonStyle) { Text = SelectedSong.OtherArtistsName, TextSize = 18 };
         // Parity: Navigate to Artist
         artistBtn.Click += (s, e) =>
         {

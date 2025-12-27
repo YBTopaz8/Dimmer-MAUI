@@ -587,9 +587,9 @@ public static class PlatUtils
 
         // scale up / down
         var scaleAnim = _compositor.CreateVector3KeyFrameAnimation();
-        scaleAnim.Duration = TimeSpan.FromMilliseconds(250);
+        scaleAnim.Duration = TimeSpan.FromMilliseconds(200);
         scaleAnim.InsertKeyFrame(1f, isHover
-            ? new System.Numerics.Vector3(1.1f)
+            ? new System.Numerics.Vector3(1.05f)
             : new System.Numerics.Vector3(1f));
 
         // keep scale centered
@@ -600,7 +600,7 @@ public static class PlatUtils
 
         visual.StartAnimation(nameof(visual.Scale), scaleAnim);
 
-        // OPTIONAL: subtle fade instead of full vanish
+        
         var opacityAnim = _compositor.CreateScalarKeyFrameAnimation();
         opacityAnim.Duration = TimeSpan.FromMilliseconds(250);
         opacityAnim.InsertKeyFrame(1f, isHover ? 1f : 0.85f);   // not 0

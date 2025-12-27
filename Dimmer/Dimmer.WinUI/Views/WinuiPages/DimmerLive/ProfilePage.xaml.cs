@@ -71,12 +71,7 @@ public sealed partial class ProfilePage : Page
             request.Data.SetText($"Add me on Dimmer! Username: {user.Username}");
         }
     }
-    private void EditProfileCommand_Execute()
-    {
-        // Navigate to an EditProfilePage or Show a ContentDialog
-        // For now, just a placeholder alert
-        // ContentDialog dialog = new ContentDialog()...
-    }
+
     private async void ShowEditProfileDialog(object sender, RoutedEventArgs e)
     {
         // Create a separate layout for the dialog

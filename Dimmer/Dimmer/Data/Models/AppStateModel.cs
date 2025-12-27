@@ -54,6 +54,7 @@ public partial class AppStateModel : RealmObject, IRealmObjectWithObjectId
     public bool AllowBackNavigationWithMouseFour { get; internal set; }
     public int AppTheme { get; internal set; }
     public string LastfmUsername { get; internal set; }
+    public bool ScrobbleToLastFM { get; internal set; }
 
     public AppStateModel()
     {

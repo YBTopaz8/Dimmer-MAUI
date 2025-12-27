@@ -183,40 +183,6 @@ public static class ListViewHelper
         ScrollViewer? sv = GetScrollViewer(listView);
         return sv?.ExtentHeight ?? 0;
     }
-
-
-    private static void ApplyWindowsCollectionViewCustomizations(ListView listView)
-    {
-        try
-        {
-            // Disable selection highlight
-            listView.SelectionMode = ListViewSelectionMode.None;
-
-            // Remove background and borders from the list itself
-            listView.Background = null;
-            listView.BorderBrush = null;
-            listView.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
-
-            // This event is key to styling the individual items as they are rendered
-            listView.ContainerContentChanging += (s, args) =>
-            {
-                if (args.ItemContainer is ListViewItem item)
-                {
-                    // Remove background and focus visuals from each item
-                    item.Background = null;
-                    item.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
-                    item.FocusVisualPrimaryThickness = new Microsoft.UI.Xaml.Thickness(0);
-                    item.FocusVisualSecondaryThickness = new Microsoft.UI.Xaml.Thickness(0);
-                }
-            };
-            Debug.WriteLine("Successfully applied custom styles to Windows ListView.");
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Failed to apply custom styles to Windows ListView: {ex.Message}");
-        }
-    }
-
 }
 public class BorderlessCollectionView : CollectionView { }
 

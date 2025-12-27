@@ -54,7 +54,7 @@
                 Aspect="AspectFit"
                 BackgroundColor="Transparent"
                 HorizontalOptions="Center"
-                Opacity="0.10"
+                Opacity="0.20"
                 Source="{Binding CurrentPlayingSongView.CoverImagePath, Converter={converters:PathToImageConverter}}"
                 ToolTipProperties.Text="Click to view song details"
                 VerticalOptions="Center" />
@@ -79,12 +79,24 @@
                         ImageSource="playlistminimalistic3.png"
                         WidthRequest="60" />
                     <Button
+                        x:Name="ViewDimmerSection"
                         BackgroundColor="Transparent"
                         BorderWidth="1"
                         Clicked="ViewDimmerSection_Clicked"
-                        x:Name="ViewDimmerSection"
                         ImageSource="playcircle.png"
                         WidthRequest="60" />
+                    <Button
+                        x:Name="ViewLastFM"
+                        BackgroundColor="Transparent"
+                        BorderWidth="1"
+                        Clicked="ViewLastFM_Clicked"
+                        ImageSource="lastfm.png"
+                        ToolTipProperties.Text="LastFM Page"
+                        WidthRequest="60">
+                        <Button.Behaviors>
+                            <toolkit:IconTintColorBehavior TintColor="#BE0606" />
+                        </Button.Behaviors>
+                    </Button>
                     <Button
                         x:Name="SettingsNavChip"
                         BackgroundColor="Transparent"
@@ -278,7 +290,7 @@
                     Spacing="0">
 
 
-                    <Grid BackgroundColor="Transparent" ColumnDefinitions="*,60">
+                    <Grid BackgroundColor="Transparent" ColumnDefinitions="*,auto">
                         <VerticalStackLayout Grid.Column="0">
 
                             <Button
@@ -290,10 +302,10 @@
                                 FontSize="16"
                                 HorizontalOptions="Start"
                                 Loaded="ButtonLoaded"
-                                Text="{Binding CurrentPlayingSongView.ArtistName}"
+                                Text="{Binding CurrentPlayingSongView.OtherArtistsName}"
                                 TextColor="{AppThemeBinding Light=Black,
                                                             Dark=White}"
-                                ToolTipProperties.Text="{Binding CurrentPlayingSongView.ArtistName}" />
+                                ToolTipProperties.Text="{Binding CurrentPlayingSongView.OtherArtistsName}" />
 
                             <Button
                                 x:Name="AlbumBtn"
@@ -548,6 +560,7 @@
                         FontAttributes="Bold"
                         FontSize="13"
                         HorizontalOptions="Center"
+                        IsVisible="False"
                         Loaded="ThemeToggler_Loaded"
                         Text="{Binding IsDarkModeOn}"
                         TextColor="{AppThemeBinding Light=Black,

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 
 using CommunityToolkit.Maui.Core.Extensions;
 
+using Dimmer.Charts;
 using Dimmer.Interfaces.Services;
 using Dimmer.Utilities.Extensions;
 using Dimmer.WinUI.Views.WinuiPages.SingleSongPage;
@@ -12,12 +13,14 @@ using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media.Imaging;
 
 using Windows.Foundation.Metadata;
-using Visibility = Microsoft.UI.Xaml.Visibility;
+
 using Border = Microsoft.UI.Xaml.Controls.Border;
 using ListView = Microsoft.UI.Xaml.Controls.ListView;
 using ListViewSelectionMode = Microsoft.UI.Xaml.Controls.ListViewSelectionMode;
 using NavigationEventArgs = Microsoft.UI.Xaml.Navigation.NavigationEventArgs;
+using RadioButton = Microsoft.UI.Xaml.Controls.RadioButton;
 using ToolTip = Microsoft.UI.Xaml.Controls.ToolTip;
+using Visibility = Microsoft.UI.Xaml.Visibility;
 using Visual = Microsoft.UI.Composition.Visual;
 
 
@@ -31,7 +34,6 @@ namespace Dimmer.WinUI.Views.WinuiPages;
 /// </summary>
 public sealed partial class SongDetailPage : Page
 {
-    readonly Microsoft.UI.Xaml.Controls.Page? NativeWinUIPage;
     private SongTransitionAnimation _userPrefAnim = SongTransitionAnimation.Spring;
 
     private readonly Compositor _compositor;
@@ -104,15 +106,6 @@ public sealed partial class SongDetailPage : Page
             this.DataContext = MyViewModel;
             DetailedSong = MyViewModel.SelectedSong;
 
-            var allAchievementsForSong = MyViewModel.RealmFactory.GetRealmInstance()
-                .All<SongModel>()
-                .Where(x => x.Id == MyViewModel.SelectedSong.Id)
-                .FirstOrDefault().EarnedAchievementIds.ToArray();
-            Debug.WriteLine(allAchievementsForSong.Length);
-
-
-            
-            Debug.WriteLine(allAchievementsForSong.Length);
             
 
 
@@ -158,7 +151,8 @@ public sealed partial class SongDetailPage : Page
 
         MyViewModel.SelectedSong = DetailedSong;
 
-        
+        EventsCount.Text = MyViewModel.SelectedSong.PlayEvents.Count.ToString();
+
 
         MyViewModel.CurrentWinUIPage = this;
         await MyViewModel.LoadLyricsFromOnlineOrDBIfNeededAsync(MyViewModel.SelectedSong!);
@@ -215,231 +209,9 @@ public sealed partial class SongDetailPage : Page
 
     }
 
-    private void BackButton_Click(object sender, RoutedEventArgs e)
-    {
-        // Standard navigation back
-        if (Frame.CanGoBack)
-        {
-           
-            Frame.GoBack();
-        }
-    }
-
     private void MyPage_Loaded(object sender, RoutedEventArgs e)
     {
         CalculateSectionOffsets();
-    }
-
-
-    private void ResultsList_ItemClick(object sender, ItemClickEventArgs e)
-    {
-
-    }
-
-    private async void ToggleViewArtist_Clicked(object sender, RoutedEventArgs e)
-    {
-        try
-        {
-            if (MyViewModel?.CurrentPlayingSongView is null)
-                return;
-
-            var send = (Button)sender;
-            var song = (SongModelView)send.DataContext;
-
-            char[] dividers = { ',', ';', ':', '|', '-' };
-            var namesList = MyViewModel.CurrentPlayingSongView.OtherArtistsName?
-                .Split(dividers, StringSplitOptions.RemoveEmptyEntries)
-                .Select(n => n.Trim())
-                .Where(n => !string.IsNullOrWhiteSpace(n))
-                .Distinct()
-                .ToArray() ?? [];
-
-            string selectedArtist = string.Empty;
-
-            if (namesList.Length > 1)
-            {
-                var dialog = new ContentDialog
-                {
-                    Title = "Select Artist",
-                    PrimaryButtonText = "OK",
-                    CloseButtonText = "Cancel",
-                    XamlRoot = (sender as FrameworkElement)?.XamlRoot
-                };
-
-                var list = new ListView
-                {
-                    SelectionMode = ListViewSelectionMode.Single,
-                    ItemsSource = namesList,
-                    Height = 200
-                };
-                dialog.Content = list;
-
-                var result = await dialog.ShowAsync();
-
-                if (result == ContentDialogResult.Primary && list.SelectedItem is string choice)
-                    selectedArtist = choice;
-                else
-                    return; // user canceled
-            }
-            else if (namesList.Length == 1)
-            {
-                selectedArtist = namesList[0];
-            }
-            else return;
-
-            // Perform your search actions
-            MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch("artist", selectedArtist));
-            MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByAlbum(song.AlbumName));
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Error in ToggleViewArtist_Clicked: {ex.Message}");
-        }
-
-    }
-
-    private void ToggleViewAlbum_Clicked(object sender, RoutedEventArgs e)
-    {
-        var send = (Button)sender;
-        var song = (SongModelView)send.DataContext;
-
-        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByAlbum(song.AlbumName));
-    }
-
-    private async void PlaySongGestRec_Tapped(object sender, RoutedEventArgs e)
-    {
-        await MyViewModel.PlayPauseToggleCommand.ExecuteAsync(null);
-    }
-
-    private void MainTabs_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
-    {
-        var newSelection = e.AddedItems;
-
-        Debug.WriteLine(newSelection.GetType());
-    }
-
-    private void TabViewItem_Loaded(object sender, RoutedEventArgs e)
-    {
-
-    }
-
-    private void TabViewItem_Unloaded(object sender, RoutedEventArgs e)
-    {
-
-    }
-
-    private void TabViewItem_BringIntoViewRequested(UIElement sender, BringIntoViewRequestedEventArgs args)
-    {
-
-    }
-
-    private void TabViewItem_CloseRequested(TabViewItem sender, TabViewTabCloseRequestedEventArgs args)
-    {
-
-    }
-    private void ApplyColorFade(Page targetPage, Windows.UI.Color color)
-    {
-        var visual = _compositor.CreateSpriteVisual();
-        visual.Size = new Vector2((float)targetPage.ActualWidth, (float)targetPage.ActualHeight);
-        visual.Brush = _compositor.CreateColorBrush(color);
-        visual.Opacity = 0f;
-        ElementCompositionPreview.SetElementChildVisual(targetPage, visual);
-
-        var fade = _compositor.CreateScalarKeyFrameAnimation();
-        fade.InsertKeyFrame(0f, 0f);
-        fade.InsertKeyFrame(0.5f, 1f);
-        fade.InsertKeyFrame(1f, 0f);
-        fade.Duration = TimeSpan.FromMilliseconds(600);
-        visual.StartAnimation("Opacity", fade);
-    }
-
-    private void ApplyParallax(UIElement foreground, UIElement background)
-    {
-        var fgVisual = ElementCompositionPreview.GetElementVisual(foreground);
-        var bgVisual = ElementCompositionPreview.GetElementVisual(background);
-
-        fgVisual.Offset = new Vector3(100, 0, 0);
-        bgVisual.Offset = new Vector3(50, 0, 0);
-
-        var fgAnim = _compositor.CreateVector3KeyFrameAnimation();
-        fgAnim.InsertKeyFrame(1f, Vector3.Zero);
-        fgAnim.Duration = TimeSpan.FromMilliseconds(400);
-
-        var bgAnim = _compositor.CreateVector3KeyFrameAnimation();
-        bgAnim.InsertKeyFrame(1f, Vector3.Zero);
-        bgAnim.Duration = TimeSpan.FromMilliseconds(600);
-
-        fgVisual.StartAnimation("Offset", fgAnim);
-        bgVisual.StartAnimation("Offset", bgAnim);
-    }
-
-
-    private void Button_PointerEntered(object sender, PointerRoutedEventArgs e)
-    {
-        var btn = (UIElement)sender;
-        var visual = ElementCompositionPreview.GetElementVisual(btn);
-        var anim = _compositor.CreateScalarKeyFrameAnimation();
-        anim.InsertKeyFrame(1f, 1.2f);
-        anim.Duration = TimeSpan.FromMilliseconds(150);
-        visual.CenterPoint = new Vector3((float)btn.RenderSize.Width / 2, (float)btn.RenderSize.Height / 2, 0);
-        visual.StartAnimation("Scale.X", anim);
-        visual.StartAnimation("Scale.Y", anim);
-    }
-
-    private void Button_PointerExited(object sender, PointerRoutedEventArgs e)
-    {
-        var btn = (UIElement)sender;
-        var visual = ElementCompositionPreview.GetElementVisual(btn);
-        var anim = _compositor.CreateScalarKeyFrameAnimation();
-        anim.InsertKeyFrame(1f, 1f);
-        anim.Duration = TimeSpan.FromMilliseconds(150);
-        visual.StartAnimation("Scale.X", anim);
-        visual.StartAnimation("Scale.Y", anim);
-    }
-
-
-
-    //private void ApplyDepthZoomEffect(UIElement element)
-    //{
-    //    var visual = ElementCompositionPreview.GetElementVisual(element);
-
-    //    var blur = _compositor.CreateGaussianBlurEffect();
-    //    var brush = _compositor.CreateEffectFactory(blur).CreateBrush();
-    //    var sprite = _compositor.CreateSpriteVisual();
-    //    sprite.Brush = brush;
-    //    ElementCompositionPreview.SetElementChildVisual(element, sprite);
-
-    //    visual.CenterPoint = new Vector3((float)element.RenderSize.Width / 2, (float)element.RenderSize.Height / 2, 0);
-    //    visual.Scale = new Vector3(0.85f);
-    //    var zoom = _compositor.CreateVector3KeyFrameAnimation();
-    //    zoom.InsertKeyFrame(1f, Vector3.One);
-    //    zoom.Duration = TimeSpan.FromMilliseconds(400);
-    //    visual.StartAnimation("Scale", zoom);
-    //}
-    private void ApplyFlipEffect(UIElement element)
-    {
-        var visual = ElementCompositionPreview.GetElementVisual(element);
-        visual.RotationAxis = new Vector3(0, 1, 0); // Y-axis flip
-        visual.CenterPoint = new Vector3((float)element.RenderSize.Width / 2, (float)element.RenderSize.Height / 2, 0);
-        visual.RotationAngleInDegrees = -90;
-
-        var flipAnim = _compositor.CreateScalarKeyFrameAnimation();
-        flipAnim.InsertKeyFrame(1f, 0f);
-        flipAnim.Duration = TimeSpan.FromMilliseconds(500);
-        var easing = _compositor.CreateCubicBezierEasingFunction(new Vector2(0.42f, 0f), new Vector2(0.58f, 1f));
-        flipAnim.InsertKeyFrame(1f, 0f, easing);
-
-        visual.StartAnimation(nameof(visual.RotationAngleInDegrees), flipAnim);
-    }
-
-    private void PlayPauseButton_Click(object sender, RoutedEventArgs e)
-    {
-
-    }
-
-    private void FavoriteButton_Click(object sender, RoutedEventArgs e)
-    {
-
     }
 
     private async void ArtistBtn_Click(object sender, RoutedEventArgs e)
@@ -462,7 +234,7 @@ public sealed partial class SongDetailPage : Page
             MyViewModel.IsBackButtonVisible = WinUIVisibility.Collapsed;
             var realm = MyViewModel.RealmFactory.GetRealmInstance();
             var dbArtist = realm.All<ArtistModel>()
-                .FirstOrDefault(a => a.Name == DetailedSong.Artist.Name);
+                .FirstOrDefaultNullSafe(a => a.Name == DetailedSong.ArtistToSong.First()!.Name);
 
                   
             await MyViewModel.SetSelectedArtist(dbArtist.ToArtistModelView());
@@ -481,7 +253,7 @@ public sealed partial class SongDetailPage : Page
                 ConnectedAnimationService.GetForCurrentView()
                     .PrepareToAnimate("MoveViewToArtistPageFromSongDetailPage", ArtistNameTxt);
             }
-            MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(DetailedSong.Artist.Name));
+            MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(DetailedSong.ArtistName));
             Frame?.NavigateToType(pageType, navParams, navigationOptions);
                
              
@@ -549,8 +321,6 @@ public sealed partial class SongDetailPage : Page
         fade.Duration = TimeSpan.FromMilliseconds(200);
         visual.StartAnimation("Opacity", fade);
     }
-    string current = "Overview";
-
 
     private void Grid_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
@@ -576,16 +346,6 @@ public sealed partial class SongDetailPage : Page
         
     }
 
-    private void SectionAnalytics_Loaded(object sender, RoutedEventArgs e)
-    {
-
-    }
-
-    private void BgImage_Loaded(object sender, RoutedEventArgs e)
-    {
-        SetupCinematicBackground();
-
-    }
     private void SetupCinematicBackground()
     {
         // 1. Get Visuals
@@ -693,40 +453,6 @@ public sealed partial class SongDetailPage : Page
         toolTip.IsOpen = false;
     }
 
-    private void ArtistPickerAutoSuggestBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
-    {
-
-    }
-
-    private void ArtistPickerAutoSuggestBox_SuggestionChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args)
-    {
-        var chosen = args.SelectedItem as string;
-        if (chosen is not null)
-        {
-            sender.Text = chosen;
-        }
-        MyViewModel.UpdateSongWithNoArtistToNewArtist(chosen);
-
-    }
-
-    private void ArtistPickerAutoSuggestBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
-    {
-
-    }
-
-
-
-    private void ArtistPickerAutoSuggestBox_Loaded(object sender, RoutedEventArgs e)
-    {
-        var autoSuggestBox = (AutoSuggestBox)sender;
-        var sourceFromDb = MyViewModel.SelectedSong.ArtistToSong
-            .Where(x=> x is not null)
-            .Where(x=> !string.IsNullOrWhiteSpace(x.Name))
-            .Select(a => a.Name)
-            .Distinct()
-            .ToList();
-    }
-
     private void SectionOverview_PointerEntered(object sender, PointerRoutedEventArgs e)
     {
     }
@@ -775,7 +501,7 @@ public sealed partial class SongDetailPage : Page
     {
         var supNavTransInfo = new SlideNavigationTransitionInfo();
         
-        Type pageType = typeof(LyricsEditorPage);
+        Type pageType = typeof(SingleSongLyrics);
         var navParams = new SongDetailNavArgs
         {
             Song = DetailedSong!,
@@ -811,7 +537,7 @@ public sealed partial class SongDetailPage : Page
 
         if ((dbSong.ArtistToSong.Count <1 || dbSong.Artist is null) && dbSong.ArtistName is not null)
         {
-            RxSchedulers.Background.Schedule(async () =>
+            RxSchedulers.Background.ScheduleToUI(async () =>
             {
                 var ArtistsInSong = MyViewModel.SelectedSong.OtherArtistsName.
                 Split(",").ToList();
@@ -832,37 +558,31 @@ public sealed partial class SongDetailPage : Page
         ArtistToSong.ItemsSource = listOfArtistsModelView;
     }
 
-
-    private void StatsCard_Click(object sender, ItemClickEventArgs e)
-    {
-
-    }
-
     private void AllAchievementsIR_Loaded(object sender, RoutedEventArgs e)
     {
-        // 1. Get the current song
-        var currentSongId = MyViewModel.SelectedSong?.Id;
-        if (currentSongId == null) return;
+        //// 1. Get the current song
+        //var currentSongId = MyViewModel.SelectedSong?.Id;
+        //if (currentSongId == null) return;
 
-        // 2. Open Realm to get the song's data
-        var realm = MyViewModel.RealmFactory.GetRealmInstance();
-        var song = realm.Find<SongModel>(currentSongId);
+        //// 2. Open Realm to get the song's data
+        //var realm = MyViewModel.RealmFactory.GetRealmInstance();
+        //var song = realm.Find<SongModel>(currentSongId);
 
-        if (song == null) return;
+        //if (song == null) return;
 
-        var earnedIds = song.EarnedAchievementIds.ToList();
-        if (earnedIds?.Count < 1)
-        {
-            AllAchievementsIR.Header = "No Achievements Yet..";
+        //var earnedIds = song.EarnedAchievementIds.ToList();
+        //if (earnedIds?.Count < 1)
+        //{
+        //    AllAchievementsIR.Header = "No Achievements Yet..";
 
-        }
-        else
-        {
-            var unlockedRules = MyViewModel.BaseAppFlow.AchievementService.GetAchievementsByIds(earnedIds);
+        //}
+        //else
+        //{
+        //    var unlockedRules = MyViewModel.BaseAppFlow.AchievementService.GetAchievementsByIds(earnedIds);
         
-            AllAchievementsIR.ItemsSource = unlockedRules;
+        //    AllAchievementsIR.ItemsSource = unlockedRules;
         
-        }
+        //}
     }
     AchievementRule _storedItem;
     private async void PopUpBackButton_Click(object sender, RoutedEventArgs e)
@@ -1124,6 +844,69 @@ public sealed partial class SongDetailPage : Page
     }
 
     private void MySongAchievements_Loaded(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void RadioButton_Checked(object sender, RoutedEventArgs e)
+    {
+        
+    }
+
+    private void RadioButton_Checked_1(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void Button_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void FilterEventButton_Click(object sender, RoutedEventArgs e)
+    {
+        var send = (Button)sender;
+
+        if (send.Content is null) return;
+        var btnContetnt = send.Content as string;
+        if (btnContetnt == null) return;
+
+        if (btnContetnt == "All")
+        {
+            var defList = MyViewModel.SelectedSong.PlayEvents.OrderByDescending(ev => ev.EventDate)
+                .ToList();
+            SongPlayEvents.ItemsSource = defList;
+            EventsCount.Text = defList.Count.ToString();
+            return;
+        }
+
+        else
+        {
+            int eventType=0; 
+            if (btnContetnt == "Started")
+            {
+                eventType = (int)PlayEventType.Play;
+            }
+            else
+            {
+
+                if (Enum.TryParse<PlayEventType>(btnContetnt, ignoreCase: true, out var parsedType))
+                {
+                    eventType = (int)parsedType;
+                }
+            }
+            var filteredEvents = MyViewModel.RealmFactory.GetRealmInstance()
+            .Find<SongModel>(MyViewModel.SelectedSong?.Id)?
+            .PlayHistory.Where(ev => ev.PlayType == eventType)
+            .OrderByDescending(ev => ev.EventDate)
+            .Select(evt => evt.ToDimmerPlayEventView());
+            SongPlayEvents.ItemsSource = filteredEvents.ToList();
+            EventsCount.Text = filteredEvents.Count().ToString();
+        }
+
+    }
+
+    private void EditArtist_Click(object sender, RoutedEventArgs e)
     {
 
     }

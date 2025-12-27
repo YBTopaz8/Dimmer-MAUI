@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 
 using Dimmer.Data.Models.LyricsModels;
 
@@ -89,15 +90,13 @@ public sealed partial class LyricsEditorPage : Page
                 EditLyricsTxt.Opacity = 1;
                 MyViewModel.ReadySearchViewAndProduceSearchText();
             });
-        };
+                };
+                MyViewModel.AutoFillSearchFields();
                 MyViewModel.CurrentWinUIPage = this;
             }
         }
     }
-    private void LyricsTextBox_Loaded(object sender, RoutedEventArgs e)
-    {
 
-    }
     private void Grid_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
         var props = e.GetCurrentPoint((UIElement)sender).Properties;
@@ -112,18 +111,14 @@ public sealed partial class LyricsEditorPage : Page
             }
         }
     }
-    private void Button_Click(object sender, RoutedEventArgs e)
-    {
-
-    }
 
     private void BackBtnClick(object sender, RoutedEventArgs e)
     {
-        if(Frame.CanGoBack)
+        
+        if (Frame.CanGoBack)
         {
             // Prepare the animation, linking the key "ForwardConnectedAnimation" to our image
             ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("ForwardConnectedAnimation", EditLyricsTxt);
-
             Frame.GoBack();
         }
     }
@@ -141,23 +136,6 @@ public sealed partial class LyricsEditorPage : Page
         await LyricsPreviewDialog.ShowAsync(ContentDialogPlacement.Popup);
     }
 
-    private async void PasteFromTitleFromClipboard_Click(object sender, RoutedEventArgs e)
-    {
-        var dataPackageView = Windows.ApplicationModel.DataTransfer.Clipboard.GetContent();
-        if (dataPackageView.Contains(Windows.ApplicationModel.DataTransfer.StandardDataFormats.Text))
-        {
-            var clipboardText = await dataPackageView.GetTextAsync();
-            
-
-            EditLyricsTxt.Text = clipboardText;
-        }
-        else
-        {
-            // No text found in clipboard
-            EditLyricsTxt.Text = string.Empty;
-        }
-        }
-
     private void ReadySearchViewAndProduceSearchText_Click(object sender, RoutedEventArgs e)
     {
         MyViewModel.ReadySearchViewAndProduceSearchText();
@@ -169,5 +147,10 @@ public sealed partial class LyricsEditorPage : Page
         {
             Frame.GoBack(); 
         }
+    }
+
+    private async void GoogleItBtn_Click(object sender, RoutedEventArgs e)
+    {
+        await MyViewModel.SearchSongPlainLyricsnOnlineSearch(null);
     }
 }

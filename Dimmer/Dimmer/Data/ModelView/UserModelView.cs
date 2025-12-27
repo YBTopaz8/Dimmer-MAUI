@@ -1,4 +1,6 @@
 ﻿
+using System.Runtime.Serialization;
+
 namespace Dimmer.Data.ModelView;
 
 [Utils.Preserve(AllMembers = true)]
@@ -62,4 +64,3 @@ public partial class UserModelView : ObservableObject
     public partial ParseFile? ProfileImageFile { get;  set; }
     public bool IsPremium { get; set; }
 }
-

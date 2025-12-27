@@ -53,17 +53,6 @@ public partial class DimmerMAUIWin : Microsoft.Maui.Controls.Window
 
 
     }
-    private void CloseAllWindows()
-    {
-        if (Microsoft.Maui.Controls.Application.Current!.Windows.Count < 2)
-        {
-            return;
-        }
-
-        
-
-
-    }
 
     public event EventHandler? WindowActivated;
     int count;
@@ -123,17 +112,18 @@ public partial class DimmerMAUIWin : Microsoft.Maui.Controls.Window
         MyViewModel.windowManager.TrackWindow(this);
         base.OnCreated();
         var nativeWindow = PlatUtils.GetNativeWindowFromMAUIWindow(this);
-        PlatUtils.MoveAndResizeCenter(nativeWindow, new Windows.Graphics.SizeInt32(600, 800));
-        MinimumHeight = 850;
-        MaximumWidth = 500;
+        PlatUtils.MoveAndResizeCenter(nativeWindow, new Windows.Graphics.SizeInt32(600, 900));
+        MinimumHeight = 900;
+        MaximumWidth = 600;
 
 #if DEBUG
-        Title = "Debug104a";
+        this.Title = $"{MyViewModel?.AppTitle} Debug {BaseViewModel.CurrentAppVersion}  {BaseViewModel.CurrentAppStage}";
+
 #elif RELEASE
-        Title = "Dimmer v1.04a";
+        this.Title = $"{MyViewModel?.AppTitle} {BaseViewModel.CurrentAppVersion}  {BaseViewModel.CurrentAppStage}";
 #endif
 
-        MyViewModel.DimmerMultiWindowCoordinator.SetHomeWindow(PlatUtils.GetNativeWindowFromMAUIWindow(this));
+        MyViewModel?.DimmerMultiWindowCoordinator.SetHomeWindow(PlatUtils.GetNativeWindowFromMAUIWindow(this));
         
         if (MyViewModel is null)
         {

@@ -59,19 +59,21 @@ public class AndroidFolderPicker
         }
     }
 
-    private string GetPathFromUri(Android.Net.Uri uri)
+    public static string GetPathFromUri(Android.Net.Uri uri)
     {
-        // This is a helper to try and make the path look like a file system path.
-        // Note: In modern Android, you usually work with the Stream/URI directly, 
-        // but this helps for display purposes.
 
-        string path = uri.Path ?? "";
-        if (path.Contains(":"))
-        {
-            string id = path.Split(":")[1];
-            // Returns generic path structure like /storage/emulated/0/Music
-            return Android.OS.Environment.ExternalStorageDirectory + "/" + id;
-        }
-        return path;
+        var decoded = System.Uri.UnescapeDataString(uri.ToString());
+
+        // Remove prefixes
+        decoded = decoded.Replace("content://com.android.externalstorage.documents/tree/", "");
+        decoded = decoded.Replace("document/", "");  // sometimes appears
+
+        // Convert %3A -> / and tidy up
+        decoded = decoded.Replace("%3A", "/");
+
+        // Remove "primary" showing storage root
+        decoded = decoded.Replace("primary/", "/storage/emulated/0/");
+
+        return decoded;
     }
 }

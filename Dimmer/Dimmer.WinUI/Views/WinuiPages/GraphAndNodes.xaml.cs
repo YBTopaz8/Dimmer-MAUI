@@ -70,10 +70,6 @@ public sealed partial class GraphAndNodes : Page
     private float _lastX, _lastY;
     private float _downX, _downY;
 
-    // ViewModel Mock/Reference (Replace with your actual VM injection)
-    private dynamic _viewModel;
-
-   
     private void InitializeGraph()
     {
         _graph = new Graph();

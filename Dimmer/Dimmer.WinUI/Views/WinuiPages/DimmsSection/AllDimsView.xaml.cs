@@ -164,11 +164,6 @@ public sealed partial class AllDimsView : Page
         moreBtnFlyout.ShowAt(MoreBtn, flyoutShowOpt);
     }
 
-    private void MoreBtn_Click_1(object sender, RoutedEventArgs e)
-    {
-
-    }
-
     SongModelView? trackModel = null;
     Microsoft.UI.Xaml.Controls.Button? SongTitlebutton;
     private void SongTitle_Click(object sender, RoutedEventArgs e)
@@ -236,7 +231,7 @@ public sealed partial class AllDimsView : Page
         _lastStartIndex = proposedStart;
         _lastVisibleCount = proposedCount;
 
-        RxSchedulers.UI.Schedule(() =>
+        RxSchedulers.UI.ScheduleToUI(() =>
         {
             MyViewModel.UpdateHistoryVirtualRange(proposedStart, proposedCount);
             Debug.WriteLine($"[Virtualize] UPDATE SENT -> Start: {proposedStart}, Count: {proposedCount}");
@@ -452,10 +447,5 @@ public sealed partial class AllDimsView : Page
             }
         }
         return null;
-    }
-
-    private void MyEventsTableView_SizeChanged(object sender, SizeChangedEventArgs e)
-    {
-        CalculateVirtualRange();
     }
 }

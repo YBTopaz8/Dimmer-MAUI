@@ -121,51 +121,7 @@ public sealed partial class HoverCardControl : UserControl
             Debug.WriteLine($"AnimateCollapse Exception: {ex.Message}");
         }
     }
-    private static void SafeAnimate(UIElement element, Action<Visual, Compositor> animate)
-    {
-        element.DispatcherQueue.TryEnqueue(() =>
-        {
-            if (element is null) return;
-            var visual = ElementCompositionPreview.GetElementVisual(element);
-            animate(visual, visual.Compositor);
-        });
-    }
 
-    private void Image_PointerEntered(object sender, PointerRoutedEventArgs e)
-    {
-
-        Debug.WriteLine("image text block entered");
-    }
-
-    private void TextBlock_PointerEntered(object sender, PointerRoutedEventArgs e)
-    {
-
-        Debug.WriteLine("title text block entered");
-    }
-
-    private void TextBlock_PointerEntered_1(object sender, PointerRoutedEventArgs e)
-    {
-
-        Debug.WriteLine("artist text block entered ");
-    }
-
-    private void TextBlock_PointerExited(object sender, PointerRoutedEventArgs e)
-    {
-
-        Debug.WriteLine("title text block exited");
-    }
-
-    private void TextBlock_PointerExited_1(object sender, PointerRoutedEventArgs e)
-    {
-
-        Debug.WriteLine("artist name text block exited");
-    }
-
-    private void Image_PointerExited(object sender, PointerRoutedEventArgs e)
-    {
-
-        Debug.WriteLine("image text block exited");
-    }
     private bool _isHovered;
     private bool _isAnimating;
 

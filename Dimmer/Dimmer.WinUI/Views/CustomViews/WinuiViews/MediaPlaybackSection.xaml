@@ -23,145 +23,141 @@
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
 
-        <StackPanel
-            x:Name="TopPanel"
-            Grid.Row="0"
-            Background="Transparent"
-            PointerReleased="TopPanel_PointerReleased">
-            <Grid Padding="10">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="auto" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0" Spacing="5">
+            <StackPanel x:Name="TopPanel" Background="Transparent">
+                <Grid Padding="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
 
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <Button
-                            x:Name="ViewNowPlayingSong"
-                            HorizontalAlignment="Center"
+                    <!--<Image
+                        x:Name="currentSongCoverImage"
+                        Width="150"
+                        Height="150"
+                        Stretch="UniformToFill">
+                        <Image.Source>
+                            <BitmapImage UriSource="{x:Bind MyViewModel.CurrentCoverImagePath,Converter={StaticResource nul}, Mode=OneWay}" />
+                        </Image.Source>
+                    </Image>-->
+
+                    <StackPanel Grid.Column="1" Spacing="5">
+                        <StackPanel
                             VerticalAlignment="Center"
-                            Background="Transparent"
-                            BorderThickness="0.5"
-                            Click="ViewNowPlayingSong_Click"
-                            Content="{x:Bind MyViewModel.CurrentPlayingSongView.Title, Mode=OneWay}"
-                            FontSize="30" />
-
-
-                        <TextBlock
-                            x:Name="ArtistBtn"
-                            MaxWidth="350"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Bottom"
-                            FontSize="24"
-                            FontStyle="Italic"
-                            IsTextSelectionEnabled="False"
-                            MaxLines="3"
-                            PointerPressed="ArtistBtn_PointerPressed"
-                            Text="{x:Bind MyViewModel.CurrentPlayingSongView.ArtistName, Mode=OneWay}" />
-
-                        <TextBlock
-                            MaxWidth="350"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Bottom"
-                            FontSize="20"
-                            IsTextSelectionEnabled="True"
-                            MaxLines="3"
-                            Text="{x:Bind MyViewModel.CurrentPlayingSongView.AlbumName, Mode=OneWay}"
-                            TextWrapping="WrapWholeWords" />
-
-                        <StackPanel VerticalAlignment="Bottom" Orientation="Horizontal">
+                            Orientation="Horizontal"
+                            Spacing="5">
 
 
                             <TextBlock
-                                VerticalAlignment="Bottom"
+                                VerticalAlignment="Center"
                                 FontSize="22"
                                 Text="{x:Bind MyViewModel.CurrentTrackPositionSeconds, Converter={StaticResource DurationConverter}, Mode=OneWay}" />
                             <TextBlock
-                                VerticalAlignment="Bottom"
+                                VerticalAlignment="Center"
                                 FontSize="22"
                                 Text="/" />
 
                             <TextBlock
-                                VerticalAlignment="Bottom"
+                                VerticalAlignment="Center"
                                 FontSize="22"
                                 Text="{x:Bind MyViewModel.CurrentTrackDurationSeconds, Converter={StaticResource DurationConverter}, Mode=OneWay}" />
 
+
+                            <StackPanel
+                                x:Name="TopPanelTwo"
+                                Margin="0,0,0,0"
+                                HorizontalAlignment="Left"
+                                Orientation="Horizontal"
+                                Spacing="10">
+                                <ToggleButton Command="{x:Bind MyViewModel.ToggleShuffleCommand}" IsChecked="{x:Bind MyViewModel.IsShuffleActive, Mode=OneWay}">
+                                    <SymbolIcon Symbol="Shuffle" />
+                                </ToggleButton>
+                                <Button
+                                    x:Name="PrevBtn"
+                                    AccessKey="B"
+                                    Command="{x:Bind MyViewModel.PreviousTrackCommand}">
+                                    <FontIcon Glyph="&#xE892;" />
+                                </Button>
+                                <ToggleButton
+                                    x:Name="PlayBtn"
+                                    AccessKey="P"
+                                    Command="{x:Bind MyViewModel.PlayPauseToggleCommand}"
+                                    Content="{x:Bind MyViewModel.IsDimmerPlaying, Converter={StaticResource BoolToPlayingPauseConverter}, Mode=OneWay}"
+                                    IsChecked="{x:Bind MyViewModel.IsDimmerPlaying, Mode=OneWay}" />
+                                <Button
+                                    x:Name="NextBtn"
+                                    AccessKey="N"
+                                    AccessKeyDisplayRequested="NextBtn_AccessKeyDisplayRequested"
+                                    AccessKeyInvoked="NextBtn_AccessKeyInvoked"
+                                    Command="{x:Bind MyViewModel.NextTrackCommand}">
+                                    <SymbolIcon Symbol="Next" />
+                                </Button>
+
+                                <Button Command="{x:Bind MyViewModel.ToggleRepeatModeCommand}" Content="{x:Bind MyViewModel.CurrentRepeatMode, Converter={StaticResource RepeatModeConverter}, Mode=OneWay}" />
+                                <Button
+                                    x:Name="HomeBtn"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Click="HomeBtn_Click"
+                                    CornerRadius="10"
+                                    Visibility="Collapsed">
+                                    <FontIcon FontSize="25" Glyph="&#xE80F;" />
+                                </Button>
+
+
+
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Button
+                                x:Name="ViewNowPlayingSong"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Background="Transparent"
+                                BorderThickness="0.5"
+                                Click="ViewNowPlayingSong_Click"
+                                Content="{x:Bind MyViewModel.CurrentPlayingSongView.Title, Mode=OneWay}"
+                                FontSize="24" />
+
+
+                            <Button
+                                x:Name="ArtistBtn"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Bottom"
+                                Background="Transparent"
+                                Content="{x:Bind MyViewModel.CurrentPlayingSongView.OtherArtistsName, Mode=OneWay}"
+                                FontSize="24"
+                                PointerPressed="ArtistBtn_PointerPressed" />
+
+                            <Button
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Bottom"
+                                Background="Transparent"
+                                Content="{x:Bind MyViewModel.CurrentPlayingSongView.AlbumName, Mode=OneWay}"
+                                FontSize="24" />
+
+
+
+                            <Button
+                                x:Name="ViewLyricsButton"
+                                Background="Transparent"
+                                Click="ViewLyricsButton_Click"
+                                Visibility="{x:Bind MyViewModel.CurrentPlayingSongView.HasSyncedLyrics, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
+                                <FontIcon
+                                    Width="19"
+                                    Height="19"
+                                    Glyph="&#xEC71;" />
+                            </Button>
                         </StackPanel>
 
-                        <Button
-                            x:Name="ViewLyricsButton"
-                            Background="Transparent"
-                            Click="ViewLyricsButton_Click"
-                            Visibility="{x:Bind MyViewModel.CurrentPlayingSongView.HasSyncedLyrics, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
-                            <FontIcon
-                                Width="19"
-                                Height="19"
-                                Glyph="&#xEC71;" />
-                        </Button>
-                    </StackPanel>
-                    <StackPanel
-                        HorizontalAlignment="Center"
-                        Orientation="Horizontal"
-                        Spacing="10">
-
-                        <Button
-                            x:Name="BackButton"
-                            Background="Transparent"
-                            Click="BackButton_Click"
-                            Content="&#xE72B;"
-                            FontFamily="Segoe MDL2 Assets"
-                            Visibility="Collapsed" />
 
                     </StackPanel>
-                    <StackPanel
-                        x:Name="TopPanelTwo"
-                        Margin="0,0,0,0"
-                        HorizontalAlignment="Left"
-                        Orientation="Horizontal"
-                        Spacing="10">
-                        <ToggleButton IsChecked="{x:Bind MyViewModel.IsShuffleActive, Mode=OneWay}">
-                            <SymbolIcon Symbol="Shuffle" />
-                        </ToggleButton>
-                        <Button
-                            x:Name="PrevBtn"
-                            AccessKey="B"
-                            Command="{x:Bind MyViewModel.PreviousTrackCommand}">
-                            <FontIcon Glyph="&#xE892;" />
-                        </Button>
-                        <ToggleButton
-                            x:Name="PlayBtn"
-                            AccessKey="P"
-                            Command="{x:Bind MyViewModel.PlayPauseToggleCommand}"
-                            Content="{x:Bind MyViewModel.IsDimmerPlaying, Converter={StaticResource BoolToPlayingPauseConverter}, Mode=OneWay}"
-                            IsChecked="{x:Bind MyViewModel.IsDimmerPlaying, Mode=OneWay}" />
-                        <Button
-                            x:Name="NextBtn"
-                            AccessKey="N"
-                            AccessKeyDisplayRequested="NextBtn_AccessKeyDisplayRequested"
-                            AccessKeyInvoked="NextBtn_AccessKeyInvoked"
-                            Command="{x:Bind MyViewModel.NextTrackCommand}">
-                            <SymbolIcon Symbol="Next" />
-                        </Button>
-
-                        <Button Command="{x:Bind MyViewModel.ToggleRepeatModeCommand}" Content="{x:Bind MyViewModel.CurrentRepeatMode, Converter={StaticResource RepeatModeConverter}, Mode=OneWay}" />
-                        <Button
-                            x:Name="LastFMBtn"
-                            Background="Transparent"
-                            BorderThickness="3"
-                            Click="LastFMBtn_Click"
-                            Content="LastFM"
-                            CornerRadius="10" />
+                </Grid>
 
 
-
-                    </StackPanel>
-
-                </StackPanel>
-            </Grid>
-
-
-        </StackPanel>
+            </StackPanel>
+        </Grid>
         <StackPanel
             Grid.Row="0"
             Width="350"
@@ -208,5 +204,6 @@
             </InfoBar>
 
         </StackPanel>
+
     </Grid>
 </UserControl>

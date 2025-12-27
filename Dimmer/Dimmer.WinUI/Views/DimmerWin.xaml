@@ -15,7 +15,7 @@
     SizeChanged="Window_SizeChanged"
     mc:Ignorable="d">
 
- 
+
 
 
     <Grid x:Name="MainGrid" Background="Transparent">
@@ -24,13 +24,6 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <Image
-            x:Name="coverImageSong"
-            Grid.RowSpan="2"
-            Opacity="0.05"
-            Loaded="coverImageSong_Loaded"
-            Source="{Binding CurrentPlayingSongView.CoverImagePath, Converter={StaticResource StringToImageConverter}}"
-            Stretch="UniformToFill" />
         <customViews:MediaPlaybackSection x:Name="TopMediaControlSection" Grid.Row="0" />
 
         <Frame

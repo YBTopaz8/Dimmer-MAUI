@@ -188,9 +188,14 @@ public static class TaggingUtils
             }
         }
 
-        return uniqueCleanNames.Count == 0
-            ? new List<string> { "Unknown Artist" }
-            : uniqueCleanNames.ToList();
+        if (uniqueCleanNames.Count == 0)
+        {
+            return new List<string> { "Unknown Artist" };
+        }
+        else
+        {
+            return uniqueCleanNames.ToList();
+        }
     }
 
     // Helper to prevent adding the separators themselves as artists

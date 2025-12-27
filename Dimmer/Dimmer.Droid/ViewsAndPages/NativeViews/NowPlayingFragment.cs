@@ -14,6 +14,8 @@ using Google.Android.Material.Chip;
 
 using Kotlin.Jvm;
 
+using static Android.Provider.DocumentsContract;
+
 using ImageButton = Android.Widget.ImageButton;
 using ScrollView = Android.Widget.ScrollView;
 
@@ -35,6 +37,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
     private ImageView _miniCover;
     private TextView _miniTitle, _miniArtist;
     private MaterialButton _miniPlayBtn;
+    private Button _shuffleBtn;
     MaterialButton _skipPrevBtn;
     MaterialButton _skipNextBtn;
     // Expanded Player Views
@@ -57,6 +60,8 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
     // State
     private bool _isDraggingSeek = false;
     private bool _isDraggingVolume;
+    private Button _repeatBtn;
+
     public NowPlayingFragment()
     {
         
@@ -66,7 +71,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         _viewModel = viewModel;
     }
 
-    public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         var ctx = Context;
 
@@ -91,8 +96,9 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         return root;
     }
 
-    private View CreateMiniPlayer(Context ctx)
+    private LinearLayout CreateMiniPlayer(Context ctx)
     {
+        if(_viewModel is null)return null!;
         var layout = new LinearLayout(ctx)
         {
             Orientation = Orientation.Horizontal,
@@ -100,7 +106,8 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
             WeightSum = 10
         };
         layout.SetPadding(20, 10, 20, 10);
-        layout.SetBackgroundColor(UiBuilder.IsDark(this.Resources.Configuration) ? Android.Graphics.Color.ParseColor("#2D2D2D") : Android.Graphics.Color.LightGray);
+        //layout.SetBackgroundColor(UiBuilder.IsDark(ctx) ? Color.ParseColor("#291B22") : Color.ParseColor("#DEDFF0"));
+        layout.SetBackgroundColor(UiBuilder.IsDark(ctx) ? Color.ParseColor("#1a1a1a") : Color.ParseColor("#DEDFF0"));
 
 
         // Mini Cover
@@ -144,11 +151,13 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
 
         
         _miniPlayBtn= CreateControlButton(ctx, Resource.Drawable.media3_icon_play, 40, true);
+     
         _miniPlayBtn.Click += async (s, e) =>
         {
             await _viewModel.PlayPauseToggleAsync();
         };
 
+       
         _skipPrevBtn = CreateControlButton(ctx, Resource.Drawable.media3_icon_previous, 30);
         _skipPrevBtn.Click += async (s, e) =>
         {
@@ -160,8 +169,11 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         {
             await _viewModel.NextTrackAsync();
         };
+
+       
         var lyParams= new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1f) { Gravity = GravityFlags.Right };
         lyParams.SetMargins(10, 10, 10, 10);
+      
         layout.AddView(_skipPrevBtn, lyParams);
         layout.AddView(_miniPlayBtn, lyParams);
         layout.AddView(_skipNextBtn, lyParams);
@@ -169,13 +181,17 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         return layout;
     }
 
-    private View CreateExpandedPlayer(Context ctx)
-    {
+    private ScrollView CreateExpandedPlayer(Context ctx)
+    { 
         var scroll = new ScrollView(ctx) { FillViewport = true };
         scroll.LayoutParameters = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent);
 
         var root = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
         root.SetPadding(40, 80, 40, 40); // Top padding for dragging handle area
+
+        //root.SetBackgroundColor(UiBuilder.ThemedBGColor(ctx));
+        root.SetBackgroundColor(UiBuilder.IsDark(ctx) ? Color.ParseColor("#1a1a1a") : Color.ParseColor("#DEDFF0"));
+
 
         // --- A. Marquee Title ---
         _expandedTitle = new MaterialTextView(ctx) { TextSize = 24, Typeface = Android.Graphics.Typeface.DefaultBold, Gravity = GravityFlags.Center };
@@ -187,7 +203,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         // --- B. Image & Lyrics Grid ---
         var gridFrame = new FrameLayout(ctx);
 
-        var gridParams = new LinearLayout.LayoutParams(-1, AppUtil.DpToPx(320));
+        var gridParams = new LinearLayout.LayoutParams(-1, AppUtil.DpToPx(420));
         gridParams.SetMargins(0, 30, 0, 30);
         gridFrame.LayoutParameters = gridParams;
 
@@ -287,14 +303,20 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         var controlsRow = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
         controlsRow.SetGravity(GravityFlags.Center);
         controlsRow.SetPadding(0, 20, 0, 40);
-
+        _shuffleBtn = CreateControlButton(ctx, Resource.Drawable.media3_icon_shuffle_off, 40);
+       
         _prevBtn = CreateControlButton(ctx, Resource.Drawable.media3_icon_previous, 60);
         _playPauseBtn = CreateControlButton(ctx, Resource.Drawable.media3_icon_play, 80, true); // Larger, filled
         _nextBtn = CreateControlButton(ctx, Resource.Drawable.media3_icon_next, 60);
 
+        _repeatBtn = CreateControlButton(ctx, Resource.Drawable.media3_icon_repeat_all, 45);
+        controlsRow.AddView(_shuffleBtn);
         controlsRow.AddView(_prevBtn);
         controlsRow.AddView(_playPauseBtn);
         controlsRow.AddView(_nextBtn);
+        controlsRow.AddView(_repeatBtn);
+
+
         root.AddView(controlsRow);
 
 
@@ -386,6 +408,11 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
 
 
         };
+        _shuffleBtn.Click += (s, e) =>
+        {
+            _viewModel.ToggleShuffle();
+        };
+
         _prevBtn.Click += async (s, e) => await _viewModel.PreviousTrackAsync();
         _nextBtn.Click += async (s, e) => await _viewModel.NextTrackAsync();
 
@@ -394,7 +421,10 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
             var queueSheet = new QueueBottomSheetFragment(_viewModel);
             queueSheet.Show(ParentFragmentManager, "QueueSheet");
         };
-
+        _repeatBtn.Click += (s, e) =>
+        {
+            _viewModel.ToggleRepeatMode();
+        };
         // Slider Logic
         _seekSlider.Touch += (s, e) =>
         {
@@ -450,7 +480,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         return btn;
     }
 
-    private MaterialButton CreateControlButton(Context ctx, int iconRes, int sizeDp, bool isPrimary = false)
+    private MaterialButton CreateControlButton(Context ctx, int iconRes, int sizeDp, bool isPrimary = false, int IconSize=30)
     {
         var btn = new MaterialButton(ctx);
         btn.Icon = AndroidX.Core.Content.ContextCompat.GetDrawable(ctx, iconRes);
@@ -458,7 +488,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         btn.IconPadding = 0;
         btn.InsetTop = 0;
         btn.InsetBottom = 0;
-
+        btn.IconSize = AppUtil.DpToPx(IconSize);
         var sizePx = AppUtil.DpToPx(sizeDp);
         btn.LayoutParameters = new LinearLayout.LayoutParams(sizePx, sizePx) { LeftMargin = 20, RightMargin = 20 };
         btn.CornerRadius = sizePx / 2;
@@ -559,6 +589,44 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
             _playPauseBtn.SetIconResource(Resource.Drawable.media3_icon_pause);
         }
 
+        _viewModel.WhenPropertyChange(nameof(_viewModel.CurrentRepeatMode), newVl => _viewModel.CurrentRepeatMode)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(rpMode =>
+            {
+                switch (rpMode)
+                {
+                    case Utilities.Enums.RepeatMode.All:
+                        _repeatBtn.SetIconResource(Resource.Drawable.media3_icon_repeat_all);
+                        _repeatBtn.IconTint = AppUtil.ToColorStateList(Color.DarkSlateBlue);
+                        break;
+                    case Utilities.Enums.RepeatMode.Off:
+                        _repeatBtn.SetIconResource(Resource.Drawable.media3_icon_repeat_off);
+                        break;
+                    case Utilities.Enums.RepeatMode.One:
+                        _repeatBtn.SetIconResource(Resource.Drawable.media3_icon_repeat_one);
+                        break;
+                    case Utilities.Enums.RepeatMode.Custom:
+                        break;
+                    default:
+                        break;
+                }
+            }).DisposeWith(_disposables);
+
+        _viewModel.WhenPropertyChange(nameof(_viewModel.IsShuffleActive), newVl => _viewModel.IsShuffleActive)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(IsShuffleActive =>
+            {
+                if (IsShuffleActive)
+                {
+                    _shuffleBtn.SetIconResource(Resource.Drawable.media3_icon_shuffle_on);
+                }
+                else
+                {
+                    _shuffleBtn.SetIconResource(Resource.Drawable.media3_icon_shuffle_off);
+
+                }
+            }).DisposeWith(_disposables);
+
         _viewModel.CurrentPlayingSongView
             .WhenPropertyChange
             (nameof(SongModelView.CoverImagePath), s => s.CoverImagePath)
@@ -575,7 +643,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
                     _miniCover.SetImageResource(Resource.Drawable.musicnotess);
                     _mainCoverImage.SetImageResource(Resource.Drawable.musicnotess);
                 }
-            });
+            }).DisposeWith(_disposables);
 
 
     }
@@ -602,6 +670,10 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
     {
         if (song == null) return;
 
+        var songInDB = _viewModel.RealmFactory.GetRealmInstance()
+            .Find<SongModel>(song.Id);
+
+        
         // Mini Player
         _miniTitle.Text = song.Title;
         _miniArtist.Text = song.OtherArtistsName;
@@ -652,7 +724,11 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         var myAct = this.Activity as TransitionActivity;
         if (myAct != null)
         {
-            myAct.TogglePlayer();
+            if(myAct.SheetBehavior.State == BottomSheetBehavior.StateExpanded)
+            {
+                myAct.TogglePlayer();
+                return;
+            }
         }
     }
 }

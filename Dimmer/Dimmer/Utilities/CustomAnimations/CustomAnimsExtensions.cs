@@ -226,7 +226,7 @@ public static class CustomAnimsExtensions
         var cts = new CancellationTokenSource();
         view.SetValue(HeartbeatTokenProperty, cts);
 
-        RxSchedulers.UI.Schedule(async () =>
+        RxSchedulers.UI.ScheduleToUI(async () =>
         {
             var token = cts.Token;
             var half = duration / 2;
@@ -1520,7 +1520,7 @@ public static class CustomAnimsExtensions
             );
 
 
-            RxSchedulers.UI.Schedule(() =>
+            RxSchedulers.UI.ScheduleToUI(() =>
             {
                 element.BackgroundColor = currentColor;
             });
@@ -1530,7 +1530,7 @@ public static class CustomAnimsExtensions
         }
 
 
-        RxSchedulers.UI.Schedule(() =>
+        RxSchedulers.UI.ScheduleToUI(() =>
         {
             element.BackgroundColor = targetColor;
         });

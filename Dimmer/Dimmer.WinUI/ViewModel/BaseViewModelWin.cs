@@ -17,10 +17,6 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 {
 
     public readonly IMauiWindowManagerService windowManager;
-    private readonly IRepository<SongModel> songRepository;
-    private readonly IRepository<ArtistModel> artistRepository;
-    private readonly IRepository<AlbumModel> albumRepository;
-    private readonly IRepository<GenreModel> genreRepository;
     public readonly IWinUIWindowMgrService winUIWindowMgrService;
 
     private readonly LoginViewModel loginViewModel;
@@ -451,7 +447,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
             if (PlaybackQueueCV is not null && PlaybackQueueCV.IsLoaded)
             {
-                RxSchedulers.UI.Schedule(() =>
+                RxSchedulers.UI.ScheduleToUI(() =>
                 {
 
                     PlaybackQueueCV?.ScrollTo(value, position: ScrollToPosition.Center, animate: true);
@@ -666,64 +662,6 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         }
     }
 
-
-
-
-    private async void AnimateScaleControlUp(FrameworkElement btn)
-    {
-        try
-        {
-            if (btn.DataContext is not SongModelView song) return;
-            if (song.CoverImagePath is null)
-                return;
-
-            await btn.DispatcherQueue.EnqueueAsync(() => { });
-            var compositor = ElementCompositionPreview.GetElementVisual(btn).Compositor;
-            var rootVisual = ElementCompositionPreview.GetElementVisual(btn);
-
-            var scale = compositor.CreateVector3KeyFrameAnimation();
-            scale.InsertKeyFrame(1f, new Vector3(1.05f));
-            scale.Duration = TimeSpan.FromMilliseconds(350);
-            rootVisual.CenterPoint = new Vector3((float)btn.ActualWidth / 2, (float)btn.ActualHeight / 2, 0);
-            rootVisual.StartAnimation("Scale", scale);
-
-            //var img = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(song.CoverImagePath, UriKind.Absolute));
-            //FocusedSongImage.Source = img;
-
-            //FocusedSongTextBlockTitle.Content = song.Title;
-            //FocusedSongTextBlockArtistName.Content = song.ArtistName;
-            //FocusedSongTextBlockAlbumName.Content = song.AlbumName;
-            //FocusedSongTextBlockGenre.Content = song.GenreName;
-
-
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"AnimateExpand Exception: {ex.Message}");
-        }
-    }
-
-    private void AnimateCollapseControlDown(FrameworkElement framework)
-    {
-        try
-        {
-
-            // collapse animation (optional)
-            var compositor = ElementCompositionPreview.GetElementVisual(framework).Compositor;
-            var rootVisual = ElementCompositionPreview.GetElementVisual(framework);
-            var scaleBack = compositor.CreateVector3KeyFrameAnimation();
-            scaleBack.InsertKeyFrame(1f, new Vector3(1f));
-            scaleBack.Duration = TimeSpan.FromMilliseconds(300);
-            rootVisual.StartAnimation("Scale", scaleBack);
-
-        }
-        catch (Exception ex)
-        {
-
-            Debug.WriteLine($"AnimateCollapse Exception: {ex.Message}");
-        }
-    }
-
     [ObservableProperty]
     public partial ObservableCollection<WindowEntry> AllWindows { get; set; }
     [ObservableProperty]
@@ -844,7 +782,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
             .Count();
 
 
-        RxSchedulers.UI.Schedule(() =>
+        RxSchedulers.UI.ScheduleToUI(() =>
         {
             SelectedArtist = artist;
         });
@@ -858,10 +796,10 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         MainWindow?.NavigateToPage(typeof(AllSongsListPage));
     }
 
-    public void NavigateToAnyPageOfGivenType(Type pageType)
+    public async void NavigateToAnyPageOfGivenType(Type pageType)
     {
-        if (MainWindow is null)
-            MainWindow = winUIWindowMgrService.GetOrCreateUniqueWindow<DimmerWin>(this, () => new DimmerWin());
+
+        await OpenDimmerWindow();
 
         MainWindow!.NavigateToPage(pageType);
     }
@@ -1157,9 +1095,9 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
         return AutoConfirmLastFMVar;
     }
-    public async Task<bool> CheckToCompleteActivation()
+    public async Task<bool> CheckToCompleteActivation(string typee)
     {
-        if (WindowActivationRequestType != "Confirm LastFM") return false;
+        if (typee != "Confirm LastFM") return false;
 
         try
         {
@@ -1199,7 +1137,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         }
         finally
         {
-            WindowActivationRequestType = string.Empty;
+            WindowActivationRequestTypeStatic = string.Empty;
         }
 
         return true;
@@ -1307,8 +1245,9 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
         if (lastFmArtist is null) return;
         SelectedArtist!.ImagePath = lastFmArtist.Images?.Where(x => x.Size == "mega").LastOrDefault()?.Url;
-        SelectedArtist.Bio = lastFmArtist.Biography.Summary;
-        SelectedArtist.ListOfSimilarArtists = lastFmArtist.Similar.ToObservableCollection();
+        if(lastFmArtist.Biography is not null)
+            SelectedArtist.Bio = lastFmArtist.Biography.Summary;
+        SelectedArtist.ListOfSimilarArtists = lastFmArtist.Similar?.ToObservableCollection();
         SelectedArtist.Url = lastFmArtist.Url;
         var realmm = RealmFactory.GetRealmInstance();
         await realmm.WriteAsync(async () =>

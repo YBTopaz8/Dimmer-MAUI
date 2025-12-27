@@ -1,9 +1,15 @@
-﻿namespace Dimmer.Data.ModelView;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-[Utils.Preserve(AllMembers = true)]
-public  class AudioOutputDevice
+namespace Dimmer.Data.Models;
+
+public partial class AudioOutputDeviceModel : RealmObject
 {
 
+    [PrimaryKey]
     public string? Id { get; set; }
     public string? Type { get; set; }
     public string? ProductName { get; set; }

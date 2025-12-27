@@ -7,6 +7,7 @@ using AndroidX.DrawerLayout.Widget;
 using Dimmer.NativeServices;
 using Dimmer.ViewsAndPages.NativeViews.DimmerLive;
 using Dimmer.ViewsAndPages.NativeViews.StatsSection;
+using Dimmer.WinUI.UiUtils;
 
 using Google.Android.Material.BottomNavigation;
 using Google.Android.Material.Dialog;
@@ -79,9 +80,7 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         WindowCompat.SetDecorFitsSystemWindows(Window, false);
 
         // Make bars transparent
-        Window.SetStatusBarColor( Color.Transparent);
-        Window.SetNavigationBarColor( Color.Transparent);
-        // 1. Initialize DI
+         // 1. Initialize DI
         MainApplication.ServiceProvider ??= Bootstrapper.Init();
         try
         {
@@ -550,10 +549,14 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
             base.OnResume();
 
             if (MyViewModel is null) return;
-         
+
+            Window.SetStatusBarColor(UiBuilder.ThemedBGColor(this.ApplicationContext));
+            Window.SetNavigationBarColor(UiBuilder.ThemedBGColor(this.ApplicationContext));
+
             SetupBackNavigation();
             // Log that the activity resumed
             Console.WriteLine("TransitionActivity: OnResume called.");
+
         }
         catch (Exception ex)
         {
@@ -571,7 +574,7 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         _folderPickerTcs = new TaskCompletionSource<string?>();
 
         var intent = new Intent(Intent.ActionOpenDocumentTree);
-        intent.AddFlags(ActivityFlags.GrantReadUriPermission | ActivityFlags.GrantPersistableUriPermission);
+        intent.AddFlags(ActivityFlags.GrantReadUriPermission| ActivityFlags.GrantWriteUriPermission | ActivityFlags.GrantPersistableUriPermission);
 
         StartActivityForResult(intent, REQUEST_OPEN_FOLDER);
 
@@ -581,30 +584,26 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
     protected override void OnActivityResult(int requestCode, Result resultCode, Intent? data)
     {
         base.OnActivityResult(requestCode, resultCode, data);
-        if (requestCode == AndroidFolderPicker.PICK_FOLDER_REQUEST_CODE && resultCode == Result.Ok && data?.Data != null)
+        if (requestCode == REQUEST_OPEN_FOLDER && resultCode == Result.Ok && data?.Data != null)
         {
-            var picker = MainApplication.ServiceProvider.GetRequiredService<AndroidFolderPicker>();
-            picker.OnResult((int)resultCode, data);
-        }
-        if (requestCode == REQUEST_OPEN_FOLDER)
-        {
+
+            var uri = data.Data;
+
+            // Persist permission so we can access it after reboot
+
+            ContentResolver.TakePersistableUriPermission(uri,
+            ActivityFlags.GrantReadUriPermission | ActivityFlags.GrantWriteUriPermission);
+
+            // Convert URI to a usable string/path (depends on your logic, 
+            // but for SAF you usually keep the string URI)
             
-            if (resultCode == Result.Ok && data?.Data != null)
-            {
-                var uri = data.Data;
-
-                // Persist permission so we can access it after reboot
-                ContentResolver?.TakePersistableUriPermission(uri, ActivityFlags.GrantReadUriPermission);
-
-                // Convert URI to a usable string/path (depends on your logic, 
-                // but for SAF you usually keep the string URI)
-                _folderPickerTcs?.TrySetResult(uri.ToString());
-            }
-            else
-            {
-                _folderPickerTcs?.TrySetResult(null); // Cancelled
-            }
+            _folderPickerTcs?.TrySetResult(uri.ToString());
         }
+        else
+        {
+            _folderPickerTcs?.TrySetResult(null); // Cancelled
+        }
+           
     }
 
     protected override void OnDestroy()
@@ -641,7 +640,7 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         }
         else
         {
-             }
+        }
     }
 
     private void HandleBackPressInternal()
@@ -682,7 +681,7 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
                 System.Diagnostics.Debug.WriteLine($"Voice Search Query Received: '{searchQuery}'");
 
 
-                RxSchedulers.UI.Schedule(() =>
+                RxSchedulers.UI.ScheduleToUI(() =>
                 {
                     Intent mainActivityIntent = new Intent(this, typeof(TransitionActivity)); // <<< YOUR MAIN ACTIVITY
                     mainActivityIntent.AddFlags(ActivityFlags.NewTask | ActivityFlags.ClearTop);

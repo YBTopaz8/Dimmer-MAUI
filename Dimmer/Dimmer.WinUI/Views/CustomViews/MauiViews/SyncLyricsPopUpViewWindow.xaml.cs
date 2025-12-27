@@ -44,7 +44,7 @@ public partial class SyncLyricsPopUpViewWindow : Window
             current?.IsHighlighted = true;
             current?.HighlightColor = Microsoft.Maui.Graphics.Colors.SlateBlue;
             
-            RxSchedulers.UI.Schedule(() =>
+            RxSchedulers.UI.ScheduleToUI(() =>
             {
                 AllLyricsColView.ScrollTo(item: current, null,ScrollToPosition.Center, animate: true);
             });
@@ -84,7 +84,7 @@ public partial class SyncLyricsPopUpViewWindow : Window
 
     private void SetWindowPosition_Clicked(object sender, EventArgs e)
     {
-        var send = (Button)sender;
+        var send = (Microsoft.Maui.Controls.Button)sender;
         var parameter = send.CommandParameter as string;
         var newPosition = new RectInt32();
 

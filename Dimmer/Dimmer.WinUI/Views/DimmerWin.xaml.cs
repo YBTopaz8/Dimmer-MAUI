@@ -21,7 +21,6 @@ namespace Dimmer.WinUI.Views;
 /// </summary>
 public sealed partial class DimmerWin : Window
 {
-    private AppUtil appUtil;
     IWinUIWindowMgrService? WinUIWindowsMgr;
     public DimmerWin()
     {
@@ -39,9 +38,9 @@ public sealed partial class DimmerWin : Window
         _compositorMainGrid = ElementCompositionPreview.GetElementVisual(MainGrid).Compositor;
 
 #if DEBUG
-        this.Title = $"DimmerDebug {BaseViewModel.CurrentAppVersion}";
+        this.Title = $"{MyViewModel?.AppTitle} Debug {BaseViewModel.CurrentAppVersion} {BaseViewModel.CurrentAppStage}";
 #elif RELEASE
-        this.Title = $"Dimmer {BaseViewModel.CurrentAppVersion}";
+        this.Title = $"{MyViewModel?.AppTitle} {BaseViewModel.CurrentAppVersion} {BaseViewModel.CurrentAppStage}";
 #endif
     }
 
@@ -79,10 +78,9 @@ public sealed partial class DimmerWin : Window
         this.Closed -= DimmerWindowClosed;
 
     }
-    public void LoadWindowAndPassVM(BaseViewModelWin baseViewModelWin, AppUtil appUtil)
+    public void LoadWindowAndPassVM(BaseViewModelWin baseViewModelWin)
     {
         this.MyViewModel ??= baseViewModelWin;
-        this.appUtil = appUtil;
 
     }
 
@@ -99,12 +97,13 @@ public sealed partial class DimmerWin : Window
         if (_isDialogActive)
             return;
 
-        if (MyViewModel.WindowActivationRequestType == "Confirm LastFM")
+        var typee = BaseViewModel.WindowActivationRequestTypeStatic;
+        if (typee == "Confirm LastFM")
         {
             _isDialogActive = true;
             try
             {
-                await MyViewModel.CheckToCompleteActivation();
+                await MyViewModel.CheckToCompleteActivation(typee);
             }
             finally
             {
@@ -115,210 +114,8 @@ public sealed partial class DimmerWin : Window
     }
     private bool _isDialogActive = false;
     private readonly Microsoft.UI.Composition.Compositor _compositorMainGrid;
-    private void CurrentlyPlayingBtn_Click(object sender, RoutedEventArgs e)
-    {
-
-    }
-
-    private void CurrentlyPlayingBtn_PointerEntered(object sender, PointerRoutedEventArgs e)
-    {
-        UIControlsAnims.AnimateBtnPointerEntered((Button)sender, _compositorMainGrid);
-
-    }
-
-    private void CurrentlyPlayingBtn_PointerExited(object sender, PointerRoutedEventArgs e)
-    {
-        UIControlsAnims.AnimateBtnPointerExited((Button)sender, _compositorMainGrid);
-
-    }
-
-    private void CurrentlyPlayingAlbumBtn_Pressed(object sender, PointerRoutedEventArgs e)
-    {
-
-    }
-
-    private void CurrentlyPlayingTitleBtn_Pressed(object sender, PointerRoutedEventArgs e)
-    {
-        var nativeElement = (UIElement)sender;
-        var props = e.GetCurrentPoint(nativeElement).Properties;
-        if (props.IsLeftButtonPressed)
-        {
-
-        }
-        else if (props.IsRightButtonPressed)
-        {
-            var flyout = new MenuFlyout();
-            MyViewModel?.PopulateSongTitleContextMenuFlyout(flyout, MyViewModel.CurrentPlayingSongView);
-        }
-        else if (props.IsMiddleButtonPressed)
-        {
-            // Middle button pressed so we fav the song
-            MyViewModel?.AddFavoriteRatingToSongCommand.Execute(MyViewModel.CurrentPlayingSongView);
-        }
-    }
-
-    private void CurrentlyPlayingArtistBtn_Pressed(object sender, PointerRoutedEventArgs e)
-    {
-
-    }
-
-    private void CurrentlyPlayingImage_PointerPressed(object sender, PointerRoutedEventArgs e)
-    {
-
-    }
-
-    private void CurrentlyPlayingImage_PointerEntered(object sender, PointerRoutedEventArgs e)
-    {
-
-    }
-
-    private void CurrentlyPlayingImage_PointerExited(object sender, PointerRoutedEventArgs e)
-    {
-
-    }
-
-    private async void VolumeSlider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
-    {
-
-        var slider = (Slider)sender;
-        if (_isThrottling)
-            return;
-
-        _isThrottling = true;
-
-        var newVolume = e.NewValue;
-        MyViewModel?.SetVolumeLevel(newVolume);
-
-
-        await Task.Delay(throttleDelay);
-        _isThrottling = false;
-
-
-    }
-
-    private async void CurrentPositionSlider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
-    {
-        var slider = (Slider)sender;
-        if (_isThrottling)
-            return;
-
-        _isThrottling = true;
-
-        MyViewModel?.SeekTrackPosition(slider.Value);
-
-
-        await Task.Delay(throttleDelay);
-        _isThrottling = false;
-    }
     private bool _isThrottling = false;
     private readonly int throttleDelay = 300; // Time in milliseconds
-
-    private async void CurrentPositionSlider_PointerWheelChanged(object sender, PointerRoutedEventArgs e)
-    {
-        var slider = (Slider)sender;
-        if (_isThrottling)
-            return;
-
-        _isThrottling = true;
-
-        var props = e.GetCurrentPoint((UIElement)sender).Properties;
-        if (props.MouseWheelDelta > 0)
-        {
-            slider.Value += 5; // Increase by 5 seconds
-        }
-        else
-        {
-            slider.Value -= 5; // Decrease by 5 seconds
-        }
-
-        MyViewModel?.SeekTrackPosition(slider.Value);
-
-
-        await Task.Delay(throttleDelay);
-        _isThrottling = false;
-    }
-
-    private void VolumeButton_Click(object sender, RoutedEventArgs e)
-    {
-
-    }
-    private void BtnVolume_Click(object sender, RoutedEventArgs e)
-    {
-
-    }
-
-    private void BtnDevices_Click(object sender, RoutedEventArgs e)
-    {
-    }
-
-    private async void TopPanel_PointerReleased(object sender, PointerRoutedEventArgs e)
-    {
-        var props = e.GetCurrentPoint((UIElement)sender).Properties;
-
-        var isCtrlPressed = Current.CoreWindow.GetKeyState(Windows.System.VirtualKey.Control)
-            .HasFlag(Windows.UI.Core.CoreVirtualKeyStates.Down);
-        if (props.IsMiddleButtonPressed)
-        {
-            if(!isCtrlPressed)
-            {
-                MyViewModel?.windowManager.BringToFront(MyViewModel.MainMAUIWindow);
-            }
-            else
-            {
-                var currentPageInContentFrame = ContentFrame.Content.GetType();
-                if (currentPageInContentFrame == typeof(Views.WinuiPages.AllSongsListPage))
-                {
-                    var allSongsPage = (Views.WinuiPages.AllSongsListPage?)ContentFrame.Content;
-                    if (allSongsPage != null)
-                    {
-
-                        allSongsPage.ScrollToSong(MyViewModel!.CurrentPlayingSongView);
-                    }
-                }
-            }
-        }
-
-    }
-
-    private void CurrentPositionSlider_ValueChanged_1(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
-    {
-
-    }
-
-    private void PlayPauseBtn_Loaded(object sender, RoutedEventArgs e)
-    {
-        ToggleButton send=  (ToggleButton)sender;
-        
-    }
-
-    private void PlayPauseImg_Loaded(object sender, RoutedEventArgs e)
-    {
-        
-       
-    }
-
-    private void PlayPauseBtn_Checked(object sender, RoutedEventArgs e)
-    {
-        string uri = "ms-appx:///Assets/Images/pausecircle.svg";
-
-
-        //PlayPauseImg.Source = new SvgImageSource(new Uri(uri));
-
-    }
-
-    private void PlayPauseBtn_Unchecked(object sender, RoutedEventArgs e)
-    {
-        string uri = "ms-appx:///Assets/Images/playcircle.svg";
-
-
-        //PlayPauseImg.Source = new SvgImageSource(new Uri(uri));
-
-
-
-        
-    
-
-    }
 
     private void Window_SizeChanged(object sender, WindowSizeChangedEventArgs args)
     {
@@ -328,60 +125,14 @@ public sealed partial class DimmerWin : Window
 
     private async void coverImageSong_Loaded(object sender, RoutedEventArgs e)
     {
-        MyViewModel.CoverImageSong = coverImageSong;
+        //MyViewModel.CoverImageSong = coverImageSong;
 
 
     }
 
     DesktopAcrylicController m_acrylicController;
     SystemBackdropConfiguration m_configurationSource;
-    bool TrySetAcrylicBackdrop()
-    {
-        if (DesktopAcrylicController.IsSupported())
-        {
-            // Ensure the dispatcher queue is available
-            if (Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread() == null)
-            {
-                // If this is in the constructor, the DispatcherQueue might not be ready yet.
-                // Usually not strictly necessary if called from OnNavigatedTo or a Loaded event.
-            }
 
-            // Hooking up the policy object
-            m_configurationSource = new SystemBackdropConfiguration();
-
-            // Window events to handle theme changes and focus
-            this.Activated += Window_Activated;
-            this.Closed += Window_Closed;
-
-            // Assuming 'Content' is a FrameworkElement (like a Grid or Page)
-            if (this.Content is FrameworkElement fe)
-            {
-                fe.ActualThemeChanged += Window_ThemeChanged;
-            }
-
-            // Initial configuration state.
-            m_configurationSource.IsInputActive = true;
-            SetConfigurationSourceTheme();
-
-            // --- THE CHANGE IS HERE ---
-            m_acrylicController = new DesktopAcrylicController();
-
-            // Set the Kind to Thin
-            m_acrylicController.Kind = DesktopAcrylicKind.Thin;
-
-            // Set the Tint Color and Opacity (Optional, but often needed for specific looks)
-            // m_acrylicController.TintColor = Microsoft.UI.Colors.Transparent; 
-            // m_acrylicController.TintOpacity = 0f; 
-
-            // Enable the system backdrop.
-            m_acrylicController.AddSystemBackdropTarget(WinRT.CastExtensions.As<ICompositionSupportsSystemBackdrop>(this)); m_acrylicController.SetSystemBackdropConfiguration(m_configurationSource);
-
-            return true; // Succeeded.
-        }
-
-        return false; // Acrylic is not supported on this system.
-    }
- 
     private void Window_Closed(object sender, WindowEventArgs args)
     {
         // Make sure the controller is disposed

@@ -59,8 +59,7 @@ public static class LastFmEnricher
             {
                 match = exactMatch;
             }
-            // 2. Secondary Check: Fallback to Duration 
-            // (Keep this! It's great for when titles differ slightly, e.g., "Remastered")
+
             else
             {
                 double targetDuration = track.Duration * 0.001; // Convert ms to seconds

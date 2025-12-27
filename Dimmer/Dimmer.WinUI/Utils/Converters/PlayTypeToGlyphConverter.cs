@@ -9,14 +9,14 @@ using Dimmer.Charts;
 namespace Dimmer.WinUI.Utils.Converters;
 
 
-public class PlayTypeToGlyphConverter : IValueConverter
+public partial class PlayTypeToGlyphConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language)
     {
         // Default to a simple dot if unknown
         string glyph = "\uE915";
-
-        if (value is int intVal)
+        int intVal = 0;
+        if (value is int)
         {
             glyph = GetGlyph((PlayEventType)intVal);
         }
@@ -24,6 +24,11 @@ public class PlayTypeToGlyphConverter : IValueConverter
         {
             glyph = GetGlyph(typeVal);
         }
+        else if(value is string strVal && Enum.TryParse<PlayEventType>(strVal, out var parsedType))
+        {
+            glyph = GetGlyph(parsedType);
+        }
+       
 
         return glyph;
     }

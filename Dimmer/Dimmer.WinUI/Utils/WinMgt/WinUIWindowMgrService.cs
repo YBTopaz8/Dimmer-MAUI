@@ -1,4 +1,7 @@
-﻿using Window = Microsoft.UI.Xaml.Window;
+﻿using Dimmer.WinUI.Views;
+
+using UiThreads = Dimmer.WinUI.Utils.StaticUtils.UiThreads;
+using Window = Microsoft.UI.Xaml.Window;
 namespace Dimmer.WinUI.Utils.WinMgt;
 
 public partial class WinUIWindowMgrService : IWinUIWindowMgrService
@@ -155,12 +158,14 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
     {
         if (callerVM == null) return null;
 
+        T targetWindow = null;
+
         if (_trackedUniqueTypedWindows.TryGetValue(typeof(T), out var existingGenericWindow) && existingGenericWindow is T existingTypedWindow)
         {
             if (IsWindowOpen(existingTypedWindow))
             {
                 BringToFront(existingTypedWindow);
-                return existingTypedWindow;
+                targetWindow = existingTypedWindow;
             }
             else
             {
@@ -168,9 +173,13 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
                 UntrackWindow(existingGenericWindow);
             }
         }
-
-        windowFactory ??= () => Activator.CreateInstance<T>();
-        T newWindow = windowFactory();
+        if (targetWindow == null)
+        {
+            windowFactory ??= () => Activator.CreateInstance<T>();
+           
+        }
+      
+            T newWindow = windowFactory();
 
         void OnNewWindowClosed(object sender, WindowEventArgs args)
         {
@@ -309,26 +318,6 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
         window.Closed += OnWindowClosed;
         // Subscribe to Closed event
 
-    }
-
-    private void OnAppWindowChanged(AppWindow sender, AppWindowChangedEventArgs args)
-    {
-       
-    }
-
-    private void OnAppWindowClosing(Microsoft.UI.Windowing.AppWindow sender, Microsoft.UI.Windowing.AppWindowClosingEventArgs args)
-    {
-        var ss = sender.Id.Value;
-        var e = WinRT.Interop.WindowNative.GetWindowHandle(ss);
-        var isEqual = e == (nint)ss;
-        // Find the XAML Window corresponding to this AppWindow
-        var xamlWindow = _openWindows.FirstOrDefault(w => isEqual);
-        if (xamlWindow != null)
-        {
-            var customArgs = new WindowClosingEventArgs(xamlWindow);
-            WindowClosing?.Invoke(this, customArgs);
-            args.Cancel = customArgs.Cancel; // Respect if a subscriber cancelled the close
-        }
     }
 
     public void UntrackWindow(Window window)

@@ -5,6 +5,8 @@ using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 
+using Dimmer.LastFM;
+
 using Hqub.Lastfm.Entities;
 
 using Microsoft.UI.Xaml;
@@ -18,8 +20,11 @@ using Microsoft.UI.Xaml.Navigation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrackBar;
+
 using NavigationEventArgs = Microsoft.UI.Xaml.Navigation.NavigationEventArgs;
 using SelectionChangedEventArgs = Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs;
+using Track = Hqub.Lastfm.Entities.Track;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -44,7 +49,6 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
         _compositor = ElementCompositionPreview.GetElementVisual(this).Compositor;
     }
 
-    private SongTransitionAnimation _userPrefAnim = SongTransitionAnimation.Spring;
     private readonly Compositor _compositor;
     protected async override void OnNavigatedTo(NavigationEventArgs e)
     {
@@ -77,26 +81,61 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
                 //case 2: LoadLovedTracks(); break;
             }
     }
+    private void LoginLastFM_Click(object sender, RoutedEventArgs e)
+    {
+        BaseViewModel.LastFMName = LastFMUname.Text;
+        MyViewModel?.LoginToLastfmCommand.Execute(null);
+    }
+    private void LastFMUname_KeyUp(object sender, KeyRoutedEventArgs e)
+    {
+        var send = (TextBox)sender;
+        if (send is null) return;
+        if (MyViewModel is null) return;
 
+        var isPressedKeyEnterOrReturn = e.Key == Windows.System.VirtualKey.Enter;
+        if (isPressedKeyEnterOrReturn)
+        {
+            BaseViewModel.LastFMName = LastFMUname.Text;
+
+            MyViewModel?.LoginToLastfmCommand.Execute(null);
+
+        }
+    }
+    LastFMUserView? user;
     private async Task LoadUserData()
     {
-        // 1. Get Data from VM
-        var user = MyViewModel.CurrentUserLocal?.LastFMAccountInfo; // Assuming this property exists on your VM parity
 
-        if (user != null)
+        // 1. Get Data from VM
+        //user = MyViewModel.CurrentUserLocal?.LastFMAccountInfo; // Assuming this property exists on your VM parity
+        
+        if (MyViewModel.LastFMService.IsAuthenticated)
         {
+            LastFMGridNonAuth.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+            LastFMAuthedSection.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+            // User Info
+            var userr = await MyViewModel.LastFMService.GetUserInfoAsync();
+            user = userr.ToLastFMUserView();
+            
             UserNameTxt.Text = user.Name;
             TotalScrobblesTxt.Text = $"{user.Playcount:N0} Scrobbles";
-
+            scrobblingSince.Text = $"Scrobbling since {user.Registered:dd MMM yyyy}";
             // If user.Image is a string URL:
             if (!string.IsNullOrEmpty(user.Image.Url))
             {
-                UserAvatarImg.Source = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(user.Image.Url));
+                if (!string.IsNullOrEmpty(user.Image.Url))
+                {
+                    UserAvatarImg.ProfilePicture
+                        = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(user.Image.Url));
+                }
+                UserAvatarImg.DisplayName = user.Name;
             }
-            await MyViewModel.LoadUserLastFMDataAsync();
+            await MyViewModel.LoadUserLastFMDataAsync(user);
+
         }
         else
         {
+            LastFMGridNonAuth.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+            LastFMAuthedSection.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
             UserNameTxt.Text = "Not Connected";
             TotalScrobblesTxt.Text = "Log in via Settings";
         }
@@ -148,4 +187,10 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
             trackModel = null;
         }
     }
+
+    private void LogoutLastFM_Click(object sender, RoutedEventArgs e)
+    {
+        MyViewModel?.LogoutFromLastfmCommand.Execute(null);
+    }
+
 }

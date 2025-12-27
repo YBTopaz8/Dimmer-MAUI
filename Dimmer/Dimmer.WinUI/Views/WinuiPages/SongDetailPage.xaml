@@ -137,18 +137,19 @@
                                             Text="{x:Bind DetailedSong.Title}"
                                             TextWrapping="Wrap" />
 
-                                        <StackPanel Orientation="Horizontal">
+                                        <StackPanel Orientation="Horizontal" Spacing="5">
                                             <Button
                                                 x:Name="ArtistBtn"
                                                 HorizontalAlignment="Left"
                                                 Background="Transparent"
                                                 BorderThickness="2"
                                                 Click="ArtistBtn_Click"
-                                                Content="{x:Bind DetailedSong.ArtistName}"
+                                                Content="{x:Bind DetailedSong.OtherArtistsName}"
                                                 FontSize="50"
                                                 FontWeight="Bold" />
-
-
+                                            <Button x:Name="EditArtist" Click="EditArtist_Click">
+                                                <FontIcon FontSize="25" Glyph="&#xE70F;" />
+                                            </Button>
                                         </StackPanel>
                                         <StackPanel
                                             Margin="0,10,0,0"
@@ -187,6 +188,14 @@
                                             <Button Content="{x:Bind DetailedSong.PlayCompletedCount}" />
                                         </StackPanel>
 
+                                        <Button
+                                            x:Name="ViewInFolder"
+                                            Command="{x:Bind MyViewModel.OpenAndSelectFileInExplorerCommand}"
+                                            CommandParameter="{x:Bind DetailedSong}"
+                                            ToolTipService.ToolTip="{x:Bind DetailedSong.FilePath}">
+                                            <FontIcon Glyph="&#xE838;" />
+                                        </Button>
+
                                         <Button x:Name="ViewCharts" Click="ViewCharts_Click">
                                             <FontIcon Glyph="&#xEB05;" />
                                         </Button>
@@ -218,11 +227,100 @@
 
                             <StackPanel Padding="24" Spacing="16">
                                 <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Playback History" />
-                                <TextBlock Text="{x:Bind MyViewModel.SelectedSong.PlayEvents.Count, Mode=OneWay}" />
 
+                                <StackPanel Orientation="Horizontal" Spacing="5">
+
+                                    <Button x:Name="TotalDims" Background="Transparent">
+                                        <StackPanel Orientation="Horizontal" Spacing="5">
+
+                                            <TextBlock Text="Total Dims : " />
+                                            <TextBlock Text="{x:Bind MyViewModel.SelectedSong.PlayEvents.Count, Mode=OneWay}" />
+                                        </StackPanel>
+                                    </Button>
+
+                                    <Button x:Name="TotalCompleted" Background="Transparent">
+                                        <StackPanel Orientation="Horizontal" Spacing="5">
+
+                                            <TextBlock Text="Dims Completed" />
+                                            <TextBlock Text="{x:Bind MyViewModel.SelectedSong.PlayCompletedCount, Mode=OneWay}" />
+                                        </StackPanel>
+                                    </Button>
+
+                                    <Button x:Name="TotalSkipped" Background="Transparent">
+                                        <StackPanel Orientation="Horizontal">
+
+                                            <TextBlock Text="{x:Bind MyViewModel.SelectedSong.SkipCount, Mode=OneWay}" />
+                                        </StackPanel>
+                                    </Button>
+
+                                    <Button x:Name="TotalStreaks" Background="Transparent">
+                                        <StackPanel Orientation="Horizontal">
+
+                                            <TextBlock Text="{x:Bind MyViewModel.SelectedSong.PauseCount, Mode=OneWay}" />
+                                            <TextBlock Text="{x:Bind MyViewModel.SelectedSong.PlayStreakDays, Mode=OneWay}" />
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+
+                                <StackPanel
+                                    Padding="10"
+                                    BorderBrush="#291B22"
+                                    BorderThickness="1"
+                                    CornerRadius="20"
+                                    Orientation="Horizontal"
+                                    Spacing="5">
+                                    <Button
+                                        Background="Transparent"
+                                        Click="FilterEventButton_Click"
+                                        Content="All"
+                                        CornerRadius="10" />
+
+                                    <StackPanel Orientation="Horizontal" Spacing="5">
+
+                                        <Button
+                                            Background="Transparent"
+                                            Click="FilterEventButton_Click"
+                                            CommandParameter="Started"
+                                            Content="Started"
+                                            CornerRadius="10" />
+                                        <Button
+                                            Background="Transparent"
+                                            Click="FilterEventButton_Click"
+                                            CommandParameter="Completed"
+                                            Content="Completed"
+                                            CornerRadius="10" />
+                                        <Button
+                                            Background="Transparent"
+                                            Click="FilterEventButton_Click"
+                                            CommandParameter="Pause"
+                                            Content="Pause"
+                                            CornerRadius="10" />
+                                        <Button
+                                            Background="Transparent"
+                                            Click="FilterEventButton_Click"
+                                            CommandParameter="Skipped"
+                                            Content="Skipped"
+                                            CornerRadius="10" />
+
+                                    </StackPanel>
+
+
+                                </StackPanel>
+
+                                <StackPanel
+                                    Padding="5"
+                                    HorizontalAlignment="Center"
+                                    Background="#291B22"
+                                    CornerRadius="5"
+                                    Orientation="Horizontal"
+                                    Spacing="2">
+                                    <TextBlock x:Name="EventsCount" />
+                                    <TextBlock Text="Events" />
+                                </StackPanel>
                                 <dgView:TableView
                                     x:Name="SongPlayEvents"
                                     Width="auto"
+                                    MaxHeight="400"
                                     AutoGenerateColumns="False"
                                     ItemsSource="{x:Bind MyViewModel.SelectedSong.PlayEvents, Mode=OneWay}"
                                     Loaded="SongPlayEvents_Loaded"
@@ -237,8 +335,8 @@
                                                         Margin="10"
                                                         Padding="10"
                                                         HorizontalAlignment="Center"
-                                                        BorderBrush="{Binding WasPlayCompleted, Converter={StaticResource BoolToCompleteColorConverter}}"
-                                                        BorderThickness="1"
+                                                        BorderBrush="{Binding PlayType, Converter={StaticResource PlayTypeToBorderBrush}}"
+                                                        BorderThickness="1.5"
                                                         CornerRadius="20">
                                                         <TextBlock FontWeight="Bold" Text="{Binding PlayTypeStr}" />
                                                         <TextBlock
@@ -262,7 +360,6 @@
                                                             Grid.Column="2"
                                                             VerticalAlignment="Center"
                                                             FontSize="12"
-                                                            Opacity="0.5"
                                                             Text="{Binding DatePlayed, Converter={StaticResource EventDateOffsetToTimeAgo}}" />
 
                                                         <TextBlock
@@ -477,8 +574,10 @@
                                 </Button>
                             </StackPanel>
                             <achievements:SongAchievementsControl
-                                Loading="MySongAchievements_Loading"
-                                Loaded="MySongAchievements_Loaded" x:Name="MySongAchievements" Height="450" />
+                                x:Name="MySongAchievements"
+                                Height="450"
+                                Loaded="MySongAchievements_Loaded"
+                                Loading="MySongAchievements_Loading" />
 
 
                             <ListView

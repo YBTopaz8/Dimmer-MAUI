@@ -3,6 +3,11 @@ using System.Reactive.Disposables.Fluent;
 
 using Bumptech.Glide;
 
+using Dimmer.WinUI.UiUtils;
+
+using DynamicData;
+using DynamicData.Binding;
+
 using Google.Android.Material.MaterialSwitch;
 
 using ScrollView = Android.Widget.ScrollView;
@@ -71,6 +76,23 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
         };
         root.SetPadding(40, 60, 40, 200); // Bottom padding for player sheet
 
+        var horizontalLayout = new LinearLayout(ctx)
+        {
+            Orientation = Orientation.Horizontal,
+            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent)
+        };
+        var backBtn = new MaterialButton(ctx)
+        { CornerRadius = AppUtil.DpToPx(8) };
+        backBtn.SetIconResource(Resource.Drawable.backb);
+        backBtn.SetBackgroundColor(Color.Transparent);
+        backBtn.Click += (s,e) =>
+        {
+            if (Activity is TransitionActivity act)
+            {
+                act.OnBackPressedDispatcher.OnBackPressed();
+            }
+        };
+
         // Header
         var header = new TextView(ctx)
         {
@@ -80,7 +102,11 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
         };
         header.SetPadding(20, 0, 0, 40);
         header.TransitionName = _transitionName;
-        root.AddView(header);
+
+        horizontalLayout.AddView(backBtn);
+        horizontalLayout.AddView(header);
+
+        root.AddView(horizontalLayout);
 
         systemStatusView = new MaterialCardView(ctx)
             ;
@@ -92,6 +118,7 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
             Text = "App Status: All systems operational",
             TextSize = 14
         };
+        appStatusText.SetPadding(15, 15, 15, 15);
         
         systemStatusView.AddView(appStatusText);
         root.AddView(systemStatusView);
@@ -128,6 +155,8 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
         return scroll;
     }
 
+  
+
     // --- SECTION BUILDERS ---
 
     private View CreateAppearanceSection(Context ctx)
@@ -135,7 +164,7 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
         var layout = CreateCardLayout(ctx);
 
         layout.AddView(CreateSwitchRow(ctx, "Dark Mode", "Use dark theme application-wide",
-            MyViewModel.IsDarkModeOn, (v) => MyViewModel.ToggleAppTheme()));
+            MyViewModel.IsDarkModeOn, (v) => MyViewModel.ToggleAppThemeAnd()));
 
         layout.AddView(CreateDivider(ctx));
 
@@ -170,28 +199,23 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
 
         return WrapInCard(ctx, layout);
     }
-
+    private LinearLayout _folderRowsContainer;
     private View CreateLibrarySection(Context ctx)
     {
-        var layout = CreateCardLayout(ctx);
-        layout.SetPadding(0, 0, 0, 0); // Remove padding for list look
+        MusicFoldersLayout = CreateCardLayout(ctx);
+        MusicFoldersLayout.SetPadding(0, 0, 0, 0); // Remove padding for list look
 
         // Folder List Header
         var titleContainer = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
         titleContainer.SetPadding(40, 40, 40, 20);
         var title = new TextView(ctx) { Text = "Music Folders", TextSize = 16, Typeface = Android.Graphics.Typeface.DefaultBold };
         titleContainer.AddView(title);
-        layout.AddView(titleContainer);
+        MusicFoldersLayout.AddView(titleContainer);
 
-        // Existing Folders
-        if (MyViewModel.FolderPaths!= null)
-        {
-            foreach (var folder in MyViewModel.FolderPaths)
-            {
-                layout.AddView(CreateFolderRow(ctx, folder));
-            }
-        }
 
+        _folderRowsContainer = new LinearLayout(ctx)
+        { Orientation = Android.Widget.Orientation.Vertical };
+        MusicFoldersLayout.AddView(_folderRowsContainer);
         // Add Button
         _addFolderButton = new MaterialButton(ctx)
         {
@@ -208,13 +232,83 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
                 if (!string.IsNullOrEmpty(path))
                 {
                     MyViewModel.AddMusicFoldersByPassingToService(new List<string> { path });
+
                 }
             }
         };
-        layout.AddView(_addFolderButton);
+        MusicFoldersLayout.AddView(_addFolderButton);
 
-        return WrapInCard(ctx, layout);
+        return WrapInCard(ctx, MusicFoldersLayout);
     }
+    private HashSet<string> _currentFolderUris = new HashSet<string>();
+
+    public override void OnResume()
+    {
+        base.OnResume();
+        
+        MyViewModel.WhenValueChanged(x=>x.FolderPaths)
+                     .ObserveOn(RxSchedulers.UI) 
+                     .Subscribe(folderPaths =>
+                     {
+                         
+                         if (folderPaths == null) return;
+                         var listOfStrFromUriPath = new List<string>();
+                         foreach (var path in folderPaths)
+                         {
+                             var uriFromStr = Android.Net.Uri.Parse(path);
+                             if (uriFromStr != null)
+                             {
+                                 var decodedStrFromUriPath = AndroidFolderPicker.GetPathFromUri(uri: uriFromStr);
+                                 if (decodedStrFromUriPath is not null)
+                                 { 
+                                     listOfStrFromUriPath.Add(decodedStrFromUriPath); 
+                                 }
+                             }
+                         }
+                         var newSet = new HashSet<string>(listOfStrFromUriPath);
+
+                         // Remove rows that no longer exist
+                         for (int i = _folderRowsContainer.ChildCount - 1; i >= 0; i--)
+                         {
+                             var child = _folderRowsContainer.GetChildAt(i);
+                             if (child != null)
+                             {
+                                 var tag = child.Tag?.GetType() == typeof(string);
+                                 if (tag)
+                                 {
+                                     string stringTag = child.Tag.ToString();
+
+                                     if (!newSet.Contains(stringTag))
+                                     {
+                                         _folderRowsContainer.RemoveViewAt(i);
+                                         _currentFolderUris.Remove(stringTag);
+                                     }
+                                 }
+                             }
+                         }
+
+                         // Add new rows
+                         foreach (var folder in newSet)
+                         {
+                             if (!_currentFolderUris.Contains(folder))
+                             {
+                                 var row = CreateFolderRow(Context, folder);
+                                 row.Tag = folder; // store URI for diff
+                                 _folderRowsContainer.AddView(row);
+                                 _currentFolderUris.Add(folder);
+                             }
+                         }
+                     })
+                     .DisposeWith(sessionDisposable);
+    }
+    public override void OnDestroy()
+    {
+        base.OnDestroy();
+        sessionDisposable.Dispose();
+    }
+    CompositeDisposable sessionDisposable = new CompositeDisposable();
+
+    public LinearLayout MusicFoldersLayout { get; private set; }
 
     private View CreateLyricsSection(Context ctx)
     {
@@ -250,17 +344,7 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
 
         layout.AddView(CreateDivider(ctx));
 
-        var resetBtn = new MaterialButton(ctx) { Text = "Reset Onboarding" };
-        resetBtn.SetBackgroundColor(Android.Graphics.Color.ParseColor("#8B0000")); // Dark Red
-        resetBtn.Click += (s, e) =>
-        {
-            //MyViewModel.AppState.IsFirstTimeUser = true;
-        };
 
-        var btnContainer = new LinearLayout(ctx);
-        btnContainer.SetPadding(30, 30, 30, 30);
-        btnContainer.AddView(resetBtn);
-        layout.AddView(btnContainer);
 
         return WrapInCard(ctx, layout);
     }
@@ -282,13 +366,13 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
         delBtn.LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 2);
         delBtn.Click += (s, e) =>
         {
-            //MyViewModel.AppState.UserMusicFoldersPreference.Remove(path);
-            ParentFragmentManager.BeginTransaction().Detach(this).Attach(this).Commit();
+            MyViewModel.DeleteFolderPath(path);
         };
 
         var rescanBtn = new ImageView(ctx);
         Glide.With(ctx).Load(Resource.Drawable.reset).Into(rescanBtn);
         rescanBtn.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.Gray);
+        
         rescanBtn.LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1);
         rescanBtn.SetMaxHeight(AppUtil.DpToPx(10));
         rescanBtn.SetMaxWidth(AppUtil.DpToPx(10));
@@ -299,7 +383,7 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
             Toast.MakeText(ctx, $"Rescanning {path}", ToastLength.Short)?.Show();
         };
 
-
+        row.Tag = path;
         row.AddView(txt);
         row.AddView(rescanBtn);
         row.AddView(delBtn);
@@ -372,9 +456,14 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
     }
 
     private bool IsDark() => (Resources.Configuration.UiMode & Android.Content.Res.UiMode.NightMask) == Android.Content.Res.UiMode.NightYes;
+
     public void OnBackInvoked()
     {
-        Toast.MakeText(Context!, "Back invoked in Settings Fragment", ToastLength.Short)?.Show();
+        throw new NotImplementedException();
     }
+    //public void OnBackInvoked()
+    //{
+    //    Toast.MakeText(Context!, "Back invoked in Settings Fragment", ToastLength.Short)?.Show();
+    //}
 
 }

@@ -175,6 +175,8 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             IsDefaultDevice = currentDev.IsDefaultDevice,
             IsMuted = currentDev.IsMuted,
             Volume = currentDev.Volume
+            ,ProductName= currentDev.FullName
+            ,IconString = currentDev.IconPath
         };
     }
     public double GetCurrentVolume()
@@ -595,14 +597,6 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
             }
         }
-    }
-
-    private void HandleSegmentEnd()
-    {
-        if (_currentSong == null)
-            return;
-
-        
     }
 
     /// <summary>

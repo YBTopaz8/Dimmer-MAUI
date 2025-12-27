@@ -5,7 +5,7 @@ public class QueueBottomSheetFragment : BottomSheetDialogFragment
     private BaseViewModelAnd MyViewModel;
     private RecyclerView _recyclerView;
     private SongAdapter _adapter;
-
+    private bool _pendingScrollToCurrent;
     public QueueBottomSheetFragment(BaseViewModelAnd viewModel)
     {
         MyViewModel = viewModel;
@@ -77,6 +77,7 @@ public class QueueBottomSheetFragment : BottomSheetDialogFragment
         eyeBtn.IconTint = Android.Content.Res.ColorStateList.ValueOf(Color.White);
         eyeBtn.Text = "Scroll To"; // Optional text, or remove for icon only
         eyeBtn.SetIconResource(Resource.Drawable.eye);
+        eyeBtn.IconSize = AppUtil.DpToPx(18);
         eyeBtn.BackgroundTintList = Android.Content.Res.ColorStateList.ValueOf(Color.Transparent);
 
         // Button Action: Scroll to currently playing
@@ -94,18 +95,42 @@ public class QueueBottomSheetFragment : BottomSheetDialogFragment
         return rootFrame;
     }
 
+
+    public override void OnViewCreated(View? view, Bundle? savedInstanceState)
+    {
+        base.OnViewCreated(view, savedInstanceState);
+        if (_pendingScrollToCurrent)
+        {
+            
+            view.Post(() =>
+            {
+                ScrollToSong();
+            });
+        }
+    }
+
+
+
     public void ScrollToSong(SongModelView? requestedSong=null)
     {
+        if (_recyclerView == null)
+        {
+            _pendingScrollToCurrent = true;
+            return;
+        }
         if (MyViewModel.CurrentPlayingSongView == null) return;
         requestedSong ??= MyViewModel.CurrentPlayingSongView;
 
         // Since we are using the "queue" mode in adapter, we need to find the index in PlaybackQueue
-        var index = MyViewModel.PlaybackQueue.IndexOf(MyViewModel.CurrentPlayingSongView);
-
-        if (index >= 0)
+        var index = MyViewModel.PlaybackQueue.IndexOf(requestedSong);
+        if (_pendingScrollToCurrent)
         {
-            _recyclerView.SmoothScrollToPosition(index);
-            Toast.MakeText(Context, "Scrolled to current song", ToastLength.Short)?.Show();
+            _recyclerView.ScrollToPosition(index); 
+            _pendingScrollToCurrent = false;
+        }
+        else
+        {
+            _recyclerView.SmoothScrollToPosition(index); 
         }
     }
 }

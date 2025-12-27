@@ -165,7 +165,7 @@ public class BaseAppFlow : IDisposable
                 PlayTypeStr = type.ToString(),
                 EventDate = DateTimeOffset.UtcNow,
                 DatePlayed = DateTimeOffset.UtcNow,
-                
+                AudioOutputDevice = audioService.GetCurrentAudioOutputDevice().ToAudioOutputDevice(),
                 PositionInSeconds = position ?? 0,
                 WasPlayCompleted = type == PlayType.Completed,
             };

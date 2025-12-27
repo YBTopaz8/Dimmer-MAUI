@@ -79,16 +79,6 @@ public sealed partial class DimmerLivePage : Page
         }
     }
 
-    private void ForgottenPassword_PointerPressed(object sender, PointerRoutedEventArgs e)
-    {
-
-    }
-  
-    private void Button_Click(object sender, RoutedEventArgs e)
-    {
-
-    }
-
     private async void LoginButton_Click(object sender, RoutedEventArgs e)
     {
 
@@ -119,17 +109,7 @@ public sealed partial class DimmerLivePage : Page
             );
         LoginStackPanel.HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Center;
     }
-    private async void SwitchViews_Click(object sender, RoutedEventArgs e)
-    {
-        // 1. Animate the old view out
-        await PlatUtils.ApplyExitEffectAsync(LoginStackPanel, _compositor, ExitTransitionEffect.FadeSlideDown);
 
-        // 2. Prepare the new view (ensure it's visible but 0 opacity or offset if doing an entrance)
-        SignUpPanel.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
-
-        // 3. Animate the new view in
-       await ApplyEntranceEffectAsync(SignUpPanel, SongTransitionAnimation.Slide);
-    }
     public async Task ApplyEntranceEffectAsync(FrameworkElement frameElt, SongTransitionAnimation defAnim = SongTransitionAnimation.Spring)
     {
         // 1. Ensure the element is visible to the layout engine
@@ -212,13 +192,6 @@ public sealed partial class DimmerLivePage : Page
         batch.Completed += (s, e) => tcs.SetResult(true);
         await tcs.Task;
     }
-   
-    
-
-    private async  void DimmerPasswordSignUpConfirm_TextChanged(object sender, Microsoft.UI.Xaml.Controls.TextChangedEventArgs e)
-    {
-       
-    }
 
     private async void DimmerPasswordSignUpConfirm_PasswordChanged(object sender, RoutedEventArgs e)
     {
@@ -235,7 +208,7 @@ public sealed partial class DimmerLivePage : Page
 
             return;
         }
-        RxSchedulers.UI.Schedule(() =>
+        RxSchedulers.UI.ScheduleToUI(() =>
         {
             SignupBtn.IsEnabled = true;
         });
