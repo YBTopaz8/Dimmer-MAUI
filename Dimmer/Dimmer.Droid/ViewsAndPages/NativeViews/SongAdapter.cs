@@ -195,23 +195,22 @@ internal class SongAdapter : RecyclerView.Adapter
 
     public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType)
     {
-        // --- UI CONSTRUCTION (MD3 Style) ---
         // Root Card
         var card = new MaterialCardView(ctx)
         {
             Radius = AppUtil.DpToPx(12),
             CardElevation = AppUtil.DpToPx(0), // Flat style is modern
-            StrokeWidth = AppUtil.DpToPx(1),
-            StrokeColor = Color.ParseColor("#E0E0E0"),
+            StrokeWidth = AppUtil.DpToPx(0),
+            StrokeColor = Color.Transparent,
             Clickable = true,
             Focusable = true
         };
-        var attrs = new int[] { Android.Resource.Attribute.SelectableItemBackground };
-        var typedArray = ctx.ObtainStyledAttributes(attrs);
-        var rippleDrawable = typedArray.GetDrawable(0);
-        typedArray.Recycle();
-        card.Foreground = rippleDrawable;
-        card.SetCardBackgroundColor(Color.Transparent); // Let ripple show
+        //var attrs = new int[] { Android.Resource.Attribute.SelectableItemBackground };
+        //var typedArray = ctx.ObtainStyledAttributes(attrs);
+        //var rippleDrawable = typedArray.GetDrawable(0);
+        //typedArray.Recycle();
+        //card.Foreground = rippleDrawable;
+        //card.SetCardBackgroundColor(Color.Transparent); // Let ripple show
 
         var lp = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent);
         lp.SetMargins(0, 8, 0, 8);
@@ -374,6 +373,8 @@ internal class SongAdapter : RecyclerView.Adapter
                 _expandAction?.Invoke(BindingAdapterPosition);
             };
 
+            
+
             // 2. Container Click (Play)
             _container.Click += async (s, e) =>
             {
@@ -457,6 +458,7 @@ internal class SongAdapter : RecyclerView.Adapter
                     // Instant visual feedback
                     _favBtn.Text = !_currentSong.IsFavorite ? "Unfav" : "Fav";
                     _favBtn.SetIconResource(_currentSong.IsFavorite ? Resource.Drawable.heartlock : Resource.Drawable.heart);
+                    _favBtn.IconTint = _currentSong.IsFavorite ? AppUtil.ToColorStateList(Color.DarkSlateBlue) : AppUtil.ToColorStateList(Color.Gray) ;
                 }
             };
             _favBtn.LongClick += async (s, e) =>
@@ -469,7 +471,7 @@ internal class SongAdapter : RecyclerView.Adapter
                     _favBtn.Text = !_currentSong.IsFavorite ? "Unfav" : "Fav";
                     _favBtn.SetIconResource(iconRes);
                     UiBuilder.ShowSnackBar(
-    _favBtn,
+    _favBtn, 
     _currentSong.IsFavorite ? "Added to Favorites" : "Removed from Favorites",
     textColor: Color.Black,
     iconResId: iconRes
@@ -486,8 +488,8 @@ internal class SongAdapter : RecyclerView.Adapter
             _title.Text = song.Title;
             _artist.Text = song.OtherArtistsName ?? "Unknown";
             _durationView.Text = $"{song.DurationFormatted}";
-                
-            if(song.HasSyncedLyrics)
+
+            if (song.HasSyncedLyrics)
             {
                 _container.StrokeWidth = 4;
                 _container.SetStrokeColor(AppUtil.ToColorStateList(Color.DarkSlateBlue));
@@ -511,10 +513,25 @@ internal class SongAdapter : RecyclerView.Adapter
             // Accordion Visibility
             _expandRow.Visibility = isExpanded ? ViewStates.Visible : ViewStates.Gone;
             _container.StrokeColor = isExpanded ? Color.DarkSlateBlue : Color.ParseColor("#E0E0E0");
-            _container.StrokeWidth = isExpanded ? 6 : 2;
+            _container.StrokeWidth = isExpanded ? 3 : 0;
 
 
+            song.WhenPropertyChange(nameof(SongModelView.IsFavorite), s=>s.IsFavorite)
+                .ObserveOn(RxSchedulers.UI)
+                .Subscribe(IsFavorite =>
+                {
+                    if (IsFavorite)
+                    {
+                        _moreBtn.CornerRadius = AppUtil.DpToPx(10);
+                        _moreBtn.StrokeWidth = AppUtil.DpToPx(1);
+                        _moreBtn.SetStrokeColorResource(Resource.Color.m3_ref_palette_pink80);
+                    }
+                    else
+                    {
+                        _moreBtn.StrokeWidth = AppUtil.DpToPx(0);
 
+                    }
+                });
             song.WhenPropertyChange(nameof(SongModelView.IsCurrentPlayingHighlight), s => s.IsCurrentPlayingHighlight)
                         .ObserveOn(RxSchedulers.UI) // Ensure UI Thread
                         .Subscribe(isPlaying =>
@@ -544,7 +561,7 @@ internal class SongAdapter : RecyclerView.Adapter
                             }
                             else
                             {
-                                _container.StrokeWidth = 2;
+                                //_container.StrokeWidth = 0;
                                 
 
                             }

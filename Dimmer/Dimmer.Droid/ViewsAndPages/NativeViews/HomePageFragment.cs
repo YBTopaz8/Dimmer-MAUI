@@ -19,7 +19,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 {
 
     string toSettingsTrans = "homePageFAB";
-
+    
     public RecyclerView? _songListRecycler = null!;
     public TextView _emptyLabel = null!;
     public TextView _titleTxt = null!;
@@ -185,7 +185,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         var fabParams = new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent);
         fabParams.Gravity = (int)(GravityFlags.Bottom | GravityFlags.End);
         // Lift FAB above the MiniPlayer (approx 90dp)
-        fabParams.SetMargins(0, 0, AppUtil.DpToPx(20), AppUtil.DpToPx(90));
+        fabParams.SetMargins(0, 0, AppUtil.DpToPx(40), AppUtil.DpToPx(90));
         fab.LayoutParameters = fabParams;
 
         SetupSwipeableFab(fab);
@@ -215,6 +215,14 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
                 case MotionEventActions.Down:
                     startRawX = e.Event.RawX;
                     startRawY = e.Event.RawY;
+
+                   
+                    if (MyViewModel.CurrentPlayingSongView == null) return;
+                   var requestedSong = MyViewModel.CurrentPlayingSongView;
+
+                    // Since we are using the "queue" mode in adapter, we need to find the index in PlaybackQueue
+                    var index = MyViewModel.SearchResults.IndexOf(requestedSong);
+                    _songListRecycler?.SmoothScrollToPosition(index);
                     
                     break;
 
@@ -242,25 +250,26 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
                     {
                         if (finalDeltaX > 0)
                         {
-
-                            if (MyViewModel.CanGoNextSong)
-                            {
-                                Android.Widget.Toast.MakeText(Context, "Next Page >>", ToastLength.Short)?.Show();
-                                MyViewModel?.NextSongPageCommand?.Execute(null);
-                                fab?.Text = $"{MyViewModel?.CurrentSongPage} of {MyViewModel?.TotalSongPages}";
-                                fab?.Extend();
-                            }
+                            var myact = Activity as TransitionActivity;
+                            myact?.ToggleNavBar(true);
+                            //if (MyViewModel.CanGoNextSong)
+                            //{
+                            //    Android.Widget.Toast.MakeText(Context, "Next Page >>", ToastLength.Short)?.Show();
+                            //    MyViewModel?.NextSongPageCommand?.Execute(null);
+                            //    fab?.Text = $"{MyViewModel?.CurrentSongPage} of {MyViewModel?.TotalSongPages}";
+                            //    fab?.Extend();
+                            //}
                         }
                         else
                         {
-                            if (MyViewModel.CanGoPrevSong)
-                            {
-                                Android.Widget.Toast.MakeText(Context, "<< Prev Page", ToastLength.Short)?.Show();
-                                MyViewModel?.PrevSongPage();
-                                fab?.Text = $"{MyViewModel?.CurrentSongPage} of {MyViewModel?.TotalSongPages}";
-                                fab?.Extend();
+                            //if (MyViewModel.CanGoPrevSong)
+                            //{
+                            //    Android.Widget.Toast.MakeText(Context, "<< Prev Page", ToastLength.Short)?.Show();
+                            //    MyViewModel?.PrevSongPage();
+                            //    fab?.Text = $"{MyViewModel?.CurrentSongPage} of {MyViewModel?.TotalSongPages}";
+                            //    fab?.Extend();
 
-                            }
+                            //}
                         }
                     }
 
@@ -278,7 +287,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
                         else
                         {
 
-                            MyViewModel.JumpToCurrentSongPage();
+                            //MyViewModel.JumpToCurrentSongPage();
                             //_songListRecycler.SmoothScrollToPosition(MyViewModel.songpo)
                         }
                     }
@@ -353,12 +362,12 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
     private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(MyViewModel.SongPageStatus) ||
-            e.PropertyName == nameof(MyViewModel.CanGoNextSong) ||
-            e.PropertyName == nameof(MyViewModel.CanGoPrevSong))
-        {
+        //if (e.PropertyName == nameof(MyViewModel.SongPageStatus) ||
+        //    e.PropertyName == nameof(MyViewModel.CanGoNextSong) ||
+        //    e.PropertyName == nameof(MyViewModel.CanGoPrevSong))
+        //{
             
-        }
+        //}
     }
 
     public override void OnViewCreated(View view, Bundle? savedInstanceState)

@@ -5,6 +5,9 @@ using Bumptech.Glide;
 
 using Dimmer.WinUI.UiUtils;
 
+using DynamicData;
+using DynamicData.Binding;
+
 using Google.Android.Material.MaterialSwitch;
 
 using ScrollView = Android.Widget.ScrollView;
@@ -152,10 +155,7 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
         return scroll;
     }
 
-    private void BackBtn_Click(object? sender, EventArgs e)
-    {
-        throw new NotImplementedException();
-    }
+  
 
     // --- SECTION BUILDERS ---
 
@@ -199,28 +199,23 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
 
         return WrapInCard(ctx, layout);
     }
-
+    private LinearLayout _folderRowsContainer;
     private View CreateLibrarySection(Context ctx)
     {
-        var layout = CreateCardLayout(ctx);
-        layout.SetPadding(0, 0, 0, 0); // Remove padding for list look
+        MusicFoldersLayout = CreateCardLayout(ctx);
+        MusicFoldersLayout.SetPadding(0, 0, 0, 0); // Remove padding for list look
 
         // Folder List Header
         var titleContainer = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
         titleContainer.SetPadding(40, 40, 40, 20);
         var title = new TextView(ctx) { Text = "Music Folders", TextSize = 16, Typeface = Android.Graphics.Typeface.DefaultBold };
         titleContainer.AddView(title);
-        layout.AddView(titleContainer);
+        MusicFoldersLayout.AddView(titleContainer);
 
-        // Existing Folders
-        if (MyViewModel.FolderPaths!= null)
-        {
-            foreach (var folder in MyViewModel.FolderPaths)
-            {
-                layout.AddView(CreateFolderRow(ctx, folder));
-            }
-        }
 
+        _folderRowsContainer = new LinearLayout(ctx)
+        { Orientation = Android.Widget.Orientation.Vertical };
+        MusicFoldersLayout.AddView(_folderRowsContainer);
         // Add Button
         _addFolderButton = new MaterialButton(ctx)
         {
@@ -237,13 +232,83 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
                 if (!string.IsNullOrEmpty(path))
                 {
                     MyViewModel.AddMusicFoldersByPassingToService(new List<string> { path });
+
                 }
             }
         };
-        layout.AddView(_addFolderButton);
+        MusicFoldersLayout.AddView(_addFolderButton);
 
-        return WrapInCard(ctx, layout);
+        return WrapInCard(ctx, MusicFoldersLayout);
     }
+    private HashSet<string> _currentFolderUris = new HashSet<string>();
+
+    public override void OnResume()
+    {
+        base.OnResume();
+        
+        MyViewModel.WhenValueChanged(x=>x.FolderPaths)
+                     .ObserveOn(RxSchedulers.UI) 
+                     .Subscribe(folderPaths =>
+                     {
+                         
+                         if (folderPaths == null) return;
+                         var listOfStrFromUriPath = new List<string>();
+                         foreach (var path in folderPaths)
+                         {
+                             var uriFromStr = Android.Net.Uri.Parse(path);
+                             if (uriFromStr != null)
+                             {
+                                 var decodedStrFromUriPath = AndroidFolderPicker.GetPathFromUri(uri: uriFromStr);
+                                 if (decodedStrFromUriPath is not null)
+                                 { 
+                                     listOfStrFromUriPath.Add(decodedStrFromUriPath); 
+                                 }
+                             }
+                         }
+                         var newSet = new HashSet<string>(listOfStrFromUriPath);
+
+                         // Remove rows that no longer exist
+                         for (int i = _folderRowsContainer.ChildCount - 1; i >= 0; i--)
+                         {
+                             var child = _folderRowsContainer.GetChildAt(i);
+                             if (child != null)
+                             {
+                                 var tag = child.Tag?.GetType() == typeof(string);
+                                 if (tag)
+                                 {
+                                     string stringTag = child.Tag.ToString();
+
+                                     if (!newSet.Contains(stringTag))
+                                     {
+                                         _folderRowsContainer.RemoveViewAt(i);
+                                         _currentFolderUris.Remove(stringTag);
+                                     }
+                                 }
+                             }
+                         }
+
+                         // Add new rows
+                         foreach (var folder in newSet)
+                         {
+                             if (!_currentFolderUris.Contains(folder))
+                             {
+                                 var row = CreateFolderRow(Context, folder);
+                                 row.Tag = folder; // store URI for diff
+                                 _folderRowsContainer.AddView(row);
+                                 _currentFolderUris.Add(folder);
+                             }
+                         }
+                     })
+                     .DisposeWith(sessionDisposable);
+    }
+    public override void OnDestroy()
+    {
+        base.OnDestroy();
+        sessionDisposable.Dispose();
+    }
+    CompositeDisposable sessionDisposable = new CompositeDisposable();
+
+    public LinearLayout MusicFoldersLayout { get; private set; }
 
     private View CreateLyricsSection(Context ctx)
     {
@@ -301,13 +366,13 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
         delBtn.LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 2);
         delBtn.Click += (s, e) =>
         {
-            //MyViewModel.AppState.UserMusicFoldersPreference.Remove(path);
-            ParentFragmentManager.BeginTransaction().Detach(this).Attach(this).Commit();
+            MyViewModel.DeleteFolderPath(path);
         };
 
         var rescanBtn = new ImageView(ctx);
         Glide.With(ctx).Load(Resource.Drawable.reset).Into(rescanBtn);
         rescanBtn.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.Gray);
+        
         rescanBtn.LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1);
         rescanBtn.SetMaxHeight(AppUtil.DpToPx(10));
         rescanBtn.SetMaxWidth(AppUtil.DpToPx(10));
@@ -318,7 +383,7 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
             Toast.MakeText(ctx, $"Rescanning {path}", ToastLength.Short)?.Show();
         };
 
-
+        row.Tag = path;
         row.AddView(txt);
         row.AddView(rescanBtn);
         row.AddView(delBtn);
