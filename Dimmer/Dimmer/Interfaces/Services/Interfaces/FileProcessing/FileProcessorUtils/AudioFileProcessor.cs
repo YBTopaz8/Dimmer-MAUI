@@ -1,15 +1,11 @@
 ﻿using System.Collections.Concurrent;
 
-using Dimmer.Utilities;
-
-using Microsoft.Maui.Storage;
-
 namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 
 public class AudioFileProcessor : IAudioFileProcessor
 {
     private readonly IMusicMetadataService _metadataService;
-    private  readonly ProcessingConfig _config;
+    private readonly ProcessingConfig _config;
 
     public AudioFileProcessor(
         IMusicMetadataService metadataService,
@@ -32,24 +28,24 @@ public class AudioFileProcessor : IAudioFileProcessor
             {
                 try
                 {
-                    var result =  ProcessFile(file);
+                    var result = ProcessFile(file);
                     results.Add(result);
                 }
                 catch (Exception ex)
                 {
                     var errorListOfString = new List<string> { $"Unhandled: {ex}" };
                     Debug.WriteLine($"[Critical] {file}: {ex}");
-                    results.Add(new FileProcessingResult(file,errorListOfString));
+                    results.Add(new FileProcessingResult(file, errorListOfString));
                 }
             });
 
         return results.ToList();
     }
-    
+
     public FileProcessingResult ProcessFile(string filePath)
     {
 
-    long actualFileSize = 0;
+        long actualFileSize = 0;
         try
         {
 
@@ -57,7 +53,7 @@ public class AudioFileProcessor : IAudioFileProcessor
 
             if (!TaggingUtils.IsValidFile(filePath, _config.SupportedAudioExtensions))
             {
-                
+
                 result.Errors.Add("File is invalid or has an unsupported extension.");
                 return result;
             }
@@ -68,8 +64,8 @@ public class AudioFileProcessor : IAudioFileProcessor
                 {
                     if (TaggingUtils.PlatformGetStreamHook != null)
                     {
-                        using (var fileStream = TaggingUtils.PlatformGetStreamHook(filePath)) 
-                        { 
+                        using (var fileStream = TaggingUtils.PlatformGetStreamHook(filePath))
+                        {
 
                             if (fileStream == null)
                             {
@@ -132,7 +128,7 @@ public class AudioFileProcessor : IAudioFileProcessor
             string bestAlbum = !string.IsNullOrWhiteSpace(tagAlbum) ? tagAlbum : "Unknown Album";
             string bestGenre = !string.IsNullOrWhiteSpace(tagGenre) ? tagGenre : "Unknown Genre";
 
-            
+
             // --- Step 4: Final validation and fallbacks ---
             string finalTitle = string.IsNullOrWhiteSpace(cleanTitle) ? Path.GetFileNameWithoutExtension(filePath) : cleanTitle;
 
@@ -187,7 +183,7 @@ public class AudioFileProcessor : IAudioFileProcessor
                 Conductor = track.Conductor ?? string.Empty,
                 Language = track.Language ?? string.Empty,
                 PopularityScore = track.Popularity ?? 0, // Map ATL's Popularity to Rating
-                TrackTotal=track.TrackTotal,
+                TrackTotal = track.TrackTotal,
                 SampleRate = track.SampleRate,
                 //CoverImagePath = track.EmbeddedPictures.
                 Encoder = track.Encoder,
@@ -213,7 +209,7 @@ public class AudioFileProcessor : IAudioFileProcessor
                     albumView.Artists = new List<ArtistModelView>();
                 }
 
-                if (albumView.Artists.Count>0)
+                if (albumView.Artists.Count > 0)
                 {
                     var anyNull = albumView.Artists.Any(x => x is null);
                     if (anyNull)
@@ -241,9 +237,9 @@ public class AudioFileProcessor : IAudioFileProcessor
                 song.UnSyncLyrics = lyricsInfo.UnsynchronizedLyrics;
                 song.EmbeddedSync = new(lyricsInfo.SynchronizedLyrics.Select(p => new LyricPhraseModelView(p)));
             }
-        
-          
-        
+
+
+
             result.ProcessedSong = song;
             result.Success = true;
 
@@ -260,8 +256,8 @@ public class AudioFileProcessor : IAudioFileProcessor
     public void Cleanup()
     {
         _metadataService.ClearAll();
-        
+
     }
 
-    
+
 }

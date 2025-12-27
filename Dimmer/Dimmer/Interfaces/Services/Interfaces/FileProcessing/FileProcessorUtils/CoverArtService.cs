@@ -325,10 +325,10 @@ public class CoverArtService : ICoverArtService
         return Convert.ToHexString(hashBytes).ToLowerInvariant();
     }
 
-    public static (string? filePath, byte[]? stream, Stream? memStream) CreateStoryImageAsync(SongModelView selectedSong, string? SaveTo = null)
+    public static (string? filePathResult, byte[]? stream, Stream? memStream) CreateStoryImageAsync(SongModelView selectedSong, string? SaveTo = null)
     {
         // 1. Validate input
-        if (selectedSong == null || string.IsNullOrWhiteSpace(selectedSong.FilePath) || !File.Exists(selectedSong.FilePath))
+        if (selectedSong == null || string.IsNullOrWhiteSpace(selectedSong.FilePath) || !TaggingUtils.FileExists(selectedSong.FilePath))
         {
             return (null, null, null);
         }
@@ -336,7 +336,34 @@ public class CoverArtService : ICoverArtService
         try
         {
             // 2. Extract embedded picture using ATL
-            var track = new Track(selectedSong.FilePath);
+            Track? track;
+            var filePath = selectedSong.FilePath;
+            if (filePath.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
+            {
+                if (TaggingUtils.PlatformGetStreamHook != null)
+                {
+                    using (var fileStream = TaggingUtils.PlatformGetStreamHook(filePath))
+                    {
+
+                        if (fileStream == null)
+                        {
+
+                            return (null, null, null);
+                        }
+                        track = new ATL.Track(fileStream, mimeType: null);
+                       
+                    }
+                }
+                else
+                {
+                    return (null, null, null);
+                }
+            }
+            else
+            {
+                // 3. Handle Standard Windows/File Paths
+                track = new ATL.Track(filePath);
+            }
             PictureInfo? picInfo = track.EmbeddedPictures.FirstOrDefault();
             if (picInfo == null || picInfo.PictureData == null || picInfo.PictureData.Length == 0)
             {
