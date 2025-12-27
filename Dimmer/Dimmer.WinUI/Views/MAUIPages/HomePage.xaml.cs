@@ -1004,7 +1004,7 @@ public partial class HomePage : ContentPage
     {
 
         MyViewModel.NavigateToAnyPageOfGivenType(typeof(AllSongsListPage));
-        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch("artist", MyViewModel.CurrentPlayingSongView.ArtistName));
+        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch("artist", MyViewModel.CurrentPlayingSongView.OtherArtistsName));
 
     }
 

@@ -290,7 +290,7 @@
                     Spacing="0">
 
 
-                    <Grid BackgroundColor="Transparent" ColumnDefinitions="*,60">
+                    <Grid BackgroundColor="Transparent" ColumnDefinitions="*,auto">
                         <VerticalStackLayout Grid.Column="0">
 
                             <Button
@@ -302,10 +302,10 @@
                                 FontSize="16"
                                 HorizontalOptions="Start"
                                 Loaded="ButtonLoaded"
-                                Text="{Binding CurrentPlayingSongView.ArtistName}"
+                                Text="{Binding CurrentPlayingSongView.OtherArtistsName}"
                                 TextColor="{AppThemeBinding Light=Black,
                                                             Dark=White}"
-                                ToolTipProperties.Text="{Binding CurrentPlayingSongView.ArtistName}" />
+                                ToolTipProperties.Text="{Binding CurrentPlayingSongView.OtherArtistsName}" />
 
                             <Button
                                 x:Name="AlbumBtn"
