@@ -574,7 +574,7 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         _folderPickerTcs = new TaskCompletionSource<string?>();
 
         var intent = new Intent(Intent.ActionOpenDocumentTree);
-        intent.AddFlags(ActivityFlags.GrantReadUriPermission | ActivityFlags.GrantPersistableUriPermission);
+        intent.AddFlags(ActivityFlags.GrantReadUriPermission| ActivityFlags.GrantWriteUriPermission | ActivityFlags.GrantPersistableUriPermission);
 
         StartActivityForResult(intent, REQUEST_OPEN_FOLDER);
 
@@ -584,30 +584,26 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
     protected override void OnActivityResult(int requestCode, Result resultCode, Intent? data)
     {
         base.OnActivityResult(requestCode, resultCode, data);
-        if (requestCode == AndroidFolderPicker.PICK_FOLDER_REQUEST_CODE && resultCode == Result.Ok && data?.Data != null)
+        if (requestCode == REQUEST_OPEN_FOLDER && resultCode == Result.Ok && data?.Data != null)
         {
-            var picker = MainApplication.ServiceProvider.GetRequiredService<AndroidFolderPicker>();
-            picker.OnResult((int)resultCode, data);
-        }
-        if (requestCode == REQUEST_OPEN_FOLDER)
-        {
+
+            var uri = data.Data;
+
+            // Persist permission so we can access it after reboot
+
+            ContentResolver.TakePersistableUriPermission(uri,
+            ActivityFlags.GrantReadUriPermission | ActivityFlags.GrantWriteUriPermission);
+
+            // Convert URI to a usable string/path (depends on your logic, 
+            // but for SAF you usually keep the string URI)
             
-            if (resultCode == Result.Ok && data?.Data != null)
-            {
-                var uri = data.Data;
-
-                // Persist permission so we can access it after reboot
-                ContentResolver?.TakePersistableUriPermission(uri, ActivityFlags.GrantReadUriPermission);
-
-                // Convert URI to a usable string/path (depends on your logic, 
-                // but for SAF you usually keep the string URI)
-                _folderPickerTcs?.TrySetResult(uri.ToString());
-            }
-            else
-            {
-                _folderPickerTcs?.TrySetResult(null); // Cancelled
-            }
+            _folderPickerTcs?.TrySetResult(uri.ToString());
         }
+        else
+        {
+            _folderPickerTcs?.TrySetResult(null); // Cancelled
+        }
+           
     }
 
     protected override void OnDestroy()

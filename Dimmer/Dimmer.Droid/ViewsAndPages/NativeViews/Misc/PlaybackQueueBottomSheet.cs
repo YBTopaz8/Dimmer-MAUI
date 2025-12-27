@@ -122,7 +122,7 @@ public class QueueBottomSheetFragment : BottomSheetDialogFragment
         requestedSong ??= MyViewModel.CurrentPlayingSongView;
 
         // Since we are using the "queue" mode in adapter, we need to find the index in PlaybackQueue
-        var index = MyViewModel.PlaybackQueue.IndexOf(MyViewModel.CurrentPlayingSongView);
+        var index = MyViewModel.PlaybackQueue.IndexOf(requestedSong);
         if (_pendingScrollToCurrent)
         {
             _recyclerView.ScrollToPosition(index); 
