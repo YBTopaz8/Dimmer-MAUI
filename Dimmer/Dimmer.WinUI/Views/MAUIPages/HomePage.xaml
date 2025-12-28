@@ -176,12 +176,7 @@
                                         <Setter Property="IsVisible" Value="True" />
                                     </DataTrigger>
 
-                                    <DataTrigger
-                                        Binding="{Binding IsDimmerPlaying}"
-                                        TargetType="VerticalStackLayout"
-                                        Value="false">
-                                        <Setter Property="IsVisible" Value="False" />
-                                    </DataTrigger>
+
 
                                     <DataTrigger
                                         Binding="{Binding AllLines.Count, Converter={converters:CollectionSizeToVisibility}}"
@@ -250,7 +245,7 @@
                                 HeightRequest="3"
                                 ImageSource="heart.png"
                                 Loaded="ButtonLoaded"
-                                Text="{Binding CurrentPlayingSongView.NumberOfTimesFaved}"
+                                Text="{Binding CurrentPlayingSongView.PlayCompletedCount}"
                                 WidthRequest="90">
 
                                 <Button.Triggers>
@@ -331,11 +326,11 @@
                                 BorderWidth="0"
                                 Clicked="ViewLyricsChip_Clicked"
                                 CornerRadius="20"
-                                HeightRequest="60"
+                                HeightRequest="70"
                                 ImageSource="lyrics.png"
                                 IsVisible="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
                                 Loaded="ButtonLoaded"
-                                WidthRequest="50" />
+                                WidthRequest="70" />
 
                         </VerticalStackLayout>
                     </Grid>

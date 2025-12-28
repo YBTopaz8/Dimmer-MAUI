@@ -1,9 +1,11 @@
-﻿using System.Runtime.InteropServices.WindowsRuntime;
+﻿using System;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 
 using CommunityToolkit.WinUI;
 
 using Dimmer.Utilities.Extensions;
+using Dimmer.WinUI.Views.CustomViews.WinuiViews;
 
 using Microsoft.Graphics.Canvas.Effects;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -19,6 +21,7 @@ using CheckBox = Microsoft.UI.Xaml.Controls.CheckBox;
 using DragStartingEventArgs = Microsoft.UI.Xaml.DragStartingEventArgs;
 using Grid = Microsoft.UI.Xaml.Controls.Grid;
 using ScalarKeyFrameAnimation = Microsoft.UI.Composition.ScalarKeyFrameAnimation;
+using SelectionChangedEventArgs = Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs;
 using Visibility = Microsoft.UI.Xaml.Visibility;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -73,10 +76,6 @@ public sealed partial class AllSongsListPage : Page
         }
     }
 
-    private void MyPageGrid_Unloaded(object sender, RoutedEventArgs e)
-    {
-
-    }
 
     private void ButtonHover_PointerEntered(object sender, PointerRoutedEventArgs e)
     {
@@ -119,7 +118,6 @@ public sealed partial class AllSongsListPage : Page
     private void CancelHover()
     {
         AnimateCollapse();
-        Debug.WriteLine("Hover exited!");
     }
 
     private async void AnimateExpand(Border card)
@@ -541,8 +539,38 @@ public sealed partial class AllSongsListPage : Page
     private void SearchAutoSuggestBox_TextChanged(object sender, Microsoft.UI.Xaml.Controls.TextChangedEventArgs e)
     {
         MyViewModel.SearchSongForSearchResultHolder(SearchTextBox.Text);
+        PreviewText.Text = NaturalLanguageProcessor.Process(SearchTextBox.Text);
+   
+        //var text = SearchTextBox.Text.ToLower();
+
+        //var matches = FieldRegistry.AllFields
+        //    .Where(f => f.PrimaryName.StartsWith(text) || f.Aliases.Any(a => a.StartsWith(text)))
+        //    .Select(f => $"{f.PrimaryName} ({string.Join(",", f.Aliases)})")
+        //    .Take(10)
+        //    .ToList();
+
+        //SuggestList.ItemsSource = matches;
+        //SuggestList.Visibility = matches.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
+    private void SortClick(object sender, RoutedEventArgs e)
+    {
+        var key = (sender as MenuFlyoutItem)?.Tag.ToString();
+        //SortSongs(key);
     }
 
+    private async void OpenHelp(object sender, RoutedEventArgs e)
+    {
+        var dlg = new SearchHelpDialog();
+        await dlg.ShowAsync();
+    }
+    private void SuggestSelected(object s, SelectionChangedEventArgs e)
+    {
+        if (SuggestList.SelectedItem is string val)
+            SearchTextBox.Text = val.Split(" ")[0]; // insert primary name only
+        SearchTextBox.Focus(FocusState.Programmatic);
+        
+        SuggestList.Visibility = Visibility.Collapsed;
+    }
     private void MySongsTableView_ProcessKeyboardAccelerators(UIElement sender, ProcessKeyboardAcceleratorEventArgs args)
     {
 
@@ -1307,5 +1335,139 @@ true
     private void SongTitle_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
     {
 
+    }
+
+    private void ShowFavSongs_Click(object sender, RoutedEventArgs e)
+    {
+
+        var currentTQL = "my fav";
+           SearchTextBox.Text = currentTQL;
+    }
+
+    private void ShowSongWithLyrics_Click(object sender, RoutedEventArgs e)
+    {
+
+        var currentTQL = "has lyrics";
+        SearchTextBox.Text = currentTQL;
+    }
+
+    private void ShowSongWithLyrics_RightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+        var currentTQL = "has lyrics add " + MyViewModel.CurrentTqlQuery;
+        SearchTextBox.Text = currentTQL;
+
+    }
+
+    private void ShowFavSongs_RightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+        var currentTQL = "my fav add " +MyViewModel.CurrentTqlQuery ;
+           SearchTextBox.Text = currentTQL;
+    }
+
+    private void ShuffleSongs_Click(object sender, RoutedEventArgs e)
+    {
+        SearchTextBox.Text = "random";
+    }
+
+    private void MiddlePointer_PointerReleased(object sender, PointerRoutedEventArgs e)
+    {
+        var props = e.GetCurrentPoint((UIElement)sender).Properties;
+        if (props != null)
+        {
+            if(props.PointerUpdateKind == Microsoft.UI.Input.PointerUpdateKind.MiddleButtonReleased)
+            {
+                Debug.WriteLine("Show TQL pane");
+            }
+        }
+    }
+
+    private void ArAscending_RightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+
+    }
+
+    private void SortByWithTQL_Loaded(object sender, RoutedEventArgs e)
+    {
+        //BuildSortMenu();
+    }
+   
+    private void BuildSortMenu()
+    {
+        var flyout = new MenuFlyout();
+
+        foreach (var field in FieldRegistry.AllFields)
+        {
+            var sub = new MenuFlyoutSubItem { Text = field.PrimaryName };
+
+            // Asc
+            sub.Items.Add(new MenuFlyoutItem
+            {
+                Text = "Ascending",
+                CommandParameter = field.PrimaryName + " asc"
+            }.WithClick(FieldSort_Click)
+            .WithPointer(FieldSortPointer));
+
+            // Desc
+            sub.Items.Add(new MenuFlyoutItem
+            {
+                Text = "Descending",
+                CommandParameter = field.PrimaryName + " desc"
+            }.WithClick(FieldSort_Click)
+            .WithPointer(FieldSortPointer));
+
+            // Shuffle if numeric or text
+            if (field.Type == FieldType.Text || field.Type == FieldType.Numeric)
+            {
+                sub.Items.Add(new MenuFlyoutItem
+                {
+                    Text = "Shuffle",
+                    CommandParameter = field.PrimaryName + " shuffle"
+                }.WithClick(FieldSort_Click)
+            .WithPointer(FieldSortPointer));
+            }
+
+            flyout.Items.Add(sub);
+        }
+
+        SortByWithTQL.Flyout = flyout;
+    }
+    private void FieldSort_Click(object sender, RoutedEventArgs e)
+    {
+        var item = (MenuFlyoutItem)sender;
+        var query = item.CommandParameter?.ToString();
+
+        Debug.WriteLine(query);
+        //SearchTextBox.Text = query;          // triggers your filter
+        //MyViewModel.CurrentTqlQuery = query; // optional
+    }
+    private void FieldSortPointer(object sender, PointerRoutedEventArgs e)
+    {
+        var props = e.GetCurrentPoint(null).Properties;
+        var item = (MenuFlyoutItem)sender;
+        string? field = item.CommandParameter?.ToString();
+        if (field == null) return;
+        if (props.IsRightButtonPressed)
+            SearchTextBox.Text = field + " add " + MyViewModel.CurrentTqlQuery;
+
+        if (props.IsMiddleButtonPressed)
+            SearchTextBox.Text = "random " + field;
+    }
+    private void Page_Unloaded(object sender, RoutedEventArgs e)
+    {
+        if (SortByWithTQL.Flyout is MenuFlyout fly)
+        {
+            foreach (var sub in fly.Items.OfType<MenuFlyoutSubItem>())
+            {
+                foreach (var item in sub.Items.OfType<MenuFlyoutItem>())
+                    item.RemoveClick();
+            }
+        }
+    }
+
+    private void SelectedSongImg_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (MyViewModel.SelectedSong is null) return;
+        if(!string.IsNullOrEmpty(MyViewModel.SelectedSong.CoverImagePath))
+            SelectedSongImg.Source = new BitmapImage(new Uri(MyViewModel.SelectedSong.CoverImagePath));
     }
 }

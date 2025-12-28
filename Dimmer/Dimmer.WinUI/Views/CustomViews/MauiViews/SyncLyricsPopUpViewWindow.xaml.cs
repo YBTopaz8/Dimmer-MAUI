@@ -92,10 +92,10 @@ public partial class SyncLyricsPopUpViewWindow : Window
         var height = DisplayArea.Primary.WorkArea.Height;
         var x = DisplayArea.Primary.WorkArea.X;
         var y = DisplayArea.Primary.WorkArea.Y;
-        var coordLeft = x + (width - 400);
-        var coordRight = x + (width - 400);
+        var coordLeft = x + (width - 600);
+        var coordRight = x + (width - 600);
         var coordTop = y + (height);
-        var coordBtm = y + (height - 400);
+        var coordBtm = y + (height - 500);
 
         //
 
@@ -135,7 +135,7 @@ public partial class SyncLyricsPopUpViewWindow : Window
 
         //move to top y - (height - 400)
         //move to top y + (height - 400)
-        newPosition.Height = 700; newPosition.Width = 600;
+        newPosition.Height = 500; newPosition.Width = 600;
         this.MoveAndResizeWindow(newPosition);
     }
 
