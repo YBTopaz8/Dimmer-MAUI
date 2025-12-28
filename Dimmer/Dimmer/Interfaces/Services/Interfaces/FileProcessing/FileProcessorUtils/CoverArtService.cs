@@ -301,14 +301,18 @@ public class CoverArtService : ICoverArtService
     {
         try
         {
-            if (Uri.IsWellFormedUriString(source, UriKind.Absolute))
+            if (TaggingUtils.FileExists(source))
+            {
+                var result = await File.ReadAllBytesAsync(source);
+                if (result.Length > 0)
+                {
+                    return result;
+                }
+            }
+            else if (Uri.IsWellFormedUriString(source, UriKind.Absolute))
             {
                 var client = _httpClientFactory.CreateClient();
                 return await client.GetByteArrayAsync(source);
-            }
-            else if (TaggingUtils.FileExists(source))
-            {
-                return await File.ReadAllBytesAsync(source);
             }
         }
         catch (Exception ex)

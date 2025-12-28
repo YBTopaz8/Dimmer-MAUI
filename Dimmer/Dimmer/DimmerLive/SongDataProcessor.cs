@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks.Dataflow;
 
 using Dimmer.Interfaces;
+using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 
 
 namespace Dimmer.DimmerLive;
@@ -55,7 +56,34 @@ public static class SongDataProcessor
                 }
 
                 // --- STEP 1: Fetch Lyrics from local file first ---
-                var track = new Track(song.FilePath);
+                Track track;
+                var filePath = song.FilePath;
+               
+                    if (filePath.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (TaggingUtils.PlatformGetStreamHook != null)
+                        {
+                            using (var fileStream = TaggingUtils.PlatformGetStreamHook(filePath))
+                            {
+
+                                if (fileStream == null)
+                                {                                   
+                                    return ;
+                                }
+                                track = new ATL.Track(fileStream, mimeType: null);
+                            }
+                        }
+                        else
+                        {
+
+                            return ;
+                        }
+                    }
+                    else
+                    {
+                        // 3. Handle Standard Windows/File Paths
+                        track = new ATL.Track(filePath);
+                    }
                 string? fetchedLrcData = track.Lyrics?.FirstOrDefault()?.FormatSynch();
                 string? plainLyrics = track.Lyrics?.FirstOrDefault()?.UnsynchronizedLyrics;
 
