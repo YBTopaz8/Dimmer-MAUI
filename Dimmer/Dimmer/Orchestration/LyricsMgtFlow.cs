@@ -27,6 +27,7 @@ public class LyricsMgtFlow : IDisposable
     private readonly BehaviorSubject<IReadOnlyList<LyricPhraseModelView>> _allLyricsSubject = new(Array.Empty<LyricPhraseModelView>());
     private readonly BehaviorSubject<LyricPhraseModelView?> _previousLyricSubject = new(null);
     private readonly BehaviorSubject<LyricPhraseModelView?> _currentLyricSubject = new(null);
+    private readonly BehaviorSubject<int> _currentLyricIndexSubject = new(-1);
     private readonly BehaviorSubject<LyricPhraseModelView?> _nextLyricSubject = new(null);
     private readonly BehaviorSubject<bool> isSearchingLyrics = new(false);
     private readonly BehaviorSubject<bool> isLoadingLyrics = new(false);
@@ -36,6 +37,7 @@ public class LyricsMgtFlow : IDisposable
 
     public IObservable<IReadOnlyList<LyricPhraseModelView>> AllSyncLyrics => _allLyricsSubject.AsObservable();
     public IObservable<LyricPhraseModelView?> PreviousLyric => _previousLyricSubject.AsObservable();
+    public IObservable<int> CurrentLyricIndex => _currentLyricIndexSubject.AsObservable();
     public IObservable<LyricPhraseModelView?> CurrentLyric => _currentLyricSubject.AsObservable();
     public IObservable<LyricPhraseModelView?> NextLyric => _nextLyricSubject.AsObservable();
 
@@ -216,9 +218,10 @@ public class LyricsMgtFlow : IDisposable
         return null; // Don't search online here.
     }
 
+    SongModelView? currentSong;
     private async Task ProcessExistingLyricsForSong(SongModelView? song)
     {
-        if (song == null)
+        if (song == null || currentSong?.TitleDurationKey == song.TitleDurationKey)
         {
             ClearLyrics();
             return;
@@ -326,6 +329,7 @@ public class LyricsMgtFlow : IDisposable
 
         // Update all three subjects at once.
         _currentLyricSubject.OnNext(currentLine);
+        _currentLyricIndexSubject.OnNext(currentIndex);
         _previousLyricSubject.OnNext(currentIndex > 0 ? _lyrics[currentIndex - 1] : null);
         _nextLyricSubject.OnNext(currentIndex != -1 && currentIndex + 1 < _lyrics.Count ? _lyrics[currentIndex + 1] : null);
     }
@@ -336,6 +340,8 @@ public class LyricsMgtFlow : IDisposable
         _synchronizer = null;
         _allLyricsSubject.OnNext(_lyrics);
         ResetCurrentLyrics();
+
+        //should i do currentSong == null here? i'll leave for now
     }
 
     private void ResetCurrentLyrics()
@@ -355,6 +361,7 @@ public class LyricsMgtFlow : IDisposable
         _previousLyricSubject.OnCompleted();
         _currentLyricSubject.OnCompleted();
         _nextLyricSubject.OnCompleted();
+        _currentLyricIndexSubject.OnCompleted();
     }
     private sealed class LyricSynchronizer
     {

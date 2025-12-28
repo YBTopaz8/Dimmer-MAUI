@@ -2,6 +2,7 @@
 using System.Reactive.Disposables.Fluent;
 
 using AndroidX.Core.View;
+using AndroidX.Lifecycle;
 
 using Bumptech.Glide;
 
@@ -294,10 +295,10 @@ internal class SongAdapter : RecyclerView.Adapter
         expandRow.AddView(favBtn);
 
         var infoBtn = CreateActionButton("Info", Resource.Drawable.infocircle);
-        MaterialButton? ShareBtn = CreateActionButton("Share", Resource.Drawable.media3_icon_share);
+        MaterialButton? LyricsBtn = CreateActionButton("Lyrics", Resource.Drawable.lyrics);
         
         expandRow.AddView(infoBtn);
-        expandRow.AddView(ShareBtn);
+        expandRow.AddView(LyricsBtn);
         // Assemble
         mainContainer.AddView(topRow);
         mainContainer.AddView(expandRow);
@@ -305,7 +306,7 @@ internal class SongAdapter : RecyclerView.Adapter
         card.AddView(mainContainer);
 
         return new SongViewHolder(MyViewModel, ParentFragement, card, imgView, title, artist, moreBtn, durationView,expandRow, (Button)playBtn, (Button)favBtn, (Button)infoBtn,
-            ShareBtn);
+            LyricsBtn);
     }
 
 
@@ -331,7 +332,7 @@ internal class SongAdapter : RecyclerView.Adapter
         private readonly SerialDisposable _itemSubscription = new SerialDisposable();
 
 
-        private readonly BaseViewModelAnd _vm;
+        private readonly BaseViewModelAnd _viewModel;
         private readonly Fragment _parentFrag;
         private readonly ImageView _img;
         private readonly TextView _title, _artist;
@@ -340,20 +341,19 @@ internal class SongAdapter : RecyclerView.Adapter
         private readonly TextView _durationView;
         private readonly MaterialCardView _container;
         public View ContainerView => base.ItemView;
-        public Action<View, string, string> OnNavigateRequest;
 
         private readonly Button _playNextBtn;
         private readonly Button _favBtn;
         private readonly Button _infoBtn;
-        private readonly Button _shareBtn;
+        private readonly Button lyricsBtn;
         private SongModelView? _currentSong;
         private Action<int>? _expandAction;
 
         public SongViewHolder(BaseViewModelAnd vm, Fragment parentFrag, MaterialCardView container, ImageView img, TextView title, TextView artist, MaterialButton moreBtn, TextView durationView,
- View expandRow, Button playBtn, Button favBtn, Button infoBtn, Button shareBtn)
+ View expandRow, Button playBtn, Button favBtn, Button infoBtn, Button lyrBtn)
             : base(container)
         {
-            _vm = vm;
+            _viewModel = vm;
             _parentFrag = parentFrag;
             _container = container;
             _img = img;
@@ -365,7 +365,7 @@ internal class SongAdapter : RecyclerView.Adapter
             _playNextBtn = playBtn;
             _favBtn = favBtn;
             _infoBtn = infoBtn;
-            _shareBtn = shareBtn;
+            lyricsBtn = lyrBtn;
 
             _moreBtn.Click += (s, e) =>
             {
@@ -373,22 +373,28 @@ internal class SongAdapter : RecyclerView.Adapter
                 _expandAction?.Invoke(BindingAdapterPosition);
             };
 
-            
+            lyrBtn.Click += (s, e) =>
+            {
+                _viewModel._lyricsMgtFlow.LoadLyrics(_currentSong?.SyncLyrics);
+                _viewModel.SelectedSong = _currentSong;
+                _viewModel.NavigateToAnyPageOfGivenType(this._parentFrag, new LyricsViewFragment(_viewModel), "toLyricsFromNP");
+                
+            };
 
             // 2. Container Click (Play)
             _container.Click += async (s, e) =>
             {
                 if (_currentSong != null)
-                    await _vm.PlaySongAsync(_currentSong);
+                    await _viewModel.PlaySongAsync(_currentSong);
             };
 
             _container.LongClick += (s, e) =>
             {
                 _container.PerformHapticFeedback(FeedbackConstants.LongPress);
                 // view in playbackQUeue
-                _vm.SelectedSong=_currentSong;
+                _viewModel.SelectedSong=_currentSong;
 
-                var queueSheet = new QueueBottomSheetFragment(_vm);
+                var queueSheet = new QueueBottomSheetFragment(_viewModel);
                 queueSheet.Show(parentFrag.ParentFragmentManager, "QueueSheet");
 
                 queueSheet.ScrollToSong(_currentSong);
@@ -396,7 +402,7 @@ internal class SongAdapter : RecyclerView.Adapter
 
             _infoBtn.Click += (s, e) =>
             {
-                var infoSheet = new SongInfoBottomSheetFragment(_vm, _currentSong);
+                var infoSheet = new SongInfoBottomSheetFragment(_viewModel, _currentSong);
                 infoSheet.Show(_parentFrag.ParentFragmentManager, "SongInfoSheet");
             };
 
@@ -406,17 +412,17 @@ internal class SongAdapter : RecyclerView.Adapter
             {
                 if (_currentSong != null)
                 {
-                    _vm.SetAsNextToPlayInQueue(_currentSong);
+                    _viewModel.SetAsNextToPlayInQueue(_currentSong);
                     
                 }
                     
             };
 
-            shareBtn.Click += async (s, e) =>
+            lyrBtn.Click += async (s, e) =>
             {
                 if (_currentSong != null)
                 {
-                    await _vm.ShareSongViewClipboard(_currentSong);
+                    await _viewModel.ShareSongViewClipboard(_currentSong);
                 }
             };
 
@@ -428,12 +434,12 @@ internal class SongAdapter : RecyclerView.Adapter
             {
                 if (_currentSong != null)
                 {
-                    _vm.SelectedSong = _currentSong;
+                    _viewModel.SelectedSong = _currentSong;
                     // Note: Transition name must be updated in Bind, but we can read it from the view here
                     string? tName = ViewCompat.GetTransitionName(_img);
                     if (tName != null)
                     {
-                        _vm.NavigateToSingleSongPageFromHome(_parentFrag, tName, _img);
+                        _viewModel.NavigateToSingleSongPageFromHome(_parentFrag, tName, _img);
                     }
                 }
             };
@@ -445,7 +451,7 @@ internal class SongAdapter : RecyclerView.Adapter
                 if (_currentSong?.ArtistName != null)
                 {
                     var query = $"artist:\"{_currentSong.ArtistName}\"";
-                    _vm.SearchSongForSearchResultHolder(query);
+                    _viewModel.SearchSongForSearchResultHolder(query);
                 }
             };
 
@@ -454,7 +460,7 @@ internal class SongAdapter : RecyclerView.Adapter
             {
                 if (_currentSong != null)
                 {
-                    await _vm.AddFavoriteRatingToSong(_currentSong);
+                    await _viewModel.AddFavoriteRatingToSong(_currentSong);
                     // Instant visual feedback
                     _favBtn.Text = !_currentSong.IsFavorite ? "Unfav" : "Fav";
                     _favBtn.SetIconResource(_currentSong.IsFavorite ? Resource.Drawable.heartlock : Resource.Drawable.heart);
@@ -465,7 +471,7 @@ internal class SongAdapter : RecyclerView.Adapter
             {
                 if (_currentSong != null)
                 {
-                    await _vm.RemoveSongFromFavorite(_currentSong);
+                    await _viewModel.RemoveSongFromFavorite(_currentSong);
                     var iconRes = _currentSong.IsFavorite ? Resource.Drawable.heartlock : Resource.Drawable.heart;
                     // Instant visual feedback
                     _favBtn.Text = !_currentSong.IsFavorite ? "Unfav" : "Fav";
@@ -556,8 +562,7 @@ internal class SongAdapter : RecyclerView.Adapter
                         {
                             if (hasSyncLyrics)
                             {
-                                _container.StrokeWidth = 4;
-                                _container.SetStrokeColor(AppUtil.ToColorStateList(Color.DarkSlateBlue));
+                                _container.StrokeWidth = 1;
                             }
                             else
                             {
@@ -577,7 +582,7 @@ internal class SongAdapter : RecyclerView.Adapter
                         Glide.With(_img.Context).Load(path)
                              .Placeholder(Resource.Drawable.musicnotess)
                              .Into(_img);
-                        if(song == _vm.CurrentPlayingSongView)
+                        if(song == _viewModel.CurrentPlayingSongView)
                         {
                           
                         }

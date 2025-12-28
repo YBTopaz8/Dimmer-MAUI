@@ -13,6 +13,7 @@ using Dimmer.WinUI.UiUtils;
 
 using static Dimmer.ViewsAndPages.NativeViews.SongAdapter;
 
+
 namespace Dimmer.ViewsAndPages.NativeViews;
 
 public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
@@ -379,7 +380,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         //view.ViewTreeObserver.AddOnPreDrawListener(new MyPreDrawListener(this, view));
 
         _isNavigating = false;
-        MyViewModel.CurrentPage = this;
+        MyViewModel.CurrentFragment = this;
 
         this.View!.Tag = "HomePageFragment";
       

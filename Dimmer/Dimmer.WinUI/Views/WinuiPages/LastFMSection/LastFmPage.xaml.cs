@@ -114,7 +114,22 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
             LastFMAuthedSection.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
             // User Info
             var userr = await MyViewModel.LastFMService.GetUserInfoAsync();
-            user = userr.ToLastFMUserView();
+            if (userr is null)
+            {
+                var usr = MyViewModel.CurrentUserLocal.LastFMAccountInfo;
+                if (usr is not null)
+                {
+                    user = usr;
+                }
+                else
+                {
+                    return;
+                }
+            }
+                else
+            {
+                user = userr.ToLastFMUserView();
+            }
             
             UserNameTxt.Text = user.Name;
             TotalScrobblesTxt.Text = $"{user.Playcount:N0} Scrobbles";
@@ -129,6 +144,8 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
                 }
                 UserAvatarImg.DisplayName = user.Name;
             }
+
+            if (Connectivity.NetworkAccess != NetworkAccess.Internet) return;
             await MyViewModel.LoadUserLastFMDataAsync(user);
 
         }

@@ -32,7 +32,12 @@ public class SongOverviewFragment : Fragment
     {
         var ctx = Context;
         var scroll = new Android.Widget.ScrollView(ctx);
+        scroll.LayoutParameters = new ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent);
         var root = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
+        root.LayoutParameters = new ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent);
+
         root.SetPadding(20, 20, 20, 20);
 
 

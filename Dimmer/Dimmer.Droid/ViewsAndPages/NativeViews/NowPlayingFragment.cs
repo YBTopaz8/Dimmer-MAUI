@@ -7,16 +7,20 @@ using AndroidX.Core.View;
 using Bumptech.Glide;
 
 using Dimmer.DimmerAudio;
+using Dimmer.Utilities;
 using Dimmer.ViewsAndPages.NativeViews.Misc;
 using Dimmer.WinUI.UiUtils;
 
 using Google.Android.Material.Chip;
+
+using Java.Lang;
 
 using Kotlin.Jvm;
 
 using static Android.Provider.DocumentsContract;
 
 using ImageButton = Android.Widget.ImageButton;
+using Math = System.Math;
 using ScrollView = Android.Widget.ScrollView;
 
 namespace Dimmer.ViewsAndPages.NativeViews;
@@ -53,9 +57,9 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
     private Slider _seekSlider;
     private TextView _currentTimeText, _totalTimeText;
     private MaterialButton _prevBtn, _playPauseBtn, _nextBtn;
-    private MaterialButton _queueBtn, _detailsBtn, _optionsBtn;
+    //private MaterialButton _queueBtn, _detailsBtn, _optionsBtn;
     private Slider _volumeSlider;
-    private MaterialButton _currentDeviceBtn, _shareBtn, _changeDeviceBtn;
+    private MaterialButton _queueBtn, _shareBtn, _toggleLyricsViewBtn;
 
     // State
     private bool _isDraggingSeek = false;
@@ -194,10 +198,21 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
 
 
         // --- A. Marquee Title ---
-        _expandedTitle = new MaterialTextView(ctx) { TextSize = 24, Typeface = Android.Graphics.Typeface.DefaultBold, Gravity = GravityFlags.Center };
+        _expandedTitle = new MaterialTextView(ctx) { TextSize = 28, Typeface = Android.Graphics.Typeface.DefaultBold, Gravity = GravityFlags.Center };
         _expandedTitle.SetSingleLine(true);
         _expandedTitle.Ellipsize = Android.Text.TextUtils.TruncateAt.Marquee;
         _expandedTitle.Selected = true;
+        _expandedTitle.Click += (s, e) =>
+        {
+            _viewModel.SelectedSong = _viewModel.CurrentPlayingSongView;
+            _viewModel.NavigateToAnyPageOfGivenType(this, new SongDetailFragment("toSingleSongDetailsFromNowPlaying", _viewModel), "toSingleSongDetailsFromNowPlaying");
+            var act = Activity as TransitionActivity;
+            if (act != null)
+            {
+                act.TogglePlayer();
+            }
+        };
+
         root.AddView(_expandedTitle);
 
         // --- B. Image & Lyrics Grid ---
@@ -209,10 +224,11 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
 
         var imgCard = new MaterialCardView(ctx) { Radius = AppUtil.DpToPx(20), Elevation = 4 };
         _mainCoverImage = new ImageView(ctx);
+        _mainCoverImage = new ImageView(ctx);
         _mainCoverImage.SetScaleType(ImageView.ScaleType.CenterCrop);
         imgCard.AddView(_mainCoverImage, new FrameLayout.LayoutParams(-1, -1));
         gridFrame.AddView(imgCard);
-
+        
         // 2. Lyrics Overlay (MUST be added after image to be on top)
         _lyricsCard = new MaterialCardView(ctx)
         {
@@ -231,6 +247,16 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         _currentLyricText.SetTextColor(Color.White);
         _currentLyricText.SetPadding(40, 30, 40, 30);
         _lyricsCard.AddView(_currentLyricText);
+        _lyricsCard.Click += (s, e) =>
+        {
+            _viewModel.SelectedSong = _viewModel.CurrentPlayingSongView;
+            _viewModel.NavigateToAnyPageOfGivenType(this, new LyricsViewFragment(_viewModel),"toLyricsFromNP");
+            if (Activity is TransitionActivity act)
+            {
+                act.TogglePlayer();
+            }
+        };
+
 
         gridFrame.AddView(_lyricsCard, lParams); // This sits on top of the image
         
@@ -265,17 +291,16 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         var actionStack = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
         actionStack.SetGravity(GravityFlags.Center);
 
-        var favBtn = new ImageButton(ctx) { Background = null };
-        favBtn.SetImageResource(Resource.Drawable.heart);
+        var favBtn = new Button(ctx) { Background = null };
+        favBtn.SetIconResource(Resource.Drawable.heart);
+        favBtn.IconSize = AppUtil.DpToPx(10);
         favBtn.SetPadding(10, 10, 10, 10);
         favBtn.Click += async (s, e) => await _viewModel.AddFavoriteRatingToSong(_viewModel.CurrentPlayingSongView);
 
-        var lyrBtn = new ImageButton(ctx) { Background = null };
-        lyrBtn.SetImageResource(Resource.Drawable.lyrics); // Ensure this drawable exists
+        var lyrBtn = new Button(ctx) { Background = null };
+        lyrBtn.SetIconResource(Resource.Drawable.lyrics); // Ensure this drawable exists
         lyrBtn.SetPadding(10, 10, 10, 10);
-        lyrBtn.Click += (s, e) => {
-            _lyricsCard.Visibility = _lyricsCard.Visibility == ViewStates.Visible ? ViewStates.Invisible : ViewStates.Visible;
-        };
+       
 
         actionStack.AddView(favBtn, new LinearLayout.LayoutParams(AppUtil.DpToPx(40), AppUtil.DpToPx(40)));
         actionStack.AddView(lyrBtn, new LinearLayout.LayoutParams(AppUtil.DpToPx(40), AppUtil.DpToPx(40)));
@@ -356,46 +381,102 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         // Add some space at bottom for gesture bar
         pillsRow.SetPadding(0, 0, 0, AppUtil.DpToPx(30));
 
-        // 1. Current Device Pill
-        _currentDeviceBtn = CreatePillButton(ctx, "This Phone", Resource.Drawable.ic_vol_type_speaker_dark);
+     
+        _queueBtn= CreatePillButton(ctx, "Queue", Resource.Drawable.shared);
+        _queueBtn.Click += async (s, e) =>
+        {
+            var queueSheet = new QueueBottomSheetFragment(_viewModel);
+            queueSheet.Show(ParentFragmentManager, "QueueSheet");
+        };
+     
         // 2. Share Pill
         _shareBtn = CreatePillButton(ctx, "Share", Resource.Drawable.shared);
         _shareBtn.Click += async (s, e) =>
         {
-            await _viewModel.ShareSongViewClipboard(_viewModel.CurrentPlayingSongView);
+            //await _viewModel.ShareSongViewClipboard(_viewModel.CurrentPlayingSongView);
         };
 
-        // 3. Switch Device Pill
-        _changeDeviceBtn = CreatePillButton(ctx, "Cast", Resource.Drawable.sharing); // Or 'Change' icon
+        
+        _toggleLyricsViewBtn = CreatePillButton(ctx, "Lyrics", Resource.Drawable.lyrics);
+        _toggleLyricsViewBtn.Click += (s, e)
+            =>
+        {
+            _viewModel.SelectedSong = _viewModel.CurrentPlayingSongView;
+            _viewModel._lyricsMgtFlow.LoadLyrics(_viewModel.CurrentPlayingSongView.SyncLyrics);
+            _viewModel.NavigateToAnyPageOfGivenType(this, new LyricsViewFragment(_viewModel), "toLyricsFromNP");
+            if (Activity is TransitionActivity act)
+            {
+                act.TogglePlayer();
+            }
+        };
+        if (Activity is TransitionActivity act)
+        {
+            act.TogglePlayer();
+        }
+        _toggleLyricsViewBtn.LongClick += (s, e) =>
+        {
+            bool showingLyrics = _lyricsCard.Visibility == ViewStates.Visible;
+
+            if (!showingLyrics)
+            {
+              
+                _lyricsCard.Visibility = ViewStates.Visible;
+
+                _mainCoverImage.Animate()?.Alpha(0.7f).SetDuration(150)
+                .WithStartAction(new Java.Lang.Runnable(() =>
+                {
+                    _lyricsCard.Animate()?.Alpha(1f).SetDuration(250);
+                }))
+                .WithEndAction(new Java.Lang.Runnable(() =>
+                {
+                    _toggleLyricsViewBtn.SetTextColor(Color.Gray);
+                }));
+            }
+         
+            else
+            {
+                _lyricsCard.Animate()?.Alpha(0f).SetDuration(200)
+                .WithEndAction(new Java.Lang.Runnable(() =>
+                {
+                    _lyricsCard.Visibility = ViewStates.Gone;
+
+                    _mainCoverImage.Alpha = 0.7f;
+                    _mainCoverImage.Animate()?.Alpha(1f).SetDuration(200);
+
+                    _toggleLyricsViewBtn.SetTextColor(
+                        UiBuilder.IsDark(this.Resources.Configuration) ? Color.White : Color.Black);
+                }));
+            }
+        };
 
         // Distribute evenly with weights or margins
         var pillParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1f);
         pillParams.SetMargins(AppUtil.DpToPx(4), 0, AppUtil.DpToPx(4), 0);
 
-        pillsRow.AddView(_currentDeviceBtn, pillParams);
+        pillsRow.AddView(_queueBtn, pillParams);
         pillsRow.AddView(_shareBtn, pillParams);
-        pillsRow.AddView(_changeDeviceBtn, pillParams);
+        pillsRow.AddView(_toggleLyricsViewBtn, pillParams);
 
         root.AddView(pillsRow);
 
-        // --- F. Bottom Actions (Queue, View Song, Options) ---
-        var actionRow = new LinearLayout(ctx) { Orientation = Orientation.Horizontal, WeightSum = 3 };
+        //// --- F. Bottom Actions (Queue, View Song, Options) ---
+        //var actionRow = new LinearLayout(ctx) { Orientation = Orientation.Horizontal, WeightSum = 3 };
 
-        _queueBtn = new MaterialButton(ctx, null, Resource.Attribute.materialIconButtonFilledStyle) { Text = "Queue" }; // Use Icon Button Style if possible
-        _queueBtn.SetIconResource(Resource.Drawable.hamburgermenu); // Ensure drawable
+        //_queueBtn = new MaterialButton(ctx, null, Resource.Attribute.materialIconButtonFilledStyle) { Text = "Queue" }; // Use Icon Button Style if possible
+        //_queueBtn.SetIconResource(Resource.Drawable.hamburgermenu); // Ensure drawable
 
-        _detailsBtn = new MaterialButton(ctx) { Text = "Details" };
-        _optionsBtn = new MaterialButton(ctx) { Text = "..." };
+        //_detailsBtn = new MaterialButton(ctx) { Text = "Details" };
+        //_optionsBtn = new MaterialButton(ctx) { Text = "..." };
 
-        // Distribute buttons
-        var p = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1);
-        p.SetMargins(10, 0, 10, 0);
+        //// Distribute buttons
+        //var p = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1);
+        //p.SetMargins(10, 0, 10, 0);
 
-        actionRow.AddView(_queueBtn, p);
-        actionRow.AddView(_detailsBtn, p);
-        actionRow.AddView(_optionsBtn, p);
+        //actionRow.AddView(_queueBtn, p);
+        //actionRow.AddView(_detailsBtn, p);
+        //actionRow.AddView(_optionsBtn, p);
 
-        root.AddView(actionRow);
+        //root.AddView(actionRow);
 
         // --- G. Volume (Optional) ---
         // _volumeSlider = ... (similar logic)
@@ -416,11 +497,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         _prevBtn.Click += async (s, e) => await _viewModel.PreviousTrackAsync();
         _nextBtn.Click += async (s, e) => await _viewModel.NextTrackAsync();
 
-        _queueBtn.Click += (s, e) =>
-        {
-            var queueSheet = new QueueBottomSheetFragment(_viewModel);
-            queueSheet.Show(ParentFragmentManager, "QueueSheet");
-        };
+        
         _repeatBtn.Click += (s, e) =>
         {
             _viewModel.ToggleRepeatMode();
@@ -472,7 +549,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         btn.IconPadding = AppUtil.DpToPx(4);
         btn.CornerRadius = AppUtil.DpToPx(50); // Fully rounded (Pill)
         btn.SetPadding(AppUtil.DpToPx(12), 0, AppUtil.DpToPx(12), 0);
-        btn.TextSize = 12;
+        btn.TextSize = 14;
         btn.SetSingleLine(true);
         btn.Ellipsize = Android.Text.TextUtils.TruncateAt.End;
         btn.InsetTop = 0;
@@ -480,7 +557,8 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         return btn;
     }
 
-    private MaterialButton CreateControlButton(Context ctx, int iconRes, int sizeDp, bool isPrimary = false, int IconSize=30)
+    private MaterialButton CreateControlButton(Context ctx, int iconRes, int sizeDp, bool isPrimary = false, int IconSize=30,
+        int strokeWidth =0 )
     {
         var btn = new MaterialButton(ctx);
         btn.Icon = AndroidX.Core.Content.ContextCompat.GetDrawable(ctx, iconRes);
@@ -492,7 +570,8 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         var sizePx = AppUtil.DpToPx(sizeDp);
         btn.LayoutParameters = new LinearLayout.LayoutParams(sizePx, sizePx) { LeftMargin = 20, RightMargin = 20 };
         btn.CornerRadius = sizePx / 2;
-
+        btn.StrokeWidth=0;
+        
         if (isPrimary)
         {
             btn.SetBackgroundColor(Android.Graphics.Color.DarkSlateBlue);
@@ -518,6 +597,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
                 (int)IOnBackInvokedDispatcher.PriorityDefault, this);
         }
 
+        
 
         // 1. Observe Playing Song
         _viewModel.CurrentSongChanged

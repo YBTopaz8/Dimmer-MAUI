@@ -377,8 +377,8 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         var syncLyricsWindow = windowManager.GetOrCreateUniqueWindow(windowFactory: () => new SyncLyricsPopUpViewWindow(this));
         if (syncLyricsWindow is null) return;
         var newPosition = new Windows.Graphics.RectInt32();
-        newPosition.Width = 400;
-        newPosition.Height = 400;
+        newPosition.Width = 600;
+        newPosition.Height = 500;
         switch (Position)
         {
             case 0:

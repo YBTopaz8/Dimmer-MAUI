@@ -21,7 +21,7 @@
     xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
     x:Name="MyPageGrid"
     Loaded="MyPageGrid_Loaded"
-    Unloaded="MyPageGrid_Unloaded"
+    Unloaded="Page_Unloaded"
     mc:Ignorable="d">
 
     <Page.Resources>
@@ -92,29 +92,55 @@
                             <SymbolIcon Symbol="View" />
                         </Button>
 
+                        <Button
+                            x:Name="ShowFavSongs"
+                            Click="ShowFavSongs_Click"
+                            PointerReleased="MiddlePointer_PointerReleased"
+                            RightTapped="ShowFavSongs_RightTapped"
+                            ToolTipService.ToolTip="Show Favorite Songs. TQL command: My Fav">
+                            <FontIcon Glyph="&#xF6B8;" />
+                        </Button>
 
-                        <Button Command="{Binding RandomizeCommand}" Content="Shuffle" />
+                        <Button
+                            x:Name="ShowSongWithLyrics"
+                            Click="ShowSongWithLyrics_Click"
+                            PointerReleased="MiddlePointer_PointerReleased"
+                            RightTapped="ShowSongWithLyrics_RightTapped"
+                            ToolTipService.ToolTip="Show Songs with Lyrics. TQL command: Has Lyrics">
+                            <FontIcon Glyph="&#xE8BD;" />
+                        </Button>
+
+                        <Button
+                            x:Name="ShuffleSongs"
+                            Click="ShuffleSongs_Click"
+                            Content="Shuffle"
+                            PointerReleased="MiddlePointer_PointerReleased" />
                         <SplitButton
                             x:Name="SortByWithTQL"
                             Content="Sort By"
-                            IsEnabled="False">
+                            IsEnabled="True"
+                            Loaded="SortByWithTQL_Loaded"
+                            Visibility="Collapsed">
                             <SplitButton.Flyout>
                                 <MenuFlyout>
-                                    <MenuFlyoutSubItem Text="Artist">
-                                        <MenuFlyoutItem
-                                            x:Name="ArAscending"
-                                            Click="ArAscending_Click"
-                                            Text="Ascending" />
-                                        <MenuFlyoutItem Text="Descending" />
-
-                                    </MenuFlyoutSubItem>
-                                    <MenuFlyoutSubItem Text="Album">
-                                        <MenuFlyoutItem Text="Ascending" />
-                                        <MenuFlyoutItem Text="Descending" />
-                                    </MenuFlyoutSubItem>
-
-
-
+                                    <MenuFlyoutItem
+                                        Click="SortClick"
+                                        Tag="title"
+                                        Text="Title" />
+                                    <MenuFlyoutItem
+                                        Click="SortClick"
+                                        Tag="artist"
+                                        Text="Artist" />
+                                    <MenuFlyoutItem
+                                        Click="SortClick"
+                                        Tag="album"
+                                        Text="Album" />
+                                    <MenuFlyoutItem
+                                        Click="SortClick"
+                                        Tag="dims"
+                                        Text="Dims" />
+                                    <MenuFlyoutSeparator />
+                                    <MenuFlyoutItem Click="OpenHelp" Text="More fields..." />
                                 </MenuFlyout>
                             </SplitButton.Flyout>
                         </SplitButton>
@@ -123,7 +149,7 @@
                     <StackPanel
                         x:Name="SearchTextBoxPanel"
                         HorizontalAlignment="Left"
-                        Orientation="Horizontal"
+                        Orientation="Vertical"
                         Spacing="10">
 
 
@@ -137,6 +163,14 @@
                             PlaceholderText="Search with TQL..."
                             Text="{x:Bind MyViewModel.CurrentTqlQuery, Mode=OneWay}"
                             TextChanged="SearchAutoSuggestBox_TextChanged" />
+                        <ListView
+                            x:Name="SuggestList"
+                            MaxHeight="200"
+                            Background="{ThemeResource SystemControlBackgroundAltHighBrush}"
+                            SelectionChanged="SuggestSelected"
+                            Visibility="Collapsed" />
+
+                        <TextBlock x:Name="PreviewText" />
                         <TextBlock VerticalAlignment="Center" Text="{x:Bind MyViewModel.SearchResults.Count, Mode=OneWay}" />
 
                     </StackPanel>
@@ -333,7 +367,10 @@
                                             </Grid.ColumnDefinitions>
 
                                             <Button Background="Transparent">
-                                                <StackPanel Orientation="Horizontal" PointerPressed="ArtistBtnStackPanel_PointerPressed">
+                                                <StackPanel
+                                                    Orientation="Horizontal"
+                                                    PointerPressed="ArtistBtnStackPanel_PointerPressed"
+                                                    Spacing="2">
                                                     <FontIcon FontSize="12" Glyph="&#xF8B1;" />
                                                     <TextBlock
                                                         VerticalAlignment="Center"
@@ -452,11 +489,10 @@
                         <Image
                             x:Name="SelectedSongImg"
                             Canvas.ZIndex="0"
+                            Loaded="SelectedSongImg_Loaded"
                             PointerPressed="SelectedSongImg_PointerPressed"
                             Visibility="Visible">
-                            <Image.Source>
-                                <BitmapImage UriSource="{x:Bind MyViewModel.SelectedSong.CoverImagePath, Mode=OneWay}" />
-                            </Image.Source>
+                          
                         </Image>
 
                     </Grid>

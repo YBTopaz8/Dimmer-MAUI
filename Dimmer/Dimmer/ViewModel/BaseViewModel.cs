@@ -669,7 +669,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             await Task.Delay(3000);
             await EnsureAllCoverArtCachedForSongsAsync();
             CancellationTokenSource cts = new();
-            await LoadAllSongsLyricsFromOnlineAsync(cts);
+            //await LoadAllSongsLyricsFromOnlineAsync(cts);
         });
 
         IsInitialized = true;
@@ -1639,7 +1639,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial string AppTitle { get; set; } = "🎄Dimmer";
 
-    public static string CurrentAppVersion = "1.5.3";
+    public static string CurrentAppVersion = "1.5.6";
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]

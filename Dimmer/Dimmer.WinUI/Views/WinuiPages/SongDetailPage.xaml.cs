@@ -1,3 +1,4 @@
+using System.Drawing;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -37,7 +38,7 @@ public sealed partial class SongDetailPage : Page
     private SongTransitionAnimation _userPrefAnim = SongTransitionAnimation.Spring;
 
     private readonly Compositor _compositor;
-    public SongModelView? DetailedSong { get; set; }
+    public SongModelView DetailedSong { get; set; }
     public SongDetailPage()
     {
         InitializeComponent();
@@ -119,9 +120,20 @@ public sealed partial class SongDetailPage : Page
 
             if (vm != null)
             {
+                var argSong = args.Song;
+                if (argSong == null) return;
+                if (string.IsNullOrEmpty(argSong.CoverImagePath))
+                {
+                    argSong.CoverImagePath = string.Empty;
+                } else
+                {
+                    argSong.CoverImagePath = argSong.CoverImagePath;
+
+                    BgImage.Source = new BitmapImage(new Uri(argSong.CoverImagePath));
+                }
                 detailedImage.Opacity = 0;
                 MyViewModel = vm;
-                MyViewModel.SelectedSong = args.Song;
+                MyViewModel.SelectedSong = argSong;
                 DetailedSong = args.Song;
                 this.DataContext = MyViewModel;
 
@@ -808,13 +820,23 @@ public sealed partial class SongDetailPage : Page
 
     private void detailedImage_Loaded(object sender, RoutedEventArgs e)
     {
-        AnimationHelper.TryStart(
-       detailedImage,
-       new List<UIElement> { TitleBlock }, // Coordinated elements (optional)
-       AnimationHelper.Key_DetailToList,       // Check this key
-       AnimationHelper.Key_ListToDetail,       // OR Check this key
-       AnimationHelper.Key_ArtistToSong        // OR Check this key
-   );
+        if (!string.IsNullOrEmpty(DetailedSong.CoverImagePath))
+        {
+            detailedImage.Source = new BitmapImage(new Uri(DetailedSong.CoverImagePath));
+        }
+        else
+        {
+            FontIcon musicIcon = new FontIcon();
+            musicIcon.Glyph = "\uEC4F";
+            
+        }
+            AnimationHelper.TryStart(
+           detailedImage,
+           new List<UIElement> { TitleBlock }, // Coordinated elements (optional)
+           AnimationHelper.Key_DetailToList,       // Check this key
+           AnimationHelper.Key_ListToDetail,       // OR Check this key
+           AnimationHelper.Key_ArtistToSong        // OR Check this key
+       );
     }
 
 

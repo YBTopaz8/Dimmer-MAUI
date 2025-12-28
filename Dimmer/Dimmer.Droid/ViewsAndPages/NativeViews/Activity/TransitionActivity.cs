@@ -138,7 +138,7 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         {
             
             Fragment current = SupportFragmentManager.FindFragmentById(_contentContainer.Id);
-            MyViewModel.CurrentPage = current;
+            MyViewModel.CurrentFragment = current;
         };
 
         CheckAndRequestPermissions();
@@ -628,7 +628,7 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
             _onBackInvokedCallback = new BackInvokedCallback(() =>
             {
                 
-                var currentFragment = MyViewModel.CurrentPage as HomePageFragment;
+                var currentFragment = MyViewModel.CurrentFragment as HomePageFragment;
                 if (currentFragment is null)
                 { 
                     HandleBackPressInternal();
