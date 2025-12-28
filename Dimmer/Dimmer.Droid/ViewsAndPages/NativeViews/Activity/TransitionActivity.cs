@@ -15,7 +15,6 @@ using Google.Android.Material.Navigation;
 
 using Explode = AndroidX.Transitions.Explode;
 using Fade = AndroidX.Transitions.Fade;
-using Resource = Microsoft.Maui.Resource;
 using Slide = AndroidX.Transitions.Slide;
 using Transition = AndroidX.Transitions.Transition;
 
