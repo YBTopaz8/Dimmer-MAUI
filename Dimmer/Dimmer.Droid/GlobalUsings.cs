@@ -105,6 +105,8 @@ global using Dimmer.Interfaces;
 global using ChangeBounds = AndroidX.Transitions.ChangeBounds;
 global using TransitionSet = AndroidX.Transitions.TransitionSet;
 global using ChangeImageTransform = AndroidX.Transitions.ChangeImageTransform;
+
+global using Resource = Microsoft.Maui.Resource;
 namespace Dimmer;
 
 internal class GlobalUsings
