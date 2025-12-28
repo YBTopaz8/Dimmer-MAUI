@@ -53,7 +53,15 @@ public static class AndroidContentScanner
             string[] projection = { Android.Provider.IBaseColumns.Id };
 
             using var cursor = context.ContentResolver?.Query(uri, projection, null, null, null);
-            return cursor != null && cursor.MoveToFirst();
+            var boolVal = cursor != null && cursor.MoveToFirst();
+            if (boolVal)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
         catch
         {

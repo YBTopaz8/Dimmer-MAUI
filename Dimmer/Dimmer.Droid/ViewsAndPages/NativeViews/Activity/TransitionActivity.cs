@@ -15,6 +15,7 @@ using Google.Android.Material.Navigation;
 
 using Explode = AndroidX.Transitions.Explode;
 using Fade = AndroidX.Transitions.Fade;
+using Resource = Microsoft.Maui.Resource;
 using Slide = AndroidX.Transitions.Slide;
 using Transition = AndroidX.Transitions.Transition;
 
@@ -138,7 +139,7 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         {
             
             Fragment current = SupportFragmentManager.FindFragmentById(_contentContainer.Id);
-            MyViewModel.CurrentPage = current;
+            MyViewModel.CurrentFragment = current;
         };
 
         CheckAndRequestPermissions();
@@ -628,7 +629,7 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
             _onBackInvokedCallback = new BackInvokedCallback(() =>
             {
                 
-                var currentFragment = MyViewModel.CurrentPage as HomePageFragment;
+                var currentFragment = MyViewModel.CurrentFragment as HomePageFragment;
                 if (currentFragment is null)
                 { 
                     HandleBackPressInternal();

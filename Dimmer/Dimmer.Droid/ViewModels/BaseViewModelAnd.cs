@@ -38,7 +38,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     public BaseViewModel BaseVM => baseVM; // Expose BaseViewModel reference if needed
 
     public Fragment? PreviousPage { get; set; }
-    public Fragment? CurrentPage { get; set; }
+    public Fragment? CurrentFragment { get; set; }
 
     // Removed local stateService and mapper as they are protected in BaseViewModel
 
@@ -433,7 +433,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             //AlbumTransitionName = albumTransName
         };
 
-        CurrentPage = nowPlayingFrag; // Update your tracking property
+        CurrentFragment = nowPlayingFrag; // Update your tracking property
 
         // 4. Define the Shared Element Transition (The Fly Animation)
         var sharedSet = new TransitionSet();
@@ -512,7 +512,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         if (callerFrag == null || !callerFrag.IsAdded) return;
 
         var fragment = new ArtistFragment(this, artistName, artistId);
-        CurrentPage = fragment;
+        CurrentFragment = fragment;
 
         // Shared Element (Image Morph)
         string tName = sharedView?.TransitionName ?? $"artist_{artistId}";
@@ -551,7 +551,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         if (callerFrag == null || !callerFrag.IsAdded) return;
 
         var fragment = new ArtistEventsStatsFragment();
-        CurrentPage = fragment;
+        CurrentFragment = fragment;
 
         // Lateral Slide
         fragment.EnterTransition = new MaterialSharedAxis(MaterialSharedAxis.X, true);
@@ -569,7 +569,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     {
         if (callerFrag == null || !callerFrag.IsAdded) return;
         var fragment = new SettingsFragment("SettingsTrans", this);
-        CurrentPage = fragment;
+        CurrentFragment = fragment;
 
         // Z-Axis Depth Transition
         callerFrag.ExitTransition = new MaterialSharedAxis(MaterialSharedAxis.Z, true);
@@ -584,7 +584,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     public void NavigateToAnyPageOfGivenType(Fragment callerFrag, Fragment destinationFrag, string tag)
     {
         if (callerFrag == null || !callerFrag.IsAdded) return;
-        CurrentPage = destinationFrag;
+        CurrentFragment = destinationFrag;
 
         var fade = new MaterialFadeThrough();
         destinationFrag.EnterTransition = fade;
@@ -683,7 +683,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     internal void ToggleAppThemeAnd()
     {
-        var isDarkMode = UiBuilder.IsDark(CurrentPage.Context);
+        var isDarkMode = UiBuilder.IsDark(CurrentFragment.Context);
         if (isDarkMode)
         {
             //set white theme aka light mode reload/refresh app as if light mode was toggled in system
