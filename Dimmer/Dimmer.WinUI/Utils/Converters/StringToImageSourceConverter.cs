@@ -29,7 +29,9 @@ public class StringToImageSourceConverter : IValueConverter
             {
                 return new BitmapImage(new Uri(path));
             }
-            catch { return null; }
+            catch { 
+                return null; 
+            }
         }
         return null;
     }
