@@ -193,9 +193,21 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
             Toast.MakeText(ctx, "Reloading all album covers...", ToastLength.Short)?.Show();
         };
 
+        MaterialButton FetchAllLyricsLrcLib = new MaterialButton(ctx) { Text = "Fetch Lyrics Online" };
+
+        FetchAllLyricsLrcLib.SetBackgroundColor(Color.Transparent);
+        FetchAllLyricsLrcLib.SetTextColor(IsDark()? Color.White : Color.Black);
+        FetchAllLyricsLrcLib.Click += async (s, e) =>
+        {
+            CancellationTokenSource cts = new();
+           _= Task.Run(async ()=> await MyViewModel.LoadAllSongsLyricsFromOnlineAsync(cts));
+            Toast.MakeText(ctx, "Fetching lyrics...", ToastLength.Short)?.Show();
+        };
+
         layout.AddView(reloadAllAlbumCovers);
 
         layout.AddView(CreateDivider(ctx));
+        layout.AddView(FetchAllLyricsLrcLib);
 
         return WrapInCard(ctx, layout);
     }
