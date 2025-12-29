@@ -409,10 +409,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
                 act.TogglePlayer();
             }
         };
-        if (Activity is TransitionActivity act)
-        {
-            act.TogglePlayer();
-        }
+        
         _toggleLyricsViewBtn.LongClick += (s, e) =>
         {
             bool showingLyrics = _lyricsCard.Visibility == ViewStates.Visible;
