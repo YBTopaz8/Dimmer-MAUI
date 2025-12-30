@@ -2626,6 +2626,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _songToScrobble = CurrentPlayingSongView;
         CurrentPlayingSongView.IsCurrentPlayingHighlight = true;
 
+        // Clear A-B loop when a new song starts
+        if (ABLoopState.IsEnabled)
+        {
+            _logger.LogInformation("A-B Loop: Clearing loop due to song change");
+            ClearABLoopCommand.Execute(null);
+        }
 
         _logger.LogInformation("AudioService confirmed: Playback started for '{Title}'", args.MediaSong.Title);
         await BaseAppFlow.UpdateDatabaseWithPlayEvent(
