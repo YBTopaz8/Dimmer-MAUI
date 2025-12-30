@@ -1953,6 +1953,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     UserNoteModelView() { UserMessageText=uNote}));
 
                 _logger.LogInformation("Successfully added user note for song: {SongTitle}", songObject.Title);
+                
+                // Sync playlist from user note (Path 3: Note-based playlist creation)
+                SyncPlaylistFromUserNote(uNote, songObject.Id);
             }
         }
         catch (Exception ex)
@@ -4972,6 +4975,143 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     songsAddedCount,
                     playlistName);
             });
+    }
+
+    /// <summary>
+    /// Synchronizes playlists with user notes. When a user adds a note to a song,
+    /// this method creates or updates a playlist where all songs with the same note text
+    /// are grouped together. The note text serves as the playlist name and primary key.
+    /// </summary>
+    /// <param name="noteText">The user note text that identifies the playlist</param>
+    /// <param name="songId">The ID of the song that has this note</param>
+    public void SyncPlaylistFromUserNote(string noteText, ObjectId songId)
+    {
+        if (string.IsNullOrWhiteSpace(noteText) || songId == ObjectId.Empty)
+        {
+            _logger.LogWarning("SyncPlaylistFromUserNote called with invalid parameters.");
+            return;
+        }
+
+        _logger.LogInformation(
+            "Syncing playlist from user note '{NoteText}' for song ID {SongId}.",
+            noteText,
+            songId);
+
+        try
+        {
+            var realm = RealmFactory.GetRealmInstance();
+            
+            // Find all songs that have this exact note text
+            var songsWithNote = realm.All<SongModel>()
+                .Where(s => s.UserNotes.Any(n => n.UserMessageText == noteText))
+                .Select(s => s.Id)
+                .ToList();
+
+            if (!songsWithNote.Any())
+            {
+                _logger.LogWarning("No songs found with note '{NoteText}'.", noteText);
+                return;
+            }
+
+            // Use note text as playlist name, prefixed to indicate it's note-based
+            var playlistName = $"Note: {noteText}";
+            
+            // Check if a playlist with this name already exists
+            var existingPlaylist = _playlistRepo.FirstOrDefaultWithRQL("PlaylistName == $0", playlistName);
+
+            if (existingPlaylist != null)
+            {
+                // Update existing playlist
+                _logger.LogInformation("Updating existing note-based playlist '{PlaylistName}'.", playlistName);
+                
+                _playlistRepo.Update(
+                    existingPlaylist.Id,
+                    pl =>
+                    {
+                        // Clear and repopulate the song list to ensure it's in sync
+                        pl.SongsIdsInPlaylist.Clear();
+                        foreach (var id in songsWithNote)
+                        {
+                            pl.SongsIdsInPlaylist.Add(id);
+                        }
+                        pl.Description = $"Auto-generated playlist for songs with note: {noteText}";
+                        pl.LastPlayedDate = DateTimeOffset.UtcNow;
+                    });
+            }
+            else
+            {
+                // Create new playlist
+                _logger.LogInformation("Creating new note-based playlist '{PlaylistName}'.", playlistName);
+                
+                realm.Write(() =>
+                {
+                    var newPlaylist = new PlaylistModel
+                    {
+                        Id = ObjectId.GenerateNewId(),
+                        PlaylistName = playlistName,
+                        Description = $"Auto-generated playlist for songs with note: {noteText}",
+                        IsSmartPlaylist = false,
+                        DateCreated = DateTimeOffset.UtcNow,
+                        LastPlayedDate = DateTimeOffset.UtcNow,
+                    };
+
+                    foreach (var id in songsWithNote)
+                    {
+                        newPlaylist.SongsIdsInPlaylist.Add(id);
+                    }
+
+                    realm.Add(newPlaylist, true);
+                });
+            }
+
+            _logger.LogInformation(
+                "Successfully synced playlist '{PlaylistName}' with {Count} songs.",
+                playlistName,
+                songsWithNote.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error syncing playlist from user note '{NoteText}'.", noteText);
+        }
+    }
+
+    /// <summary>
+    /// Adds a collection of songs to a specified playlist. This supports Path 2: 
+    /// Selecting songs from any page and adding them to a playlist via toolbar/command.
+    /// </summary>
+    /// <param name="playlistName">Name of the target playlist (creates if doesn't exist)</param>
+    /// <param name="songs">Collection of songs to add</param>
+    [RelayCommand]
+    public void AddSelectedSongsToPlaylist(string playlistName, IEnumerable<SongModelView> songs)
+    {
+        if (string.IsNullOrWhiteSpace(playlistName))
+        {
+            _logger.LogWarning("AddSelectedSongsToPlaylist called with empty playlist name.");
+            ShowNotification("Please provide a playlist name.").FireAndForget();
+            return;
+        }
+
+        if (songs == null || !songs.Any())
+        {
+            _logger.LogWarning("AddSelectedSongsToPlaylist called with no songs.");
+            ShowNotification("No songs selected to add to playlist.").FireAndForget();
+            return;
+        }
+
+        try
+        {
+            // Use existing AddToPlaylist method which handles create/update logic
+            AddToPlaylist(playlistName, songs, string.Empty);
+            
+            var count = songs.Count();
+            ShowNotification($"Added {count} song{(count > 1 ? "s" : "")} to playlist '{playlistName}'.").FireAndForget();
+            _logger.LogInformation("Added {Count} songs to playlist '{PlaylistName}'.", count, playlistName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error adding selected songs to playlist '{PlaylistName}'.", playlistName);
+            ShowNotification($"Error adding songs to playlist: {ex.Message}").FireAndForget();
+        }
     }
 
     private bool _disposed = false;
