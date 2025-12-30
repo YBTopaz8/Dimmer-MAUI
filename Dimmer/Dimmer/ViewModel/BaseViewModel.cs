@@ -5473,11 +5473,24 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 await songRepo.DeleteAsync(song.Id);
 
                 // Remove from the search results collection if present
-                var songInCollection = SearchResultsHolder.Items.FirstOrDefault(s => s.Id == song.Id);
-                if (songInCollection != null)
+                SearchResultsHolder.Edit(updater =>
                 {
-                    SearchResultsHolder.Remove(songInCollection);
-                }
+                    var songInCollection = updater.FirstOrDefault(s => s.Id == song.Id);
+                    if (songInCollection != null)
+                    {
+                        updater.Remove(songInCollection);
+                    }
+                });
+
+                // Remove from the playback queue if present
+                PlaybackQueueSource.Edit(updater =>
+                {
+                    var songInQueue = updater.FirstOrDefault(s => s.Id == song.Id);
+                    if (songInQueue != null)
+                    {
+                        updater.Remove(songInQueue);
+                    }
+                });
 
                 await ShowNotification("Song data deleted from library.");
             }
