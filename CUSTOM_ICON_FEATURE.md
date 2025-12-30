@@ -18,7 +18,7 @@ The feature uses Android's `activity-alias` mechanism to provide multiple launch
 2. Scroll to the **Appearance & Behavior** section
 3. Tap on **App Icon**
 4. Select your preferred icon from the dialog
-5. Restart the app to see the new icon in your launcher
+5. The launcher will refresh shortly to display the new icon
 
 ## Technical Details
 
@@ -33,11 +33,11 @@ The feature uses Android's `activity-alias` mechanism to provide multiple launch
 When a user selects an icon:
 1. The app disables all other activity-alias components
 2. Enables the selected activity-alias component
-3. Android's launcher picks up the change and updates the icon
+3. Android's launcher picks up the change and updates the icon automatically
 4. The preference is saved for persistence across app restarts
 
 ### Limitations
-- Icon change requires the user to restart the app for the launcher to update
+- The launcher may take a few seconds to refresh after changing the icon
 - Only works on Android (Windows implementation TBD)
 - Custom user-provided icons are not supported yet (future enhancement)
 

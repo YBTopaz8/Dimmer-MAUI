@@ -61,7 +61,7 @@ public static class AppIconManager
                 ComponentEnableOption.DontKillApp
             );
 
-            // Save the preference
+            // Save the preference only after successful enable
             AppSettingsService.AppIconPreference.SetAppIcon(iconName);
         }
         catch (Exception ex)

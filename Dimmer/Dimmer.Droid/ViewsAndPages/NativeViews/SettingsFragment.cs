@@ -513,7 +513,7 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
             try
             {
                 AppIconManager.ChangeAppIcon(ctx, selectedIcon);
-                Toast.MakeText(ctx, $"Icon changed to {selectedIcon}. Restart app to see the change.", ToastLength.Long)?.Show();
+                Toast.MakeText(ctx, $"Icon changed to {selectedIcon}. The launcher will refresh shortly.", ToastLength.Long)?.Show();
                 
                 // Update the UI - we need to refresh the settings page
                 if (Activity is TransitionActivity act)
