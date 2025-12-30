@@ -329,6 +329,8 @@ public class LibraryScannerService : ILibraryScannerService
     /// </summary>
     public async Task<int> VerifyExistingSongsAsync()
     {
+        const int BATCH_SIZE = 100; // Process songs in batches for better performance
+        
         try
         {
             _logger.LogInformation("Starting verification of existing songs...");
@@ -343,10 +345,9 @@ public class LibraryScannerService : ILibraryScannerService
             _logger.LogInformation("Verifying {TotalSongs} songs...", totalSongs);
 
             // Process songs in batches for better performance
-            var batchSize = 100;
-            for (int i = 0; i < allSongs.Count; i += batchSize)
+            for (int i = 0; i < allSongs.Count; i += BATCH_SIZE)
             {
-                var batch = allSongs.Skip(i).Take(batchSize).ToList();
+                var batch = allSongs.Skip(i).Take(BATCH_SIZE).ToList();
                 
                 using var realmWrite = _realmFactory.GetRealmInstance();
                 await realmWrite.WriteAsync(() =>
@@ -375,7 +376,7 @@ public class LibraryScannerService : ILibraryScannerService
                 });
 
                 // Update progress
-                int progress = Math.Min(i + batchSize, totalSongs);
+                int progress = Math.Min(i + BATCH_SIZE, totalSongs);
                 if (progress % 500 == 0 || progress == totalSongs)
                 {
                     _state.SetCurrentLogMsg(new AppLogModel

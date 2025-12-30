@@ -482,14 +482,12 @@ public class MusicDataService
                 songsToRemove = realm.All<SongModel>().Where(s => !s.IsFileExists);
             }
 
-            var songsToRemoveList = songsToRemove.ToList();
-            removedCount = songsToRemoveList.Count;
-
-            foreach (var song in songsToRemoveList)
+            foreach (var song in songsToRemove)
             {
                 // Clean up relationships before removing
                 CleanupSongRelationships(realm, song);
                 realm.Remove(song);
+                removedCount++;
             }
         });
 

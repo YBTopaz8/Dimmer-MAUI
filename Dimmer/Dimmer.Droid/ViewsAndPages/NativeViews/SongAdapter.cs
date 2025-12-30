@@ -329,6 +329,7 @@ internal class SongAdapter : RecyclerView.Adapter
 
     class SongViewHolder : AndroidX.RecyclerView.Widget.RecyclerView.ViewHolder
     {
+        private const string UNAVAILABLE_PREFIX = "[Unavailable] ";
         private readonly SerialDisposable _itemSubscription = new SerialDisposable();
 
 
@@ -513,7 +514,7 @@ internal class SongAdapter : RecyclerView.Adapter
             {
                 _title.SetTextColor(Color.Gray);
                 _artist.SetTextColor(Color.LightGray);
-                _title.Text = $"[Unavailable] {song.Title}";
+                _title.Text = $"{UNAVAILABLE_PREFIX}{song.Title}";
                 _img.Alpha = 0.5f; // Dim the image
                 _container.Alpha = 0.7f; // Slightly transparent
             }

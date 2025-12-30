@@ -1,4 +1,5 @@
 using System;
+using Microsoft.UI.Xaml.Data;
 
 namespace Dimmer.WinUI.Utils.Converters;
 
