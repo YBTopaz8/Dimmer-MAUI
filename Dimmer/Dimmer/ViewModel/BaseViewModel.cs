@@ -4999,7 +4999,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         try
         {
-            var realm = RealmFactory.GetRealmInstance();
+            using var realm = RealmFactory.GetRealmInstance();
             
             // Find all songs that have this exact note text
             var songsWithNote = realm.All<SongModel>()
@@ -5030,9 +5030,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     {
                         // Clear and repopulate the song list to ensure it's in sync
                         pl.SongsIdsInPlaylist.Clear();
-                        foreach (var id in songsWithNote)
+                        // Use AddRange for better performance with multiple items
+                        if (songsWithNote.Count > 0)
                         {
-                            pl.SongsIdsInPlaylist.Add(id);
+                            pl.SongsIdsInPlaylist.AddRange(songsWithNote);
                         }
                         pl.Description = $"Auto-generated playlist for songs with note: {noteText}";
                         pl.LastPlayedDate = DateTimeOffset.UtcNow;
@@ -5040,28 +5041,23 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             }
             else
             {
-                // Create new playlist
+                // Create new playlist using the repository pattern
                 _logger.LogInformation("Creating new note-based playlist '{PlaylistName}'.", playlistName);
                 
-                realm.Write(() =>
+                var newPlaylist = new PlaylistModel
                 {
-                    var newPlaylist = new PlaylistModel
-                    {
-                        Id = ObjectId.GenerateNewId(),
-                        PlaylistName = playlistName,
-                        Description = $"Auto-generated playlist for songs with note: {noteText}",
-                        IsSmartPlaylist = false,
-                        DateCreated = DateTimeOffset.UtcNow,
-                        LastPlayedDate = DateTimeOffset.UtcNow,
-                    };
+                    Id = ObjectId.GenerateNewId(),
+                    PlaylistName = playlistName,
+                    Description = $"Auto-generated playlist for songs with note: {noteText}",
+                    IsSmartPlaylist = false,
+                    DateCreated = DateTimeOffset.UtcNow,
+                    LastPlayedDate = DateTimeOffset.UtcNow,
+                };
 
-                    foreach (var id in songsWithNote)
-                    {
-                        newPlaylist.SongsIdsInPlaylist.Add(id);
-                    }
+                // Use AddRange for better performance
+                newPlaylist.SongsIdsInPlaylist.AddRange(songsWithNote);
 
-                    realm.Add(newPlaylist, true);
-                });
+                _playlistRepo.Create(newPlaylist);
             }
 
             _logger.LogInformation(
