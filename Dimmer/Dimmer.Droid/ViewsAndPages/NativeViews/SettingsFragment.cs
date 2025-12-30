@@ -3,6 +3,7 @@ using System.Reactive.Disposables.Fluent;
 
 using Bumptech.Glide;
 
+using Dimmer.Utils;
 using Dimmer.WinUI.UiUtils;
 
 using DynamicData;
@@ -165,6 +166,13 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
 
         layout.AddView(CreateSwitchRow(ctx, "Dark Mode", "Use dark theme application-wide",
             MyViewModel.IsDarkModeOn, (v) => MyViewModel.ToggleAppThemeAnd()));
+
+        layout.AddView(CreateDivider(ctx));
+
+        // App Icon Selector
+        var iconRow = CreateActionRow(ctx, "App Icon", AppIconManager.GetCurrentIcon());
+        iconRow.Click += (s, e) => ShowIconSelectionDialog(ctx);
+        layout.AddView(iconRow);
 
         layout.AddView(CreateDivider(ctx));
 
@@ -465,6 +473,65 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
         tv.SetTypeface(null, Android.Graphics.TypefaceStyle.Bold);
         tv.SetPadding(40, 40, 0, 10);
         return tv;
+    }
+
+    private View CreateActionRow(Context ctx, string title, string value)
+    {
+        var row = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
+        row.SetPadding(30, 30, 30, 30);
+        row.SetGravity(GravityFlags.CenterVertical);
+        row.Clickable = true;
+
+        var textLayout = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
+        textLayout.LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1);
+
+        var titleText = new TextView(ctx) { Text = title, TextSize = 16, Typeface = Android.Graphics.Typeface.DefaultBold };
+        var valueText = new TextView(ctx) { Text = value, TextSize = 12 };
+        valueText.SetTextColor(Color.Gray);
+        textLayout.AddView(titleText);
+        textLayout.AddView(valueText);
+
+        var arrow = new TextView(ctx) { Text = "›", TextSize = 24 };
+        arrow.SetTextColor(Color.Gray);
+
+        row.AddView(textLayout);
+        row.AddView(arrow);
+        return row;
+    }
+
+    private void ShowIconSelectionDialog(Context ctx)
+    {
+        var icons = AppIconManager.GetAvailableIcons();
+        var currentIcon = AppIconManager.GetCurrentIcon();
+        var currentIndex = icons.IndexOf(currentIcon);
+
+        var builder = new AndroidX.AppCompat.App.AlertDialog.Builder(ctx);
+        builder.SetTitle("Choose App Icon");
+        builder.SetSingleChoiceItems(icons.ToArray(), currentIndex, (sender, args) =>
+        {
+            var selectedIcon = icons[args.Which];
+            try
+            {
+                AppIconManager.ChangeAppIcon(ctx, selectedIcon);
+                Toast.MakeText(ctx, $"Icon changed to {selectedIcon}. The launcher will refresh shortly.", ToastLength.Long)?.Show();
+                
+                // Update the UI - we need to refresh the settings page
+                if (Activity is TransitionActivity act)
+                {
+                    // Close the dialog
+                    ((AndroidX.AppCompat.App.AlertDialog)sender).Dismiss();
+                    
+                    // Optionally reload the fragment to update the displayed value
+                    act.OnBackPressedDispatcher.OnBackPressed();
+                }
+            }
+            catch (Exception ex)
+            {
+                Toast.MakeText(ctx, $"Failed to change icon: {ex.Message}", ToastLength.Short)?.Show();
+            }
+        });
+        builder.SetNegativeButton("Cancel", (sender, args) => { });
+        builder.Show();
     }
 
     private bool IsDark() => (Resources.Configuration.UiMode & Android.Content.Res.UiMode.NightMask) == Android.Content.Res.UiMode.NightYes;

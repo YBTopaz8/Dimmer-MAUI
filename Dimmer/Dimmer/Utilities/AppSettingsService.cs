@@ -270,6 +270,26 @@ public static class AppSettingsService
             return IsDiscordRPCEnabled;
         }
     }
+
+    public static class AppIconPreference
+    {
+        const string defaultIcon = "Default";
+        public static string SelectedAppIcon
+        {
+            get => Preferences.Default.Get(nameof(SelectedAppIcon), defaultIcon);
+            set => Preferences.Default.Set(nameof(SelectedAppIcon), value);
+        }
+
+        public static void SetAppIcon(string iconName)
+        {
+            SelectedAppIcon = iconName;
+        }
+
+        public static string GetAppIcon()
+        {
+            return SelectedAppIcon;
+        }
+    }
 }
 public class MyAppJsonContext : JsonSerializerContext
 {

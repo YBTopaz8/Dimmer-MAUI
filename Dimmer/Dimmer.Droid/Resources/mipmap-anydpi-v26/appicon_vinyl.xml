@@ -1,0 +1,4 @@
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+  <background android:drawable="@mipmap/appicon_vinyl_background" />
+  <foreground android:drawable="@mipmap/appicon_vinyl_foreground" />
+</adaptive-icon>
