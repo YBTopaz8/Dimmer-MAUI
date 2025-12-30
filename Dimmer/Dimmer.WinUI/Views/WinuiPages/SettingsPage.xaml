@@ -51,6 +51,12 @@
                     FontSize="20" />
 
                 <Button
+                    x:Name="LibraryHealthBtn"
+                    Click="LibraryHealthView_Click"
+                    Content="Library Health"
+                    FontSize="20" />
+
+                <Button
                     x:Name="DimmerSection"
                     Click="DimmerSection_Click"
                     Content="DimmerLive"
@@ -172,6 +178,86 @@
                         </ItemsRepeater.ItemTemplate>
                     </ItemsRepeater>
 
+
+                </StackPanel>
+            </Grid>
+
+            <!--  Library Health  -->
+            <Grid
+                x:Name="LibraryHealthGrid"
+                Padding="10"
+                Background="#252525"
+                Visibility="Collapsed">
+
+                <StackPanel>
+                    <TextBlock
+                        Margin="0,0,0,10"
+                        FontSize="28"
+                        Foreground="White"
+                        Text="Library Health" />
+                    <TextBlock
+                        Margin="0,0,0,20"
+                        Foreground="White"
+                        Text="Manage unavailable songs and library integrity." />
+
+                    <Border
+                        Margin="0,0,0,15"
+                        Padding="15"
+                        Background="#2C2C2C"
+                        CornerRadius="8">
+                        <StackPanel Spacing="15">
+                            
+                            <TextBlock
+                                FontSize="18"
+                                FontWeight="SemiBold"
+                                Foreground="White"
+                                Text="Unavailable Songs" />
+
+                            <ToggleSwitch
+                                x:Name="ShowUnavailableSongsToggle"
+                                Header="Show unavailable songs in library"
+                                IsOn="{x:Bind MyViewModel.SettingsServ.ShowUnavailableSongs, Mode=TwoWay}"
+                                OffContent="Hidden"
+                                OnContent="Visible" />
+
+                            <TextBlock
+                                Foreground="LightGray"
+                                TextWrapping="Wrap"
+                                Text="When enabled, songs with missing files will be shown with visual indicators. Disable to hide them from view." />
+
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <Button
+                                    x:Name="VerifyLibraryBtn"
+                                    Background="MediumSlateBlue"
+                                    Click="VerifyLibraryBtn_Click"
+                                    Content="Verify Library">
+                                    <Button.Resources>
+                                        <ToolTip x:Key="VerifyTooltip" Content="Check all songs for file availability" />
+                                    </Button.Resources>
+                                    <ToolTipService.ToolTip>
+                                        <ToolTip Content="Check all songs for file availability" />
+                                    </ToolTipService.ToolTip>
+                                </Button>
+
+                                <Button
+                                    x:Name="CleanupUnavailableBtn"
+                                    Background="DarkRed"
+                                    Click="CleanupUnavailableBtn_Click"
+                                    Content="Remove Unavailable Songs">
+                                    <ToolTipService.ToolTip>
+                                        <ToolTip Content="Permanently delete unavailable songs from database" />
+                                    </ToolTipService.ToolTip>
+                                </Button>
+                            </StackPanel>
+
+                            <TextBlock
+                                x:Name="LibraryHealthStatus"
+                                Foreground="LightGreen"
+                                Text="Library health status will appear here"
+                                Visibility="Collapsed" />
+
+                        </StackPanel>
+                    </Border>
 
                 </StackPanel>
             </Grid>

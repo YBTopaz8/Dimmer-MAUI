@@ -60,9 +60,14 @@ public sealed partial class SettingsPage : Page
         WizardFlipView.SelectedIndex = 0;
     }
 
-    private void LastFMView_Click(object sender, RoutedEventArgs e)
+    private void LibraryHealthView_Click(object sender, RoutedEventArgs e)
     {
         WizardFlipView.SelectedIndex = 1;
+    }
+
+    private void LastFMView_Click(object sender, RoutedEventArgs e)
+    {
+        WizardFlipView.SelectedIndex = 2;
         var send = (Button)sender;
 
     }
@@ -70,7 +75,7 @@ public sealed partial class SettingsPage : Page
 
     private void UtilsView_Click(object sender, RoutedEventArgs e)
     {
-        WizardFlipView.SelectedIndex = 2;
+        WizardFlipView.SelectedIndex = 3;
     }
 
     private void WizardFlipView_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
@@ -246,6 +251,79 @@ public sealed partial class SettingsPage : Page
         if (path is null) return;
         if (MyViewModel is null) return;
         await MyViewModel.ReScanMusicFolderByPassingToService(path);
+    }
+
+    private async void VerifyLibraryBtn_Click(object sender, RoutedEventArgs e)
+    {
+        if (MyViewModel is null) return;
+        
+        LibraryHealthStatus.Visibility = Visibility.Visible;
+        LibraryHealthStatus.Text = "Verifying library...";
+        LibraryHealthStatus.Foreground = new SolidColorBrush(Microsoft.UI.Colors.Yellow);
+        
+        try
+        {
+            var updatedCount = await MyViewModel.LibraryScannerService.VerifyExistingSongsAsync();
+            
+            if (updatedCount == 0)
+            {
+                LibraryHealthStatus.Text = "✓ All songs are available";
+                LibraryHealthStatus.Foreground = new SolidColorBrush(Microsoft.UI.Colors.LightGreen);
+            }
+            else if (updatedCount > 0)
+            {
+                LibraryHealthStatus.Text = $"⚠ Found {updatedCount} unavailable song(s)";
+                LibraryHealthStatus.Foreground = new SolidColorBrush(Microsoft.UI.Colors.Orange);
+            }
+            else
+            {
+                LibraryHealthStatus.Text = "⚠ Verification failed";
+                LibraryHealthStatus.Foreground = new SolidColorBrush(Microsoft.UI.Colors.Red);
+            }
+        }
+        catch (Exception ex)
+        {
+            LibraryHealthStatus.Text = $"Error: {ex.Message}";
+            LibraryHealthStatus.Foreground = new SolidColorBrush(Microsoft.UI.Colors.Red);
+        }
+    }
+
+    private async void CleanupUnavailableBtn_Click(object sender, RoutedEventArgs e)
+    {
+        if (MyViewModel is null) return;
+
+        // Confirm deletion
+        var dialog = new ContentDialog
+        {
+            Title = "Remove Unavailable Songs",
+            Content = "This will permanently remove all unavailable songs from the database. This action cannot be undone. Continue?",
+            PrimaryButtonText = "Remove",
+            CloseButtonText = "Cancel",
+            DefaultButton = ContentDialogButton.Close,
+            XamlRoot = this.XamlRoot
+        };
+
+        var result = await dialog.ShowAsync();
+        
+        if (result == ContentDialogResult.Primary)
+        {
+            LibraryHealthStatus.Visibility = Visibility.Visible;
+            LibraryHealthStatus.Text = "Removing unavailable songs...";
+            LibraryHealthStatus.Foreground = new SolidColorBrush(Microsoft.UI.Colors.Yellow);
+            
+            try
+            {
+                var removedCount = await MyViewModel.MusicDataServ.RemoveUnavailableSongsAsync();
+                
+                LibraryHealthStatus.Text = $"✓ Removed {removedCount} unavailable song(s)";
+                LibraryHealthStatus.Foreground = new SolidColorBrush(Microsoft.UI.Colors.LightGreen);
+            }
+            catch (Exception ex)
+            {
+                LibraryHealthStatus.Text = $"Error: {ex.Message}";
+                LibraryHealthStatus.Foreground = new SolidColorBrush(Microsoft.UI.Colors.Red);
+            }
+        }
     }
 
     private async void DimmerSection_Click(object sender, RoutedEventArgs e)

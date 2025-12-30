@@ -605,6 +605,7 @@
                                     <Grid
                                         Height="100"
                                         Padding="8"
+                                        Opacity="{Binding IsFileExists, Converter={StaticResource FileExistsToOpacityConverter}}"
                                         ColumnSpacing="5"
                                         CornerRadius="8">
                                         <Grid.ColumnDefinitions>
@@ -655,11 +656,19 @@
                                             Grid.Column="1"
                                             VerticalAlignment="Center"
                                             Spacing="2">
-                                            <TextBlock
-                                                FontSize="18"
-                                                Style="{ThemeResource BodyStrongTextBlockStyle}"
-                                                Text="{Binding Title}"
-                                                TextTrimming="CharacterEllipsis" />
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <TextBlock
+                                                    FontSize="18"
+                                                    Style="{ThemeResource BodyStrongTextBlockStyle}"
+                                                    Text="{Binding Title}"
+                                                    TextTrimming="CharacterEllipsis" />
+                                                <FontIcon
+                                                    FontSize="16"
+                                                    Foreground="OrangeRed"
+                                                    Glyph="&#xE7BA;"
+                                                    ToolTipService.ToolTip="File unavailable"
+                                                    Visibility="{Binding IsFileExists, Converter={StaticResource BoolToInverseVisibilityConverter}}" />
+                                            </StackPanel>
 
                                             <Grid>
                                                 <Grid.ColumnDefinitions>

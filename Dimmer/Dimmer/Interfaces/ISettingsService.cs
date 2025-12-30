@@ -8,6 +8,7 @@ public interface ISettingsService
 
     // UI/Other Settings
     bool MinimizeToTrayPreference { get; set; }
+    bool ShowUnavailableSongs { get; set; } // Show or hide songs with missing files
     // string LastSelectedOutputDeviceId { get; set; } // Example
     IList<string> UserMusicFoldersPreference { get; } // Read-only view
     string LastPlayedSong { get; set; }

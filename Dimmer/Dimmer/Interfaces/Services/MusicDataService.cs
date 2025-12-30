@@ -442,4 +442,92 @@ public class MusicDataService
 
         _logger.LogInformation("Successfully saved all changes for song ID {SongId}", songView.Id);
     }
+
+    #endregion
+
+    #region Unavailable Songs Management
+
+    /// <summary>
+    /// Gets all songs where IsFileExists is false
+    /// </summary>
+    public List<SongModel> GetUnavailableSongs()
+    {
+        using var realm = _realmFactory.GetRealmInstance();
+        return realm.All<SongModel>().Where(s => !s.IsFileExists).ToList();
+    }
+
+    /// <summary>
+    /// Removes songs with missing files from the database
+    /// </summary>
+    /// <param name="songIds">Optional list of specific song IDs to remove. If null, removes all unavailable songs.</param>
+    /// <returns>Number of songs removed</returns>
+    public async Task<int> RemoveUnavailableSongsAsync(List<ObjectId>? songIds = null)
+    {
+        using var realm = _realmFactory.GetRealmInstance();
+        
+        int removedCount = 0;
+        
+        await realm.WriteAsync(() =>
+        {
+            IQueryable<SongModel> songsToRemove;
+            
+            if (songIds != null && songIds.Any())
+            {
+                // Remove specific songs
+                songsToRemove = realm.All<SongModel>().Where(s => !s.IsFileExists && songIds.Contains(s.Id));
+            }
+            else
+            {
+                // Remove all unavailable songs
+                songsToRemove = realm.All<SongModel>().Where(s => !s.IsFileExists);
+            }
+
+            foreach (var song in songsToRemove)
+            {
+                // Clean up relationships before removing
+                CleanupSongRelationships(realm, song);
+                realm.Remove(song);
+                removedCount++;
+            }
+        });
+
+        _logger.LogInformation("Removed {Count} unavailable songs from database.", removedCount);
+        return removedCount;
+    }
+
+    /// <summary>
+    /// Helper method to clean up relationships when removing a song
+    /// </summary>
+    private void CleanupSongRelationships(Realm realm, SongModel song)
+    {
+        // Remove from playlists
+        var playlistsContainingSong = realm.All<PlaylistModel>().Where(p => p.SongsInPlaylist.Contains(song));
+        foreach (var playlist in playlistsContainingSong)
+        {
+            playlist.SongsInPlaylist.Remove(song);
+        }
+
+        // Clean up orphaned album if no other songs reference it
+        if (song.Album != null)
+        {
+            var album = song.Album;
+            if (album.SongsInAlbum.Count == 1 && album.SongsInAlbum.Contains(song))
+            {
+                _logger.LogInformation("Removing orphaned album '{AlbumName}'.", album.Name);
+                realm.Remove(album);
+            }
+        }
+
+        // Clean up orphaned artists if no other songs/albums reference them
+        foreach (var artist in song.ArtistToSong.ToList())
+        {
+            if (artist.Songs.Count == 1 && artist.Songs.Contains(song) && !artist.Albums.Any())
+            {
+                _logger.LogInformation("Removing orphaned artist '{ArtistName}'.", artist.Name);
+                realm.Remove(artist);
+            }
+        }
+    }
+
+    #endregion
 }

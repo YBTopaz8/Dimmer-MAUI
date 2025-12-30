@@ -1058,6 +1058,20 @@ AnimationHelper.Key_Forward
         var send = (Button)sender;
         var song = send.DataContext as SongModelView;
 
+        // Check if file exists before playing
+        if (song != null && !song.IsFileExists)
+        {
+            var dialog = new ContentDialog
+            {
+                Title = "Song Unavailable",
+                Content = "This song file is no longer available. It may have been deleted or moved.",
+                CloseButtonText = "OK",
+                XamlRoot = this.XamlRoot
+            };
+            await dialog.ShowAsync();
+            return;
+        }
+
         await MyViewModel.PlaySongAsync(song, CurrentPage.NowPlayingPage, MyViewModel.PlaybackQueue);
     }
 

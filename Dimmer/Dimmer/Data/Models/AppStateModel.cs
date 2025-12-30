@@ -55,6 +55,7 @@ public partial class AppStateModel : RealmObject, IRealmObjectWithObjectId
     public int AppTheme { get; internal set; }
     public string LastfmUsername { get; internal set; }
     public bool ScrobbleToLastFM { get; internal set; }
+    public bool ShowUnavailableSongs { get; set; } = true; // Show unavailable songs by default
 
     public AppStateModel()
     {
@@ -87,6 +88,7 @@ public partial class AppStateModel : RealmObject, IRealmObjectWithObjectId
         this.IsStickToTop = source.IsStickToTop;
         this.EqualizerPreset = source.EqualizerPreset;
         this.LastKnownPosition = source.LastKnownPosition;
+        this.ShowUnavailableSongs = source.ShowUnavailableSongs;
 
         // For collections, we need to create new collections and copy the items
         // to ensure the new instance has its own independent lists.
