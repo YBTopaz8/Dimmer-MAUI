@@ -124,7 +124,7 @@ public sealed partial class SettingsPage : Page
         
         // Change WinUI theme at window level
         var window = PlatUtils.GetNativeWindowFromMAUIWindow();
-        if (window?.Content is FrameworkElement rootElement)
+        if (window != null && window.Content is FrameworkElement rootElement)
         {
             rootElement.RequestedTheme = isDark ? ElementTheme.Dark : ElementTheme.Light;
         }

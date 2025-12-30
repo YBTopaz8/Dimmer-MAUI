@@ -52,7 +52,7 @@ internal class LyricsViewFragment : Fragment
         root.AddView(_backgroundImageView);
 
         // Dark/Light Overlay for readability - adapt to theme
-        var isDark = UiBuilder.IsDark(context);
+        var isDark = UiBuilder.IsDark(context.Resources.Configuration);
         var overlayAlpha = isDark ? 150 : 200;  // More opacity in light mode for better contrast
         var overlay = new View(context)
         {
