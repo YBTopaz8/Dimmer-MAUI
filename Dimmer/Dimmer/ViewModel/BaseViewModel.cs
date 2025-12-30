@@ -2583,8 +2583,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         // Handle A-B loop
         if (ABLoopState.IsEnabled && ABLoopState.IsBothPointsSet)
         {
-            // Check if we've reached or passed point B
-            if (positionSeconds >= ABLoopState.EndPosition.Value)
+            // Check if we've reached or passed point B (with small tolerance to prevent rapid seeking)
+            if (positionSeconds >= ABLoopState.EndPosition.Value - 0.1)
             {
                 ABLoopState.IncrementIteration();
                 
@@ -3757,7 +3757,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         string loopInfo = ABLoopState.LoopCount.HasValue 
             ? $"{ABLoopState.CurrentIteration + 1}/{ABLoopState.LoopCount.Value}" 
-            : $"{ABLoopState.CurrentIteration + 1}/∞";
+            : $"{ABLoopState.CurrentIteration + 1}/infinite";
 
         ABLoopStatusText = $"A-B Loop: {FormatTime(ABLoopState.StartPosition.Value)} - {FormatTime(ABLoopState.EndPosition.Value)} ({loopInfo})";
     }

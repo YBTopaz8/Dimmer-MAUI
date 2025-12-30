@@ -1,3 +1,6 @@
+using System.Globalization;
+using Microsoft.Maui.Controls;
+
 namespace Dimmer.Utilities.TypeConverters;
 
 /// <summary>
