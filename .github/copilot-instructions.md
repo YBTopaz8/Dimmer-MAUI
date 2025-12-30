@@ -61,7 +61,7 @@ Dimmer is a cross-platform music player application built with .NET MAUI, target
 ## Coding Conventions
 
 ### C# Style
-- Use C# 12 features including file-scoped namespaces, primary constructors, and pattern matching
+- Use modern C# features including file-scoped namespaces, primary constructors, pattern matching, and collection expressions
 - Enable nullable reference types (already configured)
 - Use `var` for local variables when the type is obvious
 - Follow standard C# naming conventions:
