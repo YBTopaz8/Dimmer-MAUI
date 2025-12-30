@@ -1,5 +1,7 @@
 using CommunityToolkit.WinUI;
 
+using Dimmer.WinUI.Utils.StaticUtils;
+
 using Microsoft.UI.Xaml.Controls.Primitives;
 
 using Grid = Microsoft.UI.Xaml.Controls.Grid;
@@ -117,10 +119,21 @@ public sealed partial class SettingsPage : Page
         ToggleButton send = (ToggleButton)sender;
         MyViewModel?.ToggleAppTheme();
         send.IsEnabled = MyViewModel?.IsDarkModeOn ?? false;
-        var currentWinUITheme = Microsoft.UI.Xaml.Application.Current.RequestedTheme;
-        // set new theme if different
-        //Microsoft.UI.Xaml.Application.Current.RequestedTheme = currentWinUITheme == ApplicationTheme.Dark ? ApplicationTheme.Light : ApplicationTheme.Dark;
         
+        var isDark = MyViewModel?.IsDarkModeOn ?? false;
+        
+        // Change WinUI theme at window level
+        var window = PlatUtils.GetNativeWindowFromMAUIWindow();
+        if (window != null && window.Content is FrameworkElement rootElement)
+        {
+            rootElement.RequestedTheme = isDark ? ElementTheme.Dark : ElementTheme.Light;
+        }
+        
+        // Also update MAUI theme
+        if (Application.Current != null)
+        {
+            Application.Current.UserAppTheme = isDark ? AppTheme.Dark : AppTheme.Light;
+        }
     }
 
     private void BackNavM4_Click(object sender, RoutedEventArgs e)

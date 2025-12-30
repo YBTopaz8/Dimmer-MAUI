@@ -11,6 +11,8 @@ using AndroidX.Lifecycle;
 
 using Bumptech.Glide;
 
+using Dimmer.WinUI.UiUtils;
+
 using DynamicData.Binding;
 
 using Kotlin;
@@ -49,11 +51,13 @@ internal class LyricsViewFragment : Fragment
 
         root.AddView(_backgroundImageView);
 
-        // Dark Overlay for readability
+        // Dark/Light Overlay for readability - adapt to theme
+        var isDark = UiBuilder.IsDark(context.Resources.Configuration);
+        var overlayAlpha = isDark ? 150 : 200;  // More opacity in light mode for better contrast
         var overlay = new View(context)
         {
             LayoutParameters = new RelativeLayout.LayoutParams(-1, -1),
-            Background = new ColorDrawable(Android.Graphics.Color.Argb(150, 0, 0, 0))
+            Background = new ColorDrawable(Android.Graphics.Color.Argb(overlayAlpha, 0, 0, 0))
         };
         root.AddView(overlay);
 

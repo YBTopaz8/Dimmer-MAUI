@@ -498,7 +498,9 @@ internal class SongAdapter : RecyclerView.Adapter
             if (song.HasSyncedLyrics)
             {
                 _container.StrokeWidth = 4;
-                _container.SetStrokeColor(AppUtil.ToColorStateList(Color.DarkSlateBlue));
+                var isDark = UiBuilder.IsDark(_container.Context.Resources.Configuration);
+                // Use DarkSlateBlue for dark mode, and a darker shade (#483D8B) for better visibility in light mode
+                _container.SetStrokeColor(AppUtil.ToColorStateList(isDark ? Color.DarkSlateBlue : Color.ParseColor("#483D8B")));
             }
 
             // Set Transition Name

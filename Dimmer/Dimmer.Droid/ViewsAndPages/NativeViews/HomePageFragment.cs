@@ -130,6 +130,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
             Background = null,
             TextSize = 14
         };
+        _searchBar.SetTextColor(UiBuilder.IsDark(ctx) ? Color.White : Color.Black);
         _searchBar.SetPadding(40, 30, 40, 30);
         _searchBar.TextChanged += _searchBar_TextChanged;
         searchCard.AddView(_searchBar);
