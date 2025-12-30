@@ -45,6 +45,8 @@
             <converters:RepeatModeConverter x:Key="RepeatModeConverter" />
             <converters:BoolToGlyphConverter x:Key="BoolToGlyphConverter" />
             <converters:BoolToPlanNameConverter x:Key="BoolToPlanNameConverter" />
+            <converters:FileExistsToOpacityConverter x:Key="FileExistsToOpacityConverter" />
+            <converters:TitleWithAvailabilityConverter x:Key="TitleWithAvailabilityConverter" />
 
             <converters:StringNullOrEmptyToVisibility x:Key="StringNullOrEmptyToVisibility" />
             <converters:BoolToImageConverter
