@@ -101,9 +101,10 @@ public partial class DimmerMAUIWin : Microsoft.Maui.Controls.Window
             // The SessionManagementViewModel already subscribes to IncomingTransferRequests in its constructor
             // and handles them via HandleIncomingTransferRequest method.
             // The listener is started when RegisterCurrentDeviceAsync is called.
-            // So we just need to ensure the device is registered and listeners are active.
+            // This method ensures the prerequisites are met for session transfers to work.
+            // When a transfer is received, HandleIncomingTransferRequest will automatically show a popup.
             
-            Debug.WriteLine("Window activated - Session transfer listeners are active");
+            Debug.WriteLine("Window activated - Session transfer listeners are active and ready");
         }
         catch (Exception ex)
         {
