@@ -57,6 +57,44 @@ public class TqlGuideFragment : Fragment
         subHeader.SetPadding(0, 0, 0, AppUtil.DpToPx(16));
         root.AddView(subHeader);
 
+        // Check if user has no songs and show a warning
+        var hasSongs = _viewModel.HasSongs();
+        if (!hasSongs)
+        {
+            var warningCard = new MaterialCardView(ctx)
+            {
+                Radius = AppUtil.DpToPx(12),
+                CardElevation = AppUtil.DpToPx(2),
+                LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent)
+            };
+            ((ViewGroup.MarginLayoutParams)warningCard.LayoutParameters!).SetMargins(0, 0, 0, AppUtil.DpToPx(16));
+            warningCard.SetCardBackgroundColor(Android.Graphics.Color.ParseColor("#FFF3E0")); // Amber warning background
+            warningCard.SetContentPadding(AppUtil.DpToPx(16), AppUtil.DpToPx(12), AppUtil.DpToPx(16), AppUtil.DpToPx(12));
+
+            var warningLayout = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
+            
+            var warningTitle = new TextView(ctx)
+            {
+                Text = "⚠️ No Songs Found",
+                TextSize = 16,
+                Typeface = Android.Graphics.Typeface.DefaultBold
+            };
+            warningTitle.SetTextColor(Android.Graphics.Color.ParseColor("#E65100"));
+            
+            var warningText = new TextView(ctx)
+            {
+                Text = "You need to add songs to your library before you can try TQL queries. The examples below will show you what's possible once you have music!",
+                TextSize = 13
+            };
+            warningText.SetPadding(0, AppUtil.DpToPx(4), 0, 0);
+            warningText.SetTextColor(Android.Graphics.Color.ParseColor("#BF360C"));
+
+            warningLayout.AddView(warningTitle);
+            warningLayout.AddView(warningText);
+            warningCard.AddView(warningLayout);
+            root.AddView(warningCard);
+        }
+
         // 2. Filter Chips (Horizontal Scroll)
         var scroll = new HorizontalScrollView(ctx)
         {
