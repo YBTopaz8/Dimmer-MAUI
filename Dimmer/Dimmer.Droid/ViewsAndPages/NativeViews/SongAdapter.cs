@@ -499,6 +499,7 @@ internal class SongAdapter : RecyclerView.Adapter
             {
                 _container.StrokeWidth = 4;
                 var isDark = UiBuilder.IsDark(_container.Context.Resources.Configuration);
+                // Use DarkSlateBlue for dark mode, and a darker shade (#483D8B) for better visibility in light mode
                 _container.SetStrokeColor(AppUtil.ToColorStateList(isDark ? Color.DarkSlateBlue : Color.ParseColor("#483D8B")));
             }
 

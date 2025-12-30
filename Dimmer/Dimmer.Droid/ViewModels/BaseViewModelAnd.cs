@@ -694,7 +694,10 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         CurrentTheme = isDarkMode ? UIUtils.CurrentAppTheme.Dark : UIUtils.CurrentAppTheme.Light;
         ToggleAppTheme();
         
-        // Refresh the activity to apply theme changes properly
+        // Recreate activity to properly apply theme changes across all UI elements.
+        // This is the recommended Android approach for theme changes as it ensures
+        // all views, drawables, and resources are reloaded with the new theme.
+        // Alternative approaches would require manually updating each view which is error-prone.
         if (CurrentFragment?.Activity is TransitionActivity activity)
         {
             activity.RunOnUiThread(() =>
