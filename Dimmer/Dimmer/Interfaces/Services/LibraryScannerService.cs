@@ -323,4 +323,82 @@ public class LibraryScannerService : ILibraryScannerService
     {
         
     }
+
+    /// <summary>
+    /// Verifies existence of all songs in the database and updates IsFileExists flag
+    /// </summary>
+    public async Task<int> VerifyExistingSongsAsync()
+    {
+        try
+        {
+            _logger.LogInformation("Starting verification of existing songs...");
+            _state.SetCurrentLogMsg(new AppLogModel { Log = "Verifying library files..." });
+
+            using var realm = _realmFactory.GetRealmInstance();
+            var allSongs = realm.All<SongModel>().ToList();
+            
+            int updatedCount = 0;
+            int totalSongs = allSongs.Count;
+            
+            _logger.LogInformation("Verifying {TotalSongs} songs...", totalSongs);
+
+            // Process songs in batches for better performance
+            var batchSize = 100;
+            for (int i = 0; i < allSongs.Count; i += batchSize)
+            {
+                var batch = allSongs.Skip(i).Take(batchSize).ToList();
+                
+                using var realmWrite = _realmFactory.GetRealmInstance();
+                await realmWrite.WriteAsync(() =>
+                {
+                    foreach (var song in batch)
+                    {
+                        var managedSong = realmWrite.Find<SongModel>(song.Id);
+                        if (managedSong != null)
+                        {
+                            bool fileExists = TaggingUtils.FileExists(managedSong.FilePath);
+                            
+                            // Only update if the status has changed
+                            if (managedSong.IsFileExists != fileExists)
+                            {
+                                managedSong.IsFileExists = fileExists;
+                                managedSong.LastDateUpdated = DateTimeOffset.UtcNow;
+                                updatedCount++;
+                                
+                                if (!fileExists)
+                                {
+                                    _logger.LogWarning("Song file not found: {FilePath}", managedSong.FilePath);
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Update progress
+                int progress = Math.Min(i + batchSize, totalSongs);
+                if (progress % 500 == 0 || progress == totalSongs)
+                {
+                    _state.SetCurrentLogMsg(new AppLogModel
+                    {
+                        Log = $"Verified {progress}/{totalSongs} songs..."
+                    });
+                }
+            }
+
+            _logger.LogInformation("Verification complete. Updated {UpdatedCount} songs.", updatedCount);
+            _state.SetCurrentLogMsg(new AppLogModel 
+            { 
+                Log = updatedCount > 0 
+                    ? $"Found {updatedCount} unavailable song(s)." 
+                    : "All songs verified successfully." 
+            });
+
+            return updatedCount;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during song verification: {Message}", ex.Message);
+            return -1;
+        }
+    }
 }

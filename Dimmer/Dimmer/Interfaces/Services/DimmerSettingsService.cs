@@ -129,6 +129,18 @@ public partial class DimmerSettingsService : ISettingsService
 
     public double LastVolume { get; set; }
     public bool MinimizeToTrayPreference { get; set; }
+    
+    public bool ShowUnavailableSongs
+    {
+        get
+        {
+            return _model.ShowUnavailableSongs;
+        }
+        set
+        {
+            _realm.Write(() => _model.ShowUnavailableSongs = value);
+        }
+    }
 
 
     public void SaveLastFMUserSession(string sessionTok)

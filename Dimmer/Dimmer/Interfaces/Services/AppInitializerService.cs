@@ -48,7 +48,18 @@ public partial class AppInitializerService : IAppInitializerService
             _state.SetDeviceVolume(_settingsService.LastVolume); // Initialize global state volume
             _logger.LogInformation("Initial playback settings (shuffle, repeat, volume) set in global state.");
 
-           
+            // 4. Verify existing songs (run in background)
+            Task.Run(async () =>
+            {
+                try
+                {
+                    await _libraryScanner.VerifyExistingSongsAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error verifying existing songs during initialization.");
+                }
+            });
 
             _logger.LogInformation("Application Initializer: Initialization complete.");
         }
