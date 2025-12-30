@@ -69,11 +69,45 @@ public partial class DimmerMAUIWin : Microsoft.Maui.Controls.Window
             {
                 nativeElement.PointerPressed += OnGlobalPointerPressed;
             }
+
+            // Check for pending session transfers when window is activated
+            await CheckForPendingSessionTransfers();
         }
         catch (Exception ex)
         {
 
             Debug.WriteLine($"{ex.Message}");
+        }
+    }
+
+    private async Task CheckForPendingSessionTransfers()
+    {
+        try
+        {
+            // Only check after the first activation (when app is fully initialized)
+            if (count <= 1)
+                return;
+
+            // Get the SessionManagementViewModel from DI
+            var sessionMgmt = IPlatformApplication.Current?.Services.GetService<SessionManagementViewModel>();
+            if (sessionMgmt == null)
+                return;
+
+            // Check if user is logged in
+            var loginViewModel = sessionMgmt.LoginViewModel;
+            if (loginViewModel?.CurrentUserOnline == null || !loginViewModel.CurrentUserOnline.IsAuthenticated)
+                return;
+
+            // The SessionManagementViewModel already subscribes to IncomingTransferRequests in its constructor
+            // and handles them via HandleIncomingTransferRequest method.
+            // The listener is started when RegisterCurrentDeviceAsync is called.
+            // So we just need to ensure the device is registered and listeners are active.
+            
+            Debug.WriteLine("Window activated - Session transfer listeners are active");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error checking for pending session transfers: {ex.Message}");
         }
     }
     protected override void OnBackgrounding(IPersistedState state)

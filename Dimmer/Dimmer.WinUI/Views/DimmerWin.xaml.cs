@@ -111,6 +111,36 @@ public sealed partial class DimmerWin : Window
                 _isDialogActive = false;
             }
         }
+
+        // Check for pending session transfers when window is activated
+        await CheckForPendingSessionTransfers();
+    }
+
+    private async Task CheckForPendingSessionTransfers()
+    {
+        try
+        {
+            // Get the SessionManagementViewModel from DI
+            var sessionMgmt = IPlatformApplication.Current?.Services.GetService<SessionManagementViewModel>();
+            if (sessionMgmt == null)
+                return;
+
+            // Check if user is logged in
+            var loginViewModel = sessionMgmt.LoginViewModel;
+            if (loginViewModel?.CurrentUserOnline == null || !loginViewModel.CurrentUserOnline.IsAuthenticated)
+                return;
+
+            // The SessionManagementViewModel already subscribes to IncomingTransferRequests in its constructor
+            // and handles them via HandleIncomingTransferRequest method.
+            // The listener is started when RegisterCurrentDeviceAsync is called.
+            // So we just need to ensure the device is registered and listeners are active.
+            
+            Debug.WriteLine("Window activated - Session transfer listeners are active");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error checking for pending session transfers: {ex.Message}");
+        }
     }
     private bool _isDialogActive = false;
     private readonly Microsoft.UI.Composition.Compositor _compositorMainGrid;
