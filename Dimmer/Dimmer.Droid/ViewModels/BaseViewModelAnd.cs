@@ -694,4 +694,20 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         CurrentTheme = isDarkMode ? UIUtils.CurrentAppTheme.Dark : UIUtils.CurrentAppTheme.Light;
         ToggleAppTheme();
     }
+
+    /// <summary>
+    /// Checks if the user has any songs in their library
+    /// </summary>
+    /// <returns>True if there are songs, false otherwise</returns>
+    public bool HasSongs()
+    {
+        try
+        {
+            return songRepo.Count() > 0;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 }
