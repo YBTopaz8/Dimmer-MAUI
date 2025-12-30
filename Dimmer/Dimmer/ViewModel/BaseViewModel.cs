@@ -5448,12 +5448,44 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 return;
             }
 
-            _logger.LogInformation("Song file is missing. Removing from database.");
+            _logger.LogInformation("Song file is missing. Showing information dialog.");
 
-            await songRepo.DeleteAsync(song.Id); // Assuming your repo has a DeleteAsync(id)
+            // Show dialog with song information
+            string songInfo = $"This song file has been deleted or moved and cannot be played.\n\n" +
+                             $"Song Details:\n" +
+                             $"Title: {song.Title}\n" +
+                             $"Artist: {song.ArtistName ?? "Unknown"}\n" +
+                             $"Album: {song.AlbumName ?? "Unknown"}\n" +
+                             $"Play Count: {song.PlayCount}\n" +
+                             $"Skip Count: {song.SkipCount}\n" +
+                             $"Favorite: {(song.IsFavorite ? "Yes" : "No")}\n\n" +
+                             $"Do you want to delete this song's data from the library?";
 
-            // --- REPLACED: Refresh the UI by re-running the current search ---
-            _searchQuerySubject.OnNext(CurrentTqlQuery);
+            bool shouldDelete = await _dialogueService.ShowConfirmationAsync(
+                "Song File Not Found",
+                songInfo,
+                "Delete Data",
+                "Keep Data");
+
+            if (shouldDelete)
+            {
+                _logger.LogInformation("User confirmed deletion. Removing song from database.");
+                await songRepo.DeleteAsync(song.Id);
+
+                // Remove from the search results collection if present
+                var songInCollection = SearchResultsHolder.Items.FirstOrDefault(s => s.Id == song.Id);
+                if (songInCollection != null)
+                {
+                    SearchResultsHolder.Remove(songInCollection);
+                }
+
+                await ShowNotification("Song data deleted from library.");
+            }
+            else
+            {
+                _logger.LogInformation("User chose to keep the song data.");
+                await ShowNotification("Song data retained in library.");
+            }
         }
         catch (Exception ex)
         {
