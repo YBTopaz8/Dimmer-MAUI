@@ -53,6 +53,14 @@ public static class RealmQueryHelper
     public static IQueryable<SongModel> MissingFiles(Realm realm) =>
         realm.All<SongModel>().Where(s => s.IsFileExists == false);
 
+    // Songs with existing files only
+    public static IQueryable<SongModel> AvailableSongs(Realm realm) =>
+        realm.All<SongModel>().Where(s => s.IsFileExists == true);
+
+    // All songs or only available songs based on setting
+    public static IQueryable<SongModel> AllSongsFiltered(Realm realm, bool showUnavailable) =>
+        showUnavailable ? realm.All<SongModel>() : AvailableSongs(realm);
+
     // Songs containing text (case-insensitive search)
     public static IQueryable<SongModel> SongsTitleContains(Realm realm, string term) =>
         realm.All<SongModel>().Where(s => QueryMethods.Contains(s.Title, term, StringComparison.OrdinalIgnoreCase));

@@ -385,7 +385,20 @@ internal class SongAdapter : RecyclerView.Adapter
             _container.Click += async (s, e) =>
             {
                 if (_currentSong != null)
+                {
+                    // Prevent playing unavailable songs
+                    if (!_currentSong.IsFileExists)
+                    {
+                        UiBuilder.ShowSnackBar(
+                            _container, 
+                            "This song file is unavailable",
+                            textColor: Color.Red,
+                            iconResId: Resource.Drawable.warning
+                        );
+                        return;
+                    }
                     await _viewModel.PlaySongAsync(_currentSong);
+                }
             };
 
             _container.LongClick += (s, e) =>
@@ -494,6 +507,25 @@ internal class SongAdapter : RecyclerView.Adapter
             _title.Text = song.Title;
             _artist.Text = song.OtherArtistsName ?? "Unknown";
             _durationView.Text = $"{song.DurationFormatted}";
+
+            // Visual indicator for unavailable songs (files deleted)
+            if (!song.IsFileExists)
+            {
+                _title.SetTextColor(Color.Gray);
+                _artist.SetTextColor(Color.LightGray);
+                _title.Text = $"[Unavailable] {song.Title}";
+                _img.Alpha = 0.5f; // Dim the image
+                _container.Alpha = 0.7f; // Slightly transparent
+            }
+            else
+            {
+                // Reset to normal appearance for available songs
+                var isDark = _container.Context.Resources.Configuration.UiMode.HasFlag(Android.Content.Res.UiMode.NightYes);
+                _title.SetTextColor(isDark ? Color.White : Color.Black);
+                _artist.SetTextColor(Color.Gray);
+                _img.Alpha = 1.0f;
+                _container.Alpha = 1.0f;
+            }
 
             if (song.HasSyncedLyrics)
             {
