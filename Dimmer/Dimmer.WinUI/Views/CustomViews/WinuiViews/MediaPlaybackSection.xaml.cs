@@ -293,7 +293,7 @@ public sealed partial class MediaPlaybackSection : UserControl
                 var flyout = new Microsoft.UI.Xaml.Controls.MenuFlyout();
                 flyout.Items.Add(new Microsoft.UI.Xaml.Controls.MenuFlyoutItem
                 {
-                    Text = "Login required to sync sessions",
+                    Text = "Please log in to sync sessions across devices",
                     IsEnabled = false
                 });
                 flyout.ShowAt(sender as Microsoft.UI.Xaml.FrameworkElement);

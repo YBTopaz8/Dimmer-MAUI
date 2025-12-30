@@ -85,7 +85,8 @@ public partial class DimmerMAUIWin : Microsoft.Maui.Controls.Window
         try
         {
             // Only check after the first activation (when app is fully initialized)
-            if (count <= 1)
+            const int FIRST_ACTIVATION_THRESHOLD = 1;
+            if (count <= FIRST_ACTIVATION_THRESHOLD)
                 return;
 
             // Get the SessionManagementViewModel from DI
@@ -98,12 +99,7 @@ public partial class DimmerMAUIWin : Microsoft.Maui.Controls.Window
             if (loginViewModel?.CurrentUserOnline == null || !loginViewModel.CurrentUserOnline.IsAuthenticated)
                 return;
 
-            // The SessionManagementViewModel already subscribes to IncomingTransferRequests in its constructor
-            // and handles them via HandleIncomingTransferRequest method.
-            // The listener is started when RegisterCurrentDeviceAsync is called.
-            // This method ensures the prerequisites are met for session transfers to work.
-            // When a transfer is received, HandleIncomingTransferRequest will automatically show a popup.
-            
+            // Ensure session transfer prerequisites are met - listeners are already active in SessionManagementViewModel
             Debug.WriteLine("Window activated - Session transfer listeners are active and ready");
         }
         catch (Exception ex)
