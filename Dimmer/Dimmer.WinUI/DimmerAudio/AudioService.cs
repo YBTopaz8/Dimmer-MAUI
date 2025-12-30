@@ -461,6 +461,19 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     public CoreAudioDevice DefaultAudioDevice { get; private set; }
 
+    private bool _isFrequencyVisualizationEnabled;
+    public bool IsFrequencyVisualizationEnabled
+    {
+        get => _isFrequencyVisualizationEnabled;
+        set
+        {
+            if (SetProperty(ref _isFrequencyVisualizationEnabled, value))
+            {
+                UpdateFrequencyVisualizationState();
+            }
+        }
+    }
+
     public async Task InitializeAmbienceAsync(string filePath)
     {
         if (string.IsNullOrWhiteSpace(filePath) || !TaggingUtils.FileExists(filePath))

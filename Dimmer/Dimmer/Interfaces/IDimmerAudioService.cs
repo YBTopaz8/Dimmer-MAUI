@@ -58,7 +58,16 @@ public interface IDimmerAudioService
 
     event EventHandler<PlaybackEventArgs>? ErrorOccurred;
 
+    /// <summary>
+    /// Event raised when frequency data is available for visualization.
+    /// The byte array contains FFT data values (typically 0-255).
+    /// </summary>
+    event EventHandler<byte[]?>? FrequencyDataAvailable;
 
+    /// <summary>
+    /// Gets or sets whether frequency visualization is enabled.
+    /// </summary>
+    bool IsFrequencyVisualizationEnabled { get; set; }
 
 
 

@@ -42,6 +42,21 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     public IEnumerable<AudioOutputDevice> PlaybackDevices { get; }
     public double AmbienceVolume { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
+    private bool _isFrequencyVisualizationEnabled;
+    public bool IsFrequencyVisualizationEnabled
+    {
+        get => _isFrequencyVisualizationEnabled;
+        set
+        {
+            if (_isFrequencyVisualizationEnabled != value)
+            {
+                _isFrequencyVisualizationEnabled = value;
+                UpdateVisualizerState();
+                NotifyPropertyChanged();
+            }
+        }
+    }
+
     #endregion
 
     private readonly BehaviorSubject<SongModelView?> _currentSong = new(null);
@@ -60,6 +75,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     public event EventHandler<double>? VolumeChanged;
     public event EventHandler<(double newVol, bool isDeviceMuted, int devMavVol)>? DeviceVolumeChanged;
     public event EventHandler<PlaybackEventArgs>? ErrorOccurred;
+    public event EventHandler<byte[]?>? FrequencyDataAvailable;
 
     // Unused events from interface, kept for compatibility.
     public event EventHandler<double>? DurationChanged;
@@ -192,6 +208,9 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         // Simply forward the event. The ViewModel will handle the logic.
         IsPlayingChanged?.Invoke(this, e);
         NotifyPropertyChanged(nameof(IsPlaying)); // Update the property for any direct bindings
+        
+        // Update visualizer state when playback state changes
+        UpdateVisualizerState();
     }
 
     private void OnNativePlayEnded(object? sender, PlaybackEventArgs e)
@@ -244,9 +263,49 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     #endregion
 
+    #region Frequency Visualization
+
+    private IAudioVisualizerService? _visualizerService;
+
+    private void InitializeVisualizer()
+    {
+        if (_visualizerService == null)
+        {
+            _visualizerService = new AudioVisualizerService();
+            _visualizerService.FftDataAvailable += OnVisualizerFftDataAvailable;
+        }
+    }
+
+    private void UpdateVisualizerState()
+    {
+        if (_isFrequencyVisualizationEnabled && IsPlaying && Player != null)
+        {
+            InitializeVisualizer();
+            var audioSessionId = Player.AudioSessionId;
+            _visualizerService?.Start(audioSessionId);
+        }
+        else
+        {
+            _visualizerService?.Stop();
+        }
+    }
+
+    private void OnVisualizerFftDataAvailable(object? sender, byte[]? fftData)
+    {
+        FrequencyDataAvailable?.Invoke(this, fftData);
+    }
+
+    #endregion
+
     public async ValueTask DisposeAsync()
     {
         DisconnectEvents();
+        _visualizerService?.Stop();
+        if (_visualizerService != null)
+        {
+            _visualizerService.FftDataAvailable -= OnVisualizerFftDataAvailable;
+            _visualizerService = null;
+        }
         _binder = null;
         await Task.CompletedTask;
     }
