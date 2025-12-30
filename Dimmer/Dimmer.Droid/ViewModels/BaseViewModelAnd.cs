@@ -693,5 +693,14 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         }
         CurrentTheme = isDarkMode ? UIUtils.CurrentAppTheme.Dark : UIUtils.CurrentAppTheme.Light;
         ToggleAppTheme();
+        
+        // Refresh the activity to apply theme changes properly
+        if (CurrentFragment?.Activity is TransitionActivity activity)
+        {
+            activity.RunOnUiThread(() =>
+            {
+                activity.Recreate();
+            });
+        }
     }
 }
