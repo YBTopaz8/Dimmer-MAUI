@@ -3,11 +3,7 @@
 	<uses-permission android:name="android.permission.BIND_QUICK_SETTINGS_TILE" />
 	<application android:allowBackup="true" android:icon="@mipmap/appicon" android:debuggable="true" android:label="@string/app_name" android:supportsRtl="true" android:enableOnBackInvokedCallback="true">
 		<meta-data android:name="NothingKey" android:value="test" />
-		<activity android:name="com.yvanbrunel.dimmer.TransitionActivity" android:directBootAware="true" android:theme="@style/Theme.Dimmer.Splash" android:exported="true" android:launchMode="singleTop">
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
-			</intent-filter>
+		<activity android:name="com.yvanbrunel.dimmer.TransitionActivity" android:directBootAware="true" android:theme="@style/Theme.Dimmer.Splash" android:exported="false" android:launchMode="singleTop">
 			<intent-filter android:autoVerify="true">
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
@@ -20,6 +16,66 @@
                           android:pathPrefix="/invite" /> -->
 			</intent-filter>
 		</activity>
+		
+		<!-- Default Icon Activity-Alias (enabled by default) -->
+		<activity-alias
+			android:name="com.yvanbrunel.dimmer.DefaultIcon"
+			android:targetActivity="com.yvanbrunel.dimmer.TransitionActivity"
+			android:enabled="true"
+			android:exported="true"
+			android:icon="@mipmap/appicon"
+			android:roundIcon="@mipmap/appicon_round"
+			android:label="@string/app_name">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		
+		<!-- Music Icon Activity-Alias -->
+		<activity-alias
+			android:name="com.yvanbrunel.dimmer.MusicIcon"
+			android:targetActivity="com.yvanbrunel.dimmer.TransitionActivity"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/appicon_music"
+			android:roundIcon="@mipmap/appicon_music_round"
+			android:label="@string/app_name">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		
+		<!-- Vinyl Icon Activity-Alias -->
+		<activity-alias
+			android:name="com.yvanbrunel.dimmer.VinylIcon"
+			android:targetActivity="com.yvanbrunel.dimmer.TransitionActivity"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/appicon_vinyl"
+			android:roundIcon="@mipmap/appicon_vinyl_round"
+			android:label="@string/app_name">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
+		
+		<!-- Headphones Icon Activity-Alias -->
+		<activity-alias
+			android:name="com.yvanbrunel.dimmer.HeadphonesIcon"
+			android:targetActivity="com.yvanbrunel.dimmer.TransitionActivity"
+			android:enabled="false"
+			android:exported="true"
+			android:icon="@mipmap/appicon_headphones"
+			android:roundIcon="@mipmap/appicon_headphones_round"
+			android:label="@string/app_name">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity-alias>
 		<activity android:name=".Activities.PlaybackBubbleActivity" android:label="Dimmer Bubble" android:allowEmbedded="true" android:resizeableActivity="true" android:documentLaunchMode="always" android:exported="false" android:taskAffinity="" android:launchMode="singleInstance" android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation" />
 		<service android:name="com.yvanbrunel.dimmer.ExoPlayerService" android:directBootAware="true" android:exported="true" android:foregroundServiceType="mediaPlayback">
 			<intent-filter>
