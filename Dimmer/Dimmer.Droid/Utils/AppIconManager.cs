@@ -1,5 +1,6 @@
 using Android.Content;
 using Android.Content.PM;
+using Dimmer.Utilities;
 
 namespace Dimmer.Utils;
 

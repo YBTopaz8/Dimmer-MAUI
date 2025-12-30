@@ -3,6 +3,7 @@ using System.Reactive.Disposables.Fluent;
 
 using Bumptech.Glide;
 
+using Dimmer.Utils;
 using Dimmer.WinUI.UiUtils;
 
 using DynamicData;
