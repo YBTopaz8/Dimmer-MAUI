@@ -120,18 +120,18 @@ public sealed partial class SettingsPage : Page
         MyViewModel?.ToggleAppTheme();
         send.IsEnabled = MyViewModel?.IsDarkModeOn ?? false;
         
+        var isDark = MyViewModel?.IsDarkModeOn ?? false;
+        
         // Change WinUI theme at window level
         var window = PlatUtils.GetNativeWindowFromMAUIWindow();
         if (window?.Content is FrameworkElement rootElement)
         {
-            var isDark = MyViewModel?.IsDarkModeOn ?? false;
             rootElement.RequestedTheme = isDark ? ElementTheme.Dark : ElementTheme.Light;
         }
         
         // Also update MAUI theme
         if (Application.Current != null)
         {
-            var isDark = MyViewModel?.IsDarkModeOn ?? false;
             Application.Current.UserAppTheme = isDark ? AppTheme.Dark : AppTheme.Light;
         }
     }

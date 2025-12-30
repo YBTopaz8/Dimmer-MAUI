@@ -498,7 +498,7 @@ internal class SongAdapter : RecyclerView.Adapter
             if (song.HasSyncedLyrics)
             {
                 _container.StrokeWidth = 4;
-                var isDark = _container.Context.Resources.Configuration.UiMode.HasFlag(Android.Content.Res.UiMode.NightYes);
+                var isDark = UiBuilder.IsDark(_container.Context.Resources.Configuration);
                 _container.SetStrokeColor(AppUtil.ToColorStateList(isDark ? Color.DarkSlateBlue : Color.ParseColor("#483D8B")));
             }
 
