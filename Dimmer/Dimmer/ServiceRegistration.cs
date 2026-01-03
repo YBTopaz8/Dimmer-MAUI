@@ -44,6 +44,7 @@ public static class ServiceRegistration
         services.AddSingleton<IFolderMgtService, FolderMgtService>();
 
         services.AddSingleton<ILiveSessionManagerService, ParseDeviceSessionService>();
+        services.AddSingleton<IBluetoothSessionManagerService, BluetoothSessionManagerService>();
         services.AddSingleton<SubscriptionManager>();
         services.AddSingleton<MusicDataService>();
         services.AddSingleton<IDimmerPlayEventRepository, DimmerPlayEventRepository>();

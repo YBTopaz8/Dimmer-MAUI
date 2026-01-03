@@ -7,6 +7,7 @@ namespace Dimmer.ViewModel;
 public partial class SessionManagementViewModel : ObservableObject, IDisposable
 {
     private readonly ILiveSessionManagerService _sessionManager;
+    private readonly IBluetoothSessionManagerService? _bluetoothSessionManager;
     public ILiveSessionManagerService SessionManager => _sessionManager;
     public LoginViewModel LoginViewModel;
     private BaseViewModel _mainViewModel; // To get current song state
@@ -16,29 +17,45 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
     private readonly ReadOnlyObservableCollection<UserDeviceSession> _otherDevices;
     public ReadOnlyObservableCollection<UserDeviceSession> OtherDevices => _otherDevices;
 
+    private readonly ReadOnlyObservableCollection<BluetoothDeviceInfo> _bluetoothDevices;
+    public ReadOnlyObservableCollection<BluetoothDeviceInfo> BluetoothDevices => _bluetoothDevices;
+
     public UserModelOnline? CurrentUser => LoginViewModel.CurrentUserOnline;
 
     public ObservableCollection<CloudBackupModel> AvailableBackups { get; } = new();
     public bool IsBusy { get; private set; }
+    
     [ObservableProperty]
     public partial string CurrentReferralCode { get; set; }
 
     [ObservableProperty]
     public partial string ReferralStats { get; set; }
+    
     [ObservableProperty]
     public partial string StatusMessage { get; set; }
 
     [ObservableProperty]
     public partial bool IsTransferInProgress { get; set; }
 
+    [ObservableProperty]
+    public partial bool IsBluetoothAvailable { get; set; }
+
+    [ObservableProperty]
+    public partial string BluetoothStatus { get; set; } = "Disconnected";
+
+    [ObservableProperty]
+    public partial bool UseBluetoothTransfer { get; set; }
+
 
     public SessionManagementViewModel(LoginViewModel loginViewModel,
         ILiveSessionManagerService sessionManager,
         ILogger<SessionManagementViewModel> logger,
-        BaseViewModel mainViewModel)
+        BaseViewModel mainViewModel,
+        IBluetoothSessionManagerService? bluetoothSessionManager = null)
     {
         LoginViewModel = loginViewModel ?? throw new ArgumentNullException(nameof(loginViewModel));
         _sessionManager = sessionManager;
+        _bluetoothSessionManager = bluetoothSessionManager;
         _logger = logger;
         _mainViewModel = mainViewModel;
 
@@ -54,6 +71,24 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(HandleIncomingTransferRequest)
             .DisposeWith(_disposables);
+
+        // Setup Bluetooth if available
+        if (_bluetoothSessionManager != null)
+        {
+            _bluetoothSessionManager.AvailableDevices
+                .ObserveOn(RxSchedulers.UI)
+                .Bind(out _bluetoothDevices)
+                .Subscribe()
+                .DisposeWith(_disposables);
+
+            _bluetoothSessionManager.IncomingTransferRequests
+                .ObserveOn(RxSchedulers.UI)
+                .Subscribe(HandleIncomingBluetoothTransferRequest)
+                .DisposeWith(_disposables);
+
+            _ = InitializeBluetoothAsync();
+        }
+
         _ = LoadCloudDataAsync();
 
     }
@@ -228,6 +263,183 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
     {
         _disposables.Dispose();
         _sessionManager.StopListeners(); // Important
+        _bluetoothSessionManager?.StopServer();
+        (_bluetoothSessionManager as IDisposable)?.Dispose();
+    }
+    
+    private async Task InitializeBluetoothAsync()
+    {
+        if (_bluetoothSessionManager == null)
+            return;
+
+        try
+        {
+            IsBluetoothAvailable = await _bluetoothSessionManager.IsBluetoothEnabledAsync();
+            if (IsBluetoothAvailable)
+            {
+                await _bluetoothSessionManager.RefreshDevicesAsync();
+                await _bluetoothSessionManager.StartServerAsync();
+                BluetoothStatus = _bluetoothSessionManager.GetConnectionStatus();
+            }
+            else
+            {
+                BluetoothStatus = "Bluetooth not available";
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to initialize Bluetooth");
+            BluetoothStatus = "Bluetooth initialization failed";
+        }
+    }
+
+    [RelayCommand]
+    public async Task RefreshBluetoothDevicesAsync()
+    {
+        if (_bluetoothSessionManager == null || !IsBluetoothAvailable)
+        {
+            StatusMessage = "Bluetooth is not available";
+            return;
+        }
+
+        try
+        {
+            StatusMessage = "Scanning for Bluetooth devices...";
+            await _bluetoothSessionManager.RefreshDevicesAsync();
+            BluetoothStatus = _bluetoothSessionManager.GetConnectionStatus();
+            StatusMessage = $"Found {BluetoothDevices.Count} paired devices";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to refresh Bluetooth devices");
+            StatusMessage = "Failed to scan for devices";
+        }
+    }
+
+    [RelayCommand]
+    public async Task TransferToBluetoothDevice(BluetoothDeviceInfo targetDevice)
+    {
+        if (_bluetoothSessionManager == null || targetDevice == null)
+            return;
+
+        var currentSong = _mainViewModel.CurrentPlayingSongView;
+        if (currentSong == null)
+        {
+            StatusMessage = "No song is playing to transfer.";
+            return;
+        }
+
+        // Check if device is paired
+        if (!await _bluetoothSessionManager.IsDevicePairedAsync(targetDevice.DeviceName))
+        {
+            bool openSettings = await Shell.Current.DisplayAlert(
+                "Device Not Paired",
+                $"'{targetDevice.DeviceName}' is not paired. Would you like to open Bluetooth settings to pair it?",
+                "Yes", "No");
+
+            if (openSettings)
+            {
+                await _bluetoothSessionManager.PromptPairingAsync();
+            }
+            return;
+        }
+
+        IsTransferInProgress = true;
+        StatusMessage = $"Transferring session to {targetDevice.DeviceName}...";
+
+        try
+        {
+            var songEventView = new DimmerPlayEventView
+            {
+                SongName = currentSong.Title,
+                ArtistName = currentSong.ArtistName,
+                AlbumName = currentSong.AlbumName,
+                SongId = currentSong.Id,
+                CoverImagePath = currentSong.CoverImagePath,
+                PositionInSeconds = _mainViewModel.CurrentTrackPositionSeconds,
+                IsFav = currentSong.IsFavorite
+            };
+
+            await _bluetoothSessionManager.InitiateSessionTransferAsync(targetDevice, songEventView);
+            StatusMessage = "Transfer sent successfully!";
+            BluetoothStatus = _bluetoothSessionManager.GetConnectionStatus();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Bluetooth transfer failed");
+            StatusMessage = $"Transfer failed: {ex.Message}";
+        }
+        finally
+        {
+            IsTransferInProgress = false;
+        }
+    }
+
+    [RelayCommand]
+    public async Task OpenBluetoothSettings()
+    {
+        if (_bluetoothSessionManager == null)
+            return;
+
+        try
+        {
+            await _bluetoothSessionManager.PromptPairingAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to open Bluetooth settings");
+        }
+    }
+
+    private async void HandleIncomingBluetoothTransferRequest(DimmerSharedSong request)
+    {
+        // UI Prompt
+        bool accept = await Shell.Current.DisplayAlert(
+            "Bluetooth Session Transfer",
+            $"Resume '{request.Title}' by {request.ArtistName} from a paired device?",
+            "Yes", "No"
+        );
+
+        if (!accept) return;
+
+        StatusMessage = "Loading song...";
+
+        try
+        {
+            // Try to find the song locally
+            var localSong = _mainViewModel.RealmFactory.GetRealmInstance()
+                .Find<DimmerPlayEvent>(request.OriginalSongId)?.SongsLinkingToThisEvent.FirstOrDefault()
+                ?? _mainViewModel.RealmFactory.GetRealmInstance()
+                    .All<DimmerPlayEvent>()
+                    .FirstOrDefault(s => s.SongName == request.Title && s.ArtistName == request.ArtistName)
+                    ?.SongsLinkingToThisEvent.FirstOrDefault();
+
+            if (localSong != null)
+            {
+                StatusMessage = "Playing song...";
+                await _mainViewModel.PlaySongAsync(localSong.ToSongModelView());
+
+                if (request.SharedPositionInSeconds.HasValue)
+                {
+                    _mainViewModel.SeekTrackPosition(request.SharedPositionInSeconds.Value);
+                }
+
+                StatusMessage = "Transfer completed successfully!";
+            }
+            else
+            {
+                StatusMessage = "Song not found on this device.";
+                await Shell.Current.DisplayAlert(
+                    "Song Not Found",
+                    $"Could not find '{request.Title}' by {request.ArtistName} on this device.",
+                    "OK");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Bluetooth session transfer failed");
+            StatusMessage = "Transfer failed.";
+        }
     }
     [RelayCommand]
     public async Task BackUpDataToCloud()
