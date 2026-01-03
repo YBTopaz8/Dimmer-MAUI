@@ -64,23 +64,27 @@ public class WindowsBluetoothService : IBluetoothService
         }
     }
 
-    private async void OnConnectionReceived(StreamSocketListener sender, StreamSocketListenerConnectionReceivedEventArgs args)
+    private void OnConnectionReceived(StreamSocketListener sender, StreamSocketListenerConnectionReceivedEventArgs args)
     {
-        try
+        // Fire-and-forget with proper exception handling
+        _ = Task.Run(async () =>
         {
-            _socket = args.Socket;
-            StatusChanged?.Invoke(this, $"Client connected: {_socket.Information.RemoteHostName}");
+            try
+            {
+                _socket = args.Socket;
+                StatusChanged?.Invoke(this, $"Client connected: {_socket.Information.RemoteHostName}");
 
-            _writer = new DataWriter(_socket.OutputStream);
-            _reader = new DataReader(_socket.InputStream);
+                _writer = new DataWriter(_socket.OutputStream);
+                _reader = new DataReader(_socket.InputStream);
 
-            // Start listening for incoming data
-            await ListenForDataAsync(_listenerCts?.Token ?? CancellationToken.None);
-        }
-        catch (Exception ex)
-        {
-            StatusChanged?.Invoke(this, $"Connection handling error: {ex.Message}");
-        }
+                // Start listening for incoming data
+                await ListenForDataAsync(_listenerCts?.Token ?? CancellationToken.None);
+            }
+            catch (Exception ex)
+            {
+                StatusChanged?.Invoke(this, $"Connection handling error: {ex.Message}");
+            }
+        });
     }
 
     public async Task ConnectToDeviceAsync(string deviceName)
@@ -129,9 +133,12 @@ public class WindowsBluetoothService : IBluetoothService
 
             StatusChanged?.Invoke(this, "Connected successfully!");
 
-            // Start listening for responses
+            // Create CTS before starting listener to avoid race condition
             _listenerCts = new CancellationTokenSource();
-            await ListenForDataAsync(_listenerCts.Token);
+            var token = _listenerCts.Token;
+            
+            // Start listening for responses
+            await ListenForDataAsync(token);
         }
         catch (Exception ex)
         {
@@ -217,10 +224,12 @@ public class WindowsBluetoothService : IBluetoothService
     {
         try
         {
-            _listenerCts?.Cancel();
-            _listenerCts?.Dispose();
+            // Cancel any ongoing operations first
+            var ctsToDispose = _listenerCts;
             _listenerCts = null;
-
+            ctsToDispose?.Cancel();
+            
+            // Clean up resources
             _writer?.Dispose();
             _writer = null;
 
@@ -237,11 +246,27 @@ public class WindowsBluetoothService : IBluetoothService
                 _listener = null;
             }
 
+            // Dispose CTS after all operations are cancelled
+            ctsToDispose?.Dispose();
+
             StatusChanged?.Invoke(this, "Disconnected.");
         }
         catch (Exception ex)
         {
             StatusChanged?.Invoke(this, $"Disconnect error: {ex.Message}");
+        }
+    }
+
+    public async Task OpenBluetoothSettingsAsync()
+    {
+        try
+        {
+            await Windows.System.Launcher.LaunchUriAsync(new Uri("ms-settings:bluetooth"));
+        }
+        catch (Exception ex)
+        {
+            StatusChanged?.Invoke(this, $"Failed to open Bluetooth settings: {ex.Message}");
+            throw;
         }
     }
 }

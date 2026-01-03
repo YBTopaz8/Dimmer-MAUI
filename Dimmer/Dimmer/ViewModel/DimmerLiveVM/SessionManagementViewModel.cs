@@ -86,7 +86,18 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
                 .Subscribe(HandleIncomingBluetoothTransferRequest)
                 .DisposeWith(_disposables);
 
-            _ = InitializeBluetoothAsync();
+            // Initialize Bluetooth with proper exception handling
+            Task.Run(async () =>
+            {
+                try
+                {
+                    await InitializeBluetoothAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to initialize Bluetooth");
+                }
+            });
         }
 
         _ = LoadCloudDataAsync();

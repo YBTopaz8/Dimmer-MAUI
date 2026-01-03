@@ -170,4 +170,20 @@ public class AndroidBluetoothService : IBluetoothService
         _socket = null;
         StatusChanged?.Invoke(this, "Disconnected");
     }
+
+    public async Task OpenBluetoothSettingsAsync()
+    {
+        try
+        {
+            var intent = new Android.Content.Intent(Android.Provider.Settings.ActionBluetoothSettings);
+            intent.AddFlags(Android.Content.ActivityFlags.NewTask);
+            Android.App.Application.Context.StartActivity(intent);
+            await Task.CompletedTask;
+        }
+        catch (Exception ex)
+        {
+            StatusChanged?.Invoke(this, $"Failed to open Bluetooth settings: {ex.Message}");
+            throw;
+        }
+    }
 }

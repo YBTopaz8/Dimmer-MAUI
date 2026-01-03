@@ -196,16 +196,7 @@ public class BluetoothSessionManagerService : IBluetoothSessionManagerService, I
         try
         {
             _logger.LogInformation("Opening Bluetooth settings for pairing...");
-            
-#if WINDOWS
-            await Windows.System.Launcher.LaunchUriAsync(new Uri("ms-settings:bluetooth"));
-#elif ANDROID
-            var intent = new Android.Content.Intent(Android.Provider.Settings.ActionBluetoothSettings);
-            intent.AddFlags(Android.Content.ActivityFlags.NewTask);
-            Android.App.Application.Context.StartActivity(intent);
-#else
-            await Task.CompletedTask;
-#endif
+            await _bluetoothService.OpenBluetoothSettingsAsync();
         }
         catch (Exception ex)
         {
