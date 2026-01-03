@@ -196,13 +196,22 @@ public class MainApplication : Application, Application.IActivityLifecycleCallba
     {
         base.OnTrimMemory(level);
         
-        Debug.WriteLine($"OnTrimMemory called with level: {level}");
+        Debug.WriteLine($"[MEMORY PRESSURE] OnTrimMemory called with level: {level}");
         
-        // Log the memory pressure event
+        // Log to file for analysis (without creating an artificial exception)
         try
         {
-            var ex = new Exception($"Memory pressure detected: {level}");
-            LogException(ex);
+            string directoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DimmerCrashLogs");
+            if (!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
+            
+            string fileName = $"Droidcrashlog_{DateTime.Now:yyyy-MM-dd}.txt";
+            string filePath = Path.Combine(directoryPath, fileName);
+            string logContent = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] MEMORY PRESSURE: {level}\n\n";
+            
+            File.AppendAllText(filePath, logContent);
         }
         catch (Exception logEx)
         {
@@ -223,13 +232,22 @@ public class MainApplication : Application, Application.IActivityLifecycleCallba
     {
         base.OnLowMemory();
         
-        Debug.WriteLine("OnLowMemory called - system is critically low on memory");
+        Debug.WriteLine("[CRITICAL MEMORY] OnLowMemory called - system is critically low on memory");
         
-        // Log the critical memory event
+        // Log to file for analysis (without creating an artificial exception)
         try
         {
-            var ex = new Exception("Critical memory pressure - OnLowMemory called");
-            LogException(ex);
+            string directoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DimmerCrashLogs");
+            if (!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
+            
+            string fileName = $"Droidcrashlog_{DateTime.Now:yyyy-MM-dd}.txt";
+            string filePath = Path.Combine(directoryPath, fileName);
+            string logContent = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] CRITICAL MEMORY PRESSURE - OnLowMemory called\n\n";
+            
+            File.AppendAllText(filePath, logContent);
         }
         catch (Exception logEx)
         {

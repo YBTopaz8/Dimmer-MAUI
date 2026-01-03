@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Android.Widget;
 using Dimmer.Interfaces;
 using Google.Android.Material.Dialog;
