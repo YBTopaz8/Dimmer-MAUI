@@ -215,7 +215,18 @@ public class MainApplication : Application, Application.IActivityLifecycleCallba
     }
 
     /// <summary>
+    /// Performs aggressive garbage collection to free up memory.
+    /// </summary>
+    private static void PerformAggressiveGarbageCollection()
+    {
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+    }
+
+    /// <summary>
     /// Called when the system is running low on memory, and actively running processes should trim their memory usage.
+    /// Note: The [GeneratedEnum] attribute is not needed in user code when overriding Android framework methods.
     /// </summary>
     public override void OnTrimMemory(TrimMemory level)
     {
@@ -223,11 +234,7 @@ public class MainApplication : Application, Application.IActivityLifecycleCallba
         
         Debug.WriteLine($"[MEMORY PRESSURE] OnTrimMemory called with level: {level}");
         LogMemoryEvent($"MEMORY PRESSURE: {level}");
-
-        // Perform garbage collection to free up memory
-        GC.Collect();
-        GC.WaitForPendingFinalizers();
-        GC.Collect();
+        PerformAggressiveGarbageCollection();
     }
 
     /// <summary>
@@ -240,11 +247,7 @@ public class MainApplication : Application, Application.IActivityLifecycleCallba
         
         Debug.WriteLine("[CRITICAL MEMORY] OnLowMemory called - system is critically low on memory");
         LogMemoryEvent("CRITICAL MEMORY PRESSURE - OnLowMemory called");
-
-        // Aggressive garbage collection
-        GC.Collect();
-        GC.WaitForPendingFinalizers();
-        GC.Collect();
+        PerformAggressiveGarbageCollection();
     }
 
     public void OnActivityCreated(Activity activity, Bundle? savedInstanceState)
