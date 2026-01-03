@@ -56,6 +56,7 @@ public partial class SettingsViewModel : BaseViewModel
             {
                 appModel.AllowBackNavigationWithMouseFour = isChecked.Value;
             });
+            AllowBackNavigationWithMouseFour = isChecked.Value;
         }
     }
 
@@ -123,6 +124,35 @@ public partial class SettingsViewModel : BaseViewModel
             {
                 appModel.IsMiniLyricsViewEnabled = isChecked.Value;
             });
+            IsMiniLyricsViewEnabled = isChecked.Value;
+        }
+    }
+
+    public void ToggleMinimizeToTray(bool? isChecked)
+    {
+        var realm = RealmFactory.GetRealmInstance();
+        var appModel = realm.All<AppStateModel>().FirstOrDefaultNullSafe();
+        if (appModel != null && isChecked.HasValue)
+        {
+            realm.Write(() =>
+            {
+                appModel.MinimizeToTrayPreference = isChecked.Value;
+            });
+            MinimizeToTrayPreference = isChecked.Value;
+        }
+    }
+
+    public void ToggleStickToTop(bool? isChecked)
+    {
+        var realm = RealmFactory.GetRealmInstance();
+        var appModel = realm.All<AppStateModel>().FirstOrDefaultNullSafe();
+        if (appModel != null && isChecked.HasValue)
+        {
+            realm.Write(() =>
+            {
+                appModel.IsStickToTop = isChecked.Value;
+            });
+            IsStickToTop = isChecked.Value;
         }
     }
 

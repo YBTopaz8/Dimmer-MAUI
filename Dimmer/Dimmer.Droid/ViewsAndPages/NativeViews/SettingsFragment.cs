@@ -168,13 +168,13 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
 
         layout.AddView(CreateDivider(ctx));
 
-        //layout.AddView(CreateSwitchRow(ctx, "Minimize to Tray", "Keep playing in background when closed",
-        //    MyViewModel.AppState.MinimizeToTrayPreference, (v) => MyViewModel.AppState.MinimizeToTrayPreference = v));
+        layout.AddView(CreateSwitchRow(ctx, "Minimize to Tray", "Keep playing in background when closed",
+            MyViewModel.MinimizeToTrayPreference, (v) => MyViewModel.ToggleMinimizeToTray(v)));
 
         layout.AddView(CreateDivider(ctx));
 
-        //layout.AddView(CreateSwitchRow(ctx, "Stick to Top", "Keep window always on top",
-        //    MyViewModel.AppState.IsStickToTop, (v) => MyViewModel.AppState.IsStickToTop = v));
+        layout.AddView(CreateSwitchRow(ctx, "Stick to Top", "Keep window always on top",
+            MyViewModel.IsStickToTop, (v) => MyViewModel.ToggleStickToTop(v)));
 
         return WrapInCard(ctx, layout);
     }
@@ -326,10 +326,10 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
     {
         var layout = CreateCardLayout(ctx);
 
-        //layout.AddView(CreateSwitchRow(ctx, "Mini Lyrics View", "Show floating lyrics on desktop",
-        //    MyViewModel.AppState.IsMiniLyricsViewEnabled, (v) => MyViewModel.AppState.IsMiniLyricsViewEnabled = v));
+        layout.AddView(CreateSwitchRow(ctx, "Mini Lyrics View", "Show floating lyrics on desktop",
+            MyViewModel.IsMiniLyricsViewEnabled, (v) => MyViewModel.ToggleIsMiniLyricsViewEnable(v)));
 
-        //layout.AddView(CreateDivider(ctx));
+        layout.AddView(CreateDivider(ctx));
 
         // Lyrics Source Dropdown Simulation
         //var sourceRow = CreateActionRow(ctx, "Lyrics Source", MyViewModel.PreferredLyricsSource ?? "Auto");
@@ -349,14 +349,15 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
     {
         var layout = CreateCardLayout(ctx);
 
-        //layout.AddView(CreateSwitchRow(ctx, "Mouse Back Nav", "Use Mouse Button 4 to go back"
-        //    //MyViewModel.AppState.AllowBackNavigationWithMouseFour,
-        //    //(v) => MyViewModel.AppState.AllowBackNavigationWithMouseFour = v)
-        //    );
+        layout.AddView(CreateSwitchRow(ctx, "Mouse Back Nav", "Use Mouse Button 4 to go back",
+            MyViewModel.AllowBackNavigationWithMouseFour,
+            (v) => MyViewModel.AllowBackNavigationWithMouseFour(v)));
 
         layout.AddView(CreateDivider(ctx));
 
-
+        layout.AddView(CreateSwitchRow(ctx, "Enable LastFM Scrobbling", "Automatically scrobble played tracks to Last.fm",
+            MyViewModel.ScrobbleToLastFM,
+            (v) => MyViewModel.ToggleLastFMScrobbling(v)));
 
         return WrapInCard(ctx, layout);
     }

@@ -34,8 +34,51 @@ public sealed partial class SettingsPage : Page
             //MyViewModel.CurrentWinUIPage = this;
             // Now that the ViewModel is set, you can set the DataContext.
             this.DataContext = baseVM;
+            
+            // Initialize toggle states from saved preferences
+            InitializeSettingsState();
         }
 
+    }
+
+    private void InitializeSettingsState()
+    {
+        if (MyViewModel == null) return;
+        
+        var realm = MyViewModel.RealmFactory.GetRealmInstance();
+        var appModel = realm.All<AppStateModel>().FirstOrDefaultNullSafe();
+        
+        if (appModel != null)
+        {
+            AutoScrobbleToggle.IsChecked = appModel.ScrobbleToLastFM;
+            ThemeToggle.IsChecked = appModel.IsDarkModePreference;
+            BackNavM4.IsChecked = appModel.AllowBackNavigationWithMouseFour;
+            EnableMiniLyricsView.IsChecked = appModel.IsMiniLyricsViewEnabled;
+            
+            // Set preferred mini lyrics position
+            if (!string.IsNullOrEmpty(appModel.PreferredMiniLyricsViewPosition))
+            {
+                PreferredPosition.Content = appModel.PreferredMiniLyricsViewPosition;
+            }
+            
+            // Set preferred lyrics source
+            if (!string.IsNullOrEmpty(appModel.PreferredLyricsSource))
+            {
+                PreferredLyricsSource.Content = appModel.PreferredLyricsSource;
+            }
+            
+            // Set preferred lyrics format
+            if (!string.IsNullOrEmpty(appModel.PreferredLyricsFormat))
+            {
+                PreferredLyricsFormat.Content = appModel.PreferredLyricsFormat;
+            }
+            
+            // Set allow lyrics contribution
+            if (!string.IsNullOrEmpty(appModel.AllowLyricsContribution))
+            {
+                AllLyricsContribute.Content = appModel.AllowLyricsContribution;
+            }
+        }
     }
 
     private void NextButton_Click(object sender, RoutedEventArgs e)
@@ -228,6 +271,12 @@ public sealed partial class SettingsPage : Page
         var button = (Button)sender;
         var path = button.DataContext as string;
         MyViewModel.DeleteFolderPath(path);
+    }
+
+    private void AutoScrobbleToggle_Click(object sender, RoutedEventArgs e)
+    {
+        ToggleButton toggle = (ToggleButton)sender;
+        MyViewModel?.ToggleLastFMScrobbling(toggle.IsChecked ?? false);
     }
 
     private async void UpdateFolder_Click(object sender, RoutedEventArgs e)
