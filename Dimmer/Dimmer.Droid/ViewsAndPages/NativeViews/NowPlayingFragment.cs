@@ -52,6 +52,11 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
     private MaterialCardView _lyricsCard;
     private TextView _currentLyricText;
     private TextView _genreText, _yearText;
+    
+    // Carousel
+    private AndroidX.ViewPager2.Widget.ViewPager2 _carouselViewPager;
+    private NowPlayingCarouselAdapter _carouselAdapter;
+    private bool _isUserSwiping = true;
 
     // Controls
     private Slider _seekSlider;
@@ -215,27 +220,30 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
 
         root.AddView(_expandedTitle);
 
-        // --- B. Image & Lyrics Grid ---
-        var gridFrame = new FrameLayout(ctx);
+        // --- B. Carousel ViewPager2 with Lyrics Overlay ---
+        var carouselFrame = new FrameLayout(ctx);
+        var carouselParams = new LinearLayout.LayoutParams(-1, AppUtil.DpToPx(420));
+        carouselParams.SetMargins(0, 30, 0, 30);
+        carouselFrame.LayoutParameters = carouselParams;
 
-        var gridParams = new LinearLayout.LayoutParams(-1, AppUtil.DpToPx(420));
-        gridParams.SetMargins(0, 30, 0, 30);
-        gridFrame.LayoutParameters = gridParams;
-
-        var imgCard = new MaterialCardView(ctx) { Radius = AppUtil.DpToPx(20), Elevation = 4 };
-        _mainCoverImage = new ImageView(ctx);
-        _mainCoverImage = new ImageView(ctx);
-        _mainCoverImage.SetScaleType(ImageView.ScaleType.CenterCrop);
-        imgCard.AddView(_mainCoverImage, new FrameLayout.LayoutParams(-1, -1));
-        gridFrame.AddView(imgCard);
+        // ViewPager2 for carousel
+        _carouselViewPager = new AndroidX.ViewPager2.Widget.ViewPager2(ctx);
+        _carouselAdapter = new NowPlayingCarouselAdapter(ctx, _viewModel);
+        _carouselViewPager.Adapter = _carouselAdapter;
+        _carouselViewPager.OffscreenPageLimit = 1;
         
-        // 2. Lyrics Overlay (MUST be added after image to be on top)
+        // Set up page transformer for MD3-style animation
+        _carouselViewPager.SetPageTransformer(new MD3CarouselPageTransformer());
+        
+        carouselFrame.AddView(_carouselViewPager, new FrameLayout.LayoutParams(-1, -1));
+
+        // Lyrics Overlay (MUST be added after ViewPager to be on top)
         _lyricsCard = new MaterialCardView(ctx)
         {
             Radius = AppUtil.DpToPx(12),
-            CardBackgroundColor = ColorStateList.ValueOf(Color.ParseColor("#AA000000")), // Darker semi-transparent
+            CardBackgroundColor = ColorStateList.ValueOf(Color.ParseColor("#AA000000")),
             Elevation = 8,
-            Visibility = ViewStates.Invisible // Hidden by default
+            Visibility = ViewStates.Invisible
         };
         var lParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent)
         {
@@ -257,12 +265,9 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
             }
         };
 
+        carouselFrame.AddView(_lyricsCard, lParams);
 
-        gridFrame.AddView(_lyricsCard, lParams); // This sits on top of the image
-        
-
-
-        // 3. Meta Data (Bottom of Grid)
+        // Meta Data (Bottom of Carousel)
         var metaLay = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
         var metaParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent) { Gravity = GravityFlags.Bottom };
         metaParams.SetMargins(20, 0, 20, 20);
@@ -273,9 +278,9 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
 
         metaLay.AddView(_genreText, new LinearLayout.LayoutParams(0, -2, 1));
         metaLay.AddView(_yearText, new LinearLayout.LayoutParams(0, -2, 1));
-        gridFrame.AddView(metaLay);
+        carouselFrame.AddView(metaLay);
 
-        root.AddView(gridFrame);
+        root.AddView(carouselFrame);
 
         // --- C. Artist Row (Chips + Vertical Action Stack) ---
         var artistActionRow = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
@@ -602,6 +607,28 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
             .Subscribe(UpdateSongUI)
             .DisposeWith(_disposables);
 
+        // Observe carousel items changes
+        _viewModel.WhenPropertyChange(nameof(_viewModel.CarouselItems), x => _viewModel.CarouselItems)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(items =>
+            {
+                if (_carouselAdapter != null && items != null)
+                {
+                    _carouselAdapter.UpdateSongs(items.ToList());
+                    
+                    // Set to middle item (current song) without animation
+                    _isUserSwiping = false;
+                    _carouselViewPager?.SetCurrentItem(1, false);
+                    _isUserSwiping = true;
+                }
+            })
+            .DisposeWith(_disposables);
+
+        // Setup ViewPager2 page change callback
+        if (_carouselViewPager != null)
+        {
+            _carouselViewPager.RegisterOnPageChangeCallback(new CarouselPageChangeCallback(this));
+        }
 
         _viewModel.AudioEngineIsPlayingObservable
             .ObserveOn(RxSchedulers.UI)
@@ -710,15 +737,14 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(path =>
             {
+                // Only update mini cover, carousel handles its own images
                 if (!string.IsNullOrEmpty(path))
                 {
                     Glide.With(this).Load(path).Into(_miniCover);
-                    Glide.With(this).Load(path).Into(_mainCoverImage);
                 }
                 else
                 {
                     _miniCover.SetImageResource(Resource.Drawable.musicnotess);
-                    _mainCoverImage.SetImageResource(Resource.Drawable.musicnotess);
                 }
             }).DisposeWith(_disposables);
 
@@ -768,17 +794,17 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         var chip = new Chip(Context) { Text = song.OtherArtistsName };
         _artistChipGroup.AddView(chip);
 
-        // Load Images
+        // Load Mini Player Cover Image
         if (!string.IsNullOrEmpty(song.CoverImagePath))
         {
             Glide.With(this).Load(song.CoverImagePath).Into(_miniCover);
-            Glide.With(this).Load(song.CoverImagePath).Into(_mainCoverImage);
         }
         else
         {
             _miniCover.SetImageResource(Resource.Drawable.musicnotess);
-            _mainCoverImage.SetImageResource(Resource.Drawable.musicnotess);
         }
+        
+        // Carousel images are handled by the adapter
     }
 
     // --- ANIMATION LOGIC ---
@@ -805,6 +831,39 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
             {
                 myAct.TogglePlayer();
                 return;
+            }
+        }
+    }
+
+    // Nested class for handling carousel page changes
+    private class CarouselPageChangeCallback : AndroidX.ViewPager2.Widget.ViewPager2.OnPageChangeCallback
+    {
+        private readonly NowPlayingFragment _fragment;
+
+        public CarouselPageChangeCallback(NowPlayingFragment fragment)
+        {
+            _fragment = fragment;
+        }
+
+        public override void OnPageSelected(int position)
+        {
+            base.OnPageSelected(position);
+
+            if (!_fragment._isUserSwiping || _fragment._viewModel == null)
+                return;
+
+            // Current song should be at index 1 (middle of the 3-item carousel)
+            // If user swipes to index 0, go to previous song
+            // If user swipes to index 2, go to next song
+            if (position == 0)
+            {
+                _fragment._isUserSwiping = false;
+                _ = _fragment._viewModel.PreviousTrackAsync();
+            }
+            else if (position == 2)
+            {
+                _fragment._isUserSwiping = false;
+                _ = _fragment._viewModel.NextTrackAsync();
             }
         }
     }

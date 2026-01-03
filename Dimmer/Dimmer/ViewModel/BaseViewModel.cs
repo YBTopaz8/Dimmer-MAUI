@@ -1646,6 +1646,15 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial SongModelView CurrentPlayingSongView { get; set; }
 
     [ObservableProperty]
+    public partial SongModelView? PreviousSongInCarousel { get; set; }
+
+    [ObservableProperty]
+    public partial SongModelView? NextSongInCarousel { get; set; }
+
+    [ObservableProperty]
+    public partial ObservableCollection<SongModelView> CarouselItems { get; set; } = new();
+
+    [ObservableProperty]
     public partial SongModelView EditableSongView { get; set; }
 
     [ObservableProperty]
@@ -2589,6 +2598,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _songToScrobble = CurrentPlayingSongView;
         CurrentPlayingSongView.IsCurrentPlayingHighlight = true;
 
+        UpdateCarouselItems();
 
         _logger.LogInformation("AudioService confirmed: Playback started for '{Title}'", args.MediaSong.Title);
         await BaseAppFlow.UpdateDatabaseWithPlayEvent(
@@ -2657,6 +2667,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         if (value.Title is null)
             return;
 
+        UpdateCarouselItems();
         await ProcessSongChangeAsync(value);
     }
 
@@ -3348,6 +3359,41 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         return nextIndex;
     }
+
+    private void UpdateCarouselItems()
+    {
+        if (_playbackQueue == null || _playbackQueue.Count == 0)
+        {
+            CarouselItems.Clear();
+            PreviousSongInCarousel = null;
+            NextSongInCarousel = null;
+            return;
+        }
+
+        var prevIndex = GetNextIndexInQueue(-1);
+        var nextIndex = GetNextIndexInQueue(1);
+
+        PreviousSongInCarousel = (prevIndex >= 0 && prevIndex < _playbackQueue.Count) 
+            ? _playbackQueue[prevIndex] 
+            : null;
+
+        NextSongInCarousel = (nextIndex >= 0 && nextIndex < _playbackQueue.Count) 
+            ? _playbackQueue[nextIndex] 
+            : null;
+
+        // Update the carousel collection with 3 items: prev, current, next
+        CarouselItems.Clear();
+        
+        if (PreviousSongInCarousel != null)
+            CarouselItems.Add(PreviousSongInCarousel);
+        
+        if (CurrentPlayingSongView != null)
+            CarouselItems.Add(CurrentPlayingSongView);
+        
+        if (NextSongInCarousel != null)
+            CarouselItems.Add(NextSongInCarousel);
+    }
+
     /// <summary>
     /// Jumps to a song that is already in the Now Playing queue. This does NOT create a new queue; it just changes the
     /// current track index.
