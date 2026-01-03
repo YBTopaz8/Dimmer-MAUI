@@ -1,7 +1,12 @@
+using Android.Content;
 using Android.Views;
+using Android.Widget;
+using AndroidX.Fragment.App;
 using AndroidX.RecyclerView.Widget;
 using Bumptech.Glide;
 using Dimmer.Data.ModelView;
+using Dimmer.ViewModels;
+using Dimmer.ViewsAndPages.NativeViews.Activity;
 using Google.Android.Material.Card;
 
 namespace Dimmer.ViewsAndPages.NativeViews;

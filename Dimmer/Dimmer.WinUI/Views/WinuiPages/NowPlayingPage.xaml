@@ -14,6 +14,7 @@
             <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
             <converters:RepeatModeConverter x:Key="RepeatModeConverter" />
             <converters:BoolToPlayingPauseConv x:Key="BoolToPlayingPauseConverter" />
+            <converters:DurationConverter x:Key="DurationConverter" />
         </ResourceDictionary>
     </Page.Resources>
 
