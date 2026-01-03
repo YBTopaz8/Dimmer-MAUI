@@ -197,6 +197,7 @@ public class MainApplication : Application, Application.IActivityLifecycleCallba
 
     /// <summary>
     /// Logs memory-related events to the crash log file.
+    /// Thread-safe: uses the same lock as LogException to prevent concurrent file access.
     /// </summary>
     private static void LogMemoryEvent(string message)
     {
@@ -205,7 +206,10 @@ public class MainApplication : Application, Application.IActivityLifecycleCallba
             string filePath = GetLogFilePath();
             string logContent = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}\n\n";
             
-            File.AppendAllText(filePath, logContent);
+            lock (_logLock)
+            {
+                File.AppendAllText(filePath, logContent);
+            }
         }
         catch (Exception logEx)
         {
@@ -215,6 +219,11 @@ public class MainApplication : Application, Application.IActivityLifecycleCallba
 
     /// <summary>
     /// Performs aggressive garbage collection to free up memory.
+    /// This pattern (GC twice with WaitForPendingFinalizers in between) is necessary
+    /// in memory-critical situations to ensure objects with finalizers are properly collected:
+    /// 1. First GC.Collect() - collects regular objects and queues finalizers
+    /// 2. WaitForPendingFinalizers() - runs finalizers, which may free more references
+    /// 3. Second GC.Collect() - collects objects that became eligible after finalizers ran
     /// </summary>
     private static void PerformAggressiveGarbageCollection()
     {
