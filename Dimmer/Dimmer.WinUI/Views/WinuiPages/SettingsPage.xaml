@@ -220,6 +220,7 @@
                                         x:Name="AutoScrobbleToggle"
                                         Grid.Column="1"
                                         Margin="10"
+                                        Click="AutoScrobbleToggle_Click"
                                         Content="Enable" />
                                 </Grid>
 

@@ -1085,6 +1085,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 DeviceVolumeLevel = appModel.VolumeLevelPreference;
                 IsDarkModeOn = appModel.IsDarkModePreference;
                 ScrobbleToLastFM = appModel.ScrobbleToLastFM;
+                MinimizeToTrayPreference = appModel.MinimizeToTrayPreference;
+                IsStickToTop = appModel.IsStickToTop;
+                IsMiniLyricsViewEnabled = appModel.IsMiniLyricsViewEnabled;
+                AllowBackNavigationWithMouseFour = appModel.AllowBackNavigationWithMouseFour;
                 // --- REPLACED: Logic to load the last played song ---
                 if (!string.IsNullOrEmpty(appModel.CurrentSongId) &&
                     ObjectId.TryParse(appModel.CurrentSongId, out var songId))
@@ -7178,6 +7182,15 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     {
         ToggleLastFMScrobbling(newValue);
     }
+
+    [ObservableProperty]
+    public partial bool MinimizeToTrayPreference { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsMiniLyricsViewEnabled { get; set; }
+
+    [ObservableProperty]
+    public partial bool AllowBackNavigationWithMouseFour { get; set; }
 
     public ObservableCollection<string> QueryChips { get; } = new();
 
