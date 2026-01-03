@@ -22,7 +22,7 @@ public class AndroidErrorPresenter : IUiErrorPresenter
         }
 
         // Use TaskCompletionSource to convert callback-based dialog to async/await
-        var tcs = new TaskCompletionSource<object?>();
+        var tcs = new TaskCompletionSource<bool>();
 
         activity.RunOnUiThread(() =>
         {
@@ -31,7 +31,7 @@ public class AndroidErrorPresenter : IUiErrorPresenter
                 var builder = new MaterialAlertDialogBuilder(activity);
                 builder.SetTitle("Feature Not Implemented");
                 builder.SetMessage(message);
-                builder.SetPositiveButton("OK", (s, e) => tcs.TrySetResult(null));
+                builder.SetPositiveButton("OK", (s, e) => tcs.TrySetResult(true));
                 builder.SetCancelable(true);
                 
                 var dialog = builder.Create();
@@ -41,7 +41,7 @@ public class AndroidErrorPresenter : IUiErrorPresenter
             {
                 Debug.WriteLine($"Failed to show alert dialog: {ex.Message}");
                 ShowToast(message);
-                tcs.TrySetResult(null);
+                tcs.TrySetResult(true);
             }
         });
 

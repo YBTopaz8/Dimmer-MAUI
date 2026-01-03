@@ -234,7 +234,6 @@ public class MainApplication : Application, Application.IActivityLifecycleCallba
 
     /// <summary>
     /// Called when the system is running low on memory, and actively running processes should trim their memory usage.
-    /// Note: The [GeneratedEnum] attribute is not needed in user code when overriding Android framework methods.
     /// </summary>
     public override void OnTrimMemory(TrimMemory level)
     {
