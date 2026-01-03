@@ -56,7 +56,8 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
     // Carousel
     private AndroidX.ViewPager2.Widget.ViewPager2 _carouselViewPager;
     private NowPlayingCarouselAdapter _carouselAdapter;
-    private bool _isUserSwiping = true;
+    private readonly object _navigationLock = new object();
+    private bool _isNavigating = false;
 
     // Controls
     private Slider _seekSlider;
@@ -612,14 +613,27 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(items =>
             {
-                if (_carouselAdapter != null && items != null)
+                if (_carouselAdapter != null && items != null && items.Count == 3)
                 {
                     _carouselAdapter.UpdateSongs(items.ToList());
                     
-                    // Set to middle item (current song) without animation
-                    _isUserSwiping = false;
-                    _carouselViewPager?.SetCurrentItem(1, false);
-                    _isUserSwiping = true;
+                    // Set to middle item (current song) without triggering navigation
+                    // Use post to ensure adapter update completes first
+                    if (_carouselViewPager != null && _carouselViewPager.CurrentItem != 1)
+                    {
+                        lock (_navigationLock)
+                        {
+                            _isNavigating = true;
+                        }
+                        _carouselViewPager.Post(() =>
+                        {
+                            _carouselViewPager?.SetCurrentItem(1, false);
+                            lock (_navigationLock)
+                            {
+                                _isNavigating = false;
+                            }
+                        });
+                    }
                 }
             })
             .DisposeWith(_disposables);
@@ -849,7 +863,13 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         {
             base.OnPageSelected(position);
 
-            if (!_fragment._isUserSwiping || _fragment._viewModel == null)
+            bool shouldNavigate;
+            lock (_fragment._navigationLock)
+            {
+                shouldNavigate = !_fragment._isNavigating;
+            }
+
+            if (!shouldNavigate || _fragment._viewModel == null)
                 return;
 
             // Current song should be at index 1 (middle of the 3-item carousel)
@@ -857,12 +877,18 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
             // If user swipes to index 2, go to next song
             if (position == 0)
             {
-                _fragment._isUserSwiping = false;
+                lock (_fragment._navigationLock)
+                {
+                    _fragment._isNavigating = true;
+                }
                 _ = _fragment._viewModel.PreviousTrackAsync();
             }
             else if (position == 2)
             {
-                _fragment._isUserSwiping = false;
+                lock (_fragment._navigationLock)
+                {
+                    _fragment._isNavigating = true;
+                }
                 _ = _fragment._viewModel.NextTrackAsync();
             }
         }

@@ -3381,17 +3381,16 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             ? _playbackQueue[nextIndex] 
             : null;
 
-        // Update the carousel collection with 3 items: prev, current, next
+        // Always maintain 3 items with consistent indexing
+        // Index 0: Previous (or null placeholder)
+        // Index 1: Current (always present if we have a queue)
+        // Index 2: Next (or null placeholder)
         CarouselItems.Clear();
         
-        if (PreviousSongInCarousel != null)
-            CarouselItems.Add(PreviousSongInCarousel);
-        
-        if (CurrentPlayingSongView != null)
-            CarouselItems.Add(CurrentPlayingSongView);
-        
-        if (NextSongInCarousel != null)
-            CarouselItems.Add(NextSongInCarousel);
+        // Always add all three slots to maintain consistent indexing
+        CarouselItems.Add(PreviousSongInCarousel ?? CurrentPlayingSongView);  // Fallback to current if no previous
+        CarouselItems.Add(CurrentPlayingSongView);
+        CarouselItems.Add(NextSongInCarousel ?? CurrentPlayingSongView);  // Fallback to current if no next
     }
 
     /// <summary>
