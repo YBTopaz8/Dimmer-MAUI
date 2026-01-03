@@ -1,6 +1,7 @@
 ﻿// To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
+using Dimmer.WinUI.Views.WinuiPages;
 using Dimmer.WinUI.Views.WinuiPages.LastFMSection;
 
 namespace Dimmer.WinUI.Views.CustomViews.WinuiViews;
@@ -277,5 +278,22 @@ public sealed partial class MediaPlaybackSection : UserControl
     private async void HomeBtn_Click(object sender, RoutedEventArgs e)
     {
         await MyViewModel.DimmerMultiWindowCoordinator.SnapAllToHomeAsync();
+    }
+
+    private void ViewNowPlayingPageButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            MyViewModel.SelectedSong = MyViewModel.CurrentPlayingSongView;
+            var dimmerWindow = MyViewModel.winUIWindowMgrService.GetWindow<DimmerWin>();
+            dimmerWindow ??= MyViewModel.winUIWindowMgrService.CreateWindow<DimmerWin>();
+
+            if (dimmerWindow != null)
+                dimmerWindow.NavigateToPage(typeof(NowPlayingPage));
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error navigating to Now Playing page: {ex.Message}");
+        }
     }
 }

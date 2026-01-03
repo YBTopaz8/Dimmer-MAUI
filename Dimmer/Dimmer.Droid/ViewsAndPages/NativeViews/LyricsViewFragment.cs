@@ -97,7 +97,7 @@ internal class LyricsViewFragment : Fragment
         };
         _lyricsRecyclerView.SetLayoutManager(new LinearLayoutManager(context));
 
-        _adapter = new LyricsAdapter(viewModel.AllLines!);
+        _adapter = new LyricsAdapter(viewModel.AllLines!, viewModel);
         _lyricsRecyclerView.SetAdapter(_adapter);
 
         mainContainer.AddView(_lyricsRecyclerView);
@@ -182,10 +182,12 @@ public class LyricsAdapter : RecyclerView.Adapter
 {
     private IList<LyricPhraseModelView> _lyrics;
     private int _selectedIndex = -1;
+    private readonly BaseViewModelAnd _viewModel;
 
-    public LyricsAdapter(IList<LyricPhraseModelView> lyrics)
+    public LyricsAdapter(IList<LyricPhraseModelView> lyrics, BaseViewModelAnd viewModel)
     {
         _lyrics = lyrics;
+        _viewModel = viewModel;
     }
 
     public void HighlightIndex(int index)
@@ -220,6 +222,16 @@ public class LyricsAdapter : RecyclerView.Adapter
             h.TextView.Alpha = 0.5f;
             h.TextView.Animate()?.ScaleX(1.0f).ScaleY(1.0f).SetDuration(300).Start();
         }
+        
+        // Add click listener to seek to lyric position
+        h.TextView.Click -= OnLyricClick;
+        h.TextView.Click += OnLyricClick;
+        
+        void OnLyricClick(object? sender, EventArgs e)
+        {
+            var positionInSeconds = item.TimeStampMs / 1000.0;
+            _viewModel.SeekTrackPositionCommand?.Execute(positionInSeconds);
+        }
     }
 
     public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType)
@@ -230,9 +242,17 @@ public class LyricsAdapter : RecyclerView.Adapter
            
             TextSize = 22,
             Gravity = GravityFlags.CenterVertical,
-            Typeface = Typeface.Create("sans-serif-medium", TypefaceStyle.Normal)
+            Typeface = Typeface.Create("sans-serif-medium", TypefaceStyle.Normal),
+            Clickable = true,
+            Focusable = true
         };
         tv.SetPadding(0, 20, 0, 20);
+        
+        // Add ripple effect for visual feedback
+        var outValue = new Android.Util.TypedValue();
+        parent.Context!.Theme?.ResolveAttribute(Android.Resource.Attribute.SelectableItemBackground, outValue, true);
+        tv.SetBackgroundResource(outValue.ResourceId);
+        
         return new LyricViewHolder(tv);
     }
 
