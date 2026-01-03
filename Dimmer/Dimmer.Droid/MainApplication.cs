@@ -190,15 +190,10 @@ public class MainApplication : Application, Application.IActivityLifecycleCallba
     }
 
     /// <summary>
-    /// Called when the system is running low on memory, and actively running processes should trim their memory usage.
+    /// Logs memory-related events to the crash log file.
     /// </summary>
-    public override void OnTrimMemory([GeneratedEnum] TrimMemory level)
+    private static void LogMemoryEvent(string message)
     {
-        base.OnTrimMemory(level);
-        
-        Debug.WriteLine($"[MEMORY PRESSURE] OnTrimMemory called with level: {level}");
-        
-        // Log to file for analysis (without creating an artificial exception)
         try
         {
             string directoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DimmerCrashLogs");
@@ -209,14 +204,25 @@ public class MainApplication : Application, Application.IActivityLifecycleCallba
             
             string fileName = $"Droidcrashlog_{DateTime.Now:yyyy-MM-dd}.txt";
             string filePath = Path.Combine(directoryPath, fileName);
-            string logContent = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] MEMORY PRESSURE: {level}\n\n";
+            string logContent = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}\n\n";
             
             File.AppendAllText(filePath, logContent);
         }
         catch (Exception logEx)
         {
-            Debug.WriteLine($"Failed to log memory pressure: {logEx.Message}");
+            Debug.WriteLine($"Failed to log memory event: {logEx.Message}");
         }
+    }
+
+    /// <summary>
+    /// Called when the system is running low on memory, and actively running processes should trim their memory usage.
+    /// </summary>
+    public override void OnTrimMemory(TrimMemory level)
+    {
+        base.OnTrimMemory(level);
+        
+        Debug.WriteLine($"[MEMORY PRESSURE] OnTrimMemory called with level: {level}");
+        LogMemoryEvent($"MEMORY PRESSURE: {level}");
 
         // Perform garbage collection to free up memory
         GC.Collect();
@@ -233,26 +239,7 @@ public class MainApplication : Application, Application.IActivityLifecycleCallba
         base.OnLowMemory();
         
         Debug.WriteLine("[CRITICAL MEMORY] OnLowMemory called - system is critically low on memory");
-        
-        // Log to file for analysis (without creating an artificial exception)
-        try
-        {
-            string directoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DimmerCrashLogs");
-            if (!Directory.Exists(directoryPath))
-            {
-                Directory.CreateDirectory(directoryPath);
-            }
-            
-            string fileName = $"Droidcrashlog_{DateTime.Now:yyyy-MM-dd}.txt";
-            string filePath = Path.Combine(directoryPath, fileName);
-            string logContent = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] CRITICAL MEMORY PRESSURE - OnLowMemory called\n\n";
-            
-            File.AppendAllText(filePath, logContent);
-        }
-        catch (Exception logEx)
-        {
-            Debug.WriteLine($"Failed to log critical memory event: {logEx.Message}");
-        }
+        LogMemoryEvent("CRITICAL MEMORY PRESSURE - OnLowMemory called");
 
         // Aggressive garbage collection
         GC.Collect();
