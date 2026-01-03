@@ -19,6 +19,9 @@ internal class Bootstrapper
             // 2. Register your Core Services (Same as before)
             services.AddSingleton<IDimmerAudioService, AudioService>();
         services.AddSingleton<IAnimationService, AndroidAnimationService>();
+        
+        // Register Android-specific Song Story Share Service
+        services.AddSingleton<ISongStoryShareService, NativeServices.AndroidSongStoryShareService>();
 
         // 3. Register ViewModels
         services.AddSingleton<BaseViewModelAnd>();

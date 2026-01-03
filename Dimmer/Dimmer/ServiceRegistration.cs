@@ -82,6 +82,9 @@ public static class ServiceRegistration
         services.AddSingleton(FileSaver.Default);
 
         services.AddSingleton<IDuplicateFinderService, DuplicateFinderService>();
+        
+        // Song Story Sharing Service
+        services.AddSingleton<ISongStoryService, Interfaces.Services.SongStoryService>();
 
         services.AddSingleton<StatisticsService>();
         services.AddSingleton<StatisticsViewModel>();

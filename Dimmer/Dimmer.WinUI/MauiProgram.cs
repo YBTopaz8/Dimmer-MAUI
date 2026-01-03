@@ -38,6 +38,9 @@ public static class MauiProgram
         builder.Services.AddSingleton<EditorViewModel>();
         builder.Services.AddSingleton<IWinUIWindowMgrService, WinUIWindowMgrService>();
         builder.Services.AddSingleton<IDimmerAudioEditorService, WindowsAudioEditorService>();
+        
+        // Register Windows-specific Song Story Share Service
+        builder.Services.AddSingleton<ISongStoryShareService, NativeServices.WindowsSongStoryShareService>();
 
         builder.Services.AddSingleton<DimmerWin>();
 

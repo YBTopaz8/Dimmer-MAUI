@@ -389,11 +389,11 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
             queueSheet.Show(ParentFragmentManager, "QueueSheet");
         };
      
-        // 2. Share Pill
+        // 2. Share Pill - Share Song Story
         _shareBtn = CreatePillButton(ctx, "Share", Resource.Drawable.shared);
         _shareBtn.Click += async (s, e) =>
         {
-            //await _viewModel.ShareSongViewClipboard(_viewModel.CurrentPlayingSongView);
+            await ShareSongStoryAsync();
         };
 
         
@@ -806,6 +806,90 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
                 myAct.TogglePlayer();
                 return;
             }
+        }
+    }
+
+    /// <summary>
+    /// Handles sharing the current song as a story card
+    /// </summary>
+    private async Task ShareSongStoryAsync()
+    {
+        try
+        {
+            var currentSong = _viewModel.CurrentPlayingSongView;
+            if (currentSong == null)
+            {
+                Toast.MakeText(Context, "No song is currently playing", ToastLength.Short)?.Show();
+                return;
+            }
+
+            // Get services
+            var storyService = MainApplication.ServiceProvider?.GetService<ISongStoryService>();
+            var shareService = MainApplication.ServiceProvider?.GetService<ISongStoryShareService>();
+
+            if (storyService == null || shareService == null)
+            {
+                Toast.MakeText(Context, "Story sharing service not available", ToastLength.Short)?.Show();
+                return;
+            }
+
+            // Check if song has lyrics
+            List<string>? selectedLyrics = null;
+            if (currentSong.HasLyrics || currentSong.HasSyncedLyrics)
+            {
+                // Get all lyrics lines
+                var allLyrics = new List<string>();
+                
+                // Get synced lyrics if available
+                if (!string.IsNullOrEmpty(currentSong.SyncLyrics))
+                {
+                    var syncedLines = currentSong.SyncLyrics
+                        .Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
+                        .Select(l => System.Text.RegularExpressions.Regex.Replace(l, @"\[\d+:\d+\.\d+\]", "").Trim())
+                        .Where(l => !string.IsNullOrWhiteSpace(l))
+                        .ToList();
+                    allLyrics.AddRange(syncedLines);
+                }
+                // Otherwise get unsynced lyrics
+                else if (!string.IsNullOrEmpty(currentSong.UnSyncLyrics))
+                {
+                    var unsyncedLines = currentSong.UnSyncLyrics
+                        .Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
+                        .Where(l => !string.IsNullOrWhiteSpace(l))
+                        .ToList();
+                    allLyrics.AddRange(unsyncedLines);
+                }
+
+                // Show lyrics selection dialog if there are lyrics
+                if (allLyrics.Any())
+                {
+                    selectedLyrics = await shareService.ShowLyricsSelectionAsync(allLyrics);
+                    
+                    // User cancelled
+                    if (selectedLyrics == null || !selectedLyrics.Any())
+                    {
+                        return;
+                    }
+                }
+            }
+
+            // Show progress
+            Toast.MakeText(Context, "Creating story card...", ToastLength.Short)?.Show();
+
+            // Prepare story data
+            var storyData = await storyService.PrepareSongStoryAsync(currentSong, selectedLyrics);
+
+            // Generate card
+            var cardPath = await shareService.GenerateStoryCardAsync(storyData);
+
+            // Share
+            string shareText = $"🎵 {currentSong.Title} by {currentSong.ArtistName}\nPlayed on Dimmer";
+            await shareService.ShareStoryAsync(cardPath, shareText);
+        }
+        catch (Exception ex)
+        {
+            Toast.MakeText(Context, $"Error sharing story: {ex.Message}", ToastLength.Long)?.Show();
+            System.Diagnostics.Debug.WriteLine($"Error sharing song story: {ex}");
         }
     }
 }
