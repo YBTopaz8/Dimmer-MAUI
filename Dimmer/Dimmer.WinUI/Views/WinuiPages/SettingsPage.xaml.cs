@@ -1,5 +1,8 @@
 using CommunityToolkit.WinUI;
 
+using Dimmer.Data.Models;
+using Dimmer.Utilities.TypeConverters;
+
 using Microsoft.UI.Xaml.Controls.Primitives;
 
 using Grid = Microsoft.UI.Xaml.Controls.Grid;
