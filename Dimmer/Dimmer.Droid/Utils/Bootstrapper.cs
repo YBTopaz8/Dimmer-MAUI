@@ -16,6 +16,8 @@ internal class Bootstrapper
         services.AddDimmerCoreServices();
 
             services.AddSingleton<AndroidFolderPicker>();
+            // Register Android-specific error presenter (overrides the default one from core services)
+            services.AddSingleton<IUiErrorPresenter, AndroidErrorPresenter>();
             // 2. Register your Core Services (Same as before)
             services.AddSingleton<IDimmerAudioService, AudioService>();
         services.AddSingleton<IAnimationService, AndroidAnimationService>();
