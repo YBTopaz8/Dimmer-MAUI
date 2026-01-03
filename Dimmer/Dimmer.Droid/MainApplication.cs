@@ -123,6 +123,24 @@ public class MainApplication : Application, Application.IActivityLifecycleCallba
         }
     }
     private static readonly object _logLock = new();
+    private const string LogDirectoryName = "DimmerCrashLogs";
+    private const string LogFileName = "Droidcrashlog_{0:yyyy-MM-dd}.txt";
+
+    /// <summary>
+    /// Gets the log file path, creating the directory if necessary.
+    /// </summary>
+    private static string GetLogFilePath()
+    {
+        string directoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), LogDirectoryName);
+        
+        if (!Directory.Exists(directoryPath))
+        {
+            Directory.CreateDirectory(directoryPath);
+        }
+        
+        string fileName = string.Format(LogFileName, DateTime.Now);
+        return Path.Combine(directoryPath, fileName);
+    }
 
     public static void LogException(Exception ex)
     {
@@ -134,19 +152,7 @@ public class MainApplication : Application, Application.IActivityLifecycleCallba
 
         try
         {
-            // Define the directory path in Documents folder, same as WinUI for consistency.
-            string directoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DimmerCrashLogs");
-
-            // Ensure the directory exists.
-            if (!Directory.Exists(directoryPath))
-            {
-                Directory.CreateDirectory(directoryPath);
-            }
-
-            // Use a date-specific file name.
-            string fileName = $"Droidcrashlog_{DateTime.Now:yyyy-MM-dd}.txt";
-            string filePath = Path.Combine(directoryPath, fileName);
-
+            string filePath = GetLogFilePath();
             string logContent = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}]\nMsg: {ex.Message}\nStackTrace: {ex.StackTrace}\n\n";
 
             // Retry mechanism for file writing.
@@ -196,14 +202,7 @@ public class MainApplication : Application, Application.IActivityLifecycleCallba
     {
         try
         {
-            string directoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DimmerCrashLogs");
-            if (!Directory.Exists(directoryPath))
-            {
-                Directory.CreateDirectory(directoryPath);
-            }
-            
-            string fileName = $"Droidcrashlog_{DateTime.Now:yyyy-MM-dd}.txt";
-            string filePath = Path.Combine(directoryPath, fileName);
+            string filePath = GetLogFilePath();
             string logContent = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}\n\n";
             
             File.AppendAllText(filePath, logContent);
