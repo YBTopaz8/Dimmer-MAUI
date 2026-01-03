@@ -137,8 +137,21 @@ public class WindowsBluetoothService : IBluetoothService
             _listenerCts = new CancellationTokenSource();
             var token = _listenerCts.Token;
             
-            // Start listening for responses
-            await ListenForDataAsync(token);
+            // Start listening for responses in the background
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await ListenForDataAsync(token);
+                }
+                catch (Exception ex)
+                {
+                    if (!token.IsCancellationRequested)
+                    {
+                        StatusChanged?.Invoke(this, $"Listener error: {ex.Message}");
+                    }
+                }
+            });
         }
         catch (Exception ex)
         {

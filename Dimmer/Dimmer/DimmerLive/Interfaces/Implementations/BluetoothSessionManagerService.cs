@@ -273,7 +273,7 @@ public class BluetoothSessionManagerService : IBluetoothSessionManagerService, I
         _bluetoothService.DataReceived -= OnDataReceived;
         _bluetoothService.StatusChanged -= OnStatusChanged;
         _bluetoothService.Disconnect();
-        _devicesCache?.Dispose();
-        _incomingTransfers?.Dispose();
+        _devicesCache.Dispose();
+        _incomingTransfers.Dispose();
     }
 }

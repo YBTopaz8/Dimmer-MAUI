@@ -402,55 +402,66 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
         }
     }
 
-    private async void HandleIncomingBluetoothTransferRequest(DimmerSharedSong request)
+    private void HandleIncomingBluetoothTransferRequest(DimmerSharedSong request)
     {
-        // UI Prompt
-        bool accept = await Shell.Current.DisplayAlert(
-            "Bluetooth Session Transfer",
-            $"Resume '{request.Title}' by {request.ArtistName} from a paired device?",
-            "Yes", "No"
-        );
-
-        if (!accept) return;
-
-        StatusMessage = "Loading song...";
-
-        try
+        // Fire-and-forget with proper exception handling
+        Task.Run(async () =>
         {
-            // Try to find the song locally
-            var localSong = _mainViewModel.RealmFactory.GetRealmInstance()
-                .Find<DimmerPlayEvent>(request.OriginalSongId)?.SongsLinkingToThisEvent.FirstOrDefault()
-                ?? _mainViewModel.RealmFactory.GetRealmInstance()
-                    .All<DimmerPlayEvent>()
-                    .FirstOrDefault(s => s.SongName == request.Title && s.ArtistName == request.ArtistName)
-                    ?.SongsLinkingToThisEvent.FirstOrDefault();
-
-            if (localSong != null)
+            try
             {
-                StatusMessage = "Playing song...";
-                await _mainViewModel.PlaySongAsync(localSong.ToSongModelView());
+                // UI Prompt
+                bool accept = await Shell.Current.DisplayAlert(
+                    "Bluetooth Session Transfer",
+                    $"Resume '{request.Title}' by {request.ArtistName} from a paired device?",
+                    "Yes", "No"
+                );
 
-                if (request.SharedPositionInSeconds.HasValue)
+                if (!accept) return;
+
+                StatusMessage = "Loading song...";
+
+                try
                 {
-                    _mainViewModel.SeekTrackPosition(request.SharedPositionInSeconds.Value);
-                }
+                    // Try to find the song locally
+                    var localSong = _mainViewModel.RealmFactory.GetRealmInstance()
+                        .Find<DimmerPlayEvent>(request.OriginalSongId)?.SongsLinkingToThisEvent.FirstOrDefault()
+                        ?? _mainViewModel.RealmFactory.GetRealmInstance()
+                            .All<DimmerPlayEvent>()
+                            .FirstOrDefault(s => s.SongName == request.Title && s.ArtistName == request.ArtistName)
+                            ?.SongsLinkingToThisEvent.FirstOrDefault();
 
-                StatusMessage = "Transfer completed successfully!";
+                    if (localSong != null)
+                    {
+                        StatusMessage = "Playing song...";
+                        await _mainViewModel.PlaySongAsync(localSong.ToSongModelView());
+
+                        if (request.SharedPositionInSeconds.HasValue)
+                        {
+                            _mainViewModel.SeekTrackPosition(request.SharedPositionInSeconds.Value);
+                        }
+
+                        StatusMessage = "Transfer completed successfully!";
+                    }
+                    else
+                    {
+                        StatusMessage = "Song not found on this device.";
+                        await Shell.Current.DisplayAlert(
+                            "Song Not Found",
+                            $"Could not find '{request.Title}' by {request.ArtistName} on this device.",
+                            "OK");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Bluetooth session transfer failed");
+                    StatusMessage = "Transfer failed.";
+                }
             }
-            else
+            catch (Exception ex)
             {
-                StatusMessage = "Song not found on this device.";
-                await Shell.Current.DisplayAlert(
-                    "Song Not Found",
-                    $"Could not find '{request.Title}' by {request.ArtistName} on this device.",
-                    "OK");
+                _logger.LogError(ex, "Error handling Bluetooth transfer request");
             }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Bluetooth session transfer failed");
-            StatusMessage = "Transfer failed.";
-        }
+        });
     }
     [RelayCommand]
     public async Task BackUpDataToCloud()
