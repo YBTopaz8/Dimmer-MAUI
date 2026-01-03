@@ -189,6 +189,59 @@ public class MainApplication : Application, Application.IActivityLifecycleCallba
         Debug.WriteLine($"HandleIntent invoked with Intent: {intent}"); // Add logging!
     }
 
+    /// <summary>
+    /// Called when the system is running low on memory, and actively running processes should trim their memory usage.
+    /// </summary>
+    public override void OnTrimMemory([GeneratedEnum] TrimMemory level)
+    {
+        base.OnTrimMemory(level);
+        
+        Debug.WriteLine($"OnTrimMemory called with level: {level}");
+        
+        // Log the memory pressure event
+        try
+        {
+            var ex = new Exception($"Memory pressure detected: {level}");
+            LogException(ex);
+        }
+        catch (Exception logEx)
+        {
+            Debug.WriteLine($"Failed to log memory pressure: {logEx.Message}");
+        }
+
+        // Perform garbage collection to free up memory
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+    }
+
+    /// <summary>
+    /// Called when the overall system is running low on memory.
+    /// Legacy callback for older Android versions.
+    /// </summary>
+    public override void OnLowMemory()
+    {
+        base.OnLowMemory();
+        
+        Debug.WriteLine("OnLowMemory called - system is critically low on memory");
+        
+        // Log the critical memory event
+        try
+        {
+            var ex = new Exception("Critical memory pressure - OnLowMemory called");
+            LogException(ex);
+        }
+        catch (Exception logEx)
+        {
+            Debug.WriteLine($"Failed to log critical memory event: {logEx.Message}");
+        }
+
+        // Aggressive garbage collection
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+    }
+
     public void OnActivityCreated(Activity activity, Bundle? savedInstanceState)
     {
 
