@@ -85,24 +85,29 @@ public class MainApplication : Application, Application.IActivityLifecycleCallba
     }
 
 
+    private static readonly ExceptionFilterPolicy _filterPolicy = new ExceptionFilterPolicy();
 
     private static void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
     {
 
         try
         {
-
+            // Apply exception filtering to reduce noise from expected exceptions
+            if (!_filterPolicy.ShouldLog(e.Exception))
+            {
+                return; // Skip logging for filtered exceptions
+            }
 
             string errorDetails = $"********** UNHANDLED EXCEPTION! **********\n" +
                                      $"Exception Type: {e.Exception.GetType()}\n" +
-                                     $"ChatMessage: {e.Exception.Message}\n" +
+                                     $"Message: {e.Exception.Message}\n" +
                                      $"Source: {e.Exception.Source}\n" +
                                      $"Stack Trace: {e.Exception.StackTrace}\n";
 
             if (e.Exception.InnerException != null)
             {
                 errorDetails += "***** Inner Exception *****\n" +
-                                $"ChatMessage: {e.Exception.InnerException.Message}\n" +
+                                $"Message: {e.Exception.InnerException.Message}\n" +
                                 $"Stack Trace: {e.Exception.InnerException.StackTrace}\n";
             }
 
@@ -121,10 +126,16 @@ public class MainApplication : Application, Application.IActivityLifecycleCallba
 
     public static void LogException(Exception ex)
     {
+        // Apply exception filtering to avoid logging noisy exceptions
+        if (!_filterPolicy.ShouldLog(ex))
+        {
+            return; // Ignore this exception based on our policy
+        }
+
         try
         {
-            // Define the directory path.
-            string directoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DimmerCrashLogs");
+            // Define the directory path in Documents folder, same as WinUI for consistency.
+            string directoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DimmerCrashLogs");
 
             // Ensure the directory exists.
             if (!Directory.Exists(directoryPath))
