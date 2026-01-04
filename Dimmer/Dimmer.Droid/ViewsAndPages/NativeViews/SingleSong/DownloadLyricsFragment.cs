@@ -190,9 +190,12 @@ public partial class DownloadLyricsFragment : Fragment
     private void LoadLyricsForEditing(LrcLibLyrics lyrics)
     {
         // Load lyrics into editor using ViewModel command
-        if (lyrics.SyncedLyrics != null)
+        // Check if we have lyrics to edit (either synced or plain)
+        bool hasLyricsToEdit = !string.IsNullOrWhiteSpace(lyrics.SyncedLyrics) || !string.IsNullOrWhiteSpace(lyrics.PlainLyrics);
+        
+        if (hasLyricsToEdit && MyViewModel?.LoadLyricsForEditingCommand != null)
         {
-            MyViewModel.LoadLyricsForEditingCommand?.Execute(lyrics);
+            MyViewModel.LoadLyricsForEditingCommand.Execute(lyrics);
             Toast.MakeText(Context, "Lyrics loaded for editing", ToastLength.Short)?.Show();
         }
     }
@@ -201,9 +204,9 @@ public partial class DownloadLyricsFragment : Fragment
     {
         // Start timestamping session with plain lyrics
         string lyricsToTimestamp = lyrics.PlainLyrics ?? lyrics.SyncedLyrics ?? string.Empty;
-        if (!string.IsNullOrWhiteSpace(lyricsToTimestamp))
+        if (!string.IsNullOrWhiteSpace(lyricsToTimestamp) && MyViewModel?.StartLyricsEditingSessionCommand != null)
         {
-            MyViewModel.StartLyricsEditingSessionCommand?.Execute(lyricsToTimestamp);
+            MyViewModel.StartLyricsEditingSessionCommand.Execute(lyricsToTimestamp);
             Toast.MakeText(Context, "Timestamping session started", ToastLength.Short)?.Show();
         }
     }

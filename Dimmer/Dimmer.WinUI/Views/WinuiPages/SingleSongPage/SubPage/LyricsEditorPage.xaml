@@ -107,11 +107,8 @@
                         x:Name="TimestampButton"
                         Content="Timestamp"
                         Click="TimestampButton_Click"
-                        Style="{StaticResource AccentButtonStyle}">
-                        <Button.Resources>
-                            <ToolTip x:Key="TimestampTooltip" Content="Add timestamps to plain lyrics"/>
-                        </Button.Resources>
-                    </Button>
+                        Style="{StaticResource AccentButtonStyle}"
+                        ToolTipService.ToolTip="Add timestamps to plain lyrics" />
                 </StackPanel>
             </Grid>
         </ContentDialog>

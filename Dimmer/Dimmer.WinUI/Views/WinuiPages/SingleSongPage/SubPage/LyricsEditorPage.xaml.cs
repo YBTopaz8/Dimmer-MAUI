@@ -197,7 +197,7 @@ public sealed partial class LyricsEditorPage : Page
     private void LyricsPreviewDialog_SecondaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
     {
         // Edit button - load lyrics for editing
-        if (_currentPreviewLyrics != null && MyViewModel != null)
+        if (_currentPreviewLyrics != null && MyViewModel?.LoadLyricsForEditingCommand != null)
         {
             MyViewModel.LoadLyricsForEditingCommand.Execute(_currentPreviewLyrics);
             
@@ -209,7 +209,7 @@ public sealed partial class LyricsEditorPage : Page
     private void TimestampButton_Click(object sender, RoutedEventArgs e)
     {
         // Timestamp button - prepare plain lyrics for timestamping
-        if (_currentPreviewLyrics != null && MyViewModel != null)
+        if (_currentPreviewLyrics != null && MyViewModel?.StartLyricsEditingSessionCommand != null)
         {
             // Load plain lyrics into the timestamping editor
             string lyricsToTimestamp = !string.IsNullOrWhiteSpace(_currentPreviewLyrics.PlainLyrics) 
