@@ -2,6 +2,7 @@ using Android.Content;
 using Android.Views;
 using Android.Widget;
 
+using AndroidX.Fragment.App;
 using AndroidX.RecyclerView.Widget;
 
 using Dimmer.Data.ModelView;
