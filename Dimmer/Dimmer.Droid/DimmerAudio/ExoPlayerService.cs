@@ -133,6 +133,12 @@ public class ExoPlayerService : MediaSessionService
     PlayerNotificationManager? _notifMgr;
     private Runnable? _positionRunnable;
     private MediaController? mediaController;
+    
+    // Lyrics tracking
+    private volatile string? _currentLyricText;
+    private IDisposable? _lyricsSubscription;
+    private DateTime _lastNotificationUpdate = DateTime.MinValue;
+    private const int NotificationUpdateThrottleMs = 500; // Allow up to 2 updates per second
 
     public ExoPlayerServiceBinder? Binder { get => _binder; set => _binder = value; }
 
@@ -357,6 +363,9 @@ public class ExoPlayerService : MediaSessionService
                     positionHandler?.PostDelayed(positionRunnable, 1000); // Poll every 1 second
                 }
             });
+            
+            // Subscribe to lyrics flow for notification updates
+            SubscribeToLyrics();
 
         }
         catch (Java.Lang.Throwable ex) { HandleInitError("JAVA INITIALIZATION", ex); StopSelf(); }
@@ -406,14 +415,52 @@ public class ExoPlayerService : MediaSessionService
         switch (action)
         {
             case ActionFavorite:
-                //MyViewModel.ToggleFavorite(CurrentSongContext);
-                RefreshNotification(); // Forces the icons to flip
+                var currentSong = CurrentSongContext;
+                if (currentSong != null)
+                {
+                    var viewModel = MainApplication.ServiceProvider?.GetService<BaseViewModel>();
+                    if (viewModel != null)
+                    {
+                        // Toggle favorite using the proper ViewModel methods with exception handling
+                        _ = Task.Run(async () =>
+                        {
+                            try
+                            {
+                                if (currentSong.IsFavorite)
+                                {
+                                    await viewModel.RemoveSongFromFavorite(currentSong);
+                                }
+                                else
+                                {
+                                    await viewModel.AddFavoriteRatingToSong(currentSong);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"[ExoPlayerService] Error toggling favorite: {ex.Message}");
+                            }
+                        });
+                    }
+                    else
+                    {
+                        // Fallback to simple toggle if ViewModel not available
+                        currentSong.IsFavorite = !currentSong.IsFavorite;
+                    }
+                    UpdateFavoriteState(currentSong);
+                    UpdateMediaSessionLayout();
+                    RefreshNotification();
+                }
                 break;
             case ActionShuffle:
-                //ToggleShuffle();
+                ToggleShuffleState();
                 break;
             case ActionLyrics:
-                // Throw your "Not Implemented" lyrics logic here!
+                // Open app with lyrics view
+                var mainIntent = new Intent(this, typeof(TransitionActivity));
+                mainIntent.SetAction(Intent.ActionMain);
+                mainIntent.AddCategory(Intent.CategoryLauncher);
+                mainIntent.SetFlags(ActivityFlags.NewTask | ActivityFlags.SingleTop);
+                StartActivity(mainIntent);
                 break;
         }
 
@@ -449,6 +496,10 @@ public class ExoPlayerService : MediaSessionService
     {
         positionHandler?.RemoveCallbacksAndMessages(positionRunnable!);
         positionHandler = null;
+        
+        // Dispose of lyrics subscription
+        _lyricsSubscription?.Dispose();
+        _lyricsSubscription = null;
 
         mediaSession?.Release();
         player?.Release();
@@ -590,8 +641,21 @@ public class ExoPlayerService : MediaSessionService
 
     internal static void UpdateFavoriteState(SongModelView song)
     {
-        Toast.MakeText(Platform.AppContext, "Opening synced lyrics...", ToastLength.Short)?.Show();
-
+        Toast.MakeText(Platform.AppContext, 
+            song.IsFavorite ? "Added to favorites" : "Removed from favorites", 
+            ToastLength.Short)?.Show();
+    }
+    
+    internal void ToggleShuffleState()
+    {
+        var viewModel = MainApplication.ServiceProvider?.GetService<BaseViewModel>();
+        if (viewModel != null)
+        {
+            viewModel.IsShuffleActive = !viewModel.IsShuffleActive;
+            Toast.MakeText(Platform.AppContext, 
+                viewModel.IsShuffleActive ? "Shuffle enabled" : "Shuffle disabled", 
+                ToastLength.Short)?.Show();
+        }
     }
 
     public void UpdateMediaSessionLayout()
@@ -613,6 +677,58 @@ public class ExoPlayerService : MediaSessionService
         var layout = new List<CommandButton> { heartBtn, shuffleBtn };
         mediaSession?.SetCustomLayout((System.Collections.Generic.IList<CommandButton>)layout);
     }
+    
+    private void SubscribeToLyrics()
+    {
+        try
+        {
+            var lyricsMgtFlow = MainApplication.ServiceProvider?.GetService<LyricsMgtFlow>();
+            if (lyricsMgtFlow != null)
+            {
+                _lyricsSubscription = lyricsMgtFlow.CurrentLyric
+                    .Subscribe(
+                        lyricLine =>
+                        {
+                            if (lyricLine != null && !string.IsNullOrWhiteSpace(lyricLine.Text))
+                            {
+                                _currentLyricText = lyricLine.Text;
+                                UpdateNotificationWithLyrics();
+                            }
+                        },
+                        ex => Console.WriteLine($"[ExoPlayerService] Error in lyrics subscription: {ex.Message}")
+                    );
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ExoPlayerService] Failed to subscribe to lyrics: {ex.Message}");
+        }
+    }
+    
+    private void UpdateNotificationWithLyrics()
+    {
+        try
+        {
+            // Throttle notification updates to avoid excessive refreshes
+            var now = DateTime.UtcNow;
+            if ((now - _lastNotificationUpdate).TotalMilliseconds < NotificationUpdateThrottleMs)
+            {
+                return; // Skip update if too soon after last one
+            }
+            
+            if (_notifMgr != null && CurrentSongContext != null && CurrentSongContext.HasSyncedLyrics)
+            {
+                _lastNotificationUpdate = now;
+                // Refresh the notification to update the lyrics display
+                RefreshNotification();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ExoPlayerService] Failed to update notification with lyrics: {ex.Message}");
+        }
+    }
+    
     // --- Player Event Listener ---
     sealed class PlayerEventListener : Object, IPlayerListener // Use specific IPlayer.Listener
     {
@@ -957,17 +1073,43 @@ public class ExoPlayerService : MediaSessionService
                     var currentSong = ExoPlayerService.CurrentSongContext;
                     if (currentSong != null)
                     {
-                        currentSong.IsFavorite = !currentSong.IsFavorite;
+                        var viewModel = MainApplication.ServiceProvider?.GetService<BaseViewModel>();
+                        if (viewModel != null)
+                        {
+                            // Toggle favorite using the proper ViewModel methods
+                            // Use fire-and-forget but with proper exception handling
+                            _ = Task.Run(async () =>
+                            {
+                                try
+                                {
+                                    if (currentSong.IsFavorite)
+                                    {
+                                        await viewModel.RemoveSongFromFavorite(currentSong);
+                                    }
+                                    else
+                                    {
+                                        await viewModel.AddFavoriteRatingToSong(currentSong);
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine($"[ExoPlayerService] Error toggling favorite: {ex.Message}");
+                                }
+                            });
+                        }
+                        else
+                        {
+                            // Fallback to simple toggle if ViewModel not available
+                            currentSong.IsFavorite = !currentSong.IsFavorite;
+                        }
                         ExoPlayerService.UpdateFavoriteState(currentSong);
+                        service.UpdateMediaSessionLayout();
+                        service.RefreshNotification();
                     }
                     return (SessionResult)SessionResult.ResultSuccess;
                 case ExoPlayerService.ActionShuffle:
                     // Toggle shuffle mode
-                    if (service.player != null)
-                    {
-                        bool newShuffleState = !service.player.ShuffleModeEnabled;
-                        service.player.ShuffleModeEnabled = newShuffleState;
-                    }
+                    service.ToggleShuffleState();
                     return (SessionResult)SessionResult.ResultSuccess;
                 default:
                     return (SessionResult)SessionResult.ResultErrorUnknown;

@@ -101,7 +101,7 @@ public static class NotificationHelper
 
         var customActionReceiver = new DimmerActionReceiver(service);
 
-        var descrAdapter = new DefaultMediaDescriptionAdapter(pi);
+        var descrAdapter = new LyricsMediaDescriptionAdapter(pi, service as ExoPlayerService);
 
 
         PlayerNotificationManager? mgr = new PlayerNotificationManager.Builder(
@@ -321,6 +321,107 @@ public static class NotificationHelper
             return new NotificationCompat.Action(icon, new Java.Lang.String(title), pi);
         }
 
+    }
+
+    // Custom media description adapter that displays lyrics
+    class LyricsMediaDescriptionAdapter : Java.Lang.Object, PlayerNotificationManager.IMediaDescriptionAdapter
+    {
+        private readonly PendingIntent _pendingIntent;
+        private readonly ExoPlayerService? _service;
+        private volatile string? _cachedLyricText;
+        private IDisposable? _lyricSubscription;
+
+        public LyricsMediaDescriptionAdapter(PendingIntent pendingIntent, ExoPlayerService? service)
+        {
+            _pendingIntent = pendingIntent;
+            _service = service;
+            
+            // Subscribe to lyrics updates to cache the current text
+            try
+            {
+                var lyricsMgtFlow = MainApplication.ServiceProvider?.GetService<LyricsMgtFlow>();
+                if (lyricsMgtFlow != null)
+                {
+                    _lyricSubscription = lyricsMgtFlow.CurrentLyric
+                        .Subscribe(
+                            lyricLine =>
+                            {
+                                if (lyricLine != null && !string.IsNullOrWhiteSpace(lyricLine.Text))
+                                {
+                                    _cachedLyricText = lyricLine.Text;
+                                }
+                                else
+                                {
+                                    _cachedLyricText = null;
+                                }
+                            },
+                            ex => Console.WriteLine($"[LyricsMediaDescriptionAdapter] Error: {ex.Message}")
+                        );
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[LyricsMediaDescriptionAdapter] Failed to subscribe: {ex.Message}");
+            }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _lyricSubscription?.Dispose();
+                _lyricSubscription = null;
+            }
+            base.Dispose(disposing);
+        }
+
+        public Java.Lang.ICharSequence? GetCurrentContentText(IPlayer? player)
+        {
+            // Use cached lyric text if available (volatile read is thread-safe)
+            if (_service != null && 
+                ExoPlayerService.CurrentSongContext?.HasSyncedLyrics == true && 
+                !string.IsNullOrWhiteSpace(_cachedLyricText))
+            {
+                return new Java.Lang.String(_cachedLyricText);
+            }
+
+            // Fall back to artist name if no lyrics
+            var metadata = player?.MediaMetadata;
+            return metadata?.Artist ?? new Java.Lang.String("Unknown Artist");
+        }
+
+        public Java.Lang.ICharSequence? GetCurrentContentTitle(IPlayer? player)
+        {
+            var metadata = player?.MediaMetadata;
+            return metadata?.Title ?? new Java.Lang.String("Unknown Title");
+        }
+
+        public Bitmap? GetCurrentLargeIcon(IPlayer? player, PlayerNotificationManager.BitmapCallback? callback)
+        {
+            // Try to get album artwork
+            var metadata = player?.MediaMetadata;
+            if (metadata?.ArtworkUri != null)
+            {
+                try
+                {
+                    var artworkPath = metadata.ArtworkUri.Path;
+                    if (!string.IsNullOrEmpty(artworkPath) && File.Exists(artworkPath))
+                    {
+                        return BitmapFactory.DecodeFile(artworkPath);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[LyricsMediaDescriptionAdapter] Failed to load artwork: {ex.Message}");
+                }
+            }
+            return null;
+        }
+
+        public PendingIntent? CreateCurrentContentIntent(IPlayer? player)
+        {
+            return _pendingIntent;
+        }
     }
 
 
