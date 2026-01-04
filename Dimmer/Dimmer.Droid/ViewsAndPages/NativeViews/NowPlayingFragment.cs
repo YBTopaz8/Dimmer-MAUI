@@ -786,14 +786,140 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
     public void AnimateTransition(float slideOffset)
     {
         // slideOffset: 0.0 (Collapsed) -> 1.0 (Expanded)
+        
+        if (_miniPlayerContainer == null || _expandedContainer == null) return;
 
-        // Fade out Mini Player (0 -> 0.2 fade out fast)
-        _miniPlayerContainer.Alpha = 1f - (slideOffset * 5f);
-        _miniPlayerContainer.Visibility = _miniPlayerContainer.Alpha <= 0 ? ViewStates.Invisible : ViewStates.Visible;
-
-        // Fade in Expanded Player (0.2 -> 1.0)
-        _expandedContainer.Alpha = Math.Max(0, (slideOffset - 0.2f) / 0.8f);
-        _expandedContainer.Visibility = _expandedContainer.Alpha <= 0 ? ViewStates.Invisible : ViewStates.Visible;
+        // Use interpolated values for smooth animations
+        var fastFadeThreshold = 0.15f; // Mini player fades out quickly
+        var slowFadeStart = 0.1f;      // Expanded player starts fading in early
+        
+        // === MINI PLAYER ANIMATIONS ===
+        // Fade out Mini Player (0 -> 0.15 fade out)
+        var miniAlpha = Math.Max(0, 1f - (slideOffset / fastFadeThreshold));
+        _miniPlayerContainer.Alpha = miniAlpha;
+        _miniPlayerContainer.Visibility = miniAlpha <= 0.01f ? ViewStates.Invisible : ViewStates.Visible;
+        
+        // Scale down mini cover as it fades
+        if (_miniCover != null)
+        {
+            var miniScale = 1f - (slideOffset * 0.3f); // Scale down to 70%
+            _miniCover.ScaleX = Math.Max(0.7f, miniScale);
+            _miniCover.ScaleY = Math.Max(0.7f, miniScale);
+        }
+        
+        // Translate mini title and artist slightly down as they fade
+        if (_miniTitle != null && _miniArtist != null)
+        {
+            var miniTextOffset = slideOffset * AppUtil.DpToPx(20);
+            _miniTitle.TranslationY = miniTextOffset;
+            _miniArtist.TranslationY = miniTextOffset;
+        }
+        
+        // === EXPANDED PLAYER ANIMATIONS ===
+        // Fade in Expanded Player (0.1 -> 1.0)
+        var expandedAlpha = Math.Min(1f, Math.Max(0, (slideOffset - slowFadeStart) / (1f - slowFadeStart)));
+        _expandedContainer.Alpha = expandedAlpha;
+        _expandedContainer.Visibility = expandedAlpha <= 0.01f ? ViewStates.Invisible : ViewStates.Visible;
+        
+        // Animate expanded cover image with scale and translation
+        if (_mainCoverImage != null && slideOffset > 0.01f)
+        {
+            // Scale up from smaller to full size
+            var coverScale = 0.85f + (slideOffset * 0.15f); // From 85% to 100%
+            _mainCoverImage.ScaleX = coverScale;
+            _mainCoverImage.ScaleY = coverScale;
+            
+            // Slight translation upward for dynamic effect
+            var coverTranslation = (1f - slideOffset) * AppUtil.DpToPx(30);
+            _mainCoverImage.TranslationY = coverTranslation;
+        }
+        
+        // Animate expanded title
+        if (_expandedTitle != null && slideOffset > 0.01f)
+        {
+            // Fade in with slight delay
+            var titleAlpha = Math.Max(0, (slideOffset - 0.2f) / 0.8f);
+            _expandedTitle.Alpha = titleAlpha;
+            
+            // Slide in from above
+            var titleTranslation = (1f - slideOffset) * AppUtil.DpToPx(20);
+            _expandedTitle.TranslationY = titleTranslation;
+            
+            // Scale up slightly
+            var titleScale = 0.95f + (slideOffset * 0.05f);
+            _expandedTitle.ScaleX = titleScale;
+            _expandedTitle.ScaleY = titleScale;
+        }
+        
+        // Animate artist chips
+        if (_artistChipGroup != null && slideOffset > 0.01f)
+        {
+            var artistAlpha = Math.Max(0, (slideOffset - 0.25f) / 0.75f);
+            _artistChipGroup.Alpha = artistAlpha;
+            
+            var artistTranslation = (1f - slideOffset) * AppUtil.DpToPx(15);
+            _artistChipGroup.TranslationY = artistTranslation;
+        }
+        
+        // Animate playback controls (play, prev, next buttons)
+        if (_playPauseBtn != null && _prevBtn != null && _nextBtn != null && slideOffset > 0.01f)
+        {
+            var controlsAlpha = Math.Max(0, (slideOffset - 0.3f) / 0.7f);
+            var controlsScale = 0.9f + (slideOffset * 0.1f);
+            
+            _playPauseBtn.Alpha = controlsAlpha;
+            _playPauseBtn.ScaleX = controlsScale;
+            _playPauseBtn.ScaleY = controlsScale;
+            
+            _prevBtn.Alpha = controlsAlpha;
+            _prevBtn.ScaleX = controlsScale;
+            _prevBtn.ScaleY = controlsScale;
+            
+            _nextBtn.Alpha = controlsAlpha;
+            _nextBtn.ScaleX = controlsScale;
+            _nextBtn.ScaleY = controlsScale;
+        }
+        
+        // Animate shuffle and repeat buttons
+        if (_shuffleBtn != null && _repeatBtn != null && slideOffset > 0.01f)
+        {
+            var extraControlsAlpha = Math.Max(0, (slideOffset - 0.35f) / 0.65f);
+            _shuffleBtn.Alpha = extraControlsAlpha;
+            _repeatBtn.Alpha = extraControlsAlpha;
+        }
+        
+        // Animate seek slider and time displays
+        if (_seekSlider != null && _currentTimeText != null && _totalTimeText != null && slideOffset > 0.01f)
+        {
+            var sliderAlpha = Math.Max(0, (slideOffset - 0.4f) / 0.6f);
+            _seekSlider.Alpha = sliderAlpha;
+            _currentTimeText.Alpha = sliderAlpha;
+            _totalTimeText.Alpha = sliderAlpha;
+            
+            var sliderTranslation = (1f - slideOffset) * AppUtil.DpToPx(10);
+            _seekSlider.TranslationY = sliderTranslation;
+        }
+        
+        // Animate volume control
+        if (_volumeSlider != null && slideOffset > 0.01f)
+        {
+            var volumeAlpha = Math.Max(0, (slideOffset - 0.45f) / 0.55f);
+            _volumeSlider.Alpha = volumeAlpha;
+        }
+        
+        // Animate bottom action buttons (queue, share, lyrics)
+        if (_queueBtn != null && _shareBtn != null && _toggleLyricsViewBtn != null && slideOffset > 0.01f)
+        {
+            var bottomAlpha = Math.Max(0, (slideOffset - 0.5f) / 0.5f);
+            _queueBtn.Alpha = bottomAlpha;
+            _shareBtn.Alpha = bottomAlpha;
+            _toggleLyricsViewBtn.Alpha = bottomAlpha;
+            
+            var bottomTranslation = (1f - slideOffset) * AppUtil.DpToPx(20);
+            _queueBtn.TranslationY = bottomTranslation;
+            _shareBtn.TranslationY = bottomTranslation;
+            _toggleLyricsViewBtn.TranslationY = bottomTranslation;
+        }
     }
 
     public void OnBackInvoked()

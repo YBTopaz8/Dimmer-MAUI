@@ -189,6 +189,8 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         SheetBehavior = new BottomSheetBehavior();
         SheetBehavior.PeekHeight = AppUtil.DpToPx(70);
         SheetBehavior.State = BottomSheetBehavior.StateCollapsed;
+        SheetBehavior.Draggable = true;
+        SheetBehavior.HideFriction = 0.1f; // Smooth dragging
         sheetParams.Behavior = SheetBehavior;
 
         // Add views to Coordinator (Content first, then Player on top)
