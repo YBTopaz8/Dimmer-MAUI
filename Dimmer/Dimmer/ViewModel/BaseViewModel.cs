@@ -6312,8 +6312,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         var linesToRepeat = selectedLines.ToList();
         if (linesToRepeat.Count == 0) return;
 
-        // Find the index of the last selected line
-        var lastLineIndex = LyricsInEditor.IndexOf(linesToRepeat.Last());
+        // Find the index of the last selected line (using index access for efficiency)
+        var lastLineIndex = LyricsInEditor.IndexOf(linesToRepeat[linesToRepeat.Count - 1]);
         if (lastLineIndex < 0) return;
 
         // Insert repeated lines after the last selected line

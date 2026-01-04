@@ -566,16 +566,23 @@ public class LyricsManualSyncAdapter : RecyclerView.Adapter
             _timestamp.Alpha = line.IsTimed ? 1.0f : 0.4f;
             _textEdit.Text = line.Text;
 
-            // Highlight current line
+            // Highlight current line with theme-appropriate colors
+            var context = _textEdit.Context;
             if (line.IsCurrentLine)
             {
                 _textEdit.SetTypeface(null, Android.Graphics.TypefaceStyle.Bold);
-                _textEdit.SetTextColor(Android.Graphics.Color.Blue);
+                // Use accent color for highlighted text
+                var accentColor = new Android.Util.TypedValue();
+                context?.Theme?.ResolveAttribute(Android.Resource.Attribute.ColorAccent, accentColor, true);
+                _textEdit.SetTextColor(new Android.Graphics.Color(accentColor.Data));
             }
             else
             {
                 _textEdit.SetTypeface(null, Android.Graphics.TypefaceStyle.Normal);
-                _textEdit.SetTextColor(Android.Graphics.Color.Black);
+                // Use default text color from theme
+                var textColorPrimary = new Android.Util.TypedValue();
+                context?.Theme?.ResolveAttribute(Android.Resource.Attribute.TextColorPrimary, textColorPrimary, true);
+                _textEdit.SetTextColor(new Android.Graphics.Color(textColorPrimary.Data));
             }
         }
     }
