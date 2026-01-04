@@ -138,7 +138,7 @@ public class ExoPlayerService : MediaSessionService
     private volatile string? _currentLyricText;
     private IDisposable? _lyricsSubscription;
     private DateTime _lastNotificationUpdate = DateTime.MinValue;
-    private const int NotificationUpdateThrottleMs = 500; // Throttle to max 2 updates per second
+    private const int NotificationUpdateThrottleMs = 500; // Allow up to 2 updates per second
 
     public ExoPlayerServiceBinder? Binder { get => _binder; set => _binder = value; }
 
@@ -418,7 +418,7 @@ public class ExoPlayerService : MediaSessionService
                 var currentSong = CurrentSongContext;
                 if (currentSong != null)
                 {
-                    var viewModel = MainApplication.ServiceProvider.GetService<BaseViewModel>();
+                    var viewModel = MainApplication.ServiceProvider?.GetService<BaseViewModel>();
                     if (viewModel != null)
                     {
                         // Toggle favorite using the proper ViewModel methods with exception handling
@@ -648,7 +648,7 @@ public class ExoPlayerService : MediaSessionService
     
     internal void ToggleShuffleState()
     {
-        var viewModel = MainApplication.ServiceProvider.GetService<BaseViewModel>();
+        var viewModel = MainApplication.ServiceProvider?.GetService<BaseViewModel>();
         if (viewModel != null)
         {
             viewModel.IsShuffleActive = !viewModel.IsShuffleActive;
@@ -1073,7 +1073,7 @@ public class ExoPlayerService : MediaSessionService
                     var currentSong = ExoPlayerService.CurrentSongContext;
                     if (currentSong != null)
                     {
-                        var viewModel = MainApplication.ServiceProvider.GetService<BaseViewModel>();
+                        var viewModel = MainApplication.ServiceProvider?.GetService<BaseViewModel>();
                         if (viewModel != null)
                         {
                             // Toggle favorite using the proper ViewModel methods
