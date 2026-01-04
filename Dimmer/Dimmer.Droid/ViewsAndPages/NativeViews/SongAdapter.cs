@@ -143,13 +143,8 @@ internal class SongAdapter : RecyclerView.Adapter
     public bool OnItemMove(int fromPosition, int toPosition)
     {
         // 1. Move the item in the actual data list
-        // If it's an ObservableCollection, use Move for efficiency
-       
-        MyViewModel.PlaybackQueueSource.Edit(upd=>
-            {
-                //MyViewModel.PlaybackQueueSource.RemoveAt(fromPosition);
-                //MyViewModel.PlaybackQueueSource.Insert(toPosition, item);
-            });
+        // Use the ViewModel's MoveSongInQueue to ensure proper queue index tracking
+        MyViewModel.MoveSongInQueue(fromPosition, toPosition);
 
         // 2. Notify the RecyclerView that the item moved visually
         // IMPORTANT: Do NOT call NotifyDataSetChanged(), it breaks animations.

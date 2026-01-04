@@ -99,6 +99,15 @@ public class QueueBottomSheetFragment : BottomSheetDialogFragment
     public override void OnViewCreated(View? view, Bundle? savedInstanceState)
     {
         base.OnViewCreated(view, savedInstanceState);
+        
+        // Enable drag & drop for queue reordering
+        if (_recyclerView != null && _adapter != null)
+        {
+            var callback = new SongAdapter.SimpleItemTouchHelperCallback(_adapter);
+            var itemTouchHelper = new ItemTouchHelper(callback);
+            itemTouchHelper.AttachToRecyclerView(_recyclerView);
+        }
+        
         if (_pendingScrollToCurrent)
         {
             
