@@ -419,15 +419,25 @@ public class ExoPlayerService : MediaSessionService
                     var viewModel = MainApplication.ServiceProvider.GetService<BaseViewModel>();
                     if (viewModel != null)
                     {
-                        // Toggle favorite using the proper ViewModel methods
-                        if (currentSong.IsFavorite)
+                        // Toggle favorite using the proper ViewModel methods with exception handling
+                        _ = Task.Run(async () =>
                         {
-                            Task.Run(async () => await viewModel.RemoveSongFromFavorite(currentSong));
-                        }
-                        else
-                        {
-                            Task.Run(async () => await viewModel.AddFavoriteRatingToSong(currentSong));
-                        }
+                            try
+                            {
+                                if (currentSong.IsFavorite)
+                                {
+                                    await viewModel.RemoveSongFromFavorite(currentSong);
+                                }
+                                else
+                                {
+                                    await viewModel.AddFavoriteRatingToSong(currentSong);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"[ExoPlayerService] Error toggling favorite: {ex.Message}");
+                            }
+                        });
                     }
                     else
                     {
@@ -1057,14 +1067,25 @@ public class ExoPlayerService : MediaSessionService
                         if (viewModel != null)
                         {
                             // Toggle favorite using the proper ViewModel methods
-                            if (currentSong.IsFavorite)
+                            // Use fire-and-forget but with proper exception handling
+                            _ = Task.Run(async () =>
                             {
-                                Task.Run(async () => await viewModel.RemoveSongFromFavorite(currentSong));
-                            }
-                            else
-                            {
-                                Task.Run(async () => await viewModel.AddFavoriteRatingToSong(currentSong));
-                            }
+                                try
+                                {
+                                    if (currentSong.IsFavorite)
+                                    {
+                                        await viewModel.RemoveSongFromFavorite(currentSong);
+                                    }
+                                    else
+                                    {
+                                        await viewModel.AddFavoriteRatingToSong(currentSong);
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine($"[ExoPlayerService] Error toggling favorite: {ex.Message}");
+                                }
+                            });
                         }
                         else
                         {

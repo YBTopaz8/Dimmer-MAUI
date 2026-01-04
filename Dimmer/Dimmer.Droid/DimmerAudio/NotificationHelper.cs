@@ -328,38 +328,61 @@ public static class NotificationHelper
     {
         private readonly PendingIntent _pendingIntent;
         private readonly ExoPlayerService? _service;
+        private string? _cachedLyricText;
+        private IDisposable? _lyricSubscription;
 
         public LyricsMediaDescriptionAdapter(PendingIntent pendingIntent, ExoPlayerService? service)
         {
             _pendingIntent = pendingIntent;
             _service = service;
-        }
-
-        public Java.Lang.ICharSequence? GetCurrentContentText(IPlayer? player)
-        {
-            // Try to get current lyrics from the service
-            if (_service != null && ExoPlayerService.CurrentSongContext?.HasSyncedLyrics == true)
+            
+            // Subscribe to lyrics updates to cache the current text
+            try
             {
                 var lyricsMgtFlow = MainApplication.ServiceProvider?.GetService<LyricsMgtFlow>();
                 if (lyricsMgtFlow != null)
                 {
-                    try
-                    {
-                        // Get the current lyric line text
-                        var currentLyric = lyricsMgtFlow.CurrentLyric
-                            .Take(1)
-                            .Wait();
-                        
-                        if (currentLyric != null && !string.IsNullOrWhiteSpace(currentLyric.Text))
-                        {
-                            return new Java.Lang.String(currentLyric.Text);
-                        }
-                    }
-                    catch
-                    {
-                        // Fall through to default
-                    }
+                    _lyricSubscription = lyricsMgtFlow.CurrentLyric
+                        .Subscribe(
+                            lyricLine =>
+                            {
+                                if (lyricLine != null && !string.IsNullOrWhiteSpace(lyricLine.Text))
+                                {
+                                    _cachedLyricText = lyricLine.Text;
+                                }
+                                else
+                                {
+                                    _cachedLyricText = null;
+                                }
+                            },
+                            ex => Console.WriteLine($"[LyricsMediaDescriptionAdapter] Error: {ex.Message}")
+                        );
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[LyricsMediaDescriptionAdapter] Failed to subscribe: {ex.Message}");
+            }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _lyricSubscription?.Dispose();
+                _lyricSubscription = null;
+            }
+            base.Dispose(disposing);
+        }
+
+        public Java.Lang.ICharSequence? GetCurrentContentText(IPlayer? player)
+        {
+            // Use cached lyric text if available
+            if (_service != null && 
+                ExoPlayerService.CurrentSongContext?.HasSyncedLyrics == true && 
+                !string.IsNullOrWhiteSpace(_cachedLyricText))
+            {
+                return new Java.Lang.String(_cachedLyricText);
             }
 
             // Fall back to artist name if no lyrics
