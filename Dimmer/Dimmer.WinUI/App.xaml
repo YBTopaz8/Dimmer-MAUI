@@ -45,6 +45,8 @@
             <converters:RepeatModeConverter x:Key="RepeatModeConverter" />
             <converters:BoolToGlyphConverter x:Key="BoolToGlyphConverter" />
             <converters:BoolToPlanNameConverter x:Key="BoolToPlanNameConverter" />
+            <converters:BoolOpacityConverter x:Key="BoolOpacityConverter" />
+            <converters:BoolInverterConverter x:Key="BoolInverterConverter" />
 
             <converters:StringNullOrEmptyToVisibility x:Key="StringNullOrEmptyToVisibility" />
             <converters:BoolToImageConverter
