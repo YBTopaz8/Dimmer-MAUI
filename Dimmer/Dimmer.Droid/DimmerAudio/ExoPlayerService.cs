@@ -135,8 +135,10 @@ public class ExoPlayerService : MediaSessionService
     private MediaController? mediaController;
     
     // Lyrics tracking
-    private string? _currentLyricText;
+    private volatile string? _currentLyricText;
     private IDisposable? _lyricsSubscription;
+    private DateTime _lastNotificationUpdate = DateTime.MinValue;
+    private const int NotificationUpdateThrottleMs = 500; // Throttle to max 2 updates per second
 
     public ExoPlayerServiceBinder? Binder { get => _binder; set => _binder = value; }
 
@@ -707,8 +709,16 @@ public class ExoPlayerService : MediaSessionService
     {
         try
         {
+            // Throttle notification updates to avoid excessive refreshes
+            var now = DateTime.UtcNow;
+            if ((now - _lastNotificationUpdate).TotalMilliseconds < NotificationUpdateThrottleMs)
+            {
+                return; // Skip update if too soon after last one
+            }
+            
             if (_notifMgr != null && CurrentSongContext != null && CurrentSongContext.HasSyncedLyrics)
             {
+                _lastNotificationUpdate = now;
                 // Refresh the notification to update the lyrics display
                 RefreshNotification();
             }

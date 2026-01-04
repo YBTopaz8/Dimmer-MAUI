@@ -328,7 +328,7 @@ public static class NotificationHelper
     {
         private readonly PendingIntent _pendingIntent;
         private readonly ExoPlayerService? _service;
-        private string? _cachedLyricText;
+        private volatile string? _cachedLyricText;
         private IDisposable? _lyricSubscription;
 
         public LyricsMediaDescriptionAdapter(PendingIntent pendingIntent, ExoPlayerService? service)
@@ -377,7 +377,7 @@ public static class NotificationHelper
 
         public Java.Lang.ICharSequence? GetCurrentContentText(IPlayer? player)
         {
-            // Use cached lyric text if available
+            // Use cached lyric text if available (volatile read is thread-safe)
             if (_service != null && 
                 ExoPlayerService.CurrentSongContext?.HasSyncedLyrics == true && 
                 !string.IsNullOrWhiteSpace(_cachedLyricText))
@@ -410,9 +410,9 @@ public static class NotificationHelper
                         return BitmapFactory.DecodeFile(artworkPath);
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // Fall through to default
+                    Console.WriteLine($"[LyricsMediaDescriptionAdapter] Failed to load artwork: {ex.Message}");
                 }
             }
             return null;
