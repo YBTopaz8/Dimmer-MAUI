@@ -1034,6 +1034,104 @@ AnimationHelper.Key_Forward
         });
     }
 
+    private void NowPlayingPBQueue_DragItemsCompleted(ListViewBase sender, DragItemsCompletedEventArgs args)
+    {
+        // The ListView automatically reorders items in the UI, but we need to update the underlying queue
+        // Get the current order from the ListView
+        var currentOrder = NowPlayingPBQueue.Items.Cast<SongModelView>().ToList();
+        
+        // Find what was moved
+        if (args.Items.Count > 0)
+        {
+            var movedItem = args.Items[0] as SongModelView;
+            if (movedItem != null)
+            {
+                var newIndex = currentOrder.IndexOf(movedItem);
+                var oldIndex = MyViewModel.PlaybackQueue.IndexOf(movedItem);
+                
+                if (oldIndex >= 0 && newIndex >= 0 && oldIndex != newIndex)
+                {
+                    // Update the ViewModel's queue to match the new order
+                    MyViewModel.MoveSongInQueue(oldIndex, newIndex);
+                }
+            }
+        }
+    }
+
+    private async void InsertSongsBefore_Click(object sender, RoutedEventArgs e)
+    {
+        var menuItem = (MenuFlyoutItem)sender;
+        var targetSong = menuItem.DataContext as SongModelView;
+        
+        if (targetSong == null) return;
+
+        // For now, use the search results as the songs to insert
+        // In a full implementation, you'd show a song picker dialog
+        var songsToInsert = MyViewModel.SearchResults.Take(5).ToList();
+        
+        if (songsToInsert.Any())
+        {
+            var param = new Tuple<SongModelView, IEnumerable<SongModelView>>(targetSong, songsToInsert);
+            MyViewModel.InsertSongsBeforeInQueueCommand.Execute(param);
+        }
+    }
+
+    private async void InsertSongsAfter_Click(object sender, RoutedEventArgs e)
+    {
+        var menuItem = (MenuFlyoutItem)sender;
+        var targetSong = menuItem.DataContext as SongModelView;
+        
+        if (targetSong == null) return;
+
+        // For now, use the search results as the songs to insert
+        // In a full implementation, you'd show a song picker dialog
+        var songsToInsert = MyViewModel.SearchResults.Take(5).ToList();
+        
+        if (songsToInsert.Any())
+        {
+            var param = new Tuple<SongModelView, IEnumerable<SongModelView>>(targetSong, songsToInsert);
+            MyViewModel.InsertSongsAfterInQueueCommand.Execute(param);
+        }
+    }
+
+    private async void SaveQueueAsPlaylist_Click(object sender, RoutedEventArgs e)
+    {
+        // Show a dialog to get the playlist name
+        var dialog = new ContentDialog
+        {
+            Title = "Save Queue as Playlist",
+            PrimaryButtonText = "Save",
+            CloseButtonText = "Cancel",
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = this.XamlRoot
+        };
+
+        var textBox = new TextBox
+        {
+            PlaceholderText = "Enter playlist name",
+            Width = 300
+        };
+
+        dialog.Content = textBox;
+
+        var result = await dialog.ShowAsync();
+
+        if (result == ContentDialogResult.Primary && !string.IsNullOrWhiteSpace(textBox.Text))
+        {
+            MyViewModel.SaveQueueAsPlaylistCommand.Execute(textBox.Text);
+            
+            // Show confirmation
+            var confirmDialog = new ContentDialog
+            {
+                Title = "Success",
+                Content = $"Queue saved as playlist '{textBox.Text}'",
+                CloseButtonText = "OK",
+                XamlRoot = this.XamlRoot
+            };
+            await confirmDialog.ShowAsync();
+        }
+    }
+
     private async void RemoveSongFromQueue_Click(object sender, RoutedEventArgs e)
     {
         var send = (FrameworkElement)sender;
