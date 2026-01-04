@@ -1065,8 +1065,9 @@ AnimationHelper.Key_Forward
         
         if (targetSong == null) return;
 
+        // TODO: Implement proper song picker dialog
         // For now, use the search results as the songs to insert
-        // In a full implementation, you'd show a song picker dialog
+        // This is a placeholder implementation for demonstration purposes
         var songsToInsert = MyViewModel.SearchResults.Take(5).ToList();
         
         if (songsToInsert.Any())
@@ -1083,8 +1084,9 @@ AnimationHelper.Key_Forward
         
         if (targetSong == null) return;
 
+        // TODO: Implement proper song picker dialog
         // For now, use the search results as the songs to insert
-        // In a full implementation, you'd show a song picker dialog
+        // This is a placeholder implementation for demonstration purposes
         var songsToInsert = MyViewModel.SearchResults.Take(5).ToList();
         
         if (songsToInsert.Any())

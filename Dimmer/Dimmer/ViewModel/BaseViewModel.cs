@@ -3702,6 +3702,19 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         PlaybackQueueSource.Move(oldIndex, newIndex);
 
+        // Update current playing index if affected by the move
+        if (_currentPlayinSongIndexInPlaybackQueue == oldIndex)
+        {
+            _currentPlayinSongIndexInPlaybackQueue = newIndex;
+        }
+        else if (oldIndex < _currentPlayinSongIndexInPlaybackQueue && newIndex >= _currentPlayinSongIndexInPlaybackQueue)
+        {
+            _currentPlayinSongIndexInPlaybackQueue--;
+        }
+        else if (oldIndex > _currentPlayinSongIndexInPlaybackQueue && newIndex <= _currentPlayinSongIndexInPlaybackQueue)
+        {
+            _currentPlayinSongIndexInPlaybackQueue++;
+        }
 
         _logger.LogInformation("Moved song from index {Old} to {New}", oldIndex, newIndex);
     }
@@ -3912,17 +3925,19 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     var song = realm.Find<SongModel>(songView.Id);
                     if (song == null) continue;
 
-                    // Check if a note with this playlist name already exists
+                    // Check if a note with this exact playlist name already exists
+                    // Using exact match to avoid false positives (e.g., "Rock" vs "Rock Ballads")
+                    string expectedNoteText = $"Part of playlist: {playlistName}";
                     bool noteExists = song.UserNotes.Any(note => 
                         note.UserMessageText != null && 
-                        note.UserMessageText.Contains(playlistName, StringComparison.OrdinalIgnoreCase));
+                        note.UserMessageText.Equals(expectedNoteText, StringComparison.OrdinalIgnoreCase));
 
                     if (!noteExists)
                     {
                         var userNote = new UserNoteModel
                         {
                             Id = TaggingUtils.GenerateId("UNote"),
-                            UserMessageText = $"Part of playlist: {playlistName}",
+                            UserMessageText = expectedNoteText,
                             CreatedAt = DateTimeOffset.UtcNow,
                             ModifiedAt = DateTimeOffset.UtcNow,
                             IsPinned = false,

@@ -401,7 +401,9 @@ internal class SongAdapter : RecyclerView.Adapter
                 {
                     if (_currentSong != null)
                     {
+                        // TODO: Implement proper song picker dialog
                         // For now, use search results as songs to insert
+                        // This is a placeholder implementation for demonstration purposes
                         var songsToInsert = _viewModel.SearchResults.Take(3).ToList();
                         if (songsToInsert.Any())
                         {
@@ -419,7 +421,9 @@ internal class SongAdapter : RecyclerView.Adapter
                 {
                     if (_currentSong != null)
                     {
+                        // TODO: Implement proper song picker dialog
                         // For now, use search results as songs to insert
+                        // This is a placeholder implementation for demonstration purposes
                         var songsToInsert = _viewModel.SearchResults.Take(3).ToList();
                         if (songsToInsert.Any())
                         {
