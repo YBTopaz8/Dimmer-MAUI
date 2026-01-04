@@ -180,6 +180,133 @@ public class QueueManager<T> : IQueueManager<T>
         ItemDequeued = null;
     }
 
+    public void Move(int fromIndex, int toIndex)
+    {
+        if (_source.Count == 0)
+            return;
+
+        if (fromIndex < 0 || fromIndex >= _source.Count || toIndex < 0 || toIndex >= _source.Count)
+            throw new ArgumentOutOfRangeException("Index out of range");
+
+        if (fromIndex == toIndex)
+            return;
+
+        var item = _source[fromIndex];
+        _source.RemoveAt(fromIndex);
+        _source.Insert(toIndex, item);
+
+        // Update current position if affected
+        if (_position == fromIndex)
+        {
+            _position = toIndex;
+        }
+        else if (fromIndex < _position && toIndex >= _position)
+        {
+            _position--;
+        }
+        else if (fromIndex > _position && toIndex <= _position)
+        {
+            _position++;
+        }
+
+        // Re-evaluate current batch after move
+        if (_source.Count != 0)
+        {
+            int batchStart = (_position / _batchSize) * _batchSize;
+            int newBatchId = (batchStart / _batchSize) + 1;
+            if (newBatchId != _currentBatchIdValue)
+            {
+                _currentBatchIdValue = newBatchId;
+                var batch = _source.Skip(batchStart).Take(_batchSize).ToList();
+                if (batch.Count != 0)
+                {
+                    BatchEnqueued?.Invoke(this, _currentBatchIdValue, batch);
+                }
+            }
+        }
+    }
+
+    public void InsertRange(IEnumerable<T> items, int index)
+    {
+        if (items == null || !items.Any())
+            return;
+
+        if (index < 0 || index > _source.Count)
+            throw new ArgumentOutOfRangeException(nameof(index));
+
+        var itemsList = items.ToList();
+        _source.InsertRange(index, itemsList);
+
+        // Update current position if affected
+        if (_position >= index)
+        {
+            _position += itemsList.Count;
+        }
+
+        // Re-evaluate current batch after insertion
+        if (_source.Count != 0 && _position >= 0)
+        {
+            int batchStart = (_position / _batchSize) * _batchSize;
+            int newBatchId = (batchStart / _batchSize) + 1;
+            if (newBatchId != _currentBatchIdValue)
+            {
+                _currentBatchIdValue = newBatchId;
+                var batch = _source.Skip(batchStart).Take(_batchSize).ToList();
+                if (batch.Count != 0)
+                {
+                    BatchEnqueued?.Invoke(this, _currentBatchIdValue, batch);
+                }
+            }
+        }
+    }
+
+    public void RemoveAt(int index)
+    {
+        if (_source.Count == 0)
+            return;
+
+        if (index < 0 || index >= _source.Count)
+            throw new ArgumentOutOfRangeException(nameof(index));
+
+        _source.RemoveAt(index);
+
+        // Update current position if affected
+        if (_position > index)
+        {
+            _position--;
+        }
+        else if (_position == index)
+        {
+            // Current item was removed, adjust to stay within bounds
+            if (_position >= _source.Count)
+            {
+                _position = Math.Max(0, _source.Count - 1);
+            }
+        }
+
+        // Handle empty source
+        if (_source.Count == 0)
+        {
+            _position = -1;
+            _currentBatchIdValue = 0;
+        }
+        else
+        {
+            // Re-evaluate current batch after removal
+            int batchStart = (_position / _batchSize) * _batchSize;
+            int newBatchId = (batchStart / _batchSize) + 1;
+            if (newBatchId != _currentBatchIdValue)
+            {
+                _currentBatchIdValue = newBatchId;
+                var batch = _source.Skip(batchStart).Take(_batchSize).ToList();
+                if (batch.Count != 0)
+                {
+                    BatchEnqueued?.Invoke(this, _currentBatchIdValue, batch);
+                }
+            }
+        }
+    }
+
     public void Dispose()
     {
         Clear(); // Ensures event handlers are cleared, preventing leaks

@@ -3702,6 +3702,19 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         PlaybackQueueSource.Move(oldIndex, newIndex);
 
+        // Update current playing index if affected by the move
+        if (_currentPlayinSongIndexInPlaybackQueue == oldIndex)
+        {
+            _currentPlayinSongIndexInPlaybackQueue = newIndex;
+        }
+        else if (oldIndex < _currentPlayinSongIndexInPlaybackQueue && newIndex >= _currentPlayinSongIndexInPlaybackQueue)
+        {
+            _currentPlayinSongIndexInPlaybackQueue--;
+        }
+        else if (oldIndex > _currentPlayinSongIndexInPlaybackQueue && newIndex <= _currentPlayinSongIndexInPlaybackQueue)
+        {
+            _currentPlayinSongIndexInPlaybackQueue++;
+        }
 
         _logger.LogInformation("Moved song from index {Old} to {New}", oldIndex, newIndex);
     }
@@ -3815,6 +3828,132 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             return;
 
         PlaybackQueueSource.AddRange(songs.Distinct());
+    }
+
+    /// <summary>
+    /// Inserts songs before a specific song in the queue
+    /// </summary>
+    [RelayCommand]
+    public void InsertSongsBeforeInQueue(Tuple<SongModelView, IEnumerable<SongModelView>> param)
+    {
+        if (param == null || param.Item2 == null || !param.Item2.Any())
+            return;
+
+        var targetSong = param.Item1;
+        var songsToInsert = param.Item2.Distinct().ToList();
+
+        var targetIndex = PlaybackQueue.IndexOf(targetSong);
+        if (targetIndex < 0)
+        {
+            _logger.LogWarning("Target song not found in queue for InsertBefore operation");
+            return;
+        }
+
+        PlaybackQueueSource.InsertRange(songsToInsert, targetIndex);
+        
+        // Update current playing index if affected
+        if (_currentPlayinSongIndexInPlaybackQueue >= targetIndex)
+        {
+            _currentPlayinSongIndexInPlaybackQueue += songsToInsert.Count;
+        }
+
+        _logger.LogInformation("Inserted {Count} song(s) before position {Index}", songsToInsert.Count, targetIndex);
+    }
+
+    /// <summary>
+    /// Inserts songs after a specific song in the queue
+    /// </summary>
+    [RelayCommand]
+    public void InsertSongsAfterInQueue(Tuple<SongModelView, IEnumerable<SongModelView>> param)
+    {
+        if (param == null || param.Item2 == null || !param.Item2.Any())
+            return;
+
+        var targetSong = param.Item1;
+        var songsToInsert = param.Item2.Distinct().ToList();
+
+        var targetIndex = PlaybackQueue.IndexOf(targetSong);
+        if (targetIndex < 0)
+        {
+            _logger.LogWarning("Target song not found in queue for InsertAfter operation");
+            return;
+        }
+
+        var insertIndex = targetIndex + 1;
+        PlaybackQueueSource.InsertRange(songsToInsert, insertIndex);
+        
+        // Update current playing index if affected
+        if (_currentPlayinSongIndexInPlaybackQueue >= insertIndex)
+        {
+            _currentPlayinSongIndexInPlaybackQueue += songsToInsert.Count;
+        }
+
+        _logger.LogInformation("Inserted {Count} song(s) after position {Index}", songsToInsert.Count, targetIndex);
+    }
+
+    /// <summary>
+    /// Saves the current playback queue as a new playlist
+    /// </summary>
+    [RelayCommand]
+    public void SaveQueueAsPlaylist(string playlistName)
+    {
+        if (string.IsNullOrWhiteSpace(playlistName))
+        {
+            _logger.LogWarning("SaveQueueAsPlaylist called with empty playlist name");
+            return;
+        }
+
+        if (!PlaybackQueue.Any())
+        {
+            _logger.LogWarning("Cannot save empty queue as playlist");
+            return;
+        }
+
+        try
+        {
+            var songsInQueue = PlaybackQueue.ToList();
+            
+            // Create or update the playlist
+            AddToPlaylist(playlistName, songsInQueue, CurrentTqlQuery);
+
+            // Add playlist name as user note to songs that don't have it yet
+            var realm = RealmFactory.GetRealmInstance();
+            realm.Write(() =>
+            {
+                foreach (var songView in songsInQueue)
+                {
+                    var song = realm.Find<SongModel>(songView.Id);
+                    if (song == null) continue;
+
+                    // Check if a note with this exact playlist name already exists
+                    // Using exact match to avoid false positives (e.g., "Rock" vs "Rock Ballads")
+                    string expectedNoteText = $"Part of playlist: {playlistName}";
+                    bool noteExists = song.UserNotes.Any(note => 
+                        note.UserMessageText != null && 
+                        note.UserMessageText.Equals(expectedNoteText, StringComparison.OrdinalIgnoreCase));
+
+                    if (!noteExists)
+                    {
+                        var userNote = new UserNoteModel
+                        {
+                            Id = TaggingUtils.GenerateId("UNote"),
+                            UserMessageText = expectedNoteText,
+                            CreatedAt = DateTimeOffset.UtcNow,
+                            ModifiedAt = DateTimeOffset.UtcNow,
+                            IsPinned = false,
+                            UserRating = 0
+                        };
+                        song.UserNotes.Add(userNote);
+                    }
+                }
+            });
+
+            _logger.LogInformation("Saved queue with {Count} songs as playlist '{Name}'", songsInQueue.Count, playlistName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error saving queue as playlist '{Name}'", playlistName);
+        }
     }
 
 
