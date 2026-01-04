@@ -440,7 +440,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         sharedSet.AddTransition(new ChangeBounds());
         sharedSet.AddTransition(new ChangeTransform());
         sharedSet.AddTransition(new ChangeImageTransform()); // Crucial for ImageViews
-        sharedSet.SetDuration(400);
+        sharedSet.SetDuration(350); // MD3 standard duration
         sharedSet.SetInterpolator(new LinearInterpolator());
 
         nowPlayingFrag.SharedElementEnterTransition = sharedSet;
@@ -449,7 +449,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         // 5. Define the Page Transition (The Fade In/Out of non-shared stuff)
         // Fade Through is standard for Material 3
         var fadeThrough = new Google.Android.Material.Transition.MaterialFadeThrough();
-        fadeThrough.SetDuration(300);
+        fadeThrough.SetDuration(350); // MD3 standard duration
         nowPlayingFrag.EnterTransition = fadeThrough;
         nowPlayingFrag.ExitTransition = fadeThrough;
         var trans = callerFrag.ParentFragmentManager.BeginTransaction()
@@ -488,7 +488,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             ContainerColor = Color.Transparent,
             FadeMode = MaterialContainerTransform.FadeModeCross
         };
-        container.SetDuration(400);
+        container.SetDuration(350); // MD3 standard duration
 
         fragment.SharedElementEnterTransition = container;
         fragment.SharedElementReturnTransition = container; // Reuse same config
@@ -525,7 +525,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             ContainerColor = Color.Transparent,
             FadeMode = MaterialContainerTransform.FadeModeThrough,
         };
-        containerTransform.SetDuration(400);
+        containerTransform.SetDuration(350); // MD3 standard duration
 
         fragment.SharedElementEnterTransition = containerTransform;
         fragment.SharedElementReturnTransition = containerTransform;
@@ -620,7 +620,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             // This adds the ARC motion you wanted from the second block
             PathMotion = new MaterialArcMotion()
         };
-        transform.SetDuration(400);
+        transform.SetDuration(350); // Match MD3 350ms duration
         // 3. Assign Transitions
         detailFrag.SharedElementEnterTransition = transform;
         detailFrag.SharedElementReturnTransition = transform; // It handles the reverse automatically
