@@ -123,7 +123,7 @@ public partial class DownloadLyricsFragment : Fragment
         {
             var instrumentalText = new TextView(Context)
             {
-                Text = "⚠️ Marked as Instrumental",
+                Text = "⚠ Marked as Instrumental",
                 TextSize = 12
             };
             instrumentalText.SetTextColor(Android.Graphics.Color.Orange);
@@ -180,7 +180,8 @@ public partial class DownloadLyricsFragment : Fragment
     {
         if (MyViewModel.SelectedSong != null)
         {
-            MyViewModel.SelectedSong.UnSyncLyrics = lyrics.SyncedLyrics ?? lyrics.PlainLyrics;
+            // Use synced lyrics if available, otherwise fall back to plain lyrics
+            MyViewModel.SelectedSong.UnSyncLyrics = lyrics.SyncedLyrics ?? lyrics.PlainLyrics ?? string.Empty;
             await MyViewModel.ApplyNewSongEdits(MyViewModel.SelectedSong);
             Toast.MakeText(Context, "Lyrics Applied!", ToastLength.Short)?.Show();
             ParentFragmentManager.PopBackStack();
@@ -202,8 +203,11 @@ public partial class DownloadLyricsFragment : Fragment
 
     private void StartTimestampingSession(LrcLibLyrics lyrics)
     {
-        // Start timestamping session with plain lyrics
-        string lyricsToTimestamp = lyrics.PlainLyrics ?? lyrics.SyncedLyrics ?? string.Empty;
+        // Start timestamping session with plain lyrics (preferred) or synced lyrics as fallback
+        string lyricsToTimestamp = !string.IsNullOrWhiteSpace(lyrics.PlainLyrics) 
+            ? lyrics.PlainLyrics 
+            : lyrics.SyncedLyrics ?? string.Empty;
+            
         if (!string.IsNullOrWhiteSpace(lyricsToTimestamp) && MyViewModel?.StartLyricsEditingSessionCommand != null)
         {
             MyViewModel.StartLyricsEditingSessionCommand.Execute(lyricsToTimestamp);

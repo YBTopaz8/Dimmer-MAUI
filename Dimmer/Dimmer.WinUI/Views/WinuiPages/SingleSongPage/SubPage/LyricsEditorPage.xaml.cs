@@ -211,7 +211,7 @@ public sealed partial class LyricsEditorPage : Page
         // Timestamp button - prepare plain lyrics for timestamping
         if (_currentPreviewLyrics != null && MyViewModel?.StartLyricsEditingSessionCommand != null)
         {
-            // Load plain lyrics into the timestamping editor
+            // Load plain lyrics into the timestamping editor (preferred) or synced lyrics as fallback
             string lyricsToTimestamp = !string.IsNullOrWhiteSpace(_currentPreviewLyrics.PlainLyrics) 
                 ? _currentPreviewLyrics.PlainLyrics 
                 : _currentPreviewLyrics.SyncedLyrics ?? string.Empty;

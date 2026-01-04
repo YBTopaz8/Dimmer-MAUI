@@ -65,7 +65,7 @@
                             FontSize="12" 
                             Opacity="0.8"
                             Visibility="Collapsed">
-                            <Run Text="⚠️ " FontWeight="SemiBold"/>
+                            <Run Text="⚠ " FontWeight="SemiBold"/>
                             <Run Text="Marked as Instrumental"/>
                         </TextBlock>
                     </StackPanel>
