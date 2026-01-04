@@ -73,16 +73,138 @@ public partial class DownloadLyricsFragment : Fragment
         loadingBar.Visibility = ViewStates.Gone;
     }
 
-    private async void OnLyricsSelected(LrcLibLyrics lyrics)
+    private void OnLyricsSelected(LrcLibLyrics lyrics)
     {
-        // Save logic here
+        // Show preview dialog before applying
+        ShowLyricsPreviewDialog(lyrics);
+    }
+
+    private void ShowLyricsPreviewDialog(LrcLibLyrics lyrics)
+    {
+        if (Context == null) return;
+
+        var dialog = new AndroidX.AppCompat.App.AlertDialog.Builder(Context);
+        
+        // Set title
+        dialog.SetTitle($"{lyrics.TrackName} - {lyrics.ArtistName}");
+
+        // Create dialog content
+        var scrollView = new ScrollView(Context);
+        var layout = new LinearLayout(Context)
+        {
+            Orientation = Orientation.Vertical
+        };
+        layout.SetPadding(40, 20, 40, 20);
+
+        // Metadata section
+        var metadataLayout = new LinearLayout(Context) { Orientation = Orientation.Vertical };
+        metadataLayout.SetPadding(0, 0, 0, 20);
+
+        bool hasSyncedLyrics = !string.IsNullOrWhiteSpace(lyrics.SyncedLyrics);
+        bool hasPlainLyrics = !string.IsNullOrWhiteSpace(lyrics.PlainLyrics);
+
+        var typeText = new TextView(Context)
+        {
+            Text = $"Type: {(hasSyncedLyrics ? "Synced" : "Plain")}",
+            TextSize = 12
+        };
+        typeText.SetTextColor(Android.Graphics.Color.Gray);
+        metadataLayout.AddView(typeText);
+
+        var durationText = new TextView(Context)
+        {
+            Text = $"Duration: {TimeSpan.FromSeconds(lyrics.Duration):mm\\:ss}",
+            TextSize = 12
+        };
+        durationText.SetTextColor(Android.Graphics.Color.Gray);
+        metadataLayout.AddView(durationText);
+
+        if (lyrics.Instrumental)
+        {
+            var instrumentalText = new TextView(Context)
+            {
+                Text = "⚠️ Marked as Instrumental",
+                TextSize = 12
+            };
+            instrumentalText.SetTextColor(Android.Graphics.Color.Orange);
+            metadataLayout.AddView(instrumentalText);
+        }
+
+        layout.AddView(metadataLayout);
+
+        // Lyrics content - show synced lyrics first if available, otherwise plain
+        var lyricsText = new TextView(Context)
+        {
+            Text = hasSyncedLyrics ? lyrics.SyncedLyrics : (hasPlainLyrics ? lyrics.PlainLyrics : "No lyrics available"),
+            TextSize = 14
+        };
+        lyricsText.SetTextIsSelectable(true);
+        if (hasSyncedLyrics)
+        {
+            lyricsText.SetTypeface(Android.Graphics.Typeface.Monospace, Android.Graphics.TypefaceStyle.Normal);
+        }
+        layout.AddView(lyricsText);
+
+        scrollView.AddView(layout);
+        dialog.SetView(scrollView);
+
+        // Apply button
+        dialog.SetPositiveButton("Apply", async (sender, args) =>
+        {
+            await ApplyLyrics(lyrics);
+        });
+
+        // Edit button
+        dialog.SetNeutralButton("Edit", (sender, args) =>
+        {
+            LoadLyricsForEditing(lyrics);
+        });
+
+        // Timestamp button (only for plain lyrics)
+        if (hasPlainLyrics && !hasSyncedLyrics)
+        {
+            dialog.SetNegativeButton("Timestamp", (sender, args) =>
+            {
+                StartTimestampingSession(lyrics);
+            });
+        }
+        else
+        {
+            dialog.SetNegativeButton("Close", (sender, args) => { });
+        }
+
+        dialog.Show();
+    }
+
+    private async System.Threading.Tasks.Task ApplyLyrics(LrcLibLyrics lyrics)
+    {
         if (MyViewModel.SelectedSong != null)
         {
             MyViewModel.SelectedSong.UnSyncLyrics = lyrics.SyncedLyrics ?? lyrics.PlainLyrics;
-
             await MyViewModel.ApplyNewSongEdits(MyViewModel.SelectedSong);
-            Toast.MakeText(Context, "Lyrics Saved!", ToastLength.Short)?.Show();
+            Toast.MakeText(Context, "Lyrics Applied!", ToastLength.Short)?.Show();
             ParentFragmentManager.PopBackStack();
+        }
+    }
+
+    private void LoadLyricsForEditing(LrcLibLyrics lyrics)
+    {
+        // Load lyrics into editor using ViewModel command
+        if (lyrics.SyncedLyrics != null)
+        {
+            MyViewModel.LoadLyricsForEditingCommand?.Execute(lyrics);
+            Toast.MakeText(Context, "Lyrics loaded for editing", ToastLength.Short)?.Show();
+        }
+    }
+
+    private void StartTimestampingSession(LrcLibLyrics lyrics)
+    {
+        // Start timestamping session with plain lyrics
+        string lyricsToTimestamp = lyrics.PlainLyrics ?? lyrics.SyncedLyrics ?? string.Empty;
+        if (!string.IsNullOrWhiteSpace(lyricsToTimestamp))
+        {
+            MyViewModel.StartLyricsEditingSessionCommand?.Execute(lyricsToTimestamp);
+            Toast.MakeText(Context, "Timestamping session started", ToastLength.Short)?.Show();
         }
     }
 
