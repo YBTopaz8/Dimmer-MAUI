@@ -122,18 +122,112 @@ public sealed partial class LyricsEditorPage : Page
             Frame.GoBack();
         }
     }
+    private LrcLibLyrics? _currentPreviewLyrics;
+
     private async void ViewLyrics_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button btn || btn.DataContext is not LrcLibLyrics lyricData)
             return;
 
+        _currentPreviewLyrics = lyricData;
         LyricsPreviewDialog.DataContext = lyricData;
 
-        LyricsPreviewText.Text = lyricData.PlainLyrics;
+        // Populate the lyrics content in both tabs
+        bool hasSyncedLyrics = !string.IsNullOrWhiteSpace(lyricData.SyncedLyrics);
+        bool hasPlainLyrics = !string.IsNullOrWhiteSpace(lyricData.PlainLyrics);
+
+        SyncedLyricsText.Text = hasSyncedLyrics ? lyricData.SyncedLyrics : "No synced lyrics available";
+        PlainLyricsText.Text = hasPlainLyrics ? lyricData.PlainLyrics : "No plain lyrics available";
+
+        // Set metadata
+        LyricsTypeText.Text = hasSyncedLyrics ? "Synced" : "Plain";
+        LyricsDurationText.Text = TimeSpan.FromSeconds(lyricData.Duration).ToString(@"mm\:ss");
+        InstrumentalIndicator.Visibility = lyricData.Instrumental ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
+
+        // Set the default tab based on what's available
+        if (hasSyncedLyrics)
+        {
+            LyricsTabView.SelectedItem = SyncedTab;
+            SyncedTab.IsEnabled = true;
+        }
+        else
+        {
+            SyncedTab.IsEnabled = false;
+        }
+
+        if (hasPlainLyrics)
+        {
+            PlainTab.IsEnabled = true;
+            if (!hasSyncedLyrics)
+            {
+                LyricsTabView.SelectedItem = PlainTab;
+            }
+        }
+        else
+        {
+            PlainTab.IsEnabled = false;
+        }
+
+        // Show/hide the timestamp button based on lyrics type
+        // Only show timestamp button if we have plain lyrics but no synced lyrics
+        TimestampButton.Visibility = (hasPlainLyrics && !hasSyncedLyrics) 
+            ? Microsoft.UI.Xaml.Visibility.Visible 
+            : Microsoft.UI.Xaml.Visibility.Collapsed;
 
         LyricsPreviewDialog.XamlRoot = this.Content.XamlRoot;
 
         await LyricsPreviewDialog.ShowAsync(ContentDialogPlacement.Popup);
+    }
+
+    private void LyricsPreviewDialog_PrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+    {
+        // Apply button - use the existing SelectLyricsCommand
+        if (_currentPreviewLyrics != null && MyViewModel != null)
+        {
+            MyViewModel.SelectLyricsCommand.Execute(_currentPreviewLyrics);
+            
+            // Navigate back after applying
+            if (Frame.CanGoBack)
+            {
+                Frame.GoBack();
+            }
+        }
+    }
+
+    private void LyricsPreviewDialog_SecondaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+    {
+        // Edit button - load lyrics for editing
+        if (_currentPreviewLyrics != null && MyViewModel != null)
+        {
+            MyViewModel.LoadLyricsForEditingCommand.Execute(_currentPreviewLyrics);
+            
+            // Close the dialog and potentially navigate to the editor
+            // The navigation would happen based on the app's flow
+        }
+    }
+
+    private void TimestampButton_Click(object sender, RoutedEventArgs e)
+    {
+        // Timestamp button - prepare plain lyrics for timestamping
+        if (_currentPreviewLyrics != null && MyViewModel != null)
+        {
+            // Load plain lyrics into the timestamping editor
+            string lyricsToTimestamp = !string.IsNullOrWhiteSpace(_currentPreviewLyrics.PlainLyrics) 
+                ? _currentPreviewLyrics.PlainLyrics 
+                : _currentPreviewLyrics.SyncedLyrics ?? string.Empty;
+            
+            if (!string.IsNullOrWhiteSpace(lyricsToTimestamp))
+            {
+                MyViewModel.StartLyricsEditingSessionCommand.Execute(lyricsToTimestamp);
+                
+                // Close the dialog
+                LyricsPreviewDialog.Hide();
+                
+                // Navigate to the timestamping page
+                // This would typically be done through the SingleSongLyrics parent page
+                // For now, we'll rely on the ViewModel state change to trigger UI updates
+            }
+        }
     }
 
     private void ReadySearchViewAndProduceSearchText_Click(object sender, RoutedEventArgs e)
