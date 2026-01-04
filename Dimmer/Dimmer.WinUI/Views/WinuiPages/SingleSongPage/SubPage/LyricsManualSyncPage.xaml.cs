@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 
+using Dimmer.Data.ModelView;
+
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -97,5 +99,43 @@ public sealed partial class LyricsManualSyncPage : Page
     private void Cancel_Click(object sender, RoutedEventArgs e)
     {
         if (Frame.CanGoBack) Frame.GoBack();
+    }
+
+    private void LyricsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        // Show/hide batch actions toolbar based on selection
+        if (LyricsListView.SelectedItems.Count > 0)
+        {
+            BatchActionsToolbar.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            BatchActionsToolbar.Visibility = Visibility.Collapsed;
+        }
+    }
+
+    private void RepeatSelectedBtn_Click(object sender, RoutedEventArgs e)
+    {
+        var selectedLines = LyricsListView.SelectedItems.Cast<LyricEditingLineViewModel>().ToList();
+        if (selectedLines.Any())
+        {
+            MyViewModel.RepeatSelectedLinesCommand.Execute(selectedLines);
+            LyricsListView.SelectedItems.Clear();
+        }
+    }
+
+    private void DeleteSelectedBtn_Click(object sender, RoutedEventArgs e)
+    {
+        var selectedLines = LyricsListView.SelectedItems.Cast<LyricEditingLineViewModel>().ToList();
+        if (selectedLines.Any())
+        {
+            MyViewModel.DeleteSelectedLinesCommand.Execute(selectedLines);
+            LyricsListView.SelectedItems.Clear();
+        }
+    }
+
+    private void ClearSelectionBtn_Click(object sender, RoutedEventArgs e)
+    {
+        LyricsListView.SelectedItems.Clear();
     }
 }
