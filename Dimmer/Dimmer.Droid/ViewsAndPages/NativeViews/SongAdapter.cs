@@ -26,6 +26,7 @@ internal class SongAdapter : RecyclerView.Adapter
     private readonly IDisposable _subscription;
     public IList<SongModelView> Songs => _songs;
     private Fragment ParentFragement;
+    private string _mode; // "main" or "queue"
 
     // Accordion State
     private int _expandedPosition = -1;
@@ -40,6 +41,7 @@ internal class SongAdapter : RecyclerView.Adapter
         ParentFragement = pFragment;
         this.ctx = ctx;
         this.MyViewModel = myViewModel;
+        this._mode = songsToWatch;
 
         IObservable<IChangeSet<SongModelView>> sourceStream = songsToWatch == "queue"
            ? myViewModel.PlaybackQueueSource.Connect()
@@ -294,6 +296,18 @@ internal class SongAdapter : RecyclerView.Adapter
         
         expandRow.AddView(infoBtn);
         expandRow.AddView(LyricsBtn);
+
+        // Add queue-specific buttons only in queue mode
+        MaterialButton? insertBeforeBtn = null;
+        MaterialButton? insertAfterBtn = null;
+        if (_mode == "queue")
+        {
+            insertBeforeBtn = CreateActionButton("Insert Before", Resource.Drawable.arrowup);
+            insertAfterBtn = CreateActionButton("Insert After", Resource.Drawable.arrowdown);
+            expandRow.AddView(insertBeforeBtn);
+            expandRow.AddView(insertAfterBtn);
+        }
+
         // Assemble
         mainContainer.AddView(topRow);
         mainContainer.AddView(expandRow);
@@ -301,7 +315,7 @@ internal class SongAdapter : RecyclerView.Adapter
         card.AddView(mainContainer);
 
         return new SongViewHolder(MyViewModel, ParentFragement, card, imgView, title, artist, moreBtn, durationView,expandRow, (Button)playBtn, (Button)favBtn, (Button)infoBtn,
-            LyricsBtn);
+            LyricsBtn, insertBeforeBtn, insertAfterBtn);
     }
 
 
@@ -341,11 +355,13 @@ internal class SongAdapter : RecyclerView.Adapter
         private readonly Button _favBtn;
         private readonly Button _infoBtn;
         private readonly Button lyricsBtn;
+        private readonly Button? _insertBeforeBtn;
+        private readonly Button? _insertAfterBtn;
         private SongModelView? _currentSong;
         private Action<int>? _expandAction;
 
         public SongViewHolder(BaseViewModelAnd vm, Fragment parentFrag, MaterialCardView container, ImageView img, TextView title, TextView artist, MaterialButton moreBtn, TextView durationView,
- View expandRow, Button playBtn, Button favBtn, Button infoBtn, Button lyrBtn)
+ View expandRow, Button playBtn, Button favBtn, Button infoBtn, Button lyrBtn, Button? insertBeforeBtn = null, Button? insertAfterBtn = null)
             : base(container)
         {
             _viewModel = vm;
@@ -361,6 +377,8 @@ internal class SongAdapter : RecyclerView.Adapter
             _favBtn = favBtn;
             _infoBtn = infoBtn;
             lyricsBtn = lyrBtn;
+            _insertBeforeBtn = insertBeforeBtn;
+            _insertAfterBtn = insertAfterBtn;
 
             _moreBtn.Click += (s, e) =>
             {
@@ -375,6 +393,43 @@ internal class SongAdapter : RecyclerView.Adapter
                 _viewModel.NavigateToAnyPageOfGivenType(this._parentFrag, new LyricsViewFragment(_viewModel), "toLyricsFromNP");
                 
             };
+
+            // Handle insert before/after for queue mode
+            if (_insertBeforeBtn != null)
+            {
+                _insertBeforeBtn.Click += (s, e) =>
+                {
+                    if (_currentSong != null)
+                    {
+                        // For now, use search results as songs to insert
+                        var songsToInsert = _viewModel.SearchResults.Take(3).ToList();
+                        if (songsToInsert.Any())
+                        {
+                            var param = new Tuple<SongModelView, IEnumerable<SongModelView>>(_currentSong, songsToInsert);
+                            _viewModel.InsertSongsBeforeInQueueCommand.Execute(param);
+                            Toast.MakeText(_parentFrag.Context, $"Inserted {songsToInsert.Count} songs before", ToastLength.Short)?.Show();
+                        }
+                    }
+                };
+            }
+
+            if (_insertAfterBtn != null)
+            {
+                _insertAfterBtn.Click += (s, e) =>
+                {
+                    if (_currentSong != null)
+                    {
+                        // For now, use search results as songs to insert
+                        var songsToInsert = _viewModel.SearchResults.Take(3).ToList();
+                        if (songsToInsert.Any())
+                        {
+                            var param = new Tuple<SongModelView, IEnumerable<SongModelView>>(_currentSong, songsToInsert);
+                            _viewModel.InsertSongsAfterInQueueCommand.Execute(param);
+                            Toast.MakeText(_parentFrag.Context, $"Inserted {songsToInsert.Count} songs after", ToastLength.Short)?.Show();
+                        }
+                    }
+                };
+            }
 
             // 2. Container Click (Play)
             _container.Click += async (s, e) =>

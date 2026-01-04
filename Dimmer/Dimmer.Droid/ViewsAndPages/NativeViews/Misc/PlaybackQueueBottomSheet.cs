@@ -83,16 +83,58 @@ public class QueueBottomSheetFragment : BottomSheetDialogFragment
         // Button Action: Scroll to currently playing
         eyeBtn.Click += (s, e) => ScrollToSong();
 
-       
+        // 6. Save Queue as Playlist Button
+        var saveBtn = new MaterialButton(ctx, null, Resource.Attribute.borderlessButtonStyle);
+        saveBtn.IconTint = Android.Content.Res.ColorStateList.ValueOf(Color.White);
+        saveBtn.Text = "Save"; 
+        saveBtn.SetIconResource(Resource.Drawable.save);
+        saveBtn.IconSize = AppUtil.DpToPx(18);
+        saveBtn.BackgroundTintList = Android.Content.Res.ColorStateList.ValueOf(Color.Transparent);
+
+        // Button Action: Save queue as playlist
+        saveBtn.Click += async (s, e) => await SaveQueueAsPlaylist();
 
 
         pillContent.AddView(eyeBtn);
+        pillContent.AddView(saveBtn);
         pillCard.AddView(pillContent);
 
         // Add Pill to Root (It draws on top of RecyclerView because it's added last)
         rootFrame.AddView(pillCard);
 
         return rootFrame;
+    }
+
+    private async Task SaveQueueAsPlaylist()
+    {
+        var ctx = Context;
+        if (ctx == null) return;
+
+        // Create a simple EditText dialog for playlist name
+        var inputEditText = new EditText(ctx)
+        {
+            Hint = "Enter playlist name"
+        };
+        inputEditText.SetPadding(AppUtil.DpToPx(20), AppUtil.DpToPx(10), AppUtil.DpToPx(20), AppUtil.DpToPx(10));
+
+        var dialog = new AlertDialog.Builder(ctx)
+            .SetTitle("Save Queue as Playlist")
+            .SetView(inputEditText)
+            .SetPositiveButton("Save", (sender, args) =>
+            {
+                var playlistName = inputEditText.Text?.Trim();
+                if (!string.IsNullOrWhiteSpace(playlistName))
+                {
+                    MyViewModel.SaveQueueAsPlaylistCommand.Execute(playlistName);
+                    
+                    // Show success message
+                    Toast.MakeText(ctx, $"Queue saved as '{playlistName}'", ToastLength.Short)?.Show();
+                }
+            })
+            .SetNegativeButton("Cancel", (sender, args) => { })
+            .Create();
+
+        dialog?.Show();
     }
 
 
