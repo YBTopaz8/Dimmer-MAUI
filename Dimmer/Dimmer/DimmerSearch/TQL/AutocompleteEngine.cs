@@ -65,7 +65,7 @@ public class AutocompleteEngine
             if (!currentWord.Contains(':'))
             {
                 return FieldRegistry.FieldsByAlias.Keys
-                    .Where(alias => alias.StartsWith(currentWord, StringComparison.OrdinalIgnoreCase))
+                    .Where(alias => CollationHelper.StartsWith(alias, currentWord))
                     .Select(alias => alias + ":")
                     .Distinct()
                     .OrderBy(s => s.Length)
@@ -92,7 +92,7 @@ public class AutocompleteEngine
         "never", "ago(\"\")"
     };
                 return dateSuggestions
-                    .Where(s => s.StartsWith(valuePrefix, StringComparison.OrdinalIgnoreCase))
+                    .Where(s => CollationHelper.StartsWith(s, valuePrefix))
                     .ToObservableCollection();
             }
 
@@ -106,20 +106,20 @@ public class AutocompleteEngine
             {
                 case "OtherArtistsName":
                     return artistSource
-                        .Where(a => a != null && a.StartsWith(valuePrefix, StringComparison.OrdinalIgnoreCase))
+                        .Where(a => a != null && CollationHelper.StartsWith(a, valuePrefix))
                         .Select(a => a.Contains(' ') ? $"\"{a}\"" : a) // Quote if it has spaces
                         .Take(10).ToObservableCollection();
 
                 case "AlbumName":
 
                     return albumSource
-                        .Where(a => a != null && a.StartsWith(valuePrefix, StringComparison.OrdinalIgnoreCase))
+                        .Where(a => a != null && CollationHelper.StartsWith(a, valuePrefix))
                         .Select(a => a.Contains(' ') ? $"\"{a}\"" : a)
                         .Take(10).ToObservableCollection();
 
                 case "GenreName":
                     return genreSource
-                       .Where(g => g != null && g.StartsWith(valuePrefix, StringComparison.OrdinalIgnoreCase))
+                       .Where(g => g != null && CollationHelper.StartsWith(g, valuePrefix))
                        .Take(10).ToObservableCollection();
 
                 case "ReleaseYear":
@@ -129,7 +129,7 @@ public class AutocompleteEngine
                 case "HasLyrics":
                 case "HasSyncedLyrics":
                     return new List<string> { "true", "false" }
-                        .Where(s => s.StartsWith(valuePrefix, StringComparison.OrdinalIgnoreCase))
+                        .Where(s => CollationHelper.StartsWith(s, valuePrefix))
                         .ToObservableCollection();
 
                 default:
