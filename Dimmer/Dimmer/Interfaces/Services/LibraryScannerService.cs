@@ -209,21 +209,20 @@ public class LibraryScannerService : ILibraryScannerService
                             foreach (var songView in newSongs)
                             {
                                 var songModel = songView.ToSongModel();
-                                songModel.Artist = songView.Artist.ToArtistModel();
                                 
-                                // LINK ALBUM (Using our dictionary)
+                                // LINK ALBUM (Using our dictionary of managed objects)
                                 if (songView.Album != null && managedAlbums.TryGetValue(songView.Album.Id, out var mAlb))
                                 {
                                     songModel.Album = mAlb;
                                 }
 
-                                // LINK GENRE (Using our dictionary)
+                                // LINK GENRE (Using our dictionary of managed objects)
                                 if (songView.Genre != null && managedGenres.TryGetValue(songView.Genre.Id, out var mGnr))
                                 {
                                     songModel.Genre = mGnr;
                                 }
 
-                                // LINK ARTISTS
+                                // LINK ARTISTS (Using our dictionary of managed objects)
                                 if (songView.ArtistToSong != null)
                                 {
                                     foreach (var artView in songView.ArtistToSong)
@@ -237,8 +236,8 @@ public class LibraryScannerService : ILibraryScannerService
                                     if (songModel.ArtistToSong.Count > 0)
                                         songModel.Artist = songModel.ArtistToSong[0];
                                 }
-                                songModel.Album = songView.Album.ToAlbumModel();
-                                songModel.Genre = songView.Genre.ToGenreModel();
+                                
+                                // Set ArtistName from the managed Artist object
                                 songModel.ArtistName = songModel.Artist?.Name ?? "Unknown Artist";
                                 songModel.IsNew = false;
 
