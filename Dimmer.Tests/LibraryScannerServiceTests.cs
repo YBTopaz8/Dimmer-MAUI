@@ -329,6 +329,7 @@ public class LibraryScannerServiceTests : IDisposable
             FilePath = "/path/to/existing.mp3",
             DurationInSeconds = 200
         };
+        // SetTitleAndDuration sets the TitleDurationKey for lookup
         existingSong.SetTitleAndDuration("Existing Song", 200);
 
         // Act

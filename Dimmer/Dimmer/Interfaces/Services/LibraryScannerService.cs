@@ -208,6 +208,7 @@ public class LibraryScannerService : ILibraryScannerService
                             // --- Step 4: Upsert Songs and link everything ---
                             foreach (var songView in newSongs)
                             {
+                                // Create unmanaged song model from view (relationships will be set below)
                                 var songModel = songView.ToSongModel();
                                 
                                 // LINK ALBUM (Using our dictionary of managed objects)
