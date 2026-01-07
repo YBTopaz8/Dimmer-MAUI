@@ -314,6 +314,10 @@ public class CoverArtService : ICoverArtService
                 var client = _httpClientFactory.CreateClient();
                 return await client.GetByteArrayAsync(source);
             }
+            else
+            {
+                Console.WriteLine("issue");
+            }
         }
         catch (Exception ex)
         {
