@@ -1,3 +1,5 @@
+using System.Reactive.Concurrency;
+
 namespace Dimmer.ViewModel;
 
 /// <summary>

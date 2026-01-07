@@ -337,9 +337,11 @@ namespace Dimmer.ViewsAndPages.NativeViews.SingleSong
 
             // Bind visibility
             VisibilityChip.Text = note.IsPublic ? "Public" : "Private";
+            // Use more appropriate icons for visibility
+            // Note: Using basic icons - ideally would use visibility/visibility_off icons
             VisibilityChip.SetChipIconResource(note.IsPublic ? 
-                Resource.Drawable.exo_icon_play : 
-                Resource.Drawable.exo_ic_pause);
+                Android.Resource.Drawable.IcMenuView : 
+                Android.Resource.Drawable.IcSecureIndicator);
 
             // Update reactions
             UpdateReactionButtons();

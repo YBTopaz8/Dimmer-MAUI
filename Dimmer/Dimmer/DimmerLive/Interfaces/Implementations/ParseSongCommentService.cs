@@ -226,18 +226,14 @@ public partial class ParseSongCommentService : ObservableObject, ISongCommentSer
                 return null;
             }
 
-            var query = ParseClient.Instance.GetQuery<SongComment>()
-                .WhereEqualTo("objectId", commentId);
-
-            var comment = await query.FirstOrDefaultAsync();
+            var comment = await GetCommentByIdAsync(commentId);
             if (comment == null)
             {
                 _logger.LogWarning("Comment {CommentId} not found", commentId);
                 return null;
             }
 
-            var reactions = comment.Reactions ?? new Dictionary<string, int>();
-            var reactionUsers = comment.ReactionUsers ?? new Dictionary<string, IList<string>>();
+            var (reactions, reactionUsers) = GetOrCreateReactionDictionaries(comment);
 
             // Check if user already reacted with this type
             if (!reactionUsers.ContainsKey(reactionType))
@@ -252,10 +248,8 @@ public partial class ParseSongCommentService : ObservableObject, ISongCommentSer
             }
 
             // Add reaction
+            UpdateReactionCount(reactions, reactionType, increment: true);
             reactionUsers[reactionType].Add(currentUser.ObjectId);
-            reactions[reactionType] = reactions.ContainsKey(reactionType) 
-                ? reactions[reactionType] + 1 
-                : 1;
 
             comment.Reactions = reactions;
             comment.ReactionUsers = reactionUsers;
@@ -283,18 +277,14 @@ public partial class ParseSongCommentService : ObservableObject, ISongCommentSer
                 return null;
             }
 
-            var query = ParseClient.Instance.GetQuery<SongComment>()
-                .WhereEqualTo("objectId", commentId);
-
-            var comment = await query.FirstOrDefaultAsync();
+            var comment = await GetCommentByIdAsync(commentId);
             if (comment == null)
             {
                 _logger.LogWarning("Comment {CommentId} not found", commentId);
                 return null;
             }
 
-            var reactions = comment.Reactions ?? new Dictionary<string, int>();
-            var reactionUsers = comment.ReactionUsers ?? new Dictionary<string, IList<string>>();
+            var (reactions, reactionUsers) = GetOrCreateReactionDictionaries(comment);
 
             if (!reactionUsers.ContainsKey(reactionType) || !reactionUsers[reactionType].Contains(currentUser.ObjectId))
             {
@@ -304,17 +294,10 @@ public partial class ParseSongCommentService : ObservableObject, ISongCommentSer
 
             // Remove reaction
             reactionUsers[reactionType].Remove(currentUser.ObjectId);
-            reactions[reactionType] = Math.Max(0, reactions[reactionType] - 1);
+            UpdateReactionCount(reactions, reactionType, increment: false);
 
             // Clean up empty entries
-            if (reactions[reactionType] == 0)
-            {
-                reactions.Remove(reactionType);
-            }
-            if (reactionUsers[reactionType].Count == 0)
-            {
-                reactionUsers.Remove(reactionType);
-            }
+            CleanupEmptyReactions(reactions, reactionUsers, reactionType);
 
             comment.Reactions = reactions;
             comment.ReactionUsers = reactionUsers;
@@ -485,5 +468,51 @@ public partial class ParseSongCommentService : ObservableObject, ISongCommentSer
         UnsubscribeFromComments();
         _disposables.Dispose();
         _commentsCache.Dispose();
+    }
+
+    // Helper methods to reduce duplication
+    
+    private async Task<SongComment?> GetCommentByIdAsync(string commentId)
+    {
+        var query = ParseClient.Instance.GetQuery<SongComment>()
+            .WhereEqualTo("objectId", commentId);
+        return await query.FirstOrDefaultAsync();
+    }
+
+    private (Dictionary<string, int> reactions, Dictionary<string, IList<string>> reactionUsers) 
+        GetOrCreateReactionDictionaries(SongComment comment)
+    {
+        var reactions = comment.Reactions ?? new Dictionary<string, int>();
+        var reactionUsers = comment.ReactionUsers ?? new Dictionary<string, IList<string>>();
+        return (reactions, reactionUsers);
+    }
+
+    private void UpdateReactionCount(Dictionary<string, int> reactions, string reactionType, bool increment)
+    {
+        if (increment)
+        {
+            reactions[reactionType] = reactions.ContainsKey(reactionType)
+                ? reactions[reactionType] + 1
+                : 1;
+        }
+        else
+        {
+            reactions[reactionType] = Math.Max(0, reactions.GetValueOrDefault(reactionType) - 1);
+        }
+    }
+
+    private void CleanupEmptyReactions(
+        Dictionary<string, int> reactions, 
+        Dictionary<string, IList<string>> reactionUsers, 
+        string reactionType)
+    {
+        if (reactions.ContainsKey(reactionType) && reactions[reactionType] == 0)
+        {
+            reactions.Remove(reactionType);
+        }
+        if (reactionUsers.ContainsKey(reactionType) && reactionUsers[reactionType].Count == 0)
+        {
+            reactionUsers.Remove(reactionType);
+        }
     }
 }
