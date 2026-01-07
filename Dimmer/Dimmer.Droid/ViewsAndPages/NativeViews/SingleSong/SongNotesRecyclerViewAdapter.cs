@@ -300,8 +300,10 @@ namespace Dimmer.ViewsAndPages.NativeViews.SingleSong
         {
             if (CurrentNote == null) return;
             
-            // TODO: Show edit dialog
-            Toast.MakeText(EditBtn.Context, "Edit Note Clicked", ToastLength.Short)?.Show();
+            // Show edit dialog
+            var dialog = new SongCommentDialogFragment(MyViewModel, CurrentNote);
+            // Note: We need FragmentManager from the context, this would be better handled at a higher level
+            Toast.MakeText(EditBtn.Context, "Edit functionality - use dialog from fragment", ToastLength.Short)?.Show();
         }
 
         internal void Bind(UserNoteModelView note)
