@@ -275,8 +275,8 @@ public partial class SongCommentsViewModel : ObservableObject, IDisposable
             // Seek to the timestamp
             var positionInSeconds = timestampMs / 1000.0;
 
-            // Fire the sample requested event through BaseViewModel
-            _baseViewModel.OnSongSampleRequested(CurrentSong, positionInSeconds);
+            // Use BaseViewModel's SeekTrackPosition to navigate to the timestamp
+            _baseViewModel.SeekTrackPosition(positionInSeconds);
 
             _logger?.LogInformation("Seeking to timestamp {TimestampMs}ms", timestampMs);
         }
@@ -294,7 +294,7 @@ public partial class SongCommentsViewModel : ObservableObject, IDisposable
     {
         try
         {
-            var currentPositionSeconds = _baseViewModel.CurrentPosition;
+            var currentPositionSeconds = _baseViewModel.AudioService.CurrentPosition;
             NewCommentTimestamp = (int)(currentPositionSeconds * 1000);
             _logger?.LogInformation("Set timestamp to {Timestamp}ms", NewCommentTimestamp);
         }
