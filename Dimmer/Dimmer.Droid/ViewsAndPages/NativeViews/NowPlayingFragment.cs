@@ -798,10 +798,9 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
 
     public void OnBackInvoked()
     {
-        var myAct = this.Activity as TransitionActivity;
-        if (myAct != null)
+        if (this.Activity is TransitionActivity myAct)
         {
-            if(myAct.SheetBehavior.State == BottomSheetBehavior.StateExpanded)
+            if (myAct.SheetBehavior.State == BottomSheetBehavior.StateExpanded)
             {
                 myAct.TogglePlayer();
                 return;

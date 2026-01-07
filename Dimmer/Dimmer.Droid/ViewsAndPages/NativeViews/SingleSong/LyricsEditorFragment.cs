@@ -1,4 +1,5 @@
-﻿using AndroidX.Lifecycle.ViewModels;
+﻿using Android.Text;
+using AndroidX.Lifecycle.ViewModels;
 
 using Bumptech.Glide;
 
@@ -47,7 +48,7 @@ public class LyricsEditorFragment : Fragment
         backBtn.Click += (s, e) => ParentFragmentManager.PopBackStack();
 
         var headerTitle = new TextView(context) { Text = "Fetch Lyrics", TextSize = 24 };
-        headerTitle.SetTypeface(null, Android.Graphics.TypefaceStyle.Bold);
+        headerTitle.SetTypeface(null, TypefaceStyle.Bold);
         headerTitle.LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent) { LeftMargin = 24 };
 
         header.AddView(backBtn);
@@ -62,16 +63,16 @@ public class LyricsEditorFragment : Fragment
 
         var cover = new ImageView(context); // Set your image
         cover.LayoutParameters = new LinearLayout.LayoutParams(150, 150);
-        cover.SetBackgroundColor(Android.Graphics.Color.DarkGray);
-        //Glide.With(context)
-        //    .Load(selectedSong.CoverImagePath)
-        //    .Placeholder(Resource.Drawable.musicaba)
-        //    .Into(infoCard);
+        cover.SetBackgroundColor(Color.DarkGray);
+        Glide.With(this)
+            .Load(selectedSong.CoverImagePath)
+            .Placeholder(Resource.Drawable.musicaba)
+            .Into(cover);
 
         var infoTextLayout = new LinearLayout(context) { Orientation = Orientation.Vertical };
         infoTextLayout.LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent) { LeftMargin = 24 };
-        infoTextLayout.AddView(new TextView(context) { Text = selectedSong.Title, TextSize = 18, Typeface = Android.Graphics.Typeface.DefaultBold });
-        infoTextLayout.AddView(new TextView(context) { Text = selectedSong.OtherArtistsName , Ellipsize = Android.Text.TextUtils.TruncateAt.Marquee });
+        infoTextLayout.AddView(new TextView(context) { Text = selectedSong.Title, TextSize = 18, Typeface = Typeface.DefaultBold });
+        infoTextLayout.AddView(new TextView(context) { Text = selectedSong.OtherArtistsName , Ellipsize = TextUtils.TruncateAt.Marquee });
 
         infoLayout.AddView(cover);
         infoLayout.AddView(infoTextLayout);
@@ -211,7 +212,7 @@ public class LyricsEditorFragment : Fragment
             var layout = new LinearLayout(parent.Context) { Orientation = Orientation.Vertical };
             layout.SetPadding(24, 24, 24, 24);
 
-            titleResult = new TextView(parent.Context!) { TextSize = 16, Typeface = Android.Graphics.Typeface.DefaultBold };
+            titleResult = new TextView(parent.Context!) { TextSize = 16, Typeface = Typeface.DefaultBold };
             syncLyricsResult = new TextView(parent.Context!) { TextSize = 12 };
 
             var btnPanel = new LinearLayout(parent.Context) { Orientation = Orientation.Horizontal};
