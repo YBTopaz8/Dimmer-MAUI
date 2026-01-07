@@ -130,6 +130,12 @@ internal class LyricsViewFragment : Fragment, IOnBackInvokedCallback,IOnBackAnim
     {
         base.OnResume();
         UpdateScreenKeepOn();
+
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu)
+        {
+            Activity?.OnBackInvokedDispatcher.RegisterOnBackInvokedCallback(
+                (int)IOnBackInvokedDispatcher.PriorityDefault, this);
+        }
     }
 
     public override void OnPause()
@@ -149,7 +155,7 @@ internal class LyricsViewFragment : Fragment, IOnBackInvokedCallback,IOnBackAnim
     {
         if (ShouldSetScreenKeepOn())
         {
-            Activity.Window.AddFlags(WindowManagerFlags.KeepScreenOn);
+            Activity?.Window?.AddFlags(WindowManagerFlags.KeepScreenOn);
             _isScreenKeepOnSetByThisFragment = true;
         }
     }
@@ -206,16 +212,7 @@ internal class LyricsViewFragment : Fragment, IOnBackInvokedCallback,IOnBackAnim
             Console.WriteLine(ex.Message);
         }
     }
-    public override void OnResume()
-    {
-        base.OnResume();
-
-        if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu)
-        {
-            Activity?.OnBackInvokedDispatcher.RegisterOnBackInvokedCallback(
-                (int)IOnBackInvokedDispatcher.PriorityDefault, this);
-        }
-    }
+   
     private void ApplyBlur()
     {
         // Simple Android 12+ Blur (RenderEffect)
