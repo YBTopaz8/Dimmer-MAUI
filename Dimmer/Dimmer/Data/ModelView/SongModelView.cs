@@ -357,9 +357,34 @@ public partial class UserNoteModelView : ObservableObject
     public partial int UserRating { get; set; }
     [ObservableProperty]
     public partial string? MessageColor { get; set; }
-
-
-
+    
+    // New fields for public comments feature
+    [ObservableProperty]
+    public partial bool IsPublic { get; set; }
+    [ObservableProperty]
+    public partial int? TimestampMs { get; set; }
+    [ObservableProperty]
+    public partial string? AuthorId { get; set; }
+    [ObservableProperty]
+    public partial string? AuthorUsername { get; set; }
+    [ObservableProperty]
+    public partial Dictionary<string, int>? Reactions { get; set; }
+    
+    // Computed property for timestamp display
+    public string? TimestampDisplay
+    {
+        get
+        {
+            if (TimestampMs == null) return null;
+            var ts = TimeSpan.FromMilliseconds(TimestampMs.Value);
+            return ts.Hours > 0 
+                ? ts.ToString(@"hh\:mm\:ss") 
+                : ts.ToString(@"mm\:ss");
+        }
+    }
+    
+    // Total reaction count
+    public int TotalReactions => Reactions?.Values.Sum() ?? 0;
 }
 
 public enum SongType { Track, Segment }
