@@ -26,6 +26,7 @@ internal class LyricsViewFragment : Fragment
     private LyricsAdapter _adapter;
     private ImageView _backgroundImageView;
     private TextView _songTitleTv, _artistAlbumTv;
+    private bool _isScreenKeepOnSetByThisFragment = false;
 
     public LyricsViewFragment(BaseViewModelAnd viewModel)
     {
@@ -123,7 +124,6 @@ internal class LyricsViewFragment : Fragment
     {
         base.OnViewCreated(view, savedInstanceState);
         viewModel.CurrentFragment = this;
-        UpdateScreenKeepOn();
     }
     
     public override void OnResume()
@@ -140,17 +140,19 @@ internal class LyricsViewFragment : Fragment
 
     private void UpdateScreenKeepOn()
     {
-        if (viewModel?.KeepScreenOnDuringLyrics == true && Activity?.Window != null)
+        if (viewModel?.KeepScreenOnDuringLyrics == true && Activity?.Window != null && !_isScreenKeepOnSetByThisFragment)
         {
             Activity.Window.AddFlags(WindowManagerFlags.KeepScreenOn);
+            _isScreenKeepOnSetByThisFragment = true;
         }
     }
 
     private void ClearScreenKeepOn()
     {
-        if (Activity?.Window != null)
+        if (_isScreenKeepOnSetByThisFragment && Activity?.Window != null)
         {
             Activity.Window.ClearFlags(WindowManagerFlags.KeepScreenOn);
+            _isScreenKeepOnSetByThisFragment = false;
         }
     }
     private void SetupBindings()
