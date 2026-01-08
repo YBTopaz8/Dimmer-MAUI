@@ -326,6 +326,11 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
     {
         var layout = CreateCardLayout(ctx);
 
+        layout.AddView(CreateSwitchRow(ctx, "Keep Screen On", "Keep screen on when viewing sync lyrics page",
+            MyViewModel.KeepScreenOnDuringLyrics, (v) => MyViewModel.KeepScreenOnDuringLyrics = v));
+
+        layout.AddView(CreateDivider(ctx));
+
         //layout.AddView(CreateSwitchRow(ctx, "Mini Lyrics View", "Show floating lyrics on desktop",
         //    MyViewModel.AppState.IsMiniLyricsViewEnabled, (v) => MyViewModel.AppState.IsMiniLyricsViewEnabled = v));
 

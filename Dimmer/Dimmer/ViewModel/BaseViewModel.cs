@@ -1006,6 +1006,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     appmodel.CurrentSongId = CurrentPlayingSongView.Id.ToString();
                     appmodel.VolumeLevelPreference = _audioService.Volume;
                     appmodel.ScrobbleToLastFM = ScrobbleToLastFM;
+                    appmodel.KeepScreenOnDuringLyrics = KeepScreenOnDuringLyrics;
                 });
             realmm.Add(appmodel, true);
         }
@@ -1027,6 +1028,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 ShuffleStatePreference = IsShuffleActive,
                 IsStickToTop = IsStickToTop,
                 ScrobbleToLastFM = ScrobbleToLastFM,
+                KeepScreenOnDuringLyrics = true,
                 CurrentTheme = Application.Current?.UserAppTheme.ToString() ?? "Unspecified",
                 CurrentLanguage = CultureInfo.CurrentCulture.TwoLetterISOLanguageName,
                 CurrentCountry = RegionInfo.CurrentRegion.TwoLetterISORegionName,
@@ -1085,6 +1087,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 DeviceVolumeLevel = appModel.VolumeLevelPreference;
                 IsDarkModeOn = appModel.IsDarkModePreference;
                 ScrobbleToLastFM = appModel.ScrobbleToLastFM;
+                KeepScreenOnDuringLyrics = appModel.KeepScreenOnDuringLyrics;
                 // --- REPLACED: Logic to load the last played song ---
                 if (!string.IsNullOrEmpty(appModel.CurrentSongId) &&
                     ObjectId.TryParse(appModel.CurrentSongId, out var songId))
@@ -7178,6 +7181,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     {
         ToggleLastFMScrobbling(newValue);
     }
+
+    [ObservableProperty]
+    public partial bool KeepScreenOnDuringLyrics { get; set; } = true;
 
     public ObservableCollection<string> QueryChips { get; } = new();
 
