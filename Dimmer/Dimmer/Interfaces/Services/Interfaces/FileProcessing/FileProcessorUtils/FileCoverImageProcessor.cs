@@ -6,6 +6,19 @@
 /// </summary>
 public static class FileCoverImageProcessor
 {
+    private static string SanitizeFileName(string fileName)
+    {
+        if (string.IsNullOrWhiteSpace(fileName))
+            return string.Empty;
+
+        // First, normalize all Unicode whitespace characters (including non-breaking spaces \u00A0)
+        // to regular spaces, then trim to remove leading/trailing whitespace
+        var normalized = System.Text.RegularExpressions.Regex.Replace(fileName, @"\s", " ").Trim();
+        
+        // Replace invalid filename characters with underscore
+        return string.Join("_", normalized.Split(Path.GetInvalidFileNameChars()));
+    }
+
     public static string SaveOrGetCoverImageToFilePath(string? fullfilePath, byte[]? imageData = null, bool isDoubleCheckingBeforeFetch = true)
     {
         // If fullfilePath is null, we can't generate a meaningful filename based on it.
@@ -103,11 +116,7 @@ public static class FileCoverImageProcessor
         // 4. Sanitize filename and create full file paths for checking/saving
         string decodedPath = Uri.UnescapeDataString(fullfilePath);
         string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(decodedPath); // Use this to avoid original extension issues
-        
-        // Normalize all Unicode whitespace characters (including non-breaking spaces \u00A0)
-        // to regular spaces, then trim to remove leading/trailing whitespace
-        var normalized = System.Text.RegularExpressions.Regex.Replace(fileNameWithoutExtension, @"\s", " ").Trim();
-        string sanitizedFileName = string.Join("_", normalized.Split(Path.GetInvalidFileNameChars()));
+        string sanitizedFileName = SanitizeFileName(fileNameWithoutExtension);
 
         // Paths to check for existing files
         string existingPngPath = Path.Combine(folderPath, $"{sanitizedFileName}.png");

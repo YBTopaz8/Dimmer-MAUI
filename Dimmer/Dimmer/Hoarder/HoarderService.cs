@@ -396,7 +396,7 @@ public class HoarderService : IHoarderService
         string invalidChars = System.Text.RegularExpressions.Regex.Escape(new string(Path.GetInvalidFileNameChars()));
         string invalidRegStr = string.Format(@"([{0}]*\.+$)|([{0}]+)", invalidChars);
 
-        return System.Text.RegularExpressions.Regex.Replace(normalized, invalidRegStr, "_").Trim();
+        return System.Text.RegularExpressions.Regex.Replace(normalized, invalidRegStr, "_");
     }
 }
 
