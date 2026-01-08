@@ -35,7 +35,15 @@ public class CoverArtService : ICoverArtService
     }
     private static string SanitizeFileName(string fileName)
     {
-        return string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
+        if (string.IsNullOrWhiteSpace(fileName))
+            return string.Empty;
+
+        // First, normalize all Unicode whitespace characters (including non-breaking spaces \u00A0)
+        // to regular spaces, then trim to remove leading/trailing whitespace
+        var normalized = System.Text.RegularExpressions.Regex.Replace(fileName, @"\s", " ").Trim();
+        
+        // Replace invalid filename characters with underscore
+        return string.Join("_", normalized.Split(Path.GetInvalidFileNameChars()));
     }
 
     private static string? GetExtensionFromMimeType(string? mimeType)

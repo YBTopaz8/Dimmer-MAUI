@@ -103,7 +103,11 @@ public static class FileCoverImageProcessor
         // 4. Sanitize filename and create full file paths for checking/saving
         string decodedPath = Uri.UnescapeDataString(fullfilePath);
         string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(decodedPath); // Use this to avoid original extension issues
-        string sanitizedFileName = string.Join("_", fileNameWithoutExtension.Split(Path.GetInvalidFileNameChars()));
+        
+        // Normalize all Unicode whitespace characters (including non-breaking spaces \u00A0)
+        // to regular spaces, then trim to remove leading/trailing whitespace
+        var normalized = System.Text.RegularExpressions.Regex.Replace(fileNameWithoutExtension, @"\s", " ").Trim();
+        string sanitizedFileName = string.Join("_", normalized.Split(Path.GetInvalidFileNameChars()));
 
         // Paths to check for existing files
         string existingPngPath = Path.Combine(folderPath, $"{sanitizedFileName}.png");

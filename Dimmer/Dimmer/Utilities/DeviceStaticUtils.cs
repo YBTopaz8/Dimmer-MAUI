@@ -21,11 +21,18 @@ public static class LyricsManager // A good practice to put static methods in a 
     // It replaces characters that are invalid in a file name with an underscore.
     private static string SanitizeFileName(string fileName)
     {
+        if (string.IsNullOrWhiteSpace(fileName))
+            return string.Empty;
+
+        // First, normalize all Unicode whitespace characters (including non-breaking spaces \u00A0)
+        // to regular spaces, then trim to remove leading/trailing whitespace
+        var normalized = System.Text.RegularExpressions.Regex.Replace(fileName, @"\s", " ").Trim();
+        
         foreach (char c in Path.GetInvalidFileNameChars())
         {
-            fileName = fileName.Replace(c, '_');
+            normalized = normalized.Replace(c, '_');
         }
-        return fileName;
+        return normalized;
     }
 
     /// <summary>

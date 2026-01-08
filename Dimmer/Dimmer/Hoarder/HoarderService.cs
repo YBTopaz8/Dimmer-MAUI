@@ -386,10 +386,17 @@ public class HoarderService : IHoarderService
     // Helper to remove illegal chars (\ / : * ? " < > |)
     private string SanitizeFileName(string name)
     {
+        if (string.IsNullOrWhiteSpace(name))
+            return string.Empty;
+
+        // First, normalize all Unicode whitespace characters (including non-breaking spaces \u00A0)
+        // to regular spaces, then trim to remove leading/trailing whitespace
+        var normalized = System.Text.RegularExpressions.Regex.Replace(name, @"\s", " ").Trim();
+        
         string invalidChars = System.Text.RegularExpressions.Regex.Escape(new string(Path.GetInvalidFileNameChars()));
         string invalidRegStr = string.Format(@"([{0}]*\.+$)|([{0}]+)", invalidChars);
 
-        return System.Text.RegularExpressions.Regex.Replace(name, invalidRegStr, "_").Trim();
+        return System.Text.RegularExpressions.Regex.Replace(normalized, invalidRegStr, "_").Trim();
     }
 }
 
