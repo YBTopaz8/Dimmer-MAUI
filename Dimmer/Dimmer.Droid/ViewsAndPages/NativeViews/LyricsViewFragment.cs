@@ -5,6 +5,7 @@ using System.Reactive.Disposables.Fluent;
 
 using Android.Content.Res;
 using Android.Text;
+using Android.Views;
 using Android.Widget;
 
 using AndroidX.Lifecycle;
@@ -122,6 +123,35 @@ internal class LyricsViewFragment : Fragment
     {
         base.OnViewCreated(view, savedInstanceState);
         viewModel.CurrentFragment = this;
+        UpdateScreenKeepOn();
+    }
+    
+    public override void OnResume()
+    {
+        base.OnResume();
+        UpdateScreenKeepOn();
+    }
+
+    public override void OnPause()
+    {
+        base.OnPause();
+        ClearScreenKeepOn();
+    }
+
+    private void UpdateScreenKeepOn()
+    {
+        if (viewModel?.KeepScreenOnDuringLyrics == true && Activity?.Window != null)
+        {
+            Activity.Window.AddFlags(WindowManagerFlags.KeepScreenOn);
+        }
+    }
+
+    private void ClearScreenKeepOn()
+    {
+        if (Activity?.Window != null)
+        {
+            Activity.Window.ClearFlags(WindowManagerFlags.KeepScreenOn);
+        }
     }
     private void SetupBindings()
     {
@@ -144,6 +174,7 @@ internal class LyricsViewFragment : Fragment
     public override void OnDestroy()
     {
         base.OnDestroy();
+        ClearScreenKeepOn();
         _disposables.Clear();
     }
 
