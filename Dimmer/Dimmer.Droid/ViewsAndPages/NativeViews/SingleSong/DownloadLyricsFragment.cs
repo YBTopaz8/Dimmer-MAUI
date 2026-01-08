@@ -1,6 +1,7 @@
 ﻿using Dimmer.Data.Models.LyricsModels;
-
+using Google.Android.Material.Dialog;
 using ProgressBar = Android.Widget.ProgressBar;
+using ScrollView = Android.Widget.ScrollView;
 
 namespace Dimmer.ViewsAndPages.NativeViews.SingleSong;
 
@@ -53,23 +54,14 @@ public partial class DownloadLyricsFragment : Fragment
         return root;
     }
 
-    private async void SearchBtn_Click(object sender, EventArgs e)
+    private async void SearchBtn_Click(object? sender, EventArgs e)
     {
         loadingBar.Visibility = ViewStates.Visible;
 
-        // Mocking the Service Call - Replace with your actual Retrofit/HttpClient call
-        // var results = await MyViewModel.LyricsService.GetLyrics(titleInput.Text, artistInput.Text, albumInput.Text);
+        await MyViewModel.SearchLyricsCommand.ExecuteAsync(null);
+      
 
-        await System.Threading.Tasks.Task.Delay(1000); // Fake delay
-
-        // Dummy Data for demonstration
-        var results = new List<LrcLibLyrics>
-        {
-            new LrcLibLyrics { TrackName = titleInput.Text, ArtistName = artistInput.Text, SyncedLyrics = "[00:10] Hello world", PlainLyrics = "Hello world" },
-            new LrcLibLyrics { TrackName = titleInput.Text + " (Remix)", ArtistName = artistInput.Text, PlainLyrics = "Lyrics here..." }
-        };
-
-        resultsRecycler.SetAdapter(new LyricsAdapter(results, OnLyricsSelected));
+        resultsRecycler.SetAdapter(new LyricsAdapter(MyViewModel.LyricsSearchResults, OnLyricsSelected));
         loadingBar.Visibility = ViewStates.Gone;
     }
 
@@ -83,7 +75,7 @@ public partial class DownloadLyricsFragment : Fragment
     {
         if (Context == null) return;
 
-        var dialog = new AndroidX.AppCompat.App.AlertDialog.Builder(Context);
+        var dialog = new MaterialAlertDialogBuilder(Context);
         
         // Set title
         dialog.SetTitle($"{lyrics.TrackName} - {lyrics.ArtistName}");
@@ -138,6 +130,7 @@ public partial class DownloadLyricsFragment : Fragment
             Text = hasSyncedLyrics ? lyrics.SyncedLyrics : (hasPlainLyrics ? lyrics.PlainLyrics : "No lyrics available"),
             TextSize = 14
         };
+        lyricsText.SetHeight(AppUtil.DpToPx(150));
         lyricsText.SetTextIsSelectable(true);
         if (hasSyncedLyrics)
         {
@@ -218,10 +211,10 @@ public partial class DownloadLyricsFragment : Fragment
     // --- Inner Adapter Class ---
     private class LyricsAdapter : RecyclerView.Adapter
     {
-        private List<LrcLibLyrics> items;
+        private ObservableCollection<LrcLibLyrics> items;
         private Action<LrcLibLyrics> onClick;
 
-        public LyricsAdapter(List<LrcLibLyrics> items, Action<LrcLibLyrics> onClick)
+        public LyricsAdapter(ObservableCollection<LrcLibLyrics> items, Action<LrcLibLyrics> onClick)
         {
             this.items = items;
             this.onClick = onClick;

@@ -113,14 +113,6 @@ public partial class AchievementsViewModel : ObservableObject, IDisposable
             });
     }
 
-    private string GetColorForTier(AchievementTier tier) => tier switch
-    {
-        AchievementTier.Bronze => "#CD7F32",
-        AchievementTier.Silver => "#C0C0C0",
-        AchievementTier.Gold => "#FFD700",
-        AchievementTier.Platinum => "#E5E4E2",
-        _ => "#FFFFFF"
-    };
     private bool IsSongSpecific(AchievementCategory cat) =>
      cat == AchievementCategory.SongCount || cat == AchievementCategory.SongSkip || cat == AchievementCategory.SongFav;
     public void Dispose()

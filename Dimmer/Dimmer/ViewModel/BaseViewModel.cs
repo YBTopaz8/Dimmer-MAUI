@@ -669,7 +669,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             await Task.Delay(3000);
             await EnsureAllCoverArtCachedForSongsAsync();
             CancellationTokenSource cts = new();
-            //await LoadAllSongsLyricsFromOnlineAsync(cts);
+            await LoadAllSongsLyricsFromOnlineAsync(cts);
         });
 
         IsInitialized = true;
@@ -714,8 +714,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
 
     public ReadOnlyObservableCollection<DuplicateSetViewModel> DuplicateSets => _duplicateSets;
-
-    Timer? _bootTimer;
 
     [ObservableProperty]
     public partial bool IsInitialized { get; set; }
@@ -826,7 +824,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     public event EventHandler? ToggleNowPlayingUI;
 
-    public event Action? MainWindowActivatedAction;
 
     public event EventHandler? MainWindowActivatedEventHandler;
 
@@ -1455,8 +1452,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     private ParseClient ParseClientInstance => ParseClient.Instance;
 
-    private ParseLiveQueryClient LiveClient { get; set; }
-
     public string MyDeviceId { get; set; }
 
 
@@ -1535,8 +1530,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     private SourceList<DimmerPlayEventView> _playEventSource = new();
     private CompositeDisposable _disposables = new();
     private IDisposable? _realmSubscription;
-    private bool _isDisposed;
 
+    public ILyricsMetadataService LyricsMetadataService => _lyricsMetadataService;
     private ILyricsMetadataService _lyricsMetadataService;
 
 
@@ -2165,7 +2160,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     private static readonly HttpClient httpClient = new();
 
-    private int counterr = 0;
     /// <summary>
     /// A robust, multi-stage process to load cover art. It prioritizes existing paths, checks for cached files, and
     /// only extracts from the audio file as a last resort, caching the result for future use.
@@ -2375,31 +2369,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         _stateService.SetCurrentLogMsg(new AppLogModel { Log = "Cover art check complete." });
     }
-    
+
     #region Playback Event Handlers
-    private async void OnPlaybackPaused(PlaybackEventArgs args)
-    {
-        if (args.MediaSong is null)
-        {
-            _logger.LogWarning("OnPlaybackPaused was called but the event had no song context.");
-            return;
-        }
-        var isAtEnd = Math.Abs(CurrentTrackDurationSeconds - CurrentTrackPositionSeconds) < 0.5;
-        if (isAtEnd && CurrentTrackDurationSeconds > 0)
-        {
-            _logger.LogTrace("Ignoring Paused event at the end of the track, waiting for Completed event.");
-            return;
-        }
-
-        _logger.LogInformation("AudioService confirmed: Playback paused for '{Title}'", args.MediaSong.Title);
-        CurrentPlayingSongView.IsCurrentPlayingHighlight = false;
-        await BaseAppFlow.UpdateDatabaseWithPlayEvent(
-            RealmFactory,
-            args.MediaSong,
-            StatesMapper.Map(DimmerPlaybackState.PausedUser),
-            CurrentTrackPositionSeconds);
-
-    }
 
     private async Task OnPlaybackResumed(PlaybackEventArgs args)
     {
@@ -5492,7 +5463,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
 
     [RelayCommand]
-    private async Task SearchLyricsAsync()
+    public async Task SearchLyricsAsync()
     {
         if (SelectedSong == null)
             return;
@@ -6032,12 +6003,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             IsTimestampingInProgress = true;
 
-            Shell.Current.FlyoutBehavior = FlyoutBehavior.Flyout;
         }
         else
         {
             IsTimestampingInProgress = false;
-            Shell.Current.FlyoutBehavior = FlyoutBehavior.Flyout;
         }
 
     }
@@ -7841,7 +7810,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     public static string WindowActivationRequestTypeStatic;
     public static string LastFMName = string.Empty;
-    private int targetPageForCurrentSong;
 
     [RelayCommand]
     public async Task LoginToLastfm()
