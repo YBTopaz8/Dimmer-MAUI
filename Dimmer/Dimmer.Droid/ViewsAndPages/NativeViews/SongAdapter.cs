@@ -38,7 +38,26 @@ internal class SongAdapter : RecyclerView.Adapter
     private int _expandedPosition = -1;
     private int _previousExpandedPosition = -1;
 
+    /// <summary>
+    /// Gets the song at the specified position in the original songs list (not the flattened list with headers)
+    /// </summary>
     public SongModelView GetItem(int position) => Songs.ElementAt(position);
+
+    /// <summary>
+    /// Gets the song from a flattened list position (accounting for headers)
+    /// </summary>
+    public SongModelView? GetSongAtFlatPosition(int flatPosition)
+    {
+        if (flatPosition >= 0 && flatPosition < _listItems.Count)
+        {
+            var item = _listItems[flatPosition];
+            if (item.Type == ListItem.ItemType.Song)
+            {
+                return item.Song;
+            }
+        }
+        return null;
+    }
 
     IObservable<IChangeSet<SongModelView>> sourceStream;
     IEnumerable<SongModelView> sourceList;

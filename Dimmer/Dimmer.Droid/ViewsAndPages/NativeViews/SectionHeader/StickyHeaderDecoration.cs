@@ -102,20 +102,36 @@ internal class StickyHeaderDecoration : RecyclerView.ItemDecoration
 
     private SectionHeaderModel? GetSectionForPosition(int position)
     {
-        // Find the section that contains this position
-        // Sections are ordered by AdapterPosition
-        SectionHeaderModel? currentSection = null;
-
-        foreach (var section in _sections)
+        // Position here refers to the flattened list position (including headers)
+        // We need to find which section this position belongs to
+        
+        if (_sections.Count == 0) return null;
+        
+        // Count how many songs we've seen so far (excluding headers)
+        int songsSeen = 0;
+        
+        for (int i = 0; i < _sections.Count; i++)
         {
-            if (position >= section.SongStartIndex && 
-                position < section.SongStartIndex + section.SongCount)
+            var section = _sections[i];
+            int sectionEndSongIndex = section.SongStartIndex + section.SongCount;
+            
+            // Check if this position falls within this section's range
+            // Each section has: 1 header + N songs
+            // So flattened positions for this section are: 
+            // songsSeen + i (for header) and songsSeen + i + 1 to songsSeen + i + section.SongCount (for songs)
+            
+            int headerPosition = songsSeen + i;
+            int sectionStartFlat = headerPosition + 1;
+            int sectionEndFlat = headerPosition + section.SongCount;
+            
+            if (position >= headerPosition && position <= sectionEndFlat)
             {
-                currentSection = section;
-                break;
+                return section;
             }
+            
+            songsSeen += section.SongCount;
         }
 
-        return currentSection ?? _sections.LastOrDefault();
+        return _sections.LastOrDefault();
     }
 }

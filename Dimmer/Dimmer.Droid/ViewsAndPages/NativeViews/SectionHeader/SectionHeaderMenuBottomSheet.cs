@@ -55,7 +55,7 @@ internal class SectionHeaderMenuBottomSheet : BottomSheetDialogFragment
         root.AddView(titleView);
 
         // Scroll to Section button
-        var scrollToSectionBtn = CreateActionButton(ctx, "Jump to Section Start", Resource.Drawable.exo_icon_play);
+        var scrollToSectionBtn = CreateActionButton(ctx, "Jump to Section Start", Resource.Drawable.arrowdown);
         scrollToSectionBtn.Click += (s, e) =>
         {
             _recyclerView.SmoothScrollToPosition(_section.SongStartIndex);
@@ -64,7 +64,7 @@ internal class SectionHeaderMenuBottomSheet : BottomSheetDialogFragment
         root.AddView(scrollToSectionBtn);
 
         // Scroll to Top button
-        var scrollToTopBtn = CreateActionButton(ctx, "Scroll to Top", Resource.Drawable.arrowup);
+        var scrollToTopBtn = CreateActionButton(ctx, "Scroll to Top", Resource.Drawable.arrowtotopleft);
         scrollToTopBtn.Click += (s, e) =>
         {
             _recyclerView.SmoothScrollToPosition(0);
@@ -91,7 +91,7 @@ internal class SectionHeaderMenuBottomSheet : BottomSheetDialogFragment
         // Change Sort Mode button
         if (_onChangeSortMode != null)
         {
-            var changeSortBtn = CreateActionButton(ctx, "Change Sort Mode", Resource.Drawable.sortaz);
+            var changeSortBtn = CreateActionButton(ctx, "Change Sort Mode", Resource.Drawable.sorta);
             changeSortBtn.Click += (s, e) =>
             {
                 ShowSortModeDialog();
