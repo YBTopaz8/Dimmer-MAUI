@@ -125,6 +125,35 @@ internal class SongAdapter : RecyclerView.Adapter
     }
 
     public List<SectionHeaderModel> GetSections() => _sections;
+
+    /// <summary>
+    /// Converts a song index (from the original songs list) to a position in the flattened list (with headers)
+    /// </summary>
+    public int GetFlatPositionForSongIndex(int songIndex)
+    {
+        if (songIndex < 0 || songIndex >= _songs.Count)
+            return -1;
+
+        // Find which section this song belongs to
+        int songsSeen = 0;
+        for (int i = 0; i < _sections.Count; i++)
+        {
+            var section = _sections[i];
+            int sectionEndIndex = section.SongStartIndex + section.SongCount;
+
+            if (songIndex >= section.SongStartIndex && songIndex < sectionEndIndex)
+            {
+                // Found the section
+                // Calculate flat position: previous sections' items + current section header + offset within section
+                int offsetInSection = songIndex - section.SongStartIndex;
+                return songsSeen + i + 1 + offsetInSection;
+            }
+
+            songsSeen += section.SongCount;
+        }
+
+        return -1;
+    }
     protected override void Dispose(bool disposing)
     {
         if (disposing)
@@ -162,6 +191,7 @@ internal class SongAdapter : RecyclerView.Adapter
                     MyViewModel,
                     section,
                     (RecyclerView)holder.ItemView.Parent!,
+                    this, // Pass the adapter for position conversion
                     onExitShuffle: () =>
                     {
                         // Exit shuffle by applying a default sort

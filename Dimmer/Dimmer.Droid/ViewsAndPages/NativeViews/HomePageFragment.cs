@@ -240,7 +240,9 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
                     // Since we are using the "queue" mode in adapter, we need to find the index in PlaybackQueue
                     var index = MyViewModel.SearchResults.IndexOf(requestedSong);
-                    _songListRecycler?.SmoothScrollToPosition(index);
+                    var flatPosition = _adapter.GetFlatPositionForSongIndex(index);
+                    if (flatPosition >= 0)
+                        _songListRecycler?.SmoothScrollToPosition(flatPosition);
                     
                     break;
 
@@ -405,7 +407,11 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
         var currentlyPlayingIndex = MyViewModel.SearchResults.IndexOf(MyViewModel.CurrentPlayingSongView);
         if (currentlyPlayingIndex >= 0)
-            _songListRecycler?.ScrollToPosition(currentlyPlayingIndex);
+        {
+            var flatPosition = _adapter.GetFlatPositionForSongIndex(currentlyPlayingIndex);
+            if (flatPosition >= 0)
+                _songListRecycler?.ScrollToPosition(flatPosition);
+        }
 
         MyViewModel.ScrollToCurrentSongRequest
         .ObserveOn(RxSchedulers.UI) // Ensure runs on UI thread
@@ -416,10 +422,15 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
                 var index = MyViewModel.SearchResults.IndexOf(MyViewModel.CurrentPlayingSongView);
                 if (index >= 0)
                 {
-                    // Smooth scroll looks nicer
-                    _songListRecycler.ScrollToPosition(index);
+                    // Convert song index to flat position accounting for headers
+                    var flatPos = _adapter.GetFlatPositionForSongIndex(index);
+                    if (flatPos >= 0)
+                    {
+                        // Smooth scroll looks nicer
+                        _songListRecycler.ScrollToPosition(flatPos);
 
-                    // Flash the item? (Requires access to ViewHolder, maybe for later)
+                        // Flash the item? (Requires access to ViewHolder, maybe for later)
+                    }
                 }
             }
         })

@@ -16,6 +16,7 @@ internal class SectionHeaderMenuBottomSheet : BottomSheetDialogFragment
     private readonly BaseViewModelAnd _viewModel;
     private readonly SectionHeaderModel _section;
     private readonly RecyclerView _recyclerView;
+    private readonly SongAdapter _adapter;
     private readonly Action? _onExitShuffle;
     private readonly Action<string>? _onChangeSortMode;
 
@@ -23,12 +24,14 @@ internal class SectionHeaderMenuBottomSheet : BottomSheetDialogFragment
         BaseViewModelAnd viewModel,
         SectionHeaderModel section,
         RecyclerView recyclerView,
+        SongAdapter adapter,
         Action? onExitShuffle = null,
         Action<string>? onChangeSortMode = null)
     {
         _viewModel = viewModel;
         _section = section;
         _recyclerView = recyclerView;
+        _adapter = adapter;
         _onExitShuffle = onExitShuffle;
         _onChangeSortMode = onChangeSortMode;
     }
@@ -58,7 +61,10 @@ internal class SectionHeaderMenuBottomSheet : BottomSheetDialogFragment
         var scrollToSectionBtn = CreateActionButton(ctx, "Jump to Section Start", Resource.Drawable.arrowdown);
         scrollToSectionBtn.Click += (s, e) =>
         {
-            _recyclerView.SmoothScrollToPosition(_section.SongStartIndex);
+            // Scroll to the header position (flattened list includes headers)
+            var flatPos = _adapter.GetFlatPositionForSongIndex(_section.SongStartIndex);
+            if (flatPos >= 0)
+                _recyclerView.SmoothScrollToPosition(flatPos);
             Dismiss();
         };
         root.AddView(scrollToSectionBtn);
@@ -81,7 +87,9 @@ internal class SectionHeaderMenuBottomSheet : BottomSheetDialogFragment
                 var index = _viewModel.SearchResults.IndexOf(_viewModel.CurrentPlayingSongView);
                 if (index >= 0)
                 {
-                    _recyclerView.SmoothScrollToPosition(index);
+                    var flatPos = _adapter.GetFlatPositionForSongIndex(index);
+                    if (flatPos >= 0)
+                        _recyclerView.SmoothScrollToPosition(flatPos);
                 }
             }
             Dismiss();
