@@ -176,7 +176,6 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
         if (targetWindow == null)
         {
             windowFactory ??= () => Activator.CreateInstance<T>();
-            
             T newWindow = windowFactory();
 
             void OnNewWindowClosed(object sender, WindowEventArgs args)
@@ -366,7 +365,6 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
     public void EnsureWindowActive(Window? window)
     {
         if (window == null) return;
-        
         // 1 try to recover a live tracked one first
         if (!_openWindows.Contains(window) || !IsWindowOpen(window))
         {
