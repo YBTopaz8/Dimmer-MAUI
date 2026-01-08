@@ -4,7 +4,8 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - releaseBranch      
+      - IntegrateAll
+      - master
 
 jobs:
   build-and-release:
@@ -58,21 +59,14 @@ jobs:
              echo "IS_PRE=true" >> $env:GITHUB_ENV
           }
 
-          # --- C. FIND PREVIOUS TAG (Robust Method) ---
+          # --- C. FIND PREVIOUS TAG ---
           git fetch --tags --force
           
-          # 'git describe' finds the most recent tag reachable from HEAD
-          # 2>$null suppresses error if this is the very first commit/release
-          $prevTag = git describe --tags --abbrev=0 2>$null
-
-          # Edge Case: If the found tag equals the New Tag (e.g. you pushed the tag manually), 
-          # look for the one before that.
-          if ($prevTag -eq $newTag) {
-            $prevTag = git describe --tags --abbrev=0 "$newTag^" 2>$null
-          }
-
+          # Find any tag that is NOT the current target tag
+          $prevTag = git tag --sort=-version:refname | Where-Object { $_ -ne $newTag } | Select-Object -First 1
+          
           if (-not $prevTag) { 
-             Write-Host "⚠️ No previous tag found (First Release or no tags reachable)"
+             Write-Host "⚠️ No previous tag found (First Release?)"
              $prevTag = "" 
           } else {
              Write-Host "🔹 Previous Tag found: $prevTag"
@@ -94,16 +88,17 @@ jobs:
               $log = git log --pretty=format:"- %s (%h)" --no-merges
           } else {
               # Get history since last tag
-              $log = git log "$prevTag..HEAD" --pretty=format:"- %s (%h)" --no-merges
+              $log = git log $prevTag..HEAD --pretty=format:"- %s (%h)" --no-merges
           }
 
-          # Convert to string if it's an array (PowerShell quirk)
+          # --- FIX: Handle PowerShell Array to String conversion ---
           if ($log -is [Array]) {
               $logString = $log -join "`n"
           } else {
               $logString = $log
           }
 
+          # If log is empty (e.g. no changes?), putting a placeholder
           if ([string]::IsNullOrWhiteSpace($logString)) {
               $logString = "- No commit messages found since last tag."
           }
@@ -253,7 +248,6 @@ jobs:
           name: Release ${{ env.NEW_TAG }}
           draft: false
           prerelease: ${{ env.IS_PRE }}
-          make_latest: ${{ env.IS_PRE == 'false' }}
           body_path: release_notes.md
           files: |
             RawBuild/Android/*.apk
