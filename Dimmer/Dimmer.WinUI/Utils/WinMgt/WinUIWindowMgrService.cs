@@ -158,7 +158,7 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
     {
         if (callerVM == null) return null;
 
-        T targetWindow = null;
+        T? targetWindow = null;
 
         if (_trackedUniqueTypedWindows.TryGetValue(typeof(T), out var existingGenericWindow) && existingGenericWindow is T existingTypedWindow)
         {
