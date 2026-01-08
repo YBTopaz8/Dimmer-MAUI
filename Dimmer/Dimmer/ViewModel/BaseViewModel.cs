@@ -533,9 +533,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             TQLUserSearchErrorMessage = result.ErrorMessage ?? result.Plan.ErrorMessage;
             SearchResultsHolder.Edit(u => u.Clear()); // Clear list on error
+            CurrentQueryPlan = null;
             return;
         }
 
+        // Store the current query plan for section header computation
+        CurrentQueryPlan = result.Plan;
 
         SearchResultsHolder.Edit(updater =>
         {
@@ -7076,6 +7079,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     [ObservableProperty]
     public partial string CurrentTqlQueryUI { get; set; } = "";
+
+    [ObservableProperty]
+    public partial DimmerSearch.TQL.RealmSection.RealmQueryPlan? CurrentQueryPlan { get; set; }
     partial void OnCurrentTqlQueryChanged(string value)
     {
         CurrentTqlQueryUI = value;

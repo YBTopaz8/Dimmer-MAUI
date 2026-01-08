@@ -8,6 +8,7 @@ using Bumptech.Glide;
 
 using Dimmer.DimmerSearch;
 using Dimmer.ViewsAndPages.NativeViews.Misc;
+using Dimmer.ViewsAndPages.NativeViews.SectionHeader;
 using Dimmer.WinUI.UiUtils;
 
 using DynamicData;
@@ -18,7 +19,13 @@ namespace Dimmer.ViewsAndPages.NativeViews;
 
 internal class SongAdapter : RecyclerView.Adapter
 {
+    private const int VIEW_TYPE_HEADER = 0;
+    private const int VIEW_TYPE_SONG = 1;
+
     private ReadOnlyObservableCollection<SongModelView> _songs;
+    private List<ListItem> _listItems = new();
+    private List<SectionHeaderModel> _sections = new();
+
     public enum ViewId { Image, Title, Artist, Container }
     public static Action<View, string, int>? AdapterCallbacks;
     private Context ctx;
@@ -51,47 +58,54 @@ internal class SongAdapter : RecyclerView.Adapter
             .Bind(out _songs)           // Automatically keeps _songs in sync with the source
             .Subscribe(changes =>
             {
-                // 4. Manual Dispatching (The Secret Sauce for Animations)
-                // Instead of NotifyDataSetChanged, we loop through the changes 
-                // DynamicData detected and tell Android exactly what happened.
-                foreach (var change in changes)
-                {
-                    switch (change.Reason)
-                    {
-                        case ListChangeReason.AddRange:
-                            NotifyItemRangeInserted(change.Range.Index, change.Range.Count);
-                            break;
-                            case ListChangeReason.RemoveRange:
-                                NotifyItemRangeRemoved(change.Range.Index, change.Range.Count);
-                                break;
-                        case ListChangeReason.Refresh:
-                            
-                            
-
-                                break;
-                        case ListChangeReason.Add:
-                            NotifyItemInserted(change.Item.CurrentIndex);
-                            break;
-                        case ListChangeReason.Remove:
-                            NotifyItemRemoved(change.Item.CurrentIndex);
-                            break;
-                        case ListChangeReason.Moved:
-                            NotifyItemMoved(change.Item.PreviousIndex, change.Item.CurrentIndex);
-                            break;
-                        case ListChangeReason.Replace:
-                            NotifyItemChanged(change.Item.CurrentIndex);
-                            break;
-                        case ListChangeReason.Clear:
-                             NotifyDataSetChanged();
-                            break;
-                    }
-                }
-
-                // If you prefer simplicity over animations, 
-                // replace the foreach above with: NotifyDataSetChanged();
+                // Rebuild list items with sections
+                RebuildListItems();
+                NotifyDataSetChanged(); // Full refresh for now - can be optimized later
             })
             .DisposeWith(_disposables);
+
+        // Listen to CurrentQueryPlan changes to update sections
+        if (songsToWatch == "main")
+        {
+            myViewModel.WhenPropertyChange(nameof(BaseViewModelAnd.CurrentQueryPlan), vm => vm.CurrentQueryPlan)
+                .ObserveOn(RxSchedulers.UI)
+                .Subscribe(_ =>
+                {
+                    RebuildListItems();
+                    NotifyDataSetChanged();
+                })
+                .DisposeWith(_disposables);
+        }
     }
+
+    private void RebuildListItems()
+    {
+        _listItems.Clear();
+        _sections.Clear();
+
+        if (_songs == null || _songs.Count == 0)
+        {
+            return;
+        }
+
+        // Compute sections based on current query plan
+        _sections = SectionGroupingHelper.ComputeSections(_songs, MyViewModel.CurrentQueryPlan);
+
+        // Build flat list with headers and songs
+        foreach (var section in _sections)
+        {
+            // Add header
+            _listItems.Add(ListItem.CreateHeader(section));
+
+            // Add songs in this section
+            for (int i = section.SongStartIndex; i < section.SongStartIndex + section.SongCount && i < _songs.Count; i++)
+            {
+                _listItems.Add(ListItem.CreateSong(_songs[i]));
+            }
+        }
+    }
+
+    public List<SectionHeaderModel> GetSections() => _sections;
     protected override void Dispose(bool disposing)
     {
         if (disposing)
@@ -102,15 +116,52 @@ internal class SongAdapter : RecyclerView.Adapter
         base.Dispose(disposing);
     }
     private readonly CompositeDisposable _disposables = new();
-    public override int ItemCount => _songs.Count;
+
+    public override int ItemCount => _listItems.Count;
+
+    public override int GetItemViewType(int position)
+    {
+        if (position < _listItems.Count)
+        {
+            return _listItems[position].Type == ListItem.ItemType.Header ? VIEW_TYPE_HEADER : VIEW_TYPE_SONG;
+        }
+        return VIEW_TYPE_SONG;
+    }
+
     public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
     {
-        if (holder is SongViewHolder songHolder)
+        if (position >= _listItems.Count) return;
+
+        var listItem = _listItems[position];
+
+        if (holder is SectionHeaderViewHolder headerHolder && listItem.Type == ListItem.ItemType.Header)
         {
-            var song = _songs[position];
+            headerHolder.Bind(listItem.Header!, (section) =>
+            {
+                // Show bottom sheet menu when header is clicked
+                var menuSheet = new SectionHeaderMenuBottomSheet(
+                    MyViewModel,
+                    section,
+                    (RecyclerView)holder.ItemView.Parent!,
+                    onExitShuffle: () =>
+                    {
+                        // Exit shuffle by applying a default sort
+                        MyViewModel.SearchSongForSearchResultHolder("sort:added desc");
+                    },
+                    onChangeSortMode: (sortQuery) =>
+                    {
+                        MyViewModel.SearchSongForSearchResultHolder(sortQuery);
+                    });
+
+                menuSheet.Show(ParentFragement.ParentFragmentManager, "SectionHeaderMenu");
+            });
+        }
+        else if (holder is SongViewHolder songHolder && listItem.Type == ListItem.ItemType.Song)
+        {
+            var song = listItem.Song!;
             bool isExpanded = position == _expandedPosition;
 
-            songHolder.Bind(song, isExpanded,  (pos) => ToggleExpand(pos));
+            songHolder.Bind(song, isExpanded, (pos) => ToggleExpand(pos));
         }
     }
 
@@ -196,6 +247,12 @@ internal class SongAdapter : RecyclerView.Adapter
 
     public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType)
     {
+        if (viewType == VIEW_TYPE_HEADER)
+        {
+            return SectionHeaderViewHolder.Create(ctx, parent);
+        }
+
+        // VIEW_TYPE_SONG - create song view holder
         // Root Card
         var card = new MaterialCardView(ctx)
         {

@@ -160,8 +160,25 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         _songListRecycler.SetPadding(0, 0, 0, AppUtil.DpToPx(160));
         _songListRecycler.SetClipToPadding(false);
 
-        var adapter = new SongAdapter(ctx, MyViewModel, this);
-        _songListRecycler.SetAdapter(adapter);
+        _adapter = new SongAdapter(ctx, MyViewModel, this);
+        _songListRecycler.SetAdapter(_adapter);
+        
+        // Add sticky header decoration
+        var stickyDecoration = new Dimmer.ViewsAndPages.NativeViews.SectionHeader.StickyHeaderDecoration(
+            ctx, 
+            _adapter.GetSections());
+        _songListRecycler.AddItemDecoration(stickyDecoration);
+        
+        // Update decoration when sections change
+        MyViewModel.WhenPropertyChange(nameof(BaseViewModelAnd.CurrentQueryPlan), vm => vm.CurrentQueryPlan)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(_ =>
+            {
+                stickyDecoration.UpdateSections(_adapter.GetSections());
+                _songListRecycler.Invalidate();
+            })
+            .DisposeWith(CompositeDisposables);
+
         //_songListRecycler.AddOnScrollListener(new LoadMoreListener(MyViewModel));
 
         //var pagerView = CreatePaginationBar(MyViewModel,ctx);
