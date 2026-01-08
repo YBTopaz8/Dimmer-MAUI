@@ -138,9 +138,16 @@ internal class LyricsViewFragment : Fragment
         ClearScreenKeepOn();
     }
 
+    private bool ShouldSetScreenKeepOn()
+    {
+        return viewModel?.KeepScreenOnDuringLyrics == true 
+            && Activity?.Window != null 
+            && !_isScreenKeepOnSetByThisFragment;
+    }
+
     private void UpdateScreenKeepOn()
     {
-        if (viewModel?.KeepScreenOnDuringLyrics == true && Activity?.Window != null && !_isScreenKeepOnSetByThisFragment)
+        if (ShouldSetScreenKeepOn())
         {
             Activity.Window.AddFlags(WindowManagerFlags.KeepScreenOn);
             _isScreenKeepOnSetByThisFragment = true;
