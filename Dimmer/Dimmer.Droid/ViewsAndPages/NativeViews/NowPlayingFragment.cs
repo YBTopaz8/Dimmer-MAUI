@@ -229,7 +229,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         imgCard.AddView(_mainCoverImage, new FrameLayout.LayoutParams(-1, -1));
         gridFrame.AddView(imgCard);
         
-        // 2. Lyrics Overlay (MUST be added after image to be on top)
+        // 2. Lyrics Overlay 
         _lyricsCard = new MaterialCardView(ctx)
         {
             Radius = AppUtil.DpToPx(12),

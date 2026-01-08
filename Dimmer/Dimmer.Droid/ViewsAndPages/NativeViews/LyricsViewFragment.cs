@@ -19,7 +19,7 @@ using Kotlin;
 namespace Dimmer.ViewsAndPages.NativeViews;
 
 
-internal class LyricsViewFragment : Fragment
+internal class LyricsViewFragment : Fragment, IOnBackInvokedCallback,IOnBackAnimationCallback
 {
     private BaseViewModelAnd viewModel;
     private RecyclerView _lyricsRecyclerView;
@@ -206,7 +206,16 @@ internal class LyricsViewFragment : Fragment
             Console.WriteLine(ex.Message);
         }
     }
+    public override void OnResume()
+    {
+        base.OnResume();
 
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu)
+        {
+            Activity?.OnBackInvokedDispatcher.RegisterOnBackInvokedCallback(
+                (int)IOnBackInvokedDispatcher.PriorityDefault, this);
+        }
+    }
     private void ApplyBlur()
     {
         // Simple Android 12+ Blur (RenderEffect)
@@ -215,6 +224,11 @@ internal class LyricsViewFragment : Fragment
             _backgroundImageView.SetRenderEffect(RenderEffect.CreateBlurEffect(30f, 30f, Shader.TileMode.Clamp!));
         }
         // For older versions, you'd use a library like Glide or a custom StackBlur
+    }
+
+    public void OnBackInvoked()
+    {
+       
     }
 }
 

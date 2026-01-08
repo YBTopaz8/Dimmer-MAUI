@@ -1133,7 +1133,14 @@ public class ExoPlayerService : MediaSessionService
         public long TotalBufferedDuration => _realPlayer.TotalBufferedDuration;
         public TrackSelectionParameters? TrackSelectionParameters { get => _realPlayer.TrackSelectionParameters; set => _realPlayer.TrackSelectionParameters = value; }
         public VideoSize? VideoSize => _realPlayer.VideoSize;
-        public float Volume { get => _realPlayer.Volume; set => _realPlayer.Volume = value; }
+        public float Volume
+        {
+            get => _realPlayer.Volume;
+            set
+            {
+                _realPlayer.Volume = value;
+            }
+        }
         public bool DeviceMuted
         {
             get => _realPlayer.DeviceMuted;
