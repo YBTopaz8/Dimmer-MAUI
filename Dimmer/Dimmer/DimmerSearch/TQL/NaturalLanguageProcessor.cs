@@ -4,8 +4,6 @@ namespace Dimmer.DimmerSearch.TQL;
 
 public static class NaturalLanguageProcessor
 {
-    // A single term can be a quoted string or a single word
-    private const string Term = @"(""(?:[^""]|"""")*""|\S+)";
 
     // A value can be one or more terms
     private const string Value = @"((?:""(?:[^""]|"""")*""|\S+)+)";

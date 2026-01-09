@@ -11,7 +11,7 @@ using Android.Widget;
 using AndroidX.Lifecycle;
 
 using Bumptech.Glide;
-
+using CommunityToolkit.Diagnostics;
 using DynamicData.Binding;
 
 using Kotlin;
@@ -28,12 +28,17 @@ internal class LyricsViewFragment : Fragment, IOnBackInvokedCallback,IOnBackAnim
     private TextView _songTitleTv, _artistAlbumTv;
     private bool _isScreenKeepOnSetByThisFragment = false;
 
-    public LyricsViewFragment(BaseViewModelAnd viewModel)
+    public LyricsViewFragment(BaseViewModelAnd? viewModel)
     {
-        this.viewModel = viewModel;
+        if (viewModel == null)
+        {
+            throw new ArgumentNullException(nameof(viewModel));
+        }
+
+        this.viewModel = viewModel!;
     }
 
-    public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         var context = Context!;
         var root = new RelativeLayout(context) { LayoutParameters = new ViewGroup.LayoutParams(-1, -1) };
@@ -225,7 +230,9 @@ internal class LyricsViewFragment : Fragment, IOnBackInvokedCallback,IOnBackAnim
 
     public void OnBackInvoked()
     {
-       
+       TransitionActivity myAct = Activity as TransitionActivity;
+        myAct?.HandleBackPressInternal();
+        //myAct.MoveTaskToBack
     }
 }
 

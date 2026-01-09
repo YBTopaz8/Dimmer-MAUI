@@ -632,7 +632,6 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
                 if (currentFragment is null)
                 { 
                     HandleBackPressInternal();
-
                 };
             });
             OnBackInvokedDispatcher.RegisterOnBackInvokedCallback(IOnBackInvokedDispatcher.PriorityDefault, _onBackInvokedCallback);
@@ -643,7 +642,7 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         }
     }
 
-    private void HandleBackPressInternal()
+    public void HandleBackPressInternal()
     {
         if (SupportFragmentManager.BackStackEntryCount > 0)
         {

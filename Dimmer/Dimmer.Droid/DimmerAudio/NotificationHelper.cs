@@ -207,10 +207,9 @@ public static class NotificationHelper
     }
     class DimmerActionReceiver : Java.Lang.Object, PlayerNotificationManager.ICustomActionReceiver
     {
-        private readonly ExoPlayerService _service;
         private readonly Context _ctx;
         public const string ActionLyrics = "ACTION_LYRICS";
-        private const string ServiceAction = "com.yvanbrunel.dimmer.ACTION_LYRICS";
+
         public DimmerActionReceiver(Context ctx) => _ctx = ctx;
         public const string ActionFavorite = "ACTION_FAVORITE";
         public const string ActionShuffle = "ACTION_SHUFFLE";

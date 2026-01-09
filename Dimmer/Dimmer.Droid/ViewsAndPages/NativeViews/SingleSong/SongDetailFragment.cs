@@ -190,7 +190,8 @@ public class SongDetailFragment : Fragment
         public override Fragment CreateFragment(int position) => position switch
         {
             0 => new SongOverviewFragment(_vm),
-            1 => new LyricsEditorFragment(_vm,_vm.SelectedSong!),
+            1 => new DownloadLyricsFragment(_vm),
+            //1 => new LyricsEditorFragment(_vm,_vm.SelectedSong!),
             2 => new SongPlayHistoryFragment(_vm), 
             3 => new SongRelatedFragment(_vm), 
             _ => new Fragment()
