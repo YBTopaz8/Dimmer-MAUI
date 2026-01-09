@@ -1,9 +1,4 @@
-using Android.Graphics;
-using Android.Widget;
-using AndroidX.CardView.Widget;
 using Bumptech.Glide;
-using Google.Android.Material.BottomSheet;
-using Google.Android.Material.Button;
 using Hqub.Lastfm.Entities;
 
 namespace Dimmer.ViewsAndPages.NativeViews.DimmerLive;
@@ -203,7 +198,7 @@ public class LastFmTrackInfoBottomSheet : BottomSheetDialogFragment
         root.AddView(statsContainer);
 
         // Info Message
-        var infoCard = new MaterialCardView(ctx)
+        var infoCard = new CardView(ctx)
         {
             LayoutParameters = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MatchParent,
@@ -247,7 +242,7 @@ public class LastFmTrackInfoBottomSheet : BottomSheetDialogFragment
 
     private CardView CreateStatCard(Context ctx, string label)
     {
-        var card = new MaterialCardView(ctx)
+        var card = new CardView(ctx)
         {
             LayoutParameters = new LinearLayout.LayoutParams(
                 0,
