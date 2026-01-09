@@ -1080,6 +1080,8 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     }
     [ObservableProperty]
     public partial bool AutoConfirmLastFMVar { get; set; }
+    [ObservableProperty]
+    public partial bool IsLastFMAuthButtonClickable { get; set; }
     public string? MAUIWindowTitle { get; internal set; }
 
     [ObservableProperty]
@@ -1126,6 +1128,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
                     CloseButtonText = "OK",
                     XamlRoot = MainWindow?.ContentFrame.XamlRoot
                 };
+                IsLastFMAuthButtonClickable = true;
                 await cancelledDialog.ShowAsync();
             }
         }

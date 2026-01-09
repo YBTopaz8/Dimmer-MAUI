@@ -7980,7 +7980,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             IsLastFMNeedsUsername = true;
             return;
         }
-        IsBusy = true;
+        IsLastFMAuthButtonClickable = false;
         
         try
         {
@@ -8003,7 +8003,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get Last.fm authentication URL.");
-            IsBusy = false;
+            IsLastFMAuthButtonClickable = true;
             return;
         }
     }

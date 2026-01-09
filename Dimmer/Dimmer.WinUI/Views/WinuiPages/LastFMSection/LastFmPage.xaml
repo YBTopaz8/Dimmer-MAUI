@@ -33,7 +33,7 @@
                     Content="Login to Last FM"
                     FontSize="19"
                     FontWeight="Bold"
-                    IsEnabled="{Binding IsBusy, Converter={StaticResource BoolToInverseConverter}}" />
+                    IsEnabled="{x:Bind MyViewModel.IsLastFMAuthButtonClickable , Mode=OneWay, Converter={StaticResource BoolToInverseConverter}}" />
                 <TextBlock Text="LastFM UserName Required" Visibility="{x:Bind MyViewModel.IsLastFMNeedsUsername}" />
             </StackPanel>
 
