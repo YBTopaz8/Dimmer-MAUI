@@ -200,20 +200,6 @@ public sealed partial class EditSongPage : Page
         GridOfOtherImages.Visibility= WinUIVisibility.Collapsed;
     }
 
-    private static async Task ToastToolTipNotif2Secs(UIElement? Elt)
-    {
-        if(Elt is null) return;
-        var toolTipContent = new ToolTip
-        {
-            Content = "Artist name copied to clipboard!"
-        };
-        ToolTipService.SetToolTip(Elt!, toolTipContent);
-        toolTipContent.IsOpen = true;
-        await Task.Delay(2000);
-        toolTipContent.IsOpen = false;
-        ToolTipService.SetToolTip(Elt!, null);
-    }
-
     private async void AddNoteToSong_Click(object sender, RoutedEventArgs e)
     {
         await MyViewModel.AddNoteToSongAsync();

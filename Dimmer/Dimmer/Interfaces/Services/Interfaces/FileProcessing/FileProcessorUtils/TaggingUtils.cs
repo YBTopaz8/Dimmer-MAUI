@@ -198,13 +198,6 @@ public static class TaggingUtils
         }
     }
 
-    // Helper to prevent adding the separators themselves as artists
-    private static bool IsSeparator(string input)
-    {
-        var lower = input.ToLowerInvariant();
-        return lower is "feat" or "ft" or "&" or "vs" or "featuring" or "with";
-    }
-
     /// <summary>
     /// Parses a raw track title to separate the main title from version/remix information.
     /// Also removes featured artist info from the title string itself.

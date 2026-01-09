@@ -358,41 +358,6 @@ public sealed partial class SongDetailPage : Page
         
     }
 
-    private void SetupCinematicBackground()
-    {
-        // 1. Get Visuals
-        var bgVisual = ElementCompositionPreview.GetElementVisual(BgImage);
-        var scrollerVisual = ElementCompositionPreview.GetElementVisual(Scroller);
-
-        // 2. Create the Parallax Effect (Expression Animation)
-        // Formula: bg.Offset.Y = -scroller.VerticalOffset * 0.3 (Move at 30% speed)
-        var scrollPropSet = ElementCompositionPreview.GetScrollViewerManipulationPropertySet(Scroller);
-        var parallaxExpression = _compositor.CreateExpressionAnimation("(-scroller.Translation.Y * multiplier)");
-        parallaxExpression.SetScalarParameter("multiplier", 0.3f);
-        parallaxExpression.SetReferenceParameter("scroller", scrollPropSet);
-
-        // Apply to the Offset.Y of the background
-        bgVisual.StartAnimation("Offset.Y", parallaxExpression);
-
-        // 3. Create a Blur/Saturation Effect using Win2D or Composition (Native approach)
-        // Note: Pure Composition Blur requires a loaded Surface, which is complex with Image control.
-        // A quicker "Intense" UI hack for WinUI 3 without external libraries:
-        // Just animate the Opacity and Scale for a "Breathing" effect.
-
-        bgVisual.Opacity = 0.4f; // Set base opacity
-
-        // Scale animation to make it feel alive
-        var scaleAnim = _compositor.CreateVector3KeyFrameAnimation();
-        scaleAnim.InsertKeyFrame(0f, new Vector3(1.0f));
-        scaleAnim.InsertKeyFrame(0.5f, new Vector3(1.05f)); // Slight zoom
-        scaleAnim.InsertKeyFrame(1f, new Vector3(1.0f));
-        scaleAnim.Duration = TimeSpan.FromSeconds(20);
-        scaleAnim.IterationBehavior = AnimationIterationBehavior.Forever;
-
-        bgVisual.CenterPoint = new Vector3((float)BgImage.ActualWidth / 2, (float)BgImage.ActualHeight / 2, 0);
-        bgVisual.StartAnimation("Scale", scaleAnim);
-    }
-
     private void SimilarSongStackPanel_PointerEntered(object sender, PointerRoutedEventArgs e)
     {
         // Apply a slight scale-up effect on pointer enter
@@ -866,21 +831,6 @@ public sealed partial class SongDetailPage : Page
     }
 
     private void MySongAchievements_Loaded(object sender, RoutedEventArgs e)
-    {
-
-    }
-
-    private void RadioButton_Checked(object sender, RoutedEventArgs e)
-    {
-        
-    }
-
-    private void RadioButton_Checked_1(object sender, RoutedEventArgs e)
-    {
-
-    }
-
-    private void Button_Click(object sender, RoutedEventArgs e)
     {
 
     }

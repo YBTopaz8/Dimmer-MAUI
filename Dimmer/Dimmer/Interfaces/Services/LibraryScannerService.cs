@@ -16,7 +16,6 @@ public class LibraryScannerService : ILibraryScannerService
     private readonly IRealmFactory _realmFactory;
     private readonly ILogger<LibraryScannerService> _logger;
     private readonly ProcessingConfig _config;
-    private readonly ICoverArtService _coverArtService;
 
     public LibraryScannerService(
         IDimmerStateService state, IRepository<AppStateModel> appStateRepo,

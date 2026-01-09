@@ -249,39 +249,6 @@ public sealed partial class ArtistPage : Page
     // 1. A flag to prevent double clicks while processing
     private bool _isTogglingFavorite = false;
 
-    private async void OnFavoriteArtistClicked(object sender, RoutedEventArgs e)
-    {
-        // 4. DEBOUNCER: If we are already working, ignore this click
-        if (_isTogglingFavorite) return;
-
-        _isTogglingFavorite = true;
-        var btn = (Button)sender;
-
-        try
-        {
-            // Perform the async DB work
-            await MyViewModel.ToggleFavoriteRatingToArtist(MyViewModel.SelectedArtist);
-
-            // Refresh the specific Realm object to get the new state
-            // (Assuming your ViewModel doesn't automatically update MyViewModel.SelectedArtist in place)
-            var dbArtist = MyViewModel.RealmFactory.GetRealmInstance()
-                .Find<ArtistModel>(MyViewModel.SelectedArtist.Id);
-
-            if (dbArtist != null)
-            {
-                MyViewModel.SelectedArtist = dbArtist.ToArtistModelView()!;
-            }
-
-            // Update the UI to match the new state
-            UpdateFavoriteButtonVisuals(btn);
-        }
-        finally
-        {
-            // 5. Release the lock so the user can click again
-            _isTogglingFavorite = false;
-        }
-    }
-
     // Helper method to draw the button content
     private void UpdateFavoriteButtonVisuals(Button btn)
     {
