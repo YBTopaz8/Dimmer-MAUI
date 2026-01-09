@@ -29,7 +29,7 @@ jobs:
             ${{ runner.os }}-nuget-
 
           
-# 3. SMART VERSION DETECTION (FIXED)
+# 3. DETECT VERSION CHANGE TYPE (FIXED)
       - name: Detect Version & Release Type
         id: version_logic
         shell: pwsh
@@ -37,7 +37,7 @@ jobs:
           # --- A. READ CURRENT VERSION FROM FILE ---
           $projectFile = Get-ChildItem -Recurse -Filter "Dimmer.csproj" | Select-Object -First 1
           if (-not $projectFile) { Write-Error "❌ Dimmer.csproj not found"; exit 1 }
-
+          
           [xml]$xml = Get-Content $projectFile.FullName
           $currentVersionStr = $xml.Project.PropertyGroup.Version.Trim()
           
@@ -45,48 +45,53 @@ jobs:
             Write-Error "❌ No <Version> tag found in Dimmer.csproj."
             exit 1
           }
-
+          
           $newTag = "v$currentVersionStr"
           Write-Host "🔹 Current File Version: $currentVersionStr"
-          Write-Host "🔹 New Tag target: $newTag"
           echo "NEW_TAG=$newTag" >> $env:GITHUB_ENV
-
+          
           # --- B. FIND PREVIOUS TAG ---
           git fetch --tags --force
           
-          # Get all tags sorted by version, exclude the NEW tag explicitly
+          # Get all tags
           $allTags = git tag --sort=-version:refname 
-          $prevTag = $allTags | Where-Object { $_.Trim() -ne $newTag } | Select-Object -First 1
-
-          if ([string]::IsNullOrWhiteSpace($prevTag)) {
-            Write-Host "⚠️ No previous tag found. Will log all history."
-            echo "LATEST_TAG=" >> $env:GITHUB_ENV
-            echo "IS_PRE=false" >> $env:GITHUB_ENV # Default to release if first tag
-            exit 0
-          }
-
-          Write-Host "🔹 Previous Tag found: $prevTag"
-          echo "LATEST_TAG=$prevTag" >> $env:GITHUB_ENV
-
-          # --- C. COMPARE VERSIONS ---
-          $prevVersionStr = $prevTag -replace "^v", ""
           
-          try {
-            $curV = [System.Version]$currentVersionStr
-            $prevV = [System.Version]$prevVersionStr
-
-            Write-Host "Comparing Current ($curV) vs Previous ($prevV)"
-
-            if ($curV.Major -gt $prevV.Major -or $curV.Minor -gt $prevV.Minor) {
-                Write-Host "🚀 Major/Minor change. Marking as STABLE RELEASE."
-                echo "IS_PRE=false" >> $env:GITHUB_ENV
-            } else {
-                Write-Host "🧪 Patch change only. Marking as PRE-RELEASE."
-                echo "IS_PRE=true" >> $env:GITHUB_ENV
+          # Filter: Exclude current tag AND ensure tag looks like a standard version (e.g. v1.0, 1.0.5)
+          # This ignores tags like "v1.92a" which cause the crash
+          $validPattern = "^v?\d+(\.\d+)+$"
+          $prevTag = $allTags | Where-Object { $_.Trim() -ne $newTag -and $_.Trim() -match $validPattern } | Select-Object -First 1
+          
+          if ([string]::IsNullOrWhiteSpace($prevTag)) {
+            Write-Host "⚠️ No previous standard tag found. Treating as first STABLE release."
+            echo "IS_PRE=false" >> $env:GITHUB_ENV
+            echo "LATEST_TAG=" >> $env:GITHUB_ENV
+          } else {
+            Write-Host "🔹 Previous Valid Tag found: $prevTag"
+            echo "LATEST_TAG=$prevTag" >> $env:GITHUB_ENV
+          }
+          
+          # --- C. COMPARE VERSIONS ---
+          if ($prevTag) {
+            # Sanitize: Remove 'v' and anything that isn't a number or dot
+            $prevVersionStr = $prevTag -replace "[^0-9\.]", ""
+            
+            try {
+              $curV = [System.Version]$currentVersionStr
+              $prevV = [System.Version]$prevVersionStr
+              
+              Write-Host "Comparing $curV vs $prevV"
+              
+              if ($curV.Major -gt $prevV.Major -or $curV.Minor -gt $prevV.Minor) {
+                  Write-Host "🚀 Major/Minor change. Marking as STABLE RELEASE."
+                  echo "IS_PRE=false" >> $env:GITHUB_ENV
+              } else {
+                  Write-Host "🧪 Patch change. Marking as PRE-RELEASE."
+                  echo "IS_PRE=true" >> $env:GITHUB_ENV
+              }
+            } catch {
+              Write-Warning "Could not parse versions despite sanitization. Defaulting to Pre-Release."
+              echo "IS_PRE=true" >> $env:GITHUB_ENV
             }
-          } catch {
-            Write-Warning "Could not parse versions. Defaulting to Pre-Release."
-            echo "IS_PRE=true" >> $env:GITHUB_ENV
           }
 
       # 3.5 GENERATE CHANGELOG (FIXED with Fallback)
