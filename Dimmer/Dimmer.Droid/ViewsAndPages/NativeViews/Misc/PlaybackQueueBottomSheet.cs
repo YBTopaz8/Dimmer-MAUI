@@ -1,4 +1,6 @@
-﻿namespace Dimmer.ViewsAndPages.NativeViews.Misc;
+﻿using Google.Android.Material.Dialog;
+
+namespace Dimmer.ViewsAndPages.NativeViews.Misc;
 
 public class QueueBottomSheetFragment : BottomSheetDialogFragment
 {
@@ -87,7 +89,7 @@ public class QueueBottomSheetFragment : BottomSheetDialogFragment
         var saveBtn = new MaterialButton(ctx, null, Resource.Attribute.borderlessButtonStyle);
         saveBtn.IconTint = Android.Content.Res.ColorStateList.ValueOf(Color.White);
         saveBtn.Text = "Save"; 
-        saveBtn.SetIconResource(Resource.Drawable.save);
+        saveBtn.SetIconResource(Resource.Drawable.savea);
         saveBtn.IconSize = AppUtil.DpToPx(18);
         saveBtn.BackgroundTintList = Android.Content.Res.ColorStateList.ValueOf(Color.Transparent);
 
@@ -117,11 +119,12 @@ public class QueueBottomSheetFragment : BottomSheetDialogFragment
         };
         inputEditText.SetPadding(AppUtil.DpToPx(20), AppUtil.DpToPx(10), AppUtil.DpToPx(20), AppUtil.DpToPx(10));
 
-        var dialog = new AlertDialog.Builder(ctx)
-            .SetTitle("Save Queue as Playlist")
-            .SetView(inputEditText)
+        var dialog = new MaterialAlertDialogBuilder(ctx)?
+            .SetTitle("Save Queue as Playlist")?
+            .SetView(inputEditText)?
             .SetPositiveButton("Save", (sender, args) =>
             {
+                
                 var playlistName = inputEditText.Text?.Trim();
                 if (!string.IsNullOrWhiteSpace(playlistName))
                 {

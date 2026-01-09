@@ -302,8 +302,8 @@ internal class SongAdapter : RecyclerView.Adapter
         MaterialButton? insertAfterBtn = null;
         if (_mode == "queue")
         {
-            insertBeforeBtn = CreateActionButton("Insert Before", Resource.Drawable.arrowup);
-            insertAfterBtn = CreateActionButton("Insert After", Resource.Drawable.arrowdown);
+            insertBeforeBtn = CreateActionButton("Insert Before", Resource.Drawable.mtrl_dropdown_arrow);
+            insertAfterBtn = CreateActionButton("Insert After", Resource.Drawable.mtrl_ic_arrow_drop_up);
             expandRow.AddView(insertBeforeBtn);
             expandRow.AddView(insertAfterBtn);
         }
