@@ -19,6 +19,7 @@ using Dimmer.Interfaces;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.Resources.Localization;
 using Dimmer.UIUtils;
+using Dimmer.Utilities.Enums;
 using Dimmer.Utilities.TypeConverters;
 using Dimmer.Utils;
 
@@ -3810,130 +3811,133 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
     /// <summary>
-    /// Inserts songs before a specific song in the queue
+    /// Plays a song based on the specified action, implementing smart queue management.
+    /// This is the main entry point for all song playback interactions.
     /// </summary>
-    [RelayCommand]
-    public void InsertSongsBeforeInQueue(Tuple<SongModelView, IEnumerable<SongModelView>> param)
+    /// <param name="songToPlay">The song to play</param>
+    /// <param name="action">The playback action that determines queue behavior</param>
+    /// <param name="context">Optional: The collection context (album, playlist, search results) from which the song was selected</param>
+    public async Task PlaySongWithActionAsync(
+        SongModelView? songToPlay,
+        PlaybackAction action,
+        IEnumerable<SongModelView>? context = null)
     {
-        if (param == null || param.Item2 == null || !param.Item2.Any())
+        if (songToPlay == null)
             return;
-
-        var targetSong = param.Item1;
-        var songsToInsert = param.Item2.Distinct().ToList();
-
-        var targetIndex = PlaybackQueue.IndexOf(targetSong);
-        if (targetIndex < 0)
-        {
-            _logger.LogWarning("Target song not found in queue for InsertBefore operation");
-            return;
-        }
-
-        PlaybackQueueSource.InsertRange(songsToInsert, targetIndex);
-        
-        // Update current playing index if affected
-        if (_currentPlayinSongIndexInPlaybackQueue >= targetIndex)
-        {
-            _currentPlayinSongIndexInPlaybackQueue += songsToInsert.Count;
-        }
-
-        _logger.LogInformation("Inserted {Count} song(s) before position {Index}", songsToInsert.Count, targetIndex);
-    }
-
-    /// <summary>
-    /// Inserts songs after a specific song in the queue
-    /// </summary>
-    [RelayCommand]
-    public void InsertSongsAfterInQueue(IEnumerable<SongModelView> param)
-    {
-        if (param == null || !param.Any())
-            return;
-
-        var targetSong = CurrentPlayingSongView;
-        var songsToInsert = param.Distinct().ToList();
-
-        var targetIndex = PlaybackQueue.IndexOf(targetSong);
-        if (targetIndex < 0)
-        {
-            _logger.LogWarning("Target song not found in queue for InsertAfter operation");
-            return;
-        }
-
-        var insertIndex = targetIndex + 1;
-        PlaybackQueueSource.InsertRange(songsToInsert, insertIndex);
-        
-        // Update current playing index if affected
-        if (_currentPlayinSongIndexInPlaybackQueue >= insertIndex)
-        {
-            _currentPlayinSongIndexInPlaybackQueue += songsToInsert.Count;
-        }
-
-        _logger.LogInformation("Inserted {Count} song(s) after position {Index}", songsToInsert.Count, targetIndex);
-    }
-
-    /// <summary>
-    /// Saves the current playback queue as a new playlist
-    /// </summary>
-    [RelayCommand]
-    public void SaveQueueAsPlaylist(string playlistName)
-    {
-        if (string.IsNullOrWhiteSpace(playlistName))
-        {
-            _logger.LogWarning("SaveQueueAsPlaylist called with empty playlist name");
-            return;
-        }
-
-        if (!PlaybackQueue.Any())
-        {
-            _logger.LogWarning("Cannot save empty queue as playlist");
-            return;
-        }
 
         try
         {
-            var songsInQueue = PlaybackQueue.ToList();
-            
-            // Create or update the playlist
-            AddToPlaylist(playlistName, songsInQueue, CurrentTqlQuery);
-
-            // Add playlist name as user note to songs that don't have it yet
-            var realm = RealmFactory.GetRealmInstance();
-            realm.Write(() =>
+            switch (action)
             {
-                foreach (var songView in songsInQueue)
-                {
-                    var song = realm.Find<SongModel>(songView.Id);
-                    if (song == null) continue;
+                case PlaybackAction.PlayNext:
+                    await PlaySongNextAsync(songToPlay);
+                    break;
 
-                    // Check if a note with this exact playlist name already exists
-                    // Using exact match to avoid false positives (e.g., "Rock" vs "Rock Ballads")
-                    string expectedNoteText = $"Part of playlist: {playlistName}";
-                    bool noteExists = song.UserNotes.Any(note => 
-                        note.UserMessageText != null && 
-                        note.UserMessageText.Equals(expectedNoteText, StringComparison.OrdinalIgnoreCase));
+                case PlaybackAction.PlayNow:
+                    await PlaySongNowAsync(songToPlay, context);
+                    break;
 
-                    if (!noteExists)
-                    {
-                        var userNote = new UserNoteModel
-                        {
-                            Id = TaggingUtils.GenerateId("UNote"),
-                            UserMessageText = expectedNoteText,
-                            CreatedAt = DateTimeOffset.UtcNow,
-                            ModifiedAt = DateTimeOffset.UtcNow,
-                            IsPinned = false,
-                            UserRating = 0
-                        };
-                        song.UserNotes.Add(userNote);
-                    }
-                }
-            });
+                case PlaybackAction.AddToQueue:
+                    AddToQueue(songToPlay);
+                    break;
 
-            _logger.LogInformation("Saved queue with {Count} songs as playlist '{Name}'", songsInQueue.Count, playlistName);
+                case PlaybackAction.JumpInQueue:
+                    await JumpToSongInQueueAsync(songToPlay);
+                    break;
+
+                case PlaybackAction.ReplaceQueue:
+                    await PlaySongAsync(songToPlay, CurrentPage.AllSongs, context);
+                    break;
+            }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error saving queue as playlist '{Name}'", playlistName);
+            _logger.LogError(ex, "Error playing song with action {Action}", action);
         }
     }
+
+    /// <summary>
+    /// Adds a song to play immediately after the current song without interrupting playback.
+    /// If nothing is playing, starts playback with the song's context.
+    /// If the song is already in the queue, jumps to it instead.
+    /// </summary>
+    private async Task PlaySongNextAsync(SongModelView songToPlay)
+    {
+        // Check if the song is already in the current queue
+        int existingIndex = -1;
+        for (int i = 0; i < _playbackQueue.Count; i++)
+        {
+            if (_playbackQueue[i].Id == songToPlay.Id)
+            {
+                existingIndex = i;
+                break;
+            }
+        }
+        
+        if (existingIndex != -1 && _playbackQueue.Count > 0)
+        {
+            // Song is already in queue, jump to it instead of adding again
+            _logger.LogInformation("Song '{Title}' already in queue, jumping to position {Index}", songToPlay.Title, existingIndex);
+            await JumpToSongInQueueAsync(songToPlay);
+            return;
+        }
+
+        // Check if playback is active
+        if (!_audioService.IsPlaying || _playbackQueue.Count == 0)
+        {
+            // Nothing playing, start playback normally with this song's context
+            await PlaySongAsync(songToPlay, CurrentPage.AllSongs, new List<SongModelView> { songToPlay });
+            return;
+        }
+
+        // Insert after current song
+        SetAsNextToPlayInQueue(songToPlay);
+        _logger.LogInformation("Added '{Title}' to play next", songToPlay.Title);
+        
+        // Show feedback to user (this will be handled by UI layer through events or properties)
+        OnSongAddedToQueue?.Invoke(this, $"Added {songToPlay.Title} to play next");
+    }
+
+    /// <summary>
+    /// Stops current playback, clears queue, and plays the selected song with its context.
+    /// This is typically triggered by long-press or explicit "Play Now" action.
+    /// </summary>
+    private async Task PlaySongNowAsync(SongModelView songToPlay, IEnumerable<SongModelView>? context)
+    {
+        // Build context if not provided
+        var contextSongs = context?.ToList() ?? new List<SongModelView> { songToPlay };
+        
+        // Stop current playback
+        if (_audioService.IsPlaying)
+        {
+            _audioService.Stop();
+        }
+
+        // Find the song in the context
+        int startIndex = contextSongs.FindIndex(s => s.Id == songToPlay.Id);
+        if (startIndex == -1)
+        {
+            // Song not in context, create a single-song context
+            contextSongs = new List<SongModelView> { songToPlay };
+            startIndex = 0;
+        }
+
+        // Clear and rebuild queue
+        await StartNewPlaybackQueue(contextSongs, startIndex, CurrentTqlQuery);
+        
+        _logger.LogInformation("Playing '{Title}' now, queue cleared and rebuilt", songToPlay.Title);
+        OnSongPlayingNow?.Invoke(this, $"Playing {songToPlay.Title}");
+    }
+
+    /// <summary>
+    /// Event fired when a song is added to the queue (for UI feedback like toasts/snackbars)
+    /// </summary>
+    public event EventHandler<string>? OnSongAddedToQueue;
+
+    /// <summary>
+    /// Event fired when a song starts playing now (for UI feedback)
+    /// </summary>
+    public event EventHandler<string>? OnSongPlayingNow;
 
 
     /// <summary>
