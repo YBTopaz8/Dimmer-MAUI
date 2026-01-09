@@ -3846,7 +3846,16 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     private async Task PlaySongNextAsync(SongModelView songToPlay)
     {
         // Check if the song is already in the current queue
-        int existingIndex = _playbackQueue.ToList().FindIndex(s => s.Id == songToPlay.Id);
+        int existingIndex = -1;
+        for (int i = 0; i < _playbackQueue.Count; i++)
+        {
+            if (_playbackQueue[i].Id == songToPlay.Id)
+            {
+                existingIndex = i;
+                break;
+            }
+        }
+        
         if (existingIndex != -1 && _playbackQueue.Count > 0)
         {
             // Song is already in queue, jump to it instead of adding again

@@ -1399,7 +1399,6 @@ true
     private void ShowNotification(string message, Microsoft.UI.Xaml.Controls.InfoBarSeverity severity)
     {
         // Use a TeachingTip or create a temporary InfoBar for notifications
-        // For now, we'll use a simple ContentDialog approach or you can add an InfoBar to the XAML
         DispatcherQueue.TryEnqueue(() =>
         {
             var infoBar = new Microsoft.UI.Xaml.Controls.InfoBar
@@ -1417,15 +1416,17 @@ true
                 infoBar.IsOpen = false;
                 timer.Stop();
                 // Remove from visual tree after closing animation
-                var parentPanel = infoBar.Parent as Panel;
-                parentPanel?.Children.Remove(infoBar);
+                if (infoBar.Parent is Panel parentPanel)
+                {
+                    parentPanel.Children.Remove(infoBar);
+                }
             };
 
-            // Add to the page's main grid (assuming there's a Grid named MyPageGrid)
-            if (MyPageGrid is Grid grid && grid.Children.Count > 0)
+            // Add to the page's main grid
+            if (MyPageGrid != null)
             {
                 // Insert at the top of the grid
-                grid.Children.Insert(0, infoBar);
+                MyPageGrid.Children.Insert(0, infoBar);
                 timer.Start();
             }
         });
