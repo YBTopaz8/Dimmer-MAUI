@@ -63,10 +63,10 @@ public class LyricsEditorFragment : Fragment
         var cover = new ImageView(context); // Set your image
         cover.LayoutParameters = new LinearLayout.LayoutParams(150, 150);
         cover.SetBackgroundColor(Android.Graphics.Color.DarkGray);
-        //Glide.With(context)
-        //    .Load(selectedSong.CoverImagePath)
-        //    .Placeholder(Resource.Drawable.musicaba)
-        //    .Into(infoCard);
+        Glide.With(this)
+            .Load(selectedSong.CoverImagePath)
+            .Placeholder(Resource.Drawable.musicaba)
+            .Into(cover);
 
         var infoTextLayout = new LinearLayout(context) { Orientation = Orientation.Vertical };
         infoTextLayout.LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent) { LeftMargin = 24 };

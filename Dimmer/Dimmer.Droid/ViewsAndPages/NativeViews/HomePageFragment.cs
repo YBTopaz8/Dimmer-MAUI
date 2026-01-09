@@ -279,6 +279,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
                     // Since we are using the "queue" mode in adapter, we need to find the index in PlaybackQueue
                     var index = MyViewModel.SearchResults.IndexOf(requestedSong);
+                    if(index == -1) break;
                     _songListRecycler?.SmoothScrollToPosition(index);
                     
                     break;
