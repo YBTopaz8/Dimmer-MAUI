@@ -88,7 +88,7 @@ public static class NotificationHelper
         CreateChannel(service);
 
         var mainIntent = new Intent(service, typeof(TransitionActivity))
-            .SetAction(Intent.ActionMain)
+            .SetAction("ShowMiniPlayer")
             .AddCategory(Intent.CategoryLauncher);
 
 
@@ -102,7 +102,7 @@ public static class NotificationHelper
         var customActionReceiver = new DimmerActionReceiver(service);
 
         var descrAdapter = new DefaultMediaDescriptionAdapter(pi);
-
+        
 
         PlayerNotificationManager? mgr = new PlayerNotificationManager.Builder(
                 service, NotificationId, ChannelId
@@ -116,6 +116,7 @@ public static class NotificationHelper
 
         mgr.SetShowPlayButtonIfPlaybackIsSuppressed(true);
         mgr.SetMediaSessionToken(session.PlatformToken);
+        
         var actionList = new List<string> {
         DimmerActionReceiver.ActionFavorite,
         DimmerActionReceiver.ActionShuffle,
@@ -135,7 +136,7 @@ public static class NotificationHelper
         mgr.SetUsePreviousActionInCompactView(true);
         mgr.SetUseNextAction(true);
         mgr.SetUseRewindActionInCompactView(false);
-
+        mgr.SetUseStopAction(true);
 
 
         Log.Debug("NotifHelper", "Manager built");
@@ -147,6 +148,7 @@ public static class NotificationHelper
         readonly MediaSessionService _svc;
         public NotificationListener(MediaSessionService svc) => _svc = svc;
 
+        
         public void OnNotificationPosted(int notificationId, Notification? notification, bool ongoing)
         {
             try

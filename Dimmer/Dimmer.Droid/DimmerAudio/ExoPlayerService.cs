@@ -34,6 +34,7 @@ using Android.Media;
 using MediaController = AndroidX.Media3.Session.MediaController;
 
 using AndroidX.Lifecycle;
+using Exception = System.Exception;
 
 namespace Dimmer.DimmerAudio; // Make sure this namespace is correct
 
@@ -416,23 +417,24 @@ public class ExoPlayerService : MediaSessionService
         StartForeground(NotificationHelper.NotificationId, notification);
 
         string? action = intent?.Action;
-
-        switch (action)
+        if (action is not null)
         {
-            case ActionFavorite:
-                HandleFavoriteAction();
-                break;
-            case ActionShuffle:
-                HandleShuffleAction();
-                break;
-            case ActionRepeat:
-                HandleRepeatAction();
-                break;
-            case ActionLyrics:
-                HandleLyricsAction();
-                break;
+            switch (action)
+            {
+                case ActionFavorite:
+                    HandleFavoriteAction();
+                    break;
+                case ActionShuffle:
+                    HandleShuffleAction();
+                    break;
+                case ActionRepeat:
+                    HandleRepeatAction();
+                    break;
+                case ActionLyrics:
+                    HandleLyricsAction();
+                    break;
+            }
         }
-
 
         return StartCommandResult.Sticky;
     }
@@ -458,7 +460,7 @@ public class ExoPlayerService : MediaSessionService
                             await viewModel.AddFavoriteRatingToSong(CurrentSongContext);
                         }
                         
-                        MainThread.BeginInvokeOnMainThread(() => RefreshNotification());
+                        RxSchedulers.UI.ScheduleToUI(() => RefreshNotification());
                     }
                     catch (Exception ex)
                     {
@@ -474,7 +476,7 @@ public class ExoPlayerService : MediaSessionService
         var viewModel = MainApplication.ServiceProvider.GetService<BaseViewModel>();
         if (viewModel != null)
         {
-            MainThread.BeginInvokeOnMainThread(() =>
+            RxSchedulers.UI.ScheduleToUI(() =>
             {
                 try
                 {
@@ -495,7 +497,7 @@ public class ExoPlayerService : MediaSessionService
         var viewModel = MainApplication.ServiceProvider.GetService<BaseViewModel>();
         if (viewModel != null)
         {
-            MainThread.BeginInvokeOnMainThread(() =>
+            RxSchedulers.UI.ScheduleToUI(() =>
             {
                 try
                 {
@@ -1097,7 +1099,7 @@ public class ExoPlayerService : MediaSessionService
                                         await viewModel.AddFavoriteRatingToSong(currentSong);
                                     }
                                     
-                                    MainThread.BeginInvokeOnMainThread(() => service.UpdateMediaSessionLayout());
+                                    RxSchedulers.UI.ScheduleToUI(() => service.UpdateMediaSessionLayout());
                                 }
                                 catch (Exception ex)
                                 {
@@ -1113,7 +1115,7 @@ public class ExoPlayerService : MediaSessionService
                     var vm = MainApplication.ServiceProvider.GetService<BaseViewModel>();
                     if (vm != null)
                     {
-                        MainThread.BeginInvokeOnMainThread(() =>
+                        RxSchedulers.UI.ScheduleToUI(() =>
                         {
                             try
                             {
@@ -1134,7 +1136,7 @@ public class ExoPlayerService : MediaSessionService
                     var vmRepeat = MainApplication.ServiceProvider.GetService<BaseViewModel>();
                     if (vmRepeat != null)
                     {
-                        MainThread.BeginInvokeOnMainThread(() =>
+                        RxSchedulers.UI.ScheduleToUI(() =>
                         {
                             try
                             {
