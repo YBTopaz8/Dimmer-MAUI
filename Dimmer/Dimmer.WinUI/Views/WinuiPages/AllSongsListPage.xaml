@@ -571,21 +571,26 @@
                                 FontSize="16"
                                 Style="{ThemeResource HeaderTextBlockStyle}"
                                 Text="{Binding CurrentPlayingSongView.ArtistName}" />
-                        </StackPanel>
-                    </StackPanel>
-                    <Button
-                        Width="40"
+
+                            <Button
+                        Width="50"
                         Height="40"
-                        Margin="50,5,5,5"
-                        HorizontalAlignment="Right"
+                                Background="Transparent"
+                        HorizontalAlignment="Left"
                         VerticalAlignment="Top"
                         AutomationProperties.Name="Save Queue as Playlist"
                         Click="SaveQueueAsPlaylist_Click"
                         ToolTipService.ToolTip="Save Queue as Playlist">
-                        <Button.Content>
-                            <FontIcon Glyph="&#xE74E;" />
-                        </Button.Content>
-                    </Button>
+                                <Button.Content>
+                                    <FontIcon Glyph="&#xE74E;" 
+                                              FontSize="21"
+                                              />
+                                </Button.Content>
+                            </Button>
+                        </StackPanel>
+                        
+                    </StackPanel>
+                    
                     <Button
                         Width="40"
                         Height="40"

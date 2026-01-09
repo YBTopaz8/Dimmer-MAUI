@@ -1103,6 +1103,7 @@ AnimationHelper.Key_Forward
         {
             Title = "Save Queue as Playlist",
             PrimaryButtonText = "Save",
+            
             CloseButtonText = "Cancel",
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = this.XamlRoot
@@ -1110,11 +1111,19 @@ AnimationHelper.Key_Forward
 
         var textBox = new TextBox
         {
-            PlaceholderText = "Enter playlist name",
+           
             Width = 300
         };
-
-        dialog.Content = textBox;
+        var helperText= new TextBlock
+        {
+            Text = "Please enter a name for the new playlist.",
+            FontSize=11,
+            Margin = new Thickness(0, 0, 0, 8)
+        };
+        var stackPanel = new StackPanel();
+        stackPanel.Children.Add(textBox);
+        stackPanel.Children.Add(helperText);
+        dialog.Content = stackPanel;
 
         var result = await dialog.ShowAsync();
 
