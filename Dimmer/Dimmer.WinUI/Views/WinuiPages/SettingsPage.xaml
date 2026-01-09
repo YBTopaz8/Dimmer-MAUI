@@ -61,6 +61,13 @@
                     Click="LastFMView_Click"
                     Content="LastFM Section"
                     FontSize="20" />
+                
+                <Button
+                    x:Name="FeedbackBtn"
+                    Click="FeedbackView_Click"
+                    Content="Feedback"
+                    FontSize="20" />
+                
                 <Button
                     x:Name="UtilsBtn"
                     Click="UtilsView_Click"
