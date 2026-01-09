@@ -6,8 +6,6 @@ namespace Dimmer.GraphSupport;
 public class PhysicsEngine
 {
     readonly Graph graph;
-    const float springStiffness = 150f;
-    const float springRest = 140f;
     const float repulsionStrength = 9000f;
     const float DAMPING = 0.50f;
     const float MAX_SPEED = 50f; 

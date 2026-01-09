@@ -9,7 +9,6 @@ using AndroidX.Lifecycle;
 using CommunityToolkit.Diagnostics;
 
 using Dimmer.WinUI.UiUtils;
-
 using Microsoft.Maui;
 
 namespace Dimmer.ViewsAndPages.NativeViews.SingleSong;
@@ -20,6 +19,7 @@ public class SongOverviewFragment : Fragment
 
     public SongModelView
         SelectedSong { get; }
+    public TextView titleText { get; private set; }
 
     public SongOverviewFragment(BaseViewModelAnd vm) { viewModel = vm;
 
@@ -42,7 +42,7 @@ public class SongOverviewFragment : Fragment
 
 
         // Title/Artist
-        var titleText = new TextView(ctx) 
+         titleText = new TextView(ctx) 
         {
             Text = SelectedSong.Title, TextSize = 24, Typeface = Typeface.DefaultBold
         };
@@ -55,9 +55,16 @@ public class SongOverviewFragment : Fragment
         // Parity: Navigate to Artist
         artistBtn.Click += (s, e) =>
         {
-            viewModel.NavigateToArtistPage(ParentFragment, "artist_trans", SelectedSong.OtherArtistsName, artistBtn);
+            viewModel.NavigateToArtistPage(this, "artist_trans", SelectedSong.OtherArtistsName, artistBtn);
+        };
+        var genreBtn = new MaterialButton(ctx, null, Resource.Attribute.borderlessButtonStyle) { Text = SelectedSong.GenreName, TextSize = 18 };
+        // Parity: Navigate to Artist
+        genreBtn.Click += (s, e) =>
+        {
+            //viewModel.NavigateToArtistPage(ParentFragment, "artist_trans", SelectedSong.OtherArtistsName, artistBtn);
         };
         root.AddView(artistBtn);
+        root.AddView(genreBtn);
 
         // Stats Card
         var statsCard = new MaterialCardView(ctx) { Radius = AppUtil.DpToPx(12), Elevation = 4 };
@@ -91,7 +98,26 @@ public class SongOverviewFragment : Fragment
 
 
         return scroll;
+
     }
+
+    public override void OnResume()
+    {
+        base.OnResume();
+        titleText.Click += PlaySong;
+    }
+
+    private async void PlaySong(object? sender, EventArgs e)
+    {
+        await viewModel.PlayNextSongsImmediately(new List<SongModelView> { viewModel.SelectedSong! });
+        
+    }
+    public override void OnDestroy()
+    {
+        base.OnDestroy();
+        titleText.Click -= PlaySong;
+    }
+
     private LinearLayout CreateLyricsView(Context context, string? lyrics)
     {
         lyrics ??= "No lyrics available for this song.";

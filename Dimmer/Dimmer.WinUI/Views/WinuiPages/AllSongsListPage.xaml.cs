@@ -103,7 +103,6 @@ public sealed partial class AllSongsListPage : Page
         CancelHover();
     }
 
-    private bool _isHovered;
     Border cardBorder;
 
     private void StartHoverDelay()
@@ -318,31 +317,6 @@ public sealed partial class AllSongsListPage : Page
         if (isCtlrKeyPressed)
             ProcessCellClick(isExclusion: true);
 
-    }
-
-
-    // --- HELPER METHOD to find the start of the current word ---
-    // This is a more robust version of the logic you had.
-    private int FindWordStart(string text)
-    {
-        if (string.IsNullOrEmpty(text))
-        {
-            return 0;
-        }
-
-        // We look for a space, which separates our query "chips".
-        int lastSeparator = text.LastIndexOf(' ');
-
-        if (lastSeparator == -1)
-        {
-            // No space found, the word starts at the beginning.
-            return 0;
-        }
-        else
-        {
-            // The word starts one character after the last space.
-            return lastSeparator + 1;
-        }
     }
 
     public string Format(string format, object arg)
@@ -863,51 +837,6 @@ AnimationHelper.Key_Forward
         });
     }
 
-    private async void AnimateScaleControlUp(FrameworkElement btn)
-    {
-        try
-        {
-            var song= btn.DataContext as SongModelView;
-            if(song is null) return;
-            
-
-            var compositor = ElementCompositionPreview.GetElementVisual(btn).Compositor;
-            var rootVisual = ElementCompositionPreview.GetElementVisual(btn);
-
-            var scale = compositor.CreateVector3KeyFrameAnimation();
-            scale.InsertKeyFrame(1f, new Vector3(1.05f));
-            scale.Duration = TimeSpan.FromMilliseconds(350);
-            rootVisual.CenterPoint = new Vector3((float)btn.ActualWidth / 2, (float)btn.ActualHeight / 2, 0);
-            rootVisual.StartAnimation("Scale", scale);
-
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"AnimateExpand Exception: {ex.Message}");
-        }
-    }
-
-    private void AnimateCollapseControlDown(FrameworkElement framework)
-    {
-        try
-        {
-
-            // collapse animation (optional)
-            var compositor = ElementCompositionPreview.GetElementVisual(framework).Compositor;
-            var rootVisual = ElementCompositionPreview.GetElementVisual(framework);
-            var scaleBack = compositor.CreateVector3KeyFrameAnimation();
-            scaleBack.InsertKeyFrame(1f, new Vector3(1f));
-            scaleBack.Duration = TimeSpan.FromMilliseconds(300);
-            rootVisual.StartAnimation("Scale", scaleBack);
-
-        }
-        catch (Exception ex)
-        {
-
-            Debug.WriteLine($"AnimateCollapse Exception: {ex.Message}");
-        }
-    }
-
     private void AnimateCollapse()
     {
         try
@@ -963,12 +892,6 @@ AnimationHelper.Key_Forward
     private void coverArtImage_RightTapped(object sender, RightTappedRoutedEventArgs e)
     {
         ViewOtherBtn_Click(sender, e);
-    }
-
-    private void ArAscending_Click(object sender, RoutedEventArgs e)
-    {
-        //var myCurrentQueue = MyViewModel.CurrentTqlQueryUI;
-        
     }
 
     private void HideBtmPart_Click(object sender, RoutedEventArgs e)
@@ -1441,11 +1364,6 @@ true
         ViewSongBtn_Click(sender, e);
     }
 
-    private void SongTitle_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
-    {
-
-    }
-
     private void ShowFavSongs_Click(object sender, RoutedEventArgs e)
     {
 
@@ -1490,56 +1408,11 @@ true
         }
     }
 
-    private void ArAscending_RightTapped(object sender, RightTappedRoutedEventArgs e)
-    {
-
-    }
-
     private void SortByWithTQL_Loaded(object sender, RoutedEventArgs e)
     {
         //BuildSortMenu();
     }
-   
-    private void BuildSortMenu()
-    {
-        var flyout = new MenuFlyout();
 
-        foreach (var field in FieldRegistry.AllFields)
-        {
-            var sub = new MenuFlyoutSubItem { Text = field.PrimaryName };
-
-            // Asc
-            sub.Items.Add(new MenuFlyoutItem
-            {
-                Text = "Ascending",
-                CommandParameter = field.PrimaryName + " asc"
-            }.WithClick(FieldSort_Click)
-            .WithPointer(FieldSortPointer));
-
-            // Desc
-            sub.Items.Add(new MenuFlyoutItem
-            {
-                Text = "Descending",
-                CommandParameter = field.PrimaryName + " desc"
-            }.WithClick(FieldSort_Click)
-            .WithPointer(FieldSortPointer));
-
-            // Shuffle if numeric or text
-            if (field.Type == FieldType.Text || field.Type == FieldType.Numeric)
-            {
-                sub.Items.Add(new MenuFlyoutItem
-                {
-                    Text = "Shuffle",
-                    CommandParameter = field.PrimaryName + " shuffle"
-                }.WithClick(FieldSort_Click)
-            .WithPointer(FieldSortPointer));
-            }
-
-            flyout.Items.Add(sub);
-        }
-
-        SortByWithTQL.Flyout = flyout;
-    }
     private void FieldSort_Click(object sender, RoutedEventArgs e)
     {
         var item = (MenuFlyoutItem)sender;

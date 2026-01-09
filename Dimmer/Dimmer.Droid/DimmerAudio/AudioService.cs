@@ -33,8 +33,12 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         {
             if (Player != null)
             {
-                Player.Volume = (float)Math.Clamp(value, 0.0, 1.0);
-                NotifyPropertyChanged();
+                RxSchedulers.UI.ScheduleToUI(() =>
+                {
+
+                    Player.Volume = (float)Math.Clamp(value, 0.0, 1.0);
+                    NotifyPropertyChanged();
+                });
             }
         }
     }
