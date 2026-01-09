@@ -312,9 +312,9 @@ public class LastFmTrackInfoBottomSheet : BottomSheetDialogFragment
         if (_track.Images != null && _track.Images.Count > 0)
         {
             var imageUrl = _track.Images.LastOrDefault()?.Url;
-            if (!string.IsNullOrEmpty(imageUrl))
+            if (!string.IsNullOrEmpty(imageUrl) && Context != null)
             {
-                Glide.With(this)
+                Glide.With(Context)
                     .Load(imageUrl)
                     .Placeholder(Resource.Drawable.musicnotess)
                     .Into(_coverArtImage);

@@ -32,9 +32,16 @@ public sealed partial class LastFmTrackInfoDialog : ContentDialog
         {
             // Try to get the largest image (usually last in list)
             var imageUrl = track.Images.LastOrDefault()?.Url;
-            if (!string.IsNullOrEmpty(imageUrl))
+            if (!string.IsNullOrEmpty(imageUrl) && Uri.TryCreate(imageUrl, UriKind.Absolute, out var uri))
             {
-                CoverArtImage.Source = new BitmapImage(new Uri(imageUrl));
+                try
+                {
+                    CoverArtImage.Source = new BitmapImage(uri);
+                }
+                catch (Exception)
+                {
+                    // Silently fail if image cannot be loaded
+                }
             }
         }
 
