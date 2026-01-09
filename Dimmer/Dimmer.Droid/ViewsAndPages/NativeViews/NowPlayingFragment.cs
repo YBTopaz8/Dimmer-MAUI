@@ -229,7 +229,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         imgCard.AddView(_mainCoverImage, new FrameLayout.LayoutParams(-1, -1));
         gridFrame.AddView(imgCard);
         
-        // 2. Lyrics Overlay (MUST be added after image to be on top)
+        // 2. Lyrics Overlay 
         _lyricsCard = new MaterialCardView(ctx)
         {
             Radius = AppUtil.DpToPx(12),
@@ -731,10 +731,6 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         var devMaxVol = tuple.Item3;
         _volumeSlider.ValueTo = devMaxVol;
         _volumeSlider.Value = (float)newVal;
-    }
-    private void UpdateVolumeChangedUI(double obj)
-    {
-        _volumeSlider.ValueTo=(float)obj;
     }
 
     public override void OnPause()

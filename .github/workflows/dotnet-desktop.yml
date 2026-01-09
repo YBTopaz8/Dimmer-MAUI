@@ -1,4 +1,4 @@
-name: Build & Release Native Clients
+name: Build & Release Native Dimmer Clients
 
 on:
   workflow_dispatch:
@@ -29,90 +29,104 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nuget-
 
-      # 3. READ VERSION & FIND PREVIOUS TAG
-      - name: Read Version & Find Previous Tag
-        id: version_reader
+      # 3. DETECT VERSION CHANGE TYPE (FIXED)
+      - name: Detect Version & Release Type
+        id: version_logic
         shell: pwsh
         run: |
-          # --- A. READ CSPROJ ---
+          # --- A. READ CURRENT VERSION FROM FILE ---
           $projectFile = Get-ChildItem -Recurse -Filter "Dimmer.csproj" | Select-Object -First 1
           if (-not $projectFile) { Write-Error "❌ Dimmer.csproj not found"; exit 1 }
-
-          [xml]$xml = Get-Content $projectFile.FullName
-          $manualVersion = $xml.Project.PropertyGroup.Version
           
-          if ([string]::IsNullOrWhiteSpace($manualVersion)) {
+          [xml]$xml = Get-Content $projectFile.FullName
+          $currentVersionStr = $xml.Project.PropertyGroup.Version.Trim()
+          
+          if ([string]::IsNullOrWhiteSpace($currentVersionStr)) {
             Write-Error "❌ No <Version> tag found in Dimmer.csproj."
             exit 1
           }
-
-          $newTag = "v$manualVersion"
-          Write-Host "🔹 Version in file: $manualVersion"
-          Write-Host "🔹 Target Tag: $newTag"
+          
+          $newTag = "v$currentVersionStr"
+          Write-Host "🔹 Current File Version: $currentVersionStr"
           echo "NEW_TAG=$newTag" >> $env:GITHUB_ENV
-
-          # --- B. SET BRANCH TYPE ---
-          $branch = "${{ github.ref_name }}"
-          if ($branch -eq 'master') {
-             echo "IS_PRE=false" >> $env:GITHUB_ENV
-          } else {
-             echo "IS_PRE=true" >> $env:GITHUB_ENV
-          }
-
-          # --- C. FIND PREVIOUS TAG (Robust Method) ---
+          
+          # --- B. FIND PREVIOUS TAG ---
           git fetch --tags --force
           
-          # 'git describe' finds the most recent tag reachable from HEAD
-          # 2>$null suppresses error if this is the very first commit/release
-          $prevTag = git describe --tags --abbrev=0 2>$null
-
-          # Edge Case: If the found tag equals the New Tag (e.g. you pushed the tag manually), 
-          # look for the one before that.
-          if ($prevTag -eq $newTag) {
-            $prevTag = git describe --tags --abbrev=0 "$newTag^" 2>$null
-          }
-
-          if (-not $prevTag) { 
-             Write-Host "⚠️ No previous tag found (First Release or no tags reachable)"
-             $prevTag = "" 
+          # Get all tags
+          $allTags = git tag --sort=-version:refname 
+          
+          # Filter: Exclude current tag AND ensure tag looks like a standard version (e.g. v1.0, 1.0.5)
+          # This ignores tags like "v1.92a" which cause the crash
+          $validPattern = "^v?\d+(\.\d+)+$"
+          $prevTag = $allTags | Where-Object { $_.Trim() -ne $newTag -and $_.Trim() -match $validPattern } | Select-Object -First 1
+          
+          if ([string]::IsNullOrWhiteSpace($prevTag)) {
+            Write-Host "⚠️ No previous standard tag found. Treating as first STABLE release."
+            echo "IS_PRE=false" >> $env:GITHUB_ENV
+            echo "LATEST_TAG=" >> $env:GITHUB_ENV
           } else {
-             Write-Host "🔹 Previous Tag found: $prevTag"
+            Write-Host "🔹 Previous Valid Tag found: $prevTag"
+            echo "LATEST_TAG=$prevTag" >> $env:GITHUB_ENV
           }
           
-          echo "LATEST_TAG=$prevTag" >> $env:GITHUB_ENV
+          # --- C. COMPARE VERSIONS ---
+          if ($prevTag) {
+            # Sanitize: Remove 'v' and anything that isn't a number or dot
+            $prevVersionStr = $prevTag -replace "[^0-9\.]", ""
+            
+            try {
+              $curV = [System.Version]$currentVersionStr
+              $prevV = [System.Version]$prevVersionStr
+              
+              Write-Host "Comparing $curV vs $prevV"
+              
+              if ($curV.Major -gt $prevV.Major -or $curV.Minor -gt $prevV.Minor) {
+                  Write-Host "🚀 Major/Minor change. Marking as STABLE RELEASE."
+                  echo "IS_PRE=false" >> $env:GITHUB_ENV
+              } else {
+                  Write-Host "🧪 Patch change. Marking as PRE-RELEASE."
+                  echo "IS_PRE=true" >> $env:GITHUB_ENV
+              }
+            } catch {
+              Write-Warning "Could not parse versions despite sanitization. Defaulting to Pre-Release."
+              echo "IS_PRE=true" >> $env:GITHUB_ENV
+            }
+          }
 
-      # 3.5 GENERATE CHANGELOG 
+      # 3.5 GENERATE CHANGELOG (FIXED with Fallback)
       - name: Generate Changelog
         shell: pwsh
         run: |
           $prevTag = $env:LATEST_TAG
           $newTag = $env:NEW_TAG
           
-          Write-Host "Generating log from '$prevTag' to 'HEAD'"
+          Write-Host "Generating log..."
 
+          # 1. Try Standard Range Log
           if ([string]::IsNullOrEmpty($prevTag)) {
-              # No previous tag? Get ALL history.
               $log = git log --pretty=format:"- %s (%h)" --no-merges
           } else {
-              # Get history since last tag
-              $log = git log "$prevTag..HEAD" --pretty=format:"- %s (%h)" --no-merges
+              $log = git log $prevTag..HEAD --pretty=format:"- %s (%h)" --no-merges
           }
 
-          # Convert to string if it's an array (PowerShell quirk)
-          if ($log -is [Array]) {
-              $logString = $log -join "`n"
-          } else {
-              $logString = $log
+          # Normalize to string
+          if ($log -is [Array]) { $logString = $log -join "`n" } else { $logString = $log }
+
+          # 2. FALLBACK: If logic above returned empty, Force last 15 commits
+          if ([string]::IsNullOrWhiteSpace($logString)) { 
+             Write-Warning "Standard log range was empty. Falling back to last 15 commits."
+             $log = git log -n 15 --pretty=format:"- %s (%h)" --no-merges
+             if ($log -is [Array]) { $logString = $log -join "`n" } else { $logString = $log }
           }
 
-          if ([string]::IsNullOrWhiteSpace($logString)) {
-              $logString = "- No commit messages found since last tag."
+          # 3. Safety net if even that fails
+          if ([string]::IsNullOrWhiteSpace($logString)) { 
+            $logString = "- No commit messages found (Manual Check Recommended)." 
           }
 
           $content = "## Changes in $newTag`n`n$logString"
-          
           Set-Content -Path "release_notes.md" -Value $content -Encoding UTF8
-          Write-Host "✅ Changelog Generated:"
           Write-Host $content
 
       # 4. CHECKOUT DEPENDENCIES
@@ -166,20 +180,35 @@ jobs:
           '@
           Set-Content -Path $targetPath -Value $jsonContent -Encoding UTF8
 
-      # 7. PATCH CSPROJ PATHS 
+      # 7. PATCH CSPROJ PATHS
       - name: Fix Dependency Paths
         shell: pwsh
         run: |
           $depsPath = Join-Path $env:GITHUB_WORKSPACE "ExternalDeps"
           
+          # Match ".." followed by slash or backslash, repeated
+          $relPattern = '(\.\.[\\/])+' 
+          
           Get-ChildItem -Recurse -Filter *.csproj | ForEach-Object {
             $content = Get-Content $_.FullName
-            $content = $content -replace '(\.\.\\)+Last.fm', "$depsPath\Last.fm"
-            $content = $content -replace '(\.\.\\)+Parse-LiveQueries-DOTNET', "$depsPath\Parse-LiveQueries-DOTNET"
-            $content = $content -replace '(\.\.\\)+atldotnet-main', "$depsPath\atldotnet-main"
-            $content = $content -replace '(\.\.\\)+AudioSwitcher-master', "$depsPath\AudioSwitcher-master"
+            
+            # 1. Last.fm-master -> ExternalDeps/Last.fm
+            $content = $content -replace "${relPattern}Last\.fm-master", "$depsPath\Last.fm"
+
+            # 2. Parse-LiveQueries-DOTNET-master -> ExternalDeps/Parse-LiveQueries-DOTNET
+            $content = $content -replace "${relPattern}Parse-LiveQueries-DOTNET-master", "$depsPath\Parse-LiveQueries-DOTNET"
+
+            # 3. atldotnet-main -> ExternalDeps/atldotnet-main
+            $content = $content -replace "${relPattern}atldotnet-main", "$depsPath\atldotnet-main"
+
+            # 4. AudioSwitcher-master -> ExternalDeps/AudioSwitcher-master
+            $content = $content -replace "${relPattern}AudioSwitcher-master", "$depsPath\AudioSwitcher-master"
+
             Set-Content $_.FullName $content -Encoding UTF8
           }
+          
+          Write-Host "Checking patched paths in Dimmer.csproj:"
+          Select-String -Path "${{ env.DIR_CORE }}\Dimmer.csproj" -Pattern "ProjectReference"
 
       # 8. SETUP .NET & WORKLOADS
       - name: Setup .NET 9
@@ -230,12 +259,6 @@ jobs:
             -r android-arm64 `
             -p:AndroidPackageFormat=apk `
             -o .\RawBuild\Android
-            
-      - name: List Build Files
-        shell: pwsh
-        run: |
-          Get-ChildItem -Recurse .\RawBuild\Android
-          Get-ChildItem -Recurse .\Artifacts
       
       # 12. UPLOAD ARTIFACTS
       - name: Upload Build Artifacts
@@ -254,7 +277,6 @@ jobs:
           name: Release ${{ env.NEW_TAG }}
           draft: false
           prerelease: ${{ env.IS_PRE }}
-          make_latest: ${{ env.IS_PRE == 'false' }}
           body_path: release_notes.md
           files: |
             RawBuild/Android/*.apk
@@ -277,7 +299,7 @@ jobs:
               $color = 3066993 # Green
               if ("${{ env.IS_PRE }}" -eq "true") { 
                 $title = "Dimmer Pre-Release: ${{ env.NEW_TAG }}" 
-                $color = 16776960 # Yellow for pre-release
+                $color = 16776960 # Yellow
               }
           } else { 
               $title = "❌ Dimmer Build Failed"

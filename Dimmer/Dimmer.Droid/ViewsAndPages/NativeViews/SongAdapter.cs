@@ -33,8 +33,6 @@ internal class SongAdapter : RecyclerView.Adapter
 
     public SongModelView GetItem(int position) => Songs.ElementAt(position);
 
-    IObservable<IChangeSet<SongModelView>> sourceStream;
-    IEnumerable<SongModelView> sourceList;
     public SongAdapter(Context ctx, BaseViewModelAnd myViewModel, Fragment pFragment, string songsToWatch = "main")
     {
         ParentFragement = pFragment;

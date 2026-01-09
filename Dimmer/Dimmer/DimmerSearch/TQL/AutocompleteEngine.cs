@@ -4,10 +4,6 @@ namespace Dimmer.DimmerSearch.TQL;
 
 public class AutocompleteEngine
 {
-    // These collections are populated by your ViewModel using DynamicData
-    private readonly ObservableCollection<string> _distinctArtists;
-    private readonly ObservableCollection<string> _distinctAlbums;
-    private readonly ObservableCollection<string> _distinctGenres;
 
     // The "Free Search" sources (all data)
     private readonly ObservableCollection<string> _masterArtists;

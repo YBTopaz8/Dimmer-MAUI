@@ -5,8 +5,7 @@ namespace Dimmer.ViewModel;
 
 public partial class SettingsViewModel : BaseViewModel
 {
-    private readonly IFolderPicker _folderPicker;
-
+  
     public SettingsViewModel( IDimmerStateService dimmerStateService, MusicDataService musicDataService,
         IAppInitializerService appInitializerService, IDimmerAudioService audioServ,
         ISettingsService settingsService, ILyricsMetadataService lyricsMetadataService, 
