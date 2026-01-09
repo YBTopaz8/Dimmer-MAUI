@@ -531,6 +531,18 @@ public sealed partial class AllSongsListPage : Page
 
             MyViewModel.CurrentWinUIPage = this;
             MyViewModel.MySongsTableView = MySongsTableView;
+            
+            // Subscribe to playback feedback events
+            MyViewModel.OnSongAddedToQueue += (sender, message) =>
+            {
+                ShowNotification(message, Microsoft.UI.Xaml.Controls.InfoBarSeverity.Success);
+            };
+            
+            MyViewModel.OnSongPlayingNow += (sender, message) =>
+            {
+                ShowNotification(message, Microsoft.UI.Xaml.Controls.InfoBarSeverity.Informational);
+            };
+            
             // Now that the ViewModel is set, you can set the DataContext.
             this.DataContext = MyViewModel;
         }
@@ -1382,5 +1394,40 @@ true
         if (MyViewModel.SelectedSong is null) return;
         if(!string.IsNullOrEmpty(MyViewModel.SelectedSong.CoverImagePath))
             SelectedSongImg.Source = new BitmapImage(new Uri(MyViewModel.SelectedSong.CoverImagePath));
+    }
+
+    private void ShowNotification(string message, Microsoft.UI.Xaml.Controls.InfoBarSeverity severity)
+    {
+        // Use a TeachingTip or create a temporary InfoBar for notifications
+        // For now, we'll use a simple ContentDialog approach or you can add an InfoBar to the XAML
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            var infoBar = new Microsoft.UI.Xaml.Controls.InfoBar
+            {
+                Message = message,
+                Severity = severity,
+                IsOpen = true,
+                Margin = new Microsoft.UI.Xaml.Thickness(0, 0, 0, 10)
+            };
+
+            // Auto-close after 3 seconds
+            var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
+            timer.Tick += (s, args) =>
+            {
+                infoBar.IsOpen = false;
+                timer.Stop();
+                // Remove from visual tree after closing animation
+                var parentPanel = infoBar.Parent as Panel;
+                parentPanel?.Children.Remove(infoBar);
+            };
+
+            // Add to the page's main grid (assuming there's a Grid named MyPageGrid)
+            if (MyPageGrid is Grid grid && grid.Children.Count > 0)
+            {
+                // Insert at the top of the grid
+                grid.Children.Insert(0, infoBar);
+                timer.Start();
+            }
+        });
     }
 }
