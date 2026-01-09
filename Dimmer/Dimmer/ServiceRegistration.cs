@@ -158,6 +158,12 @@ public static class ServiceRegistration
 
         services.AddSingleton<ChatViewModel>(); // You'll create this next
 
+        // Feedback service and ViewModels
+        services.AddSingleton<IFeedbackService, ParseFeedbackService>();
+        services.AddSingleton<FeedbackBoardViewModel>();
+        services.AddTransient<FeedbackSubmissionViewModel>();
+        services.AddTransient<FeedbackDetailViewModel>();
+
         RegisterPartAndClasses();
         return services;
     }
@@ -175,6 +181,10 @@ public static class ServiceRegistration
             ParseClient.Instance.RegisterSubclass(typeof(UserModelOnline));
             ParseClient.Instance.RegisterSubclass(typeof(FriendRequest));
             ParseClient.Instance.RegisterSubclass(typeof(AppUpdateModel));
+            ParseClient.Instance.RegisterSubclass(typeof(FeedbackIssue));
+            ParseClient.Instance.RegisterSubclass(typeof(FeedbackComment));
+            ParseClient.Instance.RegisterSubclass(typeof(FeedbackVote));
+            ParseClient.Instance.RegisterSubclass(typeof(FeedbackNotificationSettings));
 
         }
     }
