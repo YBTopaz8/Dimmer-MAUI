@@ -297,16 +297,24 @@ internal class SongAdapter : RecyclerView.Adapter
         expandRow.AddView(infoBtn);
         expandRow.AddView(LyricsBtn);
 
-        // Add queue-specific buttons only in queue mode
-        MaterialButton? insertBeforeBtn = null;
-        MaterialButton? insertAfterBtn = null;
-        if (_mode == "queue")
-        {
-            insertAfterBtn = CreateActionButton(string.Empty, Resource.Drawable.media3_icon_queue_next);
-            insertAfterBtn.TooltipText = "Insert Song After This";
+        //if (_mode == "queue")
+        //{
+            
+        var insertAfterBtn = new ImageView(ctx, null, Resource.Attribute.materialButtonOutlinedStyle);
+        insertAfterBtn.SetImageResource(Resource.Drawable.media3_icon_queue_next);
+insertAfterBtn.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(UiBuilder.IsDark(this.ParentFragement.Resources.Configuration) ? Color.Gray : Color.ParseColor("#294159"));
+
+        insertAfterBtn.SetPadding(30, 0, 30, 0);
+        var insertAfterBtnlp = new LinearLayout.LayoutParams(-2, -2);
+        insertAfterBtnlp.RightMargin = 10;
+        insertAfterBtn.LayoutParameters = insertAfterBtnlp;
+        insertAfterBtn.Clickable = true;
+    
+    
+    insertAfterBtn.TooltipText = $"Insert this song after {MyViewModel.CurrentPlayingSongView.Title}";
             //expandRow.AddView(insertBeforeBtn);
             expandRow.AddView(insertAfterBtn);
-        }
+ 
 
         // Assemble
         mainContainer.AddView(topRow);
@@ -314,8 +322,8 @@ internal class SongAdapter : RecyclerView.Adapter
 
         card.AddView(mainContainer);
 
-        return new SongViewHolder(MyViewModel, ParentFragement, card, imgView, title, artist, moreBtn, durationView,expandRow, (Button)playBtn, (Button)favBtn, (Button)infoBtn,
-            LyricsBtn, insertBeforeBtn, insertAfterBtn);
+        return new SongViewHolder(MyViewModel, ParentFragement, card, imgView, title, artist, moreBtn, durationView,expandRow,  (Button)favBtn, (Button)infoBtn,
+            LyricsBtn, insertAfterBtn);
     }
 
 
@@ -323,6 +331,7 @@ internal class SongAdapter : RecyclerView.Adapter
     {
         var btn = new MaterialButton(ctx, null, Resource.Attribute.materialButtonOutlinedStyle);
         btn.Text = text;
+        
         btn.SetTextColor(UiBuilder.IsDark(this.ParentFragement.Resources.Configuration) ? Color.Gray : Color.ParseColor("#294159"));
         btn.SetIconResource(iconId);
 
@@ -351,17 +360,15 @@ internal class SongAdapter : RecyclerView.Adapter
         private readonly MaterialCardView _container;
         public View ContainerView => base.ItemView;
 
-        private readonly Button _playNextBtn;
         private readonly Button _favBtn;
         private readonly Button _infoBtn;
         private readonly Button lyricsBtn;
-        private readonly Button? _insertBeforeBtn;
-        private readonly Button? _insertAfterBtn;
+        private readonly ImageView? _insertAfterBtn;
         private SongModelView? _currentSongContext;
         private Action<int>? _expandAction;
 
         public SongViewHolder(BaseViewModelAnd vm, Fragment parentFrag, MaterialCardView container, ImageView img, TextView title, TextView artist, MaterialButton moreBtn, TextView durationView,
- View expandRow, Button playBtn, Button favBtn, Button infoBtn, Button lyrBtn, Button? insertBeforeBtn = null, Button? insertAfterBtn = null)
+ View expandRow,Button favBtn, Button infoBtn, Button lyrBtn, ImageView? insertAfterBtn = null)
             : base(container)
         {
             _viewModel = vm;
@@ -373,11 +380,9 @@ internal class SongAdapter : RecyclerView.Adapter
             _moreBtn = moreBtn;
             _durationView= durationView;
             _expandRow = expandRow;
-            _playNextBtn = playBtn;
             _favBtn = favBtn;
             _infoBtn = infoBtn;
             lyricsBtn = lyrBtn;
-            _insertBeforeBtn = insertBeforeBtn;
             _insertAfterBtn = insertAfterBtn;
 
             _moreBtn.Click += (s, e) =>
@@ -405,7 +410,7 @@ internal class SongAdapter : RecyclerView.Adapter
                        
                             var param = new List<SongModelView>() { _currentSongContext };
                             _viewModel.InsertSongsAfterInQueueCommand.Execute(param);
-                            Toast.MakeText(_parentFrag.Context, $"Inserted {_currentSongContext.Title} after", ToastLength.Short)?.Show();
+                            Toast.MakeText(_parentFrag.Context, $"Inserted {_currentSongContext.Title} after {_viewModel.CurrentPlayingSongView.Title}", ToastLength.Short)?.Show();
                         
                     }
                 };
@@ -437,17 +442,7 @@ internal class SongAdapter : RecyclerView.Adapter
             };
 
 
-            // 3. Play Button
-            _playNextBtn.Click += async (s, e) =>
-            {
-                if (_currentSongContext != null)
-                {
-                    _viewModel.SetAsNextToPlayInQueue(_currentSongContext);
-                    
-                }
-                    
-            };
-
+         
             lyrBtn.Click += async (s, e) =>
             {
                 if (_currentSongContext != null)

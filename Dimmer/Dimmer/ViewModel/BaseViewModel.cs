@@ -5070,13 +5070,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     newPlaylistModel.LastPlayedDate = DateTimeOffset.UtcNow;
                     newPlaylistModel.QueryText = PlQuery;
                     newPlaylistModel.SongsIdsInPlaylist.AddRange(songsToAdd.Select(s => s.Id).Distinct());
-
+                    
                     //newPlaylistModel.SongsInPlaylist.AddRange(songsToAdd.Select(s => s.ToModel()).Distinct());
 
                     realm.Add(newPlaylistModel, true);
                 });
-
-            //targetPlaylist = _playlistRepo.Create(newPlaylistModel);
+            return;
         }
 
 
@@ -5126,7 +5125,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             _realmSubscription?.Dispose();
             _playEventSource.Dispose();
-            realm.Dispose();
+            realm?.Dispose();
             _subsManager.Dispose();
             CompositeDisposables.Dispose();
             
