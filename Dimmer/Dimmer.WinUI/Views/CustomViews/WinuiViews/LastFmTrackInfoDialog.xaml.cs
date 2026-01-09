@@ -40,7 +40,9 @@ public sealed partial class LastFmTrackInfoDialog : ContentDialog
                 }
                 catch (Exception)
                 {
-                    // Silently fail if image cannot be loaded
+                    // Silent failure is acceptable - if image cannot be loaded,
+                    // the image control will remain empty which is preferable to
+                    // showing an error to the user for a non-critical UI element
                 }
             }
         }
