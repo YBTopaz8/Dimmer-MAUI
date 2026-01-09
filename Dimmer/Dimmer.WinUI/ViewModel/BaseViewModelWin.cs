@@ -1189,7 +1189,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
                 var addedNote = (contentDialog.Content as TextBox)?.Text;
                 if (addedNote is null) return;
 
-                await SaveUserNoteToSong(SelectedSong, addedNote);
+                await SaveUserNoteToSong(SelectedSong!, addedNote);
 
                 break;
             case ContentDialogResult.Secondary:

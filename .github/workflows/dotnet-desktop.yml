@@ -1,4 +1,4 @@
-name: Build & Release Native Clients
+name: Build & Release Native Dimmer Clients
 
 on:
   workflow_dispatch:
@@ -101,7 +101,7 @@ jobs:
           $prevTag = $env:LATEST_TAG
           $newTag = $env:NEW_TAG
           
-          Write-Host "Generating log from '$prevTag' to 'HEAD'"
+          Write-Host "Generating log..."
 
           # 1. Try Standard Range Log
           if ([string]::IsNullOrEmpty($prevTag)) {
