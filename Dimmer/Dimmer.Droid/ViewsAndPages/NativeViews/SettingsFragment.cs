@@ -257,7 +257,11 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
     public override void OnResume()
     {
         base.OnResume();
-        
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu)
+        {
+            Activity?.OnBackInvokedDispatcher.RegisterOnBackInvokedCallback(
+                (int)IOnBackInvokedDispatcher.PriorityDefault, this);
+        }
         MyViewModel.WhenValueChanged(x=>x.FolderPaths)
                      .ObserveOn(RxSchedulers.UI) 
                      .Subscribe(folderPaths =>
@@ -485,7 +489,10 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
 
     public void OnBackInvoked()
     {
-        throw new NotImplementedException();
+        if (Activity is TransitionActivity act)
+        {
+            act.OnBackPressedDispatcher.OnBackPressed();
+        }
     }
     //public void OnBackInvoked()
     //{
