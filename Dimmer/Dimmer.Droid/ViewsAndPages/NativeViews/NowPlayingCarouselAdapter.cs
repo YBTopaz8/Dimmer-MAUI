@@ -45,8 +45,13 @@ public class NowPlayingCarouselAdapter : RecyclerView.Adapter
         return new CarouselViewHolder(CreateCarouselItem(parent.Context!), _viewModel);
     }
 
-    private View CreateCarouselItem(Context ctx)
+    private FrameLayout CreateCarouselItem(Context ctx)
     {
+        var wrapper = new FrameLayout(ctx);
+        wrapper.LayoutParameters = new ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MatchParent,
+            ViewGroup.LayoutParams.MatchParent);
+
         var card = new MaterialCardView(ctx)
         {
             Radius = AppUtil.DpToPx(20),
@@ -54,13 +59,15 @@ public class NowPlayingCarouselAdapter : RecyclerView.Adapter
             Id = View.GenerateViewId()
         };
 
-        var layoutParams = new ViewGroup.MarginLayoutParams(
-            AppUtil.DpToPx(350),
-            AppUtil.DpToPx(350)
-        );
-        layoutParams.SetMargins(AppUtil.DpToPx(20), 0, AppUtil.DpToPx(20), 0);
-        card.LayoutParameters = layoutParams;
+        var cardParams = new FrameLayout.LayoutParams(
+        AppUtil.DpToPx(350),
+        AppUtil.DpToPx(350)
+    );
 
+        // Center the card inside the wrapper
+        cardParams.Gravity = GravityFlags.Center;
+
+        wrapper.AddView(card, cardParams);
         var image = new ImageView(ctx)
         {
             Id = View.GenerateViewId()
@@ -72,7 +79,7 @@ public class NowPlayingCarouselAdapter : RecyclerView.Adapter
             ViewGroup.LayoutParams.MatchParent
         ));
 
-        return card;
+        return wrapper;
     }
 
     private class CarouselViewHolder : RecyclerView.ViewHolder
@@ -80,11 +87,13 @@ public class NowPlayingCarouselAdapter : RecyclerView.Adapter
         private readonly ImageView _image;
         private readonly BaseViewModelAnd _viewModel;
 
-        public CarouselViewHolder(View itemView, BaseViewModelAnd viewModel) : base(itemView)
+        public CarouselViewHolder(FrameLayout itemView, BaseViewModelAnd viewModel) : base(itemView)
         {
-            var card = itemView as MaterialCardView;
-            _image = card?.GetChildAt(0) as ImageView ?? throw new InvalidOperationException("ImageView not found");
             _viewModel = viewModel;
+
+            var wrapper = itemView as ViewGroup;
+            var card = wrapper?.GetChildAt(0) as MaterialCardView;
+            _image = card?.GetChildAt(0) as ImageView ?? throw new InvalidOperationException("ImageView not found");
         }
 
         public void Bind(SongModelView song, Context context)
