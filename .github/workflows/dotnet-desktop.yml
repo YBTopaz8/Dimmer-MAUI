@@ -28,7 +28,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nuget-
 
-      # 3. SMART VERSION DETECTION (Fixes your Release vs Pre-Release logic)
+          
+# 3. SMART VERSION DETECTION (FIXED)
       - name: Detect Version & Release Type
         id: version_logic
         shell: pwsh
@@ -38,7 +39,7 @@ jobs:
           if (-not $projectFile) { Write-Error "❌ Dimmer.csproj not found"; exit 1 }
 
           [xml]$xml = Get-Content $projectFile.FullName
-          $currentVersionStr = $xml.Project.PropertyGroup.Version
+          $currentVersionStr = $xml.Project.PropertyGroup.Version.Trim()
           
           if ([string]::IsNullOrWhiteSpace($currentVersionStr)) {
             Write-Error "❌ No <Version> tag found in Dimmer.csproj."
@@ -47,17 +48,20 @@ jobs:
 
           $newTag = "v$currentVersionStr"
           Write-Host "🔹 Current File Version: $currentVersionStr"
+          Write-Host "🔹 New Tag target: $newTag"
           echo "NEW_TAG=$newTag" >> $env:GITHUB_ENV
 
           # --- B. FIND PREVIOUS TAG ---
           git fetch --tags --force
-          # Find latest tag that isn't the current one
-          $prevTag = git tag --sort=-version:refname | Where-Object { $_ -ne $newTag } | Select-Object -First 1
+          
+          # Get all tags sorted by version, exclude the NEW tag explicitly
+          $allTags = git tag --sort=-version:refname 
+          $prevTag = $allTags | Where-Object { $_.Trim() -ne $newTag } | Select-Object -First 1
 
-          if (-not $prevTag) {
-            Write-Host "⚠️ No previous tag found. Defaulting to Release."
-            echo "IS_PRE=false" >> $env:GITHUB_ENV
+          if ([string]::IsNullOrWhiteSpace($prevTag)) {
+            Write-Host "⚠️ No previous tag found. Will log all history."
             echo "LATEST_TAG=" >> $env:GITHUB_ENV
+            echo "IS_PRE=false" >> $env:GITHUB_ENV # Default to release if first tag
             exit 0
           }
 
@@ -85,7 +89,7 @@ jobs:
             echo "IS_PRE=true" >> $env:GITHUB_ENV
           }
 
-      # 3.5 GENERATE CHANGELOG 
+      # 3.5 GENERATE CHANGELOG (FIXED with Fallback)
       - name: Generate Changelog
         shell: pwsh
         run: |
@@ -94,18 +98,34 @@ jobs:
           
           Write-Host "Generating log from '$prevTag' to 'HEAD'"
 
+          # 1. Try Standard Range Log
           if ([string]::IsNullOrEmpty($prevTag)) {
               $log = git log --pretty=format:"- %s (%h)" --no-merges
           } else {
               $log = git log $prevTag..HEAD --pretty=format:"- %s (%h)" --no-merges
           }
 
+          # Convert array to string if necessary
           if ($log -is [Array]) { $logString = $log -join "`n" } else { $logString = $log }
-          if ([string]::IsNullOrWhiteSpace($logString)) { $logString = "- No commit messages found since last tag." }
+
+          # 2. Fallback: If empty, grab last 15 commits (Ensures no empty release notes)
+          if ([string]::IsNullOrWhiteSpace($logString)) { 
+             Write-Warning "Standard log range was empty. Falling back to last 15 commits."
+             $log = git log -n 15 --pretty=format:"- %s (%h)" --no-merges
+             if ($log -is [Array]) { $logString = $log -join "`n" } else { $logString = $log }
+          }
+
+          # 3. Final Check
+          if ([string]::IsNullOrWhiteSpace($logString)) { 
+            $logString = "- No commit messages found (Manual Check Recommended)." 
+          }
 
           $content = "## Changes in $newTag`n`n$logString"
           Set-Content -Path "release_notes.md" -Value $content -Encoding UTF8
+          
+          Write-Host "--- RELEASE NOTES PREVIEW ---"
           Write-Host $content
+          Write-Host "-----------------------------"
 
       # 4. CHECKOUT DEPENDENCIES
       - name: Checkout Last.fm
