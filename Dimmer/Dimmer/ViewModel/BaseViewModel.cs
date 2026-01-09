@@ -3864,13 +3864,13 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     /// Inserts songs after a specific song in the queue
     /// </summary>
     [RelayCommand]
-    public void InsertSongsAfterInQueue(Tuple<SongModelView, IEnumerable<SongModelView>> param)
+    public void InsertSongsAfterInQueue(IEnumerable<SongModelView> param)
     {
-        if (param == null || param.Item2 == null || !param.Item2.Any())
+        if (param == null || !param.Any())
             return;
 
-        var targetSong = param.Item1;
-        var songsToInsert = param.Item2.Distinct().ToList();
+        var targetSong = CurrentPlayingSongView;
+        var songsToInsert = param.Distinct().ToList();
 
         var targetIndex = PlaybackQueue.IndexOf(targetSong);
         if (targetIndex < 0)
