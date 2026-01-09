@@ -51,7 +51,7 @@ public static class ParseSetup
             client.Publicize();
 
 
-            Debug.WriteLine("ParseClient initialized successfully.");
+            Debug.WriteLine("ParseClient initialized successfully.!!!!");
             return ParseClient.Instance is not null;
         }
         catch (Exception ex)

@@ -103,7 +103,6 @@ public sealed partial class AllSongsListPage : Page
         CancelHover();
     }
 
-    private bool _isHovered;
     Border cardBorder;
 
     private void StartHoverDelay()
@@ -174,12 +173,52 @@ public sealed partial class AllSongsListPage : Page
 
     private void TableView_RightTapped(object sender, RightTappedRoutedEventArgs e)
     {
-        return;
-        var isCtlrKeyPressed = e.PointerDeviceType == Microsoft.UI.Input.PointerDeviceType.Mouse &&
-            (Windows.UI.Core.CoreWindow.GetForCurrentThread().GetKeyState(Windows.System.VirtualKey.Control) &
-             Windows.UI.Core.CoreVirtualKeyStates.Down) == Windows.UI.Core.CoreVirtualKeyStates.Down;
-        if (isCtlrKeyPressed)
-            ProcessCellClick(isExclusion: false);
+        // Get the song from the tapped element
+        FrameworkElement element = (e.OriginalSource as FrameworkElement)!;
+        if (element == null)
+            return;
+
+        SongModelView? song = null;
+        while (element != null)
+        {
+            if (element.DataContext is SongModelView currentSong)
+            {
+                song = currentSong;
+                break;
+            }
+            element = (FrameworkElement)element.Parent;
+        }
+
+        if (song == null)
+            return;
+
+        // Create and show context menu
+        var flyout = new MenuFlyout();
+        
+        var playNowItem = new MenuFlyoutItem { Text = "Play Now" };
+        playNowItem.Click += async (s, args) =>
+        {
+            var songs = MySongsTableView.Items.OfType<SongModelView>();
+            await MyViewModel.PlaySongWithActionAsync(song, Dimmer.Utilities.Enums.PlaybackAction.PlayNow, songs);
+        };
+        flyout.Items.Add(playNowItem);
+
+        var playNextItem = new MenuFlyoutItem { Text = "Play Next" };
+        playNextItem.Click += async (s, args) =>
+        {
+            var songs = MySongsTableView.Items.OfType<SongModelView>();
+            await MyViewModel.PlaySongWithActionAsync(song, Dimmer.Utilities.Enums.PlaybackAction.PlayNext, songs);
+        };
+        flyout.Items.Add(playNextItem);
+
+        var addToQueueItem = new MenuFlyoutItem { Text = "Add to Queue" };
+        addToQueueItem.Click += async (s, args) =>
+        {
+            await MyViewModel.PlaySongWithActionAsync(song, Dimmer.Utilities.Enums.PlaybackAction.AddToQueue);
+        };
+        flyout.Items.Add(addToQueueItem);
+
+        flyout.ShowAt(sender as UIElement, e.GetPosition(sender as UIElement));
     }
     private void TableView_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
@@ -230,9 +269,9 @@ public sealed partial class AllSongsListPage : Page
 
         if (song != null)
         {
-            // You found the song! Now you can call your ViewModel command.
+            // Default behavior: Add to play next (non-interrupting)
             Debug.WriteLine($"Double-tapped on song: {song.Title}");
-            await MyViewModel.PlaySongAsync(song, songs: SongsEnumerable);
+            await MyViewModel.PlaySongWithActionAsync(song, Dimmer.Utilities.Enums.PlaybackAction.PlayNext, SongsEnumerable);
         }
     }
     public void ScrollToSong(SongModelView songToFind)
@@ -318,31 +357,6 @@ public sealed partial class AllSongsListPage : Page
         if (isCtlrKeyPressed)
             ProcessCellClick(isExclusion: true);
 
-    }
-
-
-    // --- HELPER METHOD to find the start of the current word ---
-    // This is a more robust version of the logic you had.
-    private int FindWordStart(string text)
-    {
-        if (string.IsNullOrEmpty(text))
-        {
-            return 0;
-        }
-
-        // We look for a space, which separates our query "chips".
-        int lastSeparator = text.LastIndexOf(' ');
-
-        if (lastSeparator == -1)
-        {
-            // No space found, the word starts at the beginning.
-            return 0;
-        }
-        else
-        {
-            // The word starts one character after the last space.
-            return lastSeparator + 1;
-        }
     }
 
     public string Format(string format, object arg)
@@ -517,6 +531,18 @@ public sealed partial class AllSongsListPage : Page
 
             MyViewModel.CurrentWinUIPage = this;
             MyViewModel.MySongsTableView = MySongsTableView;
+            
+            // Subscribe to playback feedback events
+            MyViewModel.OnSongAddedToQueue += (sender, message) =>
+            {
+                ShowNotification(message, Microsoft.UI.Xaml.Controls.InfoBarSeverity.Success);
+            };
+            
+            MyViewModel.OnSongPlayingNow += (sender, message) =>
+            {
+                ShowNotification(message, Microsoft.UI.Xaml.Controls.InfoBarSeverity.Informational);
+            };
+            
             // Now that the ViewModel is set, you can set the DataContext.
             this.DataContext = MyViewModel;
         }
@@ -863,51 +889,6 @@ AnimationHelper.Key_Forward
         });
     }
 
-    private async void AnimateScaleControlUp(FrameworkElement btn)
-    {
-        try
-        {
-            var song= btn.DataContext as SongModelView;
-            if(song is null) return;
-            
-
-            var compositor = ElementCompositionPreview.GetElementVisual(btn).Compositor;
-            var rootVisual = ElementCompositionPreview.GetElementVisual(btn);
-
-            var scale = compositor.CreateVector3KeyFrameAnimation();
-            scale.InsertKeyFrame(1f, new Vector3(1.05f));
-            scale.Duration = TimeSpan.FromMilliseconds(350);
-            rootVisual.CenterPoint = new Vector3((float)btn.ActualWidth / 2, (float)btn.ActualHeight / 2, 0);
-            rootVisual.StartAnimation("Scale", scale);
-
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"AnimateExpand Exception: {ex.Message}");
-        }
-    }
-
-    private void AnimateCollapseControlDown(FrameworkElement framework)
-    {
-        try
-        {
-
-            // collapse animation (optional)
-            var compositor = ElementCompositionPreview.GetElementVisual(framework).Compositor;
-            var rootVisual = ElementCompositionPreview.GetElementVisual(framework);
-            var scaleBack = compositor.CreateVector3KeyFrameAnimation();
-            scaleBack.InsertKeyFrame(1f, new Vector3(1f));
-            scaleBack.Duration = TimeSpan.FromMilliseconds(300);
-            rootVisual.StartAnimation("Scale", scaleBack);
-
-        }
-        catch (Exception ex)
-        {
-
-            Debug.WriteLine($"AnimateCollapse Exception: {ex.Message}");
-        }
-    }
-
     private void AnimateCollapse()
     {
         try
@@ -963,12 +944,6 @@ AnimationHelper.Key_Forward
     private void coverArtImage_RightTapped(object sender, RightTappedRoutedEventArgs e)
     {
         ViewOtherBtn_Click(sender, e);
-    }
-
-    private void ArAscending_Click(object sender, RoutedEventArgs e)
-    {
-        //var myCurrentQueue = MyViewModel.CurrentTqlQueryUI;
-        
     }
 
     private void HideBtmPart_Click(object sender, RoutedEventArgs e)
@@ -1032,6 +1007,115 @@ AnimationHelper.Key_Forward
             viewQueueGrid.Opacity = 1;
             animation.TryStart(viewQueueGrid);
         });
+    }
+
+    private void NowPlayingPBQueue_DragItemsCompleted(ListViewBase sender, DragItemsCompletedEventArgs args)
+    {
+        // The ListView automatically reorders items in the UI, but we need to update the underlying queue
+        // Get the current order from the ListView
+        var currentOrder = NowPlayingPBQueue.Items.Cast<SongModelView>().ToList();
+        
+        // Find what was moved
+        if (args.Items.Count > 0)
+        {
+            var movedItem = args.Items[0] as SongModelView;
+            if (movedItem != null)
+            {
+                var newIndex = currentOrder.IndexOf(movedItem);
+                var oldIndex = MyViewModel.PlaybackQueue.IndexOf(movedItem);
+                
+                if (oldIndex >= 0 && newIndex >= 0 && oldIndex != newIndex)
+                {
+                    // Update the ViewModel's queue to match the new order
+                    MyViewModel.MoveSongInQueue(oldIndex, newIndex);
+                }
+            }
+        }
+    }
+
+    private async void InsertSongsBefore_Click(object sender, RoutedEventArgs e)
+    {
+        var menuItem = (MenuFlyoutItem)sender;
+        var targetSong = menuItem.DataContext as SongModelView;
+        
+        if (targetSong == null) return;
+
+        // TODO: Implement proper song picker dialog
+        // For now, use the search results as the songs to insert
+        // This is a placeholder implementation for demonstration purposes
+        var songsToInsert = MyViewModel.SearchResults.Take(5).ToList();
+        
+        if (songsToInsert.Any())
+        {
+            var param = new Tuple<SongModelView, IEnumerable<SongModelView>>(targetSong, songsToInsert);
+            MyViewModel.InsertSongsBeforeInQueueCommand.Execute(param);
+        }
+    }
+
+    private async void InsertSongsAfter_Click(object sender, RoutedEventArgs e)
+    {
+        var menuItem = (MenuFlyoutItem)sender;
+        var targetSong = menuItem.DataContext as SongModelView;
+        
+        if (targetSong == null) return;
+
+        // TODO: Implement proper song picker dialog
+        // For now, use the search results as the songs to insert
+        // This is a placeholder implementation for demonstration purposes
+        var songsToInsert = MyViewModel.SearchResults.Take(5).ToList();
+        
+        if (songsToInsert.Any())
+        {
+            var param = new Tuple<SongModelView, IEnumerable<SongModelView>>(targetSong, songsToInsert);
+            MyViewModel.InsertSongsAfterInQueueCommand.Execute(param);
+        }
+    }
+
+    private async void SaveQueueAsPlaylist_Click(object sender, RoutedEventArgs e)
+    {
+        // Show a dialog to get the playlist name
+        var dialog = new ContentDialog
+        {
+            Title = "Save Queue as Playlist",
+            PrimaryButtonText = "Save",
+            
+            CloseButtonText = "Cancel",
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = this.XamlRoot
+        };
+
+        var textBox = new TextBox
+        {
+           
+            Width = 300
+        };
+        var helperText= new TextBlock
+        {
+            Text = "Please enter a name for the new playlist.",
+            FontSize=11,
+            Margin = new Thickness(0, 0, 0, 8)
+        };
+        var stackPanel = new StackPanel();
+        stackPanel.Children.Add(textBox);
+        stackPanel.Children.Add(helperText);
+        dialog.Content = stackPanel;
+
+        var result = await dialog.ShowAsync();
+
+        if (result == ContentDialogResult.Primary && !string.IsNullOrWhiteSpace(textBox.Text))
+        {
+            MyViewModel.SaveQueueAsPlaylistCommand.Execute(textBox.Text);
+            
+            // Show confirmation
+            var confirmDialog = new ContentDialog
+            {
+                Title = "Success",
+                Content = $"Queue saved as playlist '{textBox.Text}'",
+                CloseButtonText = "OK",
+                XamlRoot = this.XamlRoot
+            };
+            await confirmDialog.ShowAsync();
+        }
     }
 
     private async void RemoveSongFromQueue_Click(object sender, RoutedEventArgs e)
@@ -1332,11 +1416,6 @@ true
         ViewSongBtn_Click(sender, e);
     }
 
-    private void SongTitle_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
-    {
-
-    }
-
     private void ShowFavSongs_Click(object sender, RoutedEventArgs e)
     {
 
@@ -1381,56 +1460,11 @@ true
         }
     }
 
-    private void ArAscending_RightTapped(object sender, RightTappedRoutedEventArgs e)
-    {
-
-    }
-
     private void SortByWithTQL_Loaded(object sender, RoutedEventArgs e)
     {
         //BuildSortMenu();
     }
-   
-    private void BuildSortMenu()
-    {
-        var flyout = new MenuFlyout();
 
-        foreach (var field in FieldRegistry.AllFields)
-        {
-            var sub = new MenuFlyoutSubItem { Text = field.PrimaryName };
-
-            // Asc
-            sub.Items.Add(new MenuFlyoutItem
-            {
-                Text = "Ascending",
-                CommandParameter = field.PrimaryName + " asc"
-            }.WithClick(FieldSort_Click)
-            .WithPointer(FieldSortPointer));
-
-            // Desc
-            sub.Items.Add(new MenuFlyoutItem
-            {
-                Text = "Descending",
-                CommandParameter = field.PrimaryName + " desc"
-            }.WithClick(FieldSort_Click)
-            .WithPointer(FieldSortPointer));
-
-            // Shuffle if numeric or text
-            if (field.Type == FieldType.Text || field.Type == FieldType.Numeric)
-            {
-                sub.Items.Add(new MenuFlyoutItem
-                {
-                    Text = "Shuffle",
-                    CommandParameter = field.PrimaryName + " shuffle"
-                }.WithClick(FieldSort_Click)
-            .WithPointer(FieldSortPointer));
-            }
-
-            flyout.Items.Add(sub);
-        }
-
-        SortByWithTQL.Flyout = flyout;
-    }
     private void FieldSort_Click(object sender, RoutedEventArgs e)
     {
         var item = (MenuFlyoutItem)sender;
@@ -1469,5 +1503,41 @@ true
         if (MyViewModel.SelectedSong is null) return;
         if(!string.IsNullOrEmpty(MyViewModel.SelectedSong.CoverImagePath))
             SelectedSongImg.Source = new BitmapImage(new Uri(MyViewModel.SelectedSong.CoverImagePath));
+    }
+
+    private void ShowNotification(string message, Microsoft.UI.Xaml.Controls.InfoBarSeverity severity)
+    {
+        // Use a TeachingTip or create a temporary InfoBar for notifications
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            var infoBar = new Microsoft.UI.Xaml.Controls.InfoBar
+            {
+                Message = message,
+                Severity = severity,
+                IsOpen = true,
+                Margin = new Microsoft.UI.Xaml.Thickness(0, 0, 0, 10)
+            };
+
+            // Auto-close after 3 seconds
+            var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
+            timer.Tick += (s, args) =>
+            {
+                infoBar.IsOpen = false;
+                timer.Stop();
+                // Remove from visual tree after closing animation
+                if (infoBar.Parent is Panel parentPanel)
+                {
+                    parentPanel.Children.Remove(infoBar);
+                }
+            };
+
+            // Add to the page's main grid
+            if (MyPageGrid != null)
+            {
+                // Insert at the top of the grid
+                MyPageGrid.Children.Insert(0, infoBar);
+                timer.Start();
+            }
+        });
     }
 }

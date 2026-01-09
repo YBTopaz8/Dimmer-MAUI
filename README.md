@@ -12,7 +12,10 @@ Building this as a hobby and also because the music app I use on Windows (Dopami
 # Features so far;
 - Play/Pause Songs (I knooow..)
 - Show Sync lyrics from either .lrc file or from song's metadata.
-- Lyrics download.
+- Lyrics download with preview dialog.
+  - Preview lyrics before applying them to songs
+  - Edit fetched lyrics before saving
+  - Timestamp plain lyrics directly from search results
 - Social Share
 - More to come such as playlist management, song's editing, statistics etc..
 

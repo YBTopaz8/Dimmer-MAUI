@@ -92,7 +92,6 @@ public partial class LoginViewModel : ObservableObject
 
         IsBusy = false;
     }
-    private bool CanRegister() => !IsBusy && !string.IsNullOrWhiteSpace(Username) && !string.IsNullOrWhiteSpace(Email) && !string.IsNullOrWhiteSpace(Password);
 
     [RelayCommand]
     private async Task RegisterAsync()
@@ -119,10 +118,6 @@ public partial class LoginViewModel : ObservableObject
 
         IsBusy = false;
     }
-
-    // --- Forgot Password Logic ---
-
-    private bool CanForgotPassword() => !IsBusy && !string.IsNullOrWhiteSpace(Email);
 
     [RelayCommand]
     private async Task ForgotPasswordAsync()

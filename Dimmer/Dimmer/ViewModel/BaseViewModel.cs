@@ -19,6 +19,7 @@ using Dimmer.Interfaces;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.Resources.Localization;
 using Dimmer.UIUtils;
+using Dimmer.Utilities.Enums;
 using Dimmer.Utilities.TypeConverters;
 using Dimmer.Utils;
 
@@ -715,8 +716,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     public ReadOnlyObservableCollection<DuplicateSetViewModel> DuplicateSets => _duplicateSets;
 
-    Timer? _bootTimer;
-
     [ObservableProperty]
     public partial bool IsInitialized { get; set; }
 
@@ -826,7 +825,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     public event EventHandler? ToggleNowPlayingUI;
 
-    public event Action? MainWindowActivatedAction;
 
     public event EventHandler? MainWindowActivatedEventHandler;
 
@@ -1006,6 +1004,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     appmodel.CurrentSongId = CurrentPlayingSongView.Id.ToString();
                     appmodel.VolumeLevelPreference = _audioService.Volume;
                     appmodel.ScrobbleToLastFM = ScrobbleToLastFM;
+                    appmodel.KeepScreenOnDuringLyrics = KeepScreenOnDuringLyrics;
                 });
             realmm.Add(appmodel, true);
         }
@@ -1027,6 +1026,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 ShuffleStatePreference = IsShuffleActive,
                 IsStickToTop = IsStickToTop,
                 ScrobbleToLastFM = ScrobbleToLastFM,
+                KeepScreenOnDuringLyrics = true,
                 CurrentTheme = Application.Current?.UserAppTheme.ToString() ?? "Unspecified",
                 CurrentLanguage = CultureInfo.CurrentCulture.TwoLetterISOLanguageName,
                 CurrentCountry = RegionInfo.CurrentRegion.TwoLetterISORegionName,
@@ -1085,6 +1085,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 DeviceVolumeLevel = appModel.VolumeLevelPreference;
                 IsDarkModeOn = appModel.IsDarkModePreference;
                 ScrobbleToLastFM = appModel.ScrobbleToLastFM;
+                KeepScreenOnDuringLyrics = appModel.KeepScreenOnDuringLyrics;
                 // --- REPLACED: Logic to load the last played song ---
                 if (!string.IsNullOrEmpty(appModel.CurrentSongId) &&
                     ObjectId.TryParse(appModel.CurrentSongId, out var songId))
@@ -1455,8 +1456,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     private ParseClient ParseClientInstance => ParseClient.Instance;
 
-    private ParseLiveQueryClient LiveClient { get; set; }
-
     public string MyDeviceId { get; set; }
 
 
@@ -1535,8 +1534,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     private SourceList<DimmerPlayEventView> _playEventSource = new();
     private CompositeDisposable _disposables = new();
     private IDisposable? _realmSubscription;
-    private bool _isDisposed;
 
+    public ILyricsMetadataService LyricsMetadataService => _lyricsMetadataService;
     private ILyricsMetadataService _lyricsMetadataService;
 
 
@@ -1958,8 +1957,13 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             if (addedNote != null)
             {
-                RxSchedulers.UI.ScheduleToUI(()=> songObject.UserNoteAggregatedCol.Add(new
-                    UserNoteModelView() { UserMessageText=uNote}));
+                RxSchedulers.UI.ScheduleToUI(() =>
+                {
+                    songObject.UserNoteAggregatedCol ??= new();
+                    songObject.UserNoteAggregatedCol.Add(new
+                                        UserNoteModelView()
+                    { UserMessageText = uNote });
+                });
 
                 _logger.LogInformation("Successfully added user note for song: {SongTitle}", songObject.Title);
             }
@@ -2174,7 +2178,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     private static readonly HttpClient httpClient = new();
 
-    private int counterr = 0;
     /// <summary>
     /// A robust, multi-stage process to load cover art. It prioritizes existing paths, checks for cached files, and
     /// only extracts from the audio file as a last resort, caching the result for future use.
@@ -2384,31 +2387,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         _stateService.SetCurrentLogMsg(new AppLogModel { Log = "Cover art check complete." });
     }
-    
+
     #region Playback Event Handlers
-    private async void OnPlaybackPaused(PlaybackEventArgs args)
-    {
-        if (args.MediaSong is null)
-        {
-            _logger.LogWarning("OnPlaybackPaused was called but the event had no song context.");
-            return;
-        }
-        var isAtEnd = Math.Abs(CurrentTrackDurationSeconds - CurrentTrackPositionSeconds) < 0.5;
-        if (isAtEnd && CurrentTrackDurationSeconds > 0)
-        {
-            _logger.LogTrace("Ignoring Paused event at the end of the track, waiting for Completed event.");
-            return;
-        }
-
-        _logger.LogInformation("AudioService confirmed: Playback paused for '{Title}'", args.MediaSong.Title);
-        CurrentPlayingSongView.IsCurrentPlayingHighlight = false;
-        await BaseAppFlow.UpdateDatabaseWithPlayEvent(
-            RealmFactory,
-            args.MediaSong,
-            StatesMapper.Map(DimmerPlaybackState.PausedUser),
-            CurrentTrackPositionSeconds);
-
-    }
 
     private async Task OnPlaybackResumed(PlaybackEventArgs args)
     {
@@ -3747,6 +3727,19 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         PlaybackQueueSource.Move(oldIndex, newIndex);
 
+        // Update current playing index if affected by the move
+        if (_currentPlayinSongIndexInPlaybackQueue == oldIndex)
+        {
+            _currentPlayinSongIndexInPlaybackQueue = newIndex;
+        }
+        else if (oldIndex < _currentPlayinSongIndexInPlaybackQueue && newIndex >= _currentPlayinSongIndexInPlaybackQueue)
+        {
+            _currentPlayinSongIndexInPlaybackQueue--;
+        }
+        else if (oldIndex > _currentPlayinSongIndexInPlaybackQueue && newIndex <= _currentPlayinSongIndexInPlaybackQueue)
+        {
+            _currentPlayinSongIndexInPlaybackQueue++;
+        }
 
         _logger.LogInformation("Moved song from index {Old} to {New}", oldIndex, newIndex);
     }
@@ -3861,6 +3854,135 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         PlaybackQueueSource.AddRange(songs.Distinct());
     }
+
+    /// <summary>
+    /// Plays a song based on the specified action, implementing smart queue management.
+    /// This is the main entry point for all song playback interactions.
+    /// </summary>
+    /// <param name="songToPlay">The song to play</param>
+    /// <param name="action">The playback action that determines queue behavior</param>
+    /// <param name="context">Optional: The collection context (album, playlist, search results) from which the song was selected</param>
+    public async Task PlaySongWithActionAsync(
+        SongModelView? songToPlay,
+        PlaybackAction action,
+        IEnumerable<SongModelView>? context = null)
+    {
+        if (songToPlay == null)
+            return;
+
+        try
+        {
+            switch (action)
+            {
+                case PlaybackAction.PlayNext:
+                    await PlaySongNextAsync(songToPlay);
+                    break;
+
+                case PlaybackAction.PlayNow:
+                    await PlaySongNowAsync(songToPlay, context);
+                    break;
+
+                case PlaybackAction.AddToQueue:
+                    AddToQueue(songToPlay);
+                    break;
+
+                case PlaybackAction.JumpInQueue:
+                    await JumpToSongInQueueAsync(songToPlay);
+                    break;
+
+                case PlaybackAction.ReplaceQueue:
+                    await PlaySongAsync(songToPlay, CurrentPage.AllSongs, context);
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error playing song with action {Action}", action);
+        }
+    }
+
+    /// <summary>
+    /// Adds a song to play immediately after the current song without interrupting playback.
+    /// If nothing is playing, starts playback with the song's context.
+    /// If the song is already in the queue, jumps to it instead.
+    /// </summary>
+    private async Task PlaySongNextAsync(SongModelView songToPlay)
+    {
+        // Check if the song is already in the current queue
+        int existingIndex = -1;
+        for (int i = 0; i < _playbackQueue.Count; i++)
+        {
+            if (_playbackQueue[i].Id == songToPlay.Id)
+            {
+                existingIndex = i;
+                break;
+            }
+        }
+        
+        if (existingIndex != -1 && _playbackQueue.Count > 0)
+        {
+            // Song is already in queue, jump to it instead of adding again
+            _logger.LogInformation("Song '{Title}' already in queue, jumping to position {Index}", songToPlay.Title, existingIndex);
+            await JumpToSongInQueueAsync(songToPlay);
+            return;
+        }
+
+        // Check if playback is active
+        if (!_audioService.IsPlaying || _playbackQueue.Count == 0)
+        {
+            // Nothing playing, start playback normally with this song's context
+            await PlaySongAsync(songToPlay, CurrentPage.AllSongs, new List<SongModelView> { songToPlay });
+            return;
+        }
+
+        // Insert after current song
+        SetAsNextToPlayInQueue(songToPlay);
+        _logger.LogInformation("Added '{Title}' to play next", songToPlay.Title);
+        
+        // Show feedback to user (this will be handled by UI layer through events or properties)
+        OnSongAddedToQueue?.Invoke(this, $"Added {songToPlay.Title} to play next");
+    }
+
+    /// <summary>
+    /// Stops current playback, clears queue, and plays the selected song with its context.
+    /// This is typically triggered by long-press or explicit "Play Now" action.
+    /// </summary>
+    private async Task PlaySongNowAsync(SongModelView songToPlay, IEnumerable<SongModelView>? context)
+    {
+        // Build context if not provided
+        var contextSongs = context?.ToList() ?? new List<SongModelView> { songToPlay };
+        
+        // Stop current playback
+        if (_audioService.IsPlaying)
+        {
+            _audioService.Stop();
+        }
+
+        // Find the song in the context
+        int startIndex = contextSongs.FindIndex(s => s.Id == songToPlay.Id);
+        if (startIndex == -1)
+        {
+            // Song not in context, create a single-song context
+            contextSongs = new List<SongModelView> { songToPlay };
+            startIndex = 0;
+        }
+
+        // Clear and rebuild queue
+        await StartNewPlaybackQueue(contextSongs, startIndex, CurrentTqlQuery);
+        
+        _logger.LogInformation("Playing '{Title}' now, queue cleared and rebuilt", songToPlay.Title);
+        OnSongPlayingNow?.Invoke(this, $"Playing {songToPlay.Title}");
+    }
+
+    /// <summary>
+    /// Event fired when a song is added to the queue (for UI feedback like toasts/snackbars)
+    /// </summary>
+    public event EventHandler<string>? OnSongAddedToQueue;
+
+    /// <summary>
+    /// Event fired when a song starts playing now (for UI feedback)
+    /// </summary>
+    public event EventHandler<string>? OnSongPlayingNow;
 
 
     /// <summary>
@@ -4325,10 +4447,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         _logger.LogInformation("User requested to add music folder.");
 
-        await Task.Run(async () =>
-        {
+       
             await _folderMgtService.ReScanFolder(folderPath);
-        });
+        
         _stateService.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderReScanned, folderPath, null, null));
     }
 
@@ -4944,7 +5065,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
     }
 
-    public void AddToPlaylist(string playlistName, IEnumerable<SongModelView> songsToAdd, string PlQuery)
+    public async Task AddToPlaylist(string playlistName, IEnumerable<SongModelView> songsToAdd, string PlQuery)
     {
         if (string.IsNullOrEmpty(playlistName) || songsToAdd == null || !songsToAdd.Any())
         {
@@ -4969,21 +5090,28 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 playlistName);
             var newPlaylistModel = new PlaylistModel { PlaylistName = playlistName, IsSmartPlaylist = false };
             var realm = RealmFactory.GetRealmInstance();
-            realm.Write(
-                () =>
+            await realm.WriteAsync(
+                async () =>
                 {
                     newPlaylistModel.Id = ObjectId.GenerateNewId();
                     newPlaylistModel.DateCreated = DateTimeOffset.UtcNow;
                     newPlaylistModel.LastPlayedDate = DateTimeOffset.UtcNow;
                     newPlaylistModel.QueryText = PlQuery;
                     newPlaylistModel.SongsIdsInPlaylist.AddRange(songsToAdd.Select(s => s.Id).Distinct());
-
+                    
                     //newPlaylistModel.SongsInPlaylist.AddRange(songsToAdd.Select(s => s.ToModel()).Distinct());
 
                     realm.Add(newPlaylistModel, true);
-                });
 
-            //targetPlaylist = _playlistRepo.Create(newPlaylistModel);
+                    foreach (var song in songsToAdd)
+                    {
+                        await SaveUserNoteToSong(song, playlistName);
+                        
+
+                    }
+
+                });
+            return;
         }
 
 
@@ -5033,7 +5161,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             _realmSubscription?.Dispose();
             _playEventSource.Dispose();
-            realm.Dispose();
+            realm?.Dispose();
             _subsManager.Dispose();
             CompositeDisposables.Dispose();
             
@@ -5521,10 +5649,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial string LyricsArtistNameSearch { get; set; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasLyricsSearchResults))]
     public partial ObservableCollection<LrcLibLyrics> LyricsSearchResults { get; set; } = new();
 
-    public bool HasLyricsSearchResults => LyricsSearchResults.Any();
+    [ObservableProperty]
+    public partial bool HasLyricsSearchResults { get; set; }
 
     [ObservableProperty]
     public partial bool IsLyricsSearchBusy { get; set; }
@@ -5537,7 +5665,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
 
     [RelayCommand]
-    private async Task SearchLyricsAsync()
+    public async Task SearchLyricsAsync()
     {
         if (SelectedSong == null)
             return;
@@ -5579,12 +5707,14 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             {
                 _logger.LogInformation("No lyrics found for the search query: {Query}", query);
 
+                HasLyricsSearchResults = false;
                 LyricsSearchResults.Clear();
                 //await Shell.Current
                 //    .DisplayAlert("No Results", "No lyrics found for the specified search criteria.", "OK");
             }
             else
             {
+                HasLyricsSearchResults = true;
                 _logger.LogInformation(
                     "Found {Count} lyrics results for query: {Query}",
                     LyricsSearchResults.Count,
@@ -5594,6 +5724,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
         catch (Exception ex)
         {
+            HasLyricsSearchResults = false;
             _logger.LogError(ex, "Failed to search for lyrics online.");
 
         }
@@ -5608,19 +5739,19 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             return string.Empty;
 
         // 1. Process locally (don't set class properties)
-        var title = CleanSongTitle(SelectedSong.Title ?? string.Empty);
-        var artist = GetPrimaryArtist(SelectedSong.ArtistName ?? string.Empty);
+        LyricsTrackNameSearch = CleanSongTitle(SelectedSong.Title ?? string.Empty);
+        LyricsArtistNameSearch = GetPrimaryArtist(SelectedSong.ArtistName ?? string.Empty);
 
         // Album is often "noise" for lyric searches. Only include it if it's very specific.
         // Ideally, for lyrics, Artist + Title is usually the strongest query.
         var album = SelectedSong.AlbumName ?? string.Empty;
-        var validAlbum = !IsGenericAlbumName(album) ? album : string.Empty;
+        LyricsAlbumNameSearch = !IsGenericAlbumName(album) ? album : string.Empty;
 
         // 2. Build the list, filtering out empties immediately
         var searchParts = new List<string>();
 
-        if (!string.IsNullOrWhiteSpace(title)) searchParts.Add(title);
-        if (!string.IsNullOrWhiteSpace(artist)) searchParts.Add(artist);
+        if (!string.IsNullOrWhiteSpace(LyricsTrackNameSearch)) searchParts.Add(LyricsTrackNameSearch);
+        if (!string.IsNullOrWhiteSpace(LyricsArtistNameSearch)) searchParts.Add(LyricsArtistNameSearch);
       
         return string.Join(" ", searchParts).Trim();
     }
@@ -6077,12 +6208,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             IsTimestampingInProgress = true;
 
-            Shell.Current.FlyoutBehavior = FlyoutBehavior.Flyout;
         }
         else
         {
             IsTimestampingInProgress = false;
-            Shell.Current.FlyoutBehavior = FlyoutBehavior.Flyout;
         }
 
     }
@@ -7224,6 +7353,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         ToggleLastFMScrobbling(newValue);
     }
 
+    [ObservableProperty]
+    public partial bool KeepScreenOnDuringLyrics { get; set; } = true;
+
     public ObservableCollection<string> QueryChips { get; } = new();
 
     // We still need a command to handle removing a chip.
@@ -7886,7 +8018,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     public static string WindowActivationRequestTypeStatic;
     public static string LastFMName = string.Empty;
-    private int targetPageForCurrentSong;
 
     [RelayCommand]
     public async Task LoginToLastfm()
@@ -7898,7 +8029,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             IsLastFMNeedsUsername = true;
             return;
         }
-        IsBusy = true;
+        IsLastFMAuthButtonClickable = false;
         
         try
         {
@@ -7921,7 +8052,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get Last.fm authentication URL.");
-            IsBusy = false;
+            IsLastFMAuthButtonClickable = true;
             return;
         }
     }

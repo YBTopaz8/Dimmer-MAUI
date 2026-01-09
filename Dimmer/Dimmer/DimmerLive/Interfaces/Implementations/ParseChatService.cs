@@ -11,7 +11,6 @@ public partial class ParseChatService : ObservableObject, IChatService, IDisposa
     private readonly SourceCache<ChatMessage, string> _msgCache = new(c => c.ObjectId);
     private readonly SourceCache<ChatConversation, string> _conversationsCache = new(c => c.ObjectId);
     private Subscription<ChatConversation>? _conversationSubscription;
-    private Subscription<ChatMessage>? _msgSub;
 
     // This is a powerful pattern. It's a dictionary that holds the message cache for each conversation.
     private readonly Dictionary<string, (SourceCache<ChatMessage, string> cache, IDisposable subscription)> _messageListeners = new();
