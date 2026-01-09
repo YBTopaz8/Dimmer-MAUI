@@ -57,7 +57,14 @@ public class SongOverviewFragment : Fragment
         {
             viewModel.NavigateToArtistPage(ParentFragment, "artist_trans", SelectedSong.OtherArtistsName, artistBtn);
         };
+        var genreBtn = new MaterialButton(ctx, null, Resource.Attribute.borderlessButtonStyle) { Text = SelectedSong.GenreName, TextSize = 18 };
+        // Parity: Navigate to Artist
+        genreBtn.Click += (s, e) =>
+        {
+            //viewModel.NavigateToArtistPage(ParentFragment, "artist_trans", SelectedSong.OtherArtistsName, artistBtn);
+        };
         root.AddView(artistBtn);
+        root.AddView(genreBtn);
 
         // Stats Card
         var statsCard = new MaterialCardView(ctx) { Radius = AppUtil.DpToPx(12), Elevation = 4 };
