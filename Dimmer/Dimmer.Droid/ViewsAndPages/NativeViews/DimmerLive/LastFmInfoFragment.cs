@@ -155,9 +155,12 @@ public class LastFmInfoFragment : Fragment
         }
         else
         {
-            // Navigate to song detail (if needed - implement navigation logic here)
-            // For now, we'll just show the bottom sheet as well
-            // TODO: Add navigation to song detail for tracks on device
+            // TODO: Navigate to song detail page for tracks on device
+            // This requires getting the SongModelView from the track's OnDeviceObjectId
+            // and navigating to the appropriate detail page/fragment
+            // For now, show the info bottom sheet for all tracks
+            var bottomSheet = new LastFmTrackInfoBottomSheet(track);
+            bottomSheet.Show(ChildFragmentManager, "LastFmTrackInfo");
         }
     }
 
@@ -229,7 +232,19 @@ public class LastFmInfoFragment : Fragment
             root.AddView(infoLay);
             root.AddView(statusLay);
 
-            return new TrackVH(root, img, title, artist, loveIcon, duration);
+            var vh = new TrackVH(root, img, title, artist, loveIcon, duration);
+            
+            // Set up click handler once in ViewHolder creation
+            root.Click += (sender, e) =>
+            {
+                var position = vh.BindingAdapterPosition;
+                if (position != RecyclerView.NoPosition && position < _items.Count)
+                {
+                    _onItemClick?.Invoke(_items[position]);
+                }
+            };
+
+            return vh;
         }
 
         public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
@@ -261,15 +276,6 @@ public class LastFmInfoFragment : Fragment
             // if (item.Images?.Count > 0) Glide.With(_ctx).Load(item.Images.Last().Url).Into(vh.Img);
             // else 
             vh.Img.SetImageResource(Resource.Drawable.musicnotess); // Fallback
-
-            // Click Handler
-            vh.ItemView.Click -= OnItemViewClick; // Remove old handler
-            vh.ItemView.Click += OnItemViewClick;
-
-            void OnItemViewClick(object sender, EventArgs e)
-            {
-                _onItemClick?.Invoke(item);
-            }
         }
 
         class TrackVH : RecyclerView.ViewHolder
