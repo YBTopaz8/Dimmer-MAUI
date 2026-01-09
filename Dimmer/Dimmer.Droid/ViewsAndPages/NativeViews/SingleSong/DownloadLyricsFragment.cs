@@ -1,4 +1,7 @@
-﻿using Dimmer.Data.Models.LyricsModels;
+﻿using AndroidX.Lifecycle;
+using Dimmer.Data.Models.LyricsModels;
+using Dimmer.WinUI.UiUtils;
+using DynamicData.Binding;
 using Google.Android.Material.Dialog;
 using ProgressBar = Android.Widget.ProgressBar;
 using ScrollView = Android.Widget.ScrollView;
@@ -9,6 +12,10 @@ public partial class DownloadLyricsFragment : Fragment
 {
     private BaseViewModelAnd MyViewModel;
     private TextInputEditText titleInput, artistInput, albumInput;
+
+    public Button searchBtn { get; private set; }
+    public bool isSearchClicked { get; private set; }
+
     private RecyclerView resultsRecycler;
     private ProgressBar loadingBar;
 
@@ -17,7 +24,28 @@ public partial class DownloadLyricsFragment : Fragment
         MyViewModel = vm;
     }
 
-
+    public override void OnResume()
+    {
+        base.OnResume();
+       
+               MyViewModel.WhenPropertyChange(nameof(MyViewModel.HasLyricsSearchResults), x=>MyViewModel.LyricsSearchResults)
+                   .ObserveOn(RxSchedulers.UI)
+                   .Subscribe(obsColLyrics =>
+                   {
+                       if (obsColLyrics is null || obsColLyrics.Count < 1)
+                       {
+                           loadingBar.Visibility = ViewStates.Gone;
+                           Toast.MakeText(this.Context, "No Lyrics found", ToastLength.Short);
+                           isSearchClicked = false;
+                           searchBtn.Enabled = true;
+                           return;
+                       }
+                       resultsRecycler.SetAdapter(new LyricsAdapter(MyViewModel.LyricsSearchResults, OnLyricsSelected));
+                       loadingBar.Visibility = ViewStates.Gone;
+                       isSearchClicked = false;
+                       searchBtn.Enabled = true;
+                   });
+    }
     public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         var ctx = Context;
@@ -33,9 +61,9 @@ public partial class DownloadLyricsFragment : Fragment
         artistInput = new TextInputEditText(ctx) { Hint = "Artist", Text = MyViewModel.SelectedSong?.ArtistName };
         albumInput = new TextInputEditText(ctx) { Hint = "Album", Text = MyViewModel.SelectedSong?.AlbumName };
 
-        var searchBtn = new MaterialButton(ctx) { Text = "Search Lyrics" };
+         searchBtn = new MaterialButton(ctx) { Text = "Search Lyrics" };
         searchBtn.Click += SearchBtn_Click;
-
+        searchBtn.SetTextColor(Color.White);
         root.AddView(titleInput);
         root.AddView(artistInput);
         root.AddView(albumInput);
@@ -48,21 +76,22 @@ public partial class DownloadLyricsFragment : Fragment
         // 3. Results List
         resultsRecycler = new RecyclerView(ctx);
         resultsRecycler.SetLayoutManager(new LinearLayoutManager(ctx));
+        
         resultsRecycler.LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent);
         root.AddView(resultsRecycler);
 
         return root;
     }
 
+
     private async void SearchBtn_Click(object? sender, EventArgs e)
     {
+        isSearchClicked = true;
+        searchBtn.Enabled = false;
         loadingBar.Visibility = ViewStates.Visible;
 
         await MyViewModel.SearchLyricsCommand.ExecuteAsync(null);
-      
 
-        resultsRecycler.SetAdapter(new LyricsAdapter(MyViewModel.LyricsSearchResults, OnLyricsSelected));
-        loadingBar.Visibility = ViewStates.Gone;
     }
 
     private void OnLyricsSelected(LrcLibLyrics lyrics)
@@ -189,7 +218,7 @@ public partial class DownloadLyricsFragment : Fragment
         
         if (hasLyricsToEdit && MyViewModel?.LoadLyricsForEditingCommand != null)
         {
-            MyViewModel.LoadLyricsForEditingCommand.Execute(lyrics);
+            //MyViewModel.LoadLyricsForEditingCommand.Execute(lyrics);
             Toast.MakeText(Context, "Lyrics loaded for editing", ToastLength.Short)?.Show();
         }
     }

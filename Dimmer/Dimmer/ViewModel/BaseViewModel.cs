@@ -669,7 +669,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             await Task.Delay(3000);
             await EnsureAllCoverArtCachedForSongsAsync();
             CancellationTokenSource cts = new();
-            await LoadAllSongsLyricsFromOnlineAsync(cts);
+            //await LoadAllSongsLyricsFromOnlineAsync(cts);
         });
 
         IsInitialized = true;
@@ -5447,10 +5447,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial string LyricsArtistNameSearch { get; set; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasLyricsSearchResults))]
     public partial ObservableCollection<LrcLibLyrics> LyricsSearchResults { get; set; } = new();
 
-    public bool HasLyricsSearchResults => LyricsSearchResults.Any();
+    [ObservableProperty]
+    public partial bool HasLyricsSearchResults { get; set; }
 
     [ObservableProperty]
     public partial bool IsLyricsSearchBusy { get; set; }
@@ -5505,12 +5505,14 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             {
                 _logger.LogInformation("No lyrics found for the search query: {Query}", query);
 
+                HasLyricsSearchResults = false;
                 LyricsSearchResults.Clear();
                 //await Shell.Current
                 //    .DisplayAlert("No Results", "No lyrics found for the specified search criteria.", "OK");
             }
             else
             {
+                HasLyricsSearchResults = true;
                 _logger.LogInformation(
                     "Found {Count} lyrics results for query: {Query}",
                     LyricsSearchResults.Count,
@@ -5520,6 +5522,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
         catch (Exception ex)
         {
+            HasLyricsSearchResults = false;
             _logger.LogError(ex, "Failed to search for lyrics online.");
 
         }
@@ -5534,19 +5537,19 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             return string.Empty;
 
         // 1. Process locally (don't set class properties)
-        var title = CleanSongTitle(SelectedSong.Title ?? string.Empty);
-        var artist = GetPrimaryArtist(SelectedSong.ArtistName ?? string.Empty);
+        LyricsTrackNameSearch = CleanSongTitle(SelectedSong.Title ?? string.Empty);
+        LyricsArtistNameSearch = GetPrimaryArtist(SelectedSong.ArtistName ?? string.Empty);
 
         // Album is often "noise" for lyric searches. Only include it if it's very specific.
         // Ideally, for lyrics, Artist + Title is usually the strongest query.
         var album = SelectedSong.AlbumName ?? string.Empty;
-        var validAlbum = !IsGenericAlbumName(album) ? album : string.Empty;
+        LyricsAlbumNameSearch = !IsGenericAlbumName(album) ? album : string.Empty;
 
         // 2. Build the list, filtering out empties immediately
         var searchParts = new List<string>();
 
-        if (!string.IsNullOrWhiteSpace(title)) searchParts.Add(title);
-        if (!string.IsNullOrWhiteSpace(artist)) searchParts.Add(artist);
+        if (!string.IsNullOrWhiteSpace(LyricsTrackNameSearch)) searchParts.Add(LyricsTrackNameSearch);
+        if (!string.IsNullOrWhiteSpace(LyricsArtistNameSearch)) searchParts.Add(LyricsArtistNameSearch);
       
         return string.Join(" ", searchParts).Trim();
     }
