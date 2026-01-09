@@ -60,8 +60,8 @@ public class NowPlayingCarouselAdapter : RecyclerView.Adapter
         };
 
         var cardParams = new FrameLayout.LayoutParams(
-        AppUtil.DpToPx(350),
-        AppUtil.DpToPx(350)
+        AppUtil.DpToPx(450),
+        AppUtil.DpToPx(400)
     );
 
         // Center the card inside the wrapper
@@ -107,22 +107,10 @@ public class NowPlayingCarouselAdapter : RecyclerView.Adapter
                 _image.SetImageResource(Resource.Drawable.musicnotess);
             }
 
-            ItemView.Click -= OnItemClick;
-            ItemView.Click += OnItemClick;
+
         }
 
-        private void OnItemClick(object? sender, EventArgs e)
-        {
-            _viewModel.SelectedSong = _viewModel.CurrentPlayingSongView;
-            if (ItemView.Context is TransitionActivity activity)
-            {
-                _viewModel.NavigateToAnyPageOfGivenType(
-                    activity.SupportFragmentManager.Fragments.FirstOrDefault() as Fragment,
-                    new SongDetailFragment("toSingleSongDetailsFromNowPlaying", _viewModel),
-                    "toSingleSongDetailsFromNowPlaying"
-                );
-                activity.TogglePlayer();
-            }
-        }
+        
+
     }
 }

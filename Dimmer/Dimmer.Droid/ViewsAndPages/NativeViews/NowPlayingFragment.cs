@@ -105,7 +105,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
 
         return root;
     }
-
+    
     private LinearLayout CreateMiniPlayer(Context ctx)
     {
         if(_viewModel is null)return null!;
@@ -600,10 +600,15 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
                 (int)IOnBackInvokedDispatcher.PriorityDefault, this);
         }
 
-        
+        var caritems = _viewModel.CarouselItems;
+        if (_carouselAdapter != null && caritems != null && caritems.Count == 3)
+        {
+            _carouselAdapter.UpdateSongs(caritems.ToList());
+        }
 
-        // 1. Observe Playing Song
-        _viewModel.CurrentSongChanged
+
+            // 1. Observe Playing Song
+            _viewModel.CurrentSongChanged
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(s =>
             {
