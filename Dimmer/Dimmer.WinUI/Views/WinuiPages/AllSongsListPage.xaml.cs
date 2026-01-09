@@ -173,12 +173,52 @@ public sealed partial class AllSongsListPage : Page
 
     private void TableView_RightTapped(object sender, RightTappedRoutedEventArgs e)
     {
-        return;
-        var isCtlrKeyPressed = e.PointerDeviceType == Microsoft.UI.Input.PointerDeviceType.Mouse &&
-            (Windows.UI.Core.CoreWindow.GetForCurrentThread().GetKeyState(Windows.System.VirtualKey.Control) &
-             Windows.UI.Core.CoreVirtualKeyStates.Down) == Windows.UI.Core.CoreVirtualKeyStates.Down;
-        if (isCtlrKeyPressed)
-            ProcessCellClick(isExclusion: false);
+        // Get the song from the tapped element
+        FrameworkElement element = (e.OriginalSource as FrameworkElement)!;
+        if (element == null)
+            return;
+
+        SongModelView? song = null;
+        while (element != null)
+        {
+            if (element.DataContext is SongModelView currentSong)
+            {
+                song = currentSong;
+                break;
+            }
+            element = (FrameworkElement)element.Parent;
+        }
+
+        if (song == null)
+            return;
+
+        // Create and show context menu
+        var flyout = new MenuFlyout();
+        
+        var playNowItem = new MenuFlyoutItem { Text = "Play Now" };
+        playNowItem.Click += async (s, args) =>
+        {
+            var songs = MySongsTableView.Items.OfType<SongModelView>();
+            await MyViewModel.PlaySongWithActionAsync(song, Dimmer.Utilities.Enums.PlaybackAction.PlayNow, songs);
+        };
+        flyout.Items.Add(playNowItem);
+
+        var playNextItem = new MenuFlyoutItem { Text = "Play Next" };
+        playNextItem.Click += async (s, args) =>
+        {
+            var songs = MySongsTableView.Items.OfType<SongModelView>();
+            await MyViewModel.PlaySongWithActionAsync(song, Dimmer.Utilities.Enums.PlaybackAction.PlayNext, songs);
+        };
+        flyout.Items.Add(playNextItem);
+
+        var addToQueueItem = new MenuFlyoutItem { Text = "Add to Queue" };
+        addToQueueItem.Click += async (s, args) =>
+        {
+            await MyViewModel.PlaySongWithActionAsync(song, Dimmer.Utilities.Enums.PlaybackAction.AddToQueue);
+        };
+        flyout.Items.Add(addToQueueItem);
+
+        flyout.ShowAt(sender as UIElement, e.GetPosition(sender as UIElement));
     }
     private void TableView_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
@@ -229,9 +269,9 @@ public sealed partial class AllSongsListPage : Page
 
         if (song != null)
         {
-            // You found the song! Now you can call your ViewModel command.
+            // Default behavior: Add to play next (non-interrupting)
             Debug.WriteLine($"Double-tapped on song: {song.Title}");
-            await MyViewModel.PlaySongAsync(song, songs: SongsEnumerable);
+            await MyViewModel.PlaySongWithActionAsync(song, Dimmer.Utilities.Enums.PlaybackAction.PlayNext, SongsEnumerable);
         }
     }
     public void ScrollToSong(SongModelView songToFind)
@@ -491,6 +531,18 @@ public sealed partial class AllSongsListPage : Page
 
             MyViewModel.CurrentWinUIPage = this;
             MyViewModel.MySongsTableView = MySongsTableView;
+            
+            // Subscribe to playback feedback events
+            MyViewModel.OnSongAddedToQueue += (sender, message) =>
+            {
+                ShowNotification(message, Microsoft.UI.Xaml.Controls.InfoBarSeverity.Success);
+            };
+            
+            MyViewModel.OnSongPlayingNow += (sender, message) =>
+            {
+                ShowNotification(message, Microsoft.UI.Xaml.Controls.InfoBarSeverity.Informational);
+            };
+            
             // Now that the ViewModel is set, you can set the DataContext.
             this.DataContext = MyViewModel;
         }
@@ -1451,5 +1503,41 @@ true
         if (MyViewModel.SelectedSong is null) return;
         if(!string.IsNullOrEmpty(MyViewModel.SelectedSong.CoverImagePath))
             SelectedSongImg.Source = new BitmapImage(new Uri(MyViewModel.SelectedSong.CoverImagePath));
+    }
+
+    private void ShowNotification(string message, Microsoft.UI.Xaml.Controls.InfoBarSeverity severity)
+    {
+        // Use a TeachingTip or create a temporary InfoBar for notifications
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            var infoBar = new Microsoft.UI.Xaml.Controls.InfoBar
+            {
+                Message = message,
+                Severity = severity,
+                IsOpen = true,
+                Margin = new Microsoft.UI.Xaml.Thickness(0, 0, 0, 10)
+            };
+
+            // Auto-close after 3 seconds
+            var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
+            timer.Tick += (s, args) =>
+            {
+                infoBar.IsOpen = false;
+                timer.Stop();
+                // Remove from visual tree after closing animation
+                if (infoBar.Parent is Panel parentPanel)
+                {
+                    parentPanel.Children.Remove(infoBar);
+                }
+            };
+
+            // Add to the page's main grid
+            if (MyPageGrid != null)
+            {
+                // Insert at the top of the grid
+                MyPageGrid.Children.Insert(0, infoBar);
+                timer.Start();
+            }
+        });
     }
 }
