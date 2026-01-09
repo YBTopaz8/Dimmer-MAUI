@@ -605,18 +605,14 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         // 1. Observe Playing Song
         _viewModel.CurrentSongChanged
             .ObserveOn(RxSchedulers.UI)
-            .Subscribe(UpdateSongUI)
-            .DisposeWith(_disposables);
-
-        // Observe carousel items changes
-        _viewModel.WhenPropertyChange(nameof(_viewModel.CarouselItems), x => _viewModel.CarouselItems)
-            .ObserveOn(RxSchedulers.UI)
-            .Subscribe(items =>
+            .Subscribe(s =>
             {
+                UpdateSongUI(s);
+                var items = _viewModel.CarouselItems;
                 if (_carouselAdapter != null && items != null && items.Count == 3)
                 {
                     _carouselAdapter.UpdateSongs(items.ToList());
-                    
+
                     // Set to middle item (current song) without triggering navigation
                     // Use post to ensure adapter update completes first
                     if (_carouselViewPager != null && _carouselViewPager.CurrentItem != 1)
@@ -637,6 +633,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
                 }
             })
             .DisposeWith(_disposables);
+
 
         // Setup ViewPager2 page change callback
         if (_carouselViewPager != null)
