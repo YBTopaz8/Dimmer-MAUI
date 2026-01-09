@@ -328,7 +328,7 @@ public partial class SongModelView : ObservableObject
     public partial int BitDepth { get; internal set; }
     [ObservableProperty]
     public partial int NbOfChannels { get; internal set; }
-
+    public string PlatformPath { get; internal set; }
 
     public SongModelView ShallowCopy()
     {

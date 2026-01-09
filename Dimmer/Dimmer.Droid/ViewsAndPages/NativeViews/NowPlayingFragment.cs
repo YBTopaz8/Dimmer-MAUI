@@ -774,10 +774,6 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         _volumeSlider.ValueTo = devMaxVol;
         _volumeSlider.Value = (float)newVal;
     }
-    private void UpdateVolumeChangedUI(double obj)
-    {
-        _volumeSlider.ValueTo=(float)obj;
-    }
 
     public override void OnPause()
     {

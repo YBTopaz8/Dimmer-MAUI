@@ -5,12 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Bumptech.Glide;
-
 using Google.Android.Material.Tabs;
 
 using Hqub.Lastfm.Entities;
 
-namespace Dimmer.ViewsAndPages.NativeViews.DimmerLive;
+namespace Dimmer.ViewsAndPages.NativeViews.DimmerLive.LastFMViews;
 
 
 public class LastFmInfoFragment : Fragment

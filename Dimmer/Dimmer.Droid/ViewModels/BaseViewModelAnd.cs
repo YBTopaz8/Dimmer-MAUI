@@ -584,6 +584,13 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     public void NavigateToAnyPageOfGivenType(Fragment callerFrag, Fragment destinationFrag, string tag)
     {
         if (callerFrag == null || !callerFrag.IsAdded) return;
+        
+        // Check if we're already on the target fragment type - don't navigate if so
+        if (CurrentFragment != null && CurrentFragment.GetType() == destinationFrag.GetType())
+        {
+            return;
+        }
+        
         CurrentFragment = destinationFrag;
 
         var fade = new MaterialFadeThrough();
