@@ -4,8 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - IntegrateAll
-      - master
+      - releaseBranch
 
 jobs:
   build-and-release:
@@ -29,7 +28,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nuget-
 
-      # 3. DETECT VERSION CHANGE TYPE (FIXED)
+          
+# 3. DETECT VERSION CHANGE TYPE (FIXED)
       - name: Detect Version & Release Type
         id: version_logic
         shell: pwsh
@@ -110,24 +110,27 @@ jobs:
               $log = git log $prevTag..HEAD --pretty=format:"- %s (%h)" --no-merges
           }
 
-          # Normalize to string
+          # Convert array to string if necessary
           if ($log -is [Array]) { $logString = $log -join "`n" } else { $logString = $log }
 
-          # 2. FALLBACK: If logic above returned empty, Force last 15 commits
+          # 2. Fallback: If empty, grab last 15 commits (Ensures no empty release notes)
           if ([string]::IsNullOrWhiteSpace($logString)) { 
              Write-Warning "Standard log range was empty. Falling back to last 15 commits."
              $log = git log -n 15 --pretty=format:"- %s (%h)" --no-merges
              if ($log -is [Array]) { $logString = $log -join "`n" } else { $logString = $log }
           }
 
-          # 3. Safety net if even that fails
+          # 3. Final Check
           if ([string]::IsNullOrWhiteSpace($logString)) { 
             $logString = "- No commit messages found (Manual Check Recommended)." 
           }
 
           $content = "## Changes in $newTag`n`n$logString"
           Set-Content -Path "release_notes.md" -Value $content -Encoding UTF8
+          
+          Write-Host "--- RELEASE NOTES PREVIEW ---"
           Write-Host $content
+          Write-Host "-----------------------------"
 
       # 4. CHECKOUT DEPENDENCIES
       - name: Checkout Last.fm
@@ -180,7 +183,7 @@ jobs:
           '@
           Set-Content -Path $targetPath -Value $jsonContent -Encoding UTF8
 
-      # 7. PATCH CSPROJ PATHS
+      # 7. PATCH CSPROJ PATHS (FIXED: Handles -master folders and slashes)
       - name: Fix Dependency Paths
         shell: pwsh
         run: |
@@ -192,22 +195,22 @@ jobs:
           Get-ChildItem -Recurse -Filter *.csproj | ForEach-Object {
             $content = Get-Content $_.FullName
             
-            # 1. Last.fm-master -> ExternalDeps/Last.fm
+            # 1. Last.fm: In csproj it is "Last.fm-master" -> We map to checkout folder "Last.fm"
             $content = $content -replace "${relPattern}Last\.fm-master", "$depsPath\Last.fm"
 
-            # 2. Parse-LiveQueries-DOTNET-master -> ExternalDeps/Parse-LiveQueries-DOTNET
+            # 2. Parse: In csproj it is "Parse-LiveQueries-DOTNET-master" -> Map to "Parse-LiveQueries-DOTNET"
             $content = $content -replace "${relPattern}Parse-LiveQueries-DOTNET-master", "$depsPath\Parse-LiveQueries-DOTNET"
 
-            # 3. atldotnet-main -> ExternalDeps/atldotnet-main
+            # 3. ATL: In csproj it is "atldotnet-main" -> Map to "atldotnet-main"
             $content = $content -replace "${relPattern}atldotnet-main", "$depsPath\atldotnet-main"
 
-            # 4. AudioSwitcher-master -> ExternalDeps/AudioSwitcher-master
+            # 4. AudioSwitcher: In csproj it is "AudioSwitcher-master" -> Map to "AudioSwitcher-master"
             $content = $content -replace "${relPattern}AudioSwitcher-master", "$depsPath\AudioSwitcher-master"
 
             Set-Content $_.FullName $content -Encoding UTF8
           }
           
-          Write-Host "Checking patched paths in Dimmer.csproj:"
+          # Debug: Prove it worked
           Select-String -Path "${{ env.DIR_CORE }}\Dimmer.csproj" -Pattern "ProjectReference"
 
       # 8. SETUP .NET & WORKLOADS

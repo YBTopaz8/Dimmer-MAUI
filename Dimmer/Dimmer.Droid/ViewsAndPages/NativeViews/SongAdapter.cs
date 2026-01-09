@@ -26,6 +26,7 @@ internal class SongAdapter : RecyclerView.Adapter
     private readonly IDisposable _subscription;
     public IList<SongModelView> Songs => _songs;
     private Fragment ParentFragement;
+    private string _mode; // "main" or "queue"
 
     // Accordion State
     private int _expandedPosition = -1;
@@ -38,6 +39,7 @@ internal class SongAdapter : RecyclerView.Adapter
         ParentFragement = pFragment;
         this.ctx = ctx;
         this.MyViewModel = myViewModel;
+        this._mode = songsToWatch;
 
         IObservable<IChangeSet<SongModelView>> sourceStream = songsToWatch == "queue"
            ? myViewModel.PlaybackQueueSource.Connect()
@@ -141,13 +143,8 @@ internal class SongAdapter : RecyclerView.Adapter
     public bool OnItemMove(int fromPosition, int toPosition)
     {
         // 1. Move the item in the actual data list
-        // If it's an ObservableCollection, use Move for efficiency
-       
-        MyViewModel.PlaybackQueueSource.Edit(upd=>
-            {
-                //MyViewModel.PlaybackQueueSource.RemoveAt(fromPosition);
-                //MyViewModel.PlaybackQueueSource.Insert(toPosition, item);
-            });
+        // Use the ViewModel's MoveSongInQueue to ensure proper queue index tracking
+        MyViewModel.MoveSongInQueue(fromPosition, toPosition);
 
         // 2. Notify the RecyclerView that the item moved visually
         // IMPORTANT: Do NOT call NotifyDataSetChanged(), it breaks animations.
@@ -286,8 +283,8 @@ internal class SongAdapter : RecyclerView.Adapter
         expandRow.LayoutParameters = new LinearLayout.LayoutParams(-1, -2);
         expandRow.SetPadding(0, 0, 0, 20);
 
-        var playBtn = CreateActionButton("Play Next", Resource.Drawable.exo_icon_play);
-        expandRow.AddView(playBtn);
+        //var playBtn = CreateActionButton("Play Next", Resource.Drawable.exo_icon_play);
+        //expandRow.AddView(playBtn);
 
         var favBtn = CreateActionButton("Fav", Resource.Drawable.heart);
         expandRow.AddView(favBtn);
@@ -297,14 +294,34 @@ internal class SongAdapter : RecyclerView.Adapter
         
         expandRow.AddView(infoBtn);
         expandRow.AddView(LyricsBtn);
+
+        //if (_mode == "queue")
+        //{
+            
+        var insertAfterBtn = new ImageView(ctx, null, Resource.Attribute.materialButtonOutlinedStyle);
+        insertAfterBtn.SetImageResource(Resource.Drawable.media3_icon_queue_next);
+insertAfterBtn.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(UiBuilder.IsDark(this.ParentFragement.Resources.Configuration) ? Color.Gray : Color.ParseColor("#294159"));
+
+        insertAfterBtn.SetPadding(30, 0, 30, 0);
+        var insertAfterBtnlp = new LinearLayout.LayoutParams(-2, -2);
+        insertAfterBtnlp.RightMargin = 10;
+        insertAfterBtn.LayoutParameters = insertAfterBtnlp;
+        insertAfterBtn.Clickable = true;
+    
+    
+    insertAfterBtn.TooltipText = $"Insert this song after {MyViewModel.CurrentPlayingSongView.Title}";
+            //expandRow.AddView(insertBeforeBtn);
+            expandRow.AddView(insertAfterBtn);
+ 
+
         // Assemble
         mainContainer.AddView(topRow);
         mainContainer.AddView(expandRow);
 
         card.AddView(mainContainer);
 
-        return new SongViewHolder(MyViewModel, ParentFragement, card, imgView, title, artist, moreBtn, durationView,expandRow, (Button)playBtn, (Button)favBtn, (Button)infoBtn,
-            LyricsBtn);
+        return new SongViewHolder(MyViewModel, ParentFragement, card, imgView, title, artist, moreBtn, durationView,expandRow,  (Button)favBtn, (Button)infoBtn,
+            LyricsBtn, insertAfterBtn);
     }
 
 
@@ -312,6 +329,7 @@ internal class SongAdapter : RecyclerView.Adapter
     {
         var btn = new MaterialButton(ctx, null, Resource.Attribute.materialButtonOutlinedStyle);
         btn.Text = text;
+        
         btn.SetTextColor(UiBuilder.IsDark(this.ParentFragement.Resources.Configuration) ? Color.Gray : Color.ParseColor("#294159"));
         btn.SetIconResource(iconId);
 
@@ -340,15 +358,15 @@ internal class SongAdapter : RecyclerView.Adapter
         private readonly MaterialCardView _container;
         public View ContainerView => base.ItemView;
 
-        private readonly Button _playNextBtn;
         private readonly Button _favBtn;
         private readonly Button _infoBtn;
         private readonly Button lyricsBtn;
-        private SongModelView? _currentSong;
+        private readonly ImageView? _insertAfterBtn;
+        private SongModelView? _currentSongContext;
         private Action<int>? _expandAction;
 
         public SongViewHolder(BaseViewModelAnd vm, Fragment parentFrag, MaterialCardView container, ImageView img, TextView title, TextView artist, MaterialButton moreBtn, TextView durationView,
- View expandRow, Button playBtn, Button favBtn, Button infoBtn, Button lyrBtn)
+ View expandRow,Button favBtn, Button infoBtn, Button lyrBtn, ImageView? insertAfterBtn = null)
             : base(container)
         {
             _viewModel = vm;
@@ -360,10 +378,10 @@ internal class SongAdapter : RecyclerView.Adapter
             _moreBtn = moreBtn;
             _durationView= durationView;
             _expandRow = expandRow;
-            _playNextBtn = playBtn;
             _favBtn = favBtn;
             _infoBtn = infoBtn;
             lyricsBtn = lyrBtn;
+            _insertAfterBtn = insertAfterBtn;
 
             _moreBtn.Click += (s, e) =>
             {
@@ -373,24 +391,34 @@ internal class SongAdapter : RecyclerView.Adapter
 
             lyrBtn.Click += (s, e) =>
             {
-                _viewModel._lyricsMgtFlow.LoadLyrics(_currentSong?.SyncLyrics);
-                _viewModel.SelectedSong = _currentSong;
+                _viewModel._lyricsMgtFlow.LoadLyrics(_currentSongContext?.SyncLyrics);
+                _viewModel.SelectedSong = _currentSongContext;
                 _viewModel.NavigateToAnyPageOfGivenType(this._parentFrag, new LyricsViewFragment(_viewModel), "toLyricsFromNP");
                 
             };
 
-            // 2. Container Click (Play Next - Default behavior)
+        
+
+            if (_insertAfterBtn != null)
+            {
+                _insertAfterBtn.Click += (s, e) =>
+                {
+                    if (_currentSongContext != null)
+                    {
+                       
+                            var param = new List<SongModelView>() { _currentSongContext };
+                            _viewModel.InsertSongsAfterInQueueCommand.Execute(param);
+                            Toast.MakeText(_parentFrag.Context, $"Inserted {_currentSongContext.Title} after {_viewModel.CurrentPlayingSongView.Title}", ToastLength.Short)?.Show();
+                        
+                    }
+                };
+            }
+
+            // 2. Container Click (Play)
             _container.Click += async (s, e) =>
             {
-                if (_currentSong != null)
-                {
-                    // Default tap behavior: Add to play next (non-interrupting)
-                    await _viewModel.PlaySongWithActionAsync(_currentSong, Dimmer.Utilities.Enums.PlaybackAction.PlayNext);
-                    
-                    // Show toast feedback
-                    var toast = Toast.MakeText(ctx, $"Added {_currentSong.Title} to play next", ToastLength.Short);
-                    toast?.Show();
-                }
+                if (_currentSongContext != null)
+                    await _viewModel.PlaySongAsync(_currentSongContext);
             };
 
             _container.LongClick += (s, e) =>
@@ -403,7 +431,7 @@ internal class SongAdapter : RecyclerView.Adapter
 
             _infoBtn.Click += (s, e) =>
             {
-                var infoSheet = new SongInfoBottomSheetFragment(_viewModel, _currentSong);
+                var infoSheet = new SongInfoBottomSheetFragment(_viewModel, _currentSongContext);
                 infoSheet.Show(_parentFrag.ParentFragmentManager, "SongInfoSheet");
             };
 
@@ -423,9 +451,9 @@ internal class SongAdapter : RecyclerView.Adapter
 
             lyrBtn.Click += async (s, e) =>
             {
-                if (_currentSong != null)
+                if (_currentSongContext != null)
                 {
-                    await _viewModel.ShareSongViewClipboard(_currentSong);
+                    await _viewModel.ShareSongViewClipboard(_currentSongContext);
                 }
             };
 
@@ -435,9 +463,9 @@ internal class SongAdapter : RecyclerView.Adapter
             // 4. Image Click (Navigate)
             _img.Click += (s, e) =>
             {
-                if (_currentSong != null)
+                if (_currentSongContext != null)
                 {
-                    _viewModel.SelectedSong = _currentSong;
+                    _viewModel.SelectedSong = _currentSongContext;
                     // Note: Transition name must be updated in Bind, but we can read it from the view here
                     string? tName = ViewCompat.GetTransitionName(_img);
                     if (tName != null)
@@ -451,9 +479,9 @@ internal class SongAdapter : RecyclerView.Adapter
             _artist.LongClickable = true;
             _artist.LongClick += (s, e) =>
             {
-                if (_currentSong?.ArtistName != null)
+                if (_currentSongContext?.ArtistName != null)
                 {
-                    var query = $"artist:\"{_currentSong.ArtistName}\"";
+                    var query = $"artist:\"{_currentSongContext.ArtistName}\"";
                     _viewModel.SearchSongForSearchResultHolder(query);
                 }
             };
@@ -461,27 +489,27 @@ internal class SongAdapter : RecyclerView.Adapter
             // 6. Fav Button
             _favBtn.Click += async (s, e) =>
             {
-                if (_currentSong != null)
+                if (_currentSongContext != null)
                 {
-                    await _viewModel.AddFavoriteRatingToSong(_currentSong);
+                    await _viewModel.AddFavoriteRatingToSong(_currentSongContext);
                     // Instant visual feedback
-                    _favBtn.Text = !_currentSong.IsFavorite ? "Unfav" : "Fav";
-                    _favBtn.SetIconResource(_currentSong.IsFavorite ? Resource.Drawable.heartlock : Resource.Drawable.heart);
-                    _favBtn.IconTint = _currentSong.IsFavorite ? AppUtil.ToColorStateList(Color.DarkSlateBlue) : AppUtil.ToColorStateList(Color.Gray) ;
+                    _favBtn.Text = !_currentSongContext.IsFavorite ? "Unfav" : "Fav";
+                    _favBtn.SetIconResource(_currentSongContext.IsFavorite ? Resource.Drawable.heartlock : Resource.Drawable.heart);
+                    _favBtn.IconTint = _currentSongContext.IsFavorite ? AppUtil.ToColorStateList(Color.DarkSlateBlue) : AppUtil.ToColorStateList(Color.Gray) ;
                 }
             };
             _favBtn.LongClick += async (s, e) =>
             {
-                if (_currentSong != null)
+                if (_currentSongContext != null)
                 {
-                    await _viewModel.RemoveSongFromFavorite(_currentSong);
-                    var iconRes = _currentSong.IsFavorite ? Resource.Drawable.heartlock : Resource.Drawable.heart;
+                    await _viewModel.RemoveSongFromFavorite(_currentSongContext);
+                    var iconRes = _currentSongContext.IsFavorite ? Resource.Drawable.heartlock : Resource.Drawable.heart;
                     // Instant visual feedback
-                    _favBtn.Text = !_currentSong.IsFavorite ? "Unfav" : "Fav";
+                    _favBtn.Text = !_currentSongContext.IsFavorite ? "Unfav" : "Fav";
                     _favBtn.SetIconResource(iconRes);
                     UiBuilder.ShowSnackBar(
     _favBtn, 
-    _currentSong.IsFavorite ? "Added to Favorites" : "Removed from Favorites",
+    _currentSongContext.IsFavorite ? "Added to Favorites" : "Removed from Favorites",
     textColor: Color.Black,
     iconResId: iconRes
 );
@@ -491,7 +519,7 @@ internal class SongAdapter : RecyclerView.Adapter
 
         public void Bind(SongModelView song, bool isExpanded, Action<int> onExpandToggle)
         {
-            _currentSong = song;
+            _currentSongContext = song;
             _expandAction = onExpandToggle;
             var sessionDisposable = new CompositeDisposable();
             _title.Text = song.Title;

@@ -1948,8 +1948,13 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             if (addedNote != null)
             {
-                RxSchedulers.UI.ScheduleToUI(()=> songObject.UserNoteAggregatedCol.Add(new
-                    UserNoteModelView() { UserMessageText=uNote}));
+                RxSchedulers.UI.ScheduleToUI(() =>
+                {
+                    songObject.UserNoteAggregatedCol ??= new();
+                    songObject.UserNoteAggregatedCol.Add(new
+                                        UserNoteModelView()
+                    { UserMessageText = uNote });
+                });
 
                 _logger.LogInformation("Successfully added user note for song: {SongTitle}", songObject.Title);
             }
@@ -3677,6 +3682,19 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         PlaybackQueueSource.Move(oldIndex, newIndex);
 
+        // Update current playing index if affected by the move
+        if (_currentPlayinSongIndexInPlaybackQueue == oldIndex)
+        {
+            _currentPlayinSongIndexInPlaybackQueue = newIndex;
+        }
+        else if (oldIndex < _currentPlayinSongIndexInPlaybackQueue && newIndex >= _currentPlayinSongIndexInPlaybackQueue)
+        {
+            _currentPlayinSongIndexInPlaybackQueue--;
+        }
+        else if (oldIndex > _currentPlayinSongIndexInPlaybackQueue && newIndex <= _currentPlayinSongIndexInPlaybackQueue)
+        {
+            _currentPlayinSongIndexInPlaybackQueue++;
+        }
 
         _logger.LogInformation("Moved song from index {Old} to {New}", oldIndex, newIndex);
     }
@@ -4384,10 +4402,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         _logger.LogInformation("User requested to add music folder.");
 
-        await Task.Run(async () =>
-        {
+       
             await _folderMgtService.ReScanFolder(folderPath);
-        });
+        
         _stateService.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderReScanned, folderPath, null, null));
     }
 
@@ -5003,7 +5020,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
     }
 
-    public void AddToPlaylist(string playlistName, IEnumerable<SongModelView> songsToAdd, string PlQuery)
+    public async Task AddToPlaylist(string playlistName, IEnumerable<SongModelView> songsToAdd, string PlQuery)
     {
         if (string.IsNullOrEmpty(playlistName) || songsToAdd == null || !songsToAdd.Any())
         {
@@ -5028,21 +5045,28 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 playlistName);
             var newPlaylistModel = new PlaylistModel { PlaylistName = playlistName, IsSmartPlaylist = false };
             var realm = RealmFactory.GetRealmInstance();
-            realm.Write(
-                () =>
+            await realm.WriteAsync(
+                async () =>
                 {
                     newPlaylistModel.Id = ObjectId.GenerateNewId();
                     newPlaylistModel.DateCreated = DateTimeOffset.UtcNow;
                     newPlaylistModel.LastPlayedDate = DateTimeOffset.UtcNow;
                     newPlaylistModel.QueryText = PlQuery;
                     newPlaylistModel.SongsIdsInPlaylist.AddRange(songsToAdd.Select(s => s.Id).Distinct());
-
+                    
                     //newPlaylistModel.SongsInPlaylist.AddRange(songsToAdd.Select(s => s.ToModel()).Distinct());
 
                     realm.Add(newPlaylistModel, true);
-                });
 
-            //targetPlaylist = _playlistRepo.Create(newPlaylistModel);
+                    foreach (var song in songsToAdd)
+                    {
+                        await SaveUserNoteToSong(song, playlistName);
+                        
+
+                    }
+
+                });
+            return;
         }
 
 
@@ -5092,7 +5116,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             _realmSubscription?.Dispose();
             _playEventSource.Dispose();
-            realm.Dispose();
+            realm?.Dispose();
             _subsManager.Dispose();
             CompositeDisposables.Dispose();
             
