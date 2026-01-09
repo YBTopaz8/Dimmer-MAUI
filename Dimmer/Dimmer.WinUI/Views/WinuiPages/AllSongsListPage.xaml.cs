@@ -173,12 +173,52 @@ public sealed partial class AllSongsListPage : Page
 
     private void TableView_RightTapped(object sender, RightTappedRoutedEventArgs e)
     {
-        return;
-        var isCtlrKeyPressed = e.PointerDeviceType == Microsoft.UI.Input.PointerDeviceType.Mouse &&
-            (Windows.UI.Core.CoreWindow.GetForCurrentThread().GetKeyState(Windows.System.VirtualKey.Control) &
-             Windows.UI.Core.CoreVirtualKeyStates.Down) == Windows.UI.Core.CoreVirtualKeyStates.Down;
-        if (isCtlrKeyPressed)
-            ProcessCellClick(isExclusion: false);
+        // Get the song from the tapped element
+        FrameworkElement element = (e.OriginalSource as FrameworkElement)!;
+        if (element == null)
+            return;
+
+        SongModelView? song = null;
+        while (element != null)
+        {
+            if (element.DataContext is SongModelView currentSong)
+            {
+                song = currentSong;
+                break;
+            }
+            element = (FrameworkElement)element.Parent;
+        }
+
+        if (song == null)
+            return;
+
+        // Create and show context menu
+        var flyout = new MenuFlyout();
+        
+        var playNowItem = new MenuFlyoutItem { Text = "Play Now" };
+        playNowItem.Click += async (s, args) =>
+        {
+            var songs = MySongsTableView.Items.OfType<SongModelView>();
+            await MyViewModel.PlaySongWithActionAsync(song, Dimmer.Utilities.Enums.PlaybackAction.PlayNow, songs);
+        };
+        flyout.Items.Add(playNowItem);
+
+        var playNextItem = new MenuFlyoutItem { Text = "Play Next" };
+        playNextItem.Click += async (s, args) =>
+        {
+            var songs = MySongsTableView.Items.OfType<SongModelView>();
+            await MyViewModel.PlaySongWithActionAsync(song, Dimmer.Utilities.Enums.PlaybackAction.PlayNext, songs);
+        };
+        flyout.Items.Add(playNextItem);
+
+        var addToQueueItem = new MenuFlyoutItem { Text = "Add to Queue" };
+        addToQueueItem.Click += async (s, args) =>
+        {
+            await MyViewModel.PlaySongWithActionAsync(song, Dimmer.Utilities.Enums.PlaybackAction.AddToQueue);
+        };
+        flyout.Items.Add(addToQueueItem);
+
+        flyout.ShowAt(sender as UIElement, e.GetPosition(sender as UIElement));
     }
     private void TableView_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
@@ -229,9 +269,9 @@ public sealed partial class AllSongsListPage : Page
 
         if (song != null)
         {
-            // You found the song! Now you can call your ViewModel command.
+            // Default behavior: Add to play next (non-interrupting)
             Debug.WriteLine($"Double-tapped on song: {song.Title}");
-            await MyViewModel.PlaySongAsync(song, songs: SongsEnumerable);
+            await MyViewModel.PlaySongWithActionAsync(song, Dimmer.Utilities.Enums.PlaybackAction.PlayNext, SongsEnumerable);
         }
     }
     public void ScrollToSong(SongModelView songToFind)

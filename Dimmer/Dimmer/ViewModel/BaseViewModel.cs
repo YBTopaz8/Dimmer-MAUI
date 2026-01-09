@@ -19,6 +19,7 @@ using Dimmer.Interfaces;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.Resources.Localization;
 using Dimmer.UIUtils;
+using Dimmer.Utilities.Enums;
 using Dimmer.Utilities.TypeConverters;
 using Dimmer.Utils;
 
@@ -3790,6 +3791,115 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         PlaybackQueueSource.AddRange(songs.Distinct());
     }
+
+    /// <summary>
+    /// Plays a song based on the specified action, implementing smart queue management.
+    /// This is the main entry point for all song playback interactions.
+    /// </summary>
+    /// <param name="songToPlay">The song to play</param>
+    /// <param name="action">The playback action that determines queue behavior</param>
+    /// <param name="context">Optional: The collection context (album, playlist, search results) from which the song was selected</param>
+    public async Task PlaySongWithActionAsync(
+        SongModelView? songToPlay,
+        PlaybackAction action,
+        IEnumerable<SongModelView>? context = null)
+    {
+        if (songToPlay == null)
+            return;
+
+        try
+        {
+            switch (action)
+            {
+                case PlaybackAction.PlayNext:
+                    await PlaySongNextAsync(songToPlay);
+                    break;
+
+                case PlaybackAction.PlayNow:
+                    await PlaySongNowAsync(songToPlay, context);
+                    break;
+
+                case PlaybackAction.AddToQueue:
+                    AddToQueue(songToPlay);
+                    break;
+
+                case PlaybackAction.JumpInQueue:
+                    await JumpToSongInQueueAsync(songToPlay);
+                    break;
+
+                case PlaybackAction.ReplaceQueue:
+                    await PlaySongAsync(songToPlay, CurrentPage.AllSongs, context);
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error playing song with action {Action}", action);
+        }
+    }
+
+    /// <summary>
+    /// Adds a song to play immediately after the current song without interrupting playback.
+    /// If nothing is playing, starts playback with the song's context.
+    /// </summary>
+    private async Task PlaySongNextAsync(SongModelView songToPlay)
+    {
+        // Check if playback is active
+        if (!_audioService.IsPlaying || _playbackQueue.Count == 0)
+        {
+            // Nothing playing, start playback normally with this song's context
+            await PlaySongAsync(songToPlay, CurrentPage.AllSongs, new List<SongModelView> { songToPlay });
+            return;
+        }
+
+        // Insert after current song
+        SetAsNextToPlayInQueue(songToPlay);
+        _logger.LogInformation("Added '{Title}' to play next", songToPlay.Title);
+        
+        // Show feedback to user (this will be handled by UI layer through events or properties)
+        OnSongAddedToQueue?.Invoke(this, $"Added {songToPlay.Title} to play next");
+    }
+
+    /// <summary>
+    /// Stops current playback, clears queue, and plays the selected song with its context.
+    /// This is typically triggered by long-press or explicit "Play Now" action.
+    /// </summary>
+    private async Task PlaySongNowAsync(SongModelView songToPlay, IEnumerable<SongModelView>? context)
+    {
+        // Build context if not provided
+        var contextSongs = context?.ToList() ?? new List<SongModelView> { songToPlay };
+        
+        // Stop current playback
+        if (_audioService.IsPlaying)
+        {
+            _audioService.Stop();
+        }
+
+        // Find the song in the context
+        int startIndex = contextSongs.FindIndex(s => s.Id == songToPlay.Id);
+        if (startIndex == -1)
+        {
+            // Song not in context, create a single-song context
+            contextSongs = new List<SongModelView> { songToPlay };
+            startIndex = 0;
+        }
+
+        // Clear and rebuild queue
+        await StartNewPlaybackQueue(contextSongs, startIndex, CurrentTqlQuery);
+        
+        _logger.LogInformation("Playing '{Title}' now, queue cleared and rebuilt", songToPlay.Title);
+        OnSongPlayingNow?.Invoke(this, $"Playing {songToPlay.Title}");
+    }
+
+    /// <summary>
+    /// Event fired when a song is added to the queue (for UI feedback like toasts/snackbars)
+    /// </summary>
+    public event EventHandler<string>? OnSongAddedToQueue;
+
+    /// <summary>
+    /// Event fired when a song starts playing now (for UI feedback)
+    /// </summary>
+    public event EventHandler<string>? OnSongPlayingNow;
 
 
     /// <summary>

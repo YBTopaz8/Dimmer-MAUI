@@ -379,23 +379,26 @@ internal class SongAdapter : RecyclerView.Adapter
                 
             };
 
-            // 2. Container Click (Play)
+            // 2. Container Click (Play Next - Default behavior)
             _container.Click += async (s, e) =>
             {
                 if (_currentSong != null)
-                    await _viewModel.PlaySongAsync(_currentSong);
+                {
+                    // Default tap behavior: Add to play next (non-interrupting)
+                    await _viewModel.PlaySongWithActionAsync(_currentSong, Dimmer.Utilities.Enums.PlaybackAction.PlayNext);
+                    
+                    // Show toast feedback
+                    var toast = Toast.MakeText(ctx, $"Added {_currentSong.Title} to play next", ToastLength.Short);
+                    toast?.Show();
+                }
             };
 
             _container.LongClick += (s, e) =>
             {
                 _container.PerformHapticFeedback(FeedbackConstants.LongPress);
-                // view in playbackQUeue
-                _viewModel.SelectedSong=_currentSong;
-
-                var queueSheet = new QueueBottomSheetFragment(_viewModel);
-                queueSheet.Show(parentFrag.ParentFragmentManager, "QueueSheet");
-
-                queueSheet.ScrollToSong(_currentSong);
+                
+                // Long press shows context menu with options
+                ShowPlaybackOptionsMenu();
             };
 
             _infoBtn.Click += (s, e) =>
@@ -410,8 +413,10 @@ internal class SongAdapter : RecyclerView.Adapter
             {
                 if (_currentSong != null)
                 {
-                    _viewModel.SetAsNextToPlayInQueue(_currentSong);
+                    await _viewModel.PlaySongWithActionAsync(_currentSong, Dimmer.Utilities.Enums.PlaybackAction.PlayNext);
                     
+                    var toast = Toast.MakeText(ctx, $"Added {_currentSong.Title} to play next", ToastLength.Short);
+                    toast?.Show();
                 }
                     
             };
@@ -600,6 +605,121 @@ internal class SongAdapter : RecyclerView.Adapter
 
             _itemSubscription.Disposable = sessionDisposable;
 
+        }
+
+        private void ShowPlaybackOptionsMenu()
+        {
+            if (_currentSong == null)
+                return;
+
+            var ctx = _container.Context;
+            if (ctx == null)
+                return;
+
+            // Create a bottom sheet dialog with playback options
+            var dialog = new BottomSheetDialog(ctx);
+            
+            // Create the layout programmatically
+            var mainLayout = new LinearLayout(ctx) 
+            { 
+                Orientation = Orientation.Vertical,
+                LayoutParameters = new ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MatchParent,
+                    ViewGroup.LayoutParams.WrapContent)
+            };
+            mainLayout.SetPadding(AppUtil.DpToPx(24), AppUtil.DpToPx(16), AppUtil.DpToPx(24), AppUtil.DpToPx(24));
+
+            // Title
+            var titleView = new MaterialTextView(ctx)
+            {
+                Text = "Playback Options",
+                TextSize = 20,
+                Typeface = Typeface.DefaultBold
+            };
+            titleView.SetPadding(0, 0, 0, AppUtil.DpToPx(16));
+            mainLayout.AddView(titleView);
+
+            // Play Now button
+            var playNowBtn = new MaterialButton(ctx)
+            {
+                Text = "Play Now",
+                LayoutParameters = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MatchParent,
+                    ViewGroup.LayoutParams.WrapContent)
+                {
+                    BottomMargin = AppUtil.DpToPx(8)
+                }
+            };
+            playNowBtn.SetIconResource(Resource.Drawable.playbtn);
+            playNowBtn.Click += async (s, e) =>
+            {
+                await _viewModel.PlaySongWithActionAsync(_currentSong, Dimmer.Utilities.Enums.PlaybackAction.PlayNow);
+                Toast.MakeText(ctx, $"Playing {_currentSong.Title}", ToastLength.Short)?.Show();
+                dialog.Dismiss();
+            };
+            mainLayout.AddView(playNowBtn);
+
+            // Play Next button
+            var playNextBtn = new MaterialButton(ctx)
+            {
+                Text = "Play Next",
+                LayoutParameters = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MatchParent,
+                    ViewGroup.LayoutParams.WrapContent)
+                {
+                    BottomMargin = AppUtil.DpToPx(8)
+                }
+            };
+            playNextBtn.SetIconResource(Resource.Drawable.playnext);
+            playNextBtn.Click += async (s, e) =>
+            {
+                await _viewModel.PlaySongWithActionAsync(_currentSong, Dimmer.Utilities.Enums.PlaybackAction.PlayNext);
+                Toast.MakeText(ctx, $"Added {_currentSong.Title} to play next", ToastLength.Short)?.Show();
+                dialog.Dismiss();
+            };
+            mainLayout.AddView(playNextBtn);
+
+            // Add to Queue button
+            var addToQueueBtn = new MaterialButton(ctx)
+            {
+                Text = "Add to Queue",
+                LayoutParameters = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MatchParent,
+                    ViewGroup.LayoutParams.WrapContent)
+                {
+                    BottomMargin = AppUtil.DpToPx(8)
+                }
+            };
+            addToQueueBtn.SetIconResource(Resource.Drawable.queue);
+            addToQueueBtn.Click += async (s, e) =>
+            {
+                await _viewModel.PlaySongWithActionAsync(_currentSong, Dimmer.Utilities.Enums.PlaybackAction.AddToQueue);
+                Toast.MakeText(ctx, $"Added {_currentSong.Title} to queue", ToastLength.Short)?.Show();
+                dialog.Dismiss();
+            };
+            mainLayout.AddView(addToQueueBtn);
+
+            // View in Queue button
+            var viewInQueueBtn = new MaterialButton(ctx)
+            {
+                Text = "View in Queue",
+                LayoutParameters = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MatchParent,
+                    ViewGroup.LayoutParams.WrapContent)
+            };
+            viewInQueueBtn.SetIconResource(Resource.Drawable.queue);
+            viewInQueueBtn.Click += (s, e) =>
+            {
+                _viewModel.SelectedSong = _currentSong;
+                var queueSheet = new QueueBottomSheetFragment(_viewModel);
+                queueSheet.Show(_parentFrag.ParentFragmentManager, "QueueSheet");
+                queueSheet.ScrollToSong(_currentSong);
+                dialog.Dismiss();
+            };
+            mainLayout.AddView(viewInQueueBtn);
+
+            dialog.SetContentView(mainLayout);
+            dialog.Show();
         }
 
         protected override void Dispose(bool disposing)
