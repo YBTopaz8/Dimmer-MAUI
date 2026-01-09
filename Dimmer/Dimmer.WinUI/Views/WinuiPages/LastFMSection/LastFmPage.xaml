@@ -205,8 +205,7 @@
                                                 Background="Transparent"
                                                 Click="SongTitle_Click"
                                                 Content="{Binding Name}"
-                                                FontSize="19"
-                                                IsEnabled="{Binding IsOnPresentDevice}" />
+                                                FontSize="19" />
                                             <TextBlock FontSize="15" Text="{Binding Album.Name}" />
                                             <FontIcon
                                                 HorizontalAlignment="Left"
@@ -289,8 +288,7 @@
                                                 Background="Transparent"
                                                 Click="SongTitle_Click"
                                                 Content="{Binding Name}"
-                                                FontSize="19"
-                                                IsEnabled="{Binding IsOnPresentDevice}" />
+                                                FontSize="19" />
                                             <TextBlock FontSize="15" Text="{Binding Album.Name}" />
                                             <FontIcon
                                                 HorizontalAlignment="Left"
@@ -360,8 +358,7 @@
                                                 Background="Transparent"
                                                 Click="SongTitle_Click"
                                                 Content="{Binding Name}"
-                                                FontSize="19"
-                                                IsEnabled="{Binding IsOnPresentDevice}" />
+                                                FontSize="19" />
                                             <TextBlock FontSize="15" Text="{Binding Album.Name}" />
                                             <FontIcon
                                                 HorizontalAlignment="Left"
@@ -435,9 +432,10 @@
                                     <DataTemplate>
                                         <StackPanel>
                                             <Button
+                                                Background="Transparent"
+                                                Click="SongTitle_Click"
                                                 Content="{Binding Name}"
-                                                FontSize="19"
-                                                IsEnabled="{Binding IsOnPresentDevice}" />
+                                                FontSize="19" />
                                             <TextBlock FontSize="15" Text="{Binding Album.Name}" />
                                             <Rectangle
                                                 Width="10"

@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentDialog
+    x:Class="Dimmer.WinUI.Views.CustomViews.WinuiViews.LastFmTrackInfoDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="Track Information from Last.fm"
+    PrimaryButtonText="Close"
+    DefaultButton="Primary"
+    mc:Ignorable="d">
+
+    <ScrollViewer MaxHeight="600">
+        <Grid Padding="20" RowSpacing="12">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Cover Art -->
+            <Border
+                Grid.Row="0"
+                Width="200"
+                Height="200"
+                HorizontalAlignment="Center"
+                CornerRadius="8">
+                <Image
+                    x:Name="CoverArtImage"
+                    Stretch="UniformToFill" />
+            </Border>
+
+            <!-- Title -->
+            <TextBlock
+                x:Name="TitleText"
+                Grid.Row="1"
+                HorizontalAlignment="Center"
+                FontSize="24"
+                FontWeight="Bold"
+                TextWrapping="Wrap"
+                TextAlignment="Center" />
+
+            <!-- Artist -->
+            <TextBlock
+                x:Name="ArtistText"
+                Grid.Row="2"
+                HorizontalAlignment="Center"
+                FontSize="18"
+                Foreground="Gray"
+                TextWrapping="Wrap"
+                TextAlignment="Center" />
+
+            <!-- Album -->
+            <TextBlock
+                x:Name="AlbumText"
+                Grid.Row="3"
+                HorizontalAlignment="Center"
+                FontSize="16"
+                Foreground="DarkGray"
+                TextWrapping="Wrap"
+                TextAlignment="Center" />
+
+            <!-- Status Icons -->
+            <StackPanel
+                Grid.Row="4"
+                HorizontalAlignment="Center"
+                Orientation="Horizontal"
+                Spacing="15">
+
+                <!-- Loved Icon -->
+                <StackPanel
+                    x:Name="LovedPanel"
+                    Orientation="Horizontal"
+                    Spacing="5"
+                    Visibility="Collapsed">
+                    <FontIcon
+                        Foreground="Red"
+                        Glyph="&#xEB52;" />
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        Text="Loved" />
+                </StackPanel>
+
+                <!-- Now Playing Icon -->
+                <StackPanel
+                    x:Name="NowPlayingPanel"
+                    Orientation="Horizontal"
+                    Spacing="5"
+                    Visibility="Collapsed">
+                    <FontIcon
+                        Foreground="Green"
+                        Glyph="&#xE768;" />
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        Text="Now Playing" />
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Statistics -->
+            <Grid
+                Grid.Row="5"
+                Margin="0,12,0,0"
+                ColumnSpacing="20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Listeners -->
+                <StackPanel Grid.Column="0">
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        FontSize="14"
+                        Foreground="Gray"
+                        Text="Listeners" />
+                    <TextBlock
+                        x:Name="ListenersText"
+                        HorizontalAlignment="Center"
+                        FontSize="18"
+                        FontWeight="SemiBold"
+                        Text="N/A" />
+                </StackPanel>
+
+                <!-- Play Count -->
+                <StackPanel Grid.Column="1">
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        FontSize="14"
+                        Foreground="Gray"
+                        Text="Total Scrobbles" />
+                    <TextBlock
+                        x:Name="PlayCountText"
+                        HorizontalAlignment="Center"
+                        FontSize="18"
+                        FontWeight="SemiBold"
+                        Text="N/A" />
+                </StackPanel>
+            </Grid>
+
+            <!-- Not Available Message -->
+            <InfoBar
+                x:Name="NotAvailableInfo"
+                Grid.Row="6"
+                Margin="0,12,0,0"
+                IsOpen="True"
+                Severity="Informational"
+                Title="Track not available locally"
+                Message="This track is not in your local library." />
+        </Grid>
+    </ScrollViewer>
+</ContentDialog>

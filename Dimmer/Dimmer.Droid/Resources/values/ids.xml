@@ -2,4 +2,5 @@
 <resources>
 	<!-- This creates a valid Resource ID we can use in C# -->
 	<item name="custom_fragment_container" type="id"/>
+	<item name="stat_value" type="id"/>
 </resources>
