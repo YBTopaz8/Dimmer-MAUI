@@ -29,50 +29,63 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nuget-
 
-      # 3. READ VERSION & FIND PREVIOUS TAG
-      - name: Read Version & Find Previous Tag
-        id: version_reader
+      # 3. DETECT VERSION CHANGE TYPE
+      - name: Detect Version & Release Type
+        id: version_logic
         shell: pwsh
         run: |
-          # --- A. READ CSPROJ ---
+          # --- A. READ CURRENT VERSION FROM FILE ---
           $projectFile = Get-ChildItem -Recurse -Filter "Dimmer.csproj" | Select-Object -First 1
           if (-not $projectFile) { Write-Error "❌ Dimmer.csproj not found"; exit 1 }
 
           [xml]$xml = Get-Content $projectFile.FullName
-          $manualVersion = $xml.Project.PropertyGroup.Version
+          $currentVersionStr = $xml.Project.PropertyGroup.Version
           
-          if ([string]::IsNullOrWhiteSpace($manualVersion)) {
+          if ([string]::IsNullOrWhiteSpace($currentVersionStr)) {
             Write-Error "❌ No <Version> tag found in Dimmer.csproj."
             exit 1
           }
 
-          $newTag = "v$manualVersion"
-          Write-Host "🔹 Version in file: $manualVersion"
-          Write-Host "🔹 Target Tag: $newTag"
+          $newTag = "v$currentVersionStr"
+          Write-Host "🔹 Current File Version: $currentVersionStr"
           echo "NEW_TAG=$newTag" >> $env:GITHUB_ENV
 
-          # --- B. SET BRANCH TYPE ---
-          $branch = "${{ github.ref_name }}"
-          if ($branch -eq 'master') {
-             echo "IS_PRE=false" >> $env:GITHUB_ENV
-          } else {
-             echo "IS_PRE=true" >> $env:GITHUB_ENV
+          # --- B. FIND PREVIOUS TAG ---
+          git fetch --tags --force
+          # Get the latest tag that is NOT the current one (in case you pushed the tag already)
+          $prevTag = git tag --sort=-version:refname | Where-Object { $_ -ne $newTag } | Select-Object -First 1
+
+          if (-not $prevTag) {
+            Write-Host "⚠️ No previous tag found. Defaulting to Release."
+            echo "IS_PRE=false" >> $env:GITHUB_ENV
+            echo "LATEST_TAG=" >> $env:GITHUB_ENV
+            exit 0
           }
 
-          # --- C. FIND PREVIOUS TAG ---
-          git fetch --tags --force
-          
-          # Find any tag that is NOT the current target tag
-          $prevTag = git tag --sort=-version:refname | Where-Object { $_ -ne $newTag } | Select-Object -First 1
-          
-          if (-not $prevTag) { 
-             Write-Host "⚠️ No previous tag found (First Release?)"
-             $prevTag = "" 
-          } else {
-             Write-Host "🔹 Previous Tag found: $prevTag"
-          }
-          
+          Write-Host "🔹 Previous Tag found: $prevTag"
           echo "LATEST_TAG=$prevTag" >> $env:GITHUB_ENV
+
+          # --- C. COMPARE VERSIONS ---
+          # Strip 'v' prefix
+          $prevVersionStr = $prevTag -replace "^v", ""
+          
+          try {
+            $curV = [System.Version]$currentVersionStr
+            $prevV = [System.Version]$prevVersionStr
+
+            Write-Host "Comparing $curV vs $prevV"
+
+            if ($curV.Major -gt $prevV.Major -or $curV.Minor -gt $prevV.Minor) {
+                Write-Host "🚀 Major/Minor change detected ($prevV -> $curV). Marking as STABLE RELEASE."
+                echo "IS_PRE=false" >> $env:GITHUB_ENV
+            } else {
+                Write-Host "🧪 Patch change detected ($prevV -> $curV). Marking as PRE-RELEASE."
+                echo "IS_PRE=true" >> $env:GITHUB_ENV
+            }
+          } catch {
+            Write-Warning "Could not parse versions. Defaulting to Pre-Release."
+            echo "IS_PRE=true" >> $env:GITHUB_ENV
+          }
 
       # 3.5 GENERATE CHANGELOG 
       - name: Generate Changelog
@@ -81,32 +94,17 @@ jobs:
           $prevTag = $env:LATEST_TAG
           $newTag = $env:NEW_TAG
           
-          Write-Host "Generating log from '$prevTag' to 'HEAD'"
-
           if ([string]::IsNullOrEmpty($prevTag)) {
-              # No previous tag? Get ALL history.
               $log = git log --pretty=format:"- %s (%h)" --no-merges
           } else {
-              # Get history since last tag
               $log = git log $prevTag..HEAD --pretty=format:"- %s (%h)" --no-merges
           }
 
-          # --- FIX: Handle PowerShell Array to String conversion ---
-          if ($log -is [Array]) {
-              $logString = $log -join "`n"
-          } else {
-              $logString = $log
-          }
-
-          # If log is empty (e.g. no changes?), putting a placeholder
-          if ([string]::IsNullOrWhiteSpace($logString)) {
-              $logString = "- No commit messages found since last tag."
-          }
+          if ($log -is [Array]) { $logString = $log -join "`n" } else { $logString = $log }
+          if ([string]::IsNullOrWhiteSpace($logString)) { $logString = "- No commit messages found since last tag." }
 
           $content = "## Changes in $newTag`n`n$logString"
-          
           Set-Content -Path "release_notes.md" -Value $content -Encoding UTF8
-          Write-Host "✅ Changelog Generated:"
           Write-Host $content
 
       # 4. CHECKOUT DEPENDENCIES
@@ -160,20 +158,37 @@ jobs:
           '@
           Set-Content -Path $targetPath -Value $jsonContent -Encoding UTF8
 
-      # 7. PATCH CSPROJ PATHS 
+      # 7. PATCH CSPROJ PATHS (Specific to your XML structure)
       - name: Fix Dependency Paths
         shell: pwsh
         run: |
           $depsPath = Join-Path $env:GITHUB_WORKSPACE "ExternalDeps"
           
+          # Match ".." followed by slash or backslash, repeated
+          $relPattern = '(\.\.[\\/])+' 
+          
           Get-ChildItem -Recurse -Filter *.csproj | ForEach-Object {
             $content = Get-Content $_.FullName
-            $content = $content -replace '(\.\.\\)+Last.fm', "$depsPath\Last.fm"
-            $content = $content -replace '(\.\.\\)+Parse-LiveQueries-DOTNET', "$depsPath\Parse-LiveQueries-DOTNET"
-            $content = $content -replace '(\.\.\\)+atldotnet-main', "$depsPath\atldotnet-main"
-            $content = $content -replace '(\.\.\\)+AudioSwitcher-master', "$depsPath\AudioSwitcher-master"
+            
+            # 1. Last.fm-master -> ExternalDeps/Last.fm
+            # Matches ..\..\Last.fm-master OR ../../Last.fm-master
+            $content = $content -replace "${relPattern}Last\.fm-master", "$depsPath\Last.fm"
+
+            # 2. Parse-LiveQueries-DOTNET-master -> ExternalDeps/Parse-LiveQueries-DOTNET
+            $content = $content -replace "${relPattern}Parse-LiveQueries-DOTNET-master", "$depsPath\Parse-LiveQueries-DOTNET"
+
+            # 3. atldotnet-main -> ExternalDeps/atldotnet-main
+            $content = $content -replace "${relPattern}atldotnet-main", "$depsPath\atldotnet-main"
+
+            # 4. AudioSwitcher-master -> ExternalDeps/AudioSwitcher-master
+            $content = $content -replace "${relPattern}AudioSwitcher-master", "$depsPath\AudioSwitcher-master"
+
             Set-Content $_.FullName $content -Encoding UTF8
           }
+          
+          # Debug print to ensure path is correct
+          Write-Host "Checking patched paths in Dimmer.csproj:"
+          Select-String -Path "${{ env.DIR_CORE }}\Dimmer.csproj" -Pattern "ProjectReference"
 
       # 8. SETUP .NET & WORKLOADS
       - name: Setup .NET 9
@@ -224,12 +239,6 @@ jobs:
             -r android-arm64 `
             -p:AndroidPackageFormat=apk `
             -o .\RawBuild\Android
-            
-      - name: List Build Files
-        shell: pwsh
-        run: |
-          Get-ChildItem -Recurse .\RawBuild\Android
-          Get-ChildItem -Recurse .\Artifacts
       
       # 12. UPLOAD ARTIFACTS
       - name: Upload Build Artifacts
@@ -270,7 +279,7 @@ jobs:
               $color = 3066993 # Green
               if ("${{ env.IS_PRE }}" -eq "true") { 
                 $title = "Dimmer Pre-Release: ${{ env.NEW_TAG }}" 
-                $color = 16776960 # Yellow for pre-release
+                $color = 16776960 # Yellow
               }
           } else { 
               $title = "❌ Dimmer Build Failed"
