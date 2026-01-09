@@ -119,6 +119,7 @@ public static class NotificationHelper
         var actionList = new List<string> {
         DimmerActionReceiver.ActionFavorite,
         DimmerActionReceiver.ActionShuffle,
+        DimmerActionReceiver.ActionRepeat,
         DimmerActionReceiver.ActionLyrics
     };
 
@@ -213,10 +214,11 @@ public static class NotificationHelper
         public DimmerActionReceiver(Context ctx) => _ctx = ctx;
         public const string ActionFavorite = "ACTION_FAVORITE";
         public const string ActionShuffle = "ACTION_SHUFFLE";
+        public const string ActionRepeat = "ACTION_REPEAT";
 
         public IList<string> GetCustomActions(IPlayer? player)
         {
-            return new List<string> { ActionFavorite, ActionShuffle, ActionLyrics };
+            return new List<string> { ActionFavorite, ActionShuffle, ActionRepeat, ActionLyrics };
         }
 
         // 2. Create the actual Button UI (C# logic)
@@ -232,7 +234,23 @@ public static class NotificationHelper
                     return CreateAction(context, heartIcon, "Favorite", ActionFavorite);
 
                 case ActionShuffle:
-                    return CreateAction(context, Resource.Drawable.shuffle, "Shuffle", ActionShuffle);
+                    // Check shuffle state to pick icon
+                    bool isShuffleOn = ExoPlayerService.GetShuffleState();
+                    int shuffleIcon = isShuffleOn 
+                        ? Resource.Drawable.media3_icon_shuffle_on 
+                        : Resource.Drawable.media3_icon_shuffle_off;
+                    return CreateAction(context, shuffleIcon, "Shuffle", ActionShuffle);
+
+                case ActionRepeat:
+                    // Check repeat mode to pick icon
+                    int repeatMode = ExoPlayerService.GetRepeatMode();
+                    int repeatIcon = repeatMode switch
+                    {
+                        2 => Resource.Drawable.media3_icon_repeat_one,  // Repeat One
+                        0 => Resource.Drawable.media3_icon_repeat_all,  // Repeat All
+                        _ => Resource.Drawable.media3_icon_repeat_off   // Repeat Off
+                    };
+                    return CreateAction(context, repeatIcon, "Repeat", ActionRepeat);
 
                 case ActionLyrics:
                     return CreateAction(context, Resource.Drawable.lyrics, "Lyrics", ActionLyrics);
