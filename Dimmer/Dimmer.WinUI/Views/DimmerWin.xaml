@@ -21,14 +21,102 @@
     <Grid x:Name="MainGrid" Background="Transparent">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
         <customViews:MediaPlaybackSection x:Name="TopMediaControlSection" Grid.Row="0" />
 
+        <!--  Navigation Bar  -->
+        <Grid
+            x:Name="NavigationBar"
+            Grid.Row="1"
+            Padding="10,5"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="0,0,0,1">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button
+                        x:Name="NavHome"
+                        Click="NavHome_Click"
+                        Content="Home"
+                        Style="{StaticResource SubtleButtonStyle}"
+                        ToolTipService.ToolTip="Navigate to Home">
+                        <Button.KeyboardAccelerators>
+                            <KeyboardAccelerator Key="H" Modifiers="Control" />
+                        </Button.KeyboardAccelerators>
+                    </Button>
+
+                    <MenuBarItemSeparator />
+
+                    <Button
+                        x:Name="NavArtists"
+                        Click="NavArtists_Click"
+                        Content="Artists"
+                        Style="{StaticResource SubtleButtonStyle}"
+                        ToolTipService.ToolTip="View Artists" />
+
+                    <Button
+                        x:Name="NavAlbums"
+                        Click="NavAlbums_Click"
+                        Content="Albums"
+                        Style="{StaticResource SubtleButtonStyle}"
+                        ToolTipService.ToolTip="View Albums" />
+
+                    <Button
+                        x:Name="NavGenres"
+                        Click="NavGenres_Click"
+                        Content="Genres"
+                        Style="{StaticResource SubtleButtonStyle}"
+                        ToolTipService.ToolTip="View Genres" />
+
+                    <MenuBarItemSeparator />
+
+                    <Button
+                        x:Name="NavLastFM"
+                        Click="NavLastFM_Click"
+                        Content="Last.fm"
+                        Style="{StaticResource SubtleButtonStyle}"
+                        ToolTipService.ToolTip="Last.fm Integration">
+                        <Button.KeyboardAccelerators>
+                            <KeyboardAccelerator Key="L" Modifiers="Control" />
+                        </Button.KeyboardAccelerators>
+                    </Button>
+
+                    <Button
+                        x:Name="NavDimmerLive"
+                        Click="NavDimmerLive_Click"
+                        Content="Dimmer Live"
+                        Style="{StaticResource SubtleButtonStyle}"
+                        ToolTipService.ToolTip="Social Features" />
+
+                    <MenuBarItemSeparator />
+
+                    <Button
+                        x:Name="NavStatistics"
+                        Click="NavStatistics_Click"
+                        Content="Statistics"
+                        Style="{StaticResource SubtleButtonStyle}"
+                        ToolTipService.ToolTip="View Statistics">
+                        <Button.KeyboardAccelerators>
+                            <KeyboardAccelerator Key="S" Modifiers="Control" />
+                        </Button.KeyboardAccelerators>
+                    </Button>
+
+                    <Button
+                        x:Name="NavWrapped"
+                        Click="NavWrapped_Click"
+                        Content="Wrapped"
+                        Style="{StaticResource SubtleButtonStyle}"
+                        ToolTipService.ToolTip="Your Year in Music" />
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
         <Frame
             x:Name="ContentFrame"
-            Grid.Row="1"
+            Grid.Row="2"
             x:FieldModifier="Public" />
 
     </Grid>

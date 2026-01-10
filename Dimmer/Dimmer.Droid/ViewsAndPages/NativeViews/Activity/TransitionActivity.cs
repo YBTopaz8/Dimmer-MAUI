@@ -205,11 +205,28 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
             }
         };
 
-        // Setup Menu Items
+        // Setup Menu Items with Categories
+        // Home Section
         _navigationView.Menu.Add(0, 100, 0, "Home").SetIcon(Resource.Drawable.musicaba);
-        _navigationView.Menu.Add(0, 101, 0, "Browser / Graph").SetIcon(Resource.Drawable.heart);
-        _navigationView.Menu.Add(0, 102, 0, "Last FM").SetIcon(Resource.Drawable.lastfm);
-        _navigationView.Menu.Add(0, 103, 0, "Settings").SetIcon(Resource.Drawable.settings);
+        
+        // Library Section
+        var libraryGroup = _navigationView.Menu.AddSubMenu(0, Menu.None, 1, "Library");
+        libraryGroup.Add(1, 200, 0, "Artists").SetIcon(Resource.Drawable.user);
+        libraryGroup.Add(1, 201, 0, "Albums").SetIcon(Resource.Drawable.musicaba);
+        libraryGroup.Add(1, 202, 0, "Genres").SetIcon(Resource.Drawable.heart);
+        
+        // Social & Discovery Section
+        var socialGroup = _navigationView.Menu.AddSubMenu(0, Menu.None, 2, "Social & Discovery");
+        socialGroup.Add(2, 300, 0, "Last.fm").SetIcon(Resource.Drawable.lastfm);
+        socialGroup.Add(2, 301, 0, "Dimmer Live").SetIcon(Resource.Drawable.user);
+        
+        // Statistics Section
+        var statsGroup = _navigationView.Menu.AddSubMenu(0, Menu.None, 3, "Statistics");
+        statsGroup.Add(3, 400, 0, "Statistics").SetIcon(Resource.Drawable.heart);
+        statsGroup.Add(3, 401, 0, "Wrapped").SetIcon(Resource.Drawable.playlistminimalistic3);
+        
+        // Settings Section
+        _navigationView.Menu.Add(0, 500, 4, "Settings").SetIcon(Resource.Drawable.settings);
 
         // Handle Clicks
         _navigationView.NavigationItemSelected += (s, e) =>
@@ -286,30 +303,52 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
     {
         Fragment? selectedFrag = null;
         string tag = "";
+        bool clearBackStack = false;
 
         switch (id)
         {
+            // Home - Always clear backstack and navigate to home
             case 100:
-                if (SupportFragmentManager.FindFragmentByTag("HomePageFragment") != null)
-                {
-                    SupportFragmentManager.PopBackStack("HomePageFragment", 0);
-                    return;
-                }
                 selectedFrag = new HomePageFragment(MyViewModel);
                 tag = "HomePageFragment";
+                clearBackStack = true;
                 break;
-            case 101:
-                var vm = MainApplication.ServiceProvider.GetRequiredService<StatisticsViewModel>();
-                selectedFrag = new LibraryStatsHostFragment(MyViewModel, vm);
-                tag = "StatsFragment";
-
-                Task.Run(()=> vm.LoadLibraryStatsCommand.Execute(null) );
-                break; 
-            case 102:
-                //selectedFrag = new LastFmInfoFragment( MyViewModel);
+            
+            // Library Section
+            case 200: // Artists
+                selectedFrag = new AllArtistsFragment();
+                tag = "ArtistsFragment";
+                break;
+            case 201: // Albums
+                Toast.MakeText(this, "Albums page - Coming soon", ToastLength.Short)?.Show();
+                return;
+            case 202: // Genres
+                Toast.MakeText(this, "Genres page - Coming soon", ToastLength.Short)?.Show();
+                return;
+            
+            // Social & Discovery Section
+            case 300: // Last.fm
+                selectedFrag = new LastFmInfoFragment(MyViewModel);
                 tag = "LastFMFragment";
-                break; 
-            case 103:
+                break;
+            case 301: // Dimmer Live
+                selectedFrag = new SocialFragment("social", MyViewModel);
+                tag = "DimmerLiveFragment";
+                break;
+            
+            // Statistics Section
+            case 400: // Statistics
+                var statsVm = MainApplication.ServiceProvider.GetRequiredService<StatisticsViewModel>();
+                selectedFrag = new LibraryStatsHostFragment(MyViewModel, statsVm);
+                tag = "StatsFragment";
+                Task.Run(() => statsVm.LoadLibraryStatsCommand.Execute(null));
+                break;
+            case 401: // Wrapped
+                Toast.MakeText(this, "Wrapped page - Coming soon", ToastLength.Short)?.Show();
+                return;
+            
+            // Settings
+            case 500:
                 selectedFrag = new SettingsFragment("settingsTrans", MyViewModel);
                 tag = "SettingsFragment";
                 break;
@@ -317,11 +356,24 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
 
         if (selectedFrag != null)
         {
-            SupportFragmentManager.BeginTransaction()
+            // Clear backstack if navigating to Home
+            if (clearBackStack)
+            {
+                // Pop all fragments from backstack
+                SupportFragmentManager.PopBackStack(null, (int)PopBackStackFlags.Inclusive);
+            }
+            
+            var transaction = SupportFragmentManager.BeginTransaction()
                 .SetCustomAnimations(Android.Resource.Animation.FadeIn, Android.Resource.Animation.FadeOut)
-                .Replace(_contentContainer.Id, selectedFrag, tag)
-                .AddToBackStack(tag)
-                .Commit();
+                .Replace(_contentContainer.Id, selectedFrag, tag);
+            
+            // Only add to backstack if not clearing (i.e., not Home)
+            if (!clearBackStack)
+            {
+                transaction.AddToBackStack(tag);
+            }
+            
+            transaction.Commit();
         }
     }
 

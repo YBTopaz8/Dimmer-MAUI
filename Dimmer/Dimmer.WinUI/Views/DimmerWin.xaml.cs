@@ -2,6 +2,10 @@ using System.Windows.Controls.Primitives;
 
 using CommunityToolkit.WinUI;
 
+using Dimmer.WinUI.Views.WinuiPages;
+using Dimmer.WinUI.Views.WinuiPages.LastFMSection;
+using Dimmer.WinUI.Views.WinuiPages.Wrapped;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.UI.Composition.SystemBackdrops;
 
@@ -135,5 +139,61 @@ public sealed partial class DimmerWin : Window
                 case ElementTheme.Default: m_configurationSource.Theme = SystemBackdropTheme.Default; break;
             }
         }
+    }
+
+    // Navigation Event Handlers
+    private void NavHome_Click(object sender, RoutedEventArgs e)
+    {
+        // Clear navigation history and navigate to AllSongsListPage (Home for WinUI)
+        ContentFrame.BackStack.Clear();
+        NavigateToPage(typeof(AllSongsListPage));
+    }
+
+    private void NavArtists_Click(object sender, RoutedEventArgs e)
+    {
+        NavigateToPage(typeof(ArtistPage));
+    }
+
+    private void NavAlbums_Click(object sender, RoutedEventArgs e)
+    {
+        NavigateToPage(typeof(AlbumPage));
+    }
+
+    private void NavGenres_Click(object sender, RoutedEventArgs e)
+    {
+        // TODO: Create GenrePage when needed
+        ShowInfoDialog("Genres page - Coming soon");
+    }
+
+    private void NavLastFM_Click(object sender, RoutedEventArgs e)
+    {
+        NavigateToPage(typeof(LastFmPage));
+    }
+
+    private void NavDimmerLive_Click(object sender, RoutedEventArgs e)
+    {
+        NavigateToPage(typeof(DimmerLivePage));
+    }
+
+    private void NavStatistics_Click(object sender, RoutedEventArgs e)
+    {
+        NavigateToPage(typeof(LibraryStatsPage));
+    }
+
+    private void NavWrapped_Click(object sender, RoutedEventArgs e)
+    {
+        NavigateToPage(typeof(WrappedContainerPage));
+    }
+
+    private async void ShowInfoDialog(string message)
+    {
+        var dialog = new ContentDialog
+        {
+            Title = "Information",
+            Content = message,
+            CloseButtonText = "OK",
+            XamlRoot = this.Content.XamlRoot
+        };
+        await dialog.ShowAsync();
     }
 }
