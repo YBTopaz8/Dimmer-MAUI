@@ -148,7 +148,7 @@ public class ExoPlayerService : MediaSessionService
     {
         // Re-setting the player forces the PlayerNotificationManager to redraw
         _notifMgr.SetPlayer(null);
-        _notifMgr.SetPlayer(notificationPlayer);
+        _notifMgr.SetPlayer(player);
     }
     public void PrepareNext(SongModelView nextSong)
     {
@@ -274,7 +274,7 @@ public class ExoPlayerService : MediaSessionService
 
 
 
-    private IPlayer? notificationPlayer;
+    //private IPlayer? notificationPlayer;
     public async override void OnCreate()
     {
         base.OnCreate();
@@ -303,7 +303,7 @@ public class ExoPlayerService : MediaSessionService
                 
                 .Build();
 
-            notificationPlayer = new QueueEnablingPlayerWrapper(player!);
+            //notificationPlayer = new QueueEnablingPlayerWrapper(player!);
 
 
             player?.AddListener(new PlayerEventListener(this));
@@ -338,7 +338,7 @@ public class ExoPlayerService : MediaSessionService
                 .SetCustomIconResId(Resource.Drawable.media3_icon_repeat_off)
                 .Build();
                 
-            mediaSession = new MediaSession.Builder(this, notificationPlayer)!
+            mediaSession = new MediaSession.Builder(this, player)!
                 .SetSessionActivity(pendingIntent)!
                 .SetCallback(sessionCallback)!
                 .SetId("Dimmer_MediaSession_Main")!
@@ -352,7 +352,7 @@ public class ExoPlayerService : MediaSessionService
             NotificationHelper.CreateChannel(this);
             _notifMgr = NotificationHelper.BuildManager(this, mediaSession!, CurrentSongContext);
 
-            _notifMgr.SetPlayer(notificationPlayer);
+            _notifMgr.SetPlayer(player);
 
 
 
@@ -1406,6 +1406,15 @@ public class ExoPlayerService : MediaSessionService
         public void SetVideoTextureView(TextureView? textureView) => _realPlayer.SetVideoTextureView(textureView);
         public void Stop() => _realPlayer.Stop();
 
+        public void Mute()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Unmute()
+        {
+            throw new NotImplementedException();
+        }
     }
 } // End ExoPlayerService class
 

@@ -506,6 +506,8 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
             _viewModel.ToggleRepeatMode();
         };
         // Slider Logic
+       
+        //_seekSlider.AddOnChangeListener
         _seekSlider.Touch += (s, e) =>
         {
             switch (e.Event?.Action)

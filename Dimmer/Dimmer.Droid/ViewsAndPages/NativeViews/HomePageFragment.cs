@@ -4,12 +4,14 @@ using System.Reactive.Disposables.Fluent;
 using Android.Views.InputMethods;
 
 using AndroidX.CoordinatorLayout.Widget;
+using AndroidX.Lifecycle;
 using AndroidX.RecyclerView.Widget;
 
 using Dimmer.ViewsAndPages.NativeViews.DimmerLive;
 using Dimmer.ViewsAndPages.NativeViews.Misc;
 using Dimmer.ViewsAndPages.ViewUtils;
 using Dimmer.WinUI.UiUtils;
+using Google.Android.Material.Loadingindicator;
 using static Dimmer.ViewsAndPages.NativeViews.SongAdapter;
 
 
@@ -123,6 +125,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
             TextSize = 14
         };
         _searchBar.SetPadding(40, 30, 40, 30);
+        
         _searchBar.TextChanged += _searchBar_TextChanged;
         searchCard.AddView(_searchBar);
         // Help Button
@@ -134,7 +137,9 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         };
         helpBtn.Click += (s, e) => OpenTqlGuide();
 
-
+         loadingIndic = new LoadingIndicator(ctx);
+        loadingIndic.Visibility = ViewStates.Gone;
+        loadingIndic.LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WrapContent, AppUtil.DpToPx(80));
 
         // Add items to Header
         headerLayout.AddView(menuBtn);
@@ -143,6 +148,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
         // Add Header to Content
         contentLinear.AddView(headerLayout);
+        contentLinear.AddView(loadingIndic);
 
         // --- 3.1 Header Section (Menu + Search + Help) ---
         var headerTwoLayout = new LinearLayout(ctx)
@@ -371,9 +377,10 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     private void _searchBar_TextChanged(object? sender, Android.Text.TextChangedEventArgs e)
     {
         var NewText = e.Text?.ToString();
-        var started = e.Start;
-        var AfterCount = e.AfterCount;
-        var BeforeCount = e.BeforeCount;
+        //var started = e.Start;
+        //var AfterCount = e.AfterCount;
+        //var BeforeCount = e.BeforeCount;
+        loadingIndic.Visibility = ViewStates.Visible;
         MyViewModel.SearchSongForSearchResultHolder(NewText);
     }
 
@@ -407,8 +414,24 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     public override void OnResume()
     {
         base.OnResume();
-        MyViewModel.PropertyChanged += ViewModel_PropertyChanged;
-
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.SearchResults),
+            v => MyViewModel.SearchResults.Count)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(newCount =>
+            {
+                if (newCount>0)
+                {
+                    loadingIndic.Visibility = ViewStates.Gone;
+                }
+            });
+        _searchBar.FocusChange += (s, e) =>
+        {
+            var newFocus = e.HasFocus;
+            if (!newFocus)
+           {
+                loadingIndic.Visibility = ViewStates.Gone;
+            }
+        };
         _isNavigating = false;
 
     }
@@ -523,6 +546,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
     protected CompositeDisposable CompositeDisposables { get; } = new CompositeDisposable();
     public TextView songsCountTextView { get; private set; }
+    public LoadingIndicator loadingIndic { get; private set; }
 
     public override void OnDestroyView()
     {
