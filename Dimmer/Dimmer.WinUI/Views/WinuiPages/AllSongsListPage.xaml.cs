@@ -1525,4 +1525,9 @@ true
            
         });
     }
+
+    private void QueueReOrder_Click(object sender, RoutedEventArgs e)
+    {
+        throw new NotImplementedException("Queue Reodering not yet implemented");
+    }
 }
