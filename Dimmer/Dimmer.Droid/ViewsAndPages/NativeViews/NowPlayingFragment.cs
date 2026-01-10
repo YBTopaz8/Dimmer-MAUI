@@ -506,43 +506,54 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
             _viewModel.ToggleRepeatMode();
         };
         // Slider Logic
-       
+
         //_seekSlider.AddOnChangeListener
-        _seekSlider.Touch += (s, e) =>
+        var seekListener = new DimmerSliderListener(
+    onDragStart: () =>
+    {
+        _isDraggingSeek = true;
+    },
+    onDragStop: (value) =>
+    {
+        _isDraggingSeek = false;
+        if (_viewModel.CurrentPlayingSongView != null)
         {
-            switch (e.Event?.Action)
-            {
-                case MotionEventActions.Down: _isDraggingSeek = true; break;
-                case MotionEventActions.Up:
-                case MotionEventActions.Cancel:
-                    _isDraggingSeek = false;
-                    if (_viewModel.CurrentPlayingSongView != null)
-                    {
-                        var newPos = (_seekSlider.Value / 100) * _viewModel.CurrentPlayingSongView.DurationInSeconds;
-                        _viewModel.SeekTrackPositionCommand.Execute(newPos);
-                    }
-                    break;
-            }
-            e.Handled = false;
-        };
-        
-        _volumeSlider.Touch += async (s, e) =>
+            // value is 0-100 (percentage)
+            var newPos = (value / 100f) * _viewModel.CurrentPlayingSongView.DurationInSeconds;
+            _viewModel.SeekTrackPositionCommand.Execute(newPos);
+        }
+    },
+    onValueChange: (value, fromUser) =>
+    {
+        // Only update the Text Label, do NOT set _seekSlider.Value here
+        if (fromUser && _viewModel.CurrentPlayingSongView != null)
         {
-            switch (e.Event?.Action)
-            {
-                case MotionEventActions.Down: _isDraggingVolume = true; break;
-                case MotionEventActions.Up:
-                case MotionEventActions.Cancel:
-                    _isDraggingVolume = false;
-                    await Task.Delay(350); // delay so the value updates and we now get it to set new vol
-                    var newVolume = (_volumeSlider.Value / 100);
-                    _viewModel.SetVolumeLevel((double)newVolume);
-                    break;
-                default:
-                    break;
-            }
-            e.Handled = false;
-        };
+            // Calculate actual seconds based on the percentage (value)
+            var currentSeconds = (value / 100f) * _viewModel.CurrentPlayingSongView.DurationInSeconds;
+
+            var ts = TimeSpan.FromSeconds(currentSeconds);
+            _currentTimeText.Text = $"{ts.Minutes}:{ts.Seconds:D2}";
+        }
+    }
+);
+
+        // 2. Register for BOTH events
+        _seekSlider.AddOnChangeListener(seekListener);
+        _seekSlider.AddOnSliderTouchListener(seekListener);
+        var volumeListener = new DimmerSliderListener(
+    onDragStart: () => { _isDraggingVolume = true; },
+    onDragStop: (value) =>
+    {
+        _isDraggingVolume = false;
+        // Logic happens immediately on lift, no need for Task.Delay
+        var newVolume = (value / 100f);
+        _viewModel.SetVolumeLevel((double)newVolume);
+    },
+    onValueChange: null // We don't need real-time feedback for volume
+);
+
+        _volumeSlider.AddOnSliderTouchListener(volumeListener);
+        // We don't strictly need AddOnChangeListener for volume if we only save on drop
         return scroll;
     }
     private MaterialButton CreatePillButton(Context ctx, string text, int iconRes)
