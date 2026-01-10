@@ -7998,6 +7998,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial bool IsLastFMNeedsUsername { get; set; }
 
     [ObservableProperty]
+    public partial bool IsLastFMAuthButtonClickable { get; set; }
+
+    [ObservableProperty]
     public partial bool IsBusy { get; set; }
 
 

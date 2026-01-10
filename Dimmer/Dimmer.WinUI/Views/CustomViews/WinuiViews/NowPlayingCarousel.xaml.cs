@@ -1,6 +1,7 @@
 using Dimmer.ViewModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using SelectionChangedEventArgs = Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs;
 
 namespace Dimmer.WinUI.Views.CustomViews.WinuiViews;
 

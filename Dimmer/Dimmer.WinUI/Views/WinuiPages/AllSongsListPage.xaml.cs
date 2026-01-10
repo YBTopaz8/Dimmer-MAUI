@@ -20,6 +20,7 @@ using Border = Microsoft.UI.Xaml.Controls.Border;
 using CheckBox = Microsoft.UI.Xaml.Controls.CheckBox;
 using DragStartingEventArgs = Microsoft.UI.Xaml.DragStartingEventArgs;
 using Grid = Microsoft.UI.Xaml.Controls.Grid;
+using Panel = Microsoft.UI.Xaml.Controls.Panel;
 using ScalarKeyFrameAnimation = Microsoft.UI.Composition.ScalarKeyFrameAnimation;
 using SelectionChangedEventArgs = Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs;
 using Visibility = Microsoft.UI.Xaml.Visibility;
@@ -533,14 +534,14 @@ public sealed partial class AllSongsListPage : Page
             MyViewModel.MySongsTableView = MySongsTableView;
             
             // Subscribe to playback feedback events
-            MyViewModel.OnSongAddedToQueue += (sender, message) =>
+            MyViewModel.OnSongAddedToQueue += async (sender, message) =>
             {
-                ShowNotification(message, Microsoft.UI.Xaml.Controls.InfoBarSeverity.Success);
+                await ShowNotification(message, Microsoft.UI.Xaml.Controls.InfoBarSeverity.Success);
             };
             
-            MyViewModel.OnSongPlayingNow += (sender, message) =>
+            MyViewModel.OnSongPlayingNow += async (sender, message) =>
             {
-                ShowNotification(message, Microsoft.UI.Xaml.Controls.InfoBarSeverity.Informational);
+                await ShowNotification(message, Microsoft.UI.Xaml.Controls.InfoBarSeverity.Informational);
             };
             
             // Now that the ViewModel is set, you can set the DataContext.
@@ -1048,7 +1049,7 @@ AnimationHelper.Key_Forward
         if (songsToInsert.Any())
         {
             var param = new Tuple<SongModelView, IEnumerable<SongModelView>>(targetSong, songsToInsert);
-            MyViewModel.InsertSongsBeforeInQueueCommand.Execute(param);
+            throw new NotImplementedException();// MyViewModel.InsertSongsBeforeInQueueCommand.Execute(param);
         }
     }
 
@@ -1067,7 +1068,8 @@ AnimationHelper.Key_Forward
         if (songsToInsert.Any())
         {
             var param = new Tuple<SongModelView, IEnumerable<SongModelView>>(targetSong, songsToInsert);
-            MyViewModel.InsertSongsAfterInQueueCommand.Execute(param);
+            throw new NotImplementedException();
+                //MyViewModel.InsertSongsAfterInQueueCommand.Execute(param);
         }
     }
 
@@ -1104,8 +1106,9 @@ AnimationHelper.Key_Forward
 
         if (result == ContentDialogResult.Primary && !string.IsNullOrWhiteSpace(textBox.Text))
         {
-            MyViewModel.SaveQueueAsPlaylistCommand.Execute(textBox.Text);
-            
+            throw new NotImplementedException();
+            //MyViewModel.SaveQueueAsPlaylistCommand.Execute(textBox.Text);
+
             // Show confirmation
             var confirmDialog = new ContentDialog
             {
@@ -1505,39 +1508,21 @@ true
             SelectedSongImg.Source = new BitmapImage(new Uri(MyViewModel.SelectedSong.CoverImagePath));
     }
 
-    private void ShowNotification(string message, Microsoft.UI.Xaml.Controls.InfoBarSeverity severity)
+    private async Task ShowNotification(string message, Microsoft.UI.Xaml.Controls.InfoBarSeverity severity)
     {
         // Use a TeachingTip or create a temporary InfoBar for notifications
-        DispatcherQueue.TryEnqueue(() =>
+        DispatcherQueue.TryEnqueue(async () =>
         {
-            var infoBar = new Microsoft.UI.Xaml.Controls.InfoBar
-            {
-                Message = message,
-                Severity = severity,
-                IsOpen = true,
-                Margin = new Microsoft.UI.Xaml.Thickness(0, 0, 0, 10)
-            };
-
+            
+            await PlatUtils.ShowNewNotification(message);
             // Auto-close after 3 seconds
             var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
             timer.Tick += (s, args) =>
             {
-                infoBar.IsOpen = false;
-                timer.Stop();
-                // Remove from visual tree after closing animation
-                if (infoBar.Parent is Panel parentPanel)
-                {
-                    parentPanel.Children.Remove(infoBar);
-                }
+                PlatUtils.ClearNotifications();
             };
 
-            // Add to the page's main grid
-            if (MyPageGrid != null)
-            {
-                // Insert at the top of the grid
-                MyPageGrid.Children.Insert(0, infoBar);
-                timer.Start();
-            }
+           
         });
     }
 }

@@ -14,7 +14,7 @@
             <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
             <converters:RepeatModeConverter x:Key="RepeatModeConverter" />
             <converters:BoolToPlayingPauseConv x:Key="BoolToPlayingPauseConverter" />
-            <converters:DurationConverter x:Key="DurationConverter" />
+            <converters:DurationConverterFromSecondsToTimeSpan x:Key="DurationConverterFromSecondsToTS" />
         </ResourceDictionary>
     </Page.Resources>
 
@@ -62,11 +62,11 @@
                         <TextBlock
                             HorizontalAlignment="Left"
                             FontSize="12"
-                            Text="{x:Bind MyViewModel.CurrentTrackPositionSeconds, Converter={StaticResource DurationConverter}, Mode=OneWay}" />
+                            Text="{x:Bind MyViewModel.CurrentTrackPositionSeconds, Converter={StaticResource DurationConverterFromSecondsToTS}, Mode=OneWay}" />
                         <TextBlock
                             HorizontalAlignment="Right"
                             FontSize="12"
-                            Text="{x:Bind MyViewModel.CurrentTrackDurationSeconds, Converter={StaticResource DurationConverter}, Mode=OneWay}" />
+                            Text="{x:Bind MyViewModel.CurrentTrackDurationSeconds, Converter={StaticResource DurationConverterFromSecondsToTS}, Mode=OneWay}" />
                     </Grid>
                 </StackPanel>
 
