@@ -3,7 +3,7 @@
 
 using Android.Graphics.Drawables.Shapes;
 
-using Dimmer.WinUI.UiUtils;
+using Dimmer.UiUtils;
 
 namespace Dimmer.ViewsAndPages.NativeViews;
 

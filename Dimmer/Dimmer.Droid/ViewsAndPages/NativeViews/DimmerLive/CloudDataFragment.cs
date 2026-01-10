@@ -2,8 +2,7 @@
 using System.Reactive.Disposables.Fluent;
 
 using Dimmer.DimmerLive.Models;
-using Dimmer.WinUI.UiUtils;
-
+using Dimmer.UiUtils;
 using DynamicData;
 
 using Google.Android.Material.ProgressIndicator;

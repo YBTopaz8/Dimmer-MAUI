@@ -7,9 +7,9 @@ using AndroidX.Core.View;
 using Bumptech.Glide;
 
 using Dimmer.DimmerAudio;
+using Dimmer.UiUtils;
 using Dimmer.Utilities;
 using Dimmer.ViewsAndPages.NativeViews.Misc;
-using Dimmer.WinUI.UiUtils;
 
 using Google.Android.Material.Chip;
 

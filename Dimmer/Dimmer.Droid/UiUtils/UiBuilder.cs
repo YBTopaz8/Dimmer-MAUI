@@ -4,7 +4,7 @@ using static Dimmer.Utils.AppUtil;
 
 using TextAlignment = Android.Views.TextAlignment;
 
-namespace Dimmer.WinUI.UiUtils;
+namespace Dimmer.UiUtils;
 
 public static class UiBuilder
 {

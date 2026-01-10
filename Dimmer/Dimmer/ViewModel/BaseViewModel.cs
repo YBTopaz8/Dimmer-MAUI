@@ -826,8 +826,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public event EventHandler? ToggleNowPlayingUI;
 
 
-    public event EventHandler? MainWindowActivatedEventHandler;
-
     public event Action? MainWindowDeactivated;
 
     private void HandleCommandAction(ICommandAction action)

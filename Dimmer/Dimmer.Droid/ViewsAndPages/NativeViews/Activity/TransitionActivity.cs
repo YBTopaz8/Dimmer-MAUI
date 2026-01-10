@@ -5,9 +5,9 @@ using AndroidX.Core.View;
 using AndroidX.DrawerLayout.Widget;
 
 using Dimmer.NativeServices;
+using Dimmer.UiUtils;
 using Dimmer.ViewsAndPages.NativeViews.DimmerLive;
 using Dimmer.ViewsAndPages.NativeViews.StatsSection;
-using Dimmer.WinUI.UiUtils;
 
 using Google.Android.Material.BottomNavigation;
 using Google.Android.Material.Dialog;
@@ -95,8 +95,8 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         Dimmer.Utils.UiThreads.InitializeMainHandler();
 
         // 2. Setup Coordinator Layout Architecture
-        SetupDrawerLayout();
-
+        //SetupDrawerLayout();
+        SetupCsharpUi();
         // 3. Load Fragments (If fresh start)
         if (savedInstanceState == null)
         {
@@ -145,6 +145,117 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
 
 
     }
+    private SmoothBottomBar _bottomBar;
+    private void SetupCsharpUi()
+    {
+        // 1. Theme Colors
+        var currentTheme = Resources?.Configuration?.UiMode & UiMode.NightMask;
+        var bgColor = currentTheme == UiMode.NightYes ? Color.ParseColor("#121212") : Color.ParseColor("#F5F5F5");
+        var barColor = Color.ParseColor("#2D2D30"); // Dark Grey Bar
+
+        // 2. ROOT: CoordinatorLayout
+        _mainContentCoordinator = new CoordinatorLayout(this)
+        {
+            LayoutParameters = new ViewGroup.LayoutParams(-1, -1)
+        };
+        _mainContentCoordinator.SetBackgroundColor(bgColor);
+
+        // 3. CONTENT CONTAINER (Where Fragments Live)
+        _contentContainer = new FrameLayout(this)
+        {
+            Id = View.GenerateViewId(),
+            LayoutParameters = new CoordinatorLayout.LayoutParams(-1, -1)
+        };
+        // Add bottom margin (70dp) so content isn't covered by the bar
+        var contentParams = (CoordinatorLayout.LayoutParams)_contentContainer.LayoutParameters;
+        contentParams.BottomMargin = (int)(70 * Resources.DisplayMetrics.Density);
+        _contentContainer.LayoutParameters = contentParams;
+        MyStaticID = _contentContainer.Id;
+
+        // 4. THE SMOOTH BOTTOM BAR
+        _bottomBar = new SmoothBottomBar(this);
+        _bottomBar.Id = View.GenerateViewId();
+
+        // Layout Params & Behavior
+        var barParams = new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, (int)(70 * Resources.DisplayMetrics.Density));
+        barParams.Gravity = (int)GravityFlags.Bottom;
+
+        // Attach the Scroll Behavior we defined in the C# port
+        var scrollBehavior = new HideBottomViewOnScrollBehavior<SmoothBottomBar>();
+        barParams.Behavior = scrollBehavior;
+
+        _bottomBar.LayoutParameters = barParams;
+
+        // --- Styling ---
+        _bottomBar.SetBarBackgroundColor(barColor);
+        _bottomBar.SetTextColor(Color.White);
+        _bottomBar.SetIndicatorColor(Color.ParseColor("#861B2D"));
+        _bottomBar.SetIconTint(Color.ParseColor("#80FFFFFF"), Color.White);
+        _bottomBar.SetBarCornerRadius(20); // 20dp corners
+
+        // --- MENU POPULATION (The Fix) ---
+        // We don't use PopupMenu anymore. We create the Items list directly.
+        var items = new List<BottomBarItem>
+    {
+        new BottomBarItem("Home", AndroidX.Core.Content.ContextCompat.GetDrawable(this, Resource.Drawable.musicaba)),
+        new BottomBarItem("Stats", AndroidX.Core.Content.ContextCompat.GetDrawable(this, Resource.Drawable.heart)),
+        new BottomBarItem("LastFM", AndroidX.Core.Content.ContextCompat.GetDrawable(this, Resource.Drawable.lastfm)),
+        new BottomBarItem("Settings", AndroidX.Core.Content.ContextCompat.GetDrawable(this, Resource.Drawable.settings))
+    };
+
+        // Pass the list to the bar
+        _bottomBar.SetMenuItems(items);
+
+        // --- LISTENERS ---
+        _bottomBar.OnItemSelected += (s, pos) =>
+        {
+            // Map Index (0,1,2..) back to your IDs (100,101..)
+            int navId = 100 + pos;
+            NavigateToId(navId);
+        };
+
+        _bottomBar.OnItemReselected += (s, pos) =>
+        {
+            int navId = 100 + pos;
+            if (navId == 100) // Home
+            {
+                var currentFrag = SupportFragmentManager.FindFragmentById(_contentContainer.Id);
+                if (currentFrag is HomePageFragment homeFrag)
+                {
+                    homeFrag.ScrollToCurrent();
+                }
+            }
+        };
+
+        // 5. PLAYER SHEET CONTAINER
+        _sheetContainer = new FrameLayout(this)
+        {
+            Id = View.GenerateViewId(),
+            LayoutParameters = new CoordinatorLayout.LayoutParams(-1, -1)
+            {
+                Gravity = (int)GravityFlags.Bottom
+            },
+            Elevation = 30 * Resources.DisplayMetrics.Density,
+            Clickable = true,
+            Focusable = true
+        };
+
+        SheetBehavior = new BottomSheetBehavior();
+        // PeekHeight = Bar Height (70) + MiniPlayer Height (70) = 140dp
+        SheetBehavior.PeekHeight = (int)(140 * Resources.DisplayMetrics.Density);
+        var sheetParams = (CoordinatorLayout.LayoutParams)_sheetContainer.LayoutParameters;
+        sheetParams.Behavior = SheetBehavior;
+
+        // 6. ADD VIEWS (Order determines Z-Index)
+        _mainContentCoordinator.AddView(_contentContainer);
+        _mainContentCoordinator.AddView(_bottomBar);
+        _mainContentCoordinator.AddView(_sheetContainer); // Sheet sits ON TOP of the bar
+
+        // Set Content
+        SetContentView(_mainContentCoordinator);
+        ViewCompat.SetOnApplyWindowInsetsListener(_mainContentCoordinator, this);
+    }
+
     DrawerLayout _drawerLayout;
     private void SetupDrawerLayout()
     {

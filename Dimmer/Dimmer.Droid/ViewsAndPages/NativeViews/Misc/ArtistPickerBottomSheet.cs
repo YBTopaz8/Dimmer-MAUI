@@ -1,4 +1,4 @@
-﻿using Dimmer.WinUI.UiUtils;
+﻿using Dimmer.UiUtils;
 
 namespace Dimmer.ViewsAndPages.NativeViews.Misc;
 

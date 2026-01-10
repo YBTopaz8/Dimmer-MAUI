@@ -4,9 +4,8 @@
 using AndroidX.Lifecycle;
 
 using Bumptech.Glide;
-
+using Dimmer.UiUtils;
 using Dimmer.ViewsAndPages.NativeViews.ArtistSection;
-using Dimmer.WinUI.UiUtils;
 
 
 

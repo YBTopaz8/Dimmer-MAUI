@@ -6,11 +6,10 @@ using Android.Views.InputMethods;
 using AndroidX.CoordinatorLayout.Widget;
 using AndroidX.Lifecycle;
 using AndroidX.RecyclerView.Widget;
-
+using Dimmer.UiUtils;
 using Dimmer.ViewsAndPages.NativeViews.DimmerLive;
 using Dimmer.ViewsAndPages.NativeViews.Misc;
 using Dimmer.ViewsAndPages.ViewUtils;
-using Dimmer.WinUI.UiUtils;
 using Google.Android.Material.Loadingindicator;
 using static Dimmer.ViewsAndPages.NativeViews.SongAdapter;
 
@@ -526,7 +525,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     
     
     }
-    private void ScrollToCurrent()
+    public void ScrollToCurrent()
     {
         if (MyViewModel.CurrentPlayingSongView == null) return;
 
