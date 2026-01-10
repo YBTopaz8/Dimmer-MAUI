@@ -571,8 +571,26 @@
                                 FontSize="16"
                                 Style="{ThemeResource HeaderTextBlockStyle}"
                                 Text="{Binding CurrentPlayingSongView.ArtistName}" />
+
+                            <Button
+                        Width="50"
+                        Height="40"
+                                Background="Transparent"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top"
+                        AutomationProperties.Name="Save Queue as Playlist"
+                        Click="SaveQueueAsPlaylist_Click"
+                        ToolTipService.ToolTip="Save Queue as Playlist">
+                                <Button.Content>
+                                    <FontIcon Glyph="&#xE74E;" 
+                                              FontSize="21"
+                                              />
+                                </Button.Content>
+                            </Button>
                         </StackPanel>
+                        
                     </StackPanel>
+                    
                     <Button
                         Width="40"
                         Height="40"
@@ -599,7 +617,14 @@
                         Source="{Binding CurrentPlayingSongView.CoverImagePath, Converter={StaticResource StringToImageConverter}}"
                         Stretch="UniformToFill" />
                     <ScrollViewer>
-                        <ListView x:Name="NowPlayingPBQueue" ItemsSource="{Binding PlaybackQueue}">
+                        <ListView 
+                            x:Name="NowPlayingPBQueue" 
+                            ItemsSource="{Binding PlaybackQueue}"
+                            CanReorderItems="True"
+                            CanDragItems="True"
+                            AllowDrop="True"
+                            ReorderMode="Enabled"
+                            DragItemsCompleted="NowPlayingPBQueue_DragItemsCompleted">
                             <ListView.ItemTemplate>
                                 <DataTemplate>
                                     <Grid
@@ -613,6 +638,24 @@
                                             <ColumnDefinition Width="auto" />
 
                                         </Grid.ColumnDefinitions>
+                                        <Grid.ContextFlyout>
+                                            <MenuFlyout>
+                                                <MenuFlyoutItem 
+                                                    Click="InsertSongsBefore_Click" 
+                                                    Text="Insert Songs Before">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xE74A;" />
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                                <MenuFlyoutItem 
+                                                    Click="InsertSongsAfter_Click" 
+                                                    Text="Insert Songs After">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xE74B;" />
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                            </MenuFlyout>
+                                        </Grid.ContextFlyout>
                                         <animations:Implicit.Animations>
                                             <animations:OffsetAnimation Duration="0:0:0.3" />
                                             <animations:OpacityAnimation Duration="0:0:0.3" />
@@ -691,7 +734,8 @@
                                             VerticalAlignment="Center"
                                             Background="Transparent"
                                             Orientation="Horizontal">
-                                            <Button Background="Transparent" Visibility="Collapsed">
+                                            <Button Background="Transparent"
+                                                    Click="QueueReOrder_Click" x:Name="QueueReOrder">
                                                 <FontIcon
                                                     Margin="0,0,0,0"
                                                     Foreground="{ThemeResource TextFillColorDisabledBrush}"

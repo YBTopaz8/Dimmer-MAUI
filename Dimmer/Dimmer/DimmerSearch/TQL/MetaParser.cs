@@ -122,34 +122,6 @@ public static class MetaParser
         return (rawQuery, string.Empty);
     }
 
-    private static List<QuerySegment> ParseSegmentsFromTokens(List<Token> allTokens)
-    {
-        var segments = new List<QuerySegment>();
-        if (allTokens.Count==0)
-        {
-            segments.Add(new QuerySegment(SegmentType.Main, [], []));
-            return segments;
-        }
-
-        int segmentStartIndex = 0;
-        var currentSegmentType = SegmentType.Main;
-
-        for (int i = 0; i < allTokens.Count; i++)
-        {
-            if (_segmentTypeMap.TryGetValue(allTokens[i].Type, out var newSegmentType))
-            {
-                var segmentTokens = allTokens.GetRange(segmentStartIndex, i - segmentStartIndex);
-                ProcessSegment(segmentTokens, currentSegmentType, segments);
-                currentSegmentType = newSegmentType;
-                segmentStartIndex = i + 1;
-            }
-        }
-
-        var lastSegmentTokens = allTokens.GetRange(segmentStartIndex, allTokens.Count - segmentStartIndex);
-        ProcessSegment(lastSegmentTokens, currentSegmentType, segments);
-        return segments;
-    }
-
     private static void ProcessSegment(List<Token> segmentTokens, SegmentType segmentType, List<QuerySegment> segments)
     {
         var filterTokens = new List<Token>();
@@ -179,36 +151,6 @@ public static class MetaParser
             }
         }
         segments.Add(new QuerySegment(segmentType, filterTokens, directiveTokens));
-    }
-
-    private static IQueryNode BuildMasterAstFromSegments(List<QuerySegment> segments)
-    {
-        var mainAndIncludeNodes = segments
-            .Where(s => s.SegmentType is SegmentType.Main or SegmentType.Include && s.FilterTokens.Count!=0)
-            .Select(s => new AstParser(s.FilterTokens).Parse())
-            .ToList();
-
-        var excludeNodes = segments
-            .Where(s => s.SegmentType is SegmentType.Exclude && s.FilterTokens.Count!=0)
-            .Select(s => new AstParser(s.FilterTokens).Parse())
-            .ToList();
-
-        // If there are no include clauses, the result is "match everything".
-        // If there are no clauses at all, this will also correctly result in TRUEPREDICATE.
-        IQueryNode includeRoot = new ClauseNode("any", "matchall", "");
-        if (mainAndIncludeNodes.Count!=0)
-        {
-            includeRoot = mainAndIncludeNodes.Aggregate((current, next) => new LogicalNode(current, LogicalOperator.Or, next));
-        }
-
-        if (excludeNodes.Count==0)
-        {
-            return includeRoot;
-        }
-
-        IQueryNode excludeRoot = excludeNodes.Aggregate((current, next) => new LogicalNode(current, LogicalOperator.Or, next));
-
-        return new LogicalNode(includeRoot, LogicalOperator.And, new NotNode(excludeRoot));
     }
 
     private static CommandNode? ParseCommand(string commandQuery)

@@ -8,7 +8,7 @@
 		<UseMaui>true</UseMaui>
 		<Nullable>enable</Nullable>
 		<LangVersion>preview</LangVersion>
-		<Version>1.5.6</Version>
+		<Version>1.5.7</Version>
 
 	</PropertyGroup>
 
@@ -68,8 +68,14 @@
 
 
 	<ItemGroup>
-	  <ProjectReference Include="..\..\..\..\Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj" />
-	  <ProjectReference Include="..\..\..\..\Parse-LiveQueries-DOTNET\ParseLiveQuery\ParseLiveQuery.csproj" />
+		
+		
+	  <ProjectReference Include="..\..\..\..\Last.fm-master\src\Hqub.Lastfm\Hqub.Lastfm.csproj" />
+		
+		
+	  <ProjectReference Include="..\..\..\..\Parse-LiveQueries-DOTNET-master\ParseLiveQuery\ParseLiveQuery.csproj" />
+		
+		
 	  <ProjectReference Include="..\..\atldotnet-main\ATL\ATL.csproj" />
 	  <ProjectReference Include="..\..\AudioSwitcher-master\AudioSwitcher.AudioApi.CoreAudio\AudioSwitcher.AudioApi.CoreAudio.csproj" />
 	  <ProjectReference Include="..\..\AudioSwitcher-master\AudioSwitcher.AudioApi\AudioSwitcher.AudioApi.csproj" />

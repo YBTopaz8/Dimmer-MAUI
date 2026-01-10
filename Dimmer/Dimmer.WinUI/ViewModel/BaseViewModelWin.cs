@@ -1080,6 +1080,8 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     }
     [ObservableProperty]
     public partial bool AutoConfirmLastFMVar { get; set; }
+    [ObservableProperty]
+    public partial bool IsLastFMAuthButtonClickable { get; set; }
     public string? MAUIWindowTitle { get; internal set; }
 
     [ObservableProperty]
@@ -1126,6 +1128,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
                     CloseButtonText = "OK",
                     XamlRoot = MainWindow?.ContentFrame.XamlRoot
                 };
+                IsLastFMAuthButtonClickable = true;
                 await cancelledDialog.ShowAsync();
             }
         }
@@ -1189,7 +1192,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
                 var addedNote = (contentDialog.Content as TextBox)?.Text;
                 if (addedNote is null) return;
 
-                await SaveUserNoteToSong(SelectedSong, addedNote);
+                await SaveUserNoteToSong(SelectedSong!, addedNote);
 
                 break;
             case ContentDialogResult.Secondary:

@@ -1,4 +1,5 @@
-﻿using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
+﻿using Dimmer.Data.Models;
+using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 
 
 namespace Dimmer.Interfaces.Services;
@@ -16,7 +17,6 @@ public class LibraryScannerService : ILibraryScannerService
     private readonly IRealmFactory _realmFactory;
     private readonly ILogger<LibraryScannerService> _logger;
     private readonly ProcessingConfig _config;
-    private readonly ICoverArtService _coverArtService;
 
     public LibraryScannerService(
         IDimmerStateService state, IRepository<AppStateModel> appStateRepo,
@@ -170,18 +170,26 @@ public class LibraryScannerService : ILibraryScannerService
                             var managedArtists = new Dictionary<ObjectId, ArtistModel>();
                             foreach (var artView in newArtists)
                             {
-                                var model = artView.ToArtistModel();
-                                // realmInserts.Add returns the MANAGED version of the object
-                                var managed = realmInserts.Add(model, update: true);
-                                managedArtists[artView.Id] = managed;
+                                if (artView is not null)
+                                {
+                                    var model = artView.ToArtistModel();
+                                    // realmInserts.Add returns the MANAGED version of the object
+                                    var managed = realmInserts.Add(model, update: true);
+                                    managedArtists[artView.Id] = managed;
+                                }
                             }
+                        
 
                             // --- Step 2: Managed Genre Lookup ---
                             var managedGenres = new Dictionary<ObjectId, GenreModel>();
                             foreach (var gnrView in newGenres)
                             {
-                                var managed = realmInserts.Add(gnrView.ToGenreModel(), update: true);
-                                managedGenres[gnrView.Id] = managed;
+                                if (gnrView is not null)
+                                {
+                                    var managed = realmInserts.Add(gnrView.ToGenreModel(), update: true);
+                                    
+                                    managedGenres[gnrView.Id] = managed;
+                                }
                             }
 
                             // --- Step 3: Upsert Albums and link to Managed Artists ---
@@ -189,61 +197,69 @@ public class LibraryScannerService : ILibraryScannerService
                             foreach (var albView in newAlbums)
                             {
                                 var albumModel = albView.ToAlbumModel();
-
-                                if (albView.Artists != null)
+                                if (albumModel is not null)
                                 {
-                                    foreach (var artView in albView.Artists)
+                                    if (albView.Artists != null)
                                     {
-                                        if (managedArtists.TryGetValue(artView.Id, out var managedArt))
+                                        foreach (var artView in albView.Artists)
                                         {
-                                            if (!albumModel.Artists.Contains(managedArt))
-                                                albumModel.Artists.Add(managedArt);
+                                            if (managedArtists.TryGetValue(artView.Id, out var managedArt))
+                                            {
+                                                if (!albumModel.Artists.Contains(managedArt))
+                                                    albumModel.Artists.Add(managedArt);
+                                            }
                                         }
                                     }
+                               
+                                    var managedAlbum = realmInserts.Add(albumModel, update: true);
+                                    managedAlbums[albView.Id] = managedAlbum; 
                                 }
-                                var managedAlbum = realmInserts.Add(albumModel, update: true);
-                                managedAlbums[albView.Id] = managedAlbum;
                             }
 
                             // --- Step 4: Upsert Songs and link everything ---
                             foreach (var songView in newSongs)
                             {
+                                // Create unmanaged song model from view (relationships will be set below)
                                 var songModel = songView.ToSongModel();
-                                songModel.Artist = songView.Artist.ToArtistModel();
-                                
-                                // LINK ALBUM (Using our dictionary)
-                                if (songView.Album != null && managedAlbums.TryGetValue(songView.Album.Id, out var mAlb))
-                                {
-                                    songModel.Album = mAlb;
-                                }
-
-                                // LINK GENRE (Using our dictionary)
-                                if (songView.Genre != null && managedGenres.TryGetValue(songView.Genre.Id, out var mGnr))
-                                {
-                                    songModel.Genre = mGnr;
-                                }
-
-                                // LINK ARTISTS
-                                if (songView.ArtistToSong != null)
-                                {
-                                    foreach (var artView in songView.ArtistToSong)
+                                if (songModel is not null)
+                                { 
+                                    // LINK ALBUM (Using our dictionary of managed objects)
+                                    if (songView!.Album != null && managedAlbums.TryGetValue(songView.Album.Id, out var mAlb))
                                     {
-                                        if (managedArtists.TryGetValue(artView.Id, out var mArt))
-                                        {
-                                            songModel.ArtistToSong.Add(mArt);
-                                        }
+                                        songModel.Album = mAlb;
                                     }
 
-                                    if (songModel.ArtistToSong.Count > 0)
-                                        songModel.Artist = songModel.ArtistToSong[0];
-                                }
-                                songModel.Album = songView.Album.ToAlbumModel();
-                                songModel.Genre = songView.Genre.ToGenreModel();
-                                songModel.ArtistName = songModel.Artist?.Name ?? "Unknown Artist";
-                                songModel.IsNew = false;
+                                    // LINK GENRE (Using our dictionary of managed objects)
+                                    if (songView.Genre != null && managedGenres.TryGetValue(songView.Genre.Id, out var mGnr))
+                                    {
+                                        songModel.Genre = mGnr;
+                                    }
 
-                                // Finally, add the song
-                                realmInserts.Add(songModel, update: true);
+                                    // LINK ARTISTS (Using our dictionary of managed objects)
+                                    if (songView.ArtistToSong != null)
+                                    {
+                                        foreach (var artView in songView.ArtistToSong)
+                                        {
+                                            if (artView is not null)
+                                            {
+                                                if (managedArtists.TryGetValue(artView.Id, out var mArt))
+                                                {
+                                                    songModel.ArtistToSong.Add(mArt);
+                                                }
+                                            }
+                                        }
+
+                                        if (songModel.ArtistToSong.Count > 0)
+                                            songModel.Artist = songModel.ArtistToSong[0];
+                                    }
+                                
+                                    // Set ArtistName from the managed Artist object
+                                    songModel.ArtistName = songModel.Artist?.Name ?? "Unknown Artist";
+                                    songModel.IsNew = false;
+                                    
+                                    // Finally, add the song
+                                    realmInserts.Add(songModel, update: true);
+                                }
                             }
                         });
                     }

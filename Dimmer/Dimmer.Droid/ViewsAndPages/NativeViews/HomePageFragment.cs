@@ -10,7 +10,6 @@ using Dimmer.ViewsAndPages.NativeViews.DimmerLive;
 using Dimmer.ViewsAndPages.NativeViews.Misc;
 using Dimmer.ViewsAndPages.ViewUtils;
 using Dimmer.WinUI.UiUtils;
-
 using static Dimmer.ViewsAndPages.NativeViews.SongAdapter;
 
 
@@ -18,9 +17,6 @@ namespace Dimmer.ViewsAndPages.NativeViews;
 
 public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 {
-
-    string toSettingsTrans = "homePageFAB";
-    
     public RecyclerView? _songListRecycler = null!;
     public TextView _emptyLabel = null!;
     public TextView _titleTxt = null!;
@@ -35,15 +31,11 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     CoordinatorLayout? root;
     public TextView CurrentTimeTextView;
     public ExtendedFloatingActionButton? fab;
-    private float dX, dY;
+
     public CoordinatorLayout? Root => root;
     public BaseViewModelAnd MyViewModel { get; private set; } = null!;
     private bool _isNavigating;
     private FabMorphMenu _morphMenu;
-    private TextView _pageStatusText;
-    private MaterialButton _prevBtn;
-    private MaterialButton _nextBtn;
-    private MaterialButton _jumpBtn;
 
     public HomePageFragment()
     {
@@ -133,7 +125,6 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         _searchBar.SetPadding(40, 30, 40, 30);
         _searchBar.TextChanged += _searchBar_TextChanged;
         searchCard.AddView(_searchBar);
-
         // Help Button
         var helpBtn = new Google.Android.Material.Button.MaterialButton(ctx, null, Resource.Attribute.materialIconButtonStyle)
         {
@@ -143,6 +134,8 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         };
         helpBtn.Click += (s, e) => OpenTqlGuide();
 
+
+
         // Add items to Header
         headerLayout.AddView(menuBtn);
         headerLayout.AddView(searchCard);
@@ -150,6 +143,69 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
         // Add Header to Content
         contentLinear.AddView(headerLayout);
+
+        // --- 3.1 Header Section (Menu + Search + Help) ---
+        var headerTwoLayout = new LinearLayout(ctx)
+        {
+            Orientation = Orientation.Horizontal
+        };
+        headerTwoLayout.SetGravity(GravityFlags.CenterVertical);
+        // Initial padding (will be updated by Insets logic below)
+        headerTwoLayout.SetPadding(20, 20, 20, 20);
+
+        // Menu Button
+        var scrollBtn = new Google.Android.Material.Button.MaterialButton(ctx, null, Resource.Attribute.materialIconButtonStyle)
+        {
+            Icon = AndroidX.Core.Content.ContextCompat.GetDrawable(ctx, Resource.Drawable.eye),
+            IconTint = Android.Content.Res.ColorStateList.ValueOf(Color.Gray),
+            LayoutParameters = new LinearLayout.LayoutParams(AppUtil.DpToPx(50), AppUtil.DpToPx(50))
+        };
+        scrollBtn.Click += (s, e) => { ScrollToCurrent(); };
+
+        // middle Card
+        var middleCard = new MaterialCardView(ctx)
+        {
+            Radius = AppUtil.DpToPx(25),
+            CardElevation = AppUtil.DpToPx(4),
+            LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1f) // Weight 1
+        };
+        ((LinearLayout.LayoutParams)middleCard.LayoutParameters).SetMargins(10, 0, 10, 0);
+
+        songsCountTextView = new TextView(ctx);
+        var songCount = MyViewModel.SearchResults.Count;
+        if ( songCount> 1)
+        {
+            songsCountTextView.Text = $"{MyViewModel.SearchResults.Count} Songs";
+        }
+        else if(songCount ==1)
+        {
+            songsCountTextView.Text = $"1 Song";
+
+        }
+        else if(songCount<1)
+        {
+
+            songsCountTextView.Text = $"No Song";
+        }
+        songsCountTextView.SetPadding(40, 30, 40, 30);
+
+        middleCard.AddView(songsCountTextView);
+        // Help Button
+        var sortBtn = new Google.Android.Material.Button.MaterialButton(ctx, null, Resource.Attribute.materialIconButtonStyle)
+        {
+            Icon = AndroidX.Core.Content.ContextCompat.GetDrawable(ctx, Resource.Drawable.mtrl_dropdown_arrow),
+            IconTint = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.DarkSlateBlue),
+            LayoutParameters = new LinearLayout.LayoutParams(AppUtil.DpToPx(50), AppUtil.DpToPx(50))
+        };
+        sortBtn.Click += (s, e) => Toast.MakeText(ctx, "OK!", ToastLength.Short);
+       
+        // Add items to Header
+        headerTwoLayout.AddView(scrollBtn);
+        headerTwoLayout.AddView(middleCard);
+        headerTwoLayout.AddView(sortBtn);
+
+
+
 
         // --- 4. RecyclerView ---
         _songListRecycler = new RecyclerView(ctx);
@@ -493,6 +549,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     }
 
     protected CompositeDisposable CompositeDisposables { get; } = new CompositeDisposable();
+    public TextView songsCountTextView { get; private set; }
 
     public override void OnDestroyView()
     {
