@@ -270,5 +270,19 @@ public sealed partial class SettingsPage : Page
         }
     }
 
+    private void FeedbackView_Click(object sender, RoutedEventArgs e)
+    {
+        var supNavTransInfo = new SuppressNavigationTransitionInfo();
+        Type feedbackPageType = typeof(FeedbackBoardPage);
+       
+        FrameNavigationOptions navigationOptions = new FrameNavigationOptions
+        {
+            TransitionInfoOverride = supNavTransInfo,
+            IsNavigationStackEnabled = true
+        };
+
+        Frame?.NavigateToType(feedbackPageType, null, navigationOptions);
+    }
+
    
 }
