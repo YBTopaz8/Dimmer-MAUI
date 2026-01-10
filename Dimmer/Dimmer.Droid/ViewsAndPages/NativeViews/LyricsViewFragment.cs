@@ -5,12 +5,13 @@ using System.Reactive.Disposables.Fluent;
 
 using Android.Content.Res;
 using Android.Text;
+using Android.Views;
 using Android.Widget;
 
 using AndroidX.Lifecycle;
 
 using Bumptech.Glide;
-
+using CommunityToolkit.Diagnostics;
 using DynamicData.Binding;
 
 using Kotlin;
@@ -18,20 +19,26 @@ using Kotlin;
 namespace Dimmer.ViewsAndPages.NativeViews;
 
 
-internal class LyricsViewFragment : Fragment
+internal class LyricsViewFragment : Fragment, IOnBackInvokedCallback,IOnBackAnimationCallback
 {
     private BaseViewModelAnd viewModel;
     private RecyclerView _lyricsRecyclerView;
     private LyricsAdapter _adapter;
     private ImageView _backgroundImageView;
     private TextView _songTitleTv, _artistAlbumTv;
+    private bool _isScreenKeepOnSetByThisFragment = false;
 
-    public LyricsViewFragment(BaseViewModelAnd viewModel)
+    public LyricsViewFragment(BaseViewModelAnd? viewModel)
     {
-        this.viewModel = viewModel;
+        if (viewModel == null)
+        {
+            throw new ArgumentNullException(nameof(viewModel));
+        }
+
+        this.viewModel = viewModel!;
     }
 
-    public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         var context = Context!;
         var root = new RelativeLayout(context) { LayoutParameters = new ViewGroup.LayoutParams(-1, -1) };
@@ -123,6 +130,49 @@ internal class LyricsViewFragment : Fragment
         base.OnViewCreated(view, savedInstanceState);
         viewModel.CurrentFragment = this;
     }
+    
+    public override void OnResume()
+    {
+        base.OnResume();
+        UpdateScreenKeepOn();
+
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu)
+        {
+            Activity?.OnBackInvokedDispatcher.RegisterOnBackInvokedCallback(
+                (int)IOnBackInvokedDispatcher.PriorityDefault, this);
+        }
+    }
+
+    public override void OnPause()
+    {
+        base.OnPause();
+        ClearScreenKeepOn();
+    }
+
+    private bool ShouldSetScreenKeepOn()
+    {
+        return viewModel?.KeepScreenOnDuringLyrics == true 
+            && Activity?.Window != null 
+            && !_isScreenKeepOnSetByThisFragment;
+    }
+
+    private void UpdateScreenKeepOn()
+    {
+        if (ShouldSetScreenKeepOn())
+        {
+            Activity?.Window?.AddFlags(WindowManagerFlags.KeepScreenOn);
+            _isScreenKeepOnSetByThisFragment = true;
+        }
+    }
+
+    private void ClearScreenKeepOn()
+    {
+        if (_isScreenKeepOnSetByThisFragment && Activity?.Window != null)
+        {
+            Activity.Window.ClearFlags(WindowManagerFlags.KeepScreenOn);
+            _isScreenKeepOnSetByThisFragment = false;
+        }
+    }
     private void SetupBindings()
     {
        
@@ -144,6 +194,7 @@ internal class LyricsViewFragment : Fragment
     public override void OnDestroy()
     {
         base.OnDestroy();
+        ClearScreenKeepOn();
         _disposables.Clear();
     }
 
@@ -166,7 +217,7 @@ internal class LyricsViewFragment : Fragment
             Console.WriteLine(ex.Message);
         }
     }
-
+   
     private void ApplyBlur()
     {
         // Simple Android 12+ Blur (RenderEffect)
@@ -175,6 +226,13 @@ internal class LyricsViewFragment : Fragment
             _backgroundImageView.SetRenderEffect(RenderEffect.CreateBlurEffect(30f, 30f, Shader.TileMode.Clamp!));
         }
         // For older versions, you'd use a library like Glide or a custom StackBlur
+    }
+
+    public void OnBackInvoked()
+    {
+       TransitionActivity myAct = Activity as TransitionActivity;
+        myAct?.HandleBackPressInternal();
+        //myAct.MoveTaskToBack
     }
 }
 

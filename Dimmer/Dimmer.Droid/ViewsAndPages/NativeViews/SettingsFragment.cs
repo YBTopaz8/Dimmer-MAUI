@@ -257,7 +257,11 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
     public override void OnResume()
     {
         base.OnResume();
-        
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu)
+        {
+            Activity?.OnBackInvokedDispatcher.RegisterOnBackInvokedCallback(
+                (int)IOnBackInvokedDispatcher.PriorityDefault, this);
+        }
         MyViewModel.WhenValueChanged(x=>x.FolderPaths)
                      .ObserveOn(RxSchedulers.UI) 
                      .Subscribe(folderPaths =>
@@ -325,6 +329,16 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
     private View CreateLyricsSection(Context ctx)
     {
         var layout = CreateCardLayout(ctx);
+
+        var KeepScreenOnView = CreateSwitchRow(ctx, "Keep Screen On", "Keep screen on when viewing sync lyrics page",
+            MyViewModel.KeepScreenOnDuringLyrics, (v) =>
+            {
+                MyViewModel.KeepScreenOnDuringLyrics = v;
+            });
+
+        layout.AddView(KeepScreenOnView);
+
+        layout.AddView(CreateDivider(ctx));
 
         //layout.AddView(CreateSwitchRow(ctx, "Mini Lyrics View", "Show floating lyrics on desktop",
         //    MyViewModel.AppState.IsMiniLyricsViewEnabled, (v) => MyViewModel.AppState.IsMiniLyricsViewEnabled = v));
@@ -402,7 +416,7 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
         return row;
     }
 
-    private View CreateSwitchRow(Context ctx, string title, string subtitle, bool isChecked, Action<bool> onToggle)
+    private static LinearLayout CreateSwitchRow(Context ctx, string title, string subtitle, bool isChecked, Action<bool> onToggle)
     {
         var row = new LinearLayout(ctx) { Orientation = Orientation.Horizontal, WeightSum = 10 };
         row.SetPadding(30, 30, 30, 30);
@@ -424,7 +438,11 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
         sw.LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 2);
         sw.CheckedChange += (s, e) => onToggle(e.IsChecked);
 
-        row.Click += (s, e) => sw.Checked = !sw.Checked; // Clicking row toggles switch
+        row.Click += (s, e) =>
+        {
+            sw.Checked = !sw.Checked;
+            //isChecked = !isChecked;
+        }; // Clicking row toggles switch
 
         row.AddView(textLayout);
         row.AddView(sw);
@@ -471,7 +489,10 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
 
     public void OnBackInvoked()
     {
-        throw new NotImplementedException();
+        if (Activity is TransitionActivity act)
+        {
+            act.OnBackPressedDispatcher.OnBackPressed();
+        }
     }
     //public void OnBackInvoked()
     //{

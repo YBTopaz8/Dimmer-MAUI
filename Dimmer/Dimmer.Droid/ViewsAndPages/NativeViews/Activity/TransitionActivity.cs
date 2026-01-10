@@ -189,6 +189,7 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         SheetBehavior = new BottomSheetBehavior();
         SheetBehavior.PeekHeight = AppUtil.DpToPx(70);
         SheetBehavior.State = BottomSheetBehavior.StateCollapsed;
+        
         sheetParams.Behavior = SheetBehavior;
 
         // Add views to Coordinator (Content first, then Player on top)
@@ -305,7 +306,7 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
                 Task.Run(()=> vm.LoadLibraryStatsCommand.Execute(null) );
                 break; 
             case 102:
-                selectedFrag = new LastFmInfoFragment( MyViewModel);
+                //selectedFrag = new LastFmInfoFragment( MyViewModel);
                 tag = "LastFMFragment";
                 break; 
             case 103:
@@ -523,7 +524,7 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
     {
         base.OnNewIntent(intent);
 
-        ProcessIntent(Intent);
+        ProcessIntent(intent);
     }
 
     private void SetStatusBarColor()
@@ -632,7 +633,6 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
                 if (currentFragment is null)
                 { 
                     HandleBackPressInternal();
-
                 };
             });
             OnBackInvokedDispatcher.RegisterOnBackInvokedCallback(IOnBackInvokedDispatcher.PriorityDefault, _onBackInvokedCallback);
@@ -643,7 +643,7 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         }
     }
 
-    private void HandleBackPressInternal()
+    public void HandleBackPressInternal()
     {
         if (SupportFragmentManager.BackStackEntryCount > 0)
         {
@@ -661,7 +661,10 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         {
             return;
         }
-
+        if(intent.Action == "ShowMiniPlayer")
+        {
+            SheetBehavior.State = BottomSheetBehavior.StateExpanded;
+        }
         if (intent.Action == Android.Content.Intent.ActionView || intent.Action == Android.Content.Intent.ActionSend)
         {
             var uri = intent.Data;

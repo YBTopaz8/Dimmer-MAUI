@@ -114,8 +114,6 @@ public sealed partial class DimmerWin : Window
     }
     private bool _isDialogActive = false;
     private readonly Microsoft.UI.Composition.Compositor _compositorMainGrid;
-    private bool _isThrottling = false;
-    private readonly int throttleDelay = 300; // Time in milliseconds
 
     private void Window_SizeChanged(object sender, WindowSizeChangedEventArgs args)
     {
@@ -123,36 +121,8 @@ public sealed partial class DimmerWin : Window
         Debug.WriteLine($"New window size: {args.Size.Width} x {args.Size.Height}");
     }
 
-    private async void coverImageSong_Loaded(object sender, RoutedEventArgs e)
-    {
-        //MyViewModel.CoverImageSong = coverImageSong;
-
-
-    }
-
     DesktopAcrylicController m_acrylicController;
     SystemBackdropConfiguration m_configurationSource;
-
-    private void Window_Closed(object sender, WindowEventArgs args)
-    {
-        // Make sure the controller is disposed
-        if (m_acrylicController != null)
-        {
-            m_acrylicController.Dispose();
-            m_acrylicController = null;
-        }
-
-        this.Activated -= Window_Activated;
-        m_configurationSource = null;
-    }
-
-    private void Window_ThemeChanged(FrameworkElement sender, object args)
-    {
-        if (m_configurationSource != null)
-        {
-            SetConfigurationSourceTheme();
-        }
-    }
 
     private void SetConfigurationSourceTheme()
     {

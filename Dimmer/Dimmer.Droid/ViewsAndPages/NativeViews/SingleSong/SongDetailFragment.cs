@@ -15,7 +15,7 @@ using static Android.Widget.ImageView;
 
 namespace Dimmer.ViewsAndPages.NativeViews.SingleSong;
 
-public class SongDetailFragment : Fragment
+public class SongDetailFragment : Fragment , IOnBackInvokedCallback
 {
     private readonly string _transitionName;
     private readonly BaseViewModelAnd _viewModel;
@@ -35,6 +35,15 @@ public class SongDetailFragment : Fragment
         _transitionName = transitionName;
         _viewModel = vm;
         _song = vm.SelectedSong;
+    }
+
+    public void OnBackInvoked()
+    {
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu)
+        {
+            Activity?.OnBackInvokedDispatcher.RegisterOnBackInvokedCallback(
+                (int)IOnBackInvokedDispatcher.PriorityDefault, this);
+        }
     }
 
     public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
@@ -190,7 +199,8 @@ public class SongDetailFragment : Fragment
         public override Fragment CreateFragment(int position) => position switch
         {
             0 => new SongOverviewFragment(_vm),
-            1 => new LyricsEditorFragment(_vm,_vm.SelectedSong!),
+            1 => new DownloadLyricsFragment(_vm),
+            //1 => new LyricsEditorFragment(_vm,_vm.SelectedSong!),
             2 => new SongPlayHistoryFragment(_vm), 
             3 => new SongRelatedFragment(_vm), 
             _ => new Fragment()

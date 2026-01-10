@@ -150,8 +150,6 @@ public class CloudDataFragment : Fragment
     class DevicesAdapter : RecyclerView.Adapter
     {
         Context ctx; SessionManagementViewModel vm;
-
-        IObservable<IChangeSet<UserDeviceSession>> sourceStream;
         ReadOnlyObservableCollection<UserDeviceSession> sourceList;
         public DevicesAdapter(Context c, SessionManagementViewModel v, CompositeDisposable _disposables) 
         { 
