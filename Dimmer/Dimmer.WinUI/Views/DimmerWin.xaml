@@ -40,76 +40,83 @@
                     <Button
                         x:Name="NavHome"
                         Click="NavHome_Click"
-                        Content="Home"
-                        Style="{StaticResource SubtleButtonStyle}"
-                        ToolTipService.ToolTip="Navigate to Home">
+                        Content="Home">
                         <Button.KeyboardAccelerators>
                             <KeyboardAccelerator Key="H" Modifiers="Control" />
                         </Button.KeyboardAccelerators>
+                        <ToolTipService.ToolTip>
+                            <ToolTip Content="Navigate to Home" />
+                        </ToolTipService.ToolTip>
                     </Button>
-
-                    <MenuBarItemSeparator />
 
                     <Button
                         x:Name="NavArtists"
                         Click="NavArtists_Click"
-                        Content="Artists"
-                        Style="{StaticResource SubtleButtonStyle}"
-                        ToolTipService.ToolTip="View Artists" />
+                        Content="Artists">
+                        <ToolTipService.ToolTip>
+                            <ToolTip Content="View Artists" />
+                        </ToolTipService.ToolTip>
+                    </Button>
 
                     <Button
                         x:Name="NavAlbums"
                         Click="NavAlbums_Click"
-                        Content="Albums"
-                        Style="{StaticResource SubtleButtonStyle}"
-                        ToolTipService.ToolTip="View Albums" />
+                        Content="Albums">
+                        <ToolTipService.ToolTip>
+                            <ToolTip Content="View Albums" />
+                        </ToolTipService.ToolTip>
+                    </Button>
 
                     <Button
                         x:Name="NavGenres"
                         Click="NavGenres_Click"
-                        Content="Genres"
-                        Style="{StaticResource SubtleButtonStyle}"
-                        ToolTipService.ToolTip="View Genres" />
-
-                    <MenuBarItemSeparator />
+                        Content="Genres">
+                        <ToolTipService.ToolTip>
+                            <ToolTip Content="View Genres" />
+                        </ToolTipService.ToolTip>
+                    </Button>
 
                     <Button
                         x:Name="NavLastFM"
                         Click="NavLastFM_Click"
-                        Content="Last.fm"
-                        Style="{StaticResource SubtleButtonStyle}"
-                        ToolTipService.ToolTip="Last.fm Integration">
+                        Content="Last.fm">
                         <Button.KeyboardAccelerators>
                             <KeyboardAccelerator Key="L" Modifiers="Control" />
                         </Button.KeyboardAccelerators>
+                        <ToolTipService.ToolTip>
+                            <ToolTip Content="Last.fm Integration" />
+                        </ToolTipService.ToolTip>
                     </Button>
 
                     <Button
                         x:Name="NavDimmerLive"
                         Click="NavDimmerLive_Click"
-                        Content="Dimmer Live"
-                        Style="{StaticResource SubtleButtonStyle}"
-                        ToolTipService.ToolTip="Social Features" />
-
-                    <MenuBarItemSeparator />
+                        Content="Dimmer Live">
+                        <ToolTipService.ToolTip>
+                            <ToolTip Content="Social Features" />
+                        </ToolTipService.ToolTip>
+                    </Button>
 
                     <Button
                         x:Name="NavStatistics"
                         Click="NavStatistics_Click"
-                        Content="Statistics"
-                        Style="{StaticResource SubtleButtonStyle}"
-                        ToolTipService.ToolTip="View Statistics">
+                        Content="Statistics">
                         <Button.KeyboardAccelerators>
                             <KeyboardAccelerator Key="S" Modifiers="Control" />
                         </Button.KeyboardAccelerators>
+                        <ToolTipService.ToolTip>
+                            <ToolTip Content="View Statistics" />
+                        </ToolTipService.ToolTip>
                     </Button>
 
                     <Button
                         x:Name="NavWrapped"
                         Click="NavWrapped_Click"
-                        Content="Wrapped"
-                        Style="{StaticResource SubtleButtonStyle}"
-                        ToolTipService.ToolTip="Your Year in Music" />
+                        Content="Wrapped">
+                        <ToolTipService.ToolTip>
+                            <ToolTip Content="Your Year in Music" />
+                        </ToolTipService.ToolTip>
+                    </Button>
                 </StackPanel>
             </ScrollViewer>
         </Grid>
