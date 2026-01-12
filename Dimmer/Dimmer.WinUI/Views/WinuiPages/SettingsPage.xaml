@@ -50,6 +50,20 @@
                       Click="RestoreData_Click"  >
                     
                 </Button>
+                <Button Content="Fetch Song Lyrics"
+                x:Name="FetchLyricsData"
+                        Click="FetchLyricsData_Click">
+                    
+                </Button>
+                <Button 
+                x:Name="ReloadCoversCache"
+                      Click="ReloadCoversCache_Click" 
+                        Content="Reload Song Cover Images">
+                    
+                </Button>
+                <Button Content="Load Album And Artist Info From Last FM"
+                x:Name="LoadAlbumAndArtistInfoFromLastFM"
+                        Click="LoadAlbumAndArtistInfoFromLastFM_Click"/>
             </StackPanel>
             <StackPanel 
                 HorizontalAlignment="Center"

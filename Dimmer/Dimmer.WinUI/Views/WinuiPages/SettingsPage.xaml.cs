@@ -346,4 +346,20 @@ public sealed partial class SettingsPage : Page
     {
         await MyViewModel.BaseViewModelWin.LoadFolderToScanForBackUpFiles();
     }
+
+    private void FetchLyricsData_Click(object sender, RoutedEventArgs e)
+    {
+        CancellationTokenSource cts = new CancellationTokenSource();
+        _ = Task.Run(async () => await MyViewModel.LoadAllSongsLyricsFromOnlineAsync(cts));
+    }
+
+    private void ReloadCoversCache_Click(object sender, RoutedEventArgs e)
+    {
+        _ = Task.Run(()=>MyViewModel.EnsureAllCoverArtCachedForSongsAsync());
+    }
+
+    private void LoadAlbumAndArtistInfoFromLastFM_Click(object sender, RoutedEventArgs e)
+    {
+        MyViewModel.BaseViewModelWin.LoadAlbumAndArtistDetailsFromLastFM();
+    }
 }

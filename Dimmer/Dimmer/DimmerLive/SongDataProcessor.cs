@@ -92,7 +92,7 @@ public static class SongDataProcessor
                 if (string.IsNullOrWhiteSpace(fetchedLrcData) && string.IsNullOrWhiteSpace(plainLyrics))
                 {
                     // Pass the cancellationToken to the service! This is crucial.
-                    var onlineResults = await lyricsService.SearchLyricsAsync(song.Title,song.ArtistName,song.AlbumName, cancellationToken);
+                    var onlineResults = await lyricsService.GetAllLyricsPropsOnlineAsync(song, cancellationToken);
                     var onlineResult = onlineResults?.FirstOrDefault(x=>!string.IsNullOrEmpty(x.SyncedLyrics));
                     if (onlineResult is not null)
                     {

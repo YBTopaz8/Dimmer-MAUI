@@ -128,16 +128,16 @@ public static class NotificationHelper
         {
             mgr.SetUseChronometer(song.HasSyncedLyrics); // optional: show time counter if lyrics exist
         }
-
+        \
 
             mgr.SetUseFastForwardActionInCompactView(false);
-        mgr.SetUsePreviousAction(true);
-        mgr.SetUseNextActionInCompactView(true);
-        mgr.SetUsePreviousActionInCompactView(true);
-        mgr.SetUseNextAction(true);
+        mgr.SetUsePreviousAction(false);
+        mgr.SetUseNextActionInCompactView(false);
+        mgr.SetUsePreviousActionInCompactView(false);
+        mgr.SetUseNextAction(false);
         mgr.SetUseRewindActionInCompactView(false);
-        mgr.SetUseStopAction(true);
-
+        mgr.SetUseStopAction(false);
+        
 
         Log.Debug("NotifHelper", "Manager built");
         return mgr;

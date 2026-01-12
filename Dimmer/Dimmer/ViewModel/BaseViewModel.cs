@@ -8388,6 +8388,45 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         await Clipboard.Default.SetTextAsync(shareText);
     }
 
+
+    public async Task LoadAlbumAndArtistDetailsFromLastFM()
+    {
+        var realm = RealmFactory.GetRealmInstance();
+        await realm.WriteAsync(async () =>
+        {
+
+            var AllAlbums = realm.All<AlbumModel>();
+            
+            foreach (var album in AllAlbums)
+            {
+                var lastFMAlbum = await lastfmService.GetAlbumInfoAsync(album.Artists.First().Name, album.Name);
+                if (lastFMAlbum is not null)
+                {
+                    album.Url = lastFMAlbum.Url;
+                    album.ImagePath = lastFMAlbum.Images.FirstOrDefault(x => x.Size == "mega")?.Url;
+                
+                }
+            }
+            var AllArtists = RealmFactory.GetRealmInstance().All<ArtistModel>()
+                .AsEnumerable()
+                .Select(a => a.ToArtistModelView())
+                ;
+            foreach (var artist in AllArtists)
+            {
+                var lastFMArtist = await lastfmService.GetArtistInfoAsync(artist.Name);
+                if (lastFMArtist is not null)
+                {
+                    artist.Url = lastFMArtist.Url;
+                    artist.ImagePath = lastFMArtist.Images.FirstOrDefault(x => x.Size == "mega")?.Url;
+                    artist.Bio = lastFMArtist.Biography?.Summary;
+
+                }
+            }
+
+        });
+        SearchSongForSearchResultHolder(CurrentTqlQuery);
+    }
+
     [RelayCommand]
     public async Task ShareSongDetailsAsText(SongModelView song)
     {

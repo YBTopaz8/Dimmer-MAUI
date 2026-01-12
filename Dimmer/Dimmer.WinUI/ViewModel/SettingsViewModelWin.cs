@@ -14,4 +14,5 @@ public partial class SettingsViewModelWin : SettingsViewModel
         BaseViewModelWin = IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
 
     }
+
 }

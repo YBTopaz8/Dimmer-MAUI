@@ -110,7 +110,7 @@ IRepository<SongModel> songRepository, // Inject the repository
     /// Fetches allsongs lyrics props for a song using a tiered online strategy.
     /// First, it tries a highly specific match, then falls back to a broader search.
     /// </summary>
-    public async Task<IEnumerable<LrcLibLyrics>?> GetAllLyricsPropsOnlineAsync(SongModelView song, CancellationToken token)
+    public async Task<IEnumerable<LrcLibLyrics>?> GetAllLyricsPropsOnlineAsync(SongModel song, CancellationToken token)
     {
         if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         // First, attempt the most efficient API call: /api/get

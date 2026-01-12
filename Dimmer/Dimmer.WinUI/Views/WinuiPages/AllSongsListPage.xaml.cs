@@ -1476,7 +1476,7 @@ true
         .ObserveOn(RxSchedulers.UI)
             .Subscribe(selectedSong =>
             {
-                if (!string.IsNullOrEmpty(selectedSong.CoverImagePath))
+                if (!string.IsNullOrEmpty(selectedSong?.CoverImagePath))
                     SelectedSongImg.Source = new BitmapImage(new Uri(selectedSong.CoverImagePath));
             });
     }
