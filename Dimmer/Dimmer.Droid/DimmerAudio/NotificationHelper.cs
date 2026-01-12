@@ -128,7 +128,7 @@ public static class NotificationHelper
         {
             mgr.SetUseChronometer(song.HasSyncedLyrics); // optional: show time counter if lyrics exist
         }
-        \
+        
 
             mgr.SetUseFastForwardActionInCompactView(false);
         mgr.SetUsePreviousAction(false);
