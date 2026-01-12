@@ -103,6 +103,11 @@ internal class SongAdapter : RecyclerView.Adapter
     }
     private readonly CompositeDisposable _disposables = new();
     public override int ItemCount => _songs.Count;
+
+    public Button moreBtn { get; private set; }
+    public Button infoBtn { get; private set; }
+    public Button favBtn { get; private set; }
+
     public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
     {
         if (holder is SongViewHolder songHolder)
@@ -256,7 +261,7 @@ internal class SongAdapter : RecyclerView.Adapter
         topRow.AddView(textLayout);
 
         // More Button (The Trigger)
-        var moreBtn = new MaterialButton(ctx, null, Resource.Attribute.materialIconButtonStyle);
+         moreBtn = new MaterialButton(ctx, null, Resource.Attribute.materialIconButtonStyle);
         moreBtn.SetIconResource(Resource.Drawable.more1); // Ensure this drawable exists
         moreBtn.IconTint = Android.Content.Res.ColorStateList.ValueOf(Color.Gray);
         moreBtn.BackgroundTintList = Android.Content.Res.ColorStateList.ValueOf(Color.Transparent);
@@ -276,6 +281,8 @@ internal class SongAdapter : RecyclerView.Adapter
 
 
         topRow.AddView(rightLinearLayout);
+
+
         // --- EXPANDABLE ROW (Hidden by default) ---
         var expandRow = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
         expandRow.SetGravity(GravityFlags.Center);
@@ -286,10 +293,10 @@ internal class SongAdapter : RecyclerView.Adapter
         //var playBtn = CreateActionButton("Play Next", Resource.Drawable.exo_icon_play);
         //expandRow.AddView(playBtn);
 
-        var favBtn = CreateActionButton("Fav", Resource.Drawable.heart);
+        favBtn = CreateActionButton("Fav", Resource.Drawable.heart);
         expandRow.AddView(favBtn);
 
-        var infoBtn = CreateActionButton("Info", Resource.Drawable.infocircle);
+        infoBtn = CreateActionButton("Info", Resource.Drawable.infocircle);
         MaterialButton? LyricsBtn = CreateActionButton("Lyrics", Resource.Drawable.lyrics);
         
         expandRow.AddView(infoBtn);
@@ -299,7 +306,7 @@ internal class SongAdapter : RecyclerView.Adapter
         //{
             
         var insertAfterBtn = new ImageView(ctx, null, Resource.Attribute.materialButtonOutlinedStyle);
-        insertAfterBtn.SetImageResource(Resource.Drawable.media3_icon_queue_next);
+        insertAfterBtn.SetImageResource(Resource.Drawable.media3_icon_next);
 insertAfterBtn.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(UiBuilder.IsDark(this.ParentFragement.Resources.Configuration) ? Color.Gray : Color.ParseColor("#294159"));
 
         insertAfterBtn.SetPadding(30, 0, 30, 0);
@@ -311,6 +318,7 @@ insertAfterBtn.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(UiBuil
     
     insertAfterBtn.TooltipText = $"Insert this song after {MyViewModel.CurrentPlayingSongView.Title}";
             //expandRow.AddView(insertBeforeBtn);
+
             expandRow.AddView(insertAfterBtn);
  
 
@@ -484,6 +492,7 @@ insertAfterBtn.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(UiBuil
                 if (_currentSong?.ArtistName != null)
                 {
                     var query = $"artist:\"{_currentSong.OtherArtistsName}\"";
+                    _artist.PerformHapticFeedback(FeedbackConstants.LongPress);
                     _viewModel.SearchSongForSearchResultHolder(query);
                 }
             };
@@ -550,6 +559,7 @@ insertAfterBtn.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(UiBuil
             }
 
             // Accordion Visibility
+           //TODO use animate().alpha.duration for more sophisticated anims
             _expandRow.Visibility = isExpanded ? ViewStates.Visible : ViewStates.Gone;
             _container.StrokeColor = isExpanded ? Color.DarkSlateBlue : Color.ParseColor("#E0E0E0");
             _container.StrokeWidth = isExpanded ? 3 : 0;

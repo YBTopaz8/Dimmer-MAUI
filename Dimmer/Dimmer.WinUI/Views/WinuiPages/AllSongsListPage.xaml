@@ -163,12 +163,7 @@
                             PlaceholderText="Search with TQL..."
                             Text="{x:Bind MyViewModel.CurrentTqlQuery, Mode=OneWay}"
                             TextChanged="SearchAutoSuggestBox_TextChanged" />
-                        <ListView
-                            x:Name="SuggestList"
-                            MaxHeight="200"
-                            Background="{ThemeResource SystemControlBackgroundAltHighBrush}"
-                            SelectionChanged="SuggestSelected"
-                            Visibility="Collapsed" />
+                       
 
                         <TextBlock x:Name="PreviewText" />
                         <TextBlock VerticalAlignment="Center" Text="{x:Bind MyViewModel.SearchResults.Count, Mode=OneWay}" />
@@ -414,7 +409,8 @@
                             <dgView:TableViewTemplateColumn.CellTemplate>
                                 <DataTemplate>
 
-                                    <StackPanel HorizontalAlignment="Center">
+                                    <StackPanel HorizontalAlignment="Center" x:Name="DurationFormatted"
+                                                DoubleTapped="DurationFormatted_DoubleTapped">
                                         <TextBlock
                                             HorizontalAlignment="Center"
                                             Text="{Binding DurationFormatted}"
@@ -543,6 +539,7 @@
                 CornerRadius="5,5,5,5">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
@@ -605,8 +602,17 @@
                         </Button.Content>
                     </Button>
                 </Grid>
+
+                <StackPanel Grid.Row="1" Orientation="Horizontal"
+                                        Padding="8"
+                            Spacing="10">
+                    <TextBlock Text="TQL :"/>
+                    <Button Content="{x:Bind MyViewModel.CurrentTqlQueryUI,Mode=OneWay}"
+                            Background="Transparent"/>
+                </StackPanel>
+                
                 <Grid
-                    Grid.Row="1"
+                    Grid.Row="2"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Stretch"
                     Background="{ThemeResource LayerFillColorDefaultBrush}">
@@ -614,8 +620,16 @@
                     <Image
                         x:Name="NowPlayingSongImg"
                         Opacity="0.05"
-                        Source="{Binding CurrentPlayingSongView.CoverImagePath, Converter={StaticResource StringToImageConverter}}"
+                        Source="{x:Bind MyViewModel.CurrentPlayingSongView.CoverImagePath,Mode=OneWay, Converter={StaticResource StringToImageConverter}}"
                         Stretch="UniformToFill" />
+                    <StackPanel VerticalAlignment="Bottom"
+                                Background="{x:Bind MyViewModel.WinUIDominantBrush,Mode=OneWay}"
+                                CornerRadius="15" Padding="8"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Center">
+                        <TextBlock Text="{x:Bind MyViewModel.PlaybackQueue.Count,Mode=OneWay}"/>
+                        <TextBlock Text="Songs"/>
+                    </StackPanel>
                     <ScrollViewer>
                         <ListView 
                             x:Name="NowPlayingPBQueue" 

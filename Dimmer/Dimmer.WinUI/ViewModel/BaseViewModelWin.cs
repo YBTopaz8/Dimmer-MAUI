@@ -426,7 +426,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         if (CurrentPlaySongDominantColor is null)
             return;
         var c = CurrentPlaySongDominantColor;
-        DominantBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(
+        WinUIDominantBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(
         (byte)(c.Alpha * 255),
         (byte)(c.Red * 255),
         (byte)(c.Green * 255),
@@ -666,7 +666,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     [ObservableProperty]
     public partial ObservableCollection<WindowEntry> AllWindows { get; set; }
     [ObservableProperty]
-    public partial SolidColorBrush DominantBrush { get; set; }
+    public partial SolidColorBrush WinUIDominantBrush { get; set; }
 
     [RelayCommand]
     public void RefreshWindows()
@@ -1219,11 +1219,13 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     }
 
-    public async override Task LoadFolderToScan()
+    [RelayCommand]
+    public async Task LoadFolderToScanForBackUpFiles()
     {
         try
         {
-            var res = await FolderPicker.Default.PickAsync(CancellationToken.None);
+            CancellationTokenSource cts= new();
+            var res = await FolderPicker.Default.PickAsync(cts.Token);
 
             if (res is not null && res.Folder is not null)
             {

@@ -339,10 +339,11 @@ public sealed partial class SettingsPage : Page
     private void BackUpData_Click(object sender, RoutedEventArgs e)
     {
         MyViewModel.BackUpAppData();
+        
     }
 
-    private void RestoreData_Click(object sender, RoutedEventArgs e)
+    private async void RestoreData_Click(object sender, RoutedEventArgs e)
     {
-
+        await MyViewModel.BaseViewModelWin.LoadFolderToScanForBackUpFiles();
     }
 }

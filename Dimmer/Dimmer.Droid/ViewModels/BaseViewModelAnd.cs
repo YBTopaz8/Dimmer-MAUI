@@ -702,4 +702,33 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         CurrentTheme = isDarkMode ? UIUtils.CurrentAppTheme.Dark : UIUtils.CurrentAppTheme.Light;
         ToggleAppTheme();
     }
+
+    [RelayCommand]
+    public async Task LoadFolderToScanForBackUpFiles()
+    {
+        try
+        {
+            if (CurrentFragment!.Activity is TransitionActivity act)
+            {
+                var path = await act.PickFolderAsync();
+                if (!string.IsNullOrEmpty(path))
+                {
+
+                    CancellationTokenSource cts = new();
+
+                    if (!string.IsNullOrEmpty(path))
+                    {
+                        await RestoreAppDataAsync(path);
+                        return;
+                    }
+                } 
+            
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
+
+    }
 }

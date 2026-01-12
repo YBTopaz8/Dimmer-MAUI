@@ -394,6 +394,10 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
             ,
             IconSize = 13,
         };
+        restoreState.Click += (s, e) =>
+        {
+
+        };
         layout.AddView(restoreState);
         layout.AddView(CreateDivider(ctx));
 

@@ -539,7 +539,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     })
     .ObserveOn(RxSchedulers.UI) 
 
-    .Subscribe(result =>
+    .Subscribe(async result =>
     {
 
         if (!string.IsNullOrEmpty(result.ErrorMessage) || result.Plan.ErrorMessage != null)
@@ -562,6 +562,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         if (CurrentTqlQuery != NLPQuery)
         {
             CurrentTqlQuery = NLPQuery;
+            CurrentTqlQueryUI = NLPQuery;
         }
 
         // 4. Handle Post-Search Commands (Play, Add to Queue, etc)
@@ -572,7 +573,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 // Note: Ensure CommandEvaluator can handle ViewModels, 
                 // or you might need to re-fetch specific IDs if it needs Realm objects.
                 var commandAction = commandEvaluator.Evaluate(result.Plan.CommandNode, result.SongsResult);
-                HandleCommandAction(commandAction);
+               await HandleCommandAction(commandAction);
             }
             catch (Exception ex)
             {
@@ -843,7 +844,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     public event Action? MainWindowDeactivated;
 
-    private void HandleCommandAction(ICommandAction action)
+    private async Task HandleCommandAction(ICommandAction action)
     {
         if (action is null)
             return;
@@ -854,7 +855,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             case SavePlaylistAction spa:
                 // Your actual implementation here
                 Debug.WriteLine($"Action: Save playlist '{spa.Name}' with {spa.Songs.Count} songs.");
-                AddToPlaylist(spa.Name, spa.Songs.ToList(), CurrentTqlQuery);
+                await AddToPlaylist(spa.Name, spa.Songs.ToList(), CurrentTqlQuery);
                 ShowNotification($"Playlist '{spa.Name}' saved.")
                     .FireAndForget(
                         ex =>
@@ -7260,7 +7261,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         CurrentTqlQueryUI = value;
     }
     [ObservableProperty]
-    public partial string TQLUserSearchErrorMessage { get; set; }
+    public partial string? TQLUserSearchErrorMessage { get; set; }
 
     [ObservableProperty]
     public partial string NLPQuery { get; set; }
@@ -8617,11 +8618,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         var appModel = realm.All<AppStateModel>().FirstOrDefaultNullSafe();
         if (appModel is null) return ;
         var modelView = appModel.ToAppStateModelView();
-        var newBackUpJson = JsonSerializer.Serialize<AppStateModelView>(modelView, new JsonSerializerOptions() { PropertyNameCaseInsensitive=true});
-        
-        var allFavs = SearchResults.Where(x=>x.IsFavorite).ToList();
+        var newBackUpJson = JsonSerializer.Serialize<AppStateModelView?>(value: modelView, new JsonSerializerOptions() { PropertyNameCaseInsensitive=true});
+        var allFavs = realm.All<SongModel>().AsEnumerable()
+            .Where(x=>x.IsFavorite).Select(x=>x.ToSongModelView()).ToList();
 
-        var allFavsBackUpJson = JsonSerializer.Serialize<List<SongModelView>>(allFavs, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
+        var allFavsBackUpJson = JsonSerializer.Serialize<List<SongModelView?>?>(value: allFavs, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
 
         SaveBackUp(newBackUpJson, "AppState", "json");
         SaveBackUp(allFavsBackUpJson, "allFavs", "json");
@@ -8635,8 +8636,38 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         var files = await TaggingUtils.GetAllFilesFromPathsAsync(new List<string>() { folderPath }, config.SupportedFileExtensions);
         foreach (var filePath in files)
         {
+            if (filePath.Contains("allFavs"))
+            {
+                if (filePath.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (TaggingUtils.PlatformGetStreamHook != null)
+                    {
+                        using (Stream? fileStream = TaggingUtils.PlatformGetStreamHook(filePath))
+                        {
+                            if (fileStream == null)
+                            {
+
+                                return;
+                            }
+                            else
+                            {
+
+                                var songs = await JsonSerializer.DeserializeAsync<List<SongModelView?>?>(fileStream, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    var fData = await File.ReadAllBytesAsync(filePath);
+                    Stream fStream = new MemoryStream(fData);
+
+                    var songs = await JsonSerializer.DeserializeAsync<List<SongModelView?>?>(fStream, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
+                }
+            }
             if (filePath.Contains("AppState"))
             {
+
                 if (filePath.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
                 {
                     if (TaggingUtils.PlatformGetStreamHook != null)
@@ -8660,19 +8691,14 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 {
                     var fData = await File.ReadAllBytesAsync(filePath);
                     Stream fStream = new MemoryStream(fData);
-                    
+
                     var state = await JsonSerializer.DeserializeAsync<AppStateModelView>(fStream, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
                 }
             }
         }
         //var 
     }
-    public virtual Task LoadFolderToScan()
-    {
 
-
-        return Task.CompletedTask;
-    }
 }
 
 

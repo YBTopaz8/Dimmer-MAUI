@@ -206,8 +206,9 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         var root = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
         root.SetPadding(40, 80, 40, 40); // Top padding for dragging handle area
 
-        //root.SetBackgroundColor(UiBuilder.ThemedBGColor(ctx));
-        root.SetBackgroundColor(UiBuilder.IsDark(ctx) ? Color.ParseColor("#1a1a1a") : Color.ParseColor("#DEDFF0"));
+        
+        root.SetBackgroundColor(Color.ParseColor(_viewModel.CurrentPlaySongDominantColor.ToHex()));
+        //root.SetBackgroundColor(UiBuilder.IsDark(ctx) ? Color.ParseColor("#1a1a1a") : Color.ParseColor("#DEDFF0"));
 
 
         // --- A. Marquee Title ---

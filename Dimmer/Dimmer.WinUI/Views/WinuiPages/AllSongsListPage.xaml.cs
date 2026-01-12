@@ -6,7 +6,7 @@ using CommunityToolkit.WinUI;
 
 using Dimmer.Utilities.Extensions;
 using Dimmer.WinUI.Views.CustomViews.WinuiViews;
-
+using DynamicData.Binding;
 using Microsoft.Graphics.Canvas.Effects;
 using Microsoft.UI.Xaml.Controls.Primitives;
 
@@ -176,52 +176,7 @@ public sealed partial class AllSongsListPage : Page
 
     private void TableView_RightTapped(object sender, RightTappedRoutedEventArgs e)
     {
-        // Get the song from the tapped element
-        FrameworkElement element = (e.OriginalSource as FrameworkElement)!;
-        if (element == null)
-            return;
-
-        SongModelView? song = null;
-        while (element != null)
-        {
-            if (element.DataContext is SongModelView currentSong)
-            {
-                song = currentSong;
-                break;
-            }
-            element = (FrameworkElement)element.Parent;
-        }
-
-        if (song == null)
-            return;
-
-        // Create and show context menu
-        var flyout = new MenuFlyout();
         
-        var playNowItem = new MenuFlyoutItem { Text = "Play Now" };
-        playNowItem.Click += async (s, args) =>
-        {
-            var songs = MySongsTableView.Items.OfType<SongModelView>();
-            await MyViewModel.PlaySongWithActionAsync(song, Dimmer.Utilities.Enums.PlaybackAction.PlayNow, songs);
-        };
-        flyout.Items.Add(playNowItem);
-
-        var playNextItem = new MenuFlyoutItem { Text = "Play Next" };
-        playNextItem.Click += async (s, args) =>
-        {
-            var songs = MySongsTableView.Items.OfType<SongModelView>();
-            await MyViewModel.PlaySongWithActionAsync(song, Dimmer.Utilities.Enums.PlaybackAction.PlayNext, songs);
-        };
-        flyout.Items.Add(playNextItem);
-
-        var addToQueueItem = new MenuFlyoutItem { Text = "Add to Queue" };
-        addToQueueItem.Click += async (s, args) =>
-        {
-            await MyViewModel.PlaySongWithActionAsync(song, Dimmer.Utilities.Enums.PlaybackAction.AddToQueue);
-        };
-        flyout.Items.Add(addToQueueItem);
-
-        flyout.ShowAt(sender as UIElement, e.GetPosition(sender as UIElement));
     }
     private void TableView_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
@@ -600,14 +555,7 @@ public sealed partial class AllSongsListPage : Page
         var dlg = new SearchHelpDialog();
         await dlg.ShowAsync();
     }
-    private void SuggestSelected(object s, SelectionChangedEventArgs e)
-    {
-        if (SuggestList.SelectedItem is string val)
-            SearchTextBox.Text = val.Split(" ")[0]; // insert primary name only
-        SearchTextBox.Focus(FocusState.Programmatic);
-        
-        SuggestList.Visibility = Visibility.Collapsed;
-    }
+ 
     private void MySongsTableView_ProcessKeyboardAccelerators(UIElement sender, ProcessKeyboardAcceleratorEventArgs args)
     {
 
@@ -1295,7 +1243,24 @@ true
             foreach (var artistName in namesOfartists)
             {
                 var root = new MenuFlyoutItem { Text = artistName };
+                root.PointerReleased += (obj, e) =>
+                {
+                    var songContext = ((MenuFlyoutItem)obj).Text;
 
+                    var selectedArtist = MyViewModel.RealmFactory.GetRealmInstance()
+                    .Find<SongModel>(_storedSong.Id).ArtistToSong.First(x => x.Name == songContext)
+                    .ToArtistModelView();
+
+                    
+                    var nativeElementMenuFlyout = (Microsoft.UI.Xaml.UIElement)obj;
+                    var propertiesMenuFlyout = e.GetCurrentPoint(nativeElementMenuFlyout).Properties;
+                    if (propertiesMenuFlyout.PointerUpdateKind == Microsoft.UI.Input.PointerUpdateKind.RightButtonReleased)
+                    {
+                        MyViewModel.SearchSongForSearchResultHolder(PresetQueries.ByArtist(songContext))
+                        ;
+                        return;
+                    }
+                };
                 root.Click += async (obj, routedEv) =>
                 {
 
@@ -1306,13 +1271,6 @@ true
                     .ToArtistModelView();
 
 
-                    var nativeElementMenuFlyout = (Microsoft.UI.Xaml.UIElement)obj;
-                    var propertiesMenuFlyout = e.GetCurrentPoint(nativeElementMenuFlyout).Properties;
-                    if (propertiesMenuFlyout.IsRightButtonPressed)
-                    {
-                        MyViewModel.SearchSongForSearchResultHolder(PresetQueries.ByArtist(selectedArtist.Name))
-                        ;
-                    }
                     await MyViewModel.SetSelectedArtist(selectedArtist);
 
 
@@ -1514,8 +1472,13 @@ true
     private void SelectedSongImg_Loaded(object sender, RoutedEventArgs e)
     {
         if (MyViewModel.SelectedSong is null) return;
-        if(!string.IsNullOrEmpty(MyViewModel.SelectedSong.CoverImagePath))
-            SelectedSongImg.Source = new BitmapImage(new Uri(MyViewModel.SelectedSong.CoverImagePath));
+        MyViewModel.WhenValueChanged( newVl => MyViewModel.SelectedSong)
+        .ObserveOn(RxSchedulers.UI)
+            .Subscribe(selectedSong =>
+            {
+                if (!string.IsNullOrEmpty(selectedSong.CoverImagePath))
+                    SelectedSongImg.Source = new BitmapImage(new Uri(selectedSong.CoverImagePath));
+            });
     }
 
     private async Task ShowNotification(string message, Microsoft.UI.Xaml.Controls.InfoBarSeverity severity)
@@ -1539,5 +1502,15 @@ true
     private void QueueReOrder_Click(object sender, RoutedEventArgs e)
     {
         throw new NotImplementedException("Queue Reodering not yet implemented");
+    }
+
+    private void StackPanel_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
+    {
+
+    }
+
+    private void DurationFormatted_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
+    {
+
     }
 }
