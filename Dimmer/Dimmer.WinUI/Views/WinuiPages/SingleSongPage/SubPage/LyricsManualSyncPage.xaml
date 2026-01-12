@@ -29,6 +29,17 @@
                 Opacity="0.6"
                 Style="{StaticResource CaptionTextBlockStyle}"
                 Text="Tap 'Sync' or press Spacebar when the line is sung." />
+            
+            <!--  Paste from Clipboard Button  -->
+            <Button
+                Margin="0,10,0,0"
+                Command="{x:Bind MyViewModel.PasteLyricsFromClipboardCommand}"
+                HorizontalAlignment="Left">
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <FontIcon Glyph="&#xE77F;" />
+                    <TextBlock Text="Paste Lyrics from Clipboard" />
+                </StackPanel>
+            </Button>
         </StackPanel>
 
         <Grid Grid.Row="1" ColumnSpacing="20">
@@ -47,78 +58,136 @@
                 BorderThickness="1"
                 CornerRadius="8">
 
-                <ListView
-                    x:Name="LyricsListView"
-                    ItemsSource="{x:Bind MyViewModel.LyricsInEditor, Mode=OneWay}"
-                    SelectionMode="None">
-                    <ListView.ItemTemplate>
-                        <DataTemplate x:DataType="modelsLyrics:LyricEditingLineViewModel">
-                            <Grid Padding="10,5">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="100" />
-                                    <!--  Time  -->
-                                    <ColumnDefinition Width="*" />
-                                    <!--  Text  -->
-                                    <ColumnDefinition Width="Auto" />
-                                    <!--  Delete  -->
-                                </Grid.ColumnDefinitions>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
 
-                                <!--  Timestamp  -->
-                                <TextBlock
-                                    x:Name="TimeDisplay"
-                                    Grid.Column="0"
-                                    VerticalAlignment="Center"
-                                    FontFamily="Consolas"
-                                    Opacity="{x:Bind IsTimed, Mode=OneWay, Converter={StaticResource BoolOpacityConverter}}"
-                                    Text="{x:Bind Timestamp, Mode=OneWay}" />
+                    <!--  Batch Actions Toolbar (visible when items are selected)  -->
+                    <Grid
+                        x:Name="BatchActionsToolbar"
+                        Grid.Row="0"
+                        Padding="10"
+                        Background="{ThemeResource AccentFillColorDefaultBrush}"
+                        Visibility="Collapsed">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Button
+                                x:Name="RepeatSelectedBtn"
+                                Click="RepeatSelectedBtn_Click">
+                                <StackPanel Orientation="Horizontal" Spacing="5">
+                                    <FontIcon Glyph="&#xE8E9;" />
+                                    <TextBlock Text="Repeat Selected" />
+                                </StackPanel>
+                            </Button>
+                            <Button
+                                x:Name="DeleteSelectedBtn"
+                                Click="DeleteSelectedBtn_Click">
+                                <StackPanel Orientation="Horizontal" Spacing="5">
+                                    <FontIcon Foreground="Red" Glyph="&#xE74D;" />
+                                    <TextBlock Text="Delete Selected" />
+                                </StackPanel>
+                            </Button>
+                            <Button
+                                x:Name="ClearSelectionBtn"
+                                Click="ClearSelectionBtn_Click"
+                                Content="Clear Selection" />
+                        </StackPanel>
+                    </Grid>
 
-                                <!--  Lyric Text (Editable)  -->
-                                <TextBox
-                                    x:Name="TextDisplay"
-                                    Grid.Column="1"
-                                    VerticalAlignment="Center"
-                                    Background="Transparent"
-                                    BorderThickness="0"
-                                    Text="{x:Bind Text, Mode=TwoWay}" />
+                    <ListView
+                        x:Name="LyricsListView"
+                        Grid.Row="1"
+                        ItemsSource="{x:Bind MyViewModel.LyricsInEditor, Mode=OneWay}"
+                        SelectionChanged="LyricsListView_SelectionChanged"
+                        SelectionMode="Multiple">
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="modelsLyrics:LyricEditingLineViewModel">
+                                <Grid Padding="10,5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="100" />
+                                        <!--  Time  -->
+                                        <ColumnDefinition Width="*" />
+                                        <!--  Text  -->
+                                        <ColumnDefinition Width="Auto" />
+                                        <!--  Repeat  -->
+                                        <ColumnDefinition Width="Auto" />
+                                        <!--  Delete  -->
+                                    </Grid.ColumnDefinitions>
 
-                                <!--  Delete Button (Small)  -->
-                                <Button
-                                    Grid.Column="2"
-                                    Background="Transparent"
-                                    BorderThickness="0"
-                                    Command="{Binding ElementName=LyricsListView, Path=DataContext.DeleteTimestampFromLineCommand}"
-                                    CommandParameter="{x:Bind}">
-                                    <FontIcon
-                                        FontSize="12"
-                                        Foreground="Red"
-                                        Glyph="&#xE74D;"
-                                        Opacity="0.5" />
-                                </Button>
+                                    <!--  Timestamp  -->
+                                    <TextBlock
+                                        x:Name="TimeDisplay"
+                                        Grid.Column="0"
+                                        VerticalAlignment="Center"
+                                        FontFamily="Consolas"
+                                        Opacity="{x:Bind IsTimed, Mode=OneWay, Converter={StaticResource BoolOpacityConverter}}"
+                                        Text="{x:Bind Timestamp, Mode=OneWay}" />
 
-                                <!--  Visual State Manager for Current Line Highlighting  -->
-                                <VisualStateManager.VisualStateGroups>
-                                    <VisualStateGroup>
-                                        <VisualState x:Name="Normal">
-                                            <VisualState.StateTriggers>
-                                                <StateTrigger IsActive="{x:Bind IsCurrentLine, Converter={StaticResource BoolInverterConverter}}" />
-                                            </VisualState.StateTriggers>
-                                        </VisualState>
-                                        <VisualState x:Name="Active">
-                                            <VisualState.StateTriggers>
-                                                <StateTrigger IsActive="{x:Bind IsCurrentLine}" />
-                                            </VisualState.StateTriggers>
-                                            <VisualState.Setters>
-                                                <Setter Target="TextDisplay.FontWeight" Value="Bold" />
-                                                <Setter Target="TextDisplay.Foreground" Value="{StaticResource SystemAccentColor}" />
-                                                <Setter Target="TimeDisplay.Foreground" Value="{StaticResource SystemAccentColor}" />
-                                            </VisualState.Setters>
-                                        </VisualState>
-                                    </VisualStateGroup>
-                                </VisualStateManager.VisualStateGroups>
-                            </Grid>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
+                                    <!--  Lyric Text (Editable)  -->
+                                    <TextBox
+                                        x:Name="TextDisplay"
+                                        Grid.Column="1"
+                                        VerticalAlignment="Center"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Text="{x:Bind Text, Mode=TwoWay}" />
+
+                                    <!--  Repeat Button  -->
+                                    <Button
+                                        Grid.Column="2"
+                                        Margin="5,0"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Command="{Binding ElementName=LyricsListView, Path=DataContext.RepeatLineCommand}"
+                                        CommandParameter="{x:Bind}"
+                                        ToolTipService.ToolTip="Repeat this line">
+                                        <FontIcon
+                                            FontSize="12"
+                                            Glyph="&#xE8E9;"
+                                            Opacity="0.5" />
+                                    </Button>
+
+                                    <!--  Delete Button  -->
+                                    <Button
+                                        Grid.Column="3"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Command="{Binding ElementName=LyricsListView, Path=DataContext.DeleteTimestampFromLineCommand}"
+                                        CommandParameter="{x:Bind}"
+                                        ToolTipService.ToolTip="Delete this line">
+                                        <FontIcon
+                                            FontSize="12"
+                                            Foreground="Red"
+                                            Glyph="&#xE74D;"
+                                            Opacity="0.5" />
+                                    </Button>
+
+                                    <!--  Visual State Manager for Current Line Highlighting  -->
+                                    <VisualStateManager.VisualStateGroups>
+                                        <VisualStateGroup>
+                                            <VisualState x:Name="Normal">
+                                                <VisualState.StateTriggers>
+                                                    <StateTrigger IsActive="{x:Bind IsCurrentLine, Converter={StaticResource BoolInverterConverter}}" />
+                                                </VisualState.StateTriggers>
+                                            </VisualState>
+                                            <VisualState x:Name="Active">
+                                                <VisualState.StateTriggers>
+                                                    <StateTrigger IsActive="{x:Bind IsCurrentLine}" />
+                                                </VisualState.StateTriggers>
+                                                <VisualState.Setters>
+                                                    <Setter Target="TextDisplay.FontWeight" Value="Bold" />
+                                                    <Setter Target="TextDisplay.Foreground" Value="{StaticResource SystemAccentColor}" />
+                                                    <Setter Target="TimeDisplay.Foreground" Value="{StaticResource SystemAccentColor}" />
+                                                </VisualState.Setters>
+                                            </VisualState>
+                                        </VisualStateGroup>
+                                    </VisualStateManager.VisualStateGroups>
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
             </Border>
 
             <!--  CONTROLS SIDEBAR  -->

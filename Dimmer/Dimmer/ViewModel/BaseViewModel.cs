@@ -6430,6 +6430,91 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _logger.LogInformation("Lyrics editing session cancelled.");
     }
 
+    [RelayCommand]
+    public async Task PasteLyricsFromClipboard()
+    {
+        try
+        {
+            var clipboardText = await Clipboard.Default.GetTextAsync();
+            if (!string.IsNullOrWhiteSpace(clipboardText))
+            {
+                StartLyricsEditingSession(clipboardText);
+                _logger.LogInformation("Pasted lyrics from clipboard.");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to paste lyrics from clipboard.");
+        }
+    }
+
+    [RelayCommand]
+    public void RepeatLine(LyricEditingLineViewModel lineToRepeat)
+    {
+        if (!IsLyricEditorActive || LyricsInEditor == null || lineToRepeat == null) return;
+
+        var indexOfLine = LyricsInEditor.IndexOf(lineToRepeat);
+        if (indexOfLine < 0) return;
+
+        var newLine = new LyricEditingLineViewModel
+        {
+            Text = lineToRepeat.Text,
+            IsRepeated = true,
+            SectionType = lineToRepeat.SectionType,
+            BelongsToSection = lineToRepeat.BelongsToSection,
+            Timestamp = "[--:--.--]",
+            IsTimed = false,
+            IsCurrentLine = false
+        };
+
+        LyricsInEditor.Insert(indexOfLine + 1, newLine);
+        _logger.LogInformation("Repeated line: {Text}", lineToRepeat.Text);
+    }
+
+    [RelayCommand]
+    public void DeleteSelectedLines(IEnumerable<LyricEditingLineViewModel> selectedLines)
+    {
+        if (!IsLyricEditorActive || LyricsInEditor == null || selectedLines == null) return;
+
+        var linesToDelete = selectedLines.ToList();
+        foreach (var line in linesToDelete)
+        {
+            LyricsInEditor.Remove(line);
+        }
+        _logger.LogInformation("Deleted {Count} lines.", linesToDelete.Count);
+    }
+
+    [RelayCommand]
+    public void RepeatSelectedLines(IEnumerable<LyricEditingLineViewModel> selectedLines)
+    {
+        if (!IsLyricEditorActive || LyricsInEditor == null || selectedLines == null) return;
+
+        var linesToRepeat = selectedLines.ToList();
+        if (linesToRepeat.Count == 0) return;
+
+        // Find the index of the last selected line (using index access for efficiency)
+        var lastLineIndex = LyricsInEditor.IndexOf(linesToRepeat[linesToRepeat.Count - 1]);
+        if (lastLineIndex < 0) return;
+
+        // Insert repeated lines after the last selected line
+        int insertIndex = lastLineIndex + 1;
+        foreach (var line in linesToRepeat)
+        {
+            var newLine = new LyricEditingLineViewModel
+            {
+                Text = line.Text,
+                IsRepeated = true,
+                SectionType = line.SectionType,
+                BelongsToSection = line.BelongsToSection,
+                Timestamp = "[--:--.--]",
+                IsTimed = false,
+                IsCurrentLine = false
+            };
+            LyricsInEditor.Insert(insertIndex++, newLine);
+        }
+        _logger.LogInformation("Repeated {Count} lines.", linesToRepeat.Count);
+    }
+
     public async Task LoadPlainLyricsFromFile(string PickedPath)
     {
         var fileContent = await File.ReadAllTextAsync(PickedPath);
