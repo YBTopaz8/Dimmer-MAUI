@@ -26,7 +26,8 @@
             <convertersWinUI:BoolToInverseVisibilityConverter x:Key="BoolToInverseVisibilityConverter" />
         </ResourceDictionary>
     </Page.Resources>
-    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+          RowSpacing="10">
 
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
@@ -34,12 +35,23 @@
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
         <StackPanel
-            Grid.Row="0"
+            Grid.Row="0" 
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
             Background="Transparent">
-            <TextBlock Text="{x:Bind MyViewModel.LatestAppLog.Log, Mode=OneWay}" />
-            <StackPanel
+            <StackPanel Orientation="Horizontal">
+                <Button Content="BackUpData"
+                x:Name="BackUpData"
+                      Click="BackUpData_Click"  >
+                    
+                </Button>
+                <Button Content="RestoreData"
+                x:Name="RestoreData"
+                      Click="RestoreData_Click"  >
+                    
+                </Button>
+            </StackPanel>
+            <StackPanel 
                 HorizontalAlignment="Center"
                 Orientation="Horizontal"
                 Spacing="20">
@@ -51,22 +63,12 @@
                     FontSize="20" />
 
                 <Button
-                    x:Name="DimmerSection"
-                    Click="DimmerSection_Click"
-                    Content="DimmerLive"
+                    
+                    x:Name="AppPreferences"
+                    Click="AppPreferences_Click"
+                    Content="App Preferences"
                     FontSize="20" />
-
-                <Button
-                    x:Name="LastFMBtn"
-                    Click="LastFMView_Click"
-                    Content="LastFM Section"
-                    FontSize="20" />
-                <Button
-                    x:Name="UtilsBtn"
-                    Click="UtilsView_Click"
-                    Content="Utilities"
-                    FontSize="20"
-                    Visibility="Collapsed" />
+               
             </StackPanel>
 
 
@@ -78,10 +80,11 @@
             PointerReleased="WizardFlipView_PointerReleased"
             SelectedIndex="{Binding WizardCurrentViewIndex}"
             SelectionChanged="WizardFlipView_SelectionChanged">
-            <!--  Step 1  -->
+            <!--  index 0 -->
             <Grid
                 x:Name="MusicFoldersGrid"
                 Padding="40"
+                Loaded="MusicFoldersGrid_Loaded"
                 Background="#1C1C1C">
                 <StackPanel>
 
@@ -120,8 +123,17 @@
                         <Button
                             Margin="10,0,0,0"
                             Click="AddFolder_Click"
+                            x:Name="AddFolder" 
                             Content="Add Folder" />
-
+                        <TeachingTip x:Name="AddMusicFolderTip"
+             Title="Add New Folder"
+             Subtitle="Click to Add a New Folder"
+             Target="{x:Bind AddFolder}"
+                                     >
+                            <TeachingTip.IconSource>
+                                <FontIconSource  Glyph="&#xE946;" />
+                            </TeachingTip.IconSource>
+                        </TeachingTip>
                     </StackPanel>
 
                     <ItemsRepeater ItemsSource="{Binding FolderPaths}">
@@ -176,15 +188,12 @@
                 </StackPanel>
             </Grid>
 
-            <!--  Step 2  -->
-
-
-            <!--  Step 3  -->
+            <!--  Step 1  -->
             <Grid
                 x:Name="UtilitiesGrid"
                 Padding="10"
                 Background="#252525"
-                Visibility="Collapsed">
+                Visibility="Visible">
 
                 <StackPanel>
                     <TextBlock
@@ -198,8 +207,8 @@
                         Text="Review your preferences before finishing." />
 
                     <Border
-                        MinWidth="550"
-                        HorizontalAlignment="Left"
+                        MinWidth="750"
+                        HorizontalAlignment="Center"
                         CornerRadius="5">
                         <ScrollView>
                             <StackPanel>
@@ -220,6 +229,8 @@
                                         x:Name="AutoScrobbleToggle"
                                         Grid.Column="1"
                                         Margin="10"
+                                        Checked="AutoScrobbleToggle_Checked"
+                                        Unchecked="AutoScrobbleToggle_Unchecked"
                                         Content="Enable" />
                                 </Grid>
 
@@ -271,7 +282,7 @@
 
                                 <Expander
                                     x:Name="MiniLyricsExpander"
-                                    MinWidth="550"
+                                    MinWidth="750"
                                     ExpandDirection="Down"
                                     IsExpanded="False">
                                     <Expander.Header>
@@ -279,7 +290,7 @@
                                             x:Name="EnableMiniLyricsView"
                                             Checked="EnableMiniLyricsView_Checked"
                                             Content="Enable Mini Lyrics View"
-                                            IsChecked="True" />
+                                            IsChecked="False" />
                                     </Expander.Header>
 
                                     <Expander.Content>
@@ -343,7 +354,7 @@
                                 <Expander
                                     x:Name="LyricsExpander"
                                     Grid.Column="0"
-                                    MinWidth="550"
+                                    MinWidth="750"
                                     ExpandDirection="Down"
                                     IsExpanded="False">
                                     <Expander.Header>
@@ -351,7 +362,7 @@
                                             x:Name="EnableLyricsBtn"
                                             Checked="EnableLyricsBtn_Checked"
                                             Content="Enable Fetch With LrcLib"
-                                            IsChecked="True"
+                                            IsChecked="False"
                                             RightTapped="EnableLyricsBtn_RightTapped"
                                             ToolTipService.ToolTip="Enable Download of Synchronized or Plain Lyrics. Right Click to know more." />
                                     </Expander.Header>
@@ -484,31 +495,21 @@
             </Grid>
         </FlipView>
 
-        <TextBlock
-            Grid.Row="2"
-            Margin="5"
-            VerticalAlignment="Bottom"
-            Text="{Binding LatestAppLog.Log}" />
-        <!--  Navigation buttons  -->
-        <StackPanel
-            Grid.Row="2"
-            Margin="0,20,0,0"
-            HorizontalAlignment="Center"
-            Orientation="Horizontal"
-            Visibility="Collapsed">
-            <Button
-                x:Name="BackButton"
-                Margin="0,0,10,0"
-                Click="BackButton_Click"
-                Content="◀ Back"
-                CornerRadius="15"
-                FontSize="50" />
-            <Button
-                x:Name="NextButton"
-                Click="NextButton_Click"
-                Content="Next ▶"
-                CornerRadius="15"
-                FontSize="50" />
+        <StackPanel Grid.Row="2"
+                    Spacing="5"
+     Padding="5"
+                    Orientation="Horizontal">
+            <TextBlock
+     Grid.Row="2"
+     VerticalAlignment="Bottom"
+                x:Name="AppLog"
+     Text="{x:Bind MyViewModel.LatestAppLog.Log, Mode=OneWay}"/>
+            <Button x:Name="OptionLogBtn"
+                    Loaded="OptionLogBtn_Loaded"
+                    Content="View Songs"/>
         </StackPanel>
+       
+        <!--  Navigation buttons  -->
+  
     </Grid>
 </Page>

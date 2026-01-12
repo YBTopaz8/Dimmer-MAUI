@@ -46,6 +46,8 @@ public sealed partial class AllSongsListPage : Page
 
         // TODO: load from user settings or defaults
         _userPrefAnim = SongTransitionAnimation.Spring;
+
+        
     }
     BaseViewModelWin MyViewModel { get; set; }
 
@@ -62,7 +64,7 @@ public sealed partial class AllSongsListPage : Page
 
 
             _storedSong = null;
-
+            
             MySongsTableView.SmoothScrollIntoViewWithItemAsync(songToAnimate, (ScrollItemPlacement)ScrollIntoViewAlignment.Default);
             var myTableViewUIElem = MySongsTableView as UIElement;
             myTableViewUIElem.UpdateLayout();
@@ -272,7 +274,15 @@ public sealed partial class AllSongsListPage : Page
         {
             // Default behavior: Add to play next (non-interrupting)
             Debug.WriteLine($"Double-tapped on song: {song.Title}");
-            await MyViewModel.PlaySongWithActionAsync(song, Dimmer.Utilities.Enums.PlaybackAction.PlayNext, SongsEnumerable);
+            if (MyViewModel.CurrentPlayingSongView.TitleDurationKey is null)
+            {
+                await MyViewModel.PlaySongWithActionAsync(song, PlaybackAction.PlayNow
+                    , SongsEnumerable);
+            }
+            else
+            {
+                await MyViewModel.PlaySongWithActionAsync(song, Dimmer.Utilities.Enums.PlaybackAction.PlayNext, SongsEnumerable);
+            }
         }
     }
     public void ScrollToSong(SongModelView songToFind)

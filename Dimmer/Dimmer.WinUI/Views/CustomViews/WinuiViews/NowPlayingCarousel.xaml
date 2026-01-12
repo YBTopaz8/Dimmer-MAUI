@@ -8,7 +8,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
     <Grid>
-        <FlipView
+        <FlipView 
             x:Name="SongCarouselFlipView"
             ItemsSource="{x:Bind MyViewModel.CarouselItems, Mode=OneWay}"
             SelectedIndex="1"

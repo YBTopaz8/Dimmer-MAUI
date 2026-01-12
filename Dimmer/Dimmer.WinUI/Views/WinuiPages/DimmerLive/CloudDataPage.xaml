@@ -252,7 +252,7 @@
                                     Grid.Column="2"
                                     Command="{Binding ElementName=RootPage, Path=ViewModel.TransferToDeviceCommand}"
                                     CommandParameter="{Binding}"
-                                    Style="{StaticResource SubtleButtonStyle}"
+                                    Style="{StaticResource SecondaryButtonStyle}"
                                     ToolTipService.ToolTip="Transfer playback here">
                                     <FontIcon Glyph="&#xE762;" />
                                 </Button>

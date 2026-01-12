@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.ConstrainedExecution;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 using ATL;
 
 using AudioSwitcher.AudioApi;
-
+using CommunityToolkit.Diagnostics;
 using Dimmer.Data.Models;
 using Dimmer.Data.ModelView;
 using Dimmer.DimmerLive.ParseStatics;
@@ -353,7 +354,22 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     }
 
-   
+   public void GetLibState()
+    {
+        using (var checkRealm = RealmFactory.GetRealmInstance())
+        {
+            IsLibraryEmpty = !checkRealm.All<SongModel>().Any();
+            ShowWelcomeScreen = IsLibraryEmpty;
+
+            // Grab FolderPaths while we have this instance
+            var stateApp = checkRealm.All<AppStateModel>().FirstOrDefaultNullSafe();
+            if (stateApp is not null)
+            {
+                // Freeze allows this collection to survive outside the 'using' block
+                FolderPaths = stateApp.Freeze().UserMusicFoldersPreference.ToObservableCollection();
+            }
+        }
+    }
 
     public void InitializeAllVMCoreComponents()
     {
@@ -451,15 +467,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     {
         return new { Query = query};
     });
-
-       
-
-
         Observable.Merge(searchStream)
     .Throttle(TimeSpan.FromMilliseconds(300), RxSchedulers.Background) // Ensure we don't spam
     .Select(inputs =>
     {
-
+        RxSchedulers.UI.ScheduleToUI(() => IsTqlBusy = true);
         // 1. NLP Parsing (Lightweight)
         Debug.WriteLine($"[DEBUG] Processing: '{inputs.Query}'");
         var tqlQuery = string.IsNullOrWhiteSpace(inputs.Query) ? "" : NaturalLanguageProcessor.Process(inputs.Query);
@@ -500,7 +512,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                                 // Check if we need to filter at all
                                 if (plan.InMemoryPredicate == null) return true;
 
-                                return plan.InMemoryPredicate(model.ToSongModelView());
+                                return plan.InMemoryPredicate(model.ToSongModelView()!);
                             });
             if (plan.Shuffle != null)
             {
@@ -534,6 +546,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             TQLUserSearchErrorMessage = result.ErrorMessage ?? result.Plan.ErrorMessage;
             SearchResultsHolder.Edit(u => u.Clear()); // Clear list on error
+           IsTqlBusy = false;
             return;
         }
 
@@ -566,12 +579,14 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 Debug.WriteLine($"Command Execution Failed: {ex.Message}");
             }
         }
+        IsTqlBusy = false;
     },
     ex =>
     {
         // Fatal Pipeline Error
         _logger.LogError(ex, "FATAL: Search pipeline crashed.");
-        Debug.WriteLine($"[DEBUG] FATAL RX EXCEPTION: {ex}");
+        Debug.WriteLine($"[DEBUG] FATAL RX EXCEPTION: {ex}"); 
+        IsTqlBusy = false;
     })
     .DisposeWith(CompositeDisposables);
 
@@ -1220,7 +1235,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [RelayCommand]
     public void ToggleLastFMScrobbling(bool isOn)
     {
-        
+        ScrobbleOnCompletion = isOn;
         var realmm = RealmFactory.GetRealmInstance();
         var appModel = realmm.All<AppStateModel>().FirstOrDefaultNullSafe();
         if(appModel != null)
@@ -1353,6 +1368,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     private readonly MusicDataService _musicDataService;
     private IAppInitializerService appInitializerService;
     private IHoarderService _hoarderService;
+    public IDimmerStateService StateService => _stateService;
     protected IDimmerStateService _stateService;
     protected SubscriptionManager _subsMgr;
     protected IFolderMgtService _folderMgtService;
@@ -1596,6 +1612,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial bool IsDimmerPlaying { get; set; }
 
+    [ObservableProperty]
+    public partial bool IsTqlBusy { get; set; }
+
     
   
 
@@ -1636,7 +1655,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial string AppTitle { get; set; } = "🎄Dimmer";
 
-    public static string CurrentAppVersion = "1.5.6";
+    public static string CurrentAppVersion = "1.5.8";
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]
@@ -2317,6 +2336,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [RelayCommand]
     public async Task EnsureAllCoverArtCachedForSongsAsync()
     {
+        IsAppLoadingCovers = true;
         // 1. Get the TOTAL count safely using a short-lived Realm instance
         int totalCount = 0;
         List<ObjectId> songsToProcessIds = new();
@@ -2384,6 +2404,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         songsToProcessIds.Clear();
 
         _stateService.SetCurrentLogMsg(new AppLogModel { Log = "Cover art check complete." });
+        IsAppLoadingCovers = false;
     }
 
     #region Playback Event Handlers
@@ -2654,7 +2675,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         ReloadFolderPaths();
         _stateService.SetCurrentLogMsg(new AppLogModel() { Log = "Folder scan completed. Refreshing UI." });
         _logger.LogInformation("Folder scan completed. Refreshing UI.");
-
+        
         IsAppScanning = false;
        
         SearchSongForSearchResultHolder("desc added");
@@ -2663,7 +2684,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         
         _logger.LogInformation("Scan completed, but no new songs were passed to the UI.");
 
-        IsLibraryEmpty = false;
     }
 
     [RelayCommand]
@@ -2677,6 +2697,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             var appmodel = appModel[0];
             if(appmodel is null)return;
             FolderPaths.Clear();
+            IsLibraryEmpty = false;
             FolderPaths.AddRange(appmodel.UserMusicFoldersPreference);
             OnPropertyChanged(nameof(this.FolderPaths)); 
         }
@@ -2730,10 +2751,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     {
 
         IsLoadingDashoard = true;
-        var endDate = DateTimeOffset.UtcNow.Date.AddDays(1);
-        var startDate = endDate.AddDays(-7);
 
-        DashPeriod = $"From {startDate.ToShortDateString()} - {endDate.ToShortDateString()}";
+        DashPeriod = $"From {StatsReportStartDate.Date.ToShortDateString()} - {StatsReportEndDate.Date.ToShortDateString()}";
         realm = RealmFactory.GetRealmInstance();
         // Phase 1: Data Preparation
         var scrobblesInPeriod = realm.All<DimmerPlayEvent>()
@@ -2765,7 +2784,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             }).ToList();
         var allDimmsForSong = scrobblesInPeriod.AsEnumerable().Select(x=> x.ToDimmerPlayEventView());
         _reportGenerator = new ListeningReportGenerator(allSongs, allDimmsForSong, _logger,  RealmFactory);
-        if (!await _reportGenerator.GenerateReportAsync(startDate, endDate))
+        if (!await _reportGenerator.GenerateReportAsync(StatsReportStartDate, StatsReportEndDate))
             return;
 
         // --- Summary cards ---
@@ -4279,6 +4298,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial bool IsAppScanning { get; set; }
 
+    [ObservableProperty]
+    public partial bool IsAppLoadingCovers { get; set; }
+
     private Random _random = new();
 
 
@@ -4647,33 +4669,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         var yearStartDate = endDate.AddYears(-1);
     }
 
-    /// <summary>
-    /// Loads ALL statistics for a single song. Call this when a song is selected.
-    /// </summary>
-    [RelayCommand]
-    public async Task LoadStatsForSelectedSong(SongModelView? song)
-    {
-        song ??= SelectedSong;
-        var endDate = DateTimeOffset.Now;
-        var startDate = endDate.AddDays(-7);
-
-        realm = RealmFactory.GetRealmInstance();
-        // Phase 1: Data Preparation
-        var allDimmerEvents = realm.All<DimmerPlayEvent>()
-            .ToList();
-        var dimmerEventViewEnum = allDimmerEvents.AsEnumerable().Select(x=>x.ToDimmerPlayEventView());
-        var allSongs = realm.All<SongModel>().ToList();
-        _reportGenerator = new ListeningReportGenerator(allSongs, dimmerEventViewEnum, _logger,  RealmFactory);
-        await GenerateWeeklyReportAsync();
-    }
-
     [RelayCommand]
     public async Task LoadStatsForSpecificSong(SongModelView? song)
     {
         song ??= SelectedSong;
         if (song is null) return;
-        var endDate = DateTimeOffset.Now;
-        var startDate = endDate.AddDays(-7);
 
         realm = RealmFactory.GetRealmInstance();
         // Phase 1: Data Preparation
@@ -4683,11 +4683,16 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             //.OrderBy(p => p.EventDate) // Important for sequential analysis
             .ToList();
         var allSongs = realm.All<SongModel>().ToList();
-        var allDimmsForSong = scrobblesInPeriod.AsEnumerable().Select(x=>x.ToDimmerPlayEventView());
-        _reportGenerator = new ListeningReportGenerator(allSongs, allDimmsForSong, _logger,  RealmFactory);
-        await GenerateWeeklyReportAsync();
+        var allDimmsForSong = scrobblesInPeriod?.AsEnumerable().Select(x => x.ToDimmerPlayEventView());
+        _reportGenerator = new ListeningReportGenerator(allSongs, allDimmsForSong, _logger, RealmFactory);
+        
     }
 
+
+    [ObservableProperty]
+    public partial DateTimeOffset StatsReportEndDate { get; set; }
+    [ObservableProperty]
+    public partial DateTimeOffset StatsReportStartDate { get; set; }
     [RelayCommand]
     private async Task GenerateWeeklyReportAsync()
     {
@@ -4698,10 +4703,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         try
         {
             // Define the period for a weekly report ending today
-            var endDate = DateTimeOffset.UtcNow.Date.AddDays(1); // To include all of today
-            var startDate = endDate.AddDays(-7);
+            StatsReportEndDate = DateTimeOffset.UtcNow.Date.AddDays(1); // To include all of today
+             StatsReportStartDate = StatsReportEndDate.AddDays(-7);
 
-            var reportData = await _reportGenerator.GenerateReportAsync(startDate, endDate);
+            
+            var reportData = await _reportGenerator.GenerateReportAsync(StatsReportStartDate, StatsReportEndDate);
             if (reportData)
             {
                 // Find each stat by its title and assign it to the correct property.
@@ -5280,6 +5286,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     {
         
         await SongDataProcessor.ProcessLyricsAsync(
+            this,_stateService,
             RealmFactory,
             _lyricsMetadataService,
             null,
@@ -8550,6 +8557,122 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
 
     public IObservable<AppLogModel> LogStream => _stateService.LatestDeviceLog.Where(s => s.Log is not null);
+
+    private readonly object _logLock = new();
+    public void SaveBackUp(string logContent,string Name,string fileExt)
+    {
+      
+        try
+        {
+            // Define the directory path.
+            string directoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DimmerBackUp");
+
+            // Ensure the directory exists.
+            if (!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
+
+            // Use a date-specific file name.
+            string fileName = $"DimmerBackUp_{DateTime.Now:yyyy-MM-dd}{Name}.{fileExt}";
+            string filePath = Path.Combine(directoryPath, fileName);
+
+            // Retry mechanism for file writing.
+            bool success = false;
+            int retries = 3;
+            int delay = 500; // Delay between retries in milliseconds
+
+            lock (_logLock)
+            {
+                while (retries-- > 0 && !success)
+                {
+                    try
+                    {
+                        File.AppendAllText(filePath, logContent);
+                        success = true; // Write successful.
+
+                    }
+                    catch (IOException ioEx) when (retries > 0)
+                    {
+                        Debug.WriteLine($"Failed to backUp, retrying... ({ioEx.Message})");
+                        Thread.Sleep(delay);
+                    }
+                }
+
+                if (!success)
+                {
+                    Debug.WriteLine("Failed to backUp exception after multiple attempts.");
+                }
+            }
+        }
+        catch (Exception backUpEx)
+        {
+            Debug.WriteLine($"Failed to backUp exception: {backUpEx}");
+        }
+    }
+    public void BackUpAppData()
+    {
+        var realm = RealmFactory.GetRealmInstance();
+
+        var appModel = realm.All<AppStateModel>().FirstOrDefaultNullSafe();
+        if (appModel is null) return ;
+        var modelView = appModel.ToAppStateModelView();
+        var newBackUpJson = JsonSerializer.Serialize<AppStateModelView>(modelView, new JsonSerializerOptions() { PropertyNameCaseInsensitive=true});
+        
+        var allFavs = SearchResults.Where(x=>x.IsFavorite).ToList();
+
+        var allFavsBackUpJson = JsonSerializer.Serialize<List<SongModelView>>(allFavs, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
+
+        SaveBackUp(newBackUpJson, "AppState", "json");
+        SaveBackUp(allFavsBackUpJson, "allFavs", "json");
+
+        return ;   
+    }
+    public async Task RestoreAppDataAsync(string folderPath)
+    {
+        var config = new BackUpRestoreProcessingConfig(folderPath);
+
+        var files = await TaggingUtils.GetAllFilesFromPathsAsync(new List<string>() { folderPath }, config.SupportedFileExtensions);
+        foreach (var filePath in files)
+        {
+            if (filePath.Contains("AppState"))
+            {
+                if (filePath.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (TaggingUtils.PlatformGetStreamHook != null)
+                    {
+                        using (Stream? fileStream = TaggingUtils.PlatformGetStreamHook(filePath))
+                        {
+                            if (fileStream == null)
+                            {
+
+                                return;
+                            }
+                            else
+                            {
+
+                                var state = await JsonSerializer.DeserializeAsync<AppStateModelView>(fileStream, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    var fData = await File.ReadAllBytesAsync(filePath);
+                    Stream fStream = new MemoryStream(fData);
+                    
+                    var state = await JsonSerializer.DeserializeAsync<AppStateModelView>(fStream, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
+                }
+            }
+        }
+        //var 
+    }
+    public virtual Task LoadFolderToScan()
+    {
+
+
+        return Task.CompletedTask;
+    }
 }
 
 

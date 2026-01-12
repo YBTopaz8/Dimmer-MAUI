@@ -104,7 +104,8 @@ public class NowPlayingCarouselAdapter : RecyclerView.Adapter
             }
             else
             {
-                _image.SetImageResource(Resource.Drawable.musicnotess);
+                //_image.SetImageResource(Resource.Drawable.musicnotess);
+                _image.Background = null;
             }
 
 

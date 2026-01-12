@@ -130,10 +130,29 @@ public static class ImageResizer
     /// <param name="imageData">The byte array of the image.</param>
     /// <param name="defaultColor">A fallback color if no suitable color is found.</param>
     /// <returns>The dominant SKColor.</returns>
-    public static SKColor GetDominantColor(byte[]? imageData, SKColor? defaultColor = null)
-    {
-        var palette = GetVibrantPalette(imageData, 1);
-        return palette.Count!=0 ? palette.First() : (defaultColor ?? SKColors.Gray);
+    public async static Task<SKColor?> GetDominantColor(string coverfilePath, SKColor? defaultColor = null)
+    {  // --- Step 1: Validate the input ---
+        if (string.IsNullOrWhiteSpace(coverfilePath) || !File.Exists(coverfilePath))
+        {
+            // Log an error or warning here if you want
+            return null;
+        }
+
+        try
+        {
+            // --- Step 2: Read the file data asynchronously ---
+            var imageData = await File.ReadAllBytesAsync(coverfilePath);
+            var palette = GetVibrantPalette(imageData, 1);
+            return palette.Count != 0 ? palette.First() : (defaultColor ?? SKColors.Gray);  
+       }
+        catch(Exception ex)
+        {
+            // --- Step 5: Handle potential errors gracefully ---
+            // This could happen if the file is not a valid image, is corrupted, etc.
+            Debug.WriteLine($"Error getting dominant color for {coverfilePath}: {ex.Message}");
+            return null; // Always return a fallback value on error.
+       }
+    
     }
     /// <summary>
     /// Asynchronously extracts the dominant color from an image file.
@@ -252,11 +271,17 @@ public static class ImageResizer
             return new List<SKColor>();
         }
     }
-
-    public static byte[]? ResizeImage(byte[]? originalImageData, int maxDimension = 1400, int quality = 95)
+    
+    public async static Task<byte[]?> ResizeImage(string coverfilePath, int maxDimension = 1400, int quality = 95)
     {
+        if (string.IsNullOrWhiteSpace(coverfilePath) || !File.Exists(coverfilePath))
+        {
+            // Log an error or warning here if you want
+            return null;
+        }
         try
         {
+            var originalImageData = await File.ReadAllBytesAsync(coverfilePath);
             if (originalImageData == null || originalImageData.Length == 0)
             {
                 return null;
@@ -427,7 +452,7 @@ public static class ImageFilterUtils
     /// <param name="imageData">The original image data in bytes.</param>
     /// <param name="filterType">The filter effect to apply.</param>
     /// <returns>A new byte array representing the filtered image, or the original if the filter is None or fails.</returns>
-    public async static Task<byte[]?>? ApplyFilter(string? coverfilePath, FilterType filterType)
+    public async static Task<byte[]?> ApplyFilter(string? coverfilePath, FilterType filterType)
     {
         // --- Step 1: Validate the input ---
         if (string.IsNullOrWhiteSpace(coverfilePath) || !File.Exists(coverfilePath))
@@ -463,7 +488,7 @@ public static class ImageFilterUtils
                 canvas.Flush();
 
                 using var image = surface.Snapshot();
-                using var data = image.Encode(SKEncodedImageFormat.Jpeg, 90); // Encode as JPEG for web/app use
+                using var data = image.Encode(SKEncodedImageFormat.Png, 90); // Encode as JPEG for web/app use
 
                 return data.ToArray();
             }

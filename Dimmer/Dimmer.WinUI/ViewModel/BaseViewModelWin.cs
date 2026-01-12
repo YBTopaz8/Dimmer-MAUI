@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows.Controls.Primitives;
 
 using CommunityToolkit.Maui.Core.Extensions;
+using FolderPicker = CommunityToolkit.Maui.Storage.FolderPicker;
 
 //using TableView = WinUI.TableView.TableView;
 
@@ -1218,6 +1219,30 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     }
 
+    public async override Task LoadFolderToScan()
+    {
+        try
+        {
+            var res = await FolderPicker.Default.PickAsync(CancellationToken.None);
+
+            if (res is not null && res.Folder is not null)
+            {
+                string? selectedFolderPath = res!.Folder!.Path;
+
+                if (!string.IsNullOrEmpty(selectedFolderPath))
+                {
+                    await RestoreAppDataAsync(selectedFolderPath);
+                    return;
+                }
+
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
+
+    }
     internal async Task ToggleFavoriteRatingToArtist(ArtistModelView artist)
     {
         var realm = RealmFactory.GetRealmInstance();

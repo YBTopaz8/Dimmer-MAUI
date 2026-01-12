@@ -7,6 +7,7 @@ using AndroidX.DrawerLayout.Widget;
 using Dimmer.NativeServices;
 using Dimmer.UiUtils;
 using Dimmer.ViewsAndPages.NativeViews.DimmerLive;
+using Dimmer.ViewsAndPages.NativeViews.DimmerLive.LastFMViews;
 using Dimmer.ViewsAndPages.NativeViews.StatsSection;
 
 using Google.Android.Material.BottomNavigation;
@@ -95,8 +96,8 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         Dimmer.Utils.UiThreads.InitializeMainHandler();
 
         // 2. Setup Coordinator Layout Architecture
-        //SetupDrawerLayout();
-        SetupCsharpUi();
+        SetupDrawerLayout();
+        //SetupCsharpUi();
         // 3. Load Fragments (If fresh start)
         if (savedInstanceState == null)
         {
@@ -181,13 +182,14 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         barParams.Gravity = (int)GravityFlags.Bottom;
 
         // Attach the Scroll Behavior we defined in the C# port
-        var scrollBehavior = new HideBottomViewOnScrollBehavior<SmoothBottomBar>();
-        barParams.Behavior = scrollBehavior;
+        //var scrollBehavior = new HideBottomViewOnScrollBehavior<SmoothBottomBar>();
+        //barParams.Behavior = scrollBehavior;
 
         _bottomBar.LayoutParameters = barParams;
 
         // --- Styling ---
-        _bottomBar.SetBarBackgroundColor(barColor);
+        _bottomBar.SetBarBackgroundColor(Color.Red);
+        //_bottomBar.SetBarBackgroundColor(barColor);
         _bottomBar.SetTextColor(Color.White);
         _bottomBar.SetIndicatorColor(Color.ParseColor("#861B2D"));
         _bottomBar.SetIconTint(Color.ParseColor("#80FFFFFF"), Color.White);
@@ -235,9 +237,12 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
             {
                 Gravity = (int)GravityFlags.Bottom
             },
+
+            Background = new ColorDrawable(Color.Transparent),
+            BackgroundTintList = AppUtil.ToColorStateList(Color.Transparent),
             Elevation = 30 * Resources.DisplayMetrics.Density,
-            Clickable = true,
-            Focusable = true
+            Clickable = false,
+            Focusable = false
         };
 
         SheetBehavior = new BottomSheetBehavior();
@@ -245,9 +250,10 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         SheetBehavior.PeekHeight = (int)(140 * Resources.DisplayMetrics.Density);
         var sheetParams = (CoordinatorLayout.LayoutParams)_sheetContainer.LayoutParameters;
         sheetParams.Behavior = SheetBehavior;
-
+        
         // 6. ADD VIEWS (Order determines Z-Index)
         _mainContentCoordinator.AddView(_contentContainer);
+      
         _mainContentCoordinator.AddView(_bottomBar);
         _mainContentCoordinator.AddView(_sheetContainer); // Sheet sits ON TOP of the bar
 
@@ -318,9 +324,10 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
 
         // Setup Menu Items
         _navigationView.Menu.Add(0, 100, 0, "Home").SetIcon(Resource.Drawable.musicaba);
-        _navigationView.Menu.Add(0, 101, 0, "Browser / Graph").SetIcon(Resource.Drawable.heart);
+        _navigationView.Menu.Add(0, 101, 0, "Library").SetIcon(Resource.Drawable.heart);
         _navigationView.Menu.Add(0, 102, 0, "Last FM").SetIcon(Resource.Drawable.lastfm);
         _navigationView.Menu.Add(0, 103, 0, "Settings").SetIcon(Resource.Drawable.settings);
+        _navigationView.Menu.Add(0, 104, 0, "Dimmer Cloud").SetIcon(Resource.Drawable.cloudbolt);
 
         // Handle Clicks
         _navigationView.NavigationItemSelected += (s, e) =>
@@ -368,31 +375,43 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         ViewCompat.SetOnApplyWindowInsetsListener(_drawerLayout, this);
     }
     private int _systemBarBottom;
-    public WindowInsetsCompat OnApplyWindowInsets(View v, WindowInsetsCompat insets)
+    public WindowInsetsCompat? OnApplyWindowInsets(View? v, WindowInsetsCompat? insets)
     {
-        var bars = insets.GetInsets(WindowInsetsCompat.Type.SystemBars());
+        if (insets is not null)
+        {
+            var bars = insets.GetInsets(WindowInsetsCompat.Type.SystemBars());
+            if (bars is not null)
+            {
+                int top = bars.Top;
+                int bottom = bars.Bottom;
 
-        int top = bars.Top;
-        int bottom = bars.Bottom;
+                // Content: status bar + mini-player height
+                int miniPlayerHeight = AppUtil.DpToPx(70);
+                _systemBarBottom = bars.Bottom;
+                _contentContainer.SetPadding(
+                    0,
+                    top,
+                    0,
+                    bottom + miniPlayerHeight
+                );
 
-        // Content: status bar + mini-player height
-        int miniPlayerHeight = AppUtil.DpToPx(70);
-        _systemBarBottom = bars.Bottom;
-        _contentContainer.SetPadding(
-            0,
-            top,
-            0,
-            bottom + miniPlayerHeight
-        );
-
-        // Player sheet sits ABOVE system nav bar
-        var lp = (CoordinatorLayout.LayoutParams)_sheetContainer.LayoutParameters;
-        lp.BottomMargin = _systemBarBottom;
-        _sheetContainer.LayoutParameters = lp;
-        SheetBehavior.PeekHeight = miniPlayerHeight + _systemBarBottom;
+                // Player sheet sits ABOVE system nav bar
+                CoordinatorLayout.LayoutParams? lp = (CoordinatorLayout.LayoutParams?)_sheetContainer.LayoutParameters;
+                lp?.BottomMargin = _systemBarBottom;
+                _sheetContainer.LayoutParameters = lp;
+                SheetBehavior.PeekHeight = miniPlayerHeight + _systemBarBottom;
+            }
+        }
         return WindowInsetsCompat.Consumed;
     }
-
+    public void NavToHomeDirectly()
+    {
+        if (SupportFragmentManager.FindFragmentByTag("HomePageFragment") != null)
+        {
+            SupportFragmentManager.PopBackStack("HomePageFragment", 0);
+            return;
+        }
+    }
     private void NavigateToId(int id)
     {
         Fragment? selectedFrag = null;
@@ -410,26 +429,34 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
                 tag = "HomePageFragment";
                 break;
             case 101:
-                var vm = MainApplication.ServiceProvider.GetRequiredService<StatisticsViewModel>();
-                selectedFrag = new LibraryStatsHostFragment(MyViewModel, vm);
-                tag = "StatsFragment";
 
-                Task.Run(()=> vm.LoadLibraryStatsCommand.Execute(null) );
+                selectedFrag = new LibraryStatsFragment(MyViewModel);
+                tag = "LibraryStatsFragment";
+
                 break; 
             case 102:
-                //selectedFrag = new LastFmInfoFragment( MyViewModel);
+                selectedFrag = new LastFmInfoFragment( MyViewModel);
                 tag = "LastFMFragment";
                 break; 
             case 103:
                 selectedFrag = new SettingsFragment("settingsTrans", MyViewModel);
                 tag = "SettingsFragment";
                 break;
+            case 104:
+
+                var viewModel = MainApplication.ServiceProvider.GetService<SessionManagementViewModel>();
+                if (viewModel is not null)
+                {
+                    selectedFrag = new CloudDataFragment("SessionManagementTrans", viewModel);
+                    tag = "SessionMgt";
+                }
+                break;
         }
 
         if (selectedFrag != null)
         {
             SupportFragmentManager.BeginTransaction()
-                .SetCustomAnimations(Android.Resource.Animation.FadeIn, Android.Resource.Animation.FadeOut)
+                .SetCustomAnimations(Resource.Animation.m3_bottom_sheet_slide_in, Resource.Animation.m3_bottom_sheet_slide_out)
                 .Replace(_contentContainer.Id, selectedFrag, tag)
                 .AddToBackStack(tag)
                 .Commit();
@@ -446,10 +473,10 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
     {
         var trans = SupportFragmentManager.BeginTransaction();
         trans.SetCustomAnimations(
-            Android.Resource.Animation.FadeIn,
-            Android.Resource.Animation.FadeOut,
-            Android.Resource.Animation.FadeIn,
-            Android.Resource.Animation.FadeOut);
+            Resource.Animation.m3_side_sheet_enter_from_left,
+            Resource.Animation.m3_side_sheet_exit_to_right,
+            Resource.Animation.m3_bottom_sheet_slide_in,
+            Resource.Animation.m3_motion_fade_exit);
 
         trans.Replace(_contentContainer.Id, fragment, tag);
         trans.AddToBackStack(tag);
@@ -758,6 +785,7 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
     {
         if (SupportFragmentManager.BackStackEntryCount > 0)
         {
+            
             SupportFragmentManager.PopBackStack();
         }
         else

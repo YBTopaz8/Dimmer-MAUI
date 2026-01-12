@@ -134,7 +134,8 @@ using System.Linq;
 
         private void Init()
         {
-            var metrics = Resources.DisplayMetrics;
+        var debugColor = new Color(255, 0, 0, 255);
+        var metrics = Resources.DisplayMetrics;
             _indicatorRadius = TypedValue.ApplyDimension(ComplexUnitType.Dip, 20f, metrics);
             _sideMargins = TypedValue.ApplyDimension(ComplexUnitType.Dip, 10f, metrics);
             _itemPadding = TypedValue.ApplyDimension(ComplexUnitType.Dip, 10f, metrics);
@@ -151,8 +152,10 @@ using System.Linq;
         _paintBadge = new Paint(PaintFlags.AntiAlias) { StrokeWidth = 4f };
         _paintBadge.SetStyle(Paint.Style.Fill);
         _paintBadgeText = new Paint(PaintFlags.AntiAlias) { TextSize = _textSize, TextAlign = Paint.Align.Center, FakeBoldText = true };
-            _paintBackground = new Paint(PaintFlags.AntiAlias) { Color = new Color(_barBackgroundColor)};
+            _paintBackground = new Paint(PaintFlags.AntiAlias) { Color = new Color(debugColor) };
+            //_paintBackground = new Paint(PaintFlags.AntiAlias) { Color = new Color(_barBackgroundColor)};
         _paintBackground.SetStyle(Paint.Style.Fill);
+        
     }
 
         // --- PUBLIC API ---
@@ -215,13 +218,37 @@ using System.Linq;
             base.OnSizeChanged(w, h, oldw, oldh);
             RecalculateItems();
         }
+    protected override void OnMeasure(int widthMeasureSpec, int heightMeasureSpec)
+    {
+        // Force the height to be at least the standard bar height (e.g., 70dp) if not specified
+        int desiredHeight = (int)TypedValue.ApplyDimension(ComplexUnitType.Dip, 70f, Resources.DisplayMetrics);
 
-        private void RecalculateItems()
+        int width = MeasureSpec.GetSize(widthMeasureSpec);
+        MeasureSpecMode heightMode = MeasureSpec.GetMode(heightMeasureSpec);
+        int heightSize = MeasureSpec.GetSize(heightMeasureSpec);
+
+        int height;
+        if (heightMode == MeasureSpecMode.Exactly)
         {
-            if (_items.Count == 0) return;
+            height = heightSize;
+        }
+        else if (heightMode == MeasureSpecMode.AtMost)
+        {
+            height = Math.Min(desiredHeight, heightSize);
+        }
+        else
+        {
+            height = desiredHeight;
+        }
 
-            // Filter invisible items logic could go here, but for now we assume List reflects visible items
-            int visibleCount = _items.Count(i => i.IsVisible);
+        SetMeasuredDimension(width, height);
+    }
+    private void RecalculateItems()
+        {
+        if (_items.Count == 0 || Width <= 0) return;
+
+        // Filter invisible items logic could go here, but for now we assume List reflects visible items
+        int visibleCount = _items.Count(i => i.IsVisible);
             if (visibleCount == 0) return;
 
             float lastX = _sideMargins;
@@ -234,13 +261,17 @@ using System.Linq;
                 lastX += _itemWidth;
             }
 
-            // Reset Position
-            if (_activeItemIndex < _items.Count)
-            {
-                _indicatorLocation = _items[_activeItemIndex].Rect.Left;
-                // Init Alpha
-                for (int i = 0; i < _items.Count; i++) _items[i].Alpha = (i == _activeItemIndex) ? OPAQUE : TRANSPARENT;
-            }
+        // Reset Position
+        if (_indicatorLocation == 0 && _activeItemIndex < _items.Count)
+        {
+            _indicatorLocation = _items[_activeItemIndex].Rect.Left;
+        }
+        for (int i = 0; i < _items.Count; i++)
+        {
+            _items[i].Alpha = (i == _activeItemIndex) ? OPAQUE : TRANSPARENT;
+        }
+
+        Invalidate();
         }
 
         // --- DRAWING ---

@@ -1,6 +1,6 @@
 ﻿using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
-
+using Android.App.Backup;
 using Bumptech.Glide;
 
 using Dimmer.UiUtils;
@@ -132,11 +132,15 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
         root.AddView(CreateSectionHeader(ctx, "Audio & Playback"));
         root.AddView(CreateAudioSection(ctx));
 
-        root.AddView(CreateSectionHeader(ctx, "Library & Storage"));
-        root.AddView(CreateLibrarySection(ctx));
 
         root.AddView(CreateSectionHeader(ctx, "Lyrics & Metadata"));
         root.AddView(CreateLyricsSection(ctx));
+
+        root.AddView(CreateSectionHeader(ctx, "Library & Storage"));
+        root.AddView(CreateLibrarySection(ctx));
+
+        root.AddView(CreateSectionHeader(ctx, "LastFM"));
+        root.AddView(CreateLastFMSection(ctx));
 
         root.AddView(CreateSectionHeader(ctx, "System"));
         root.AddView(CreateSystemSection(ctx));
@@ -144,7 +148,7 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
         // Version Info
         var verText = new TextView(ctx)
         {
-            Text = "Dimmer Audio v1.0.0",
+            Text = $"Dimmer Audio v{BaseViewModel.CurrentAppVersion} {BaseViewModel.CurrentAppStage}",
             Gravity = GravityFlags.Center,
             Alpha = 0.5f
         };
@@ -232,7 +236,8 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
         _addFolderButton = new MaterialButton(ctx)
         {
             Text = "Add Folder",
-            Icon = AndroidX.Core.Content.ContextCompat.GetDrawable(ctx, Android.Resource.Drawable.IcInputAdd)
+            Icon = AndroidX.Core.Content.ContextCompat.GetDrawable(ctx, Resource.Drawable.addcircle)
+            ,IconSize = 13,
         };
         _addFolderButton.SetBackgroundColor(Android.Graphics.Color.Transparent);
         _addFolderButton.SetTextColor(IsDark() ? Android.Graphics.Color.White : Android.Graphics.Color.Black);
@@ -362,6 +367,56 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
     private View CreateSystemSection(Context ctx)
     {
         var layout = CreateCardLayout(ctx);
+
+        //layout.AddView(CreateSwitchRow(ctx, "Mouse Back Nav", "Use Mouse Button 4 to go back"
+        //    //MyViewModel.AppState.AllowBackNavigationWithMouseFour,
+        //    //(v) => MyViewModel.AppState.AllowBackNavigationWithMouseFour = v)
+        //    );
+        var backAppState = new MaterialButton(ctx)
+        {
+            Text = "BackUp App",
+            Icon = AndroidX.Core.Content.ContextCompat.GetDrawable(ctx, Resource.Drawable.savea)
+            ,
+            IconSize = 13,
+        };
+        backAppState.Click += (s, e) =>
+        {
+            MyViewModel.BaseVM.BackUpAppData();
+        };
+        layout.AddView(backAppState);
+        layout.AddView(CreateDivider(ctx));
+
+        
+        var restoreState = new MaterialButton(ctx)
+        {
+            Text = "Restore App",
+            Icon = AndroidX.Core.Content.ContextCompat.GetDrawable(ctx, Resource.Drawable.filedownload)
+            ,
+            IconSize = 13,
+        };
+        layout.AddView(restoreState);
+        layout.AddView(CreateDivider(ctx));
+
+
+
+
+
+        return WrapInCard(ctx, layout);
+    }
+
+    private View CreateLastFMSection(Context ctx)
+    {
+        var layout = CreateCardLayout(ctx);
+        var ToggleLastFMScrobbling = CreateSwitchRow(ctx, "AutoScrobble On Song Completion", "Automatically Scrobble Song when completed",
+            MyViewModel.KeepScreenOnDuringLyrics, (v) =>
+            {
+
+                    MyViewModel.BaseVM.ToggleLastFMScrobbling(v);
+
+
+            });
+
+        layout.AddView(ToggleLastFMScrobbling);
 
         //layout.AddView(CreateSwitchRow(ctx, "Mouse Back Nav", "Use Mouse Button 4 to go back"
         //    //MyViewModel.AppState.AllowBackNavigationWithMouseFour,

@@ -421,6 +421,7 @@ insertAfterBtn.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(UiBuil
                     await _viewModel.PlaySongAsync(_currentSong);
             };
 
+            _container.LongClickable = true;
             _container.LongClick += (s, e) =>
             {
                 _container.PerformHapticFeedback(FeedbackConstants.LongPress);
@@ -431,6 +432,7 @@ insertAfterBtn.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(UiBuil
 
             _infoBtn.Click += (s, e) =>
             {
+                
                 var infoSheet = new SongInfoBottomSheetFragment(_viewModel, _currentSong);
                 infoSheet.Show(_parentFrag.ParentFragmentManager, "SongInfoSheet");
             };
@@ -481,7 +483,7 @@ insertAfterBtn.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(UiBuil
             {
                 if (_currentSong?.ArtistName != null)
                 {
-                    var query = $"artist:\"{_currentSong.ArtistName}\"";
+                    var query = $"artist:\"{_currentSong.OtherArtistsName}\"";
                     _viewModel.SearchSongForSearchResultHolder(query);
                 }
             };
@@ -508,7 +510,7 @@ insertAfterBtn.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(UiBuil
                     _favBtn.Text = !_currentSong.IsFavorite ? "Unfav" : "Fav";
                     _favBtn.SetIconResource(iconRes);
                     UiBuilder.ShowSnackBar(
-    _favBtn, 
+    parentFrag.View, 
     _currentSong.IsFavorite ? "Added to Favorites" : "Removed from Favorites",
     textColor: Color.Black,
     iconResId: iconRes

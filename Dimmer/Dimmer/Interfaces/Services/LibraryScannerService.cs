@@ -290,7 +290,7 @@ public class LibraryScannerService : ILibraryScannerService
                 });
             }
 
-            _state.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderScanCompleted, extParam: null,null, null));
+            _state.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderScanCompleted, extParam: newSongs,newSongs.First(), null));
 
 
             // clear up and clean memory 

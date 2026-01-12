@@ -3,6 +3,7 @@ using System.Reactive.Disposables.Fluent;
 
 using Dimmer.DimmerLive.Models;
 using Dimmer.UiUtils;
+using Dimmer.ViewModel;
 using DynamicData;
 
 using Google.Android.Material.ProgressIndicator;
@@ -12,7 +13,7 @@ using static Dimmer.Utils.AppUtil;
 namespace Dimmer.ViewsAndPages.NativeViews.DimmerLive;
 
 
-public class CloudDataFragment : Fragment
+public class CloudDataFragment : Fragment, IOnBackInvokedCallback
 {
     private readonly string _transitionName;
     private readonly SessionManagementViewModel _viewModel;
@@ -52,7 +53,11 @@ public class CloudDataFragment : Fragment
         _loadingIndicator = new CircularProgressIndicator(ctx) { Indeterminate = true, Visibility = ViewStates.Gone };
 
         var registerBtn = new MaterialButton(ctx) { Text = "Register This Device" };
-        registerBtn.Click += async (s, e) => await _viewModel.RegisterCurrentDeviceCommand.ExecuteAsync(null);
+        registerBtn.Click += async (s, e) =>
+        {
+            
+            await _viewModel.RegisterCurrentDeviceCommand.ExecuteAsync(null);
+        };
 
         statusLayout.AddView(_statusText);
         statusLayout.AddView(_loadingIndicator);
@@ -99,16 +104,35 @@ public class CloudDataFragment : Fragment
         base.Dispose(disposing);
     }
 
-    public override void OnResume()
+    public override async void OnResume()
     {
         base.OnResume();
+            var loginVM = MainApplication.ServiceProvider.GetService<LoginViewModelAnd>();
+        if(loginVM is not null) 
+            await loginVM.InitAsync();
+
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu)
+        {
+            Activity?.OnBackInvokedDispatcher.RegisterOnBackInvokedCallback(
+                (int)IOnBackInvokedDispatcher.PriorityDefault, this);
+        }
+
+        if (!LoginViewModel.IsAuthenticated)
+        {
+            var vm = MainApplication.ServiceProvider.GetService<BaseViewModelAnd>();
+            if (vm is not null)
+            {
+                vm.NavigateToAnyPageOfGivenType(this, new LoginFragment("IntoLoginFromCloud", vm), "loginPageTag");
+                return;
+            }
+        }
         // Subscribe to PropertyChanged
         _viewModel.PropertyChanged += OnViewModelPropertyChanged;
 
-        // Initial State
-        UpdateStatus(_viewModel.StatusMessage);
-        UpdateBusy(_viewModel.IsBusy);
-        _adapter.NotifyDataSetChanged();
+            // Initial State
+            UpdateStatus(_viewModel.StatusMessage);
+            UpdateBusy(_viewModel.IsBusy);
+            _adapter.NotifyDataSetChanged();
     }
 
     public override void OnPause()
@@ -146,6 +170,16 @@ public class CloudDataFragment : Fragment
         _backupBtn.Enabled = !isBusy;
         _restoreBtn.Enabled = !isBusy;
     }
+
+    public void OnBackInvoked()
+    {
+        var myAct = this.Activity as TransitionActivity;
+        if (myAct != null)
+        {
+            myAct.OnBackPressed();
+        }
+    }
+
     class DevicesAdapter : RecyclerView.Adapter
     {
         Context ctx; SessionManagementViewModel vm;

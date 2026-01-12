@@ -11,8 +11,9 @@ public sealed partial class MediaPlaybackSection : UserControl
     {
         InitializeComponent();
         MyViewModel = IPlatformApplication.Current?.Services.GetService<BaseViewModelWin>();
+
     }
-    public BaseViewModelWin? MyViewModel { get; internal set; }
+    public BaseViewModelWin MyViewModel { get; internal set; }
 
     private void NextBtn_AccessKeyDisplayRequested(UIElement sender, AccessKeyDisplayRequestedEventArgs args)
     {
@@ -26,23 +27,7 @@ public sealed partial class MediaPlaybackSection : UserControl
 
     private void ViewNowPlayingSong_Click(object sender, RoutedEventArgs e)
     {
-        try
-        {
-            MyViewModel.SelectedSong = MyViewModel.CurrentPlayingSongView;
-            var dimmerWindow = MyViewModel.winUIWindowMgrService.GetWindow<DimmerWin>();
-            dimmerWindow ??= MyViewModel.winUIWindowMgrService.CreateWindow<DimmerWin>();
-
-
-
-            //MyViewModel.DimmerMultiWindowCoordinator.BringToFront()
-            if (dimmerWindow != null)
-                dimmerWindow.NavigateToPage(typeof(SongDetailPage));
-
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex.Message);
-        }
+       MyViewModel.NavigateToAnyPageOfGivenType(typeof(NowPlayingPage));
     }
 
     private void ViewLyricsButton_Click(object sender, RoutedEventArgs e)
@@ -257,6 +242,27 @@ public sealed partial class MediaPlaybackSection : UserControl
 
     private async void HomeBtn_Click(object sender, RoutedEventArgs e)
     {
-        await MyViewModel.DimmerMultiWindowCoordinator.SnapAllToHomeAsync();
+        MyViewModel?.windowManager.BringToFront(MyViewModel.MainMAUIWindow);
+    }
+
+    private void ViewNowPlayingSong_RightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+        try
+        {
+            MyViewModel.SelectedSong = MyViewModel.CurrentPlayingSongView;
+            var dimmerWindow = MyViewModel.winUIWindowMgrService.GetWindow<DimmerWin>();
+            dimmerWindow ??= MyViewModel.winUIWindowMgrService.CreateWindow<DimmerWin>();
+
+
+
+            //MyViewModel.DimmerMultiWindowCoordinator.BringToFront()
+            if (dimmerWindow != null)
+                dimmerWindow.NavigateToPage(typeof(SongDetailPage));
+
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
     }
 }

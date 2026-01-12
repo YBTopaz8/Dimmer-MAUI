@@ -1,5 +1,6 @@
-﻿using Google.Android.Material.Snackbar;
-
+﻿using Android.Text;
+using Google.Android.Material.Snackbar;
+using Xamarin.Google.Crypto.Tink.Signature;
 using static Dimmer.Utils.AppUtil;
 
 using TextAlignment = Android.Views.TextAlignment;
@@ -14,7 +15,16 @@ public static class UiBuilder
         p.SetMargins(margin, margin, margin, margin);
         return p;
     }
-
+    public static TextView CreateMarqueeTextView (Context ctx)
+    {
+        return new TextView(ctx)
+        {
+            Typeface = Typeface.DefaultBold,
+            Ellipsize = TextUtils.TruncateAt.Marquee,
+            HorizontalFadingEdgeEnabled = true,
+            Selected = true // Required for Marquee
+        };
+    }
     public static MaterialCardView CreateSectionCard(Context context, string title, View contentView)
     {
         var card = new MaterialCardView(context) { Radius = 24, Elevation = 4 };

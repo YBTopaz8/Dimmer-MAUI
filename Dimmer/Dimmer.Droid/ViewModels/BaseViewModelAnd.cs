@@ -626,6 +626,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             // This adds the ARC motion you wanted from the second block
             PathMotion = new MaterialArcMotion()
         };
+        //transform.IsSeekingSupported
         transform.SetDuration(400);
         // 3. Assign Transitions
         detailFrag.SharedElementEnterTransition = transform;
@@ -635,9 +636,10 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         // HOLD prevents the list from disappearing while the card expands
         callerFrag.ExitTransition = new Hold();
         callerFrag.ReenterTransition = new Hold();
-
+        
         // 5. Execute
         callerFrag.ParentFragmentManager.BeginTransaction()
+            
             .SetReorderingAllowed(true)
             .AddSharedElement(sharedView, transitionName)
             .Replace(Resource.Id.custom_fragment_container, detailFrag)

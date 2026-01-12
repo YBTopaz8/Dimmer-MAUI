@@ -72,6 +72,8 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
     private bool _isDraggingVolume;
     private Button _repeatBtn;
 
+    public DimmerSliderListener seekListener { get; private set; }
+
     public NowPlayingFragment()
     {
         
@@ -150,13 +152,18 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         textStack.SetPadding(30, 0, 0, 0);
         _miniTitle = new TextView(ctx) { TextSize = 18, Typeface = Android.Graphics.Typeface.DefaultBold, Ellipsize = Android.Text.TextUtils.TruncateAt.Marquee };
         _miniTitle.SetSingleLine(true);
-        _miniTitle.Selected = true; // For marquee
+        _miniTitle.SetSingleLine(true);
 
         _miniArtist = new TextView(ctx) { TextSize = 14, Alpha = 0.7f };
+        _miniArtist.Selected = true; // For marquee
+        _miniArtist.Selected = true; // For marquee
+
+        
+
         textStack.AddView(_miniTitle);
         textStack.AddView(_miniArtist);
 
-        var textParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 6f) { Gravity = GravityFlags.CenterVertical };
+        var textParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 7f) { Gravity = GravityFlags.CenterVertical };
         layout.AddView(textStack, textParams);
 
         
@@ -337,7 +344,8 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         _shuffleBtn = CreateControlButton(ctx, Resource.Drawable.media3_icon_shuffle_off, 40);
        
         _prevBtn = CreateControlButton(ctx, Resource.Drawable.media3_icon_previous, 60);
-        _playPauseBtn = CreateControlButton(ctx, Resource.Drawable.media3_icon_play, 80, true); // Larger, filled
+        _playPauseBtn = CreateControlButton(ctx, Resource.Drawable.media3_icon_play, 80, true)
+            ; // Larger, filled
         _nextBtn = CreateControlButton(ctx, Resource.Drawable.media3_icon_next, 60);
 
         _repeatBtn = CreateControlButton(ctx, Resource.Drawable.media3_icon_repeat_all, 45);
@@ -508,10 +516,12 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         // Slider Logic
 
         //_seekSlider.AddOnChangeListener
-        var seekListener = new DimmerSliderListener(
+        seekListener = new DimmerSliderListener(
     onDragStart: () =>
     {
+        seekListener.TotalDurationInSeconds = _viewModel.CurrentPlayingSongView.DurationInSeconds;
         _isDraggingSeek = true;
+        
     },
     onDragStop: (value) =>
     {
@@ -537,9 +547,12 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
     }
 );
 
+        seekListener.DataType = SliderDataType.Time;
         // 2. Register for BOTH events
         _seekSlider.AddOnChangeListener(seekListener);
         _seekSlider.AddOnSliderTouchListener(seekListener);
+
+
         var volumeListener = new DimmerSliderListener(
     onDragStart: () => { _isDraggingVolume = true; },
     onDragStop: (value) =>
@@ -552,6 +565,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
     onValueChange: null // We don't need real-time feedback for volume
 );
 
+        volumeListener.DataType = SliderDataType.Percentage;
         _volumeSlider.AddOnSliderTouchListener(volumeListener);
         // We don't strictly need AddOnChangeListener for volume if we only save on drop
         return scroll;
@@ -744,6 +758,8 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
                         break;
                 }
             }).DisposeWith(_disposables);
+
+
 
         _viewModel.WhenPropertyChange(nameof(_viewModel.IsShuffleActive), newVl => _viewModel.IsShuffleActive)
             .ObserveOn(RxSchedulers.UI)

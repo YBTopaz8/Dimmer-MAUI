@@ -184,7 +184,8 @@ public class QueueBottomSheetFragment : BottomSheetDialogFragment
         }
         else
         {
-            _recyclerView.SmoothScrollToPosition(index); 
+            _recyclerView.ScrollToPosition(index); 
+            //_recyclerView.SmoothScrollToPosition(index); 
         }
     }
 }
