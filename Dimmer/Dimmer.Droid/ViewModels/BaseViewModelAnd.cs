@@ -4,9 +4,8 @@
 using AndroidX.Lifecycle;
 
 using Bumptech.Glide;
-
+using Dimmer.UiUtils;
 using Dimmer.ViewsAndPages.NativeViews.ArtistSection;
-using Dimmer.WinUI.UiUtils;
 
 
 
@@ -627,6 +626,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             // This adds the ARC motion you wanted from the second block
             PathMotion = new MaterialArcMotion()
         };
+        //transform.IsSeekingSupported
         transform.SetDuration(400);
         // 3. Assign Transitions
         detailFrag.SharedElementEnterTransition = transform;
@@ -636,9 +636,10 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         // HOLD prevents the list from disappearing while the card expands
         callerFrag.ExitTransition = new Hold();
         callerFrag.ReenterTransition = new Hold();
-
+        
         // 5. Execute
         callerFrag.ParentFragmentManager.BeginTransaction()
+            
             .SetReorderingAllowed(true)
             .AddSharedElement(sharedView, transitionName)
             .Replace(Resource.Id.custom_fragment_container, detailFrag)
@@ -700,5 +701,34 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         }
         CurrentTheme = isDarkMode ? UIUtils.CurrentAppTheme.Dark : UIUtils.CurrentAppTheme.Light;
         ToggleAppTheme();
+    }
+
+    [RelayCommand]
+    public async Task LoadFolderToScanForBackUpFiles()
+    {
+        try
+        {
+            if (CurrentFragment!.Activity is TransitionActivity act)
+            {
+                var path = await act.PickFolderAsync();
+                if (!string.IsNullOrEmpty(path))
+                {
+
+                    CancellationTokenSource cts = new();
+
+                    if (!string.IsNullOrEmpty(path))
+                    {
+                        await RestoreAppDataAsync(path);
+                        return;
+                    }
+                } 
+            
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
+
     }
 }

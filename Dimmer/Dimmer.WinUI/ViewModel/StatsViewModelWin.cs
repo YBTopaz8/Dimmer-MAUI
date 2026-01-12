@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using Dimmer.Data.RealmStaticFilters;
 using Dimmer.Utilities.Extensions;
 
 using LiveChartsCore;
@@ -19,7 +19,10 @@ namespace Dimmer.WinUI.ViewModel;
 
 public partial class StatsViewModelWin : StatisticsViewModel
 {
-
+    MusicArtistryService musicArtistryService;
+    Dimmer.Data.RealmStaticFilters.MusicPowerUserService musicPowerUserService;
+    Dimmer.Data.RealmStaticFilters.MusicRelationshipService musicRelationshipService;
+    Dimmer.Data.RealmStaticFilters.MusicStatsService musicStatsService;
     public ISeries[] DailyActivitySeries { get; set; } // 1. Area
     public ICartesianAxis[] DailyDateAxis { get; set; }
 
@@ -82,11 +85,15 @@ public partial class StatsViewModelWin : StatisticsViewModel
     StatisticsService _statsService;
 
     public StatsViewModelWin(StatisticsService statsService,  ILogger<StatisticsViewModel> logger
-        ,BaseViewModelWin baseVM) : base(statsService, logger)
+        ,BaseViewModelWin baseVM, IRealmFactory realmFactory) : base(statsService, logger)
     {
         _statsService= statsService;
         HourlyXAxes = new ICartesianAxis[] { new Axis { Labels = Enumerable.Range(0, 24).Select(x => $"{x}:00").ToList() } };
         LoadLibraryStats(DateRangeFilter.AllTime);
+        musicArtistryService = new(realmFactory);
+        musicPowerUserService = new(realmFactory);
+        musicRelationshipService = new(realmFactory);
+        musicStatsService = new(realmFactory);
     }
 
     public void LoadLibraryStats(DateRangeFilter filter)

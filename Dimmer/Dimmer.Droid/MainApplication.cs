@@ -189,7 +189,7 @@ public class MainApplication : Application, Application.IActivityLifecycleCallba
             Debug.WriteLine($"Failed to log exception: {loggingEx}");
         }
     }
-
+    
     internal static void HandleIntent(Intent? intent)
     {
         Debug.WriteLine($"HandleIntent invoked with Intent: {intent}"); // Add logging!

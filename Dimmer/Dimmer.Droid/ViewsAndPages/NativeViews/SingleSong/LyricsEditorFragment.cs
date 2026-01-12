@@ -3,8 +3,7 @@
 using Bumptech.Glide;
 
 using Dimmer.Data.Models.LyricsModels;
-using Dimmer.WinUI.UiUtils;
-
+using Dimmer.UiUtils;
 using Google.Android.Material.ProgressIndicator;
 
 using ScrollView = Android.Widget.ScrollView;

@@ -128,7 +128,7 @@ public class QueueBottomSheetFragment : BottomSheetDialogFragment
                 var playlistName = inputEditText.Text?.Trim();
                 if (!string.IsNullOrWhiteSpace(playlistName))
                 {
-                    MyViewModel.SaveQueueAsPlaylistCommand.Execute(playlistName);
+                    //MyViewModel.SaveQueueAsPlaylistCommand.Execute(playlistName);
                     
                     // Show success message
                     Toast.MakeText(ctx, $"Queue saved as '{playlistName}'", ToastLength.Short)?.Show();
@@ -184,7 +184,8 @@ public class QueueBottomSheetFragment : BottomSheetDialogFragment
         }
         else
         {
-            _recyclerView.SmoothScrollToPosition(index); 
+            _recyclerView.ScrollToPosition(index); 
+            //_recyclerView.SmoothScrollToPosition(index); 
         }
     }
 }

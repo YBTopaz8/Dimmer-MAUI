@@ -7,9 +7,9 @@ using AndroidX.Core.View;
 using Bumptech.Glide;
 
 using Dimmer.DimmerAudio;
+using Dimmer.UiUtils;
 using Dimmer.Utilities;
 using Dimmer.ViewsAndPages.NativeViews.Misc;
-using Dimmer.WinUI.UiUtils;
 
 using Google.Android.Material.Chip;
 
@@ -52,6 +52,12 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
     private MaterialCardView _lyricsCard;
     private TextView _currentLyricText;
     private TextView _genreText, _yearText;
+    
+    // Carousel
+    private AndroidX.ViewPager2.Widget.ViewPager2 _carouselViewPager;
+    private NowPlayingCarouselAdapter _carouselAdapter;
+    private readonly object _navigationLock = new object();
+    private bool _isNavigating = false;
 
     // Controls
     private Slider _seekSlider;
@@ -65,6 +71,8 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
     private bool _isDraggingSeek = false;
     private bool _isDraggingVolume;
     private Button _repeatBtn;
+
+    public DimmerSliderListener seekListener { get; private set; }
 
     public NowPlayingFragment()
     {
@@ -99,7 +107,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
 
         return root;
     }
-
+    
     private LinearLayout CreateMiniPlayer(Context ctx)
     {
         if(_viewModel is null)return null!;
@@ -144,13 +152,18 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         textStack.SetPadding(30, 0, 0, 0);
         _miniTitle = new TextView(ctx) { TextSize = 18, Typeface = Android.Graphics.Typeface.DefaultBold, Ellipsize = Android.Text.TextUtils.TruncateAt.Marquee };
         _miniTitle.SetSingleLine(true);
-        _miniTitle.Selected = true; // For marquee
+        _miniTitle.SetSingleLine(true);
 
         _miniArtist = new TextView(ctx) { TextSize = 14, Alpha = 0.7f };
+        _miniArtist.Selected = true; // For marquee
+        _miniArtist.Selected = true; // For marquee
+
+        
+
         textStack.AddView(_miniTitle);
         textStack.AddView(_miniArtist);
 
-        var textParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 6f) { Gravity = GravityFlags.CenterVertical };
+        var textParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 7f) { Gravity = GravityFlags.CenterVertical };
         layout.AddView(textStack, textParams);
 
         
@@ -193,8 +206,9 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         var root = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
         root.SetPadding(40, 80, 40, 40); // Top padding for dragging handle area
 
-        //root.SetBackgroundColor(UiBuilder.ThemedBGColor(ctx));
-        root.SetBackgroundColor(UiBuilder.IsDark(ctx) ? Color.ParseColor("#1a1a1a") : Color.ParseColor("#DEDFF0"));
+        
+        root.SetBackgroundColor(Color.ParseColor(_viewModel.CurrentPlaySongDominantColor.ToHex()));
+        //root.SetBackgroundColor(UiBuilder.IsDark(ctx) ? Color.ParseColor("#1a1a1a") : Color.ParseColor("#DEDFF0"));
 
 
         // --- A. Marquee Title ---
@@ -215,27 +229,30 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
 
         root.AddView(_expandedTitle);
 
-        // --- B. Image & Lyrics Grid ---
-        var gridFrame = new FrameLayout(ctx);
+        // --- B. Carousel ViewPager2 with Lyrics Overlay ---
+        var carouselFrame = new FrameLayout(ctx);
+        var carouselParams = new LinearLayout.LayoutParams(-1, AppUtil.DpToPx(420));
+        carouselParams.SetMargins(0, 30, 0, 30);
+        carouselFrame.LayoutParameters = carouselParams;
 
-        var gridParams = new LinearLayout.LayoutParams(-1, AppUtil.DpToPx(420));
-        gridParams.SetMargins(0, 30, 0, 30);
-        gridFrame.LayoutParameters = gridParams;
-
-        var imgCard = new MaterialCardView(ctx) { Radius = AppUtil.DpToPx(20), Elevation = 4 };
-        _mainCoverImage = new ImageView(ctx);
-        _mainCoverImage = new ImageView(ctx);
-        _mainCoverImage.SetScaleType(ImageView.ScaleType.CenterCrop);
-        imgCard.AddView(_mainCoverImage, new FrameLayout.LayoutParams(-1, -1));
-        gridFrame.AddView(imgCard);
+        // ViewPager2 for carousel
+        _carouselViewPager = new AndroidX.ViewPager2.Widget.ViewPager2(ctx);
+        _carouselAdapter = new NowPlayingCarouselAdapter(ctx, _viewModel);
+        _carouselViewPager.Adapter = _carouselAdapter;
+        _carouselViewPager.OffscreenPageLimit = 1;
         
-        // 2. Lyrics Overlay 
+        // Set up page transformer for MD3-style animation
+        _carouselViewPager.SetPageTransformer(new MD3CarouselPageTransformer());
+        
+        carouselFrame.AddView(_carouselViewPager, new FrameLayout.LayoutParams(-1, -1));
+
+        // Lyrics Overlay (MUST be added after ViewPager to be on top)
         _lyricsCard = new MaterialCardView(ctx)
         {
             Radius = AppUtil.DpToPx(12),
-            CardBackgroundColor = ColorStateList.ValueOf(Color.ParseColor("#AA000000")), // Darker semi-transparent
+            CardBackgroundColor = ColorStateList.ValueOf(Color.ParseColor("#AA000000")),
             Elevation = 8,
-            Visibility = ViewStates.Invisible // Hidden by default
+            Visibility = ViewStates.Invisible
         };
         var lParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent)
         {
@@ -257,12 +274,9 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
             }
         };
 
+        carouselFrame.AddView(_lyricsCard, lParams);
 
-        gridFrame.AddView(_lyricsCard, lParams); // This sits on top of the image
-        
-
-
-        // 3. Meta Data (Bottom of Grid)
+        // Meta Data (Bottom of Carousel)
         var metaLay = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
         var metaParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent) { Gravity = GravityFlags.Bottom };
         metaParams.SetMargins(20, 0, 20, 20);
@@ -273,9 +287,9 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
 
         metaLay.AddView(_genreText, new LinearLayout.LayoutParams(0, -2, 1));
         metaLay.AddView(_yearText, new LinearLayout.LayoutParams(0, -2, 1));
-        gridFrame.AddView(metaLay);
+        carouselFrame.AddView(metaLay);
 
-        root.AddView(gridFrame);
+        root.AddView(carouselFrame);
 
         // --- C. Artist Row (Chips + Vertical Action Stack) ---
         var artistActionRow = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
@@ -331,7 +345,8 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         _shuffleBtn = CreateControlButton(ctx, Resource.Drawable.media3_icon_shuffle_off, 40);
        
         _prevBtn = CreateControlButton(ctx, Resource.Drawable.media3_icon_previous, 60);
-        _playPauseBtn = CreateControlButton(ctx, Resource.Drawable.media3_icon_play, 80, true); // Larger, filled
+        _playPauseBtn = CreateControlButton(ctx, Resource.Drawable.media3_icon_play, 80, true)
+            ; // Larger, filled
         _nextBtn = CreateControlButton(ctx, Resource.Drawable.media3_icon_next, 60);
 
         _repeatBtn = CreateControlButton(ctx, Resource.Drawable.media3_icon_repeat_all, 45);
@@ -500,41 +515,60 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
             _viewModel.ToggleRepeatMode();
         };
         // Slider Logic
-        _seekSlider.Touch += (s, e) =>
-        {
-            switch (e.Event?.Action)
-            {
-                case MotionEventActions.Down: _isDraggingSeek = true; break;
-                case MotionEventActions.Up:
-                case MotionEventActions.Cancel:
-                    _isDraggingSeek = false;
-                    if (_viewModel.CurrentPlayingSongView != null)
-                    {
-                        var newPos = (_seekSlider.Value / 100) * _viewModel.CurrentPlayingSongView.DurationInSeconds;
-                        _viewModel.SeekTrackPositionCommand.Execute(newPos);
-                    }
-                    break;
-            }
-            e.Handled = false;
-        };
+
+        //_seekSlider.AddOnChangeListener
+        seekListener = new DimmerSliderListener(
+    onDragStart: () =>
+    {
+        seekListener.TotalDurationInSeconds = _viewModel.CurrentPlayingSongView.DurationInSeconds;
+        _isDraggingSeek = true;
         
-        _volumeSlider.Touch += async (s, e) =>
+    },
+    onDragStop: (value) =>
+    {
+        _isDraggingSeek = false;
+        if (_viewModel.CurrentPlayingSongView != null)
         {
-            switch (e.Event?.Action)
-            {
-                case MotionEventActions.Down: _isDraggingVolume = true; break;
-                case MotionEventActions.Up:
-                case MotionEventActions.Cancel:
-                    _isDraggingVolume = false;
-                    await Task.Delay(350); // delay so the value updates and we now get it to set new vol
-                    var newVolume = (_volumeSlider.Value / 100);
-                    _viewModel.SetVolumeLevel((double)newVolume);
-                    break;
-                default:
-                    break;
-            }
-            e.Handled = false;
-        };
+            // value is 0-100 (percentage)
+            var newPos = (value / 100f) * _viewModel.CurrentPlayingSongView.DurationInSeconds;
+            _viewModel.SeekTrackPositionCommand.Execute(newPos);
+        }
+    },
+    onValueChange: (value, fromUser) =>
+    {
+        // Only update the Text Label, do NOT set _seekSlider.Value here
+        if (fromUser && _viewModel.CurrentPlayingSongView != null)
+        {
+            // Calculate actual seconds based on the percentage (value)
+            var currentSeconds = (value / 100f) * _viewModel.CurrentPlayingSongView.DurationInSeconds;
+
+            var ts = TimeSpan.FromSeconds(currentSeconds);
+            _currentTimeText.Text = $"{ts.Minutes}:{ts.Seconds:D2}";
+        }
+    }
+);
+
+        seekListener.DataType = SliderDataType.Time;
+        // 2. Register for BOTH events
+        _seekSlider.AddOnChangeListener(seekListener);
+        _seekSlider.AddOnSliderTouchListener(seekListener);
+
+
+        var volumeListener = new DimmerSliderListener(
+    onDragStart: () => { _isDraggingVolume = true; },
+    onDragStop: (value) =>
+    {
+        _isDraggingVolume = false;
+        // Logic happens immediately on lift, no need for Task.Delay
+        var newVolume = (value / 100f);
+        _viewModel.SetVolumeLevel((double)newVolume);
+    },
+    onValueChange: null // We don't need real-time feedback for volume
+);
+
+        volumeListener.DataType = SliderDataType.Percentage;
+        _volumeSlider.AddOnSliderTouchListener(volumeListener);
+        // We don't strictly need AddOnChangeListener for volume if we only save on drop
         return scroll;
     }
     private MaterialButton CreatePillButton(Context ctx, string text, int iconRes)
@@ -594,14 +628,51 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
                 (int)IOnBackInvokedDispatcher.PriorityDefault, this);
         }
 
-        
+        var caritems = _viewModel.CarouselItems;
+        if (_carouselAdapter != null && caritems != null && caritems.Count == 3)
+        {
+            _carouselAdapter.UpdateSongs(caritems.ToList());
+        }
 
-        // 1. Observe Playing Song
-        _viewModel.CurrentSongChanged
+
+            // 1. Observe Playing Song
+            _viewModel.CurrentSongChanged
             .ObserveOn(RxSchedulers.UI)
-            .Subscribe(UpdateSongUI)
+            .Subscribe(s =>
+            {
+                UpdateSongUI(s);
+                var items = _viewModel.CarouselItems;
+                if (_carouselAdapter != null && items != null && items.Count == 3)
+                {
+                    _carouselAdapter.UpdateSongs(items.ToList());
+
+                    // Set to middle item (current song) without triggering navigation
+                    // Use post to ensure adapter update completes first
+                    if (_carouselViewPager != null && _carouselViewPager.CurrentItem != 1)
+                    {
+                        lock (_navigationLock)
+                        {
+                            _isNavigating = true;
+                        }
+                        _carouselViewPager.Post(() =>
+                        {
+                            _carouselViewPager?.SetCurrentItem(1, false);
+                            lock (_navigationLock)
+                            {
+                                _isNavigating = false;
+                            }
+                        });
+                    }
+                }
+            })
             .DisposeWith(_disposables);
 
+
+        // Setup ViewPager2 page change callback
+        if (_carouselViewPager != null)
+        {
+            _carouselViewPager.RegisterOnPageChangeCallback(new CarouselPageChangeCallback(this));
+        }
 
         _viewModel.AudioEngineIsPlayingObservable
             .ObserveOn(RxSchedulers.UI)
@@ -689,6 +760,8 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
                 }
             }).DisposeWith(_disposables);
 
+
+
         _viewModel.WhenPropertyChange(nameof(_viewModel.IsShuffleActive), newVl => _viewModel.IsShuffleActive)
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(IsShuffleActive =>
@@ -710,15 +783,14 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(path =>
             {
+                // Only update mini cover, carousel handles its own images
                 if (!string.IsNullOrEmpty(path))
                 {
                     Glide.With(this).Load(path).Into(_miniCover);
-                    Glide.With(this).Load(path).Into(_mainCoverImage);
                 }
                 else
                 {
                     _miniCover.SetImageResource(Resource.Drawable.musicnotess);
-                    _mainCoverImage.SetImageResource(Resource.Drawable.musicnotess);
                 }
             }).DisposeWith(_disposables);
 
@@ -764,17 +836,17 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         var chip = new Chip(Context) { Text = song.OtherArtistsName };
         _artistChipGroup.AddView(chip);
 
-        // Load Images
+        // Load Mini Player Cover Image
         if (!string.IsNullOrEmpty(song.CoverImagePath))
         {
             Glide.With(this).Load(song.CoverImagePath).Into(_miniCover);
-            Glide.With(this).Load(song.CoverImagePath).Into(_mainCoverImage);
         }
         else
         {
             _miniCover.SetImageResource(Resource.Drawable.musicnotess);
-            _mainCoverImage.SetImageResource(Resource.Drawable.musicnotess);
         }
+        
+        // Carousel images are handled by the adapter
     }
 
     // --- ANIMATION LOGIC ---
@@ -801,6 +873,51 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
             {
                 myAct.TogglePlayer();
                 return;
+            }
+        }
+    }
+
+    // Nested class for handling carousel page changes
+    private class CarouselPageChangeCallback : AndroidX.ViewPager2.Widget.ViewPager2.OnPageChangeCallback
+    {
+        private readonly NowPlayingFragment _fragment;
+
+        public CarouselPageChangeCallback(NowPlayingFragment fragment)
+        {
+            _fragment = fragment;
+        }
+
+        public override void OnPageSelected(int position)
+        {
+            base.OnPageSelected(position);
+
+            bool shouldNavigate;
+            lock (_fragment._navigationLock)
+            {
+                shouldNavigate = !_fragment._isNavigating;
+            }
+
+            if (!shouldNavigate || _fragment._viewModel == null)
+                return;
+
+            // Current song should be at index 1 (middle of the 3-item carousel)
+            // If user swipes to index 0, go to previous song
+            // If user swipes to index 2, go to next song
+            if (position == 0)
+            {
+                lock (_fragment._navigationLock)
+                {
+                    _fragment._isNavigating = true;
+                }
+                _ = _fragment._viewModel.PreviousTrackAsync();
+            }
+            else if (position == 2)
+            {
+                lock (_fragment._navigationLock)
+                {
+                    _fragment._isNavigating = true;
+                }
+                _ = _fragment._viewModel.NextTrackAsync();
             }
         }
     }

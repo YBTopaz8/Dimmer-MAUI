@@ -40,6 +40,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<IDimmerAudioEditorService, WindowsAudioEditorService>();
 
         builder.Services.AddSingleton<DimmerWin>();
+        builder.Services.AddSingleton<SettingsViewModelWin>();
 
 
 

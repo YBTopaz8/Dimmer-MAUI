@@ -200,29 +200,6 @@ public class BaseAppFlow : IDisposable
         }
     }
 
-    public void ToggleShuffle(bool isOn)
-    {
-        _logger.LogDebug("ToggleShuffle called with: {IsOn}", isOn);
-        _settingsService.ShuffleOn = isOn;
-        _state.SetShuffleActive(isOn);
-    }
-
-    public void ToggleRepeatMode()
-    {
-        var currentMode = _settingsService.RepeatMode;
-        var enumValues = Enum.GetValues(typeof(RepeatMode)).Cast<RepeatMode>().ToList();
-        int currentIndex = enumValues.IndexOf(currentMode);
-        RepeatMode nextMode = enumValues[(currentIndex + 1) % enumValues.Count];
-
-        _logger.LogDebug("ToggleRepeatMode: From {CurrentMode} to {NextMode}", currentMode, nextMode);
-        _settingsService.RepeatMode = nextMode;
-        _state.SetRepeatMode(nextMode);
-    }
-
-
-
-
-
     public UserModel UpsertUserAsync(UserModel user)
     {
         if (user == null)

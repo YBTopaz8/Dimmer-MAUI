@@ -1,6 +1,6 @@
 ﻿using AndroidX.Lifecycle;
 using Dimmer.Data.Models.LyricsModels;
-using Dimmer.WinUI.UiUtils;
+using Dimmer.UiUtils;
 using DynamicData.Binding;
 using Google.Android.Material.Dialog;
 using ProgressBar = Android.Widget.ProgressBar;

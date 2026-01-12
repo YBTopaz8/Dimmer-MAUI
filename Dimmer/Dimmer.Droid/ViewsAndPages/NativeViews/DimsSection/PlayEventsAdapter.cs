@@ -7,8 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Bumptech.Glide;
-
-using Dimmer.WinUI.UiUtils;
+using Dimmer.UiUtils;
 
 using DynamicData;
 

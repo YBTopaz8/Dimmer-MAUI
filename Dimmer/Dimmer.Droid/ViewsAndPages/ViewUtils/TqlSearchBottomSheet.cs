@@ -1,8 +1,7 @@
 ﻿using Android.Views.InputMethods;
 
 using Dimmer.DimmerSearch.TQL;
-using Dimmer.WinUI.UiUtils;
-
+using Dimmer.UiUtils;
 using Google.Android.Material.Chip;
 
 namespace Dimmer.ViewsAndPages.ViewUtils;

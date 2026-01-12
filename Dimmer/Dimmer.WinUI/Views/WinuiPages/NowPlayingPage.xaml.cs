@@ -1,50 +1,88 @@
-﻿// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
+﻿using Dimmer.Data.ModelView;
+using Dimmer.WinUI.Views.WinuiPages.SingleSongPage;
+using Microsoft.Maui.Platform;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 
-using Dimmer.WinUI.Views.WinuiPages.LastFMSection;
+namespace Dimmer.WinUI.Views.WinuiPages;
 
-namespace Dimmer.WinUI.Views.CustomViews.WinuiViews;
-
-public sealed partial class MediaPlaybackSection : UserControl
+public sealed partial class NowPlayingPage : Page
 {
-    public MediaPlaybackSection()
+    public NowPlayingPage()
     {
         InitializeComponent();
-        MyViewModel = IPlatformApplication.Current?.Services.GetService<BaseViewModelWin>();
-
+        MyViewModel = IPlatformApplication.Current?.Services.GetService<BaseViewModelWin>()!;
     }
+
     public BaseViewModelWin MyViewModel { get; internal set; }
-
-    private void NextBtn_AccessKeyDisplayRequested(UIElement sender, AccessKeyDisplayRequestedEventArgs args)
-    {
-        
-    }
-
-    private void NextBtn_AccessKeyInvoked(UIElement sender, AccessKeyInvokedEventArgs args)
-    {
-
-    }
-
-    private void ViewNowPlayingSong_Click(object sender, RoutedEventArgs e)
-    {
-       MyViewModel.NavigateToAnyPageOfGivenType(typeof(NowPlayingPage));
-    }
 
     private void ViewLyricsButton_Click(object sender, RoutedEventArgs e)
     {
-        MyViewModel!.OpenLyricsPopUpWindow(1);
+        MyViewModel?.OpenLyricsPopUpWindow(1);
     }
 
-    private void ArtistBtn_PointerPressed(object sender, PointerRoutedEventArgs e)
+    private void ViewSongDetailsButton_Click(object sender, RoutedEventArgs e)
     {
-        var nativeElement = (Microsoft.UI.Xaml.UIElement)sender;
-        var properties = e.GetCurrentPoint(nativeElement).Properties;
-
-
-        var point = e.GetCurrentPoint(nativeElement);
-
-        if (properties.IsLeftButtonPressed || properties.IsRightButtonPressed) //also properties.IsXButton2Pressed for mouse 5
+        try
         {
+            if (MyViewModel == null) return;
+
+            MyViewModel.SelectedSong = MyViewModel.CurrentPlayingSongView;
+            var dimmerWindow = MyViewModel.winUIWindowMgrService.GetWindow<DimmerWin>();
+            dimmerWindow ??= MyViewModel.winUIWindowMgrService.CreateWindow<DimmerWin>();
+
+            if (dimmerWindow != null)
+                dimmerWindow.NavigateToPage(typeof(SongDetailPage));
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
+    }
+
+    private async void CurrentPlayingSongImg_Loaded(object sender, RoutedEventArgs e)
+    {
+
+        if (MyViewModel.CurrentPlayingSongView is null) return;
+        if (!string.IsNullOrEmpty(MyViewModel.CurrentPlayingSongView.CoverImagePath))
+        {
+            CurrentPlayingSongImg.Source = new BitmapImage(new Uri(MyViewModel.CurrentPlayingSongView.CoverImagePath));
+
+            var imgBytes = await ImageFilterUtils.ApplyFilter(MyViewModel.CurrentPlayingSongView.CoverImagePath, FilterType.DarkAcrylic);
+            if (imgBytes is null) return;
+
+            CurrentPlayingSongImgBG.Source = null;
+          
+            using (var stream = new MemoryStream(imgBytes))
+            {
+                var bitmap = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage();
+                await bitmap.SetSourceAsync(stream.AsRandomAccessStream());
+                CurrentPlayingSongImgBG.Source = bitmap;
+            }
+            
+        }
+        else
+        {
+
+        }
+    }
+
+    private void SyncLyricsView_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
+    {
+
+    }
+
+    private void Button_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void CurrentArtistBtn_Click(object sender, RoutedEventArgs e)
+    {
+
+        var nativeElement = (Microsoft.UI.Xaml.UIElement)sender;
+        
             // --- Source data & guards ---
             var song = MyViewModel?.CurrentPlayingSongView;
             var otherArtistsRaw = song?.OtherArtistsName ?? string.Empty;
@@ -71,23 +109,11 @@ public sealed partial class MediaPlaybackSection : UserControl
             var flyout = new Microsoft.UI.Xaml.Controls.MenuFlyout();
 
             // ===== Top info block (non-interactive) =====
-            var title = song?.Title ?? "(Unknown song)";
-            var album = song?.AlbumName ?? "(Unknown album)";
             var artistLine = namesList.Length == 1 ? namesList[0] : $"{namesList.Length} artists";
 
             flyout.Items.Add(new Microsoft.UI.Xaml.Controls.MenuFlyoutItem
             {
-                Text = $"♪  {title}",
-                IsEnabled = false
-            });
-            flyout.Items.Add(new Microsoft.UI.Xaml.Controls.MenuFlyoutItem
-            {
-                Text = $"💿  {album}",
-                IsEnabled = false
-            });
-            flyout.Items.Add(new Microsoft.UI.Xaml.Controls.MenuFlyoutItem
-            {
-                Text = $"👤  {artistLine}",
+                Text = $"👤 {artistLine}",
                 IsEnabled = false
             });
 
@@ -193,7 +219,7 @@ public sealed partial class MediaPlaybackSection : UserControl
             try
             {
                 // Overload requires FrameworkElement + Point
-                flyout.ShowAt(nativeElement, point.Position);
+                flyout.ShowAt(nativeElement,new FlyoutShowOptions() {Placement = FlyoutPlacementMode.Right});
             }
             catch (Exception ex)
             {
@@ -209,7 +235,7 @@ public sealed partial class MediaPlaybackSection : UserControl
                 a = MyViewModel as IArtistActions;
                 return a != null;
             }
-
+        
             void TryVM(Action<IArtistActions> action)
             {
                 if (MyViewModel is IArtistActions a) action(a);
@@ -237,32 +263,31 @@ public sealed partial class MediaPlaybackSection : UserControl
                 return item;
             }
 
-        }
+        
     }
 
-    private async void HomeBtn_Click(object sender, RoutedEventArgs e)
+    private void MainView_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
-        MyViewModel?.windowManager.BringToFront(MyViewModel.MainMAUIWindow);
-    }
-
-    private void ViewNowPlayingSong_RightTapped(object sender, RightTappedRoutedEventArgs e)
-    {
-        try
+        var prop = e.GetCurrentPoint((UIElement)sender).Properties;
+        if (prop.IsXButton2Pressed)
         {
-            MyViewModel.SelectedSong = MyViewModel.CurrentPlayingSongView;
-            var dimmerWindow = MyViewModel.winUIWindowMgrService.GetWindow<DimmerWin>();
-            dimmerWindow ??= MyViewModel.winUIWindowMgrService.CreateWindow<DimmerWin>();
-
-
-
-            //MyViewModel.DimmerMultiWindowCoordinator.BringToFront()
-            if (dimmerWindow != null)
-                dimmerWindow.NavigateToPage(typeof(SongDetailPage));
+            if (Frame.CanGoBack)
+            {
+                Frame.GoBack();
+            }
+            else
+            {
+                MyViewModel.NavigateToAnyPageOfGivenType(typeof(AllSongsListPage));
+            }
 
         }
-        catch (Exception ex)
+        else
         {
-            Debug.WriteLine(ex.Message);
+            if (Frame.CanGoForward)
+            {
+                Frame.GoForward();
+            }
         }
+
     }
 }

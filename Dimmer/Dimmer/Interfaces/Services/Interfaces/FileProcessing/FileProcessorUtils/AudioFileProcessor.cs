@@ -64,7 +64,7 @@ public class AudioFileProcessor : IAudioFileProcessor
                 {
                     if (TaggingUtils.PlatformGetStreamHook != null)
                     {
-                        using (var fileStream = TaggingUtils.PlatformGetStreamHook(filePath))
+                        using (Stream? fileStream = TaggingUtils.PlatformGetStreamHook(filePath))
                         {
 
                             if (fileStream == null)

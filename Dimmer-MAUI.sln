@@ -15,9 +15,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dimmer.Droid", "Dimmer\Dimm
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dimmer.WinUI", "Dimmer\Dimmer.WinUI\Dimmer.WinUI.csproj", "{0E16CC04-4DD3-425A-B34C-8F59955676F2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParseLiveQuery", "..\..\Parse-LiveQueries-DOTNET-master\ParseLiveQuery\ParseLiveQuery.csproj", "{30B5E670-9A4F-E039-CDC4-1E6A29AEACE2}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hqub.Lastfm", "..\..\Last.fm-master\src\Hqub.Lastfm\Hqub.Lastfm.csproj", "{222685EE-A90C-A7BC-3A11-EAE981517AC7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParseLiveQuery", "..\..\Parse-LiveQueries-DOTNET-master\ParseLiveQuery\ParseLiveQuery.csproj", "{30B5E670-9A4F-E039-CDC4-1E6A29AEACE2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,14 +51,14 @@ Global
 		{0E16CC04-4DD3-425A-B34C-8F59955676F2}.Debug|Any CPU.Build.0 = Debug|x64
 		{0E16CC04-4DD3-425A-B34C-8F59955676F2}.Release|Any CPU.ActiveCfg = Release|x64
 		{0E16CC04-4DD3-425A-B34C-8F59955676F2}.Release|Any CPU.Build.0 = Release|x64
-		{30B5E670-9A4F-E039-CDC4-1E6A29AEACE2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{30B5E670-9A4F-E039-CDC4-1E6A29AEACE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{30B5E670-9A4F-E039-CDC4-1E6A29AEACE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{30B5E670-9A4F-E039-CDC4-1E6A29AEACE2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{222685EE-A90C-A7BC-3A11-EAE981517AC7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{222685EE-A90C-A7BC-3A11-EAE981517AC7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{222685EE-A90C-A7BC-3A11-EAE981517AC7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{222685EE-A90C-A7BC-3A11-EAE981517AC7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30B5E670-9A4F-E039-CDC4-1E6A29AEACE2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30B5E670-9A4F-E039-CDC4-1E6A29AEACE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30B5E670-9A4F-E039-CDC4-1E6A29AEACE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30B5E670-9A4F-E039-CDC4-1E6A29AEACE2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

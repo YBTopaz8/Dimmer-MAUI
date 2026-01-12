@@ -7,8 +7,7 @@ using System.Threading.Tasks;
 using AndroidX.Lifecycle;
 
 using CommunityToolkit.Diagnostics;
-
-using Dimmer.WinUI.UiUtils;
+using Dimmer.UiUtils;
 using Microsoft.Maui;
 
 namespace Dimmer.ViewsAndPages.NativeViews.SingleSong;

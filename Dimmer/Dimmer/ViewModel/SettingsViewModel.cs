@@ -16,6 +16,7 @@ public partial class SettingsViewModel : BaseViewModel
         IRealmFactory RealmFact, IFolderMonitorService FolderServ, ILibraryScannerService LibScannerService, 
         IRepository<DimmerPlayEvent> DimmerPlayEventRepo, BaseAppFlow BaseAppClass, ILogger<BaseViewModel> logger) : base( dimmerStateService, musicDataService, appInitializerService, audioServ, settingsService, lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, _songRepo, duplicateFinderService, _lastfmService, artistRepo, albumModel, genreModel, dialogueService, PlaylistRepo, RealmFact, FolderServ, LibScannerService, DimmerPlayEventRepo, BaseAppClass, logger)
     {
+
     }
 
     [ObservableProperty]

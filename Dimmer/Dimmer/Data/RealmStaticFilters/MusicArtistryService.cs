@@ -57,7 +57,7 @@ public class MusicArtistryService
         // 1. Find the most played album
         var topAlbum = _realm.All<DimmerPlayEvent>()
             .Filter("SongsLinkingToThisEvent.@count > 0").ToList()
-            .Where(p => p.SongsLinkingToThisEvent.FirstOrDefault()?.Album != null)
+            .Where(p => p.SongsLinkingToThisEvent.FirstOrDefaultNullSafe()?.Album != null)
             .GroupBy(p => p.SongsLinkingToThisEvent.First().Album)
             .OrderByDescending(g => g.Count())
             .FirstOrDefault()?.Key;

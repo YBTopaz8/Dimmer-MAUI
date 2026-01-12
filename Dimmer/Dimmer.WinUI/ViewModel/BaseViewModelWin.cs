@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows.Controls.Primitives;
 
 using CommunityToolkit.Maui.Core.Extensions;
+using FolderPicker = CommunityToolkit.Maui.Storage.FolderPicker;
 
 //using TableView = WinUI.TableView.TableView;
 
@@ -425,7 +426,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         if (CurrentPlaySongDominantColor is null)
             return;
         var c = CurrentPlaySongDominantColor;
-        DominantBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(
+        WinUIDominantBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(
         (byte)(c.Alpha * 255),
         (byte)(c.Red * 255),
         (byte)(c.Green * 255),
@@ -665,7 +666,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     [ObservableProperty]
     public partial ObservableCollection<WindowEntry> AllWindows { get; set; }
     [ObservableProperty]
-    public partial SolidColorBrush DominantBrush { get; set; }
+    public partial SolidColorBrush WinUIDominantBrush { get; set; }
 
     [RelayCommand]
     public void RefreshWindows()
@@ -1080,6 +1081,8 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     }
     [ObservableProperty]
     public partial bool AutoConfirmLastFMVar { get; set; }
+    [ObservableProperty]
+    public partial bool IsLastFMAuthButtonClickable { get; set; }
     public string? MAUIWindowTitle { get; internal set; }
 
     [ObservableProperty]
@@ -1126,6 +1129,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
                     CloseButtonText = "OK",
                     XamlRoot = MainWindow?.ContentFrame.XamlRoot
                 };
+                IsLastFMAuthButtonClickable = true;
                 await cancelledDialog.ShowAsync();
             }
         }
@@ -1215,6 +1219,32 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     }
 
+    [RelayCommand]
+    public async Task LoadFolderToScanForBackUpFiles()
+    {
+        try
+        {
+            CancellationTokenSource cts= new();
+            var res = await FolderPicker.Default.PickAsync(cts.Token);
+
+            if (res is not null && res.Folder is not null)
+            {
+                string? selectedFolderPath = res!.Folder!.Path;
+
+                if (!string.IsNullOrEmpty(selectedFolderPath))
+                {
+                    await RestoreAppDataAsync(selectedFolderPath);
+                    return;
+                }
+
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
+
+    }
     internal async Task ToggleFavoriteRatingToArtist(ArtistModelView artist)
     {
         var realm = RealmFactory.GetRealmInstance();
