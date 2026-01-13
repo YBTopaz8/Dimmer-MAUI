@@ -43,6 +43,9 @@ public interface IBluetoothService
     // Disconnect
     void Disconnect();
 
+    // Opens system Bluetooth settings for pairing
+    Task OpenBluetoothSettingsAsync();
+
     // Events
     event EventHandler<string> DataReceived;
     event EventHandler<string> StatusChanged;

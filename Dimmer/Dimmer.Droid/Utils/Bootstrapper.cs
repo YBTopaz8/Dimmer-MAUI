@@ -1,4 +1,7 @@
-﻿namespace Dimmer.Utils;
+﻿using Dimmer.DimmerLive;
+using Dimmer.NativeServices;
+
+namespace Dimmer.Utils;
 
 internal class Bootstrapper
 {
@@ -14,6 +17,9 @@ internal class Bootstrapper
             configure.AddDebug();
         });
         services.AddDimmerCoreServices();
+
+            // Platform-specific Bluetooth service
+            services.AddSingleton<IBluetoothService, AndroidBluetoothService>();
 
             services.AddSingleton<AndroidFolderPicker>();
             // Register Android-specific error presenter (overrides the default one from core services)
