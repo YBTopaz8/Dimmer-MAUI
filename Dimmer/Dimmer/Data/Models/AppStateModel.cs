@@ -26,6 +26,7 @@ public partial class AppStateModel : RealmObject, IRealmObjectWithObjectId
     public string? CurrentCountry { get; set; }
     public int RepeatModePreference { get; set; }
     public bool ShuffleStatePreference { get; set; }
+    public int ShuffleModePreference { get; set; }
     public double VolumeLevelPreference { get; set; }
     public bool IsDarkModePreference { get; set; }
     public bool IsFirstTimeUser { get; set; }
@@ -80,6 +81,7 @@ public partial class AppStateModel : RealmObject, IRealmObjectWithObjectId
         this.CurrentCountry = source.CurrentCountry;
         this.RepeatModePreference = source.RepeatModePreference;
         this.ShuffleStatePreference = source.ShuffleStatePreference;
+        this.ShuffleModePreference = source.ShuffleModePreference;
         this.VolumeLevelPreference = source.VolumeLevelPreference;
         this.IsDarkModePreference = source.IsDarkModePreference;
         this.IsFirstTimeUser = source.IsFirstTimeUser;

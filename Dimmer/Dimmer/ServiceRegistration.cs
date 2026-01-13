@@ -39,6 +39,7 @@ public static class ServiceRegistration
 
         services.AddSingleton<ISettingsService, DimmerSettingsService>();
         services.AddSingleton<IDimmerStateService, DimmerStateService>();
+        services.AddSingleton<IWeightedShuffleService, WeightedShuffleService>();
         services.AddSingleton<IErrorHandler, ErrorHandler>();
         services.AddSingleton<IUiErrorPresenter, ErrorHandler>();
         services.AddSingleton<IFolderMgtService, FolderMgtService>();
