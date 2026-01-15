@@ -2212,7 +2212,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             if (TaggingUtils.FileExists(song.CoverImagePath))
             {
-                CurrentCoverImagePath = song.CoverImagePath;
 
                 return;
             }
@@ -2320,7 +2319,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             if (song.CoverImagePath != finalImagePath)
             {
-                RxSchedulers.UI.ScheduleToUI(()=> CurrentCoverImagePath = finalImagePath);
+                RxSchedulers.UI.ScheduleToUI(()=> song.CoverImagePath = finalImagePath);
                
             }
 
