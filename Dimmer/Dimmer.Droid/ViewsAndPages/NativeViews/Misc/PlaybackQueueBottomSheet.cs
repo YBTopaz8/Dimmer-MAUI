@@ -1,4 +1,5 @@
-﻿using Google.Android.Material.Dialog;
+﻿using Dimmer.UiUtils;
+using Google.Android.Material.Dialog;
 
 namespace Dimmer.ViewsAndPages.NativeViews.Misc;
 
@@ -8,9 +9,16 @@ public class QueueBottomSheetFragment : BottomSheetDialogFragment
     private RecyclerView _recyclerView;
     private SongAdapter _adapter;
     private bool _pendingScrollToCurrent;
-    public QueueBottomSheetFragment(BaseViewModelAnd viewModel)
+    private MaterialButton CallerBtn;
+    public QueueBottomSheetFragment(BaseViewModelAnd viewModel, Button callerBtn)
     {
         MyViewModel = viewModel;
+        CallerBtn = callerBtn;
+    }
+    public override void OnDismiss(IDialogInterface dialog)
+    {
+        base.OnDismiss(dialog);
+        CallerBtn.Enabled = true;
     }
 
     public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
@@ -78,6 +86,7 @@ public class QueueBottomSheetFragment : BottomSheetDialogFragment
         var eyeBtn = new MaterialButton(ctx, null, Resource.Attribute.borderlessButtonStyle);
         eyeBtn.IconTint = Android.Content.Res.ColorStateList.ValueOf(Color.White);
         eyeBtn.Text = "Scroll To"; // Optional text, or remove for icon only
+        eyeBtn.SetTextColor(!UiBuilder.IsDark(this.View) ?  Color.Black : Color.White);
         eyeBtn.SetIconResource(Resource.Drawable.eye);
         eyeBtn.IconSize = AppUtil.DpToPx(18);
         eyeBtn.BackgroundTintList = Android.Content.Res.ColorStateList.ValueOf(Color.Transparent);
@@ -88,7 +97,8 @@ public class QueueBottomSheetFragment : BottomSheetDialogFragment
         // 6. Save Queue as Playlist Button
         var saveBtn = new MaterialButton(ctx, null, Resource.Attribute.borderlessButtonStyle);
         saveBtn.IconTint = Android.Content.Res.ColorStateList.ValueOf(Color.White);
-        saveBtn.Text = "Save"; 
+        saveBtn.Text = "Save";
+        eyeBtn.SetTextColor(!UiBuilder.IsDark(this.View) ? Color.Black : Color.White);
         saveBtn.SetIconResource(Resource.Drawable.savea);
         saveBtn.IconSize = AppUtil.DpToPx(18);
         saveBtn.BackgroundTintList = Android.Content.Res.ColorStateList.ValueOf(Color.Transparent);

@@ -20,7 +20,7 @@
                           android:pathPrefix="/invite" /> -->
 			</intent-filter>
 		</activity>
-		<activity android:name=".Activities.PlaybackBubbleActivity" android:label="Dimmer Bubble" android:allowEmbedded="true" android:resizeableActivity="true" android:documentLaunchMode="always" android:exported="false" android:taskAffinity="" android:launchMode="singleInstance" android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation" />
+		<activity android:name=".Activities.PlaybackBubbleActivity" android:label="Dimmer Bubble" android:allowEmbedded="true" android:resizeableActivity="true" android:documentLaunchMode="always" android:exported="false" android:taskAffinity="" android:launchMode="singleInstance" android:configChanges="uiMode|screenSize|smallestScreenSize|screenLayout|orientation" />
 		<service android:name="com.yvanbrunel.dimmer.ExoPlayerService" android:directBootAware="true" android:exported="true" android:foregroundServiceType="mediaPlayback">
 			<intent-filter>
 				<action android:name="android.media.browse.MediaBrowserService" />

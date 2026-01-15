@@ -4,12 +4,12 @@ using Android.App.Backup;
 using Bumptech.Glide;
 
 using Dimmer.UiUtils;
-
+using Dimmer.Utils.Extensions;
 using DynamicData;
 using DynamicData.Binding;
 
 using Google.Android.Material.MaterialSwitch;
-
+using Google.Android.Material.Tooltip;
 using ScrollView = Android.Widget.ScrollView;
 
 namespace Dimmer.ViewsAndPages.NativeViews;
@@ -239,6 +239,7 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
             Icon = AndroidX.Core.Content.ContextCompat.GetDrawable(ctx, Resource.Drawable.addcircle)
             ,IconSize = 13,
         };
+        _addFolderButton.SetButtonIconColor(UiBuilder.IsDark(this.View) ? Color.White : Color.Black);
         _addFolderButton.SetBackgroundColor(Android.Graphics.Color.Transparent);
         _addFolderButton.SetTextColor(IsDark() ? Android.Graphics.Color.White : Android.Graphics.Color.Black);
         _addFolderButton.Click += async (s, e) =>
@@ -321,6 +322,7 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
                          }
                      })
                      .DisposeWith(sessionDisposable);
+        
     }
     public override void OnDestroy()
     {
