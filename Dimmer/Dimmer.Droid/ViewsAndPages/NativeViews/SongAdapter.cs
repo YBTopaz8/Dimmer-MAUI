@@ -1,6 +1,6 @@
 ﻿using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
-
+using Android.Text;
 using AndroidX.Core.View;
 using AndroidX.Lifecycle;
 
@@ -8,10 +8,11 @@ using Bumptech.Glide;
 
 using Dimmer.DimmerSearch;
 using Dimmer.UiUtils;
+using Dimmer.Utils.Extensions;
 using Dimmer.ViewsAndPages.NativeViews.Misc;
 
 using DynamicData;
-
+using Google.Android.Material.Chip;
 using MongoDB.Bson;
 
 namespace Dimmer.ViewsAndPages.NativeViews;
@@ -140,8 +141,7 @@ internal class SongAdapter : RecyclerView.Adapter
 
         public override void OnSwiped(RecyclerView.ViewHolder viewHolder, int direction)
         {
-            // Notify Adapter to remove item
-            //_adapter.OnItemDismiss(viewHolder.AdapterPosition);
+            _adapter.OnItemDismiss(viewHolder.BindingAdapterPosition);
         }
     }
 
@@ -206,6 +206,7 @@ internal class SongAdapter : RecyclerView.Adapter
             Clickable = true,
             Focusable = true
         };
+
         //var attrs = new int[] { Android.Resource.Attribute.SelectableItemBackground };
         //var typedArray = ctx.ObtainStyledAttributes(attrs);
         //var rippleDrawable = typedArray.GetDrawable(0);
@@ -223,8 +224,7 @@ internal class SongAdapter : RecyclerView.Adapter
         mainContainer.LayoutTransition = new LayoutTransition();
 
         mainContainer.LayoutParameters = new ViewGroup.LayoutParams(-1, -2);
-        mainContainer.SetBackgroundColor(UiBuilder.ThemedBGColor(ctx));
-
+     
         // --- TOP ROW (Visible) ---
         var topRow = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
         topRow.SetGravity(GravityFlags.CenterVertical);
@@ -253,9 +253,13 @@ internal class SongAdapter : RecyclerView.Adapter
         title.SetMaxLines(1);
         title.Ellipsize = Android.Text.TextUtils.TruncateAt.End;
 
-        var artist = new MaterialTextView(ctx) { TextSize = 14 };
+        var artist = new TextView(ctx) { TextSize = 14 };
+        var llyout = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent);
+        llyout.SetMargins(0, 0, 0, 0);
+        artist.TextAlignment  = Android.Views.TextAlignment.ViewStart;
         artist.SetTextColor(Color.Gray);
-
+        artist.Ellipsize = TextUtils.TruncateAt.Marquee;
+        artist.Selected = true;
         textLayout.AddView(title);
         textLayout.AddView(artist);
         topRow.AddView(textLayout);
@@ -266,8 +270,8 @@ internal class SongAdapter : RecyclerView.Adapter
         moreBtn.IconTint = Android.Content.Res.ColorStateList.ValueOf(Color.Gray);
         moreBtn.BackgroundTintList = Android.Content.Res.ColorStateList.ValueOf(Color.Transparent);
         moreBtn.RippleColor = Android.Content.Res.ColorStateList.ValueOf(Color.LightGray);
-        var durationView = new TextView(ctx) { TextSize = 16, Typeface = Typeface.DefaultBold };
-        durationView.SetTextColor(UiBuilder.IsDark(this.ParentFragement.Resources.Configuration) ? Color.Gray : Color.Black);
+        var durationView = new TextView(ctx) { TextSize = 18, Typeface = Typeface.DefaultBold };
+        durationView.SetTextColor(UiBuilder.IsDark(durationView) ? Color.Gray : Color.Black);
         durationView.TextSize = 10;
         durationView.Gravity = GravityFlags.CenterHorizontal;
 
@@ -302,18 +306,7 @@ internal class SongAdapter : RecyclerView.Adapter
         expandRow.AddView(infoBtn);
         expandRow.AddView(LyricsBtn);
 
-        //if (_mode == "queue")
-        //{
-            
-        var insertAfterBtn = new ImageView(ctx, null, Resource.Attribute.materialButtonOutlinedStyle);
-        insertAfterBtn.SetImageResource(Resource.Drawable.media3_icon_next);
-insertAfterBtn.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(UiBuilder.IsDark(this.ParentFragement.Resources.Configuration) ? Color.Gray : Color.ParseColor("#294159"));
-
-        insertAfterBtn.SetPadding(30, 0, 30, 0);
-        var insertAfterBtnlp = new LinearLayout.LayoutParams(-2, -2);
-        insertAfterBtnlp.RightMargin = 10;
-        insertAfterBtn.LayoutParameters = insertAfterBtnlp;
-        insertAfterBtn.Clickable = true;
+        MaterialButton? insertAfterBtn = CreateActionButton("Play Next", Resource.Drawable.media3_icon_next);
     
     
     insertAfterBtn.TooltipText = $"Insert this song after {MyViewModel.CurrentPlayingSongView.Title}";
@@ -338,15 +331,15 @@ insertAfterBtn.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(UiBuil
         var btn = new MaterialButton(ctx, null, Resource.Attribute.materialButtonOutlinedStyle);
         btn.Text = text;
         
-        btn.SetTextColor(UiBuilder.IsDark(this.ParentFragement.Resources.Configuration) ? Color.Gray : Color.ParseColor("#294159"));
+        btn.SetTextColor(UiBuilder.IsDark(btn) ? Color.Gray : Color.ParseColor("#294159"));
         btn.SetIconResource(iconId);
 
-        btn.IconTint = Android.Content.Res.ColorStateList.ValueOf(UiBuilder.IsDark(this.ParentFragement.Resources.Configuration) ? Color.Gray : Color.ParseColor("#294159"));
+        btn.IconTint = Android.Content.Res.ColorStateList.ValueOf(UiBuilder.IsDark(btn) ? Color.Gray : Color.ParseColor("#294159"));
         btn.SetPadding(30, 0, 30, 0);
         var lp = new LinearLayout.LayoutParams(-2, -2);
         lp.RightMargin = 10;
         btn.LayoutParameters = lp;
-        btn.IconSize = AppUtil.DpToPx(20);
+        btn.IconSize = AppUtil.DpToPx(30);
         return btn;
     }
 
@@ -356,10 +349,11 @@ insertAfterBtn.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(UiBuil
         private readonly SerialDisposable _itemSubscription = new SerialDisposable();
 
 
-        private readonly BaseViewModelAnd _viewModel;
+        private readonly BaseViewModelAnd MyViewModel;
         private readonly Fragment _parentFrag;
         private readonly ImageView _img;
-        private readonly TextView _title, _artist;
+        private readonly TextView _title;
+            private readonly TextView _artist;
         private readonly View _expandRow;
         private readonly MaterialButton _moreBtn;
         private readonly TextView _durationView;
@@ -369,15 +363,15 @@ insertAfterBtn.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(UiBuil
         private readonly Button _favBtn;
         private readonly Button _infoBtn;
         private readonly Button lyricsBtn;
-        private readonly ImageView? _insertAfterBtn;
+        private readonly MaterialButton? _insertAfterBtn;
         private SongModelView? _currentSong;
         private Action<int>? _expandAction;
 
         public SongViewHolder(BaseViewModelAnd vm, Fragment parentFrag, MaterialCardView container, ImageView img, TextView title, TextView artist, MaterialButton moreBtn, TextView durationView,
- View expandRow,Button favBtn, Button infoBtn, Button lyrBtn, ImageView? insertAfterBtn = null)
+ View expandRow,Button favBtn, Button infoBtn, Button lyrBtn, MaterialButton? insertAfterBtn = null)
             : base(container)
         {
-            _viewModel = vm;
+            MyViewModel = vm;
             _parentFrag = parentFrag;
             _container = container;
             _img = img;
@@ -399,9 +393,9 @@ insertAfterBtn.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(UiBuil
 
             lyrBtn.Click += (s, e) =>
             {
-                _viewModel._lyricsMgtFlow.LoadLyrics(_currentSong?.SyncLyrics);
-                _viewModel.SelectedSong = _currentSong;
-                _viewModel.NavigateToAnyPageOfGivenType(this._parentFrag, new LyricsViewFragment(_viewModel), "toLyricsFromNP");
+                MyViewModel._lyricsMgtFlow.LoadLyrics(_currentSong?.SyncLyrics);
+                MyViewModel.SelectedSong = _currentSong;
+                MyViewModel.NavigateToAnyPageOfGivenType(this._parentFrag, new LyricsViewFragment(MyViewModel), "toLyricsFromNP");
                 
             };
 
@@ -415,8 +409,8 @@ insertAfterBtn.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(UiBuil
                     {
                        
                             var param = new List<SongModelView>() { _currentSong };
-                            //_viewModel.adds.Execute(param);
-                            Toast.MakeText(_parentFrag.Context, $"Inserted {_currentSong.Title} after {_viewModel.CurrentPlayingSongView.Title}", ToastLength.Short)?.Show();
+                        MyViewModel.AddToNext(param);
+                            Toast.MakeText(_parentFrag.Context, $"Inserted {_currentSong.Title} after {MyViewModel.CurrentPlayingSongView.Title}", ToastLength.Short)?.Show();
                         
                     }
                 };
@@ -426,11 +420,11 @@ insertAfterBtn.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(UiBuil
             _container.Click += async (s, e) =>
             {
                 if (_currentSong != null)
-                    await _viewModel.PlaySongAsync(_currentSong);
+                    await MyViewModel.PlaySongAsync(_currentSong);
             };
 
-            _container.LongClickable = true;
-            _container.LongClick += (s, e) =>
+            _moreBtn.LongClickable = true;
+            _moreBtn.LongClick += (s, e) =>
             {
                 _container.PerformHapticFeedback(FeedbackConstants.LongPress);
                 
@@ -441,7 +435,7 @@ insertAfterBtn.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(UiBuil
             _infoBtn.Click += (s, e) =>
             {
                 
-                var infoSheet = new SongInfoBottomSheetFragment(_viewModel, _currentSong);
+                var infoSheet = new SongInfoBottomSheetFragment(MyViewModel, _currentSong);
                 infoSheet.Show(_parentFrag.ParentFragmentManager, "SongInfoSheet");
             };
 
@@ -463,7 +457,7 @@ insertAfterBtn.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(UiBuil
             {
                 if (_currentSong != null)
                 {
-                    await _viewModel.ShareSongViewClipboard(_currentSong);
+                    await MyViewModel.ShareSongViewClipboard(_currentSong);
                 }
             };
 
@@ -475,12 +469,12 @@ insertAfterBtn.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(UiBuil
             {
                 if (_currentSong != null)
                 {
-                    _viewModel.SelectedSong = _currentSong;
+                    MyViewModel.SelectedSong = _currentSong;
                     // Note: Transition name must be updated in Bind, but we can read it from the view here
                     string? tName = ViewCompat.GetTransitionName(_img);
                     if (tName != null)
                     {
-                        _viewModel.NavigateToSingleSongPageFromHome(_parentFrag, tName, _img);
+                        MyViewModel.NavigateToSingleSongPageFromHome(_parentFrag, tName, _img);
                     }
                 }
             };
@@ -491,43 +485,57 @@ insertAfterBtn.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(UiBuil
             {
                 if (_currentSong?.ArtistName != null)
                 {
-                    var query = $"artist:\"{_currentSong.OtherArtistsName}\"";
-                    _artist.PerformHapticFeedback(FeedbackConstants.LongPress);
-                    _viewModel.SearchSongForSearchResultHolder(query);
+                    var artistPickBtmSheet = new ArtistPickerBottomSheet(MyViewModel,_currentSong.OtherArtistsName);
+
+                    artistPickBtmSheet.Show(parentFrag.ParentFragmentManager, "QueueSheet");
+                    
                 }
             };
 
             // 6. Fav Button
             _favBtn.Click += async (s, e) =>
             {
+                int[] loc = new int[2];
+                _favBtn.GetLocationOnScreen(loc);
                 if (_currentSong != null)
                 {
-                    await _viewModel.AddFavoriteRatingToSong(_currentSong);
+                    await MyViewModel.AddFavoriteRatingToSong(_currentSong);
                     // Instant visual feedback
                     _favBtn.Text = !_currentSong.IsFavorite ? "Unfav" : "Fav";
                     _favBtn.SetIconResource(_currentSong.IsFavorite ? Resource.Drawable.heartlock : Resource.Drawable.heart);
                     _favBtn.IconTint = _currentSong.IsFavorite ? AppUtil.ToColorStateList(Color.DarkSlateBlue) : AppUtil.ToColorStateList(Color.Gray) ;
+                    UiBuilder.ShowSnackBar(
+   parentFrag.View,
+   _currentSong.IsFavorite ? $"Added {_currentSong.Title} by {_currentSong.ArtistName} to Favorites " : $"Removed {_currentSong.Title} by {_currentSong.ArtistName} from Favorites",
+   textColor: Color.Black
+   
+);
+                    _favBtn.PerformHapticFeedback(FeedbackConstants.Confirm);
                 }
             };
             _favBtn.LongClick += async (s, e) =>
             {
+                int[] loc = new int[2];
+                _favBtn.GetLocationOnScreen(loc);
+
                 if (_currentSong != null)
                 {
-                    await _viewModel.RemoveSongFromFavorite(_currentSong);
+                    await MyViewModel.RemoveSongFromFavorite(_currentSong);
                     var iconRes = _currentSong.IsFavorite ? Resource.Drawable.heartlock : Resource.Drawable.heart;
                     // Instant visual feedback
                     _favBtn.Text = !_currentSong.IsFavorite ? "Unfav" : "Fav";
                     _favBtn.SetIconResource(iconRes);
+                    _favBtn.PerformHapticFeedback(FeedbackConstants.Reject);
                     UiBuilder.ShowSnackBar(
     parentFrag.View, 
-    _currentSong.IsFavorite ? "Added to Favorites" : "Removed from Favorites",
+    _currentSong.IsFavorite ? $"Added {_currentSong.Title} by {_currentSong.ArtistName} to Favorites " : $"Removed {_currentSong.Title} by {_currentSong.ArtistName} from Favorites",
     textColor: Color.Black,
     iconResId: iconRes
 );
                 }
             };
         }
-
+      
         public void Bind(SongModelView song, bool isExpanded, Action<int> onExpandToggle)
         {
             _currentSong = song;
@@ -550,8 +558,18 @@ insertAfterBtn.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(UiBuil
             // Image Loading
             if (!string.IsNullOrEmpty(song.CoverImagePath))
             {
-                Glide.With(_img.Context).Load(song.CoverImagePath)
-                     .Placeholder(Resource.Drawable.musicnotess).Into(_img);
+                var domCol = MyViewModel.CurrentPlaySongDominantColor;
+                if (domCol is not null)
+                {
+                    var colorBGA = (int)domCol.Alpha;
+                    var colorBGR = (int)domCol.Red;
+                    var colorBGG = (int)domCol.Green;
+                    var colorBGB = (int)domCol.Blue;
+
+                    _container.SetBackgroundColor(Color.Argb(10, colorBGR, colorBGB, colorBGB));
+                }
+                _img.SetImageWithGlide(song.CoverImagePath);
+                
             }
             else
             {
@@ -625,7 +643,7 @@ insertAfterBtn.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(UiBuil
                         Glide.With(_img.Context).Load(path)
                              .Placeholder(Resource.Drawable.musicnotess)
                              .Into(_img);
-                        if(song == _viewModel.CurrentPlayingSongView)
+                        if(song == MyViewModel.CurrentPlayingSongView)
                         {
                           
                         }
@@ -693,7 +711,7 @@ insertAfterBtn.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(UiBuil
             playNowBtn.SetIconResource(Resource.Drawable.play);
             playNowBtn.Click += async (s, e) =>
             {
-                await _viewModel.PlaySongWithActionAsync(_currentSong, Dimmer.Utilities.Enums.PlaybackAction.PlayNow);
+                await MyViewModel.PlaySongWithActionAsync(_currentSong, Dimmer.Utilities.Enums.PlaybackAction.PlayNow);
                 Toast.MakeText(ctx, $"Playing {_currentSong.Title}", ToastLength.Short)?.Show();
                 dialog.Dismiss();
             };
@@ -713,7 +731,7 @@ insertAfterBtn.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(UiBuil
             playNextBtn.SetIconResource(Resource.Drawable.media3_icon_next);
             playNextBtn.Click += async (s, e) =>
             {
-                await _viewModel.PlaySongWithActionAsync(_currentSong, Dimmer.Utilities.Enums.PlaybackAction.PlayNext);
+                await MyViewModel.PlaySongWithActionAsync(_currentSong, Dimmer.Utilities.Enums.PlaybackAction.PlayNext);
                 Toast.MakeText(ctx, $"Added {_currentSong.Title} to play next", ToastLength.Short)?.Show();
                 dialog.Dismiss();
             };
@@ -733,7 +751,7 @@ insertAfterBtn.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(UiBuil
             addToQueueBtn.SetIconResource(Resource.Drawable.media3_icon_queue_add);
             addToQueueBtn.Click += async (s, e) =>
             {
-                await _viewModel.PlaySongWithActionAsync(_currentSong, Dimmer.Utilities.Enums.PlaybackAction.AddToQueue);
+                await MyViewModel.PlaySongWithActionAsync(_currentSong, Dimmer.Utilities.Enums.PlaybackAction.AddToQueue);
                 Toast.MakeText(ctx, $"Added {_currentSong.Title} to queue", ToastLength.Short)?.Show();
                 dialog.Dismiss();
             };
@@ -750,8 +768,9 @@ insertAfterBtn.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(UiBuil
             viewInQueueBtn.SetIconResource(Resource.Drawable.eye);
             viewInQueueBtn.Click += (s, e) =>
             {
-                _viewModel.SelectedSong = _currentSong;
-                var queueSheet = new QueueBottomSheetFragment(_viewModel);
+                MyViewModel.SelectedSong = _currentSong;
+                var queueSheet = new QueueBottomSheetFragment(MyViewModel, viewInQueueBtn);
+                viewInQueueBtn.Enabled = false;
                 queueSheet.Show(_parentFrag.ParentFragmentManager, "QueueSheet");
                 queueSheet.ScrollToSong(_currentSong);
                 dialog.Dismiss();

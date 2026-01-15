@@ -1656,7 +1656,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial string AppTitle { get; set; } = "🎄Dimmer";
 
-    public static string CurrentAppVersion = "1.5.8";
+    public static string CurrentAppVersion = "1.5.9";
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]
@@ -2212,7 +2212,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             if (TaggingUtils.FileExists(song.CoverImagePath))
             {
-                CurrentCoverImagePath = song.CoverImagePath;
 
                 return;
             }
@@ -2320,7 +2319,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             if (song.CoverImagePath != finalImagePath)
             {
-                RxSchedulers.UI.ScheduleToUI(()=> CurrentCoverImagePath = finalImagePath);
+                RxSchedulers.UI.ScheduleToUI(()=> song.CoverImagePath = finalImagePath);
                
             }
 

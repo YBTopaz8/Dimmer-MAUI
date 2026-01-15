@@ -91,7 +91,7 @@ internal class PlayEventAdapter : RecyclerView.Adapter
         moreCol.SetGravity(GravityFlags.End | GravityFlags.CenterVertical);
 
         var timeAgoTxt = new TextView(_ctx) { TextSize = 12 };
-        var moreBtn = UiBuilder.CreateMaterialButton(_ctx, _ctx.Resources.Configuration, sizeDp: 40, iconRes: Resource.Drawable.more1);
+        var moreBtn = UiBuilder.CreateMaterialButton(_ctx, sizeDp: 40, iconRes: Resource.Drawable.more1);
 
         moreCol.AddView(timeAgoTxt);
         moreCol.AddView(moreBtn);

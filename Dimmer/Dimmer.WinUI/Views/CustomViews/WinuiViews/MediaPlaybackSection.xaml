@@ -132,6 +132,8 @@
                                 Background="Transparent"
                                 Content="{x:Bind MyViewModel.CurrentPlayingSongView.OtherArtistsName, Mode=OneWay}"
                                 FontSize="24"
+                                Click="ArtistBtn_Click"
+                                RightTapped="ArtistBtn_RightTapped"
                                 PointerPressed="ArtistBtn_PointerPressed" />
 
                             <Button

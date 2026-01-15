@@ -126,14 +126,14 @@ public sealed partial class NowPlayingPage : Page
 
                 // Quick View (internal)
                 var quickView = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = "Quick View" };
-                quickView.Click += (_, __) => TryVM(a => a.QuickViewArtist(artistName));
+                quickView.Click += (_, __) => TryVM(a => a.QuickViewArtist(song, artistName));
 
                 // View By...
                 var viewBy = new Microsoft.UI.Xaml.Controls.MenuFlyoutSubItem { Text = "View By..." };
                 var viewAlbums = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = "Albums" };
-                viewAlbums.Click += (_, __) => TryVM(a => a.NavigateToArtistPage(artistName));
+                viewAlbums.Click += (_, __) => TryVM(a => a.NavigateToArtistPage(song, artistName));
                 var viewGenres = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = "Genres" };
-                viewGenres.Click += (_, __) => TryVM(a => a.NavigateToArtistPage(artistName)); // customize
+                viewGenres.Click += (_, __) => TryVM(a => a.NavigateToArtistPage(song, artistName)); // customize
 
                 viewBy.Items.Add(viewAlbums);
                 viewBy.Items.Add(viewGenres);
@@ -142,13 +142,13 @@ public sealed partial class NowPlayingPage : Page
                 var play = new Microsoft.UI.Xaml.Controls.MenuFlyoutSubItem { Text = "Play / Queue" };
 
                 var playInAlbum = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = "Play Songs In This Album" };
-                playInAlbum.Click += (_, __) => TryVM(a => a.PlaySongsByArtistInCurrentAlbum(artistName));
+                playInAlbum.Click += (_, __) => TryVM(a => a.PlaySongsByArtistInCurrentAlbum(song, artistName));
 
                 var playAll = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = "Play All by Artist" };
-                playAll.Click += (_, __) => TryVM(a => a.PlayAllSongsByArtist(artistName));
+                playAll.Click += (_, __) => TryVM(a => a.PlayAllSongsByArtist(song, artistName));
 
                 var queueAll = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = "Queue All by Artist" };
-                queueAll.Click += (_, __) => TryVM(a => a.QueueAllSongsByArtist(artistName));
+                queueAll.Click += (_, __) => TryVM(a => a.QueueAllSongsByArtist(song, artistName));
 
                 play.Items.Add(playInAlbum);
                 play.Items.Add(playAll);
@@ -156,20 +156,20 @@ public sealed partial class NowPlayingPage : Page
 
                 // Stats (non-interactive)
                 var stats = new Microsoft.UI.Xaml.Controls.MenuFlyoutSubItem { Text = "Stats" };
-                var playCount = SafeVM(a => a.GetArtistPlayCount(artistName), 0);
-                var isFollowed = SafeVM(a => a.IsArtistFollowed(artistName), false);
+                var playCount = SafeVM(a => a.GetArtistPlayCount(song, artistName), 0);
+                var isFollowed = SafeVM(a => a.IsArtistFollowed(song, artistName), false);
 
                 stats.Items.Add(new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = $"Total plays: {playCount}", IsEnabled = false });
                 stats.Items.Add(new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = $"Followed: {(isFollowed ? "Yes" : "No")}", IsEnabled = false });
 
                 // Favorite toggle (if supported)
                 var favSupported = HasVM(out IArtistActions? actions);
-                bool isFav = favSupported && actions!.IsArtistFavorite(artistName);
+                bool isFav = favSupported && actions!.IsArtistFavorite(song, artistName);
                 var favToggle = new ToggleMenuFlyoutItem { Text = "Favorite", IsChecked = isFav };
                 favToggle.Click += (_, __) =>
                 {
                     if (HasVM(out var a))
-                        a!.ToggleFavoriteArtist(artistName, favToggle.IsChecked);
+                        a!.ToggleFavoriteArtist(song, artistName, favToggle.IsChecked);
                 };
 
                 // Find On...
@@ -211,7 +211,7 @@ public sealed partial class NowPlayingPage : Page
             {
                 Text = "Open Artist Page…"
             };
-            openArtistPage.Click += (_, __) => TryVM(a => a.NavigateToArtistPage(namesList[0]));
+            openArtistPage.Click += (_, __) => TryVM(a => a.NavigateToArtistPage(song, namesList[0]));
             flyout.Items.Add(new Microsoft.UI.Xaml.Controls.MenuFlyoutSeparator());
             flyout.Items.Add(openArtistPage);
 

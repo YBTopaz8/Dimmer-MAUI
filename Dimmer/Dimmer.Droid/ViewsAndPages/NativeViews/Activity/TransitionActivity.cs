@@ -147,6 +147,33 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
 
     }
     private SmoothBottomBar _bottomBar;
+
+    public override void OnConfigurationChanged(Configuration newConfig)
+    {
+        base.OnConfigurationChanged(newConfig);
+        RefreshBottomSheet();
+    }
+
+    private void RefreshBottomSheet()
+    {
+        SheetBehavior.State = BottomSheetBehavior.StateHidden;
+
+        var frag = SupportFragmentManager.FindFragmentByTag("NowPlayingFragment");
+            if(frag is not null)
+        {
+            SupportFragmentManager.BeginTransaction()
+                .Remove(frag)
+                .CommitNow();
+        }
+
+
+        var nowPlayingFrag = new NowPlayingFragment(MyViewModel);
+        SupportFragmentManager
+            .BeginTransaction()
+            .Replace(_sheetContainer.Id, nowPlayingFrag, "NowPlayingFragment")
+            .CommitNow();
+    }
+
     private void SetupCsharpUi()
     {
         // 1. Theme Colors
@@ -849,6 +876,7 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
             .Show();
         
     }
+
 }
 sealed class BackInvokedCallback : Java.Lang.Object, IOnBackInvokedCallback
 {

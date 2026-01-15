@@ -142,6 +142,29 @@ public static class DimmerMappers
         return dest;
     }
 
+    public static List<ArtistModelView?>? ArtistsInDB(this SongModelView song,IRealmFactory realmFactory)
+    {
+
+        return realmFactory.GetRealmInstance().Find<SongModel>
+            (song.Id)?.ArtistToSong.AsEnumerable().Select(x => x.ToArtistModelView())
+            .ToList();
+    }
+
+    public static List<SongModelView?>? SongsInDB(this ArtistModelView song,IRealmFactory realmFactory)
+    {
+
+        return realmFactory.GetRealmInstance().Find<ArtistModel>
+            (song.Id)?.Songs.AsEnumerable().Select(x => x.ToSongModelView())
+            .ToList();
+    }
+
+    public static List<AlbumModelView?>? AlbumsInDB(this ArtistModelView song,IRealmFactory realmFactory)
+    {
+
+        return realmFactory.GetRealmInstance().Find<ArtistModel>
+            (song.Id)?.Albums.AsEnumerable().Select(x => x.ToAlbumModelView())
+            .ToList();
+    }
     public static SongModel? ToSongModel(this SongModelView? src)
     {
         if (src is null) return null;

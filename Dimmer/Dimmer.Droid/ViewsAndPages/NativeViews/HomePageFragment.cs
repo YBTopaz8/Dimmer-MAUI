@@ -9,6 +9,7 @@ using CommunityToolkit.Maui.Views;
 using Dimmer.DimmerSearch;
 using Dimmer.UiUtils;
 using Dimmer.Utils;
+using Dimmer.Utils.Extensions;
 using Dimmer.ViewsAndPages.NativeViews.DimmerLive;
 using Dimmer.ViewsAndPages.NativeViews.Misc;
 using Dimmer.ViewsAndPages.ViewUtils;
@@ -75,7 +76,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     }
     private CancellationTokenSource? _searchCts;
     private SongAdapter _adapter;
-
+    private ImageView _backgroundImageView;
 
     public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
@@ -89,6 +90,15 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
         root.SetBackgroundColor(UiBuilder.IsDark(ctx) ? Color.ParseColor("#0D0E20") : Color.ParseColor("#CAD3DA"));
 
+        _backgroundImageView = new ImageView(ctx)
+        {
+            LayoutParameters = new FrameLayout.LayoutParams(-1, -1),
+
+        };
+
+        _backgroundImageView.SetScaleType(ImageView.ScaleType.CenterCrop);
+       
+        root.AddView(_backgroundImageView);
         // 2. Main Content Container (Linear Layout inside Coordinator)
         var contentLinear = new LinearLayout(ctx)
         {
@@ -129,6 +139,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
             Background = null,
             TextSize = 14
         };
+        _searchBar.SetTextColor(!UiBuilder.IsDark(this.View) ? Color.Black : Color.White);
         _searchBar.SetPadding(40, 30, 40, 30);
 
         _searchBar.TextChanged += _searchBar_TextChanged;
@@ -143,27 +154,27 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         };
         searchCard.AddView(_searchBar);
         // Help Button
-         helpBtn = new Google.Android.Material.Button.MaterialButton(ctx, null, Resource.Attribute.materialIconButtonStyle)
+         QueueBtn = new Google.Android.Material.Button.MaterialButton(ctx, null, Resource.Attribute.materialIconButtonStyle)
         {
             Icon = AndroidX.Core.Content.ContextCompat.GetDrawable(ctx, Resource.Drawable.playlista),
             IconTint = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.DarkSlateBlue),
             LayoutParameters = new LinearLayout.LayoutParams(AppUtil.DpToPx(50), AppUtil.DpToPx(50))
         };
-        helpBtn.Click += async (s, e) =>
+        QueueBtn.Click += async (s, e) =>
         {
 
-            var queueSheet = new QueueBottomSheetFragment(MyViewModel);
+            var queueSheet = new QueueBottomSheetFragment(MyViewModel,QueueBtn);
             queueSheet.Show(ParentFragmentManager, "QueueSheet");
-
+            QueueBtn.Enabled = false;
             await Task.Delay(800);
             queueSheet.ScrollToSong();
         };
-        helpBtn.LongClickable = true;
-        helpBtn.LongClick += (s, e) =>
+        QueueBtn.LongClickable = true;
+        QueueBtn.LongClick += (s, e) =>
         {
             MyViewModel.CopyAllSongsInNowPlayingQueueToMainSearchResult();
             Toast.MakeText(ctx, "Copied Queue to Main UI", ToastLength.Short);
-            helpBtn.PerformHapticFeedback(FeedbackConstants.Confirm);
+            QueueBtn.PerformHapticFeedback(FeedbackConstants.Confirm);
         };
 
         loadingIndic = new LoadingIndicator(ctx);
@@ -173,7 +184,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         // Add items to Header
         headerLayout.AddView(menuBtn);
         headerLayout.AddView(searchCard);
-        headerLayout.AddView(helpBtn);
+        headerLayout.AddView(QueueBtn);
 
 
 
@@ -186,24 +197,22 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         bottomLayout.SetPadding(20, 20, 20, 20);
 
         songsTotal = new TextView(ctx, null, Resource.Attribute.titleTextStyle);
-
+        songsTotal.SetTextColor(UiBuilder.IsDark(this.View) ? Color.White : Color.Black);
         songsTotal.TextAlignment = TextAlignment.TextStart;
 
 
-        var twoRowLayout = new LinearLayout(ctx)
-        {
-            Orientation = Orientation.Vertical
-        };
 
-        twoRowLayout.SetPadding(10, 10, 10, 10);
-        currentTql = UiBuilder.CreateMarqueeTextView(ctx);
+        currentTql = new TextView(ctx, null, Resource.Attribute.titleTextStyle);
+
+
+        currentTql.SetTextColor(UiBuilder.IsDark(this.View) ? Color.White : Color.Black);
         
-        twoRowLayout.AddView(currentTql);
 
         bottomLayout.AddView(loadingIndic);
 
         bottomLayout.AddView(songsTotal);
-        bottomLayout.AddView(twoRowLayout);
+
+        bottomLayout.AddView(currentTql);
 
 
 
@@ -241,7 +250,9 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         // --- 5. Extended FAB ---
         fab = new Google.Android.Material.FloatingActionButton.ExtendedFloatingActionButton(ctx);
         ;
-        fab.Extended = false;
+        fab.Extended = true;
+
+        fab.SetBackgroundColor(UiBuilder.IsDark(ctx) ? Color.ParseColor("#1a1a1a") : Color.ParseColor("#DEDFF0"));
         fab.SetIconResource(Resource.Drawable.musicaba); 
         
 
@@ -337,13 +348,27 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
         MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentPlayingSongView), newVl => MyViewModel.CurrentPlayingSongView)
             .ObserveOn(RxSchedulers.UI)
-            .Subscribe(currSong =>
+            .Subscribe(async currSong =>
             {
                 var art = currSong.Artist;
                 var alb= currSong.Album;
                 var artImgPath = art?.ImagePath;
                 var albImgPath = alb?.ImagePath;
-               
+                if (MyViewModel.CurrentPlayingSongView.CoverImagePath is not null)
+                {
+
+                    if(UiBuilder.IsDark(this.View))
+                    {
+
+                        await _backgroundImageView.SetImageWithStringPathViaGlideAndFilterEffect(MyViewModel.CurrentPlayingSongView.CoverImagePath,
+                             Utilities.FilterType.DarkAcrylic);
+                    }
+                    else
+                    {
+                        await _backgroundImageView.SetImageWithStringPathViaGlideAndFilterEffect(MyViewModel.CurrentPlayingSongView.CoverImagePath,
+                             Utilities.FilterType.Glassy);
+                    }
+                }
                 //currSong.IsCurrentPlayingHighlight= true; 
             });
 
@@ -366,7 +391,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
             .Subscribe(pbQueue =>
             {
                 if(pbQueue is not null)
-                    helpBtn.TooltipText = $"{MyViewModel.PlaybackQueue.Count} Songs in Queue";
+                    QueueBtn.TooltipText = $"{MyViewModel.PlaybackQueue.Count} Songs in Queue";
             });
 
 
@@ -457,37 +482,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         .DisposeWith(CompositeDisposables);
 
 
-        _morphMenu = new FabMorphMenu(Context, root, fab)
-        .AddItem("Settings", Resource.Drawable.settings, () =>
-        {
-            // Logic copied from your old ShowFabMenu
-            if (Activity is TransitionActivity act)
-                act.NavigateTo(new SettingsFragment("sett", MyViewModel), "SettingsFragment");
-        })
-        .AddItem("Search (TQL)", Resource.Drawable.searchd, () =>
-        {
-            var searchSheet = new TqlSearchBottomSheet(MyViewModel);
-            searchSheet.Show(ParentFragmentManager, "TqlSearchSheet");
-        })
-        .AddItem("Scroll to Playing", Resource.Drawable.eye, () =>
-        {
-
-            var songPos = MyViewModel.SearchResults.IndexOf(MyViewModel.CurrentPlayingSongView);
-            _songListRecycler?.SmoothScrollToPosition(songPos);
-
-            Toast.MakeText(Context, $"Scrolled To Song {MyViewModel.CurrentPlayingSongView.Title}", ToastLength.Short)?.Show();
-        })
-        .AddItem("View Queue", Resource.Drawable.playlistminimalistic3, () =>
-        {
-            var queueSheet = new QueueBottomSheetFragment(MyViewModel);
-            queueSheet.Show(ParentFragmentManager, "QueueSheet");
-        })
-        .AddItem("Login", Resource.Drawable.user, () =>
-        {
-            MyViewModel.NavigateToAnyPageOfGivenType(this, new LoginFragment("IntoLogin", MyViewModel), "loginPageTag");
-        });
-
-
+        
         PostponeEnterTransition();
         _songListRecycler?.ViewTreeObserver?.AddOnPreDrawListener(new MyPreDrawListener(_songListRecycler, this));
    
@@ -516,7 +511,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     public LoadingIndicator loadingIndic { get; private set; }
     public TextView songsTotal { get; private set; }
     public TextView currentTql { get; private set; }
-    public Button helpBtn { get; private set; }
+    public Button QueueBtn { get; private set; }
 
     public override void OnDestroyView()
     {

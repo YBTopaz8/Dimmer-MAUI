@@ -690,57 +690,73 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         DimmerMultiWindowCoordinator.ShowControlPanel();
     }
 
-    public void QuickViewArtist(string artistName)
+    public void QuickViewArtist(SongModelView song, string artistName)
     {
-        Debug.WriteLine($"Quick view for artist: {artistName}");
-        // TODO: open artist popup or small window
+        SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(artistName));
     }
 
-    public void PlaySongsByArtistInCurrentAlbum(string artistName)
+    public void PlaySongsByArtistInCurrentAlbum(SongModelView song, string artistName)
     {
         Debug.WriteLine($"Play songs by {artistName} in current album.");
         // TODO: filter and start playback from current album list
     }
 
-    public void PlayAllSongsByArtist(string artistName)
+    public void PlayAllSongsByArtist(SongModelView song, string artistName)
     {
         Debug.WriteLine($"Play all songs by {artistName}.");
         // TODO: query Realm for all songs where Artist == artistName
     }
 
-    public void QueueAllSongsByArtist(string artistName)
+    public void QueueAllSongsByArtist(SongModelView song, string artistName)
     {
         Debug.WriteLine($"Queue all songs by {artistName}.");
         // TODO: add matching songs to NowPlayingQueue
     }
 
-    public void NavigateToArtistPage(string artistName)
+    public void NavigateToArtistPage(SongModelView song, string artistName)
     {
+        SelectedArtist = song.ArtistsInDB(RealmFactory)?.FirstOrDefault(x=>x?.Name==artistName);
         Debug.WriteLine($"Navigating to artist page: {artistName}");
-        // TODO: open a WinUI page or a MAUI subview with artist info
+        if(SelectedArtist is not null)
+            NavigateToAnyPageOfGivenType(typeof(ArtistPage));
     }
 
-    public bool IsArtistFavorite(string artistName)
+
+    public bool IsArtistFavorite(SongModelView song, string artistName)
     {
         Debug.WriteLine($"Checking favorite status for {artistName}");
         // TODO: query Realm for favorite
         return false;
     }
+    public void QuickViewArtistSortByAlbum()
+    {
+        throw new NotImplementedException();
+    }
 
-    public void ToggleFavoriteArtist(string artistName, bool isFavorite)
+    public void QuickViewArtistSortByGenres()
+    {
+        throw new NotImplementedException();
+    }
+    public void ToggleFavoriteArtist(SongModelView song, string artistName, bool isFavorite)
     {
         Debug.WriteLine($"Set favorite={isFavorite} for {artistName}");
         // TODO: update Realm favorites collection
     }
 
-    public int GetArtistPlayCount(string artistName)
+    public int GetArtistPlayCount(SongModelView song, string artistName)
     {
+        
+        var realm = RealmFactory.GetRealmInstance();
+        var artistID = song.Artist?.Id;
+        var allSongsByArtist = realm.Find<ArtistModel>(artistID)?.Songs;
+        var totalCompletedCount = allSongsByArtist?.Sum(x=>x.PlayCompletedCount);
+
         Debug.WriteLine($"Fetching play count for {artistName}");
         // TODO: return number of times artist's songs have been played
         return 0;
     }
 
-    public bool IsArtistFollowed(string artistName)
+    public bool IsArtistFollowed(SongModelView song, string artistName)
     {
         Debug.WriteLine($"Checking if {artistName} is followed");
         // TODO: check Realm or local list
@@ -1305,4 +1321,6 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         if(SelectedSong is null) return;
         SelectedSong.PlayEvents.Remove(selectedPlayEvent);
     }
+
+   
 }
