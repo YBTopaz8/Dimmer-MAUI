@@ -112,7 +112,7 @@ public partial class DimmerMAUIWin : Microsoft.Maui.Controls.Window
         MyViewModel.windowManager.TrackWindow(this);
         base.OnCreated();
         var nativeWindow = PlatUtils.GetNativeWindowFromMAUIWindow(this);
-        PlatUtils.MoveAndResizeCenter(nativeWindow, new Windows.Graphics.SizeInt32(600, 900));
+        PlatUtils.MoveAndResizeCenter(nativeWindow, new Windows.Graphics.SizeInt32(600, 700));
         MinimumHeight = 700;
         MaximumWidth = 600;
 

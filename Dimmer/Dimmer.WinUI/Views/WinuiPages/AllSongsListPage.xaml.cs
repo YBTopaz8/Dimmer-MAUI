@@ -1236,8 +1236,8 @@ true
                 new MenuFlyoutItem
                 {
                     Text = $"{namesOfartists.Count()} {artistText} linked",
-                    IsTapEnabled = false
-
+                    IsEnabled = false
+                    
                 });
 
             foreach (var artistName in namesOfartists)
