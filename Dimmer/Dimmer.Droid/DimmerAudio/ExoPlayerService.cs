@@ -238,7 +238,7 @@ public class ExoPlayerService : MediaSessionService
         return [.. we];
     }
 
-    internal static List<AudioDeviceInfo> GetAvailableAudioOutputs()
+    public static List<AudioDeviceInfo> GetAvailableAudioOutputs()
     {
         // 1) grab the Android AudioManager
         var audioManager = Platform.AppContext
@@ -284,10 +284,11 @@ public class ExoPlayerService : MediaSessionService
 
         try
         {
+
             var audioAttributes = new AudioAttributes.Builder()!
             .SetUsage(C.UsageMedia)! // Specify this is media playback
             .SetContentType(C.AudioContentTypeMusic)! // Specify the content is music
-            .Build();
+            .SetIsContentSpatialized(true).Build();
 
             player = new ExoPlayerBuilder(this)
                 .SetAudioAttributes(audioAttributes, true)!
@@ -298,6 +299,7 @@ public class ExoPlayerService : MediaSessionService
                 .SetDeviceVolumeControlEnabled(true)!
                 .SetSuppressPlaybackOnUnsuitableOutput(false)!
                 .SetPauseAtEndOfMediaItems(true )
+                
                 //.SetPauseAtEndOfMediaItems(true) could use this in combo with 
                 //is play changed but i'll need to expose the player position
                 
@@ -412,9 +414,9 @@ public class ExoPlayerService : MediaSessionService
         base.OnStartCommand(intent, flags, startId);
 
 
-        var notification = NotificationHelper.BuildMinimalNotification(this);
+        //var notification = NotificationHelper.BuildMinimalNotification(this);
 
-        StartForeground(NotificationHelper.NotificationId, notification);
+        //StartForeground(NotificationHelper.NotificationId, notification);
 
         string? action = intent?.Action;
         if (action is not null)
@@ -648,7 +650,7 @@ public class ExoPlayerService : MediaSessionService
             .SetAlbumTitle(album)!
             .SetMediaType(new Java.Lang.Integer(MediaMetadata.MediaTypeMusic))! // Use Java Integer wrapper
             .SetGenre(genre)!
-
+            
             .SetIsPlayable(Java.Lang.Boolean.True)!; // Use Java Boolean wrapper
 
         if (!string.IsNullOrEmpty(imagePath) && File.Exists(imagePath))
@@ -983,8 +985,10 @@ public class ExoPlayerService : MediaSessionService
                    .Add(new SessionCommand(ExoPlayerService.ActionRepeat, Bundle.Empty))!
                   .Build();
 
-
+            
             var playerCommands = new PlayerCommands.Builder()
+                .Add(SessionCommand.CommandCodeSessionSetRating)
+                   
               .AddAllCommands()!
               .Build();
 

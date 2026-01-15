@@ -70,7 +70,7 @@ public static class NotificationHelper
         chan.SetShowBadge(true);
         chan.SetBypassDnd(true);
         chan.EnableVibration(false);
-
+        
 
 
 
@@ -78,7 +78,7 @@ public static class NotificationHelper
         Log.Debug("NotifHelper", $"Channel '{ChannelId}' created/updated. SDK: {Build.VERSION.SdkInt}, Bubble support attempted: {Build.VERSION.SdkInt >= BuildVersionCodes.Q}");
 
 
-        return null;
+        return chan;
     }
 
     public static PlayerNotificationManager BuildManager(
