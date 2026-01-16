@@ -56,13 +56,13 @@ public class AstEvaluator
                 switch (node.Operator)
                 {
                     case "=":
-                        result = songValue.Equals(queryValue, StringComparison.OrdinalIgnoreCase);
+                        result = CollationHelper.Equals(songValue, queryValue);
                         break;
                     case "^":
-                        result = songValue.StartsWith(queryValue, StringComparison.OrdinalIgnoreCase);
+                        result = CollationHelper.StartsWith(songValue, queryValue);
                         break;
                     case "$":
-                        result = songValue.EndsWith(queryValue, StringComparison.OrdinalIgnoreCase);
+                        result = CollationHelper.EndsWith(songValue, queryValue);
                         break;
                     case "~":
 
@@ -78,7 +78,7 @@ public class AstEvaluator
                         }
                         break;
                     default:
-                        result = songValue.Contains(queryValue, StringComparison.OrdinalIgnoreCase);
+                        result = CollationHelper.Contains(songValue, queryValue);
                         break;
                 }
 
