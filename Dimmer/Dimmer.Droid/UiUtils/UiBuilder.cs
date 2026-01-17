@@ -74,10 +74,13 @@ public static class UiBuilder
     //    if(CallerFragConfig == null) { return false; }
     //    return (CallerFragConfig.UiMode & Android.Content.Res.UiMode.NightMask) == Android.Content.Res.UiMode.NightYes;
     //}
-    public static bool IsDark(this View callerView)
+    public static bool IsDark(this View? callerView)
     {
-        if (callerView == null) { return false; }
-        return (callerView.Resources.Configuration.UiMode & Android.Content.Res.UiMode.NightMask) == Android.Content.Res.UiMode.NightYes;
+        if (callerView == null) 
+        { 
+            return false;
+        }
+        return (callerView.Resources!.Configuration!.UiMode & Android.Content.Res.UiMode.NightMask) == Android.Content.Res.UiMode.NightYes;
     }
 
     public static MaterialButton CreateMaterialButton(Context ctx, EventHandler? clickAction=null, bool isPrimary = false, int sizeDp = 50, int? iconRes=null)
