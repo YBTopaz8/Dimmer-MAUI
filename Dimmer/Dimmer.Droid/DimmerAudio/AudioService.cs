@@ -33,7 +33,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         {
             if (Player != null)
             {
-                RxSchedulers.UI.ScheduleToUI(() =>
+                RxSchedulers.UI.ScheduleTo(() =>
                 {
 
                     Player.Volume = (float)Math.Clamp(value, 0.0, 1.0);
@@ -98,8 +98,9 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     {
         _currentSongModel = songModel;
         // Tell the native service to prepare the track.
+        var finalArtName = songModel.HasSyncedLyrics ? "🎙️ " + songModel.OtherArtistsName : songModel.OtherArtistsName;
         long positionMs = (long)(pos * 1000.0);
-        Service?.Prepare(songModel.FilePath, songModel.Title, songModel.ArtistName, songModel.AlbumName, songModel,startPositionMs: positionMs);
+        Service?.Prepare(songModel.FilePath, songModel.Title, finalArtName, songModel.AlbumName, songModel,startPositionMs: positionMs);
 
         return Task.CompletedTask;
     }
