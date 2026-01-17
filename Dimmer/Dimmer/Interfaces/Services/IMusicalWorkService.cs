@@ -1,4 +1,5 @@
 using Dimmer.Data.Models;
+using MongoDB.Bson;
 
 namespace Dimmer.Interfaces.Services;
 
