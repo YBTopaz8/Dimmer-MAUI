@@ -448,7 +448,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
             if (PlaybackQueueCV is not null && PlaybackQueueCV.IsLoaded)
             {
-                RxSchedulers.UI.ScheduleToUI(() =>
+                RxSchedulers.UI.ScheduleTo(() =>
                 {
 
                     PlaybackQueueCV?.ScrollTo(value, position: ScrollToPosition.Center, animate: true);
@@ -799,7 +799,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
             .Count();
 
 
-        RxSchedulers.UI.ScheduleToUI(() =>
+        RxSchedulers.UI.ScheduleTo(() =>
         {
             SelectedArtist = artist;
         });

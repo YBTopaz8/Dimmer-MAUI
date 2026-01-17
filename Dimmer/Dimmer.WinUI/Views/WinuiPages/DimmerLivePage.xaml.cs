@@ -208,7 +208,7 @@ public sealed partial class DimmerLivePage : Page
 
             return;
         }
-        RxSchedulers.UI.ScheduleToUI(() =>
+        RxSchedulers.UI.ScheduleTo(() =>
         {
             SignupBtn.IsEnabled = true;
         });
