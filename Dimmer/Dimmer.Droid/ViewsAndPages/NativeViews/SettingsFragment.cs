@@ -163,12 +163,14 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
 
     // --- SECTION BUILDERS ---
 
-    private View CreateAppearanceSection(Context ctx)
+    private MaterialCardView CreateAppearanceSection(Context ctx)
     {
         var layout = CreateCardLayout(ctx);
 
-        layout.AddView(CreateSwitchRow(ctx, "Dark Mode", "Use dark theme application-wide",
-            MyViewModel.IsDarkModeOn, (v) => MyViewModel.ToggleAppThemeAnd()));
+        darkModePrefSwitch = CreateSwitchRow(ctx, "Dark Mode", "Use dark theme application-wide",
+            MyViewModel.IsDarkModeOn, (v) => MyViewModel.ToggleAppThemeAnd());
+        
+        layout.AddView(darkModePrefSwitch);
 
         layout.AddView(CreateDivider(ctx));
 
@@ -322,7 +324,13 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
                          }
                      })
                      .DisposeWith(sessionDisposable);
-        
+
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.IsDarkModeOn), song => MyViewModel.IsDarkModeOn)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(s =>
+            {
+                
+            });
     }
     public override void OnDestroy()
     {
@@ -330,6 +338,7 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
         sessionDisposable.Dispose();
     }
     CompositeDisposable sessionDisposable = new CompositeDisposable();
+    private LinearLayout darkModePrefSwitch;
 
     public LinearLayout MusicFoldersLayout { get; private set; }
 
