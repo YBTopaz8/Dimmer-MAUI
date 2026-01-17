@@ -471,7 +471,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     .Throttle(TimeSpan.FromMilliseconds(300), RxSchedulers.Background) // Ensure we don't spam
     .Select(inputs =>
     {
-        RxSchedulers.UI.ScheduleToUI(() => IsTqlBusy = true);
+        RxSchedulers.UI.ScheduleTo(() => IsTqlBusy = true);
         // 1. NLP Parsing (Lightweight)
         Debug.WriteLine($"[DEBUG] Processing: '{inputs.Query}'");
         var tqlQuery = string.IsNullOrWhiteSpace(inputs.Query) ? "" : NaturalLanguageProcessor.Process(inputs.Query);
@@ -816,7 +816,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
         else
         {
-            //CurrentTqlQuery = processedNewText;
+            CurrentTqlQueryUI = processedNewText;
         }
 
         
@@ -1191,7 +1191,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                         try
                         {
                             var safeSongView = lastSong.ToSongView();
-                            RxSchedulers.UI.ScheduleToUI(() =>
+                            RxSchedulers.UI.ScheduleTo(() =>
                             {
 
                                 CurrentPlayingSongView = safeSongView;
@@ -1209,7 +1209,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     else
                     {
                     }
-                    RxSchedulers.UI.ScheduleToUI(() =>
+                    RxSchedulers.UI.ScheduleTo(() =>
                     {
 
                         //CurrentTrackPositionSeconds = lastAppEvent.PositionInSeconds;
@@ -1975,7 +1975,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             if (addedNote != null)
             {
-                RxSchedulers.UI.ScheduleToUI(() =>
+                RxSchedulers.UI.ScheduleTo(() =>
                 {
                     songObject.UserNoteAggregatedCol ??= new();
                     songObject.UserNoteAggregatedCol.Add(new
@@ -2319,7 +2319,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             if (song.CoverImagePath != finalImagePath)
             {
-                RxSchedulers.UI.ScheduleToUI(()=> song.CoverImagePath = finalImagePath);
+                RxSchedulers.UI.ScheduleTo(()=> song.CoverImagePath = finalImagePath);
                
             }
 
@@ -2388,7 +2388,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
                         if (current % 10 == 0 || current == totalCount)
                         {
-                            RxSchedulers.UI.ScheduleToUI(() =>
+                            RxSchedulers.UI.ScheduleTo(() =>
                             {
                                 _stateService.SetCurrentLogMsg(new AppLogModel()
                                 {
@@ -2597,7 +2597,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _songToScrobble = CurrentPlayingSongView;
         CurrentPlayingSongView.IsCurrentPlayingHighlight = true;
 
-        UpdateCarouselItems();
 
         _logger.LogInformation("AudioService confirmed: Playback started for '{Title}'", args.MediaSong.Title);
         await BaseAppFlow.UpdateDatabaseWithPlayEvent(
@@ -2661,13 +2660,14 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             oldValue.IsCurrentPlayingHighlight = false;
         
     }
-    async partial void OnCurrentPlayingSongViewChanged(SongModelView value)
+    public SongModelView? OldSongValue { get; internal set; }
+    async partial void OnCurrentPlayingSongViewChanged(SongModelView oldValue, SongModelView newValue)
     {
-        if (value.Title is null)
+        if (oldValue is not null && oldValue.TitleDurationKey is null || newValue.TitleDurationKey is null)
             return;
-
-        UpdateCarouselItems();
-        await ProcessSongChangeAsync(value);
+        OldSongValue = oldValue;
+        if (oldValue?.TitleDurationKey == newValue.TitleDurationKey) return;
+        await ProcessSongChangeAsync(newValue);
     }
 
     private void OnFolderScanCompleted(PlaybackStateInfo stateInfo)
@@ -2707,7 +2707,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     {
         value.IsCurrentPlayingHighlight = true;
 
-        //await LoadSongDominantColorIfNotYetDoneAsync(value);
     }
 
     #endregion
@@ -2737,7 +2736,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 if (song is null) continue;
 
                 var songView = song.ToSongView();
-                RxSchedulers.UI.ScheduleToUI(() =>
+                RxSchedulers.UI.ScheduleTo(() =>
                 {
                     PlaybackQueueSource.Add(songView);
                 });
@@ -3357,38 +3356,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         return nextIndex;
     }
 
-    private void UpdateCarouselItems()
-    {
-        if (_playbackQueue == null || _playbackQueue.Count == 0)
-        {
-            CarouselItems.Clear();
-            PreviousSongInCarousel = null;
-            NextSongInCarousel = null;
-            return;
-        }
-
-        var prevIndex = GetNextIndexInQueue(-1);
-        var nextIndex = GetNextIndexInQueue(1);
-
-        PreviousSongInCarousel = (prevIndex >= 0 && prevIndex < _playbackQueue.Count) 
-            ? _playbackQueue[prevIndex] 
-            : null;
-
-        NextSongInCarousel = (nextIndex >= 0 && nextIndex < _playbackQueue.Count) 
-            ? _playbackQueue[nextIndex] 
-            : null;
-
-        // Always maintain 3 items with consistent indexing
-        // Index 0: Previous (or null placeholder)
-        // Index 1: Current (always present if we have a queue)
-        // Index 2: Next (or null placeholder)
-        CarouselItems.Clear();
-        
-        // Always add all three slots to maintain consistent indexing
-        CarouselItems.Add(PreviousSongInCarousel ?? CurrentPlayingSongView);  // Fallback to current if no previous
-        CarouselItems.Add(CurrentPlayingSongView);
-        CarouselItems.Add(NextSongInCarousel ?? CurrentPlayingSongView);  // Fallback to current if no next
-    }
 
     /// <summary>
     /// Jumps to a song that is already in the Now Playing queue. This does NOT create a new queue; it just changes the
@@ -4281,7 +4248,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     private void SetLatestDeviceLog(AppLogModel model)
     {
 
-        RxSchedulers.UI.ScheduleToUI(() =>
+        RxSchedulers.UI.ScheduleTo(() =>
         {
             LatestAppLog = model;
             LatestScanningLog = model.Log;
@@ -4525,7 +4492,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     _logger.LogInformation(
                         "No songs found that require artist linking. Database is already up-to-date!");
 
-                    RxSchedulers.UI.ScheduleToUI(
+                    RxSchedulers.UI.ScheduleTo(
                         async () =>
                         {
                             await Shell.Current
@@ -4609,7 +4576,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     stopwatch.ElapsedMilliseconds);
 
 
-                RxSchedulers.UI.ScheduleToUI(
+                RxSchedulers.UI.ScheduleTo(
                     async () =>
                     {
                         await Shell.Current
@@ -4976,7 +4943,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             concernedSong.NumberOfTimesFaved = 0;
             var updated = await Task.Run(() => songRepo.Upsert(concernedSong.ToSongModel()).ToSongModelView());
             if (updated is not null)
-                RxSchedulers.UI.ScheduleToUI(() => concernedSong = updated);
+                RxSchedulers.UI.ScheduleTo(() => concernedSong = updated);
             await lastfmService.UnloveTrackAsync(concernedSong);
             
 
@@ -5019,7 +4986,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             // persist Realm update off-UI thread
             var updated = await Task.Run(() => songRepo.Upsert(songModel.ToSongModel()).ToSongModelView());
             if (updated is not null)
-                RxSchedulers.UI.ScheduleToUI(() => songModel =updated);
+                RxSchedulers.UI.ScheduleTo(() => songModel =updated);
 
 
             // network side effect only once per manual first love
