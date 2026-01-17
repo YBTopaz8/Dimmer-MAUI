@@ -392,7 +392,7 @@ public class MusicalWorkServiceTests
         };
 
         _mockSongRepo.Setup(r => r.GetById(songId)).Returns(song);
-        _mockWorkRepo.Setup(r => r.GetAll(false)).Returns(works);
+        _mockWorkRepo.Setup(r => r.GetAll(It.IsAny<bool>())).Returns(works);
 
         // Act
         var result = _service.SuggestMatchingWorks(songId, maxResults: 5);
@@ -513,7 +513,7 @@ public class MusicalWorkServiceTests
             new MusicalWorkModel { Id = ObjectId.GenerateNewId(), Title = "Work 3" }
         };
 
-        _mockWorkRepo.Setup(r => r.GetAll(false)).Returns(works);
+        _mockWorkRepo.Setup(r => r.GetAll(It.IsAny<bool>())).Returns(works);
 
         // Act
         var result = _service.GetAllWorks();
