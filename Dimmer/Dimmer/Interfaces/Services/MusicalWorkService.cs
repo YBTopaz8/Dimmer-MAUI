@@ -133,6 +133,8 @@ public partial class MusicalWorkService : IMusicalWorkService
             return new List<WorkSuggestion>();
         }
 
+        // NOTE: For large databases (>10000 works), consider implementing pagination or 
+        // filtering by genre/artist first to reduce the search space.
         var allWorks = _workRepo.GetAll().ToList();
         var suggestions = new List<WorkSuggestion>();
 
@@ -166,6 +168,8 @@ public partial class MusicalWorkService : IMusicalWorkService
             return new List<SongSuggestion>();
         }
 
+        // NOTE: For large databases (>10000 songs), consider implementing genre/artist filtering
+        // or using the SearchableText index to reduce the search space before scoring.
         // Get all songs that are NOT already linked to any work
         var unlinkedSongs = _songRepo.Query(s => s.MusicalWork == null);
         var suggestions = new List<SongSuggestion>();
@@ -290,6 +294,11 @@ public partial class MusicalWorkService : IMusicalWorkService
 
     #region Private Helper Methods
 
+    // Pre-compiled regex patterns for better performance
+    private static readonly Regex ParenthesesPattern = new(@"\([^)]*\)", RegexOptions.Compiled);
+    private static readonly Regex BracketsPattern = new(@"\[[^\]]*\]", RegexOptions.Compiled);
+    private static readonly Regex WhitespacePattern = new(@"\s+", RegexOptions.Compiled);
+
     /// <summary>
     /// Normalizes a title by removing common variation keywords and extra whitespace
     /// </summary>
@@ -317,11 +326,11 @@ public partial class MusicalWorkService : IMusicalWorkService
         }
 
         // Remove parentheses and brackets content
-        normalized = Regex.Replace(normalized, @"\([^)]*\)", "");
-        normalized = Regex.Replace(normalized, @"\[[^\]]*\]", "");
+        normalized = ParenthesesPattern.Replace(normalized, "");
+        normalized = BracketsPattern.Replace(normalized, "");
 
         // Remove extra whitespace
-        normalized = Regex.Replace(normalized, @"\s+", " ").Trim();
+        normalized = WhitespacePattern.Replace(normalized, " ").Trim();
 
         return normalized;
     }

@@ -1,3 +1,4 @@
+// NOTE: This file uses GlobalUsings.cs for common imports (Realms, MongoDB.Bson, etc.)
 namespace Dimmer.Data.Models;
 
 /// <summary>
