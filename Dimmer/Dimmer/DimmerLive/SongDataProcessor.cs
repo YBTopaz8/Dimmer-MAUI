@@ -117,7 +117,7 @@ public static class SongDataProcessor
                             var vmSong = vm.SearchResults.First(x => x.TitleDurationKey == song.TitleDurationKey);
 
                             // Update the UI model on the main thread
-                            RxSchedulers.UI.ScheduleToUI(() =>
+                            RxSchedulers.UI.ScheduleTo(() =>
                             {
                                 vmSong.HasLyrics = !string.IsNullOrWhiteSpace(plainLyrics);
                                 vmSong.UnSyncLyrics = plainLyrics;

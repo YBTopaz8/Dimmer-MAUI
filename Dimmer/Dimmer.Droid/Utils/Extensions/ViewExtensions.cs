@@ -13,18 +13,25 @@ public static class ViewExts
     {
         btn.IconTint = AppUtil.ToColorStateList(color);
     }
-    public static void SetImageWithGlide(this ImageView ImgView, string imgPath)
+    public static void SetImageWithGlide(this ImageView ImgView, string? imgPath)
     {
 
-        Glide.With(ImgView.Context).Load(imgPath).Into(ImgView);
+        Glide.With(ImgView.Context!).Load(imgPath).Into(ImgView);
     }
     public static async Task SetImageWithStringPathViaGlideAndFilterEffect(this ImageView ImgView, string imgPath, FilterType desiredFilter)
     {
-        var glassyImg = await ImageFilterUtils.ApplyFilter(imgPath, desiredFilter);
-        Glide.With(ImgView.Context)
-            .Load(glassyImg)
-            .Into(ImgView);
-    
+     
+            var glassyImg = await ImageFilterUtils.ApplyFilter(imgPath, desiredFilter);
+
+            RxSchedulers.UI.ScheduleTo(async () =>
+            {
+                Glide.With(ImgView.Context!)
+                    .Load(glassyImg)
+                    .Into(ImgView);
+            });
+
+           
+        
     }
 
     public static Rect GetAbsoluteBounds(VisualElement view, IWindow window)

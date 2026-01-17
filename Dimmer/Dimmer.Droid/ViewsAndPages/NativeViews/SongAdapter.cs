@@ -106,7 +106,7 @@ internal class SongAdapter : RecyclerView.Adapter
     public override int ItemCount => _songs.Count;
 
     public Button moreBtn { get; private set; }
-    public Button infoBtn { get; private set; }
+    public Button StatsBtn { get; private set; }
     public Button favBtn { get; private set; }
 
     public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
@@ -300,19 +300,20 @@ internal class SongAdapter : RecyclerView.Adapter
         favBtn = CreateActionButton("Fav", Resource.Drawable.heart);
         expandRow.AddView(favBtn);
 
-        infoBtn = CreateActionButton("Info", Resource.Drawable.infocircle);
+        StatsBtn = CreateActionButton("Stats", Resource.Drawable.stats);
+
         MaterialButton? LyricsBtn = CreateActionButton("Lyrics", Resource.Drawable.lyrics);
         
-        expandRow.AddView(infoBtn);
+        expandRow.AddView(StatsBtn);
         expandRow.AddView(LyricsBtn);
 
-        MaterialButton? insertAfterBtn = CreateActionButton("Play Next", Resource.Drawable.media3_icon_next);
-    
-    
-    insertAfterBtn.TooltipText = $"Insert this song after {MyViewModel.CurrentPlayingSongView.Title}";
+        MaterialButton? InfoBtn = CreateActionButton("Info", Resource.Drawable.infocircle);
+
+
+        InfoBtn.TooltipText = $"View Song Info {MyViewModel.CurrentPlayingSongView.Title}";
             //expandRow.AddView(insertBeforeBtn);
 
-            expandRow.AddView(insertAfterBtn);
+            expandRow.AddView(InfoBtn);
  
 
         // Assemble
@@ -321,8 +322,8 @@ internal class SongAdapter : RecyclerView.Adapter
 
         card.AddView(mainContainer);
 
-        return new SongViewHolder(MyViewModel, ParentFragement, card, imgView, title, artist, moreBtn, durationView,expandRow,  (Button)favBtn, (Button)infoBtn,
-            LyricsBtn, insertAfterBtn);
+        return new SongViewHolder(MyViewModel, ParentFragement, card, imgView, title, artist, moreBtn, durationView,expandRow,  (Button)favBtn, (Button)StatsBtn,
+            LyricsBtn, InfoBtn);
     }
 
 
@@ -591,6 +592,7 @@ internal class SongAdapter : RecyclerView.Adapter
                     {
                         _moreBtn.CornerRadius = AppUtil.DpToPx(10);
                         _moreBtn.StrokeWidth = AppUtil.DpToPx(1);
+                        _favBtn.StrokeWidth = 0;
                         _moreBtn.SetStrokeColorResource(Resource.Color.m3_ref_palette_pink80);
                     }
                     else

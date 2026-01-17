@@ -105,7 +105,7 @@ public partial class StatsViewModelWin : StatisticsViewModel
             var bundle = _statsService.GetLibraryStatistics(filter);
 
             // Dispatch to UI Thread to build charts
-            RxSchedulers.UI.ScheduleToUI(() =>
+            RxSchedulers.UI.ScheduleTo(() =>
             {
                 Stats = bundle;
                 //ConstructAllCharts();

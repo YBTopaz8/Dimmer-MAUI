@@ -58,7 +58,7 @@ public static class UserFriendlyLogGenerator
         }
         // Gracefully handle if currentSong or its Title is null/empty
         string songTitle = !string.IsNullOrWhiteSpace(currentSong?.Title) ? $"\"{currentSong.Title}\"" : "the current track";
-        string artistName = !string.IsNullOrWhiteSpace(currentSong?.ArtistName) ? $" by {currentSong.ArtistName}" : ""; // Optional: Add artist if available
+        string artistName = !string.IsNullOrWhiteSpace(currentSong?.OtherArtistsName) ? $" by {currentSong.OtherArtistsName}" : ""; // Optional: Add artist if available
 
         // Combine title and artist for a richer description
         string fullSongDescription = $"{songTitle}{artistName}";
@@ -223,6 +223,7 @@ public static class ImageResizer
 
             // Downscale for performance. 100x100 is plenty for color analysis.
             var info = new SKImageInfo(100, 100);
+            
             using var bitmap = original.Resize(info, SKSamplingOptions.Default);
 
             var colorCounts = new Dictionary<SKColor, int>();
@@ -375,17 +376,50 @@ public static class ImageFilterUtils
     /// Calculates the perceived luminance of a color and returns a high-contrast
     /// TEXT color (either black or white) suitable for placing on top of it.
     /// </summary>
-    public static Color GetContrastingTextColor(Color backgroundColor)
+    public static SKColor GetContrastingTextColor(SKBitmap bmp)
     {
-        if (backgroundColor == null)
-            return Colors.White;
+        double sum = 0;
+        int count = bmp.Width * bmp.Height;
 
-        double luminance = (0.299 * backgroundColor.Red) + (0.587 * backgroundColor.Green) + (0.114 * backgroundColor.Blue);
+        for (int y = 0; y < bmp.Height; y++)
+        {
+            for (int x = 0; x < bmp.Width; x++)
+            {
+                var c = bmp.GetPixel(x, y);
+                double r = Linearize(c.Red / 255.0);
+                double g = Linearize(c.Green / 255.0);
+                double b = Linearize(c.Blue / 255.0);
 
-        // If background is light, use black text. If dark, use white text.
-        return luminance > 0.5 ? Colors.Black : Colors.White;
+                sum += 0.2126 * r + 0.7152 * g + 0.0722 * b;
+            }
+        }
+
+        double avLum = sum / count;
+        return avLum > 0.179 ? SKColors.Black : SKColors.White;
+    }
+    public static SKColor GetContrastingTextColor(byte[]? imageBytes)
+    {
+        if (imageBytes == null)
+            return SKColors.White;
+        using var bmp = SKBitmap.Decode(imageBytes);
+
+        return GetContrastingTextColor(bmp);
+
+    }
+    public static SKColor GetContrastingTextColor(string? imagePath)
+    {
+        if (string.IsNullOrEmpty(imagePath))
+            return SKColors.White;
+        using var bmp = SKBitmap.Decode(imagePath);
+
+        return GetContrastingTextColor(bmp);
+
     }
 
+    private static double Linearize(double value)
+    {
+        return value <= 0.03928 ? value / 12.92 : Math.Pow((value + 0.055) / 1.055, 2.4);
+    }
 
     public static Color GetTintedBackgroundColor(Color color, float alpha = 0.1f)
     {
@@ -434,7 +468,7 @@ public static class ImageFilterUtils
 
                 using var image = surface.Snapshot();
                 using var data = image.Encode(SKEncodedImageFormat.Png, 90); // Encode as JPEG for web/app use
-
+                
                 return data.ToArray();
             }
             catch (Exception ex)
@@ -527,7 +561,7 @@ public static class ImageFilterUtils
     }
 
 }
-// Your FilterType enum from the previous question
+
 public enum FilterType
     {
         None,

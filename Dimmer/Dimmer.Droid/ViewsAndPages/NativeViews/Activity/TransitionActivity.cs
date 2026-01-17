@@ -151,6 +151,8 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
     public override void OnConfigurationChanged(Configuration newConfig)
     {
         base.OnConfigurationChanged(newConfig);
+        Configuration cong = new Configuration();
+        
         RefreshBottomSheet();
     }
 
@@ -850,7 +852,7 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
                 System.Diagnostics.Debug.WriteLine($"Voice Search Query Received: '{searchQuery}'");
 
 
-                RxSchedulers.UI.ScheduleToUI(() =>
+                RxSchedulers.UI.ScheduleTo(() =>
                 {
                     Intent mainActivityIntent = new Intent(this, typeof(TransitionActivity)); // <<< YOUR MAIN ACTIVITY
                     mainActivityIntent.AddFlags(ActivityFlags.NewTask | ActivityFlags.ClearTop);

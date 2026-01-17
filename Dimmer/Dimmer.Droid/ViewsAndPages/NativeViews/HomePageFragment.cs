@@ -8,11 +8,13 @@ using AndroidX.RecyclerView.Widget;
 using CommunityToolkit.Maui.Views;
 using Dimmer.DimmerSearch;
 using Dimmer.UiUtils;
+using Dimmer.Utilities;
 using Dimmer.Utils;
 using Dimmer.Utils.Extensions;
 using Dimmer.ViewsAndPages.NativeViews.DimmerLive;
 using Dimmer.ViewsAndPages.NativeViews.Misc;
 using Dimmer.ViewsAndPages.ViewUtils;
+using Google.Android.Material.Chip;
 using Google.Android.Material.Loadingindicator;
 using Microsoft.Maui;
 using Microsoft.Maui.Controls.Shapes;
@@ -135,13 +137,13 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
         _searchBar = new TextInputEditText(ctx)
         {
-            Hint = "Search library...",
+            Hint = "type to search",
             Background = null,
             TextSize = 14
         };
-        _searchBar.SetTextColor(!UiBuilder.IsDark(this.View) ? Color.Black : Color.White);
+        _searchBar.SetTextColor(!UiBuilder.IsDark(root) ? Color.Black : Color.White);
         _searchBar.SetPadding(40, 30, 40, 30);
-
+        
         _searchBar.TextChanged += _searchBar_TextChanged;
         
         _searchBar.FocusChange += (s, e) =>
@@ -152,7 +154,13 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
                 loadingIndic.Visibility = ViewStates.Gone;
             }
         };
+
+
         searchCard.AddView(_searchBar);
+
+
+
+
         // Help Button
          QueueBtn = new Google.Android.Material.Button.MaterialButton(ctx, null, Resource.Attribute.materialIconButtonStyle)
         {
@@ -181,6 +189,11 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         loadingIndic.Visibility = ViewStates.Gone;
         loadingIndic.LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WrapContent, AppUtil.DpToPx(80));
 
+        var mtlChip = new Chip(ctx);
+        var lyParam = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent);
+
+        mtlChip.SetChipIconResource(Resource.Drawable.searchd);
+
         // Add items to Header
         headerLayout.AddView(menuBtn);
         headerLayout.AddView(searchCard);
@@ -192,27 +205,39 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         {
             Orientation = Orientation.Horizontal
         };
-        bottomLayout.SetGravity(GravityFlags.CenterVertical);
+        bottomLayout.SetGravity(GravityFlags.CenterHorizontal);
 
         bottomLayout.SetPadding(20, 20, 20, 20);
 
         songsTotal = new TextView(ctx, null, Resource.Attribute.titleTextStyle);
-        songsTotal.SetTextColor(UiBuilder.IsDark(this.View) ? Color.White : Color.Black);
+        Color col;
+        if (UiBuilder.IsDark(root))
+        {
+            col = Color.White;
+        }
+        else
+        {
+            col = Color.Black;
+        }
+
+        songsTotal.SetTextColor(col);
         songsTotal.TextAlignment = TextAlignment.TextStart;
 
 
 
-        currentTql = new TextView(ctx, null, Resource.Attribute.titleTextStyle);
+        TqlLine = new TextView(ctx, null, Resource.Attribute.titleTextStyle);
+        TqlLine.Text = "test";
+        TqlLine.TextSize = 14;
 
+        TqlLine.SetTextColor(col);
 
-        currentTql.SetTextColor(UiBuilder.IsDark(this.View) ? Color.White : Color.Black);
         
 
         bottomLayout.AddView(loadingIndic);
 
         bottomLayout.AddView(songsTotal);
+        bottomLayout.AddView(TqlLine);
 
-        bottomLayout.AddView(currentTql);
 
 
 
@@ -220,7 +245,28 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         contentLinear.AddView(headerLayout);
         contentLinear.AddView(bottomLayout);
  
+        var lastLayout = new LinearLayout(ctx);
 
+        lastLayout.SetGravity(GravityFlags.CenterHorizontal);
+        //lastLayout.AddView(TqlLine);
+        
+        TQLChipHLayout = new LinearLayout(ctx);
+
+        TQLChipHLayout.SetGravity(GravityFlags.CenterHorizontal);
+        var FirstTQLChip = new Chip(ctx);
+
+        FirstTQLChip.SetChipIconResource(Resource.Drawable.heart)
+            ; FirstTQLChip.Text = "My Fav";
+
+        FirstTQLChip.Click += (s, e) =>
+        {
+            _searchBar.Text = FirstTQLChip.Text;
+        };
+        TQLChipHLayout.AddView(FirstTQLChip);
+        TQLChipHLayout.Visibility = ViewStates.Gone;
+
+        contentLinear.AddView(lastLayout);
+        contentLinear.AddView(TQLChipHLayout);
 
         // --- 4. RecyclerView ---
         _songListRecycler = new RecyclerView(ctx);
@@ -297,7 +343,14 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
             var index = MyViewModel.SearchResults.IndexOf(requestedSong);
             if (index == -1) return;
             view.PerformHapticFeedback(FeedbackConstants.LongPress);
-            _songListRecycler?.SmoothScrollToPosition(index);
+            _songListRecycler?.ScrollToPosition(index);
+
+            var specificView = _songListRecycler.FindViewHolderForAdapterPosition(index);
+            
+            var type = specificView?.GetType();
+            if (type == null) return;
+            Debug.WriteLine(type);
+
 
         };
     }
@@ -362,6 +415,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
                         await _backgroundImageView.SetImageWithStringPathViaGlideAndFilterEffect(MyViewModel.CurrentPlayingSongView.CoverImagePath,
                              Utilities.FilterType.DarkAcrylic);
+                        
                     }
                     else
                     {
@@ -382,7 +436,19 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(tql =>
             {
-                currentTql.Text = tql;
+                if (string.IsNullOrEmpty(tql))
+                {
+                    TqlLine.Animate()?.Alpha(0).SetDuration(300);
+                    TqlLine.Visibility = ViewStates.Gone;
+                }
+                else
+                {
+                    TqlLine.Text = tql;
+                    TqlLine.Visibility = ViewStates.Visible;
+
+                    TqlLine.Animate()?.Alpha(1).SetDuration(150);
+                }
+                //currentTql.Text = tql;
             });
 
 
@@ -502,16 +568,15 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
             Toast.MakeText(Context, "Scrolled to current song", ToastLength.Short)?.Show();
         }
     }
-    private void Fab_LongClick(object? sender, View.LongClickEventArgs e)
-    {
-        ScrollToCurrent();
-    }
+   
 
     protected CompositeDisposable CompositeDisposables { get; } = new CompositeDisposable();
     public LoadingIndicator loadingIndic { get; private set; }
     public TextView songsTotal { get; private set; }
     public TextView currentTql { get; private set; }
     public Button QueueBtn { get; private set; }
+    public LinearLayout TQLChipHLayout { get; private set; }
+    public TextView TqlLine { get; private set; }
 
     public override void OnDestroyView()
     {
@@ -529,6 +594,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         {
             InputMethodManager? imm = Context!.GetSystemService(Context.InputMethodService) as InputMethodManager;
             if (imm is null) return;
+            
             imm.ShowSoftInput(_searchBar, ShowFlags.Implicit);
         }
 
@@ -570,6 +636,6 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     public void OnBackInvoked()
     {
         MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.DescAdded());
-        RxSchedulers.UI.ScheduleToUI(()=> Toast.MakeText(Context!, "Reset TQL", ToastLength.Short)?.Show());
+        RxSchedulers.UI.ScheduleTo(()=> Toast.MakeText(Context!, "Reset TQL", ToastLength.Short)?.Show());
     }
 }

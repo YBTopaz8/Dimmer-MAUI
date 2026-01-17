@@ -694,6 +694,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         var isDarkMode = UiBuilder.IsDark(CurrentFragment.Context);
         if (isDarkMode)
         {
+
             //set white theme aka light mode reload/refresh app as if light mode was toggled in system
         }
         else
