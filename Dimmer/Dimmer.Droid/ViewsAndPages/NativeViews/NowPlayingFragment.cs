@@ -965,13 +965,13 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
     {
         if (song == null) return;
 
-        var songInDB = MyViewModel.RealmFactory.GetRealmInstance()
-            .Find<SongModel>(song.Id);
+       
 
         
         // Mini Player
         _miniTitle.Text = song.Title;
-        _miniArtist.Text = song.OtherArtistsName;
+        var finalArtName = song.HasSyncedLyrics ? "🎙️ " + song.OtherArtistsName : song.OtherArtistsName;
+        _miniArtist.Text = finalArtName;
 
         // Expanded Player
         _expandedTitle.Text = song.Title;
