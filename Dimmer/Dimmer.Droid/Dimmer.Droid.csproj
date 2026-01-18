@@ -45,7 +45,7 @@
 
 	<ItemGroup>
 		<!--<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.120" />-->
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.1" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.2" />
 		<PackageReference Include="SkiaSharp.Views" Version="3.119.1" />
 		<PackageReference Include="Xamarin.AndroidX.Activity.Ktx" Version="1.12.2.1" />
 
@@ -98,11 +98,10 @@
 		<PackageReference Include="Xamarin.AndroidX.Palette.Palette.Ktx" Version="1.0.0.28" />
 		<PackageReference Include="Xamarin.AndroidX.SavedState" Version="1.4.0.1" />
 		<PackageReference Include="Xamarin.AndroidX.SavedState.SavedState.Ktx" Version="1.4.0.1" />
+		<PackageReference Include="Xamarin.AndroidX.Window" Version="1.5.1.1" />
 		<PackageReference Include="Xamarin.Google.Android.Material" Version="1.13.0.1" />
 
-		<PackageReference Include="Xamarin.AndroidX.Compose.Runtime.Annotation.Jvm"
-					 Version="1.10.0.1"
-					 ExcludeAssets="all" />
+		<PackageReference Include="Xamarin.AndroidX.Compose.Runtime.Annotation.Jvm" Version="1.10.0.1" ExcludeAssets="all" />
 	</ItemGroup>
 
 	<ItemGroup>

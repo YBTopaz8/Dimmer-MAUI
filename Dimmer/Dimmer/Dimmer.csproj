@@ -40,10 +40,10 @@
 
 
 		<PackageReference Include="System.Linq.Dynamic.Core" Version="1.6.9" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.10" />
-		<PackageReference Include="Microsoft.Extensions.Http" Version="9.0.10" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.2" />
+		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.2" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.120" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.1" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.2" />
 		<PackageReference Include="SkiaSharp" Version="3.119.1" />
 		<PackageReference Include="System.Reactive" Version="6.1.0" />
 		<PackageReference Include="System.Reactive.Core" Version="6.1.0" />

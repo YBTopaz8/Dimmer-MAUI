@@ -3,7 +3,7 @@
 using AndroidX.CoordinatorLayout.Widget;
 using AndroidX.Core.View;
 using AndroidX.DrawerLayout.Widget;
-
+using AndroidX.Lifecycle;
 using Dimmer.NativeServices;
 using Dimmer.UiUtils;
 using Dimmer.ViewsAndPages.NativeViews.DimmerLive;
@@ -74,12 +74,14 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
     const int REQUEST_AUDIO_PERMS = 99;
 
 
+    
+
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         SetTheme(Resource.Style.Theme_Dimmer);
         base.OnCreate(savedInstanceState);
         WindowCompat.SetDecorFitsSystemWindows(Window, false);
-
+        
         // Make bars transparent
          // 1. Initialize DI
         MainApplication.ServiceProvider ??= Bootstrapper.Init();
@@ -145,6 +147,8 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         CheckAndRequestPermissions();
 
 
+        ProcessLifecycleOwner.Get().Lifecycle.AddObserver(new AppLifeCycleObserver());
+
     }
     private SmoothBottomBar _bottomBar;
 
@@ -155,7 +159,18 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         
         RefreshBottomSheet();
     }
+    public override void OnWindowFocusChanged(bool hasFocus)
+    {
+        base.OnWindowFocusChanged(hasFocus);
+        if(hasFocus)
+        {
 
+        }
+        else
+        {
+
+        }
+    }
     private void RefreshBottomSheet()
     {
         SheetBehavior.State = BottomSheetBehavior.StateHidden;
@@ -879,6 +894,27 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         
     }
 
+}
+
+class AppLifeCycleObserver : Java.Lang.Object, ILifecycleEventObserver
+{
+    [Lifecycle.Event.OnStart]
+    public void OnForeground()
+    {
+
+    }
+    [Lifecycle.Event.OnStop]
+    public void OnBackground()
+    {
+
+    }
+
+    
+
+    public void OnStateChanged(ILifecycleOwner source, Lifecycle.Event e)
+    {
+    
+    }
 }
 sealed class BackInvokedCallback : Java.Lang.Object, IOnBackInvokedCallback
 {
