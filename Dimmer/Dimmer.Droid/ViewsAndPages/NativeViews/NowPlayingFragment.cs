@@ -1002,6 +1002,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         {
             _miniCover.SetImageWithGlide(song.CoverImagePath);
 
+           
         }
         else
         {

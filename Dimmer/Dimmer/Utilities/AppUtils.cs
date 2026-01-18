@@ -423,6 +423,7 @@ public static class ImageFilterUtils
 
     public static Color GetTintedBackgroundColor(Color color, float alpha = 0.1f)
     {
+        
         return color?.MultiplyAlpha(alpha) ?? Colors.Transparent;
     }
     /// <summary>
