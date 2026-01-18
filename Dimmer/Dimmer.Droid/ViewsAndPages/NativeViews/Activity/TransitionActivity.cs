@@ -1,5 +1,6 @@
 ﻿
 
+using Android.Views.InputMethods;
 using AndroidX.CoordinatorLayout.Widget;
 using AndroidX.Core.View;
 using AndroidX.DrawerLayout.Widget;
@@ -151,6 +152,18 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
 
     }
     private SmoothBottomBar _bottomBar;
+    // Source - https://stackoverflow.com/a
+    // Posted by rmirabelle, modified by community. See post 'Timeline' for change history
+    // Retrieved 2026-01-18, License - CC BY-SA 4.0
+
+    public static void hideKeyboard(TransitionActivity activity)
+    {
+        
+        InputMethodManager? imm = (InputMethodManager?)activity.GetSystemService(InputMethodService);
+        //Find the currently focused view, so we can grab the correct window token from it.
+        View? view = activity.CurrentFocus ?? new View(activity);
+        imm?.HideSoftInputFromWindow(view.WindowToken, 0);
+    }
 
     public override void OnConfigurationChanged(Configuration newConfig)
     {

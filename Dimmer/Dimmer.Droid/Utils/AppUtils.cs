@@ -8,6 +8,13 @@ using Window = Microsoft.Maui.Controls.Window;
 namespace Dimmer.Utils;
 public class AppUtil : IAppUtil
 {
+   
+    public static void HideKeyboardFrom(Context context, View view)
+    {
+        InputMethodManager imm = (InputMethodManager)context.GetSystemService(Activity.InputMethodService);
+        imm.HideSoftInputFromWindow(view.WindowToken, 0);
+    }
+
     public AppUtil(BaseViewModelAnd vm)
     {
         baseViewModelAnd = vm;
