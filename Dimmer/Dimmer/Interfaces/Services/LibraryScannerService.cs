@@ -54,7 +54,7 @@ public class LibraryScannerService : ILibraryScannerService
                 var existingState = realm.All<AppStateModel>().FirstOrDefault();
                 if (existingState is not null)
                 {
-                    folderPaths = [.. existingState.UserMusicFoldersPreference];
+                    folderPaths = [.. existingState.UserMusicFolders.Select(x=>x.SystemFolderPath)];
                 }
             }
 
@@ -272,7 +272,7 @@ public class LibraryScannerService : ILibraryScannerService
                 _logger.LogInformation("No new music data changes to persist after scan.");
             }
 
-            // --- Update App State (Your code is good here, but needs a fresh Realm instance) ---
+
             using (var realmAppState = _realmFactory.GetRealmInstance())
             {
                 await realmAppState.WriteAsync(() =>
@@ -280,11 +280,11 @@ public class LibraryScannerService : ILibraryScannerService
                     var appState = realmAppState.All<AppStateModel>().FirstOrDefault();
                     if (appState != null)
                     {
-                        var distinctFolders = appState.UserMusicFoldersPreference.Union(folderPaths).Distinct().ToList();
-                        appState.UserMusicFoldersPreference.Clear();
+                        var distinctFolders = appState.UserMusicFolders.AsEnumerable().Select(x=>x.SystemFolderPath).Union(folderPaths).Distinct().ToList();
+                        appState.UserMusicFolders.Clear();
                         foreach (var folder in distinctFolders)
                         {
-                            appState.UserMusicFoldersPreference.Add(folder);
+                            appState.UserMusicFolders.Add(new() { SystemFolderPath = folder, ReadableFolderPath = folder });
                         }
                     }
                 });

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Dimmer.Utils;
 
-public class DimmerSliderListener : Java.Lang.Object, IBaseOnSliderTouchListener, IBaseOnChangeListener, ILabelFormatter
+public class DimmerSliderListener : Java.Lang.Object,  IBaseOnSliderTouchListener, IBaseOnChangeListener, ILabelFormatter, View.IOnTouchListener
 {
     private readonly Action _onDragStart;
     private readonly Action<float> _onDragStop;
@@ -76,6 +76,12 @@ public class DimmerSliderListener : Java.Lang.Object, IBaseOnSliderTouchListener
     public void OnValueChange(Java.Lang.Object slider, float value, bool fromUser)
     {
         _onValueChange?.Invoke(value, fromUser);
+    }
+
+    public bool OnTouch(View? v, MotionEvent? e)
+    {
+        _onDragStart?.Invoke();
+        return true;
     }
 }
 public enum SliderDataType

@@ -674,6 +674,8 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     public System.Reactive.Subjects.Subject<System.Reactive.Unit> ScrollToCurrentSongRequest { get; }
     = new System.Reactive.Subjects.Subject<System.Reactive.Unit>();
+    [ObservableProperty]
+    public partial bool OpenMediaUIOnNotificationTap { get; private set; }
 
     // 2. Helper method to trigger it
     public void TriggerScrollToCurrentSong()
@@ -731,5 +733,19 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             Debug.WriteLine(ex.Message);
         }
 
+    }
+
+    internal void ToggleOpenMediaUIOnNotificationTap(bool v)
+    {
+        var realm = RealmFactory.GetRealmInstance();
+        var currentAppModel = realm.All<AppStateModel>().FirstOrDefaultNullSafe();
+        if (currentAppModel != null)
+        {
+            realm.Write(() =>
+            {
+                currentAppModel.OpenMediaUIOnNotificationTap = v;
+            });
+            OpenMediaUIOnNotificationTap = v;
+        }
     }
 }

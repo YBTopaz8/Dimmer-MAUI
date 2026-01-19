@@ -294,6 +294,10 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
 
         // --- 5. Extended FAB ---
+        var vLinearLayout = new LinearLayout(ctx);
+
+
+
         fab = new Google.Android.Material.FloatingActionButton.ExtendedFloatingActionButton(ctx);
         ;
         fab.Extended = true;
@@ -308,7 +312,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         fabParams.SetMargins(0, 0, AppUtil.DpToPx(40), AppUtil.DpToPx(90));
         fab.LayoutParameters = fabParams;
 
-        SetupSwipeableFab(fab);
+        SetupClickableFab(fab);
 
 
         // Add FAB to Root
@@ -319,21 +323,10 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
         return root;
     }
-    private void SetupSwipeableFab(View view)
+    private void SetupClickableFab(View view)
     {
-        float startRawX = 0;
-        float startRawY = 0;
-
-        const int SwipeThreshold = 50;
-
+      
         view.Click += (s, e) =>
-        {
-
-            _searchBar.RequestFocusFromTouch();
-        };
-        view.LongClickable = true;
-        view.LongClick += (s, e)
-            =>
         {
 
             if (MyViewModel.CurrentPlayingSongView == null) return;
@@ -346,12 +339,16 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
             _songListRecycler?.ScrollToPosition(index);
 
             var specificView = _songListRecycler.FindViewHolderForAdapterPosition(index);
-            
+
             var type = specificView?.GetType();
             if (type == null) return;
             Debug.WriteLine(type);
-
-
+        };
+        view.LongClickable = true;
+        view.LongClick += (s, e)
+            =>
+        {
+            _searchBar.RequestFocusFromTouch();
         };
     }
 

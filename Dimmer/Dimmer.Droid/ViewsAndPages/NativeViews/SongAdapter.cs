@@ -20,7 +20,7 @@ namespace Dimmer.ViewsAndPages.NativeViews;
 internal class SongAdapter : RecyclerView.Adapter
 {
     private ReadOnlyObservableCollection<SongModelView> _songs;
-    public enum ViewId { Image, Title, Artist, Container }
+  
     public static Action<View, string, int>? AdapterCallbacks;
     private Context ctx;
     public BaseViewModelAnd MyViewModel;

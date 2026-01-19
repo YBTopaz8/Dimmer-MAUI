@@ -279,6 +279,18 @@ public sealed partial class SettingsPage : Page
         {
             AddMusicFolderTip.IsOpen = true;
         }
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.FolderPaths), x => MyViewModel.FolderPaths)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(obsCol =>
+            {
+                if(obsCol.Count > 1)
+                {
+                    if(AddMusicFolderTip.IsOpen)
+                    {
+                        AddMusicFolderTip.IsOpen = false;
+                    }
+                }
+            });
     }
 
     private void OptionLogBtn_Loaded(object sender, RoutedEventArgs e)

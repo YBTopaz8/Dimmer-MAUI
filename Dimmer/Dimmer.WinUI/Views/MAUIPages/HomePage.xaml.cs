@@ -788,11 +788,21 @@ public partial class HomePage : ContentPage
     bool _initialized;
     private void MyPage_Loaded(object sender, EventArgs e)
     {
+        //FrameworkElement? send = (FrameworkElement?)MainScrollView.Handler?.PlatformView;
+        //UIElement? sendUIElt = (UIElement?)MainScrollView.Handler?.PlatformView;
+       
         if (!_initialized)
         {
             _initialized = true;
             MyViewModel.InitializeAllVMCoreComponents();
 
+            MyViewModel.GetLibState();
+            if (MyViewModel.IsLibraryEmpty)
+            {
+                
+                MyViewModel.NavigateToAnyPageOfGivenType(typeof(SettingsPage));
+
+            }
         }
     }
 

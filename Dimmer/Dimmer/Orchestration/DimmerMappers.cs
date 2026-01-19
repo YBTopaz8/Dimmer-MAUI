@@ -638,7 +638,7 @@ public static class DimmerMappers
         };
 
         // Manual collection copy
-        foreach (var f in src.UserMusicFoldersPreference) dest.UserMusicFoldersPreference.Add(f);
+        foreach (var f in src.UserMusicFoldersPreference) dest.UserMusicFolders.Add(new() { SystemFolderPath=f,ReadableFolderPath=f});
         foreach (var w in src.LastOpenedWindows) dest.LastOpenedWindows.Add(w);
 
         return dest;

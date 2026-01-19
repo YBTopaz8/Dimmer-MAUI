@@ -366,7 +366,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             if (stateApp is not null)
             {
                 // Freeze allows this collection to survive outside the 'using' block
-                FolderPaths = stateApp.Freeze().UserMusicFoldersPreference.ToObservableCollection();
+                FolderPaths = stateApp.Freeze().UserMusicFolders.AsEnumerable().Select(x=>x.ReadableFolderPath).ToObservableCollection();
             }
         }
     }
@@ -389,7 +389,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             if (stateApp is not null)
             {
                 // Freeze allows this collection to survive outside the 'using' block
-                FolderPaths = stateApp.Freeze().UserMusicFoldersPreference.ToObservableCollection();
+                FolderPaths = stateApp.Freeze().UserMusicFolders.Select(x=>x.SystemFolderPath).ToObservableCollection();
             }
         }
         if (!IsLibraryEmpty)
@@ -2698,7 +2698,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             if(appmodel is null)return;
             FolderPaths.Clear();
             IsLibraryEmpty = false;
-            FolderPaths.AddRange(appmodel.UserMusicFoldersPreference);
+            FolderPaths.AddRange(appmodel.UserMusicFolders.Select(x=>x.ReadableFolderPath));
             OnPropertyChanged(nameof(this.FolderPaths)); 
         }
     }
@@ -4874,18 +4874,23 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             return;
         _logger.LogInformation("Requesting to delete folder path: {Path}", path);
         FolderPaths.Remove(path);
-        _ =  _folderMgtService.RemoveFolderFromWatchListAsync(path);
+        _ = _folderMgtService.RemoveFolderFromWatchListAsync(path);
 
         var realm = RealmFactory.GetRealmInstance();
         var appModel = realm.All<AppStateModel>().FirstOrDefault();
         if (appModel is null)
             return;
-        realm.Write(
+
+        var modFold = appModel.UserMusicFolders.FirstOrDefault(x => x.SystemFolderPath == path);
+        if (modFold is not null)
+        {
+            realm.Write(
             () =>
             {
-                appModel.UserMusicFoldersPreference.Remove(path);
+                appModel.UserMusicFolders.Remove(modFold);
                 realm.Add(appModel, true);
             });
+        }
     }
 
 

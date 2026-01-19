@@ -814,7 +814,8 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
             OnBackInvokedDispatcher.UnregisterOnBackInvokedCallback(_onBackInvokedCallback);
             _isBackCallbackRegistered = false;
         }
-        MyViewModel.OnAppClosing();
+
+        MyViewModel?.OnAppClosing();
         base.OnDestroy();
     }
 

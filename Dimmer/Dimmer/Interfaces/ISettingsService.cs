@@ -9,13 +9,9 @@ public interface ISettingsService
     // UI/Other Settings
     bool MinimizeToTrayPreference { get; set; }
     // string LastSelectedOutputDeviceId { get; set; } // Example
-    IList<string> UserMusicFoldersPreference { get; } // Read-only view
     string LastPlayedSong { get; set; }
 
-    void AddMusicFolder(string folderPath);
-    bool RemoveMusicFolder(string path);
     bool ClearAllFolders();
-    void SetMusicFolders(IEnumerable<string> paths);
     void SaveLastFMUserSession(string sessionTok);
     string? GetLastFMUserSession();
 

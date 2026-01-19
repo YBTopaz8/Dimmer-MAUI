@@ -87,26 +87,6 @@ public partial class AppStateModelView: ObservableObject
         // `this.UserMusicFoldersPreference` and `this.LastOpenedWindows`
         // are already new, empty List<string> instances here. We just add to them.
 
-        if (source.UserMusicFoldersPreference != null)
-        {
-            foreach (var item in source.UserMusicFoldersPreference)
-            {
-                this.UserMusicFoldersPreference.Add(item);
-            }
-            // Alternative using LINQ (if you prefer, but foreach is clear):
-            // this.UserMusicFoldersPreference.Clear(); // Should be empty already
-            // ((List<string>)this.UserMusicFoldersPreference).AddRange(source.UserMusicFoldersPreference);
-        }
-
-        if (source.LastOpenedWindows != null)
-        {
-            foreach (var item in source.LastOpenedWindows)
-            {
-                this.LastOpenedWindows.Add(item);
-            }
-            // Alternative using LINQ:
-            // this.LastOpenedWindows.Clear(); // Should be empty already
-            // ((List<string>)this.LastOpenedWindows).AddRange(source.LastOpenedWindows);
-        }
+       
     }
 }

@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace Dimmer.ViewsAndPages.NativeViews.DimmerLive.LastFMViews;
 
 using System.Reactive.Disposables;
-
+using Dimmer.UiUtils;
 using Dimmer.ViewModel;
-using Dimmer.WinUI.UiUtils;
+
 using ProgressBar = Android.Widget.ProgressBar;
 
 
