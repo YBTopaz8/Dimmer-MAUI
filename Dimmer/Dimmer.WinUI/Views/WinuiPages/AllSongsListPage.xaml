@@ -7,6 +7,7 @@
     xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
     xmlns:convertersWinUI="using:Dimmer.WinUI.Utils.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    
     xmlns:dgView="using:WinUI.TableView"
     xmlns:dimmSearch="clr-namespace:Dimmer.Data.ModelView.DimmerSearch;assembly=Dimmer"
     xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
@@ -463,9 +464,11 @@
                     </dgView:TableView.Columns>
                 </dgView:TableView>
 
+                <ScrollViewer 
+                    Grid.Column="1">
+                    
                 <StackPanel
                     x:Name="SidePanel"
-                    Grid.Column="1"
                     Width="250"
                     HorizontalAlignment="Center"
                     PointerEntered="SidePanel_PointerEntered"
@@ -498,6 +501,8 @@
                     <Button HorizontalAlignment="Center" Content="{x:Bind MyViewModel.SelectedSong.ReleaseYear, Mode=OneWay}" />
                     <Button HorizontalAlignment="Center" Content="{x:Bind MyViewModel.SelectedSong.UserNoteAggregatedText, Mode=OneWay}" />
                 </StackPanel>
+
+                </ScrollViewer>
             </Grid>
 
 
@@ -518,267 +523,8 @@
             </StackPanel>
         </Grid>
 
-        <Grid
-            x:Name="SmokeGrid"
-            HorizontalAlignment="Stretch"
-            VerticalAlignment="Stretch"
-            PointerPressed="SmokeGrid_PointerPressed"
-            Visibility="Collapsed">
-            <Grid.Background>
-                <SolidColorBrush Opacity="0.8" Color="{ThemeResource SystemChromeAltHighColor}" />
-            </Grid.Background>
-
-            <Grid
-                x:Name="viewQueueGrid"
-                Width="520"
-                Height="500"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                Background="#1e1e1e"
-                BorderThickness="0"
-                CornerRadius="5,5,5,5">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-
-                <Grid
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch"
-                    Background="{Binding CurrentPlaySongDominantColor}">
-                    <StackPanel Margin="12" Orientation="Horizontal">
-
-                        <Image
-                            Width="70"
-                            Height="70"
-                            VerticalAlignment="Center"
-                            PointerPressed="NowPlayingSongImg_PointerPressed"
-                            Source="{x:Bind MyViewModel.CurrentPlayingSongView.CoverImagePath, Converter={StaticResource StringToImageConverter}}" />
-
-                        <StackPanel Margin="12">
-                            <TextBlock
-                                VerticalAlignment="Center"
-                                FontSize="18"
-                                FontWeight="SemiBold"
-                                Style="{ThemeResource HeaderTextBlockStyle}"
-                                Text="{Binding CurrentPlayingSongView.Title}" />
-                            <TextBlock
-                                VerticalAlignment="Center"
-                                FontSize="16"
-                                Style="{ThemeResource HeaderTextBlockStyle}"
-                                Text="{Binding CurrentPlayingSongView.ArtistName}" />
-
-                            <Button
-                        Width="50"
-                        Height="40"
-                                Background="Transparent"
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Top"
-                        AutomationProperties.Name="Save Queue as Playlist"
-                        Click="SaveQueueAsPlaylist_Click"
-                        ToolTipService.ToolTip="Save Queue as Playlist">
-                                <Button.Content>
-                                    <FontIcon Glyph="&#xE74E;" 
-                                              FontSize="21"
-                                              />
-                                </Button.Content>
-                            </Button>
-                        </StackPanel>
-                        
-                    </StackPanel>
-                    
-                    <Button
-                        Width="40"
-                        Height="40"
-                        Margin="5"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Top"
-                        AutomationProperties.Name="Close"
-                        Click="PopUpBackButton_Click"
-                        ToolTipService.ToolTip="Close">
-                        <Button.Content>
-                            <SymbolIcon Symbol="Clear" />
-                        </Button.Content>
-                    </Button>
-                </Grid>
-
-                <StackPanel Grid.Row="1" Orientation="Horizontal"
-                                        Padding="8"
-                            Spacing="10">
-                    <TextBlock Text="TQL :"/>
-                    <Button Content="{x:Bind MyViewModel.CurrentTqlQueryUI,Mode=OneWay}"
-                            Background="Transparent"/>
-                </StackPanel>
-                
-                <Grid
-                    Grid.Row="2"
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch"
-                    Background="{ThemeResource LayerFillColorDefaultBrush}">
-
-                    <Image
-                        x:Name="NowPlayingSongImg"
-                        Opacity="0.05"
-                        Source="{x:Bind MyViewModel.CurrentPlayingSongView.CoverImagePath,Mode=OneWay, Converter={StaticResource StringToImageConverter}}"
-                        Stretch="UniformToFill" />
-                    <StackPanel VerticalAlignment="Bottom"
-                                Background="{x:Bind MyViewModel.WinUIDominantBrush,Mode=OneWay}"
-                                CornerRadius="15" Padding="8"
-                                Orientation="Horizontal"
-                                HorizontalAlignment="Center">
-                        <TextBlock Text="{x:Bind MyViewModel.PlaybackQueue.Count,Mode=OneWay}"/>
-                        <TextBlock Text="Songs"/>
-                    </StackPanel>
-                    <ScrollViewer>
-                        <ListView 
-                            x:Name="NowPlayingPBQueue" 
-                            ItemsSource="{Binding PlaybackQueue}"
-                            DragItemsCompleted="NowPlayingPBQueue_DragItemsCompleted">
-                            <ListView.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid
-                                        Height="100"
-                                        Padding="8"
-                                        ColumnSpacing="5"
-                                        CornerRadius="8">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="auto" />
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="auto" />
-
-                                        </Grid.ColumnDefinitions>
-                                        <Grid.ContextFlyout>
-                                            <MenuFlyout>
-                                                <MenuFlyoutItem 
-                                                    Click="InsertSongsBefore_Click" 
-                                                    Text="Insert Songs Before">
-                                                    <MenuFlyoutItem.Icon>
-                                                        <FontIcon Glyph="&#xE74A;" />
-                                                    </MenuFlyoutItem.Icon>
-                                                </MenuFlyoutItem>
-                                                <MenuFlyoutItem 
-                                                    Click="InsertSongsAfter_Click" 
-                                                    Text="Insert Songs After">
-                                                    <MenuFlyoutItem.Icon>
-                                                        <FontIcon Glyph="&#xE74B;" />
-                                                    </MenuFlyoutItem.Icon>
-                                                </MenuFlyoutItem>
-                                            </MenuFlyout>
-                                        </Grid.ContextFlyout>
-                                        <animations:Implicit.Animations>
-                                            <animations:OffsetAnimation Duration="0:0:0.3" />
-                                            <animations:OpacityAnimation Duration="0:0:0.3" />
-                                        </animations:Implicit.Animations>
-                                        <Grid
-                                            Grid.Column="0"
-                                            Width="80"
-                                            Height="80"
-                                            Margin="0,0,12,0">
-                                            <Border CornerRadius="6" Translation="0,0,8">
-                                                <Border.Shadow>
-                                                    <ThemeShadow />
-                                                </Border.Shadow>
-                                                <Image
-                                                    x:Name="imgInPBQueue"
-                                                    Source="{Binding CoverImagePath}"
-                                                    Stretch="UniformToFill" />
-                                            </Border>
-
-
-                                            <FontIcon
-                                                HorizontalAlignment="Center"
-                                                VerticalAlignment="Center"
-                                                FontSize="40"
-                                                Foreground="MediumSlateBlue"
-                                                Glyph="&#xF5B0;"
-                                                Translation="0,0,22"
-                                                Visibility="{Binding IsCurrentPlayingHighlight, Converter={StaticResource BoolToVisibilityConverter}}" />
-
-                                            <FontIcon
-                                                HorizontalAlignment="Right"
-                                                VerticalAlignment="Top"
-                                                Foreground="SlateBlue"
-                                                Glyph="&#xEB52;"
-                                                Translation="0,0,22"
-                                                Visibility="{Binding IsFavorite, Converter={StaticResource BoolToVisibilityConverter}}" />
-                                        </Grid>
-
-                                        <StackPanel
-                                            Grid.Column="1"
-                                            VerticalAlignment="Center"
-                                            Spacing="2">
-                                            <TextBlock
-                                                FontSize="18"
-                                                Style="{ThemeResource BodyStrongTextBlockStyle}"
-                                                Text="{Binding Title}"
-                                                TextTrimming="CharacterEllipsis" />
-
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="150" />
-                                                    <ColumnDefinition Width="auto" />
-                                                </Grid.ColumnDefinitions>
-
-
-                                                <TextBlock
-                                                    Grid.Column="0"
-                                                    FontSize="15"
-                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                    Style="{ThemeResource CaptionTextBlockStyle}"
-                                                    Text="{Binding ArtistName}"
-                                                    TextTrimming="CharacterEllipsis" />
-
-                                                <TextBlock
-                                                    Grid.Column="1"
-                                                    FontSize="14"
-                                                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                                                    Style="{ThemeResource CaptionTextBlockStyle}"
-                                                    Text="{Binding AlbumName}"
-                                                    TextTrimming="CharacterEllipsis" />
-                                            </Grid>
-                                        </StackPanel>
-
-                                        <StackPanel
-                                            Grid.Column="2"
-                                            VerticalAlignment="Center"
-                                            Background="Transparent"
-                                            Orientation="Horizontal">
-                                          
-                                            <!--  The Delete Button  -->
-                                            <Button
-                                                x:Name="PlaySongBtn"
-                                                Background="Transparent"
-                                                BorderThickness="0"
-                                                Click="PlaySongBtn_Click"
-                                                ToolTipService.ToolTip="Play"
-                                                Visibility="Visible">
-                                                <SymbolIcon Foreground="DarkSlateBlue" Symbol="Play" />
-                                            </Button>
-                                            <Button
-                                                x:Name="DeleteBtn"
-                                                Background="Transparent"
-                                                BorderThickness="0"
-                                                Click="RemoveSongFromQueue_Click"
-                                                ToolTipService.ToolTip="Remove from Queue"
-                                                Visibility="Visible">
-                                                <SymbolIcon Foreground="{ThemeResource SystemFillColorCriticalBrush}" Symbol="Delete" />
-                                            </Button>
-
-
-                                        </StackPanel>
-
-                                    </Grid>
-                                </DataTemplate>
-                            </ListView.ItemTemplate>
-
-                        </ListView>
-                    </ScrollViewer>
-
-                </Grid>
-            </Grid>
-
-        </Grid>
+        <local:SmokeViewQueueGrid x:Name="SmokeGrid" Visibility="Visible"
+                                  Loaded="SmokeGrid_Loaded"/>
     </Grid>
 </Page>
 
