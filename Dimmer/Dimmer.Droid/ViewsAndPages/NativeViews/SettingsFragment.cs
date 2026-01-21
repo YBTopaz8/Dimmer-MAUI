@@ -108,8 +108,7 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
 
         root.AddView(horizontalLayout);
 
-        systemStatusView = new MaterialCardView(ctx)
-            ;
+        systemStatusView = new MaterialCardView(ctx);
         systemStatusView.LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent);
         systemStatusView.SetPadding(20, 20, 20, 20);
 
@@ -181,8 +180,7 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
                 MyViewModel.ToggleOpenMediaUIOnNotificationTap(v);
             });
         layout.AddView(OpenMediaUIOnNotificationTap);
-        //layout.AddView(CreateSwitchRow(ctx, "Minimize to Tray", "Keep playing in background when closed",
-        //    MyViewModel.AppState.MinimizeToTrayPreference, (v) => MyViewModel.AppState.MinimizeToTrayPreference = v));
+      
 
         layout.AddView(CreateDivider(ctx));
 
@@ -508,6 +506,8 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
         t2.SetTextColor(Color.Gray);
         textLayout.AddView(t1);
         textLayout.AddView(t2);
+        //var t = new Google.Android.Material.SwitchMaterial.SwitchMaterial(ctx);
+        //t.
 
         var sw = new MaterialSwitch(ctx) { Checked = isChecked };
         sw.LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 2);

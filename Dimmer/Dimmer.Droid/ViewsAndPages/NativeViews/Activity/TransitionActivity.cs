@@ -46,7 +46,7 @@ namespace Dimmer.ViewsAndPages.NativeViews.Activity;
     ConfigChanges.Orientation | ConfigChanges.UiMode |
     ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize |
     ConfigChanges.Density)]
-public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListener
+public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListener
 {
     public BottomSheetBehavior SheetBehavior { get; private set; }
      private FrameLayout _sheetContainer;
@@ -195,7 +195,7 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
                 .Remove(frag)
                 .CommitNow();
         }
-
+            
 
         var nowPlayingFrag = new NowPlayingFragment(MyViewModel);
         SupportFragmentManager
@@ -853,15 +853,23 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
 
         }
     }
+    public override void OnLowMemory()
+    {
+        base.OnLowMemory();
+        System.Diagnostics.Debugger.Break();
+    }
     private void ProcessIntent(Android.Content.Intent? intent)
     {
         if (intent == null || string.IsNullOrEmpty(intent.Action))
         {
             return;
         }
-        if(intent.Action == "ShowMiniPlayer")
+        if (intent.Action == "ShowMiniPlayer")
         {
-            SheetBehavior.State = BottomSheetBehavior.StateExpanded;
+            if (MyViewModel.OpenMediaUIOnNotificationTap)
+            {
+                SheetBehavior.State = BottomSheetBehavior.StateExpanded;
+            }
         }
         if (intent.Action == Android.Content.Intent.ActionView || intent.Action == Android.Content.Intent.ActionSend)
         {
