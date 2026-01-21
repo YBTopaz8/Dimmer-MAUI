@@ -13,6 +13,7 @@ using Dimmer.ViewsAndPages.NativeViews.Misc;
 
 using DynamicData;
 using Google.Android.Material.Chip;
+using Google.Android.Material.Dialog;
 using MongoDB.Bson;
 
 namespace Dimmer.ViewsAndPages.NativeViews;
@@ -20,7 +21,7 @@ namespace Dimmer.ViewsAndPages.NativeViews;
 internal class SongAdapter : RecyclerView.Adapter
 {
     private ReadOnlyObservableCollection<SongModelView> _songs;
-    public enum ViewId { Image, Title, Artist, Container }
+  
     public static Action<View, string, int>? AdapterCallbacks;
     private Context ctx;
     public BaseViewModelAnd MyViewModel;
@@ -322,8 +323,8 @@ internal class SongAdapter : RecyclerView.Adapter
 
         card.AddView(mainContainer);
 
-        return new SongViewHolder(MyViewModel, ParentFragement, card, imgView, title, artist, moreBtn, durationView,expandRow,  (Button)favBtn, (Button)StatsBtn,
-            LyricsBtn, InfoBtn);
+        return new SongViewHolder(MyViewModel, ParentFragement, card, imgView, title, artist, moreBtn, durationView,expandRow,  (Button)favBtn,
+            LyricsBtn, InfoBtn, StatsBtn);
     }
 
 
@@ -361,15 +362,17 @@ internal class SongAdapter : RecyclerView.Adapter
         private readonly MaterialCardView _container;
         public View ContainerView => base.ItemView;
 
+        public SongContextMenuFragment SongContexFragment { get; private set; }
+
         private readonly Button _favBtn;
         private readonly Button _infoBtn;
         private readonly Button lyricsBtn;
-        private readonly MaterialButton? _insertAfterBtn;
+        private readonly Button _statsBtn;
         private SongModelView? _currentSong;
         private Action<int>? _expandAction;
 
         public SongViewHolder(BaseViewModelAnd vm, Fragment parentFrag, MaterialCardView container, ImageView img, TextView title, TextView artist, MaterialButton moreBtn, TextView durationView,
- View expandRow,Button favBtn, Button infoBtn, Button lyrBtn, MaterialButton? insertAfterBtn = null)
+ View expandRow,Button favBtn, Button lyrBtn, MaterialButton infoBtn, Button statsBtn)
             : base(container)
         {
             MyViewModel = vm;
@@ -384,7 +387,7 @@ internal class SongAdapter : RecyclerView.Adapter
             _favBtn = favBtn;
             _infoBtn = infoBtn;
             lyricsBtn = lyrBtn;
-            _insertAfterBtn = insertAfterBtn;
+            _statsBtn = statsBtn;
 
             _moreBtn.Click += (s, e) =>
             {
@@ -402,17 +405,20 @@ internal class SongAdapter : RecyclerView.Adapter
 
         
 
-            if (_insertAfterBtn != null)
+            if (_infoBtn != null)
             {
-                _insertAfterBtn.Click += (s, e) =>
+                _infoBtn.Click += (s, e) =>
                 {
                     if (_currentSong != null)
                     {
-                       
-                            var param = new List<SongModelView>() { _currentSong };
-                        MyViewModel.AddToNext(param);
-                            Toast.MakeText(_parentFrag.Context, $"Inserted {_currentSong.Title} after {MyViewModel.CurrentPlayingSongView.Title}", ToastLength.Short)?.Show();
+                        MyViewModel.SelectedSong = _currentSong;
+                    
+                         SongContexFragment = new SongContextMenuFragment(MyViewModel);
+
+
+                        SongContexFragment.Show(parentFrag.ParentFragmentManager,"infoDiag");
                         
+
                     }
                 };
             }
@@ -433,7 +439,7 @@ internal class SongAdapter : RecyclerView.Adapter
                 ShowPlaybackOptionsMenu();
             };
 
-            _infoBtn.Click += (s, e) =>
+            _statsBtn.Click += (s, e) =>
             {
                 
                 var infoSheet = new SongInfoBottomSheetFragment(MyViewModel, _currentSong);
@@ -441,18 +447,6 @@ internal class SongAdapter : RecyclerView.Adapter
             };
 
 
-            //// 3. Play Button
-            //_playNextBtn.Click += async (s, e) =>
-            //{
-            //    if (_currentSong != null)
-            //    {
-            //        await _viewModel.PlaySongWithActionAsync(_currentSong, Dimmer.Utilities.Enums.PlaybackAction.PlayNext);
-                    
-            //        var toast = Toast.MakeText(ctx, $"Added {_currentSong.Title} to play next", ToastLength.Short);
-            //        toast?.Show();
-            //    }
-                    
-            //};
 
             lyrBtn.Click += async (s, e) =>
             {
@@ -536,7 +530,12 @@ internal class SongAdapter : RecyclerView.Adapter
                 }
             };
         }
-      
+
+        private void SongContextBottomSheetDismissed()
+        {
+            // do something
+        }
+
         public void Bind(SongModelView song, bool isExpanded, Action<int> onExpandToggle)
         {
             _currentSong = song;
@@ -696,6 +695,7 @@ internal class SongAdapter : RecyclerView.Adapter
                 TextSize = 20,
                 Typeface = Typeface.DefaultBold
             };
+            titleView.SetForegroundGravity(GravityFlags.CenterHorizontal | GravityFlags.CenterVertical);
             titleView.SetPadding(0, 0, 0, AppUtil.DpToPx(16));
             mainLayout.AddView(titleView);
 
@@ -781,6 +781,7 @@ internal class SongAdapter : RecyclerView.Adapter
 
             dialog.SetContentView(mainLayout);
             dialog.Show();
+           
         }
 
         protected override void Dispose(bool disposing)

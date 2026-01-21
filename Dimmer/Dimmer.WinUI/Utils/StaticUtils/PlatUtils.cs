@@ -453,8 +453,11 @@ public static class PlatUtils
 
     }
 
-    public static async Task ShowNewSongNotification(string songTitle, string artistName, string albumArtPath)
+    public static async Task ShowNewSongNotification(SongModelView songPlaying)
     {
+        string songTitle = songPlaying.Title;
+        string artistName = songPlaying.OtherArtistsName;
+        string albumArtPath = songPlaying.AlbumName;
         try
         {
 

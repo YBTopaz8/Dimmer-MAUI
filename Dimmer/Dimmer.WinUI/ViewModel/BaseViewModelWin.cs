@@ -446,15 +446,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
             _logger.LogInformation($"Song changed and highlighted in ViewModel B: {value.Title}");
 
-            if (PlaybackQueueCV is not null && PlaybackQueueCV.IsLoaded)
-            {
-                RxSchedulers.UI.ScheduleTo(() =>
-                {
-
-                    PlaybackQueueCV?.ScrollTo(value, position: ScrollToPosition.Center, animate: true);
-
-                });
-            }
+            await PlatUtils.ShowNewSongNotification(value); 
         }
     }
 
@@ -749,11 +741,11 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         var realm = RealmFactory.GetRealmInstance();
         var artistID = song.Artist?.Id;
         var allSongsByArtist = realm.Find<ArtistModel>(artistID)?.Songs;
-        var totalCompletedCount = allSongsByArtist?.Sum(x=>x.PlayCompletedCount);
+        var totalCompletedCount = allSongsByArtist?.AsEnumerable().Sum(x=>x.PlayCompletedCount);
 
         Debug.WriteLine($"Fetching play count for {artistName}");
-        // TODO: return number of times artist's songs have been played
-        return 0;
+
+        return totalCompletedCount is null ? 0 : (int)totalCompletedCount ;
     }
 
     public bool IsArtistFollowed(SongModelView song, string artistName)
@@ -1097,8 +1089,6 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     }
     [ObservableProperty]
     public partial bool AutoConfirmLastFMVar { get; set; }
-    [ObservableProperty]
-    public partial bool IsLastFMAuthButtonClickable { get; set; }
     public string? MAUIWindowTitle { get; internal set; }
 
     [ObservableProperty]

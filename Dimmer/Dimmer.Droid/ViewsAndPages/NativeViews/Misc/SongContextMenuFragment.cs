@@ -3,37 +3,45 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Android.App;
+using AndroidX.Fragment.App;
 using Dimmer.UiUtils;
 using Org.Apache.Http.Conn;
 
 namespace Dimmer.ViewsAndPages.NativeViews.Misc;
 
-public partial class SongContextMenuFragment : DialogFragment
+public partial class SongContextMenuFragment :BottomSheetDialogFragment
 {
-    BaseViewModelAnd MyViewModel;
+    readonly BaseViewModelAnd MyViewModel;
+    SongModelView SelectedSong => MyViewModel.SelectedSong!;
+
+
     public SongContextMenuFragment(BaseViewModelAnd vm)
     {
         MyViewModel = vm;
+
     }
-    public override Dialog? OnCreateDialog(Bundle? savedInstanceState)
+
+    public override View? OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
-        
-    
-        
-        var ctx = Context!;
+     
+
+        var ctx = Context;
+        if (ctx == null)
+            return null;
 
         var root = new LinearLayout(ctx)
         {
             Orientation = Android.Widget.Orientation.Vertical
         };
         root.SetPadding(32,32,32, 32);
-        root.AddView( Title(ctx, MyViewModel.SelectedSong.Title));
-        root.AddView( Sub(ctx, MyViewModel.SelectedSong.OtherArtistsName));
+        root.AddView( Title(ctx, SelectedSong!.Title));
+        root.AddView( Sub(ctx, SelectedSong.OtherArtistsName));
 
         root.AddView( Divider(ctx));
 
-        root.AddView( Text(ctx, $"Album: {MyViewModel.SelectedSong.AlbumName}"));
-        root.AddView( Text(ctx, $"Genre: {MyViewModel.SelectedSong.GenreName}"));
+        root.AddView( Text(ctx, $"Album: {SelectedSong.AlbumName}"));
+        root.AddView( Text(ctx, $"Genre: {SelectedSong.Genre.Name}"));
 
         root.AddView(Divider(ctx));
 
@@ -41,25 +49,22 @@ public partial class SongContextMenuFragment : DialogFragment
         root.AddView(Button(ctx, "Edit",Resource.Drawable.edit, () =>
         {
             EditSong();
+
+            DismissNow();
         }));
 
-        root.AddView(Button(ctx, "Delete", Resource.Drawable.deletesonginterfacesymbol,() =>
+        root.AddView(Button(ctx, "Delete", Resource.Drawable.deletesonginterfacesymbol,async () =>
         {
-            DeleteSong();
+            await DeleteSong();
+            DismissNow();
         }));
 
         root.AddView(Button(ctx, "Stats", Resource.Drawable.stats, () =>
         {
             ShowStats();
         }));
-        root.AddView(Divider(ctx));
 
-        var dialog = new Dialog(ctx)
-            ;
-        dialog.SetContentView(root);
-
-        dialog.Window!.SetBackgroundDrawableResource(Resource.Drawable.mr_dialog_material_background_dark);
-        return dialog;
+        return root;
 
     }
 
@@ -68,9 +73,9 @@ public partial class SongContextMenuFragment : DialogFragment
 
     }
 
-    public void DeleteSong()
+    public async Task DeleteSong()
     {
-
+        await MyViewModel.DeleteSongs(new List<SongModelView>() { MyViewModel.SelectedSong! });
     }
 
     public void EditSong()
@@ -82,7 +87,7 @@ public partial class SongContextMenuFragment : DialogFragment
         return new TextView(ctx)
         {
             Text = title,
-            TextSize = 18,
+            TextSize = 21,
             Typeface = Typeface.DefaultBold
         };
     }
@@ -122,8 +127,12 @@ public partial class SongContextMenuFragment : DialogFragment
         var btn = new Button(ctx);
         btn.Text = title;
         btn.SetIconResource(iconResourceInt);
-        btn.Click +=(s,e)=> onClick();
-        btn.IconSize = AppUtil.DpToPx(12);
+        btn.Click += (s, e) =>
+        {
+            onClick();
+            DismissNow();
+        };
+        btn.IconSize = AppUtil.DpToPx(18);
         return btn;
     }
 
@@ -133,9 +142,21 @@ public partial class SongContextMenuFragment : DialogFragment
         btn.Text = title;
         btn.SetIconResource(iconResourceInt);
         btn.SetTextColor(Color.Red);
-        btn.Typeface = Typeface.DefaultBold;
-        btn.Click += (s, e) => onClick();
-        btn.IconSize = AppUtil.DpToPx(12);
+        btn.Typeface = Typeface.DefaultBold; 
+        btn.Click += (s, e) =>
+        {
+            onClick();
+            DismissNow();
+        };
+
+        btn.IconSize = AppUtil.DpToPx(18);
         return btn;
     }
+
+    public override void OnDismiss(IDialogInterface dialog)
+    {
+        base.OnDismiss(dialog);
+    }
+
+    
 }

@@ -1,9 +1,10 @@
 ﻿
 
+using Android.Views.InputMethods;
 using AndroidX.CoordinatorLayout.Widget;
 using AndroidX.Core.View;
 using AndroidX.DrawerLayout.Widget;
-
+using AndroidX.Lifecycle;
 using Dimmer.NativeServices;
 using Dimmer.UiUtils;
 using Dimmer.ViewsAndPages.NativeViews.DimmerLive;
@@ -45,7 +46,7 @@ namespace Dimmer.ViewsAndPages.NativeViews.Activity;
     ConfigChanges.Orientation | ConfigChanges.UiMode |
     ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize |
     ConfigChanges.Density)]
-public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListener
+public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListener
 {
     public BottomSheetBehavior SheetBehavior { get; private set; }
      private FrameLayout _sheetContainer;
@@ -74,12 +75,14 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
     const int REQUEST_AUDIO_PERMS = 99;
 
 
+    
+
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         SetTheme(Resource.Style.Theme_Dimmer);
         base.OnCreate(savedInstanceState);
         WindowCompat.SetDecorFitsSystemWindows(Window, false);
-
+        
         // Make bars transparent
          // 1. Initialize DI
         MainApplication.ServiceProvider ??= Bootstrapper.Init();
@@ -145,8 +148,22 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         CheckAndRequestPermissions();
 
 
+        ProcessLifecycleOwner.Get().Lifecycle.AddObserver(new AppLifeCycleObserver());
+
     }
     private SmoothBottomBar _bottomBar;
+    // Source - https://stackoverflow.com/a
+    // Posted by rmirabelle, modified by community. See post 'Timeline' for change history
+    // Retrieved 2026-01-18, License - CC BY-SA 4.0
+
+    public static void hideKeyboard(TransitionActivity activity)
+    {
+        
+        InputMethodManager? imm = (InputMethodManager?)activity.GetSystemService(InputMethodService);
+        //Find the currently focused view, so we can grab the correct window token from it.
+        View? view = activity.CurrentFocus ?? new View(activity);
+        imm?.HideSoftInputFromWindow(view.WindowToken, 0);
+    }
 
     public override void OnConfigurationChanged(Configuration newConfig)
     {
@@ -155,7 +172,18 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         
         RefreshBottomSheet();
     }
+    public override void OnWindowFocusChanged(bool hasFocus)
+    {
+        base.OnWindowFocusChanged(hasFocus);
+        if(hasFocus)
+        {
 
+        }
+        else
+        {
+
+        }
+    }
     private void RefreshBottomSheet()
     {
         SheetBehavior.State = BottomSheetBehavior.StateHidden;
@@ -167,7 +195,7 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
                 .Remove(frag)
                 .CommitNow();
         }
-
+            
 
         var nowPlayingFrag = new NowPlayingFragment(MyViewModel);
         SupportFragmentManager
@@ -464,7 +492,8 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
 
                 break; 
             case 102:
-                selectedFrag = new LastFmInfoFragment( MyViewModel);
+                
+                selectedFrag = new LastFMLoginFragment( "toLastFMInfo", MyViewModel);
                 tag = "LastFMFragment";
                 break; 
             case 103:
@@ -785,7 +814,8 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
             OnBackInvokedDispatcher.UnregisterOnBackInvokedCallback(_onBackInvokedCallback);
             _isBackCallbackRegistered = false;
         }
-        MyViewModel.OnAppClosing();
+
+        MyViewModel?.OnAppClosing();
         base.OnDestroy();
     }
 
@@ -823,15 +853,23 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
 
         }
     }
+    public override void OnLowMemory()
+    {
+        base.OnLowMemory();
+        System.Diagnostics.Debugger.Break();
+    }
     private void ProcessIntent(Android.Content.Intent? intent)
     {
         if (intent == null || string.IsNullOrEmpty(intent.Action))
         {
             return;
         }
-        if(intent.Action == "ShowMiniPlayer")
+        if (intent.Action == "ShowMiniPlayer")
         {
-            SheetBehavior.State = BottomSheetBehavior.StateExpanded;
+            if (MyViewModel.OpenMediaUIOnNotificationTap)
+            {
+                SheetBehavior.State = BottomSheetBehavior.StateExpanded;
+            }
         }
         if (intent.Action == Android.Content.Intent.ActionView || intent.Action == Android.Content.Intent.ActionSend)
         {
@@ -879,6 +917,27 @@ public class TransitionActivity : AppCompatActivity, IOnApplyWindowInsetsListene
         
     }
 
+}
+
+class AppLifeCycleObserver : Java.Lang.Object, ILifecycleEventObserver
+{
+    [Lifecycle.Event.OnStart]
+    public void OnForeground()
+    {
+
+    }
+    [Lifecycle.Event.OnStop]
+    public void OnBackground()
+    {
+
+    }
+
+    
+
+    public void OnStateChanged(ILifecycleOwner source, Lifecycle.Event e)
+    {
+    
+    }
 }
 sealed class BackInvokedCallback : Java.Lang.Object, IOnBackInvokedCallback
 {

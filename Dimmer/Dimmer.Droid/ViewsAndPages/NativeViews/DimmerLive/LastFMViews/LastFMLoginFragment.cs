@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Dimmer.ViewsAndPages.NativeViews.DimmerLive.LastFMViews;
 
 using System.Reactive.Disposables;
-
+using Dimmer.UiUtils;
 using Dimmer.ViewModel;
 
 using ProgressBar = Android.Widget.ProgressBar;
@@ -16,7 +16,7 @@ using ProgressBar = Android.Widget.ProgressBar;
 public class LastFMLoginFragment : Fragment
 {
     private readonly string _transitionName;
-    private readonly BaseViewModelAnd _baseViewModel;
+    private readonly BaseViewModelAnd MyViewModel;
 
     public SettingsViewModel? settingsVM { get; }
  
@@ -32,7 +32,7 @@ public class LastFMLoginFragment : Fragment
     public LastFMLoginFragment(string transitionName, BaseViewModelAnd baseViewModel)
     {
         _transitionName = transitionName;
-        _baseViewModel = baseViewModel;
+        MyViewModel = baseViewModel;
 
         settingsVM = MainApplication.ServiceProvider.GetService<SettingsViewModel>();
     }
@@ -76,7 +76,8 @@ public class LastFMLoginFragment : Fragment
         _errorText.SetPadding(0, 0, 0, 20);
 
         // Inputs
-        _userLayout = CreateInput(ctx, "Username");
+        _userLayout = CreateInput(ctx, "Last FM Username");
+        _userLayout.HintTextColor = UiBuilder.IsDark(ctx) ? AppUtil.ToColorStateList(Color.Red ): AppUtil.ToColorStateList(Color.White);
         _userEdit = (TextInputEditText)_userLayout.EditText!;
 
        
@@ -112,12 +113,7 @@ _actionBtn.SetTextColor(Color.White);
         base.OnResume();
         settingsVM.IsBusy = true;
 
-        SessionManagementViewModel sessionMgtVM = MainApplication.ServiceProvider.GetRequiredService<SessionManagementViewModel>();
-
-        _baseViewModel.NavigateToAnyPageOfGivenType(this, new LastFmInfoFragment(_baseViewModel), "CloudDataFragment");
-        
-            settingsVM.IsBusy = false;
-            return;
+       
         
         // 1. Two-way binding for Inputs
 
@@ -151,9 +147,9 @@ _actionBtn.SetTextColor(Color.White);
 
     private async void ActionBtn_Click(object? sender, EventArgs e)
     {
-       
-        
+        BaseViewModel.LastFMName = string.IsNullOrEmpty(_userEdit.Text) ? string.Empty : _userEdit.Text ;
 
+        await MyViewModel.LoginToLastfm();
     }
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)

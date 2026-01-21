@@ -124,9 +124,7 @@ public partial class DimmerSettingsService : ISettingsService
             _realm.Write(() => _model.CurrentSongId = value);
         }
     }// Expose the live list
-    public IList<string> UserMusicFoldersPreference
-        => _model.UserMusicFoldersPreference;
-
+    
     public double LastVolume { get; set; }
     public bool MinimizeToTrayPreference { get; set; }
 
@@ -140,47 +138,15 @@ public partial class DimmerSettingsService : ISettingsService
     {
         return _model.LastFMSessionKey;
     }
-    // Add a folder
-    public void AddMusicFolder(string path)
-    {
-        _realm = factory.GetRealmInstance();
-        _realm.Write(() =>
-        {
-            if (true)
-            {
+  
 
-            }
-            _model.UserMusicFoldersPreference.Add(path);
-
-
-        });
-    }
-
-    // Remove a folder
-    public bool RemoveMusicFolder(string path)
-    {
-        if (!_model.UserMusicFoldersPreference.Contains(path))
-
-            return false;
-        _realm.Write(() => _model.UserMusicFoldersPreference.Remove(path));
-        return true;
-    }
+   
     public bool ClearAllFolders()
     {
-        _realm.Write(() => _model.UserMusicFoldersPreference.Clear());
+        _realm.Write(() => _model.UserMusicFolders.Clear());
         return true;
     }
-    // Replace entire list
-    public void SetMusicFolders(IEnumerable<string> paths)
-    {
-
-        _realm.Write(() =>
-        {
-            _model.UserMusicFoldersPreference.Clear();
-            foreach (var p in paths)
-                _model.UserMusicFoldersPreference.Add(p);
-        });
-    }
+   
 
 
 }

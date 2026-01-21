@@ -633,8 +633,7 @@ IRepository<SongModel> songRepository, // Inject the repository
                 }
                 realm.Add(songModel, true);
             });
-            //// Important: Update the view model that was passed in so the UI has the latest data
-            //_mapper.Map(songModel, song);
+           
 
             _logger.LogInformation("Successfully updated lyrics in database for {SongTitle}", song.Title);
             Console.WriteLine($"Successfully updated lyrics in database for {song.Title}");

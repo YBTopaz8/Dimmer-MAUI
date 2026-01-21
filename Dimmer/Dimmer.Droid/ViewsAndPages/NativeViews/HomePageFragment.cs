@@ -152,6 +152,11 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
             if (!newFocus)
             {
                 loadingIndic.Visibility = ViewStates.Gone;
+                TQLChipHLayout.Visibility = ViewStates.Visible;
+            }
+            else
+            {
+                TQLChipHLayout.Visibility = ViewStates.Visible;
             }
         };
 
@@ -236,7 +241,6 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         bottomLayout.AddView(loadingIndic);
 
         bottomLayout.AddView(songsTotal);
-        bottomLayout.AddView(TqlLine);
 
 
 
@@ -248,10 +252,10 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         var lastLayout = new LinearLayout(ctx);
 
         lastLayout.SetGravity(GravityFlags.CenterHorizontal);
-        //lastLayout.AddView(TqlLine);
+        lastLayout.AddView(TqlLine);
         
         TQLChipHLayout = new LinearLayout(ctx);
-
+        TQLChipHLayout.Orientation = Android.Widget.Orientation.Horizontal;
         TQLChipHLayout.SetGravity(GravityFlags.CenterHorizontal);
         var FirstTQLChip = new Chip(ctx);
 
@@ -261,8 +265,17 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         FirstTQLChip.Click += (s, e) =>
         {
             _searchBar.Text = FirstTQLChip.Text;
+            
         };
+        var SecondTQLChip = new Chip(ctx);
+        SecondTQLChip.SetChipIconResource(Resource.Drawable.sortbytime);
+        SecondTQLChip.Click += (S, e) =>
+        {
+            _searchBar.Text = _searchBar.Text +" desc added";
+        };
+
         TQLChipHLayout.AddView(FirstTQLChip);
+        TQLChipHLayout.AddView(SecondTQLChip);
         TQLChipHLayout.Visibility = ViewStates.Gone;
 
         contentLinear.AddView(lastLayout);
@@ -294,6 +307,10 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
 
         // --- 5. Extended FAB ---
+        var vLinearLayout = new LinearLayout(ctx);
+
+
+
         fab = new Google.Android.Material.FloatingActionButton.ExtendedFloatingActionButton(ctx);
         ;
         fab.Extended = true;
@@ -308,7 +325,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         fabParams.SetMargins(0, 0, AppUtil.DpToPx(40), AppUtil.DpToPx(90));
         fab.LayoutParameters = fabParams;
 
-        SetupSwipeableFab(fab);
+        SetupClickableFab(fab);
 
 
         // Add FAB to Root
@@ -319,21 +336,10 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
         return root;
     }
-    private void SetupSwipeableFab(View view)
+    private void SetupClickableFab(View view)
     {
-        float startRawX = 0;
-        float startRawY = 0;
-
-        const int SwipeThreshold = 50;
-
+      
         view.Click += (s, e) =>
-        {
-
-            _searchBar.RequestFocusFromTouch();
-        };
-        view.LongClickable = true;
-        view.LongClick += (s, e)
-            =>
         {
 
             if (MyViewModel.CurrentPlayingSongView == null) return;
@@ -346,12 +352,22 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
             _songListRecycler?.ScrollToPosition(index);
 
             var specificView = _songListRecycler.FindViewHolderForAdapterPosition(index);
-            
-            var type = specificView?.GetType();
+
+            var typew = specificView.GetType();
+            var type = specificView.ItemViewType.GetType();
             if (type == null) return;
+            if(type == typeof(CardView))
+            {
+                var specificCard = specificView.ItemView as CardView;
+                specificCard?.SetBackgroundColor(Color.DarkSlateBlue);
+            }
             Debug.WriteLine(type);
-
-
+        };
+        view.LongClickable = true;
+        view.LongClick += (s, e)
+            =>
+        {
+            _searchBar.RequestFocusFromTouch();
         };
     }
 
@@ -410,18 +426,18 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
                 if (MyViewModel.CurrentPlayingSongView.CoverImagePath is not null)
                 {
 
-                    if(UiBuilder.IsDark(this.View))
-                    {
+                    //if(UiBuilder.IsDark(this.View))
+                    //{
 
-                        await _backgroundImageView.SetImageWithStringPathViaGlideAndFilterEffect(MyViewModel.CurrentPlayingSongView.CoverImagePath,
-                             Utilities.FilterType.DarkAcrylic);
+                    //    await _backgroundImageView.SetImageWithStringPathViaGlideAndFilterEffect(MyViewModel.CurrentPlayingSongView.CoverImagePath,
+                    //         Utilities.FilterType.DarkAcrylic);
                         
-                    }
-                    else
-                    {
-                        await _backgroundImageView.SetImageWithStringPathViaGlideAndFilterEffect(MyViewModel.CurrentPlayingSongView.CoverImagePath,
-                             Utilities.FilterType.Glassy);
-                    }
+                    //}
+                    //else
+                    //{
+                    //    await _backgroundImageView.SetImageWithStringPathViaGlideAndFilterEffect(MyViewModel.CurrentPlayingSongView.CoverImagePath,
+                    //         Utilities.FilterType.Glassy);
+                    //}
                 }
                 //currSong.IsCurrentPlayingHighlight= true; 
             });

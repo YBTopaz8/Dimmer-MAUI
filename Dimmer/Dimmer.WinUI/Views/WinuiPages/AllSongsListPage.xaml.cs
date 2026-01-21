@@ -910,31 +910,6 @@ AnimationHelper.Key_Forward
         BtmLogPanel.Visibility = Visibility.Collapsed;
     }
 
-    private async void PopUpBackButton_Click(object sender, RoutedEventArgs e)
-    {
-        ConnectedAnimation animation = ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("backwardsAnimation", viewQueueGrid);
-
-        // Collapse the smoke when the animation completes.
-        animation.Completed += Animation_Completed;
-
-
-        // Use the Direct configuration to go back (if the API is available).
-        if (ApiInformation.IsApiContractPresent("Windows.Foundation.UniversalApiContract", 7))
-        {
-            animation.Configuration = new GravityConnectedAnimationConfiguration();
-            
-        }
-
-        if (ViewQueue != null)
-        {
-            await ViewQueue.DispatcherQueue.EnqueueAsync(() =>
-            {
-                animation.TryStart(ViewQueue);
-            });
-
-        }
-    }
-
     private void Animation_Completed(ConnectedAnimation sender, object args)
     {
         SmokeGrid.Visibility = WinUIVisibility.Collapsed;
@@ -948,172 +923,22 @@ AnimationHelper.Key_Forward
         _storedItem = itemm;
         
         MyViewModel.SelectedSong = itemm;
-        // Prepare the connected animation.
-        // Notice that the stored item is passed in, as well as the name of the connected element.
-        // The animation will actually start on the Detailed info page.
-        // Prepare the animation, linking the key "ForwardConnectedAnimation" to our image
+      
          animation = ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("forwardAnimation", ViewQueue);
 
         // 2. Make Target Visible
         SmokeGrid.Visibility = Visibility.Visible;
-        viewQueueGrid.Opacity = 0; // Hide it initially so we see the animation fly in
+        SmokeGrid.ViewQueueGrid.Opacity = 0; // Hide it initially so we see the animation fly in
 
-        // 3. Wait for Layout Update (Crucial Step)
-        // This ensures viewQueueGrid has a valid X,Y width/height
+
         await SmokeGrid.DispatcherQueue.EnqueueAsync(() =>
         {
             // 4. Start Animation
-            viewQueueGrid.Opacity = 1;
-            animation.TryStart(viewQueueGrid);
+            SmokeGrid.ViewQueueGrid.Opacity = 1;
+            animation.TryStart(SmokeGrid.ViewQueueGrid);
         });
     }
 
-    private void NowPlayingPBQueue_DragItemsCompleted(ListViewBase sender, DragItemsCompletedEventArgs args)
-    {
-        // The ListView automatically reorders items in the UI, but we need to update the underlying queue
-        // Get the current order from the ListView
-        var currentOrder = NowPlayingPBQueue.Items.Cast<SongModelView>().ToList();
-        
-        // Find what was moved
-        if (args.Items.Count > 0)
-        {
-            var movedItem = args.Items[0] as SongModelView;
-            if (movedItem != null)
-            {
-                var newIndex = currentOrder.IndexOf(movedItem);
-                var oldIndex = MyViewModel.PlaybackQueue.IndexOf(movedItem);
-                
-                if (oldIndex >= 0 && newIndex >= 0 && oldIndex != newIndex)
-                {
-                    // Update the ViewModel's queue to match the new order
-                    MyViewModel.MoveSongInQueue(oldIndex, newIndex);
-                }
-            }
-        }
-    }
-
-    private async void InsertSongsBefore_Click(object sender, RoutedEventArgs e)
-    {
-        var menuItem = (MenuFlyoutItem)sender;
-        var targetSong = menuItem.DataContext as SongModelView;
-        
-        if (targetSong == null) return;
-
-        // TODO: Implement proper song picker dialog
-        // For now, use the search results as the songs to insert
-        // This is a placeholder implementation for demonstration purposes
-        var songsToInsert = MyViewModel.SearchResults.Take(5).ToList();
-        
-        if (songsToInsert.Any())
-        {
-            var param = new Tuple<SongModelView, IEnumerable<SongModelView>>(targetSong, songsToInsert);
-            throw new NotImplementedException();// MyViewModel.InsertSongsBeforeInQueueCommand.Execute(param);
-        }
-    }
-
-    private async void InsertSongsAfter_Click(object sender, RoutedEventArgs e)
-    {
-        var menuItem = (MenuFlyoutItem)sender;
-        var targetSong = menuItem.DataContext as SongModelView;
-        
-        if (targetSong == null) return;
-
-        // TODO: Implement proper song picker dialog
-        // For now, use the search results as the songs to insert
-        // This is a placeholder implementation for demonstration purposes
-        var songsToInsert = MyViewModel.SearchResults.Take(5).ToList();
-        
-        if (songsToInsert.Any())
-        {
-            var param = new Tuple<SongModelView, IEnumerable<SongModelView>>(targetSong, songsToInsert);
-            throw new NotImplementedException();
-                //MyViewModel.InsertSongsAfterInQueueCommand.Execute(param);
-        }
-    }
-
-    private async void SaveQueueAsPlaylist_Click(object sender, RoutedEventArgs e)
-    {
-        // Show a dialog to get the playlist name
-        var dialog = new ContentDialog
-        {
-            Title = "Save Queue as Playlist",
-            PrimaryButtonText = "Save",
-            
-            CloseButtonText = "Cancel",
-            DefaultButton = ContentDialogButton.Primary,
-            XamlRoot = this.XamlRoot
-        };
-
-        var textBox = new TextBox
-        {
-           
-            Width = 300
-        };
-        var helperText= new TextBlock
-        {
-            Text = "Please enter a name for the new playlist.",
-            FontSize=11,
-            Margin = new Thickness(0, 0, 0, 8)
-        };
-        var stackPanel = new StackPanel();
-        stackPanel.Children.Add(textBox);
-        stackPanel.Children.Add(helperText);
-        dialog.Content = stackPanel;
-
-        var result = await dialog.ShowAsync();
-
-        if (result == ContentDialogResult.Primary && !string.IsNullOrWhiteSpace(textBox.Text))
-        {
-            throw new NotImplementedException();
-            //MyViewModel.SaveQueueAsPlaylistCommand.Execute(textBox.Text);
-
-            // Show confirmation
-            var confirmDialog = new ContentDialog
-            {
-                Title = "Success",
-                Content = $"Queue saved as playlist '{textBox.Text}'",
-                CloseButtonText = "OK",
-                XamlRoot = this.XamlRoot
-            };
-            await confirmDialog.ShowAsync();
-        }
-    }
-
-    private async void RemoveSongFromQueue_Click(object sender, RoutedEventArgs e)
-    {
-        var send = (FrameworkElement)sender;
-        var song = send.DataContext as SongModelView;
-        await MyViewModel.RemoveFromQueue(song);
-    }
-
-    private void SmokeGrid_PointerPressed(object sender, PointerRoutedEventArgs e)
-    {
-        var props = e.GetCurrentPoint((UIElement)sender).Properties;
-        if (props != null)
-        {
-            if (props.PointerUpdateKind == Microsoft.UI.Input.PointerUpdateKind.XButton1Pressed)
-            {
-                PopUpBackButton_Click(sender, e);
-            }
-        }
-    }
-
-    private async void PlaySongBtn_Click(object sender, RoutedEventArgs e)
-    {
-        var send = (Button)sender;
-        var song = send.DataContext as SongModelView;
-
-        await MyViewModel.PlaySongAsync(song, CurrentPage.NowPlayingPage, MyViewModel.PlaybackQueue);
-    }
-
-    private async void NowPlayingSongImg_PointerPressed(object sender, PointerRoutedEventArgs e)
-    {
-        
-        var npqIndex = MyViewModel.PlaybackQueue.IndexOf(MyViewModel.CurrentPlayingSongView);
-        await NowPlayingPBQueue.SmoothScrollIntoViewWithIndexAsync(npqIndex,
-            ScrollItemPlacement.Top, false,
-            true);
-    }
 
     private void MySongsTableView_ItemClick(object sender, ItemClickEventArgs e)
     {
@@ -1205,7 +1030,7 @@ true
             if ((dbSong.ArtistToSong.Count < 1 || dbSong.Artist is null))
             {
 
-                var ArtistsInSong = MyViewModel.SelectedSong.ArtistName.
+                var ArtistsInSong = MyViewModel.SelectedSong?.ArtistName.
                 Split(",").ToList();
                 await MyViewModel.AssignArtistToSongAsync(MyViewModel.SelectedSong.Id,
                      ArtistsInSong);
@@ -1248,7 +1073,7 @@ true
                     var songContext = ((MenuFlyoutItem)obj).Text;
 
                     var selectedArtist = MyViewModel.RealmFactory.GetRealmInstance()
-                    .Find<SongModel>(_storedSong.Id).ArtistToSong.First(x => x.Name == songContext)
+                    .Find<SongModel>(_storedSong.Id)?.ArtistToSong.First(x => x.Name == songContext)
                     .ToArtistModelView();
 
                     
@@ -1471,8 +1296,7 @@ true
 
     private void SelectedSongImg_Loaded(object sender, RoutedEventArgs e)
     {
-        if (MyViewModel.SelectedSong is null) return;
-        MyViewModel.WhenValueChanged( newVl => MyViewModel.SelectedSong)
+        MyViewModel.WhenPropertyChange( nameof(MyViewModel.SelectedSong),newVl => MyViewModel.SelectedSong)
         .ObserveOn(RxSchedulers.UI)
             .Subscribe(selectedSong =>
             {
@@ -1512,5 +1336,10 @@ true
     private void DurationFormatted_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
     {
 
+    }
+
+    private void SmokeGrid_Loaded(object sender, RoutedEventArgs e)
+    {
+        SmokeGrid.SetBaseViewModelWin(MyViewModel);
     }
 }

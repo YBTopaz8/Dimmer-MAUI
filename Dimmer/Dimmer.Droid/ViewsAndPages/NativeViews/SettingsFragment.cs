@@ -7,7 +7,7 @@ using Dimmer.UiUtils;
 using Dimmer.Utils.Extensions;
 using DynamicData;
 using DynamicData.Binding;
-
+using Google.Android.Material.Chip;
 using Google.Android.Material.MaterialSwitch;
 using Google.Android.Material.Tooltip;
 using ScrollView = Android.Widget.ScrollView;
@@ -108,8 +108,7 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
 
         root.AddView(horizontalLayout);
 
-        systemStatusView = new MaterialCardView(ctx)
-            ;
+        systemStatusView = new MaterialCardView(ctx);
         systemStatusView.LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent);
         systemStatusView.SetPadding(20, 20, 20, 20);
 
@@ -119,7 +118,7 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
             TextSize = 14
         };
         appStatusText.SetPadding(15, 15, 15, 15);
-        
+        systemStatusView.Radius = 8;
         systemStatusView.AddView(appStatusText);
         root.AddView(systemStatusView);
 
@@ -174,20 +173,34 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
 
         layout.AddView(CreateDivider(ctx));
 
-        //layout.AddView(CreateSwitchRow(ctx, "Minimize to Tray", "Keep playing in background when closed",
-        //    MyViewModel.AppState.MinimizeToTrayPreference, (v) => MyViewModel.AppState.MinimizeToTrayPreference = v));
+        var OpenMediaUIOnNotificationTap = CreateSwitchRow(ctx, "Open Media Player on Notification Tap",
+            "Toggle on to show the Media UI after opening the app upon tapping notification",
+            MyViewModel.OpenMediaUIOnNotificationTap, (v) =>
+            {
+                MyViewModel.ToggleOpenMediaUIOnNotificationTap(v);
+            });
+        layout.AddView(OpenMediaUIOnNotificationTap);
+      
 
         layout.AddView(CreateDivider(ctx));
 
-        //layout.AddView(CreateSwitchRow(ctx, "Stick to Top", "Keep window always on top",
-        //    MyViewModel.AppState.IsStickToTop, (v) => MyViewModel.AppState.IsStickToTop = v));
+
+        var KeepScreenOnView = CreateSwitchRow(ctx, "Keep Screen On", "Keep screen on when viewing sync lyrics page",
+            MyViewModel.KeepScreenOnDuringLyrics, (v) =>
+            {
+                MyViewModel.KeepScreenOnDuringLyrics = v;
+            });
+
+        layout.AddView(KeepScreenOnView);
+
+        layout.AddView(CreateDivider(ctx));
 
         return WrapInCard(ctx, layout);
     }
 
-    private View CreateAudioSection(Context ctx)
+    private MaterialCardView CreateAudioSection(Context ctx)
     {
-        var layout = CreateCardLayout(ctx);
+        LinearLayout? layout = CreateCardLayout(ctx);
 
         MaterialButton reloadAllAlbumCovers = new MaterialButton(ctx) { Text = "Reload All Album Covers" };
 
@@ -218,7 +231,7 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
         return WrapInCard(ctx, layout);
     }
     private LinearLayout _folderRowsContainer;
-    private View CreateLibrarySection(Context ctx)
+    private MaterialCardView CreateLibrarySection(Context ctx)
     {
         MusicFoldersLayout = CreateCardLayout(ctx);
         MusicFoldersLayout.SetPadding(0, 0, 0, 0); // Remove padding for list look
@@ -241,7 +254,7 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
             Icon = AndroidX.Core.Content.ContextCompat.GetDrawable(ctx, Resource.Drawable.addcircle)
             ,IconSize = 13,
         };
-        _addFolderButton.SetButtonIconColor(UiBuilder.IsDark(this.View) ? Color.White : Color.Black);
+        _addFolderButton.IconTint = UiBuilder.IsDark(this.View) ? AppUtil.ToColorStateList(Color.White) : AppUtil.ToColorStateList(Color.Black);
         _addFolderButton.SetBackgroundColor(Android.Graphics.Color.Transparent);
         _addFolderButton.SetTextColor(IsDark() ? Android.Graphics.Color.White : Android.Graphics.Color.Black);
         _addFolderButton.Click += async (s, e) =>
@@ -260,7 +273,7 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
 
         return WrapInCard(ctx, MusicFoldersLayout);
     }
-    private HashSet<string> _currentFolderUris = new HashSet<string>();
+
 
     public override void OnResume()
     {
@@ -277,6 +290,9 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
                          
                          if (folderPaths == null) return;
                          var listOfStrFromUriPath = new List<string>();
+
+                         var newSet = new Dictionary<string, string>();
+
                          foreach (var path in folderPaths)
                          {
                              var uriFromStr = Android.Net.Uri.Parse(path);
@@ -285,11 +301,11 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
                                  var decodedStrFromUriPath = AndroidFolderPicker.GetPathFromUri(uri: uriFromStr);
                                  if (decodedStrFromUriPath is not null)
                                  { 
+                                     newSet.TryAdd(path, decodedStrFromUriPath);
                                      listOfStrFromUriPath.Add(decodedStrFromUriPath); 
                                  }
                              }
                          }
-                         var newSet = new HashSet<string>(listOfStrFromUriPath);
 
                          // Remove rows that no longer exist
                          for (int i = _folderRowsContainer.ChildCount - 1; i >= 0; i--)
@@ -300,12 +316,12 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
                                  var tag = child.Tag?.GetType() == typeof(string);
                                  if (tag)
                                  {
-                                     string stringTag = child.Tag.ToString();
+                                     string stringTag = child.Tag!.ToString();
 
-                                     if (!newSet.Contains(stringTag))
+                                     if (!newSet.ContainsKey(stringTag))
                                      {
                                          _folderRowsContainer.RemoveViewAt(i);
-                                         _currentFolderUris.Remove(stringTag);
+                                         newSet.Remove(stringTag);
                                      }
                                  }
                              }
@@ -314,13 +330,11 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
                          // Add new rows
                          foreach (var folder in newSet)
                          {
-                             if (!_currentFolderUris.Contains(folder))
-                             {
-                                 var row = CreateFolderRow(Context, folder);
-                                 row.Tag = folder; // store URI for diff
+                            
+                                 var row = CreateFolderRow(Context!, folder.Value);
+                                 row.Tag = folder.Key; // store URI for diff
                                  _folderRowsContainer.AddView(row);
-                                 _currentFolderUris.Add(folder);
-                             }
+                            
                          }
                      })
                      .DisposeWith(sessionDisposable);
@@ -342,19 +356,10 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
 
     public LinearLayout MusicFoldersLayout { get; private set; }
 
-    private View CreateLyricsSection(Context ctx)
+    private MaterialCardView CreateLyricsSection(Context ctx)
     {
         var layout = CreateCardLayout(ctx);
 
-        var KeepScreenOnView = CreateSwitchRow(ctx, "Keep Screen On", "Keep screen on when viewing sync lyrics page",
-            MyViewModel.KeepScreenOnDuringLyrics, (v) =>
-            {
-                MyViewModel.KeepScreenOnDuringLyrics = v;
-            });
-
-        layout.AddView(KeepScreenOnView);
-
-        layout.AddView(CreateDivider(ctx));
 
         //layout.AddView(CreateSwitchRow(ctx, "Mini Lyrics View", "Show floating lyrics on desktop",
         //    MyViewModel.AppState.IsMiniLyricsViewEnabled, (v) => MyViewModel.AppState.IsMiniLyricsViewEnabled = v));
@@ -374,6 +379,7 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
 
         return WrapInCard(ctx, layout);
     }
+
 
     private View CreateSystemSection(Context ctx)
     {
@@ -451,27 +457,24 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
     {
         var row = new LinearLayout(ctx) { Orientation = Orientation.Horizontal, WeightSum = 10 };
         row.SetPadding(40, 20, 20, 20);
-        row.SetGravity(GravityFlags.CenterVertical);
+        row.SetGravity(GravityFlags.End);
 
         var txt = new TextView(ctx) { Text = path, TextSize = 14 };
         txt.LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 6);
 
-        var delBtn = new ImageView(ctx);
-        delBtn.SetImageResource(Android.Resource.Drawable.IcMenuDelete);
-        delBtn.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.Gray);
+        var delBtn = new Chip(ctx);
+        delBtn.SetChipIconResource(Android.Resource.Drawable.IcMenuDelete);
+        
         delBtn.LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 2);
         delBtn.Click += (s, e) =>
         {
             MyViewModel.DeleteFolderPath(path);
         };
 
-        var rescanBtn = new ImageView(ctx);
-        Glide.With(ctx).Load(Resource.Drawable.reset).Into(rescanBtn);
-        rescanBtn.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.Gray);
-        
+        var rescanBtn = new Chip(ctx);
+        delBtn.SetChipIconResource(Resource.Drawable.reset);
         rescanBtn.LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1);
-        rescanBtn.SetMaxHeight(AppUtil.DpToPx(10));
-        rescanBtn.SetMaxWidth(AppUtil.DpToPx(10));
+        
         rescanBtn.Click += async (s, e) =>
         {
 
@@ -503,6 +506,8 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
         t2.SetTextColor(Color.Gray);
         textLayout.AddView(t1);
         textLayout.AddView(t2);
+        //var t = new Google.Android.Material.SwitchMaterial.SwitchMaterial(ctx);
+        //t.
 
         var sw = new MaterialSwitch(ctx) { Checked = isChecked };
         sw.LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 2);

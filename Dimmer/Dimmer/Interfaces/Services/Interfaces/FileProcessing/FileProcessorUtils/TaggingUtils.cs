@@ -109,12 +109,12 @@ public static class TaggingUtils
         t = Regex.Replace(t, @"^[-–—_ ]+|[-–—_ ]+$", "");
 
         // If multiple dashes, keep last segment
-        if (MultiDashRegex.IsMatch(t))
-        {
-            int idx = t.LastIndexOf('-');
-            if (idx > 0 && idx < t.Length - 1)
-                t = t[(idx + 1)..].Trim();
-        }
+        //if (MultiDashRegex.IsMatch(t))
+        //{
+        //    int idx = t.LastIndexOf('-');
+        //    if (idx > 0 && idx < t.Length - 1)
+        //        t = t[(idx + 1)..].Trim();
+        //}
 
         // ToTitleCase
         return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(t.ToLower());
@@ -291,10 +291,25 @@ public static class TaggingUtils
     // 1. Define a delegate that takes a Path + Extensions and returns a list of files
     // The Android project will assign this function later.
     public static Func<string, IReadOnlySet<string>, List<string>>? PlatformSpecificScanner { get; set; }
-    public static Func<string, Stream> PlatformGetStreamHook { get; set; }
+    public static Func<string, Stream>? PlatformGetStreamHook { get; set; }
     
 
     public static Func<string, long>? PlatformGetFileSizeHook { get; set; }
+    public static Func<string, bool>? PlatformSpecificDeleter { get; set; }
+
+    public static bool DeletePlatformFile(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return false;
+
+        if (path.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
+        {
+            // Use the Android-specific logic
+            return PlatformSpecificDeleter?.Invoke(path) ?? false;
+        }
+
+        File.Delete(path);
+        return true;
+    }
     public static long GetFileSize(string path)
     {
         if (string.IsNullOrWhiteSpace(path)) return 0;

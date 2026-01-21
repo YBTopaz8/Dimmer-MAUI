@@ -36,7 +36,7 @@ public partial class AppStateModel : RealmObject, IRealmObjectWithObjectId
 
     public string? EqualizerPreset { get; set; }
     public double LastKnownPosition { get; set; }
-    public IList<string> UserMusicFoldersPreference { get; }
+    public IList<UserMusicFoldersPreference> UserMusicFolders { get; }
     public IList<string> LastOpenedWindows { get; }
     public string LastKnownQuery { get; set; }
     public string LastKnownPlaybackQuery { get; set; }
@@ -56,6 +56,7 @@ public partial class AppStateModel : RealmObject, IRealmObjectWithObjectId
     public string LastfmUsername { get; internal set; }
     public bool ScrobbleToLastFM { get; internal set; }
     public bool KeepScreenOnDuringLyrics { get; set; } = true;
+    public bool OpenMediaUIOnNotificationTap { get; set; }
 
     public AppStateModel()
     {
@@ -97,11 +98,11 @@ public partial class AppStateModel : RealmObject, IRealmObjectWithObjectId
         // `this.UserMusicFoldersPreference` and `this.LastOpenedWindows`
         // are already new, empty List<string> instances here. We just add to them.
 
-        if (source.UserMusicFoldersPreference != null)
+        if (source.UserMusicFolders != null)
         {
-            foreach (var item in source.UserMusicFoldersPreference)
+            foreach (var item in source.UserMusicFolders)
             {
-                this.UserMusicFoldersPreference.Add(item);
+                this.UserMusicFolders.Add(item);
             }
             // Alternative using LINQ (if you prefer, but foreach is clear):
             // this.UserMusicFoldersPreference.Clear(); // Should be empty already
@@ -119,4 +120,16 @@ public partial class AppStateModel : RealmObject, IRealmObjectWithObjectId
             // ((List<string>)this.LastOpenedWindows).AddRange(source.LastOpenedWindows);
         }
     }
+}
+
+public class UserMusicFoldersPreference :EmbeddedObject
+{
+    public string ReadableFolderPath { get; set; }
+    public string SystemFolderPath { get; set; }
+    public bool IsBlackListed{ get; set; }
+    public UserMusicFoldersPreference()
+    {
+        
+    }
+
 }

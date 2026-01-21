@@ -13,7 +13,6 @@ using AndroidX.Lifecycle;
 using Bumptech.Glide;
 using CommunityToolkit.Diagnostics;
 using DynamicData.Binding;
-
 using Kotlin;
 
 namespace Dimmer.ViewsAndPages.NativeViews;
@@ -22,6 +21,9 @@ namespace Dimmer.ViewsAndPages.NativeViews;
 internal class LyricsViewFragment : Fragment, IOnBackInvokedCallback,IOnBackAnimationCallback
 {
     private BaseViewModelAnd MyViewModel;
+
+    public Button ViewCurrentSongBtn { get; private set; }
+
     private RecyclerView _lyricsRecyclerView;
     private LyricsAdapter _adapter;
     private ImageView _backgroundImageView;
@@ -117,6 +119,11 @@ internal class LyricsViewFragment : Fragment, IOnBackInvokedCallback,IOnBackAnim
 
         mainContainer.AddView(horizontalStackLayout);
         mainContainer.AddView(_artistAlbumTv);
+        ViewCurrentSongBtn = new Button(Context!);
+
+        ViewCurrentSongBtn.SetIconResource(Resource.Drawable.musiccircle);
+        ViewCurrentSongBtn.Visibility = ViewStates.Gone;
+
 
         // 5. Lyrics RecyclerView
         _lyricsRecyclerView = new RecyclerView(context)
