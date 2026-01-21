@@ -409,67 +409,8 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     #region Navigation Section
 
-    public void NavigateToNowPlayingFragmentFromHome(
-        Fragment callerFrag, View sourceArt,
-        View sourceTitle, View sourceArtist,
-        View sourceAlbum)
-    {
-        if (callerFrag == null || !callerFrag.IsAdded) return;
+   
 
-        // 1. Setup Unique Transition Names
-        string? artTransName = sourceArt?.TransitionName;
-        string? titleTransName = sourceTitle?.TransitionName;
-        string? artistTransName = sourceArtist?.TransitionName;
-        string? albumTransName = sourceAlbum?.TransitionName;
-
-
-        // 3. Create Destination Fragment and pass the names
-        var nowPlayingFrag = new NowPlayingFragment(this)
-        {
-            //ArtTransitionName = artTransName,
-            //TitleTransitionName = titleTransName,
-            //ArtistTransitionName = artistTransName,
-            //AlbumTransitionName = albumTransName
-        };
-
-        CurrentFragment = nowPlayingFrag; // Update your tracking property
-
-        // 4. Define the Shared Element Transition (The Fly Animation)
-        var sharedSet = new TransitionSet();
-        sharedSet.AddTransition(new ChangeBounds());
-        sharedSet.AddTransition(new ChangeTransform());
-        sharedSet.AddTransition(new ChangeImageTransform()); // Crucial for ImageViews
-        sharedSet.SetDuration(400);
-        sharedSet.SetInterpolator(new LinearInterpolator());
-
-        nowPlayingFrag.SharedElementEnterTransition = sharedSet;
-        nowPlayingFrag.SharedElementReturnTransition = sharedSet;
-
-        // 5. Define the Page Transition (The Fade In/Out of non-shared stuff)
-        // Fade Through is standard for Material 3
-        var fadeThrough = new Google.Android.Material.Transition.MaterialFadeThrough();
-        fadeThrough.SetDuration(300);
-        nowPlayingFrag.EnterTransition = fadeThrough;
-        nowPlayingFrag.ExitTransition = fadeThrough;
-        var trans = callerFrag.ParentFragmentManager.BeginTransaction()
-            .SetReorderingAllowed(true);
-        // 6. Add Shared Elements Only if they exist
-        if (sourceArt != null && artTransName != null)
-            trans.AddSharedElement(sourceArt, artTransName);
-
-        if (sourceTitle != null && titleTransName != null)
-            trans.AddSharedElement(sourceTitle, titleTransName);
-
-        if (sourceArtist != null && artistTransName != null)
-            trans.AddSharedElement(sourceArtist, artistTransName);
-
-        if (sourceAlbum != null && albumTransName != null)
-            trans.AddSharedElement(sourceAlbum, albumTransName);
-
-        trans.Replace(Resource.Id.custom_fragment_container, nowPlayingFrag)
-             .AddToBackStack("NowPlaying")
-             .Commit();
-    }
 
     public void NavigateToEditSongPage(Fragment callerFragment, string transitionName, List<View> sharedViews)
     {
@@ -510,8 +451,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     {
         if (callerFrag == null || !callerFrag.IsAdded) return;
 
-        var fragment = new ArtistFragment(this, artistName, artistId);
-        CurrentFragment = fragment;
+        var destinationFrag = new ArtistFragment(this, artistName, artistId);
 
         // Shared Element (Image Morph)
         string tName = sharedView?.TransitionName ?? $"artist_{artistId}";
@@ -522,15 +462,16 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             DrawingViewId = Resource.Id.custom_fragment_container,
             ScrimColor = Color.Transparent,
             ContainerColor = Color.Transparent,
+            PathMotion = new MaterialArcMotion(),
             FadeMode = MaterialContainerTransform.FadeModeThrough,
         };
         containerTransform.SetDuration(400);
 
-        fragment.SharedElementEnterTransition = containerTransform;
-        fragment.SharedElementReturnTransition = containerTransform;
+        destinationFrag.SharedElementEnterTransition = containerTransform;
+        destinationFrag.SharedElementReturnTransition = containerTransform;
 
-        fragment.EnterTransition = new MaterialElevationScale(true);
-        fragment.ExitTransition = new MaterialElevationScale(false);
+        destinationFrag.EnterTransition = new MaterialElevationScale(true);
+        destinationFrag.ExitTransition = new MaterialElevationScale(false);
 
         callerFrag.ExitTransition = new Hold();
 
@@ -539,10 +480,10 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
         if (sharedView != null)
             trans.AddSharedElement(sharedView, tName);
-
-        trans.Replace(Resource.Id.custom_fragment_container, fragment)
-             .AddToBackStack($"Artist_{artistId}")
-             .Commit();
+        trans
+            .Replace(Resource.Id.custom_fragment_container, destinationFrag)
+            .AddToBackStack(artistId)
+            .Commit();
     }
 
     public void NavigateToArtistEventsStats(Fragment callerFrag)
@@ -564,21 +505,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             .Commit();
     }
 
-    public void NavigateToSettings(Fragment callerFrag)
-    {
-        if (callerFrag == null || !callerFrag.IsAdded) return;
-        var fragment = new SettingsFragment("SettingsTrans", this);
-        CurrentFragment = fragment;
 
-        // Z-Axis Depth Transition
-        callerFrag.ExitTransition = new MaterialSharedAxis(MaterialSharedAxis.Z, true);
-        callerFrag.ReenterTransition = new MaterialSharedAxis(MaterialSharedAxis.Z, false);
-
-        callerFrag.ParentFragmentManager.BeginTransaction()
-            .Replace(Resource.Id.custom_fragment_container, fragment)
-            .AddToBackStack("Settings")
-            .Commit();
-    }
 
     public void NavigateToAnyPageOfGivenType(Fragment callerFrag, Fragment destinationFrag, string tag)
     {
@@ -620,12 +547,14 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             DrawingViewId = Resource.Id.custom_fragment_container,
             ScrimColor = Color.Transparent,
             ContainerColor = Color.ParseColor("#121212"), // Set this to your actual page background color!
-            FadeMode = MaterialContainerTransform.FadeModeCross,
+            FadeMode = MaterialContainerTransform.FadeModeIn,
             
 
-            // This adds the ARC motion you wanted from the second block
-            PathMotion = new MaterialArcMotion()
+
+            PathMotion = new MaterialArcMotion() 
         };
+        
+
         //transform.IsSeekingSupported
         transform.SetDuration(400);
         // 3. Assign Transitions
@@ -674,8 +603,6 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     public System.Reactive.Subjects.Subject<System.Reactive.Unit> ScrollToCurrentSongRequest { get; }
     = new System.Reactive.Subjects.Subject<System.Reactive.Unit>();
-    [ObservableProperty]
-    public partial bool OpenMediaUIOnNotificationTap { get; private set; }
 
     // 2. Helper method to trigger it
     public void TriggerScrollToCurrentSong()
