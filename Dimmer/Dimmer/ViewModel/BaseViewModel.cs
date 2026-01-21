@@ -839,10 +839,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public event EventHandler? AddNextEvent;
 
 
-    public event EventHandler? ToggleNowPlayingUI;
 
-
-    public event Action? MainWindowDeactivated;
 
     private async Task HandleCommandAction(ICommandAction action)
     {
@@ -1054,6 +1051,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
     }
 
+    [ObservableProperty]
+    public partial bool OpenMediaUIOnNotificationTap { get;  set; }
     public async Task OnAppOpening()
     {
         try
@@ -1095,6 +1094,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 _currentPlayinSongIndexInPlaybackQueue = appModel.LastKnownPlaybackQueueIndex;
                 IsShuffleActive = appModel.ShuffleStatePreference;
                 CurrentRepeatMode = (RepeatMode)appModel.LastKnownRepeatState;
+                OpenMediaUIOnNotificationTap = appModel.OpenMediaUIOnNotificationTap;
                 CurrentTrackPositionSeconds = appModel.LastKnownPosition;
                 DeviceVolumeLevel = appModel.VolumeLevelPreference;
                 IsDarkModeOn = appModel.IsDarkModePreference;
@@ -6461,7 +6461,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     }
 
-    public async Task<SongModelView?> AssignArtistToSongAsync(ObjectId songId, IEnumerable<string> artistNames)
+    public async Task<SongModelView?> AssignArtistToSongAsync(ObjectId songId, IEnumerable<string>? artistNames)
     {
         if (songId == ObjectId.Empty || artistNames == null || !artistNames.Any())
             return null;
@@ -7029,14 +7029,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             return;
 
 
-        var confirmed = await _dialogueService.ShowConfirmationAsync(
-            "Confirm Deletion",
-            $"Are > sure > want to permanently delete {songsToDelete.Count()} song(s)? This will remove the files from disk and cannot be undone.",
-            "Yes, Delete Them",
-            "Cancel");
 
-        if (!confirmed)
-            return;
 
 
         await PerformFileOperationAsync(songsToDelete, string.Empty, FileOperation.Delete);
@@ -7134,7 +7127,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
                 if (operation == FileOperation.Delete)
                 {
-                    File.Delete(sourcePath);
+                    var isDeleted = TaggingUtils.DeletePlatformFile(sourcePath);
+                    //File.Delete(sourcePath);
                     if (PlaybackQueue.Contains(song))
                     {
                         PlaybackQueueSource.Remove(song);
@@ -7145,11 +7139,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     string destFileName = Path.Combine(destinationPath, Path.GetFileName(sourcePath));
                     if (operation == FileOperation.Copy)
                     {
-                        File.Copy(sourcePath, destFileName, overwrite: true);
+                        //File.Copy(sourcePath, destFileName, overwrite: true);
                     }
                     else
                     {
-                        File.Move(sourcePath, destFileName, overwrite: true);
+                        //File.Move(sourcePath, destFileName, overwrite: true);
                     }
                 }
 
