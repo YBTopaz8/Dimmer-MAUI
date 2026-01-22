@@ -695,9 +695,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 await Task.Delay(3000, _backgroundCachingCts.Token);
                 await EnsureAllCoverArtCachedForSongsAsync(_backgroundCachingCts.Token);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException er)
             {
-                _logger.LogInformation("Background cover art caching was cancelled.");
+                _logger.LogInformation("Background cover art caching was cancelled."+er.Message);
             }
             catch (Exception ex)
             {
@@ -2231,7 +2231,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             if (TaggingUtils.FileExists(song.CoverImagePath))
             {
-
                 return;
             }
         }
@@ -2365,7 +2364,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             var query = realm.All<SongModel>()
                              .Where(s => string.IsNullOrEmpty(s.CoverImagePath));
             
-            songsToProcessIds = query.ToList().Select(s => s.Id).ToList();
+            songsToProcessIds = query.AsEnumerable().Select(s => s.Id).ToList();
             totalCount = songsToProcessIds.Count;
         }
 
@@ -2374,7 +2373,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         int processedCount = 0;
 
         // Use lower parallelism on Android to reduce memory pressure
-        var maxParallelism = DeviceInfo.Platform == DevicePlatform.Android ? 4 : 8;
+        var maxParallelism = 4;
         
         var parallelOptions = new ParallelOptions
         {
@@ -2393,7 +2392,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     var songModel = batchRealm.Find<SongModel>(songId);
                     if (songModel != null)
                     {
-                        // Convert to POCO (View) immediately so we can use it after Realm closes
                         songsInBatch.Add(songModel.ToSongModelView()!);
                     }
                 }
