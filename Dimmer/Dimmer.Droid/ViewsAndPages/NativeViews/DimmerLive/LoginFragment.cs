@@ -4,7 +4,7 @@ using ProgressBar = Android.Widget.ProgressBar;
 
 namespace Dimmer.ViewsAndPages.NativeViews.DimmerLive;
 
-public class LoginFragment : Fragment
+public class LoginFragment : Fragment, IOnBackInvokedCallback
 {
     private readonly string _transitionName;
     private readonly BaseViewModelAnd _baseViewModel;
@@ -113,14 +113,16 @@ public class LoginFragment : Fragment
     {
         base.OnResume();
         loginViewModel.IsBusy = true;
-        await loginViewModel.InitAsync();
 
         SessionManagementViewModel sessionMgtVM= MainApplication.ServiceProvider.GetRequiredService<SessionManagementViewModel>();
-         
-        if(loginViewModel.NavigateToCloudPage(this, new CloudDataFragment(_transitionName, sessionMgtVM), "CloudDataFragment"))
+        if (LoginViewModel.IsAuthenticated)
         {
-            loginViewModel.IsBusy = false;
-            return;
+            
+            if (loginViewModel.NavigateToCloudPage(this, new CloudDataFragment(_transitionName, sessionMgtVM), "CloudDataFragment"))
+            {
+                loginViewModel.IsBusy = false;
+                return;
+            }
         }
         // 1. Two-way binding for Inputs
 
@@ -167,7 +169,8 @@ public class LoginFragment : Fragment
             await loginViewModel.LoginAsync();
             if(loginViewModel.CurrentUserOnline is not null && loginViewModel.CurrentUserOnline.IsAuthenticated)
             {
-                loginViewModel.NavigateToProfilePage(this, new ProfileFragment(_transitionName, loginViewModel), "ProfileFragment");
+                if(_transitionName == "IntoLoginFromCloud")
+                    loginViewModel.NavigateToProfilePage(this, new ProfileFragment(_transitionName, loginViewModel), "ProfileFragment");
             }
         }
 
@@ -224,5 +227,16 @@ public class LoginFragment : Fragment
         
         layout.AddView(edit);
         return layout;
+    }
+
+    public void OnBackInvoked()
+    {
+        var myAct = this.Activity as TransitionActivity;
+        if (myAct != null)
+        {
+            
+                myAct.NavToHomeDirectly();
+             
+        }
     }
 }

@@ -71,17 +71,7 @@ public sealed partial class EditSongPage : Page
                 DetailedSong = args.Song;
 
                 MyViewModel.CurrentWinUIPage = this;
-                Visual? visual = ElementCompositionPreview.GetElementVisual(detailedImage);
-                PlatUtils.ApplyEntranceEffect(visual, detailedImage, _userPrefAnim, _compositor);
-
-                var animation = ConnectedAnimationService.GetForCurrentView()
-               .GetAnimation("ForwardConnectedAnimation");
-
-                detailedImage.Loaded += (_, _) =>
-                {
-                    detailedImage.Opacity = 1;
-                    animation?.TryStart(detailedImage);
-                };
+              
                 MyViewModel.SelectedSong = DetailedSong;
                 await MyViewModel.LoadSelectedSongLastFMData();
                 //LoadUiComponents();
@@ -198,20 +188,6 @@ public sealed partial class EditSongPage : Page
     private void GridOfOtherImagesCloseButton_Click(object sender, RoutedEventArgs e)
     {
         GridOfOtherImages.Visibility= WinUIVisibility.Collapsed;
-    }
-
-    private static async Task ToastToolTipNotif2Secs(UIElement? Elt)
-    {
-        if(Elt is null) return;
-        var toolTipContent = new ToolTip
-        {
-            Content = "Artist name copied to clipboard!"
-        };
-        ToolTipService.SetToolTip(Elt!, toolTipContent);
-        toolTipContent.IsOpen = true;
-        await Task.Delay(2000);
-        toolTipContent.IsOpen = false;
-        ToolTipService.SetToolTip(Elt!, null);
     }
 
     private async void AddNoteToSong_Click(object sender, RoutedEventArgs e)
@@ -410,5 +386,18 @@ public sealed partial class EditSongPage : Page
         SongTitleSearch.Text = MyViewModel.SelectedSong?.Title;
         SongArtistNameSearch.Text = MyViewModel.SelectedSong?.ArtistName;
         SongAlbumNameSearch.Text = MyViewModel.SelectedSong?.AlbumName;
+    }
+
+    private void DetailedImage_Loaded(object sender, RoutedEventArgs e)
+    {   var animation = ConnectedAnimationService.GetForCurrentView()
+       .GetAnimation("SwingFromSongDetailToEdit");
+        detailedImage.Opacity = 1;
+        animation?.TryStart(detailedImage);
+        AnimationHelper.TryStart(
+            detailedImage,
+            new List<UIElement>() { BackBtn }
+            , AnimationHelper.Key_ListToDetail,       // OR Check this key
+           AnimationHelper.Key_ArtistToSong
+            );
     }
 }

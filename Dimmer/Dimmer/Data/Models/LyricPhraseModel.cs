@@ -30,9 +30,6 @@ public class LyristApiResponse
 
 public partial class LyricPhraseModel : ObservableObject
 {
-    private LyricSynchronizer? _sync;
-    private LyricPhraseModel? _last;
-
     [ObservableProperty]
     public partial int TimeStampMs { get; set; } = 0;
     [ObservableProperty]

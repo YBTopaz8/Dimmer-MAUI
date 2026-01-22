@@ -32,7 +32,8 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
     {
         if (_authService.CurrentUserValue == null)
         {
-            _logger.LogWarning("Cannot register device, user is not logged in.");
+            _logger.LogError("Cannot register device, user is not logged in.");
+            throw new InvalidOperationException("No user authenticated");
             return;
         }
 
@@ -306,13 +307,13 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
 
             var metaData = await ParseClient.Instance.CallCloudCodeFunctionAsync<IDictionary<string, object>>("getLatestBackupUrl", null);
 
-            if (!metaData.ContainsKey("url"))
+            if (!metaData.TryGetValue("url", out object? value))
             {
                 _logger.LogWarning("No backup URL returned.");
                 return ;
             }
 
-            string fileUrl = metaData["url"].ToString();
+            string? fileUrl = value.ToString();
 
             // 2. Download the JSON File
             using HttpClient client = new HttpClient();

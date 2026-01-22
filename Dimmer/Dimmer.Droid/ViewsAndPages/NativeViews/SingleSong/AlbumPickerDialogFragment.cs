@@ -1,6 +1,5 @@
 ﻿using Google.Android.Material.Dialog;
 
-using DialogFragment = AndroidX.Fragment.App.DialogFragment;
 
 namespace Dimmer.ViewsAndPages.NativeViews.SingleSong;
 
@@ -24,6 +23,7 @@ internal class AlbumPickerDialogFragment:DialogFragment
             .SetDuration(300);
         EnterTransition = enterTransition;
         ExitTransition = exitTransition;
+        
         //SharedElementEnterTransition = new AndroidX.Transitions.ChangeBounds().SetDuration(300);
         //SharedElementReturnTransition = new AndroidX.Transitions.ChangeBounds().SetDuration(300);
     }

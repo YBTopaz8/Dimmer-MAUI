@@ -128,11 +128,11 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
         {
             StatusMessage = "Registering device...";
             await _sessionManager.RegisterCurrentDeviceAsync();
-            StatusMessage = "Device registered successfully!";
         }
         catch (Exception ex)
         {
-            StatusMessage = "Error registering device.";
+            StatusMessage = "Error registering device. "+ex.Message;
+            
             _logger.LogError(ex, "Failed to register device for session transfer.");
         }
     }

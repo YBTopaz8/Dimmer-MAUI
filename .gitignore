@@ -51,3 +51,6 @@
 /DimmerTQLUnitTest/bin/Release/net9.0
 /Dimmer/Dimmer/appsettings.json
 /Dimmer/Dimmer/Utils/ApiKeys.cs
+/SmoothBtmBarDroid/bin/Debug/net10.0-android
+/SmoothBtmBarDroid/obj
+/SmoothBtmBarDroid/bin/Debug/net9.0-android

@@ -27,7 +27,7 @@ public class ListeningReportGenerator
     IEnumerable<DimmerPlayEventView> _allScrobbles { get; }
   
     public ListeningReportGenerator(
-        List<SongModel> allSongs,
+        List<SongModel>? allSongs,
         IEnumerable<DimmerPlayEventView> allScrobbles, ILogger logger, IRealmFactory realmFactory)
     {
         _allSongs = allSongs ?? new List<SongModel>();

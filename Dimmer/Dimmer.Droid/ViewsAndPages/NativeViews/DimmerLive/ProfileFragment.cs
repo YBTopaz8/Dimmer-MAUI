@@ -3,8 +3,7 @@
 using Bumptech.Glide;
 
 using Dimmer.DimmerLive.Models;
-using Dimmer.WinUI.UiUtils;
-
+using Dimmer.UiUtils;
 using Google.Android.Material.Dialog;
 
 namespace Dimmer.ViewsAndPages.NativeViews.DimmerLive;

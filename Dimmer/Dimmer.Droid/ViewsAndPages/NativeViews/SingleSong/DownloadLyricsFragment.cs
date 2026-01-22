@@ -1,6 +1,11 @@
-﻿using Dimmer.Data.Models.LyricsModels;
-
+﻿using AndroidX.Lifecycle;
+using Dimmer.Data.Models.LyricsModels;
+using Dimmer.UiUtils;
+using DynamicData.Binding;
+using Google.Android.Material.Dialog;
+using Google.Android.Material.ProgressIndicator;
 using ProgressBar = Android.Widget.ProgressBar;
+using ScrollView = Android.Widget.ScrollView;
 
 namespace Dimmer.ViewsAndPages.NativeViews.SingleSong;
 
@@ -8,6 +13,10 @@ public partial class DownloadLyricsFragment : Fragment
 {
     private BaseViewModelAnd MyViewModel;
     private TextInputEditText titleInput, artistInput, albumInput;
+
+    public Button searchBtn { get; private set; }
+    public bool isSearchClicked { get; private set; }
+
     private RecyclerView resultsRecycler;
     private ProgressBar loadingBar;
 
@@ -16,7 +25,28 @@ public partial class DownloadLyricsFragment : Fragment
         MyViewModel = vm;
     }
 
-
+    public override void OnResume()
+    {
+        base.OnResume();
+       
+               MyViewModel.WhenPropertyChange(nameof(MyViewModel.HasLyricsSearchResults), x=>MyViewModel.LyricsSearchResults)
+                   .ObserveOn(RxSchedulers.UI)
+                   .Subscribe(obsColLyrics =>
+                   {
+                       if (obsColLyrics is null || obsColLyrics.Count < 1)
+                       {
+                           loadingBar.Visibility = ViewStates.Gone;
+                           Toast.MakeText(this.Context, "No Lyrics found", ToastLength.Short);
+                           isSearchClicked = false;
+                           searchBtn.Enabled = true;
+                           return;
+                       }
+                       resultsRecycler.SetAdapter(new LyricsAdapter(MyViewModel.LyricsSearchResults, OnLyricsSelected));
+                       loadingBar.Visibility = ViewStates.Gone;
+                       isSearchClicked = false;
+                       searchBtn.Enabled = true;
+                   });
+    }
     public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         var ctx = Context;
@@ -29,70 +59,198 @@ public partial class DownloadLyricsFragment : Fragment
 
         // 1. Search Inputs
         titleInput = new TextInputEditText(ctx) { Hint = "Track Name", Text = MyViewModel.SelectedSong?.Title };
+        titleInput.SetTextColor(UiBuilder.IsDark(ctx) ? Color.White : Color.Black);
+
         artistInput = new TextInputEditText(ctx) { Hint = "Artist", Text = MyViewModel.SelectedSong?.ArtistName };
+        artistInput.SetTextColor(UiBuilder.IsDark(ctx) ? Color.White : Color.Black);
+
         albumInput = new TextInputEditText(ctx) { Hint = "Album", Text = MyViewModel.SelectedSong?.AlbumName };
+        albumInput.SetTextColor(UiBuilder.IsDark(ctx) ? Color.White : Color.Black);
 
-        var searchBtn = new MaterialButton(ctx) { Text = "Search Lyrics" };
+        searchBtn = new MaterialButton(ctx) { Text = "Search Lyrics" };
+
         searchBtn.Click += SearchBtn_Click;
-
+        searchBtn.SetTextColor(Color.White);
         root.AddView(titleInput);
         root.AddView(artistInput);
         root.AddView(albumInput);
         root.AddView(searchBtn);
 
         // 2. Loading Indicator
-        loadingBar = new ProgressBar(ctx) { Indeterminate = true, Visibility = ViewStates.Gone };
+        loadingBar = new CircularProgressIndicator(ctx) { Indeterminate = true, Visibility = ViewStates.Gone };
         root.AddView(loadingBar);
 
         // 3. Results List
         resultsRecycler = new RecyclerView(ctx);
         resultsRecycler.SetLayoutManager(new LinearLayoutManager(ctx));
+        
         resultsRecycler.LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent);
         root.AddView(resultsRecycler);
 
         return root;
     }
 
-    private async void SearchBtn_Click(object sender, EventArgs e)
+
+    private async void SearchBtn_Click(object? sender, EventArgs e)
     {
+        isSearchClicked = true;
+        searchBtn.Enabled = false;
         loadingBar.Visibility = ViewStates.Visible;
 
-        // Mocking the Service Call - Replace with your actual Retrofit/HttpClient call
-        // var results = await MyViewModel.LyricsService.GetLyrics(titleInput.Text, artistInput.Text, albumInput.Text);
+        await MyViewModel.SearchLyricsCommand.ExecuteAsync(null);
 
-        await System.Threading.Tasks.Task.Delay(1000); // Fake delay
-
-        // Dummy Data for demonstration
-        var results = new List<LrcLibLyrics>
-        {
-            new LrcLibLyrics { TrackName = titleInput.Text, ArtistName = artistInput.Text, SyncedLyrics = "[00:10] Hello world", PlainLyrics = "Hello world" },
-            new LrcLibLyrics { TrackName = titleInput.Text + " (Remix)", ArtistName = artistInput.Text, PlainLyrics = "Lyrics here..." }
-        };
-
-        resultsRecycler.SetAdapter(new LyricsAdapter(results, OnLyricsSelected));
-        loadingBar.Visibility = ViewStates.Gone;
     }
 
-    private async void OnLyricsSelected(LrcLibLyrics lyrics)
+    private void OnLyricsSelected(LrcLibLyrics lyrics)
     {
-        // Save logic here
+        // Show preview dialog before applying
+        ShowLyricsPreviewDialog(lyrics);
+    }
+
+    private void ShowLyricsPreviewDialog(LrcLibLyrics lyrics)
+    {
+        if (Context == null) return;
+
+        var dialog = new MaterialAlertDialogBuilder(Context);
+        
+        // Set title
+        dialog.SetTitle($"{lyrics.TrackName} - {lyrics.ArtistName}");
+
+        // Create dialog content
+        var scrollView = new ScrollView(Context);
+        var layout = new LinearLayout(Context)
+        {
+            Orientation = Orientation.Vertical
+        };
+        layout.SetPadding(40, 20, 40, 20);
+
+        // Metadata section
+        var metadataLayout = new LinearLayout(Context) { Orientation = Orientation.Vertical };
+        metadataLayout.SetPadding(0, 0, 0, 20);
+
+        bool hasSyncedLyrics = !string.IsNullOrWhiteSpace(lyrics.SyncedLyrics);
+        bool hasPlainLyrics = !string.IsNullOrWhiteSpace(lyrics.PlainLyrics);
+
+        var typeText = new TextView(Context)
+        {
+            Text = $"Type: {(hasSyncedLyrics ? "Synced" : "Plain")}",
+            TextSize = 12
+        };
+        typeText.SetTextColor(Android.Graphics.Color.Gray);
+        metadataLayout.AddView(typeText);
+
+        var durationText = new TextView(Context)
+        {
+            Text = $"Duration: {TimeSpan.FromSeconds(lyrics.Duration):mm\\:ss}",
+            TextSize = 12
+        };
+        durationText.SetTextColor(Android.Graphics.Color.Gray);
+        metadataLayout.AddView(durationText);
+
+        if (lyrics.Instrumental)
+        {
+            var instrumentalText = new TextView(Context)
+            {
+                Text = "⚠ Marked as Instrumental",
+                TextSize = 12
+            };
+            instrumentalText.SetTextColor(Android.Graphics.Color.Orange);
+            metadataLayout.AddView(instrumentalText);
+        }
+
+        layout.AddView(metadataLayout);
+
+        // Lyrics content - show synced lyrics first if available, otherwise plain
+        var lyricsText = new TextView(Context)
+        {
+            Text = hasSyncedLyrics ? lyrics.SyncedLyrics : (hasPlainLyrics ? lyrics.PlainLyrics : "No lyrics available"),
+            TextSize = 14
+        };
+        lyricsText.SetHeight(AppUtil.DpToPx(150));
+        lyricsText.SetTextIsSelectable(true);
+        if (hasSyncedLyrics)
+        {
+            lyricsText.SetTypeface(Android.Graphics.Typeface.Monospace, Android.Graphics.TypefaceStyle.Normal);
+        }
+        layout.AddView(lyricsText);
+
+        scrollView.AddView(layout);
+        dialog.SetView(scrollView);
+
+        // Apply button
+        dialog.SetPositiveButton("Apply", async (sender, args) =>
+        {
+            await ApplyLyrics(lyrics);
+        });
+
+        // Edit button
+        dialog.SetNeutralButton("Edit", (sender, args) =>
+        {
+            LoadLyricsForEditing(lyrics);
+        });
+
+        // Timestamp button (only for plain lyrics)
+        if (hasPlainLyrics && !hasSyncedLyrics)
+        {
+            dialog.SetNegativeButton("Timestamp", (sender, args) =>
+            {
+                StartTimestampingSession(lyrics);
+            });
+        }
+        else
+        {
+            dialog.SetNegativeButton("Close", (sender, args) => { });
+        }
+
+        dialog.Show();
+    }
+
+    private async System.Threading.Tasks.Task ApplyLyrics(LrcLibLyrics lyrics)
+    {
         if (MyViewModel.SelectedSong != null)
         {
-            MyViewModel.SelectedSong.UnSyncLyrics = lyrics.SyncedLyrics ?? lyrics.PlainLyrics;
-
+            // Use synced lyrics if available, otherwise fall back to plain lyrics
+            MyViewModel.SelectedSong.UnSyncLyrics = lyrics.SyncedLyrics ?? lyrics.PlainLyrics ?? string.Empty;
             await MyViewModel.ApplyNewSongEdits(MyViewModel.SelectedSong);
-            Toast.MakeText(Context, "Lyrics Saved!", ToastLength.Short)?.Show();
+            Toast.MakeText(Context, "Lyrics Applied!", ToastLength.Short)?.Show();
             ParentFragmentManager.PopBackStack();
+        }
+    }
+
+    private void LoadLyricsForEditing(LrcLibLyrics lyrics)
+    {
+        // Load lyrics into editor using ViewModel command
+        // Check if we have lyrics to edit (either synced or plain)
+        bool hasLyricsToEdit = !string.IsNullOrWhiteSpace(lyrics.SyncedLyrics) || !string.IsNullOrWhiteSpace(lyrics.PlainLyrics);
+        
+        if (hasLyricsToEdit && MyViewModel?.LoadLyricsForEditingCommand != null)
+        {
+            //MyViewModel.LoadLyricsForEditingCommand.Execute(lyrics);
+            Toast.MakeText(Context, "Lyrics loaded for editing", ToastLength.Short)?.Show();
+        }
+    }
+
+    private void StartTimestampingSession(LrcLibLyrics lyrics)
+    {
+        // Start timestamping session with plain lyrics (preferred) or synced lyrics as fallback
+        string lyricsToTimestamp = !string.IsNullOrWhiteSpace(lyrics.PlainLyrics) 
+            ? lyrics.PlainLyrics 
+            : lyrics.SyncedLyrics ?? string.Empty;
+            
+        if (!string.IsNullOrWhiteSpace(lyricsToTimestamp) && MyViewModel?.StartLyricsEditingSessionCommand != null)
+        {
+            MyViewModel.StartLyricsEditingSessionCommand.Execute(lyricsToTimestamp);
+            Toast.MakeText(Context, "Timestamping session started", ToastLength.Short)?.Show();
         }
     }
 
     // --- Inner Adapter Class ---
     private class LyricsAdapter : RecyclerView.Adapter
     {
-        private List<LrcLibLyrics> items;
+        private ObservableCollection<LrcLibLyrics> items;
         private Action<LrcLibLyrics> onClick;
 
-        public LyricsAdapter(List<LrcLibLyrics> items, Action<LrcLibLyrics> onClick)
+        public LyricsAdapter(ObservableCollection<LrcLibLyrics> items, Action<LrcLibLyrics> onClick)
         {
             this.items = items;
             this.onClick = onClick;

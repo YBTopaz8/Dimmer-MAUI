@@ -5,8 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using AndroidX.RecyclerView.Widget;
-
-using Dimmer.WinUI.UiUtils;
+using Dimmer.UiUtils;
 namespace Dimmer.ViewsAndPages.NativeViews.DimsSection;
 
 

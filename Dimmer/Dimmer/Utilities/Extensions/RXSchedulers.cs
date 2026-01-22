@@ -13,8 +13,7 @@ public static class RxSchedulers
 
 public static class SchedulerExtensions
 {
-    // This enables: RxSchedulers.UI.Schedule(() => { ... });
-    public static IDisposable ScheduleToUI(this IScheduler scheduler, Action action)
+    public static IDisposable ScheduleTo(this IScheduler scheduler, Action action)
     {
         // We pass the Action as the "State" to the core Schedule method
         return scheduler.Schedule(action, (sc, state) =>

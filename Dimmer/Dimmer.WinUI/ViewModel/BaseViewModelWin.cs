@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows.Controls.Primitives;
 
 using CommunityToolkit.Maui.Core.Extensions;
+using FolderPicker = CommunityToolkit.Maui.Storage.FolderPicker;
 
 //using TableView = WinUI.TableView.TableView;
 
@@ -425,7 +426,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         if (CurrentPlaySongDominantColor is null)
             return;
         var c = CurrentPlaySongDominantColor;
-        DominantBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(
+        WinUIDominantBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(
         (byte)(c.Alpha * 255),
         (byte)(c.Red * 255),
         (byte)(c.Green * 255),
@@ -445,15 +446,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
             _logger.LogInformation($"Song changed and highlighted in ViewModel B: {value.Title}");
 
-            if (PlaybackQueueCV is not null && PlaybackQueueCV.IsLoaded)
-            {
-                RxSchedulers.UI.ScheduleToUI(() =>
-                {
-
-                    PlaybackQueueCV?.ScrollTo(value, position: ScrollToPosition.Center, animate: true);
-
-                });
-            }
+            await PlatUtils.ShowNewSongNotification(value); 
         }
     }
 
@@ -665,7 +658,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     [ObservableProperty]
     public partial ObservableCollection<WindowEntry> AllWindows { get; set; }
     [ObservableProperty]
-    public partial SolidColorBrush DominantBrush { get; set; }
+    public partial SolidColorBrush WinUIDominantBrush { get; set; }
 
     [RelayCommand]
     public void RefreshWindows()
@@ -689,57 +682,73 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         DimmerMultiWindowCoordinator.ShowControlPanel();
     }
 
-    public void QuickViewArtist(string artistName)
+    public void QuickViewArtist(SongModelView song, string artistName)
     {
-        Debug.WriteLine($"Quick view for artist: {artistName}");
-        // TODO: open artist popup or small window
+        SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(artistName));
     }
 
-    public void PlaySongsByArtistInCurrentAlbum(string artistName)
+    public void PlaySongsByArtistInCurrentAlbum(SongModelView song, string artistName)
     {
         Debug.WriteLine($"Play songs by {artistName} in current album.");
         // TODO: filter and start playback from current album list
     }
 
-    public void PlayAllSongsByArtist(string artistName)
+    public void PlayAllSongsByArtist(SongModelView song, string artistName)
     {
         Debug.WriteLine($"Play all songs by {artistName}.");
         // TODO: query Realm for all songs where Artist == artistName
     }
 
-    public void QueueAllSongsByArtist(string artistName)
+    public void QueueAllSongsByArtist(SongModelView song, string artistName)
     {
         Debug.WriteLine($"Queue all songs by {artistName}.");
         // TODO: add matching songs to NowPlayingQueue
     }
 
-    public void NavigateToArtistPage(string artistName)
+    public void NavigateToArtistPage(SongModelView song, string artistName)
     {
+        SelectedArtist = song.ArtistsInDB(RealmFactory)?.FirstOrDefault(x=>x?.Name==artistName);
         Debug.WriteLine($"Navigating to artist page: {artistName}");
-        // TODO: open a WinUI page or a MAUI subview with artist info
+        if(SelectedArtist is not null)
+            NavigateToAnyPageOfGivenType(typeof(ArtistPage));
     }
 
-    public bool IsArtistFavorite(string artistName)
+
+    public bool IsArtistFavorite(SongModelView song, string artistName)
     {
         Debug.WriteLine($"Checking favorite status for {artistName}");
         // TODO: query Realm for favorite
         return false;
     }
+    public void QuickViewArtistSortByAlbum()
+    {
+        throw new NotImplementedException();
+    }
 
-    public void ToggleFavoriteArtist(string artistName, bool isFavorite)
+    public void QuickViewArtistSortByGenres()
+    {
+        throw new NotImplementedException();
+    }
+    public void ToggleFavoriteArtist(SongModelView song, string artistName, bool isFavorite)
     {
         Debug.WriteLine($"Set favorite={isFavorite} for {artistName}");
         // TODO: update Realm favorites collection
     }
 
-    public int GetArtistPlayCount(string artistName)
+    public int GetArtistPlayCount(SongModelView song, string artistName)
     {
+        
+        var realm = RealmFactory.GetRealmInstance();
+        var artistID = song.Artist?.Id;
+        var allSongsByArtist = realm.Find<ArtistModel>(artistID)?.Songs;
+        var totalCompletedCount = allSongsByArtist?.AsEnumerable().Sum(x=>x.PlayCompletedCount);
+
         Debug.WriteLine($"Fetching play count for {artistName}");
-        // TODO: return number of times artist's songs have been played
-        return 0;
+
+        return totalCompletedCount is null ? 0 : (int)totalCompletedCount ;
     }
 
-    public bool IsArtistFollowed(string artistName)
+    public bool IsArtistFollowed(SongModelView song, string artistName)
     {
         Debug.WriteLine($"Checking if {artistName} is followed");
         // TODO: check Realm or local list
@@ -782,7 +791,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
             .Count();
 
 
-        RxSchedulers.UI.ScheduleToUI(() =>
+        RxSchedulers.UI.ScheduleTo(() =>
         {
             SelectedArtist = artist;
         });
@@ -1126,6 +1135,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
                     CloseButtonText = "OK",
                     XamlRoot = MainWindow?.ContentFrame.XamlRoot
                 };
+                IsLastFMAuthButtonClickable = true;
                 await cancelledDialog.ShowAsync();
             }
         }
@@ -1189,7 +1199,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
                 var addedNote = (contentDialog.Content as TextBox)?.Text;
                 if (addedNote is null) return;
 
-                await SaveUserNoteToSong(SelectedSong, addedNote);
+                await SaveUserNoteToSong(SelectedSong!, addedNote);
 
                 break;
             case ContentDialogResult.Secondary:
@@ -1215,6 +1225,32 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     }
 
+    [RelayCommand]
+    public async Task LoadFolderToScanForBackUpFiles()
+    {
+        try
+        {
+            CancellationTokenSource cts= new();
+            var res = await FolderPicker.Default.PickAsync(cts.Token);
+
+            if (res is not null && res.Folder is not null)
+            {
+                string? selectedFolderPath = res!.Folder!.Path;
+
+                if (!string.IsNullOrEmpty(selectedFolderPath))
+                {
+                    await RestoreAppDataAsync(selectedFolderPath);
+                    return;
+                }
+
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
+
+    }
     internal async Task ToggleFavoriteRatingToArtist(ArtistModelView artist)
     {
         var realm = RealmFactory.GetRealmInstance();
@@ -1275,4 +1311,6 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         if(SelectedSong is null) return;
         SelectedSong.PlayEvents.Remove(selectedPlayEvent);
     }
+
+   
 }

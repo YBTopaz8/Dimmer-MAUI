@@ -85,24 +85,29 @@ public class MainApplication : Application, Application.IActivityLifecycleCallba
     }
 
 
+    private static readonly ExceptionFilterPolicy _filterPolicy = new ExceptionFilterPolicy();
 
     private static void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
     {
 
         try
         {
-
+            // Apply exception filtering to reduce noise from expected exceptions
+            if (!_filterPolicy.ShouldLog(e.Exception))
+            {
+                return; // Skip logging for filtered exceptions
+            }
 
             string errorDetails = $"********** UNHANDLED EXCEPTION! **********\n" +
                                      $"Exception Type: {e.Exception.GetType()}\n" +
-                                     $"ChatMessage: {e.Exception.Message}\n" +
+                                     $"Message: {e.Exception.Message}\n" +
                                      $"Source: {e.Exception.Source}\n" +
                                      $"Stack Trace: {e.Exception.StackTrace}\n";
 
             if (e.Exception.InnerException != null)
             {
                 errorDetails += "***** Inner Exception *****\n" +
-                                $"ChatMessage: {e.Exception.InnerException.Message}\n" +
+                                $"Message: {e.Exception.InnerException.Message}\n" +
                                 $"Stack Trace: {e.Exception.InnerException.StackTrace}\n";
             }
 
@@ -118,24 +123,36 @@ public class MainApplication : Application, Application.IActivityLifecycleCallba
         }
     }
     private static readonly object _logLock = new();
+    private const string LogDirectoryName = "DimmerCrashLogs";
+    private const string LogFileName = "Droidcrashlog_{0:yyyy-MM-dd}.txt";
+
+    /// <summary>
+    /// Gets the log file path, creating the directory if necessary.
+    /// </summary>
+    private static string GetLogFilePath()
+    {
+        string directoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), LogDirectoryName);
+        
+        if (!Directory.Exists(directoryPath))
+        {
+            Directory.CreateDirectory(directoryPath);
+        }
+        
+        string fileName = string.Format(LogFileName, DateTime.Now);
+        return Path.Combine(directoryPath, fileName);
+    }
 
     public static void LogException(Exception ex)
     {
+        // Apply exception filtering to avoid logging noisy exceptions
+        if (!_filterPolicy.ShouldLog(ex))
+        {
+            return; // Ignore this exception based on our policy
+        }
+
         try
         {
-            // Define the directory path.
-            string directoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DimmerCrashLogs");
-
-            // Ensure the directory exists.
-            if (!Directory.Exists(directoryPath))
-            {
-                Directory.CreateDirectory(directoryPath);
-            }
-
-            // Use a date-specific file name.
-            string fileName = $"Droidcrashlog_{DateTime.Now:yyyy-MM-dd}.txt";
-            string filePath = Path.Combine(directoryPath, fileName);
-
+            string filePath = GetLogFilePath();
             string logContent = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}]\nMsg: {ex.Message}\nStackTrace: {ex.StackTrace}\n\n";
 
             // Retry mechanism for file writing.
@@ -172,10 +189,72 @@ public class MainApplication : Application, Application.IActivityLifecycleCallba
             Debug.WriteLine($"Failed to log exception: {loggingEx}");
         }
     }
-
+    
     internal static void HandleIntent(Intent? intent)
     {
         Debug.WriteLine($"HandleIntent invoked with Intent: {intent}"); // Add logging!
+    }
+
+    /// <summary>
+    /// Logs memory-related events to the crash log file.
+    /// Thread-safe: uses the same lock as LogException to prevent concurrent file access.
+    /// </summary>
+    private static void LogMemoryEvent(string message)
+    {
+        try
+        {
+            string filePath = GetLogFilePath();
+            string logContent = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}\n\n";
+            
+            lock (_logLock)
+            {
+                File.AppendAllText(filePath, logContent);
+            }
+        }
+        catch (Exception logEx)
+        {
+            Debug.WriteLine($"Failed to log memory event: {logEx.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Performs aggressive garbage collection to free up memory.
+    /// This pattern (GC twice with WaitForPendingFinalizers in between) is necessary
+    /// in memory-critical situations to ensure objects with finalizers are properly collected:
+    /// 1. First GC.Collect() - collects regular objects and queues finalizers
+    /// 2. WaitForPendingFinalizers() - runs finalizers, which may free more references
+    /// 3. Second GC.Collect() - collects objects that became eligible after finalizers ran
+    /// </summary>
+    private static void PerformAggressiveGarbageCollection()
+    {
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+    }
+
+    /// <summary>
+    /// Called when the system is running low on memory, and actively running processes should trim their memory usage.
+    /// </summary>
+    public override void OnTrimMemory(TrimMemory level)
+    {
+        base.OnTrimMemory(level);
+        
+        Debug.WriteLine($"[MEMORY PRESSURE] OnTrimMemory called with level: {level}");
+        LogMemoryEvent($"MEMORY PRESSURE: {level}");
+        PerformAggressiveGarbageCollection();
+    }
+
+    /// <summary>
+    /// Called when the overall system is running low on memory.
+    /// Legacy callback for older Android versions.
+    /// </summary>
+    public override void OnLowMemory()
+    {
+        base.OnLowMemory();
+        
+        Debug.WriteLine("[CRITICAL MEMORY] OnLowMemory called - system is critically low on memory");
+        LogMemoryEvent("CRITICAL MEMORY PRESSURE - OnLowMemory called");
+        PerformAggressiveGarbageCollection();
     }
 
     public void OnActivityCreated(Activity activity, Bundle? savedInstanceState)
