@@ -680,7 +680,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             $"{DateTime.Now}: Finished InitializeAllVMCoreComponentsAsync in {duration.TotalSeconds} seconds.");
         
         // Initialize background caching with proper error handling and cancellation support
+        // Dispose existing token if it exists (e.g., if this method is called multiple times)
+        _backgroundCachingCts?.Cancel();
+        _backgroundCachingCts?.Dispose();
         _backgroundCachingCts = new CancellationTokenSource();
+        
         _ = Task.Run(async () =>
         {
             try
