@@ -12,6 +12,8 @@ using Google.Android.Material.Button;
 using Google.Android.Material.Card;
 
 using System.Collections.Specialized;
+using CheckBox = Android.Widget.CheckBox;
+using ScrollView = Android.Widget.ScrollView;
 
 namespace Dimmer.ViewsAndPages.NativeViews.SingleSong;
 
@@ -212,7 +214,7 @@ public class LyricsManualSyncFragment : Fragment
             (s, e) => DeleteSelected(),
             false,
             40,
-            Resource.Drawable.delete_icon);
+            Android.Resource.Drawable.IcDelete);
         _deleteSelectedButton.Text = "Delete";
 
         _clearSelectionButton = UiBuilder.CreateMaterialButton(
@@ -266,7 +268,7 @@ public class LyricsManualSyncFragment : Fragment
             (s, e) => SyncNextLine(),
             true,
             60,
-            Resource.Drawable.timestamp_icon);
+            Resource.Drawable.time);
         _syncButton.Text = "SYNC NEXT LINE (Spacebar)";
         _syncButton.LayoutParameters = new LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MatchParent,
@@ -446,7 +448,7 @@ public class LyricsManualSyncAdapter : RecyclerView.Adapter
 
         // Delete button
         var deleteBtn = new MaterialButton(parent.Context, null, Resource.Style.Widget_Material3_Button_IconButton);
-        deleteBtn.SetIconResource(Resource.Drawable.delete_icon);
+        deleteBtn.SetIconResource(Android.Resource.Drawable.IcDelete);
 
         layout.AddView(checkBox);
         layout.AddView(timestamp);

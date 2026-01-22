@@ -18,6 +18,7 @@ using Windows.Foundation;
 using Windows.Foundation.Collections;
 
 using NavigationEventArgs = Microsoft.UI.Xaml.Navigation.NavigationEventArgs;
+using SelectionChangedEventArgs = Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -106,11 +107,11 @@ public sealed partial class LyricsManualSyncPage : Page
         // Show/hide batch actions toolbar based on selection
         if (LyricsListView.SelectedItems.Count > 0)
         {
-            BatchActionsToolbar.Visibility = Visibility.Visible;
+            BatchActionsToolbar.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
         }
         else
         {
-            BatchActionsToolbar.Visibility = Visibility.Collapsed;
+            BatchActionsToolbar.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
         }
     }
 
