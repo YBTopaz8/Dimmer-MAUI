@@ -379,7 +379,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         // subscribe to realm's directChanges for certain models to keep in sync
 
-        using (var checkRealm = RealmFactory.GetRealmInstance())
+        using (Realm? checkRealm = RealmFactory.GetRealmInstance())
         {
             IsLibraryEmpty = !checkRealm.All<SongModel>().Any();
             ShowWelcomeScreen = IsLibraryEmpty;

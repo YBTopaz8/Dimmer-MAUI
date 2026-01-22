@@ -84,8 +84,8 @@ public sealed partial class NowPlayingPage : Page
         var nativeElement = (Microsoft.UI.Xaml.UIElement)sender;
         
             // --- Source data & guards ---
-            var song = MyViewModel?.CurrentPlayingSongView;
-            var otherArtistsRaw = song?.OtherArtistsName ?? string.Empty;
+            SongModelView song = MyViewModel?.CurrentPlayingSongView!;
+            var otherArtistsRaw = song.OtherArtistsName ?? string.Empty;
 
             // Parse artists by multiple dividers
             var dividers = new[] { ',', ';', ':', '|' };
@@ -99,7 +99,7 @@ public sealed partial class NowPlayingPage : Page
             if (namesList.Length == 0)
             {
                 // Fallback: allow acting on primary artist if you have it
-                if (!string.IsNullOrWhiteSpace(song?.ArtistName))
+                if (!string.IsNullOrWhiteSpace(song.ArtistName))
                     namesList = new[] { song.ArtistName!.Trim() };
                 else
                     return; // nothing to show

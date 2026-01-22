@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Dimmer.WinUI.Views.WinuiPages.DimmerLive;
+using Parse;
 
 namespace Dimmer.WinUI.ViewModel.DimmerLiveWin;
 
@@ -23,7 +24,10 @@ public partial class LoginViewModelWin : LoginViewModel
     {
         if (Connectivity.Current.NetworkAccess == NetworkAccess.Internet)
         {
-            
+            if(ParseClient.Instance is null)
+            {
+                ServiceRegistration.RegisterParseAndItsClasses();   
+            }
             LoginCurrentStatus = IsAuthenticated ? "Logged In 😊" : "Logged Out";
             if (!IsAuthenticated)
             {

@@ -158,11 +158,11 @@ public static class ServiceRegistration
 
         services.AddSingleton<ChatViewModel>(); // You'll create this next
 
-        RegisterPartAndClasses();
+        RegisterParseAndItsClasses();
         return services;
     }
 
-    private static void RegisterPartAndClasses()
+    public static void RegisterParseAndItsClasses()
     {
         if (Connectivity.NetworkAccess == NetworkAccess.Internet && ParseSetup.InitializeParseClient())
         {

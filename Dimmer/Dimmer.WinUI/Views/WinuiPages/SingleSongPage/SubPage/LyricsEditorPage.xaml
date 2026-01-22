@@ -165,7 +165,8 @@
             </StackPanel>
         </StackPanel>
 
-        <Grid Grid.Row="2">
+        <ScrollViewer Grid.Row="2" >
+            <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
@@ -267,7 +268,6 @@
                     x:Name="GoogleItBtn"
                     Content="Google it?" />
             </StackPanel>
-            <ScrollViewer Grid.Row="1">
                 <ItemsRepeater x:Name="FetchedLyricsIR" ItemsSource="{x:Bind MyViewModel.LyricsSearchResults}">
                     <ItemsRepeater.Layout>
                         <StackLayout Spacing="10" />
@@ -362,7 +362,7 @@
                         </DataTemplate>
                     </ItemsRepeater.ItemTemplate>
                 </ItemsRepeater>
-            </ScrollViewer>
+          
 
             <ScrollViewer Grid.Row="2">
                 <Grid>
@@ -405,6 +405,6 @@
                 </Grid>
             </ScrollViewer>
         </Grid>
-
+        </ScrollViewer>
     </Grid>
 </Page>
