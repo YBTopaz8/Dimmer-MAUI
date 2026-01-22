@@ -45,19 +45,22 @@
 
 
     </ContentPage.Resources>
+    <Grid >
+        <Image
+       Grid.Row="0"
+       Grid.RowSpan="3"
+       Aspect="AspectFit"
+       BackgroundColor="Transparent"
+       HorizontalOptions="Center"
+       Opacity="0.10"
+       Source="{Binding CurrentPlayingSongView.CoverImagePath, Converter={converters:PathToImageConverter}}"
+       ToolTipProperties.Text="Click to view song details"
+       VerticalOptions="Center" />
+   
     <ScrollView x:Name="MainScrollView" VerticalScrollBarVisibility="Default">
 
         <Grid RowDefinitions="*,*,auto,auto">
-            <Image
-                Grid.Row="0"
-                Grid.RowSpan="3"
-                Aspect="AspectFit"
-                BackgroundColor="Transparent"
-                HorizontalOptions="Center"
-                Opacity="0.20"
-                Source="{Binding CurrentPlayingSongView.CoverImagePath, Converter={converters:PathToImageConverter}}"
-                ToolTipProperties.Text="Click to view song details"
-                VerticalOptions="Center" />
+         
             <VerticalStackLayout
                 Grid.Row="0"
                 Margin="10,5"
@@ -66,50 +69,74 @@
                 <Label IsVisible="{Binding IsAppScanning}" Text="{Binding LatestAppLog.Log}" />
                 <HorizontalStackLayout HorizontalOptions="End" Spacing="10">
 
-                    <Button
+                   
+                    
+                    <VerticalStackLayout WidthRequest="60"
+                     Spacing="5">
+                        <Button
                         BackgroundColor="Transparent"
                         BorderWidth="1"
-                        Clicked="ViewFullStatsClicked"
-                        ImageSource="chart.png"
+                            x:Name="ViewAllSongs"
+                        Clicked="ViewAllSongs_Clicked"
+                        ImageSource="song.png"
                         WidthRequest="60" />
-                    <Button
-                        BackgroundColor="Transparent"
-                        BorderWidth="1"
-                        Clicked="ViewNPQ_Clicked"
-                        ImageSource="playlistminimalistic3.png"
-                        WidthRequest="60" />
-                    <Button
+                    <Label Text="All Songs" FontSize="10"
+                               HorizontalOptions="Center"/>
+            </VerticalStackLayout>
+                    <VerticalStackLayout WidthRequest="60"
+                      Spacing="5">
+                        <Button
+     BackgroundColor="Transparent"
+     BorderWidth="1"
+     Clicked="ViewFullStatsClicked"
+     ImageSource="chart.png"
+      />
+
+                        <Label Text="Dimmer stats" FontSize="10"
+            HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
+                    <VerticalStackLayout WidthRequest="60"
+                     Spacing="5">
+                        
+                        <Button
                         x:Name="ViewDimmerSection"
                         BackgroundColor="Transparent"
                         BorderWidth="1"
                         Clicked="ViewDimmerSection_Clicked"
                         ImageSource="playcircle.png"
                         WidthRequest="60" />
-                    <Button
+
+            <Label Text="Dimmer Live" FontSize="10"
+                               HorizontalOptions="Center"/>
+            </VerticalStackLayout>
+                    
+                    <VerticalStackLayout WidthRequest="60"
+                     Spacing="5">
+                        
+                        <Button
                         x:Name="ViewLastFM"
                         BackgroundColor="Transparent"
                         BorderWidth="1"
                         Clicked="ViewLastFM_Clicked"
                         ImageSource="lastfm.png"
                         ToolTipProperties.Text="LastFM Page"
-                        WidthRequest="60">
+                        WidthRequest="60"
+                        >
                         <Button.Behaviors>
                             <toolkit:IconTintColorBehavior TintColor="#BE0606" />
                         </Button.Behaviors>
+                        
                     </Button>
-                    <Button
-                        x:Name="SettingsNavChip"
-                        BackgroundColor="Transparent"
-                        BorderWidth="1"
-                        Clicked="SettingsNavChips_ChipClicked"
-                        ImageSource="settings.png"
-                        WidthRequest="60">
 
-                        <Button.Behaviors>
-                            <toolkit:IconTintColorBehavior TintColor="DarkSlateBlue" />
-                        </Button.Behaviors>
-                    </Button>
-                    <Border
+            <Label Text="Last FM" FontSize="10"
+                               HorizontalOptions="Center"/>
+            </VerticalStackLayout>
+
+                 
+
+                    <VerticalStackLayout WidthRequest="60"
+                     Spacing="5">
+                        <Border
                         Padding="5"
                         Stroke="Gray"
                         StrokeShape="RoundRectangle 15"
@@ -117,12 +144,32 @@
 
                         <ImageButton
                             Clicked="UserLoginClicked"
-                            HeightRequest="50"
                             Loaded="UserLoginClicked_Loaded"
                             Source="user.png"
-                            WidthRequest="50" />
+                             />
 
-                    </Border>
+            </Border>
+            <Label Text="Dimmer Live" FontSize="10"
+                               HorizontalOptions="Center"/>
+            </VerticalStackLayout>
+
+                    <VerticalStackLayout WidthRequest="60"
+         Spacing="5">
+                        <Button
+            x:Name="SettingsNavChip"
+            BackgroundColor="Transparent"
+            BorderWidth="1"
+            Clicked="SettingsNavChips_ChipClicked"
+            ImageSource="settings.png"
+            >
+
+                            <Button.Behaviors>
+                                <toolkit:IconTintColorBehavior TintColor="DarkSlateBlue" />
+                            </Button.Behaviors>
+                        </Button>
+                        <Label Text="Settings" FontSize="10"
+                   HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
                 </HorizontalStackLayout>
 
             </VerticalStackLayout>
@@ -231,7 +278,10 @@
                                 Loaded="ButtonLoaded"
                                 Text="{Binding CurrentPlayingSongView.Title}">
                                 <Button.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped" />
+                                    <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped" 
+                                                          />
+                                    <PointerGestureRecognizer PointerPressed="SongTitlePointerReg_PointerPressed"
+                                                              x:Name="SongTitlePointerReg"/>
                                 </Button.GestureRecognizers>
 
 
@@ -625,7 +675,7 @@
                             <Button
                                 x:Name="AudioDeviceSwitcher"
                                 BackgroundColor="Transparent"
-                                Clicked="Button_Clicked"
+                                Clicked="AudioDeviceSwitcherButton_Clicked"
                                 HeightRequest="40"
                                 ImageSource="devices.png"
                                 Loaded="TooltipHSL_Loaded" />
@@ -648,4 +698,5 @@
         </Grid>
 
     </ScrollView>
+    </Grid>
 </ContentPage>

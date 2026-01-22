@@ -4,7 +4,7 @@ using ScrollView = Android.Widget.ScrollView;
 
 namespace Dimmer.ViewsAndPages.NativeViews.ArtistSection;
 
-public class ArtistFragment : Fragment
+public partial class ArtistFragment : Fragment
 {
     private BaseViewModelAnd MyViewModel;
     private string _artistName;
@@ -17,7 +17,7 @@ public class ArtistFragment : Fragment
         _artistId = artistId;
     }
 
-    public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
+   /* public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         var ctx = Context;
         var scrollView = new ScrollView(ctx)
@@ -57,6 +57,7 @@ public class ArtistFragment : Fragment
             Typeface = Android.Graphics.Typeface.DefaultBold,
             LayoutParameters = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent)
             { Gravity = GravityFlags.Bottom | GravityFlags.Left }
+            ,TransitionName = _artistId
         };
         nameTxt.SetPadding(40, 0, 0, 40);
         nameTxt.SetTextColor(Android.Graphics.Color.White);
@@ -127,9 +128,14 @@ public class ArtistFragment : Fragment
 
         scrollView.AddView(root);
         return scrollView;
-    }
+    }*/
+    public override void OnResume()
+    {
+        base.OnResume();
 
-    private View CreateStatRow(Context ctx, string label, string value)
+        MyViewModel.CurrentFragment = this;
+    }
+    private LinearLayout CreateStatRow(Context ctx, string label, string value)
     {
         var row = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
         row.SetPadding(0, 10, 0, 10);

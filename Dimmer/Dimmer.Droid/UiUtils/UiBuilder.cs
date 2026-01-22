@@ -1,10 +1,13 @@
-﻿using Google.Android.Material.Snackbar;
-
+﻿using Android.Text;
+using AndroidX.Lifecycle;
+using CommunityToolkit.Diagnostics;
+using Google.Android.Material.Snackbar;
+using Xamarin.Google.Crypto.Tink.Signature;
 using static Dimmer.Utils.AppUtil;
 
 using TextAlignment = Android.Views.TextAlignment;
 
-namespace Dimmer.WinUI.UiUtils;
+namespace Dimmer.UiUtils;
 
 public static class UiBuilder
 {
@@ -14,7 +17,16 @@ public static class UiBuilder
         p.SetMargins(margin, margin, margin, margin);
         return p;
     }
-
+    public static TextView CreateMarqueeTextView (Context ctx)
+    {
+        return new TextView(ctx)
+        {
+            Typeface = Typeface.DefaultBold,
+            Ellipsize = TextUtils.TruncateAt.Marquee,
+            HorizontalFadingEdgeEnabled = true,
+            Selected = true // Required for Marquee
+        };
+    }
     public static MaterialCardView CreateSectionCard(Context context, string title, View contentView)
     {
         var card = new MaterialCardView(context) { Radius = 24, Elevation = 4 };
@@ -57,13 +69,21 @@ public static class UiBuilder
         layout.AddView(editText);
         return layout;
     }
-    public static bool IsDark(Configuration? CallerFragConfig)
+    //public static bool IsDark(Configuration? CallerFragConfig)
+    //{
+    //    if(CallerFragConfig == null) { return false; }
+    //    return (CallerFragConfig.UiMode & Android.Content.Res.UiMode.NightMask) == Android.Content.Res.UiMode.NightYes;
+    //}
+    public static bool IsDark(this View? callerView)
     {
-        if(CallerFragConfig == null) { return false; }
-        return (CallerFragConfig.UiMode & Android.Content.Res.UiMode.NightMask) == Android.Content.Res.UiMode.NightYes;
+        if (callerView == null) 
+        { 
+            return false;
+        }
+        return (callerView.Resources!.Configuration!.UiMode & Android.Content.Res.UiMode.NightMask) == Android.Content.Res.UiMode.NightYes;
     }
 
-    public static MaterialButton CreateMaterialButton(Context ctx, Android.Content.Res.Configuration? callerConfig, EventHandler? clickAction=null, bool isPrimary = false, int sizeDp = 50, int? iconRes=null)
+    public static MaterialButton CreateMaterialButton(Context ctx, EventHandler? clickAction=null, bool isPrimary = false, int sizeDp = 50, int? iconRes=null)
     {
         
         var btn = new MaterialButton(ctx);
@@ -89,7 +109,7 @@ public static class UiBuilder
         else
         {
             btn.SetBackgroundColor(Android.Graphics.Color.Transparent);
-            btn.IconTint = Android.Content.Res.ColorStateList.ValueOf(IsDark(callerConfig) ? Android.Graphics.Color.White : Android.Graphics.Color.Black);
+            btn.IconTint = Android.Content.Res.ColorStateList.ValueOf(IsDark(btn) ? Android.Graphics.Color.White : Android.Graphics.Color.Black);
             btn.StrokeWidth = AppUtil.DpToPx(1);
             btn.StrokeColor = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.Gray);
         }
@@ -164,6 +184,16 @@ public static class UiBuilder
         return tv;
     }
 
+    public static void SetCardBorderColor(this MaterialCardView card, string? hexColor, int strokeWidth=1)
+    {
+        if (card == null) return;
+        if(string.IsNullOrEmpty(hexColor))
+        {
+            hexColor = IsDark(card) ? Color.White.ToHexString() : Color.Black.ToHexString();
+        }
+        card.StrokeWidth = strokeWidth;
+        card.SetStrokeColor(ColorStateList.ValueOf(Color.ParseColor(hexColor)));
+    }
     public static MaterialCardView CreateCard(Context ctx)
     {
         var card = new MaterialCardView(ctx)

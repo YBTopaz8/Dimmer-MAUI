@@ -3,6 +3,7 @@
 public class ProcessingConfig
 {
     public string CoverArtBasePath { get; }
+    public string BackupRestoreBasePath { get; internal set; }
     public HashSet<string> SupportedAudioExtensions { get; }
 
     public ProcessingConfig(string? coverArtBasePath = null, IEnumerable<string>? supportedAudioExtensions = null)
@@ -22,6 +23,30 @@ public class ProcessingConfig
 
         SupportedAudioExtensions = new HashSet<string>(
             supportedAudioExtensions ?? new[] { ".mp3", ".flac", ".wav", ".m4a", ".aac", ".ogg", ".opus" },
+            StringComparer.OrdinalIgnoreCase
+        );
+    }
+
+}
+public class BackUpRestoreProcessingConfig
+{
+
+    public string BackupRestoreBasePath { get; internal set; }
+    public HashSet<string> SupportedFileExtensions { get; }
+    public BackUpRestoreProcessingConfig(string? backupRestoreBasePath = null, IEnumerable<string>? supportedFileExtensions = null)
+    {
+        if (string.IsNullOrWhiteSpace(backupRestoreBasePath))
+        {
+
+            BackupRestoreBasePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DimmerBackUp");
+        }
+        else
+        {
+            BackupRestoreBasePath = backupRestoreBasePath;
+        }
+
+        SupportedFileExtensions = new HashSet<string>(
+            supportedFileExtensions ?? new[] { ".json" },
             StringComparer.OrdinalIgnoreCase
         );
     }

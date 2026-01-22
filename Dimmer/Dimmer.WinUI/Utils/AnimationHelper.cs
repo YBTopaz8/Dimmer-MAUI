@@ -33,13 +33,13 @@ public static class AnimationHelper
     /// Starts the animation on the Destination Page.
     /// Handles Dispatcher, Configuration, and Coordinated Elements automatically.
     /// </summary>
-    public static void TryStart(UIElement destination, IEnumerable<UIElement> coordinatedElements = null, params string[] potentialKeys)
+    public static void TryStart(UIElement destination, IEnumerable<UIElement>? coordinatedElements = null, params string[] potentialKeys)
     {
         // Use the Dispatcher to wait for Layout to finish
         destination.DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, () =>
         {
             var service = ConnectedAnimationService.GetForCurrentView();
-            ConnectedAnimation animation = null;
+            ConnectedAnimation? animation = null;
 
             // 1. Find the first valid animation from the list of keys provided
             foreach (var key in potentialKeys)

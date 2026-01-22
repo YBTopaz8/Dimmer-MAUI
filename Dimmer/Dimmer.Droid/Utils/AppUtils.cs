@@ -1,5 +1,6 @@
 ﻿using System.Security.Cryptography;
-
+using Android.Hardware.Input;
+using Android.Views.InputMethods;
 using Application = Android.App.Application;
 using Path = System.IO.Path;
 using Window = Microsoft.Maui.Controls.Window;
@@ -7,6 +8,13 @@ using Window = Microsoft.Maui.Controls.Window;
 namespace Dimmer.Utils;
 public class AppUtil : IAppUtil
 {
+   
+    public static void HideKeyboardFrom(Context context, View view)
+    {
+        InputMethodManager imm = (InputMethodManager)context.GetSystemService(Activity.InputMethodService);
+        imm.HideSoftInputFromWindow(view.WindowToken, 0);
+    }
+
     public AppUtil(BaseViewModelAnd vm)
     {
         baseViewModelAnd = vm;
@@ -217,6 +225,19 @@ public class AppUtil : IAppUtil
         // Fallback to provided default or the action ID itself
         return defaultTitle ?? actionId;
     }
+    public static bool ShowSoftKeyboad(TextInputEditText? targetView)
+    {
+        if (targetView is null) return false;
+        if(targetView.RequestFocus())
+        {
+            InputMethodManager? imm = (InputMethodManager?)targetView.Context?.GetSystemService(Context.InputMethodService);
+            if(imm is not null)
+            {
+               return imm.ShowSoftInput(targetView, ShowFlags.Implicit);
+            }
+        }
+        return false;
+    }
     public static class AndroidLifecycle
     {
         // For handling incoming intents (deep links, widget clicks, etc.)
@@ -258,16 +279,8 @@ public class AppUtil : IAppUtil
     }
     public static ColorStateList ToColorStateList(Color anyColor)
     {
-
-        var colorListBtxtColor = new ColorStateList(
-           new int[][] {
-                new int[] { } // default
-           },
-           new int[] {
-                anyColor,
-           }
-       );
-        return colorListBtxtColor;
+       return Android.Content.Res.ColorStateList.ValueOf(anyColor);
+       
     }
     public class SimpleVH : RecyclerView.ViewHolder
     {

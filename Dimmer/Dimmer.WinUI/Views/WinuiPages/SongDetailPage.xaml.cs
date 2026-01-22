@@ -105,13 +105,9 @@ public sealed partial class SongDetailPage : Page
         {
             MyViewModel = myVm;
             this.DataContext = MyViewModel;
-            DetailedSong = MyViewModel.SelectedSong;
-
-            
+            DetailedSong = MyViewModel.SelectedSong!;
 
 
-            Visual? visual = ElementCompositionPreview.GetElementVisual(TitleBlock);
-            PlatUtils.ApplyEntranceEffect(visual, TitleBlock, _userPrefAnim, _compositor);
             MyViewModel.CurrentWinUIPage = this;
         }
         if (e.Parameter is SongDetailNavArgs args)
@@ -224,6 +220,7 @@ public sealed partial class SongDetailPage : Page
     private void MyPage_Loaded(object sender, RoutedEventArgs e)
     {
         CalculateSectionOffsets();
+
     }
 
     private async void ArtistBtn_Click(object sender, RoutedEventArgs e)
@@ -336,61 +333,34 @@ public sealed partial class SongDetailPage : Page
 
     private void Grid_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
+
         var props = e.GetCurrentPoint((UIElement)sender).Properties;
-        if(props.IsXButton1Pressed)
+        if (props.IsXButton1Pressed)
         {
-                if (detailedImage != null && Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(detailedImage) != null)
-                {
-                    ConnectedAnimationService.GetForCurrentView()
-                        .PrepareToAnimate("BackConnectedAnimation", detailedImage);
-                }
-         
-            if (Frame.CanGoBack)
-            {
-               
-                Frame.GoBack();
-            }
+
+
+            NavigateBackToPreviousPage();
+        }
+    }
+
+    private void NavigateBackToPreviousPage()
+    {
+        if (detailedImage != null && Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(detailedImage) != null)
+        {
+            ConnectedAnimationService.GetForCurrentView()
+                .PrepareToAnimate("BackConnectedAnimation", detailedImage);
+        }
+
+        if (Frame.CanGoBack)
+        {
+
+            Frame.GoBack();
         }
     }
 
     private void BioBlock_Loaded(object sender, RoutedEventArgs e)
     {
         
-    }
-
-    private void SetupCinematicBackground()
-    {
-        // 1. Get Visuals
-        var bgVisual = ElementCompositionPreview.GetElementVisual(BgImage);
-        var scrollerVisual = ElementCompositionPreview.GetElementVisual(Scroller);
-
-        // 2. Create the Parallax Effect (Expression Animation)
-        // Formula: bg.Offset.Y = -scroller.VerticalOffset * 0.3 (Move at 30% speed)
-        var scrollPropSet = ElementCompositionPreview.GetScrollViewerManipulationPropertySet(Scroller);
-        var parallaxExpression = _compositor.CreateExpressionAnimation("(-scroller.Translation.Y * multiplier)");
-        parallaxExpression.SetScalarParameter("multiplier", 0.3f);
-        parallaxExpression.SetReferenceParameter("scroller", scrollPropSet);
-
-        // Apply to the Offset.Y of the background
-        bgVisual.StartAnimation("Offset.Y", parallaxExpression);
-
-        // 3. Create a Blur/Saturation Effect using Win2D or Composition (Native approach)
-        // Note: Pure Composition Blur requires a loaded Surface, which is complex with Image control.
-        // A quicker "Intense" UI hack for WinUI 3 without external libraries:
-        // Just animate the Opacity and Scale for a "Breathing" effect.
-
-        bgVisual.Opacity = 0.4f; // Set base opacity
-
-        // Scale animation to make it feel alive
-        var scaleAnim = _compositor.CreateVector3KeyFrameAnimation();
-        scaleAnim.InsertKeyFrame(0f, new Vector3(1.0f));
-        scaleAnim.InsertKeyFrame(0.5f, new Vector3(1.05f)); // Slight zoom
-        scaleAnim.InsertKeyFrame(1f, new Vector3(1.0f));
-        scaleAnim.Duration = TimeSpan.FromSeconds(20);
-        scaleAnim.IterationBehavior = AnimationIterationBehavior.Forever;
-
-        bgVisual.CenterPoint = new Vector3((float)BgImage.ActualWidth / 2, (float)BgImage.ActualHeight / 2, 0);
-        bgVisual.StartAnimation("Scale", scaleAnim);
     }
 
     private void SimilarSongStackPanel_PointerEntered(object sender, PointerRoutedEventArgs e)
@@ -409,65 +379,14 @@ public sealed partial class SongDetailPage : Page
         visual.CenterPoint = new Vector3((float)stackPanel.RenderSize.Width / 2, (float)stackPanel.RenderSize.Height / 2, 0);
         visual.StartAnimation("Scale.X", anim);
         visual.StartAnimation("Scale.Y", anim);
-        LoadToolTipForSimilarTracks(uiElement, track);
     }
 
-    void LoadToolTipForSimilarTracks(UIElement elt, Hqub.Lastfm.Entities.Track trck)
-    {
-        toolTip ??= new ToolTip();
-
-        var toolTipContent = new StackPanel
-        {
-            Width = 200,
-            Height = 200,
-            Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent)
-        };
-        var imgSourceFromUrl = trck.Images?.FirstOrDefault(img => img.Size == "large")?.Url;
-        
-        var img = new Microsoft.UI.Xaml.Controls.Image
-        {
-            Width = 120,
-            Height = 120,
-            Margin = new Thickness(10)
-        };
-        img.Source = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(imgSourceFromUrl ?? "ms-appx:///Assets/PlaceholderImage.png"));
-
-        toolTipContent.Children.Add(img);
-        var titleBlock = new TextBlock
-        {
-            Text = trck.Name,
-            Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.White),
-            Margin = new Thickness(10, 5, 10, 0),
-            FontWeight = Microsoft.UI.Text.FontWeights.Bold
-        };
-        toolTipContent.Children.Add(titleBlock);
-        var artistBlock = new TextBlock
-        {
-            Text = trck.Artist.Name,
-            Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.White),
-            Margin = new Thickness(10, 0, 10, 10)
-        };
-        toolTipContent.Children.Add(artistBlock);
-        toolTip.Content = toolTipContent;
-        toolTip.Placement = Microsoft.UI.Xaml.Controls.Primitives.PlacementMode.Top;
-        
-
-
-        ToolTipService.SetToolTip(elt, toolTip);
-        toolTip.IsOpen = true;
-
-
-    }
-    ToolTip toolTip;
     private void SimilarSongStackPanel_PointerExited(object sender, PointerRoutedEventArgs e)
     {
         var send = (UIElement)sender;
-        toolTip.IsOpen = false;
     }
 
-    private void SectionOverview_PointerEntered(object sender, PointerRoutedEventArgs e)
-    {
-    }
+
 
     private async void SectionOverview_PointerExited(object sender, PointerRoutedEventArgs e)
     {
@@ -479,8 +398,7 @@ public sealed partial class SongDetailPage : Page
         if (detailedImageVisual != null)
         {
             ConnectedAnimationService.GetForCurrentView()
-                .PrepareToAnimate("ForwardConnectedAnimation", detailedImage);
-            PlatUtils.ApplyEntranceEffect(detailedImageVisual, detailedImage, SongTransitionAnimation.Spring, _compositor);
+                .PrepareToAnimate("SwingFromSongDetailToEdit", detailedImage);
         }
         // Navigate to the detail page, passing the selected song object.
         // Suppress the default page transition to let ours take over.
@@ -549,7 +467,7 @@ public sealed partial class SongDetailPage : Page
 
         if ((dbSong.ArtistToSong.Count <1 || dbSong.Artist is null) && dbSong.ArtistName is not null)
         {
-            RxSchedulers.Background.ScheduleToUI(async () =>
+            RxSchedulers.Background.ScheduleTo(async () =>
             {
                 var ArtistsInSong = MyViewModel.SelectedSong.OtherArtistsName.
                 Split(",").ToList();
@@ -826,8 +744,8 @@ public sealed partial class SongDetailPage : Page
         }
         else
         {
-            FontIcon musicIcon = new FontIcon();
-            musicIcon.Glyph = "\uEC4F";
+            //FontIcon musicIcon = new FontIcon();
+            //musicIcon.Glyph = "\uEC4F";
             
         }
             AnimationHelper.TryStart(
@@ -866,21 +784,6 @@ public sealed partial class SongDetailPage : Page
     }
 
     private void MySongAchievements_Loaded(object sender, RoutedEventArgs e)
-    {
-
-    }
-
-    private void RadioButton_Checked(object sender, RoutedEventArgs e)
-    {
-        
-    }
-
-    private void RadioButton_Checked_1(object sender, RoutedEventArgs e)
-    {
-
-    }
-
-    private void Button_Click(object sender, RoutedEventArgs e)
     {
 
     }
@@ -931,6 +834,42 @@ public sealed partial class SongDetailPage : Page
     private void EditArtist_Click(object sender, RoutedEventArgs e)
     {
 
+    }
+
+    private void MyPage_KeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        var pressedKey = e.Key;
+        if(pressedKey == Windows.System.VirtualKey.Escape)
+        {
+            NavigateBackToPreviousPage();
+        }
+        
+    }
+
+    private void ArtistSongsPreviewIR_Loaded(object sender, RoutedEventArgs e)
+    {
+        var send = (ItemsRepeater)sender;
+        var dataContext = send.DataContext as ArtistModelView;
+        if (dataContext is null) return;
+        var songsFromDB = MyViewModel.RealmFactory.GetRealmInstance()
+            .Find<ArtistModel>(dataContext.Id)?
+            .Songs.AsEnumerable()
+            .Select(x=>x.ToSongModelView())
+            .ToList();
+
+        send.ItemsSource = songsFromDB;
+    }
+
+    private void PlaySongNowFromArtistListOfSongs_Click(object sender, RoutedEventArgs e)
+    {
+        var listOfSongs = ArtistSongsPreviewIR.ItemsSource.GetType();
+    }
+
+    private async void AddNextInQueue_Click(object sender, RoutedEventArgs e)
+    {
+        var songMOdelView = (sender as Button)!.DataContext as SongModelView;
+
+        await MyViewModel.PlaySongWithActionAsync(songMOdelView, PlaybackAction.PlayNext);
     }
 }
 

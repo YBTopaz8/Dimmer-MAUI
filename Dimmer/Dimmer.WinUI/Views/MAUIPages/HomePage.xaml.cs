@@ -560,15 +560,10 @@ public partial class HomePage : ContentPage
     {
         try
         {
-            MyViewModel.SelectedSong = MyViewModel.CurrentPlayingSongView;
-            var dimmerWindow = MyViewModel.winUIWindowMgrService.GetWindow<DimmerWin>();
-            dimmerWindow ??= MyViewModel.winUIWindowMgrService.CreateWindow<DimmerWin>();
 
-            
-
-            //MyViewModel.DimmerMultiWindowCoordinator.BringToFront()
-            if(dimmerWindow != null)
-                dimmerWindow.NavigateToPage(typeof(SongDetailPage));
+            MyViewModel.NavigateToAnyPageOfGivenType(typeof(NowPlayingPage));
+            return;
+          
 
         }
         catch (Exception ex)
@@ -793,11 +788,21 @@ public partial class HomePage : ContentPage
     bool _initialized;
     private void MyPage_Loaded(object sender, EventArgs e)
     {
+        //FrameworkElement? send = (FrameworkElement?)MainScrollView.Handler?.PlatformView;
+        //UIElement? sendUIElt = (UIElement?)MainScrollView.Handler?.PlatformView;
+       
         if (!_initialized)
         {
             _initialized = true;
             MyViewModel.InitializeAllVMCoreComponents();
 
+            MyViewModel.GetLibState();
+            if (MyViewModel.IsLibraryEmpty)
+            {
+                
+                MyViewModel.NavigateToAnyPageOfGivenType(typeof(SettingsPage));
+
+            }
         }
     }
 
@@ -946,60 +951,7 @@ public partial class HomePage : ContentPage
         
     }
 
-    private void Button_Clicked(object sender, EventArgs e)
-    {
-        var send = (View)sender;
-        var platView = send.Handler?.PlatformView as Microsoft.UI.Xaml.UIElement;
-
-        if (platView is null) return;
-        MyViewModel.LoadAllAudioDevices();
-        if (MyViewModel.AudioDevices is null) return;
-        
-            var audioDevicesList = MyViewModel.AudioDevices.Select(x =>
-            {
-                //IconElement icon = default;
-                //if (x.IconString is not null)
-                //{
-                //    var iconElt = new BitmapIcon
-                //    {
-                //        UriSource = new Uri(x.IconString),
-                //        ShowAsMonochrome = false
-                //    };
-                //    icon = iconElt;
-                //}
-
-
-
-                var menFlyOut = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem
-                {
-                    Text = x.Name,
-                    Command = MyViewModel.SetPreferredAudioDeviceCommand,
-                    CommandParameter = x
-                };
-                menFlyOut.MaxHeight = 150;
-                //if (icon is not null)
-                //{
-
-                //    menFlyOut.Icon = icon;
-                //}
-                return menFlyOut;
-            }).ToList();
-
-            MenuFlyout menu = new MenuFlyout();
-            menu.Items.Clear();
-            foreach (var item in audioDevicesList)
-            {
-                menu.Items.Add(item);
-            }
-            FlyoutShowOptions flyoutPlace = new FlyoutShowOptions
-            {
-                Placement = (FlyoutPlacementMode)PlacementMode.Bottom
-            };
-            
-                menu.ShowAt(platView, flyoutPlace);
-        
-    }
-
+    
     private void ArtistBtn_Clicked(object sender, EventArgs e)
     {
 
@@ -1133,4 +1085,84 @@ public partial class HomePage : ContentPage
     {
         MyViewModel.NavigateToAnyPageOfGivenType(typeof(LastFmPage));
     }
+
+    private void SongTitlePointerReg_PointerPressed(object sender, PointerEventArgs e)
+    {
+        MyViewModel.SelectedSong = MyViewModel.CurrentPlayingSongView;
+      
+            MyViewModel.NavigateToAnyPageOfGivenType(typeof(SongDetailPage));
+     
+    }
+
+    private void ViewAllSongs_Clicked(object sender, EventArgs e)
+    {
+        if(MyViewModel.IsLibraryEmpty)
+        {
+            MyViewModel.ShowWelcomeScreen = true;
+
+            MyViewModel.NavigateToAnyPageOfGivenType(typeof(SettingsPage));
+            return;
+        }
+        MyViewModel.NavigateToAnyPageOfGivenType(typeof(AllSongsListPage));
+        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.DescAdded());
+
+    }
+
+    private void AudioDeviceSwitcherButton_Clicked(object sender, EventArgs e)
+    { 
+        var send = (View)sender;
+        var platView = send.Handler?.PlatformView as Microsoft.UI.Xaml.UIElement;
+
+        if (platView is null) return;
+        MyViewModel.LoadAllAudioDevices();
+        if (MyViewModel.AudioDevices is null) return;
+
+        var audioDevicesList = MyViewModel.AudioDevices.Select(x =>
+        {
+            if(MyViewModel.SelectedAudioDevice.Id == x.Id)
+            {
+                var menFlyOut = new Microsoft.UI.Xaml.Controls.ToggleMenuFlyoutItem
+                {
+                    Text = x.Name,
+                    Command = MyViewModel.SetPreferredAudioDeviceCommand,
+                    CommandParameter = x
+                };
+                menFlyOut.IsChecked = true;
+
+                return menFlyOut;
+            }
+            else
+            {
+
+                var menFlyOut = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem
+                {
+                    Text = x.Name,
+                    Command = MyViewModel.SetPreferredAudioDeviceCommand,
+                    CommandParameter = x
+                };
+                return menFlyOut;
+            }
+            //if (icon is not null)
+            //{
+
+            //    menFlyOut.Icon = icon;
+            //}
+        }).ToList();
+
+        MenuFlyout menu = new MenuFlyout();
+        menu.Items.Clear();
+        foreach (var item in audioDevicesList)
+        {
+            
+            menu.Items.Add(item);
+        }
+        FlyoutShowOptions flyoutPlace = new FlyoutShowOptions
+        {
+            Placement = (FlyoutPlacementMode)PlacementMode.Bottom
+        };
+
+        menu.ShowAt(platView, flyoutPlace);
+
+    }
+
 }

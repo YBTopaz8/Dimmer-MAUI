@@ -109,12 +109,12 @@ public static class TaggingUtils
         t = Regex.Replace(t, @"^[-–—_ ]+|[-–—_ ]+$", "");
 
         // If multiple dashes, keep last segment
-        if (MultiDashRegex.IsMatch(t))
-        {
-            int idx = t.LastIndexOf('-');
-            if (idx > 0 && idx < t.Length - 1)
-                t = t[(idx + 1)..].Trim();
-        }
+        //if (MultiDashRegex.IsMatch(t))
+        //{
+        //    int idx = t.LastIndexOf('-');
+        //    if (idx > 0 && idx < t.Length - 1)
+        //        t = t[(idx + 1)..].Trim();
+        //}
 
         // ToTitleCase
         return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(t.ToLower());
@@ -196,13 +196,6 @@ public static class TaggingUtils
         {
             return uniqueCleanNames.ToList();
         }
-    }
-
-    // Helper to prevent adding the separators themselves as artists
-    private static bool IsSeparator(string input)
-    {
-        var lower = input.ToLowerInvariant();
-        return lower is "feat" or "ft" or "&" or "vs" or "featuring" or "with";
     }
 
     /// <summary>
@@ -298,9 +291,25 @@ public static class TaggingUtils
     // 1. Define a delegate that takes a Path + Extensions and returns a list of files
     // The Android project will assign this function later.
     public static Func<string, IReadOnlySet<string>, List<string>>? PlatformSpecificScanner { get; set; }
-    public static Func<string, Stream> PlatformGetStreamHook { get; set; }
+    public static Func<string, Stream>? PlatformGetStreamHook { get; set; }
+    
 
     public static Func<string, long>? PlatformGetFileSizeHook { get; set; }
+    public static Func<string, bool>? PlatformSpecificDeleter { get; set; }
+
+    public static bool DeletePlatformFile(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return false;
+
+        if (path.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
+        {
+            // Use the Android-specific logic
+            return PlatformSpecificDeleter?.Invoke(path) ?? false;
+        }
+
+        File.Delete(path);
+        return true;
+    }
     public static long GetFileSize(string path)
     {
         if (string.IsNullOrWhiteSpace(path)) return 0;
@@ -316,6 +325,56 @@ public static class TaggingUtils
         catch { return 0; }
     }
     public static Task<List<string>> GetAllAudioFilesFromPathsAsync(
+    IEnumerable<string> pathsToScan,
+    IReadOnlySet<string> supportedExtensions)
+    {
+      return Task.Run(() => 
+    {  var filesBag = new ConcurrentBag<string>();
+
+        Parallel.ForEach(
+            pathsToScan.Where(p => !string.IsNullOrWhiteSpace(p))
+                       .Distinct(StringComparer.OrdinalIgnoreCase),
+            new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount },
+            path =>
+            {
+                try
+                {
+                    if (path.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (PlatformSpecificScanner != null)
+                        {
+                            foreach (var f in PlatformSpecificScanner(path, supportedExtensions))
+                                filesBag.Add(f);
+                        }
+                        return;
+                    }
+
+                    if (File.Exists(path))
+                    {
+                        var ext = Path.GetExtension(path);
+                        if (!string.IsNullOrEmpty(ext) && supportedExtensions.Contains(ext))
+                            filesBag.Add(path);
+                        return;
+                    }
+
+                    if (Directory.Exists(path))
+                    {
+                        foreach (var file in Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories))
+                        {
+                            var ext = Path.GetExtension(file);
+                            if (!string.IsNullOrEmpty(ext) && supportedExtensions.Contains(ext))
+                                filesBag.Add(file);
+                        }
+                    }
+                }
+                catch { /* ignored */ }
+            });
+
+        return filesBag.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        });
+    }
+    
+    public static Task<List<string>> GetAllFilesFromPathsAsync(
     IEnumerable<string> pathsToScan,
     IReadOnlySet<string> supportedExtensions)
     {

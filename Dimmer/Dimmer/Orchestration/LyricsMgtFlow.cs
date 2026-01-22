@@ -295,7 +295,7 @@ public class LyricsMgtFlow : IDisposable
 
 
         _logger.LogTrace("LYRICS FINDER :::::: No local lyrics for {SongTitle}, searching online.", song.Title);
-        IEnumerable<LrcLibLyrics>? onlineResults = await _lyricsMetadataService.GetAllLyricsPropsOnlineAsync(song, cts.Token);
+        IEnumerable<LrcLibLyrics>? onlineResults = await _lyricsMetadataService.GetAllLyricsPropsOnlineAsync(song.ToSongModel(), cts.Token);
         var onlineLyrics = onlineResults?.FirstOrDefault();
 
         if (onlineLyrics != null)

@@ -42,6 +42,7 @@
             <Button
                 VerticalAlignment="Center"
                 Click="BackButton_Click"
+                x:Name="BackBtn" 
                 Content="Back" />
             <Button
                 x:Name="SaveChangeBtn"
@@ -76,6 +77,7 @@
                         <Image
                             x:Name="detailedImage"
                             MaxWidth="300"
+                            Loaded="DetailedImage_Loaded"
                             MaxHeight="300"
                             HorizontalAlignment="Center"
                             Source="{Binding SelectedSong.CoverImagePath}"

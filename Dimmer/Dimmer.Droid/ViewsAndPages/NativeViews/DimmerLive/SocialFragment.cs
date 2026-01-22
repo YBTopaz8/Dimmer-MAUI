@@ -36,7 +36,7 @@ public class SocialFragment : Fragment, IOnBackInvokedCallback
         ChatVM = MainApplication.ServiceProvider.GetRequiredService<ChatViewModel>();
         SocialVM = MainApplication.ServiceProvider.GetRequiredService<SocialViewModel>();
     }
-    public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         var ctx = Context;
         var root = new LinearLayout(ctx)

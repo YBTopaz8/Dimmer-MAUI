@@ -58,7 +58,7 @@ public static class UserFriendlyLogGenerator
         }
         // Gracefully handle if currentSong or its Title is null/empty
         string songTitle = !string.IsNullOrWhiteSpace(currentSong?.Title) ? $"\"{currentSong.Title}\"" : "the current track";
-        string artistName = !string.IsNullOrWhiteSpace(currentSong?.ArtistName) ? $" by {currentSong.ArtistName}" : ""; // Optional: Add artist if available
+        string artistName = !string.IsNullOrWhiteSpace(currentSong?.OtherArtistsName) ? $" by {currentSong.OtherArtistsName}" : ""; // Optional: Add artist if available
 
         // Combine title and artist for a richer description
         string fullSongDescription = $"{songTitle}{artistName}";
@@ -130,10 +130,29 @@ public static class ImageResizer
     /// <param name="imageData">The byte array of the image.</param>
     /// <param name="defaultColor">A fallback color if no suitable color is found.</param>
     /// <returns>The dominant SKColor.</returns>
-    public static SKColor GetDominantColor(byte[]? imageData, SKColor? defaultColor = null)
-    {
-        var palette = GetVibrantPalette(imageData, 1);
-        return palette.Count!=0 ? palette.First() : (defaultColor ?? SKColors.Gray);
+    public async static Task<SKColor?> GetDominantColor(string coverfilePath, SKColor? defaultColor = null)
+    {  // --- Step 1: Validate the input ---
+        if (string.IsNullOrWhiteSpace(coverfilePath) || !File.Exists(coverfilePath))
+        {
+            // Log an error or warning here if you want
+            return null;
+        }
+
+        try
+        {
+            // --- Step 2: Read the file data asynchronously ---
+            var imageData = await File.ReadAllBytesAsync(coverfilePath);
+            var palette = GetVibrantPalette(imageData, 1);
+            return palette.Count != 0 ? palette.First() : (defaultColor ?? SKColors.Gray);  
+       }
+        catch(Exception ex)
+        {
+            // --- Step 5: Handle potential errors gracefully ---
+            // This could happen if the file is not a valid image, is corrupted, etc.
+            Debug.WriteLine($"Error getting dominant color for {coverfilePath}: {ex.Message}");
+            return null; // Always return a fallback value on error.
+       }
+    
     }
     /// <summary>
     /// Asynchronously extracts the dominant color from an image file.
@@ -204,6 +223,7 @@ public static class ImageResizer
 
             // Downscale for performance. 100x100 is plenty for color analysis.
             var info = new SKImageInfo(100, 100);
+            
             using var bitmap = original.Resize(info, SKSamplingOptions.Default);
 
             var colorCounts = new Dictionary<SKColor, int>();
@@ -252,11 +272,17 @@ public static class ImageResizer
             return new List<SKColor>();
         }
     }
-
-    public static byte[]? ResizeImage(byte[]? originalImageData, int maxDimension = 1400, int quality = 95)
+    
+    public async static Task<byte[]?> ResizeImage(string coverfilePath, int maxDimension = 1400, int quality = 95)
     {
+        if (string.IsNullOrWhiteSpace(coverfilePath) || !File.Exists(coverfilePath))
+        {
+            // Log an error or warning here if you want
+            return null;
+        }
         try
         {
+            var originalImageData = await File.ReadAllBytesAsync(coverfilePath);
             if (originalImageData == null || originalImageData.Length == 0)
             {
                 return null;
@@ -345,80 +371,59 @@ public static class ImageResizer
 
 public static class ImageFilterUtils
 {
-    public static async Task<AlbumArtPalette> GeneratePaletteAsync(string imagePath)
-    { 
-        // --- Step 1: Validate the input ---
-        if (string.IsNullOrWhiteSpace(imagePath) || !File.Exists(imagePath))
-        {
-            // Log an error or warning here if you want
-            return new();
-        }
-
-        try
-        {
-            // --- Step 2: Read the file data asynchronously ---
-            var imageData = await File.ReadAllBytesAsync(imagePath);
-            if (imageData == null || imageData.Length == 0)
-            {
-                return new();
-            }
-            // STEP 1: Get a list of colors from the image.
-            // We assume your ImageResizer can be modified to do this.
-            // Let's ask for 8 colors to get a good variety.
-            var colorPalette =  ImageResizer.GetVibrantPalette(imageData, 8);
-
-            if (colorPalette == null || colorPalette.Count == 0)
-            {
-                // Return a safe, neutral default palette if image processing fails.
-                return new AlbumArtPalette
-                {
-                    DominantColor = Colors.SlateGray,
-                    VibrantColor = Colors.SteelBlue,
-                    MutedColor = Colors.DarkSlateGray,
-                    TextColorOnDominant = Colors.White,
-                    TextColorOnMuted = Colors.White,
-                };
-            }
-
-            // STEP 2: Intelligently select the best colors for each role.
-            //var dominant = colorPalette[0]; // The first is usually the most dominant.
-            //var vibrant = colorPalette.OrderByDescending(c => c.()).First();
-            //var muted = colorPalette.OrderBy(c => c.GetSaturation()).First();
-
-            return new AlbumArtPalette();
-            //{
-            //    DominantColor = dominant,
-            //    VibrantColor = vibrant,
-            //    MutedColor = muted,
-            //    TextColorOnDominant = GetContrastingTextColor(dominant),
-            //    TextColorOnMuted = GetContrastingTextColor(muted),
-            //};
-        }
-
-        catch (Exception)
-        {
-            return new();
-        }
-    }
-
+  
     /// <summary>
     /// Calculates the perceived luminance of a color and returns a high-contrast
     /// TEXT color (either black or white) suitable for placing on top of it.
     /// </summary>
-    public static Color GetContrastingTextColor(Color backgroundColor)
+    public static SKColor GetContrastingTextColor(SKBitmap bmp)
     {
-        if (backgroundColor == null)
-            return Colors.White;
+        double sum = 0;
+        int count = bmp.Width * bmp.Height;
 
-        double luminance = (0.299 * backgroundColor.Red) + (0.587 * backgroundColor.Green) + (0.114 * backgroundColor.Blue);
+        for (int y = 0; y < bmp.Height; y++)
+        {
+            for (int x = 0; x < bmp.Width; x++)
+            {
+                var c = bmp.GetPixel(x, y);
+                double r = Linearize(c.Red / 255.0);
+                double g = Linearize(c.Green / 255.0);
+                double b = Linearize(c.Blue / 255.0);
 
-        // If background is light, use black text. If dark, use white text.
-        return luminance > 0.5 ? Colors.Black : Colors.White;
+                sum += 0.2126 * r + 0.7152 * g + 0.0722 * b;
+            }
+        }
+
+        double avLum = sum / count;
+        return avLum > 0.179 ? SKColors.Black : SKColors.White;
+    }
+    public static SKColor GetContrastingTextColor(byte[]? imageBytes)
+    {
+        if (imageBytes == null)
+            return SKColors.White;
+        using var bmp = SKBitmap.Decode(imageBytes);
+
+        return GetContrastingTextColor(bmp);
+
+    }
+    public static SKColor GetContrastingTextColor(string? imagePath)
+    {
+        if (string.IsNullOrEmpty(imagePath))
+            return SKColors.White;
+        using var bmp = SKBitmap.Decode(imagePath);
+
+        return GetContrastingTextColor(bmp);
+
     }
 
-    // Your GetTintedBackgroundColor is still useful!
+    private static double Linearize(double value)
+    {
+        return value <= 0.03928 ? value / 12.92 : Math.Pow((value + 0.055) / 1.055, 2.4);
+    }
+
     public static Color GetTintedBackgroundColor(Color color, float alpha = 0.1f)
     {
+        
         return color?.MultiplyAlpha(alpha) ?? Colors.Transparent;
     }
     /// <summary>
@@ -427,7 +432,7 @@ public static class ImageFilterUtils
     /// <param name="imageData">The original image data in bytes.</param>
     /// <param name="filterType">The filter effect to apply.</param>
     /// <returns>A new byte array representing the filtered image, or the original if the filter is None or fails.</returns>
-    public async static Task<byte[]?>? ApplyFilter(string? coverfilePath, FilterType filterType)
+    public async static Task<byte[]?> ApplyFilter(string? coverfilePath, FilterType filterType)
     {
         // --- Step 1: Validate the input ---
         if (string.IsNullOrWhiteSpace(coverfilePath) || !File.Exists(coverfilePath))
@@ -463,8 +468,8 @@ public static class ImageFilterUtils
                 canvas.Flush();
 
                 using var image = surface.Snapshot();
-                using var data = image.Encode(SKEncodedImageFormat.Jpeg, 90); // Encode as JPEG for web/app use
-
+                using var data = image.Encode(SKEncodedImageFormat.Png, 90); // Encode as JPEG for web/app use
+                
                 return data.ToArray();
             }
             catch (Exception ex)
@@ -557,7 +562,7 @@ public static class ImageFilterUtils
     }
 
 }
-// Your FilterType enum from the previous question
+
 public enum FilterType
     {
         None,

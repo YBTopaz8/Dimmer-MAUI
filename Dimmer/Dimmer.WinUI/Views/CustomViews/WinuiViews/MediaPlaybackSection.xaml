@@ -101,7 +101,7 @@
                                     BorderThickness="0"
                                     Click="HomeBtn_Click"
                                     CornerRadius="10"
-                                    Visibility="Collapsed">
+                                    Visibility="Visible">
                                     <FontIcon FontSize="25" Glyph="&#xE80F;" />
                                 </Button>
 
@@ -109,13 +109,16 @@
 
                             </StackPanel>
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <StackPanel Orientation="Horizontal"
+                                    Visibility="{x:Bind MyViewModel.CurrentPlayingSongView.TitleDurationKey, Converter={StaticResource IsObjNullToVisInverseConverter}}"
+                                    Spacing="10">
                             <Button
                                 x:Name="ViewNowPlayingSong"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
                                 Background="Transparent"
                                 BorderThickness="0.5"
+                                RightTapped="ViewNowPlayingSong_RightTapped"
                                 Click="ViewNowPlayingSong_Click"
                                 Content="{x:Bind MyViewModel.CurrentPlayingSongView.Title, Mode=OneWay}"
                                 FontSize="24" />
@@ -125,9 +128,12 @@
                                 x:Name="ArtistBtn"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Bottom"
+                                
                                 Background="Transparent"
                                 Content="{x:Bind MyViewModel.CurrentPlayingSongView.OtherArtistsName, Mode=OneWay}"
                                 FontSize="24"
+                                Click="ArtistBtn_Click"
+                                RightTapped="ArtistBtn_RightTapped"
                                 PointerPressed="ArtistBtn_PointerPressed" />
 
                             <Button

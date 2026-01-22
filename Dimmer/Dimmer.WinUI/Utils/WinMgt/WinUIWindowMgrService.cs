@@ -158,7 +158,7 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
     {
         if (callerVM == null) return null;
 
-        T targetWindow = null;
+        T? targetWindow = null;
 
         if (_trackedUniqueTypedWindows.TryGetValue(typeof(T), out var existingGenericWindow) && existingGenericWindow is T existingTypedWindow)
         {
@@ -176,37 +176,37 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
         if (targetWindow == null)
         {
             windowFactory ??= () => Activator.CreateInstance<T>();
-           
-        }
-      
             T newWindow = windowFactory();
 
-        void OnNewWindowClosed(object sender, WindowEventArgs args)
-        {
-            // Unsubscribe to prevent memory leaks
-            newWindow.Closed -= OnNewWindowClosed;
+            void OnNewWindowClosed(object sender, WindowEventArgs args)
+            {
+                // Unsubscribe to prevent memory leaks
+                newWindow.Closed -= OnNewWindowClosed;
 
-            // Bring the original caller back to the front
-            try
-            {
-                //Debug.WriteLine($"Unique window '{newWindow.Title}' closed. Activating caller.");
-                //callerVM.ActivateMainWindow();
+                // Bring the original caller back to the front
+                try
+                {
+                    //Debug.WriteLine($"Unique window '{newWindow.Title}' closed. Activating caller.");
+                    //callerVM.ActivateMainWindow();
+                }
+                catch (Exception ex)
+                {
+                    // This might happen if the caller window was also closed in the meantime.
+                    Debug.WriteLine($"Could not activate caller window. It might be closed. Error: {ex.Message}");
+                }
             }
-            catch (Exception ex)
-            {
-                // This might happen if the caller window was also closed in the meantime.
-                Debug.WriteLine($"Could not activate caller window. It might be closed. Error: {ex.Message}");
-            }
+
+            newWindow.Closed += OnNewWindowClosed;
+
+            TrackWindow(newWindow);
+            _trackedUniqueTypedWindows[typeof(T)] = newWindow;
+            newWindow.Activate();
+            Debug.WriteLine($"Unique typed window created: {typeof(T).FullName}. It will activate its caller on close.");
+
+            targetWindow = newWindow;
         }
 
-        newWindow.Closed += OnNewWindowClosed;
-
-        TrackWindow(newWindow);
-        _trackedUniqueTypedWindows[typeof(T)] = newWindow;
-        newWindow.Activate();
-        Debug.WriteLine($"Unique typed window created: {typeof(T).FullName}. It will activate its caller on close.");
-
-        return newWindow;
+        return targetWindow;
     }
 
 
@@ -368,9 +368,15 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
         // 1 try to recover a live tracked one first
         if (!_openWindows.Contains(window) || !IsWindowOpen(window))
         {
-            
-            window.Activate();
-            TrackWindow(window);
+            try
+            {
+                window.Activate();
+                TrackWindow(window);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+            }
             return;
         }
 
@@ -378,9 +384,7 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
         IntPtr hwnd = WindowNative.GetWindowHandle(window);
         if (hwnd == IntPtr.Zero)
         {
-            window = new DimmerWin();
-            TrackWindow(window);
-            window.Activate();
+            Debug.WriteLine($"Window handle is invalid. Window may have been disposed.");
             return;
         }
 
@@ -389,9 +393,7 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
         AppWindow appWindow = AppWindow.GetFromWindowId(id);
         if (appWindow == null)
         {
-            window = new DimmerWin();
-            TrackWindow(window);
-            window.Activate();
+            Debug.WriteLine($"AppWindow is null. Window may have been disposed.");
             return;
         }
 
@@ -401,7 +403,6 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
 
         appWindow.MoveInZOrderAtTop();
         window.Activate();
-        return;
     }
 
     public void ActivateWindow(Window window)

@@ -1,8 +1,9 @@
 ﻿// --- START OF FILE FolderMgtService.cs ---
-using Microsoft.Extensions.Logging.Abstractions;
+using System.Threading.Tasks;
 // Add other necessary using statements
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
-using System.Threading.Tasks;
+using DynamicData;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Dimmer.Interfaces.Services;
 
@@ -53,7 +54,7 @@ public class FolderMgtService : IFolderMgtService
         }
         var realm = realmFactory.GetRealmInstance();
         var appModel = realm.All<AppStateModel>().FirstOrDefaultNullSafe();
-            var foldersToWatchPaths = appModel?.UserMusicFoldersPreference.Freeze().ToList() ?? new List<string>();
+            var foldersToWatchPaths = appModel?.UserMusicFolders.Freeze().AsEnumerable().Select(x => x.SystemFolderPath).ToList() ?? new List<string>();
             if (foldersToWatchPaths.Count <= 0)
                 foldersToWatchPaths = paths;
         if (foldersToWatchPaths?.Count==0)
@@ -80,9 +81,9 @@ public class FolderMgtService : IFolderMgtService
 
         await realm.WriteAsync(() =>
         {
-            appModel?.UserMusicFoldersPreference.Clear();
+            appModel?.UserMusicFolders.Clear();
             foreach (var p in SanitizedPaths)
-                appModel?.UserMusicFoldersPreference.Add(p);
+                appModel?.UserMusicFolders.Add(new() { SystemFolderPath=p,ReadableFolderPath=p});
         });
 
         var folderModels = foldersToWatchPaths.Select(p => new FolderModel { Path = p }).ToList();
@@ -138,15 +139,17 @@ public class FolderMgtService : IFolderMgtService
         }
         _logger.LogInformation("Updating folder in watch list: {Path}", path);
         var realm = realmFactory.GetRealmInstance();
-        var foldersToWatchPaths = realm.All<AppStateModel>().FirstOrDefaultNullSafe()?.UserMusicFoldersPreference;
+        var foldersToWatchPaths = realm.All<AppStateModel>().FirstOrDefaultNullSafe()?.UserMusicFolders;
         
         if (foldersToWatchPaths != null)
         {
-            var indexx = foldersToWatchPaths.IndexOf(path);
+            var fold = foldersToWatchPaths.First(x => x.SystemFolderPath == path);
+
+            var indexx = foldersToWatchPaths.IndexOf(fold);
             if (indexx != -1)
             {
                 // For simplicity, we just re-add the same path to trigger any internal updates.
-                realm.Write(() => foldersToWatchPaths[indexx] = path);
+                realm.Write(() => foldersToWatchPaths[indexx] = fold);
             }
             await StartWatchingConfiguredFoldersAsync();
         }
@@ -169,13 +172,12 @@ public class FolderMgtService : IFolderMgtService
         await realm.WriteAsync(() =>
         {
 
-            var foldersToWatchPaths = appModel?.UserMusicFoldersPreference ?? new List<string>();
+            var foldersToWatchPaths = appModel?.UserMusicFolders ;
 
-            if (!foldersToWatchPaths?.Contains(path, StringComparer.OrdinalIgnoreCase) == true)
+            var firstOfDef = foldersToWatchPaths?.FirstOrDefault(x => x.SystemFolderPath == path);
+            if (firstOfDef is null)
             {
-
-                foldersToWatchPaths?.Add(path);
-
+                foldersToWatchPaths?.Add(new() { SystemFolderPath = path, ReadableFolderPath = path });
             }
         });
 
@@ -200,15 +202,17 @@ public class FolderMgtService : IFolderMgtService
         {
             return;
         }
-        var knowPaths = appModel.UserMusicFoldersPreference ?? new List<string>();
+        var knowPaths = appModel.UserMusicFolders ;
         await realm.WriteAsync(async () =>
         {
             foreach (var path in paths)
             {
-                if (!knowPaths?.Contains(path, StringComparer.OrdinalIgnoreCase) == true)
+                var firstOfDef = knowPaths?.FirstOrDefault(x => x.SystemFolderPath == path);
+                if (firstOfDef is null)
                 {
+                 
 
-                    appModel.UserMusicFoldersPreference?.Add(path);
+                    appModel.UserMusicFolders?.Add(new() { SystemFolderPath = path, ReadableFolderPath = path });
                     newPathsToAdd.Add(path);
                 }
             }
@@ -232,9 +236,12 @@ public class FolderMgtService : IFolderMgtService
             return;
         var realm = realmFactory.GetRealmInstance();
         var appModel = realm.All<AppStateModel>().FirstOrDefault();
-        var foldersToWatchPaths = appModel?.UserMusicFoldersPreference ?? new List<string>();
-
-        bool removed = foldersToWatchPaths.Remove(path);
+        var foldersToWatchPaths = appModel?.UserMusicFolders ;
+        var firstOfDef = foldersToWatchPaths?.FirstOrDefault(x => x.SystemFolderPath == path);
+        if (foldersToWatchPaths is not null && firstOfDef is not null)
+        {
+            bool removed = foldersToWatchPaths.Remove(firstOfDef);
+        
         if (removed)
         {
             _logger.LogInformation("Removed folder from watch list and settings: {Path}", path);
@@ -245,11 +252,12 @@ public class FolderMgtService : IFolderMgtService
 
 
             _logger.LogInformation("Triggering library refresh after removing folder: {Path}", path);
-            await _libraryScanner.ScanLibrary(foldersToWatchPaths.Freeze().ToList());
+            await _libraryScanner.ScanLibrary(foldersToWatchPaths.Freeze().AsEnumerable().Select(x=>x.SystemFolderPath).ToList());
         }
         else
         {
             _logger.LogWarning("Folder {Path} not found in watch list settings for removal.", path);
+        }
         }
     }
 
@@ -257,7 +265,7 @@ public class FolderMgtService : IFolderMgtService
     {
         var realm = realmFactory.GetRealmInstance();
         var appModel = realm.All<AppStateModel>().FirstOrDefault();
-        var foldersToWatchPaths = appModel?.UserMusicFoldersPreference ?? new List<string>();
+        var foldersToWatchPaths = appModel?.UserMusicFolders;
 
         _logger.LogInformation("Clearing all watched folders and settings.");
         foldersToWatchPaths.Clear();
@@ -309,9 +317,11 @@ public class FolderMgtService : IFolderMgtService
             _logger.LogInformation("Watched sub-directory deleted: {FolderPath}. Triggering full library refresh.", e.FullPath);
             var realm = realmFactory.GetRealmInstance();
             var appModel = realm.All<AppStateModel>().FirstOrDefault();
-            var currentFolders = appModel?.UserMusicFoldersPreference ?? new List<string>();
-
-            await _libraryScanner.ScanLibrary(currentFolders.ToList());
+            var currentFolders = appModel?.UserMusicFolders;
+            if (currentFolders != null)
+            {
+                await _libraryScanner.ScanLibrary(currentFolders.AsEnumerable().Select(x => x.SystemFolderPath).ToList());
+            }
         }
     }
 
@@ -371,12 +381,12 @@ public class FolderMgtService : IFolderMgtService
     {
         var realm = realmFactory.GetRealmInstance();
         var appModel = realm.All<AppStateModel>().FirstOrDefault();
-        var foldersToWatchPaths = appModel?.UserMusicFoldersPreference ?? new List<string>();
+        var foldersToWatchPaths = appModel?.UserMusicFolders;
 
 
         if (foldersToWatchPaths == null)
             return false;
-        return foldersToWatchPaths.Any(watchedFolder => path.StartsWith(watchedFolder, StringComparison.OrdinalIgnoreCase));
+        return foldersToWatchPaths.Any(watchedFolder => path.StartsWith(watchedFolder.SystemFolderPath, StringComparison.OrdinalIgnoreCase));
     }
     private bool WasPathPreviouslyKnownAudio(string fullPath) {/* TODO: Check against current library if needed */ return false; }
     private bool WasPathPreviouslyWatchedSubfolder(string fullPath) {/* TODO: Check against known subfolders if needed */ return false; }

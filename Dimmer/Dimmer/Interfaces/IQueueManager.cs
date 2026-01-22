@@ -22,4 +22,9 @@ public interface IQueueManager<T> : IDisposable // 1. Implement IDisposable
     int CurrentBatchId { get; } // To get the batch ID associated with the Current item
 
     void Clear();
+    
+    // 4. Queue manipulation methods for reordering
+    void Move(int fromIndex, int toIndex);
+    void InsertRange(IEnumerable<T> items, int index);
+    void RemoveAt(int index);
 }

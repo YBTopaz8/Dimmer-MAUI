@@ -35,6 +35,7 @@ public static class AndroidContentScanner
     public static void Initialize()
     {
         TaggingUtils.PlatformSpecificScanner = ScanAndroidUri;
+        TaggingUtils.PlatformSpecificDeleter = DeleteAndroidUri;
 
         TaggingUtils.PlatformSpecificFileValidator = IsValidContentUri;
         TaggingUtils.PlatformFileExistsHook = ContentUriExists;
@@ -49,19 +50,22 @@ public static class AndroidContentScanner
             var uri = Android.Net.Uri.Parse(uriString);
             var context = Android.App.Application.Context;
 
-            // We just try to query for the ID column. If we get a row, it exists.
-            string[] projection = { Android.Provider.IBaseColumns.Id };
+            
+            DocumentFile? docFile = DocumentFile.FromSingleUri(context, uri);
+            if (docFile != null)
+            {
+                var boolVal = docFile.Exists();
 
-            using var cursor = context.ContentResolver?.Query(uri, projection, null, null, null);
-            var boolVal = cursor != null && cursor.MoveToFirst();
-            if (boolVal)
-            {
-                return true;
+                if (boolVal)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                } 
             }
-            else
-            {
-                return false;
-            }
+            return false;
         }
         catch
         {
@@ -92,7 +96,7 @@ public static class AndroidContentScanner
         {
             var uri = Android.Net.Uri.Parse(uriString);
             var context = Android.App.Application.Context;
-
+           
             // Query only the columns we need: Name and Size
             string[] projection = {
                 OpenableColumns.DisplayName,
@@ -111,10 +115,10 @@ public static class AndroidContentScanner
 
                 // 2. Check Extension via Display Name
                 int nameIndex = cursor.GetColumnIndex(OpenableColumns.DisplayName);
-                string fileName = (nameIndex != -1) ? cursor.GetString(nameIndex) : "";
+                string? fileName = (nameIndex != -1) ? cursor.GetString(nameIndex) : "";
 
                 // Use System.IO.Path just to split the string safely
-                string extension = Path.GetExtension(fileName);
+                string? extension = Path.GetExtension(fileName);
 
                 return !string.IsNullOrEmpty(extension) &&
                        supportedExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase);
@@ -140,17 +144,10 @@ public static class AndroidContentScanner
             var uri = Android.Net.Uri.Parse(uriString);
             var context = Android.App.Application.Context;
 
-            // We only need the Size column
-            string[] projection = { OpenableColumns.Size };
 
-            cursor = context.ContentResolver?.Query(uri, projection, null, null, null);
+            DocumentFile? docFile = DocumentFile.FromSingleUri(context, uri);
 
-            if (cursor != null && cursor.MoveToFirst())
-            {
-                int sizeIndex = cursor.GetColumnIndex(OpenableColumns.Size);
-                // Return the size, or 0 if column invalid
-                return (sizeIndex != -1) ? cursor.GetLong(sizeIndex) : 0;
-            }
+            return docFile is not null ? docFile.Length(): 0;
         }
         catch (Exception ex)
         {
@@ -173,7 +170,7 @@ public static class AndroidContentScanner
 
             // This is safe here because this file is inside Platforms/Android
             DocumentFile? rootDir = DocumentFile.FromTreeUri(context, treeUri);
-
+            
             if (rootDir != null && rootDir.CanRead())
             {
                 Traverse(rootDir, results, supportedExtensions);
@@ -186,9 +183,22 @@ public static class AndroidContentScanner
         return results;
     }
 
+    private static bool DeleteAndroidUri(string uriString)
+    {
+        var uri = Android.Net.Uri.Parse(uriString);
+        var context = Android.App.Application.Context;
+
+        DocumentFile? docFile = DocumentFile.FromSingleUri(context, uri);
+        if (docFile != null)
+        {
+            
+            return docFile.Delete();
+        }
+        return false;
+    }
     private static void Traverse(DocumentFile dir, List<string> results, IReadOnlySet<string> supportedExtensions)
     {
-        var files = dir.ListFiles();
+        DocumentFile[]? files = dir.ListFiles();
         if(files == null) return;
         foreach (var file in files)
         {
@@ -206,6 +216,7 @@ public static class AndroidContentScanner
                     {
                         // Return the playable URI
                         results.Add(file.Uri!.ToString()!);
+                        
                     }
                 }
             }

@@ -63,6 +63,7 @@ public class LibraryStatsFragment : Fragment
             TrackCornerRadius = AppUtil.DpToPx(4),
             LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, AppUtil.DpToPx(10))
         };
+        
         bar.SetIndicatorColor(color);
 
         ly.AddView(txt);

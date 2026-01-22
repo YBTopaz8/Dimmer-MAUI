@@ -11,26 +11,106 @@
     mc:Ignorable="d">
 
     <Page.Resources>
-        <ContentDialog x:Name="LyricsPreviewDialog" CloseButtonText="Close">
+        <ContentDialog 
+            x:Name="LyricsPreviewDialog" 
+            PrimaryButtonText="Apply" 
+            SecondaryButtonText="Edit"
+            CloseButtonText="Close"
+            PrimaryButtonClick="LyricsPreviewDialog_PrimaryButtonClick"
+            SecondaryButtonClick="LyricsPreviewDialog_SecondaryButtonClick">
             <ContentDialog.TitleTemplate>
                 <DataTemplate x:DataType="modelsLyrics:LrcLibLyrics">
-                    <TextBlock
-                        FontSize="18"
-                        FontWeight="SemiBold"
-                        TextWrapping="Wrap">
-                        <Run Text="{x:Bind TrackName}" />
-                        <Run Text=" - " />
-                        <Run Text="{x:Bind ArtistName}" />
-                    </TextBlock>
+                    <StackPanel Spacing="4">
+                        <TextBlock
+                            FontSize="18"
+                            FontWeight="SemiBold"
+                            TextWrapping="Wrap">
+                            <Run Text="{x:Bind TrackName}" />
+                            <Run Text=" - " />
+                            <Run Text="{x:Bind ArtistName}" />
+                        </TextBlock>
+                        <TextBlock
+                            FontSize="12"
+                            Opacity="0.7"
+                            Text="{x:Bind AlbumName}" />
+                    </StackPanel>
                 </DataTemplate>
             </ContentDialog.TitleTemplate>
 
-            <ScrollViewer MaxHeight="500">
-                <TextBlock
-                    x:Name="LyricsPreviewText"
-                    FontSize="14"
-                    TextWrapping="Wrap" />
-            </ScrollViewer>
+            <Grid MaxWidth="800" MaxHeight="600">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                
+                <!-- Metadata section -->
+                <Border 
+                    Grid.Row="0"
+                    Padding="12"
+                    Margin="0,0,0,8"
+                    Background="{ThemeResource LayerFillColorDefaultBrush}"
+                    CornerRadius="4">
+                    <StackPanel Spacing="4">
+                        <TextBlock FontSize="12" Opacity="0.8">
+                            <Run Text="Type: " FontWeight="SemiBold"/>
+                            <Run x:Name="LyricsTypeText" Text="Synced"/>
+                        </TextBlock>
+                        <TextBlock FontSize="12" Opacity="0.8">
+                            <Run Text="Duration: " FontWeight="SemiBold"/>
+                            <Run x:Name="LyricsDurationText"/>
+                        </TextBlock>
+                        <TextBlock 
+                            x:Name="InstrumentalIndicator"
+                            FontSize="12" 
+                            Opacity="0.8"
+                            Visibility="Collapsed">
+                            <Run Text="⚠ " FontWeight="SemiBold"/>
+                            <Run Text="Marked as Instrumental"/>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+
+                <!-- Lyrics content with TabView for synced/plain -->
+                <TabView Grid.Row="1" x:Name="LyricsTabView">
+                    <TabView.TabItems>
+                        <TabViewItem Header="Synced Lyrics" x:Name="SyncedTab">
+                            <ScrollViewer Padding="8">
+                                <TextBlock
+                                    x:Name="SyncedLyricsText"
+                                    FontSize="14"
+                                    FontFamily="Consolas"
+                                    IsTextSelectionEnabled="True"
+                                    TextWrapping="Wrap" />
+                            </ScrollViewer>
+                        </TabViewItem>
+                        <TabViewItem Header="Plain Lyrics" x:Name="PlainTab">
+                            <ScrollViewer Padding="8">
+                                <TextBlock
+                                    x:Name="PlainLyricsText"
+                                    FontSize="14"
+                                    IsTextSelectionEnabled="True"
+                                    TextWrapping="Wrap" />
+                            </ScrollViewer>
+                        </TabViewItem>
+                    </TabView.TabItems>
+                </TabView>
+                
+                <!-- Action buttons at bottom -->
+                <StackPanel 
+                    Grid.Row="2" 
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Right"
+                    Margin="0,8,0,0"
+                    Spacing="8">
+                    <Button 
+                        x:Name="TimestampButton"
+                        Content="Timestamp"
+                        Click="TimestampButton_Click"
+                        Style="{StaticResource AccentButtonStyle}"
+                        ToolTipService.ToolTip="Add timestamps to plain lyrics" />
+                </StackPanel>
+            </Grid>
         </ContentDialog>
     </Page.Resources>
 
@@ -85,7 +165,8 @@
             </StackPanel>
         </StackPanel>
 
-        <Grid Grid.Row="2">
+        <ScrollViewer Grid.Row="2" >
+            <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
@@ -187,7 +268,6 @@
                     x:Name="GoogleItBtn"
                     Content="Google it?" />
             </StackPanel>
-            <ScrollViewer Grid.Row="1">
                 <ItemsRepeater x:Name="FetchedLyricsIR" ItemsSource="{x:Bind MyViewModel.LyricsSearchResults}">
                     <ItemsRepeater.Layout>
                         <StackLayout Spacing="10" />
@@ -282,7 +362,7 @@
                         </DataTemplate>
                     </ItemsRepeater.ItemTemplate>
                 </ItemsRepeater>
-            </ScrollViewer>
+          
 
             <ScrollViewer Grid.Row="2">
                 <Grid>
@@ -325,6 +405,6 @@
                 </Grid>
             </ScrollViewer>
         </Grid>
-
+        </ScrollViewer>
     </Grid>
 </Page>
