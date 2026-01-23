@@ -6,6 +6,7 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 
 using Dimmer.LastFM;
+using Dimmer.WinUI.Views.CustomViews.WinuiViews;
 
 using Hqub.Lastfm.Entities;
 
@@ -159,11 +160,25 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
     }
 
     Microsoft.UI.Xaml.Controls.Button? SongTitlebutton;
-    private void SongTitle_Click(object sender, RoutedEventArgs e)
+    private async void SongTitle_Click(object sender, RoutedEventArgs e)
     {
         SongTitlebutton = sender as Button;
         trackModel = SongTitlebutton?.DataContext as Track;
         MyViewModel.SelectedTrack = trackModel;
+
+        // Check if track is on device
+        if (trackModel?.IsOnPresentDevice == false)
+        {
+            // Show LastFM info dialog instead of navigating
+            var dialog = new LastFmTrackInfoDialog
+            {
+                XamlRoot = this.XamlRoot
+            };
+            dialog.SetTrackInfo(trackModel);
+            await dialog.ShowAsync();
+            return;
+        }
+
         var songModelView = trackModel.IsOnPresentDevice ? MyViewModel.SearchResults.FirstOrDefault(song => song.Id.ToString() == trackModel?.OnDeviceObjectId)
             :null;
 

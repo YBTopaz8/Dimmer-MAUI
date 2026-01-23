@@ -72,8 +72,8 @@ public class LastFmInfoFragment : Fragment
         _tracksRecycler.SetLayoutManager(new LinearLayoutManager(ctx));
         _tracksRecycler.LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent);
 
-        // Initialize Adapter with empty list
-        _adapter = new LastFmTrackAdapter(ctx, new List<Track>());
+        // Initialize Adapter with empty list and click handler
+        _adapter = new LastFmTrackAdapter(ctx, new List<Track>(), OnTrackClicked);
         _tracksRecycler.SetAdapter(_adapter);
 
         root.AddView(_tracksRecycler);
@@ -201,13 +201,38 @@ public class LastFmInfoFragment : Fragment
     }
     private void LoadLovedTracks() { _adapter.UpdateData(new List<Track>()); }
 
+    private void OnTrackClicked(Track track)
+    {
+        if (track?.IsOnPresentDevice == false)
+        {
+            // Show bottom sheet for tracks not on device
+            var bottomSheet = new LastFmTrackInfoBottomSheet(track);
+            bottomSheet.Show(ChildFragmentManager, "LastFmTrackInfo");
+        }
+        else
+        {
+            // TODO: Navigate to song detail page for tracks on device
+            // This requires getting the SongModelView from the track's OnDeviceObjectId
+            // and navigating to the appropriate detail page/fragment
+            // For now, show the info bottom sheet for all tracks
+            var bottomSheet = new LastFmTrackInfoBottomSheet(track);
+            bottomSheet.Show(ChildFragmentManager, "LastFmTrackInfo");
+        }
+    }
+
     // --- ADAPTER ---
     class LastFmTrackAdapter : RecyclerView.Adapter
     {
         Context _ctx;
         List<Track> _items;
+        Action<Track> _onItemClick;
 
-        public LastFmTrackAdapter(Context ctx, List<Track> items) { _ctx = ctx; _items = items; }
+        public LastFmTrackAdapter(Context ctx, List<Track> items, Action<Track> onItemClick)
+        {
+            _ctx = ctx;
+            _items = items;
+            _onItemClick = onItemClick;
+        }
 
         public void UpdateData(List<Track> newItems)
         {
@@ -224,6 +249,8 @@ public class LastFmInfoFragment : Fragment
             root.LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, AppUtil.DpToPx(70));
             root.SetPadding(10, 10, 10, 10);
             root.SetGravity(GravityFlags.CenterVertical);
+            root.Clickable = true;
+            root.Focusable = true;
 
             // 1. Image (Weight 2)
             var img = new ImageView(_ctx);
@@ -261,7 +288,19 @@ public class LastFmInfoFragment : Fragment
             root.AddView(infoLay);
             root.AddView(statusLay);
 
-            return new TrackVH(root, img, title, artist, loveIcon, duration);
+            var vh = new TrackVH(root, img, title, artist, loveIcon, duration);
+            
+            // Set up click handler once in ViewHolder creation
+            root.Click += (sender, e) =>
+            {
+                var position = vh.BindingAdapterPosition;
+                if (position != RecyclerView.NoPosition && position < _items.Count)
+                {
+                    _onItemClick?.Invoke(_items[position]);
+                }
+            };
+
+            return vh;
         }
 
         public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
