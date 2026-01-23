@@ -769,8 +769,8 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     public async Task LoadFullArtistDetails(ArtistModelView artist)
     {
 
-        SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(artist.Name));
-        var tempVar = await lastfmService.GetArtistInfoAsync(artist.Name);
+        SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(artist.Name!));
+        var tempVar = await lastfmService.GetArtistInfoAsync(artist.Name!);
 
         if (tempVar is not null)
         {

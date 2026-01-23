@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="Dimmer.WinUI.Views.CustomViews.WinuiViews.ArcFabControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Dimmer.WinUI.Views.CustomViews.WinuiViews"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Loaded="ArcFabControl_Loaded"
+    SizeChanged="ArcFabControl_SizeChanged">
+
+    <Grid x:Name="RootGrid"
+                        Background="Transparent">
+
+        <!-- 1. Full Screen Dimmer -->
+        <Border x:Name="DimmerOverlay" 
+                Background="Transparent" 
+                Opacity="0" 
+                Visibility="Collapsed"
+                HorizontalAlignment="Stretch" 
+                VerticalAlignment="Stretch"
+                IsHitTestVisible="False"
+                PointerPressed="DimmerOverlay_PointerPressed"/>
+
+        <!-- 2. The Menu Container (Your OG Placement) -->
+        <Grid
+                        Background="Transparent" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="30">
+
+            <!-- 3. Pulse Ring (Centered behind FAB) -->
+            <Ellipse x:Name="PulseRing"
+                     Width="56" Height="56"
+                     Stroke="{ThemeResource SystemControlHighlightAccentBrush}"
+                     StrokeThickness="2"
+                     Opacity="0"
+                     IsHitTestVisible="False"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Center"
+                     RenderTransformOrigin="0.5,0.5">
+                <Ellipse.RenderTransform>
+                    <CompositeTransform x:Name="PulseScale" ScaleX="1" ScaleY="1"/>
+                </Ellipse.RenderTransform>
+            </Ellipse>
+
+            <!-- 4. Sub-Buttons Container -->
+            <!-- They are added here. Since it's a Grid, they stack perfectly centered by default -->
+            <Grid x:Name="SubItemsContainer" 
+                        Background="Transparent"
+                  HorizontalAlignment="Center" 
+                  VerticalAlignment="Center"
+                  Width="56" Height="56" />
+
+            <!-- 5. Main FAB -->
+            <Grid x:Name="MainFabContainer" Width="60" Height="60"
+                        Background="Transparent">
+                <!-- Shadow for Main Button -->
+                <Grid.Shadow>
+                    <ThemeShadow />
+                </Grid.Shadow>
+                <!-- Lift up -->
+
+                <Button x:Name="MainFab"
+                        Width="60" Height="60" CornerRadius="30"
+                        Background="Transparent"
+                        Padding="0"
+                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                        Click="MainFab_Click"
+                        RightTapped="MainFab_RightTapped">
+                    <FontIcon Glyph="&#xE710;" FontSize="24" Foreground="White" x:Name="MainIcon" RenderTransformOrigin="0.5,0.5">
+                        <FontIcon.RenderTransform>
+                            <RotateTransform Angle="0" />
+                        </FontIcon.RenderTransform>
+                    </FontIcon>
+                </Button>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>
