@@ -36,7 +36,7 @@ public class RealmFactory : IRealmFactory
         // Set schema version to 5.
         _config = new RealmConfiguration(filePath)
         {
-            SchemaVersion = 17,
+            SchemaVersion = 20,
         //    Schema = new[]
         //    {
         //        typeof(AppStateModel),

@@ -1,9 +1,24 @@
-﻿using Dimmer.WinUI.UiUtils;
+﻿using Android.Content;
+using AndroidX.Lifecycle;
+using Dimmer.DimmerSearch;
+using Dimmer.UiUtils;
+using Google.Android.Material.Chip;
 
 namespace Dimmer.ViewsAndPages.NativeViews.Misc;
 
 public class ArtistPickerBottomSheet : BottomSheetDialogFragment
 {
+    public ArtistPickerBottomSheet(BaseViewModelAnd vm, string listOfArtistString)
+
+    {
+        MyViewModel = vm;
+        ListOfArtistsInSong = listOfArtistString.Split(", ").ToList();
+    }
+
+    public BaseViewModelAnd MyViewModel { get; }
+    public List<string> ListOfArtistsInSong { get; }
+    public TextInputLayout searchInput { get; private set; }
+
     public override View? OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         var context = Context;
@@ -12,24 +27,21 @@ public class ArtistPickerBottomSheet : BottomSheetDialogFragment
         layout.SetPadding(32, 32, 32, 32);
 
         // Title
-        var title = new TextView(context) { Text = "Select Artist", TextSize = 22 };
+        var title = new TextView(context) { Text = $"Select Artist", TextSize = 22 };
+        title.SetPadding(8, 8, 8, 8);
         title.SetTypeface(null, Android.Graphics.TypefaceStyle.Bold);
         layout.AddView(title);
 
         // Search Bar
-        var searchInput = UiBuilder.CreateInput(context, "Search Artists...", "");
+        searchInput = UiBuilder.CreateInput(context, string.Empty, "");
         layout.AddView(searchInput);
 
         // RecyclerView for Artists
         var recyclerView = new RecyclerView(context);
         recyclerView.SetLayoutManager(new LinearLayoutManager(context));
         // In a real app, pass your ViewModel's Artist list here
-        var dummyData = new string[] { "Adele", "Arctic Monkeys", "Beyonce", "Coldplay", "Drake", "Eminem" }.ToList();
-        recyclerView.SetAdapter(new SimpleStringAdapter(dummyData, (selected) => {
-            // Handle Selection (Callback to parent fragment)
-            Toast.MakeText(context, $"Selected {selected}", ToastLength.Short)?.Show();
-            Dismiss();
-        }));
+        
+        recyclerView.SetAdapter(new ArtistBottomSheetRecyclerViewAdapter(ListOfArtistsInSong, MyViewModel, this));
 
         layout.AddView(recyclerView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, 800)); // Fixed height or use weight
 
@@ -37,36 +49,97 @@ public class ArtistPickerBottomSheet : BottomSheetDialogFragment
     }
 
     // Simple Adapter for the list
-    class SimpleStringAdapter : RecyclerView.Adapter
+    class ArtistBottomSheetRecyclerViewAdapter : RecyclerView.Adapter
     {
-        private List<string> _items;
-        private Action<string> _onClick;
+        private List<string> _artistNames;
 
-        public SimpleStringAdapter(List<string> items, Action<string> onClick) { _items = items; _onClick = onClick; }
+        public BaseViewModelAnd MyViewModel { get; }
+        public ArtistPickerBottomSheet ArtistPickerBottomSheet { get; }
 
-        public override int ItemCount => _items.Count;
+        public ArtistBottomSheetRecyclerViewAdapter(List<string> items
+            ,BaseViewModelAnd vm,
+ArtistPickerBottomSheet artistPickerBottomSheet) 
+        { 
+            _artistNames = items;
+            MyViewModel = vm;
+            ArtistPickerBottomSheet = artistPickerBottomSheet;
+        }
+
+        public override int ItemCount => _artistNames.Count;
 
         public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
         {
-            var vh = holder as VHolder;
-            vh.Text.Text = _items[position];
-            vh.ItemView.Click += (s, e) =>
+            if (holder is ArtistPickerVHolder songHolder)
             {
-                _onClick(_items[position]);
-            };
+                var artist = _artistNames[position];
+                songHolder.BindData(ArtistPickerBottomSheet, artist);
+
+            }
         }
 
         public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType)
         {
-            var tv = new TextView(parent.Context) { TextSize = 18 };
-            tv.SetPadding(24, 24, 24, 24);
-            return new VHolder(tv);
+            MaterialCardView? card = UiBuilder.CreateCard(parent.Context);
+
+            var hLL = new LinearLayout (parent.Context);    
+            hLL.Orientation = Android.Widget.Orientation.Horizontal;
+
+            var artistBtn = new MaterialButton(parent.Context);
+
+            artistBtn.SetPadding(24, 24, 24, 24);
+
+            var TQLChip = new Chip(parent.Context);
+            TQLChip.SetChipIconResource(Resource.Drawable.searchd);
+
+            var FavArtistChip = new Chip(parent.Context);
+            FavArtistChip.SetChipIconResource(Resource.Drawable.heart);
+            
+
+            var ViewChip = new Chip(parent.Context);
+            ViewChip.SetChipIconResource(Resource.Drawable.eye);
+            
+            hLL.AddView(artistBtn);
+            hLL.AddView(TQLChip);
+            hLL.AddView(FavArtistChip);
+            hLL.AddView(ViewChip);
+            card.AddView(hLL);
+
+            return new ArtistPickerVHolder(card,artistBtn,TQLChip,FavArtistChip,ViewChip, MyViewModel);
         }
 
-        class VHolder : RecyclerView.ViewHolder
+        class ArtistPickerVHolder : RecyclerView.ViewHolder
         {
-            public TextView Text => (TextView)ItemView;
-            public VHolder(View v) : base(v) { }
+            public MaterialCardView ContainerView ;
+            public MaterialButton ArtistBtnView;
+
+            BaseViewModelAnd MyViewModel { get; }
+
+            public ArtistPickerVHolder(MaterialCardView container, MaterialButton artistBtn, Chip tQLChip, Chip favArtistChip, Chip viewChip, BaseViewModelAnd myViewModel) : base(container)
+            {
+                MyViewModel = myViewModel;
+
+                ContainerView = container;
+                ArtistBtnView = artistBtn;
+
+
+                ArtistBtnView.Click += (s, e) =>
+                {
+
+                    MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(ArtistName)
+                        );
+                    parent?.Dismiss();
+                    Toast.MakeText(container.Context, $"Selected {ArtistName}", ToastLength.Short)?.Show();
+                };
+            }
+            ArtistPickerBottomSheet? parent;
+            string? ArtistName;
+
+
+            public void BindData ( ArtistPickerBottomSheet artistPickerBottomSheet, string artist)
+            {
+                parent = artistPickerBottomSheet;
+                ArtistName=artist;
+            }
         }
     }
 }

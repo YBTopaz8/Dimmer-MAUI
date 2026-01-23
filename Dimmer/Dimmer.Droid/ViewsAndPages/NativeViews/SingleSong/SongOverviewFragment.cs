@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 using AndroidX.Lifecycle;
 
 using CommunityToolkit.Diagnostics;
-
-using Dimmer.WinUI.UiUtils;
+using Dimmer.UiUtils;
+using Dimmer.ViewsAndPages.NativeViews.ArtistSection;
 using Microsoft.Maui;
 
 namespace Dimmer.ViewsAndPages.NativeViews.SingleSong;
 
-public class SongOverviewFragment : Fragment
+public partial class SongOverviewFragment : Fragment
 {
     private BaseViewModelAnd viewModel;
 
@@ -55,7 +55,7 @@ public class SongOverviewFragment : Fragment
         // Parity: Navigate to Artist
         artistBtn.Click += (s, e) =>
         {
-            viewModel.NavigateToArtistPage(this, "artist_trans", SelectedSong.OtherArtistsName, artistBtn);
+            viewModel.NavigateToAnyPageOfGivenType(this, new ArtistFragment(viewModel,SelectedSong.OtherArtistsName, viewModel.SelectedSong.Id.ToString()), viewModel.SelectedSong.Id.ToString());
         };
         var genreBtn = new MaterialButton(ctx, null, Resource.Attribute.borderlessButtonStyle) { Text = SelectedSong.GenreName, TextSize = 18 };
         // Parity: Navigate to Artist

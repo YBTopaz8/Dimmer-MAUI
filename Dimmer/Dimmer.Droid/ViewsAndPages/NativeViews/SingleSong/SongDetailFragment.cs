@@ -66,7 +66,7 @@ public class SongDetailFragment : Fragment , IOnBackInvokedCallback
                               AppBarLayout.LayoutParams.ScrollFlagSnap // Snaps to open/closed
             }
         };
-
+        
         // Initial Title
         _collapsingToolbar.SetTitle(_song?.Title ?? "Details");
 

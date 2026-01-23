@@ -1,14 +1,17 @@
 ﻿
 
 
+using Android.Content;
 using Android.Graphics.Drawables.Shapes;
-
-using Dimmer.WinUI.UiUtils;
+using Android.Text;
+using Dimmer.UiUtils;
+using Dimmer.Utils.Extensions;
 
 namespace Dimmer.ViewsAndPages.NativeViews;
 
 public partial class SongInfoBottomSheetFragment : BottomSheetDialogFragment
 {
+    private  TextView _songTitleTv;
     private BaseViewModelAnd MyViewModel;
     
     private SongModelView currentSong;
@@ -23,6 +26,7 @@ public partial class SongInfoBottomSheetFragment : BottomSheetDialogFragment
     }
 
     public TextView ArtisttotalNumberOfPlaysCompleted { get; private set; }
+    public ImageView SongImg { get; private set; }
 
     public override View? OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
@@ -30,13 +34,7 @@ public partial class SongInfoBottomSheetFragment : BottomSheetDialogFragment
 
         var ctx = Context;
 
-        var songTitle = new TextView(ctx!)
-        {
-            Text = currentSong.Title,
-            TextSize = 20f,
-            Typeface = Typeface.DefaultBold,
-            Gravity = GravityFlags.Center
-        };
+       
 
 
 
@@ -111,7 +109,38 @@ public partial class SongInfoBottomSheetFragment : BottomSheetDialogFragment
         {
             Orientation = Orientation.Vertical,
         };
-        verticalLinearLayout.AddView(songTitle);
+
+        var horizontalStackLayout = new LinearLayout(Context);
+        horizontalStackLayout.Orientation = Android.Widget.Orientation.Horizontal;
+        horizontalLayout.SetGravity(GravityFlags.CenterHorizontal);
+        // 3. Header: Title (Marquee)
+        _songTitleTv = new TextView(ctx)
+        {
+            TextSize = 24,
+            Typeface = Typeface.DefaultBold,
+            Ellipsize = TextUtils.TruncateAt.Marquee,
+            HorizontalFadingEdgeEnabled = true,
+            Selected = true // Required for Marquee
+        };
+        _songTitleTv.SetSingleLine(true);
+        _songTitleTv.SetTextColor(Android.Graphics.Color.White);
+        _songTitleTv.Text = MyViewModel.SelectedSong.Title;
+        SongImg = new ImageView(ctx);
+
+        var llyt = new ViewGroup.LayoutParams(AppUtil.DpToPx(80), AppUtil.DpToPx(80));
+        SongImg.SetScaleType(ImageView.ScaleType.CenterCrop);
+        SongImg.LayoutParameters = llyt;
+
+        if (MyViewModel.SelectedSong is not null)
+        {
+            SongImg.SetImageWithGlide(MyViewModel.SelectedSong.CoverImagePath);
+
+        }
+        horizontalStackLayout.AddView(SongImg);
+        horizontalStackLayout.AddView(_songTitleTv);
+
+
+        verticalLinearLayout.AddView(horizontalStackLayout);
         verticalLinearLayout.AddView(horizontalLayout);
 
         songCardVieww.AddView(verticalLinearLayout);

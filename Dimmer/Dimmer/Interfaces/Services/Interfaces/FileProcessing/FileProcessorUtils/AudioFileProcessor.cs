@@ -64,7 +64,7 @@ public class AudioFileProcessor : IAudioFileProcessor
                 {
                     if (TaggingUtils.PlatformGetStreamHook != null)
                     {
-                        using (var fileStream = TaggingUtils.PlatformGetStreamHook(filePath))
+                        using (Stream? fileStream = TaggingUtils.PlatformGetStreamHook(filePath))
                         {
 
                             if (fileStream == null)
@@ -172,7 +172,7 @@ public class AudioFileProcessor : IAudioFileProcessor
                 BitRate = track.Bitrate,
                 FileSize = actualFileSize,
                 FileFormat = Path.GetExtension(filePath).TrimStart('.').ToLowerInvariant(),
-
+                PlatformPath=filePath,
                 // Tag Info
                 ReleaseYear = track.Year,
                 TrackNumber = track.TrackNumber,

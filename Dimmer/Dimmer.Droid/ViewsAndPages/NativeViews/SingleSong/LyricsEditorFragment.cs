@@ -3,8 +3,7 @@
 using Bumptech.Glide;
 
 using Dimmer.Data.Models.LyricsModels;
-using Dimmer.WinUI.UiUtils;
-
+using Dimmer.UiUtils;
 using Google.Android.Material.ProgressIndicator;
 
 using ScrollView = Android.Widget.ScrollView;
@@ -124,12 +123,12 @@ public class LyricsEditorFragment : Fragment
         _searchAlbum = UiBuilder.CreateInput(context, "Album", "");
 
         var btnRow = new LinearLayout(context) { Orientation = Orientation.Horizontal };
-        var searchBtn = UiBuilder.CreateMaterialButton(context,this.Resources.Configuration, clickAction: (s, e) => 
+        var searchBtn = UiBuilder.CreateMaterialButton(context, clickAction: (s, e) => 
         { 
             _viewModel.SearchLyricsCommand.ExecuteAsync(null);
             progressIndicator.Visibility = ViewStates.Visible;
         }, iconRes: Resource.Drawable.searchd);
-        var pasteBtn = UiBuilder.CreateMaterialButton(context, this.Resources.Configuration, clickAction: (s, e) => 
+        var pasteBtn = UiBuilder.CreateMaterialButton(context,clickAction: (s, e) => 
         {
             _viewModel.AutoFillSearchFields();
 
@@ -217,11 +216,9 @@ public class LyricsEditorFragment : Fragment
             var btnPanel = new LinearLayout(parent.Context) { Orientation = Orientation.Horizontal};
             btnPanel.SetGravity(GravityFlags.Right);
             
-            viewBtnResult = UiBuilder.CreateMaterialButton(_ctx, parent.Resources?.Configuration
-                 , null, sizeDp:30, iconRes:Resource.Drawable.eye);
+            viewBtnResult = UiBuilder.CreateMaterialButton(_ctx,  null, sizeDp:30, iconRes:Resource.Drawable.eye);
 
-            applyBtnResult = UiBuilder.CreateMaterialButton(parent.Context!, parent.Resources?.Configuration
-                ,null, sizeDp:30, iconRes:Resource.Drawable.savea);
+            applyBtnResult = UiBuilder.CreateMaterialButton(parent.Context!, null, sizeDp:30, iconRes:Resource.Drawable.savea);
 
 
 
@@ -264,13 +261,13 @@ public class LyricsEditorFragment : Fragment
             public void Bind(LrcLibLyrics lyrObj)
             {
                 SyncedLyrics.Text = lyrObj.SyncedLyrics;
-               //IsSyncLyrics.Text  = (!(lyrObj.SyncedLyrics?.Length <1)).ToString();
-                //ArtistName.Text = lyrObj.ArtistName;
-                //AlbumName.Text = lyrObj.AlbumName;
-                //Duration.Text = lyrObj.Duration.ToString();
-                //Instrumental.Text = lyrObj.Instrumental.ToString();
+                IsSyncLyrics.Text = (!(lyrObj.SyncedLyrics?.Length < 1)).ToString();
+                ArtistName.Text = lyrObj.ArtistName;
+                AlbumName.Text = lyrObj.AlbumName;
+                Duration.Text = lyrObj.Duration.ToString();
+                Instrumental.Text = lyrObj.Instrumental.ToString();
                 Title.Text = lyrObj.TrackName;
-                //PlainLyrics.Text = lyrObj.PlainLyrics;
+                PlainLyrics.Text = lyrObj.PlainLyrics;
             }
 
         }

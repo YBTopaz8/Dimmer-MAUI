@@ -19,13 +19,13 @@ public sealed partial class SettingsPage : Page
         InitializeComponent();
     }
 
-    SettingsViewModel? MyViewModel { get; set; }
+    SettingsViewModelWin MyViewModel { get; set; }
 
     string CurrentPageTQL = string.Empty;
     protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
-        MyViewModel ??= IPlatformApplication.Current?.Services.GetService<SettingsViewModel>();
+        MyViewModel ??= IPlatformApplication.Current?.Services.GetService<SettingsViewModelWin>();
         var baseVM = IPlatformApplication.Current?.Services.GetService<BaseViewModelWin>();
         // The parameter passed from Frame.Navigate is in e.Parameter.
         // Cast it to your ViewModel type and set your properties.
@@ -85,18 +85,15 @@ public sealed partial class SettingsPage : Page
         {
             case "MusicFoldersBtn":
                 MusicFoldersBtn.Background = new SolidColorBrush(Microsoft.UI.Colors.DarkSlateBlue);
-                LastFMBtn.Background = new SolidColorBrush(Microsoft.UI.Colors.Gray);
-                UtilsBtn.Background = new SolidColorBrush(Microsoft.UI.Colors.DarkSlateBlue);
+                
                 break;
             case "LastFMBtn":
                 MusicFoldersBtn.Background = new SolidColorBrush(Microsoft.UI.Colors.Gray);
-                LastFMBtn.Background = new SolidColorBrush(Microsoft.UI.Colors.DarkSlateBlue);
-                UtilsBtn.Background = new SolidColorBrush(Microsoft.UI.Colors.DarkSlateBlue);
+                
                 break;
             case "UtilsBtn":
                 MusicFoldersBtn.Background = new SolidColorBrush(Microsoft.UI.Colors.Gray);
-                LastFMBtn.Background = new SolidColorBrush(Microsoft.UI.Colors.Gray);
-                UtilsBtn.Background = new SolidColorBrush(Microsoft.UI.Colors.DarkSlateBlue);
+                
                 break;
             default:
                 break;
@@ -270,5 +267,111 @@ public sealed partial class SettingsPage : Page
         }
     }
 
-   
+    private void AppPreferences_Click(object sender, RoutedEventArgs e)
+    {
+        WizardFlipView.SelectedIndex = 1;   
+    }
+
+    private void MusicFoldersGrid_Loaded(object sender, RoutedEventArgs e)
+    {
+        MyViewModel.GetLibState();
+        if(MyViewModel.IsLibraryEmpty)
+        {
+            AddMusicFolderTip.IsOpen = true;
+        }
+        MyViewModel.BaseViewModelWin.WhenPropertyChange(nameof(MyViewModel.BaseViewModelWin.FolderPaths), x => MyViewModel.BaseViewModelWin.FolderPaths)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(obsCol =>
+            {
+                if(obsCol.Count >= 1)
+                {
+                    if(AddMusicFolderTip.IsOpen)
+                    {
+                        AddMusicFolderTip.IsOpen = false;
+                    }
+                }
+            });
+    }
+
+    private void OptionLogBtn_Loaded(object sender, RoutedEventArgs e)
+    {
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.IsAppLoadingCovers), v => MyViewModel.IsAppLoadingCovers)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(isLoadingCovers =>
+            {
+                if (isLoadingCovers)
+                {
+                    OptionLogBtn.Content = "View Songs";
+                    OptionLogBtn.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+                    OptionLogBtn.Click += OptionLogBtn_Click;
+                }
+                else
+                {
+                    OptionLogBtn.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+                    OptionLogBtn.Click -= OptionLogBtn_Click;
+                }
+            });
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.IsAppScanning), v => MyViewModel.IsAppScanning)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(IsAppScanning =>
+            {
+                if (IsAppScanning && !MyViewModel.IsLibraryEmpty)
+                {
+                    OptionLogBtn.Content = "View Songs";
+                    OptionLogBtn.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+                    OptionLogBtn.Click += OptionLogBtn_Click;
+                }
+                else
+                {
+                    OptionLogBtn.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+                    OptionLogBtn.Click -= OptionLogBtn_Click;
+                }
+            });
+    }
+
+    private void OptionLogBtn_Click(object sender, RoutedEventArgs e)
+    {
+        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.DescAdded());
+        MyViewModel.BaseViewModelWin.NavigateToAnyPageOfGivenType(typeof(AllSongsListPage));
+    }
+
+    private void AutoScrobbleToggle_Checked(object sender, RoutedEventArgs e)
+    {
+        MyViewModel.ToggleLastFMScrobbling(true);
+        AutoScrobbleToggle.Content = "Scrobble On Complete";
+    }
+
+    private void AutoScrobbleToggle_Unchecked(object sender, RoutedEventArgs e)
+    {
+
+        AutoScrobbleToggle.Content = "No Scrobble On Complete";
+        MyViewModel.ToggleLastFMScrobbling(false);
+    }
+
+    private void BackUpData_Click(object sender, RoutedEventArgs e)
+    {
+        MyViewModel.BackUpAppData();
+        
+    }
+
+    private async void RestoreData_Click(object sender, RoutedEventArgs e)
+    {
+        await MyViewModel.BaseViewModelWin.LoadFolderToScanForBackUpFiles();
+    }
+
+    private void FetchLyricsData_Click(object sender, RoutedEventArgs e)
+    {
+        CancellationTokenSource cts = new CancellationTokenSource();
+        _ = Task.Run(async () => await MyViewModel.LoadAllSongsLyricsFromOnlineAsync(cts));
+    }
+
+    private void ReloadCoversCache_Click(object sender, RoutedEventArgs e)
+    {
+        _ = Task.Run(()=>MyViewModel.EnsureAllCoverArtCachedForSongsAsync());
+    }
+
+    private void LoadAlbumAndArtistInfoFromLastFM_Click(object sender, RoutedEventArgs e)
+    {
+        MyViewModel.BaseViewModelWin.LoadAlbumAndArtistDetailsFromLastFM();
+    }
 }

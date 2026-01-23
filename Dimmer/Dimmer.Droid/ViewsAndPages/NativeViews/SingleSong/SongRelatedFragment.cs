@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Bumptech.Glide;
+using Dimmer.UiUtils;
 
 namespace Dimmer.ViewsAndPages.NativeViews.SingleSong;
 
@@ -52,9 +53,24 @@ public class SongRelatedFragment : Fragment
         public override int ItemCount => _items.Count;
         public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType)
         {
+            var ctx = parent.Context;
+            var ll = new LinearLayout(ctx);
+
             var img = new ImageView(parent.Context) { LayoutParameters = new ViewGroup.LayoutParams(300, 300)};
             img.SetScaleType(ImageView.ScaleType.CenterCrop);
-            return new SimpleVH(img); // Reuse SimpleVH or define local
+            
+            ll.AddView(img);
+            var txtView = new TextView(ctx);
+            txtView.Selected = true;
+            txtView.Ellipsize = Android.Text.TextUtils.TruncateAt.Marquee;
+            ll.AddView(txtView);
+            
+           MaterialCardView? cardView = UiBuilder.CreateCard(ctx);
+
+
+            cardView.AddView(ll);
+            
+            return new SimpleVH(cardView, img, txtView); // Reuse SimpleVH or define local
         }
         public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
         {
@@ -62,8 +78,23 @@ public class SongRelatedFragment : Fragment
             if (!string.IsNullOrEmpty(_items[position].CoverImagePath))
                 Glide.With(img.Context).Load(_items[position].CoverImagePath).Into(img);
 
-            img.Click += async (s, e) => await _vm.PlaySongAsync(_items[position], CurrentPage.AllSongs);
+            img.Click += async (s, e) =>
+            {
+                await _vm.PlaySongAsync(_items[position], CurrentPage.AllSongs);
+            };
         }
-        class SimpleVH : RecyclerView.ViewHolder { public SimpleVH(View v) : base(v) { } }
+        class SimpleVH : RecyclerView.ViewHolder 
+        {
+            private readonly CardView _container;
+            private readonly ImageView img;
+            private readonly TextView txtView;
+
+            public SimpleVH(MaterialCardView v, ImageView img, TextView txtView) : base(v) 
+            {
+                this._container = v;
+                this.img = img;
+                this.txtView = txtView;
+            } 
+        }
     }
 }

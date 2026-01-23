@@ -13,7 +13,6 @@ using AndroidX.Lifecycle;
 using Bumptech.Glide;
 using CommunityToolkit.Diagnostics;
 using DynamicData.Binding;
-
 using Kotlin;
 
 namespace Dimmer.ViewsAndPages.NativeViews;
@@ -21,12 +20,16 @@ namespace Dimmer.ViewsAndPages.NativeViews;
 
 internal class LyricsViewFragment : Fragment, IOnBackInvokedCallback,IOnBackAnimationCallback
 {
-    private BaseViewModelAnd viewModel;
+    private BaseViewModelAnd MyViewModel;
+
+    public Button ViewCurrentSongBtn { get; private set; }
+
     private RecyclerView _lyricsRecyclerView;
     private LyricsAdapter _adapter;
     private ImageView _backgroundImageView;
     private TextView _songTitleTv, _artistAlbumTv;
     private bool _isScreenKeepOnSetByThisFragment = false;
+    private ImageView songImg;
 
     public LyricsViewFragment(BaseViewModelAnd? viewModel)
     {
@@ -35,7 +38,7 @@ internal class LyricsViewFragment : Fragment, IOnBackInvokedCallback,IOnBackAnim
             throw new ArgumentNullException(nameof(viewModel));
         }
 
-        this.viewModel = viewModel!;
+        this.MyViewModel = viewModel!;
     }
 
     public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
@@ -50,10 +53,12 @@ internal class LyricsViewFragment : Fragment, IOnBackInvokedCallback,IOnBackAnim
             
         };
         _backgroundImageView.SetScaleType(ImageView.ScaleType.CenterCrop);
-        Glide.With(this)
-            .Load(viewModel.CurrentPlayingSongView.CoverImagePath)
-            .Into(_backgroundImageView);
-
+        if (MyViewModel.SelectedSong is not null)
+        {
+            Glide.With(this)
+                .Load(MyViewModel.SelectedSong.CoverImagePath)
+                .Into(_backgroundImageView);
+        }
         root.AddView(_backgroundImageView);
 
         // Dark Overlay for readability
@@ -72,6 +77,9 @@ internal class LyricsViewFragment : Fragment, IOnBackInvokedCallback,IOnBackAnim
         };
         mainContainer.SetPadding(40, 60, 40, 0);
 
+        var horizontalStackLayout = new LinearLayout(Context);
+        horizontalStackLayout.Orientation = Android.Widget.Orientation.Horizontal;
+
         // 3. Header: Title (Marquee)
         _songTitleTv = new TextView(context)
         {
@@ -84,18 +92,38 @@ internal class LyricsViewFragment : Fragment, IOnBackInvokedCallback,IOnBackAnim
         _songTitleTv.SetSingleLine(true);
         _songTitleTv.SetTextColor(Android.Graphics.Color.White);
 
+        songImg = new ImageView(context);
+
+        var llyt = new ViewGroup.LayoutParams(AppUtil.DpToPx(80), AppUtil.DpToPx(80));
+        songImg.SetScaleType(ImageView.ScaleType.CenterCrop);
+        songImg.LayoutParameters = llyt;
+
+        if (MyViewModel.SelectedSong is not null)
+        {
+            Glide.With(this)
+                .Load(MyViewModel.SelectedSong.CoverImagePath)
+                .Into(songImg);
+        }
+        horizontalStackLayout.AddView(songImg);
+        horizontalStackLayout.AddView(_songTitleTv);
+
         // 4. Header: Artist • Album (Marquee)
         _artistAlbumTv = new TextView(context)
         {
-            TextSize = 16,
+            TextSize = 18,
             Ellipsize = TextUtils.TruncateAt.Marquee,
             Selected = true
         };
         _artistAlbumTv.SetSingleLine(true);
         _artistAlbumTv.SetTextColor(Android.Graphics.Color.LightGray);
 
-        mainContainer.AddView(_songTitleTv);
+        mainContainer.AddView(horizontalStackLayout);
         mainContainer.AddView(_artistAlbumTv);
+        ViewCurrentSongBtn = new Button(Context!);
+
+        ViewCurrentSongBtn.SetIconResource(Resource.Drawable.musiccircle);
+        ViewCurrentSongBtn.Visibility = ViewStates.Gone;
+
 
         // 5. Lyrics RecyclerView
         _lyricsRecyclerView = new RecyclerView(context)
@@ -104,20 +132,20 @@ internal class LyricsViewFragment : Fragment, IOnBackInvokedCallback,IOnBackAnim
         };
         _lyricsRecyclerView.SetLayoutManager(new LinearLayoutManager(context));
 
-        _adapter = new LyricsAdapter(viewModel.AllLines!);
+        _adapter = new LyricsAdapter(MyViewModel.AllLines!);
         _lyricsRecyclerView.SetAdapter(_adapter);
 
         mainContainer.AddView(_lyricsRecyclerView);
         root.AddView(mainContainer);
        
-        _songTitleTv.Text = viewModel.SelectedSong?.Title;
+        _songTitleTv.Text = MyViewModel.SelectedSong?.Title;
         _songTitleTv.Click += async (s, e) =>
         {
-            await viewModel.PlaySongAsync(viewModel.SelectedSong);
+            await MyViewModel.PlaySongAsync(MyViewModel.SelectedSong);
         };
-        _artistAlbumTv.Text = $"{viewModel.SelectedSong?.ArtistName}  •  {viewModel.SelectedSong?.AlbumName}";
+        _artistAlbumTv.Text = $"{MyViewModel.SelectedSong?.ArtistName}  •  {MyViewModel.SelectedSong?.AlbumName}";
 
-        if (viewModel.CurrentPlayingSongView == viewModel.SelectedSong)
+        if (MyViewModel.CurrentPlayingSongView == MyViewModel.SelectedSong)
         { 
             SetupBindings();
         }
@@ -128,7 +156,7 @@ internal class LyricsViewFragment : Fragment, IOnBackInvokedCallback,IOnBackAnim
     public override void OnViewCreated(View view, Bundle? savedInstanceState)
     {
         base.OnViewCreated(view, savedInstanceState);
-        viewModel.CurrentFragment = this;
+        MyViewModel.CurrentFragment = this;
     }
     
     public override void OnResume()
@@ -151,7 +179,7 @@ internal class LyricsViewFragment : Fragment, IOnBackInvokedCallback,IOnBackAnim
 
     private bool ShouldSetScreenKeepOn()
     {
-        return viewModel?.KeepScreenOnDuringLyrics == true 
+        return MyViewModel?.KeepScreenOnDuringLyrics == true 
             && Activity?.Window != null 
             && !_isScreenKeepOnSetByThisFragment;
     }
@@ -177,7 +205,7 @@ internal class LyricsViewFragment : Fragment, IOnBackInvokedCallback,IOnBackAnim
     {
        
         // Listen for lyric changes from VM
-        viewModel._lyricsMgtFlow.CurrentLyricIndex            
+        MyViewModel._lyricsMgtFlow.CurrentLyricIndex            
             //.WhenPropertyChange(nameof(viewModel.CurrentLine), newVal => viewModel.CurrentLine)
             .ObserveOn(RxSchedulers.UI)
             

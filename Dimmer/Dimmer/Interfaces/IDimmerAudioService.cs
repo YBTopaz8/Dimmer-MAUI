@@ -20,7 +20,7 @@ public interface IDimmerAudioService
 
     double Volume { get; set; }
     SongModelView? CurrentTrackMetadata { get; }
-    IEnumerable<AudioOutputDevice> PlaybackDevices { get; }
+    IEnumerable<AudioOutputDevice>? PlaybackDevices { get; }
 
     event EventHandler<PlaybackEventArgs> IsPlayingChanged;
 

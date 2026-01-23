@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 
+using Dimmer.Data.ModelView;
+
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -16,6 +18,7 @@ using Windows.Foundation;
 using Windows.Foundation.Collections;
 
 using NavigationEventArgs = Microsoft.UI.Xaml.Navigation.NavigationEventArgs;
+using SelectionChangedEventArgs = Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -97,5 +100,43 @@ public sealed partial class LyricsManualSyncPage : Page
     private void Cancel_Click(object sender, RoutedEventArgs e)
     {
         if (Frame.CanGoBack) Frame.GoBack();
+    }
+
+    private void LyricsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        // Show/hide batch actions toolbar based on selection
+        if (LyricsListView.SelectedItems.Count > 0)
+        {
+            BatchActionsToolbar.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+        }
+        else
+        {
+            BatchActionsToolbar.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+        }
+    }
+
+    private void RepeatSelectedBtn_Click(object sender, RoutedEventArgs e)
+    {
+        var selectedLines = LyricsListView.SelectedItems.Cast<LyricEditingLineViewModel>().ToList();
+        if (selectedLines.Any())
+        {
+            MyViewModel.RepeatSelectedLinesCommand.Execute(selectedLines);
+            LyricsListView.SelectedItems.Clear();
+        }
+    }
+
+    private void DeleteSelectedBtn_Click(object sender, RoutedEventArgs e)
+    {
+        var selectedLines = LyricsListView.SelectedItems.Cast<LyricEditingLineViewModel>().ToList();
+        if (selectedLines.Any())
+        {
+            MyViewModel.DeleteSelectedLinesCommand.Execute(selectedLines);
+            LyricsListView.SelectedItems.Clear();
+        }
+    }
+
+    private void ClearSelectionBtn_Click(object sender, RoutedEventArgs e)
+    {
+        LyricsListView.SelectedItems.Clear();
     }
 }

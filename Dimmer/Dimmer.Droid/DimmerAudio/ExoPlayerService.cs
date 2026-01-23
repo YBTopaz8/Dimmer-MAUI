@@ -34,6 +34,7 @@ using Android.Media;
 using MediaController = AndroidX.Media3.Session.MediaController;
 
 using AndroidX.Lifecycle;
+using Exception = System.Exception;
 
 namespace Dimmer.DimmerAudio; // Make sure this namespace is correct
 
@@ -49,7 +50,7 @@ public class ExoPlayerService : MediaSessionService
     private MediaSession? mediaSession;
     private IExoPlayer? player;
     private MediaPlaybackSessionCallback? sessionCallback; // Use concrete type
-
+    public static SessionCommand FavoriteSessionCommand = new SessionCommand(ActionFavorite, Bundle.Empty);
     // --- Constants ---
     public const string ActionLyrics = "ACTION_LYRICS";
     public const string CommandPreparePlay = "com.yvanbrunel.dimmer.action.PREPARE_PLAY";
@@ -73,6 +74,13 @@ public class ExoPlayerService : MediaSessionService
     internal static MediaItem? currentMediaItem; // Choose a unique ID
     public static SongModelView? CurrentSongContext; // Choose a unique ID
     public static SongModelView? CurrentSongExposed => CurrentSongContext;
+    
+    // Static methods to expose state for notification
+    internal static bool ShuffleStateInternal = false;
+    internal static int RepeatModeInternal = 1; // 0=All, 1=Off, 2=One
+    
+    public static bool GetShuffleState() => ShuffleStateInternal;
+    public static int GetRepeatMode() => RepeatModeInternal;
     // ---  Service Lifecycle ---
     private ExoPlayerServiceBinder? _binder;
 
@@ -140,7 +148,7 @@ public class ExoPlayerService : MediaSessionService
     {
         // Re-setting the player forces the PlayerNotificationManager to redraw
         _notifMgr.SetPlayer(null);
-        _notifMgr.SetPlayer(notificationPlayer);
+        _notifMgr.SetPlayer(player);
     }
     public void PrepareNext(SongModelView nextSong)
     {
@@ -230,7 +238,7 @@ public class ExoPlayerService : MediaSessionService
         return [.. we];
     }
 
-    internal static List<AudioDeviceInfo> GetAvailableAudioOutputs()
+    public static List<AudioDeviceInfo> GetAvailableAudioOutputs()
     {
         // 1) grab the Android AudioManager
         var audioManager = Platform.AppContext
@@ -266,7 +274,7 @@ public class ExoPlayerService : MediaSessionService
 
 
 
-    private IPlayer? notificationPlayer;
+    //private IPlayer? notificationPlayer;
     public async override void OnCreate()
     {
         base.OnCreate();
@@ -276,10 +284,11 @@ public class ExoPlayerService : MediaSessionService
 
         try
         {
+
             var audioAttributes = new AudioAttributes.Builder()!
             .SetUsage(C.UsageMedia)! // Specify this is media playback
             .SetContentType(C.AudioContentTypeMusic)! // Specify the content is music
-            .Build();
+            .SetIsContentSpatialized(true).Build();
 
             player = new ExoPlayerBuilder(this)
                 .SetAudioAttributes(audioAttributes, true)!
@@ -290,12 +299,13 @@ public class ExoPlayerService : MediaSessionService
                 .SetDeviceVolumeControlEnabled(true)!
                 .SetSuppressPlaybackOnUnsuitableOutput(false)!
                 .SetPauseAtEndOfMediaItems(true )
+                
                 //.SetPauseAtEndOfMediaItems(true) could use this in combo with 
                 //is play changed but i'll need to expose the player position
                 
                 .Build();
 
-            notificationPlayer = new QueueEnablingPlayerWrapper(player!);
+            //notificationPlayer = new QueueEnablingPlayerWrapper(player!);
 
 
             player?.AddListener(new PlayerEventListener(this));
@@ -311,33 +321,35 @@ public class ExoPlayerService : MediaSessionService
                 flags |= PendingIntentFlags.Immutable;
             }
             PendingIntent? pendingIntent = PendingIntent.GetActivity(Platform.AppContext, 0, nIntent, flags);
+            FavoriteSessionCommand.CommandCode = 88;
 
             var heartButton = new CommandButton.Builder(CommandButton.IconUndefined)
-    .SetDisplayName("Favorite")
-    .SetSessionCommand(new SessionCommand(ActionFavorite, Bundle.Empty))
-    .SetCustomIconResId(Resource.Drawable.heart) // Standard resource ID
-    .Build();
-
-            var shuffleButton = new CommandButton.Builder(CommandButton.IconUndefined)
-                .SetDisplayName("Shuffle")
-                .SetSessionCommand(new SessionCommand(ActionShuffle, Bundle.Empty))
-                .SetCustomIconResId(Resource.Drawable.shuffle)
+                .SetDisplayName("Favorite")
+                .SetSessionCommand(FavoriteSessionCommand)
+                //.SetPlayerCommand(88)
+                //.SetSlots()
+                
+                .SetCustomIconResId(Resource.Drawable.heart)
+                .SetEnabled(true)
+                
                 .Build();
-            mediaSession = new MediaSession.Builder(this, notificationPlayer)!
+                
+            mediaSession = new MediaSession.Builder(this, player)!
                 .SetSessionActivity(pendingIntent)!
                 .SetCallback(sessionCallback)!
                 .SetId("Dimmer_MediaSession_Main")!
-
-    .SetCustomLayout(customLayout: new List<CommandButton> { heartButton, shuffleButton })
+                .SetCommandButtonsForMediaItems(commandButtons: new List<CommandButton> { heartButton })
+                .SetMediaButtonPreferences(mediaButtonPreferences:new List<CommandButton> { heartButton })
+    .SetCustomLayout(customLayout: new List<CommandButton> { heartButton})
                 .Build();
-
+            
             _binder = new ExoPlayerServiceBinder(this);
 
             // 2) NotificationManager
             NotificationHelper.CreateChannel(this);
             _notifMgr = NotificationHelper.BuildManager(this, mediaSession!, CurrentSongContext);
 
-            _notifMgr.SetPlayer(notificationPlayer);
+            _notifMgr.SetPlayer(player);
 
 
 
@@ -397,28 +409,116 @@ public class ExoPlayerService : MediaSessionService
         base.OnStartCommand(intent, flags, startId);
 
 
-        var notification = NotificationHelper.BuildMinimalNotification(this);
+        //var notification = NotificationHelper.BuildMinimalNotification(this);
 
-        StartForeground(NotificationHelper.NotificationId, notification);
+        //StartForeground(NotificationHelper.NotificationId, notification);
 
         string? action = intent?.Action;
-
-        switch (action)
+        if (action is not null)
         {
-            case ActionFavorite:
-                //MyViewModel.ToggleFavorite(CurrentSongContext);
-                RefreshNotification(); // Forces the icons to flip
-                break;
-            case ActionShuffle:
-                //ToggleShuffle();
-                break;
-            case ActionLyrics:
-                // Throw your "Not Implemented" lyrics logic here!
-                break;
+            switch (action)
+            {
+                case ActionFavorite:
+                    HandleFavoriteAction();
+                    break;
+                case ActionShuffle:
+                    HandleShuffleAction();
+                    break;
+                case ActionRepeat:
+                    HandleRepeatAction();
+                    break;
+                case ActionLyrics:
+                    HandleLyricsAction();
+                    break;
+            }
         }
 
-
         return StartCommandResult.Sticky;
+    }
+    
+    private void HandleFavoriteAction()
+    {
+        if (CurrentSongContext != null)
+        {
+            // Get the ViewModel and toggle favorite state
+            var viewModel = MainApplication.ServiceProvider.GetService<BaseViewModel>();
+            if (viewModel != null)
+            {
+                Task.Run(async () =>
+                {
+                    try
+                    {
+                        if (CurrentSongContext.IsFavorite)
+                        {
+                            await viewModel.RemoveSongFromFavorite(CurrentSongContext);
+                        }
+                        else
+                        {
+                            await viewModel.AddFavoriteRatingToSong(CurrentSongContext);
+                        }
+                        
+                        RxSchedulers.UI.ScheduleTo(() => RefreshNotification());
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[ExoPlayerService] Error toggling favorite: {ex.Message}");
+                    }
+                });
+            }
+        }
+    }
+    
+    private void HandleShuffleAction()
+    {
+        var viewModel = MainApplication.ServiceProvider.GetService<BaseViewModel>();
+        if (viewModel != null)
+        {
+            RxSchedulers.UI.ScheduleTo(() =>
+            {
+                try
+                {
+                    viewModel.ToggleShuffle();
+                    ShuffleStateInternal = viewModel.IsShuffleActive;
+                    RefreshNotification();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[ExoPlayerService] Error toggling shuffle: {ex.Message}");
+                }
+            });
+        }
+    }
+    
+    private void HandleRepeatAction()
+    {
+        var viewModel = MainApplication.ServiceProvider.GetService<BaseViewModel>();
+        if (viewModel != null)
+        {
+            RxSchedulers.UI.ScheduleTo(() =>
+            {
+                try
+                {
+                    viewModel.ToggleRepeatMode();
+                    RepeatModeInternal = (int)viewModel.CurrentRepeatMode;
+                    RefreshNotification();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[ExoPlayerService] Error toggling repeat: {ex.Message}");
+                }
+            });
+        }
+    }
+    
+    private void HandleLyricsAction()
+    {
+        // Open the app to the lyrics view
+        var intent = new Intent(this, typeof(TransitionActivity));
+        intent.SetAction(Intent.ActionMain);
+        intent.AddCategory(Intent.CategoryLauncher);
+        intent.AddFlags(ActivityFlags.NewTask);
+        intent.PutExtra("ShowLyrics", true);
+        StartActivity(intent);
     }
 
 
@@ -518,6 +618,15 @@ public class ExoPlayerService : MediaSessionService
         try
         {
             CurrentSongContext =song;
+            
+            // Sync shuffle and repeat state from ViewModel
+            var viewModel = MainApplication.ServiceProvider?.GetService<BaseViewModel>();
+            if (viewModel != null)
+            {
+                ShuffleStateInternal = viewModel.IsShuffleActive;
+                RepeatModeInternal = (int)viewModel.CurrentRepeatMode;
+            }
+            
         if (player is null)
         {
 
@@ -536,7 +645,7 @@ public class ExoPlayerService : MediaSessionService
             .SetAlbumTitle(album)!
             .SetMediaType(new Java.Lang.Integer(MediaMetadata.MediaTypeMusic))! // Use Java Integer wrapper
             .SetGenre(genre)!
-
+            
             .SetIsPlayable(Java.Lang.Boolean.True)!; // Use Java Boolean wrapper
 
         if (!string.IsNullOrEmpty(imagePath) && File.Exists(imagePath))
@@ -596,6 +705,7 @@ public class ExoPlayerService : MediaSessionService
 
     public void UpdateMediaSessionLayout()
     {
+        return;
         bool isFav = CurrentSongContext?.IsFavorite ?? false;
 
         var heartBtn = new CommandButton.Builder(CommandButton.IconUndefined)
@@ -604,13 +714,27 @@ public class ExoPlayerService : MediaSessionService
             .SetCustomIconResId(isFav ? Resource.Drawable.media3_icon_heart_filled : Resource.Drawable.heart)
             .Build();
 
+        bool isShuffleOn = ShuffleStateInternal;
         var shuffleBtn = new CommandButton.Builder(CommandButton.IconUndefined)
             .SetDisplayName("Shuffle")
             .SetSessionCommand(new SessionCommand(ActionShuffle, Bundle.Empty))
-            .SetCustomIconResId(Resource.Drawable.shuffle)
+            .SetCustomIconResId(isShuffleOn ? Resource.Drawable.media3_icon_shuffle_on : Resource.Drawable.media3_icon_shuffle_off)
             .Build();
 
-        var layout = new List<CommandButton> { heartBtn, shuffleBtn };
+        int repeatMode = RepeatModeInternal;
+        int repeatIcon = repeatMode switch
+        {
+            2 => Resource.Drawable.media3_icon_repeat_one,  // Repeat One
+            0 => Resource.Drawable.media3_icon_repeat_all,  // Repeat All
+            _ => Resource.Drawable.media3_icon_repeat_off   // Repeat Off
+        };
+        var repeatBtn = new CommandButton.Builder(CommandButton.IconUndefined)
+            .SetDisplayName("Repeat")
+            .SetSessionCommand(new SessionCommand(ActionRepeat, Bundle.Empty))
+            .SetCustomIconResId(repeatIcon)
+            .Build();
+
+        var layout = new List<CommandButton> { heartBtn, shuffleBtn, repeatBtn };
         mediaSession?.SetCustomLayout((System.Collections.Generic.IList<CommandButton>)layout);
     }
     // --- Player Event Listener ---
@@ -850,25 +974,46 @@ public class ExoPlayerService : MediaSessionService
         {
 
 
-            var sessionCommands = new SessionCommands.Builder()
-                   .Add(SessionCommand.CommandCodeSessionSetRating)!
-                   .Add(new SessionCommand(ExoPlayerService.ActionFavorite, Bundle.Empty))
-                   .Add(new SessionCommand(ExoPlayerService.ActionShuffle, Bundle.Empty))!
-                   .Add(new SessionCommand(ExoPlayerService.ActionShuffle, Bundle.Empty))!
-                  .Build();
+            //var sessionCommands = new SessionCommands.Builder()
+            //       .Add(SessionCommand.CommandCodeSessionSetRating)!
+            //       .Add(new SessionCommand(ExoPlayerService.ActionFavorite, Bundle.Empty))
+            //       .Add(new SessionCommand(ExoPlayerService.ActionShuffle, Bundle.Empty))!
+            //       .Add(new SessionCommand(ExoPlayerService.ActionRepeat, Bundle.Empty))!
+            //      .Build();
 
 
-            var playerCommands = new PlayerCommands.Builder()
-              .AddAllCommands()!
-              .Build();
+            //var playerCommands = new PlayerCommands.Builder()
+            //    .Add(SessionCommand.CommandCodeSessionSetRating)
 
-            return MediaSession.ConnectionResult.Accept(sessionCommands, playerCommands)!;
+            //  .AddAllCommands()!
+            //  .Build();
+            var accepted = new MediaSession.ConnectionResult.AcceptedResultBuilder(session!)
+                .SetAvailableSessionCommands(
+MediaSession.ConnectionResult.DefaultSessionCommands.BuildUpon()!
+
+.Add(ExoPlayerService.FavoriteSessionCommand)!
+                .Build())!;
+            var comms = session.Player.AvailableCommands;
+            if (comms != null) 
+            {
+                var isAv = session.Player.IsCommandAvailable(88);
+                var isAvs = session.Player.AvailableCommands.Size();
+                //foreach (var comm in )
+                //{
+
+                //}
+            }
+            return accepted.
+                Build()!;
         }
         public void OnPostConnect(MediaSession? session, MediaSession.ControllerInfo? controller)
         {
 
 
-
+            var commandsInSesssion = session.ConnectedControllers?.ToArray();
+            var commandsInSesssions = session.CustomLayout;
+            var commandsInSesssionsw = session.ControllerForCurrentRequest;
+            var commandsInSesssione = session.MediaButtonPreferences;
         }
 
         public void OnDisconnected(MediaSession? session, MediaSession.ControllerInfo? controller)
@@ -948,27 +1093,90 @@ public class ExoPlayerService : MediaSessionService
         {
             if (command == null)
             {
-                return (SessionResult)SessionResult.ResultErrorUnknown;
+                return (SessionResult)SessionResult.ResultErrorBadValue;
+            }
+            if (command.CustomAction is not null && command.CustomAction.Equals(ExoPlayerService.FavoriteSessionCommand.CustomAction))
+            {
+
+                return (SessionResult)SessionResult.ResultSuccess;
             }
             switch (command.CustomAction)
             {
+                
                 case ExoPlayerService.ActionFavorite:
                     // Toggle favorite state
                     var currentSong = ExoPlayerService.CurrentSongContext;
                     if (currentSong != null)
                     {
-                        currentSong.IsFavorite = !currentSong.IsFavorite;
-                        ExoPlayerService.UpdateFavoriteState(currentSong);
+                        var viewModel = MainApplication.ServiceProvider.GetService<BaseViewModel>();
+                        if (viewModel != null)
+                        {
+                            Task.Run(async () =>
+                            {
+                                try
+                                {
+                                    if (currentSong.IsFavorite)
+                                    {
+                                        await viewModel.RemoveSongFromFavorite(currentSong);
+                                    }
+                                    else
+                                    {
+                                        await viewModel.AddFavoriteRatingToSong(currentSong);
+                                    }
+                                    
+                                    RxSchedulers.UI.ScheduleTo(() => service.UpdateMediaSessionLayout());
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine($"[ExoPlayerService] Error toggling favorite: {ex.Message}");
+                                }
+                            });
+                        }
                     }
                     return (SessionResult)SessionResult.ResultSuccess;
+                    
                 case ExoPlayerService.ActionShuffle:
                     // Toggle shuffle mode
-                    if (service.player != null)
+                    var vm = MainApplication.ServiceProvider.GetService<BaseViewModel>();
+                    if (vm != null)
                     {
-                        bool newShuffleState = !service.player.ShuffleModeEnabled;
-                        service.player.ShuffleModeEnabled = newShuffleState;
+                        RxSchedulers.UI.ScheduleTo(() =>
+                        {
+                            try
+                            {
+                                vm.ToggleShuffle();
+                                ExoPlayerService.ShuffleStateInternal = vm.IsShuffleActive;
+                                service.UpdateMediaSessionLayout();
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"[ExoPlayerService] Error toggling shuffle: {ex.Message}");
+                            }
+                        });
                     }
                     return (SessionResult)SessionResult.ResultSuccess;
+                    
+                case ExoPlayerService.ActionRepeat:
+                    // Toggle repeat mode
+                    var vmRepeat = MainApplication.ServiceProvider.GetService<BaseViewModel>();
+                    if (vmRepeat != null)
+                    {
+                        RxSchedulers.UI.ScheduleTo(() =>
+                        {
+                            try
+                            {
+                                vmRepeat.ToggleRepeatMode();
+                                ExoPlayerService.RepeatModeInternal = (int)vmRepeat.CurrentRepeatMode;
+                                service.UpdateMediaSessionLayout();
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"[ExoPlayerService] Error toggling repeat: {ex.Message}");
+                            }
+                        });
+                    }
+                    return (SessionResult)SessionResult.ResultSuccess;
+                    
                 default:
                     return (SessionResult)SessionResult.ResultErrorUnknown;
             }
@@ -1223,6 +1431,15 @@ public class ExoPlayerService : MediaSessionService
         public void SetVideoTextureView(TextureView? textureView) => _realPlayer.SetVideoTextureView(textureView);
         public void Stop() => _realPlayer.Stop();
 
+        public void Mute()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Unmute()
+        {
+            throw new NotImplementedException();
+        }
     }
 } // End ExoPlayerService class
 

@@ -122,7 +122,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0">
-            <Button Click="BackBtnClick" Content="Back" />
+            <Button Click="BackBtnClick" x:Name="BackBtn" Content="Back" />
             <TextBlock
                 x:Name="EditLyricsTxt"
                 Margin="0,10,0,10"
@@ -134,38 +134,39 @@
 
             <Image
                 x:Name="detailedImage"
-                Width="200"
+                Width="100" VerticalAlignment="Top"
                 HorizontalAlignment="Left"
                 Source="{Binding SelectedSong.CoverImagePath}" />
-            <StackPanel VerticalAlignment="Top">
+            <StackPanel VerticalAlignment="Top" Margin="10,0,0,0">
                 <TextBlock
                     x:Name="SongTitleTxt"
-                    Margin="10,0,0,0"
-                    FontSize="39"
+                    
+                    FontSize="30" VerticalAlignment="Top"
                     FontWeight="Bold"
                     Text="{Binding SelectedSong.Title}" />
                 <TextBlock
                     x:Name="ArtistNameTxt"
-                    Margin="10,0,0,0"
-                    FontSize="24"
+                    
+                    FontSize="20"
                     FontWeight="Normal"
                     Text="{Binding SelectedSong.Artist.Name}" />
                 <TextBlock
                     x:Name="AlbumNameTxt"
-                    Margin="10,0,0,0"
-                    FontSize="24"
+                    
+                    FontSize="19"
                     FontWeight="Light"
                     Text="{Binding SelectedSong.AlbumName}" />
                 <TextBlock
                     x:Name="DurationTextBlock"
-                    Margin="10,0,0,0"
-                    FontSize="25"
+                    
+                    FontSize="18"
                     Text="{Binding SelectedSong.DurationInSeconds, Converter={StaticResource DurationConverter}}" />
 
             </StackPanel>
         </StackPanel>
 
-        <Grid Grid.Row="2">
+        <ScrollViewer Grid.Row="2" >
+            <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
@@ -259,16 +260,20 @@
             <StackPanel
                 x:Name="LyricsSearchNotFound"
                 Grid.Row="1"
-                Visibility="{x:Bind MyViewModel.IsLyricsFound, Converter={StaticResource BoolToVisConverter}, Mode=OneWay}">
-                <TextBlock HorizontalAlignment="Center" Text="No Lyrics Found" />
+                Visibility="Collapsed"
+                >
+
+                    <!--Visibility="{x:Bind MyViewModel.IsLyricsFound, Converter={StaticResource BoolToVisConverter}, Mode=OneWay}"-->
+                    <TextBlock HorizontalAlignment="Center" Text="No Lyrics Found" />
                 <Button
                     HorizontalAlignment="Center"
                     Click="GoogleItBtn_Click"
                     x:Name="GoogleItBtn"
                     Content="Google it?" />
+                
             </StackPanel>
-            <ScrollViewer Grid.Row="1">
-                <ItemsRepeater x:Name="FetchedLyricsIR" ItemsSource="{x:Bind MyViewModel.LyricsSearchResults}">
+
+                <ItemsRepeater  Grid.Row="1" x:Name="FetchedLyricsIR" ItemsSource="{x:Bind MyViewModel.LyricsSearchResults}">
                     <ItemsRepeater.Layout>
                         <StackLayout Spacing="10" />
                     </ItemsRepeater.Layout>
@@ -290,17 +295,20 @@
 
                                     <!--  Left: Metadata Info  -->
                                     <StackPanel Grid.Column="0" Spacing="4">
-                                        <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="{x:Bind TrackName}" />
+                                        <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="{x:Bind TrackName}"  HorizontalAlignment="Center"/>
                                         <StackPanel
                                             Opacity="0.8"
+                                            HorizontalAlignment="Center"
                                             Orientation="Horizontal"
                                             Spacing="8">
                                             <TextBlock FontWeight="SemiBold" Text="{x:Bind ArtistName}" />
                                             <TextBlock Text="•" />
-                                            <TextBlock Text="{x:Bind AlbumName}" />
+                                            <TextBlock Text="{x:Bind AlbumName}" ToolTipService.ToolTip="Album"/>
                                             <TextBlock Text="•" />
-                                            <TextBlock Text="Instrumental" />
-                                            <TextBlock Text="{x:Bind Instrumental}" />
+                                            <TextBlock Text="Instrumental" Visibility="{x:Bind Instrumental,Converter={StaticResource BoolToVisConverter}}" />
+                                            <TextBlock Text="{x:Bind Instrumental}" 
+                                                       Visibility="{x:Bind Instrumental,Converter={StaticResource BoolToVisConverter}}"
+                                                       />
 
                                             <TextBlock Text="{x:Bind Duration, Converter={StaticResource DurationConverter}}" />
                                         </StackPanel>
@@ -341,8 +349,7 @@
                                             x:Name="ViewLyrics"
                                             Click="ViewLyrics_Click"
                                             Content="View Lyrics" />
-                                        <!--  Apply Command  -->
-                                        <!--  Note: We pass the current item (LrcLibLyrics) as the parameter  -->
+                                       
                                         <Button
                                             x:Name="ApplyLyric"
                                             Click="ApplyLyric_Click"
@@ -362,7 +369,7 @@
                         </DataTemplate>
                     </ItemsRepeater.ItemTemplate>
                 </ItemsRepeater>
-            </ScrollViewer>
+          
 
             <ScrollViewer Grid.Row="2">
                 <Grid>
@@ -380,24 +387,28 @@
                         <TextBlock FontSize="18" Text="{Binding SelectedSong.PlainLyrics}" />
                     </StackPanel>
 
-                    <StackPanel Grid.Column="0">
+                    <StackPanel Grid.Column="0" >
 
-                        <TextBlock
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+
+
+                                <TextBlock
                             Margin="0,0,0,10"
                             FontSize="24"
                             FontWeight="Bold"
                             Text="Synchornized Lyrics" />
-                        <Grid>
-
-                            <Button
+                                <Button
                                 x:Name="EditIconBtn"
                                 HorizontalAlignment="Center"
-                                VerticalAlignment="Top"
+                                VerticalAlignment="Center"
                                 Background="Transparent"
-                                BorderThickness="2"
-                                Visibility="Visible">
-                                <FontIcon FontSize="24" Glyph="&#xE70F;" />
-                            </Button>
+                                BorderThickness="0"
+                                Visibility="Collapsed">
+                                    <FontIcon FontSize="20" Glyph="&#xE70F;" />
+                                </Button>
+                            </StackPanel>
+                        <Grid>
+
                             <TextBlock FontSize="18" Text="{Binding SelectedSong.SyncLyrics}" />
 
                         </Grid>
@@ -405,6 +416,6 @@
                 </Grid>
             </ScrollViewer>
         </Grid>
-
+        </ScrollViewer>
     </Grid>
 </Page>

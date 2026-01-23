@@ -1,24 +1,20 @@
 ﻿using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
-
+using AndroidX.AppCompat.Widget;
 using AndroidX.Core.Content;
 using AndroidX.Core.View;
 
 using Bumptech.Glide;
 
 using Dimmer.DimmerAudio;
+using Dimmer.UiUtils;
 using Dimmer.Utilities;
+using Dimmer.Utils.Extensions;
 using Dimmer.ViewsAndPages.NativeViews.Misc;
-using Dimmer.WinUI.UiUtils;
 
 using Google.Android.Material.Chip;
-
-using Java.Lang;
-
-using Kotlin.Jvm;
-
-using static Android.Provider.DocumentsContract;
-
+using Google.Android.Material.ProgressIndicator;
+using Google.Android.Material.Tooltip;
 using ImageButton = Android.Widget.ImageButton;
 using Math = System.Math;
 using ScrollView = Android.Widget.ScrollView;
@@ -30,14 +26,15 @@ namespace Dimmer.ViewsAndPages.NativeViews;
 
 public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
 {
-    private readonly BaseViewModelAnd _viewModel;
+    private readonly BaseViewModelAnd MyViewModel;
     private readonly CompositeDisposable _disposables = new();
 
     // --- UI REFERENCES ---
-    private View _rootView;
+    private FrameLayout _rootView;
+    private ImageView _backgroundImageView;
 
     // Mini Player Views
-    private View _miniPlayerContainer;
+    private LinearLayout _miniPlayerContainer;
     private ImageView _miniCover;
     private TextView _miniTitle, _miniArtist;
     private MaterialButton _miniPlayBtn;
@@ -45,13 +42,13 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
     MaterialButton _skipPrevBtn;
     MaterialButton _skipNextBtn;
     // Expanded Player Views
-    private View _expandedContainer;
+    private ScrollView _expandedContainer;
     private MaterialTextView _expandedTitle;
     private ChipGroup _artistChipGroup;
     private ImageView _mainCoverImage;
     private MaterialCardView _lyricsCard;
     private TextView _currentLyricText;
-    private TextView _genreText, _yearText;
+    
 
     // Controls
     private Slider _seekSlider;
@@ -59,38 +56,61 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
     private MaterialButton _prevBtn, _playPauseBtn, _nextBtn;
     //private MaterialButton _queueBtn, _detailsBtn, _optionsBtn;
     private Slider _volumeSlider;
-    private MaterialButton _queueBtn, _shareBtn, _toggleLyricsViewBtn;
+    private MaterialButton _queueBtn, _loveBtn, _toggleLyricsViewBtn;
 
     // State
     private bool _isDraggingSeek = false;
     private bool _isDraggingVolume;
     private Button _repeatBtn;
+    private TextView _currentMiniLyricText;
+
+    public DimmerSliderListener seekListener { get; private set; }
+    public CardView formatCard { get; private set; }
+    public TextView formatViewText { get; private set; }
+    public Button infoPill { get; private set; }
 
     public NowPlayingFragment()
     {
-        
+
+        MyViewModel ??= MainApplication.ServiceProvider.GetService<BaseViewModelAnd>()!;
     }
     public NowPlayingFragment(BaseViewModelAnd viewModel)
     {
-        _viewModel = viewModel;
+        MyViewModel = viewModel;
     }
 
     public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
-        var ctx = Context;
+        Context ctx = Context!;
 
         // Root is a FrameLayout to stack Mini and Expanded views
         var root = new FrameLayout(ctx)
         {
             LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent)
         };
-        root.SetBackgroundColor(UiBuilder.IsDark(this.Resources.Configuration) ? Android.Graphics.Color.ParseColor("#1E1E1E") : Android.Graphics.Color.White);
+        root.SetBackgroundColor(UiBuilder.IsDark(ctx) ? Color.ParseColor("#0D0E20") : Color.ParseColor("#CAD3DA"));
+
+
+        _backgroundImageView = new ImageView(ctx)
+        {
+            LayoutParameters = new FrameLayout.LayoutParams(-1, -1),
+
+        }; 
+        _backgroundImageView.SetScaleType(ImageView.ScaleType.CenterCrop);
+       
+        root.AddView(_backgroundImageView);
         _rootView = root;
 
         // 1. Build Mini Player (Visible when collapsed)
         _miniPlayerContainer = CreateMiniPlayer(ctx);
-        root.AddView(_miniPlayerContainer);
-
+        if (_miniPlayerContainer is null)
+        {
+            root.AddView(_miniPlayerContainer);
+        }
+        else
+        {
+            root.AddView(_miniPlayerContainer);
+        }
         // 2. Build Expanded Player (Visible when sliding up)
         _expandedContainer = CreateExpandedPlayer(ctx);
         _expandedContainer.Alpha = 0f; // Hidden initially
@@ -99,10 +119,11 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
 
         return root;
     }
-
+    
     private LinearLayout CreateMiniPlayer(Context ctx)
     {
-        if(_viewModel is null)return null!;
+        if(MyViewModel is null) return new LinearLayout(ctx);
+
         var layout = new LinearLayout(ctx)
         {
             Orientation = Orientation.Horizontal,
@@ -110,25 +131,24 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
             WeightSum = 10
         };
         layout.SetPadding(20, 10, 20, 10);
-        //layout.SetBackgroundColor(UiBuilder.IsDark(ctx) ? Color.ParseColor("#291B22") : Color.ParseColor("#DEDFF0"));
-        layout.SetBackgroundColor(UiBuilder.IsDark(ctx) ? Color.ParseColor("#1a1a1a") : Color.ParseColor("#DEDFF0"));
+        layout.SetBackgroundColor(Color.Transparent);
 
 
         // Mini Cover
         var card = new MaterialCardView(ctx) { Radius = AppUtil.DpToPx(8), Elevation = 0 };
         _miniCover = new ImageView(ctx) { };
         _miniCover.SetScaleType(ImageView.ScaleType.CenterCrop);
-
+        _miniCover.SetBackgroundColor(Color.Transparent);
         // Set Transition Name
-        var tName = $"sharedImage_{_viewModel.CurrentPlayingSongView.Id}";
+        var tName = $"sharedImage_{MyViewModel.CurrentPlayingSongView.Id}";
         ViewCompat.SetTransitionName(_miniCover, tName);
         card.Click += (s, e) =>
         {
             string? tName = ViewCompat.GetTransitionName(_miniCover);
             if (tName != null)
             {
-                _viewModel.SelectedSong = _viewModel.CurrentPlayingSongView;
-                _viewModel.NavigateToSingleSongPageFromHome(this, tName, _miniCover);
+                MyViewModel.SelectedSong = MyViewModel.CurrentPlayingSongView;
+                MyViewModel.NavigateToSingleSongPageFromHome(this, tName, _miniCover);
             }
         }
         ;
@@ -142,39 +162,104 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         // Text Info
         var textStack = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
         textStack.SetPadding(30, 0, 0, 0);
-        _miniTitle = new TextView(ctx) { TextSize = 18, Typeface = Android.Graphics.Typeface.DefaultBold, Ellipsize = Android.Text.TextUtils.TruncateAt.Marquee };
-        _miniTitle.SetSingleLine(true);
+        _miniTitle = new TextView(ctx) { TextSize = 20, Typeface = Android.Graphics.Typeface.DefaultBold, Ellipsize = Android.Text.TextUtils.TruncateAt.Marquee };
         _miniTitle.Selected = true; // For marquee
+        _miniTitle.SetSingleLine(true);
 
         _miniArtist = new TextView(ctx) { TextSize = 14, Alpha = 0.7f };
+        _miniArtist.SetSingleLine(true);
+        _miniArtist.Selected = true; // For marquee
+        _miniArtist.Clickable = true;
+
+        _miniArtist.Click += (s, e) =>
+        {
+            switch (_currentMiniLyricText.Visibility)
+            {
+                case ViewStates.Gone:                    
+                case ViewStates.Invisible:
+                    _currentMiniLyricText.Visibility = ViewStates.Gone;
+                    break;
+                case ViewStates.Visible:
+                    _currentMiniLyricText.Visibility = ViewStates.Visible;
+                    break;
+                default:
+                    break;
+            }
+
+        };
+        _miniArtist.LongClickable = true;
+        _miniArtist.LongClick += (s, e) =>
+        {
+
+            var artistPickBtmSheet = new ArtistPickerBottomSheet(MyViewModel, MyViewModel.CurrentPlayingSongView.OtherArtistsName);
+
+            artistPickBtmSheet.Show(this.ParentFragmentManager, "QueueSheet");
+        };
+
+        _currentMiniLyricText = new TextView(ctx) { TextSize = 14, Alpha = 0.7f };
+        _currentMiniLyricText.Selected = true; // For marquee
+        _currentMiniLyricText.SetSingleLine(true);
+        _currentMiniLyricText.Clickable = true;
+        _currentMiniLyricText.Visibility = ViewStates.Gone;
+
+        _currentMiniLyricText.LongClick += (s, e) =>
+        {
+            MyViewModel.NavigateToAnyPageOfGivenType(this, new LyricsViewFragment(MyViewModel),
+            "ToLyricsFromMiniPlayer");
+        };
+        _currentMiniLyricText.Click += (s, e) =>
+        {
+            switch (_currentMiniLyricText.Visibility)
+            {
+                case ViewStates.Gone:
+                case ViewStates.Invisible:
+                    _currentMiniLyricText.Visibility = ViewStates.Visible;
+                    break;
+                case ViewStates.Visible:
+                    _currentMiniLyricText.Visibility = ViewStates.Gone;
+                    break;
+                default:
+                    break;
+            }
+
+
+        };
+
         textStack.AddView(_miniTitle);
+        textStack.AddView(_currentMiniLyricText);
         textStack.AddView(_miniArtist);
 
-        var textParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 6f) { Gravity = GravityFlags.CenterVertical };
+        var textParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 7f) { Gravity = GravityFlags.CenterVertical };
         layout.AddView(textStack, textParams);
 
         
-        _miniPlayBtn= CreateControlButton(ctx, Resource.Drawable.media3_icon_play, 40, true);
+        _miniPlayBtn= CreateControlButton(ctx, Resource.Drawable.media3_icon_play, 50, true);
      
         _miniPlayBtn.Click += async (s, e) =>
         {
-            await _viewModel.PlayPauseToggleAsync();
+            await MyViewModel.PlayPauseToggleAsync();
         };
-
+        _miniPlayBtn.StrokeWidth = 0;
        
-        _skipPrevBtn = CreateControlButton(ctx, Resource.Drawable.media3_icon_previous, 30);
+        _skipPrevBtn = CreateControlButton(ctx, Resource.Drawable.media3_icon_previous, AppUtil.DpToPx(50));
+        _skipPrevBtn.StrokeWidth = 0;
         _skipPrevBtn.Click += async (s, e) =>
         {
-            await _viewModel.PreviousTrackAsync();
+            await MyViewModel.PreviousTrackAsync();
         };
+        //_skipPrevBtn.SetWidth(AppUtil.DpToPx(30));
+
+        _skipPrevBtn.IconTint = AppUtil.ToColorStateList(Color.DarkSlateBlue);
         
-        _skipNextBtn = CreateControlButton(ctx,Resource.Drawable.media3_icon_next, 35);
+        _skipNextBtn = CreateControlButton(ctx,Resource.Drawable.media3_icon_next, 50);
         _skipNextBtn.Click += async (s, e) =>
         {
-            await _viewModel.NextTrackAsync();
+            await MyViewModel.NextTrackAsync();
         };
+        _skipNextBtn.StrokeWidth = 0;
+        _skipNextBtn.IconTint = AppUtil.ToColorStateList(Color.DarkSlateBlue);
 
-       
+
         var lyParams= new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1f) { Gravity = GravityFlags.Right };
         lyParams.SetMargins(10, 10, 10, 10);
       
@@ -193,8 +278,14 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         var root = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
         root.SetPadding(40, 80, 40, 40); // Top padding for dragging handle area
 
-        //root.SetBackgroundColor(UiBuilder.ThemedBGColor(ctx));
-        root.SetBackgroundColor(UiBuilder.IsDark(ctx) ? Color.ParseColor("#1a1a1a") : Color.ParseColor("#DEDFF0"));
+        if (MyViewModel.CurrentPlaySongDominantColor is not null)
+        {
+            root.SetBackgroundColor(Color.ParseColor(
+
+            MyViewModel.CurrentPlaySongDominantColor.ToHex())
+);
+        }
+        //root.SetBackgroundColor(UiBuilder.IsDark(ctx) ? Color.ParseColor("#1a1a1a") : Color.ParseColor("#DEDFF0"));
 
 
         // --- A. Marquee Title ---
@@ -202,10 +293,21 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         _expandedTitle.SetSingleLine(true);
         _expandedTitle.Ellipsize = Android.Text.TextUtils.TruncateAt.Marquee;
         _expandedTitle.Selected = true;
+
+        var transName = $"sharedImage_{MyViewModel.CurrentPlayingSongView.Id}";
+        ViewCompat.SetTransitionName(_expandedTitle, transName);
+       
+       
+    
+
         _expandedTitle.Click += (s, e) =>
         {
-            _viewModel.SelectedSong = _viewModel.CurrentPlayingSongView;
-            _viewModel.NavigateToAnyPageOfGivenType(this, new SongDetailFragment("toSingleSongDetailsFromNowPlaying", _viewModel), "toSingleSongDetailsFromNowPlaying");
+            string? tName = ViewCompat.GetTransitionName(_miniCover);
+            if (tName != null)
+            {
+                MyViewModel.SelectedSong = MyViewModel.CurrentPlayingSongView;
+                MyViewModel.NavigateToSingleSongPageFromHome(this, tName, _miniCover);
+            }
             var act = Activity as TransitionActivity;
             if (act != null)
             {
@@ -215,27 +317,30 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
 
         root.AddView(_expandedTitle);
 
-        // --- B. Image & Lyrics Grid ---
-        var gridFrame = new FrameLayout(ctx);
-
-        var gridParams = new LinearLayout.LayoutParams(-1, AppUtil.DpToPx(420));
-        gridParams.SetMargins(0, 30, 0, 30);
-        gridFrame.LayoutParameters = gridParams;
-
-        var imgCard = new MaterialCardView(ctx) { Radius = AppUtil.DpToPx(20), Elevation = 4 };
-        _mainCoverImage = new ImageView(ctx);
-        _mainCoverImage = new ImageView(ctx);
-        _mainCoverImage.SetScaleType(ImageView.ScaleType.CenterCrop);
-        imgCard.AddView(_mainCoverImage, new FrameLayout.LayoutParams(-1, -1));
-        gridFrame.AddView(imgCard);
+        // --- B. Carousel ViewPager2 with Lyrics Overlay ---
+        var carouselFrame = UiBuilder.CreateCard(ctx);
         
-        // 2. Lyrics Overlay 
+        carouselFrame.SetBackgroundColor(Color.Transparent);
+        carouselFrame.StrokeWidth = 0;
+        var LL = new LinearLayout.LayoutParams(-1, AppUtil.DpToPx(520));
+
+        var carouselParams = LL;
+        carouselParams.SetMargins(0, 30, 0, 10);
+        carouselFrame.SetPadding(0, 0, 0, 0);
+        carouselFrame.LayoutParameters = carouselParams;
+
+        _mainCoverImage = new ImageView(ctx);
+        carouselFrame.Radius = AppUtil.DpToPx(20);
+
+        carouselFrame.AddView(_mainCoverImage, new FrameLayout.LayoutParams(-1, -1));
+
+
         _lyricsCard = new MaterialCardView(ctx)
         {
             Radius = AppUtil.DpToPx(12),
-            CardBackgroundColor = ColorStateList.ValueOf(Color.ParseColor("#AA000000")), // Darker semi-transparent
+            CardBackgroundColor = ColorStateList.ValueOf(Color.ParseColor("#AA000000")),
             Elevation = 8,
-            Visibility = ViewStates.Invisible // Hidden by default
+            Visibility = ViewStates.Invisible
         };
         var lParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent)
         {
@@ -249,63 +354,37 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         _lyricsCard.AddView(_currentLyricText);
         _lyricsCard.Click += (s, e) =>
         {
-            _viewModel.SelectedSong = _viewModel.CurrentPlayingSongView;
-            _viewModel.NavigateToAnyPageOfGivenType(this, new LyricsViewFragment(_viewModel),"toLyricsFromNP");
+            MyViewModel.SelectedSong = MyViewModel.CurrentPlayingSongView;
+            MyViewModel.NavigateToAnyPageOfGivenType(this, new LyricsViewFragment(MyViewModel),"toLyricsFromNP");
             if (Activity is TransitionActivity act)
             {
                 act.TogglePlayer();
             }
         };
 
+        carouselFrame.AddView(_lyricsCard, lParams);
 
-        gridFrame.AddView(_lyricsCard, lParams); // This sits on top of the image
-        
-
-
-        // 3. Meta Data (Bottom of Grid)
+        // Meta Data (Bottom of Carousel)
         var metaLay = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
         var metaParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent) { Gravity = GravityFlags.Bottom };
         metaParams.SetMargins(20, 0, 20, 20);
-        metaLay.LayoutParameters = metaParams;
+        
 
-        _genreText = new TextView(ctx) { };
-        _yearText = new TextView(ctx) { Gravity = GravityFlags.End };
+        carouselFrame.AddView(metaLay);
 
-        metaLay.AddView(_genreText, new LinearLayout.LayoutParams(0, -2, 1));
-        metaLay.AddView(_yearText, new LinearLayout.LayoutParams(0, -2, 1));
-        gridFrame.AddView(metaLay);
+        root.AddView(carouselFrame);
 
-        root.AddView(gridFrame);
+        
+
+
 
         // --- C. Artist Row (Chips + Vertical Action Stack) ---
         var artistActionRow = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
-        artistActionRow.SetGravity(GravityFlags.CenterVertical);
+        artistActionRow.SetGravity( GravityFlags.CenterHorizontal);
 
-        // 1. Artist Chips (Left side, weighted)
-        var chipScroll = new HorizontalScrollView(ctx) { ScrollBarSize = 0 };
-        _artistChipGroup = new ChipGroup(ctx) { SingleLine = true };
-        chipScroll.AddView(_artistChipGroup);
-        artistActionRow.AddView(chipScroll, new LinearLayout.LayoutParams(0, -2, 1f));
-
-        // 2. Vertical Action Stack (Right side)
-        var actionStack = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
-        actionStack.SetGravity(GravityFlags.Center);
-
-        var favBtn = new Button(ctx) { Background = null };
-        favBtn.SetIconResource(Resource.Drawable.heart);
-        favBtn.IconSize = AppUtil.DpToPx(10);
-        favBtn.SetPadding(10, 10, 10, 10);
-        favBtn.Click += async (s, e) => await _viewModel.AddFavoriteRatingToSong(_viewModel.CurrentPlayingSongView);
-
-        var lyrBtn = new Button(ctx) { Background = null };
-        lyrBtn.SetIconResource(Resource.Drawable.lyrics); // Ensure this drawable exists
-        lyrBtn.SetPadding(10, 10, 10, 10);
-       
-
-        actionStack.AddView(favBtn, new LinearLayout.LayoutParams(AppUtil.DpToPx(40), AppUtil.DpToPx(40)));
-        actionStack.AddView(lyrBtn, new LinearLayout.LayoutParams(AppUtil.DpToPx(40), AppUtil.DpToPx(40)));
-
-        artistActionRow.AddView(actionStack);
+     
+        _artistChipGroup = new ChipGroup(context: ctx) { SingleLine = true };
+        
         root.AddView(artistActionRow);
 
         // --- D. Progress Slider ---
@@ -319,7 +398,9 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         root.AddView(timeLay);
 
         _seekSlider = new Slider(ctx);
+
         _seekSlider.ValueFrom = 0;
+        _seekSlider.Value = 1;
         _seekSlider.ValueTo = 100;
         // Logic attached in Resume
         root.AddView(_seekSlider);
@@ -331,7 +412,8 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         _shuffleBtn = CreateControlButton(ctx, Resource.Drawable.media3_icon_shuffle_off, 40);
        
         _prevBtn = CreateControlButton(ctx, Resource.Drawable.media3_icon_previous, 60);
-        _playPauseBtn = CreateControlButton(ctx, Resource.Drawable.media3_icon_play, 80, true); // Larger, filled
+        _playPauseBtn = CreateControlButton(ctx, Resource.Drawable.media3_icon_play, 80, true)
+            ; // Larger, filled
         _nextBtn = CreateControlButton(ctx, Resource.Drawable.media3_icon_next, 60);
 
         _repeatBtn = CreateControlButton(ctx, Resource.Drawable.media3_icon_repeat_all, 45);
@@ -354,7 +436,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         volDownIcon.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.Gray);
         volDownIcon.Click += (s, e) =>
         {
-            _viewModel.DecreaseVolumeLevel();
+            MyViewModel.DecreaseVolumeLevel();
         };
 
         _volumeSlider = new Slider(ctx);
@@ -366,7 +448,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         volUpIcon.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.Gray);
         volUpIcon.Click += (s, e) =>
         {
-            _viewModel.IncreaseVolumeLevel();
+            MyViewModel.IncreaseVolumeLevel();
         };
 
 
@@ -376,34 +458,99 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
 
         root.AddView(volumeRow);
 
+
+        formatCard = new MaterialCardView(ctx)
+        {
+            Radius = AppUtil.DpToPx(12),
+            CardBackgroundColor = ColorStateList.ValueOf(Color.ParseColor("#AA000000")),
+            Elevation = 8,
+            Visibility = ViewStates.Invisible
+        };
+        var formatParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent)
+        {
+            Gravity = GravityFlags.Center,
+            LeftMargin = 40,
+            RightMargin = 40
+        };
+        formatViewText = new TextView(ctx) { TextSize = 20, Gravity = GravityFlags.Center, Typeface = Typeface.DefaultBold };
+        formatViewText.SetTextColor(Color.White);
+        formatViewText.SetPadding(40, 30, 40, 30);
+        formatCard.AddView(formatViewText);
+
+        root.AddView(formatCard);
+
         var pillsRow = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
         pillsRow.SetGravity(GravityFlags.Center);
         // Add some space at bottom for gesture bar
         pillsRow.SetPadding(0, 0, 0, AppUtil.DpToPx(30));
 
      
-        _queueBtn= CreatePillButton(ctx, "Queue", Resource.Drawable.shared);
+        _queueBtn= CreatePillButton(ctx, "Queue", Resource.Drawable.media3_icon_queue_next);
         _queueBtn.Click += async (s, e) =>
         {
-            var queueSheet = new QueueBottomSheetFragment(_viewModel);
+            var queueSheet = new QueueBottomSheetFragment(MyViewModel, _queueBtn);
+            _queueBtn.Enabled = false;
             queueSheet.Show(ParentFragmentManager, "QueueSheet");
+            queueSheet.ScrollToSong(MyViewModel.CurrentPlayingSongView);
         };
      
         // 2. Share Pill
-        _shareBtn = CreatePillButton(ctx, "Share", Resource.Drawable.shared);
-        _shareBtn.Click += async (s, e) =>
+        _loveBtn = CreatePillButton(ctx, "Love", Resource.Drawable.favlove);
+        _loveBtn.Checkable = true;
+        _loveBtn.Click += (s, e) =>
         {
-            //await _viewModel.ShareSongViewClipboard(_viewModel.CurrentPlayingSongView);
+            if (!_loveBtn.Checked)
+            {
+                _loveBtn.Checked = true;
+            }
         };
+        _loveBtn.LongClickable = true;
+        _loveBtn.LongClick += (sender, e) =>
+        {
+
+            if (_loveBtn.Checked)
+            {
+                _loveBtn.Checked = false;
+                _loveBtn.PerformHapticFeedback(FeedbackConstants.Reject);
+            }
+        };
+
+        _loveBtn.CheckedChange += async (s, e) =>
+        {
+            var btn = e.P0;
+            var isChecked = e.P1;
+            int[] loc = new int[2];
+            _loveBtn.GetLocationOnScreen(loc);
+            if(isChecked)
+            {
+                _loveBtn.Text = "UnLove";
+                _loveBtn.SetIconResource(Resource.Drawable.heartlock);
+                _loveBtn.SetBackgroundColor(Color.DarkSlateBlue);
+                _loveBtn.PerformHapticFeedback(FeedbackConstants.Confirm);
+                await MyViewModel.RemoveSongFromFavorite(MyViewModel.CurrentPlayingSongView);
+              
+            }
+            else
+            {
+
+                _loveBtn.Text = "Love";
+                _loveBtn.SetIconResource(Resource.Drawable.heart);
+                _loveBtn.SetBackgroundColor(Color.Gray);
+               await MyViewModel.AddFavoriteRatingToSong(MyViewModel.CurrentPlayingSongView);
+                _loveBtn.PerformHapticFeedback(FeedbackConstants.Reject);
+
+            }
+        };
+
 
         
         _toggleLyricsViewBtn = CreatePillButton(ctx, "Lyrics", Resource.Drawable.lyrics);
         _toggleLyricsViewBtn.Click += (s, e)
             =>
         {
-            _viewModel.SelectedSong = _viewModel.CurrentPlayingSongView;
-            _viewModel._lyricsMgtFlow.LoadLyrics(_viewModel.CurrentPlayingSongView.SyncLyrics);
-            _viewModel.NavigateToAnyPageOfGivenType(this, new LyricsViewFragment(_viewModel), "toLyricsFromNP");
+            MyViewModel.SelectedSong = MyViewModel.CurrentPlayingSongView;
+            MyViewModel._lyricsMgtFlow.LoadLyrics(MyViewModel.CurrentPlayingSongView.SyncLyrics);
+            MyViewModel.NavigateToAnyPageOfGivenType(this, new LyricsViewFragment(MyViewModel), "toLyricsFromNP");
             if (Activity is TransitionActivity act)
             {
                 act.TogglePlayer();
@@ -441,9 +588,15 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
                     _mainCoverImage.Animate()?.Alpha(1f).SetDuration(200);
 
                     _toggleLyricsViewBtn.SetTextColor(
-                        UiBuilder.IsDark(this.Resources.Configuration) ? Color.White : Color.Black);
+                        UiBuilder.IsDark(this.View) ? Color.White : Color.Black);
                 }));
             }
+        };
+
+        infoPill = CreatePillButton(ctx, "Info", Resource.Drawable.infocircle);
+        infoPill.Click += (s, e) =>
+        {
+            
         };
 
         // Distribute evenly with weights or margins
@@ -451,9 +604,9 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         pillParams.SetMargins(AppUtil.DpToPx(4), 0, AppUtil.DpToPx(4), 0);
 
         pillsRow.AddView(_queueBtn, pillParams);
-        pillsRow.AddView(_shareBtn, pillParams);
+        pillsRow.AddView(_loveBtn, pillParams);
         pillsRow.AddView(_toggleLyricsViewBtn, pillParams);
-
+        pillsRow.AddView(infoPill, pillParams);
         root.AddView(pillsRow);
 
         //// --- F. Bottom Actions (Queue, View Song, Options) ---
@@ -482,61 +635,116 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
 
         _playPauseBtn.Click += async (s, e) =>
         {
-            await _viewModel.PlayPauseToggleAsync();
+            await MyViewModel.PlayPauseToggleAsync();
 
 
         };
         _shuffleBtn.Click += (s, e) =>
         {
-            _viewModel.ToggleShuffle();
+            MyViewModel.ToggleShuffle();
         };
 
-        _prevBtn.Click += async (s, e) => await _viewModel.PreviousTrackAsync();
-        _nextBtn.Click += async (s, e) => await _viewModel.NextTrackAsync();
+        _prevBtn.Click += async (s, e) => await MyViewModel.PreviousTrackAsync();
+        _nextBtn.Click += async (s, e) => await MyViewModel.NextTrackAsync();
 
         
         _repeatBtn.Click += (s, e) =>
         {
-            _viewModel.ToggleRepeatMode();
+            MyViewModel.ToggleRepeatMode();
         };
         // Slider Logic
-        _seekSlider.Touch += (s, e) =>
-        {
-            switch (e.Event?.Action)
-            {
-                case MotionEventActions.Down: _isDraggingSeek = true; break;
-                case MotionEventActions.Up:
-                case MotionEventActions.Cancel:
-                    _isDraggingSeek = false;
-                    if (_viewModel.CurrentPlayingSongView != null)
-                    {
-                        var newPos = (_seekSlider.Value / 100) * _viewModel.CurrentPlayingSongView.DurationInSeconds;
-                        _viewModel.SeekTrackPositionCommand.Execute(newPos);
-                    }
-                    break;
-            }
-            e.Handled = false;
-        };
+
+        //_seekSlider.AddOnChangeListener
+        seekListener = new DimmerSliderListener(
+    onDragStart: () =>
+    {
+        seekListener.TotalDurationInSeconds = MyViewModel.CurrentPlayingSongView.DurationInSeconds;
+        _isDraggingSeek = true;
         
-        _volumeSlider.Touch += async (s, e) =>
+    },
+    onDragStop: (value) =>
+    {
+        _isDraggingSeek = false;
+        if (MyViewModel.CurrentPlayingSongView != null)
         {
-            switch (e.Event?.Action)
-            {
-                case MotionEventActions.Down: _isDraggingVolume = true; break;
-                case MotionEventActions.Up:
-                case MotionEventActions.Cancel:
-                    _isDraggingVolume = false;
-                    await Task.Delay(350); // delay so the value updates and we now get it to set new vol
-                    var newVolume = (_volumeSlider.Value / 100);
-                    _viewModel.SetVolumeLevel((double)newVolume);
-                    break;
-                default:
-                    break;
-            }
-            e.Handled = false;
-        };
+            // value is 0-100 (percentage)
+            var newPos = (value / 100f) * MyViewModel.CurrentPlayingSongView.DurationInSeconds;
+            MyViewModel.SeekTrackPositionCommand.Execute(newPos);
+        }
+    },
+    onValueChange: (value, fromUser) =>
+    {
+        // Only update the Text Label, do NOT set _seekSlider.Value here
+        if (fromUser && MyViewModel.CurrentPlayingSongView != null)
+        {
+            // Calculate actual seconds based on the percentage (value)
+            var currentSeconds = (value / 100f) * MyViewModel.CurrentPlayingSongView.DurationInSeconds;
+
+            var ts = TimeSpan.FromSeconds(currentSeconds);
+            _currentTimeText.Text = $"{ts.Minutes}:{ts.Seconds:D2}";
+        }
+    }
+);
+
+        seekListener.DataType = SliderDataType.Time;
+        // 2. Register for BOTH events
+        _seekSlider.AddOnSliderTouchListener(seekListener);
+        _seekSlider.AddOnChangeListener(seekListener);
+        //_seekSlider.SetOnTouchListener(seekListener);
+        
+
+
+        var volumeListener = new DimmerSliderListener(
+    onDragStart: () => { _isDraggingVolume = true; },
+    onDragStop: (value) =>
+    {
+        _isDraggingVolume = false;
+        // Logic happens immediately on lift, no need for Task.Delay
+        var newVolume = (value / 100f);
+        MyViewModel.SetVolumeLevel((double)newVolume);
+    },
+    onValueChange: null // We don't need real-time feedback for volume
+);
+
+        volumeListener.DataType = SliderDataType.Percentage;
+        _volumeSlider.AddOnSliderTouchListener(volumeListener);
+        // We don't strictly need AddOnChangeListener for volume if we only save on drop
         return scroll;
     }
+
+  
+
+    private bool SplashToPink(int[] loc)
+    {
+        _rootView.SetBackgroundColor(Color.HotPink);
+        float finalRadius = (float)Math.Sqrt(_rootView.Width * _rootView.Width +
+            _rootView.Height * _rootView.Height);
+        var anim = ViewAnimationUtils.CreateCircularReveal(_rootView,
+            loc[0] + _loveBtn.Width / 2,
+            loc[1] + _loveBtn.Height / 2, 0f,
+            finalRadius);
+        
+        if (anim is null) return false;
+        anim.SetDuration(550);
+        anim.Start();
+        return true;
+    }
+
+    private bool UnSplashToButton(int[] loc)
+    {
+        float finalRadius = (float)Math.Sqrt(_rootView.Width * _rootView.Width +
+            _rootView.Height * _rootView.Height);
+        var anim = ViewAnimationUtils.CreateCircularReveal(_rootView,
+            loc[0] + _loveBtn.Width / 2,
+            loc[1] + _loveBtn.Height / 2, finalRadius,
+            0f);
+        if (anim is null) return false;
+        anim.SetDuration(550);
+        anim.Start();
+      
+        return true;
+    }
+
     private MaterialButton CreatePillButton(Context ctx, string text, int iconRes)
     {
         var btn = new MaterialButton(ctx, null, Resource.Attribute.materialButtonTonalStyle); // Tonal style looks good for pills
@@ -554,7 +762,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         return btn;
     }
 
-    private MaterialButton CreateControlButton(Context ctx, int iconRes, int sizeDp, bool isPrimary = false, int IconSize=30,
+    private MaterialButton CreateControlButton(Context ctx, int iconRes, int sizeDp, bool isPrimary = false, int IconSize=45,
         int strokeWidth =0 )
     {
         var btn = new MaterialButton(ctx);
@@ -564,9 +772,11 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         btn.InsetTop = 0;
         btn.InsetBottom = 0;
         btn.IconSize = AppUtil.DpToPx(IconSize);
-        var sizePx = AppUtil.DpToPx(sizeDp);
+        var sizePx = AppUtil.DpToPx(IconSize);
         btn.LayoutParameters = new LinearLayout.LayoutParams(sizePx, sizePx) { LeftMargin = 20, RightMargin = 20 };
-        btn.CornerRadius = sizePx / 2;
+        btn.SetWidth(sizeDp);
+        btn.SetHeight(sizeDp);
+        btn.CornerRadius = sizeDp/2;
         btn.StrokeWidth=0;
         
         if (isPrimary)
@@ -577,7 +787,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         else
         {
             btn.SetBackgroundColor(Android.Graphics.Color.Transparent);
-            btn.IconTint = Android.Content.Res.ColorStateList.ValueOf(UiBuilder.IsDark(this.Resources.Configuration) ? Android.Graphics.Color.White : Android.Graphics.Color.Black);
+            btn.IconTint = Android.Content.Res.ColorStateList.ValueOf(UiBuilder.IsDark(btn) ? Android.Graphics.Color.White : Android.Graphics.Color.Black);
             btn.StrokeWidth = AppUtil.DpToPx(1);
             btn.StrokeColor = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.Gray);
         }
@@ -587,23 +797,50 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
     public override void OnResume()
     {
         base.OnResume();
-
+       
         if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu)
         {
             Activity?.OnBackInvokedDispatcher.RegisterOnBackInvokedCallback(
                 (int)IOnBackInvokedDispatcher.PriorityDefault, this);
         }
 
-        
 
-        // 1. Observe Playing Song
-        _viewModel.CurrentSongChanged
+
+            // 1. Observe Playing Song
+            MyViewModel.CurrentSongChanged
             .ObserveOn(RxSchedulers.UI)
-            .Subscribe(UpdateSongUI)
+            .Subscribe(async s =>
+            {
+                if (s is null)
+                {
+                    _mainCoverImage.SetImageWithGlide(null);
+                    //_backgroundImageView.SetImageWithGlide(null);
+                    return;
+                }
+                UpdateSongUI(s);
+                if (MyViewModel.CurrentPlayingSongView.CoverImagePath is not null && MyViewModel.OldSongValue?.AlbumName != s.AlbumName)
+                {
+                    //if (UiBuilder.IsDark(this.View))
+                    //{
+
+                    //    await _backgroundImageView.SetImageWithStringPathViaGlideAndFilterEffect(MyViewModel.CurrentPlayingSongView.CoverImagePath,
+                    //         Utilities.FilterType.DarkAcrylic);
+                    //}
+                    //else
+                    //{
+                    //    await _backgroundImageView.SetImageWithStringPathViaGlideAndFilterEffect(MyViewModel.CurrentPlayingSongView.CoverImagePath,
+                    //         Utilities.FilterType.Glassy);
+                    //}
+                    _mainCoverImage.SetImageWithGlide(MyViewModel.CurrentPlayingSongView.CoverImagePath);
+                  
+
+                }
+            })
             .DisposeWith(_disposables);
 
 
-        _viewModel.AudioEngineIsPlayingObservable
+
+        MyViewModel.AudioEngineIsPlayingObservable
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(isPlaying =>
             {
@@ -619,13 +856,13 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
                 _miniPlayBtn.SetIconResource(iconRes);
 
                 // Set Transition Name
-                var tName = $"sharedImage_{_viewModel.CurrentPlayingSongView.Id}";
+                var tName = $"sharedImage_{MyViewModel.CurrentPlayingSongView.Id}";
                 ViewCompat.SetTransitionName(_miniCover, tName);
             })
             .DisposeWith(_disposables);
         Observable.FromEventPattern<(double newVol, bool isDeviceMuted, int devMavVol)>(
-           h => _viewModel.AudioService.DeviceVolumeChanged += h,
-           h => _viewModel.AudioService.DeviceVolumeChanged -= h)
+           h => MyViewModel.AudioService.DeviceVolumeChanged += h,
+           h => MyViewModel.AudioService.DeviceVolumeChanged -= h)
            .Select(evt => evt.EventArgs)
            .ObserveOn(RxSchedulers.UI)
            .Subscribe(UpdateDeviceVolumeChangedUI, ex => Debug.WriteLine("error on vol changed"))
@@ -635,22 +872,24 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
 
 
         // 2. Observe Playback Position (for Slider & Lyrics)
-        _viewModel.AudioEnginePositionObservable
+        MyViewModel.AudioEnginePositionObservable
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(pos =>
             {
-                if (!_isDraggingSeek && _viewModel.CurrentPlayingSongView?.DurationInSeconds > 0)
+                if (!_isDraggingSeek && MyViewModel.CurrentPlayingSongView?.DurationInSeconds > 0)
                 {
-                    var perc = (pos / _viewModel.CurrentPlayingSongView.DurationInSeconds) * 100;
-                    _seekSlider.Value = (float)Math.Clamp(perc, 0, 100);
+                    var perc = (pos / MyViewModel.CurrentPlayingSongView.DurationInSeconds) * 100;
+                    _seekSlider.Value = (int)Math.Clamp(perc, 0, 100);
 
                     var ts = TimeSpan.FromSeconds(pos);
                     _currentTimeText.Text = $"{ts.Minutes}:{ts.Seconds:D2}";
                 }
 
-                if (_viewModel.CurrentLine != null)
+                if (MyViewModel.CurrentLine != null)
                 {
-                    _currentLyricText.Text = _viewModel.CurrentLine.Text;
+
+                    _currentLyricText.Text = MyViewModel.CurrentLine.Text;
+                    _currentMiniLyricText.Text = MyViewModel.CurrentLine.Text;
                     _lyricsCard.Visibility = ViewStates.Visible;
                 }
                 else
@@ -659,14 +898,29 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
                 }
             })
             .DisposeWith(_disposables);
-        if(_viewModel.IsDimmerPlaying)
+        if(MyViewModel.IsDimmerPlaying)
         {
             if (_playPauseBtn == null || _miniPlayBtn == null) return;
             _miniPlayBtn.SetIconResource(Resource.Drawable.media3_icon_pause);
             _playPauseBtn.SetIconResource(Resource.Drawable.media3_icon_pause);
         }
 
-        _viewModel.WhenPropertyChange(nameof(_viewModel.CurrentRepeatMode), newVl => _viewModel.CurrentRepeatMode)
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentPlayingSongView.HasSyncedLyrics), song => MyViewModel.CurrentPlayingSongView)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(async s =>
+            {
+                if(!string.IsNullOrEmpty(MyViewModel.CurrentPlayingSongView.CoverImagePath))
+                {
+                    var glassy = await ImageFilterUtils.ApplyFilter(MyViewModel.CurrentPlayingSongView.CoverImagePath,
+                        FilterType.Ocean);
+                    Glide.With(this.Context!)
+                    .Load(glassy)
+                    .Into(_mainCoverImage);
+                    
+                }
+            });
+
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentRepeatMode), newVl => MyViewModel.CurrentRepeatMode)
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(rpMode =>
             {
@@ -689,36 +943,38 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
                 }
             }).DisposeWith(_disposables);
 
-        _viewModel.WhenPropertyChange(nameof(_viewModel.IsShuffleActive), newVl => _viewModel.IsShuffleActive)
+
+
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.IsShuffleActive), newVl => MyViewModel.IsShuffleActive)
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(IsShuffleActive =>
             {
                 if (IsShuffleActive)
                 {
                     _shuffleBtn.SetIconResource(Resource.Drawable.media3_icon_shuffle_on);
+                    _shuffleBtn.SetButtonIconColor(Color.DarkSlateBlue);
                 }
                 else
                 {
                     _shuffleBtn.SetIconResource(Resource.Drawable.media3_icon_shuffle_off);
-
+                    _shuffleBtn.SetButtonIconColor(Color.Gray);
                 }
             }).DisposeWith(_disposables);
 
-        _viewModel.CurrentPlayingSongView
+        MyViewModel.CurrentPlayingSongView
             .WhenPropertyChange
             (nameof(SongModelView.CoverImagePath), s => s.CoverImagePath)
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(path =>
             {
+                // Only update mini cover, carousel handles its own images
                 if (!string.IsNullOrEmpty(path))
                 {
                     Glide.With(this).Load(path).Into(_miniCover);
-                    Glide.With(this).Load(path).Into(_mainCoverImage);
                 }
                 else
                 {
                     _miniCover.SetImageResource(Resource.Drawable.musicnotess);
-                    _mainCoverImage.SetImageResource(Resource.Drawable.musicnotess);
                 }
             }).DisposeWith(_disposables);
 
@@ -743,38 +999,51 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
     {
         if (song == null) return;
 
-        var songInDB = _viewModel.RealmFactory.GetRealmInstance()
-            .Find<SongModel>(song.Id);
+       
 
         
         // Mini Player
         _miniTitle.Text = song.Title;
-        _miniArtist.Text = song.OtherArtistsName;
+        var finalArtName = song.HasSyncedLyrics ? "🎙️ " + song.OtherArtistsName : song.OtherArtistsName;
+        _miniArtist.Text = finalArtName;
 
         // Expanded Player
         _expandedTitle.Text = song.Title;
-        _genreText.Text = song.GenreName;
-        _yearText.Text = song.ReleaseYear?.ToString();
 
         var totalTs = TimeSpan.FromSeconds(song.DurationInSeconds);
         _totalTimeText.Text = $"{totalTs.Minutes}:{totalTs.Seconds:D2}";
 
         // Artist Chips
         _artistChipGroup.RemoveAllViews();
-        var chip = new Chip(Context) { Text = song.OtherArtistsName };
-        _artistChipGroup.AddView(chip);
+        var chip = new Chip(Context) { Text = song.OtherArtistsName};
 
-        // Load Images
+                _artistChipGroup.AddView(chip);
+        //if(song.ArtistToSong?.Count<1)
+        //{
+        //    song.ArtistToSong = song.ArtistsInDB(MyViewModel.RealmFactory)!.ToObservableCollection()!;
+        //    foreach (var artist in song.ArtistToSong)
+        //    {
+
+        //        var chip = new Chip(Context) { Text = artist.Name};
+
+        //        _artistChipGroup.AddView(chip);
+
+        //    }
+        //}
+
+        // Load Mini Player Cover Image
         if (!string.IsNullOrEmpty(song.CoverImagePath))
         {
-            Glide.With(this).Load(song.CoverImagePath).Into(_miniCover);
-            Glide.With(this).Load(song.CoverImagePath).Into(_mainCoverImage);
+            _miniCover.SetImageWithGlide(song.CoverImagePath);
+
+           
         }
         else
         {
             _miniCover.SetImageResource(Resource.Drawable.musicnotess);
-            _mainCoverImage.SetImageResource(Resource.Drawable.musicnotess);
         }
+        
+        // Carousel images are handled by the adapter
     }
 
     // --- ANIMATION LOGIC ---
@@ -790,6 +1059,8 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         // Fade in Expanded Player (0.2 -> 1.0)
         _expandedContainer.Alpha = Math.Max(0, (slideOffset - 0.2f) / 0.8f);
         _expandedContainer.Visibility = _expandedContainer.Alpha <= 0 ? ViewStates.Invisible : ViewStates.Visible;
+
+        formatViewText.Text = $"{MyViewModel.CurrentPlayingSongView.FileFormat} • {MyViewModel.CurrentPlayingSongView.BPM}";
     }
 
     public void OnBackInvoked()
@@ -804,4 +1075,6 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
             }
         }
     }
+
+
 }

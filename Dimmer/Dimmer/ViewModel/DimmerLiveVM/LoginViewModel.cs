@@ -151,7 +151,7 @@ public partial class LoginViewModel : ObservableObject
         {     
 
             await _authService.AutoLoginAsync();
-            if(ParseClient.Instance.CurrentUser is null)
+            if(ParseClient.Instance?.CurrentUser is null)
             {
                 return false;
             }

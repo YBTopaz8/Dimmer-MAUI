@@ -368,8 +368,15 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
         // 1 try to recover a live tracked one first
         if (!_openWindows.Contains(window) || !IsWindowOpen(window))
         {
-            window.Activate();
-            TrackWindow(window);
+            try
+            {
+                window.Activate();
+                TrackWindow(window);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+            }
             return;
         }
 

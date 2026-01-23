@@ -1,16 +1,26 @@
 ﻿using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
-
+using Android.Text;
 using Android.Views.InputMethods;
-
 using AndroidX.CoordinatorLayout.Widget;
+using AndroidX.Lifecycle;
 using AndroidX.RecyclerView.Widget;
-
+using CommunityToolkit.Maui.Views;
+using Dimmer.DimmerSearch;
+using Dimmer.UiUtils;
+using Dimmer.Utilities;
+using Dimmer.Utils;
+using Dimmer.Utils.Extensions;
 using Dimmer.ViewsAndPages.NativeViews.DimmerLive;
 using Dimmer.ViewsAndPages.NativeViews.Misc;
 using Dimmer.ViewsAndPages.ViewUtils;
-using Dimmer.WinUI.UiUtils;
+using Google.Android.Material.Chip;
+using Google.Android.Material.Loadingindicator;
+using Microsoft.Maui;
+using Microsoft.Maui.Controls.Shapes;
+using static Android.Webkit.WebSettings;
 using static Dimmer.ViewsAndPages.NativeViews.SongAdapter;
+using TextAlignment = Android.Views.TextAlignment;
 
 
 namespace Dimmer.ViewsAndPages.NativeViews;
@@ -68,20 +78,29 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     }
     private CancellationTokenSource? _searchCts;
     private SongAdapter _adapter;
-
+    private ImageView _backgroundImageView;
 
     public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         var ctx = Context;
 
         // 1. Root: CoordinatorLayout (Crucial for FABs)
-         root = new CoordinatorLayout(ctx)
+        root = new CoordinatorLayout(ctx)
         {
             LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent)
         };
 
         root.SetBackgroundColor(UiBuilder.IsDark(ctx) ? Color.ParseColor("#0D0E20") : Color.ParseColor("#CAD3DA"));
 
+        _backgroundImageView = new ImageView(ctx)
+        {
+            LayoutParameters = new FrameLayout.LayoutParams(-1, -1),
+
+        };
+
+        _backgroundImageView.SetScaleType(ImageView.ScaleType.CenterCrop);
+       
+        root.AddView(_backgroundImageView);
         // 2. Main Content Container (Linear Layout inside Coordinator)
         var contentLinear = new LinearLayout(ctx)
         {
@@ -118,94 +137,149 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
         _searchBar = new TextInputEditText(ctx)
         {
-            Hint = "Search library...",
+            Hint = "type to search",
             Background = null,
             TextSize = 14
         };
+        _searchBar.SetTextColor(!UiBuilder.IsDark(root) ? Color.Black : Color.White);
         _searchBar.SetPadding(40, 30, 40, 30);
+        
         _searchBar.TextChanged += _searchBar_TextChanged;
-        searchCard.AddView(_searchBar);
-        // Help Button
-        var helpBtn = new Google.Android.Material.Button.MaterialButton(ctx, null, Resource.Attribute.materialIconButtonStyle)
+        
+        _searchBar.FocusChange += (s, e) =>
         {
-            Icon = AndroidX.Core.Content.ContextCompat.GetDrawable(ctx, Android.Resource.Drawable.IcMenuHelp),
-            IconTint = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.DarkGray),
+            var newFocus = e.HasFocus;
+            if (!newFocus)
+            {
+                loadingIndic.Visibility = ViewStates.Gone;
+                TQLChipHLayout.Visibility = ViewStates.Visible;
+            }
+            else
+            {
+                TQLChipHLayout.Visibility = ViewStates.Visible;
+            }
+        };
+
+
+        searchCard.AddView(_searchBar);
+
+
+
+
+        // Help Button
+         QueueBtn = new Google.Android.Material.Button.MaterialButton(ctx, null, Resource.Attribute.materialIconButtonStyle)
+        {
+            Icon = AndroidX.Core.Content.ContextCompat.GetDrawable(ctx, Resource.Drawable.playlista),
+            IconTint = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.DarkSlateBlue),
             LayoutParameters = new LinearLayout.LayoutParams(AppUtil.DpToPx(50), AppUtil.DpToPx(50))
         };
-        helpBtn.Click += (s, e) => OpenTqlGuide();
+        QueueBtn.Click += async (s, e) =>
+        {
 
+            var queueSheet = new QueueBottomSheetFragment(MyViewModel,QueueBtn);
+            queueSheet.Show(ParentFragmentManager, "QueueSheet");
+            QueueBtn.Enabled = false;
+            await Task.Delay(800);
+            queueSheet.ScrollToSong();
+        };
+        QueueBtn.LongClickable = true;
+        QueueBtn.LongClick += (s, e) =>
+        {
+            MyViewModel.CopyAllSongsInNowPlayingQueueToMainSearchResult();
+            Toast.MakeText(ctx, "Copied Queue to Main UI", ToastLength.Short);
+            QueueBtn.PerformHapticFeedback(FeedbackConstants.Confirm);
+        };
 
+        loadingIndic = new LoadingIndicator(ctx);
+        loadingIndic.Visibility = ViewStates.Gone;
+        loadingIndic.LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WrapContent, AppUtil.DpToPx(80));
+
+        var mtlChip = new Chip(ctx);
+        var lyParam = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent);
+
+        mtlChip.SetChipIconResource(Resource.Drawable.searchd);
 
         // Add items to Header
         headerLayout.AddView(menuBtn);
         headerLayout.AddView(searchCard);
-        headerLayout.AddView(helpBtn);
+        headerLayout.AddView(QueueBtn);
 
-        // Add Header to Content
-        contentLinear.AddView(headerLayout);
 
-        // --- 3.1 Header Section (Menu + Search + Help) ---
-        var headerTwoLayout = new LinearLayout(ctx)
+
+        var bottomLayout = new LinearLayout(ctx)
         {
             Orientation = Orientation.Horizontal
         };
-        headerTwoLayout.SetGravity(GravityFlags.CenterVertical);
-        // Initial padding (will be updated by Insets logic below)
-        headerTwoLayout.SetPadding(20, 20, 20, 20);
+        bottomLayout.SetGravity(GravityFlags.CenterHorizontal);
 
-        // Menu Button
-        var scrollBtn = new Google.Android.Material.Button.MaterialButton(ctx, null, Resource.Attribute.materialIconButtonStyle)
-        {
-            Icon = AndroidX.Core.Content.ContextCompat.GetDrawable(ctx, Resource.Drawable.eye),
-            IconTint = Android.Content.Res.ColorStateList.ValueOf(Color.Gray),
-            LayoutParameters = new LinearLayout.LayoutParams(AppUtil.DpToPx(50), AppUtil.DpToPx(50))
-        };
-        scrollBtn.Click += (s, e) => { ScrollToCurrent(); };
+        bottomLayout.SetPadding(20, 20, 20, 20);
 
-        // middle Card
-        var middleCard = new MaterialCardView(ctx)
+        songsTotal = new TextView(ctx, null, Resource.Attribute.titleTextStyle);
+        Color col;
+        if (UiBuilder.IsDark(root))
         {
-            Radius = AppUtil.DpToPx(25),
-            CardElevation = AppUtil.DpToPx(4),
-            LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1f) // Weight 1
-        };
-        ((LinearLayout.LayoutParams)middleCard.LayoutParameters).SetMargins(10, 0, 10, 0);
-
-        songsCountTextView = new TextView(ctx);
-        var songCount = MyViewModel.SearchResults.Count;
-        if ( songCount> 1)
-        {
-            songsCountTextView.Text = $"{MyViewModel.SearchResults.Count} Songs";
+            col = Color.White;
         }
-        else if(songCount ==1)
+        else
         {
-            songsCountTextView.Text = $"1 Song";
-
+            col = Color.Black;
         }
-        else if(songCount<1)
-        {
 
-            songsCountTextView.Text = $"No Song";
-        }
-        songsCountTextView.SetPadding(40, 30, 40, 30);
+        songsTotal.SetTextColor(col);
+        songsTotal.TextAlignment = TextAlignment.TextStart;
 
-        middleCard.AddView(songsCountTextView);
-        // Help Button
-        var sortBtn = new Google.Android.Material.Button.MaterialButton(ctx, null, Resource.Attribute.materialIconButtonStyle)
+
+
+        TqlLine = new TextView(ctx, null, Resource.Attribute.titleTextStyle);
+        TqlLine.Text = "test";
+        TqlLine.TextSize = 14;
+
+        TqlLine.SetTextColor(col);
+
+        
+
+        bottomLayout.AddView(loadingIndic);
+
+        bottomLayout.AddView(songsTotal);
+
+
+
+
+        // Add Header to Content
+        contentLinear.AddView(headerLayout);
+        contentLinear.AddView(bottomLayout);
+ 
+        var lastLayout = new LinearLayout(ctx);
+
+        lastLayout.SetGravity(GravityFlags.CenterHorizontal);
+        lastLayout.AddView(TqlLine);
+        
+        TQLChipHLayout = new LinearLayout(ctx);
+        TQLChipHLayout.Orientation = Android.Widget.Orientation.Horizontal;
+        TQLChipHLayout.SetGravity(GravityFlags.CenterHorizontal);
+        var FirstTQLChip = new Chip(ctx);
+
+        FirstTQLChip.SetChipIconResource(Resource.Drawable.heart)
+            ; FirstTQLChip.Text = "My Fav";
+
+        FirstTQLChip.Click += (s, e) =>
         {
-            Icon = AndroidX.Core.Content.ContextCompat.GetDrawable(ctx, Resource.Drawable.mtrl_dropdown_arrow),
-            IconTint = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.DarkSlateBlue),
-            LayoutParameters = new LinearLayout.LayoutParams(AppUtil.DpToPx(50), AppUtil.DpToPx(50))
+            _searchBar.Text = FirstTQLChip.Text;
+            
         };
-        sortBtn.Click += (s, e) => Toast.MakeText(ctx, "OK!", ToastLength.Short);
-       
-        // Add items to Header
-        headerTwoLayout.AddView(scrollBtn);
-        headerTwoLayout.AddView(middleCard);
-        headerTwoLayout.AddView(sortBtn);
+        var SecondTQLChip = new Chip(ctx);
+        SecondTQLChip.SetChipIconResource(Resource.Drawable.sortbytime);
+        SecondTQLChip.Click += (S, e) =>
+        {
+            _searchBar.Text = _searchBar.Text +" desc added";
+        };
 
+        TQLChipHLayout.AddView(FirstTQLChip);
+        TQLChipHLayout.AddView(SecondTQLChip);
+        TQLChipHLayout.Visibility = ViewStates.Gone;
 
-
+        contentLinear.AddView(lastLayout);
+        contentLinear.AddView(TQLChipHLayout);
 
         // --- 4. RecyclerView ---
         _songListRecycler = new RecyclerView(ctx);
@@ -233,9 +307,15 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
 
         // --- 5. Extended FAB ---
+        var vLinearLayout = new LinearLayout(ctx);
+
+
+
         fab = new Google.Android.Material.FloatingActionButton.ExtendedFloatingActionButton(ctx);
         ;
-        fab.Extended = false;
+        fab.Extended = true;
+
+        fab.SetBackgroundColor(UiBuilder.IsDark(ctx) ? Color.ParseColor("#1a1a1a") : Color.ParseColor("#DEDFF0"));
         fab.SetIconResource(Resource.Drawable.musicaba); 
         
 
@@ -245,7 +325,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         fabParams.SetMargins(0, 0, AppUtil.DpToPx(40), AppUtil.DpToPx(90));
         fab.LayoutParameters = fabParams;
 
-        SetupSwipeableFab(fab);
+        SetupClickableFab(fab);
 
 
         // Add FAB to Root
@@ -256,111 +336,38 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
         return root;
     }
-    private void SetupSwipeableFab(View view)
+    private void SetupClickableFab(View view)
     {
-        float startRawX = 0;
-        float startRawY = 0;
-
-        const int SwipeThreshold = 50;
-
-        view.Touch += (s, e) =>
+      
+        view.Click += (s, e) =>
         {
-            switch (e.Event?.Action)
+
+            if (MyViewModel.CurrentPlayingSongView == null) return;
+            var requestedSong = MyViewModel.CurrentPlayingSongView;
+
+            // Since we are using the "queue" mode in adapter, we need to find the index in PlaybackQueue
+            var index = MyViewModel.SearchResults.IndexOf(requestedSong);
+            if (index == -1) return;
+            view.PerformHapticFeedback(FeedbackConstants.LongPress);
+            _songListRecycler?.ScrollToPosition(index);
+
+            var specificView = _songListRecycler.FindViewHolderForAdapterPosition(index);
+
+            var typew = specificView.GetType();
+            var type = specificView.ItemViewType.GetType();
+            if (type == null) return;
+            if(type == typeof(CardView))
             {
-                
-
-                case MotionEventActions.Down:
-                    startRawX = e.Event.RawX;
-                    startRawY = e.Event.RawY;
-
-                   
-                    if (MyViewModel.CurrentPlayingSongView == null) return;
-                   var requestedSong = MyViewModel.CurrentPlayingSongView;
-
-                    // Since we are using the "queue" mode in adapter, we need to find the index in PlaybackQueue
-                    var index = MyViewModel.SearchResults.IndexOf(requestedSong);
-                    if(index == -1) break;
-                    _songListRecycler?.SmoothScrollToPosition(index);
-                    
-                    break;
-
-                case MotionEventActions.Move:
-
-                    float curRawX = e.Event.RawX;
-                    float curRawY = e.Event.RawY;
-
-                    float deltaX = curRawX - startRawX;
-                    float deltaY = curRawY - startRawY;
-
-
-                    view.TranslationX = deltaX;
-                    view.TranslationY = deltaY;
-                    break;
-
-                case MotionEventActions.Up:
-                case MotionEventActions.Cancel:
-                    // 1. Calculate final deltas
-                    float finalDeltaX = view.TranslationX;
-                    float finalDeltaY = view.TranslationY;
-
-                    // 2. Check X-Axis Logic (Left/Right)
-                    if (Math.Abs(finalDeltaX) > SwipeThreshold)
-                    {
-                        if (finalDeltaX > 0)
-                        {
-                            var myact = Activity as TransitionActivity;
-                            myact?.ToggleNavBar(true);
-                            //if (MyViewModel.CanGoNextSong)
-                            //{
-                            //    Android.Widget.Toast.MakeText(Context, "Next Page >>", ToastLength.Short)?.Show();
-                            //    MyViewModel?.NextSongPageCommand?.Execute(null);
-                            //    fab?.Text = $"{MyViewModel?.CurrentSongPage} of {MyViewModel?.TotalSongPages}";
-                            //    fab?.Extend();
-                            //}
-                        }
-                        else
-                        {
-                            //if (MyViewModel.CanGoPrevSong)
-                            //{
-                            //    Android.Widget.Toast.MakeText(Context, "<< Prev Page", ToastLength.Short)?.Show();
-                            //    MyViewModel?.PrevSongPage();
-                            //    fab?.Text = $"{MyViewModel?.CurrentSongPage} of {MyViewModel?.TotalSongPages}";
-                            //    fab?.Extend();
-
-                            //}
-                        }
-                    }
-
-                    if (Math.Abs(finalDeltaY) > SwipeThreshold)
-                    {
-                        if (finalDeltaY < 0)
-                        {
-
-                            var queueSheet = new QueueBottomSheetFragment(MyViewModel);
-                            queueSheet.ScrollToSong();
-
-                            queueSheet.Show(ParentFragmentManager, "QueueSheet");
-                            
-                        }
-                        else
-                        {
-
-                            //MyViewModel.JumpToCurrentSongPage();
-                            //_songListRecycler.SmoothScrollToPosition(MyViewModel.songpo)
-                        }
-                    }
-
-
-                    view.Animate()?
-                        .TranslationX(0)
-                        .TranslationY(0)
-                        .SetDuration(300) 
-
-                        .SetInterpolator(new Android.Views.Animations.OvershootInterpolator(1.0f))
-                        .Start();
-
-                    break;
+                var specificCard = specificView.ItemView as CardView;
+                specificCard?.SetBackgroundColor(Color.DarkSlateBlue);
             }
+            Debug.WriteLine(type);
+        };
+        view.LongClickable = true;
+        view.LongClick += (s, e)
+            =>
+        {
+            _searchBar.RequestFocusFromTouch();
         };
     }
 
@@ -371,9 +378,6 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     private void _searchBar_TextChanged(object? sender, Android.Text.TextChangedEventArgs e)
     {
         var NewText = e.Text?.ToString();
-        var started = e.Start;
-        var AfterCount = e.AfterCount;
-        var BeforeCount = e.BeforeCount;
         MyViewModel.SearchSongForSearchResultHolder(NewText);
     }
 
@@ -407,9 +411,103 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     public override void OnResume()
     {
         base.OnResume();
-        MyViewModel.PropertyChanged += ViewModel_PropertyChanged;
-
+       
         _isNavigating = false;
+
+
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentPlayingSongView), newVl => MyViewModel.CurrentPlayingSongView)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(async currSong =>
+            {
+                var art = currSong.Artist;
+                var alb= currSong.Album;
+                var artImgPath = art?.ImagePath;
+                var albImgPath = alb?.ImagePath;
+                if (MyViewModel.CurrentPlayingSongView.CoverImagePath is not null)
+                {
+
+                    //if(UiBuilder.IsDark(this.View))
+                    //{
+
+                    //    await _backgroundImageView.SetImageWithStringPathViaGlideAndFilterEffect(MyViewModel.CurrentPlayingSongView.CoverImagePath,
+                    //         Utilities.FilterType.DarkAcrylic);
+                        
+                    //}
+                    //else
+                    //{
+                    //    await _backgroundImageView.SetImageWithStringPathViaGlideAndFilterEffect(MyViewModel.CurrentPlayingSongView.CoverImagePath,
+                    //         Utilities.FilterType.Glassy);
+                    //}
+                }
+                //currSong.IsCurrentPlayingHighlight= true; 
+            });
+
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.IsLibraryEmpty), newVl => MyViewModel.IsLibraryEmpty)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(count =>
+            {
+            });
+
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentTqlQueryUI), newVl => MyViewModel.CurrentTqlQueryUI)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(tql =>
+            {
+                if (string.IsNullOrEmpty(tql))
+                {
+                    TqlLine.Animate()?.Alpha(0).SetDuration(300);
+                    TqlLine.Visibility = ViewStates.Gone;
+                }
+                else
+                {
+                    TqlLine.Text = tql;
+                    TqlLine.Visibility = ViewStates.Visible;
+
+                    TqlLine.Animate()?.Alpha(1).SetDuration(150);
+                }
+                //currentTql.Text = tql;
+            });
+
+
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.PlaybackQueue), newVl => MyViewModel.PlaybackQueue)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(pbQueue =>
+            {
+                if(pbQueue is not null)
+                    QueueBtn.TooltipText = $"{MyViewModel.PlaybackQueue.Count} Songs in Queue";
+            });
+
+
+                MyViewModel.WhenPropertyChange(nameof(MyViewModel.IsTqlBusy), newVl => MyViewModel.IsTqlBusy)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(isBusy =>
+            {
+                switch (isBusy)
+                {
+                    case true:
+
+                        loadingIndic.Visibility = ViewStates.Visible;
+                        break;
+
+                    default:
+                        var songCount = MyViewModel.SearchResults.Count;
+                        if (songCount > 1)
+                        {
+                            songsTotal.Text = $"{MyViewModel.SearchResults.Count} Songs";
+                        }
+                        else if (songCount == 1)
+                        {
+                            songsTotal.Text = $"1 Song";
+
+                        }
+                        else if (songCount < 1)
+                        {
+
+                            songsTotal.Text = $"No Song";
+                        }
+                        loadingIndic.Visibility = ViewStates.Gone;
+                        break;
+                }
+            });
 
     }
     public override void OnPause()
@@ -466,44 +564,14 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         .DisposeWith(CompositeDisposables);
 
 
-        _morphMenu = new FabMorphMenu(Context, root, fab)
-        .AddItem("Settings", Resource.Drawable.settings, () =>
-        {
-            // Logic copied from your old ShowFabMenu
-            if (Activity is TransitionActivity act)
-                act.NavigateTo(new SettingsFragment("sett", MyViewModel), "SettingsFragment");
-        })
-        .AddItem("Search (TQL)", Resource.Drawable.searchd, () =>
-        {
-            var searchSheet = new TqlSearchBottomSheet(MyViewModel);
-            searchSheet.Show(ParentFragmentManager, "TqlSearchSheet");
-        })
-        .AddItem("Scroll to Playing", Resource.Drawable.eye, () =>
-        {
-
-            var songPos = MyViewModel.SearchResults.IndexOf(MyViewModel.CurrentPlayingSongView);
-            _songListRecycler?.SmoothScrollToPosition(songPos);
-
-            Toast.MakeText(Context, $"Scrolled To Song {MyViewModel.CurrentPlayingSongView.Title}", ToastLength.Short)?.Show();
-        })
-        .AddItem("View Queue", Resource.Drawable.playlistminimalistic3, () =>
-        {
-            var queueSheet = new QueueBottomSheetFragment(MyViewModel);
-            queueSheet.Show(ParentFragmentManager, "QueueSheet");
-        })
-        .AddItem("Login", Resource.Drawable.user, () =>
-        {
-            MyViewModel.NavigateToAnyPageOfGivenType(this, new LoginFragment("IntoLogin", MyViewModel), "loginPageTag");
-        });
-
-
+        
         PostponeEnterTransition();
         _songListRecycler?.ViewTreeObserver?.AddOnPreDrawListener(new MyPreDrawListener(_songListRecycler, this));
    
     
     
     }
-    private void ScrollToCurrent()
+    public void ScrollToCurrent()
     {
         if (MyViewModel.CurrentPlayingSongView == null) return;
 
@@ -516,13 +584,15 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
             Toast.MakeText(Context, "Scrolled to current song", ToastLength.Short)?.Show();
         }
     }
-    private void Fab_LongClick(object? sender, View.LongClickEventArgs e)
-    {
-        ScrollToCurrent();
-    }
+   
 
     protected CompositeDisposable CompositeDisposables { get; } = new CompositeDisposable();
-    public TextView songsCountTextView { get; private set; }
+    public LoadingIndicator loadingIndic { get; private set; }
+    public TextView songsTotal { get; private set; }
+    public TextView currentTql { get; private set; }
+    public Button QueueBtn { get; private set; }
+    public LinearLayout TQLChipHLayout { get; private set; }
+    public TextView TqlLine { get; private set; }
 
     public override void OnDestroyView()
     {
@@ -540,6 +610,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         {
             InputMethodManager? imm = Context!.GetSystemService(Context.InputMethodService) as InputMethodManager;
             if (imm is null) return;
+            
             imm.ShowSoftInput(_searchBar, ShowFlags.Implicit);
         }
 
@@ -580,6 +651,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
     public void OnBackInvoked()
     {
-        Toast.MakeText(Context!, "Back invoked in HomePageFragment", ToastLength.Short)?.Show();
+        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.DescAdded());
+        RxSchedulers.UI.ScheduleTo(()=> Toast.MakeText(Context!, "Reset TQL", ToastLength.Short)?.Show());
     }
 }

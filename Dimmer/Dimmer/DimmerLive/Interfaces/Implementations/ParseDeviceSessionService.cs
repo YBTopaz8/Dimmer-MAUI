@@ -32,7 +32,8 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
     {
         if (_authService.CurrentUserValue == null)
         {
-            _logger.LogWarning("Cannot register device, user is not logged in.");
+            _logger.LogError("Cannot register device, user is not logged in.");
+            throw new InvalidOperationException("No user authenticated");
             return;
         }
 

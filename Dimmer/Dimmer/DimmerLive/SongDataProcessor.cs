@@ -29,7 +29,8 @@ public class LyricsProcessingProgress
 
 public static class SongDataProcessor
 {
-    public static async Task ProcessLyricsAsync(
+    public static async Task ProcessLyricsAsync(BaseViewModel vm,
+        IDimmerStateService stateService,
         IRealmFactory RealmFactory,
         ILyricsMetadataService lyricsService,
         IProgress<LyricsProcessingProgress>? progress,
@@ -91,7 +92,7 @@ public static class SongDataProcessor
                 if (string.IsNullOrWhiteSpace(fetchedLrcData) && string.IsNullOrWhiteSpace(plainLyrics))
                 {
                     // Pass the cancellationToken to the service! This is crucial.
-                    var onlineResults = await lyricsService.SearchLyricsAsync(song.Title,song.ArtistName,song.AlbumName, cancellationToken);
+                    var onlineResults = await lyricsService.GetAllLyricsPropsOnlineAsync(song, cancellationToken);
                     var onlineResult = onlineResults?.FirstOrDefault(x=>!string.IsNullOrEmpty(x.SyncedLyrics));
                     if (onlineResult is not null)
                     {
@@ -113,14 +114,17 @@ public static class SongDataProcessor
                         bool saved = await lyricsService.SaveLyricsToDB(onlineResult.Instrumental,plainLyrics, song, fetchedLrcData,newLyricsInfo);
                         if (saved)
                         {
+                            var vmSong = vm.SearchResults.First(x => x.TitleDurationKey == song.TitleDurationKey);
 
                             // Update the UI model on the main thread
-                            //RxSchedulers.UI.Schedule(() =>
-                            //{
-                            //    song.HasLyrics = !string.IsNullOrWhiteSpace(plainLyrics);
-                            //    song.UnSyncLyrics = plainLyrics;
-                            //    song.SyncLyrics = fetchedLrcData; // Or however you store it
-                            //});
+                            RxSchedulers.UI.ScheduleTo(() =>
+                            {
+                                vmSong.HasLyrics = !string.IsNullOrWhiteSpace(plainLyrics);
+                                vmSong.UnSyncLyrics = plainLyrics;
+                                vmSong.SyncLyrics = fetchedLrcData; 
+                            });
+                            stateService.SetCurrentLogMsg(
+                                new AppLogModel() { Log = $"Loaded lyrics for {vmSong.Title}" });
                         }
                     }
                 }
@@ -171,6 +175,7 @@ public static class SongDataProcessor
         await actionBlock.Completion;
     }
 }
+
 /*
 public static class SongDataProcessor
 {

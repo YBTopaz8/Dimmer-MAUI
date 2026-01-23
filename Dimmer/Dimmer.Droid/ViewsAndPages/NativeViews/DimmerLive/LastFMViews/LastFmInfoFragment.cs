@@ -5,12 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Bumptech.Glide;
-
 using Google.Android.Material.Tabs;
 
 using Hqub.Lastfm.Entities;
 
-namespace Dimmer.ViewsAndPages.NativeViews.DimmerLive;
+namespace Dimmer.ViewsAndPages.NativeViews.DimmerLive.LastFMViews;
 
 
 public class LastFmInfoFragment : Fragment
@@ -98,16 +97,70 @@ public class LastFmInfoFragment : Fragment
         _tabLayout.TabSelected -= OnTabSelected;
     }
 
-    private void OnTabSelected(object sender, TabLayout.TabSelectedEventArgs e)
+    private void OnTabSelected(object? sender, TabLayout.TabSelectedEventArgs? e)
     {
-        switch (e.Tab.Position)
+        switch (e?.Tab?.Position)
         {
             case 0: LoadRecentTracks(); break;
             case 1: LoadTopTracks(); break; // Implement in VM
             case 2: LoadLovedTracks(); break; // Implement in VM
         }
     }
+    //private async Task LoadUserData()
+    //{
 
+    //    // 1. Get Data from VM
+    //    //user = MyViewModel.CurrentUserLocal?.LastFMAccountInfo; // Assuming this property exists on your VM parity
+
+    //    if (MyViewModel.LastFMService.IsAuthenticated)
+    //    {
+    //        LastFMGridNonAuth.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+    //        LastFMAuthedSection.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+    //        // User Info
+    //        var userr = await MyViewModel.LastFMService.GetUserInfoAsync();
+    //        if (userr is null)
+    //        {
+    //            var usr = MyViewModel.CurrentUserLocal.LastFMAccountInfo;
+    //            if (usr is not null)
+    //            {
+    //                user = usr;
+    //            }
+    //            else
+    //            {
+    //                return;
+    //            }
+    //        }
+    //        else
+    //        {
+    //            user = userr.ToLastFMUserView();
+    //        }
+
+    //        UserNameTxt.Text = user.Name;
+    //        TotalScrobblesTxt.Text = $"{user.Playcount:N0} Scrobbles";
+    //        scrobblingSince.Text = $"Scrobbling since {user.Registered:dd MMM yyyy}";
+    //        // If user.Image is a string URL:
+    //        if (!string.IsNullOrEmpty(user.Image.Url))
+    //        {
+    //            if (!string.IsNullOrEmpty(user.Image.Url))
+    //            {
+    //                UserAvatarImg.ProfilePicture
+    //                    = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(user.Image.Url));
+    //            }
+    //            UserAvatarImg.DisplayName = user.Name;
+    //        }
+
+    //        if (Connectivity.NetworkAccess != NetworkAccess.Internet) return;
+    //        await MyViewModel.LoadUserLastFMDataAsync(user);
+
+    //    }
+    //    else
+    //    {
+    //        LastFMGridNonAuth.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+    //        LastFMAuthedSection.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+    //        UserNameTxt.Text = "Not Connected";
+    //        TotalScrobblesTxt.Text = "Log in via Settings";
+    //    }
+    //}
     private void LoadUserData()
     {
         // Assuming VM has this data
@@ -142,7 +195,10 @@ public class LastFmInfoFragment : Fragment
     }
 
     // Placeholders
-    private void LoadTopTracks() { _adapter.UpdateData(new List<Track>()); }
+    private void LoadTopTracks() 
+    { 
+        _adapter.UpdateData(new List<Track>()); 
+    }
     private void LoadLovedTracks() { _adapter.UpdateData(new List<Track>()); }
 
     private void OnTrackClicked(Track track)

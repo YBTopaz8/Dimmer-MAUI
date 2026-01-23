@@ -1,8 +1,9 @@
 ﻿using AndroidX.Lifecycle;
 using Dimmer.Data.Models.LyricsModels;
-using Dimmer.WinUI.UiUtils;
+using Dimmer.UiUtils;
 using DynamicData.Binding;
 using Google.Android.Material.Dialog;
+using Google.Android.Material.ProgressIndicator;
 using ProgressBar = Android.Widget.ProgressBar;
 using ScrollView = Android.Widget.ScrollView;
 
@@ -58,10 +59,16 @@ public partial class DownloadLyricsFragment : Fragment
 
         // 1. Search Inputs
         titleInput = new TextInputEditText(ctx) { Hint = "Track Name", Text = MyViewModel.SelectedSong?.Title };
-        artistInput = new TextInputEditText(ctx) { Hint = "Artist", Text = MyViewModel.SelectedSong?.ArtistName };
-        albumInput = new TextInputEditText(ctx) { Hint = "Album", Text = MyViewModel.SelectedSong?.AlbumName };
+        titleInput.SetTextColor(UiBuilder.IsDark(ctx) ? Color.White : Color.Black);
 
-         searchBtn = new MaterialButton(ctx) { Text = "Search Lyrics" };
+        artistInput = new TextInputEditText(ctx) { Hint = "Artist", Text = MyViewModel.SelectedSong?.ArtistName };
+        artistInput.SetTextColor(UiBuilder.IsDark(ctx) ? Color.White : Color.Black);
+
+        albumInput = new TextInputEditText(ctx) { Hint = "Album", Text = MyViewModel.SelectedSong?.AlbumName };
+        albumInput.SetTextColor(UiBuilder.IsDark(ctx) ? Color.White : Color.Black);
+
+        searchBtn = new MaterialButton(ctx) { Text = "Search Lyrics" };
+
         searchBtn.Click += SearchBtn_Click;
         searchBtn.SetTextColor(Color.White);
         root.AddView(titleInput);
@@ -70,7 +77,7 @@ public partial class DownloadLyricsFragment : Fragment
         root.AddView(searchBtn);
 
         // 2. Loading Indicator
-        loadingBar = new ProgressBar(ctx) { Indeterminate = true, Visibility = ViewStates.Gone };
+        loadingBar = new CircularProgressIndicator(ctx) { Indeterminate = true, Visibility = ViewStates.Gone };
         root.AddView(loadingBar);
 
         // 3. Results List

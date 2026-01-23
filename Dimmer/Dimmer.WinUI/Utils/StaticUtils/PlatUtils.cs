@@ -453,8 +453,11 @@ public static class PlatUtils
 
     }
 
-    public static async Task ShowNewSongNotification(string songTitle, string artistName, string albumArtPath)
+    public static async Task ShowNewSongNotification(SongModelView songPlaying)
     {
+        string songTitle = songPlaying.Title;
+        string artistName = songPlaying.OtherArtistsName;
+        string albumArtPath = songPlaying.AlbumName;
         try
         {
 
@@ -482,6 +485,35 @@ public static class PlatUtils
         }
     }
 
+    public static async Task ShowNewNotification(string notifMsg)
+    { try
+        {
+
+            var notificationBuilder = new AppNotificationBuilder()
+                .AddArgument("action", "viewSong")
+                //.AddArgument("songId", "12345")
+                .AddText(notifMsg, new AppNotificationTextProperties().SetMaxLines(4));
+
+
+            //.AddButton(new AppNotificationButton("View Song Details").AddArgument("action", "play"))
+            //.AddButton(new AppNotificationButton("Queue").AddArgument("action", "queue")
+
+
+            await AppNotificationManager.Default.RemoveAllAsync();
+            var notif = notificationBuilder.BuildNotification();
+
+            AppNotificationManager.Default.Show(notif);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
+    }
+
+    public static async void ClearNotifications()
+    {
+       _= Task.Run(async () => await AppNotificationManager.Default.RemoveAllAsync());
+    }
     public static void ShowContextMenu(this Element element)
     {
         // Get the MenuFlyout attached to the MAUI element
@@ -532,7 +564,7 @@ public static class PlatUtils
         }
         return null;
     }
-    public static T? FindChildOfType<T>(DependencyObject parent, string name) where T : FrameworkElement
+    public static T? FindChildOfType<T>(DependencyObject? parent, string name) where T : FrameworkElement
     {
         if (parent == null)
             return null;
@@ -557,7 +589,7 @@ public static class PlatUtils
     /// <typeparam name="T">The type of the child control to find.</typeparam>
     /// <param name="parent">The parent element to search within.</param>
     /// <returns>The first child control of the specified type, or null if not found.</returns>
-    public static T? FindChildOfType<T>(DependencyObject parent) where T : DependencyObject
+    public static T? FindChildOfType<T>(DependencyObject? parent) where T : DependencyObject
     {
         if (parent == null)
             return null;
