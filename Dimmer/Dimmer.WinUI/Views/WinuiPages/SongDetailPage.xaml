@@ -173,18 +173,9 @@
                                             <Button
                                                 Background="Transparent"
                                                 BorderThickness="2"
-                                                Content="{x:Bind DetailedSong.GenreName}" />
-                                            <Button
-                                                Background="Transparent"
-                                                BorderThickness="2"
                                                 Content="{x:Bind DetailedSong.FileFormat}" />
 
-                                        </StackPanel>
-                                        <StackPanel Orientation="Horizontal" Spacing="8">
-                                            <TextBlock FontSize="19" Text="Dimms" />
-
-                                            <Button Content="{x:Bind DetailedSong.PlayCompletedCount}" />
-                                        </StackPanel>
+                                       
 
                                         <Button
                                             x:Name="ViewInFolder"
@@ -196,15 +187,16 @@
 
                                         <Button x:Name="ViewCharts" Click="ViewCharts_Click">
                                             <FontIcon Glyph="&#xEB05;" />
-                                        </Button>
+                                            </Button>
+                                        </StackPanel>
                                         <StackPanel Orientation="Horizontal" Spacing="10">
                                             <Button
                                                 VerticalAlignment="Bottom"
                                                 Background="Transparent"
                                                 BorderBrush="Transparent"
-                                                Command="{Binding AddFavoriteRatingToSongCommand}"
-                                                Foreground="SlateBlue"
-                                                Visibility="{x:Bind DetailedSong.IsFavorite, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                RightTapped="FavBtn_RightTapped" x:Name="FavBtn"
+                                                Command="{x:Bind MyViewModel.AddFavoriteRatingToSongCommand}"
+                                                Foreground="SlateBlue">
 
                                                 <FontIcon Glyph="&#xEB52;" />
                                             </Button>

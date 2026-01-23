@@ -930,7 +930,11 @@ AnimationHelper.Key_Forward
         SmokeGrid.Visibility = Visibility.Visible;
         SmokeGrid.ViewQueueGrid.Opacity = 0; // Hide it initially so we see the animation fly in
 
+        if (ApiInformation.IsApiContractPresent("Windows.Foundation.UniversalApiContract", 7))
+        {
+            animation.Configuration = new GravityConnectedAnimationConfiguration();
 
+        }
         await SmokeGrid.DispatcherQueue.EnqueueAsync(() =>
         {
             // 4. Start Animation
@@ -1341,5 +1345,40 @@ true
     private void SmokeGrid_Loaded(object sender, RoutedEventArgs e)
     {
         SmokeGrid.SetBaseViewModelWin(MyViewModel);
+        SmokeGrid.DismissRequested += SmokeGrid_DismissRequested;
+    }
+
+    private async void SmokeGrid_DismissRequested(object? sender, EventArgs e)
+    {
+        // 1. Retrieve the animation that the UserControl just prepared
+        var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("backwardAnimation");
+
+        // 2. Collapse the UserControl (Hide the popup)
+        SmokeGrid.Visibility = Visibility.Collapsed;
+
+        // 3. Start the animation aiming at the Parent's Button
+        if (animation != null)
+        {
+            await ViewQueue.DispatcherQueue.EnqueueAsync(() =>
+            {
+                // This makes the ghost image morph INTO the button
+                animation.TryStart(ViewQueue);
+            });
+        }
+    }
+    private void AlbumBtn_RightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+        var send = ((Button)sender).DataContext as SongModelView;
+        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByAlbum(send.AlbumName));
+    }
+
+    private void MainFab_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void MyArcFabControl_Loaded(object sender, RoutedEventArgs e)
+    {
+        MyArcFabControl.SetMenuItems(new List<string>() { "Page Settings", "TQL View" });
     }
 }

@@ -871,5 +871,10 @@ public sealed partial class SongDetailPage : Page
 
         await MyViewModel.PlaySongWithActionAsync(songMOdelView, PlaybackAction.PlayNext);
     }
+
+    private async void FavBtn_RightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+        await MyViewModel.RemoveSongFromFavorite(MyViewModel.SelectedSong!);
+    }
 }
 

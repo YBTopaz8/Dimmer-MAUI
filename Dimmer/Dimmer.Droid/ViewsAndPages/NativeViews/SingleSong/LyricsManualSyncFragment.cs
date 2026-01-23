@@ -6,8 +6,7 @@ using AndroidX.Fragment.App;
 using AndroidX.RecyclerView.Widget;
 
 using Dimmer.Data.ModelView;
-using Dimmer.WinUI.UiUtils;
-
+using Dimmer.UiUtils;
 using Google.Android.Material.Button;
 using Google.Android.Material.Card;
 
@@ -172,7 +171,7 @@ public class LyricsManualSyncFragment : Fragment
 
         _pasteButton = UiBuilder.CreateMaterialButton(
             context, 
-            Resources?.Configuration, 
+             
             async (s, e) => await _viewModel.PasteLyricsFromClipboardCommand.ExecuteAsync(null),
             true,
             50,
@@ -201,7 +200,6 @@ public class LyricsManualSyncFragment : Fragment
 
         _repeatSelectedButton = UiBuilder.CreateMaterialButton(
             context,
-            Resources?.Configuration,
             (s, e) => RepeatSelected(),
             false,
             40,
@@ -210,7 +208,7 @@ public class LyricsManualSyncFragment : Fragment
 
         _deleteSelectedButton = UiBuilder.CreateMaterialButton(
             context,
-            Resources?.Configuration,
+            
             (s, e) => DeleteSelected(),
             false,
             40,
@@ -219,7 +217,7 @@ public class LyricsManualSyncFragment : Fragment
 
         _clearSelectionButton = UiBuilder.CreateMaterialButton(
             context,
-            Resources?.Configuration,
+            
             (s, e) => ClearSelection(),
             false,
             40);
@@ -264,7 +262,7 @@ public class LyricsManualSyncFragment : Fragment
         // SYNC BUTTON
         _syncButton = UiBuilder.CreateMaterialButton(
             context,
-            Resources?.Configuration,
+            
             (s, e) => SyncNextLine(),
             true,
             60,
@@ -277,7 +275,7 @@ public class LyricsManualSyncFragment : Fragment
         // PLAY/PAUSE BUTTON
         _playPauseButton = UiBuilder.CreateMaterialButton(
             context,
-            Resources?.Configuration,
+            
             async (s, e) => await _viewModel.PlayPauseToggleCommand.ExecuteAsync(null),
             false,
             50);
@@ -300,7 +298,7 @@ public class LyricsManualSyncFragment : Fragment
 
         var cancelButton = UiBuilder.CreateMaterialButton(
             context,
-            Resources?.Configuration,
+            
             (s, e) => CancelSession(),
             false,
             45);
@@ -311,7 +309,7 @@ public class LyricsManualSyncFragment : Fragment
 
         var saveButton = UiBuilder.CreateMaterialButton(
             context,
-            Resources?.Configuration,
+            
             async (s, e) => await SaveLyrics(),
             true,
             45,

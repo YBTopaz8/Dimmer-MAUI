@@ -564,7 +564,7 @@ public static class PlatUtils
         }
         return null;
     }
-    public static T? FindChildOfType<T>(DependencyObject parent, string name) where T : FrameworkElement
+    public static T? FindChildOfType<T>(DependencyObject? parent, string name) where T : FrameworkElement
     {
         if (parent == null)
             return null;
@@ -589,7 +589,7 @@ public static class PlatUtils
     /// <typeparam name="T">The type of the child control to find.</typeparam>
     /// <param name="parent">The parent element to search within.</param>
     /// <returns>The first child control of the specified type, or null if not found.</returns>
-    public static T? FindChildOfType<T>(DependencyObject parent) where T : DependencyObject
+    public static T? FindChildOfType<T>(DependencyObject? parent) where T : DependencyObject
     {
         if (parent == null)
             return null;

@@ -57,7 +57,7 @@
         </ResourceDictionary>
     </Page.Resources>
     <Grid>
-        <Grid Margin="10" RowSpacing="10" >
+        <Grid Margin="10" RowSpacing="10"  Visibility="Visible">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto" />
                 <RowDefinition Height="*" />
@@ -116,6 +116,7 @@
                             Click="ShuffleSongs_Click"
                             Content="Shuffle"
                             PointerReleased="MiddlePointer_PointerReleased" />
+
                         <SplitButton
                             x:Name="SortByWithTQL"
                             Content="Sort By"
@@ -174,6 +175,15 @@
                     <TextBlock Text="{x:Bind MyViewModel.CurrentTqlQueryUI, Mode=OneWay}" />
 
 
+                </StackPanel>
+                <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+
+
+                    <local:ArcFabControl HorizontalAlignment="Stretch" 
+                                         x:Name="MyArcFabControl"
+                                         Loaded="MyArcFabControl_Loaded"
+                             VerticalAlignment="Stretch" Canvas.ZIndex="100"
+                                             ExpandDirection="Left"/>
                 </StackPanel>
             </Grid>
 
@@ -380,6 +390,7 @@
                                                 Grid.Column="1"
                                                 Background="Transparent"
                                                 BorderThickness="0"
+                                                RightTapped="AlbumBtn_RightTapped"
                                                 Click="AlbumBtn_Click">
 
 

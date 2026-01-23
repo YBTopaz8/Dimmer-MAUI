@@ -25,6 +25,7 @@
 	<ItemGroup>
 	  <None Remove="AppShell.xaml" />
 	  <None Remove="Views\CustomViews\MauiViews\SyncLyricsPopUpViewWindow.xaml" />
+	  <None Remove="Views\CustomViews\WinuiViews\ArcFabControl.xaml" />
 	  <None Remove="Views\CustomViews\WinuiViews\HoverCardControl.xaml" />
 	  <None Remove="Views\CustomViews\WinuiViews\MediaPlaybackSection.xaml" />
 	  <None Remove="Views\CustomViews\WinuiViews\MorphContainerView.xaml" />
@@ -130,6 +131,11 @@
 	  <MauiXaml Include="Views\MAUIPages\HomePage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Update="Views\CustomViews\WinuiViews\ArcFabControl.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
 	</ItemGroup>
 	<ItemGroup>
 	  <Page Update="Views\CustomViews\WinuiViews\SmokeViewQueueGrid.xaml">

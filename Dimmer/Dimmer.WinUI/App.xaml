@@ -130,7 +130,18 @@
                 <Setter Property="VerticalAlignment" Value="Center" />
                 <Setter Property="CornerRadius" Value="4" />
             </Style>
-
+            <Style x:Key="SubBtnStyle" TargetType="Button">
+                <Setter Property="Width" Value="45"/>
+                <Setter Property="Height" Value="45"/>
+                <Setter Property="CornerRadius" Value="25"/>
+                <Setter Property="Background" Value="{ThemeResource SystemControlBackgroundChromeMediumBrush}"/>
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="Opacity" Value="0"/>
+                <!-- Hidden initially -->
+                <Setter Property="Content" Value="A"/>
+                <!-- Placeholder -->
+            </Style>
             <!--  Primary Button: Accent color fill  -->
             <Style
                 x:Key="PrimaryButtonStyle"

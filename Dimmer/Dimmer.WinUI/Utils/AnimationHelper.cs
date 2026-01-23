@@ -161,7 +161,7 @@ public static class AnimationHelper
     /// <summary>
     /// Scenario 3 (Source): Prepares animation from a named child inside the sender (e.g. TextBlock inside a Button).
     /// </summary>
-    public static void PrepareFromChild(DependencyObject parent, string childName, string key)
+    public static void PrepareFromChild(DependencyObject? parent, string childName, string key)
     {
         var child = PlatUtils.FindChildOfType<FrameworkElement>(parent, childName);
         if (child != null)
