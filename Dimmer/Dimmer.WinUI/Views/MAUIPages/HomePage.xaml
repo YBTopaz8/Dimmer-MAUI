@@ -45,19 +45,22 @@
 
 
     </ContentPage.Resources>
+    <Grid >
+        <Image
+       Grid.Row="0"
+       Grid.RowSpan="3"
+       Aspect="AspectFit"
+       BackgroundColor="Transparent"
+       HorizontalOptions="Center"
+       Opacity="0.10"
+       Source="{Binding CurrentPlayingSongView.CoverImagePath, Converter={converters:PathToImageConverter}}"
+       ToolTipProperties.Text="Click to view song details"
+       VerticalOptions="Center" />
+   
     <ScrollView x:Name="MainScrollView" VerticalScrollBarVisibility="Default">
 
         <Grid RowDefinitions="*,*,auto,auto">
-            <Image
-                Grid.Row="0"
-                Grid.RowSpan="3"
-                Aspect="AspectFit"
-                BackgroundColor="Transparent"
-                HorizontalOptions="Center"
-                Opacity="0.20"
-                Source="{Binding CurrentPlayingSongView.CoverImagePath, Converter={converters:PathToImageConverter}}"
-                ToolTipProperties.Text="Click to view song details"
-                VerticalOptions="Center" />
+         
             <VerticalStackLayout
                 Grid.Row="0"
                 Margin="10,5"
@@ -695,4 +698,5 @@
         </Grid>
 
     </ScrollView>
+    </Grid>
 </ContentPage>

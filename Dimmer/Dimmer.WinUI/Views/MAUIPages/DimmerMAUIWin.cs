@@ -115,6 +115,7 @@ public partial class DimmerMAUIWin : Microsoft.Maui.Controls.Window
         PlatUtils.MoveAndResizeCenter(nativeWindow, new Windows.Graphics.SizeInt32(600, 600));
         MinimumHeight = 600;
         MaximumWidth = 600;
+        MinimumWidth = 600;
 
 #if DEBUG
         this.Title = $"{MyViewModel?.AppTitle} Debug {BaseViewModel.CurrentAppVersion}  {BaseViewModel.CurrentAppStage}";

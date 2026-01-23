@@ -379,7 +379,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         // subscribe to realm's directChanges for certain models to keep in sync
 
-        using (var checkRealm = RealmFactory.GetRealmInstance())
+        using (Realm? checkRealm = RealmFactory.GetRealmInstance())
         {
             IsLibraryEmpty = !checkRealm.All<SongModel>().Any();
             ShowWelcomeScreen = IsLibraryEmpty;
@@ -678,16 +678,32 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         var duration = endTime - startTime;
         Debug.WriteLine(
             $"{DateTime.Now}: Finished InitializeAllVMCoreComponentsAsync in {duration.TotalSeconds} seconds.");
+        
+        // Initialize background caching with proper error handling and cancellation support
+        // Dispose existing token if it exists (e.g., if this method is called multiple times)
+        _backgroundCachingCts?.Cancel();
+        _backgroundCachingCts?.Dispose();
+        _backgroundCachingCts = new CancellationTokenSource();
+        
         _ = Task.Run(async () =>
         {
-            await OnAppOpening();
-            await HeavierBackGroundLoadings(FolderPaths);
+            try
+            {
+                await OnAppOpening();
+                await HeavierBackGroundLoadings(FolderPaths);
 
-            await Task.Delay(3000);
-            await EnsureAllCoverArtCachedForSongsAsync();
-            CancellationTokenSource cts = new();
-            //await LoadAllSongsLyricsFromOnlineAsync(cts);
-        });
+                await Task.Delay(3000, _backgroundCachingCts.Token);
+                await EnsureAllCoverArtCachedForSongsAsync(_backgroundCachingCts.Token);
+            }
+            catch (OperationCanceledException er)
+            {
+                _logger.LogInformation("Background cover art caching was cancelled."+er.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during background initialization and cover art caching.");
+            }
+        }, _backgroundCachingCts.Token);
 
         IsInitialized = true;
         return;
@@ -1388,6 +1404,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     private IDimmerAudioService _audioService;
     public IDimmerAudioService AudioService => _audioService;
     private ILibraryScannerService libScannerService;
+
+    // Cancellation token for background cover art caching to prevent memory issues on Android
+    private CancellationTokenSource? _backgroundCachingCts;
 
     public CompositeDisposable SubsManager => _subsManager;
     private readonly CompositeDisposable _subsManager = new CompositeDisposable();
@@ -2212,7 +2231,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             if (TaggingUtils.FileExists(song.CoverImagePath))
             {
-
                 return;
             }
         }
@@ -2334,7 +2352,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial Progress<(int current, int total, SongModelView song)> ProgressCoverArtLoad { get; set; }
     [RelayCommand]
-    public async Task EnsureAllCoverArtCachedForSongsAsync()
+    public async Task EnsureAllCoverArtCachedForSongsAsync(CancellationToken cancellationToken = default)
     {
         IsAppLoadingCovers = true;
         // 1. Get the TOTAL count safely using a short-lived Realm instance
@@ -2346,7 +2364,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             var query = realm.All<SongModel>()
                              .Where(s => string.IsNullOrEmpty(s.CoverImagePath));
             
-            songsToProcessIds = query.ToList().Select(s => s.Id).ToList();
+            songsToProcessIds = query.AsEnumerable().Select(s => s.Id).ToList();
             totalCount = songsToProcessIds.Count;
         }
 
@@ -2354,9 +2372,13 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         int processedCount = 0;
 
+        // Use lower parallelism on Android to reduce memory pressure
+        var maxParallelism = 4;
+        
         var parallelOptions = new ParallelOptions
         {
-            MaxDegreeOfParallelism = 8
+            MaxDegreeOfParallelism = maxParallelism,
+            CancellationToken = cancellationToken
         };
         var batches = songsToProcessIds.Chunk(20);
 
@@ -2370,13 +2392,15 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     var songModel = batchRealm.Find<SongModel>(songId);
                     if (songModel != null)
                     {
-                        // Convert to POCO (View) immediately so we can use it after Realm closes
                         songsInBatch.Add(songModel.ToSongModelView()!);
                     }
                 }
             }
             foreach (var songView in songsInBatch)
             {
+                // Check cancellation before processing each song
+                ct.ThrowIfCancellationRequested();
+                
                 bool needsProcessing = string.IsNullOrEmpty(songView.CoverImagePath)
                                        || !TaggingUtils.FileExists(songView.CoverImagePath);
 
@@ -5135,6 +5159,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         if (disposing)
         {
+            // Cancel background caching operations
+            _backgroundCachingCts?.Cancel();
+            _backgroundCachingCts?.Dispose();
+            _backgroundCachingCts = null;
+            
             _realmSubscription?.Dispose();
             _playEventSource.Dispose();
             realm?.Dispose();

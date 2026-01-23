@@ -39,8 +39,16 @@ public sealed partial class ProfilePage : Page
     protected override void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
+        
         // Ensure you retrieve the singleton instance that has the logged-in user
         ViewModel = IPlatformApplication.Current!.Services.GetService<LoginViewModelWin>()!;
+        if(ViewModel.CurrentUserOnline is null)
+        {
+            ViewModel.BaseViewModel.NavigateToAnyPageOfGivenType(typeof(LoginPage));
+            return;
+        }
+
+
         this.DataContext = ViewModel;
     }
 

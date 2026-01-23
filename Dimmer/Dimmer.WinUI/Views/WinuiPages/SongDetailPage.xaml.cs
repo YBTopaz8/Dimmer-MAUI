@@ -105,13 +105,9 @@ public sealed partial class SongDetailPage : Page
         {
             MyViewModel = myVm;
             this.DataContext = MyViewModel;
-            DetailedSong = MyViewModel.SelectedSong;
-
-            
+            DetailedSong = MyViewModel.SelectedSong!;
 
 
-            Visual? visual = ElementCompositionPreview.GetElementVisual(TitleBlock);
-            PlatUtils.ApplyEntranceEffect(visual, TitleBlock, _userPrefAnim, _compositor);
             MyViewModel.CurrentWinUIPage = this;
         }
         if (e.Parameter is SongDetailNavArgs args)
@@ -402,8 +398,7 @@ public sealed partial class SongDetailPage : Page
         if (detailedImageVisual != null)
         {
             ConnectedAnimationService.GetForCurrentView()
-                .PrepareToAnimate("ForwardConnectedAnimation", detailedImage);
-            PlatUtils.ApplyEntranceEffect(detailedImageVisual, detailedImage, SongTransitionAnimation.Spring, _compositor);
+                .PrepareToAnimate("SwingFromSongDetailToEdit", detailedImage);
         }
         // Navigate to the detail page, passing the selected song object.
         // Suppress the default page transition to let ours take over.
@@ -749,8 +744,8 @@ public sealed partial class SongDetailPage : Page
         }
         else
         {
-            FontIcon musicIcon = new FontIcon();
-            musicIcon.Glyph = "\uEC4F";
+            //FontIcon musicIcon = new FontIcon();
+            //musicIcon.Glyph = "\uEC4F";
             
         }
             AnimationHelper.TryStart(

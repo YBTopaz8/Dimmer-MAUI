@@ -15,15 +15,15 @@
             HorizontalAlignment="Stretch"
             VerticalAlignment="Stretch"
             PointerPressed="SmokeGrid_PointerPressed"
-            Visibility="Collapsed">
+            >
         <Grid.Background>
-            <SolidColorBrush Opacity="0.8" Color="{ThemeResource SystemChromeAltHighColor}" />
+            <SolidColorBrush Opacity="0.7" Color="{ThemeResource SystemChromeAltHighColor}" />
         </Grid.Background>
 
         <Grid
                 x:Name="ViewQueueGrid"
             x:FieldModifier="Public"
-                Width="520"
+                Width="550"
                 Height="500"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"

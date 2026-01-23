@@ -57,7 +57,7 @@
         </ResourceDictionary>
     </Page.Resources>
     <Grid>
-        <Grid Margin="10" RowSpacing="10">
+        <Grid Margin="10" RowSpacing="10" >
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto" />
                 <RowDefinition Height="*" />
@@ -177,7 +177,7 @@
                 </StackPanel>
             </Grid>
 
-            <Grid Grid.Row="1">
+            <Grid Grid.Row="1" Visibility="Visible">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="auto" />
@@ -523,7 +523,7 @@
             </StackPanel>
         </Grid>
 
-        <local:SmokeViewQueueGrid x:Name="SmokeGrid" Visibility="Visible"
+        <local:SmokeViewQueueGrid x:Name="SmokeGrid" Visibility="Collapsed"
                                   Loaded="SmokeGrid_Loaded"/>
     </Grid>
 </Page>

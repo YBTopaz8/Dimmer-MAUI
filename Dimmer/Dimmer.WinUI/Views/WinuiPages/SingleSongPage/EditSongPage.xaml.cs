@@ -71,17 +71,7 @@ public sealed partial class EditSongPage : Page
                 DetailedSong = args.Song;
 
                 MyViewModel.CurrentWinUIPage = this;
-                Visual? visual = ElementCompositionPreview.GetElementVisual(detailedImage);
-                PlatUtils.ApplyEntranceEffect(visual, detailedImage, _userPrefAnim, _compositor);
-
-                var animation = ConnectedAnimationService.GetForCurrentView()
-               .GetAnimation("ForwardConnectedAnimation");
-
-                detailedImage.Loaded += (_, _) =>
-                {
-                    detailedImage.Opacity = 1;
-                    animation?.TryStart(detailedImage);
-                };
+              
                 MyViewModel.SelectedSong = DetailedSong;
                 await MyViewModel.LoadSelectedSongLastFMData();
                 //LoadUiComponents();
@@ -396,5 +386,18 @@ public sealed partial class EditSongPage : Page
         SongTitleSearch.Text = MyViewModel.SelectedSong?.Title;
         SongArtistNameSearch.Text = MyViewModel.SelectedSong?.ArtistName;
         SongAlbumNameSearch.Text = MyViewModel.SelectedSong?.AlbumName;
+    }
+
+    private void DetailedImage_Loaded(object sender, RoutedEventArgs e)
+    {   var animation = ConnectedAnimationService.GetForCurrentView()
+       .GetAnimation("SwingFromSongDetailToEdit");
+        detailedImage.Opacity = 1;
+        animation?.TryStart(detailedImage);
+        AnimationHelper.TryStart(
+            detailedImage,
+            new List<UIElement>() { BackBtn }
+            , AnimationHelper.Key_ListToDetail,       // OR Check this key
+           AnimationHelper.Key_ArtistToSong
+            );
     }
 }
