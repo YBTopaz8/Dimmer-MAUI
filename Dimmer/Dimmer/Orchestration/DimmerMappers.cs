@@ -168,6 +168,13 @@ public static class DimmerMappers
             .ToList();
     }
 
+    public static AlbumModelView AlbumInDB(this SongModelView song,IRealmFactory realmFactory)
+    {
+
+        return realmFactory.GetRealmInstance().Find<SongModel>
+            (song.Id)?.Album.ToAlbumModelView()!;
+    }
+
     public static List<SongModelView?>? SongsInDB(this ArtistModelView song,IRealmFactory realmFactory)
     {
 

@@ -464,9 +464,11 @@ internal class SongAdapter : RecyclerView.Adapter
             {
                 if (_currentSong != null)
                 {
+                    
                     MyViewModel.SelectedSong = _currentSong;
                     // Note: Transition name must be updated in Bind, but we can read it from the view here
                     string? tName = ViewCompat.GetTransitionName(_img);
+
                     if (tName != null)
                     {
                         MyViewModel.NavigateToSingleSongPageFromHome(_parentFrag, tName, _img);
@@ -490,8 +492,7 @@ internal class SongAdapter : RecyclerView.Adapter
             // 6. Fav Button
             _favBtn.Click += async (s, e) =>
             {
-                int[] loc = new int[2];
-                _favBtn.GetLocationOnScreen(loc);
+                
                 if (_currentSong != null)
                 {
                     await MyViewModel.AddFavoriteRatingToSong(_currentSong);
@@ -510,8 +511,8 @@ internal class SongAdapter : RecyclerView.Adapter
             };
             _favBtn.LongClick += async (s, e) =>
             {
-                int[] loc = new int[2];
-                _favBtn.GetLocationOnScreen(loc);
+                
+
 
                 if (_currentSong != null)
                 {
@@ -644,10 +645,7 @@ internal class SongAdapter : RecyclerView.Adapter
                         Glide.With(_img.Context).Load(path)
                              .Placeholder(Resource.Drawable.musicnotess)
                              .Into(_img);
-                        if(song == MyViewModel.CurrentPlayingSongView)
-                        {
-                          
-                        }
+                       
                     }
                     else
                     {

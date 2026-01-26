@@ -22,7 +22,7 @@ public class AudioFileProcessor : IAudioFileProcessor
             filePaths,
             new ParallelOptions
             {
-                MaxDegreeOfParallelism = Environment.ProcessorCount // 4, 8, etc.
+                MaxDegreeOfParallelism = 2 
             },
             async (file, ct) =>
             {
@@ -152,6 +152,7 @@ public class AudioFileProcessor : IAudioFileProcessor
             {
                 Id = ObjectId.GenerateNewId(), // Assuming you use MongoDB ObjectId
                 FilePath = filePath,
+                FileSize = actualFileSize,
                 Title = string.IsNullOrEmpty(track.Title) ? finalTitle : track.Title,
                 Description = track.Description ?? string.Empty, // Store version info in Description!
 
@@ -170,9 +171,7 @@ public class AudioFileProcessor : IAudioFileProcessor
                 // Technical Info
                 DurationInSeconds = track.Duration,
                 BitRate = track.Bitrate,
-                FileSize = actualFileSize,
                 FileFormat = Path.GetExtension(filePath).TrimStart('.').ToLowerInvariant(),
-                PlatformPath=filePath,
                 // Tag Info
                 ReleaseYear = track.Year,
                 TrackNumber = track.TrackNumber,
@@ -193,6 +192,12 @@ public class AudioFileProcessor : IAudioFileProcessor
                 DateCreated = DateTimeOffset.UtcNow,
                 LastDateUpdated = DateTimeOffset.UtcNow
             };
+
+
+            song.PlatformPath = TaggingUtils.GetReadableFilePath(filePath);
+            song.FilePath = filePath;
+
+
 
             // Your logic to set the unique key
             song.SetTitleAndDuration(song.Title, song.DurationInSeconds);

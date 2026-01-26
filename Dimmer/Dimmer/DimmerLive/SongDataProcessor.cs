@@ -156,7 +156,7 @@ public static class SongDataProcessor
         new ExecutionDataflowBlockOptions
         {
             // This is the magic. Run up to 4 tasks in parallel. Perfect for network I/O.
-            MaxDegreeOfParallelism = 4,
+            MaxDegreeOfParallelism = 2,
             CancellationToken = cancellationToken
         });
 

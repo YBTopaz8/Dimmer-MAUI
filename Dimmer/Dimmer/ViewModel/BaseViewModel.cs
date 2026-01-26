@@ -371,6 +371,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     public void InitializeAllVMCoreComponents()
     {
+        //return;
         if (IsInitialized) return;
 
         var startTime = DateTime.Now;
@@ -1671,9 +1672,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
     [ObservableProperty]
-    public partial string AppTitle { get; set; } = "🎄Dimmer";
+    public partial string AppTitle { get; set; } = "Dimmer";
 
-    public static string CurrentAppVersion = "1.5.9";
+    public static string CurrentAppVersion = "1.6.2";
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]
@@ -2199,8 +2200,16 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             AppTitle = $"{CurrentAppVersion} - {CurrentAppStage}";
             
             CurrentTrackDurationSeconds = song.DurationInSeconds > 0 ? song.DurationInSeconds : 1;
+            var imgPath = await LoadAndCacheCoverArtAsync(song);
+            if (!string.IsNullOrEmpty(imgPath))
+            {
+                RxSchedulers.UI.ScheduleTo(() =>
+                {
 
-            await LoadAndCacheCoverArtAsync(song);
+                    CurrentPlayingSongView.CoverImagePath = imgPath;
+
+                });
+            }
 
         }
         catch (Exception ex)
@@ -2215,7 +2224,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     /// A robust, multi-stage process to load cover art. It prioritizes existing paths, checks for cached files, and
     /// only extracts from the audio file as a last resort, caching the result for future use.
     /// </summary>
-    public async Task LoadAndCacheCoverArtAsync(SongModelView song)
+    public async Task<string> LoadAndCacheCoverArtAsync(SongModelView song)
     {
 
         if (song.CoverImagePath == "musicnote1.png" || song.CoverImagePath == "musicnotess.png")
@@ -2227,7 +2236,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             if (TaggingUtils.FileExists(song.CoverImagePath))
             {
-                return;
+                return string.Empty;
             }
         }
 
@@ -2238,7 +2247,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             if (!TaggingUtils.FileExists(song.FilePath))
             {
-                return;
+                return string.Empty;
             }
 
             embeddedPicture = EmbeddedArtValidator.GetValidEmbeddedPicture(song.FilePath);
@@ -2250,7 +2259,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed reading embedded art: {FilePath}", song.FilePath);
-            return;
+            return string.Empty;
         }
 
         if (embeddedPicture is null && Connectivity.NetworkAccess == NetworkAccess.Internet)
@@ -2292,9 +2301,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                         }
                     }
                 }
-                else
-                {
-                }
+                
+
             }
         }
 
@@ -2333,15 +2341,16 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             if (song.CoverImagePath != finalImagePath)
             {
-                RxSchedulers.UI.ScheduleTo(()=> song.CoverImagePath = finalImagePath);
-               
+                
+                return finalImagePath;
             }
-
+            return string.Empty;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to load or update cover art from final path: {ImagePath}", finalImagePath);
         }
+        return string.Empty;
     }
 
 
@@ -2373,7 +2382,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         int processedCount = 0;
 
         // Use lower parallelism on Android to reduce memory pressure
-        var maxParallelism = 4;
+        var maxParallelism = 2;
         
         var parallelOptions = new ParallelOptions
         {
@@ -2406,18 +2415,18 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
                 if (needsProcessing)
                     {
-                        await LoadAndCacheCoverArtAsync(songView);
-
-                        int current = Interlocked.Increment(ref processedCount);
+                    
+                    var coverImagePath= await LoadAndCacheCoverArtAsync(songView);
+                    RxSchedulers.UI.ScheduleTo(() => songView.CoverImagePath = coverImagePath);
+                    int current = Interlocked.Increment(ref processedCount);
 
                         if (current % 10 == 0 || current == totalCount)
                         {
-                            //RxSchedulers.UI.ScheduleTo(() =>
-                            //{
-                                _stateService.SetCurrentLogMsg(
-                                    $"Caching covers: [{current}/{totalCount}] - {songView.Title}", DimmerLogLevel.Info
-                               );
-                            //});
+                           
+                            _stateService.SetCurrentLogMsg(
+                                $"Caching covers: [{current}/{totalCount}] - {songView.Title}", DimmerLogLevel.Info
+                            );
+                            
                         }
                     }
                 
@@ -3178,10 +3187,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                         }
                         else
                         {
-                            // *** SIMPLIFIED QUEUE SLICING LOGIC ***
-                            // Take a window of 150 songs (50 before, 100 after) for performance.
                             const int songsToTakeBefore = 100;
-                            const int songsToTakeAfter = 300;
+                            const int songsToTakeAfter = 100;
                             const int totalQueueSize = songsToTakeBefore + 1 + songsToTakeAfter;
 
                             int sliceStart = Math.Max(0, startIndex - songsToTakeBefore);
@@ -3890,6 +3897,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             {
                 case PlaybackAction.PlayNext:
                     await PlaySongNextAsync(songToPlay);
+                    AddToQueue(songToPlay);
                     break;
 
                 case PlaybackAction.PlayNow:
@@ -8572,8 +8580,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial string WelcomeStep { get; set; }
 
-    [ObservableProperty]
-    public partial string NextBtnText { get; set; } = DimmerLanguage.next_btn;
 
     [ObservableProperty]
     public partial bool IsLoadingLyrics { get; set; }
@@ -8595,7 +8601,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             return;
         }
-        NextBtnText = DimmerLanguage.next_btn;
         WelcomeTabIndexEnum--;
     }
 
@@ -8606,7 +8611,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         if (isLastTab)
         {
 
-            NextBtnText = DimmerLanguage.txt_done;
             await Shell.Current
                 .DisplayAlert(
                     Shell.Current.Title,

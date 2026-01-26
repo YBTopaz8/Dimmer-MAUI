@@ -229,15 +229,9 @@ public sealed partial class AllSongsListPage : Page
         {
             // Default behavior: Add to play next (non-interrupting)
             Debug.WriteLine($"Double-tapped on song: {song.Title}");
-            if (MyViewModel.CurrentPlayingSongView.TitleDurationKey is null)
-            {
-                await MyViewModel.PlaySongWithActionAsync(song, PlaybackAction.PlayNow
-                    , SongsEnumerable);
-            }
-            else
-            {
-                await MyViewModel.PlaySongWithActionAsync(song, Dimmer.Utilities.Enums.PlaybackAction.PlayNext, SongsEnumerable);
-            }
+            await MyViewModel.PlaySongAsync(song,
+                    songs: MyViewModel.SearchResults);
+         
         }
     }
     public void ScrollToSong(SongModelView songToFind)
@@ -507,7 +501,6 @@ public sealed partial class AllSongsListPage : Page
     private void SearchAutoSuggestBox_TextChanged(object sender, Microsoft.UI.Xaml.Controls.TextChangedEventArgs e)
     {
         MyViewModel.SearchSongForSearchResultHolder(SearchTextBox.Text);
-        PreviewText.Text = NaturalLanguageProcessor.Process(SearchTextBox.Text);
    
         //var text = SearchTextBox.Text.ToLower();
 
@@ -892,7 +885,7 @@ AnimationHelper.Key_Forward
     }
     private async void ViewQueue_Click(object sender, RoutedEventArgs e)
     {
-        if (MyViewModel.PlaybackQueue.Count > 0) return;
+        if (MyViewModel.PlaybackQueue.Count < 1) return;
         ConnectedAnimation? animation;
 
         FrameworkElement send = (FrameworkElement)sender;

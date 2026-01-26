@@ -491,6 +491,7 @@ public static class PlatUtils
 
     public static async Task ShowNewNotification(SongModelView songPlaying)
     {
+        return;
         string songTitle = songPlaying.Title ?? "Unknown Title";
         string artistName = songPlaying.OtherArtistsName ?? "Unknown Artist";
         string albumArtPath = songPlaying.CoverImagePath;

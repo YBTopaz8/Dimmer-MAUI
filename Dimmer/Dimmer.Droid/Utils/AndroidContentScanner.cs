@@ -42,7 +42,24 @@ public static class AndroidContentScanner
 
         TaggingUtils.PlatformGetFileSizeHook = GetContentFileSize;
         TaggingUtils.PlatformGetStreamHook = GetSeekableStream;
+        TaggingUtils.PlatformSpecificCleanPathGetter = GetCleanPathFromUri;
     }
+
+    private static string GetCleanPathFromUri(string path)
+    {
+        var uriFromStr = Android.Net.Uri.Parse(path);
+        if (uriFromStr != null)
+        {
+            var decodedStrFromUriPath = AndroidFolderPicker.GetPathFromUri(uri: uriFromStr);
+            if (decodedStrFromUriPath is not null)
+            {
+                return decodedStrFromUriPath;   
+            }
+        }
+
+        return path;
+    }
+
     private static bool ContentUriExists(string uriString)
     {
         try

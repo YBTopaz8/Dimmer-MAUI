@@ -31,7 +31,9 @@
                 <ColumnDefinition Width="auto"/>
             </Grid.ColumnDefinitions>
 
-            <StackPanel Grid.Column="0" Margin="5">
+            <StackPanel Grid.Column="0" Margin="5" Loaded="DimmerStatusPanel_Loaded"
+                        x:Name="DimmerStatusPanel"
+     Visibility="{x:Bind MyViewModel.DimmerProgressBarView.Visibility, Mode=OneWay}">
 
                 <ProgressRing IsActive="False"
                           Visibility="Collapsed"
@@ -41,13 +43,15 @@
                 <ProgressBar IsIndeterminate="True"
                          
                          Value="30"
-                         Margin="10,5" Visibility="Collapsed"
+     Visibility="{x:Bind MyViewModel.DimmerProgressBarView.Visibility, Mode=OneWay}"
+                         Margin="10,5" 
                          Loaded="DimmerProgressBar_Loaded"
                          x:Name="DimmerProgressBar"
                          />
 
                 <TextBlock  HorizontalAlignment="Center"
                        x:Name="DimmerStatusTextBlock"
+     Visibility="{x:Bind MyViewModel.DimmerProgressBarView.Visibility, Mode=OneWay}"
      Text="{x:Bind MyViewModel.LatestAppLog.Message, Mode=OneWay}"
                        Loaded="DimmerStatusTextBlock_Loaded"/>
 

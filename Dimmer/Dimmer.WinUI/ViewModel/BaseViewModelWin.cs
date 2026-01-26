@@ -1138,7 +1138,9 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     public Hqub.Lastfm.Entities.Album? SelectedLastFMAlbum { get; internal set; }
     public TextBlock DimmerStatusTextBlockView { get; internal set; }
     public ProgressRing DimmerProgressRingView { get; internal set; }
-    public Microsoft.UI.Xaml.Controls.ProgressBar DimmerProgressBarView { get; internal set; }
+    [ObservableProperty]
+    public partial Microsoft.UI.Xaml.Controls.ProgressBar DimmerProgressBarView { get;  set; }
+    public StackPanel DimmerStatusPanel { get; internal set; }
 
     public override bool AutoConfirmLastFM(bool val)
     {

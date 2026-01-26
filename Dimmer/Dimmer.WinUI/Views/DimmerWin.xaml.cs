@@ -140,6 +140,7 @@ public sealed partial class DimmerWin : Window
     private void DimmerProgressBar_Loaded(object sender, RoutedEventArgs e)
     {
 
+        DimmerProgressBar.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
         MyViewModel!.DimmerProgressBarView = (ProgressBar)sender;
     }
 
@@ -174,5 +175,10 @@ public sealed partial class DimmerWin : Window
 
                 }
             });
+    }
+
+    private void DimmerStatusPanel_Loaded(object sender, RoutedEventArgs e)
+    {
+        MyViewModel.DimmerStatusPanel = DimmerStatusPanel;
     }
 }
