@@ -195,6 +195,7 @@ progress,processedResults.Count);
 
                             // --- Step 3: Upsert Albums and link to Managed Artists ---
                             var managedAlbums = new Dictionary<ObjectId, AlbumModel>();
+
                             foreach (var albumModel in albumModelsToUpsert)
                             {
 
@@ -209,7 +210,7 @@ progress,processedResults.Count);
                                             if (!albumModel.Artists.Contains(managedArt))
                                             {
                                                 albumModel.Artists.Add(managedArt);
-                                            }
+                                            } 
                                         }
                                         else
                                         {
@@ -227,15 +228,31 @@ progress,processedResults.Count);
 
                                 }
                                 albumModel.Artist = albumModel.Artists.FirstOrDefault();
+                                if(albumModel.Artists.Count<1)
+                                {
+
+                                }
                                 var managedAlbum = realmInserts.Add(albumModel, update: true);
                                 managedAlbums[albView.Id] = managedAlbum; 
-                            }
 
+                            }
+                            var albumLookup = new Dictionary<(string AlbumName, string ArtistName), AlbumModel>();
+                            foreach (var managedAlbum in managedAlbums.Values)
+                            {
+                                string albName = managedAlbum.Name ?? "";
+
+                                string artName = managedAlbum.Artist?.Name ?? managedAlbum.Artists.FirstOrDefault()?.Name ?? "";
+                                if(artName =="")
+                                {
+
+                                }
+                                albumLookup[(albName, artName)] = managedAlbum;
+                            }
                             // --- Step 4: Upsert Songs and link everything ---
                             foreach (var songModel in songModelsToUpsert)
                             {
 
-                                
+
                                 if (songModel is not null)
                                 {
 
@@ -244,39 +261,31 @@ progress,processedResults.Count);
                                     var songView = newSongs.Find(x => x.Id == songModel.Id);
                                     if (songView is not null)
                                     {
-                                        //&& x.Artists.Any(w => w.Name == songView.ArtistName)
-                                        var albsIfAny = realmInserts.All<AlbumModel>().Where(x => x.Name == songView.AlbumName);
-                                        if (albsIfAny.Any())
+                                        var lookupKey = (songView.AlbumName ?? "", songView.ArtistName ?? "");
+
+                                        if (albumLookup.TryGetValue(lookupKey, out var foundAlbum))
+                                        {
+                                            songModel.Album = foundAlbum;
+                                        }
+                                        else
+                                        {
+                                           
+                                            var alb = managedAlbums.Values.Where(a => a.Name == songView.AlbumName).FirstOrDefault();
+                                            if(alb is not null)
+                                            {                                                
+                                                songModel.Album = alb;
+                                              
+                                            }
+                                        }
+                                        if(songModel.Album is null)
                                         {
 
-
-                                            var ealbIfAny = albsIfAny;
-                                            foreach (var alb in ealbIfAny)
-                                            {
-                                                var arts = alb.Artists;
-                                                foreach (var art in arts)
-                                                {
-                                                    if(art.Name ==songView.ArtistName)
-                                                    {
-                                                        albIfAny = alb;
-                                                        // i actually wanna end here like a first() type of thing. i wanted the linq but it beat me
-
-                                                    }
-                                                }
-                                            }
-                                            
                                         }
-
-                                    if (albIfAny is not null)
-                                    {
-                                        songModel.Album = albIfAny;
-                                    }
-
-                                    var gnrIfAny = realmInserts.All<GenreModel>().FirstOrDefaultNullSafe(x => x.Name == songView.GenreName);
-                                    if (gnrIfAny is not null)
-                                    {
-                                        songModel.Genre = gnrIfAny;
-                                    }
+                                        var gnrIfAny = realmInserts.All<GenreModel>().FirstOrDefaultNullSafe(x => x.Name == songView.GenreName);
+                                        if (gnrIfAny is not null)
+                                        {
+                                            songModel.Genre = gnrIfAny;
+                                        }
                                     
                                         if (songView.ArtistToSong != null)
                                         {
@@ -325,16 +334,21 @@ progress,processedResults.Count);
                                     else
                                     {
 
-                                        if (songModel.Album.Artist is null)
-                                        {
-
-                                        }
                                         if (songModel.Album.Artists.Count < 1)
                                         {
-
+                                            songModel.Album.Artists.AddRange(songModel.ArtistToSong);
                                         }
                                     }
-                                    realmInserts.Add(songModel, update: true);
+                                    if (songModel!.Album!.Artists.Count < 1)
+                                    {
+                                        
+                                    }
+                                
+                                realmInserts.Add(songModel, update: true);
+                                    artistModelsToUpsert = Enumerable.Empty<ArtistModel>();
+                                    albumModelsToUpsert = Enumerable.Empty<AlbumModel>();
+                                    genreModelsToUpsert = Enumerable.Empty<GenreModel>();
+                                    songModelsToUpsert = Enumerable.Empty<SongModel>();
                                 }
                             }
                         });
@@ -379,6 +393,10 @@ progress,processedResults.Count);
             newArtists.Clear();
             newAlbums.Clear();
             newGenres.Clear();
+            allFiles.Clear();
+            newFilesToProcess.Clear();
+           
+            allFiles.Clear();
             processedResults.Clear();
 
 

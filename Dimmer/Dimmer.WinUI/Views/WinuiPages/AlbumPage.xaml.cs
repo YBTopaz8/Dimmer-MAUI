@@ -42,11 +42,11 @@ public sealed partial class AlbumPage : Page
         MyViewModel.IsBackButtonVisible = WinUIVisibility.Visible;
 
 
-        var s = MyViewModel.RealmFactory.GetRealmInstance().Find<SongModel>(DetailedSong.Id);
-        var ee = s!.Album;
-        SelectedAlbum = ee.ToAlbumModelView(withArtist: true, withSongs: true)!;
+        var ss = MyViewModel.RealmFactory.GetRealmInstance().Find<SongModel>(DetailedSong.Id)!.Album ;
 
-        MyViewModel.SelectedAlbum  =    SelectedAlbum;
+        SelectedAlbum = MyViewModel.RealmFactory.GetRealmInstance().Find<SongModel>(DetailedSong.Id)!.Album.ToAlbumModelView(withArtist: true, withSongs: true)!; ;
+
+        MyViewModel.SelectedAlbum = SelectedAlbum;
         MyViewModel.SelectedLastFMAlbum = await MyViewModel.LastFMService.GetAlbumInfoAsync(DetailedSong.ArtistName, SelectedAlbum!.Name);
         AnimationHelper.TryStart(
       DestinationElement,
@@ -94,12 +94,17 @@ public sealed partial class AlbumPage : Page
 
     private void Grid_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
-        if (Frame.CanGoBack)
+        var prop = e.GetCurrentPoint((UIElement)sender).Properties;
+        if (prop != null && prop.IsXButton1Pressed)
         {
-            //var image = detailedImage;
-            //ConnectedAnimationService.GetForCurrentView()
-            //    .PrepareToAnimate("BackwardConnectedAnimation", image);
-            Frame.GoBack();
+            
+            if (Frame.CanGoBack)
+            {
+                //var image = detailedImage;
+                //ConnectedAnimationService.GetForCurrentView()
+                //    .PrepareToAnimate("BackwardConnectedAnimation", image);
+                Frame.GoBack();
+            }
         }
     }
 
@@ -242,4 +247,117 @@ public sealed partial class AlbumPage : Page
     {
 
     }
+
+    private void ArtistDataTable_Loaded(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+
+    private void CardBorder_DragOver(object sender, DragEventArgs e)
+    {
+        // 1. Allow the drop (Change the icon from "No" to "Copy" or "Move")
+        e.AcceptedOperation = (Windows.ApplicationModel.DataTransfer.DataPackageOperation)DataPackageOperation.Copy;
+
+        // Optional: Change the tooltip text next to the cursor
+        e.DragUIOverride.Caption = "Drop to Edit Image";
+        e.DragUIOverride.IsCaptionVisible = true;
+        e.DragUIOverride.IsContentVisible = true;
+        e.DragUIOverride.IsGlyphVisible = true;
+    }
+
+    private void CardBorder_DragStarting(UIElement sender, Microsoft.UI.Xaml.DragStartingEventArgs args)
+    {
+        if (sender is FrameworkElement element && element.DataContext is SongModelView song)
+        {
+            args.Data.SetText(song.Id.ToString());
+
+            args.Data.RequestedOperation = (Windows.ApplicationModel.DataTransfer.DataPackageOperation)DataPackageOperation.Copy;
+        }
+    }
+
+
+    private async void CardBorder_Drop(object sender, DragEventArgs e)
+    {
+        var frameworkElt = (FrameworkElement)sender;
+        var songV = frameworkElt.DataContext as SongModelView;
+        // 1. Check if the drop contains the data format we expect
+        if (e.DataView.Contains(StandardDataFormats.StorageItems))
+        {
+            // Example: User dragged a file from Windows Explorer onto the Image
+            var items = await e.DataView.GetStorageItemsAsync();
+            if (items.Count > 0 && items[0] is StorageFile file)
+            {
+                // Get the ViewModel associated with the Border we dropped onto
+                if (sender is FrameworkElement border && border.DataContext is SongModelView targetSong)
+                {
+                    // Logic to update the cover image
+                    // await MyViewModel.UpdateCoverImage(targetSong, file);
+                    Debug.WriteLine($"Dropped file {file.Path} onto song {targetSong.Title}");
+                }
+            }
+        }
+        // 2. Check for internal drag (Reordering or swapping)
+        else if (e.DataView.Contains(StandardDataFormats.Text))
+        {
+            var songID = await e.DataView.GetTextAsync();
+            var song = MyViewModel.SearchResults.First(x => x.Id.ToString() == songID);
+
+            songV.CoverImagePath = song.CoverImagePath;
+
+            await MyViewModel.AssignImageToSong(songV);
+        }
+    }
+
+
+    private void ArtistSongTitle_Click(object sender, RoutedEventArgs e)
+    {
+        var songFrameworkElement = (FrameworkElement)sender;
+        var selectedSong = songFrameworkElement.DataContext as SongModelView;
+
+        var row = ArtistDataTable.ContainerFromItem(selectedSong) as FrameworkElement;
+        var image = PlatUtils.FindVisualChild<Image>(row, "coverArtImage");
+        if (image == null) return;
+
+        ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("ArtistToSongDetailsAnim", image);
+
+
+
+        MyViewModel.SelectedSong = selectedSong;
+        MyViewModel.NavigateToAnyPageOfGivenType(typeof(SongDetailPage));
+        
+    }
+
+
+    private async void PlayBtn_Click(object sender, RoutedEventArgs e)
+    {
+        // e.OriginalSource is the specific UI element that received the tap 
+        // (e.g., a TextBlock, an Image, a Grid, etc.).
+        var element = e.OriginalSource as FrameworkElement;
+        SongModelView? song = null;
+        if (element == null)
+            return;
+
+
+
+
+        if (element.DataContext is SongModelView currentSong)
+        {
+            song = currentSong;
+        }
+
+        var songs = ArtistDataTable.Items;
+
+
+
+        var SongsEnumerable = songs.OfType<SongModelView>();
+
+        if (song != null)
+        {
+
+            Debug.WriteLine($"Double-tapped on song: {song.Title}");
+            await MyViewModel.PlaySongWithActionAsync(song,PlaybackAction.PlayNow, SongsEnumerable);
+        }
+    }
+
 }

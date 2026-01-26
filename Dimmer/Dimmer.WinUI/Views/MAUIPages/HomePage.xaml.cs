@@ -1105,7 +1105,8 @@ public partial class HomePage : ContentPage
             return;
         }
         MyViewModel.NavigateToAnyPageOfGivenType(typeof(AllSongsListPage));
-        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.DescAdded());
+        
+        //MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.DescAdded());
 
     }
 

@@ -892,6 +892,7 @@ AnimationHelper.Key_Forward
     }
     private async void ViewQueue_Click(object sender, RoutedEventArgs e)
     {
+        if (MyViewModel.PlaybackQueue.Count > 0) return;
         ConnectedAnimation? animation;
 
         FrameworkElement send = (FrameworkElement)sender;
@@ -945,10 +946,6 @@ true
 );
         Type pageType = typeof(AlbumPage);
 
-        if (song.Album is null)
-        {
-            MyViewModel.LoadAlbumDetails(song);
-        }
         MyViewModel.SelectedAlbum = song.Album;
         MyViewModel.SelectedSong = song;
         MyViewModel.NavigateToAnyPageOfGivenType(pageType);

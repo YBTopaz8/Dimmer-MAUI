@@ -244,10 +244,8 @@ public sealed partial class LyricsEditorPage : Page
 
     private void ApplyLyric_Click(object sender, RoutedEventArgs e)
     {
-        if(Frame.CanGoBack)
-        {
-            Frame.GoBack(); 
-        }
+        MyViewModel.NavigatePageBack();
+       
     }
 
     private async void GoogleItBtn_Click(object sender, RoutedEventArgs e)

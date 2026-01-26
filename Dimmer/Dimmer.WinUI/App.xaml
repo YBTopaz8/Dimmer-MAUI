@@ -18,6 +18,11 @@
 
                 <!--  Other merged dictionaries here  -->
             </ResourceDictionary.MergedDictionaries>
+
+            <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+            <converters:BoolToInverseVisibilityConverter x:Key="BoolToInverseVisibilityConverter" />
+            <converters:BoolToPlayingPauseConv x:Key="BoolToPlayingPauseConverter" />
+            <converters:BytesToMegabytesConverter x:Key="BytesToMegabytesConverter" />
             <converters:MsToDurationConverter x:Key="MsToDurationConverter" />
             <converters:BoolToVisConverter x:Key="BoolToVisConverter" />
             <converters:PlayTypeToBorderBrush x:Key="PlayTypeToBorderBrush" />
@@ -29,12 +34,10 @@
             <converters:StringToImageSourceConverter x:Key="StringToImageConverter" />
             <converters:IsObjNullToVisInverseConverter x:Key="IsObjNullToVisInverseConverter" />
             <converters:BoolToHeartColorConverter x:Key="BoolToHeartColorConverter" />
-            <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-            <converters:BoolToInverseVisibilityConverter x:Key="BoolToInverseVisibilityConverter" />
+            
             <converters:BoolToInverseConverter x:Key="BoolToInverseConverter" />
             <converters:IsObjNullToVisConverter x:Key="IsObjNullToVisConverter" />
             <converters:IsFavoriteToFontIcon x:Key="IsFavoriteToFontIcon" />
-            <converters:BoolToPlayingPauseConv x:Key="BoolToPlayingPauseConverter" />
             <converters:StringToBoolConverter x:Key="StringToBoolConverter" />
             <converters:BoolToVisibilityConverter x:Key="BoolToVis" />
             <converters:InverseBoolToVisibilityConverter x:Key="InvBoolToVis" />

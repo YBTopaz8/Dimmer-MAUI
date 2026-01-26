@@ -362,7 +362,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     public partial bool? CanGoBack { get; set; }
 
 
-    public DimmerWin? MainWindow { get; set; }
+    public DimmerWin MainWindow { get; set; }
     public DimmerMAUIWin MainMAUIWindow { get; set; }
 
     // --- The partial OnChanged methods that are our triggers ---
@@ -844,12 +844,12 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         MainWindow?.NavigateToPage(typeof(AllSongsListPage));
     }
 
-    public async void NavigateToAnyPageOfGivenType(Type pageType)
+    public async void NavigateToAnyPageOfGivenType(Type pageType, object? OptionalParameter = null)
     {
 
         await OpenDimmerWindow();
 
-        MainWindow!.NavigateToPage(pageType);
+        MainWindow!.NavigateToPage(pageType,OptionalParameter);
     }
 
     /// <summary>
@@ -1397,5 +1397,13 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         DimmerProgressBarView.Value = newVal;
         DimmerProgressBarView.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
 
+    }
+
+    internal void NavigatePageBack()
+    {
+        if(MainWindow.ContentFrame.CanGoBack)
+        {
+            MainWindow.ContentFrame.GoBack();
+        }
     }
 }

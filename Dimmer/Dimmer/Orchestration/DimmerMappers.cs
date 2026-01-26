@@ -337,11 +337,9 @@ public static class DimmerMappers
         if (withSongs)
         {
             var songsInAlbum = IPlatformApplication.Current!.Services.GetService<IRealmFactory>()!.GetRealmInstance()
-                .Find<AlbumModel>(src.Id);
-            var ss = songsInAlbum?.SongsInAlbum.Count();
-            Debug.WriteLine(ss);
-            Debug.WriteLine(songsInAlbum.Artists.Count);
-            //returnAlbum.SongsInAlbum = songsInAlbum is null ? null : songsInAlbum!.ToObservableCollection()!;
+                .Find<AlbumModel>(src.Id)!.SongsInAlbum!.AsEnumerable().Select(x => x.ToSongModelView()!)!; ;
+            
+            returnAlbum.SongsInAlbum = songsInAlbum is null ? null : songsInAlbum!.ToObservableCollection()!;
 
         }
 

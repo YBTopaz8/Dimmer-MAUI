@@ -289,7 +289,7 @@ public sealed partial class ArtistPage : Page
 
     private void ArtistDataTable_Loaded(object sender, RoutedEventArgs e)
     {
-        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist.Name));
+        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist?.Name));
         
 
 
@@ -344,6 +344,8 @@ public sealed partial class ArtistPage : Page
         send.BorderThickness = new Microsoft.UI.Xaml.Thickness(2);
         
         MyViewModel.SearchSongForSearchResultHolder($"{TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist.Name)} and {TQlStaticMethods.PresetQueries.ExactlyByAlbum(album.Name)}");
+
+        return;
         var albmInDb = MyViewModel.RealmFactory.GetRealmInstance()
             .All<SongModel>()
             .Where(x => x.AlbumName == album.Name);
