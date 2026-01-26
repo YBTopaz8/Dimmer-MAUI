@@ -49,7 +49,7 @@ public class LibraryScannerService : ILibraryScannerService
             if (folderPaths == null || folderPaths.Count == 0)
             {
                 _logger.LogWarning("ScanLibrary called with no folder paths.");
-                _state.SetCurrentLogMsg(new AppLogModel { Log = "No folders selected for scanning." });
+                _state.SetCurrentLogMsg("No folders selected for scanning." ,DimmerLogLevel.Info);
 
                 var existingState = realm.All<AppStateModel>().FirstOrDefault();
                 if (existingState is not null)
@@ -67,7 +67,7 @@ public class LibraryScannerService : ILibraryScannerService
 
             _logger.LogInformation("Starting library scan for paths: {Paths}", string.Join(", ", folderPaths));
             _state.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderScanStarted, string.Join(";", folderPaths), null, null));
-            _state.SetCurrentLogMsg(new AppLogModel { Log = "Starting music scan..." });
+            _state.SetCurrentLogMsg("Starting music scan...", DimmerLogLevel.Info);
 
             MusicMetadataService currentScanMetadataService = new();
 
@@ -75,7 +75,7 @@ public class LibraryScannerService : ILibraryScannerService
 
             if (allFiles.Count == 0)
             {
-                _state.SetCurrentLogMsg(new AppLogModel { Log = "No audio files found in the selected paths." });
+                _state.SetCurrentLogMsg("No audio files found in the selected paths." ,DimmerLogLevel.Info);
                 _state.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderScanCompleted, "No audio files found.", null, null));
                 return new LoadSongsResult { NewSongsAddedCount = 0 };
 
@@ -88,9 +88,9 @@ public class LibraryScannerService : ILibraryScannerService
                 {
                     return x.Freeze().ToArtistModelView();
                 }).ToList();
-                var existingAlbums = realmm.All<AlbumModel>().ToList().Select(x => x.Freeze().ToAlbumModelView()).ToList();
-                var existingGenres = realmm.All<GenreModel>().ToList().Select(x => x.Freeze().ToGenreModelView()).ToList();
-                var existingSongs = realmm.All<SongModel>().ToList().Select(x => x.Freeze().ToSongModelView()).ToList();
+                List<AlbumModelView?> existingAlbums = realmm.All<AlbumModel>().ToList().Select(x => x.Freeze().ToAlbumModelView()).ToList();
+                List<GenreModelView?> existingGenres = realmm.All<GenreModel>().ToList().Select(x => x.Freeze().ToGenreModelView()).ToList();
+                List<SongModelView?> existingSongs = realmm.All<SongModel>().ToList().Select(x => x.Freeze().ToSongModelView()).ToList();
 
 
 
@@ -105,14 +105,14 @@ public class LibraryScannerService : ILibraryScannerService
             if (totalFilesToProcess == 0)
             {
                 _logger.LogInformation("Scan complete. No new music found.");
-                _state.SetCurrentLogMsg(new AppLogModel { Log = "Your library is up-to-date." });
+                _state.SetCurrentLogMsg("Your library is up-to-date.", DimmerLogLevel.Info);
                 _state.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderScanCompleted, "No new files.", null, null));
                 return new LoadSongsResult { NewSongsAddedCount = 0 };
 
             }
 
             _logger.LogInformation("Found {TotalFiles} new audio files to process.", totalFilesToProcess);
-            _state.SetCurrentLogMsg(new AppLogModel { Log = $"Found {totalFilesToProcess} new songs. Starting import..." });
+            _state.SetCurrentLogMsg($"Found {totalFilesToProcess} new songs. Starting import...", DimmerLogLevel.Info);
 
             // --- 4. Process ONLY the new files ---
             var audioFileProcessor = new AudioFileProcessor( currentScanMetadataService, _config);
@@ -125,15 +125,8 @@ public class LibraryScannerService : ILibraryScannerService
                 progress++;
                 if (progress % 50 == 0 || progress == processedResults.Count)
                 {
-                    _state.SetCurrentLogMsg(new AppLogModel
-                    {
-                        Log = $"Processed {progress}/{processedResults.Count}...",
-                        AppScanLogModel = new AppScanLogModel
-                        {
-                            TotalFiles = processedResults.Count,
-                            CurrentFilePosition = progress
-                        }
-                    });
+                    _state.LogProgress($"Processed {progress}/{processedResults.Count}...",
+progress,processedResults.Count);
                 }
             }
 
@@ -143,7 +136,7 @@ public class LibraryScannerService : ILibraryScannerService
             var newArtists = currentScanMetadataService.NewArtists.DistinctBy(x=>x.Name).ToList();
             var newAlbums = currentScanMetadataService.NewAlbums.DistinctBy(x => x.Name).ToList();
             var newGenres = currentScanMetadataService.NewGenres.DistinctBy(x => x.Name).ToList();
-            var newSongs = processedResults.Where(r => r.Success && r.ProcessedSong != null).Select(r => r.ProcessedSong).ToList();
+            List<SongModelView> newSongs = processedResults.Where(r => r.Success && r.ProcessedSong != null).Select(r => r.ProcessedSong).ToList()!;
 
             if (newSongs.Count!=0)
             {
@@ -151,16 +144,21 @@ public class LibraryScannerService : ILibraryScannerService
                     newSongs.Count, newArtists.Count, newAlbums.Count, newGenres.Count);
                 _logger.LogInformation("Persisting metadata changes to database...");
 
-                // STEP 1: Map all new VIEW objects to new MODEL objects OUTSIDE the transaction.
-                var artistModelsToUpsert = newArtists.Select(x => x.ToArtistModel());
-                var albumModelsToUpsert = newAlbums.Select(x => x.ToAlbumModel());
-                var genreModelsToUpsert = newGenres.Select(x => x.ToGenreModel());
-                var songModelsToUpsert = newSongs.Select(x => x.ToSongModel());
 
-                // This is a dictionary to easily find the MODEL version of a song later.
+                IEnumerable<ArtistModel> artistModelsToUpsert = newArtists.Select(x =>
+                {
+                    var toModel = x.ToArtistModel();
+                     
+                    return toModel;
+                })!;
+                IEnumerable<AlbumModel> albumModelsToUpsert = newAlbums.Select(x => x.ToAlbumModel()!)!;
+                IEnumerable<GenreModel> genreModelsToUpsert = newGenres.Select(x => x.ToGenreModel()!)!;
+                IEnumerable<SongModel> songModelsToUpsert = newSongs.Select(x => x.ToSongModel()!)!;
+
+
                 var songModelDict = songModelsToUpsert.ToDictionary(s => s.Id);
 
-                using (var realmInserts = _realmFactory.GetRealmInstance())
+                using (Realm realmInserts = _realmFactory.GetRealmInstance())
                 {
                     if (realmInserts is not null)
                     {
@@ -168,97 +166,189 @@ public class LibraryScannerService : ILibraryScannerService
                         {
                             // --- Step 1: Managed Artist Lookup ---
                             var managedArtists = new Dictionary<ObjectId, ArtistModel>();
-                            foreach (var artView in newArtists)
+                            
+                            foreach (ArtistModel artView in artistModelsToUpsert)
                             {
-                                if (artView is not null)
-                                {
-                                    var model = artView.ToArtistModel();
-                                    // realmInserts.Add returns the MANAGED version of the object
-                                    var managed = realmInserts.Add(model, update: true);
+                                
+                                ArtistModel? managed = realmInserts.Add(artView, update: true);
+                                if (managed is not null)
+                                {                                    
                                     managedArtists[artView.Id] = managed;
-                                }
+                                }                                    
+                              
                             }
                         
 
                             // --- Step 2: Managed Genre Lookup ---
                             var managedGenres = new Dictionary<ObjectId, GenreModel>();
-                            foreach (var gnrView in newGenres)
+                            foreach (var gnrView in genreModelsToUpsert)
                             {
-                                if (gnrView is not null)
+                               
+                                var managed = realmInserts.Add(gnrView, update: true);
+                                if (managed is not null)
                                 {
-                                    var managed = realmInserts.Add(gnrView.ToGenreModel(), update: true);
-                                    
                                     managedGenres[gnrView.Id] = managed;
-                                }
+                                } 
+                                
+                                
                             }
 
                             // --- Step 3: Upsert Albums and link to Managed Artists ---
                             var managedAlbums = new Dictionary<ObjectId, AlbumModel>();
-                            foreach (var albView in newAlbums)
+
+                            foreach (var albumModel in albumModelsToUpsert)
                             {
-                                var albumModel = albView.ToAlbumModel();
-                                if (albumModel is not null)
+
+                                AlbumModelView albView = newAlbums.Find(x => x.Id == albumModel.Id)!;
+                                if (albView.Artists != null)
                                 {
-                                    if (albView.Artists != null)
+                                    foreach (var artView in albView.Artists)
                                     {
-                                        foreach (var artView in albView.Artists)
+                                        
+                                        if (managedArtists.TryGetValue(artView.Id, out var managedArt))
                                         {
-                                            if (managedArtists.TryGetValue(artView.Id, out var managedArt))
+                                            if (!albumModel.Artists.Contains(managedArt))
                                             {
-                                                if (!albumModel.Artists.Contains(managedArt))
-                                                    albumModel.Artists.Add(managedArt);
+                                                albumModel.Artists.Add(managedArt);
+                                            } 
+                                        }
+                                        else
+                                        {
+                                            var artistFromDB = realmInserts.All<ArtistModel>().FirstOrDefaultNullSafe(x => x.Name == artView.Name);
+                                            if (artistFromDB is not null)
+                                            {
+                                                albumModel.Artists.Add(artistFromDB);
                                             }
+                                            
                                         }
                                     }
-                               
-                                    var managedAlbum = realmInserts.Add(albumModel, update: true);
-                                    managedAlbums[albView.Id] = managedAlbum; 
                                 }
+                                else
+                                {
+
+                                }
+                                albumModel.Artist = albumModel.Artists.FirstOrDefault();
+                                if(albumModel.Artists.Count<1)
+                                {
+
+                                }
+                                var managedAlbum = realmInserts.Add(albumModel, update: true);
+                                managedAlbums[albView.Id] = managedAlbum; 
+
                             }
-
-                            // --- Step 4: Upsert Songs and link everything ---
-                            foreach (var songView in newSongs)
+                            var albumLookup = new Dictionary<(string AlbumName, string ArtistName), AlbumModel>();
+                            foreach (var managedAlbum in managedAlbums.Values)
                             {
-                                // Create unmanaged song model from view (relationships will be set below)
-                                var songModel = songView.ToSongModel();
+                                string albName = managedAlbum.Name ?? "";
+
+                                string artName = managedAlbum.Artist?.Name ?? managedAlbum.Artists.FirstOrDefault()?.Name ?? "";
+                                if(artName =="")
+                                {
+
+                                }
+                                albumLookup[(albName, artName)] = managedAlbum;
+                            }
+                            // --- Step 4: Upsert Songs and link everything ---
+                            foreach (var songModel in songModelsToUpsert)
+                            {
+
+
                                 if (songModel is not null)
-                                { 
-                                    // LINK ALBUM (Using our dictionary of managed objects)
-                                    if (songView!.Album != null && managedAlbums.TryGetValue(songView.Album.Id, out var mAlb))
-                                    {
-                                        songModel.Album = mAlb;
-                                    }
+                                {
 
-                                    // LINK GENRE (Using our dictionary of managed objects)
-                                    if (songView.Genre != null && managedGenres.TryGetValue(songView.Genre.Id, out var mGnr))
-                                    {
-                                        songModel.Genre = mGnr;
-                                    }
 
-                                    // LINK ARTISTS (Using our dictionary of managed objects)
-                                    if (songView.ArtistToSong != null)
+                                    AlbumModel? albIfAny = null;
+                                    var songView = newSongs.Find(x => x.Id == songModel.Id);
+                                    if (songView is not null)
                                     {
-                                        foreach (var artView in songView.ArtistToSong)
+                                        var lookupKey = (songView.AlbumName ?? "", songView.ArtistName ?? "");
+
+                                        if (albumLookup.TryGetValue(lookupKey, out var foundAlbum))
                                         {
-                                            if (artView is not null)
+                                            songModel.Album = foundAlbum;
+                                        }
+                                        else
+                                        {
+                                           
+                                            var alb = managedAlbums.Values.Where(a => a.Name == songView.AlbumName).FirstOrDefault();
+                                            if(alb is not null)
+                                            {                                                
+                                                songModel.Album = alb;
+                                              
+                                            }
+                                        }
+                                        if(songModel.Album is null)
+                                        {
+
+                                        }
+                                        var gnrIfAny = realmInserts.All<GenreModel>().FirstOrDefaultNullSafe(x => x.Name == songView.GenreName);
+                                        if (gnrIfAny is not null)
+                                        {
+                                            songModel.Genre = gnrIfAny;
+                                        }
+                                    
+                                        if (songView.ArtistToSong != null)
+                                        {
+                                            foreach (var artView in songView.ArtistToSong)
                                             {
-                                                if (managedArtists.TryGetValue(artView.Id, out var mArt))
+                                                if (artView is not null)
                                                 {
-                                                    songModel.ArtistToSong.Add(mArt);
+                                                    var artIfAny = realmInserts.All<ArtistModel>().FirstOrDefaultNullSafe(x => x.Name == artView.Name);
+                                                    if (artIfAny is not null)
+                                                    {
+                                                        songModel.ArtistToSong.Add(artIfAny);
+                                                    }
                                                 }
                                             }
+
+                                            if (songModel.ArtistToSong.Count > 0)
+                                            {
+                                                songModel.Artist = songModel.ArtistToSong[0];
+
+                                                songModel.ArtistName = songModel.Artist?.Name ?? "Unknown Artist";
+
+                                            }
                                         }
 
-                                        if (songModel.ArtistToSong.Count > 0)
-                                            songModel.Artist = songModel.ArtistToSong[0];
+                                    }
+                                    songModel.IsNew = false;
+
+                                   
+                                    if (songModel.Genre is null)
+                                    {
+
+                                    }
+                                    if (songModel.Artist is null)
+                                    {
+
+                                    }
+
+                                
+                                    if (songModel!.ArtistToSong.Count < 1)
+                                    {
+
+                                    }
+                                    if(songModel.Album is null)
+                                    {
+                                    }
+                                    else
+                                    {
+
+                                        if (songModel.Album.Artists.Count < 1)
+                                        {
+                                            songModel.Album.Artists.AddRange(songModel.ArtistToSong);
+                                        }
+                                    }
+                                    if (songModel!.Album!.Artists.Count < 1)
+                                    {
+                                        
                                     }
                                 
-                                    // Set ArtistName from the managed Artist object
-                                    songModel.ArtistName = songModel.Artist?.Name ?? "Unknown Artist";
-                                    songModel.IsNew = false;
-                                    
-                                    // Finally, add the song
-                                    realmInserts.Add(songModel, update: true);
+                                realmInserts.Add(songModel, update: true);
+                                    artistModelsToUpsert = Enumerable.Empty<ArtistModel>();
+                                    albumModelsToUpsert = Enumerable.Empty<AlbumModel>();
+                                    genreModelsToUpsert = Enumerable.Empty<GenreModel>();
+                                    songModelsToUpsert = Enumerable.Empty<SongModel>();
                                 }
                             }
                         });
@@ -290,19 +380,23 @@ public class LibraryScannerService : ILibraryScannerService
                 });
             }
 
-            _state.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderScanCompleted, extParam: newSongs,newSongs.First(), null));
+            _state.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderScanCompleted, extParam: newSongs,null, null));
 
 
             // clear up and clean memory 
             currentScanMetadataService.ClearAll();
             
             
-            _state.SetCurrentLogMsg(new AppLogModel { Log = "Music scan complete." });
+            _state.SetCurrentLogMsg("Music scan complete.", DimmerLogLevel.Info);
             _logger.LogInformation("Library scan completed successfully.");
             newSongs.Clear();
             newArtists.Clear();
             newAlbums.Clear();
             newGenres.Clear();
+            allFiles.Clear();
+            newFilesToProcess.Clear();
+           
+            allFiles.Clear();
             processedResults.Clear();
 
 

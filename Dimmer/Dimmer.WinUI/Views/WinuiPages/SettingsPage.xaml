@@ -123,8 +123,8 @@
 
                         <TextBlock
                             VerticalAlignment="Center"
-                            Foreground="White"
-                            Text="{Binding FolderPaths.Count}" />
+                            Foreground="White" Text="{x:Bind MyViewModel.FolderPaths.Count, Mode=OneWay}"
+                             />
 
                     </StackPanel>
 
@@ -150,7 +150,7 @@
                         </TeachingTip>
                     </StackPanel>
 
-                    <ItemsRepeater ItemsSource="{Binding FolderPaths}">
+                    <ItemsRepeater ItemsSource="{x:Bind MyViewModel.FolderPaths, Mode=OneWay}">
                         <ItemsRepeater.Layout>
                             <StackLayout Orientation="Vertical" Spacing="10" />
                         </ItemsRepeater.Layout>
@@ -177,6 +177,7 @@
                                                 Background="MidnightBlue"
                                                 BorderBrush="MidnightBlue"
                                                 Click="ReScanButton_Click"
+                                                x:Name="ReScanBtn"
                                                 Content="ReScan" />
                                             <Button
                                                 x:Name="UpdateFolder"
@@ -517,7 +518,7 @@
      Grid.Row="2"
      VerticalAlignment="Bottom"
                 x:Name="AppLog"
-     Text="{x:Bind MyViewModel.LatestAppLog.Log, Mode=OneWay}"/>
+     Text="{x:Bind MyViewModel.LatestAppLog.Message, Mode=OneWay}"/>
             <Button x:Name="OptionLogBtn"
                     Loaded="OptionLogBtn_Loaded"
                     Content="View Songs"/>

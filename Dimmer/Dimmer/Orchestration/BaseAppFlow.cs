@@ -192,7 +192,7 @@ public class BaseAppFlow : IDisposable
 
             // Step 3: Update the UI state.
             string userFriendlyMessage = UserFriendlyLogGenerator.GetPlaybackStateMessage(type, songView, position);
-            _state.SetCurrentLogMsg(new AppLogModel { Log = userFriendlyMessage, ViewSongModel = songView });
+            _state.SetCurrentLogMsg(userFriendlyMessage, DimmerLogLevel.Info);
         }
         catch (Exception ex)
         {

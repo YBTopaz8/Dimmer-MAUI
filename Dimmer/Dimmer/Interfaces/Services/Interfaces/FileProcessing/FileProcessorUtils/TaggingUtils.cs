@@ -292,6 +292,7 @@ public static class TaggingUtils
     // The Android project will assign this function later.
     public static Func<string, IReadOnlySet<string>, List<string>>? PlatformSpecificScanner { get; set; }
     public static Func<string, Stream>? PlatformGetStreamHook { get; set; }
+    public static Func<string, string>? PlatformSpecificCleanPathGetter { get; set; }
     
 
     public static Func<string, long>? PlatformGetFileSizeHook { get; set; }
@@ -334,7 +335,7 @@ public static class TaggingUtils
         Parallel.ForEach(
             pathsToScan.Where(p => !string.IsNullOrWhiteSpace(p))
                        .Distinct(StringComparer.OrdinalIgnoreCase),
-            new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount },
+            new ParallelOptions { MaxDegreeOfParallelism = 2 },
             path =>
             {
                 try
@@ -384,7 +385,7 @@ public static class TaggingUtils
         Parallel.ForEach(
             pathsToScan.Where(p => !string.IsNullOrWhiteSpace(p))
                        .Distinct(StringComparer.OrdinalIgnoreCase),
-            new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount },
+            new ParallelOptions { MaxDegreeOfParallelism = 2 },
             path =>
             {
                 try
@@ -424,4 +425,19 @@ public static class TaggingUtils
         });
     }
 
+    internal static string GetReadableFilePath(string path)
+    {
+        if (path.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
+        {
+            if (PlatformSpecificCleanPathGetter != null)
+            {
+                return PlatformSpecificCleanPathGetter.Invoke(path);
+                    
+            }
+            
+        }
+
+        return path;
+
+    }
 }

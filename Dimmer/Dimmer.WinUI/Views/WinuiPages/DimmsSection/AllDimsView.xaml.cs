@@ -387,7 +387,7 @@ public sealed partial class AllDimsView : Page
                     {
 
                         var selectedArtist = MyViewModel.RealmFactory.GetRealmInstance()
-                        .Find<SongModel>(songModelView.Id).ArtistToSong.First()
+                        .Find<SongModel>(songModelView.Id)?.ArtistToSong.First()
                         .ToArtistModelView();
                         if (selectedArtist is null) return;
                         await MyViewModel.SetSelectedArtist(selectedArtist);

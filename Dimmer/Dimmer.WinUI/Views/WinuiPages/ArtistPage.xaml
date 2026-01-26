@@ -24,16 +24,6 @@
     PointerPressed="MyArtistPage_PointerPressed"
     mc:Ignorable="d">
 
-    <Page.Resources>
-        <ResourceDictionary>
-
-            <convertersWinUI:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-            <convertersWinUI:BoolToInverseVisibilityConverter x:Key="BoolToInverseVisibilityConverter" />
-            <convertersWinUI:IsFavoriteToFontIcon x:Key="IsFavoriteToFontIcon" />
-            <convertersWinUI:BoolToPlayingPauseConv x:Key="BoolToPlayingPauseConverter" />
-            <convertersWinUI:BytesToMegabytesConverter x:Key="BytesToMegabytesConverter" />
-        </ResourceDictionary>
-    </Page.Resources>
 
     <ScrollViewer>
 

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -57,7 +57,10 @@ public sealed partial class LyricsEditorPage : Page
     protected override async void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
-
+        if(!Frame.CanGoBack)
+        {
+            BackBtn.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+        }
         if (e.Parameter is SongDetailNavArgs args)
         {
             var vm = args.ExtraParam is null ? args.ViewModel as BaseViewModelWin : args.ExtraParam as BaseViewModelWin;
@@ -108,6 +111,10 @@ public sealed partial class LyricsEditorPage : Page
 
 
                 Frame.GoBack();
+            }
+            else
+            {
+                MyViewModel.NavigateToAnyPageOfGivenType(typeof(AllSongsListPage));
             }
         }
     }
@@ -237,10 +244,8 @@ public sealed partial class LyricsEditorPage : Page
 
     private void ApplyLyric_Click(object sender, RoutedEventArgs e)
     {
-        if(Frame.CanGoBack)
-        {
-            Frame.GoBack(); 
-        }
+        MyViewModel.NavigatePageBack();
+       
     }
 
     private async void GoogleItBtn_Click(object sender, RoutedEventArgs e)

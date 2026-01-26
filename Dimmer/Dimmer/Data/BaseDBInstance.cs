@@ -8,25 +8,32 @@ namespace Dimmer.Data;
 public interface IRealmFactory
 {
     Realm GetRealmInstance();
+    Realm? GetRealmLogInstance();
 }
 
 public class RealmFactory : IRealmFactory
 {
     private readonly RealmConfiguration _config;
+    private RealmConfiguration _logConfig;
 
     public RealmFactory()
     {
         // Create database directory.
         string dbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DimmerRealm");
+
         if (!Directory.Exists(dbPath))
         {
             Directory.CreateDirectory(dbPath);
         }
+      
+
 #if RELEASE
         string filePath = Path.Combine(dbPath, "DimmerDbB.realm");
+        string fileLogPath = Path.Combine(dbPath, "DimmerDbBLog.realm");
 #elif DEBUG
-        string filePath = Path.Combine(dbPath, "DimmerDsB.realm");
-        //string filePath = Path.Combine(dbPath, "DimmerDbDebug.realm");
+        string filePath = Path.Combine(dbPath, "DimmerDdebugB.realm");
+        string fileLogPath = Path.Combine(dbPath, "DimmerDDebugBLog.realm");
+
 #endif
         if (!TaggingUtils.FileExists(filePath))
         {
@@ -36,31 +43,18 @@ public class RealmFactory : IRealmFactory
         // Set schema version to 5.
         _config = new RealmConfiguration(filePath)
         {
-            SchemaVersion = 20,
-        //    Schema = new[]
-        //    {
-        //        typeof(AppStateModel),
-        //        typeof(SongModel),
-        //        typeof(PlaylistModel),
-        //        typeof(AlbumModel),
-        //        typeof(ArtistModel),
-        //        typeof(DimmerPlayEvent),
-        //        typeof(SyncLyrics),
-        //        typeof(TagModel),
-        //        typeof(UserModel),
-        //typeof(GenreModel),
-        //typeof(UserStats),
-        //typeof(AchievementRule),
-
-        //typeof(UserNoteModel),
-        //typeof(PlaylistEvent),
-        //typeof(LastFMUser),
-        //typeof(LastImage), // Nested inside LastFMUser
-        //typeof(SyncLyrics)  // Used in SongModel
-        //    },
+            SchemaVersion = 21,
+      
             MigrationCallback = (migration, oldSchemaVersion) =>
             {
 
+            }
+        };
+        _logConfig = new RealmConfiguration(fileLogPath)
+        {
+            SchemaVersion = 1,
+            MigrationCallback = (migration, oldSchemaVersion) =>
+            {
             }
         };
     }
@@ -68,6 +62,11 @@ public class RealmFactory : IRealmFactory
     public Realm GetRealmInstance()
     {
         return Realm.GetInstance(_config);
+    }
+
+    public Realm? GetRealmLogInstance()
+    {
+        return Realm.GetInstance(_logConfig);
     }
 }
 

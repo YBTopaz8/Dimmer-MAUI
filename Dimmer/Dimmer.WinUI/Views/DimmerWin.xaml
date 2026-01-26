@@ -21,14 +21,56 @@
     <Grid x:Name="MainGrid" Background="Transparent">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <customViews:MediaPlaybackSection x:Name="TopMediaControlSection" Grid.Row="0" />
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="auto"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Margin="5" Loaded="DimmerStatusPanel_Loaded"
+                        x:Name="DimmerStatusPanel"
+     Visibility="{x:Bind MyViewModel.DimmerProgressBarView.Visibility, Mode=OneWay}">
+
+                <ProgressRing IsActive="False"
+                          Visibility="Collapsed"
+                          x:Name="DimmerProgressRing"
+                          Loaded="DimmerProgressRing_Loaded"
+                          />
+                <ProgressBar IsIndeterminate="True"
+                         
+                         Value="30"
+     Visibility="{x:Bind MyViewModel.DimmerProgressBarView.Visibility, Mode=OneWay}"
+                         Margin="10,5" 
+                         Loaded="DimmerProgressBar_Loaded"
+                         x:Name="DimmerProgressBar"
+                         />
+
+                <TextBlock  HorizontalAlignment="Center"
+                       x:Name="DimmerStatusTextBlock"
+     Visibility="{x:Bind MyViewModel.DimmerProgressBarView.Visibility, Mode=OneWay}"
+     Text="{x:Bind MyViewModel.LatestAppLog.Message, Mode=OneWay}"
+                       Loaded="DimmerStatusTextBlock_Loaded"/>
+
+
+
+            </StackPanel>
+            <Button Grid.Column="1"  Click="ClearStatus_Click" 
+                    Background="Transparent"
+                    x:Name="ClearStatus" HorizontalAlignment="Right">
+                <SymbolIcon Symbol="Clear" Height="15" Width="15" />
+            </Button>
+        </Grid>
+        <customViews:MediaPlaybackSection
+           Loaded="TopMediaControlSection_Loaded"
+            x:Name="TopMediaControlSection" Grid.Row="1" />
 
         <Frame
             x:Name="ContentFrame"
-            Grid.Row="1"
+            Grid.Row="2"
             x:FieldModifier="Public" />
 
     </Grid>

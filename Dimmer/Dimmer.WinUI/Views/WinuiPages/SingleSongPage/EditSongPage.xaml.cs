@@ -120,7 +120,7 @@ public sealed partial class EditSongPage : Page
                 case ContentDialogResult.None:
                     break;
                 case ContentDialogResult.Primary:
-                    await MyViewModel.UpdateSongNoteWithGivenNoteModelView(MyViewModel.SelectedSong,uNote);
+                    await MyViewModel.UpdateSongNoteWithGivenNoteModelView(MyViewModel.SelectedSong!,uNote);
                     return;
                 case ContentDialogResult.Secondary:
                     await MyViewModel.RemoveSongNoteById(DetailedSong!, uNote);

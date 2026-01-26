@@ -22,7 +22,7 @@ public class AudioFileProcessor : IAudioFileProcessor
             filePaths,
             new ParallelOptions
             {
-                MaxDegreeOfParallelism = Environment.ProcessorCount // 4, 8, etc.
+                MaxDegreeOfParallelism = 2 
             },
             async (file, ct) =>
             {
@@ -152,7 +152,8 @@ public class AudioFileProcessor : IAudioFileProcessor
             {
                 Id = ObjectId.GenerateNewId(), // Assuming you use MongoDB ObjectId
                 FilePath = filePath,
-                Title = finalTitle,
+                FileSize = actualFileSize,
+                Title = string.IsNullOrEmpty(track.Title) ? finalTitle : track.Title,
                 Description = track.Description ?? string.Empty, // Store version info in Description!
 
                 // Artist Info
@@ -170,9 +171,7 @@ public class AudioFileProcessor : IAudioFileProcessor
                 // Technical Info
                 DurationInSeconds = track.Duration,
                 BitRate = track.Bitrate,
-                FileSize = actualFileSize,
                 FileFormat = Path.GetExtension(filePath).TrimStart('.').ToLowerInvariant(),
-                PlatformPath=filePath,
                 // Tag Info
                 ReleaseYear = track.Year,
                 TrackNumber = track.TrackNumber,
@@ -194,11 +193,18 @@ public class AudioFileProcessor : IAudioFileProcessor
                 LastDateUpdated = DateTimeOffset.UtcNow
             };
 
+
+            song.PlatformPath = TaggingUtils.GetReadableFilePath(filePath);
+            song.FilePath = filePath;
+
+
+
             // Your logic to set the unique key
             song.SetTitleAndDuration(song.Title, song.DurationInSeconds);
 
             // Associate Artists with the song
             song.ArtistToSong = [];
+
             foreach (var name in artistNames)
             {
                 var artView = _metadataService.GetOrCreateArtist(track, name);
@@ -209,26 +215,20 @@ public class AudioFileProcessor : IAudioFileProcessor
                     albumView.Artists = new List<ArtistModelView>();
                 }
 
-                if (albumView.Artists.Count > 0)
+                lock (albumView.Artists)
                 {
-                    var anyNull = albumView.Artists.Any(x => x is null);
-                    if (anyNull)
+                    // 1. Efficiently remove nulls without crashing
+                    albumView.Artists.RemoveAll(x => x is null);
+
+                    // 2. Add artist if not present
+                    if (!albumView.Artists.Any(a => a.Id == artView.Id))
                     {
-                        foreach (var nullOnes in albumView.Artists)
-                        {
-                            if (nullOnes is null)
-                            {
-                                albumView.Artists.Remove(nullOnes);
-                            }
-                        }
+                        albumView.Artists.Add(artView);
                     }
                 }
-                if (!albumView.Artists.Any(a => a.Id == artView.Id))
-                {
-                    albumView.Artists.Add(artView);
-                }
             }
-            song.Artist = song.ArtistToSong.First();
+
+            song.Artist = song.ArtistToSong.FirstOrDefault();
             // Lyrics Processing
             song.HasLyrics = track.Lyrics is { Count: > 0 };
             if (song.HasLyrics)

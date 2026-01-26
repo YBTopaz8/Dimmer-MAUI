@@ -20,8 +20,9 @@ public static class AnimationHelper
     /// <summary>
     /// Prepares the animation BEFORE navigation (Call this on Click)
     /// </summary>
-    public static void Prepare(string key, UIElement source, bool isList = false)
+    public static void Prepare(string key, UIElement? source, bool isList = false)
     {
+        if (source == null) return;
         var service = ConnectedAnimationService.GetForCurrentView();
 
         // If it's a list item, we might want to ensure the service knows that, 
@@ -161,7 +162,7 @@ public static class AnimationHelper
     /// <summary>
     /// Scenario 3 (Source): Prepares animation from a named child inside the sender (e.g. TextBlock inside a Button).
     /// </summary>
-    public static void PrepareFromChild(DependencyObject parent, string childName, string key)
+    public static void PrepareFromChild(DependencyObject? parent, string childName, string key)
     {
         var child = PlatUtils.FindChildOfType<FrameworkElement>(parent, childName);
         if (child != null)

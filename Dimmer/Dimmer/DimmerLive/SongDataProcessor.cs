@@ -123,8 +123,7 @@ public static class SongDataProcessor
                                 vmSong.UnSyncLyrics = plainLyrics;
                                 vmSong.SyncLyrics = fetchedLrcData; 
                             });
-                            stateService.SetCurrentLogMsg(
-                                new AppLogModel() { Log = $"Loaded lyrics for {vmSong.Title}" });
+                            stateService.SetCurrentLogMsg( $"Loaded lyrics for {vmSong.Title}",DimmerLogLevel.Info);
                         }
                     }
                 }
@@ -157,7 +156,7 @@ public static class SongDataProcessor
         new ExecutionDataflowBlockOptions
         {
             // This is the magic. Run up to 4 tasks in parallel. Perfect for network I/O.
-            MaxDegreeOfParallelism = 4,
+            MaxDegreeOfParallelism = 2,
             CancellationToken = cancellationToken
         });
 

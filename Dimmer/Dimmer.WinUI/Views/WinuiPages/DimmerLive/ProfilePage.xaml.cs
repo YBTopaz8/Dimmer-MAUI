@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
-
+using System.Threading.Tasks;
 using Dimmer.WinUI.ViewModel.DimmerLiveWin;
 
 using Microsoft.UI.Xaml;
@@ -153,6 +153,33 @@ public sealed partial class ProfilePage : Page
             CloseButtonText = "OK"
         };
         await dialog.ShowAsync();
+    }
+
+    private void PPGrid_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        editPPBtn.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+        ProfilePic.OpacityTransition = new ScalarTransition() { Duration = TimeSpan.FromMilliseconds(200) };
+        ProfilePic.Opacity = 0.1;
+    }
+
+    private void PPGrid_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+
+        editPPBtn.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+
+        ProfilePic.OpacityTransition = new ScalarTransition() { Duration = TimeSpan.FromMilliseconds(200) };
+        ProfilePic.Opacity = 1;
+    }
+
+   
+
+
+
+    private async void PPGrid_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        var props = e.GetCurrentPoint((UIElement)sender).Properties;
+        if(props.IsLeftButtonPressed)
+            await ViewModel.UploadProfilePictureToCloudAsync();
     }
 }
 

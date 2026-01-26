@@ -14,7 +14,7 @@ public class SongRelatedFragment : Fragment
     private readonly BaseViewModelAnd _vm;
     public SongRelatedFragment(BaseViewModelAnd vm) { _vm = vm; }
 
-    public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         var ctx = Context;
         var scroll = new Android.Widget.ScrollView(ctx);
@@ -22,24 +22,21 @@ public class SongRelatedFragment : Fragment
         root.SetPadding(20,20, 20, 20);
         // 1. More from Album
         root.AddView(new TextView(ctx) { Text = "From the same Album", TextSize = 18, Typeface = Typeface.DefaultBold });
+        
+        
         var albumRecycler = new RecyclerView(ctx) { LayoutParameters = new LinearLayout.LayoutParams(-1, AppUtil.DpToPx(180)) }; // Horizontal Height
-        albumRecycler.SetLayoutManager(new LinearLayoutManager(ctx, LinearLayoutManager.Horizontal, false));
+        albumRecycler.SetLayoutManager(new LinearLayoutManager(ctx, LinearLayoutManager.Vertical, false));
 
-        // Filter Logic (Simulated - ensure VM has this data ready)
-        var albumSongs = _vm.SearchResults.Where(s => s.AlbumName == _vm.SelectedSong?.AlbumName && s.Id != _vm.SelectedSong?.Id).ToList();
+        var songInDb = _vm.RealmFactory.GetRealmInstance()
+            .Find<SongModel>(_vm.SelectedSong!.Id);
+        List<SongModelView> albumSongs = songInDb.Album.SongsInAlbum!.Select(x=>x.ToSongModelView()).ToList()!;
         // Reuse your SimpleSongListAdapter but adapted for horizontal cards, or create a specific one
         albumRecycler.SetAdapter(new HorizontalCoverAdapter(albumSongs, _vm));
         root.AddView(albumRecycler);
 
-        // 2. Similar Tracks (LastFM)
+
         var space = new Space(ctx) { LayoutParameters = new LinearLayout.LayoutParams(-1, 40) };
-        root.AddView(space);
-
-        root.AddView(new TextView(ctx) { Text = "Similar Tracks", TextSize = 18, Typeface = Typeface.DefaultBold });
-        // You would bind this to _vm.SelectedSongLastFMData.SimilarTracks
-        // For now, placeholder text to indicate parity intent
-        root.AddView(new TextView(ctx) { Text = "Similar tracks feature coming soon via LastFM API linkage."});
-
+        
         scroll.AddView(root);
         return scroll;
     }
@@ -80,7 +77,7 @@ public class SongRelatedFragment : Fragment
 
             img.Click += async (s, e) =>
             {
-                await _vm.PlaySongAsync(_items[position], CurrentPage.AllSongs);
+                await _vm.PlaySongAsync(_items[position], CurrentPage.SingleSongPage, _items);
             };
         }
         class SimpleVH : RecyclerView.ViewHolder 

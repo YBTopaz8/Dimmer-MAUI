@@ -11,8 +11,6 @@ using ATL;
 
 using AudioSwitcher.AudioApi;
 using CommunityToolkit.Diagnostics;
-using Dimmer.Data.Models;
-using Dimmer.Data.ModelView;
 using Dimmer.DimmerLive.ParseStatics;
 using Dimmer.DimmerSearch.TQL.RealmSection;
 using Dimmer.Hoarder;
@@ -373,6 +371,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     public void InitializeAllVMCoreComponents()
     {
+        //return;
         if (IsInitialized) return;
 
         var startTime = DateTime.Now;
@@ -1673,9 +1672,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
     [ObservableProperty]
-    public partial string AppTitle { get; set; } = "🎄Dimmer";
+    public partial string AppTitle { get; set; } = "Dimmer";
 
-    public static string CurrentAppVersion = "1.5.9";
+    public static string CurrentAppVersion = "1.6.2";
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]
@@ -2135,10 +2134,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial string? LatestScanningLog { get; set; }
 
     [ObservableProperty]
-    public partial AppLogModel? LatestAppLog { get; set; }
+    public partial AppLogEntryView? LatestAppLog { get; set; }
 
-    [ObservableProperty]
-    public partial ObservableCollection<AppLogModel> ScanningLogs { get; set; } = new();
 
     [ObservableProperty]
     public partial bool IsStickToTop { get; set; }
@@ -2203,8 +2200,16 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             AppTitle = $"{CurrentAppVersion} - {CurrentAppStage}";
             
             CurrentTrackDurationSeconds = song.DurationInSeconds > 0 ? song.DurationInSeconds : 1;
+            var imgPath = await LoadAndCacheCoverArtAsync(song);
+            if (!string.IsNullOrEmpty(imgPath))
+            {
+                RxSchedulers.UI.ScheduleTo(() =>
+                {
 
-            await LoadAndCacheCoverArtAsync(song);
+                    CurrentPlayingSongView.CoverImagePath = imgPath;
+
+                });
+            }
 
         }
         catch (Exception ex)
@@ -2219,7 +2224,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     /// A robust, multi-stage process to load cover art. It prioritizes existing paths, checks for cached files, and
     /// only extracts from the audio file as a last resort, caching the result for future use.
     /// </summary>
-    public async Task LoadAndCacheCoverArtAsync(SongModelView song)
+    public async Task<string> LoadAndCacheCoverArtAsync(SongModelView song)
     {
 
         if (song.CoverImagePath == "musicnote1.png" || song.CoverImagePath == "musicnotess.png")
@@ -2231,7 +2236,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             if (TaggingUtils.FileExists(song.CoverImagePath))
             {
-                return;
+                return string.Empty;
             }
         }
 
@@ -2242,7 +2247,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             if (!TaggingUtils.FileExists(song.FilePath))
             {
-                return;
+                return string.Empty;
             }
 
             embeddedPicture = EmbeddedArtValidator.GetValidEmbeddedPicture(song.FilePath);
@@ -2254,7 +2259,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed reading embedded art: {FilePath}", song.FilePath);
-            return;
+            return string.Empty;
         }
 
         if (embeddedPicture is null && Connectivity.NetworkAccess == NetworkAccess.Internet)
@@ -2296,9 +2301,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                         }
                     }
                 }
-                else
-                {
-                }
+                
+
             }
         }
 
@@ -2337,15 +2341,16 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             if (song.CoverImagePath != finalImagePath)
             {
-                RxSchedulers.UI.ScheduleTo(()=> song.CoverImagePath = finalImagePath);
-               
+                
+                return finalImagePath;
             }
-
+            return string.Empty;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to load or update cover art from final path: {ImagePath}", finalImagePath);
         }
+        return string.Empty;
     }
 
 
@@ -2354,7 +2359,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [RelayCommand]
     public async Task EnsureAllCoverArtCachedForSongsAsync(CancellationToken cancellationToken = default)
     {
+        RxSchedulers.UI.ScheduleTo(() =>
+        {
+
         IsAppLoadingCovers = true;
+        });
         // 1. Get the TOTAL count safely using a short-lived Realm instance
         int totalCount = 0;
         List<ObjectId> songsToProcessIds = new();
@@ -2373,7 +2382,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         int processedCount = 0;
 
         // Use lower parallelism on Android to reduce memory pressure
-        var maxParallelism = 4;
+        var maxParallelism = 2;
         
         var parallelOptions = new ParallelOptions
         {
@@ -2406,19 +2415,18 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
                 if (needsProcessing)
                     {
-                        await LoadAndCacheCoverArtAsync(songView);
-
-                        int current = Interlocked.Increment(ref processedCount);
+                    
+                    var coverImagePath= await LoadAndCacheCoverArtAsync(songView);
+                    RxSchedulers.UI.ScheduleTo(() => songView.CoverImagePath = coverImagePath);
+                    int current = Interlocked.Increment(ref processedCount);
 
                         if (current % 10 == 0 || current == totalCount)
                         {
-                            RxSchedulers.UI.ScheduleTo(() =>
-                            {
-                                _stateService.SetCurrentLogMsg(new AppLogModel()
-                                {
-                                    Log = $"Caching covers: [{current}/{totalCount}] - {songView.Title}"
-                                });
-                            });
+                           
+                            _stateService.SetCurrentLogMsg(
+                                $"Caching covers: [{current}/{totalCount}] - {songView.Title}", DimmerLogLevel.Info
+                            );
+                            
                         }
                     }
                 
@@ -2427,8 +2435,13 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         songsToProcessIds.Clear();
 
-        _stateService.SetCurrentLogMsg(new AppLogModel { Log = "Cover art check complete." });
-        IsAppLoadingCovers = false;
+        _stateService.SetCurrentLogMsg("Cover art check complete.", Data.Models.DimmerLogLevel.Info);
+
+        RxSchedulers.UI.ScheduleTo(() =>
+        {
+
+            IsAppLoadingCovers = false;
+        });
     }
 
     #region Playback Event Handlers
@@ -2697,7 +2710,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     private void OnFolderScanCompleted(PlaybackStateInfo stateInfo)
     {
         ReloadFolderPaths();
-        _stateService.SetCurrentLogMsg(new AppLogModel() { Log = "Folder scan completed. Refreshing UI." });
+        _stateService.SetCurrentLogMsg("Folder scan completed. Refreshing UI.", Data.Models.DimmerLogLevel.Info );
         _logger.LogInformation("Folder scan completed. Refreshing UI.");
         
         IsAppScanning = false;
@@ -2719,11 +2732,13 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         if (appModel is not null && appModel.Count > 0)
         {
             var appmodel = appModel[0];
-            if(appmodel is null)return;
-            FolderPaths.Clear();
-            IsLibraryEmpty = false;
-            FolderPaths.AddRange(appmodel.UserMusicFolders.Select(x=>x.ReadableFolderPath));
-            OnPropertyChanged(nameof(this.FolderPaths)); 
+            if (appmodel is null) return;
+
+            RxSchedulers.UI.ScheduleTo(() => { FolderPaths.Clear();
+                IsLibraryEmpty = false;
+                FolderPaths.AddRange(appmodel.UserMusicFolders.Select(x => x.ReadableFolderPath));
+                OnPropertyChanged(nameof(this.FolderPaths));
+            });
         }
     }
 
@@ -3172,10 +3187,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                         }
                         else
                         {
-                            // *** SIMPLIFIED QUEUE SLICING LOGIC ***
-                            // Take a window of 150 songs (50 before, 100 after) for performance.
                             const int songsToTakeBefore = 100;
-                            const int songsToTakeAfter = 300;
+                            const int songsToTakeAfter = 100;
                             const int totalQueueSize = songsToTakeBefore + 1 + songsToTakeAfter;
 
                             int sliceStart = Math.Max(0, startIndex - songsToTakeBefore);
@@ -3496,7 +3509,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 {
                     await lastfmService.ScrobbleAsync(_songToScrobble);
                 }
-                _stateService.SetCurrentLogMsg(new AppLogModel() { Log = "Ended manually", ViewSongModel = CurrentPlayingSongView });
+                _stateService.SetCurrentLogMsg("Ended manually", Data.Models.DimmerLogLevel.Info);
             }
         }
         else if (IsDimmerPlaying && CurrentPlayingSongView != null && CurrentTrackPositionPercentage >= 90)
@@ -3512,7 +3525,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 {
                     await lastfmService.ScrobbleAsync(_songToScrobble);
                 }
-                _stateService.SetCurrentLogMsg(new AppLogModel() { Log = "Ended automatically" });
+                _stateService.SetCurrentLogMsg("Ended automatically", Data.Models.DimmerLogLevel.Info);
             }
         }
 
@@ -3884,6 +3897,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             {
                 case PlaybackAction.PlayNext:
                     await PlaySongNextAsync(songToPlay);
+                    AddToQueue(songToPlay);
                     break;
 
                 case PlaybackAction.PlayNow:
@@ -4070,7 +4084,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         _subsMgr.Add(
             _stateService.LatestDeviceLog
-                .Where(s => s.Log is not null)
+                .Where(s => s is not null)
                 .Subscribe(
                     obv =>
                      {
@@ -4082,7 +4096,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     private void OnFolderScanStarted(PlaybackStateInfo info)
     {
-        _stateService.SetCurrentLogMsg(new AppLogModel() { Log = "Folder scan Started" });
+        _stateService.SetCurrentLogMsg("Folder scan Started" , DimmerLogLevel.Success);
         
 
         IsAppScanning = true;
@@ -4269,14 +4283,13 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _logger.LogError(message: x.EventType.ToString());
     }
 
-    private void SetLatestDeviceLog(AppLogModel model)
+    private void SetLatestDeviceLog(AppLogEntryView model)
     {
-
         RxSchedulers.UI.ScheduleTo(() =>
         {
             LatestAppLog = model;
-            LatestScanningLog = model.Log;
-            _logger.LogInformation("Device Log: {Log}", model.Log);
+            LatestScanningLog = model.Message;
+            _logger.LogInformation("Device Log: {Log}", model.Message);
 
         });
     }
@@ -4898,23 +4911,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             return;
         _logger.LogInformation("Requesting to delete folder path: {Path}", path);
         FolderPaths.Remove(path);
-        _ = _folderMgtService.RemoveFolderFromWatchListAsync(path);
+        _folderMgtService.RemoveFolderFromWatchListAsync(path);
 
-        var realm = RealmFactory.GetRealmInstance();
-        var appModel = realm.All<AppStateModel>().FirstOrDefault();
-        if (appModel is null)
-            return;
 
-        var modFold = appModel.UserMusicFolders.FirstOrDefault(x => x.SystemFolderPath == path);
-        if (modFold is not null)
-        {
-            realm.Write(
-            () =>
-            {
-                appModel.UserMusicFolders.Remove(modFold);
-                realm.Add(appModel, true);
-            });
-        }
+        ReloadFolderPaths();
     }
 
 
@@ -5338,11 +5338,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             {
                 if (CurrentPageContext == CurrentPage.SingleSongPage)
                 {
-                    _stateService.SetCurrentLogMsg(new AppLogModel
-                    {
-                        Log = $"No duplicates found for '{song.Title}'.",
-                        ViewSongModel = song
-                    });
+                    _stateService.SetCurrentLogMsg(
+                         $"No duplicates found for '{song.Title}'.",DimmerLogLevel.Info);
                 }
                 return;
             }
@@ -5361,11 +5358,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             _logger.LogError(ex, "Failed to find duplicates.");
             // Optionally, display an error message to the user
-            _stateService.SetCurrentLogMsg(new AppLogModel
-            {
-                Log = $"Error when searching duplicates for {song.Title} {Environment.NewLine}Error: {ex.Message}",
-                ViewSongModel = song
-            });
+            _stateService.SetCurrentLogMsg(
+            $"Error when searching duplicates for {song.Title} {Environment.NewLine}Error: {ex.Message}",
+            DimmerLogLevel.Info);
         }
         finally
         {
@@ -5402,7 +5397,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             var progress = new Progress<string>(
             message =>
             {
-                LatestAppLog?.Log = message;
+                LatestAppLog?.Message = message;
             });
 
             // 2. Call the new flexible service method
@@ -6428,6 +6423,91 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         IsLyricEditorActive = false;
         LyricsInEditor?.Clear();
         _logger.LogInformation("Lyrics editing session cancelled.");
+    }
+
+    [RelayCommand]
+    public async Task PasteLyricsFromClipboard()
+    {
+        try
+        {
+            var clipboardText = await Clipboard.Default.GetTextAsync();
+            if (!string.IsNullOrWhiteSpace(clipboardText))
+            {
+                StartLyricsEditingSession(clipboardText);
+                _logger.LogInformation("Pasted lyrics from clipboard.");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to paste lyrics from clipboard.");
+        }
+    }
+
+    [RelayCommand]
+    public void RepeatLine(LyricEditingLineViewModel lineToRepeat)
+    {
+        if (!IsLyricEditorActive || LyricsInEditor == null || lineToRepeat == null) return;
+
+        var indexOfLine = LyricsInEditor.IndexOf(lineToRepeat);
+        if (indexOfLine < 0) return;
+
+        var newLine = new LyricEditingLineViewModel
+        {
+            Text = lineToRepeat.Text,
+            IsRepeated = true,
+            SectionType = lineToRepeat.SectionType,
+            BelongsToSection = lineToRepeat.BelongsToSection,
+            Timestamp = "[--:--.--]",
+            IsTimed = false,
+            IsCurrentLine = false
+        };
+
+        LyricsInEditor.Insert(indexOfLine + 1, newLine);
+        _logger.LogInformation("Repeated line: {Text}", lineToRepeat.Text);
+    }
+
+    [RelayCommand]
+    public void DeleteSelectedLines(IEnumerable<LyricEditingLineViewModel> selectedLines)
+    {
+        if (!IsLyricEditorActive || LyricsInEditor == null || selectedLines == null) return;
+
+        var linesToDelete = selectedLines.ToList();
+        foreach (var line in linesToDelete)
+        {
+            LyricsInEditor.Remove(line);
+        }
+        _logger.LogInformation("Deleted {Count} lines.", linesToDelete.Count);
+    }
+
+    [RelayCommand]
+    public void RepeatSelectedLines(IEnumerable<LyricEditingLineViewModel> selectedLines)
+    {
+        if (!IsLyricEditorActive || LyricsInEditor == null || selectedLines == null) return;
+
+        var linesToRepeat = selectedLines.ToList();
+        if (linesToRepeat.Count == 0) return;
+
+        // Find the index of the last selected line (using index access for efficiency)
+        var lastLineIndex = LyricsInEditor.IndexOf(linesToRepeat[linesToRepeat.Count - 1]);
+        if (lastLineIndex < 0) return;
+
+        // Insert repeated lines after the last selected line
+        int insertIndex = lastLineIndex + 1;
+        foreach (var line in linesToRepeat)
+        {
+            var newLine = new LyricEditingLineViewModel
+            {
+                Text = line.Text,
+                IsRepeated = true,
+                SectionType = line.SectionType,
+                BelongsToSection = line.BelongsToSection,
+                Timestamp = "[--:--.--]",
+                IsTimed = false,
+                IsCurrentLine = false
+            };
+            LyricsInEditor.Insert(insertIndex++, newLine);
+        }
+        _logger.LogInformation("Repeated {Count} lines.", linesToRepeat.Count);
     }
 
     public async Task LoadPlainLyricsFromFile(string PickedPath)
@@ -8500,14 +8580,17 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial string WelcomeStep { get; set; }
 
-    [ObservableProperty]
-    public partial string NextBtnText { get; set; } = DimmerLanguage.next_btn;
 
     [ObservableProperty]
     public partial bool IsLoadingLyrics { get; set; }
     [ObservableProperty]
     public partial bool IsSearchingLyrics { get; set; }
-
+    
+    [ObservableProperty]
+    public partial bool DimmerProgressBarViewVisible { get; set; }
+    
+    [ObservableProperty]
+    public partial double DimmerProgressBarViewVisibleValue { get; set; }
 
     [RelayCommand]
     public void AppSetupPagePreviousBtnClick()
@@ -8518,7 +8601,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             return;
         }
-        NextBtnText = DimmerLanguage.next_btn;
         WelcomeTabIndexEnum--;
     }
 
@@ -8529,7 +8611,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         if (isLastTab)
         {
 
-            NextBtnText = DimmerLanguage.txt_done;
             await Shell.Current
                 .DisplayAlert(
                     Shell.Current.Title,
@@ -8590,7 +8671,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
 
-    public IObservable<AppLogModel> LogStream => _stateService.LatestDeviceLog.Where(s => s.Log is not null);
 
     private readonly object _logLock = new();
     public void SaveBackUp(string logContent,string Name,string fileExt)

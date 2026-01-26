@@ -11,7 +11,6 @@ public sealed partial class MediaPlaybackSection : UserControl
     public MediaPlaybackSection()
     {
         InitializeComponent();
-        MyViewModel = IPlatformApplication.Current?.Services.GetService<BaseViewModelWin>();
 
     }
     public BaseViewModelWin MyViewModel { get; internal set; }
@@ -299,5 +298,31 @@ public sealed partial class MediaPlaybackSection : UserControl
             }
 
         
+    }
+
+    private void UserControl_Loaded(object sender, RoutedEventArgs e)
+    {
+
+    }
+    private async Task ShowNotification(string message, Microsoft.UI.Xaml.Controls.InfoBarSeverity severity)
+    {
+       
+
+    }
+
+    private void UserControl_Loading(FrameworkElement sender, object args)
+    {
+        MyViewModel = IPlatformApplication.Current?.Services.GetService<BaseViewModelWin>()!;
+        // Subscribe to playback feedback events
+        MyViewModel.OnSongAddedToQueue += async (sender, message) =>
+        {
+            await ShowNotification(message, Microsoft.UI.Xaml.Controls.InfoBarSeverity.Success);
+        };
+
+        MyViewModel.OnSongPlayingNow += async (sender, message) =>
+        {
+            await ShowNotification(message, Microsoft.UI.Xaml.Controls.InfoBarSeverity.Informational);
+        };
+
     }
 }

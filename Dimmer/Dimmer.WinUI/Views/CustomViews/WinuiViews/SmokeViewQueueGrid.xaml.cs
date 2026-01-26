@@ -51,7 +51,7 @@ public sealed partial class SmokeViewQueueGrid : UserControl
     }
     private async void PopUpBackButton_Click(object sender, RoutedEventArgs e)
     {
-        ConnectedAnimation animation = ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("backwardsAnimation", this.ViewQueueGrid);
+        ConnectedAnimation animation = ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("backwardAnimation", this.ViewQueueGrid);
 
         // Collapse the smoke when the animation completes.
         animation.Completed += Animation_Completed;
@@ -64,14 +64,7 @@ public sealed partial class SmokeViewQueueGrid : UserControl
 
         }
 
-        if (ViewQueueGrid != null)
-        {
-            await ViewQueueGrid.DispatcherQueue.EnqueueAsync(() =>
-            {
-                animation.TryStart(ViewQueueGrid);
-            });
-
-        }
+        DismissRequested?.Invoke(this, EventArgs.Empty);
     }
 
     private async void SaveQueueAsPlaylist_Click(object sender, RoutedEventArgs e)
@@ -209,4 +202,5 @@ public sealed partial class SmokeViewQueueGrid : UserControl
             true);
     }
 
+    public event EventHandler DismissRequested;
 }

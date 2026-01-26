@@ -17,7 +17,13 @@ public class UserModelOnline : ParseUser
         get => GetProperty<string?>();
         set => SetProperty(value);
     }
-    public bool IsPremium { get; set; }
+    [ParseFieldName("isPremium")]
+    public bool IsPremium
+    {
+        get => GetProperty<bool>();
+        set => SetProperty(value);
+    }
+
     public bool IsAuthenticated { get; set; }
     private const string UserDeviceSessionsKey = "userDeviceSessions"; // Define key as a constant
 
@@ -51,15 +57,13 @@ public class UserModelOnline : ParseUser
         if (plainUser == null)
             return;
 
-        // Copy all fields from plainUser to this instance.
-        // The ParseObject indexer (this[key]) and plainUser[key] handle type conversions
-        // and know about Parse-specific types.
+        this.ObjectId = plainUser.ObjectId;
+
         foreach (var key in plainUser.Keys)
         {
-            if (_immutableUserKeys.Contains(key))
-            {
-                continue; // Go to the next key in the loop
-            }
+            if (key == "sessionToken" || key == "objectId" || key == "username" || key == "email")
+                continue;
+             
             this[key] = plainUser[key];
         }
         this.ObjectId = plainUser.ObjectId;
@@ -69,9 +73,11 @@ public class UserModelOnline : ParseUser
         if (!string.IsNullOrEmpty(plainUser.Email))
             this.Email = plainUser.Email;
 
+
+
         if (plainUser.ACL != null)
         {
-            this.ACL = new ParseACL(plainUser);
+            this.ACL = plainUser.ACL;
         }
     }
 

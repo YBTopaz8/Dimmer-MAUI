@@ -148,7 +148,6 @@ public class FolderMgtService : IFolderMgtService
             var indexx = foldersToWatchPaths.IndexOf(fold);
             if (indexx != -1)
             {
-                // For simplicity, we just re-add the same path to trigger any internal updates.
                 realm.Write(() => foldersToWatchPaths[indexx] = fold);
             }
             await StartWatchingConfiguredFoldersAsync();
@@ -238,26 +237,31 @@ public class FolderMgtService : IFolderMgtService
         var appModel = realm.All<AppStateModel>().FirstOrDefault();
         var foldersToWatchPaths = appModel?.UserMusicFolders ;
         var firstOfDef = foldersToWatchPaths?.FirstOrDefault(x => x.SystemFolderPath == path);
+        bool removed = false ;
         if (foldersToWatchPaths is not null && firstOfDef is not null)
         {
-            bool removed = foldersToWatchPaths.Remove(firstOfDef);
-        
-        if (removed)
-        {
-            _logger.LogInformation("Removed folder from watch list and settings: {Path}", path);
-          await  StartWatchingConfiguredFoldersAsync();
+            realm.Write(() =>
+            {
+
+                removed = foldersToWatchPaths.Remove(firstOfDef);
+
+            });
+            if (removed)
+            {
+                _logger.LogInformation("Removed folder from watch list and settings: {Path}", path);
+              await  StartWatchingConfiguredFoldersAsync();
 
 
-            _state.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderRemoved, path, null, null));
+                _state.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderRemoved, path, null, null));
 
 
-            _logger.LogInformation("Triggering library refresh after removing folder: {Path}", path);
-            await _libraryScanner.ScanLibrary(foldersToWatchPaths.Freeze().AsEnumerable().Select(x=>x.SystemFolderPath).ToList());
-        }
-        else
-        {
-            _logger.LogWarning("Folder {Path} not found in watch list settings for removal.", path);
-        }
+                _logger.LogInformation("Triggering library refresh after removing folder: {Path}", path);
+                await _libraryScanner.ScanLibrary(foldersToWatchPaths.Freeze().AsEnumerable().Select(x=>x.SystemFolderPath).ToList());
+            }
+            else
+            {
+                _logger.LogWarning("Folder {Path} not found in watch list settings for removal.", path);
+            }
         }
     }
 

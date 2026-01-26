@@ -378,12 +378,12 @@ public class ExoPlayerService : MediaSessionService
     private Runnable? positionRunnable;
     private async Task InitializeMediaControllerAsync()
     {
-        Console.WriteLine("MY_APP_TRACE: ExoPlayerService.InitializeMediaControllerAsync START");
+        Console.WriteLine("DIMMERTRACE: ExoPlayerService.InitializeMediaControllerAsync START");
         try
         {
             if (mediaSession?.Token == null)
             {
-                Console.WriteLine("MY_APP_TRACE: ExoPlayerService.InitializeMediaControllerAsync - MediaSession token is null, cannot build controller.");
+                Console.WriteLine("DIMMERTRACE: ExoPlayerService.InitializeMediaControllerAsync - MediaSession token is null, cannot build controller.");
                 return;
             }
 
@@ -393,7 +393,7 @@ public class ExoPlayerService : MediaSessionService
 
                 var controllerObject = await controllerFuture.GetAsync(); // Await here on a background context
                 mediaController = (MediaController?)controllerObject;
-                Console.WriteLine("MY_APP_TRACE: ExoPlayerService.InitializeMediaControllerAsync END - Controller built");
+                Console.WriteLine("DIMMERTRACE: ExoPlayerService.InitializeMediaControllerAsync END - Controller built");
 
             }
         }

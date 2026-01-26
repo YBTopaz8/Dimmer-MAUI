@@ -66,7 +66,7 @@
                 Margin="10,5"
                 BackgroundColor="Transparent"
                 Spacing="10">
-                <Label IsVisible="{Binding IsAppScanning}" Text="{Binding LatestAppLog.Log}" />
+                <Label IsVisible="{Binding IsAppScanning}" Text="{Binding LatestAppLog.Message}" />
                 <HorizontalStackLayout HorizontalOptions="End" Spacing="10">
 
                    
@@ -106,7 +106,7 @@
                         ImageSource="playcircle.png"
                         WidthRequest="60" />
 
-            <Label Text="Dimmer Live" FontSize="10"
+            <Label Text="Play History" FontSize="10"
                                HorizontalOptions="Center"/>
             </VerticalStackLayout>
                     
@@ -137,15 +137,14 @@
                     <VerticalStackLayout WidthRequest="60"
                      Spacing="5">
                         <Border
-                        Padding="5"
-                        Stroke="Gray"
+                        Padding="5" 
                         StrokeShape="RoundRectangle 15"
-                        StrokeThickness="1">
+                        StrokeThickness="0">
 
                         <ImageButton
                             Clicked="UserLoginClicked"
                             Loaded="UserLoginClicked_Loaded"
-                            Source="user.png"
+                            Source="user.png" 
                              />
 
             </Border>

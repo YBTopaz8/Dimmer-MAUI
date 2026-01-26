@@ -57,7 +57,7 @@
         </ResourceDictionary>
     </Page.Resources>
     <Grid>
-        <Grid Margin="10" RowSpacing="10" >
+        <Grid Margin="10" RowSpacing="10"  Visibility="Visible">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto" />
                 <RowDefinition Height="*" />
@@ -116,6 +116,7 @@
                             Click="ShuffleSongs_Click"
                             Content="Shuffle"
                             PointerReleased="MiddlePointer_PointerReleased" />
+
                         <SplitButton
                             x:Name="SortByWithTQL"
                             Content="Sort By"
@@ -166,7 +167,6 @@
                             TextChanged="SearchAutoSuggestBox_TextChanged" />
                        
 
-                        <TextBlock x:Name="PreviewText" />
                         <TextBlock VerticalAlignment="Center" Text="{x:Bind MyViewModel.SearchResults.Count, Mode=OneWay}" />
 
                     </StackPanel>
@@ -174,6 +174,15 @@
                     <TextBlock Text="{x:Bind MyViewModel.CurrentTqlQueryUI, Mode=OneWay}" />
 
 
+                </StackPanel>
+                <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+
+
+                    <local:ArcFabControl HorizontalAlignment="Stretch" 
+                                         x:Name="MyArcFabControl" Visibility="Collapsed"
+                                         Loaded="MyArcFabControl_Loaded"
+                             VerticalAlignment="Stretch" Canvas.ZIndex="100"
+                                             ExpandDirection="Left"/>
                 </StackPanel>
             </Grid>
 
@@ -205,15 +214,11 @@
                     ItemClick="MySongsTableView_ItemClick"
                     ItemsSource="{x:Bind MyViewModel.SearchResults}"
                     Loaded="MySongsTableView_Loaded"
-                    LosingFocus="MySongsTableView_LosingFocus"
-                    LostFocus="MySongsTableView_LostFocus"
                     PointerEntered="MySongsTableView_PointerEntered"
                     PointerExited="MySongsTableView_PointerExited"
                     PointerPressed="TableView_PointerPressed"
                     PointerReleased="MySongsTableView_PointerReleased"
-                    ProcessKeyboardAccelerators="MySongsTableView_ProcessKeyboardAccelerators"
-                    RightTapped="TableView_RightTapped"
-                    RowContextFlyoutOpening="MySongsTableView_RowContextFlyoutOpening"
+                    
                     SelectionChanged="MySongsTableView_SelectionChanged"
                     SelectionMode="Single"
                     Sorting="MySongsTableView_Sorting"
@@ -340,14 +345,15 @@
 
                         <dgView:TableViewTemplateColumn
                             x:Name="Title"
-                            Width="*"
+                            Width="*" 
                             IsReadOnly="True"
                             ToolTipService.Placement="Mouse"
                             ToolTipService.ToolTip="{x:Bind MyViewModel.CurrentPlayingSongView.Title}">
                             <dgView:TableViewTemplateColumn.CellTemplate>
                                 <DataTemplate>
 
-                                    <StackPanel x:Name="TitleColumn" PointerPressed="TitleColumn_PointerPressed">
+                                    <StackPanel x:Name="TitleColumn"
+                                            Background="Transparent" PointerPressed="TitleColumn_PointerPressed">
 
                                         <Button
                                             x:Name="SongTitle"
@@ -358,8 +364,8 @@
                                         </Button>
                                         <Grid>
                                             <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="150" />
-                                                <ColumnDefinition Width="auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="*" />
                                             </Grid.ColumnDefinitions>
 
                                             <Button Background="Transparent">
@@ -377,9 +383,11 @@
 
                                             <Button
                                                 x:Name="AlbumBtn"
-                                                Grid.Column="1"
+                                                Grid.Column="1" HorizontalAlignment="Right"
+                                                HorizontalContentAlignment="Right"
                                                 Background="Transparent"
                                                 BorderThickness="0"
+                                                RightTapped="AlbumBtn_RightTapped"
                                                 Click="AlbumBtn_Click">
 
 
@@ -518,7 +526,7 @@
                         Click="HideBtmPart_Click"
                         Content="X"
                         FontSize="9" />
-                    <TextBlock VerticalAlignment="Center" Text="{Binding LatestAppLog.Log}" />
+                    <TextBlock VerticalAlignment="Center" Text="{Binding LatestAppLog.Message}" />
                 </StackPanel>
             </StackPanel>
         </Grid>

@@ -51,7 +51,7 @@ public sealed partial class LoginPage : Page
         await ViewModel.LoginAsync();
         if (ViewModel.CurrentUserOnline is not null && ViewModel.CurrentUserOnline.IsAuthenticated)
         {
-            ViewModel.NavigateToProfilePage();
+           await ViewModel.NavigateToProfilePage();
         }
     }
 }

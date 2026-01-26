@@ -22,7 +22,7 @@ public partial class AlbumModel : RealmObject, IRealmObjectWithObjectId
     /// <summary>
     /// Gets or sets the Url.
     /// </summary>
-    public string Url { get; set; }
+    public string? Url { get; set; }
     /// <summary>
     /// Gets or sets the release year.
     /// </summary>

@@ -18,6 +18,11 @@
 
                 <!--  Other merged dictionaries here  -->
             </ResourceDictionary.MergedDictionaries>
+
+            <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+            <converters:BoolToInverseVisibilityConverter x:Key="BoolToInverseVisibilityConverter" />
+            <converters:BoolToPlayingPauseConv x:Key="BoolToPlayingPauseConverter" />
+            <converters:BytesToMegabytesConverter x:Key="BytesToMegabytesConverter" />
             <converters:MsToDurationConverter x:Key="MsToDurationConverter" />
             <converters:BoolToVisConverter x:Key="BoolToVisConverter" />
             <converters:PlayTypeToBorderBrush x:Key="PlayTypeToBorderBrush" />
@@ -29,12 +34,10 @@
             <converters:StringToImageSourceConverter x:Key="StringToImageConverter" />
             <converters:IsObjNullToVisInverseConverter x:Key="IsObjNullToVisInverseConverter" />
             <converters:BoolToHeartColorConverter x:Key="BoolToHeartColorConverter" />
-            <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-            <converters:BoolToInverseVisibilityConverter x:Key="BoolToInverseVisibilityConverter" />
+            
             <converters:BoolToInverseConverter x:Key="BoolToInverseConverter" />
             <converters:IsObjNullToVisConverter x:Key="IsObjNullToVisConverter" />
             <converters:IsFavoriteToFontIcon x:Key="IsFavoriteToFontIcon" />
-            <converters:BoolToPlayingPauseConv x:Key="BoolToPlayingPauseConverter" />
             <converters:StringToBoolConverter x:Key="StringToBoolConverter" />
             <converters:BoolToVisibilityConverter x:Key="BoolToVis" />
             <converters:InverseBoolToVisibilityConverter x:Key="InvBoolToVis" />
@@ -45,6 +48,8 @@
             <converters:RepeatModeConverter x:Key="RepeatModeConverter" />
             <converters:BoolToGlyphConverter x:Key="BoolToGlyphConverter" />
             <converters:BoolToPlanNameConverter x:Key="BoolToPlanNameConverter" />
+            <converters:BoolOpacityConverter x:Key="BoolOpacityConverter" />
+            <converters:BoolInverterConverter x:Key="BoolInverterConverter" />
 
             <converters:StringNullOrEmptyToVisibility x:Key="StringNullOrEmptyToVisibility" />
             <converters:BoolToImageConverter
@@ -128,7 +133,18 @@
                 <Setter Property="VerticalAlignment" Value="Center" />
                 <Setter Property="CornerRadius" Value="4" />
             </Style>
-
+            <Style x:Key="SubBtnStyle" TargetType="Button">
+                <Setter Property="Width" Value="45"/>
+                <Setter Property="Height" Value="45"/>
+                <Setter Property="CornerRadius" Value="25"/>
+                <Setter Property="Background" Value="{ThemeResource SystemControlBackgroundChromeMediumBrush}"/>
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="Opacity" Value="0"/>
+                <!-- Hidden initially -->
+                <Setter Property="Content" Value="A"/>
+                <!-- Placeholder -->
+            </Style>
             <!--  Primary Button: Accent color fill  -->
             <Style
                 x:Key="PrimaryButtonStyle"

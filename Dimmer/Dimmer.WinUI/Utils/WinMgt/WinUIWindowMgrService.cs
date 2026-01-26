@@ -19,7 +19,7 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
     /// <summary>
     /// Fired after a window has been closed.
     /// </summary>
-    public event EventHandler<Window>? WindowClosed; // CHANGED: Renamed from WindowClosing for clarity
+    public event EventHandler<Window>? WindowClosed; 
 
     /// <summary>
     /// Fired when any tracked window is activated (brought to the foreground).

@@ -252,6 +252,9 @@ public sealed partial class ArtistPage : Page
     // Helper method to draw the button content
     private void UpdateFavoriteButtonVisuals(Button btn)
     {
+        if (_isTogglingFavorite) return;
+        _isTogglingFavorite = true;
+
         // Check if artist is null to prevent crashes
         if (DetailedSong?.Artist == null) return;
 
@@ -281,12 +284,12 @@ public sealed partial class ArtistPage : Page
         favStackPanel.Children.Add(fontIcon);
         favStackPanel.Children.Add(toggleFavTxt);
 
-        btn.Content = favStackPanel;
+        btn.Content = favStackPanel; _isTogglingFavorite = false;
     }
 
     private void ArtistDataTable_Loaded(object sender, RoutedEventArgs e)
     {
-        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist.Name));
+        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist?.Name));
         
 
 
@@ -341,6 +344,8 @@ public sealed partial class ArtistPage : Page
         send.BorderThickness = new Microsoft.UI.Xaml.Thickness(2);
         
         MyViewModel.SearchSongForSearchResultHolder($"{TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist.Name)} and {TQlStaticMethods.PresetQueries.ExactlyByAlbum(album.Name)}");
+
+        return;
         var albmInDb = MyViewModel.RealmFactory.GetRealmInstance()
             .All<SongModel>()
             .Where(x => x.AlbumName == album.Name);

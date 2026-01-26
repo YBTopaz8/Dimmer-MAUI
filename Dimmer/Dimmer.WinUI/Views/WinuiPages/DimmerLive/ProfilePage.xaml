@@ -35,13 +35,24 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
+                            <Grid PointerEntered="PPGrid_PointerEntered" PointerPressed="PPGrid_PointerPressed"
+                                  PointerExited="PPGrid_PointerExited"
+                                  x:Name="PPGrid">
+                                <Button VerticalAlignment="Center"
+                                        HorizontalAlignment="Center"
+                                        Background="Transparent"
+                                       Visibility="Collapsed"
+                                            x:Name="editPPBtn">
+                                    
+                                <SymbolIcon Symbol="Edit"/>
 
-                            <PersonPicture
-                                Width="100"
-                                Height="100"
-                                Margin="0,0,24,0"
-                                DisplayName="{x:Bind ViewModel.CurrentUser.Username, Mode=OneWay}"
-                                ProfilePicture="{x:Bind ViewModel.CurrentUser.UserProfileImage, Mode=OneWay, Converter={StaticResource StringToImageConverter}}" />
+                                </Button>
+                                <PersonPicture
+                                x:Name="ProfilePic"
+                                DisplayName="{x:Bind ViewModel.CurrentUserOnline.Username, Mode=OneWay}"
+                                ProfilePicture="{x:Bind ViewModel.CurrentUserOnline.ProfileImagePath, Mode=OneWay, Converter={StaticResource StringToImageConverter}}" />
+
+                            </Grid>
                             <StackPanel
                                 Grid.Column="1"
                                 VerticalAlignment="Center"
@@ -57,14 +68,14 @@
 
 
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="{x:Bind ViewModel.CurrentUser.Username, Mode=OneWay}" />
+                                    <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="{x:Bind ViewModel.CurrentUserOnline.Username, Mode=OneWay}" />
                                     <!--  Premium Badge  -->
                                     <Border
                                         Padding="6,2"
                                         VerticalAlignment="Center"
                                         Background="Gold"
                                         CornerRadius="4"
-                                        Visibility="{x:Bind ViewModel.CurrentUser.IsPremium, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                                        Visibility="{x:Bind ViewModel.CurrentUserOnline.IsPremium, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                                         <TextBlock
                                             FontSize="10"
                                             FontWeight="Bold"
@@ -73,10 +84,10 @@
                                     </Border>
                                 </StackPanel>
 
-                                <TextBlock Opacity="0.6" Text="{x:Bind ViewModel.CurrentUser.Email, Mode=OneWay}" />
+                                <TextBlock Opacity="0.6" Text="{x:Bind ViewModel.CurrentUserOnline.Email, Mode=OneWay}" />
                                 <TextBlock
                                     Margin="0,8,0,0"
-                                    Text="{x:Bind ViewModel.CurrentUser.UserBio, Mode=OneWay, FallbackValue='No bio set'}"
+                                    Text="{x:Bind ViewModel.CurrentUserOnline.Bio, Mode=OneWay, FallbackValue='No bio set'}"
                                     TextWrapping="Wrap" />
                             </StackPanel>
 
@@ -123,7 +134,7 @@
                                         FontSize="12"
                                         Opacity="0.6"
                                         Text="Joined" />
-                                    <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="{x:Bind ViewModel.CurrentUser.UserDateCreated, Mode=OneWay}" />
+                                    <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="{x:Bind ViewModel.CurrentUserOnline.CreatedAt, Mode=OneWay}" />
                                 </StackPanel>
                             </Border>
                         </Grid>
@@ -291,8 +302,8 @@
                             <TextBlock FontWeight="Bold" Text="Current Plan" />
 
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <FontIcon Glyph="{x:Bind ViewModel.CurrentUser.IsPremium, Mode=OneWay, Converter={StaticResource BoolToGlyphConverter}}" />
-                                <TextBlock Text="{x:Bind ViewModel.CurrentUser.IsPremium, Mode=OneWay, Converter={StaticResource BoolToPlanNameConverter}}" />
+                                <FontIcon Glyph="{x:Bind ViewModel.CurrentUserOnline.IsPremium, Mode=OneWay, Converter={StaticResource BoolToGlyphConverter}}" />
+                                <TextBlock Text="{x:Bind ViewModel.CurrentUserOnline.IsPremium, Mode=OneWay, Converter={StaticResource BoolToPlanNameConverter}}" />
                             </StackPanel>
 
                             <ProgressBar IsIndeterminate="True" Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource BoolToVis}}" />

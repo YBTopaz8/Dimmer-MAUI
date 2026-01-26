@@ -229,15 +229,9 @@ public sealed partial class AllSongsListPage : Page
         {
             // Default behavior: Add to play next (non-interrupting)
             Debug.WriteLine($"Double-tapped on song: {song.Title}");
-            if (MyViewModel.CurrentPlayingSongView.TitleDurationKey is null)
-            {
-                await MyViewModel.PlaySongWithActionAsync(song, PlaybackAction.PlayNow
-                    , SongsEnumerable);
-            }
-            else
-            {
-                await MyViewModel.PlaySongWithActionAsync(song, Dimmer.Utilities.Enums.PlaybackAction.PlayNext, SongsEnumerable);
-            }
+            await MyViewModel.PlaySongAsync(song,
+                    songs: MyViewModel.SearchResults);
+         
         }
     }
     public void ScrollToSong(SongModelView songToFind)
@@ -441,17 +435,6 @@ public sealed partial class AllSongsListPage : Page
 
     }
 
-    private void MySongsTableView_LosingFocus(UIElement sender, LosingFocusEventArgs args)
-    {
-
-    }
-
-
-    private void MySongsTableView_LostFocus(object sender, RoutedEventArgs e)
-    {
-
-    }
-
    
 
     private void MySongsTableView_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
@@ -497,26 +480,13 @@ public sealed partial class AllSongsListPage : Page
 
             MyViewModel.CurrentWinUIPage = this;
             MyViewModel.MySongsTableView = MySongsTableView;
-            
-            // Subscribe to playback feedback events
-            MyViewModel.OnSongAddedToQueue += async (sender, message) =>
-            {
-                await ShowNotification(message, Microsoft.UI.Xaml.Controls.InfoBarSeverity.Success);
-            };
-            
-            MyViewModel.OnSongPlayingNow += async (sender, message) =>
-            {
-                await ShowNotification(message, Microsoft.UI.Xaml.Controls.InfoBarSeverity.Informational);
-            };
+          
             
             // Now that the ViewModel is set, you can set the DataContext.
             this.DataContext = MyViewModel;
         }
 
-        //if (CurrentPageTQL != MyViewModel.CurrentTqlQuery)
-        //{
-        //    MyViewModel.SearchSongForSearchResultHolder(CurrentPageTQL);
-        //}
+
         MyViewModel.CurrentWinUIPage = this;
     }
 
@@ -531,7 +501,6 @@ public sealed partial class AllSongsListPage : Page
     private void SearchAutoSuggestBox_TextChanged(object sender, Microsoft.UI.Xaml.Controls.TextChangedEventArgs e)
     {
         MyViewModel.SearchSongForSearchResultHolder(SearchTextBox.Text);
-        PreviewText.Text = NaturalLanguageProcessor.Process(SearchTextBox.Text);
    
         //var text = SearchTextBox.Text.ToLower();
 
@@ -565,7 +534,7 @@ public sealed partial class AllSongsListPage : Page
     {
         // 1. Validation (Same as yours)
         if (_lastActiveCellSlot.Equals(default(TableViewCellSlot))) return;
-
+        
         // 2. Get Content
         string tableViewContent = MySongsTableView.GetCellsContent(
             slots: new[] { _lastActiveCellSlot },
@@ -916,6 +885,7 @@ AnimationHelper.Key_Forward
     }
     private async void ViewQueue_Click(object sender, RoutedEventArgs e)
     {
+        if (MyViewModel.PlaybackQueue.Count < 1) return;
         ConnectedAnimation? animation;
 
         FrameworkElement send = (FrameworkElement)sender;
@@ -930,7 +900,11 @@ AnimationHelper.Key_Forward
         SmokeGrid.Visibility = Visibility.Visible;
         SmokeGrid.ViewQueueGrid.Opacity = 0; // Hide it initially so we see the animation fly in
 
+        if (ApiInformation.IsApiContractPresent("Windows.Foundation.UniversalApiContract", 7))
+        {
+            animation.Configuration = new GravityConnectedAnimationConfiguration();
 
+        }
         await SmokeGrid.DispatcherQueue.EnqueueAsync(() =>
         {
             // 4. Start Animation
@@ -963,21 +937,11 @@ AnimationHelper.Key_Forward
 AnimationHelper.Key_ListToDetail, sender as UIElement,
 true
 );
-        var navParams = new SongDetailNavArgs
-        {
-            Song = song!,
-            ExtraParam = MyViewModel,
-            ViewModel = MyViewModel
-        };
         Type pageType = typeof(AlbumPage);
 
-        if (song.Album is null)
-        {
-            MyViewModel.LoadAlbumDetails(song);
-        }
         MyViewModel.SelectedAlbum = song.Album;
         MyViewModel.SelectedSong = song;
-        Frame?.NavigateToType(pageType, navParams, navigationOptions);
+        MyViewModel.NavigateToAnyPageOfGivenType(pageType);
 
     }
 
@@ -1305,23 +1269,6 @@ true
             });
     }
 
-    private async Task ShowNotification(string message, Microsoft.UI.Xaml.Controls.InfoBarSeverity severity)
-    {
-        // Use a TeachingTip or create a temporary InfoBar for notifications
-        DispatcherQueue.TryEnqueue(async () =>
-        {
-            
-            await PlatUtils.ShowNewNotification(message);
-            // Auto-close after 3 seconds
-            var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
-            timer.Tick += (s, args) =>
-            {
-                PlatUtils.ClearNotifications();
-            };
-
-           
-        });
-    }
 
     private void QueueReOrder_Click(object sender, RoutedEventArgs e)
     {
@@ -1341,5 +1288,40 @@ true
     private void SmokeGrid_Loaded(object sender, RoutedEventArgs e)
     {
         SmokeGrid.SetBaseViewModelWin(MyViewModel);
+        SmokeGrid.DismissRequested += SmokeGrid_DismissRequested;
+    }
+
+    private async void SmokeGrid_DismissRequested(object? sender, EventArgs e)
+    {
+        // 1. Retrieve the animation that the UserControl just prepared
+        var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("backwardAnimation");
+
+        // 2. Collapse the UserControl (Hide the popup)
+        SmokeGrid.Visibility = Visibility.Collapsed;
+
+        // 3. Start the animation aiming at the Parent's Button
+        if (animation != null)
+        {
+            await ViewQueue.DispatcherQueue.EnqueueAsync(() =>
+            {
+                // This makes the ghost image morph INTO the button
+                animation.TryStart(ViewQueue);
+            });
+        }
+    }
+    private void AlbumBtn_RightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+        var send = ((Button)sender).DataContext as SongModelView;
+        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByAlbum(send.AlbumName));
+    }
+
+    private void MainFab_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void MyArcFabControl_Loaded(object sender, RoutedEventArgs e)
+    {
+        MyArcFabControl.SetMenuItems(new List<string>() { "Page Settings", "TQL View" });
     }
 }

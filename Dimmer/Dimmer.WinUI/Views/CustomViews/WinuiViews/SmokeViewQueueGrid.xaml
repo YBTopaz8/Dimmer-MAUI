@@ -186,7 +186,7 @@
                                                 Foreground="MediumSlateBlue"
                                                 Glyph="&#xF5B0;"
                                                 Translation="0,0,22"
-                                                Visibility="{Binding MyViewModel.IsCurrentPlayingHighlight, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                                Visibility="{Binding IsCurrentPlayingHighlight, Converter={StaticResource BoolToVisibilityConverter}}" />
 
                                         <FontIcon
                                                 HorizontalAlignment="Right"
@@ -194,7 +194,7 @@
                                                 Foreground="SlateBlue"
                                                 Glyph="&#xEB52;"
                                                 Translation="0,0,22"
-                                                Visibility="{Binding MyViewModel.IsFavorite, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                                Visibility="{Binding IsFavorite, Converter={StaticResource BoolToVisibilityConverter}}" />
                                     </Grid>
 
                                     <StackPanel
@@ -204,7 +204,7 @@
                                         <TextBlock
                                                 FontSize="18"
                                                 Style="{ThemeResource BodyStrongTextBlockStyle}"
-                                                Text="{Binding MyViewModel.Title}"
+                                                Text="{Binding Title}"
                                                 TextTrimming="CharacterEllipsis" />
 
                                         <Grid>
@@ -219,7 +219,7 @@
                                                     FontSize="15"
                                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                     Style="{ThemeResource CaptionTextBlockStyle}"
-                                                    Text="{Binding MyViewModel.ArtistName}"
+                                                    Text="{Binding ArtistName}"
                                                     TextTrimming="CharacterEllipsis" />
 
                                             <TextBlock
@@ -227,7 +227,7 @@
                                                     FontSize="14"
                                                     Foreground="{ThemeResource TextFillColorTertiaryBrush}"
                                                     Style="{ThemeResource CaptionTextBlockStyle}"
-                                                    Text="{Binding MyViewModel.AlbumName}"
+                                                    Text="{Binding AlbumName}"
                                                     TextTrimming="CharacterEllipsis" />
                                         </Grid>
                                     </StackPanel>
