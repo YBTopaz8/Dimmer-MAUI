@@ -152,7 +152,7 @@ public class AudioFileProcessor : IAudioFileProcessor
             {
                 Id = ObjectId.GenerateNewId(), // Assuming you use MongoDB ObjectId
                 FilePath = filePath,
-                Title = finalTitle,
+                Title = string.IsNullOrEmpty(track.Title) ? finalTitle : track.Title,
                 Description = track.Description ?? string.Empty, // Store version info in Description!
 
                 // Artist Info
@@ -199,6 +199,7 @@ public class AudioFileProcessor : IAudioFileProcessor
 
             // Associate Artists with the song
             song.ArtistToSong = [];
+
             foreach (var name in artistNames)
             {
                 var artView = _metadataService.GetOrCreateArtist(track, name);
@@ -209,26 +210,20 @@ public class AudioFileProcessor : IAudioFileProcessor
                     albumView.Artists = new List<ArtistModelView>();
                 }
 
-                if (albumView.Artists.Count > 0)
+                lock (albumView.Artists)
                 {
-                    var anyNull = albumView.Artists.Any(x => x is null);
-                    if (anyNull)
+                    // 1. Efficiently remove nulls without crashing
+                    albumView.Artists.RemoveAll(x => x is null);
+
+                    // 2. Add artist if not present
+                    if (!albumView.Artists.Any(a => a.Id == artView.Id))
                     {
-                        foreach (var nullOnes in albumView.Artists)
-                        {
-                            if (nullOnes is null)
-                            {
-                                albumView.Artists.Remove(nullOnes);
-                            }
-                        }
+                        albumView.Artists.Add(artView);
                     }
                 }
-                if (!albumView.Artists.Any(a => a.Id == artView.Id))
-                {
-                    albumView.Artists.Add(artView);
-                }
             }
-            song.Artist = song.ArtistToSong.First();
+
+            song.Artist = song.ArtistToSong.FirstOrDefault();
             // Lyrics Processing
             song.HasLyrics = track.Lyrics is { Count: > 0 };
             if (song.HasLyrics)

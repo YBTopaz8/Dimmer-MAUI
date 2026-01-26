@@ -20,6 +20,52 @@ public static class ServiceRegistration
     public static IServiceCollection AddDimmerCoreServices(this IServiceCollection services)
     {
 
+
+        var assembly = Assembly.GetExecutingAssembly();
+
+        const string resourceName = "Dimmer.appsettings.json";
+
+        var ress = assembly.GetManifestResourceNames();
+
+
+        using var stream = assembly.GetManifestResourceStream(resourceName);
+
+        // This null check will prevent the crash and tell you exactly what's wrong.
+        if (stream == null)
+        {
+            // If you hit this, the resource name is still wrong or the build action is not set.
+            throw new FileNotFoundException(
+                $"Could not find the embedded resource '{resourceName}'. " +
+                "Ensure the 'Build Action' is set to 'Embedded resource' for Dimmer.appsettings.json",
+                resourceName);
+        }
+
+        // Build the config object
+        var config = BuildConfiguration();
+
+        // Register IConfiguration so you can inject it if needed
+        if (config != null)
+        {
+            services.AddSingleton<IConfiguration>(config);
+            // Map the "Lastfm" section to the LastfmSettings class
+            services.Configure<LastfmSettings>(config.GetSection("Lastfm"));
+            var parseSection = config.GetSection("YBParse");
+
+            if (parseSection.Exists())
+            {
+                // You must access the keys relative to the section, OR use the full path "YBParse:ApplicationId"
+                YBParse.ApplicationId = parseSection["ApplicationId"];
+                YBParse.ServerUri = parseSection["ServerUri"];
+                YBParse.DotNetKEY = parseSection["DotNetKEY"];
+            }
+            else
+            {
+                Console.WriteLine("CRITICAL: 'YBParse' section missing in appsettings.json");
+            }
+        }
+
+        RegisterParseAndItsClasses();// do it first so that if we need instance when calling a ctor, it'll be ready already
+
         services.AddSingleton<ILyricsMetadataService, LyricsMetadataService>();
 
         // Configure a named HttpClient for LrcLib
@@ -91,50 +137,6 @@ public static class ServiceRegistration
         services.AddSingleton<ParseLiveQueryClient>();
 
 
-        var assembly = Assembly.GetExecutingAssembly();
-
-        const string resourceName = "Dimmer.appsettings.json";
-
-        var ress = assembly.GetManifestResourceNames();
-
-
-        using var stream = assembly.GetManifestResourceStream(resourceName);
-
-        // This null check will prevent the crash and tell you exactly what's wrong.
-        if (stream == null)
-        {
-            // If you hit this, the resource name is still wrong or the build action is not set.
-            throw new FileNotFoundException(
-                $"Could not find the embedded resource '{resourceName}'. " +
-                "Ensure the 'Build Action' is set to 'Embedded resource' for Dimmer.appsettings.json",
-                resourceName);
-        }
-
-        // Build the config object
-        var config = BuildConfiguration();
-
-        // Register IConfiguration so you can inject it if needed
-        if (config != null)
-        {
-            services.AddSingleton<IConfiguration>(config);
-            // Map the "Lastfm" section to the LastfmSettings class
-            services.Configure<LastfmSettings>(config.GetSection("Lastfm"));
-            var parseSection = config.GetSection("YBParse");
-
-            if (parseSection.Exists())
-            {
-                // You must access the keys relative to the section, OR use the full path "YBParse:ApplicationId"
-                YBParse.ApplicationId = parseSection["ApplicationId"];
-                YBParse.ServerUri = parseSection["ServerUri"];
-                YBParse.DotNetKEY = parseSection["DotNetKEY"];
-            }
-            else
-            {
-                Console.WriteLine("CRITICAL: 'YBParse' section missing in appsettings.json");
-            }
-        }
-
-
         //services.AddSingleton<ILocalLyricsProvider, EmbeddedLyricsProvider>();
         //services.AddSingleton<ILocalLyricsProvider, LocalLrcFileProvider>();
         services.AddSingleton<IOnlineLyricsProvider, LrcLibProvider>();
@@ -158,15 +160,13 @@ public static class ServiceRegistration
 
         services.AddSingleton<ChatViewModel>(); // You'll create this next
 
-        RegisterParseAndItsClasses();
         return services;
     }
 
     public static void RegisterParseAndItsClasses()
     {
-        if (Connectivity.NetworkAccess == NetworkAccess.Internet && ParseSetup.InitializeParseClient())
-        {
-            ParseClient.Instance.RegisterSubclass(typeof(UserDeviceSession));
+        InitializeParseClient();
+        ParseClient.Instance.RegisterSubclass(typeof(UserDeviceSession));
             ParseClient.Instance.RegisterSubclass(typeof(ChatConversation));
             ParseClient.Instance.RegisterSubclass(typeof(ChatMessage));
             ParseClient.Instance.RegisterSubclass(typeof(DimmerSharedSong));
@@ -176,7 +176,7 @@ public static class ServiceRegistration
             ParseClient.Instance.RegisterSubclass(typeof(FriendRequest));
             ParseClient.Instance.RegisterSubclass(typeof(AppUpdateModel));
 
-        }
+        
     }
     private static IConfigurationRoot? BuildConfiguration()
     {

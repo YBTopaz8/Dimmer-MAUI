@@ -159,6 +159,8 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
     }
 
     Microsoft.UI.Xaml.Controls.Button? SongTitlebutton;
+    private Album? trackAlbum;
+
     private void SongTitle_Click(object sender, RoutedEventArgs e)
     {
         SongTitlebutton = sender as Button;
@@ -210,4 +212,54 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
         MyViewModel?.LogoutFromLastfmCommand.Execute(null);
     }
 
+    private void SongAlbum_Click(object sender, RoutedEventArgs e)
+    {
+        SongTitlebutton = sender as Button;
+        trackAlbum = SongTitlebutton?.DataContext as Album;
+        if (trackAlbum != null)
+        {
+            MyViewModel.SelectedLastFMAlbum = trackAlbum;
+            var AlbumModelview = trackAlbum.IsOnPresentDevice ? MyViewModel.SearchResults.FirstOrDefault(song => song.Album?.Name.ToString() == trackAlbum.Artist.Name)
+                : null;
+
+            AnimationHelper.Prepare(AnimationHelper.Key_ListToDetail, SongTitlebutton);
+
+            var supNavTransInfo = new SuppressNavigationTransitionInfo();
+            Type songDetailType = typeof(AlbumPage);
+            var navParams = new SongDetailNavArgs
+            {
+                ExtraParam = trackAlbum,
+                Song= null!,
+                ViewModel = MyViewModel,
+            };
+
+            FrameNavigationOptions navigationOptions = new FrameNavigationOptions
+            {
+                TransitionInfoOverride = supNavTransInfo,
+                IsNavigationStackEnabled = true
+
+            };
+
+            Frame?.NavigateToType(songDetailType, navParams, navigationOptions);
+        }
+    }
+
+    private async void LoveTrackButton_Click(object sender, RoutedEventArgs e)
+    {
+
+        var send = (sender as Button)!;
+        var trackk = (send.DataContext as Track)!;
+        var songg = MyViewModel.SearchResults.First(x => x.Id.ToString() == trackk.OnDeviceObjectId);
+        await MyViewModel.AddFavoriteRatingToSong(songg);
+    }
+
+    private void BanTrackButton_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void DeleteScrobble_Click(object sender, RoutedEventArgs e)
+    {
+        
+    }
 }

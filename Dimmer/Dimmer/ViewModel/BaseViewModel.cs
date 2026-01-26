@@ -11,8 +11,6 @@ using ATL;
 
 using AudioSwitcher.AudioApi;
 using CommunityToolkit.Diagnostics;
-using Dimmer.Data.Models;
-using Dimmer.Data.ModelView;
 using Dimmer.DimmerLive.ParseStatics;
 using Dimmer.DimmerSearch.TQL.RealmSection;
 using Dimmer.Hoarder;
@@ -2135,10 +2133,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial string? LatestScanningLog { get; set; }
 
     [ObservableProperty]
-    public partial AppLogModel? LatestAppLog { get; set; }
+    public partial AppLogEntryView? LatestAppLog { get; set; }
 
-    [ObservableProperty]
-    public partial ObservableCollection<AppLogModel> ScanningLogs { get; set; } = new();
 
     [ObservableProperty]
     public partial bool IsStickToTop { get; set; }
@@ -2354,7 +2350,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [RelayCommand]
     public async Task EnsureAllCoverArtCachedForSongsAsync(CancellationToken cancellationToken = default)
     {
+        RxSchedulers.UI.ScheduleTo(() =>
+        {
+
         IsAppLoadingCovers = true;
+        });
         // 1. Get the TOTAL count safely using a short-lived Realm instance
         int totalCount = 0;
         List<ObjectId> songsToProcessIds = new();
@@ -2412,13 +2412,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
                         if (current % 10 == 0 || current == totalCount)
                         {
-                            RxSchedulers.UI.ScheduleTo(() =>
-                            {
-                                _stateService.SetCurrentLogMsg(new AppLogModel()
-                                {
-                                    Log = $"Caching covers: [{current}/{totalCount}] - {songView.Title}"
-                                });
-                            });
+                            //RxSchedulers.UI.ScheduleTo(() =>
+                            //{
+                                _stateService.SetCurrentLogMsg(
+                                    $"Caching covers: [{current}/{totalCount}] - {songView.Title}", DimmerLogLevel.Info
+                               );
+                            //});
                         }
                     }
                 
@@ -2427,8 +2426,13 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         songsToProcessIds.Clear();
 
-        _stateService.SetCurrentLogMsg(new AppLogModel { Log = "Cover art check complete." });
-        IsAppLoadingCovers = false;
+        _stateService.SetCurrentLogMsg("Cover art check complete.", Data.Models.DimmerLogLevel.Info);
+
+        RxSchedulers.UI.ScheduleTo(() =>
+        {
+
+            IsAppLoadingCovers = false;
+        });
     }
 
     #region Playback Event Handlers
@@ -2697,7 +2701,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     private void OnFolderScanCompleted(PlaybackStateInfo stateInfo)
     {
         ReloadFolderPaths();
-        _stateService.SetCurrentLogMsg(new AppLogModel() { Log = "Folder scan completed. Refreshing UI." });
+        _stateService.SetCurrentLogMsg("Folder scan completed. Refreshing UI.", Data.Models.DimmerLogLevel.Info );
         _logger.LogInformation("Folder scan completed. Refreshing UI.");
         
         IsAppScanning = false;
@@ -2719,11 +2723,13 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         if (appModel is not null && appModel.Count > 0)
         {
             var appmodel = appModel[0];
-            if(appmodel is null)return;
-            FolderPaths.Clear();
-            IsLibraryEmpty = false;
-            FolderPaths.AddRange(appmodel.UserMusicFolders.Select(x=>x.ReadableFolderPath));
-            OnPropertyChanged(nameof(this.FolderPaths)); 
+            if (appmodel is null) return;
+
+            RxSchedulers.UI.ScheduleTo(() => { FolderPaths.Clear();
+                IsLibraryEmpty = false;
+                FolderPaths.AddRange(appmodel.UserMusicFolders.Select(x => x.ReadableFolderPath));
+                OnPropertyChanged(nameof(this.FolderPaths));
+            });
         }
     }
 
@@ -3496,7 +3502,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 {
                     await lastfmService.ScrobbleAsync(_songToScrobble);
                 }
-                _stateService.SetCurrentLogMsg(new AppLogModel() { Log = "Ended manually", ViewSongModel = CurrentPlayingSongView });
+                _stateService.SetCurrentLogMsg("Ended manually", Data.Models.DimmerLogLevel.Info);
             }
         }
         else if (IsDimmerPlaying && CurrentPlayingSongView != null && CurrentTrackPositionPercentage >= 90)
@@ -3512,7 +3518,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 {
                     await lastfmService.ScrobbleAsync(_songToScrobble);
                 }
-                _stateService.SetCurrentLogMsg(new AppLogModel() { Log = "Ended automatically" });
+                _stateService.SetCurrentLogMsg("Ended automatically", Data.Models.DimmerLogLevel.Info);
             }
         }
 
@@ -4070,7 +4076,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         _subsMgr.Add(
             _stateService.LatestDeviceLog
-                .Where(s => s.Log is not null)
+                .Where(s => s is not null)
                 .Subscribe(
                     obv =>
                      {
@@ -4082,7 +4088,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     private void OnFolderScanStarted(PlaybackStateInfo info)
     {
-        _stateService.SetCurrentLogMsg(new AppLogModel() { Log = "Folder scan Started" });
+        _stateService.SetCurrentLogMsg("Folder scan Started" , DimmerLogLevel.Success);
         
 
         IsAppScanning = true;
@@ -4269,14 +4275,13 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _logger.LogError(message: x.EventType.ToString());
     }
 
-    private void SetLatestDeviceLog(AppLogModel model)
+    private void SetLatestDeviceLog(AppLogEntryView model)
     {
-
         RxSchedulers.UI.ScheduleTo(() =>
         {
             LatestAppLog = model;
-            LatestScanningLog = model.Log;
-            _logger.LogInformation("Device Log: {Log}", model.Log);
+            LatestScanningLog = model.Message;
+            _logger.LogInformation("Device Log: {Log}", model.Message);
 
         });
     }
@@ -4898,23 +4903,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             return;
         _logger.LogInformation("Requesting to delete folder path: {Path}", path);
         FolderPaths.Remove(path);
-        _ = _folderMgtService.RemoveFolderFromWatchListAsync(path);
+        _folderMgtService.RemoveFolderFromWatchListAsync(path);
 
-        var realm = RealmFactory.GetRealmInstance();
-        var appModel = realm.All<AppStateModel>().FirstOrDefault();
-        if (appModel is null)
-            return;
 
-        var modFold = appModel.UserMusicFolders.FirstOrDefault(x => x.SystemFolderPath == path);
-        if (modFold is not null)
-        {
-            realm.Write(
-            () =>
-            {
-                appModel.UserMusicFolders.Remove(modFold);
-                realm.Add(appModel, true);
-            });
-        }
+        ReloadFolderPaths();
     }
 
 
@@ -5338,11 +5330,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             {
                 if (CurrentPageContext == CurrentPage.SingleSongPage)
                 {
-                    _stateService.SetCurrentLogMsg(new AppLogModel
-                    {
-                        Log = $"No duplicates found for '{song.Title}'.",
-                        ViewSongModel = song
-                    });
+                    _stateService.SetCurrentLogMsg(
+                         $"No duplicates found for '{song.Title}'.",DimmerLogLevel.Info);
                 }
                 return;
             }
@@ -5361,11 +5350,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             _logger.LogError(ex, "Failed to find duplicates.");
             // Optionally, display an error message to the user
-            _stateService.SetCurrentLogMsg(new AppLogModel
-            {
-                Log = $"Error when searching duplicates for {song.Title} {Environment.NewLine}Error: {ex.Message}",
-                ViewSongModel = song
-            });
+            _stateService.SetCurrentLogMsg(
+            $"Error when searching duplicates for {song.Title} {Environment.NewLine}Error: {ex.Message}",
+            DimmerLogLevel.Info);
         }
         finally
         {
@@ -5402,7 +5389,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             var progress = new Progress<string>(
             message =>
             {
-                LatestAppLog?.Log = message;
+                LatestAppLog?.Message = message;
             });
 
             // 2. Call the new flexible service method
@@ -8592,7 +8579,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial bool IsLoadingLyrics { get; set; }
     [ObservableProperty]
     public partial bool IsSearchingLyrics { get; set; }
-
+    
+    [ObservableProperty]
+    public partial bool DimmerProgressBarViewVisible { get; set; }
+    
+    [ObservableProperty]
+    public partial double DimmerProgressBarViewVisibleValue { get; set; }
 
     [RelayCommand]
     public void AppSetupPagePreviousBtnClick()
@@ -8675,7 +8667,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
 
-    public IObservable<AppLogModel> LogStream => _stateService.LatestDeviceLog.Where(s => s.Log is not null);
 
     private readonly object _logLock = new();
     public void SaveBackUp(string logContent,string Name,string fileExt)

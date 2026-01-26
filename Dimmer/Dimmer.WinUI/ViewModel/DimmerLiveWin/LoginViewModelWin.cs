@@ -20,7 +20,7 @@ public partial class LoginViewModelWin : LoginViewModel
     [ObservableProperty]
     public partial string LoginCurrentStatus { get; set; }
 
-     internal void NavigateToProfilePage()
+     internal async Task NavigateToProfilePage()
     {
         if (Connectivity.Current.NetworkAccess == NetworkAccess.Internet)
         {
@@ -38,7 +38,18 @@ public partial class LoginViewModelWin : LoginViewModel
                 BaseViewModel.NavigateToAnyPageOfGivenType(typeof(ProfilePage));
             }
         }
+        else
+        {
+            await Shell.Current.DisplayAlert(
+                 "No Internet",
+                "Please connection your device to the internet and retry",
+                "OK");
+                
+                
+        }
+        
     }
+    
     [RelayCommand]
      internal void NavigateToCloudPage()
     {
@@ -92,5 +103,12 @@ public partial class LoginViewModelWin : LoginViewModel
             ErrorMessage = $"Subscription failed: {ex.Message}";
         }
         finally { IsBusy = false; }
+    }
+
+    internal async Task UploadProfilePictureToCloudAsync()
+    {
+       byte[]? resultByteArray = await BaseViewModel.PickProfilePictureFromFolderAndUploadToCloudAsync();
+        if(resultByteArray == null) return;
+        await BaseViewModel.SessionMgtVM.UpdateProfilePicture(resultByteArray);
     }
 }

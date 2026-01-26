@@ -20,8 +20,9 @@ public static class AnimationHelper
     /// <summary>
     /// Prepares the animation BEFORE navigation (Call this on Click)
     /// </summary>
-    public static void Prepare(string key, UIElement source, bool isList = false)
+    public static void Prepare(string key, UIElement? source, bool isList = false)
     {
+        if (source == null) return;
         var service = ConnectedAnimationService.GetForCurrentView();
 
         // If it's a list item, we might want to ensure the service knows that, 

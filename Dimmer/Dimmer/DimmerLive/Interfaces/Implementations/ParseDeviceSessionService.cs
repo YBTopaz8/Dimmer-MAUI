@@ -326,16 +326,17 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
 
             if (eventsFromCloud == null || eventsFromCloud.Count == 0) return ;
 
-            // 4. Write to Realm (UPSERT Logic)
+
             var realm = vm.RealmFactory.GetRealmInstance();
 
             await realm.WriteAsync(() =>
             {
                 foreach (var view in eventsFromCloud)
                 {
-                    var rEvt = view.ToDimmerPlayEvent();
-                    // The 'true' flag updates if ID exists, inserts if not
-                    realm.Add(rEvt, update: true);
+                    var rEvt = view.ToDimmerPlayEvent()!;
+
+                    var res = realm.Add(rEvt, update: true);
+                    
                 }
             });
 

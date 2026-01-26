@@ -457,7 +457,7 @@ public static class PlatUtils
     {
         string songTitle = songPlaying.Title;
         string artistName = songPlaying.OtherArtistsName;
-        string albumArtPath = songPlaying.AlbumName;
+        string albumArtPath = songPlaying.CoverImagePath;
         try
         {
 
@@ -474,7 +474,11 @@ public static class PlatUtils
             //.AddButton(new AppNotificationButton("Queue").AddArgument("action", "queue")
 
 
-            await AppNotificationManager.Default.RemoveAllAsync();
+            var notifs= await AppNotificationManager.Default.GetAllAsync();
+            if (notifs.Any())
+            {
+                await  AppNotificationManager.Default.RemoveAllAsync();
+            }
             var notif = notificationBuilder.BuildNotification();
 
             AppNotificationManager.Default.Show(notif);
@@ -485,31 +489,78 @@ public static class PlatUtils
         }
     }
 
-    public static async Task ShowNewNotification(string notifMsg)
-    { try
+    public static async Task ShowNewNotification(SongModelView songPlaying)
+    {
+        string songTitle = songPlaying.Title ?? "Unknown Title";
+        string artistName = songPlaying.OtherArtistsName ?? "Unknown Artist";
+        string albumArtPath = songPlaying.CoverImagePath;
+
+        try
         {
+            // 1. SAFE URI CREATION
+            // We need a fallback in case the path is null, empty, or invalid.
+            Uri imageUri;
+
+
+            Uri fallbackUri = new Uri("ms-appx:///Assets/StoreLogo.png");
+
+            if (string.IsNullOrWhiteSpace(albumArtPath))
+            {
+                imageUri = fallbackUri;
+            }
+            else
+            {
+                try
+                {
+
+                    if (Uri.IsWellFormedUriString(albumArtPath, UriKind.Absolute))
+                    {
+                        imageUri = new Uri(albumArtPath);
+                    }
+                    else
+                    {
+
+                        imageUri = new Uri(System.IO.Path.GetFullPath(albumArtPath));
+                    }
+                }
+                catch
+                {
+
+                    imageUri = fallbackUri;
+                }
+            }
 
             var notificationBuilder = new AppNotificationBuilder()
                 .AddArgument("action", "viewSong")
-                //.AddArgument("songId", "12345")
-                .AddText(notifMsg, new AppNotificationTextProperties().SetMaxLines(4));
+                .SetAppLogoOverride(imageUri, AppNotificationImageCrop.Circle, songTitle) 
+                .AddText("Now Playing...", new AppNotificationTextProperties().SetMaxLines(1))
+
+                .AddText(songTitle, new AppNotificationTextProperties().SetMaxLines(1))
+                .AddText(artistName, new AppNotificationTextProperties().SetMaxLines(1));
 
 
-            //.AddButton(new AppNotificationButton("View Song Details").AddArgument("action", "play"))
-            //.AddButton(new AppNotificationButton("Queue").AddArgument("action", "queue")
+            try
+            {
+                var notifs = await AppNotificationManager.Default.GetAllAsync();
+                if (notifs.Count > 0) 
+                {
+                    await AppNotificationManager.Default.RemoveAllAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error clearing notifications: {ex.Message}");
+            }
 
-
-            await AppNotificationManager.Default.RemoveAllAsync();
+            // 3. SHOW
             var notif = notificationBuilder.BuildNotification();
-
             AppNotificationManager.Default.Show(notif);
         }
         catch (Exception ex)
         {
-            Debug.WriteLine(ex.Message);
+            Debug.WriteLine($"Notification Error: {ex.Message}");
         }
     }
-
     public static async void ClearNotifications()
     {
        _= Task.Run(async () => await AppNotificationManager.Default.RemoveAllAsync());

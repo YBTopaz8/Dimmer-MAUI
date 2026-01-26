@@ -21,14 +21,52 @@
     <Grid x:Name="MainGrid" Background="Transparent">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <customViews:MediaPlaybackSection x:Name="TopMediaControlSection" Grid.Row="0" />
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="auto"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Margin="5">
+
+                <ProgressRing IsActive="False"
+                          Visibility="Collapsed"
+                          x:Name="DimmerProgressRing"
+                          Loaded="DimmerProgressRing_Loaded"
+                          />
+                <ProgressBar IsIndeterminate="True"
+                         
+                         Value="30"
+                         Margin="10,5" Visibility="Collapsed"
+                         Loaded="DimmerProgressBar_Loaded"
+                         x:Name="DimmerProgressBar"
+                         />
+
+                <TextBlock  HorizontalAlignment="Center"
+                       x:Name="DimmerStatusTextBlock"
+     Text="{x:Bind MyViewModel.LatestAppLog.Message, Mode=OneWay}"
+                       Loaded="DimmerStatusTextBlock_Loaded"/>
+
+
+
+            </StackPanel>
+            <Button Grid.Column="1"  Click="ClearStatus_Click" 
+                    Background="Transparent"
+                    x:Name="ClearStatus" HorizontalAlignment="Right">
+                <SymbolIcon Symbol="Clear" Height="15" Width="15" />
+            </Button>
+        </Grid>
+        <customViews:MediaPlaybackSection
+           Loaded="TopMediaControlSection_Loaded"
+            x:Name="TopMediaControlSection" Grid.Row="1" />
 
         <Frame
             x:Name="ContentFrame"
-            Grid.Row="1"
+            Grid.Row="2"
             x:FieldModifier="Public" />
 
     </Grid>

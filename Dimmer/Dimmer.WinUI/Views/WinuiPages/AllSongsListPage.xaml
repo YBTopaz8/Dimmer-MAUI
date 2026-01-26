@@ -215,15 +215,11 @@
                     ItemClick="MySongsTableView_ItemClick"
                     ItemsSource="{x:Bind MyViewModel.SearchResults}"
                     Loaded="MySongsTableView_Loaded"
-                    LosingFocus="MySongsTableView_LosingFocus"
-                    LostFocus="MySongsTableView_LostFocus"
                     PointerEntered="MySongsTableView_PointerEntered"
                     PointerExited="MySongsTableView_PointerExited"
                     PointerPressed="TableView_PointerPressed"
                     PointerReleased="MySongsTableView_PointerReleased"
-                    ProcessKeyboardAccelerators="MySongsTableView_ProcessKeyboardAccelerators"
-                    RightTapped="TableView_RightTapped"
-                    RowContextFlyoutOpening="MySongsTableView_RowContextFlyoutOpening"
+                    
                     SelectionChanged="MySongsTableView_SelectionChanged"
                     SelectionMode="Single"
                     Sorting="MySongsTableView_Sorting"
@@ -529,7 +525,7 @@
                         Click="HideBtmPart_Click"
                         Content="X"
                         FontSize="9" />
-                    <TextBlock VerticalAlignment="Center" Text="{Binding LatestAppLog.Log}" />
+                    <TextBlock VerticalAlignment="Center" Text="{Binding LatestAppLog.Message}" />
                 </StackPanel>
             </StackPanel>
         </Grid>

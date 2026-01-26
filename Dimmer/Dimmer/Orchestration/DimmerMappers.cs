@@ -19,7 +19,25 @@ public static class DimmerMappers
     // 🎵 SONG MAPPERS
     // ==============================================================================
 
-  
+    public static AppLogEntryView? ToAppLogEntryView(this AppLogEntry src)
+    {
+        if (src is null) return null;
+
+        var dest = new AppLogEntryView
+        {
+            Category = src.Category,
+            ContextData = src.ContextData,
+            CorrelationId = src.CorrelationId,
+            ExceptionTrace = src.ExceptionTrace,
+            LevelStr = src.LevelStr,
+            Message = src.Message,
+            Timestamp = src.Timestamp,
+            Operation = src.Operation,
+            ProgressTotal = src.ProgressTotal,
+            ProgressValue = src.ProgressValue,
+        };
+        return dest;
+    }
     public static SongModelView? ToSongModelView(this SongModel? src)
     {
         if (src is null) return null;
@@ -264,11 +282,11 @@ public static class DimmerMappers
     // 📀 ALBUM MAPPERS
     // ==============================================================================
 
-    public static AlbumModelView? ToAlbumModelView(this AlbumModel? src)
+    public static AlbumModelView? ToAlbumModelView(this AlbumModel? src, bool withArtist=false, bool withSongs=false)
     {
         if (src is null) return null;
 
-        return new AlbumModelView
+        var returnAlbum =  new AlbumModelView
         {
             Id = src.Id,
             Name = src.Name,
@@ -305,7 +323,29 @@ public static class DimmerMappers
             // SongsInAlbum -> Ignored
             // Artists -> Ignored
             // IsCurrentlySelected -> Ignored
+         
         };
+        if (withArtist)
+        {
+            IEnumerable<ArtistModelView>? albumArtistsView = IPlatformApplication.Current!.Services.GetService<IRealmFactory>()!.GetRealmInstance()
+                .Find<AlbumModel>(src.Id)?.Artists.Select(x=>x.ToArtistModelView())!;
+
+            returnAlbum.Artists = albumArtistsView is null ? null : albumArtistsView!.ToList()!;
+
+        }
+        
+        if (withSongs)
+        {
+            var songsInAlbum = IPlatformApplication.Current!.Services.GetService<IRealmFactory>()!.GetRealmInstance()
+                .Find<AlbumModel>(src.Id);
+            var ss = songsInAlbum?.SongsInAlbum.Count();
+            Debug.WriteLine(ss);
+            Debug.WriteLine(songsInAlbum.Artists.Count);
+            //returnAlbum.SongsInAlbum = songsInAlbum is null ? null : songsInAlbum!.ToObservableCollection()!;
+
+        }
+
+        return returnAlbum;
     }
 
     public static AlbumModel? ToAlbumModel(this AlbumModelView? src)
@@ -394,7 +434,7 @@ public static class DimmerMappers
         {
             Id = src.Id,
             Url = src.Url,
-            Name = src.Name,
+            Name = string.IsNullOrEmpty(src.Name) ? string.Empty : src.Name,
             ImagePath = src.ImagePath,
             Bio = src.Bio,
             IsNew = src.IsNew,

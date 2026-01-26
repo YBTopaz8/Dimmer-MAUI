@@ -290,4 +290,15 @@ public sealed partial class NowPlayingPage : Page
         }
 
     }
+
+    private void ViewAllSongs_Click(object sender, RoutedEventArgs e)
+    {
+        MyViewModel.NavigateToAnyPageOfGivenType(typeof(AllSongsListPage));
+    }
+
+    private void ArtistBtn_Click(object sender, RoutedEventArgs e)
+    {
+        MyViewModel.SelectedSong = MyViewModel.CurrentPlayingSongView;
+        MyViewModel.NavigateToAnyPageOfGivenType(typeof(AlbumPage));
+    }
 }

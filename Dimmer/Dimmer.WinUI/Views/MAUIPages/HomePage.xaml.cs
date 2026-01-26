@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Maui.Behaviors;
+﻿using System.Threading.Tasks;
+using CommunityToolkit.Maui.Behaviors;
 
 using Dimmer.WinUI.ViewModel.DimmerLiveWin;
 using Dimmer.WinUI.Views.WinuiPages.DimmsSection;
@@ -1051,11 +1052,11 @@ public partial class HomePage : ContentPage
         MyViewModel.IsDarkModeOn = currentTheme == AppTheme.Dark;
     }
 
-    private void UserLoginClicked(object sender, EventArgs e)
+    private async void UserLoginClicked(object sender, EventArgs e)
     {
         if(loginVM is not null)
         {
-            loginVM.NavigateToProfilePage();
+          await  loginVM.NavigateToProfilePage();
             
         }
 

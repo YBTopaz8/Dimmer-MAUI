@@ -1,6 +1,10 @@
 ﻿// Assuming Dimmer.Data.Models and Dimmer.Utilities.Enums are accessible
 // using Dimmer.Platform; // For Window
 
+using System.Runtime.CompilerServices;
+using Realms;
+
+using DimmerLogLevel = Dimmer.Data.Models.DimmerLogLevel;
 namespace Dimmer.Interfaces.Services;
 
 public partial class DimmerStateService : IDimmerStateService
@@ -23,21 +27,21 @@ public partial class DimmerStateService : IDimmerStateService
     private readonly BehaviorSubject<CurrentPage> _currentPage = new(Utilities.Enums.CurrentPage.AllSongs);
     private readonly BehaviorSubject<IReadOnlyList<Window>> _currentlyOpenWindows = new(Array.Empty<Window>());
 
-    private readonly BehaviorSubject<AppLogModel> _latestDeviceLog; // Initialized in constructor
-    private readonly BehaviorSubject<IReadOnlyList<AppLogModel>> _dailyLatestDeviceLogs = new(Array.Empty<AppLogModel>());
+    private readonly BehaviorSubject<AppLogEntryView> _latestDeviceLog; // Initialized in constructor
+    private readonly BehaviorSubject<IReadOnlyList<AppLogEntryView>> _dailyLatestDeviceLogs = new(Array.Empty<AppLogEntryView>());
     private readonly BehaviorSubject<LyricPhraseModel?> _currentLyric = new(null);
     private readonly BehaviorSubject<IReadOnlyList<LyricPhraseModel>> _syncLyrics = new(Array.Empty<LyricPhraseModel>());
     private readonly BehaviorSubject<double> _deviceVolume = new(1.0);
 
     private readonly CompositeDisposable _disposables = new();
-
+    private readonly IRealmFactory _realmFactory;
     private readonly IDimmerAudioService _audioService;
 
-    public DimmerStateService(IDimmerAudioService audioService, IRepository<SongModel> songRepo)
+    public DimmerStateService(IDimmerAudioService audioService, IRepository<SongModel> songRepo, IRealmFactory realmFactory)
     {
 
         // Initialize with default/empty values where appropriate
-        _latestDeviceLog = new BehaviorSubject<AppLogModel>(new AppLogModel { Log = $"StateService Initialized. + {DateTimeOffset.UtcNow}" });
+        _latestDeviceLog = new BehaviorSubject<AppLogEntryView>(new AppLogEntryView());
         _playbackState = new BehaviorSubject<PlaybackStateInfo>(new PlaybackStateInfo(DimmerUtilityEnum.Opening, null, null, null));
 
         // Derived state: Reset position and duration when song changes to null (or a new song)
@@ -51,6 +55,7 @@ public partial class DimmerStateService : IDimmerStateService
                  },
                  ex => { /* Log error for _currentSong reset subscription if needed */ })
          );
+        _realmFactory = realmFactory;
         _audioService= audioService ?? throw new ArgumentNullException(nameof(audioService));
     }
 
@@ -72,8 +77,8 @@ public partial class DimmerStateService : IDimmerStateService
     public IObservable<CurrentPage> CurrentPage => _currentPage.AsObservable();
     public IObservable<IReadOnlyList<Window>> CurrentlyOpenWindows => _currentlyOpenWindows.AsObservable();
 
-    public IObservable<AppLogModel> LatestDeviceLog => _latestDeviceLog.AsObservable();
-    public IObservable<IReadOnlyList<AppLogModel>> DailyLatestDeviceLogs => _dailyLatestDeviceLogs.AsObservable();
+    public IObservable<AppLogEntryView> LatestDeviceLog => _latestDeviceLog.AsObservable();
+    public IObservable<IReadOnlyList<AppLogEntryView>> DailyLatestDeviceLogs => _dailyLatestDeviceLogs.AsObservable();
     public IObservable<LyricPhraseModel?> CurrentLyric => _currentLyric.AsObservable();
     public IObservable<IReadOnlyList<LyricPhraseModel>> SyncLyrics => _syncLyrics.AsObservable();
     public IObservable<double> DeviceVolume => _deviceVolume.AsObservable();
@@ -99,8 +104,7 @@ public partial class DimmerStateService : IDimmerStateService
         // Check if the ID has changed to avoid redundant notifications for the same song
         if (_currentSong.Value?.Id == newSongView?.Id)
         {
-            // If it's the same song ID, but perhaps other details in SongModelView changed,
-            // still push if the objects are not reference-equal (or value-equal if SongModelView is a struct).
+
             if (ReferenceEquals(_currentSong.Value, newSongView) || Equals(_currentSong.Value, newSongView))
                 return;
         }
@@ -123,8 +127,7 @@ public partial class DimmerStateService : IDimmerStateService
 
     public void SetCurrentState(PlaybackStateInfo state)
     {
-        // Consider adding a proper Equals to PlaybackStateInfo for DistinctUntilChanged to work effectively
-        // or compare key properties here if PlaybackStateInfo doesn't have a good Equals override.
+
         if (_playbackState.Value.Equals(state)) // Assumes PlaybackStateInfo has a proper Equals
             return;
         _playbackState.OnNext(state);
@@ -181,16 +184,7 @@ public partial class DimmerStateService : IDimmerStateService
         _applicationSettingsState.OnNext(appState);
     }
 
-    public void SetCurrentLogMsg(AppLogModel logMessage)
-    {
-        if (logMessage == null)
-            return;
-        _latestDeviceLog.OnNext(logMessage);
 
-        var updatedLogs = new List<AppLogModel>(_dailyLatestDeviceLogs.Value ?? Enumerable.Empty<AppLogModel>());
-        updatedLogs.Add(logMessage);
-        _dailyLatestDeviceLogs.OnNext(updatedLogs.AsReadOnly());
-    }
 
     public void SetDeviceVolume(double volume)
     {
@@ -266,5 +260,94 @@ public partial class DimmerStateService : IDimmerStateService
         _syncLyrics.Dispose();
         _deviceVolume.Dispose();
         GC.SuppressFinalize(this);
+    }
+
+    public void LogProgress(string message, int current, int total, [CallerMemberName] string memberName = "", [CallerFilePath] string filePath = "")
+    {// 1. Get Class Name automatically
+        var className = Path.GetFileNameWithoutExtension(filePath);
+
+        var _realm = _realmFactory.GetRealmInstance();
+        // 2. Create the entry
+        var entry = new AppLogEntry
+        {
+
+            Id = ObjectId.GenerateNewId(),
+            Timestamp = DateTimeOffset.Now,
+
+            // Context
+            Category = className,   // e.g. "SongDataProcessor"
+            Operation = memberName, // e.g. "ProcessLyricsAsync"
+
+            // Content
+            Message = message,
+            LevelStr = DimmerLogLevel.Progress.ToString(), // "Progress"
+
+            // The Numbers
+            ProgressValue = current,
+            ProgressTotal = total
+        };
+        // 3. Create the entryView
+        var entryView = new AppLogEntryView
+        {
+
+            Timestamp = DateTimeOffset.Now,
+            Category = className,   
+            Operation = memberName,
+            Message = message,
+            LevelStr = DimmerLogLevel.Progress.ToString(),
+            ProgressValue = current,
+            ProgressTotal = total
+        };
+
+        _latestDeviceLog.OnNext(entryView);
+    
+
+        _realm.Write(() => _realm.Add(entry));
+    }
+
+    public void SetCurrentLogMsg(string message, Data.Models.DimmerLogLevel level, object? context = null, [CallerMemberName] string memberName = "", [CallerFilePath] string filePath = "")
+    {
+
+        
+        var _realm = _realmFactory.GetRealmLogInstance();
+        // Extract class name from file path (e.g., .../SongDataProcessor.cs -> SongDataProcessor)
+        var className = Path.GetFileNameWithoutExtension(filePath);
+
+        // Serialize context if needed (e.g., Song Name)
+        string? contextJson = context != null ? ParseContext(context) : string.Empty;
+
+        var entry = new AppLogEntry
+        {
+            Id= ObjectId.GenerateNewId(),
+            Category = className,
+            Operation = memberName,
+            Message = message,
+            LevelStr = level.ToString(),
+            ContextData = string.IsNullOrEmpty(contextJson) ? string.Empty : contextJson,
+            Timestamp = DateTimeOffset.Now
+        };
+
+        // 3. Create the entry
+        var entryView = new AppLogEntryView
+        {
+
+            Timestamp = DateTimeOffset.Now,
+            Category = className,
+            Operation = memberName,
+            Message = message,
+            LevelStr = DimmerLogLevel.Progress.ToString(),
+        };
+
+        _latestDeviceLog.OnNext(entryView);
+
+        // Write to DB (Make sure this is thread-safe/main thread if using Realm)
+        _realm.Write(() => _realm.Add(entry));
+    }
+    private string? ParseContext(object obj)
+    {
+        // Keep it simple. Don't serialize entire heavy objects.
+        if (obj is SongModel song) return $"Song: {song.Title} - {song.ArtistName}";
+        if (obj is Exception ex) return ex.Message;
+        return obj.ToString();
     }
 }

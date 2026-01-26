@@ -6,7 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.UI.Composition.SystemBackdrops;
 
 using Windows.Graphics;
-
+using ProgressBar = Microsoft.UI.Xaml.Controls.ProgressBar;
 using Slider = Microsoft.UI.Xaml.Controls.Slider;
 using Window = Microsoft.UI.Xaml.Window;
 
@@ -70,7 +70,7 @@ public sealed partial class DimmerWin : Window
             parameters.Add(OptionalParameter);
         }
     }
-    public BaseViewModelWin? MyViewModel { get; internal set; }
+    public BaseViewModelWin MyViewModel { get; internal set; }
     private void DimmerWindowClosed(object sender, WindowEventArgs args)
     {
         MyViewModel.MainWindow = null;
@@ -135,5 +135,44 @@ public sealed partial class DimmerWin : Window
                 case ElementTheme.Default: m_configurationSource.Theme = SystemBackdropTheme.Default; break;
             }
         }
+    }
+
+    private void DimmerProgressBar_Loaded(object sender, RoutedEventArgs e)
+    {
+
+        MyViewModel!.DimmerProgressBarView = (ProgressBar)sender;
+    }
+
+    private void DimmerProgressRing_Loaded(object sender, RoutedEventArgs e)
+    {
+
+        MyViewModel!.DimmerProgressRingView = (ProgressRing)sender;
+    }
+
+    private void DimmerStatusTextBlock_Loaded(object sender, RoutedEventArgs e)
+    {
+        MyViewModel!.DimmerStatusTextBlockView = (TextBlock)sender;
+    }
+
+    private void ClearStatus_Click(object sender, RoutedEventArgs e)
+    {
+        MyViewModel.HideIndeterminateProgressBar();
+    }
+
+    private void TopMediaControlSection_Loaded(object sender, RoutedEventArgs e)
+    {
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentPlayingSongView), v => MyViewModel.CurrentPlayingSongView)
+            .Subscribe(v =>
+            {
+                if (v.TitleDurationKey is null)
+                {
+                    TopMediaControlSection.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+                }
+                else
+                {
+                    TopMediaControlSection.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+
+                }
+            });
     }
 }

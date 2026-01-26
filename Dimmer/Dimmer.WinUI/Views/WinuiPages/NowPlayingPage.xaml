@@ -87,7 +87,7 @@
                         HorizontalContentAlignment="Center"
                         />
                     <Button Background="Transparent"
-
+x:Name="ArtistBtn" Click="ArtistBtn_Click"
                         HorizontalAlignment="Center"
                         FontSize="16" CornerRadius="12"
                         Opacity="0.6"
@@ -160,6 +160,13 @@
                     HorizontalAlignment="Center"
                     Orientation="Horizontal"
                     Spacing="12">
+                    <Button
+                        Content="All Songs"
+                        x:Name="ViewAllSongs"
+                        Click="ViewAllSongs_Click"
+                        Style="{StaticResource SecondaryButtonStyle}">
+                        
+                    </Button>
                     <Button
                         Content="Queue"
                         Style="{StaticResource SecondaryButtonStyle}">

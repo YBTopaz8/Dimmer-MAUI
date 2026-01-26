@@ -232,7 +232,7 @@ public sealed partial class SettingsPage : Page
 
         var button = (Button)sender;
         var path = button.DataContext as string;
-        await MyViewModel.UpdateFolderPath(path);
+        //await MyViewModel.UpdateFolderPath(path);
     }
 
 
@@ -242,6 +242,7 @@ public sealed partial class SettingsPage : Page
         var path = button.DataContext as string;
         if (path is null) return;
         if (MyViewModel is null) return;
+        MyViewModel.BaseViewModelWin.ShowIndeterminateProgressBar();
         await MyViewModel.ReScanMusicFolderByPassingToService(path);
     }
 
@@ -283,12 +284,21 @@ public sealed partial class SettingsPage : Page
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(obsCol =>
             {
-                if(obsCol.Count >= 1)
+                if (obsCol.Count >= 1)
                 {
-                    if(AddMusicFolderTip.IsOpen)
+                    if (AddMusicFolderTip.IsOpen)
                     {
                         AddMusicFolderTip.IsOpen = false;
                     }
+                    if (MyViewModel.SearchResults.Count < 1)
+                    {
+                        AddMusicFolderTip.Subtitle = AddMusicFolderTip.Subtitle + " Or Rescan existing one";
+                        AddMusicFolderTip.IsOpen = true;
+                    }
+                }
+                else
+                {
+
                 }
             });
     }
@@ -370,8 +380,10 @@ public sealed partial class SettingsPage : Page
         _ = Task.Run(()=>MyViewModel.EnsureAllCoverArtCachedForSongsAsync());
     }
 
-    private void LoadAlbumAndArtistInfoFromLastFM_Click(object sender, RoutedEventArgs e)
+    private async void LoadAlbumAndArtistInfoFromLastFM_Click(object sender, RoutedEventArgs e)
     {
-        MyViewModel.BaseViewModelWin.LoadAlbumAndArtistDetailsFromLastFM();
+      await MyViewModel.BaseViewModelWin.LoadAlbumAndArtistDetailsFromLastFM();
     }
+
+
 }

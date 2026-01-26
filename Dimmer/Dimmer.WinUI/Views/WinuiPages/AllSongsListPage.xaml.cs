@@ -441,17 +441,6 @@ public sealed partial class AllSongsListPage : Page
 
     }
 
-    private void MySongsTableView_LosingFocus(UIElement sender, LosingFocusEventArgs args)
-    {
-
-    }
-
-
-    private void MySongsTableView_LostFocus(object sender, RoutedEventArgs e)
-    {
-
-    }
-
    
 
     private void MySongsTableView_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
@@ -497,26 +486,13 @@ public sealed partial class AllSongsListPage : Page
 
             MyViewModel.CurrentWinUIPage = this;
             MyViewModel.MySongsTableView = MySongsTableView;
-            
-            // Subscribe to playback feedback events
-            MyViewModel.OnSongAddedToQueue += async (sender, message) =>
-            {
-                await ShowNotification(message, Microsoft.UI.Xaml.Controls.InfoBarSeverity.Success);
-            };
-            
-            MyViewModel.OnSongPlayingNow += async (sender, message) =>
-            {
-                await ShowNotification(message, Microsoft.UI.Xaml.Controls.InfoBarSeverity.Informational);
-            };
+          
             
             // Now that the ViewModel is set, you can set the DataContext.
             this.DataContext = MyViewModel;
         }
 
-        //if (CurrentPageTQL != MyViewModel.CurrentTqlQuery)
-        //{
-        //    MyViewModel.SearchSongForSearchResultHolder(CurrentPageTQL);
-        //}
+
         MyViewModel.CurrentWinUIPage = this;
     }
 
@@ -565,7 +541,7 @@ public sealed partial class AllSongsListPage : Page
     {
         // 1. Validation (Same as yours)
         if (_lastActiveCellSlot.Equals(default(TableViewCellSlot))) return;
-
+        
         // 2. Get Content
         string tableViewContent = MySongsTableView.GetCellsContent(
             slots: new[] { _lastActiveCellSlot },
@@ -967,12 +943,6 @@ AnimationHelper.Key_Forward
 AnimationHelper.Key_ListToDetail, sender as UIElement,
 true
 );
-        var navParams = new SongDetailNavArgs
-        {
-            Song = song!,
-            ExtraParam = MyViewModel,
-            ViewModel = MyViewModel
-        };
         Type pageType = typeof(AlbumPage);
 
         if (song.Album is null)
@@ -981,7 +951,7 @@ true
         }
         MyViewModel.SelectedAlbum = song.Album;
         MyViewModel.SelectedSong = song;
-        Frame?.NavigateToType(pageType, navParams, navigationOptions);
+        MyViewModel.NavigateToAnyPageOfGivenType(pageType);
 
     }
 
@@ -1309,23 +1279,6 @@ true
             });
     }
 
-    private async Task ShowNotification(string message, Microsoft.UI.Xaml.Controls.InfoBarSeverity severity)
-    {
-        // Use a TeachingTip or create a temporary InfoBar for notifications
-        DispatcherQueue.TryEnqueue(async () =>
-        {
-            
-            await PlatUtils.ShowNewNotification(message);
-            // Auto-close after 3 seconds
-            var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
-            timer.Tick += (s, args) =>
-            {
-                PlatUtils.ClearNotifications();
-            };
-
-           
-        });
-    }
 
     private void QueueReOrder_Click(object sender, RoutedEventArgs e)
     {

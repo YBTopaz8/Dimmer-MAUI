@@ -284,4 +284,20 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
     {
 
     }
+
+    public async Task UpdateProfilePicture(byte[]? resultByteArray)
+    {
+        
+        if (IsBusy) return;
+        if (resultByteArray is null) return;
+
+        // upload to Parse cloud and expect full User object back
+        var parseUser = await ParseClient.Instance.CallCloudCodeFunctionAsync<UserModelOnline>("uploadProfilePicture", new Dictionary<string, object>
+        {
+            { "imageData", Convert.ToBase64String(resultByteArray) }
+        });
+
+        if (parseUser == null) return;
+        LoginViewModel.CurrentUserOnline = parseUser;
+    }
 }

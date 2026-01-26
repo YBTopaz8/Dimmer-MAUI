@@ -1,6 +1,9 @@
 ﻿// Assuming Dimmer.Data.Models and Dimmer.Utilities.Enums are accessible
 // using Dimmer.Platform; // For Window if it's a specific type
 
+using System.Runtime.CompilerServices;
+using DimmerLogLevel = Dimmer.Data.Models.DimmerLogLevel;
+
 namespace Dimmer.Interfaces;
 
 public interface IDimmerStateService : IDisposable
@@ -21,15 +24,20 @@ public interface IDimmerStateService : IDisposable
     IObservable<AppStateModelView?> ApplicationSettingsState { get; } // General app settings/preferences
     IObservable<CurrentPage> CurrentPage { get; }
     IObservable<IReadOnlyList<Window>> CurrentlyOpenWindows { get; }
+   
 
+
+    void LogProgress(string message, int current, int total,
+        [CallerMemberName] string memberName = "",
+        [CallerFilePath] string filePath = "");
     // --- Observables for UI/Feedback ---
-    IObservable<AppLogModel> LatestDeviceLog { get; }
-    IObservable<IReadOnlyList<AppLogModel>> DailyLatestDeviceLogs { get; }
+
     IObservable<LyricPhraseModel?> CurrentLyric { get; }
     IObservable<IReadOnlyList<LyricPhraseModel>> SyncLyrics { get; }
     IObservable<double> DeviceVolume { get; } // Volume (0.0 to 1.0)
     IObservable<IReadOnlyList<DimmerPlayEvent>> AllPlayHistory { get; }
     ReadOnlyCollection<SongModel> AllCurrentSongsInDB { get; }
+    IObservable<AppLogEntryView> LatestDeviceLog { get; }
 
     // --- Methods to Update State ---
 
@@ -42,7 +50,9 @@ public interface IDimmerStateService : IDisposable
     void SetCurrentUser(UserModelView? user); // Added
     void SetApplicationSettingsState(AppStateModelView? appState); // Added
 
-    void SetCurrentLogMsg(AppLogModel logMessage);
+    void SetCurrentLogMsg(string message, DimmerLogLevel level, object? context = null,
+            [CallerMemberName] string memberName = "",
+            [CallerFilePath] string filePath = "");
     void SetDeviceVolume(double volume);
     void AddWindow(Window window);
     void RemoveWindow(Window window);

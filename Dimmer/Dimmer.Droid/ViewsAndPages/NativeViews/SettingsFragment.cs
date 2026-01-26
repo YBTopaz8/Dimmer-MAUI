@@ -40,12 +40,11 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
     {
         base.OnStart();
 
-        MyViewModel.LogStream
-
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.LatestAppLog), v=>MyViewModel.LatestAppLog)
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(log =>
             {
-                appStatusText.Text = log.Log;
+                appStatusText.Text = log.Message;
             })
             .DisposeWith(_disposables);
     }

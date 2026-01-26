@@ -21,6 +21,9 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     public readonly IWinUIWindowMgrService winUIWindowMgrService;
 
     private readonly LoginViewModel loginViewModel;
+
+    public SessionManagementViewModel SessionMgtVM { get; }
+
     private readonly IFolderPicker _folderPicker;
     public DimmerMultiWindowCoordinator DimmerMultiWindowCoordinator;
 
@@ -29,11 +32,12 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         DimmerMultiWindowCoordinator dimmerMultiWindowCoordinator,
         IMauiWindowManagerService mauiWindowManagerService,
         IWinUIWindowMgrService winUIWinMgrService,
+        SessionManagementViewModel sessionManagementViewModel,
     MusicDataService musicDataService, IAppInitializerService appInitializerService, IDimmerAudioService audioServ, ISettingsService settingsService, ILyricsMetadataService lyricsMetadataService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> _songRepo, IDuplicateFinderService duplicateFinderService, ILastfmService _lastfmService, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, IDialogueService dialogueService, IRepository<PlaylistModel> PlaylistRepo, IRealmFactory RealmFact, IFolderMonitorService FolderServ, ILibraryScannerService LibScannerService, IRepository<DimmerPlayEvent> DimmerPlayEventRepo, BaseAppFlow BaseAppClass, ILogger<BaseViewModel> logger) : base(dimmerStateService, musicDataService, appInitializerService, audioServ, settingsService, lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, _songRepo, duplicateFinderService, _lastfmService, artistRepo, albumModel, genreModel, dialogueService, PlaylistRepo, RealmFact, FolderServ, LibScannerService, DimmerPlayEventRepo, BaseAppClass, logger)
     {
         this.winUIWindowMgrService = winUIWinMgrService;
         this.loginViewModel = _loginViewModel;
-        this._folderPicker = _folderPicker;
+        SessionMgtVM=sessionManagementViewModel;
         DimmerMultiWindowCoordinator = dimmerMultiWindowCoordinator;
         DimmerMultiWindowCoordinator.BaseVM = this;
         UIQueryComponents.CollectionChanged += (s, e) =>
@@ -44,6 +48,41 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         windowManager = mauiWindowManagerService;
         //AddNextEvent += BaseViewModelWin_AddNextEvent;
         //MainWindowActivated
+
+        this.WhenPropertyChange(nameof(base.IsAppScanning), v => (base.IsAppScanning))
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(x =>
+            {
+                if(x)
+                {
+                    ShowIndeterminateProgressBar();
+                }
+                else
+                {
+                    HideIndeterminateProgressBar();
+                }
+            });
+
+        this.WhenPropertyChange(nameof(base.DimmerProgressBarViewVisible), v => (base.DimmerProgressBarViewVisible))
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(x =>
+            {
+                if(x)
+                {
+                    ShowIndeterminateProgressBar();
+                }
+                else
+                {
+                    HideIndeterminateProgressBar();
+                }
+            });
+
+        this.WhenPropertyChange(nameof(base.DimmerProgressBarViewVisibleValue), v => (base.DimmerProgressBarViewVisibleValue))
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(x =>
+            {                
+                    ShowOrSetIndeterminateProgressBar(x);                
+            });
     }
 
     private void BaseViewModelWin_AddNextEvent(object? sender, EventArgs e)
@@ -446,7 +485,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
             _logger.LogInformation($"Song changed and highlighted in ViewModel B: {value.Title}");
 
-            await PlatUtils.ShowNewSongNotification(value); 
+            //await PlatUtils.ShowNewSongNotification(value); 
         }
     }
 
@@ -1096,6 +1135,10 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     public Image CoverImageSong { get; internal set; }
     [ObservableProperty]
     public partial Hqub.Lastfm.Entities.Track? SelectedTrack { get; internal set; }
+    public Hqub.Lastfm.Entities.Album? SelectedLastFMAlbum { get; internal set; }
+    public TextBlock DimmerStatusTextBlockView { get; internal set; }
+    public ProgressRing DimmerProgressRingView { get; internal set; }
+    public Microsoft.UI.Xaml.Controls.ProgressBar DimmerProgressBarView { get; internal set; }
 
     public override bool AutoConfirmLastFM(bool val)
     {
@@ -1312,5 +1355,47 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         SelectedSong.PlayEvents.Remove(selectedPlayEvent);
     }
 
-   
+    public async Task<byte[]?> PickProfilePictureFromFolderAndUploadToCloudAsync()
+    {
+        var picker = new FileOpenPicker();
+        // Get the HWND of the current window
+        var hwnd = PlatUtils.DimmerHandle;
+        // Initialize the picker with the window handle
+        WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+        picker.FileTypeFilter.Add(".jpg");
+        picker.FileTypeFilter.Add(".png");
+        var file = await picker.PickSingleFileAsync();
+        if (file is null) return null;
+        using (var stream = await file.OpenReadAsync())
+        {
+            using (var memoryStream = new MemoryStream())
+            {
+                await stream.AsStreamForRead().CopyToAsync(memoryStream);
+                return memoryStream.ToArray();
+                
+            }
+        }
+    }
+
+    internal void ShowIndeterminateProgressBar()
+    {
+        DimmerProgressBarView.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+        DimmerProgressBarView.IsIndeterminate = true;
+        
+    }
+
+    internal void HideIndeterminateProgressBar()
+    {
+        DimmerProgressBarView.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+        DimmerProgressBarView.IsIndeterminate = true;
+        
+    }
+
+    internal void ShowOrSetIndeterminateProgressBar(double newVal)
+    {
+        DimmerProgressBarView.IsIndeterminate = false;
+        DimmerProgressBarView.Value = newVal;
+        DimmerProgressBarView.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+
+    }
 }

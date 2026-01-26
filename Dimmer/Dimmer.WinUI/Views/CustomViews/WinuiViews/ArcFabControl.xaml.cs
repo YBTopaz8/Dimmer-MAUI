@@ -46,7 +46,7 @@ public sealed partial class ArcFabControl : UserControl
             Modifiers = VirtualKeyModifiers.Control,
             Key = VirtualKey.Q
         };
-        accelerator.Invoked += (s, e) => { MainFab_Click(null, null); e.Handled = true; };
+        accelerator.Invoked += (s, e) => { MainFab_Click(s, null); e.Handled = true; };
         MainFab.KeyboardAccelerators.Add(accelerator);
     }
 
@@ -155,7 +155,7 @@ public sealed partial class ArcFabControl : UserControl
         // 2. Rotate Main Icon (X)
         if (MainIcon.RenderTransform is RotateTransform rot)
         {
-            var anim = new Microsoft.UI.Xaml.Media.Animation.DoubleAnimation { To = 45, Duration = TimeSpan.FromMilliseconds(200) };
+            var anim = new Microsoft.UI.Xaml.Media.Animation.DoubleAnimation { To = 45, Duration = TimeSpan.FromMilliseconds(100) };
             var sb = new Microsoft.UI.Xaml.Media.Animation.Storyboard();
             sb.Children.Add(anim);
             Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTarget(anim, rot);
@@ -244,14 +244,14 @@ public sealed partial class ArcFabControl : UserControl
         scaleAnim.Target = "Scale";
         scaleAnim.InsertKeyFrame(0f, new Vector3(1f));
         scaleAnim.InsertKeyFrame(1f, new Vector3(2.5f));
-        scaleAnim.Duration = TimeSpan.FromMilliseconds(400);
+        scaleAnim.Duration = TimeSpan.FromMilliseconds(100);
 
         // Opacity
         var fadeAnim = _compositor.CreateScalarKeyFrameAnimation();
         fadeAnim.Target = "Opacity";
         fadeAnim.InsertKeyFrame(0f, 0.6f);
         fadeAnim.InsertKeyFrame(1f, 0f);
-        fadeAnim.Duration = TimeSpan.FromMilliseconds(400);
+        fadeAnim.Duration = TimeSpan.FromMilliseconds(100);
 
         visual.StartAnimation("Scale", scaleAnim);
         visual.StartAnimation("Opacity", fadeAnim);
@@ -266,14 +266,14 @@ public sealed partial class ArcFabControl : UserControl
         spring.Target = "Translation";
         spring.FinalValue = offset;
         spring.DampingRatio = 0.65f; // Nice bounce
-        spring.Period = TimeSpan.FromMilliseconds(260);
+        spring.Period = TimeSpan.FromMilliseconds(12);
         if (delay > 0) spring.DelayTime = TimeSpan.FromMilliseconds(delay);
 
         // Opacity
         var fade = _compositor.CreateScalarKeyFrameAnimation();
         fade.Target = "Opacity";
         fade.InsertKeyFrame(1.0f, opacity);
-        fade.Duration = TimeSpan.FromMilliseconds(300);
+        fade.Duration = TimeSpan.FromMilliseconds(100);
         if (delay > 0) fade.DelayTime = TimeSpan.FromMilliseconds(delay);
 
         visual.StartAnimation("Translation", spring);
@@ -286,7 +286,7 @@ public sealed partial class ArcFabControl : UserControl
         var fade = _compositor.CreateScalarKeyFrameAnimation();
         fade.Target = "Opacity";
         fade.InsertKeyFrame(1.0f, opacity);
-        fade.Duration = TimeSpan.FromMilliseconds(250);
+        fade.Duration = TimeSpan.FromMilliseconds(100);
         visual.StartAnimation("Opacity", fade);
     }
 

@@ -123,8 +123,7 @@ public static class SongDataProcessor
                                 vmSong.UnSyncLyrics = plainLyrics;
                                 vmSong.SyncLyrics = fetchedLrcData; 
                             });
-                            stateService.SetCurrentLogMsg(
-                                new AppLogModel() { Log = $"Loaded lyrics for {vmSong.Title}" });
+                            stateService.SetCurrentLogMsg( $"Loaded lyrics for {vmSong.Title}",DimmerLogLevel.Info);
                         }
                     }
                 }

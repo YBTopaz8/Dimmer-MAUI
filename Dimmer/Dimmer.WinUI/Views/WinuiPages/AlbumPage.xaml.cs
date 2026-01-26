@@ -24,23 +24,30 @@ public sealed partial class AlbumPage : Page
 
     BaseViewModelWin MyViewModel { get; set; }
 
-    public SongModelView? DetailedSong { get; set; }
+    public SongModelView DetailedSong { get; set; }
+    public AlbumModelView SelectedAlbum { get; private set; }
+
     protected override async void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
         //DetailedSong = DetailedSong is null ? MyViewModel.SelectedSong : DetailedSong;
 
-        if (e.Parameter is SongDetailNavArgs args)
+        if (e.Parameter is BaseViewModelWin args)
         {
-            MyViewModel = (args.ExtraParam as BaseViewModelWin)!;       // reference, not copy
-            DetailedSong = args.Song;
+            MyViewModel = args; 
+            DetailedSong = args.SelectedSong!;
         }
         this.DataContext = MyViewModel;
 
         MyViewModel.IsBackButtonVisible = WinUIVisibility.Visible;
-        
-    
 
+
+        var s = MyViewModel.RealmFactory.GetRealmInstance().Find<SongModel>(DetailedSong.Id);
+        var ee = s!.Album;
+        SelectedAlbum = ee.ToAlbumModelView(withArtist: true, withSongs: true)!;
+
+        MyViewModel.SelectedAlbum  =    SelectedAlbum;
+        MyViewModel.SelectedLastFMAlbum = await MyViewModel.LastFMService.GetAlbumInfoAsync(DetailedSong.ArtistName, SelectedAlbum!.Name);
         AnimationHelper.TryStart(
       DestinationElement,
       null,
@@ -82,14 +89,7 @@ public sealed partial class AlbumPage : Page
 
     private void CoordinatedPanel2_Click(object sender, RoutedEventArgs e)
     {
-        // Standard navigation back
-        if (Frame.CanGoBack)
-        {
-            //var image = detailedImage;
-            //ConnectedAnimationService.GetForCurrentView()
-            //    .PrepareToAnimate("BackwardConnectedAnimation", image);
-            Frame.GoBack();
-        }
+       
     }
 
     private void Grid_PointerPressed(object sender, PointerRoutedEventArgs e)
@@ -110,6 +110,136 @@ public sealed partial class AlbumPage : Page
         {
             CoverImageAlbumPage.Source = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(UriSource));
         }
+
+    }
+
+    private void Page_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        var props = e.GetCurrentPoint((UIElement)sender).Properties;
+        if (props != null)
+        {
+            if (props.IsXButton1Pressed)
+            {
+ 
+                if (Frame.CanGoBack)
+                {
+                    var image = DestinationElement;
+                    ConnectedAnimationService.GetForCurrentView()
+                        .PrepareToAnimate("BackwardConnectedAnimation", image);
+                    Frame.GoBack();
+                }
+            }
+        }
+    }
+
+    private void Back_Click(object sender, RoutedEventArgs e)
+    {
+        // Standard navigation back
+        if (Frame.CanGoBack)
+        {
+            //var image = detailedImage;
+            //ConnectedAnimationService.GetForCurrentView()
+            //    .PrepareToAnimate("BackwardConnectedAnimation", image);
+            Frame.GoBack();
+        }
+    }
+
+    private void MyPageGrid_Loaded(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void Page_Unloaded(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void DurationFormatted_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
+    {
+
+    }
+
+    private void AlbumBtn_RightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+
+    }
+
+    private void ArtistBtnStackPanel_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+
+    }
+
+    private void TitleColumn_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+
+    }
+
+    private void SongTitle_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void ButtonHover_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+
+    }
+
+    private void ButtonHover_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+
+    }
+
+    private void ViewOtherBtn_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void ExtraPanel_Loaded(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void coverArtImage_RightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+
+    }
+
+    private void coverArtImage_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+
+    }
+
+    private void CardBorder_PointerReleased(object sender, PointerRoutedEventArgs e)
+    {
+
+    }
+
+    private void CardBorder_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+
+    }
+
+    private void CardBorder_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+
+    }
+
+    private void CardBorder_Loaded(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void CardBorder_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
+    {
+
+    }
+    private void AlbumBtn_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void ViewSongBtn_Click(object sender, RoutedEventArgs e)
+    {
 
     }
 }

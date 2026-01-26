@@ -8,258 +8,262 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:Dimmer.DimmerLive.Models"
     xmlns:parse="using:Parse"
-    mc:Ignorable="d">
+    mc:Ignorable="d"
+    x:Name="MyPage"
+    PointerPressed="MyPage_PointerPressed">
 
-    <Grid Padding="24,12,24,24" RowSpacing="24">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <!--  Header  -->
-            <RowDefinition Height="Auto" />
-            <!--  Status & Referral  -->
-            <RowDefinition Height="*" />
-            <!--  Content Area (Split)  -->
-        </Grid.RowDefinitions>
+    <Grid x:Name="RootContainer">
+        <Grid Padding="24,12,24,24" RowSpacing="24"  x:Name="PageContentGrid">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                
+                <RowDefinition Height="Auto" />
+                
+                <RowDefinition Height="*" />
+                
+            </Grid.RowDefinitions>
 
-        <!--  1. Header  -->
-        <StackPanel Grid.Row="0" Spacing="4">
-            <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Dimmer Cloud Sync" />
-            <TextBlock
+            <!--  1. Header  -->
+            <StackPanel Grid.Row="0" Spacing="4" >
+                <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Dimmer Cloud Sync" />
+                <TextBlock
                 Opacity="0.7"
                 Style="{StaticResource BodyTextBlockStyle}"
                 Text="Manage your multi-device session, backups, and community status." />
-        </StackPanel>
+            </StackPanel>
 
-        <!--  2. Status & Referral Section  -->
-        <Grid Grid.Row="1" ColumnSpacing="16">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
+            <!--  2. Status & Referral Section  -->
+            <Grid Grid.Row="1" ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
 
-            <!--  Current Device Card  -->
-            <Grid
+                <!--  Current Device Card  -->
+                <Grid
                 Grid.Column="0"
                 Padding="16"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 CornerRadius="8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
 
-                <FontIcon
+                    <FontIcon
                     Grid.Column="0"
                     Margin="0,0,16,0"
                     FontSize="32"
                     Foreground="{ThemeResource AccentFillColorDefaultBrush}"
                     Glyph="&#xE770;" />
 
-                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                    <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="This Device" />
-                    <TextBlock
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="This Device" />
+                        <TextBlock
                         Opacity="0.8"
                         Style="{StaticResource CaptionTextBlockStyle}"
-                        Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}" />
-                </StackPanel>
+                        Text="{x:Bind MyViewModel.StatusMessage, Mode=OneWay}" />
+                    </StackPanel>
 
-                <Button
+                    <Button
                     Grid.Column="2"
-                    Command="{x:Bind ViewModel.RegisterCurrentDeviceCommand}"
+                    Command="{x:Bind MyViewModel.RegisterCurrentDeviceCommand}"
                     Content="Refresh Presence"
                     Style="{StaticResource DefaultButtonStyle}" />
-            </Grid>
+                </Grid>
 
-            <!--  Referral Card  -->
-            <Grid
+                <!--  Referral Card  -->
+                <Grid
                 Grid.Column="1"
                 Padding="16"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 CornerRadius="8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="0" Spacing="4">
-                    <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Referral Program" />
-                    <TextBlock
+                    <StackPanel Grid.Column="0" Spacing="4">
+                        <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Referral Program" />
+                        <TextBlock
                         Opacity="0.6"
                         Style="{StaticResource CaptionTextBlockStyle}"
-                        Text="{x:Bind ViewModel.ReferralStats, Mode=OneWay, TargetNullValue='Join the program to invite friends'}" />
-                    <!--  Displays the Code if it exists  -->
-                    <TextBlock
+                        Text="{x:Bind MyViewModel.ReferralStats, Mode=OneWay, TargetNullValue='Join the program to invite friends'}" />
+                        <!--  Displays the Code if it exists  -->
+                        <TextBlock
                         Foreground="{ThemeResource SystemFillColorSuccessBrush}"
                         IsTextSelectionEnabled="True"
                         Style="{StaticResource BodyStrongTextBlockStyle}"
-                        Text="{x:Bind ViewModel.CurrentReferralCode, Mode=OneWay}" />
-                </StackPanel>
+                        Text="{x:Bind MyViewModel.CurrentReferralCode, Mode=OneWay}" />
+                    </StackPanel>
 
-                <Button
+                    <Button
                     Grid.Column="1"
                     VerticalAlignment="Center"
-                    Command="{x:Bind ViewModel.CreateReferralCodeCommand}"
+                    Command="{x:Bind MyViewModel.CreateReferralCodeCommand}"
                     Content="Generate Code"
-                    Visibility="{x:Bind ViewModel.CurrentReferralCode, Mode=OneWay, Converter={StaticResource IsObjNullToVisConverter}}" />
+                    Visibility="{x:Bind MyViewModel.CurrentReferralCode, Mode=OneWay, Converter={StaticResource IsObjNullToVisConverter}}" />
+                </Grid>
             </Grid>
-        </Grid>
 
-        <!--  3. Main Content Split (Backups vs Remote Devices)  -->
-        <Grid Grid.Row="2" ColumnSpacing="24">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1.5*" />
-                <!--  Backups (Wider)  -->
-                <ColumnDefinition Width="*" />
-                <!--  Devices  -->
-            </Grid.ColumnDefinitions>
+            <!--  3. Main Content Split (Backups vs Remote Devices)  -->
+            <Grid Grid.Row="2" ColumnSpacing="24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.5*" />
+                    <!--  Backups (Wider)  -->
+                    <ColumnDefinition Width="*" />
+                    <!--  Devices  -->
+                </Grid.ColumnDefinitions>
 
-            <!--  LEFT: Cloud Backups  -->
-            <Grid Grid.Column="0" RowSpacing="12">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
+                <!--  LEFT: Cloud Backups  -->
+                <Grid Grid.Column="0" RowSpacing="12">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
 
-                <Grid Grid.Row="0">
-                    <StackPanel Spacing="4">
-                        <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Cloud Backups" />
-                        <TextBlock
+                    <Grid Grid.Row="0">
+                        <StackPanel Spacing="4">
+                            <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Cloud Backups" />
+                            <TextBlock
                             Opacity="0.6"
                             Style="{StaticResource CaptionTextBlockStyle}"
                             Text="Restore your play history and preferences." />
-                    </StackPanel>
-                    <Button
+                        </StackPanel>
+                        <Button
                         HorizontalAlignment="Right"
-                        Command="{x:Bind ViewModel.BackUpDataToCloudCommand}"
+                        Command="{x:Bind MyViewModel.BackUpDataToCloudCommand}"
                         Style="{StaticResource AccentButtonStyle}">
-                        <Button.Content>
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <TextBlock Text="Create New Backup" />
-                                <FontIcon Glyph="&#xE753;" />
-                                <TextBlock Text="Backup Now" />
-                            </StackPanel>
-                        </Button.Content>
-                    </Button>
-                </Grid>
+                            <Button.Content>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="Create New Backup" />
+                                    <FontIcon Glyph="&#xE753;" />
+                                    <TextBlock Text="Backup Now" />
+                                </StackPanel>
+                            </Button.Content>
+                        </Button>
+                    </Grid>
 
-                <!--  Backup List  -->
+                    <!--  Backup List  -->
 
-                <ListView
+                    <ListView
                     Grid.Row="1"
-                    ItemsSource="{x:Bind ViewModel.AvailableBackups, Mode=OneWay}"
+                    ItemsSource="{x:Bind MyViewModel.AvailableBackups, Mode=OneWay}"
                     SelectionMode="None">
-                    <ListView.ItemTemplate>
-                        <DataTemplate x:DataType="models:CloudBackupModel">
-                            <Grid
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="models:CloudBackupModel">
+                                <Grid
                                 Margin="0,0,0,8"
                                 Padding="12"
                                 Background="{ThemeResource LayerFillColorDefaultBrush}"
                                 CornerRadius="4">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
 
-                                <FontIcon
+                                    <FontIcon
                                     Margin="0,0,12,0"
                                     FontSize="20"
                                     Glyph="&#xE967;"
                                     Opacity="0.5" />
 
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                    <!--  Bind to the formatted string properties  -->
-                                    <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="{x:Bind CreatedAtDisplay}" />
-                                    <TextBlock
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <!--  Bind to the formatted string properties  -->
+                                        <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="{x:Bind CreatedAtDisplay}" />
+                                        <TextBlock
                                         Opacity="0.6"
                                         Style="{StaticResource CaptionTextBlockStyle}"
                                         Text="{x:Bind EventCountDisplay}" />
-                                </StackPanel>
+                                    </StackPanel>
 
-                                <Button
+                                    <Button
                                     x:Name="RestorebackBtn"
                                     Grid.Column="2"
                                     Click="RestorebackBtn_Click"
-                                    CommandParameter="{x:Bind ObjectId}"
+                                    CommandParameter="{Binding ObjectId}"
                                     Content="Restore" />
-                            </Grid>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
 
 
 
-                <!--  Loading Indicator for Backup/Restore  -->
-                <!--<Grid
+                    <!--  Loading Indicator for Backup/Restore  -->
+                    <!--<Grid
                     Grid.RowSpan="2"
                     Background="{ThemeResource SolidBackgroundFillColorBaseAltBrush}"
                     Opacity="0.8"
-                    Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                    Visibility="{x:Bind MyViewModel.IsBusy, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                     <ProgressRing
                         Width="50"
                         Height="50"
                         IsActive="True" />
                 </Grid>-->
-            </Grid>
+                </Grid>
 
-            <!--  RIGHT: Remote Devices  -->
-            <Grid Grid.Column="1" RowSpacing="12">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
+                <!--  RIGHT: Remote Devices  -->
+                <Grid Grid.Column="1" RowSpacing="12">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
 
-                <StackPanel Grid.Row="0" Spacing="4">
-                    <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Other Devices" />
-                    <TextBlock
+                    <StackPanel Grid.Row="0" Spacing="4">
+                        <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Other Devices" />
+                        <TextBlock
                         Opacity="0.6"
                         Style="{StaticResource CaptionTextBlockStyle}"
                         Text="Transfer session to..." />
-                </StackPanel>
+                    </StackPanel>
 
-                <ListView
+                    <ListView
                     Grid.Row="1"
-                    ItemsSource="{x:Bind ViewModel.OtherDevices, Mode=OneWay}"
+                    ItemsSource="{x:Bind MyViewModel.OtherDevices, Mode=OneWay}"
                     SelectionMode="None">
-                    <ListView.ItemTemplate>
-                        <DataTemplate x:DataType="models:UserDeviceSession">
-                            <Grid
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="models:UserDeviceSession">
+                                <Grid
                                 Margin="0,0,0,8"
                                 Padding="12"
                                 Background="{ThemeResource LayerFillColorDefaultBrush}"
                                 CornerRadius="4">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
 
-                                <!--  Device Icon Logic (Simplified)  -->
-                                <FontIcon
+                                    <!--  Device Icon Logic (Simplified)  -->
+                                    <FontIcon
                                     Margin="0,0,12,0"
                                     FontSize="20"
                                     Glyph="&#xE8EA;" />
 
-                                <StackPanel Grid.Column="1">
-                                    <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="{x:Bind DeviceName}" />
-                                    <TextBlock
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="{x:Bind DeviceName}" />
+                                        <TextBlock
                                         Opacity="0.6"
                                         Style="{StaticResource CaptionTextBlockStyle}"
                                         Text="{x:Bind DevicePlatform}" />
-                                </StackPanel>
+                                    </StackPanel>
 
-                                <Button
+                                    <Button
                                     Grid.Column="2"
-                                    Command="{Binding ElementName=RootPage, Path=ViewModel.TransferToDeviceCommand}"
+                                    Command="{Binding ElementName=RootPage, Path=MyViewModel.TransferToDeviceCommand}"
                                     CommandParameter="{Binding}"
                                     Style="{StaticResource SecondaryButtonStyle}"
                                     ToolTipService.ToolTip="Transfer playback here">
-                                    <FontIcon Glyph="&#xE762;" />
-                                </Button>
-                            </Grid>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
+                                        <FontIcon Glyph="&#xE762;" />
+                                    </Button>
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
             </Grid>
         </Grid>
     </Grid>
