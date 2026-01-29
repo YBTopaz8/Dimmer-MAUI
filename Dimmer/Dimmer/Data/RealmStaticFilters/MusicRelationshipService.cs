@@ -30,7 +30,7 @@ public class MusicRelationshipService
         if (song == null)
             return null;
 
-        var plays = song.PlayHistory.ToList();
+        var plays = song.PlayHistory;
         if (plays.Count==0)
             return new RelationshipStat<SongModel>(song, 0, DateTimeOffset.MinValue, DateTimeOffset.MinValue);
 
@@ -64,7 +64,7 @@ public class MusicRelationshipService
         var potentialDiscoveries = recentEvents
             .GroupBy(e => e.SongId.Value)
             .Select(g => new { SongId = g.Key, FirstRecentPlay = g.Min(e => e.DatePlayed) })
-            .ToList();
+            .AsEnumerable();
 
         // 3. For each potential new song, run a separate query to confirm it has NO older plays.
         var actualDiscoveries = potentialDiscoveries
@@ -93,7 +93,7 @@ public class MusicRelationshipService
         
 
         var trends = new List<TrendStat>();
-        var songEvents = _realm.All<DimmerPlayEvent>().Filter("SongId == $0", songId).ToList();
+        var songEvents = _realm.All<DimmerPlayEvent>().Filter("SongId == $0", songId).AsEnumerable();
 
         for (int i = 0; i < 4; i++) // Last 4 weeks
         {
@@ -122,7 +122,7 @@ public class MusicRelationshipService
         
 
         var trends = new List<TrendStat>();
-        var songEvents = _realm.All<DimmerPlayEvent>().Filter("SongId == $0", songId).ToList();
+        var songEvents = _realm.All<DimmerPlayEvent>().Filter("SongId == $0", songId).AsEnumerable();
 
         for (int i = 0; i < 12; i++) // Last 12 months
         {
@@ -201,7 +201,7 @@ public class MusicRelationshipService
         // Step 2: Fetch ALL play events from Realm into an in-memory list.
         // This avoids the failing "IN" filter.
         // WARNING: This is memory-intensive if you have many events.
-        var allEventsInMemory = _realm.All<DimmerPlayEvent>().ToList();
+        var allEventsInMemory = _realm.All<DimmerPlayEvent>().AsEnumerable();
 
         //
         // Step 3: Use standard C# LINQ to find the first event that matches.
@@ -219,7 +219,7 @@ public class MusicRelationshipService
     }
 
     // COMPLIANT: Materializes first, then sorts.
-    public SongModel? GetMyMostRatedSong() => _realm.All<SongModel>().ToList().OrderByDescending(s => s.Rating).FirstOrDefault();
+    public SongModel? GetMyMostRatedSong() => _realm.All<SongModel>().AsEnumerable().OrderByDescending(s => s.Rating).FirstOrDefault();
 
     // COMPLIANT: Uses simple, supported filter string.
     public List<SongModel> GetBuriedTreasures() { var query = "Rating >= 4 AND PlayHistory.@count < 3"; return [.. _realm.All<SongModel>().Filter(query)]; }
@@ -272,7 +272,7 @@ public class MusicRelationshipService
 
         var relevantEvents = _realm.All<DimmerPlayEvent>()
             .Filter("DatePlayed >= $0 AND SongId != nil", lastYearStart)
-            .ToList();
+            .AsEnumerable();
 
         var artistFirstPlay = relevantEvents
             .Where(e => e.SongsLinkingToThisEvent.FirstOrDefault()?.Artist != null)
@@ -303,7 +303,7 @@ public class MusicRelationshipService
 
         var artistEvents = _realm.All<DimmerPlayEvent>()
             .Filter("SongId IN $0", artistSongIds)
-            .ToList();
+            .AsEnumerable();
 
         for (int i = 0; i < 4; i++)
         {
@@ -345,7 +345,7 @@ public class MusicRelationshipService
         // objects, this will use a lot of memory. But it is the ONLY way to
         // bypass the broken part of the Realm query provider in your environment.
         //
-        var allEventsInMemory = _realm.All<DimmerPlayEvent>().ToList();
+        var allEventsInMemory = _realm.All<DimmerPlayEvent>().AsEnumerable();
 
         //
         // Step 3: Now filter this IN-MEMORY list using standard C# LINQ.
@@ -385,7 +385,7 @@ public class MusicRelationshipService
         if (!artistSongIds.Any())
             return trends;
 
-        var artistEvents = _realm.All<DimmerPlayEvent>().Filter("SongId IN $0", artistSongIds).ToList();
+        var artistEvents = _realm.All<DimmerPlayEvent>().Filter("SongId IN $0", artistSongIds).AsEnumerable();
 
         for (int i = 0; i < 12; i++)
         {
@@ -457,7 +457,7 @@ public class MusicRelationshipService
         // Step 3: Fetch ALL play events into memory to calculate the artist's plays.
         // This is inefficient but avoids the complex backlink query that would likely crash.
         //
-        var allEventsInMemory = _realm.All<DimmerPlayEvent>().ToList();
+        var allEventsInMemory = _realm.All<DimmerPlayEvent>().AsEnumerable();
 
         //
         // Step 4: Count the matching plays using standard, in-memory C# LINQ.
@@ -475,7 +475,7 @@ public class MusicRelationshipService
     public List<ArtistModel> GetMyCoreArtists(int topN)
     {
         var oneYearAgo = DateTimeOffset.UtcNow.AddYears(-1);
-        var recentEvents = _realm.All<DimmerPlayEvent>().Filter("DatePlayed > $0", oneYearAgo).ToList();
+        var recentEvents = _realm.All<DimmerPlayEvent>().Filter("DatePlayed > $0", oneYearAgo).AsEnumerable();
 
         var topArtistIds = recentEvents
             .Where(e => e.SongsLinkingToThisEvent.FirstOrDefault()?.Artist != null)
@@ -494,8 +494,8 @@ public class MusicRelationshipService
     // COMPLIANT: Materializes all data first, then processes. Slow but compliant.
     public ArtistModel? GetArtistWhoseCatalogIHaveExploredTheMost()
     {
-        var allEvents = _realm.All<DimmerPlayEvent>().ToList();
-        var allArtists = _realm.All<ArtistModel>().ToList();
+        var allEvents = _realm.All<DimmerPlayEvent>().AsEnumerable();
+        var allArtists = _realm.All<ArtistModel>().AsEnumerable();
 
         var uniqueSongsPlayedByArtist = allEvents
             .Where(e => e.SongsLinkingToThisEvent.FirstOrDefault()?.Artist != null && e.SongId.HasValue)
@@ -550,7 +550,7 @@ public class MusicRelationshipService
         var trends = new List<TrendStat>();
         if (!albumSongIds.Any())
             return trends;
-        var albumEvents = _realm.All<DimmerPlayEvent>().Filter("SongId IN $0", albumSongIds).ToList();
+        var albumEvents = _realm.All<DimmerPlayEvent>().Filter("SongId IN $0", albumSongIds).AsEnumerable();
         for (int i = 0; i < 4; i++)
         { /* ... same loop logic as above ... */ }
         return trends;
@@ -594,7 +594,7 @@ public class MusicRelationshipService
     {
         var start = new DateTimeOffset(year, 1, 1, 0, 0, 0, TimeSpan.Zero);
         var end = start.AddYears(1);
-        var events = _realm.All<DimmerPlayEvent>().Filter("DatePlayed >= $0 AND DatePlayed < $1", start, end).ToList();
+        var events = _realm.All<DimmerPlayEvent>().Filter("DatePlayed >= $0 AND DatePlayed < $1", start, end).AsEnumerable();
         var topAlbumId = events
             .Where(e => e.SongsLinkingToThisEvent.FirstOrDefault()?.Album != null)
             .GroupBy(e => e.SongsLinkingToThisEvent.First().Album.Id)
@@ -606,7 +606,7 @@ public class MusicRelationshipService
     public List<AlbumModel> GetAlbumsIListenToFrontToBack() { /* Very complex, requires materializing full history and analyzing sequences. Out of scope for simple refactor. */ return new(); }
     public List<AlbumModel> GetMyDesertIslandDiscs(int topN)
     {
-        var allEvents = _realm.All<DimmerPlayEvent>().ToList();
+        var allEvents = _realm.All<DimmerPlayEvent>().AsEnumerable();
         var topAlbumIds = allEvents
             .Where(e => e.SongsLinkingToThisEvent.FirstOrDefault()?.Album != null)
             .GroupBy(e => e.SongsLinkingToThisEvent.First().Album.Id)
@@ -648,7 +648,7 @@ public class MusicRelationshipService
     public (int PlayCount, int UniqueArtists) GetGenreStatsBetweenDates(string genreName, DateTimeOffset startDate, DateTimeOffset endDate) { /* ... same pattern ... */ return (0, 0); }
     public List<string> GetMyNicheGenres(int maxArtistCount)
     {
-        return [.. _realm.All<GenreModel>().ToList()
+        return [.. _realm.All<GenreModel>().AsEnumerable()
             .Where(g => g.Songs.Select(s => s.Artist.Id).Distinct().Count() <= maxArtistCount)
             .Select(g => g.Name)];
     }

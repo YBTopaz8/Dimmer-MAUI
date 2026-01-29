@@ -15,6 +15,11 @@ public static class AndroidPermissionsService
             return new[]
             {
                 Manifest.Permission.ReadMediaAudio,
+                Manifest.Permission.BluetoothScan,
+                Manifest.Permission.BluetoothConnect,
+                Manifest.Permission.Bluetooth,
+                
+
                 Manifest.Permission.PostNotifications // Required for Foreground Service notification
             };
         }

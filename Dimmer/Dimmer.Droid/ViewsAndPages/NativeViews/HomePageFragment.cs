@@ -5,6 +5,7 @@ using Android.Views.InputMethods;
 using AndroidX.CoordinatorLayout.Widget;
 using AndroidX.Lifecycle;
 using AndroidX.RecyclerView.Widget;
+using Bumptech.Glide;
 using CommunityToolkit.Maui.Views;
 using Dimmer.DimmerSearch;
 using Dimmer.UiUtils;
@@ -79,9 +80,27 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     private CancellationTokenSource? _searchCts;
     private SongAdapter _adapter;
     private ImageView _backgroundImageView;
+ 
 
+    public partial class OnPreDrawListenerImpl : Java.Lang.Object, ViewTreeObserver.IOnPreDrawListener
+    {
+        private readonly View _fragmentView;
+        private readonly Fragment _parentFragment;
+        public OnPreDrawListenerImpl(View fragmentView, Fragment parentFragment)
+        {
+            _fragmentView = fragmentView;
+            _parentFragment = parentFragment;
+        }
+        public bool OnPreDraw()
+        {
+            _fragmentView.ViewTreeObserver?.RemoveOnPreDrawListener(this);
+            _parentFragment.StartPostponedEnterTransition();
+            return true;
+        }
+    }
     public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
+        PostponeEnterTransition();
         var ctx = Context;
 
         // 1. Root: CoordinatorLayout (Crucial for FABs)
@@ -529,8 +548,9 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     public override void OnViewCreated(View view, Bundle? savedInstanceState)
     {
         base.OnViewCreated(view, savedInstanceState);
-        //PostponeEnterTransition();
+        PostponeEnterTransition();
 
+        view.ViewTreeObserver?.AddOnPreDrawListener(new OnPreDrawListenerImpl(view, this));
 
         //view.ViewTreeObserver.AddOnPreDrawListener(new MyPreDrawListener(this, view));
 
@@ -546,7 +566,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
             _songListRecycler?.ScrollToPosition(currentlyPlayingIndex);
 
         MyViewModel.ScrollToCurrentSongRequest
-        .ObserveOn(RxSchedulers.UI) // Ensure runs on UI thread
+        .ObserveOn(RxSchedulers.UI) 
         .Subscribe(_ =>
         {
             if (_songListRecycler != null && _adapter != null)
@@ -554,10 +574,10 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
                 var index = MyViewModel.SearchResults.IndexOf(MyViewModel.CurrentPlayingSongView);
                 if (index >= 0)
                 {
-                    // Smooth scroll looks nicer
+                    
                     _songListRecycler.ScrollToPosition(index);
 
-                    // Flash the item? (Requires access to ViewHolder, maybe for later)
+                    
                 }
             }
         })
@@ -565,7 +585,6 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
 
         
-        PostponeEnterTransition();
         _songListRecycler?.ViewTreeObserver?.AddOnPreDrawListener(new MyPreDrawListener(_songListRecycler, this));
    
     
@@ -639,7 +658,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         public bool OnPreDraw()
         {
             _rv?.ViewTreeObserver?.RemoveOnPreDrawListener(this);
-            // Tell the framework the view is ready, start the animation
+            
             _frag.StartPostponedEnterTransition();
             return true;
         }

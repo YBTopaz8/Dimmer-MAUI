@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using Dimmer.ViewsAndPages.NativeViews.DimsSection;
 using Microsoft.Maui;
 
 namespace Dimmer.ViewsAndPages.NativeViews.SingleSong;
@@ -20,8 +20,17 @@ public class SongPlayHistoryFragment : Fragment
         recycler.SetLayoutManager(new LinearLayoutManager(ctx));
 
         var events = _vm.SelectedSong?.PlayEvents ?? new System.Collections.ObjectModel.ObservableCollection<DimmerPlayEventView>();
-        recycler.SetAdapter(new PlayHistoryAdapter(events.OrderByDescending(x => x.DatePlayed).ToList()));
-
+        var song = _vm.SelectedSong;
+        SongModel? songIndDb = _vm.RealmFactory.GetRealmInstance()!.Find<SongModel>(song.Id);
+        if (songIndDb is null)
+        {
+            songIndDb = _vm.RealmFactory.GetRealmInstance()!.All<SongModel>().FirstOrDefaultNullSafe(x=>x.TitleDurationKey == song.TitleDurationKey)!;
+        }
+        if (songIndDb is not null)
+        {
+            var evts = songIndDb.PlayHistory.AsEnumerable().Select(x => x.ToDimmerPlayEventView()).ToList();
+            recycler.SetAdapter(new PlayEventAdapter(ctx, _vm, this, songIndDb));
+        }
         return recycler;
     }
 

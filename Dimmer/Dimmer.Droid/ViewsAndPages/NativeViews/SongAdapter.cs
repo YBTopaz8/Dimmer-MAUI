@@ -10,11 +10,12 @@ using Dimmer.DimmerSearch;
 using Dimmer.UiUtils;
 using Dimmer.Utils.Extensions;
 using Dimmer.ViewsAndPages.NativeViews.Misc;
-
+using Dimmer.ViewsAndPages.ViewUtils;
 using DynamicData;
 using Google.Android.Material.Chip;
 using Google.Android.Material.Dialog;
 using MongoDB.Bson;
+using Realms;
 
 namespace Dimmer.ViewsAndPages.NativeViews;
 
@@ -25,6 +26,7 @@ internal class SongAdapter : RecyclerView.Adapter
     public static Action<View, string, int>? AdapterCallbacks;
     private Context ctx;
     public BaseViewModelAnd MyViewModel;
+    private readonly IDimmerAudioService _audioService;
     private readonly IDisposable _subscription;
     public IList<SongModelView> Songs => _songs;
     private Fragment ParentFragement;
@@ -41,21 +43,48 @@ internal class SongAdapter : RecyclerView.Adapter
         ParentFragement = pFragment;
         this.ctx = ctx;
         this.MyViewModel = myViewModel;
+        this._audioService = myViewModel.AudioService;
         this._mode = songsToWatch;
 
-        IObservable<IChangeSet<SongModelView>> sourceStream = songsToWatch == "queue"
-           ? myViewModel.PlaybackQueueSource.Connect()
-           : myViewModel.SearchResultsHolder.Connect();
+        IObservable<IChangeSet<SongModelView>> sourceStream;
 
+        // 1. Determine the Source
+        if (songsToWatch == "queue")
+        {
+            sourceStream = myViewModel.PlaybackQueueSource.Connect();
+            
+        }
+        else if (songsToWatch == "artist")
+        {
+            var selArt = MyViewModel.SelectedArtist;
+            var realm = MyViewModel.RealmFactory.GetRealmInstance();
+
+            // Realm relationships (like .Songs) return an IList<T> that implements INotifyCollectionChanged.
+            // We can bind directly to that.
+            var artistEntry = realm.Find<ArtistModel>(selArt.Id);
+
+            if (artistEntry != null)
+            {
+                sourceStream = artistEntry.Songs.AsObservableChangeSet()
+                    .Transform(model => model.ToSongModelView())!; // Transforms DB Model -> View Model
+            }
+            else
+            {
+                // Handle edge case where artist isn't found
+                sourceStream = Observable.Return(ChangeSet<SongModelView>.Empty);
+            }
+        }
+        else // "main" or default
+        {
+            sourceStream = myViewModel.SearchResultsHolder.Connect();
+        }
         // 3. The "DynamicData" Pipeline
         sourceStream
             .ObserveOn(RxSchedulers.UI) // Must be on UI thread to update RecyclerView
             .Bind(out _songs)           // Automatically keeps _songs in sync with the source
             .Subscribe(changes =>
             {
-                // 4. Manual Dispatching (The Secret Sauce for Animations)
-                // Instead of NotifyDataSetChanged, we loop through the changes 
-                // DynamicData detected and tell Android exactly what happened.
+
                 foreach (var change in changes)
                 {
                     switch (change.Reason)
@@ -67,10 +96,10 @@ internal class SongAdapter : RecyclerView.Adapter
                                 NotifyItemRangeRemoved(change.Range.Index, change.Range.Count);
                                 break;
                         case ListChangeReason.Refresh:
-                            
-                            
 
-                                break;
+                            NotifyItemChanged(change.Item.CurrentIndex);
+
+                            break;
                         case ListChangeReason.Add:
                             NotifyItemInserted(change.Item.CurrentIndex);
                             break;
@@ -89,11 +118,26 @@ internal class SongAdapter : RecyclerView.Adapter
                     }
                 }
 
-                // If you prefer simplicity over animations, 
-                // replace the foreach above with: NotifyDataSetChanged();
+
             })
             .DisposeWith(_disposables);
+
+        Observable.FromEventPattern<PlaybackEventArgs>(
+            h => _audioService.PlaybackStateChanged += h,
+            h => _audioService.PlaybackStateChanged -= h)
+            .Select(evt => evt.EventArgs)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(
+                 x =>  HandlePlaybackStateChange(x))
+            .DisposeWith(_disposables);
+
     }
+
+    private void HandlePlaybackStateChange(PlaybackEventArgs x)
+    {
+        //throw new NotImplementedException();
+    }
+
     protected override void Dispose(bool disposing)
     {
         if (disposing)
@@ -208,12 +252,6 @@ internal class SongAdapter : RecyclerView.Adapter
             Focusable = true
         };
 
-        //var attrs = new int[] { Android.Resource.Attribute.SelectableItemBackground };
-        //var typedArray = ctx.ObtainStyledAttributes(attrs);
-        //var rippleDrawable = typedArray.GetDrawable(0);
-        //typedArray.Recycle();
-        //card.Foreground = rippleDrawable;
-        //card.SetCardBackgroundColor(Color.Transparent); // Let ripple show
 
         var lp = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent);
         lp.SetMargins(0, 8, 0, 8);
@@ -295,8 +333,8 @@ internal class SongAdapter : RecyclerView.Adapter
         expandRow.LayoutParameters = new LinearLayout.LayoutParams(-1, -2);
         expandRow.SetPadding(0, 0, 0, 20);
 
-        //var playBtn = CreateActionButton("Play Next", Resource.Drawable.exo_icon_play);
-        //expandRow.AddView(playBtn);
+      
+
 
         favBtn = CreateActionButton("Fav", Resource.Drawable.heart);
         expandRow.AddView(favBtn);
@@ -388,7 +426,6 @@ internal class SongAdapter : RecyclerView.Adapter
             _infoBtn = infoBtn;
             lyricsBtn = lyrBtn;
             _statsBtn = statsBtn;
-
             _moreBtn.Click += (s, e) =>
             {
                 // Always invoke the latest action with the current position
@@ -482,7 +519,7 @@ internal class SongAdapter : RecyclerView.Adapter
             {
                 if (_currentSong?.ArtistName != null)
                 {
-                    var artistPickBtmSheet = new ArtistPickerBottomSheet(MyViewModel,_currentSong.OtherArtistsName);
+                    var artistPickBtmSheet = new ArtistPickerBottomSheet(MyViewModel,_currentSong.ArtistsInDB(MyViewModel.RealmFactory));
 
                     artistPickBtmSheet.Show(parentFrag.ParentFragmentManager, "QueueSheet");
                     
@@ -577,9 +614,11 @@ internal class SongAdapter : RecyclerView.Adapter
                 _img.SetImageResource(Resource.Drawable.musicnotess);
             }
 
-            // Accordion Visibility
-           //TODO use animate().alpha.duration for more sophisticated anims
+
             _expandRow.Visibility = isExpanded ? ViewStates.Visible : ViewStates.Gone;
+         
+
+
             _container.StrokeColor = isExpanded ? Color.DarkSlateBlue : Color.ParseColor("#E0E0E0");
             _container.StrokeWidth = isExpanded ? 3 : 0;
 
@@ -642,6 +681,11 @@ internal class SongAdapter : RecyclerView.Adapter
                 {
                     if (!string.IsNullOrEmpty(path))
                     {
+                        if(song.TitleDurationKey == MyViewModel.CurrentPlayingSongView.TitleDurationKey)
+                        {
+                            MyViewModel.CurrentCoverImagePath = path;
+                            MyViewModel.CurrentPlayingSongView.CoverImagePath = path;
+                        }
                         Glide.With(_img.Context).Load(path)
                              .Placeholder(Resource.Drawable.musicnotess)
                              .Into(_img);

@@ -175,20 +175,23 @@ public static class DimmerMappers
             (song.Id)?.Album.ToAlbumModelView()!;
     }
 
-    public static List<SongModelView?>? SongsInDB(this ArtistModelView song,IRealmFactory realmFactory)
+    public static List<SongModelView?>? SongsInDB(this ArtistModelView artist,IRealmFactory realmFactory)
     {
-
+        var ss = realmFactory.GetRealmInstance().Find<ArtistModel>
+            (artist.Id);
+        Debug.WriteLine(ss.Songs.Count());
         return realmFactory.GetRealmInstance().Find<ArtistModel>
-            (song.Id)?.Songs.AsEnumerable().Select(x => x.ToSongModelView())
+            (artist.Id)?.Songs.AsEnumerable().Select(x => x.ToSongModelView())
             .ToList();
     }
 
     public static List<AlbumModelView?>? AlbumsInDB(this ArtistModelView song,IRealmFactory realmFactory)
     {
-
-        return realmFactory.GetRealmInstance().Find<ArtistModel>
+        var albs = realmFactory.GetRealmInstance().Find<ArtistModel>
             (song.Id)?.Albums.AsEnumerable().Select(x => x.ToAlbumModelView())
-            .ToList();
+            ;
+        song.AlbumsByArtist = albs.ToObservableCollection();
+        return albs.ToList();
     }
     public static SongModel? ToSongModel(this SongModelView? src)
     {

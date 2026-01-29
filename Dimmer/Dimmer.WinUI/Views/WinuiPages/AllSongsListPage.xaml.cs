@@ -1060,7 +1060,7 @@ true
                     .ToArtistModelView();
 
 
-                    await MyViewModel.SetSelectedArtist(selectedArtist);
+                     MyViewModel.SetSelectedArtist(selectedArtist);
 
 
                     FrameNavigationOptions navigationOptions = new FrameNavigationOptions
@@ -1095,7 +1095,7 @@ true
                     .Find<SongModel>(_storedSong.Id).ArtistToSong.First()
                     .ToArtistModelView();
                     if (selectedArtist is null) return;
-                    await MyViewModel.SetSelectedArtist(selectedArtist);
+                     MyViewModel.SetSelectedArtist(selectedArtist);
 
 
                     if (properties.IsRightButtonPressed)

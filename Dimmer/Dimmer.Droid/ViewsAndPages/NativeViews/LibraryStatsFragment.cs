@@ -7,7 +7,13 @@ namespace Dimmer.ViewsAndPages.NativeViews;
 public class LibraryStatsFragment : Fragment
 {
     private BaseViewModelAnd MyViewModel;
-    public LibraryStatsFragment(BaseViewModelAnd vm) { MyViewModel = vm; }
+    private StatisticsViewModel StatsViewModel;
+    public LibraryStatsFragment(BaseViewModelAnd vm) 
+    { 
+        MyViewModel = vm;
+        StatsViewModel = MainApplication.ServiceProvider.GetService<StatisticsViewModel>()!;
+        Task.Run(() => StatsViewModel.LoadLibraryStatsCommand.Execute(null));
+    }
 
     public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {

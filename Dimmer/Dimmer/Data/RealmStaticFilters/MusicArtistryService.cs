@@ -28,7 +28,7 @@ public class MusicArtistryService
         var startDate = firstEverPlay.DatePlayed;
         var fibonacciDays = new HashSet<int> { 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377 };
 
-        var artistFirstPlayDates = _realm.All<DimmerPlayEvent>().ToList()
+        var artistFirstPlayDates = _realm.All<DimmerPlayEvent>().AsEnumerable()
             .Where(p => p.SongsLinkingToThisEvent.FirstOrDefault()?.Artist != null)
             .GroupBy(p => p.SongsLinkingToThisEvent.First().Artist)
             .Select(g => new { Artist = g.Key, FirstPlay = g.Min(p => p.DatePlayed) })
@@ -56,7 +56,7 @@ public class MusicArtistryService
 
         // 1. Find the most played album
         var topAlbum = _realm.All<DimmerPlayEvent>()
-            .Filter("SongsLinkingToThisEvent.@count > 0").ToList()
+            .Filter("SongsLinkingToThisEvent.@count > 0").AsEnumerable()
             .Where(p => p.SongsLinkingToThisEvent.FirstOrDefaultNullSafe()?.Album != null)
             .GroupBy(p => p.SongsLinkingToThisEvent.First().Album)
             .OrderByDescending(g => g.Count())
@@ -66,7 +66,7 @@ public class MusicArtistryService
             return null;
 
         // 2. Calculate album duration and the Golden Ratio point
-        var albumSongs = topAlbum.SongsInAlbum?.OrderBy(s => s.TrackNumber).ToList();
+        var albumSongs = topAlbum.SongsInAlbum?.OrderBy(s => s.TrackNumber).AsEnumerable();
         double totalDuration = albumSongs.Sum(s => s.DurationInSeconds);
         double goldenRatioTimestamp = totalDuration / GoldenRatio;
 
@@ -90,7 +90,7 @@ public class MusicArtistryService
     public (bool FollowsPowerLaw, double PlayPercentage, double ArtistPercentage) GetParetoPrincipleCheck()
     {
 
-        var artistPlayCounts = _realm.All<DimmerPlayEvent>().ToList()
+        var artistPlayCounts = _realm.All<DimmerPlayEvent>().AsEnumerable()
             .Where(e => e.SongsLinkingToThisEvent.FirstOrDefault()?.Artist != null)
             .GroupBy(e => e.SongsLinkingToThisEvent.First().Artist)
             .Select(g => g.Count())
@@ -116,7 +116,7 @@ public class MusicArtistryService
     {
 
         var primeNumbers = new HashSet<int> { 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53 }; // etc.
-        return _realm.All<SongModel>().ToList()
+        return _realm.All<SongModel>().AsEnumerable()
             .Select(s => new { Song = s, Plays = s.PlayHistory.Count })
             .Where(x => primeNumbers.Contains(x.Plays))
             .ToDictionary(x => x.Song, x => x.Plays);
@@ -142,12 +142,12 @@ public class MusicArtistryService
         };
 
         var trinity = new List<ArtistModel>();
-        var topArtists = _realm.All<DimmerPlayEvent>().ToList()
+        var topArtists = _realm.All<DimmerPlayEvent>().AsEnumerable()
             .Where(e => e.SongsLinkingToThisEvent.FirstOrDefault()?.Artist != null)
             .GroupBy(e => e.SongsLinkingToThisEvent.First().Artist)
             .Select(g => new { Artist = g.Key, Plays = g.Count() })
             .OrderByDescending(x => x.Plays)
-            .ToList();
+            .AsEnumerable();
 
         var assignedSuperGenres = new HashSet<string>();
 
@@ -184,7 +184,7 @@ public class MusicArtistryService
     public List<(SongModel Song1, SongModel Song2, int Pairings)> GetPerfectPairings(TimeSpan maxTimeBetween)
     {
 
-        var plays = _realm.All<DimmerPlayEvent>().OrderBy(p => p.DatePlayed).ToList();
+        var plays = _realm.All<DimmerPlayEvent>().AsEnumerable().OrderBy(p => p.DatePlayed).ToList();
         var pairings = new Dictionary<(ObjectId, ObjectId), int>();
 
         for (int i = 0; i < plays.Count - 1; i++)
@@ -227,7 +227,7 @@ public class MusicArtistryService
     public double GetCenterOfGravityYear()
     {
 
-        var yearPlays = _realm.All<DimmerPlayEvent>().ToList()
+        var yearPlays = _realm.All<DimmerPlayEvent>().AsEnumerable()
             .Select(e => e.SongsLinkingToThisEvent.FirstOrDefault()?.ReleaseYear)
             .Where(y => y.HasValue)
             .Select(y => y.Value);
@@ -242,7 +242,7 @@ public class MusicArtistryService
     public (double IntrovertScore, double ExtrovertScore) GetIntrovertExtrovertScore()
     {
 
-        var allPlayedSongs = _realm.All<DimmerPlayEvent>().ToList()
+        var allPlayedSongs = _realm.All<DimmerPlayEvent>().AsEnumerable()
             .Select(p => p.SongsLinkingToThisEvent.FirstOrDefault())
             .Where(s => s != null)
             .ToList();
@@ -268,7 +268,7 @@ public class MusicArtistryService
     public SongModel? GetMyPersonalAnthem() { /* The song with the highest combination of play count, rating, and low skip rate */ return null; }
     public bool DoesMyListeningFollowBenfordsLaw() { /* Check if the first digit of track numbers I play follows Benford's Law distribution. Purely for fun. */ return false; }
     public string GetMyMusicalColor() { /* Conceptual: Associate genres/moods with colors (e.g., Blues=Blue, Metal=Black, Pop=Yellow) and find the dominant color in listening history */ return "Gray"; }
-    public List<SongModel> FindPalindromeSongs() { /* Songs whose title is a palindrome. e.g., "Aba" */ return [.. _realm.All<SongModel>().ToList().Where(s => s.Title.ToLower().Replace(" ", "") == new string([.. s.Title.ToLower().Replace(" ", "").Reverse()]))]; }
+    public List<SongModel> FindPalindromeSongs() { /* Songs whose title is a palindrome. e.g., "Aba" */ return [.. _realm.All<SongModel>().AsEnumerable().Where(s => s.Title.ToLower().Replace(" ", "") == new string([.. s.Title.ToLower().Replace(" ", "").Reverse()]))]; }
     public (double Predictability, SongModel? NextSong) GetNextSongPredictability() { /* Analyze history to see how often I play the same song after a specific other song. */ return (0.0, null); }
 
     #endregion

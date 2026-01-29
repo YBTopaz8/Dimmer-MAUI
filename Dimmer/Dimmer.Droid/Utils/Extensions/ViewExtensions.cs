@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using AndroidX.Lifecycle;
 using Bumptech.Glide;
+using Bumptech.Glide.Load.Resource.Drawable;
 using Dimmer.Utilities;
 using Point = Microsoft.Maui.Graphics.Point;
 using Rect = Microsoft.Maui.Graphics.Rect;
@@ -16,7 +17,8 @@ public static class ViewExts
     public static void SetImageWithGlide(this ImageView ImgView, string? imgPath)
     {
 
-        Glide.With(ImgView.Context!).Load(imgPath).Into(ImgView);
+        Glide.With(ImgView.Context!).Load(imgPath)
+            .Into(ImgView);
     }
     public static async Task SetImageWithStringPathViaGlideAndFilterEffect(this ImageView ImgView, string imgPath, FilterType desiredFilter)
     {

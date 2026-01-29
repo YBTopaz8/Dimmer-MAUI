@@ -12,39 +12,56 @@ using Hqub.Lastfm.Services;
 
 namespace Dimmer.WinUI.NativeServices;
 
-public class LocalTransferService
+public class BluetoothServiceClient
 {
     private readonly IBluetoothService _btService;
     private readonly IAuthenticationService _userService; // Your local DB service
 
-    public LocalTransferService(IBluetoothService btService, IAuthenticationService userService)
+    public BaseViewModel BaseVM { get; }
+
+    public BluetoothServiceClient(IBluetoothService btService, IAuthenticationService userService, BaseViewModel baseVM)
     {
         _btService = btService;
         _userService = userService;
+        BaseVM = baseVM;
         _btService.DataReceived += OnBluetoothDataReceived;
     }
 
-    // 1. BACKUP FUNCTION
-    //public async Task SendFullBackupAsync()
-    //{
-    //    // Gather Data locally
-    //    var currentUser = _userService.CurrentUserValue;
-    //    //var allEvents = _userService.GetAllPlayEvents();
+     //1. BACKUP FUNCTION
+    public async Task SendFullBackupAsync()
+    {
+        Debug.WriteLine(BaseVM.SearchResults.Count);
+        BaseVM.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ShowMyFav());
+        // Gather Data locally
+        var currentUser = _userService.CurrentUserValue;
+        BaseVM.OnAppClosing();
+        var appstate = BaseVM.RealmFactory.GetRealmInstance().All<AppStateModel>().FirstOrDefaultNullSafe();
+        var favoriteSongsTitleAndDurationId = BaseVM.RealmFactory.GetRealmInstance().All<SongModel>().AsEnumerable().Where(x => x.IsFavorite).Select(x => x.TitleDurationKey).ToList();
+        Debug.WriteLine(BaseVM.SearchResults.Count);
+        var backup = new FullBackupData()
+        {
+            AppState = appstate.ToAppStateModelView()!
+            ,
+            FavoriteSongsTitleAndDurationId = favoriteSongsTitleAndDurationId,
+            PlayBackSongTitleAndDurationId = BaseVM.PlaybackQueue.Select(x => x.TitleDurationKey).ToList(),
+            
+            User = BaseVM.CurrentUserLocal
+        };
+        Debug.WriteLine(BaseVM.SearchResults.Count);
+        //var backup = new FullBackupData
+        //{
+        //    User = new UserModelView(currentUser), // Convert to View Model
+        //    PlayEvents = allEvents.Select(e => new DimmerPlayEventView(e)).ToList()
+        //};
 
-    //    //var backup = new FullBackupData
-    //    //{
-    //    //    User = new UserModelView(currentUser), // Convert to View Model
-    //    //    PlayEvents = allEvents.Select(e => new DimmerPlayEventView(e)).ToList()
-    //    //};
+        var package = new BluetoothDataPackage
+        {
+            Type = DataPackageType.Backup,
+            PayloadJson = JsonSerializer.Serialize(backup)
+        };
 
-    //    var package = new BluetoothDataPackage
-    //    {
-    //        Type = DataPackageType.Backup,
-    //        PayloadJson = JsonSerializer.Serialize(backup)
-    //    };
-
-    //    await _btService.SendDataAsync(package);
-    //}
+        await _btService.SendDataAsync(package);
+    }
 
     // 2. SESSION TRANSFER FUNCTION
     public async Task SendSessionTransferAsync(DimmerSharedSong songDetails)
@@ -88,7 +105,7 @@ public class LocalTransferService
     private void HandleBackupRestore(FullBackupData data)
     {
         // Logic to save 'data.User' and 'data.PlayEvents' to your local SQLite/Realm
-        Console.WriteLine($"Restoring {data.PlayEvents.Count} events for user {data.User.Username}");
+        Console.WriteLine($"Restoring {data.AppState.LastKnownPlaybackQuery} events for user {data.User.Username}");
     }
 
     private void HandleSessionTransfer(DimmerSharedSong song)

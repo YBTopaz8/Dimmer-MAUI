@@ -24,7 +24,7 @@ public class MusicPowerUserService
 
         // RQL can't do this. This is a classic case for LINQ's GroupBy after fetching all songs.
         // It's an expensive operation, so it should be used sparingly.
-        return [.. _realm.All<SongModel>().ToList()
+        return [.. _realm.All<SongModel>().AsEnumerable()
             .GroupBy(s => $"{s.Title.ToLower().Trim()}|{s.ArtistName.ToLower().Trim()}")
             .Where(g => g.Count() > 1)];
     }
@@ -115,7 +115,7 @@ public class MusicPowerUserService
         if (!allEvents.Any())
             return "N/A";
 
-        var decade = allEvents.ToList()
+        var decade = allEvents.AsEnumerable()
             .Select(e => e.SongsLinkingToThisEvent.FirstOrDefault()?.ReleaseYear)
             .Where(year => year.HasValue && year > 1900)
             .Select(year => (year.Value / 10) * 10) // Group by decade
@@ -135,7 +135,7 @@ public class MusicPowerUserService
         
 
         var results = new List<(ArtistModel, SongModel, double)>();
-        var allArtistEvents = _realm.All<DimmerPlayEvent>().ToList()
+        var allArtistEvents = _realm.All<DimmerPlayEvent>().AsEnumerable()
             .Where(e => e.SongsLinkingToThisEvent.FirstOrDefault()?.Artist != null)
             .GroupBy(e => e.SongsLinkingToThisEvent.First().Artist);
 
@@ -169,7 +169,7 @@ public class MusicPowerUserService
     {
         
 
-        var artistsToConsider = _realm.All<DimmerPlayEvent>().ToList()
+        var artistsToConsider = _realm.All<DimmerPlayEvent>().AsEnumerable()
             .GroupBy(e => e.SongsLinkingToThisEvent.FirstOrDefault()?.Artist)
             .Where(g => g.Key != null && g.Count() <= maxPlays)
             .Select(g => g.Key);
@@ -204,7 +204,7 @@ public class MusicPowerUserService
         if (recentEvents.Count == 0)
             return 0.0;
 
-        var priorPlayedArtistIds = _realm.All<DimmerPlayEvent>().Filter("DatePlayed < $0", sinceDate).ToList()
+        var priorPlayedArtistIds = _realm.All<DimmerPlayEvent>().Filter("DatePlayed < $0", sinceDate).AsEnumerable()
             .Select(e => e.SongsLinkingToThisEvent.FirstOrDefault()?.Artist?.Id)
             .Where(id => id.HasValue)
             .Select(id => id.Value)
@@ -221,7 +221,7 @@ public class MusicPowerUserService
     }
 
     // (16-25) More behavior profiling
-    public double GetAverageRatingOfFavorites() => _realm.All<SongModel>().Filter("IsFavorite == true AND Rating > 0").ToList().Average(s => s.Rating);
+    public double GetAverageRatingOfFavorites() => _realm.All<SongModel>().Filter("IsFavorite == true AND Rating > 0").AsEnumerable().Average(s => s.Rating);
     public string GetMostCommonArtistInPlaylists() { /* LINQ: Group playlist songs by artist and count */ return ""; }
     public List<SongStat> GetGuiltyPleasures(int maxRating, int minPlays) { /* RQL + LINQ: Songs with low rating but high play count */ return new(); }
     public List<ArtistStat> GetArtistsOnTheRise(int days) { /* LINQ: Compare last 30 days of plays to previous 30 days */ return new(); }
@@ -247,7 +247,7 @@ public class MusicPowerUserService
         var endDate = targetDate.AddDays(dayRange);
         var query = "DatePlayed > $0 AND DatePlayed < $1";
 
-        return [.. _realm.All<DimmerPlayEvent>().Filter(query, startDate, endDate).ToList()
+        return [.. _realm.All<DimmerPlayEvent>().Filter(query, startDate, endDate).AsEnumerable()
             .Select(e => e.SongsLinkingToThisEvent.FirstOrDefault())
             .Where(s => s != null)
             .Distinct()];
@@ -274,7 +274,7 @@ public class MusicPowerUserService
 
         var query = "Rating >= 4 AND ANY Tags.Name IN {'Mellow', 'Acoustic', 'Chill'}";
         return [.. _realm.All<SongModel>().Filter(query)
-            .ToList()
+            .AsEnumerable()
             .OrderBy(s => s.PlayHistory.LastOrDefault()?.DatePlayed ?? DateTimeOffset.MinValue) // Prioritize less recently played
             .Take(50)];
     }
@@ -301,7 +301,7 @@ public class MusicPowerUserService
     {
         
 
-        var completedEvents = _realm.All<DimmerPlayEvent>().Filter("WasPlayCompleted == true").ToList();
+        var completedEvents = _realm.All<DimmerPlayEvent>().Filter("WasPlayCompleted == true").AsEnumerable();
         return completedEvents
             .Select(e => e.SongsLinkingToThisEvent.FirstOrDefault())
             .Where(s => s != null)
@@ -316,7 +316,7 @@ public class MusicPowerUserService
     {
         
 
-        var artistAndGenreCount = _realm.All<ArtistModel>().ToList()
+        var artistAndGenreCount = _realm.All<ArtistModel>().AsEnumerable()
             .Select(a => new
             {
                 Artist = a,
@@ -341,7 +341,7 @@ public class MusicPowerUserService
     {
         
 
-        var seekEvents = _realm.All<DimmerPlayEvent>().Filter("PlayType == 4").ToList(); // 4: Seeked
+        var seekEvents = _realm.All<DimmerPlayEvent>().Filter("PlayType == 4").AsEnumerable(); // 4: Seeked
         var mostSeeked = seekEvents
             .GroupBy(e => e.SongsLinkingToThisEvent.FirstOrDefault())
             .Where(g => g.Key != null)

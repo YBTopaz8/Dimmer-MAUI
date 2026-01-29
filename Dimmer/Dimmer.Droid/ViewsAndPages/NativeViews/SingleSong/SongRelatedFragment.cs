@@ -25,11 +25,11 @@ public class SongRelatedFragment : Fragment
         
         
         var albumRecycler = new RecyclerView(ctx) { LayoutParameters = new LinearLayout.LayoutParams(-1, AppUtil.DpToPx(180)) }; // Horizontal Height
-        albumRecycler.SetLayoutManager(new LinearLayoutManager(ctx, LinearLayoutManager.Vertical, false));
+        albumRecycler.SetLayoutManager(new LinearLayoutManager(ctx, LinearLayoutManager.Horizontal, false));
 
         var songInDb = _vm.RealmFactory.GetRealmInstance()
             .Find<SongModel>(_vm.SelectedSong!.Id);
-        List<SongModelView> albumSongs = songInDb.Album.SongsInAlbum!.Select(x=>x.ToSongModelView()).ToList()!;
+        List<SongModelView> albumSongs = songInDb.Album.SongsInAlbum.AsEnumerable()!.Select(x=>x.ToSongModelView()).ToList()!;
         // Reuse your SimpleSongListAdapter but adapted for horizontal cards, or create a specific one
         albumRecycler.SetAdapter(new HorizontalCoverAdapter(albumSongs, _vm));
         root.AddView(albumRecycler);
@@ -71,10 +71,8 @@ public class SongRelatedFragment : Fragment
         }
         public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
         {
-            var img = (ImageView)holder.ItemView;
-            if (!string.IsNullOrEmpty(_items[position].CoverImagePath))
-                Glide.With(img.Context).Load(_items[position].CoverImagePath).Into(img);
-
+            var img = (MaterialCardView)holder.ItemView;
+           
             img.Click += async (s, e) =>
             {
                 await _vm.PlaySongAsync(_items[position], CurrentPage.SingleSongPage, _items);
@@ -91,6 +89,7 @@ public class SongRelatedFragment : Fragment
                 this._container = v;
                 this.img = img;
                 this.txtView = txtView;
+
             } 
         }
     }

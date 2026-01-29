@@ -33,7 +33,7 @@ public class MusicStatsService
             return null;
 
         // 2. LINQ Compute: Group by song and find the most frequent.
-        return recentEvents.ToList()
+        return recentEvents.AsEnumerable()
             .Where(e => e.SongsLinkingToThisEvent.FirstOrDefault() != null)
             .GroupBy(e => e.SongsLinkingToThisEvent.First())
             .Select(g => new SongStat(g.Key, g.Count()))
@@ -54,7 +54,7 @@ public class MusicStatsService
         if (!recentEvents.Any())
             return null;
 
-        return recentEvents.ToList()
+        return recentEvents.AsEnumerable()
             .Where(e => e.SongsLinkingToThisEvent.FirstOrDefault()?.Artist != null)
             .GroupBy(e => e.SongsLinkingToThisEvent.First().Artist)
             .Select(g => new ArtistStat(g.Key, g.Count()))
@@ -70,7 +70,7 @@ public class MusicStatsService
         var sinceDate = DateTimeOffset.UtcNow.AddDays(-days);
         var recentEvents = _realm.All<DimmerPlayEvent>().Filter("DatePlayed > $0", sinceDate);
 
-        return [.. recentEvents.ToList()
+        return [.. recentEvents.AsEnumerable()
             .Where(e => e.SongsLinkingToThisEvent.FirstOrDefault()?.Album != null)
             .GroupBy(e => e.SongsLinkingToThisEvent.First().Album)
             .Select(g => new AlbumStat(g.Key, g.Count()))
@@ -97,7 +97,7 @@ public class MusicStatsService
         if (!recentEvents.Any())
             return null;
 
-        return recentEvents.ToList()
+        return recentEvents.AsEnumerable()
             .Where(e => e.SongsLinkingToThisEvent.FirstOrDefault()?.Genre?.Name != null)
             .GroupBy(e => e.SongsLinkingToThisEvent.First().Genre.Name)
             .Select(g => new GenreStat(g.Key, g.Count()))
@@ -108,19 +108,18 @@ public class MusicStatsService
     // (6-10) Variants of the above with different timeframes or filters
     public SongStat? GetFavoritePopSongLastTwoWeeks() => GetFavoriteSongOfGenreInLastNDays("Pop", 14);
     public SongStat? GetFavoriteRockSongLastMonth() => GetFavoriteSongOfGenreInLastNDays("Rock", 30);
-    public List<ArtistStat> GetTopArtistsOfYear(int year) { /* similar logic with year filter */ return new(); }
-    public double GetAverageListeningTimePerDay(int days)
+     public double GetAverageListeningTimePerDay(int days)
     {
         var sinceDate = DateTimeOffset.UtcNow.AddDays(-days);
         var completedEvents = _realm.All<DimmerPlayEvent>().Filter("WasPlayCompleted == true AND DatePlayed > $0", sinceDate);
-        var totalSeconds = completedEvents.ToList().Sum(e => e.SongsLinkingToThisEvent.FirstOrDefault()?.DurationInSeconds ?? 0);
+        var totalSeconds = completedEvents.AsEnumerable().Sum(e => e.SongsLinkingToThisEvent.FirstOrDefault()?.DurationInSeconds ?? 0);
         return totalSeconds / days;
     }
     public List<TimeStat> GetListeningHabitsByHourOfDay(int days)
     {
         var sinceDate = DateTimeOffset.UtcNow.AddDays(-days);
         var recentEvents = _realm.All<DimmerPlayEvent>().Filter("DatePlayed > $0", sinceDate);
-        return [.. recentEvents.ToList()
+        return [.. recentEvents.AsEnumerable()
             .GroupBy(e => e.DatePlayed.Hour)
             .Select(g => new TimeStat(g.Key, g.Count()))
             .OrderBy(t => t.HourOfDay)];
@@ -141,7 +140,7 @@ public class MusicStatsService
         if (!allEvents.Any())
             return null;
 
-        return allEvents.ToList()
+        return allEvents.AsEnumerable()
             .Where(e => e.SongsLinkingToThisEvent.FirstOrDefault() != null)
             .GroupBy(e => e.SongsLinkingToThisEvent.First())
             .Select(g => new SongStat(g.Key, g.Count()))
@@ -159,7 +158,7 @@ public class MusicStatsService
         if (!allEvents.Any())
             return null;
 
-        return allEvents.ToList()
+        return allEvents.AsEnumerable()
             .Where(e => e.SongsLinkingToThisEvent.FirstOrDefault()?.Artist != null)
             .GroupBy(e => e.SongsLinkingToThisEvent.First().Artist)
             .Select(g => new ArtistStat(g.Key, g.Count()))
@@ -174,7 +173,7 @@ public class MusicStatsService
     {
         // Same pattern as above, just grouping by Album
         var allEvents = _realm.All<DimmerPlayEvent>();
-        return allEvents.ToList()
+        return allEvents.AsEnumerable()
             .Where(e => e.SongsLinkingToThisEvent.FirstOrDefault()?.Album != null)
             .GroupBy(e => e.SongsLinkingToThisEvent.First().Album)
             .Select(g => new AlbumStat(g.Key, g.Count()))
@@ -188,7 +187,7 @@ public class MusicStatsService
     public double GetTotalListeningHours()
     {
         var completedPlays = _realm.All<DimmerPlayEvent>().Filter("WasPlayCompleted == true");
-        double totalSeconds = completedPlays.ToList()
+        double totalSeconds = completedPlays.AsEnumerable()
             .Sum(e => e.SongsLinkingToThisEvent.FirstOrDefault()?.DurationInSeconds ?? 0);
         return totalSeconds / 3600.0;
     }
@@ -199,23 +198,19 @@ public class MusicStatsService
     public int GetTotalUniqueArtistsPlayed()
     {
         var allEvents = _realm.All<DimmerPlayEvent>();
-        return allEvents.ToList()
+        return allEvents.AsEnumerable()
             .Where(e => e.SongsLinkingToThisEvent.FirstOrDefault()?.Artist != null)
             .Select(e => e.SongsLinkingToThisEvent.First().Artist.Id)
             .Distinct()
             .Count();
     }
 
-    // (16-21) More all-time stats
-    public int GetTotalUniqueSongsPlayed() { /* ... similar to above, select Song.Id ... */ return 0; }
-    public List<SongStat> GetAllTimeTopNSongs(int n) { /* ... same as top song, just use .Take(n) ... */ return new(); }
-    public List<ArtistStat> GetAllTimeTopNArtists(int n) { /* ... same as top artist, just use .Take(n) ... */ return new(); }
-    public double GetAverageSongLengthOfLibrary() => _realm.All<SongModel>().ToList().Average(s => s.DurationInSeconds);
+    public double GetAverageSongLengthOfLibrary() => _realm.All<SongModel>().AsEnumerable().Average(s => s.DurationInSeconds);
     public int GetTotalSongsInLibrary() => _realm.All<SongModel>().Count();
     public GenreStat GetMostSkippedGenre()
     {
         var skippedEvents = _realm.All<DimmerPlayEvent>().Filter("PlayType == 5"); // 5: Skipped
-        return skippedEvents.ToList()
+        return skippedEvents.AsEnumerable()
             .Where(e => e.SongsLinkingToThisEvent.FirstOrDefault()?.Genre != null)
             .GroupBy(e => e.SongsLinkingToThisEvent.First().Genre.Name)
             .Select(g => new GenreStat(g.Key, g.Count()))
@@ -243,7 +238,7 @@ public class MusicStatsService
         var relevantEvents = _realm.All<DimmerPlayEvent>().Filter("SongId IN $0", artistSongIds);
 
         // 3. LINQ: Compute the result.
-        return relevantEvents.ToList()
+        return relevantEvents.AsEnumerable()
             .Where(e => e.SongsLinkingToThisEvent.FirstOrDefault() != null)
             .GroupBy(e => e.SongsLinkingToThisEvent.First())
             .Select(g => new SongStat(g.Key, g.Count()))
@@ -263,7 +258,7 @@ public class MusicStatsService
             return null;
         var relevantEvents = _realm.All<DimmerPlayEvent>().Filter("SongId IN $0", artistSongIds);
 
-        return relevantEvents.ToList()
+        return relevantEvents.AsEnumerable()
             .Where(e => e.SongsLinkingToThisEvent.FirstOrDefault()?.Album != null)
             .GroupBy(e => e.SongsLinkingToThisEvent.First().Album)
             .Select(g => new AlbumStat(g.Key, g.Count()))
@@ -277,9 +272,9 @@ public class MusicStatsService
     public List<SongStat> GetArtistDeepCuts(ObjectId artistId)
     {
         // Same as most popular, just order ascending.
-        var artistSongs = _realm.All<SongModel>().Filter("Artist.Id == $0 OR ANY ArtistToSong.Id == $0", artistId).ToList();
+        var artistSongs = _realm.All<SongModel>().Filter("Artist.Id == $0 OR ANY ArtistToSong.Id == $0", artistId).AsEnumerable();
         var artistSongIds = artistSongs.Select(s => (QueryArgument)s.Id).ToArray();
-        var relevantEvents = _realm.All<DimmerPlayEvent>().Filter("SongId IN $0", artistSongIds).ToList();
+        var relevantEvents = _realm.All<DimmerPlayEvent>().Filter("SongId IN $0", artistSongIds).AsEnumerable();
 
         var playCounts = artistSongs.ToDictionary(
             song => song,
@@ -307,7 +302,7 @@ public class MusicStatsService
         var relevantEvents = _realm.All<DimmerPlayEvent>().Filter("SongId IN $0", genreSongIds);
 
         // 3. LINQ: Compute top artists.
-        return [.. relevantEvents.ToList()
+        return [.. relevantEvents.AsEnumerable()
             .Where(e => e.SongsLinkingToThisEvent.FirstOrDefault()?.Artist != null)
             .GroupBy(e => e.SongsLinkingToThisEvent.First().Artist)
             .Select(g => new ArtistStat(g.Key, g.Count()))
@@ -315,18 +310,7 @@ public class MusicStatsService
             .Take(topN)];
     }
 
-    // (26-31) More deep dives
-    public SongStat GetFirstSongPlayedByArtist(ObjectId artistId) { /* Filter events by artist, sort by DatePlayed ASC */ return null; }
-    public SongStat GetLastSongPlayedByArtist(ObjectId artistId) { /* Filter events by artist, sort by DatePlayed DESC */ return null; }
-    public double GetPercentageOfListenTimeForGenre(string genreName) { /* Compare total listen seconds to genre listen seconds */ return 0.0; }
-    public List<ArtistModel> GetOneHitWonders(int playThreshold) { /* Complex LINQ: artists where one song accounts for >90% of their total plays */ return new(); }
-    public List<SongModel> GetSongsByArtistFromDecade(ObjectId artistId, int decadeStartYear) { /* RQL: Filter by artist AND release year range */ return new(); }
-    public int GetArtistRankByPlayCount(ObjectId artistId)
-    {
-        var allArtistStats = GetAllTimeTopNArtists(int.MaxValue);
-        var artistStat = allArtistStats.FirstOrDefault(a => a.Artist.Id == artistId);
-        return artistStat != null ? allArtistStats.IndexOf(artistStat) + 1 : -1;
-    }
+
 
     #endregion
 
@@ -354,10 +338,10 @@ public class MusicStatsService
             return null;
 
         // 2. Find all artists in that genre.
-        var artistsInGenre = _realm.All<ArtistModel>().Filter("ANY Songs.Genre.Name ==[c] $0", topGenreName).ToList();
+        var artistsInGenre = _realm.All<ArtistModel>().Filter("ANY Songs.Genre.Name ==[c] $0", topGenreName).AsEnumerable();
 
         // 3. Find which ones I've never played.
-        var playedArtistIds = _realm.All<DimmerPlayEvent>().ToList()
+        var playedArtistIds = _realm.All<DimmerPlayEvent>().AsEnumerable()
             .Where(e => e.SongsLinkingToThisEvent.FirstOrDefault()?.Artist != null)
             .Select(e => e.SongsLinkingToThisEvent.First().Artist.Id)
             .ToHashSet();
@@ -377,11 +361,7 @@ public class MusicStatsService
     }
 
     // (35-39) More discovery queries
-    public List<SongModel> GetRandomAlbum() { /* Get all albums, pick one at random, return its songs */ return new(); }
-    public List<SongModel> GetSongsFromThisDayInHistory() { /* Filter events where month and day match today */ return new(); }
-    public List<AlbumModel> GetCriticallyAcclaimedAlbums(int minRating) { /* Albums where average song rating > minRating */ return new(); }
-    public List<SongModel> GetSongsFromRandomGenre() { /* Get all genres, pick one, get songs */ return new(); }
-    public List<SongModel> GetLongestSongsInLibrary(int topN) => [.. _realm.All<SongModel>().OrderByDescending(s => s.DurationInSeconds).Take(topN)];
+   public List<SongModel> GetLongestSongsInLibrary(int topN) => [.. _realm.All<SongModel>().AsEnumerable().OrderByDescending(s => s.DurationInSeconds).Take(topN)];
 
     #endregion
 
@@ -397,7 +377,7 @@ public class MusicStatsService
     /// </summary>
     public List<AlbumModel> GetInconsistentAlbums()
     {
-        return [.. _realm.All<AlbumModel>().ToList().Where(a => a.SongsInAlbum != null && a.SongsInAlbum.Select(s => s.ReleaseYear).Distinct().Count() > 1)];
+        return [.. _realm.All<AlbumModel>().AsEnumerable().Where(a => a.SongsInAlbum != null && a.SongsInAlbum.Select(s => s.ReleaseYear).Distinct().Count() > 1)];
     }
 
     /// <summary>
@@ -410,7 +390,7 @@ public class MusicStatsService
     /// </summary>
     public List<IGrouping<string, SongModel>> GetPotentialDuplicateSongs()
     {
-        return [.. _realm.All<SongModel>().ToList()
+        return [.. _realm.All<SongModel>().AsEnumerable()
             .GroupBy(s => $"{s.Title.ToLower()}|{s.ArtistName.ToLower()}")
             .Where(g => g.Count() > 1)];
     }
@@ -423,7 +403,7 @@ public class MusicStatsService
         var sinceDate = DateTimeOffset.UtcNow.AddDays(-days);
         var recentEvents = _realm.All<DimmerPlayEvent>().Filter("DatePlayed > $0", sinceDate);
 
-        return [.. recentEvents.ToList()
+        return [.. recentEvents.AsEnumerable()
             .Where(e => e.SongsLinkingToThisEvent.FirstOrDefault() != null)
             .GroupBy(e => e.SongsLinkingToThisEvent.First())
             .Select(g => new SongStat(g.Key, g.Count()))
@@ -441,7 +421,7 @@ public class MusicStatsService
         if (!recentGenreEvents.Any())
             return null;
 
-        return recentGenreEvents.ToList()
+        return recentGenreEvents.AsEnumerable()
             .Where(e => e.SongsLinkingToThisEvent.FirstOrDefault() != null)
             .GroupBy(e => e.SongsLinkingToThisEvent.First())
             .Select(g => new SongStat(g.Key, g.Count()))
@@ -459,7 +439,7 @@ public class MusicStatsService
 
         var relevantEvents = _realm.All<DimmerPlayEvent>().Filter("SongId IN $0", artistSongIds);
 
-        return relevantEvents.ToList()
+        return relevantEvents.AsEnumerable()
             .Where(e => e.SongsLinkingToThisEvent.FirstOrDefault()?.Genre?.Name != null)
             .GroupBy(e => e.SongsLinkingToThisEvent.First().Genre.Name)
             .OrderByDescending(g => g.Count())

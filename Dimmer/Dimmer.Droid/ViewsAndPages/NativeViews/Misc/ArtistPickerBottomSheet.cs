@@ -8,15 +8,15 @@ namespace Dimmer.ViewsAndPages.NativeViews.Misc;
 
 public class ArtistPickerBottomSheet : BottomSheetDialogFragment
 {
-    public ArtistPickerBottomSheet(BaseViewModelAnd vm, string listOfArtistString)
+    public ArtistPickerBottomSheet(BaseViewModelAnd vm, List<ArtistModelView> listOfArtistmodelView)
 
     {
         MyViewModel = vm;
-        ListOfArtistsInSong = listOfArtistString.Split(", ").ToList();
+        ListOfArtistsInSong = listOfArtistmodelView;
     }
 
     public BaseViewModelAnd MyViewModel { get; }
-    public List<string> ListOfArtistsInSong { get; }
+    public List<ArtistModelView> ListOfArtistsInSong { get; }
     public TextInputLayout searchInput { get; private set; }
 
     public override View? OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
@@ -41,7 +41,7 @@ public class ArtistPickerBottomSheet : BottomSheetDialogFragment
         recyclerView.SetLayoutManager(new LinearLayoutManager(context));
         // In a real app, pass your ViewModel's Artist list here
         
-        recyclerView.SetAdapter(new ArtistBottomSheetRecyclerViewAdapter(ListOfArtistsInSong, MyViewModel, this));
+        recyclerView.SetAdapter(new ArtistBottomSheetRecyclerViewAdapter(ListOfArtistsInSong.Select(x=>x.Name).ToList()!, MyViewModel, this));
 
         layout.AddView(recyclerView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, 800)); // Fixed height or use weight
 
@@ -81,7 +81,8 @@ ArtistPickerBottomSheet artistPickerBottomSheet)
         {
             MaterialCardView? card = UiBuilder.CreateCard(parent.Context);
 
-            var hLL = new LinearLayout (parent.Context);    
+            var hLL = new LinearLayout (parent.Context);
+            
             hLL.Orientation = Android.Widget.Orientation.Horizontal;
 
             var artistBtn = new MaterialButton(parent.Context);
@@ -97,12 +98,16 @@ ArtistPickerBottomSheet artistPickerBottomSheet)
 
             var ViewChip = new Chip(parent.Context);
             ViewChip.SetChipIconResource(Resource.Drawable.eye);
-            
+
+            var lyParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent) { Gravity = GravityFlags.Right };
+            lyParams.SetMargins(10, 10, 10, 10);
+
+
             hLL.AddView(artistBtn);
-            hLL.AddView(TQLChip);
-            hLL.AddView(FavArtistChip);
-            hLL.AddView(ViewChip);
-            card.AddView(hLL);
+            //hLL.AddView(TQLChip, lyParams);
+            //hLL.AddView(FavArtistChip, lyParams);
+            //hLL.AddView(ViewChip, lyParams);
+            card.AddView(hLL, lyParams);
 
             return new ArtistPickerVHolder(card,artistBtn,TQLChip,FavArtistChip,ViewChip, MyViewModel);
         }

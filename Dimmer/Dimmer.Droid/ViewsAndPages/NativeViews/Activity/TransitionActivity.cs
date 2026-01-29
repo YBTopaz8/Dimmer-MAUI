@@ -7,6 +7,7 @@ using AndroidX.DrawerLayout.Widget;
 using AndroidX.Lifecycle;
 using Dimmer.NativeServices;
 using Dimmer.UiUtils;
+using Dimmer.ViewsAndPages.NativeViews.DeviceTransfer;
 using Dimmer.ViewsAndPages.NativeViews.DimmerLive;
 using Dimmer.ViewsAndPages.NativeViews.DimmerLive.LastFMViews;
 using Dimmer.ViewsAndPages.NativeViews.StatsSection;
@@ -152,15 +153,13 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
 
     }
     private SmoothBottomBar _bottomBar;
-    // Source - https://stackoverflow.com/a
-    // Posted by rmirabelle, modified by community. See post 'Timeline' for change history
-    // Retrieved 2026-01-18, License - CC BY-SA 4.0
+  
 
     public static void hideKeyboard(TransitionActivity activity)
     {
         
         InputMethodManager? imm = (InputMethodManager?)activity.GetSystemService(InputMethodService);
-        //Find the currently focused view, so we can grab the correct window token from it.
+       
         View? view = activity.CurrentFocus ?? new View(activity);
         imm?.HideSoftInputFromWindow(view.WindowToken, 0);
     }
@@ -384,7 +383,9 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
         _navigationView.Menu.Add(0, 101, 0, "Library").SetIcon(Resource.Drawable.heart);
         _navigationView.Menu.Add(0, 102, 0, "Last FM").SetIcon(Resource.Drawable.lastfm);
         _navigationView.Menu.Add(0, 103, 0, "Settings").SetIcon(Resource.Drawable.settings);
-        _navigationView.Menu.Add(0, 104, 0, "Dimmer Cloud").SetIcon(Resource.Drawable.cloudbolt);
+        _navigationView.Menu.Add(0, 104, 0, "Device Transfer").SetIcon(Resource.Drawable.media3_icon_share);
+
+        _navigationView.Menu.Add(0, 105, 0, "Dimmer Cloud").SetIcon(Resource.Drawable.cloudbolt);
 
         // Handle Clicks
         _navigationView.NavigationItemSelected += (s, e) =>
@@ -501,6 +502,15 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
                 tag = "SettingsFragment";
                 break;
             case 104:
+
+                var DeviceTransferViaBTViewModel = MainApplication.ServiceProvider.GetService<DeviceTransferViaBTViewModel>();
+                if (DeviceTransferViaBTViewModel is not null)
+                {
+                    selectedFrag = new DevTransferFragment(DeviceTransferViaBTViewModel);
+                    tag = "devTransMgt";
+                }
+                break;
+            case 105:
 
                 var viewModel = MainApplication.ServiceProvider.GetService<SessionManagementViewModel>();
                 if (viewModel is not null)

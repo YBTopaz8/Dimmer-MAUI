@@ -9,23 +9,25 @@ using AndroidX.Lifecycle;
 using CommunityToolkit.Diagnostics;
 using Dimmer.UiUtils;
 using Dimmer.ViewsAndPages.NativeViews.ArtistSection;
+using Google.Android.Material.Chip;
 using Microsoft.Maui;
 
 namespace Dimmer.ViewsAndPages.NativeViews.SingleSong;
 
 public partial class SongOverviewFragment : Fragment
 {
-    private BaseViewModelAnd viewModel;
+    private BaseViewModelAnd MyViewModel;
 
     public SongModelView
         SelectedSong { get; }
-    public TextView titleText { get; private set; }
+    public Chip titleText { get; private set; }
+    public TextView AlbumText { get; private set; }
 
-    public SongOverviewFragment(BaseViewModelAnd vm) { viewModel = vm;
+    public SongOverviewFragment(BaseViewModelAnd vm) { MyViewModel = vm;
 
         if(vm.SelectedSong == null)
             throw new ArgumentNullException(nameof(vm.SelectedSong),"Specifically Selected Song");
-        SelectedSong = viewModel.SelectedSong!;
+        SelectedSong = MyViewModel.SelectedSong!;
     }
 
     public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
@@ -42,28 +44,63 @@ public partial class SongOverviewFragment : Fragment
 
 
         // Title/Artist
-         titleText = new TextView(ctx) 
+         titleText = new Chip(ctx) 
         {
             Text = SelectedSong.Title, TextSize = 24, Typeface = Typeface.DefaultBold
         };
-        
+        titleText.Click += async (s, e) =>
+        {
+            MyViewModel.AddToNext(new List<SongModelView>() { SelectedSong });
+            await MyViewModel.NextTrackAsync();
+        };
         titleText.SetForegroundGravity(GravityFlags.CenterHorizontal);
 
 
+
         root.AddView(titleText);
-        var artistBtn = new MaterialButton(ctx, null, Resource.Attribute.borderlessButtonStyle) { Text = SelectedSong.OtherArtistsName, TextSize = 18 };
-        // Parity: Navigate to Artist
-        artistBtn.Click += (s, e) =>
+
+
+
+
+
+         List<ArtistModelView?> artists = MyViewModel.SelectedSong!.ArtistsInDB(MyViewModel.RealmFactory)!;
+        foreach (var art in artists)
         {
-            viewModel.NavigateToAnyPageOfGivenType(this, new ArtistFragment(viewModel,SelectedSong.OtherArtistsName, viewModel.SelectedSong.Id.ToString()), viewModel.SelectedSong.Id.ToString());
+            if (art is null) continue;
+            var artistBtn = new MaterialButton(ctx, null, Resource.Attribute.borderlessButtonStyle) { Text = art.Name, TextSize = 18 };
+            artistBtn.Click += async (s, e) =>
+            {
+                MyViewModel.SelectedArtist = art;
+               
+                MyViewModel.NavigateToArtistPage(this, art.Id.ToString(), art, (MaterialButton)s!);
+            };
+            artistBtn.Tag = $"artist{art.Id}";
+            root.AddView(artistBtn);
+        }
+
+
+        // Album
+        AlbumText = new TextView(ctx)
+        {
+            Text = SelectedSong.AlbumName,
+            TextSize = 14,
+            Typeface = Typeface.DefaultBold
         };
-        var genreBtn = new MaterialButton(ctx, null, Resource.Attribute.borderlessButtonStyle) { Text = SelectedSong.GenreName, TextSize = 18 };
+
+        AlbumText.SetForegroundGravity(GravityFlags.CenterHorizontal);
+
+
+
+        root.AddView(AlbumText);
+
+        
+
+        var genreBtn = new MaterialButton(ctx, null, Resource.Attribute.borderlessButtonStyle) { Text = SelectedSong.GenreName, TextSize = 10 };
         // Parity: Navigate to Artist
         genreBtn.Click += (s, e) =>
         {
             //viewModel.NavigateToArtistPage(ParentFragment, "artist_trans", SelectedSong.OtherArtistsName, artistBtn);
         };
-        root.AddView(artistBtn);
         root.AddView(genreBtn);
 
         // Stats Card
@@ -77,17 +114,17 @@ public partial class SongOverviewFragment : Fragment
 
 
         var lyricsCardView = UiBuilder.CreateSectionCard(ctx
-            ,"Lyrics",(CreateLyricsView(ctx, viewModel.SelectedSong?.SyncLyrics))
+            ,"Lyrics",(CreateLyricsView(ctx, MyViewModel.SelectedSong?.SyncLyrics))
             );
 
         root.AddView(lyricsCardView);
 
         var achTitle = new TextView(ctx) { Text = "Achievements", TextSize = 18, Typeface = Typeface.DefaultBold };
         //((LinearLayout.LayoutParams)achTitle.LayoutParameters).TopMargin = AppUtil.DpToPx(24);
-        root.AddView(achTitle);
+        //root.AddView(achTitle);
 
         
-            root.AddView(new TextView(ctx) { Text = "No achievements yet...", Alpha = 0.6f });
+            //root.AddView(new TextView(ctx) { Text = "No achievements yet...", Alpha = 0.6f });
         scroll.SetBackgroundColor(Color.Transparent);
 
 
@@ -109,7 +146,7 @@ public partial class SongOverviewFragment : Fragment
 
     private async void PlaySong(object? sender, EventArgs e)
     {
-        await viewModel.PlayNextSongsImmediately(new List<SongModelView> { viewModel.SelectedSong! });
+        await MyViewModel.PlayNextSongsImmediately(new List<SongModelView> { MyViewModel.SelectedSong! });
         
     }
     public override void OnDestroy()

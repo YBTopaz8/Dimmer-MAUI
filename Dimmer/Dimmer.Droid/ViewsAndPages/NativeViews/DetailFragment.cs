@@ -105,20 +105,20 @@ public class DetailFragment : Fragment, IOnBackInvokedCallback
 
     }
 
-    //class OnPreDrawListenerImpl : Java.Lang.Object, ViewTreeObserver.IOnPreDrawListener
-    //{
-    //    private readonly View _fragmentView;
-    //    private readonly DetailFragment _parentFragment;
-    //    public OnPreDrawListenerImpl(View fragmentView, DetailFragment parentFragment)
-    //    {
-    //        _fragmentView = fragmentView;
-    //        _parentFragment = parentFragment;
-    //    }
-    //    //public bool OnPreDraw()
-
-    //    //    _fragmentView.ViewTreeObserver.RemoveOnPreDrawListener(this);
-    //    //    _parentFragment.StartPostponedEnterTransition();
-    //    //    return true;
-    //    //}
-    //}
+    class OnPreDrawListenerImpl : Java.Lang.Object, ViewTreeObserver.IOnPreDrawListener
+    {
+        private readonly View _fragmentView;
+        private readonly DetailFragment _parentFragment;
+        public OnPreDrawListenerImpl(View fragmentView, DetailFragment parentFragment)
+        {
+            _fragmentView = fragmentView;
+            _parentFragment = parentFragment;
+        }
+        public bool OnPreDraw()
+        { 
+            _fragmentView.ViewTreeObserver?.RemoveOnPreDrawListener(this);
+            _parentFragment.StartPostponedEnterTransition();
+            return true;
+        }
+}
 }
