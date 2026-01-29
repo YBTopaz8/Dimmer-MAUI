@@ -269,4 +269,14 @@ public partial class UserNoteModel : EmbeddedObject
     public string? MessageColor { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset ModifiedAt { get; set; }
+    
+    // New fields for public comments feature
+    public bool IsPublic { get; set; }
+    public int? TimestampMs { get; set; }
+    public string? AuthorId { get; set; }
+    public string? AuthorUsername { get; set; }
+    
+    // Reaction counts stored as a simple dictionary-like structure
+    // Format: "like:12,fire:3,sad:1" - we'll parse this for display
+    public string? ReactionsJson { get; set; }
 }
