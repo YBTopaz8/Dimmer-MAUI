@@ -70,6 +70,19 @@ public partial class DimmerSettingsService : ISettingsService
         }
     }
 
+    public ShuffleMode ShuffleMode
+    {
+        get
+        {
+            return (ShuffleMode)_model.ShuffleModePreference;
+        }
+
+        set
+        {
+            _realm.Write(() => _model.ShuffleModePreference = (int)value);
+        }
+    }
+
     public bool IsStickToTop
     {
         get

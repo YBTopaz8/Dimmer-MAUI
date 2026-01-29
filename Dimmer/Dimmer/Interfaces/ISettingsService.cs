@@ -3,6 +3,7 @@ public interface ISettingsService
 {
     // Playback Settings
     bool ShuffleOn { get; set; }
+    ShuffleMode ShuffleMode { get; set; }
     RepeatMode RepeatMode { get; set; }
     double LastVolume { get; set; } // Example: to remember volume across sessions
 
