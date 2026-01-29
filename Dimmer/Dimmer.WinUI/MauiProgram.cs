@@ -5,6 +5,8 @@ using Dimmer.WinUI.Views.WinuiPages.Achievements;
 using Dimmer.WinUI.Views.WinuiPages.DimmerLive;
 using Dimmer.WinUI.Views.WinuiPages.LastFMSection;
 using Dimmer.WinUI.Views.WinuiPages.SingleSongPage;
+using Dimmer.DimmerLive;
+using Dimmer.WinUI.NativeServices;
 
 namespace Dimmer.WinUI;
 
@@ -31,6 +33,8 @@ public static class MauiProgram
             });
         builder.Services.AddDimmerCoreServices();
 
+        // Platform-specific Bluetooth service
+        builder.Services.AddSingleton<IBluetoothService, WindowsBluetoothService>();
 
         builder.Services.AddSingleton<IDimmerAudioService, AudioService>();
         builder.Services.AddSingleton<BaseViewModelWin>();

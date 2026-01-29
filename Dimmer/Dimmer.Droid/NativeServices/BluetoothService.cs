@@ -95,8 +95,11 @@ public class AndroidBluetoothService : IBluetoothService
             string json = JsonSerializer.Serialize(data);
             byte[] bytes = Encoding.UTF8.GetBytes(json);
 
-            // Send size first (optional but good practice), keeping it simple for now
+            // Send length prefix (4 bytes) followed by data
+            byte[] lengthPrefix = BitConverter.GetBytes(bytes.Length);
+            await _socket.OutputStream.WriteAsync(lengthPrefix, 0, lengthPrefix.Length);
             await _socket.OutputStream.WriteAsync(bytes, 0, bytes.Length);
+            
             StatusChanged?.Invoke(this, "Data Sent.");
         }
         catch (Exception ex)
@@ -107,39 +110,80 @@ public class AndroidBluetoothService : IBluetoothService
 
     private async Task ListenForDataAsync()
     {
-        var buffer = new byte[1024];
-        var sb = new StringBuilder();
-
         while (_socket != null && _socket.IsConnected)
         {
             try
             {
-                // Simple reading logic. For large files, you'd want a length-prefix protocol.
-                int bytesRead = await _socket.InputStream.ReadAsync(buffer, 0, buffer.Length);
-                if (bytesRead > 0)
+                // Read length prefix (4 bytes)
+                byte[] lengthBuffer = new byte[4];
+                int lengthBytesRead = await _socket.InputStream.ReadAsync(lengthBuffer, 0, 4);
+                if (lengthBytesRead != 4)
                 {
-                    string part = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-                    sb.Append(part);
-
-                    // Quick hack to detect end of JSON for this example
-                    // In production, send the Length of the bytes first (4 bytes int), read that length, then parse.
-                    if (IsJsonComplete(sb.ToString()))
-                    {
-                        DataReceived?.Invoke(this, sb.ToString());
-                        sb.Clear();
-                    }
+                    // Connection closed or error
+                    break;
                 }
+
+                int messageLength = BitConverter.ToInt32(lengthBuffer, 0);
+                if (messageLength <= 0 || messageLength > 10 * 1024 * 1024) // 10MB max
+                {
+                    StatusChanged?.Invoke(this, "Invalid message length received.");
+                    break;
+                }
+
+                // Read the actual data
+                byte[] messageBuffer = new byte[messageLength];
+                int totalBytesRead = 0;
+                while (totalBytesRead < messageLength)
+                {
+                    int bytesRead = await _socket.InputStream.ReadAsync(
+                        messageBuffer, 
+                        totalBytesRead, 
+                        messageLength - totalBytesRead);
+                    
+                    if (bytesRead <= 0)
+                    {
+                        break;
+                    }
+                    totalBytesRead += bytesRead;
+                }
+
+                if (totalBytesRead != messageLength)
+                {
+                    StatusChanged?.Invoke(this, "Failed to read complete message.");
+                    break;
+                }
+
+                string json = Encoding.UTF8.GetString(messageBuffer);
+                DataReceived?.Invoke(this, json);
             }
-            catch { break; }
+            catch (Exception ex)
+            {
+                StatusChanged?.Invoke(this, $"Listening error: {ex.Message}");
+                break;
+            }
         }
     }
-
-    private bool IsJsonComplete(string input) => input.Trim().EndsWith("}");
 
     public void Disconnect()
     {
         _socket?.Close();
         _socket = null;
         StatusChanged?.Invoke(this, "Disconnected");
+    }
+
+    public async Task OpenBluetoothSettingsAsync()
+    {
+        try
+        {
+            var intent = new Android.Content.Intent(Android.Provider.Settings.ActionBluetoothSettings);
+            intent.AddFlags(Android.Content.ActivityFlags.NewTask);
+            Android.App.Application.Context.StartActivity(intent);
+            await Task.CompletedTask;
+        }
+        catch (Exception ex)
+        {
+            StatusChanged?.Invoke(this, $"Failed to open Bluetooth settings: {ex.Message}");
+            throw;
+        }
     }
 }
