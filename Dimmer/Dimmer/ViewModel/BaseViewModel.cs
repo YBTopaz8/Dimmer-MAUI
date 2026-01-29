@@ -1644,6 +1644,15 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial RepeatMode CurrentRepeatMode { get; set; }
 
     [ObservableProperty]
+    public partial ABLoopState ABLoopState { get; set; } = new();
+
+    [ObservableProperty]
+    public partial bool IsABLoopEnabled { get; set; }
+
+    [ObservableProperty]
+    public partial string ABLoopStatusText { get; set; } = "";
+
+    [ObservableProperty]
     public partial double CurrentTrackPositionSeconds { get; set; }
 
     [ObservableProperty]
@@ -2615,6 +2624,34 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 ? (positionSeconds / CurrentTrackDurationSeconds)
                 : 0) *
             100;
+
+        // Handle A-B loop
+        if (ABLoopState.IsEnabled && ABLoopState.IsBothPointsSet)
+        {
+            // Check if we've reached or passed point B (with small tolerance to prevent rapid seeking)
+            if (positionSeconds >= ABLoopState.EndPosition.Value - 0.1)
+            {
+                ABLoopState.IncrementIteration();
+                
+                // Update status text
+                UpdateABLoopStatusText();
+
+                // Check if we should continue looping
+                if (ABLoopState.ShouldContinueLooping)
+                {
+                    // Seek back to point A
+                    _logger.LogDebug("A-B Loop: Seeking back to point A ({PointA}s). Iteration {CurrentIteration}", 
+                        ABLoopState.StartPosition.Value, ABLoopState.CurrentIteration);
+                    SeekTrackPosition(ABLoopState.StartPosition.Value);
+                }
+                else
+                {
+                    // Loop count reached, disable the loop
+                    _logger.LogInformation("A-B Loop: Loop count reached ({LoopCount}). Disabling loop.", ABLoopState.LoopCount);
+                    ClearABLoopCommand.Execute(null);
+                }
+            }
+        }
     }
 
     protected virtual async Task OnPlaybackStarted(PlaybackEventArgs args)
@@ -2634,6 +2671,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _songToScrobble = CurrentPlayingSongView;
         CurrentPlayingSongView.IsCurrentPlayingHighlight = true;
 
+        // Clear A-B loop when a new song starts
+        if (ABLoopState.IsEnabled)
+        {
+            _logger.LogInformation("A-B Loop: Clearing loop due to song change");
+            ClearABLoopCommand.Execute(null);
+        }
 
         _logger.LogInformation("AudioService confirmed: Playback started for '{Title}'", args.MediaSong.Title);
         await BaseAppFlow.UpdateDatabaseWithPlayEvent(
@@ -3671,6 +3714,107 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         _logger.LogInformation("Repeat mode toggled to: {RepeatMode}", CurrentRepeatMode);
     }
+
+    #region A-B Loop Commands
+
+    [RelayCommand]
+    public void SetPointA()
+    {
+        ABLoopState.StartPosition = CurrentTrackPositionSeconds;
+        _logger.LogInformation("A-B Loop: Point A set to {PositionSeconds}s", CurrentTrackPositionSeconds);
+        
+        // If both points are now set, enable the loop
+        if (ABLoopState.IsBothPointsSet)
+        {
+            ABLoopState.IsEnabled = true;
+            ABLoopState.CurrentIteration = 0;
+            IsABLoopEnabled = true;
+            _logger.LogInformation("A-B Loop: Both points set. Loop enabled from {StartPos}s to {EndPos}s", 
+                ABLoopState.StartPosition, ABLoopState.EndPosition);
+        }
+        
+        UpdateABLoopStatusText();
+    }
+
+    [RelayCommand]
+    public void SetPointB()
+    {
+        ABLoopState.EndPosition = CurrentTrackPositionSeconds;
+        _logger.LogInformation("A-B Loop: Point B set to {PositionSeconds}s", CurrentTrackPositionSeconds);
+        
+        // Validate that Point B is after Point A
+        if (ABLoopState.StartPosition.HasValue && ABLoopState.EndPosition.Value <= ABLoopState.StartPosition.Value)
+        {
+            _logger.LogWarning("A-B Loop: Point B must be after Point A. Clearing Point B.");
+            ABLoopState.EndPosition = null;
+            UpdateABLoopStatusText();
+            return;
+        }
+        
+        // If both points are now set, enable the loop
+        if (ABLoopState.IsBothPointsSet)
+        {
+            ABLoopState.IsEnabled = true;
+            ABLoopState.CurrentIteration = 0;
+            IsABLoopEnabled = true;
+            _logger.LogInformation("A-B Loop: Both points set. Loop enabled from {StartPos}s to {EndPos}s", 
+                ABLoopState.StartPosition, ABLoopState.EndPosition);
+        }
+        
+        UpdateABLoopStatusText();
+    }
+
+    [RelayCommand]
+    public void ClearABLoop()
+    {
+        _logger.LogInformation("A-B Loop: Clearing loop");
+        ABLoopState.Reset();
+        IsABLoopEnabled = false;
+        UpdateABLoopStatusText();
+    }
+
+    [RelayCommand]
+    public void SetLoopCount(int? count)
+    {
+        ABLoopState.LoopCount = count;
+        _logger.LogInformation("A-B Loop: Loop count set to {Count}", count.HasValue ? count.Value.ToString() : "infinite");
+        UpdateABLoopStatusText();
+    }
+
+    private void UpdateABLoopStatusText()
+    {
+        if (!ABLoopState.IsEnabled)
+        {
+            ABLoopStatusText = "";
+            return;
+        }
+
+        if (!ABLoopState.StartPosition.HasValue)
+        {
+            ABLoopStatusText = "Set Point A";
+            return;
+        }
+
+        if (!ABLoopState.EndPosition.HasValue)
+        {
+            ABLoopStatusText = $"Point A: {FormatTime(ABLoopState.StartPosition.Value)} - Set Point B";
+            return;
+        }
+
+        string loopInfo = ABLoopState.LoopCount.HasValue 
+            ? $"{ABLoopState.CurrentIteration + 1}/{ABLoopState.LoopCount.Value}" 
+            : $"{ABLoopState.CurrentIteration + 1}/infinite";
+
+        ABLoopStatusText = $"A-B Loop: {FormatTime(ABLoopState.StartPosition.Value)} - {FormatTime(ABLoopState.EndPosition.Value)} ({loopInfo})";
+    }
+
+    private string FormatTime(double seconds)
+    {
+        var ts = TimeSpan.FromSeconds(seconds);
+        return ts.ToString(@"mm\:ss");
+    }
+
+    #endregion
 
     [RelayCommand]
     private void PlaySongFromPlaylist(PlaylistSongContext context)
