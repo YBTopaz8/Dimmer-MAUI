@@ -10,6 +10,8 @@ using Bumptech.Glide;
 using Dimmer.UiUtils;
 
 using DynamicData;
+using MongoDB.Bson;
+using static Android.Provider.CalendarContract;
 
 namespace Dimmer.ViewsAndPages.NativeViews.DimsSection;
 
@@ -22,18 +24,62 @@ internal class PlayEventAdapter : RecyclerView.Adapter
     private BaseViewModelAnd _vm;
     private Fragment _parent;
 
-    public PlayEventAdapter(Context ctx, BaseViewModelAnd vm, Fragment parent)
+    public PlayEventAdapter(Context ctx, BaseViewModelAnd vm, Fragment parent, SongModel song)
     {
         _ctx = ctx;
         _vm = vm;
         _parent = parent;
 
-        _vm.DimmerPlayEvtsHolder.Connect()
-            .ObserveOn(RxSchedulers.UI)            
-            .Bind(out _events)
-            .Subscribe(_ => NotifyDataSetChanged()) // Simplified for brevity, use change-tracking logic if needed
+        song.PlayHistory.
+            AsObservableChangeSet().
+            Where(changes => changes.Any())
+            .Subscribe(changes =>
+            {
+                foreach (var change in changes)
+                {
+                    switch (change.Reason)
+                    {
+                        case ListChangeReason.AddRange:
+                            NotifyItemRangeInserted(change.Range.Index, change.Range.Count);
+                            break;
+                        case ListChangeReason.RemoveRange:
+                            NotifyItemRangeRemoved(change.Range.Index, change.Range.Count);
+                            break;
+                        case ListChangeReason.Refresh:
+
+
+
+                            break;
+                        case ListChangeReason.Add:
+                            NotifyItemInserted(change.Item.CurrentIndex);
+                            break;
+                        case ListChangeReason.Remove:
+                            NotifyItemRemoved(change.Item.CurrentIndex);
+                            break;
+                        case ListChangeReason.Moved:
+                            NotifyItemMoved(change.Item.PreviousIndex, change.Item.CurrentIndex);
+                            break;
+                        case ListChangeReason.Replace:
+                            NotifyItemChanged(change.Item.CurrentIndex);
+                            break;
+                        case ListChangeReason.Clear:
+                            NotifyDataSetChanged();
+                            break;
+                    }
+                }
+
+                // If you prefer simplicity over animations, 
+                // replace the foreach above with: NotifyDataSetChanged();
+            })
             .DisposeWith(_disposables);
+
+
+
+        Debug.WriteLine("History pipeline setup complete.");
     }
+
+
+
 
     public override int ItemCount => _events.Count;
 

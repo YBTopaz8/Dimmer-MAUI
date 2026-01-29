@@ -43,7 +43,7 @@ namespace Dimmer.DimmerAudio; // Make sure this namespace is correct
          ForegroundServiceType = ForegroundService.TypeMediaPlayback)]
 
 
-public class ExoPlayerService : MediaSessionService
+public partial class ExoPlayerService : MediaSessionService
 {
 
     // --- Components ---
@@ -146,28 +146,26 @@ public class ExoPlayerService : MediaSessionService
 
     public void RefreshNotification()
     {
-        // Re-setting the player forces the PlayerNotificationManager to redraw
-        _notifMgr.SetPlayer(null);
-        _notifMgr.SetPlayer(player);
+        _notifMgr?.Invalidate();
     }
     public void PrepareNext(SongModelView nextSong)
     {
         if (player == null) return;
 
         // 1. Convert SongModelView to MediaItem
-        var mediaItem = new MediaItem.Builder()
-            .SetUri(nextSong.FilePath)
-            .SetMediaId(nextSong.Id.ToString()) 
-            .SetMediaMetadata(new MediaMetadata.Builder()
-                .SetTitle(nextSong.Title)
-                .SetArtist(nextSong.ArtistName)
-                .SetAlbumTitle(nextSong.AlbumName)
-                .Build())
+        var mediaItem = new MediaItem.Builder()?
+            .SetUri(nextSong.FilePath)?
+            .SetMediaId(nextSong.Id.ToString()) ?
+            .SetMediaMetadata(new MediaMetadata.Builder()?
+                .SetTitle(nextSong.Title)?
+                .SetArtist(nextSong.ArtistName)?
+                .SetAlbumTitle(nextSong.AlbumName)?
+                .Build())?
             .Build();
 
 
-        int nextIndex = player.CurrentMediaItemIndex + 1;
-         player.AddMediaItem(nextIndex, mediaItem);
+        //int nextIndex = player.CurrentMediaItemIndex + 1;
+        // player.AddMediaItem(nextIndex, mediaItem);
 
         Console.WriteLine($"[ExoPlayerService] Queued next song: {nextSong.Title}");
     }
@@ -270,7 +268,7 @@ public class ExoPlayerService : MediaSessionService
         }
         return false;
     }
-
+    private bool _isPolling = false;
 
 
 
@@ -305,8 +303,6 @@ public class ExoPlayerService : MediaSessionService
                 
                 .Build();
 
-            //notificationPlayer = new QueueEnablingPlayerWrapper(player!);
-
 
             player?.AddListener(new PlayerEventListener(this));
 
@@ -338,8 +334,8 @@ public class ExoPlayerService : MediaSessionService
                 .SetSessionActivity(pendingIntent)!
                 .SetCallback(sessionCallback)!
                 .SetId("Dimmer_MediaSession_Main")!
-                .SetCommandButtonsForMediaItems(commandButtons: new List<CommandButton> { heartButton })
-                .SetMediaButtonPreferences(mediaButtonPreferences:new List<CommandButton> { heartButton })
+                //.SetCommandButtonsForMediaItems(commandButtons: new List<CommandButton> { heartButton })
+                //.SetMediaButtonPreferences(mediaButtonPreferences:new List<CommandButton> { heartButton })
     .SetCustomLayout(customLayout: new List<CommandButton> { heartButton})
                 .Build();
             
@@ -355,25 +351,25 @@ public class ExoPlayerService : MediaSessionService
 
             await InitializeMediaControllerAsync(); // Fire and forget, handle result in the async method
 
-            positionHandler = new Handler(Looper.MainLooper!);
-            positionRunnable = new Runnable(() =>
-            {
-                // This is the polling loop
-                if (player != null && player.IsPlaying)
-                {
-                    // Raise our event with the current position
-                    RaisePositionChanged(player.CurrentPosition);
-                    // Schedule the next check
-                    if (positionRunnable is null)
-                        return;
-                    positionHandler?.PostDelayed(positionRunnable, 1000); // Poll every 1 second
-                }
-            });
+            StartPositionPolling();
 
         }
         catch (Java.Lang.Throwable ex) { HandleInitError("JAVA INITIALIZATION", ex); StopSelf(); }
 
     }
+    private async void StartPositionPolling()
+    {
+        if (_isPolling) return;
+        _isPolling = true;
+
+        while (player != null && player.IsPlaying && _isPolling)
+        {
+            RaisePositionChanged(player.CurrentPosition);
+            await Task.Delay(1000);
+        }
+        _isPolling = false;
+    }
+
     private Handler? positionHandler;
     private Runnable? positionRunnable;
     private async Task InitializeMediaControllerAsync()
@@ -547,25 +543,35 @@ public class ExoPlayerService : MediaSessionService
 
     public override void OnDestroy()
     {
-        positionHandler?.RemoveCallbacksAndMessages(positionRunnable!);
+        // 1. Stop polling first
+        positionHandler?.RemoveCallbacksAndMessages(null);
         positionHandler = null;
 
-        mediaSession?.Release();
-        player?.Release();
-        mediaSession = null;
-        player = null;
-        sessionCallback = null; // Not strictly needed but good practice
+        // 2. Release Notification Manager (this detaches player safely)
+        if (_notifMgr != null)
+        {
+            _notifMgr.SetPlayer(null);
+            _notifMgr.Dispose();
+            _notifMgr = null;
+        }
+
+        // 3. Release Session
+        if (mediaSession != null)
+        {
+            mediaSession.Release();
+            mediaSession = null;
+        }
+
+        // 4. Release Player LAST
+        if (player != null)
+        {
+            player.Stop();
+            player.Release();
+            player = null;
+        }
+
         base.OnDestroy();
-
-
-        _positionRunnable?.Dispose(); // Dispose Runnable if needed
-
-
-        _notifMgr?.SetPlayer(null); // Detach player
-        _notifMgr?.Dispose();
-        _binder = null;
     }
-
     // --- Public Accessors ---
     public IExoPlayer? GetPlayerInstance()
     {
@@ -614,11 +620,26 @@ public class ExoPlayerService : MediaSessionService
         long startPositionMs = 0)
     {
 
+        if (player == null) return Task.CompletedTask;
+
+        CurrentSongContext = song;
+
+        if (player.CurrentMediaItem?.MediaId == song.Id.ToString())
+        {
+            //player.PlaybackState == IPlayer.StateEnded ||
+            Console.WriteLine(player.PlaybackState);
+
+            if ( !player.IsPlaying)
+            {
+                player.SeekTo(startPositionMs);
+                player.Play();
+            }
+            return Task.CompletedTask;
+        }
 
         try
         {
-            CurrentSongContext =song;
-            
+
             // Sync shuffle and repeat state from ViewModel
             var viewModel = MainApplication.ServiceProvider?.GetService<BaseViewModel>();
             if (viewModel != null)
@@ -645,20 +666,11 @@ public class ExoPlayerService : MediaSessionService
             .SetAlbumTitle(album)!
             .SetMediaType(new Java.Lang.Integer(MediaMetadata.MediaTypeMusic))! // Use Java Integer wrapper
             .SetGenre(genre)!
-            
+            .SetArtworkUri(string.IsNullOrEmpty(imagePath) ? null : Uri.FromFile(new Java.IO.File(imagePath)))
+
             .SetIsPlayable(Java.Lang.Boolean.True)!; // Use Java Boolean wrapper
 
-        if (!string.IsNullOrEmpty(imagePath) && File.Exists(imagePath))
-        {
-            try
-            {
-                metadataBuilder.SetArtworkUri(Uri.FromFile(new Java.IO.File(imagePath)));
-            }
-            catch (System.Exception ex)
-            {
-                Console.WriteLine($"[ExoPlayerService] Warning: Failed to set ArtworkUri from path '{imagePath}': {ex.Message}");
-            }
-        }
+
 
 
             currentMediaItem = new MediaItem.Builder()!
@@ -667,6 +679,7 @@ public class ExoPlayerService : MediaSessionService
                .SetMediaMetadata(metadataBuilder!.Build())!
                .Build();
 
+            player.SetMediaItem(currentMediaItem, startPositionMs);
 
             player.SetMediaItem(currentMediaItem, 0); // Set item and start position
             player.AddMediaItem(currentMediaItem);
@@ -674,22 +687,12 @@ public class ExoPlayerService : MediaSessionService
             player.Prepare();
 
             player.Play();
-            player.SeekTo(startPositionMs);
-            if (player.CurrentMediaItem is null || player.CurrentMediaItem.MediaMetadata is null)
-            {
-                return Task.CompletedTask;
-            }
-            var awDT = player.CurrentMediaItem.MediaMetadata.ArtworkUri;
-            var awDTT = player.CurrentMediaItem.MediaMetadata.ArtworkData;
-            if (awDT is not null && !string.IsNullOrEmpty(awDT.Path))
-            {
-                CurrentSongContext.CoverImagePath=awDT.Path;
-            }
-            else
-            {
-                //CurrentSongContext.CoverImagePath = string.Empty;
 
-            }
+            Console.WriteLine(player.AvailableCommands?.GetType());
+                return Task.CompletedTask;
+            
+           
+
         }
         catch (Java.Lang.Throwable jex) { HandleInitError("PreparePlay SetMediaItem/Prepare", jex); }
 
@@ -705,7 +708,6 @@ public class ExoPlayerService : MediaSessionService
 
     public void UpdateMediaSessionLayout()
     {
-        return;
         bool isFav = CurrentSongContext?.IsFavorite ?? false;
 
         var heartBtn = new CommandButton.Builder(CommandButton.IconUndefined)
@@ -736,6 +738,8 @@ public class ExoPlayerService : MediaSessionService
 
         var layout = new List<CommandButton> { heartBtn, shuffleBtn, repeatBtn };
         mediaSession?.SetCustomLayout((System.Collections.Generic.IList<CommandButton>)layout);
+
+        _notifMgr?.Invalidate();
     }
     // --- Player Event Listener ---
     sealed class PlayerEventListener : Object, IPlayerListener // Use specific IPlayer.Listener
@@ -782,6 +786,7 @@ public class ExoPlayerService : MediaSessionService
         }
         public void OnPlayerStateChanged(bool playWhenReady, int playbackState)
         {
+            Console.WriteLine("Current player playback state int "+playbackState);
         }
         public void OnPositionDiscontinuity(global::AndroidX.Media3.Common.PlayerPositionInfo? oldPosition, global::AndroidX.Media3.Common.PlayerPositionInfo? newPosition, int reason)
         {
@@ -832,15 +837,15 @@ public class ExoPlayerService : MediaSessionService
 
         public void OnIsPlayingChanged(bool isPlaying)
         {
+            service.RaiseIsPlayingChanged(isPlaying);
             if (isPlaying)
             {
-                // When playback starts, kick off the position polling runnable.
-                service.positionHandler?.Post(service.positionRunnable!);
+
+                service.StartPositionPolling();
             }
             else
             {
-                // When playback stops (pause or end), remove the callback to stop polling.
-                service.positionHandler?.RemoveCallbacks(service.positionRunnable!);
+                service._isPolling = false;
             }
 
             service.RaiseIsPlayingChanged(isPlaying);
@@ -987,33 +992,27 @@ public class ExoPlayerService : MediaSessionService
 
             //  .AddAllCommands()!
             //  .Build();
-            var accepted = new MediaSession.ConnectionResult.AcceptedResultBuilder(session!)
-                .SetAvailableSessionCommands(
-MediaSession.ConnectionResult.DefaultSessionCommands.BuildUpon()!
+            var sessionCommands = MediaSession.ConnectionResult.DefaultSessionCommands.BuildUpon()
+           .Add(ExoPlayerService.FavoriteSessionCommand)
+           .Add(new SessionCommand(ExoPlayerService.ActionShuffle, Bundle.Empty))
+           .Add(new SessionCommand(ExoPlayerService.ActionRepeat, Bundle.Empty))
+           .Build();
 
-.Add(ExoPlayerService.FavoriteSessionCommand)!
-                .Build())!;
-            var comms = session.Player.AvailableCommands;
-            if (comms != null) 
-            {
-                var isAv = session.Player.IsCommandAvailable(88);
-                var isAvs = session.Player.AvailableCommands.Size();
-                //foreach (var comm in )
-                //{
+            Console.WriteLine("Session command set?");
+            Console.WriteLine(sessionCommands?.GetType());
+            // Allow everything
+            MediaSession.ConnectionResult? e = new MediaSession.ConnectionResult.AcceptedResultBuilder(session!)
+                .SetAvailableSessionCommands(sessionCommands)
+                .Build();
 
-                //}
-            }
-            return accepted.
-                Build()!;
+            Console.WriteLine("ConnectionResult set?");
+            Console.WriteLine(e?.GetType());
+            return e;
         }
         public void OnPostConnect(MediaSession? session, MediaSession.ControllerInfo? controller)
         {
 
 
-            var commandsInSesssion = session.ConnectedControllers?.ToArray();
-            var commandsInSesssions = session.CustomLayout;
-            var commandsInSesssionsw = session.ControllerForCurrentRequest;
-            var commandsInSesssione = session.MediaButtonPreferences;
         }
 
         public void OnDisconnected(MediaSession? session, MediaSession.ControllerInfo? controller)
@@ -1192,9 +1191,11 @@ MediaSession.ConnectionResult.DefaultSessionCommands.BuildUpon()!
             switch (playerCommand)
             {
                 case 9:
+                case 8:
                     service.RaisePlayNextPressed();
                     return SessionResult.ResultSuccess;
 
+                case 6:
                 case 7:
                     service.RaisePlayPreviousPressed();
                     return SessionResult.ResultSuccess;
@@ -1250,204 +1251,14 @@ MediaSession.ConnectionResult.DefaultSessionCommands.BuildUpon()!
 
     }
 
-    //frowarding player to allow queueing
-    public class QueueEnablingPlayerWrapper : Java.Lang.Object, IPlayer
-    {
-        private readonly IPlayer _realPlayer;
 
-        public QueueEnablingPlayerWrapper(IPlayer realPlayer)
-        {
-            _realPlayer = realPlayer;
-        }
-
-
-        // Properties
-        public Looper? ApplicationLooper => _realPlayer.ApplicationLooper;
-        public AudioAttributes? AudioAttributes => _realPlayer.AudioAttributes;
-        public PlayerCommands? AvailableCommands
-        {
-            get
-            {
-                // 1. Get the commands the real ExoPlayer instance thinks it has.
-                var realCommands = _realPlayer.AvailableCommands;
-
-                // 2. Create a new builder based on the real commands.
-                var builder = new PlayerCommands.Builder();
-
-                builder.AddAll(realCommands);
-
-                // 3. Forcefully add the commands for Next and Previous,
-                //    because WE know how to handle them in our app.
-                //builder.Add(_realPlayer.);
-                //builder.Add(IPlayer.CommandSeekToPrevious);
-                // You can also use CommandSeekToNextMediaItem if you prefer
-                 //builder.Add(_realPlayer.seekton); 
-                // builder.Add(IPlayer.CommandSeekToPreviousMediaItem);
-
-                // 4. Build and return the new, augmented set of commands.
-                return builder.Build();
-            }
-        }
-        public int BufferedPercentage => _realPlayer.BufferedPercentage;
-        public long BufferedPosition => _realPlayer.BufferedPosition;
-        public long ContentBufferedPosition => _realPlayer.ContentBufferedPosition;
-        public long ContentDuration => _realPlayer.ContentDuration;
-        public long ContentPosition => _realPlayer.ContentPosition;
-        public int CurrentAdGroupIndex => _realPlayer.CurrentAdGroupIndex;
-        public int CurrentAdIndexInAdGroup => _realPlayer.CurrentAdIndexInAdGroup;
-        public CueGroup? CurrentCues => _realPlayer.CurrentCues;
-        public long CurrentLiveOffset => _realPlayer.CurrentLiveOffset;
-        public Java.Lang.Object? CurrentManifest => _realPlayer.CurrentManifest;
-        public MediaItem? CurrentMediaItem => _realPlayer.CurrentMediaItem;
-        public int CurrentMediaItemIndex => _realPlayer.CurrentMediaItemIndex;
-        public int CurrentPeriodIndex => _realPlayer.CurrentPeriodIndex;
-        public long CurrentPosition => _realPlayer.CurrentPosition;
-        public Timeline? CurrentTimeline => _realPlayer.CurrentTimeline;
-        public Tracks? CurrentTracks => _realPlayer.CurrentTracks;
-        [System.Obsolete] public int CurrentWindowIndex => _realPlayer.CurrentWindowIndex;
-        public DeviceInfo? DeviceInfo => _realPlayer.DeviceInfo;
-        public bool IsDeviceMuted { get => _realPlayer.DeviceMuted; set => _realPlayer.DeviceMuted = value; }
-        public int DeviceVolume { get => _realPlayer.DeviceVolume; set => _realPlayer.DeviceVolume = value; }
-        public long Duration => _realPlayer.Duration;
-        //[System.Obsolete] public bool HasNext => _realPlayer.HasNext;
-        //[System.Obsolete] public bool HasNextWindow => _realPlayer.HasNextWindow;
-        public bool IsCurrentMediaItemDynamic => _realPlayer.IsCurrentMediaItemDynamic;
-        public bool IsCurrentMediaItemLive => _realPlayer.IsCurrentMediaItemLive;
-        public bool IsCurrentMediaItemSeekable => _realPlayer.IsCurrentMediaItemSeekable;
-        [System.Obsolete] public bool IsCurrentWindowDynamic => _realPlayer.IsCurrentWindowDynamic;
-        [System.Obsolete] public bool IsCurrentWindowLive => _realPlayer.IsCurrentWindowLive;
-        [System.Obsolete] public bool IsCurrentWindowSeekable => _realPlayer.IsCurrentWindowSeekable;
-        public bool IsLoading => _realPlayer.IsLoading;
-        public bool IsPlaying => _realPlayer.IsPlaying;
-        public bool IsPlayingAd => _realPlayer.IsPlayingAd;
-        public long MaxSeekToPreviousPosition => _realPlayer.MaxSeekToPreviousPosition;
-        public int MediaItemCount => _realPlayer.MediaItemCount;
-        public MediaMetadata? MediaMetadata => _realPlayer.MediaMetadata;
-        public int NextMediaItemIndex => _realPlayer.NextMediaItemIndex;
-        [System.Obsolete] public int NextWindowIndex => _realPlayer.NextWindowIndex;
-        public bool PlayWhenReady { get => _realPlayer.PlayWhenReady; set => _realPlayer.PlayWhenReady = value; }
-        public PlaybackParameters? PlaybackParameters { get => _realPlayer.PlaybackParameters; set => _realPlayer.PlaybackParameters = value; }
-        public int PlaybackState => _realPlayer.PlaybackState;
-        public int PlaybackSuppressionReason => _realPlayer.PlaybackSuppressionReason;
-        public PlaybackException? PlayerError => _realPlayer.PlayerError;
-        public MediaMetadata? PlaylistMetadata { get => _realPlayer.PlaylistMetadata; set => _realPlayer.PlaylistMetadata = value; }
-        public int PreviousMediaItemIndex => _realPlayer.PreviousMediaItemIndex;
-        [System.Obsolete] public int PreviousWindowIndex => _realPlayer.PreviousWindowIndex;
-        public int RepeatMode { get => _realPlayer.RepeatMode; set => _realPlayer.RepeatMode = value; }
-        public long SeekBackIncrement => _realPlayer.SeekBackIncrement;
-        public long SeekForwardIncrement => _realPlayer.SeekForwardIncrement;
-        public bool ShuffleModeEnabled { get => _realPlayer.ShuffleModeEnabled; set => _realPlayer.ShuffleModeEnabled = value; }
-        public AndroidX.Media3.Common.Util.Size? SurfaceSize => _realPlayer.SurfaceSize;
-        public long TotalBufferedDuration => _realPlayer.TotalBufferedDuration;
-        public TrackSelectionParameters? TrackSelectionParameters { get => _realPlayer.TrackSelectionParameters; set => _realPlayer.TrackSelectionParameters = value; }
-        public VideoSize? VideoSize => _realPlayer.VideoSize;
-        public float Volume
-        {
-            get => _realPlayer.Volume;
-            set
-            {
-                _realPlayer.Volume = value;
-            }
-        }
-        public bool DeviceMuted
-        {
-            get => _realPlayer.DeviceMuted;
-            set => _realPlayer.DeviceMuted = value;
-        }
-
-        bool IPlayer.HasNextMediaItem => true;
-
-        bool IPlayer.HasPreviousMediaItem => true;
-
-        public bool HasNextMediaItem() => true;
-
-
-        public bool HasPreviousMediaItem() => true;
-
-
-        public bool IsCommandAvailable(int command)
-        {
-            return _realPlayer.IsCommandAvailable(command);
-        }
-
-        public void AddListener(IPlayerListener? listener) => _realPlayer.AddListener(listener);
-        public void AddMediaItem(MediaItem? item) => _realPlayer.AddMediaItem(item);
-        public void AddMediaItem(int index, MediaItem? item) => _realPlayer.AddMediaItem(index, item);
-        public void AddMediaItems(int index, IList<MediaItem>? mediaItems) => _realPlayer.AddMediaItems(index, mediaItems);
-        public void AddMediaItems(IList<MediaItem>? mediaItems) => _realPlayer.AddMediaItems(mediaItems);
-        public bool CanAdvertiseSession() => _realPlayer.CanAdvertiseSession();
-        public void ClearMediaItems() => _realPlayer.ClearMediaItems();
-        public void ClearVideoSurface() => _realPlayer.ClearVideoSurface();
-        public void ClearVideoSurface(Surface? surface) => _realPlayer.ClearVideoSurface(surface);
-        public void ClearVideoSurfaceHolder(ISurfaceHolder? surfaceHolder) => _realPlayer.ClearVideoSurfaceHolder(surfaceHolder);
-        public void ClearVideoSurfaceView(SurfaceView? surfaceView) => _realPlayer.ClearVideoSurfaceView(surfaceView);
-        public void ClearVideoTextureView(TextureView? textureView) => _realPlayer.ClearVideoTextureView(textureView);
-        [System.Obsolete] public void DecreaseDeviceVolume() => _realPlayer.DecreaseDeviceVolume();
-        public void DecreaseDeviceVolume(int flags) => _realPlayer.DecreaseDeviceVolume(flags);
-        public MediaItem? GetMediaItemAt(int index) => _realPlayer.GetMediaItemAt(index);
-        [System.Obsolete] public void IncreaseDeviceVolume() => _realPlayer.IncreaseDeviceVolume();
-        public void IncreaseDeviceVolume(int flags) => _realPlayer.IncreaseDeviceVolume(flags);
-
-
-        public void MoveMediaItem(int currentIndex, int newIndex) => _realPlayer.MoveMediaItem(currentIndex, newIndex);
-        public void MoveMediaItems(int fromIndex, int toIndex, int newIndex) => _realPlayer.MoveMediaItems(fromIndex, toIndex, newIndex);
-        //[System.Obsolete] public void Next() => _realPlayer.Next();
-        public void Pause() => _realPlayer.Pause();
-        public void Play() => _realPlayer.Play();
-        public void Prepare() => _realPlayer.Prepare();
-        public void Release() => _realPlayer.Release();
-        public void RemoveListener(IPlayerListener? listener) => _realPlayer.RemoveListener(listener);
-        public void RemoveMediaItem(int index) => _realPlayer.RemoveMediaItem(index);
-        public void RemoveMediaItems(int fromIndex, int toIndex) => _realPlayer.RemoveMediaItems(fromIndex, toIndex);
-        public void ReplaceMediaItem(int index, MediaItem? mediaItem) => _realPlayer.ReplaceMediaItem(index, mediaItem);
-        public void ReplaceMediaItems(int fromIndex, int toIndex, IList<MediaItem>? mediaItems) => _realPlayer.ReplaceMediaItems(fromIndex, toIndex, mediaItems);
-        public void SeekBack() => _realPlayer.SeekBack();
-        public void SeekForward() => _realPlayer.SeekForward();
-        public void SeekTo(int mediaItemIndex, long positionMs) => _realPlayer.SeekTo(mediaItemIndex, positionMs);
-        public void SeekTo(long positionMs) => _realPlayer.SeekTo(positionMs);
-        public void SeekToDefaultPosition() => _realPlayer.SeekToDefaultPosition();
-        public void SeekToDefaultPosition(int mediaItemIndex) => _realPlayer.SeekToDefaultPosition(mediaItemIndex);
-        public void SeekToNext() => _realPlayer.SeekToNext();
-        public void SeekToNextMediaItem() => _realPlayer.SeekToNextMediaItem();
-        //[System.Obsolete] public void SeekToNextWindow() => _realPlayer.SeekToNextWindow();
-        public void SeekToPrevious() => _realPlayer.SeekToPrevious();
-        public void SeekToPreviousMediaItem() => _realPlayer.SeekToPreviousMediaItem();
-        //[System.Obsolete] public void SeekToPreviousWindow() => _realPlayer.SeekToPreviousWindow();
-        public void SetAudioAttributes(AudioAttributes? attrs, bool handleAudioFocus) => _realPlayer.SetAudioAttributes(attrs, handleAudioFocus);
-        //[System.Obsolete] public void SetDeviceMuted(bool muted) => _realPlayer.SetDeviceMuted(muted);
-        public void SetDeviceMuted(bool muted, int flags) => _realPlayer.SetDeviceMuted(muted, flags);
-        //[System.Obsolete] public void SetDeviceVolume(int volume) => _realPlayer.SetDeviceVolume(volume);
-        public void SetDeviceVolume(int volume, int flags) => _realPlayer.SetDeviceVolume(volume, flags);
-        public void SetMediaItem(MediaItem? item) => _realPlayer.SetMediaItem(item);
-        public void SetMediaItem(MediaItem? item, bool resetPosition) => _realPlayer.SetMediaItem(item, resetPosition);
-        public void SetMediaItem(MediaItem? item, long startPositionMs) => _realPlayer.SetMediaItem(item, startPositionMs);
-        public void SetMediaItems(IList<MediaItem>? mediaItems) => _realPlayer.SetMediaItems(mediaItems);
-        public void SetMediaItems(IList<MediaItem>? mediaItems, bool resetPosition) => _realPlayer.SetMediaItems(mediaItems, resetPosition);
-        public void SetMediaItems(IList<MediaItem>? mediaItems, int startIndex, long startPositionMs) => _realPlayer.SetMediaItems(mediaItems, startIndex, startPositionMs);
-        public void SetPlaybackSpeed(float speed) => _realPlayer.SetPlaybackSpeed(speed);
-        public void SetVideoSurface(Surface? surface) => _realPlayer.SetVideoSurface(surface);
-        public void SetVideoSurfaceHolder(ISurfaceHolder? surfaceHolder) => _realPlayer.SetVideoSurfaceHolder(surfaceHolder);
-        public void SetVideoSurfaceView(SurfaceView? surfaceView) => _realPlayer.SetVideoSurfaceView(surfaceView);
-        public void SetVideoTextureView(TextureView? textureView) => _realPlayer.SetVideoTextureView(textureView);
-        public void Stop() => _realPlayer.Stop();
-
-        public void Mute()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Unmute()
-        {
-            throw new NotImplementedException();
-        }
-    }
 } // End ExoPlayerService class
 
 
 
 
 
-public class ExoPlayerServiceBinder : Binder
+public partial class ExoPlayerServiceBinder : Binder
 {
     public ExoPlayerService Service { get; }
 

@@ -98,9 +98,10 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     {
         _currentSongModel = songModel;
         // Tell the native service to prepare the track.
+        var finalSongTitle = songModel.IsFavorite ? "❤️ " + songModel.Title : songModel.Title;
         var finalArtName = songModel.HasSyncedLyrics ? "🎙️ " + songModel.OtherArtistsName : songModel.OtherArtistsName;
         long positionMs = (long)(pos * 1000.0);
-        Service?.Prepare(songModel.FilePath, songModel.Title, finalArtName, songModel.AlbumName, songModel,startPositionMs: positionMs);
+        Service?.Prepare(songModel.FilePath, finalSongTitle, finalArtName, songModel.AlbumName, songModel,startPositionMs: positionMs);
 
         return Task.CompletedTask;
     }

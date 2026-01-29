@@ -40,10 +40,10 @@ public partial class AllDimsFragment : Fragment
         _eventsRecycler.SetLayoutManager(new LinearLayoutManager(ctx));
         _eventsRecycler.LayoutParameters = new LinearLayout.LayoutParams(-1, -1);
 
-        _adapter = new PlayEventAdapter(ctx, MyViewModel, this);
-        _eventsRecycler.SetAdapter(_adapter);
-        _eventsRecycler.AddOnScrollListener(new HistoryScrollListener(MyViewModel));
-        root.AddView(_eventsRecycler);
+        //_adapter = new PlayEventAdapter(ctx, MyViewModel, this);
+        //_eventsRecycler.SetAdapter(_adapter);
+        //_eventsRecycler.AddOnScrollListener(new HistoryScrollListener(MyViewModel));
+        //root.AddView(_eventsRecycler);
         return root;
     }
 }

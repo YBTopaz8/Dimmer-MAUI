@@ -1,4 +1,5 @@
 ﻿
+
 namespace Dimmer.DimmerSearch;
 public static class TQlStaticMethods
 {
@@ -70,5 +71,10 @@ public static class TQlStaticMethods
         /// Gets 50 random favorite songs.
         /// </summary>
         public static string RandomFavorites() => "fav:true random 50";
+
+        public static string ShowMyFav()
+        {
+            return $"my fav";
+        }
     }
 }

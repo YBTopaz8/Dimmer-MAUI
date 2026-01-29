@@ -23,7 +23,13 @@ public class BluetoothDataPackage
 public class FullBackupData
 {
     public UserModelView User { get; set; }
-    public List<DimmerPlayEventView> PlayEvents { get; set; }
+    public AppStateModelView AppState { get; set; }
+
+    public List<string?>? PlayBackSongTitleAndDurationId { get; set; }
+    public List<string?>? FavoriteSongsTitleAndDurationId { get; set; }
+
+    
+    
 }
 
 public interface IBluetoothService

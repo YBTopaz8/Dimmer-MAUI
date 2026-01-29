@@ -11,7 +11,7 @@ namespace Dimmer.NativeServices;
 public class AndroidBluetoothService : IBluetoothService
 {
     // A unique UUID for your app. Must match on Windows.
-    private static readonly UUID MyServiceUuid = UUID.FromString("00001101-0000-1000-8000-00805F9B34FB");
+    private static readonly UUID MyServiceUuid = UUID.FromString("00001101-1899-1000-8000-00805F9B34FB");
 
     private BluetoothAdapter? _adapter;
     private BluetoothSocket? _socket;
@@ -26,13 +26,13 @@ public class AndroidBluetoothService : IBluetoothService
         _adapter = BluetoothAdapter.DefaultAdapter;
     }
 
-    public Task<List<string>> GetPairedDevicesAsync()
+    public Task<List<string?>?> GetPairedDevicesAsync()
     {
         if (_adapter == null || !_adapter.IsEnabled) return Task.FromResult(new List<string>());
 
         // Note: You need permissions check here in real code
         var devices = _adapter.BondedDevices;
-        return Task.FromResult(devices.Select(d => d.Name).ToList());
+        return Task.FromResult(devices?.Select(d => d.Name).ToList());
     }
 
     public Task StartServerAsync()

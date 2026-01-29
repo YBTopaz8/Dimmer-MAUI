@@ -246,7 +246,7 @@ public sealed partial class SongDetailPage : Page
                 .FirstOrDefaultNullSafe(a => a.Name == DetailedSong.ArtistToSong.First()!.Name);
 
                   
-            await MyViewModel.SetSelectedArtist(dbArtist.ToArtistModelView());
+             MyViewModel.SetSelectedArtist(dbArtist.ToArtistModelView());
 
 
             FrameNavigationOptions navigationOptions = new FrameNavigationOptions

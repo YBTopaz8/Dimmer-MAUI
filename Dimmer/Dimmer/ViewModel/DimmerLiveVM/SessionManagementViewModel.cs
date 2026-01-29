@@ -7,6 +7,8 @@ namespace Dimmer.ViewModel;
 public partial class SessionManagementViewModel : ObservableObject, IDisposable
 {
     private readonly ILiveSessionManagerService _sessionManager;
+    
+
     public ILiveSessionManagerService SessionManager => _sessionManager;
     public LoginViewModel LoginViewModel;
     private BaseViewModel _mainViewModel; // To get current song state
@@ -34,6 +36,7 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
 
     public SessionManagementViewModel(LoginViewModel loginViewModel,
         ILiveSessionManagerService sessionManager,
+      
         ILogger<SessionManagementViewModel> logger,
         BaseViewModel mainViewModel)
     {
@@ -300,4 +303,6 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
         if (parseUser == null) return;
         LoginViewModel.CurrentUserOnline = parseUser;
     }
+
+    
 }

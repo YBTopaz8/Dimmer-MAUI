@@ -39,13 +39,49 @@ public class SongDetailFragment : Fragment , IOnBackInvokedCallback
 
     public void OnBackInvoked()
     {
+        TransitionActivity myAct = Activity as TransitionActivity;
+        myAct?.HandleBackPressInternal();
+        //myAct.MoveTaskToBack
+    }
+    public override void OnResume()
+    {
+        base.OnResume();
+
         if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu)
         {
             Activity?.OnBackInvokedDispatcher.RegisterOnBackInvokedCallback(
                 (int)IOnBackInvokedDispatcher.PriorityDefault, this);
         }
     }
+    public override void OnViewCreated(View view, Bundle? savedInstanceState)
+    {
+        base.OnViewCreated(view, savedInstanceState);
 
+        PostponeEnterTransition();
+
+        if (!string.IsNullOrEmpty(_song?.CoverImagePath))
+            Glide.With(this).Load(_song.CoverImagePath).Into(_heroImage);
+
+
+        view.ViewTreeObserver?.AddOnPreDrawListener(new OnPreDrawListenerImpl(view, this));
+
+    }
+    class OnPreDrawListenerImpl : Java.Lang.Object, ViewTreeObserver.IOnPreDrawListener
+    {
+        private readonly View _fragmentView;
+        private readonly Fragment _parentFragment;
+        public OnPreDrawListenerImpl(View fragmentView, Fragment parentFragment)
+        {
+            _fragmentView = fragmentView;
+            _parentFragment = parentFragment;
+        }
+        public bool OnPreDraw()
+        {
+            _fragmentView.ViewTreeObserver?.RemoveOnPreDrawListener(this);
+            _parentFragment.StartPostponedEnterTransition();
+            return true;
+        }
+    }
     public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         var ctx = Context;
@@ -90,9 +126,7 @@ public class SongDetailFragment : Fragment , IOnBackInvokedCallback
         }
         _collapsingToolbar.AddView(_heroImage, imgParams);
 
-        if (!string.IsNullOrEmpty(_song?.CoverImagePath))
-            Glide.With(this).Load(_song.CoverImagePath).Into(_heroImage);
-
+       
         // Toolbar (Back Button)
         var toolbar = new Google.Android.Material.AppBar.MaterialToolbar(ctx);
         var toolbarParams = new CollapsingToolbarLayout.LayoutParams(-1, AppUtil.DpToPx(56))
@@ -137,7 +171,8 @@ public class SongDetailFragment : Fragment , IOnBackInvokedCallback
         );
 
         contentLinear.AddView(_tabLayout);
-        contentLinear.AddView(_viewPager);
+        contentLinear.AddView(_viewPager)
+            ;
         root.AddView(contentLinear);
 
         // --- 3. Logic Wiring ---
@@ -196,15 +231,25 @@ public class SongDetailFragment : Fragment , IOnBackInvokedCallback
         private BaseViewModelAnd _vm;
         public SongDetailPagerAdapter(Fragment f, BaseViewModelAnd vm) : base(f) { _vm = vm; }
         public override int ItemCount => 4;
-        public override Fragment CreateFragment(int position) => position switch
+        public override Fragment CreateFragment(int position)
         {
-            0 => new SongOverviewFragment(_vm),
-            1 => new DownloadLyricsFragment(_vm),
-            //1 => new LyricsEditorFragment(_vm,_vm.SelectedSong!),
-            2 => new SongPlayHistoryFragment(_vm), 
-            3 => new SongRelatedFragment(_vm), 
-            _ => new Fragment()
-        };
+            switch (position)
+            {
+                //case 0:
 
+                //    return new SingleBigCardOverViewFragment(_vm);
+                case 0:
+                    return new SongOverviewFragment(_vm);
+                case 1:
+                    return new DownloadLyricsFragment(_vm);
+                case 2:
+                    return new SongPlayHistoryFragment(_vm);
+                case 3:
+                    return new SongRelatedFragment(_vm);
+                default:
+                    return new SongOverviewFragment(_vm);
+            }
+           
+        }
     }
 }

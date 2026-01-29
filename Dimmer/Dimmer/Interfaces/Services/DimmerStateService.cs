@@ -309,7 +309,7 @@ public partial class DimmerStateService : IDimmerStateService
     {
 
         
-        var _realm = _realmFactory.GetRealmLogInstance();
+        var _realm = _realmFactory.GetLogRInstance();
         // Extract class name from file path (e.g., .../SongDataProcessor.cs -> SongDataProcessor)
         var className = Path.GetFileNameWithoutExtension(filePath);
 

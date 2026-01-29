@@ -8,7 +8,7 @@ namespace Dimmer.Data;
 public interface IRealmFactory
 {
     Realm GetRealmInstance();
-    Realm? GetRealmLogInstance();
+    Realm? GetLogRInstance();
 }
 
 public class RealmFactory : IRealmFactory
@@ -64,7 +64,7 @@ public class RealmFactory : IRealmFactory
         return Realm.GetInstance(_config);
     }
 
-    public Realm? GetRealmLogInstance()
+    public Realm? GetLogRInstance()
     {
         return Realm.GetInstance(_logConfig);
     }

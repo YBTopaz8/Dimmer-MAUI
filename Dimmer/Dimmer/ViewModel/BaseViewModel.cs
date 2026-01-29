@@ -1674,7 +1674,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial string AppTitle { get; set; } = "Dimmer";
 
-    public static string CurrentAppVersion = "1.6.2";
+    public static string CurrentAppVersion = "1.7.2";
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]
@@ -2642,6 +2642,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             StatesMapper.Map(DimmerPlaybackState.Playing),
             0);
         await UpdateSongSpecificUi(CurrentPlayingSongView);
+        Debug.WriteLine("PLAYSTARTED "+args.MediaSong.Title);
+        Debug.WriteLine("PLAYSTARTED "+args.MediaSong.ArtistName);
     }
     #endregion
 
@@ -4341,13 +4343,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public void DecreaseVolumeLevel() { SetVolumeLevel(DeviceVolumeLevel - 0.05); }
 
 
-    public async Task SetSelectedArtist(ArtistModelView? artist)
+    public void SetSelectedArtist(ArtistModelView? artist)
     {
         if(artist is null)
         {
             return;
-        }
-
+        };
         SelectedArtist = artist;
        
     }

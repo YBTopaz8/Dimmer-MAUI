@@ -1,10 +1,12 @@
 ﻿
 
+using Dimmer.WinUI.NativeServices;
 using Dimmer.WinUI.ViewModel.DimmerLiveWin;
 using Dimmer.WinUI.Views.WinuiPages.Achievements;
 using Dimmer.WinUI.Views.WinuiPages.DimmerLive;
 using Dimmer.WinUI.Views.WinuiPages.LastFMSection;
 using Dimmer.WinUI.Views.WinuiPages.SingleSongPage;
+using Microsoft.Maui.Handlers;
 
 namespace Dimmer.WinUI;
 
@@ -42,6 +44,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<DimmerWin>();
         builder.Services.AddSingleton<SettingsViewModelWin>();
 
+        builder.Services.AddSingleton<BluetoothServiceClient>();
 
 
         builder.Services.AddScoped<IAppUtil, AppUtil>();

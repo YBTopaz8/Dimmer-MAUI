@@ -354,7 +354,7 @@ public sealed partial class AllDimsView : Page
 
                         var nativeElementMenuFlyout = (Microsoft.UI.Xaml.UIElement)obj;
                         
-                        await MyViewModel.SetSelectedArtist(selectedArtist);
+                         MyViewModel.SetSelectedArtist(selectedArtist);
 
 
                         FrameNavigationOptions navigationOptions = new FrameNavigationOptions
@@ -390,7 +390,7 @@ public sealed partial class AllDimsView : Page
                         .Find<SongModel>(songModelView.Id)?.ArtistToSong.First()
                         .ToArtistModelView();
                         if (selectedArtist is null) return;
-                        await MyViewModel.SetSelectedArtist(selectedArtist);
+                         MyViewModel.SetSelectedArtist(selectedArtist);
 
 
                         FrameNavigationOptions navigationOptions = new FrameNavigationOptions

@@ -1,5 +1,6 @@
 ﻿using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
+using System.Threading.Tasks;
 using AndroidX.AppCompat.Widget;
 using AndroidX.Core.Content;
 using AndroidX.Core.View;
@@ -11,7 +12,7 @@ using Dimmer.UiUtils;
 using Dimmer.Utilities;
 using Dimmer.Utils.Extensions;
 using Dimmer.ViewsAndPages.NativeViews.Misc;
-
+using DynamicData;
 using Google.Android.Material.Chip;
 using Google.Android.Material.ProgressIndicator;
 using Google.Android.Material.Tooltip;
@@ -68,6 +69,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
     public CardView formatCard { get; private set; }
     public TextView formatViewText { get; private set; }
     public Button infoPill { get; private set; }
+    public TextView SelectedAudioTextView { get; private set; }
 
     public NowPlayingFragment()
     {
@@ -191,7 +193,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         _miniArtist.LongClick += (s, e) =>
         {
 
-            var artistPickBtmSheet = new ArtistPickerBottomSheet(MyViewModel, MyViewModel.CurrentPlayingSongView.OtherArtistsName);
+            var artistPickBtmSheet = new ArtistPickerBottomSheet(MyViewModel, MyViewModel.CurrentPlayingSongView.ArtistsInDB(MyViewModel.RealmFactory));
 
             artistPickBtmSheet.Show(this.ParentFragmentManager, "QueueSheet");
         };
@@ -224,7 +226,12 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
 
 
         };
+        _miniTitle.Click += (sender, e) =>
+        {
 
+            TransitionActivity act = this.Activity as TransitionActivity;
+            act.TogglePlayer();
+        };
         textStack.AddView(_miniTitle);
         textStack.AddView(_currentMiniLyricText);
         textStack.AddView(_miniArtist);
@@ -239,6 +246,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         {
             await MyViewModel.PlayPauseToggleAsync();
         };
+        _miniPlayBtn.IconSize = AppUtil.DpToPx(20);
         _miniPlayBtn.StrokeWidth = 0;
        
         _skipPrevBtn = CreateControlButton(ctx, Resource.Drawable.media3_icon_previous, AppUtil.DpToPx(50));
@@ -322,7 +330,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         
         carouselFrame.SetBackgroundColor(Color.Transparent);
         carouselFrame.StrokeWidth = 0;
-        var LL = new LinearLayout.LayoutParams(-1, AppUtil.DpToPx(520));
+        var LL = new LinearLayout.LayoutParams(-1, AppUtil.DpToPx(400));
 
         var carouselParams = LL;
         carouselParams.SetMargins(0, 30, 0, 10);
@@ -384,7 +392,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
 
      
         _artistChipGroup = new ChipGroup(context: ctx) { SingleLine = true };
-        
+        artistActionRow.AddView(_artistChipGroup);
         root.AddView(artistActionRow);
 
         // --- D. Progress Slider ---
@@ -392,7 +400,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         timeLay.SetPadding(0, 20, 0, 0);
         _currentTimeText = new TextView(ctx) { Text = "0:00", TextSize = 12 };
         _totalTimeText = new TextView(ctx) { Text = "0:00", TextSize = 12, Gravity = GravityFlags.End };
-
+        
         timeLay.AddView(_currentTimeText, new LinearLayout.LayoutParams(0, -2, 1));
         timeLay.AddView(_totalTimeText, new LinearLayout.LayoutParams(0, -2, 1));
         root.AddView(timeLay);
@@ -452,10 +460,20 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         };
 
 
-        volumeRow.AddView(volDownIcon, new LinearLayout.LayoutParams(AppUtil.DpToPx(24), AppUtil.DpToPx(24)));
-        volumeRow.AddView(_volumeSlider, new LinearLayout.LayoutParams(0, -2, 1f)); // Stretch slider
-        volumeRow.AddView(volUpIcon, new LinearLayout.LayoutParams(AppUtil.DpToPx(24), AppUtil.DpToPx(24)));
+        SelectedAudioTextView = new TextView(ctx);
+        SelectedAudioTextView.Text = MyViewModel.SelectedAudioDevice?.Name;
+        SelectedAudioTextView.Click += (s, e) =>
+        {
+            var dialog = ShowDifferentAudioDevicesDialog();
+            
 
+            dialog.Show();
+        };
+        //volumeRow.AddView(_volumeSlider, new LinearLayout.LayoutParams(0, -2, 1f)); // Stretch slider
+        //volumeRow.AddView(volUpIcon, new LinearLayout.LayoutParams(AppUtil.DpToPx(24), AppUtil.DpToPx(24)));
+
+        volumeRow.AddView(volDownIcon, new LinearLayout.LayoutParams(AppUtil.DpToPx(24), AppUtil.DpToPx(24)));
+        volumeRow.AddView(SelectedAudioTextView, new LinearLayout.LayoutParams(AppUtil.DpToPx(24), AppUtil.DpToPx(24)));
         root.AddView(volumeRow);
 
 
@@ -497,49 +515,35 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         // 2. Share Pill
         _loveBtn = CreatePillButton(ctx, "Love", Resource.Drawable.favlove);
         _loveBtn.Checkable = true;
-        _loveBtn.Click += (s, e) =>
+        _loveBtn.Click += async (s, e) =>
         {
             if (!_loveBtn.Checked)
             {
+                await MyViewModel.AddFavoriteRatingToSong(MyViewModel.CurrentPlayingSongView);
                 _loveBtn.Checked = true;
+                _loveBtn.PerformHapticFeedback(FeedbackConstants.Confirm);
             }
         };
         _loveBtn.LongClickable = true;
-        _loveBtn.LongClick += (sender, e) =>
+        _loveBtn.LongClick += async (sender, e) =>
         {
 
             if (_loveBtn.Checked)
             {
+                await MyViewModel.RemoveSongFromFavorite(MyViewModel.CurrentPlayingSongView);
                 _loveBtn.Checked = false;
                 _loveBtn.PerformHapticFeedback(FeedbackConstants.Reject);
             }
         };
 
-        _loveBtn.CheckedChange += async (s, e) =>
+        _loveBtn.CheckedChange +=  (s, e) =>
         {
             var btn = e.P0;
             var isChecked = e.P1;
-            int[] loc = new int[2];
-            _loveBtn.GetLocationOnScreen(loc);
-            if(isChecked)
-            {
-                _loveBtn.Text = "UnLove";
-                _loveBtn.SetIconResource(Resource.Drawable.heartlock);
-                _loveBtn.SetBackgroundColor(Color.DarkSlateBlue);
-                _loveBtn.PerformHapticFeedback(FeedbackConstants.Confirm);
-                await MyViewModel.RemoveSongFromFavorite(MyViewModel.CurrentPlayingSongView);
-              
-            }
-            else
-            {
+            
 
-                _loveBtn.Text = "Love";
-                _loveBtn.SetIconResource(Resource.Drawable.heart);
-                _loveBtn.SetBackgroundColor(Color.Gray);
-               await MyViewModel.AddFavoriteRatingToSong(MyViewModel.CurrentPlayingSongView);
-                _loveBtn.PerformHapticFeedback(FeedbackConstants.Reject);
+             UpdateLoveBtnUI(isChecked);
 
-            }
         };
 
 
@@ -712,24 +716,48 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         return scroll;
     }
 
-  
-
-    private bool SplashToPink(int[] loc)
+    private void UpdateLoveBtnUI(bool isChecked)
     {
-        _rootView.SetBackgroundColor(Color.HotPink);
-        float finalRadius = (float)Math.Sqrt(_rootView.Width * _rootView.Width +
-            _rootView.Height * _rootView.Height);
-        var anim = ViewAnimationUtils.CreateCircularReveal(_rootView,
-            loc[0] + _loveBtn.Width / 2,
-            loc[1] + _loveBtn.Height / 2, 0f,
-            finalRadius);
-        
-        if (anim is null) return false;
-        anim.SetDuration(550);
-        anim.Start();
-        return true;
+        if (isChecked)
+        {
+            _loveBtn.Text = "UnLove";
+            _loveBtn.SetIconResource(Resource.Drawable.heartlock);
+            _loveBtn.SetBackgroundColor(Color.DarkSlateBlue);
+            
+        }
+        else
+        {
+
+            _loveBtn.Text = "Love";
+            _loveBtn.SetIconResource(Resource.Drawable.heart);
+            _loveBtn.SetBackgroundColor(Color.Gray);
+           
+        }
     }
 
+    public MaterialAlertDialogBuilder ShowDifferentAudioDevicesDialog()
+    {
+        var builder = new MaterialAlertDialogBuilder(Activity);
+        builder.SetTitle("Select Audio Device");
+
+        var albumNamesArray = MyViewModel.AudioDevices.Select(x=>x.Name).ToArray();
+        int currentIndex = MyViewModel.AudioDevices.IndexOf(MyViewModel.SelectedAudioDevice);
+        builder.SetSingleChoiceItems(albumNamesArray, currentIndex, async (sender, args) =>
+        {
+            // Handle album selection
+            var selectedDeviceName = albumNamesArray.ElementAt(args.Which);
+            var selDev = MyViewModel.AudioDevices.First(x => x.Name == selectedDeviceName);
+            MyViewModel.SetPreferredAudioDevice(selDev);
+            
+            
+        });
+        builder.SetNegativeButton("Cancel", (sender, args) =>
+        {
+            //Dismiss();
+        })
+           .Create();
+        return builder;
+    }
     private bool UnSplashToButton(int[] loc)
     {
         float finalRadius = (float)Math.Sqrt(_rootView.Width * _rootView.Width +
@@ -804,39 +832,37 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
                 (int)IOnBackInvokedDispatcher.PriorityDefault, this);
         }
 
-
-
-            // 1. Observe Playing Song
-            MyViewModel.CurrentSongChanged
+        MyViewModel.WhenPropertyChange
+            (nameof(MyViewModel.CurrentPlayingSongView), s => MyViewModel.CurrentPlayingSongView)
             .ObserveOn(RxSchedulers.UI)
-            .Subscribe(async s =>
+            .Subscribe(song =>
             {
-                if (s is null)
+                UpdateSongUI(song);
+                // Only update mini cover, carousel handles its own images
+                if (!string.IsNullOrEmpty(song.CoverImagePath))
+                {
+                    Glide.With(this).Load(song.CoverImagePath).Into(_miniCover);
+                }
+                else
+                {
+                    _miniCover.SetImageResource(Resource.Drawable.musicnotess);
+                }
+                if (song is null)
                 {
                     _mainCoverImage.SetImageWithGlide(null);
-                    //_backgroundImageView.SetImageWithGlide(null);
+
                     return;
                 }
-                UpdateSongUI(s);
-                if (MyViewModel.CurrentPlayingSongView.CoverImagePath is not null && MyViewModel.OldSongValue?.AlbumName != s.AlbumName)
+                if (MyViewModel.CurrentPlayingSongView.CoverImagePath is not null && MyViewModel.OldSongValue?.AlbumName != song.AlbumName)
                 {
-                    //if (UiBuilder.IsDark(this.View))
-                    //{
 
-                    //    await _backgroundImageView.SetImageWithStringPathViaGlideAndFilterEffect(MyViewModel.CurrentPlayingSongView.CoverImagePath,
-                    //         Utilities.FilterType.DarkAcrylic);
-                    //}
-                    //else
-                    //{
-                    //    await _backgroundImageView.SetImageWithStringPathViaGlideAndFilterEffect(MyViewModel.CurrentPlayingSongView.CoverImagePath,
-                    //         Utilities.FilterType.Glassy);
-                    //}
                     _mainCoverImage.SetImageWithGlide(MyViewModel.CurrentPlayingSongView.CoverImagePath);
-                  
+
 
                 }
-            })
-            .DisposeWith(_disposables);
+            }).DisposeWith(_disposables);
+
+
 
 
 
@@ -961,23 +987,6 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
                 }
             }).DisposeWith(_disposables);
 
-        MyViewModel.CurrentPlayingSongView
-            .WhenPropertyChange
-            (nameof(SongModelView.CoverImagePath), s => s.CoverImagePath)
-            .ObserveOn(RxSchedulers.UI)
-            .Subscribe(path =>
-            {
-                // Only update mini cover, carousel handles its own images
-                if (!string.IsNullOrEmpty(path))
-                {
-                    Glide.With(this).Load(path).Into(_miniCover);
-                }
-                else
-                {
-                    _miniCover.SetImageResource(Resource.Drawable.musicnotess);
-                }
-            }).DisposeWith(_disposables);
-
 
     }
 
@@ -999,12 +1008,12 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
     {
         if (song == null) return;
 
-       
 
-        
+        UpdateLoveBtnUI(song.IsFavorite);
+
         // Mini Player
         _miniTitle.Text = song.Title;
-        var finalArtName = song.HasSyncedLyrics ? "🎙️ " + song.OtherArtistsName : song.OtherArtistsName;
+        var finalArtName = song.HasSyncedLyrics ? "🎙️ " + song.ArtistName : song.ArtistName;
         _miniArtist.Text = finalArtName;
 
         // Expanded Player
@@ -1015,35 +1024,44 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
 
         // Artist Chips
         _artistChipGroup.RemoveAllViews();
-        var chip = new Chip(Context) { Text = song.OtherArtistsName};
-
-                _artistChipGroup.AddView(chip);
-        //if(song.ArtistToSong?.Count<1)
-        //{
-        //    song.ArtistToSong = song.ArtistsInDB(MyViewModel.RealmFactory)!.ToObservableCollection()!;
-        //    foreach (var artist in song.ArtistToSong)
-        //    {
-
-        //        var chip = new Chip(Context) { Text = artist.Name};
-
-        //        _artistChipGroup.AddView(chip);
-
-        //    }
-        //}
-
-        // Load Mini Player Cover Image
-        if (!string.IsNullOrEmpty(song.CoverImagePath))
+        _artistChipGroup.CanScrollHorizontally(1);
+        if (!string.IsNullOrEmpty(song.TitleDurationKey))
         {
-            _miniCover.SetImageWithGlide(song.CoverImagePath);
+            var artInDb = song.ArtistsInDB(MyViewModel.RealmFactory);
 
-           
+            if (artInDb is not null)
+            {
+                foreach (var art in artInDb)
+                {
+                    var chip = new Chip(Context) { Text = art.Name };
+
+                    chip.Click += async (s, e) =>
+                    {
+                        
+                       
+                        MyViewModel.NavigateToArtistPage(this, art.Id.ToString(), art, (Chip)s!);
+
+                        TransitionActivity act = this.Activity as TransitionActivity;
+                        act.TogglePlayer();
+                    };
+                    _artistChipGroup.AddView(chip);
+                }
+            }
+            song.ArtistToSong = song.ArtistsInDB(MyViewModel.RealmFactory)!.ToObservableCollection()!;
+       
+            _artistChipGroup.Click += (s, e) =>
+            {
+
+                var artistPickBtmSheet = new ArtistPickerBottomSheet(MyViewModel, artInDb);
+
+                artistPickBtmSheet.Show(this.ParentFragmentManager, "QueueSheet");
+            };
+
         }
-        else
-        {
-            _miniCover.SetImageResource(Resource.Drawable.musicnotess);
+        if (song.HasLyrics) 
+        { 
+            _toggleLyricsViewBtn.SetBackgroundColor(Color.DarkSlateBlue); 
         }
-        
-        // Carousel images are handled by the adapter
     }
 
     // --- ANIMATION LOGIC ---
