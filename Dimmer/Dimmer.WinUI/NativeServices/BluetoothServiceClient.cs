@@ -31,7 +31,7 @@ public class BluetoothServiceClient
     public async Task SendFullBackupAsync()
     {
         Debug.WriteLine(BaseVM.SearchResults.Count);
-        BaseVM.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ShowMyFav());
+        BaseVM.SearchToTQL(TQlStaticMethods.PresetQueries.ShowMyFav());
         // Gather Data locally
         var currentUser = _userService.CurrentUserValue;
         BaseVM.OnAppClosing();

@@ -317,7 +317,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
         // 5️⃣ Assign and search
         CurrentTqlQuery = query.Trim();
-        SearchSongForSearchResultHolder(query);
+        SearchToTQL(query);
     }
 
     [RelayCommand]
@@ -605,15 +605,12 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
 
 
-    public void SetCurrentSong(SongModelView? song)
-    {
-        _currentSong.OnNext(song);
-    }
+
 
     protected override async Task ProcessSongChangeAsync(SongModelView value)
     {
         await base.ProcessSongChangeAsync(value);
-        SetCurrentSong(value);
+        _currentSong.OnNext(value);
     }
     
   
@@ -694,4 +691,6 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             OpenMediaUIOnNotificationTap = v;
         }
     }
+
+  
 }

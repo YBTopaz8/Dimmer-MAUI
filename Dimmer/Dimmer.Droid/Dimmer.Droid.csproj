@@ -111,6 +111,7 @@
 	<ItemGroup>
 	  <Folder Include="Adapters\HomePage\" />
 	  <Folder Include="Utils\CustomObjects\" />
+	  <Folder Include="ViewsAndPages\NativeViews\NewFolder1\" />
 	  <Folder Include="ViewsAndPages\NativeViews\NewFolder\" />
 	</ItemGroup>
 

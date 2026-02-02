@@ -46,6 +46,7 @@ public class FolderMgtService : IFolderMgtService
 
     public async Task StartWatchingConfiguredFoldersAsync(List<string>? paths = null)
     {
+        return;
         try
         {
             if (_isCurrentlyWatching)

@@ -210,6 +210,6 @@ public class TqlSearchBottomSheet : BottomSheetDialogFragment
     private void ExecuteSearch(string? query)
     {
         if (string.IsNullOrWhiteSpace(query)) return;
-        _viewModel.SearchSongForSearchResultHolder(query);
+        _viewModel.SearchToTQL(query);
     }
 }

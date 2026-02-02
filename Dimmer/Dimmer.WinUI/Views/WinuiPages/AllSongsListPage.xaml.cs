@@ -305,7 +305,7 @@ public sealed partial class AllSongsListPage : Page
         MyViewModel.CurrentTqlQuery = combined;
 
         // Re-run TQL query
-        MyViewModel.SearchSongForSearchResultHolder(combined);
+        MyViewModel.SearchToTQL(combined);
     }
 
     private void MySongsTableView_Tapped(object sender, TappedRoutedEventArgs e)
@@ -500,7 +500,7 @@ public sealed partial class AllSongsListPage : Page
 
     private void SearchAutoSuggestBox_TextChanged(object sender, Microsoft.UI.Xaml.Controls.TextChangedEventArgs e)
     {
-        MyViewModel.SearchSongForSearchResultHolder(SearchTextBox.Text);
+        MyViewModel.SearchToTQL(SearchTextBox.Text);
    
         //var text = SearchTextBox.Text.ToLower();
 
@@ -1045,7 +1045,7 @@ true
                     var propertiesMenuFlyout = e.GetCurrentPoint(nativeElementMenuFlyout).Properties;
                     if (propertiesMenuFlyout.PointerUpdateKind == Microsoft.UI.Input.PointerUpdateKind.RightButtonReleased)
                     {
-                        MyViewModel.SearchSongForSearchResultHolder(PresetQueries.ByArtist(songContext))
+                        MyViewModel.SearchToTQL(PresetQueries.ByArtist(songContext))
                         ;
                         return;
                     }
@@ -1100,7 +1100,7 @@ true
 
                     if (properties.IsRightButtonPressed)
                     {
-                        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(selectedArtist!.Name!));
+                        MyViewModel.SearchToTQL(TQlStaticMethods.PresetQueries.ByArtist(selectedArtist!.Name!));
                         return;
                     }
 
@@ -1312,7 +1312,7 @@ true
     private void AlbumBtn_RightTapped(object sender, RightTappedRoutedEventArgs e)
     {
         var send = ((Button)sender).DataContext as SongModelView;
-        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByAlbum(send.AlbumName));
+        MyViewModel.SearchToTQL(TQlStaticMethods.PresetQueries.ByAlbum(send.AlbumName));
     }
 
     private void MainFab_Click(object sender, RoutedEventArgs e)

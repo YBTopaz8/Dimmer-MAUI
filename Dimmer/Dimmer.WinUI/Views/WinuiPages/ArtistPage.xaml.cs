@@ -240,7 +240,7 @@ public sealed partial class ArtistPage : Page
 
     private void ArtistNameInArtistPage_PointerReleased(object sender, PointerRoutedEventArgs e)
     {
-        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist.Name));
+        MyViewModel.SearchToTQL(TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist.Name));
 
     }
 
@@ -289,7 +289,7 @@ public sealed partial class ArtistPage : Page
 
     private void ArtistDataTable_Loaded(object sender, RoutedEventArgs e)
     {
-        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist?.Name));
+        MyViewModel.SearchToTQL(TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist?.Name));
         
 
 
@@ -343,7 +343,7 @@ public sealed partial class ArtistPage : Page
         send.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Colors.DarkSlateBlue);
         send.BorderThickness = new Microsoft.UI.Xaml.Thickness(2);
         
-        MyViewModel.SearchSongForSearchResultHolder($"{TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist.Name)} and {TQlStaticMethods.PresetQueries.ExactlyByAlbum(album.Name)}");
+        MyViewModel.SearchToTQL($"{TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist.Name)} and {TQlStaticMethods.PresetQueries.ExactlyByAlbum(album.Name)}");
 
         return;
         var albmInDb = MyViewModel.RealmFactory.GetRealmInstance()
@@ -463,7 +463,7 @@ public sealed partial class ArtistPage : Page
 
     private void ResetAblums_Click(object sender, RoutedEventArgs e)
     {
-        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist.Name));
+        MyViewModel.SearchToTQL(TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist.Name));
     }
 
     private async void TitleSection_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)

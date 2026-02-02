@@ -262,7 +262,7 @@ public sealed partial class SongDetailPage : Page
                 ConnectedAnimationService.GetForCurrentView()
                     .PrepareToAnimate("MoveViewToArtistPageFromSongDetailPage", ArtistNameTxt);
             }
-            MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(DetailedSong.ArtistName));
+            MyViewModel.SearchToTQL(TQlStaticMethods.PresetQueries.ByArtist(DetailedSong.ArtistName));
             Frame?.NavigateToType(pageType, navParams, navigationOptions);
                
              

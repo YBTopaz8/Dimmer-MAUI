@@ -167,7 +167,7 @@ public partial class HomePage : ContentPage
         var song = send.BindingContext as SongModelView;
         if (MyViewModel.PlaybackQueue.Count < 1)
         {
-            MyViewModel.SearchSongForSearchResultHolder(">>addnext!");
+            MyViewModel.SearchToTQL(">>addnext!");
         }
         await MyViewModel.PlaySongAsync(song, CurrentPage.NowPlayingPage, MyViewModel.PlaybackQueueSource.Items);
         //ScrollToSong_Clicked(sender, e);
@@ -255,7 +255,7 @@ public partial class HomePage : ContentPage
             {
                 if (MyViewModel.PlaybackQueue.Count < 1)
                 {
-                    MyViewModel.SearchSongForSearchResultHolder(">>addnext!");
+                    MyViewModel.SearchToTQL(">>addnext!");
                 }
                 await MyViewModel.PlaySongAsync(song, CurrentPage.RecentPage, MyViewModel.TopTrackDashBoard?.Where(s => s is not null).Select(x => x!.Song));
             }
@@ -268,7 +268,7 @@ public partial class HomePage : ContentPage
         var song = send.BindingContext as SongModelView;
         if (MyViewModel.PlaybackQueue.Count < 1)
         {
-            MyViewModel.SearchSongForSearchResultHolder(">>addnext!");
+            MyViewModel.SearchToTQL(">>addnext!");
         }
         await MyViewModel.PlaySongAsync(song, CurrentPage.HomePage);
     }
@@ -460,7 +460,7 @@ public partial class HomePage : ContentPage
             {
                 res = namesList[0];
             }
-            MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch("artist", res));
+            MyViewModel.SearchToTQL(TQlStaticMethods.SetQuotedSearch("artist", res));
 
             winMgr.GetOrCreateUniqueWindow<DimmerWin>(MyViewModel, windowFactory: () => new DimmerWin());
 
@@ -468,7 +468,7 @@ public partial class HomePage : ContentPage
         }
 
         PlatUtils.OpenAllSongsWindow(MyViewModel);
-        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch(field, val));
+        MyViewModel.SearchToTQL(TQlStaticMethods.SetQuotedSearch(field, val));
 
     }
 
@@ -889,7 +889,7 @@ public partial class HomePage : ContentPage
         var val = send.CommandParameter as string;
 
         PlatUtils.OpenAllSongsWindow(MyViewModel);
-        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch(val, MyViewModel.CurrentPlayingSongView.AlbumName));
+        MyViewModel.SearchToTQL(TQlStaticMethods.SetQuotedSearch(val, MyViewModel.CurrentPlayingSongView.AlbumName));
 
     }
 
@@ -957,14 +957,14 @@ public partial class HomePage : ContentPage
     {
 
         MyViewModel.NavigateToAnyPageOfGivenType(typeof(AllSongsListPage));
-        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch("artist", MyViewModel.CurrentPlayingSongView.OtherArtistsName));
+        MyViewModel.SearchToTQL(TQlStaticMethods.SetQuotedSearch("artist", MyViewModel.CurrentPlayingSongView.OtherArtistsName));
 
     }
 
     private void AlbumBtn_Clicked(object sender, EventArgs e)
     {
         MyViewModel.NavigateToAnyPageOfGivenType(typeof(AllSongsListPage));
-        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch("album", MyViewModel.CurrentPlayingSongView.AlbumName));
+        MyViewModel.SearchToTQL(TQlStaticMethods.SetQuotedSearch("album", MyViewModel.CurrentPlayingSongView.AlbumName));
 
     }
 
@@ -1028,7 +1028,7 @@ public partial class HomePage : ContentPage
         var send = (Button)sender;
         var artistName = send.CommandParameter as string;
         MyViewModel.NavigateToAnyPageOfGivenType(typeof(AllSongsListPage));
-        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch("artist", artistName));
+        MyViewModel.SearchToTQL(TQlStaticMethods.SetQuotedSearch("artist", artistName));
 
     }
 
@@ -1037,7 +1037,7 @@ public partial class HomePage : ContentPage
         var send = (Button)sender;
         var albumName = send.CommandParameter as string;
         MyViewModel.NavigateToAnyPageOfGivenType(typeof(AllSongsListPage));
-        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch("album", albumName));
+        MyViewModel.SearchToTQL(TQlStaticMethods.SetQuotedSearch("album", albumName));
     }
 
     private void Button_Loaded(object sender, EventArgs e)

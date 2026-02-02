@@ -124,7 +124,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         CurrentPlayingSongView = new();
         BaseAppFlow = BaseAppClass;
 
-        folderMonitorService = FolderServ;
+        //folderMonitorService = FolderServ;
         RealmFactory = RealmFact;
 
 
@@ -136,7 +136,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         _searchQuerySubject = new BehaviorSubject<string>("");
         _limiterClause = new BehaviorSubject<LimiterClause?>(null);
-        //PlaybackManager = new RuleBasedPlaybackManager();
 
         PlaybackManager = new RuleBasedPlaybackManager(RealmFactory);
 
@@ -169,8 +168,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _historyRequest.OnNext(new VirtualRequest(startIndex, size));
     }
     private Realm? _historyRealm;
-    private static readonly IComparer<DimmerPlayEventView> _eventComparer =
-    SortExpressionComparer<DimmerPlayEventView>.Descending(p => p.EventDate);
+    private static readonly IComparer<DimmerPlayEventView> _eventComparer = SortExpressionComparer<DimmerPlayEventView>.Descending(p => p.EventDate);
 
 
     [ObservableProperty]
@@ -199,8 +197,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             // 2. Convert to ViewObject and project/enrich
             var viewObj = x.Freeze().ToDimmerPlayEventView()!;
 
-            // Use Freeze() here to make the object safe to move across threads 
-            // until it reaches the UI
+
             var frozenEvent = x.Freeze();
             var song = frozenEvent.SongsLinkingToThisEvent.FirstOrDefaultNullSafe();
 
@@ -222,6 +219,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             }
             return viewObj;
         })
+        .ObserveOn(RxSchedulers.Background)
         .ObserveOn(RxSchedulers.UI)
         .Bind(out _dimmerEvents)
         .Subscribe(changes =>
@@ -280,13 +278,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         public IEnumerable<SongModelView> SongsResult { get; set; }
         public string ErrorMessage { get; set; }
     }
-
-
-
-
-
-
-
 
 
     private void UpdatePageStatus()
@@ -371,7 +362,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     public void InitializeAllVMCoreComponents()
     {
-        //return;
+
         if (IsInitialized) return;
 
         var startTime = DateTime.Now;
@@ -689,9 +680,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             try
             {
                 await OnAppOpening();
-                await HeavierBackGroundLoadings(FolderPaths);
+                //await HeavierBackGroundLoadings(FolderPaths);
 
-                await Task.Delay(3000, _backgroundCachingCts.Token);
                 await EnsureAllCoverArtCachedForSongsAsync(_backgroundCachingCts.Token);
             }
             catch (OperationCanceledException er)
@@ -779,10 +769,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             //    });
             //}
 
-            var backgroundRealm = RealmFactory.GetRealmInstance();
             
-            var redoStats = new StatsRecalculator(RealmFactory, _logger);
-            redoStats.RecalculateAllStatistics();
+            //var redoStats = new StatsRecalculator(RealmFactory, _logger);
+            //redoStats.RecalculateAllStatistics();
             
         
          
@@ -798,8 +787,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
         catch (Exception ex)
         {
-            // CRITICAL: Always have a try-catch in a fire-and-forget method.
-            // An unhandled exception here would crash your app silently.
             _logger.LogError(ex, "A fatal error occurred during background initialization.");
         }
     }
@@ -810,7 +797,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
     [RelayCommand]
-    public void SearchSongForSearchResultHolder(string? searchText)
+    public void SearchToTQL(string? searchText)
     {
         if (string.IsNullOrEmpty(searchText))
         {
@@ -1548,14 +1535,14 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     //private BehaviorSubject<LimiterClause?> _limiterClause;
 
     [RelayCommand]
-    public void SmolHold() { SearchSongForSearchResultHolder("Len:<=2:00"); }
+    public void SmolHold() { SearchToTQL("Len:<=2:00"); }
 
     [RelayCommand]
-    public void Randomize() { SearchSongForSearchResultHolder("random"); }
+    public void Randomize() { SearchToTQL("random"); }
 
     private int _currentPlayinSongIndexInPlaybackQueue = -1;
     [RelayCommand]
-    public void BigHold() { SearchSongForSearchResultHolder("Len:<=3:00"); }
+    public void BigHold() { SearchToTQL("Len:<=3:00"); }
 
     [RelayCommand]
     public void ResetSearch()
@@ -1914,7 +1901,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         
         if (newValue is not null)
         {
-            SelectedSecondDominantColor = await ImageResizer.GetDominantMauiColorAsync(newValue.CoverImagePath);
+            SelectedSecondDominantColor = await ImageFilterUtils.GetDominantMauiColorAsync(newValue.CoverImagePath);
         
 
            
@@ -2448,17 +2435,17 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     private async Task OnPlaybackResumed(PlaybackEventArgs args)
     {
-        if (args.MediaSong is null)
+        if (args.AudioServiceCurrentPlayingSongView is null)
         {
             _logger.LogWarning("OnPlaybackPaused was called but the event had no song context.");
             return;
         }
 
         CurrentPlayingSongView.IsCurrentPlayingHighlight = true;
-        _logger.LogInformation("AudioService confirmed: Playback resumed for '{Title}'", args.MediaSong.Title);
+        _logger.LogInformation("AudioService confirmed: Playback resumed for '{Title}'", args.AudioServiceCurrentPlayingSongView.Title);
         await BaseAppFlow.UpdateDatabaseWithPlayEvent(
              RealmFactory,
-             args.MediaSong,
+             args.AudioServiceCurrentPlayingSongView,
              StatesMapper.Map(DimmerPlaybackState.Resumed),
              CurrentTrackPositionSeconds);
     }
@@ -2619,31 +2606,31 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     protected virtual async Task OnPlaybackStarted(PlaybackEventArgs args)
     {
-        if (args.MediaSong is null)
+        if (args.AudioServiceCurrentPlayingSongView is null)
         {
             _logger.LogWarning("OnPlaybackPaused was called but the event had no song context.");
             return;
         }
-        _currentPlayinSongIndexInPlaybackQueue = PlaybackQueue.IndexOf(args.MediaSong);
+        _currentPlayinSongIndexInPlaybackQueue = PlaybackQueue.IndexOf(args.AudioServiceCurrentPlayingSongView);
         CurrentPlayingSongView.IsCurrentPlayingHighlight = false;
         CurrentLine = null;
         PreviousLine = null;
         NextLine = null;
 
-        CurrentPlayingSongView = args.MediaSong;
+        CurrentPlayingSongView = args.AudioServiceCurrentPlayingSongView;
         _songToScrobble = CurrentPlayingSongView;
         CurrentPlayingSongView.IsCurrentPlayingHighlight = true;
 
 
-        _logger.LogInformation("AudioService confirmed: Playback started for '{Title}'", args.MediaSong.Title);
+        _logger.LogInformation("AudioService confirmed: Playback started for '{Title}'", args.AudioServiceCurrentPlayingSongView.Title);
         await BaseAppFlow.UpdateDatabaseWithPlayEvent(
             RealmFactory,
-            args.MediaSong,
+            args.AudioServiceCurrentPlayingSongView,
             StatesMapper.Map(DimmerPlaybackState.Playing),
             0);
         await UpdateSongSpecificUi(CurrentPlayingSongView);
-        Debug.WriteLine("PLAYSTARTED "+args.MediaSong.Title);
-        Debug.WriteLine("PLAYSTARTED "+args.MediaSong.ArtistName);
+        Debug.WriteLine("PLAYSTARTED "+args.AudioServiceCurrentPlayingSongView.Title);
+        Debug.WriteLine("PLAYSTARTED "+args.AudioServiceCurrentPlayingSongView.ArtistName);
     }
     #endregion
 
@@ -2680,24 +2667,20 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
     #region Current Playing Song and Color Management
-    [ObservableProperty]
-    public partial Microsoft.Maui.Graphics.Color? CurrentPlaySongDominantColor { get; set; }
 
-    partial void OnCurrentPlaySongDominantColorChanged(Color? oldValue, Color? newValue)
-    {
-        
-    }
 
     public virtual void ResetCurrentPlaySongDominantColor()
     {
         
     }
 
-    partial void OnCurrentPlayingSongViewChanging(SongModelView oldValue, SongModelView newValue)
+    async partial void OnCurrentPlayingSongViewChanging(SongModelView oldValue, SongModelView newValue)
     {
         if(oldValue is not null)
             oldValue.IsCurrentPlayingHighlight = false;
-        
+        if (oldValue?.TitleDurationKey == newValue.TitleDurationKey) return;
+        await ProcessSongChangeAsync(newValue);
+        CurrentPlaySongDominantColor = await ImageFilterUtils.GetDominantMauiColorAsync(newValue.CoverImagePath);
     }
     public SongModelView? OldSongValue { get; internal set; }
     async partial void OnCurrentPlayingSongViewChanged(SongModelView oldValue, SongModelView newValue)
@@ -2705,8 +2688,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         if (oldValue is not null && oldValue.TitleDurationKey is null || newValue.TitleDurationKey is null)
             return;
         OldSongValue = oldValue;
-        if (oldValue?.TitleDurationKey == newValue.TitleDurationKey) return;
-        await ProcessSongChangeAsync(newValue);
+        
     }
 
     private void OnFolderScanCompleted(PlaybackStateInfo stateInfo)
@@ -2717,7 +2699,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         
         IsAppScanning = false;
        
-        SearchSongForSearchResultHolder("desc added");
+        SearchToTQL("desc added");
         _ = EnsureAllCoverArtCachedForSongsAsync();
 
         
@@ -4350,7 +4332,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             return;
         };
         SelectedArtist = artist;
-       
+        SelectedArtist.RefreshAlbumAndSongsFromDB(RealmFactory);
     }
     public async Task<bool> SelectedArtistAndNavtoPage(SongModelView? song)
     {
@@ -4487,7 +4469,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public void ViewAlbumDetails(AlbumModelView albumView)
     {
         SelectedAlbum = albumView;
-        SearchSongForSearchResultHolder(TQlStaticMethods.SetQuotedSearch("album", albumView.Name));
+        SearchToTQL(TQlStaticMethods.SetQuotedSearch("album", albumView.Name));
     }
 
     [ObservableProperty]
@@ -6018,7 +6000,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
     #endregion
 
-
+    public void SetSelectedAlbum(AlbumModelView album)
+    {
+        album.RefreshArtistsAndSongsFromDB(RealmFactory);
+        SelectedAlbum = album;
+    }
     #region lyrics editing region
     [RelayCommand]
     public void DuplicateAndTimestampLastLine()
@@ -7847,38 +7833,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         await Browser.Default.OpenAsync(AppUpdateObj.url, BrowserLaunchMode.SystemPreferred);
     }
 
-    public async Task LoadSongDominantColorIfNotYetDoneAsync(SongModelView? song)
-    {
-        return;
-        if (song is null)
-            return;
-        if (song.CurrentPlaySongDominantColor != null)
-        {
-            return;
-        }
-        var color = await ImageResizer.GetDominantMauiColorAsync(song.CoverImagePath, 1f);
-        
-        // i need an inverted BG color that will work well with this dominant color
-        if (color is not null)
-        {
-            var bgColor = color.MultiplyAlpha(0.1f);
 
-            
-        }
-    }
+    [ObservableProperty]
+    public partial Color? CurrentPlaySongDominantColor { get; set; }
 
-    public async Task ReAssignDominantColor(SongModelView song)
-    {
-        if (song is null)
-            return;
-
-        var color = await ImageResizer.GetDominantMauiColorAsync(song.CoverImagePath, 1f);
-        song.CurrentPlaySongDominantColor = color;
-        if (CurrentPlayingSongView != null && CurrentPlayingSongView.Id == song.Id)
-        {
-            CurrentPlayingSongView.CurrentPlaySongDominantColor = color;
-        }
-    }
     [RelayCommand]
     public async Task FindMissingTracksInAlbum(AlbumModelView? album)
     {
@@ -8499,7 +8457,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             }
 
         });
-        SearchSongForSearchResultHolder(CurrentTqlQuery);
+        SearchToTQL(CurrentTqlQuery);
     }
 
     [RelayCommand]

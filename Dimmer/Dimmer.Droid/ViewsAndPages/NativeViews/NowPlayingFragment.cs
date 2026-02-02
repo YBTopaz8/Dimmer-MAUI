@@ -69,7 +69,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
     public CardView formatCard { get; private set; }
     public TextView formatViewText { get; private set; }
     public Button infoPill { get; private set; }
-    public TextView SelectedAudioTextView { get; private set; }
+    public Chip SelectedAudioTextView { get; private set; }
 
     public NowPlayingFragment()
     {
@@ -442,10 +442,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         var volDownIcon = new ImageView(ctx);
         volDownIcon.SetImageResource(Resource.Drawable.volumesmall); // Make sure you have this icon
         volDownIcon.ImageTintList = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.Gray);
-        volDownIcon.Click += (s, e) =>
-        {
-            MyViewModel.DecreaseVolumeLevel();
-        };
+       
 
         _volumeSlider = new Slider(ctx);
         _volumeSlider.ValueFrom = 0; _volumeSlider.ValueTo = 100;
@@ -460,7 +457,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         };
 
 
-        SelectedAudioTextView = new TextView(ctx);
+        SelectedAudioTextView = new Chip(ctx);
         SelectedAudioTextView.Text = MyViewModel.SelectedAudioDevice?.Name;
         SelectedAudioTextView.Click += (s, e) =>
         {
@@ -886,12 +883,17 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
                 ViewCompat.SetTransitionName(_miniCover, tName);
             })
             .DisposeWith(_disposables);
+
+
         Observable.FromEventPattern<(double newVol, bool isDeviceMuted, int devMavVol)>(
            h => MyViewModel.AudioService.DeviceVolumeChanged += h,
            h => MyViewModel.AudioService.DeviceVolumeChanged -= h)
            .Select(evt => evt.EventArgs)
            .ObserveOn(RxSchedulers.UI)
-           .Subscribe(UpdateDeviceVolumeChangedUI, ex => Debug.WriteLine("error on vol changed"))
+           .Subscribe( s=>
+           {
+               UpdateDeviceVolumeChangedUI(s);
+               }, ex => Debug.WriteLine("error on vol changed"))
            .DisposeWith(_disposables);
     
 
@@ -996,6 +998,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         var devMaxVol = tuple.Item3;
         _volumeSlider.ValueTo = devMaxVol;
         _volumeSlider.Value = (float)newVal;
+        SelectedAudioTextView.Text = MyViewModel.SelectedAudioDevice?.Name;
     }
 
     public override void OnPause()

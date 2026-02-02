@@ -30,7 +30,7 @@ public partial class ArtistModelView : ObservableObject
     public partial bool IsFavorite { get; set; }
 
     [ObservableProperty]
-    public partial ObservableCollection<AlbumModelView>? AlbumsByArtist { get; set; }
+    public partial ObservableCollection<AlbumModelView?>? AlbumsByArtist { get; set; }
     public DateTimeOffset? DateCreated { get; set; } = DateTimeOffset.UtcNow;
     public string? DeviceName { get; set; }
     public string? DeviceFormFactor { get; set; }
@@ -80,6 +80,6 @@ public partial class ArtistModelView : ObservableObject
     public partial int TotalAlbumsByArtist { get; set; }
     [ObservableProperty]
     public partial ObservableCollection<string> ListOfSimilarArtistsNames { get;  set; }
-    public ObservableCollection<SongModelView>? SongsByArtist { get;  set; }
+    public ObservableCollection<SongModelView?> SongsByArtist { get;  set; }
     public ObservableCollection<Artist>? ListOfSimilarArtists { get; set; }
 }

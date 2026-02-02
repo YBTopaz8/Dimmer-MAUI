@@ -153,7 +153,7 @@ public class StatisticsService
                         (e.EventDate < endDate)).ToList()
             ;
 
-        if (!filteredEvents.Any())
+        if (filteredEvents.Count == 0)
             return null;
 
         var bundle = new SongStatsBundle

@@ -80,7 +80,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     private CancellationTokenSource? _searchCts;
     private SongAdapter _adapter;
     private ImageView _backgroundImageView;
- 
+    private  CompositeDisposable _disposables =new();
 
     public partial class OnPreDrawListenerImpl : Java.Lang.Object, ViewTreeObserver.IOnPreDrawListener
     {
@@ -170,7 +170,6 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
             var newFocus = e.HasFocus;
             if (!newFocus)
             {
-                loadingIndic.Visibility = ViewStates.Gone;
                 TQLChipHLayout.Visibility = ViewStates.Visible;
             }
             else
@@ -250,7 +249,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
 
         TqlLine = new TextView(ctx, null, Resource.Attribute.titleTextStyle);
-        TqlLine.Text = "test";
+        
         TqlLine.TextSize = 14;
 
         TqlLine.SetTextColor(col);
@@ -309,11 +308,9 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         _songListRecycler.SetPadding(0, 0, 0, AppUtil.DpToPx(160));
         _songListRecycler.SetClipToPadding(false);
 
-        var adapter = new SongAdapter(ctx, MyViewModel, this);
-        _songListRecycler.SetAdapter(adapter);
-        //_songListRecycler.AddOnScrollListener(new LoadMoreListener(MyViewModel));
+        _adapter = new SongAdapter(ctx, MyViewModel, this);
+        _songListRecycler.SetAdapter(_adapter);
 
-        //var pagerView = CreatePaginationBar(MyViewModel,ctx);
 
 
         // Add Recycler to Content
@@ -397,7 +394,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     private void _searchBar_TextChanged(object? sender, Android.Text.TextChangedEventArgs e)
     {
         var NewText = e.Text?.ToString();
-        MyViewModel.SearchSongForSearchResultHolder(NewText);
+        MyViewModel.SearchToTQL(NewText);
     }
 
     class HeaderInsetsListener : Java.Lang.Object, AndroidX.Core.View.IOnApplyWindowInsetsListener
@@ -432,7 +429,6 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         base.OnResume();
        
         _isNavigating = false;
-
 
         MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentPlayingSongView), newVl => MyViewModel.CurrentPlayingSongView)
             .ObserveOn(RxSchedulers.UI)
@@ -527,6 +523,13 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
                         break;
                 }
             });
+        
+        _adapter?.IsSourceCleared.
+            ObserveOn(RxSchedulers.UI)
+            .Subscribe(observer =>
+            {
+                loadingIndic.Visibility = ViewStates.Gone;
+            }).DisposeWith(_disposables);
 
     }
     public override void OnPause()
@@ -561,27 +564,27 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
       
 
 
-        var currentlyPlayingIndex = MyViewModel.SearchResults.IndexOf(MyViewModel.CurrentPlayingSongView);
-        if (currentlyPlayingIndex >= 0)
-            _songListRecycler?.ScrollToPosition(currentlyPlayingIndex);
+        //var currentlyPlayingIndex = MyViewModel.SearchResults.IndexOf(MyViewModel.CurrentPlayingSongView);
+        //if (currentlyPlayingIndex >= 0)
+        //    _songListRecycler?.ScrollToPosition(currentlyPlayingIndex);
 
-        MyViewModel.ScrollToCurrentSongRequest
-        .ObserveOn(RxSchedulers.UI) 
-        .Subscribe(_ =>
-        {
-            if (_songListRecycler != null && _adapter != null)
-            {
-                var index = MyViewModel.SearchResults.IndexOf(MyViewModel.CurrentPlayingSongView);
-                if (index >= 0)
-                {
+        //MyViewModel.ScrollToCurrentSongRequest
+        //.ObserveOn(RxSchedulers.UI) 
+        //.Subscribe(_ =>
+        //{
+        //    if (_songListRecycler != null && _adapter != null)
+        //    {
+        //        var index = MyViewModel.SearchResults.IndexOf(MyViewModel.CurrentPlayingSongView);
+        //        if (index >= 0)
+        //        {
                     
-                    _songListRecycler.ScrollToPosition(index);
+        //            _songListRecycler.ScrollToPosition(index);
 
                     
-                }
-            }
-        })
-        .DisposeWith(CompositeDisposables);
+        //        }
+        //    }
+        //})
+        //.DisposeWith(CompositeDisposables);
 
 
         
@@ -670,7 +673,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
     public void OnBackInvoked()
     {
-        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.DescAdded());
+        MyViewModel.SearchToTQL(TQlStaticMethods.PresetQueries.DescAdded());
         RxSchedulers.UI.ScheduleTo(()=> Toast.MakeText(Context!, "Reset TQL", ToastLength.Short)?.Show());
     }
 }

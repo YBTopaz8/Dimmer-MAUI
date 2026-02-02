@@ -62,7 +62,7 @@ public class LyricsMgtFlow : IDisposable
          // We only care about the 'Playing' state, which signals a new track has begun.
          .Where(args => args.EventType == DimmerPlaybackState.Playing)
          // Get the song from the event arguments.
-         .Select(args => args.MediaSong)
+         .Select(args => args.AudioServiceCurrentPlayingSongView)
          //.DistinctUntilChanged(song => song?.Id)
          .Subscribe(
              async song =>

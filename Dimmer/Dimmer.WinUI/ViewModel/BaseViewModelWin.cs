@@ -510,8 +510,8 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     protected override async Task OnPlaybackStarted(PlaybackEventArgs args)
     {
         await base.OnPlaybackStarted(args);
-        if (args.MediaSong is null) return;
-        CurrentPlayingSongView = args.MediaSong;
+        if (args.AudioServiceCurrentPlayingSongView is null) return;
+        CurrentPlayingSongView = args.AudioServiceCurrentPlayingSongView;
         // await PlatUtils.ShowNewSongNotification(args.MediaSong.Title, args.MediaSong.ArtistName, args.MediaSong.CoverImagePath);
     }
     [RelayCommand]
@@ -723,7 +723,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     public void QuickViewArtist(SongModelView song, string artistName)
     {
-        SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(artistName));
+        SearchToTQL(TQlStaticMethods.PresetQueries.ByArtist(artistName));
     }
 
     public void PlaySongsByArtistInCurrentAlbum(SongModelView song, string artistName)
@@ -808,7 +808,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     public async Task LoadFullArtistDetails(ArtistModelView artist)
     {
 
-        SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(artist.Name!));
+        SearchToTQL(TQlStaticMethods.PresetQueries.ByArtist(artist.Name!));
         var tempVar = await lastfmService.GetArtistInfoAsync(artist.Name!);
 
         if (tempVar is not null)

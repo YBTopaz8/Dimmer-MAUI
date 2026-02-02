@@ -120,9 +120,9 @@ public static class UserFriendlyLogGenerator
 
 }
 
-public static class ImageResizer
-{
 
+public static class ImageFilterUtils
+{
     /// <summary>
     /// Extracts the most dominant, vibrant color from an image, suitable for UI accenting.
     /// Ignores blacks, whites, and grays.
@@ -130,7 +130,7 @@ public static class ImageResizer
     /// <param name="imageData">The byte array of the image.</param>
     /// <param name="defaultColor">A fallback color if no suitable color is found.</param>
     /// <returns>The dominant SKColor.</returns>
-    public async static Task<SKColor?> GetDominantColor(string coverfilePath, SKColor? defaultColor = null)
+    public async static Task<SKColor?> GetSKDominantColorAsync(string coverfilePath, SKColor? defaultColor = null)
     {  // --- Step 1: Validate the input ---
         if (string.IsNullOrWhiteSpace(coverfilePath) || !File.Exists(coverfilePath))
         {
@@ -171,29 +171,23 @@ public static class ImageResizer
 
         try
         {
-            // --- Step 2: Read the file data asynchronously ---
-            var imageData = await File.ReadAllBytesAsync(coverfilePath);
+            var domCol = await GetSKDominantColorAsync(coverfilePath);
 
-            // If GetVibrantPalette also has an async version, you should use that here!
-            var palette = GetVibrantPalette(imageData, 1);
 
-            // --- Step 4: Check the result and convert the color ---
-            if (palette != null && palette.Count > 0)
+            if (domCol is not null)
             {
-                var dominantColorFromPalette = palette.First();
 
-                // Create the MAUI color from the standard byte values.
                 var mauiColor = Color.FromRgb(
-                    dominantColorFromPalette.Red,
-                    dominantColorFromPalette.Green,
-                    dominantColorFromPalette.Blue
+                    domCol.Value.Red,
+                    domCol.Value.Green,
+                    domCol.Value.Blue
                 ).WithAlpha(opacity);
-                
 
-                return mauiColor;
+
+                return mauiColor; 
             }
 
-            // If no dominant color was found, return null.
+
             return null;
         }
         catch (Exception ex)
@@ -329,7 +323,7 @@ public static class ImageResizer
             // Encode the resized bitmap into a JPEG stream
             using var image = SKImage.FromBitmap(resizedBitmap);
             // Using JPEG with a quality setting is crucial for reducing file size
-            using var data = image.Encode(SKEncodedImageFormat.Jpeg, quality);
+            using var data = image.Encode(SKEncodedImageFormat.Png, quality);
 
             return data.ToArray();
         }
@@ -354,9 +348,9 @@ public static class ImageResizer
             return true;
 
         //// Common GIF headers
-        //if (data.Length >= 6 && (data.Take(3).SequenceEqual(new byte[] { 0x47, 0x49, 0x46 }) || // GIF87a
-        //                        data.Take(3).SequenceEqual("GIF"u8.ToArray()))) // GIF89a
-        //    return true;
+        if (data.Length >= 6 && (data.Take(3).SequenceEqual(new byte[] { 0x47, 0x49, 0x46 }) || // GIF87a
+                                data.Take(3).SequenceEqual("GIF"u8.ToArray()))) // GIF89a
+            return true;
 
         // Common BMP headers
         if (data.Length >= 2 && data.Take(2).SequenceEqual(new byte[] { 0x42, 0x4D }))
@@ -367,10 +361,6 @@ public static class ImageResizer
         return false;
     }
 
-}
-
-public static class ImageFilterUtils
-{
   
     /// <summary>
     /// Calculates the perceived luminance of a color and returns a high-contrast
@@ -647,7 +637,3 @@ public static class TimeUtils
 
 }
 
-public static class BgQueue
-{
-    public static readonly BackgroundTaskQueue Instance = new();
-}

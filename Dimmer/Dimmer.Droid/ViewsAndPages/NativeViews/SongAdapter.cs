@@ -14,13 +14,19 @@ using Dimmer.ViewsAndPages.ViewUtils;
 using DynamicData;
 using Google.Android.Material.Chip;
 using Google.Android.Material.Dialog;
-using MongoDB.Bson;
+using MongoDB.Bson; 
+using Parse.LiveQuery;
 using Realms;
 
 namespace Dimmer.ViewsAndPages.NativeViews;
 
 internal class SongAdapter : RecyclerView.Adapter
 {
+
+
+    private readonly BehaviorSubject<bool> _isSourceCleared = new(true);
+    public IObservable<bool> IsSourceCleared => _isSourceCleared.AsObservable();
+
     private ReadOnlyObservableCollection<SongModelView> _songs;
   
     public static Action<View, string, int>? AdapterCallbacks;
@@ -38,6 +44,7 @@ internal class SongAdapter : RecyclerView.Adapter
 
     public SongModelView GetItem(int position) => Songs.ElementAt(position);
 
+    IObservable<IChangeSet<SongModelView>> sourceStream;
     public SongAdapter(Context ctx, BaseViewModelAnd myViewModel, Fragment pFragment, string songsToWatch = "main")
     {
         ParentFragement = pFragment;
@@ -46,91 +53,127 @@ internal class SongAdapter : RecyclerView.Adapter
         this._audioService = myViewModel.AudioService;
         this._mode = songsToWatch;
 
-        IObservable<IChangeSet<SongModelView>> sourceStream;
+        SetupReactivePipeline(myViewModel, songsToWatch);
 
-        // 1. Determine the Source
-        if (songsToWatch == "queue")
+    }
+
+    private void SetupReactivePipeline(BaseViewModelAnd myViewModel, string songsToWatch)
+    {
+        Task.Run(() =>
         {
-            sourceStream = myViewModel.PlaybackQueueSource.Connect();
-            
-        }
-        else if (songsToWatch == "artist")
-        {
-            var selArt = MyViewModel.SelectedArtist;
-            var realm = MyViewModel.RealmFactory.GetRealmInstance();
 
-            // Realm relationships (like .Songs) return an IList<T> that implements INotifyCollectionChanged.
-            // We can bind directly to that.
-            var artistEntry = realm.Find<ArtistModel>(selArt.Id);
-
-            if (artistEntry != null)
+            // 1. Determine the Source
+            if (songsToWatch == "queue")
             {
-                sourceStream = artistEntry.Songs.AsObservableChangeSet()
-                    .Transform(model => model.ToSongModelView())!; // Transforms DB Model -> View Model
+                sourceStream = myViewModel.PlaybackQueueSource.Connect();
+
             }
-            else
+            else if (songsToWatch == "artist")
             {
-                // Handle edge case where artist isn't found
-                sourceStream = Observable.Return(ChangeSet<SongModelView>.Empty);
-            }
-        }
-        else // "main" or default
-        {
-            sourceStream = myViewModel.SearchResultsHolder.Connect();
-        }
-        // 3. The "DynamicData" Pipeline
-        sourceStream
-            .ObserveOn(RxSchedulers.UI) // Must be on UI thread to update RecyclerView
-            .Bind(out _songs)           // Automatically keeps _songs in sync with the source
-            .Subscribe(changes =>
-            {
+                var selArt = MyViewModel.SelectedArtist;
+                var realm = MyViewModel.RealmFactory.GetRealmInstance();
 
-                foreach (var change in changes)
+                // Realm relationships (like .Songs) return an IList<T> that implements INotifyCollectionChanged.
+                // We can bind directly to that.
+                var artistEntry = realm.Find<ArtistModel>(selArt.Id);
+
+                if (artistEntry != null)
                 {
-                    switch (change.Reason)
+                    sourceStream = artistEntry.Songs.AsObservableChangeSet()
+
+                        .Transform(model => model.ToSongModelView())
+                        .ObserveOn(RxSchedulers.Background)
+
+                        .ObserveOn(RxSchedulers.UI)!; // Transforms DB Model -> View Model
+                }
+                else
+                {
+                    // Handle edge case where artist isn't found
+                    sourceStream = Observable.Return(ChangeSet<SongModelView>.Empty);
+                }
+            }
+            else if (songsToWatch == "album")
+            {
+                var selAlb = MyViewModel.SelectedAlbum;
+                var realm = MyViewModel.RealmFactory.GetRealmInstance();
+
+                // Realm relationships (like .Songs) return an IList<T> that implements INotifyCollectionChanged.
+                // We can bind directly to that.
+                var albumInDB = realm.Find<AlbumModel>(selAlb.Id);
+
+                if (albumInDB != null)
+                {
+                    sourceStream = albumInDB.SongsInAlbum.AsObservableChangeSet()
+                        .Transform(model => model.ToSongModelView())!; // Transforms DB Model -> View Model
+                }
+                else
+                {
+                    // Handle edge case where artist isn't found
+                    sourceStream = Observable.Return(ChangeSet<SongModelView>.Empty);
+                }
+            }
+            else // "main" or default
+            {
+                sourceStream = myViewModel.SearchResultsHolder.Connect();
+            }
+            // 3. The "DynamicData" Pipeline
+            RxSchedulers.UI.ScheduleTo(() =>
+            {
+
+            sourceStream
+                .ObserveOn(RxSchedulers.UI) // Must be on UI thread to update RecyclerView
+                .Bind(out _songs)           // Automatically keeps _songs in sync with the source
+                .Subscribe(changes =>
+                {
+
+                    foreach (var change in changes)
                     {
-                        case ListChangeReason.AddRange:
-                            NotifyItemRangeInserted(change.Range.Index, change.Range.Count);
-                            break;
+                        switch (change.Reason)
+                        {
+                            case ListChangeReason.AddRange:
+                                NotifyItemRangeInserted(change.Range.Index, change.Range.Count);
+                                _isSourceCleared.OnNext(true);
+                                break;
                             case ListChangeReason.RemoveRange:
                                 NotifyItemRangeRemoved(change.Range.Index, change.Range.Count);
                                 break;
-                        case ListChangeReason.Refresh:
+                            case ListChangeReason.Refresh:
 
-                            NotifyItemChanged(change.Item.CurrentIndex);
+                                NotifyItemChanged(change.Item.CurrentIndex);
 
-                            break;
-                        case ListChangeReason.Add:
-                            NotifyItemInserted(change.Item.CurrentIndex);
-                            break;
-                        case ListChangeReason.Remove:
-                            NotifyItemRemoved(change.Item.CurrentIndex);
-                            break;
-                        case ListChangeReason.Moved:
-                            NotifyItemMoved(change.Item.PreviousIndex, change.Item.CurrentIndex);
-                            break;
-                        case ListChangeReason.Replace:
-                            NotifyItemChanged(change.Item.CurrentIndex);
-                            break;
-                        case ListChangeReason.Clear:
-                             NotifyDataSetChanged();
-                            break;
+                                break;
+                            case ListChangeReason.Add:
+                                NotifyItemInserted(change.Item.CurrentIndex);
+                                break;
+                            case ListChangeReason.Remove:
+                                NotifyItemRemoved(change.Item.CurrentIndex);
+                                break;
+                            case ListChangeReason.Moved:
+                                NotifyItemMoved(change.Item.PreviousIndex, change.Item.CurrentIndex);
+                                break;
+                            case ListChangeReason.Replace:
+                                NotifyItemChanged(change.Item.CurrentIndex);
+                                break;
+                            case ListChangeReason.Clear:
+                                _isSourceCleared.OnNext(true);
+                                NotifyDataSetChanged();
+                                break;
+                        }
                     }
-                }
+                })
+                .DisposeWith(_disposables);
 
+            Observable.FromEventPattern<PlaybackEventArgs>(
+                h => _audioService.PlaybackStateChanged += h,
+                h => _audioService.PlaybackStateChanged -= h)
+                .Select(evt => evt.EventArgs)
+                .ObserveOn(RxSchedulers.UI)
+                .Subscribe(
+                     x => HandlePlaybackStateChange(x))
+                .DisposeWith(_disposables);
 
-            })
-            .DisposeWith(_disposables);
-
-        Observable.FromEventPattern<PlaybackEventArgs>(
-            h => _audioService.PlaybackStateChanged += h,
-            h => _audioService.PlaybackStateChanged -= h)
-            .Select(evt => evt.EventArgs)
-            .ObserveOn(RxSchedulers.UI)
-            .Subscribe(
-                 x =>  HandlePlaybackStateChange(x))
-            .DisposeWith(_disposables);
-
+            });
+        });
     }
 
     private void HandlePlaybackStateChange(PlaybackEventArgs x)
@@ -161,7 +204,7 @@ internal class SongAdapter : RecyclerView.Adapter
             var song = _songs[position];
             bool isExpanded = position == _expandedPosition;
 
-            songHolder.Bind(song, isExpanded,  (pos) => ToggleExpand(pos));
+            songHolder.Bind(song, isExpanded,  (pos) => ToggleExpand(pos), _mode);
         }
     }
 
@@ -508,7 +551,17 @@ internal class SongAdapter : RecyclerView.Adapter
 
                     if (tName != null)
                     {
+                        if (!string.Equals(_mode, "artist"))
+                        {
+
                         MyViewModel.NavigateToSingleSongPageFromHome(_parentFrag, tName, _img);
+
+                        }
+                        else
+                        {
+                            TransitionActivity act = (this._parentFrag!.Activity as TransitionActivity)!;
+                            act.HandleBackPressInternal();
+                        }
                     }
                 }
             };
@@ -573,8 +626,8 @@ internal class SongAdapter : RecyclerView.Adapter
         {
             // do something
         }
-
-        public void Bind(SongModelView song, bool isExpanded, Action<int> onExpandToggle)
+        string _mode;
+        public void Bind(SongModelView song, bool isExpanded, Action<int> onExpandToggle, string mode)
         {
             _currentSong = song;
             _expandAction = onExpandToggle;
@@ -582,7 +635,7 @@ internal class SongAdapter : RecyclerView.Adapter
             _title.Text = song.Title;
             _artist.Text = song.OtherArtistsName ?? "Unknown";
             _durationView.Text = $"{song.DurationFormatted}";
-
+            _mode = mode;
             if (song.HasSyncedLyrics)
             {
                 _container.StrokeWidth = 4;

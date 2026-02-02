@@ -117,7 +117,7 @@ public class LastfmService : ILastfmService
 
     private async Task HandlePlaybackStateChange(PlaybackEventArgs args)
     {
-        var currentSong = args.MediaSong;
+        var currentSong = args.AudioServiceCurrentPlayingSongView;
 
         switch (args.EventType)
         {
