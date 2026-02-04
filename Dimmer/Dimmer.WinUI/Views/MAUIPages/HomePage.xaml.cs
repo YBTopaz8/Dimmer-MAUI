@@ -35,13 +35,15 @@ public partial class HomePage : ContentPage
 
     public BaseViewModelWin MyViewModel { get; internal set; }
     private readonly Compositor _compositor = PlatUtils.MainWindowCompositor;
-    public HomePage(BaseViewModelWin vm, IWinUIWindowMgrService windowManagerService, LoginViewModelWin LoginVM)
+    public HomePage(BaseViewModelWin vm, IWinUIWindowMgrService windowManagerService, LoginViewModelWin LoginVM,
+        SessionManagementViewModel sessVM)
     {
         InitializeComponent();
         BindingContext = vm;
         MyViewModel = vm;
         windowMgrService = windowManagerService;
         this.loginVM = LoginVM;
+        this.sessionVM = sessVM;
         MyViewModel.DumpCommand.Execute(null);
     }
 
@@ -95,6 +97,7 @@ public partial class HomePage : ContentPage
     }
 
     private readonly IWinUIWindowMgrService windowMgrService;
+    private readonly SessionManagementViewModel sessionVM;
     private readonly LoginViewModelWin loginVM;
 
     //private async void QuickFilterGest_PointerReleased(object sender, PointerEventArgs e)
@@ -1070,6 +1073,7 @@ public partial class HomePage : ContentPage
         if(loginVM.CurrentUserOnline is not null && !string.IsNullOrEmpty(loginVM.CurrentUserOnline.ProfileImagePath))
         {
             send.Source = loginVM.CurrentUserOnline.ProfileImagePath;
+            await sessionVM.RegisterCurrentDeviceAsync();
         }
     }
 

@@ -54,7 +54,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
     private FrameLayout _contentContainer;
     public TransitionActivity() { }
     public static int MyStaticID;
-    private IOnBackInvokedCallback? _onBackInvokedCallback; // For API 33+
+    private object? _onBackInvokedCallback; // For API 33+
     private bool _isBackCallbackRegistered = false;
     MediaPlayerServiceConnection? _serviceConnection;
     Intent? _serviceIntent;
@@ -749,6 +749,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
 
 #endif
     }
+    private bool _isDialogActive = false;
     protected async override void OnResume()
     {
         try
@@ -764,6 +765,25 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
             // Log that the activity resumed
             Console.WriteLine("TransitionActivity: OnResume called.");
 
+
+
+            if (_isDialogActive)
+                return;
+
+            var typee = BaseViewModel.WindowActivationRequestTypeStatic;
+            if (typee == "Confirm LastFM")
+            {
+                _isDialogActive = true;
+                try
+                {
+                    await MyViewModel.CheckToCompleteActivation(typee);
+                }
+                finally
+                {
+                    // Ensure the flag is reset even if an error occurs
+                    _isDialogActive = false;
+                }
+            }
         }
         catch (Exception ex)
         {
@@ -821,7 +841,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
          }
         if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu && _onBackInvokedCallback != null && _isBackCallbackRegistered)
         {
-            OnBackInvokedDispatcher.UnregisterOnBackInvokedCallback(_onBackInvokedCallback);
+            OnBackInvokedDispatcher.UnregisterOnBackInvokedCallback((IOnBackInvokedCallback)_onBackInvokedCallback);
             _isBackCallbackRegistered = false;
         }
 
@@ -829,26 +849,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
         base.OnDestroy();
     }
 
-    private void SetupBackNavigation()
-    {
-        if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu) // API 33+
-        {
-            _onBackInvokedCallback = new BackInvokedCallback(() =>
-            {
-                
-                var currentFragment = MyViewModel.CurrentFragment as HomePageFragment;
-                if (currentFragment is null)
-                { 
-                    HandleBackPressInternal();
-                };
-            });
-            OnBackInvokedDispatcher.RegisterOnBackInvokedCallback(IOnBackInvokedDispatcher.PriorityDefault, _onBackInvokedCallback);
-            _isBackCallbackRegistered = true;
-        }
-        else
-        {
-        }
-    }
+  
 
     public void HandleBackPressInternal()
     {
@@ -862,6 +863,46 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
             MoveTaskToBack(true);
 
         }
+    }
+    private void SetupBackNavigation()
+    {
+        // The check remains here
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu) // API 33+
+        {
+            // We call a SEPARATE method. 
+            // The runtime won't look inside this method unless this line is reached.
+            SetupBackNavigationApi33();
+        }
+        else
+        {
+            // API 32 and lower logic (OnBackPressed override usually)
+        }
+    }
+
+    // This attribute is good practice, tells the compiler this is for API 33+
+    [System.Runtime.Versioning.SupportedOSPlatform("android33.0")]
+    private void SetupBackNavigationApi33()
+    {
+        // The dangerous code lives exclusively in here
+        _onBackInvokedCallback = new BackInvokedCallback(() =>
+        {
+            var currentFragment = MyViewModel.CurrentFragment as HomePageFragment;
+            if (currentFragment is null)
+            {
+                HandleBackPressInternal();
+            }
+            ;
+        });
+
+        // Note: Ensure _onBackInvokedCallback is defined as 'object' or inside this scope 
+        // to avoid field-level verification issues on older phones.
+
+        OnBackInvokedDispatcher.RegisterOnBackInvokedCallback(
+            IOnBackInvokedDispatcher.PriorityDefault,
+            (IOnBackInvokedCallback)_onBackInvokedCallback
+        );
+
+        _isBackCallbackRegistered = true;
     }
     public override void OnLowMemory()
     {

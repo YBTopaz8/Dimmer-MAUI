@@ -17,6 +17,7 @@ public static class AnimationHelper
     public const string Key_Forward = "ForwardConnectedAnimation";
     public const string Key_Back = "BackConnectedAnimation";
 
+    public const string Key_DetailToEdit = "SwingFromSongDetailToEdit";
     /// <summary>
     /// Prepares the animation BEFORE navigation (Call this on Click)
     /// </summary>

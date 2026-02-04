@@ -446,9 +446,10 @@
                                     Grid.Column="1"
                                     VerticalAlignment="Top"
                                     Background="Transparent">
-                                    <StackPanel x:Name="ArtistListPanel" HorizontalAlignment="Center">
+                                    <StackPanel x:Name="ArtistListPanel" HorizontalAlignment="Left">
                                         <TextBlock
                                             FontSize="28"
+                                            x:Name="ArtistsInSongTxtBlock"
                                             FontWeight="SemiBold"
                                             Text="Artists In This Song" />
                                         <ItemsRepeater
@@ -463,6 +464,7 @@
                                                         x:Name="ArtistNameBtn"
                                                         Margin="0,10,0,0"
                                                         BorderThickness="1"
+                                                        Loaded="ArtistNameBtn_Loaded"
                                                         Click="Artist_Click"
                                                         CornerRadius="15">
                                                         <StackPanel
@@ -494,8 +496,8 @@
 
                                     <Border
                                         x:Name="ArtistDetailBorder"
-                                        Width="350"
-                                        Height="350"
+                                        MaxWidth="550"
+                                        MaxHeight="350"
                                         HorizontalAlignment="Center"
                                         VerticalAlignment="Center"
                                         Background="#1E1E1E"
@@ -522,6 +524,7 @@
                                                     <Button
                                                         x:Name="ArtistPreviewButton"
                                                         Padding="10"
+                                                        
                                                         HorizontalAlignment="Center"
                                                         Background="Transparent"
                                                         Click="CloseArtistDetail_Click"

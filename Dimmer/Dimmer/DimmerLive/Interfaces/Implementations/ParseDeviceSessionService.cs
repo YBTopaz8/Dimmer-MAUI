@@ -202,8 +202,7 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
         {
             _logger.LogInformation("Preparing local data for backup...");
 
-            // 2. Get Data from Realm
-            // We use ToList() to materialize the query so we can serialize it safely off the Realm thread
+
             var realmEvents = vm.RealmFactory.GetRealmInstance()
                                 .All<DimmerPlayEvent>()
                                 .ToList();

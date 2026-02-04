@@ -365,10 +365,8 @@ public sealed partial class SongDetailPage : Page
 
     private void SimilarSongStackPanel_PointerEntered(object sender, PointerRoutedEventArgs e)
     {
-        // Apply a slight scale-up effect on pointer enter
-        // fetch image from lastfm in vm and show in custom tooltip 
-        // custom tooltip shows larger image and song details
-        // stackpanel height 300 width 200 with two textblocks below image
+     
+
         var stackPanel = (StackPanel)sender;
         var track = (stackPanel.DataContext as Hqub.Lastfm.Entities.Track);
        UIElement? uiElement = (UIElement)sender;
@@ -391,42 +389,36 @@ public sealed partial class SongDetailPage : Page
     private async void SectionOverview_PointerExited(object sender, PointerRoutedEventArgs e)
     {
     }
-
     private void EditSongBtn_Click(object sender, RoutedEventArgs e)
     {
-        var detailedImageVisual = ElementCompositionPreview.GetElementVisual(detailedImage);
-        if (detailedImageVisual != null)
-        {
-            ConnectedAnimationService.GetForCurrentView()
-                .PrepareToAnimate("SwingFromSongDetailToEdit", detailedImage);
-        }
-        // Navigate to the detail page, passing the selected song object.
-        // Suppress the default page transition to let ours take over.
-        var supNavTransInfo = new SlideNavigationTransitionInfo();
+        // 1. Prepare the animation
+        ConnectedAnimationService.GetForCurrentView()
+            .PrepareToAnimate("SwingFromSongDetailToEdit", detailedImage);
+
+        // 2. Navigation Setup
         Type songDetailType = typeof(EditSongPage);
         var navParams = new SongDetailNavArgs
         {
             Song = DetailedSong!,
             ViewModel = MyViewModel
-            
         };
 
-        FrameNavigationOptions navigationOptions = new FrameNavigationOptions
+
+        var navOptions = new FrameNavigationOptions
         {
-            TransitionInfoOverride = supNavTransInfo,
+            // Changed to Suppress so the Connected Animation shines
+            TransitionInfoOverride = new SuppressNavigationTransitionInfo(),
             IsNavigationStackEnabled = true
-
         };
 
-        Frame?.NavigateToType(songDetailType, navParams, navigationOptions);
-
+        Frame?.NavigateToType(songDetailType, navParams, navOptions);
     }
 
     private void AlbumBtn_Click(object sender, RoutedEventArgs e)
     {
 
     }
-
+                            
     private async void LyricsSection_Click(object sender, RoutedEventArgs e)
     {
         var supNavTransInfo = new SlideNavigationTransitionInfo();
@@ -618,87 +610,8 @@ public sealed partial class SongDetailPage : Page
 
     private FrameworkElement _storedSourceElement;
 
-    private async void Artist_Click(object sender, RoutedEventArgs e)
-    {
-        // 1. Identify the Source
-        // We cast the sender to the Button defined in the template
-        Button clickedButton = (Button)sender;
+  
 
-        var selArtist = clickedButton.DataContext as ArtistModelView;
-        if (selArtist is null) return;
-
-        ArtistDetailBorder.DataContext = selArtist;
-        // We store this button so we know where to return to later
-        _storedSourceElement = clickedButton;
-
-        // 2. Prepare the Connected Animation
-        // Key: "artistPreviewConAnim"
-        // Source: The button the user just clicked
-        ConnectedAnimation animation = ConnectedAnimationService.GetForCurrentView()
-            .PrepareToAnimate("artistPreviewConAnim", clickedButton);
-
-        // 3. Make the Target Visible (The Red Border)
-        ArtistDetailBorder.Visibility = Visibility.Visible;
-        ArtistDetailBorder.Opacity = 0; // Hide initially to prevent flicker before anim starts
-
-        // 4. Wait for Layout Update to ensure Destination has correct coordinates
-        if (ArtistDetailBorder.DispatcherQueue != null)
-        {
-            await ArtistDetailBorder.DispatcherQueue.EnqueueAsync(() =>
-            {
-                // 5. Start the Animation
-                ArtistDetailBorder.Opacity = 1;
-                animation.Configuration = new GravityConnectedAnimationConfiguration();
-                animation.TryStart(ArtistDetailBorder);
-
-            });
-        }
-    }
-
-    private async void CloseArtistDetail_Click(object sender, RoutedEventArgs e)
-    {
-        // 1. Prepare the Animation BACKWARDS
-        // Key: We reuse the name or use a specific return key. 
-        // Usually, we prepare a new animation from the Detail view back to the List.
-        ConnectedAnimation animation = ConnectedAnimationService.GetForCurrentView()
-            .PrepareToAnimate("artistPreviewConAnim_Back", ArtistDetailBorder);
-
-        // 2. Handle Completion (Collapse the Red Border when done)
-        animation.Completed += BackAnimation_Completed;
-
-        // Optional: Add Gravity configuration for the return trip if supported
-        animation.Configuration = new GravityConnectedAnimationConfiguration();
-
-        // 3. Start Animation targeting the stored list item
-        if (_storedSourceElement != null)
-        {
-            await RootGrid.DispatcherQueue.EnqueueAsync(() =>
-            {
-                // Try to animate back to the specific button we clicked earlier
-                bool started = animation.TryStart(_storedSourceElement);
-
-                // Fallback: If the list scrolled or the item is gone, just collapse immediately
-                if (!started)
-                {
-                    ArtistDetailBorder.Visibility = Visibility.Collapsed;
-                }
-            });
-        }
-        else
-        {
-            // Safety fallback if no source is stored
-            ArtistDetailBorder.Visibility = Visibility.Collapsed;
-        }
-    }
-
-    private void BackAnimation_Completed(ConnectedAnimation sender, object args)
-    {
-        // Ensure the Red Border is collapsed after the visual morph is done
-        ArtistDetailBorder.Visibility = Visibility.Collapsed;
-        
-        // Clean up the event handler to avoid memory leaks
-        sender.Completed -= BackAnimation_Completed;
-    }
 
     private async void ArtistNameBtn_Click(object sender, RoutedEventArgs e)
     {
@@ -877,5 +790,72 @@ public sealed partial class SongDetailPage : Page
     {
         await MyViewModel.RemoveSongFromFavorite(MyViewModel.SelectedSong!);
     }
+
+    private void ArtistNameBtn_Loaded(object sender, RoutedEventArgs e)
+    {
+        // The Helper handles the null checks, the opacity setting, 
+        // and the DispatcherQueue automatically.
+
+        AnimationHelper.TryStart(
+            detailedImage,
+            new List<UIElement>() { ArtistsInSongTxtBlock },
+            // Pass all possible keys here. 
+            // The helper loops through them and starts the FIRST one it finds.
+            "OpenArtistSongsCatalog",      // Priority 1: Coming from Edit Page
+            AnimationHelper.Key_ListToDetail, // Priority 2: Coming from List
+            AnimationHelper.Key_ArtistToSong  // Priority 3: Coming from Artist
+        );
+    }
+
+    private void Artist_Click(object sender, RoutedEventArgs e)
+    {
+        // 1. Identify the Source
+        Button clickedButton = (Button)sender;
+        var selArtist = clickedButton.DataContext as ArtistModelView;
+        if (selArtist is null) return;
+
+        // Store this so we can animate back to it later
+        _storedSourceElement = clickedButton;
+
+        // 2. PREPARE the animation
+        // We "take a snapshot" of the button before the UI changes
+        AnimationHelper.Prepare(AnimationHelper.Key_ArtistToSong, clickedButton);
+
+        // 3. Update Data and Visibility
+        ArtistDetailBorder.DataContext = selArtist;
+        ArtistDetailBorder.Visibility = Visibility.Visible;
+
+        // 4. START the animation on the Destination
+        // We execute this immediately because we just made the element Visible.
+        // The Helper's DispatcherQueue will ensure the UI has time to render the Visibility change.
+        AnimationHelper.TryStart(
+            ArtistDetailBorder, // Destination: The Big Border
+            null,               // Optional: Coordinated elements (like the text inside)
+            AnimationHelper.Key_ArtistToSong
+        );
+    }
+
+    private async void CloseArtistDetail_Click(object sender, RoutedEventArgs e)
+    {
+        // 1. PREPARE the return animation
+        // We take a snapshot of the whole detail border (or the specific image/text inside it)
+        AnimationHelper.Prepare(AnimationHelper.Key_ArtistToSong, ArtistDetailBorder);
+
+        // 2. Hide the Detail View
+        ArtistDetailBorder.Visibility = Visibility.Collapsed;
+
+        // 3. START the animation back to the original list button
+        if (_storedSourceElement != null)
+        {
+            // We use the helper to fly back to the button we clicked earlier
+            AnimationHelper.TryStart(
+                _storedSourceElement,
+                null,
+                AnimationHelper.Key_ArtistToSong
+            );
+        }
+    }
+   
+
 }
 

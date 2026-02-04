@@ -818,6 +818,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
         else
         {
+            if (CurrentTqlQuery == processedNewText) return;
             CurrentTqlQueryUI = processedNewText;
         }
 
@@ -1552,8 +1553,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
     private SourceList<DimmerPlayEventView> _playEventSource = new();
-    private CompositeDisposable _disposables = new();
-    private IDisposable? _realmSubscription;
+    private readonly CompositeDisposable _disposables = new();
+
 
     public ILyricsMetadataService LyricsMetadataService => _lyricsMetadataService;
     private ILyricsMetadataService _lyricsMetadataService;
@@ -5108,7 +5109,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             _backgroundCachingCts?.Dispose();
             _backgroundCachingCts = null;
             
-            _realmSubscription?.Dispose();
+
             _playEventSource.Dispose();
             realm?.Dispose();
             _subsManager.Dispose();
@@ -7759,17 +7760,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
 
-    public async Task PostAppUpdateAsync(string title, string notes, string url)
-    { await ParseStatics.PostNewUpdateAsync(title, notes, url); }
-    public async Task SaveTqlQueryAsync(string queryName, string tqlString)
-    { await ParseStatics.SaveTqlQueryAsync(queryName, tqlString); }
-
-    [RelayCommand]
-    public async Task FindMusicalNeighborsAsync() { await ParseStatics.FindMusicalNeighborsAsync(); }
-
-    [RelayCommand]
-    public async Task GetSharedSongDetailsAsync(string sharedSongId)
-    { await ParseStatics.GetSharedSongDetailsAsync(sharedSongId); }
 
     [ObservableProperty]
     public partial bool IsCheckingForUpdates { get; set; }
