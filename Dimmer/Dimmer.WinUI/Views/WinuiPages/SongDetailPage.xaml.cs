@@ -863,6 +863,7 @@ public sealed partial class SongDetailPage : Page
     private void PlaySongNowFromArtistListOfSongs_Click(object sender, RoutedEventArgs e)
     {
         var listOfSongs = ArtistSongsPreviewIR.ItemsSource.GetType();
+        Debug.WriteLine(listOfSongs);
     }
 
     private async void AddNextInQueue_Click(object sender, RoutedEventArgs e)

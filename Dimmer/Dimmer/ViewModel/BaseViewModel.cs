@@ -4904,30 +4904,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [RelayCommand]
     public void RateSong(int newRating)
     {
-        if (CurrentPlayingSongView == null || CurrentPlayingSongView.Id == ObjectId.Empty)
-        {
-            _logger.LogWarning("RateSong called but CurrentPlayingSongView is null.");
-            return;
-        }
-        _logger.LogInformation(
-            "Rating song '{SongTitle}' with new rating: {NewRating}",
-            CurrentPlayingSongView.Title,
-            newRating);
-        var songModel = CurrentPlayingSongView.ToSongModel();
-        if (songModel == null)
-        {
-            _logger.LogWarning("RateSong: Could not map CurrentPlayingSongView to SongModel.");
-            return;
-        }
-        var isRatingGreaterNow = newRating > songModel.Rating;
-        var isRatingLowerNow = newRating < songModel.Rating;
-
-        songModel.Rating = newRating;
-        var song = songRepo.Upsert(songModel);
         
-            _logger.LogInformation("evt '{SongTitle}' updated with new rating: {NewRating}", songModel.Title, newRating);
 
-        _stateService.SetCurrentSong(song.ToSongModelView());
     }
 
     [RelayCommand]
@@ -4953,11 +4931,19 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             concernedSong.IsFavorite = false;
             concernedSong.ManualFavoriteCount = 0;
             concernedSong.NumberOfTimesFaved = 0;
-            var updated = await Task.Run(() => songRepo.Upsert(concernedSong.ToSongModel()).ToSongModelView());
-            if (updated is not null)
-                RxSchedulers.UI.ScheduleTo(() => concernedSong = updated);
-            await lastfmService.UnloveTrackAsync(concernedSong);
-            
+
+            var realm = RealmFactory.GetRealmInstance();
+            var song = realm.Find<SongModel>(concernedSong.Id);
+            if (song is not null)
+            {
+                await realm.WriteAsync(() =>
+                {
+                    song.IsFavorite = false;
+                    song.ManualFavoriteCount = 0;
+                    song.NumberOfTimesFaved = 0;
+                });
+                await lastfmService.UnloveTrackAsync(concernedSong);
+            }
 
         }
         catch (Exception ex)
@@ -4988,18 +4974,26 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 StatesMapper.Map(DimmerPlaybackState.Favorited),
                 CurrentTrackPositionSeconds);
 
-            // increment only manual count (persistent)
+
             songModel.ManualFavoriteCount++;
 
-            // recalc derived field deterministically
+
             songModel.NumberOfTimesFaved =
                 songModel.ManualFavoriteCount + (songModel.PlayCompletedCount / 4);
 
-            // persist Realm update off-UI thread
-            var updated = await Task.Run(() => songRepo.Upsert(songModel.ToSongModel()).ToSongModelView());
-            if (updated is not null)
-                RxSchedulers.UI.ScheduleTo(() => songModel =updated);
 
+
+            var realm = RealmFactory.GetRealmInstance();
+            var song = realm.Find<SongModel>(songModel.Id);
+            if (song is not null)
+            {
+                await realm.WriteAsync(() =>
+                {
+                    song.IsFavorite = songModel.IsFavorite;
+                    song.ManualFavoriteCount = songModel.ManualFavoriteCount;
+                    song.NumberOfTimesFaved = songModel.NumberOfTimesFaved;
+                });
+            }
 
             // network side effect only once per manual first love
             if (songModel.ManualFavoriteCount == 1)
@@ -5013,40 +5007,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
     }
 
-    [RelayCommand]
-    public async Task UnloveSong(SongModelView songModel)
-    {
-        if (songModel is null || songModel.Id == ObjectId.Empty)
-        {
-            _logger.LogWarning("UnloveSong called with invalid SongModel.");
-            return;
-        }
-
-        // IsBusy = true;
-
-        try
-        {
-            // 1. Await the I/O network call correctly.
-            await lastfmService.UnloveTrackAsync(songModel);
-
-            // 2. Update local model state ONLY after the network call succeeds.
-            songModel.NumberOfTimesFaved = 0;
-            songModel.IsFavorite = false;
-
-            // 3. Move the synchronous DB work to a background thread.
-            await Task.Run(() => songRepo.Upsert(songModel.ToSongModel()));
-        }
-        catch (Exception ex)
-        {
-            // 4. Gracefully handle network or database errors.
-            _logger.LogError(ex, "Failed to unlove song: {SongTitle}", songModel.Title);
-            // Optional: Show an error message to the user
-        }
-        finally
-        {
-            // IsBusy = false;
-        }
-    }
+    
 
     public async Task AddToPlaylist(string playlistName, IEnumerable<SongModelView> songsToAdd, string PlQuery)
     {
@@ -7968,7 +7929,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         CurrentUserLocal.LastFMAccountInfo.Image.Url = usr.Images.LastOrDefault()?.Url;
         CurrentUserLocal.LastFMAccountInfo.Image.Size = usr.Images.LastOrDefault()?.Size;
         var rlm = RealmFactory.GetRealmInstance();
-        rlm.Write(
+        await rlm.WriteAsync(
             () =>
             {
                 var usre = rlm.All<UserModel>().ToList();

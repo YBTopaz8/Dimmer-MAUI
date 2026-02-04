@@ -65,7 +65,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
     private Button _repeatBtn;
     private TextView _currentMiniLyricText;
 
-    public DimmerSliderListener seekListener { get; private set; }
+    public DimmerSliderListener SeekListener { get; private set; }
     public CardView formatCard { get; private set; }
     public TextView formatViewText { get; private set; }
     public Button infoPill { get; private set; }
@@ -95,7 +95,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
 
         _backgroundImageView = new ImageView(ctx)
         {
-            LayoutParameters = new FrameLayout.LayoutParams(-1, -1),
+            LayoutParameters = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent),
 
         }; 
         _backgroundImageView.SetScaleType(ImageView.ScaleType.CenterCrop);
@@ -656,10 +656,10 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         // Slider Logic
 
         //_seekSlider.AddOnChangeListener
-        seekListener = new DimmerSliderListener(
+        SeekListener = new DimmerSliderListener(
     onDragStart: () =>
     {
-        seekListener.TotalDurationInSeconds = MyViewModel.CurrentPlayingSongView.DurationInSeconds;
+        SeekListener.TotalDurationInSeconds = MyViewModel.CurrentPlayingSongView.DurationInSeconds;
         _isDraggingSeek = true;
         
     },
@@ -687,13 +687,11 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
     }
 );
 
-        seekListener.DataType = SliderDataType.Time;
+        SeekListener.DataType = SliderDataType.Time;
         // 2. Register for BOTH events
-        _seekSlider.AddOnSliderTouchListener(seekListener);
-        _seekSlider.AddOnChangeListener(seekListener);
-        //_seekSlider.SetOnTouchListener(seekListener);
-        
-
+        _seekSlider.AddOnSliderTouchListener(SeekListener);
+        _seekSlider.AddOnChangeListener(SeekListener);
+    
 
         var volumeListener = new DimmerSliderListener(
     onDragStart: () => { _isDraggingVolume = true; },
@@ -724,7 +722,6 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         }
         else
         {
-
             _loveBtn.Text = "Love";
             _loveBtn.SetIconResource(Resource.Drawable.heart);
             _loveBtn.SetBackgroundColor(Color.Gray);
@@ -1011,12 +1008,11 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
     {
         if (song == null) return;
 
-
         UpdateLoveBtnUI(song.IsFavorite);
 
         // Mini Player
         _miniTitle.Text = song.Title;
-        var finalArtName = song.HasSyncedLyrics ? "🎙️ " + song.ArtistName : song.ArtistName;
+        var finalArtName = song.HasSyncedLyrics ? "🎙️ " + song.OtherArtistsName : song.OtherArtistsName;
         _miniArtist.Text = finalArtName;
 
         // Expanded Player
@@ -1027,7 +1023,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
 
         // Artist Chips
         _artistChipGroup.RemoveAllViews();
-        _artistChipGroup.CanScrollHorizontally(1);
+       
         if (!string.IsNullOrEmpty(song.TitleDurationKey))
         {
             var artInDb = song.ArtistsInDB(MyViewModel.RealmFactory);
@@ -1041,10 +1037,9 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
                     chip.Click += async (s, e) =>
                     {
                         
-                       
                         MyViewModel.NavigateToArtistPage(this, art.Id.ToString(), art, (Chip)s!);
 
-                        TransitionActivity act = this.Activity as TransitionActivity;
+                        TransitionActivity act = (this.Activity as TransitionActivity)!;
                         act.TogglePlayer();
                     };
                     _artistChipGroup.AddView(chip);
@@ -1054,10 +1049,12 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
        
             _artistChipGroup.Click += (s, e) =>
             {
+                if (artInDb is not null)
+                {
+                    var artistPickBtmSheet = new ArtistPickerBottomSheet(MyViewModel, artInDb);
 
-                var artistPickBtmSheet = new ArtistPickerBottomSheet(MyViewModel, artInDb);
-
-                artistPickBtmSheet.Show(this.ParentFragmentManager, "QueueSheet");
+                    artistPickBtmSheet.Show(this.ParentFragmentManager, "QueueSheet");
+                }
             };
 
         }

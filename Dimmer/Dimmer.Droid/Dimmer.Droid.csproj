@@ -36,6 +36,22 @@
 
 
 	<ItemGroup>
+	  <AndroidJavaSource Remove="ViewsAndPages\NativeViews\NewFolder\**" />
+	  <AndroidLibrary Remove="ViewsAndPages\NativeViews\NewFolder\**" />
+	  <AndroidNativeLibrary Remove="ViewsAndPages\NativeViews\NewFolder\**" />
+	  <Compile Remove="ViewsAndPages\NativeViews\NewFolder\**" />
+	  <EmbeddedResource Remove="ViewsAndPages\NativeViews\NewFolder\**" />
+	  <JavaSourceJar Remove="ViewsAndPages\NativeViews\NewFolder\**" />
+	  <MauiCss Remove="ViewsAndPages\NativeViews\NewFolder\**" />
+	  <MauiXaml Remove="ViewsAndPages\NativeViews\NewFolder\**" />
+	  <None Remove="ViewsAndPages\NativeViews\NewFolder\**" />
+	  <ProguardConfiguration Remove="ViewsAndPages\NativeViews\NewFolder\**" />
+	  <TransformFile Remove="ViewsAndPages\NativeViews\NewFolder\**" />
+	</ItemGroup>
+
+
+
+	<ItemGroup>
 	  <Compile Remove="ViewsAndPages\NativeViews\GraphFragment.cs" />
 	</ItemGroup>
 
@@ -111,8 +127,6 @@
 	<ItemGroup>
 	  <Folder Include="Adapters\HomePage\" />
 	  <Folder Include="Utils\CustomObjects\" />
-	  <Folder Include="ViewsAndPages\NativeViews\NewFolder1\" />
-	  <Folder Include="ViewsAndPages\NativeViews\NewFolder\" />
 	</ItemGroup>
 
 	<ItemGroup>

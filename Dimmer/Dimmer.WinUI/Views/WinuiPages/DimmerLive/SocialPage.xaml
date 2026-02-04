@@ -50,7 +50,7 @@
                             CornerRadius="4">
                             <Image Stretch="UniformToFill">
                                 <Image.Source>
-                                    <BitmapImage UriSource="{x:Bind SharedSong.CoverArtFile.Url, Mode=OneWay}" />
+                                    <BitmapImage UriSource="{x:Bind SharedSong.CoverArtFile.Url, Converter={StaticResource StringToImageConverter}, Mode=OneWay}" />
                                 </Image.Source>
                             </Image>
                         </Border>

@@ -683,17 +683,18 @@ public partial class HomePage : ContentPage
     {
 
         var platEvents = e.PlatformArgs;
-        var routedEvents = platEvents.PointerRoutedEventArgs;
+        var routedEvents = platEvents?.PointerRoutedEventArgs;
 
 
-        var properties = routedEvents.GetCurrentPoint(sender as Microsoft.UI.Xaml.UIElement).Properties;
+        var properties = routedEvents?.GetCurrentPoint(sender as Microsoft.UI.Xaml.UIElement).Properties;
+        if (properties is null) return;
         if (properties.IsLeftButtonPressed)
         {
             await MyViewModel.AddFavoriteRatingToSong(MyViewModel.CurrentPlayingSongView);
         }
         if (properties.IsRightButtonPressed)
         {
-            await MyViewModel.UnloveSong(MyViewModel.CurrentPlayingSongView);
+            await MyViewModel.RemoveSongFromFavorite(MyViewModel.CurrentPlayingSongView);
             return;
         }
     }

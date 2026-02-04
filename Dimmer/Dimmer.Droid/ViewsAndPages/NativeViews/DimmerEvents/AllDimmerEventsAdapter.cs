@@ -20,8 +20,8 @@ public partial class AllDimmerEventsAdapter : RecyclerView.Adapter
 
         var realm = MyViewModel.RealmFactory.GetRealmInstance();
 
-        var albumInDB = realm.All<DimmerPlayEvent>().AsObservableChangeSet()
-            .transform;
+        //var albumInDB = realm.All<DimmerPlayEvent>().AsObservableChangeSet()
+        //    .transform;
         
 
     }

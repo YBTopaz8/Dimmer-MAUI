@@ -196,6 +196,7 @@
                                                 BorderBrush="Transparent"
                                                 RightTapped="FavBtn_RightTapped" x:Name="FavBtn"
                                                 Command="{x:Bind MyViewModel.AddFavoriteRatingToSongCommand}"
+                                                CommandParameter="{x:Bind MyViewModel.SelectedSong}"
                                                 Foreground="SlateBlue">
 
                                                 <FontIcon Glyph="&#xEB52;" />
