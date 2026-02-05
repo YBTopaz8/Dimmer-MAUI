@@ -233,6 +233,41 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
     public int PreviousCount { get;  set; }
     public int RestartCount { get;  set; }
     public DateTimeOffset DiscoveryDate { get;  set; }
+
+    /// <summary>
+    /// Link to the Musical Work this song is a rendition of (optional)
+    /// </summary>
+    public MusicalWorkModel? MusicalWork { get; set; }
+
+    /// <summary>
+    /// Type of rendition (e.g., "Studio", "Live", "Acoustic", "Remix", "Cover", "Instrumental")
+    /// </summary>
+    public string? RenditionType { get; set; }
+
+    /// <summary>
+    /// Specific instrumentation for this rendition (e.g., "Piano", "Cello", "Orchestra", "Acoustic Guitar")
+    /// </summary>
+    public string? Instrumentation { get; set; }
+
+    /// <summary>
+    /// Whether this is a live performance recording
+    /// </summary>
+    public bool IsLivePerformance { get; set; }
+
+    /// <summary>
+    /// Whether this is a remix or remaster
+    /// </summary>
+    public bool IsRemix { get; set; }
+
+    /// <summary>
+    /// Whether this is a cover version by a different artist
+    /// </summary>
+    public bool IsCover { get; set; }
+
+    /// <summary>
+    /// Additional notes about this specific rendition
+    /// </summary>
+    public string? RenditionNotes { get; set; }
 }
 [Dimmer.Utils.Preserve(AllMembers = true)]
 public partial class SyncLyrics : EmbeddedObject
