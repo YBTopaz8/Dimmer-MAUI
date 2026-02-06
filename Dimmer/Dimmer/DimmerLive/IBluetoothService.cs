@@ -28,10 +28,27 @@ public class FullBackupData
     public List<string?>? PlayBackSongTitleAndDurationId { get; set; }
     public List<string?>? FavoriteSongsTitleAndDurationId { get; set; }
 
-    
-    
+    public DateTimeOffset BackupDate { get; set; } = DateTimeOffset.UtcNow;
+    public string AppVersion { get; set; } = "1.0.0"; // Good for versioning migrations later
+    public string Platform { get; set; }
+
+    // The Data Lists
+    public IEnumerable<SongModel> Songs { get; set; }
+    public IEnumerable<DimmerPlayEvent> PlayEvents { get; set; }
+    public IEnumerable<PlaylistModel> Playlists { get; set; }
+    public IEnumerable<UserStats> Stats { get; set; }
+    public AppStateModel Settings { get; set; }
 }
 
+public class BackupMetadata
+{
+    public string ObjectId { get; set; }
+    public DateTime? CreatedAt { get; set; }
+    public string FileUrl { get; set; }
+    public int SongCount { get; set; }
+    public int EventCount { get; set; }
+    public string DeviceName { get; set; }
+}
 public interface IBluetoothService
 {
     // Scans and returns list of paired devices

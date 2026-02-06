@@ -1,4 +1,5 @@
-﻿using Parse.LiveQuery;
+﻿using System.IO.Compression;
+using Parse.LiveQuery;
 
 namespace Dimmer.DimmerLive.Interfaces.Implementations;
 public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
@@ -189,85 +190,120 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
         }
     }
 
-    public async Task<string> CreateBackupAsync()
+
+    public async Task<string> CreateFullBackupAsync()
     {
-        // 1. Check Login Status
-        if (ParseClient.Instance.CurrentUser == null)
-        {
-            _logger.LogError("Cannot backup: User is not logged in via ParseClient.");
-            return "Not Logged In";
-        }
+        if (ParseClient.Instance.CurrentUser == null) return "Not Logged In";
 
         try
         {
-            _logger.LogInformation("Preparing local data for backup...");
+            _logger.LogInformation("Gathering local data...");
+            var realm = vm.RealmFactory.GetRealmInstance();
 
-
-            var realmEvents = vm.RealmFactory.GetRealmInstance()
-                                .All<DimmerPlayEvent>()
-                                .ToList();
-            var currentUser = ParseClient.Instance.CurrentUser;
-            // 3. Convert to DTO/View objects to strip Realm-specific properties
-            var eventViews = realmEvents.Select(x => x.ToDimmerPlayEventView()).ToList();
-
-
-
-            if (eventViews.Count == 0)
+            // 1. Gather ALL Data into the container
+            // Note: Ensure your .ToView() methods map all properties correctly!
+            var backupData = new FullBackupData
             {
-                return "No events to backup.";
+                Platform = DeviceInfo.Platform.ToString(),
+                Songs = realm.All<SongModel>().AsEnumerable(),
+                PlayEvents = realm.All<DimmerPlayEvent>().AsEnumerable(),
+                Playlists = realm.All<PlaylistModel>().AsEnumerable(),
+                Settings = realm.All<AppStateModel>().FirstOrDefault(),
+                // Map UserStats if you have a ToView() for it, or direct object if no circular refs
+                Stats = realm.All<UserStats>().AsEnumerable()
+            };
+
+            if (backupData.Songs.Count() == 0 && backupData.PlayEvents.Count() == 0)
+                return "No data to backup.";
+
+            _logger.LogInformation($"Serializing {backupData.Songs.Count()} songs and {backupData.PlayEvents.Count()} events...");
+
+            // 2. Serialize to JSON
+            string jsonString = JsonSerializer.Serialize(backupData);
+            byte[] jsonBytes = System.Text.Encoding.UTF8.GetBytes(jsonString);
+
+            // 3. Compress (GZip)
+            byte[] compressedBytes;
+            using (var outStream = new MemoryStream())
+            {
+                using (var archive = new GZipStream(outStream, CompressionLevel.Optimal))
+                {
+                    archive.Write(jsonBytes, 0, jsonBytes.Length);
+                }
+                compressedBytes = outStream.ToArray();
             }
 
-            // 4. Serialize to JSON String
-            string jsonString = JsonSerializer.Serialize(eventViews);
-            byte[] data = System.Text.Encoding.UTF8.GetBytes(jsonString);
+            _logger.LogInformation($"Compressed size: {compressedBytes.Length / 1024} KB");
 
-            ParseFile backupFile = new ParseFile("backup.json", data);
+            // 4. Create ParseFile
+            // Important: .json.gz extension helps identify content type
+            string fileName = $"backup_{ParseClient.Instance.CurrentUser.ObjectId}_{DateTime.UtcNow.Ticks}.json.gz";
+            ParseFile backupFile = new ParseFile(fileName, compressedBytes, "application/gzip");
+
+            // Upload the file to Parse Storage
             await backupFile.SaveAsync(ParseClient.Instance);
 
-
-            // 5. Prepare Parameters
+            // 5. Link to Cloud Code
             var parameters = new Dictionary<string, object>
         {
-            { "eventsJson", jsonString }
+            { "backupFile", backupFile },
+            { "songCount", backupData.Songs.Count() },
+            { "eventCount", backupData.PlayEvents.Count() },
+            { "deviceName", DeviceInfo.Name }
         };
 
-            _logger.LogInformation($"Uploading backup ({eventViews.Count} events)...");
+            // This function will handle the "Keep Max 3" logic
+            var result = await ParseClient.Instance.CallCloudCodeFunctionAsync<IDictionary<string, object>>("saveBackupReference", parameters);
 
-            // 6. Call Cloud Code
-            var result = await ParseClient.Instance.CallCloudCodeFunctionAsync<IDictionary<string, object>>("generateCloudBackup", parameters);
-
-            if (result != null && result.ContainsKey("success") && (bool)result["success"])
-            {
-                var url = result.ContainsKey("url") ? result["url"].ToString() : "N/A";
-                _logger.LogInformation($"Backup successful. File URL: {url}");
-                return "Backup Successful";
-            }
-
-            return "Backup Failed (Server returned failure)";
+            return "Backup Successful";
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating cloud backup");
+            _logger.LogError(ex, "Backup failed");
             return $"Error: {ex.Message}";
         }
     }
-    public async Task<List<ParseObject>> GetAvailableBackupsAsync()
-    {
-        if (_authService.CurrentUserValue == null) return new List<ParseObject>();
 
+    public async Task<List<BackupMetadata>> GetAvailableBackupsAsync()
+    {
         try
         {
-            var query = new ParseQuery<ParseObject>(ParseClient.Instance,"UserBackup")
-                .WhereEqualTo("user", _authService.CurrentUserValue)
-                .OrderByDescending("createdAt");
+            var result = await ParseClient.Instance.CallCloudCodeFunctionAsync<IList<object>>("getUserBackups", null);
+            var backups = new List<BackupMetadata>();
 
-            var backups = await query.FindAsync();
-            return backups.ToList();
+            foreach (Dictionary<string, object> item in result)
+            {
+                backups.Add(new BackupMetadata
+                {
+                    ObjectId = item.ContainsKey("objectId") ? item["objectId"].ToString() : "",
+                    CreatedAt = item.ContainsKey("createdAt") ? DateTime.Parse(item["createdAt"].ToString()) : null,
+                    SongCount = item.ContainsKey("songCount") ? int.Parse(item["songCount"].ToString()) : 0,
+                    EventCount = item.ContainsKey("eventCount") ? int.Parse(item["eventCount"].ToString()) : 0,
+                    DeviceName = item.ContainsKey("deviceName") ? item["deviceName"].ToString() : "Unknown",
+                    FileUrl = item.ContainsKey("fileUrl") ? item["fileUrl"].ToString() : ""
+                });
+            }
+            return backups;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to fetch backups.");
-            return new List<ParseObject>();
+            _logger.LogError(ex, "Failed to fetch backups");
+            return new List<BackupMetadata>();
+        }
+    }
+
+    public async Task<bool> DeleteBackupAsync(string backupObjectId)
+    {
+        var parameters = new Dictionary<string, object> { { "backupId", backupObjectId } };
+        try
+        {
+            await ParseClient.Instance.CallCloudCodeFunctionAsync<object>("deleteUserBackup", parameters);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete backup");
+            return false;
         }
     }
     public async Task<ParseObject?> GenerateReferralCodeAsync()
