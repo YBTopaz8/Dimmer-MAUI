@@ -308,13 +308,16 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         _songListRecycler.SetPadding(0, 0, 0, AppUtil.DpToPx(160));
         _songListRecycler.SetClipToPadding(false);
 
-        _adapter = new SongAdapter(ctx, MyViewModel, this);
-        _songListRecycler.SetAdapter(_adapter);
-
+        if (MyViewModel.SearchResults.Count > 0)
+        {
+            _adapter = new SongAdapter(ctx, MyViewModel, this);
+            _songListRecycler.SetAdapter(_adapter);
+      
 
 
         // Add Recycler to Content
         contentLinear.AddView(_songListRecycler);
+        }
         //contentLinear.AddView(pagerView);
 
         // Add Content to Root

@@ -42,6 +42,7 @@ internal class SongAdapter : RecyclerView.Adapter
     private int _expandedPosition = -1;
     private int _previousExpandedPosition = -1;
 
+    public override int ItemCount => Songs.Count;
     public SongModelView GetItem(int position) => Songs.ElementAt(position);
 
     IObservable<IChangeSet<SongModelView>> sourceStream;
@@ -191,7 +192,6 @@ internal class SongAdapter : RecyclerView.Adapter
         base.Dispose(disposing);
     }
     private readonly CompositeDisposable _disposables = new();
-    public override int ItemCount => _songs.Count;
 
     public Button moreBtn { get; private set; }
     public Button StatsBtn { get; private set; }
