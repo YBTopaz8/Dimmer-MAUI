@@ -71,13 +71,13 @@ public partial class LastFMUserView : ObservableObject
         /// Gets or sets the image size.
         /// </summary>
         [ObservableProperty]
-        public partial string? Size { get; set; }
+        public partial string Size { get; set; } = string.Empty;
 
         /// <summary>
         /// Gets or sets the image url.
         /// </summary>
         [ObservableProperty]
-        public partial string? Url { get; set; }
+        public partial string Url { get; set; } = string.Empty;
     }
 
     #endregion

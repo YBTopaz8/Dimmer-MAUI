@@ -27,7 +27,7 @@ public sealed partial class MediaPlaybackSection : UserControl
 
     private void ViewNowPlayingSong_Click(object sender, RoutedEventArgs e)
     {
-       MyViewModel.NavigateToAnyPageOfGivenType(typeof(NowPlayingPage));
+        MyViewModel.NavigateToAnyPageOfGivenType(typeof(NowPlayingPage));
     }
 
     private void ViewLyricsButton_Click(object sender, RoutedEventArgs e)

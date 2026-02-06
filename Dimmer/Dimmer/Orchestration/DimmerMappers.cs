@@ -190,8 +190,64 @@ public static class DimmerMappers
         var albs = realmFactory.GetRealmInstance().Find<ArtistModel>
             (song.Id)?.Albums.AsEnumerable().Select(x => x.ToAlbumModelView())
             ;
-        song.AlbumsByArtist = albs.ToObservableCollection();
-        return albs.ToList();
+        song.AlbumsByArtist = albs?.ToObservableCollection();
+        return albs?.ToList();
+    }
+
+    public static void RefreshAlbumAndSongsFromDB(this ArtistModelView art,IRealmFactory realmFactory)
+    {
+        var realm = realmFactory.GetRealmInstance();
+        var artInDb = realm.Find<ArtistModel>(art.Id)!;
+
+        var albs = realm.Find<ArtistModel>
+            (art.Id)?.Albums.AsEnumerable().DistinctBy(x=>x.Name).Select(x => x.ToAlbumModelView())
+            ;
+        if(albs!.Any())
+        {
+            art.SongsByArtist = artInDb.Songs.AsEnumerable().Select(x => x.ToSongModelView())
+    .ToObservableCollection();
+            var songAlbs = artInDb.Albums;
+
+
+            foreach (var alb in songAlbs)
+            {
+                if (alb is null) continue;
+                art.AlbumsByArtist ??= new();
+                realm.Write(() =>
+                {
+                    var albInDb = realm.Find<AlbumModel>(alb.Id)!;
+                    albInDb.Artists.Add(artInDb);
+                });
+
+            }
+            art.AlbumsByArtist = albs!.ToObservableCollection()!;
+        }
+
+    }
+    public static void RefreshArtistsAndSongsFromDB(this AlbumModelView album, IRealmFactory realmFactory)
+    {
+        var arts = realmFactory.GetRealmInstance().Find<AlbumModel>(album.Id)!
+            .Artists.AsEnumerable().Select(x=>x.ToArtistModelView()).ToList();
+
+        album.Artists = arts!;
+        album.SongsInAlbum = realmFactory.GetRealmInstance().Find<AlbumModel>(album.Id)!
+            .SongsInAlbum!.AsEnumerable().Select(x => x.ToSongModelView()).ToObservableCollection()!;
+        var realm = realmFactory.GetRealmInstance();
+        var albInDB = realm.Find<AlbumModel>(album.Id)!;
+        if(string.IsNullOrEmpty(albInDB.ImagePath))
+        {
+            var firstSongWithImg = albInDB.SongsInAlbum?.AsEnumerable().FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.CoverImagePath));
+            if(firstSongWithImg is not null)
+            {
+                realm.Write(() =>
+                {
+                    albInDB.ImagePath = firstSongWithImg.CoverImagePath;
+                });
+
+                album.ImagePath = firstSongWithImg.CoverImagePath;
+            }
+        }
+
     }
     public static SongModel? ToSongModel(this SongModelView? src)
     {

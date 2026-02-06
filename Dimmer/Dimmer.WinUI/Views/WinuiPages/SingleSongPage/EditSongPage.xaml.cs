@@ -389,15 +389,18 @@ public sealed partial class EditSongPage : Page
     }
 
     private void DetailedImage_Loaded(object sender, RoutedEventArgs e)
-    {   var animation = ConnectedAnimationService.GetForCurrentView()
-       .GetAnimation("SwingFromSongDetailToEdit");
-        detailedImage.Opacity = 1;
-        animation?.TryStart(detailedImage);
+    {
+        // The Helper handles the null checks, the opacity setting, 
+        // and the DispatcherQueue automatically.
+
         AnimationHelper.TryStart(
             detailedImage,
-            new List<UIElement>() { BackBtn }
-            , AnimationHelper.Key_ListToDetail,       // OR Check this key
-           AnimationHelper.Key_ArtistToSong
-            );
+            new List<UIElement>() { BackBtn },
+            // Pass all possible keys here. 
+            // The helper loops through them and starts the FIRST one it finds.
+            "SwingFromSongDetailToEdit",      // Priority 1: Coming from Edit Page
+            AnimationHelper.Key_ListToDetail, // Priority 2: Coming from List
+            AnimationHelper.Key_ArtistToSong  // Priority 3: Coming from Artist
+        );
     }
 }

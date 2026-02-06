@@ -13,12 +13,17 @@ public static class AnimationHelper
     // Define your keys here to avoid "Magic Strings"
     public const string Key_ListToDetail = "ForwardConnectedAnimation";
     public const string Key_DetailToList = "BackConnectedAnimation";
+    public const string Key_ToViewQueue = "ViewNowPlayingQueueAnim";
+    public const string Key_NowPlayingPage = "ViewNowPlayingPage";
+    public const string Key_ToViewSingleSongPopUp = "ViewSingleSongPopup";
     public const string Key_ArtistToSong = "ArtistToSongDetailsAnim";
     public const string Key_Forward = "ForwardConnectedAnimation";
     public const string Key_Back = "BackConnectedAnimation";
 
+    public const string Key_DetailToEdit = "SwingFromSongDetailToEdit";
     /// <summary>
     /// Prepares the animation BEFORE navigation (Call this on Click)
+    /// Can also be called in OnNavigatedTo so as to prepare the objects before they're loaded
     /// </summary>
     public static void Prepare(string key, UIElement? source, bool isList = false)
     {
@@ -92,7 +97,7 @@ public static class AnimationHelper
 
         // 3. Enter a Retry Loop to find the container
         // We try 10 times with a 20ms delay (total approx 200ms wait max)
-        FrameworkElement container = null;
+        FrameworkElement? container = null;
         int retries = 0;
         const int maxRetries = 10;
 

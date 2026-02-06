@@ -62,7 +62,7 @@ public class LyricsMgtFlow : IDisposable
          // We only care about the 'Playing' state, which signals a new track has begun.
          .Where(args => args.EventType == DimmerPlaybackState.Playing)
          // Get the song from the event arguments.
-         .Select(args => args.MediaSong)
+         .Select(args => args.AudioServiceCurrentPlayingSongView)
          //.DistinctUntilChanged(song => song?.Id)
          .Subscribe(
              async song =>
@@ -294,14 +294,13 @@ public class LyricsMgtFlow : IDisposable
         }
 
 
-        _logger.LogTrace("LYRICS FINDER :::::: No local lyrics for {SongTitle}, searching online.", song.Title);
         IEnumerable<LrcLibLyrics>? onlineResults = await _lyricsMetadataService.GetAllLyricsPropsOnlineAsync(song.ToSongModel(), cts.Token);
         var onlineLyrics = onlineResults?.FirstOrDefault();
 
         if (onlineLyrics != null)
         {
 
-            _logger.LogTrace("LYRICS FINDER :::::: Found online lyrics for {SongTitle} from {Source}", song.Title);
+            _logger.LogTrace(message: "LYRICS FINDER :::::: Found online lyrics for {SongTitle} from {Source}", song.Title);
 
             // Optionally, save to DB or local storage here.
             await _lyricsMetadataService.SaveLyricsForSongAsync(song.Id, false,onlineLyrics.PlainLyrics, onlineLyrics.SyncedLyrics, false

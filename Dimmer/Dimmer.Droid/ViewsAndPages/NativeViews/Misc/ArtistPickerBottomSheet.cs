@@ -17,7 +17,6 @@ public class ArtistPickerBottomSheet : BottomSheetDialogFragment
 
     public BaseViewModelAnd MyViewModel { get; }
     public List<ArtistModelView> ListOfArtistsInSong { get; }
-    public TextInputLayout searchInput { get; private set; }
 
     public override View? OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
@@ -32,16 +31,12 @@ public class ArtistPickerBottomSheet : BottomSheetDialogFragment
         title.SetTypeface(null, Android.Graphics.TypefaceStyle.Bold);
         layout.AddView(title);
 
-        // Search Bar
-        searchInput = UiBuilder.CreateInput(context, string.Empty, "");
-        layout.AddView(searchInput);
-
         // RecyclerView for Artists
         var recyclerView = new RecyclerView(context);
         recyclerView.SetLayoutManager(new LinearLayoutManager(context));
         // In a real app, pass your ViewModel's Artist list here
         
-        recyclerView.SetAdapter(new ArtistBottomSheetRecyclerViewAdapter(ListOfArtistsInSong.Select(x=>x.Name).ToList()!, MyViewModel, this));
+        recyclerView.SetAdapter(new ArtistBottomSheetRecyclerViewAdapter(ListOfArtistsInSong, MyViewModel, this));
 
         layout.AddView(recyclerView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, 800)); // Fixed height or use weight
 
@@ -51,12 +46,12 @@ public class ArtistPickerBottomSheet : BottomSheetDialogFragment
     // Simple Adapter for the list
     class ArtistBottomSheetRecyclerViewAdapter : RecyclerView.Adapter
     {
-        private List<string> _artistNames;
+        private List<ArtistModelView> _artistNames;
 
         public BaseViewModelAnd MyViewModel { get; }
         public ArtistPickerBottomSheet ArtistPickerBottomSheet { get; }
 
-        public ArtistBottomSheetRecyclerViewAdapter(List<string> items
+        public ArtistBottomSheetRecyclerViewAdapter(List<ArtistModelView> items
             ,BaseViewModelAnd vm,
 ArtistPickerBottomSheet artistPickerBottomSheet) 
         { 
@@ -72,6 +67,7 @@ ArtistPickerBottomSheet artistPickerBottomSheet)
             if (holder is ArtistPickerVHolder songHolder)
             {
                 var artist = _artistNames[position];
+
                 songHolder.BindData(ArtistPickerBottomSheet, artist);
 
             }
@@ -127,23 +123,26 @@ ArtistPickerBottomSheet artistPickerBottomSheet)
                 ArtistBtnView = artistBtn;
 
 
+
+
                 ArtistBtnView.Click += (s, e) =>
                 {
 
-                    MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(ArtistName)
+                    MyViewModel.SearchToTQL(TQlStaticMethods.PresetQueries.ByArtist(SelectedArtist!.Name!)
                         );
                     parent?.Dismiss();
-                    Toast.MakeText(container.Context, $"Selected {ArtistName}", ToastLength.Short)?.Show();
+                    UiBuilder.ShowSnackBar(parent!.View!,$"Selected {SelectedArtist}");
                 };
             }
             ArtistPickerBottomSheet? parent;
-            string? ArtistName;
+            ArtistModelView SelectedArtist;
 
 
-            public void BindData ( ArtistPickerBottomSheet artistPickerBottomSheet, string artist)
+            public void BindData ( ArtistPickerBottomSheet artistPickerBottomSheet, ArtistModelView artist)
             {
                 parent = artistPickerBottomSheet;
-                ArtistName=artist;
+                SelectedArtist=artist;
+                ArtistBtnView.Text = artist.Name;
             }
         }
     }

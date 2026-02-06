@@ -341,7 +341,7 @@ public sealed partial class SettingsPage : Page
 
     private void OptionLogBtn_Click(object sender, RoutedEventArgs e)
     {
-        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.DescAdded());
+        MyViewModel.SearchToTQL(TQlStaticMethods.PresetQueries.DescAdded());
         MyViewModel.BaseViewModelWin.NavigateToAnyPageOfGivenType(typeof(AllSongsListPage));
     }
 

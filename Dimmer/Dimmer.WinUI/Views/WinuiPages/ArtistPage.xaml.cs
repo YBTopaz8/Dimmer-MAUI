@@ -30,13 +30,11 @@ public sealed partial class ArtistPage : Page
         _compositor = ElementCompositionPreview.GetElementVisual(this).Compositor;
 
         _rootVisual = ElementCompositionPreview.GetElementVisual(this);
-        // TODO: load from user settings or defaults
-        _userPrefAnim = SongTransitionAnimation.Slide;
+
     }
 
     private readonly Microsoft.UI.Composition.Visual _rootVisual;
     private readonly Microsoft.UI.Composition.Compositor _compositor;
-    private readonly SongTransitionAnimation _userPrefAnim;
 
 
     BaseViewModelWin MyViewModel { get; set; }
@@ -240,7 +238,7 @@ public sealed partial class ArtistPage : Page
 
     private void ArtistNameInArtistPage_PointerReleased(object sender, PointerRoutedEventArgs e)
     {
-        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist.Name));
+        MyViewModel.SearchToTQL(TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist.Name));
 
     }
 
@@ -289,7 +287,7 @@ public sealed partial class ArtistPage : Page
 
     private void ArtistDataTable_Loaded(object sender, RoutedEventArgs e)
     {
-        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist?.Name));
+        MyViewModel.SearchToTQL(TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist?.Name));
         
 
 
@@ -298,28 +296,9 @@ public sealed partial class ArtistPage : Page
     private void AlbumsIR_Loaded(object sender, RoutedEventArgs e)
     {
         
-        ObservableCollection<AlbumModelView>? albs = MyViewModel.RealmFactory.GetRealmInstance()
-            .Find<ArtistModel>(MyViewModel.SelectedArtist.Id)!
-            .Albums.ToList().Select(x =>
-            {
-                var modelV = x.ToAlbumModelView();
-                modelV.NumberOfTracks=x.SongsInAlbum.Count();
-                modelV.TrackTotal=x.SongsInAlbum.Count();
-                modelV.Artists = x.Artists.Select(a => a.ToArtistModelView()).ToList();
-                modelV.SongsInAlbum = x.SongsInAlbum.AsEnumerable().Select(x=>x.ToSongModelView()).ToObservableCollection();
-                if(modelV.ImagePath == "musicalbum.png" || string.IsNullOrEmpty(modelV.ImagePath))
-            {
-                var firstSongInAlbumWithValidCoverImage = x.SongsInAlbum
-                    .FirstOrDefault(s => !string.IsNullOrEmpty(s.CoverImagePath));
-                    if (firstSongInAlbumWithValidCoverImage != null)
-                    {
-                        modelV.ImagePath = firstSongInAlbumWithValidCoverImage.CoverImagePath;
-                        MyViewModel.UpdateAlbumImage(modelV, firstSongInAlbumWithValidCoverImage.CoverImagePath);
-                    }
-                    
-            }
-                return modelV;
-            }).ToObservableCollection();
+        ObservableCollection<AlbumModelView?>? albs = MyViewModel.RealmFactory.GetRealmInstance()
+            .Find<ArtistModel>(MyViewModel.SelectedArtist!.Id)!
+            .Albums.AsEnumerable().Select(x=>x.ToAlbumModelView()).ToObservableCollection();
      
         MyViewModel.SelectedArtist.AlbumsByArtist = albs;
         AlbumsIR.ItemsSource = MyViewModel.SelectedArtist.AlbumsByArtist;
@@ -343,7 +322,7 @@ public sealed partial class ArtistPage : Page
         send.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Colors.DarkSlateBlue);
         send.BorderThickness = new Microsoft.UI.Xaml.Thickness(2);
         
-        MyViewModel.SearchSongForSearchResultHolder($"{TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist.Name)} and {TQlStaticMethods.PresetQueries.ExactlyByAlbum(album.Name)}");
+        MyViewModel.SearchToTQL($"{TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist.Name)} and {TQlStaticMethods.PresetQueries.ExactlyByAlbum(album.Name)}");
 
         return;
         var albmInDb = MyViewModel.RealmFactory.GetRealmInstance()
@@ -463,7 +442,7 @@ public sealed partial class ArtistPage : Page
 
     private void ResetAblums_Click(object sender, RoutedEventArgs e)
     {
-        MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist.Name));
+        MyViewModel.SearchToTQL(TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist.Name));
     }
 
     private async void TitleSection_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)

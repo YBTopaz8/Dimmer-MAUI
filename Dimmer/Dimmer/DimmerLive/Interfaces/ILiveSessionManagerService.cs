@@ -15,9 +15,10 @@ public interface ILiveSessionManagerService
     void StopListeners();
     Task AcknowledgeTransferCompleteAsync(DimmerSharedSong transferredSong);
     Task InitiateSessionTransferAsync(UserDeviceSession targetDevice, DimmerPlayEventView currentSongView);
-    Task<string> CreateBackupAsync();
     Task RestoreBackupAsync(string backupObjectId);
-    Task<List<ParseObject>> GetAvailableBackupsAsync();
+
     Task<ParseObject?> GetMyReferralCodeAsync();
     Task<ParseObject?> GenerateReferralCodeAsync();
+    Task<string> CreateFullBackupAsync();
+    Task<List<BackupMetadata>> GetAvailableBackupsAsync();
 }

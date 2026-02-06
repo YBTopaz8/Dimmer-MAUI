@@ -20,6 +20,9 @@ public partial class SongOverviewFragment : Fragment
 
     public SongModelView
         SelectedSong { get; }
+
+    private StatisticsViewModel statisticsViewModel;
+
     public Chip titleText { get; private set; }
     public TextView AlbumText { get; private set; }
 
@@ -28,6 +31,7 @@ public partial class SongOverviewFragment : Fragment
         if(vm.SelectedSong == null)
             throw new ArgumentNullException(nameof(vm.SelectedSong),"Specifically Selected Song");
         SelectedSong = MyViewModel.SelectedSong!;
+        statisticsViewModel = MainApplication.ServiceProvider.GetService<StatisticsViewModel>()!;
     }
 
     public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
@@ -138,10 +142,11 @@ public partial class SongOverviewFragment : Fragment
 
     }
 
-    public override void OnResume()
+    public override async void OnResume()
     {
         base.OnResume();
         titleText.Click += PlaySong;
+        await statisticsViewModel.LoadSongStatsAsync(SelectedSong);
     }
 
     private async void PlaySong(object? sender, EventArgs e)

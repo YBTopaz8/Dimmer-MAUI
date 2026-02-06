@@ -104,12 +104,11 @@
 
                 <Image
                     VerticalAlignment="Top"
+                                                    Source="{Binding Images[3].Url, Mode=OneWay, Converter={StaticResource StringToImageConverter}}"
                     Opacity="0.05" Grid.Row="0" Grid.RowSpan="2"
                     Stretch="UniformToFill">
-                    <Image.Source>
-                        <BitmapImage UriSource="{x:Bind MyViewModel.CurrentUserLocal.LastFMAccountInfo.Image.Url, Mode=OneWay}" />
-
-                    </Image.Source>
+                  
+                    
                 </Image>
 
                 <!--  1. HEADER (Profile Info)  -->
@@ -183,12 +182,9 @@
                                                 <Image
                                                 x:Name="coverArtImage"
                                                 Width="150"
+                                                    Source="{Binding Images[3].Url, Mode=OneWay, Converter={StaticResource StringToImageConverter}}"
                                                 Height="150"
                                                 Stretch="UniformToFill">
-                                                    <Image.Source>
-
-                                                        <BitmapImage UriSource="{Binding Images[3].Url}" />
-                                                    </Image.Source>
                                                 </Image>
                                             </Border>
                                         </DataTemplate>
@@ -302,11 +298,10 @@
                                                 <Image
                                                 Width="150"
                                                 Height="150"
+                                                    Source="{Binding Images[3].Url, Mode=OneWay, Converter={StaticResource StringToImageConverter}}"
+                                                    x:Name="Imgg"
                                                 Stretch="UniformToFill">
-                                                    <Image.Source>
-
-                                                        <BitmapImage UriSource="{Binding Images[3].Url}" />
-                                                    </Image.Source>
+                                                   
                                                 </Image>
                                             </Border>
                                         </DataTemplate>
@@ -373,11 +368,10 @@
                                                 <Image
                                                 Width="150"
                                                 Height="150"
+                                                    Source="{Binding Images[3].Url, Mode=OneWay, Converter={StaticResource StringToImageConverter}}"
                                                 Stretch="UniformToFill">
-                                                    <Image.Source>
-
-                                                        <BitmapImage UriSource="{Binding Images[3].Url}" />
-                                                    </Image.Source>
+                                                   
+                                                    
                                                 </Image>
                                             </Border>
                                         </DataTemplate>
@@ -450,12 +444,11 @@
                                             <Border>
                                                 <Image
                                                 Width="150"
+                                                    Source="{Binding Images[3].Url, Mode=OneWay, Converter={StaticResource StringToImageConverter}}"
                                                 Height="150"
                                                 Stretch="UniformToFill">
-                                                    <Image.Source>
-
-                                                        <BitmapImage UriSource="{Binding Images[3].Url}" />
-                                                    </Image.Source>
+                                                   
+                                                    
                                                 </Image>
                                             </Border>
                                         </DataTemplate>

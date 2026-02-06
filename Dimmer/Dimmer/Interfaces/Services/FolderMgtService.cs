@@ -46,6 +46,7 @@ public class FolderMgtService : IFolderMgtService
 
     public async Task StartWatchingConfiguredFoldersAsync(List<string>? paths = null)
     {
+        return;
         try
         {
             if (_isCurrentlyWatching)
@@ -209,8 +210,6 @@ public class FolderMgtService : IFolderMgtService
                 var firstOfDef = knowPaths?.FirstOrDefault(x => x.SystemFolderPath == path);
                 if (firstOfDef is null)
                 {
-                 
-
                     appModel.UserMusicFolders?.Add(new() { SystemFolderPath = path, ReadableFolderPath = path });
                     newPathsToAdd.Add(path);
                 }

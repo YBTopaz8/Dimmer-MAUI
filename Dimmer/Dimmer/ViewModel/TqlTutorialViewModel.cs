@@ -23,7 +23,7 @@ public partial class TqlTutorialViewModel : ObservableObject
             return;
 
         // The magic happens here: we tell the main ViewModel to run the search.
-        _mainViewModel.SearchSongForSearchResultHolder(query);
+        _mainViewModel.SearchToTQL(query);
         // The main ViewModel's Rx pipeline will take over from here.
     }
 

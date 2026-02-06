@@ -998,15 +998,11 @@ public partial class ExoPlayerService : MediaSessionService
            .Add(new SessionCommand(ExoPlayerService.ActionRepeat, Bundle.Empty))
            .Build();
 
-            Console.WriteLine("Session command set?");
-            Console.WriteLine(sessionCommands?.GetType());
-            // Allow everything
+
             MediaSession.ConnectionResult? e = new MediaSession.ConnectionResult.AcceptedResultBuilder(session!)
                 .SetAvailableSessionCommands(sessionCommands)
                 .Build();
 
-            Console.WriteLine("ConnectionResult set?");
-            Console.WriteLine(e?.GetType());
             return e;
         }
         public void OnPostConnect(MediaSession? session, MediaSession.ControllerInfo? controller)

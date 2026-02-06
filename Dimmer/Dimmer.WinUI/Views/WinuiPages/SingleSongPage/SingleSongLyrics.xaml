@@ -8,6 +8,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
+    <ScrollViewer>
+        
     <Grid Background="Transparent" RowSpacing="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
@@ -39,4 +41,6 @@
             Grid.Row="1"
             IsNavigationStackEnabled="False" />
     </Grid>
+
+    </ScrollViewer>
 </Page>

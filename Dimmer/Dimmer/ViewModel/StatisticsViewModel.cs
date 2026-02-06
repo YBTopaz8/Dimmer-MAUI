@@ -89,8 +89,7 @@ public partial class StatisticsViewModel : ObservableObject
     /// <summary>
     /// Command to load stats for a specific song.
     /// </summary>
-    [RelayCommand]
-    private async Task LoadSongStatsAsync(SongModelView? song)
+    public async Task LoadSongStatsAsync(SongModelView? song)
     {
         if (song is null || IsBusy)
             return;
@@ -100,8 +99,7 @@ public partial class StatisticsViewModel : ObservableObject
         try
         {
             ClearAllStats();
-            // Note: The service method is synchronous in your example.
-            // If it becomes async, you'll need to 'await' it.
+            
             SongStats = await Task.Run(() => _statsService.GetSongStatisticsAsync(song.Id, SelectedFilter));
         }
         catch (Exception ex)

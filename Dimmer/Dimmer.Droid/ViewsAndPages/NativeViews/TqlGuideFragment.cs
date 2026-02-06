@@ -132,7 +132,7 @@ public class TqlGuideFragment : Fragment
             // 1. Push query to ViewModel
             //_viewModel.SearchQuery = query; // Assuming you bind this to your Subject
 
-            _viewModel.SearchSongForSearchResultHolder(query);
+            _viewModel.SearchToTQL(query);
 
             // 2. If your VM uses a Subject directly, do this:
             // _viewModel.UpdateSearchQuery(query);

@@ -39,6 +39,10 @@ public class QueueBottomSheetFragment : BottomSheetDialogFragment
         _recyclerView = new RecyclerView(ctx);
         _recyclerView.SetLayoutManager(new LinearLayoutManager(ctx));
 
+        var listParams = new FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MatchParent,
+            ViewGroup.LayoutParams.MatchParent);
+        _recyclerView.LayoutParameters = listParams;
         // Pass "queue" to your adapter to bind to PlaybackSource
         _adapter = new SongAdapter(ctx, MyViewModel, this, "queue");
         _recyclerView.SetAdapter(_adapter);
@@ -47,10 +51,6 @@ public class QueueBottomSheetFragment : BottomSheetDialogFragment
         _recyclerView.SetPadding(0, 0, 0, AppUtil.DpToPx(80));
         _recyclerView.SetClipToPadding(false);
 
-        var listParams = new FrameLayout.LayoutParams(
-            ViewGroup.LayoutParams.MatchParent,
-            ViewGroup.LayoutParams.MatchParent);
-        _recyclerView.LayoutParameters = listParams;
 
         rootFrame.AddView(_recyclerView);
 

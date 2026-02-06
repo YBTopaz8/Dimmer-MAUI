@@ -12,7 +12,6 @@ public sealed partial class NowPlayingPage : Page
     public NowPlayingPage()
     {
         InitializeComponent();
-        MyViewModel = IPlatformApplication.Current?.Services.GetService<BaseViewModelWin>()!;
     }
 
     public BaseViewModelWin MyViewModel { get; internal set; }
@@ -21,7 +20,13 @@ public sealed partial class NowPlayingPage : Page
     {
         MyViewModel?.OpenLyricsPopUpWindow(1);
     }
+    protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
+    {
 
+        MyViewModel = IPlatformApplication.Current?.Services.GetService<BaseViewModelWin>()!;
+       
+        MyViewModel.CurrentWinUIPage = this;
+    }
     private void ViewSongDetailsButton_Click(object sender, RoutedEventArgs e)
     {
         try
@@ -29,11 +34,11 @@ public sealed partial class NowPlayingPage : Page
             if (MyViewModel == null) return;
 
             MyViewModel.SelectedSong = MyViewModel.CurrentPlayingSongView;
-            var dimmerWindow = MyViewModel.winUIWindowMgrService.GetWindow<DimmerWin>();
-            dimmerWindow ??= MyViewModel.winUIWindowMgrService.CreateWindow<DimmerWin>();
 
-            if (dimmerWindow != null)
-                dimmerWindow.NavigateToPage(typeof(SongDetailPage));
+            AnimationHelper.Prepare(AnimationHelper.Key_ListToDetail
+                , CurrentPlayingSongImg);
+            MyViewModel.NavigateToAnyPageOfGivenType(typeof(SongDetailPage));
+
         }
         catch (Exception ex)
         {
@@ -41,34 +46,7 @@ public sealed partial class NowPlayingPage : Page
         }
     }
 
-    private async void CurrentPlayingSongImg_Loaded(object sender, RoutedEventArgs e)
-    {
-
-        if (MyViewModel.CurrentPlayingSongView is null) return;
-        if (!string.IsNullOrEmpty(MyViewModel.CurrentPlayingSongView.CoverImagePath))
-        {
-            CurrentPlayingSongImg.Source = new BitmapImage(new Uri(MyViewModel.CurrentPlayingSongView.CoverImagePath));
-
-            var imgBytes = await ImageFilterUtils.ApplyFilter(MyViewModel.CurrentPlayingSongView.CoverImagePath, FilterType.DarkAcrylic);
-            if (imgBytes is null) return;
-
-            CurrentPlayingSongImgBG.Source = null;
-          
-            using (var stream = new MemoryStream(imgBytes))
-            {
-                var bitmap = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage();
-                await bitmap.SetSourceAsync(stream.AsRandomAccessStream());
-                CurrentPlayingSongImgBG.Source = bitmap;
-            }
-            
-        }
-        else
-        {
-
-        }
-    }
-
-    private void SyncLyricsView_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
+       private void SyncLyricsView_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
     {
 
     }
@@ -293,6 +271,9 @@ public sealed partial class NowPlayingPage : Page
 
     private void ViewAllSongs_Click(object sender, RoutedEventArgs e)
     {
+
+        AnimationHelper.Prepare(AnimationHelper.Key_ListToDetail
+            , CurrentPlayingSongImg);
         MyViewModel.NavigateToAnyPageOfGivenType(typeof(AllSongsListPage));
     }
 
@@ -300,5 +281,43 @@ public sealed partial class NowPlayingPage : Page
     {
         MyViewModel.SelectedSong = MyViewModel.CurrentPlayingSongView;
         MyViewModel.NavigateToAnyPageOfGivenType(typeof(AlbumPage));
+    }
+    private async void CurrentPlayingSongImg_Loaded(object sender, RoutedEventArgs e)
+    {
+
+        AnimationHelper.TryStart(CurrentPlayingSongImg,
+            new List<UIElement> { SongInfoStackPanel },
+            AnimationHelper.Key_NowPlayingPage,AnimationHelper.Key_DetailToList,AnimationHelper.Key_ListToDetail);
+        
+    }
+
+
+    private async void CurrentPlayingSongImg_Loading(FrameworkElement sender, object args)
+    {
+        if (MyViewModel.CurrentPlayingSongView is null) return;
+        if (!string.IsNullOrEmpty(MyViewModel.CurrentPlayingSongView.CoverImagePath))
+        {
+            CurrentPlayingSongImg.Source = new BitmapImage(new Uri(MyViewModel.CurrentPlayingSongView.CoverImagePath));
+
+            var imgBytes = await ImageFilterUtils.ApplyFilter(MyViewModel.CurrentPlayingSongView.CoverImagePath, FilterType.DarkAcrylic);
+            if (imgBytes is null) return;
+
+            CurrentPlayingSongImgBG.Source = null;
+
+            using var stream = new MemoryStream(imgBytes);
+            var bitmap = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage();
+            await bitmap.SetSourceAsync(stream.AsRandomAccessStream());
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                CurrentPlayingSongImgBG.Source = bitmap;
+
+            });
+
+        }
+        else
+        {
+
+        }
+      
     }
 }

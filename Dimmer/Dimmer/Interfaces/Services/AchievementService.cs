@@ -8,10 +8,10 @@ namespace Dimmer.Interfaces.Services;
 
 public class AchievementService : IDisposable
 {
-    private readonly IRealmFactory _realmFactory;
+
     private IDisposable _playEventToken;
     private readonly Realm _realm;
-    private IQueryable<DimmerPlayEvent> _playEvents;
+
     private List<AchievementRule> _rules;
 
 

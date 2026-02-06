@@ -2,11 +2,16 @@
 using System.Reactive.Disposables.Fluent;
 using Android.Nfc;
 using Android.Text;
+using AndroidX.CoordinatorLayout.Widget;
+using AndroidX.Core.Widget;
+using AndroidX.RecyclerView.Widget;
 using Bumptech.Glide;
 using Dimmer.ViewsAndPages.NativeViews.AlbumSection;
 using Dimmer.ViewsAndPages.NativeViews.Misc;
 using DynamicData;
+using Google.Android.Material.Behavior;
 using Google.Android.Material.Chip;
+using Google.Android.Material.Floatingtoolbar;
 using Google.Android.Material.Loadingindicator;
 using Google.Android.Material.ProgressIndicator;
 using ScrollView = Android.Widget.ScrollView;
@@ -20,7 +25,8 @@ public partial class ArtistFragment : Fragment, IOnBackInvokedCallback
     private string _artistName;
     private string _artistId;
     private RecyclerView albumsRecycler;
-    private ScrollView myScrollView;
+    private NestedScrollView myScrollView;
+    private FrameLayout container;
     private LinearLayout root;
     private TextView songsLabel;
     private LoadingIndicator progressIndic;
@@ -34,11 +40,18 @@ public partial class ArtistFragment : Fragment, IOnBackInvokedCallback
         MyViewModel = vm;
         _artistName = artistName;
         _artistId = artistId;
+
+        SelectedArtist = vm.SelectedArtist;
     }
 
     private ChipGroup _albumChipGroup;
     private TextView nameTxt;
     private TextView albumLabel;
+    private RecyclerView _recyclerView;
+    private LinearLayout totalPlayStats;
+    private LinearLayout totalSkipsStats;
+    private LinearLayout libTracks;
+    private readonly CompositeDisposable _disposables = new();
 
     public void OnBackInvoked()
     {
@@ -46,27 +59,31 @@ public partial class ArtistFragment : Fragment, IOnBackInvokedCallback
         myAct?.HandleBackPressInternal();
         //myAct.MoveTaskToBack
     }
-    public ArtistModelView? SelectedArtist { get; private set; }
-
+    public ArtistModelView SelectedArtist { get; private set; }
+    internal SongAdapter MyRecycleViewAdapter { get; private set; }
     public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         var ctx = Context;
-        SelectedArtist = MyViewModel.SelectedArtist;
-        var artAlbums = SelectedArtist.AlbumsInDB(MyViewModel.RealmFactory);
-        SelectedArtist.SongsByArtist = SelectedArtist.SongsInDB(MyViewModel.RealmFactory).ToObservableCollection();
 
-        myScrollView = new ScrollView(ctx)
+        // 1. THE ROOT: CoordinatorLayout (Required for "Floating" behavior)
+        var coordinator = new CoordinatorLayout(ctx)
         {
-            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent),
+            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent)
+        };
+
+        // 2. THE CONTENT SCROLLER: NestedScrollView (Required to trigger hide-on-scroll)
+        myScrollView = new NestedScrollView(ctx)
+        {
+            LayoutParameters = new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent),
             FillViewport = true
         };
 
+        // 3. THE ACTUAL CONTENT CONTAINER (Vertical Stack)
         root = new LinearLayout(ctx)
         {
             Orientation = Orientation.Vertical,
             LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent)
         };
-
         // --- 1. HEADER SECTION ---
         var headerLayout = new FrameLayout(ctx)
         {
@@ -111,7 +128,7 @@ public partial class ArtistFragment : Fragment, IOnBackInvokedCallback
 
 
         _albumChipGroup = new ChipGroup(context: ctx);
-       
+
         root.AddView(_albumChipGroup);
 
 
@@ -128,13 +145,16 @@ public partial class ArtistFragment : Fragment, IOnBackInvokedCallback
 
         statsLayout.AddView(new TextView(ctx) { Text = "Artist Stats", TextSize = 18, Typeface = Android.Graphics.Typeface.DefaultBold });
 
-        if(SelectedArtist.SongsByArtist is not null)
+        if (SelectedArtist.SongsByArtist is not null)
         {
-
-            statsLayout.AddView(CreateStatRow(ctx, "Total Plays", SelectedArtist.SongsByArtist.Sum(x => x.PlayCompletedCount).ToString()));
-            statsLayout.AddView(CreateStatRow(ctx, "Total Skips", SelectedArtist.SongsByArtist.Sum(x => x.SkipCount).ToString()));
+            totalPlayStats = CreateStatRow(ctx, "Total Plays", SelectedArtist.SongsByArtist.Sum(x => x.PlayCompletedCount).ToString());
+            totalSkipsStats = CreateStatRow(ctx, "Total Skips", SelectedArtist.SongsByArtist.Sum(x => x.SkipCount).ToString());
+            statsLayout.AddView(totalPlayStats);
+            statsLayout.AddView(totalSkipsStats);
+        
+            libTracks = CreateStatRow(ctx, "Library Tracks", SelectedArtist.SongsByArtist.Count.ToString());
         }
-        statsLayout.AddView(CreateStatRow(ctx, "Library Tracks", SelectedArtist.SongsByArtist.Count.ToString()));
+        statsLayout.AddView(libTracks);
 
         statsCard.AddView(statsLayout);
         root.AddView(statsCard);
@@ -142,30 +162,107 @@ public partial class ArtistFragment : Fragment, IOnBackInvokedCallback
 
 
 
-    progressIndic = new LoadingIndicator(ctx);
+        progressIndic = new LoadingIndicator(ctx);
         progressIndic.IndicatorSize = AppUtil.DpToPx(40);
         progressIndic.SetForegroundGravity(GravityFlags.CenterHorizontal);
         root.AddView(progressIndic);
 
+
+
+        var recyclerContainer = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
+
+        songsLabel = new MaterialTextView(ctx) { Text = "Songs "+SelectedArtist.SongsByArtist.Count, TextSize = 20 }; // Update count later
+        recyclerContainer.AddView(songsLabel);
+
+        _recyclerView = new RecyclerView(ctx);
+        _recyclerView.NestedScrollingEnabled = false; // LET THE SCROLLVIEW HANDLE SCROLLING
+        _recyclerView.SetLayoutManager(new LinearLayoutManager(ctx));
+
+        // Set Adapter immediately with empty data or loading state to prevent UI pop-in
+        MyRecycleViewAdapter = new SongAdapter(ctx, MyViewModel, this, "artist");
+        _recyclerView.SetAdapter(MyRecycleViewAdapter);
+
+        recyclerContainer.AddView(_recyclerView);
+        root.AddView(recyclerContainer);
+
+        // Add root to ScrollView
         myScrollView.AddView(root);
 
+        // Add ScrollView to Coordinator (Bottom Layer)
+        coordinator.AddView(myScrollView);
 
-        return myScrollView;
+
+        var fToolbarLayout = new FloatingToolbarLayout(ctx)
+        {
+            Id = View.GenerateViewId(),
+            Clickable = true
+        };
+
+        // Position it Bottom|Center or Bottom|Right
+        var ftbParams = new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent)
+        {
+             BottomMargin = AppUtil.DpToPx(24)
+        };
+        ftbParams.Gravity = (int)(GravityFlags.Bottom | GravityFlags.Right); // Or CenterVertical | Right
+         
+
+        // ENABLE HIDE ON SCROLL
+        ftbParams.Behavior = new HideViewOnScrollBehavior(ctx, null);
+        fToolbarLayout.LayoutParameters = ftbParams;
+
+
+        var verticalMenu = new LinearLayout(ctx)
+        {
+            Orientation = Orientation.Vertical, // Or Vertical if you want a vertical bar
+            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent)
+        };
+        verticalMenu.SetPadding(10, 20, 10, 20);
+
+        verticalMenu.AddView(CreateToolbarButton(ctx, Resource.Drawable.musicfilter, "Filter"));
+        verticalMenu.AddView(CreateToolbarButton(ctx, Android.Resource.Drawable.IcDelete, "Delete"));
+        verticalMenu.AddView(CreateToolbarButton(ctx, Android.Resource.Drawable.IcMenuShare, "Share"));
+
+        fToolbarLayout.AddView(verticalMenu);
+
+        // Add Toolbar to Coordinator (Top Layer)
+        coordinator.AddView(fToolbarLayout);
+
+        return coordinator;
     }
 
-    private void SwapAdapterInRCView(RecyclerView.Adapter newAdapter)
+
+    private Chip CreateToolbarButton(Context ctx, int iconRes, string desc)
     {
-        var currAdapter = albumsRecycler.GetAdapter();
-        if (currAdapter is not null)
-        {
-            albumsRecycler.SwapAdapter(newAdapter, true);
-        }
-        else
-        {
+        var btn = new Chip(ctx);
+        btn.SetChipIconResource(iconRes);
+        btn.ContentDescription = desc;
+        btn.SetBackgroundColor(Android.Graphics.Color.Transparent); // Make button background clear
+        btn.ChipStrokeWidth = 0;
+        //btn.SetBackgroundColor(MyViewModel.CurrentPlaySongDominantColor)
+        // Size and Margin
+        var lp = new LinearLayout.LayoutParams(AppUtil.DpToPx(48), AppUtil.DpToPx(48));
+        lp.SetMargins(0, 0, 0, 10); // Vertical gap between buttons
+        btn.LayoutParameters = lp;
 
-            albumsRecycler.SetAdapter(newAdapter);
-        }
+        // Optional: Add Ripple
+        TypedValue outValue = new TypedValue();
+        ctx.Theme.ResolveAttribute(Android.Resource.Attribute.SelectableItemBackgroundBorderless, outValue, true);
+        btn.SetBackgroundResource(outValue.ResourceId);
+
+        return btn;
     }
+
+    private LinearLayout CreateStatRow(Context ctx, string label, string value)
+    {
+        var row = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
+        row.SetPadding(0, 10, 0, 10);
+        var t1 = new TextView(ctx) { Text = label + ": ", Typeface = Android.Graphics.Typeface.DefaultBold };
+        var t2 = new TextView(ctx) { Text = value };
+        row.AddView(t1);
+        row.AddView(t2);
+        return row;
+    }
+
 
     public async override void OnResume()
     {
@@ -192,7 +289,7 @@ public partial class ArtistFragment : Fragment, IOnBackInvokedCallback
                 chip.TooltipText = album.Name;
                     chip.Click += (s, e) =>
                     {
-
+                        MyViewModel.SetSelectedAlbum(album);
                         MyViewModel.NavigateToAnyPageOfGivenType(this, new AlbumFragment(MyViewModel),
                             album.Id.ToString());
                         
@@ -212,48 +309,26 @@ public partial class ArtistFragment : Fragment, IOnBackInvokedCallback
         }
         MyViewModel.CurrentFragment = this;
         var ctx = Context;
-        await Task.Delay(1000);
-        if(ctx is not null)
-        {
+       
 
-            // --- 3. SONGS (Vertical List) ---
-            songsLabel = new MaterialTextView(ctx) { Text = $"{SelectedArtist?.SongsByArtist?.Count} Songs", TextSize = 20 };
-            songsLabel.SetPadding(30, 30, 30, 10);
-            root.AddView(songsLabel);
-
-            var songsRecycler = new RecyclerView(ctx)
+        MyRecycleViewAdapter.IsSourceCleared.
+            ObserveOn(RxSchedulers.UI)
+            .Subscribe(observer =>
             {
-                LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, AppUtil.DpToPx(400))
-            };
+                progressIndic.Visibility = ViewStates.Gone;
+            }).DisposeWith(_disposables);
+      
 
-            songsRecycler.NestedScrollingEnabled = true; // Important inside ScrollView
-            songsRecycler.SetLayoutManager(new LinearLayoutManager(ctx));
-
-            songsRecycler.SetAdapter(new SongAdapter(ctx, MyViewModel, this, "artist"));
-            root.AddView(songsRecycler);
-            progressIndic.Visibility = ViewStates.Gone;
-
-        }
     }
-    private LinearLayout CreateStatRow(Context ctx, string label, string value)
-    {
-        var row = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
-        row.SetPadding(0, 10, 0, 10);
-        var t1 = new TextView(ctx) { Text = label + ": ", Typeface = Android.Graphics.Typeface.DefaultBold };
-        var t2 = new TextView(ctx) { Text = value };
-        row.AddView(t1);
-        row.AddView(t2);
-        return row;
-    }
-
+  
     // --- Simple Adapters for this View ---
-    class AlbumsFromArtistAdapter : RecyclerView.Adapter
+    class ArtistsFromAlbumAdapter : RecyclerView.Adapter
     {
         private ReadOnlyObservableCollection<AlbumModelView> _albums;
 
         public BaseViewModelAnd MyViewModel { get; }
 
-        public AlbumsFromArtistAdapter(ArtistModelView art, BaseViewModelAnd vm) 
+        public ArtistsFromAlbumAdapter(ArtistModelView art, BaseViewModelAnd vm) 
         {
             //_albums = a;
         
@@ -285,9 +360,6 @@ public partial class ArtistFragment : Fragment, IOnBackInvokedCallback
                 .Bind(out _albums)           // Automatically keeps _songs in sync with the source
                 .Subscribe(changes =>
                 {
-                    // 4. Manual Dispatching (The Secret Sauce for Animations)
-                    // Instead of NotifyDataSetChanged, we loop through the changes 
-                    // DynamicData detected and tell Android exactly what happened.
                     foreach (var change in changes)
                     {
                         switch (change.Reason)

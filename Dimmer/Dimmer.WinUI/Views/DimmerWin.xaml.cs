@@ -121,7 +121,7 @@ public sealed partial class DimmerWin : Window
         Debug.WriteLine($"New window size: {args.Size.Width} x {args.Size.Height}");
     }
 
-    DesktopAcrylicController m_acrylicController;
+
     SystemBackdropConfiguration m_configurationSource;
 
     private void SetConfigurationSourceTheme()
@@ -157,7 +157,7 @@ public sealed partial class DimmerWin : Window
 
     private void ClearStatus_Click(object sender, RoutedEventArgs e)
     {
-        MyViewModel.HideIndeterminateProgressBar();
+        DimmerStatusPanel.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
     }
 
     private void TopMediaControlSection_Loaded(object sender, RoutedEventArgs e)
@@ -181,4 +181,28 @@ public sealed partial class DimmerWin : Window
     {
         MyViewModel.DimmerStatusPanel = DimmerStatusPanel;
     }
+
+    private void MainGrid_KeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        var pressedKey = e.Key;
+        if (pressedKey == Windows.System.VirtualKey.Escape)
+        {
+            if (ContentFrame.CanGoBack)
+            {
+                ContentFrame.GoBack();
+            }
+        }
+    }
+    
+    //private void SmokeGrid_Loaded(object sender, RoutedEventArgs e)
+    //{
+    //    SmokeGrid.SetBaseViewModelWin(MyViewModel);
+
+    //    AnimationHelper.TryStart(
+    //        SmokeGrid, null,
+    //        AnimationHelper.Key_ToViewQueue
+    //        );
+
+    //}
+
 }
