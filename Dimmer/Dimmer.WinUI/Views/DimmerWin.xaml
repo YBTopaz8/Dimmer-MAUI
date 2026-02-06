@@ -11,14 +11,17 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="DimmerWin"
     Activated="Window_Activated"
+    xmlns:localViews="using:Dimmer.WinUI.Views.CustomViews.WinuiViews"
     Closed="DimmerWindowClosed"
     SizeChanged="Window_SizeChanged"
+    
     mc:Ignorable="d">
 
 
 
 
-    <Grid x:Name="MainGrid" Background="Transparent">
+    <Grid x:Name="MainGrid" Background="Transparent"
+          KeyDown="MainGrid_KeyDown">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
@@ -72,6 +75,9 @@
             x:Name="ContentFrame"
             Grid.Row="2"
             x:FieldModifier="Public" />
+        
+        <!--<localViews:SmokeViewQueueGrid x:Name="SmokeGrid" Visibility="Collapsed" DismissRequested="SmokeGrid_DismissRequested"
+                            Loaded="SmokeGrid_Loaded"/>-->
 
     </Grid>
 </Window>
