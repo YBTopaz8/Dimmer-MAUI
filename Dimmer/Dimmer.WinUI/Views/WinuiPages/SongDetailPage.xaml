@@ -499,7 +499,7 @@
                                         MaxWidth="550"
                                         MaxHeight="350"
                                         HorizontalAlignment="Center"
-                                        VerticalAlignment="Center"
+                                        VerticalAlignment="Center" Padding="5"
                                         Background="#1E1E1E"
                                         BorderBrush="DarkSlateBlue"
                                         BorderThickness="2"

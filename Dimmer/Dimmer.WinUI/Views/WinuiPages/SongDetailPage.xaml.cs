@@ -245,6 +245,8 @@ public sealed partial class SongDetailPage : Page
             var dbArtist = realm.All<ArtistModel>()
                 .FirstOrDefaultNullSafe(a => a.Name == DetailedSong.ArtistToSong.First()!.Name);
 
+
+
                   
              MyViewModel.SetSelectedArtist(dbArtist.ToArtistModelView());
 
@@ -347,15 +349,11 @@ public sealed partial class SongDetailPage : Page
     {
         if (detailedImage != null && Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(detailedImage) != null)
         {
-            ConnectedAnimationService.GetForCurrentView()
-                .PrepareToAnimate("BackConnectedAnimation", detailedImage);
+            AnimationHelper.Prepare(AnimationHelper.Key_DetailToList,
+                detailedImage,
+                false);
         }
 
-        if (Frame.CanGoBack)
-        {
-
-            Frame.GoBack();
-        }
     }
 
     private void BioBlock_Loaded(object sender, RoutedEventArgs e)
@@ -665,7 +663,8 @@ public sealed partial class SongDetailPage : Page
            detailedImage,
            new List<UIElement> { TitleBlock }, // Coordinated elements (optional)
            AnimationHelper.Key_DetailToList,       // Check this key
-           AnimationHelper.Key_ListToDetail,       // OR Check this key
+          
+           AnimationHelper.Key_ListToDetail,AnimationHelper.Key_ToViewSingleSongPopUp,       // OR Check this key
            AnimationHelper.Key_ArtistToSong        // OR Check this key
        );
     }
@@ -793,14 +792,13 @@ public sealed partial class SongDetailPage : Page
 
     private void ArtistNameBtn_Loaded(object sender, RoutedEventArgs e)
     {
-        // The Helper handles the null checks, the opacity setting, 
-        // and the DispatcherQueue automatically.
+       
 
         AnimationHelper.TryStart(
-            detailedImage,
-            new List<UIElement>() { ArtistsInSongTxtBlock },
-            // Pass all possible keys here. 
-            // The helper loops through them and starts the FIRST one it finds.
+            //detailedImage,
+            ArtistsInSongTxtBlock,
+            null,
+            
             "OpenArtistSongsCatalog",      // Priority 1: Coming from Edit Page
             AnimationHelper.Key_ListToDetail, // Priority 2: Coming from List
             AnimationHelper.Key_ArtistToSong  // Priority 3: Coming from Artist
@@ -841,8 +839,6 @@ public sealed partial class SongDetailPage : Page
         // We take a snapshot of the whole detail border (or the specific image/text inside it)
         AnimationHelper.Prepare(AnimationHelper.Key_ArtistToSong, ArtistDetailBorder);
 
-        // 2. Hide the Detail View
-        ArtistDetailBorder.Visibility = Visibility.Collapsed;
 
         // 3. START the animation back to the original list button
         if (_storedSourceElement != null)
@@ -853,7 +849,9 @@ public sealed partial class SongDetailPage : Page
                 null,
                 AnimationHelper.Key_ArtistToSong
             );
+        ArtistDetailBorder.Visibility = Visibility.Collapsed;
         }
+
     }
    
 

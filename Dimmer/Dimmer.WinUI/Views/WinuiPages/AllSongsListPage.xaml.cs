@@ -44,10 +44,7 @@ public sealed partial class AllSongsListPage : Page
 
         _compositor = ElementCompositionPreview.GetElementVisual(this).Compositor;
 
-        // TODO: load from user settings or defaults
         _userPrefAnim = SongTransitionAnimation.Spring;
-
-        
     }
     BaseViewModelWin MyViewModel { get; set; }
 
@@ -568,223 +565,13 @@ public sealed partial class AllSongsListPage : Page
 
     }
 
-
-    private void ViewSongBtn_Click(object sender, RoutedEventArgs e)
-    {
-        var selectedSong = (sender as FrameworkElement)?.DataContext as SongModelView;
-
-        // Store the item for the return trip
-        _storedSong = selectedSong;
-
-        // Find the specific UI element (the Image) that was clicked on
-        var row = MySongsTableView.ContainerFromItem(selectedSong) as FrameworkElement;
-        var image = PlatUtils.FindVisualChild<Image>(row, "coverArtImage");
-        if (image == null) return;
-
-        // Prepare the animation, linking the key "ForwardConnectedAnimation" to our image
-        ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("ForwardConnectedAnimation", image);
-
-
-        // Small visual feedback before navigation
-        var visualImage = ElementCompositionPreview.GetElementVisual(image);
-        //PlatUtils.ApplyEntranceEffect(visualImage, row, SongTransitionAnimation.Slide,_compositor);
-
-        // Suppress the default page transition to let ours take over.
-        var supNavTransInfo = new SuppressNavigationTransitionInfo();
-        Type songDetailType = typeof(SongDetailPage);
-        var navParams = new SongDetailNavArgs
-        {
-            Song = _storedSong!,
-            ViewModel = MyViewModel
-        };
-
-        FrameNavigationOptions navigationOptions = new FrameNavigationOptions
-        {
-            TransitionInfoOverride = supNavTransInfo,
-            IsNavigationStackEnabled = true
-
-        };
-
-        Frame?.NavigateToType(songDetailType, navParams, navigationOptions);
-    }
-    private void ViewOtherBtn_Click(object sender, RoutedEventArgs e)
-    {
-        var UIElt  = (UIElement)sender;
-
-        var selectedSong = (SongModelView)((FrameworkElement)sender).DataContext;
-        var menuFlyout = new MenuFlyout();
-        var addNoteToSongMFItem = new MenuFlyoutItem { Text = "Add Note to Song" };
-            addNoteToSongMFItem.Click += async (s, args) =>
-            {
-                await MyViewModel.AddNoteToSongAsync();
-            };
-
-        FontIcon iconNote = new FontIcon();
-        iconNote.Glyph = "\uF7BB";
-        addNoteToSongMFItem.Icon = iconNote;
-        menuFlyout.Items.Add(addNoteToSongMFItem);
-
-
-        var deleteSongFromLibraryMFItem = new MenuFlyoutItem { Text = "Delete Song from Device" };
-        deleteSongFromLibraryMFItem.Click += async (s, args) =>
-        {
-            await MyViewModel.DeleteSongs(new List<SongModelView>() { selectedSong });
-        };
-        var menuSeparator = new MenuFlyoutSeparator();
-        menuFlyout.Items.Add(menuSeparator);
-
-        FontIcon iconDelete = new FontIcon();
-        iconDelete.Glyph = "\uE74D";
-        deleteSongFromLibraryMFItem.Icon=iconDelete;
-        menuFlyout.Items.Add(deleteSongFromLibraryMFItem);
-
-
-
-        var AddToNextMFItem = new MenuFlyoutItem { Text = "Add to Next" ,
-        };
-        AddToNextMFItem.Click += AddToNextMFItem_Click;
-        FontIcon icon = new FontIcon();
-        icon.Glyph = "\uE70E";
-            AddToNextMFItem.Icon=icon;
-        menuFlyout.Items.Add(AddToNextMFItem);
-
-        FontIcon heartIcon = new FontIcon();
-        heartIcon.Glyph = "\uEB51";
-
-        FontIcon unheartIcon = new FontIcon();
-        unheartIcon.Glyph = "\uEA92";
-        var toggleFavBtn = new ToggleMenuFlyoutItem
-        {
-            Icon = heartIcon,
-            
-        };
-        if (!selectedSong.IsFavorite)
-        {
-            toggleFavBtn.Text = "Love";
-            toggleFavBtn.Click += (s, e) =>
-            {
-
-                _ = MyViewModel.AddFavoriteRatingToSong(selectedSong);
-                toggleFavBtn.Text = "UnLove";
-            };
-
-        }
-        else
-        {
-            toggleFavBtn.Text = "UnLove";
-            toggleFavBtn.Icon = unheartIcon;
-
-            toggleFavBtn.Click += (s, e) =>
-            {
-                _ = MyViewModel.RemoveSongFromFavorite(selectedSong);
-                toggleFavBtn.Text = "Love";
-            };
-        }
-
-        menuFlyout.Items.Add(toggleFavBtn);
-            FlyoutShowOptions flyoutShowOpt = new FlyoutShowOptions
-            {
-                Placement = FlyoutPlacementMode.Top,
-                ShowMode = FlyoutShowMode.Auto
-            };
-
-        FontIcon LocateIcon = new FontIcon();
-        LocateIcon.Glyph = "\uE890";
-
-        var locateSongInFolder = new MenuFlyoutItem()
-        {
-            Text = "Locate In Folder"
-        ,
-            Icon = LocateIcon
-        };
-        locateSongInFolder.Click += (s, e) =>
-        {
-            MyViewModel.OpenAndSelectFileInExplorer(selectedSong);
-        };
-        menuFlyout.Items.Add(locateSongInFolder);
-
-        FontIcon LocateArtist = new FontIcon();
-        LocateArtist.Glyph = "\uE720";
-        var toArtistMFI = new MenuFlyoutItem()
-        {
-            Text = $"To Artist : {selectedSong.ArtistName}",
-            Icon = LocateArtist
-        };
-        toArtistMFI.Click += (s, e) =>
-        {
-            var supNavTransInfo = new SuppressNavigationTransitionInfo();
-
-            FrameNavigationOptions navigationOptions = new FrameNavigationOptions
-            {
-                TransitionInfoOverride = supNavTransInfo,
-                IsNavigationStackEnabled = true
-
-            };
-            AnimationHelper.PrepareFromChild(
-sender as DependencyObject,
-"ArtistNameTxt",
-AnimationHelper.Key_Forward
-);
-            var navParams = new SongDetailNavArgs
-            {
-                Song = _storedSong!,
-                ExtraParam = MyViewModel,
-                ViewModel = MyViewModel
-            };
-            Type pageType = typeof(ArtistPage);
-
-            Frame?.NavigateToType(pageType, navParams, navigationOptions);
-
-        };
-
-        menuFlyout.Items.Add(toArtistMFI);
-
-        FontIcon musicAlbumIcon = new FontIcon();
-        musicAlbumIcon.Glyph = "\uE93C";
-
-        var toAlbumMFI = new MenuFlyoutItem()
-        {
-            Text = $"To Album : {selectedSong.AlbumName}",
-            Icon = musicAlbumIcon,
-        };
-        toAlbumMFI.Click += (s,e)=>
-        {
-            var supNavTransInfo = new SuppressNavigationTransitionInfo();
-
-            FrameNavigationOptions navigationOptions = new FrameNavigationOptions
-            {
-                TransitionInfoOverride = supNavTransInfo,
-                IsNavigationStackEnabled = true
-
-            };
-            AnimationHelper.PrepareFromChild(
-sender as DependencyObject,
-"ArtistNameTxt",
-AnimationHelper.Key_Forward
-); 
-            var navParams = new SongDetailNavArgs
-{
-    Song = _storedSong!,
-    ExtraParam = MyViewModel,
-    ViewModel = MyViewModel
-};
-            Type pageType = typeof(AlbumPage);
-
-            Frame?.NavigateToType(pageType, navParams, navigationOptions);
-        };
-
-        menuFlyout.Items.Add(toAlbumMFI);
-
-        menuFlyout.ShowAt(UIElt, flyoutShowOpt);
-
-    }
-
     private void AddToNextMFItem_Click(object sender, RoutedEventArgs e)
     {
         MyViewModel.AddToNext(new List<SongModelView>() { MyViewModel.SelectedSong! });
     }
 
     private SongModelView? _storedItem;
+    private Button _storedSourceElement;
 
     private void CardBorder_Loaded(object sender, RoutedEventArgs e)
     {
@@ -879,39 +666,332 @@ AnimationHelper.Key_Forward
         BtmLogPanel.Visibility = Visibility.Collapsed;
     }
 
-    private void Animation_Completed(ConnectedAnimation sender, object args)
+ 
+    private void SingleSongPopup_Loaded(object sender, RoutedEventArgs e)
     {
-        SmokeGrid.Visibility = WinUIVisibility.Collapsed;
+        UIElement send = (UIElement)sender;
+
+        SingleSongPopup.SetBaseViewModelWin(MyViewModel);
+        AnimationHelper.TryStart(send, null,
+            AnimationHelper.Key_ToViewSingleSongPopUp);
+
+    }
+
+    private void CoverArtImage_Loaded(object sender, RoutedEventArgs e)
+    {
+        UIElement send = (UIElement)sender;
+        AnimationHelper.TryStart(send, null,
+           AnimationHelper.Key_ToViewSingleSongPopUp, AnimationHelper.Key_ListToDetail,
+AnimationHelper.Key_DetailToList);
+    }
+
+    Image? coverImagClicked;
+    private void ViewOtherBtn_Click(object sender, RoutedEventArgs e)
+    {
+         coverImagClicked = (Image)sender;
+
+        var selectedSong = (SongModelView)((FrameworkElement)sender).DataContext;
+        var menuFlyout = new MenuFlyout();
+        var addNoteToSongMFItem = new MenuFlyoutItem { Text = "Add Note to Song" };
+        addNoteToSongMFItem.Click += async (s, args) =>
+        {
+            await MyViewModel.AddNoteToSongAsync();
+        };
+
+        FontIcon iconNote = new FontIcon();
+        iconNote.Glyph = "\uF7BB";
+        addNoteToSongMFItem.Icon = iconNote;
+        menuFlyout.Items.Add(addNoteToSongMFItem);
+
+
+        var deleteSongFromLibraryMFItem = new MenuFlyoutItem { Text = "Delete Song from Device" };
+        deleteSongFromLibraryMFItem.Click += async (s, args) =>
+        {
+            await MyViewModel.DeleteSongs(new List<SongModelView>() { selectedSong });
+        };
+        var menuSeparator = new MenuFlyoutSeparator();
+        menuFlyout.Items.Add(menuSeparator);
+
+        FontIcon iconDelete = new FontIcon();
+        iconDelete.Glyph = "\uE74D";
+        deleteSongFromLibraryMFItem.Icon = iconDelete;
+        menuFlyout.Items.Add(deleteSongFromLibraryMFItem);
+
+
+
+        var AddToNextMFItem = new MenuFlyoutItem
+        {
+            Text = "Add to Next",
+        };
+        AddToNextMFItem.Click += AddToNextMFItem_Click;
+        FontIcon icon = new FontIcon();
+        icon.Glyph = "\uE70E";
+        AddToNextMFItem.Icon = icon;
+        menuFlyout.Items.Add(AddToNextMFItem);
+
+        FontIcon heartIcon = new FontIcon();
+        heartIcon.Glyph = "\uEB51";
+
+        FontIcon unheartIcon = new FontIcon();
+        unheartIcon.Glyph = "\uEA92";
+        var toggleFavBtn = new ToggleMenuFlyoutItem
+        {
+            Icon = heartIcon,
+
+        };
+        if (!selectedSong.IsFavorite)
+        {
+            toggleFavBtn.Text = "Love";
+            toggleFavBtn.Click += (s, e) =>
+            {
+
+                _ = MyViewModel.AddFavoriteRatingToSong(selectedSong);
+                toggleFavBtn.Text = "UnLove";
+            };
+
+        }
+        else
+        {
+            toggleFavBtn.Text = "UnLove";
+            toggleFavBtn.Icon = unheartIcon;
+
+            toggleFavBtn.Click += (s, e) =>
+            {
+                _ = MyViewModel.RemoveSongFromFavorite(selectedSong);
+                toggleFavBtn.Text = "Love";
+            };
+        }
+
+        menuFlyout.Items.Add(toggleFavBtn);
+        FlyoutShowOptions flyoutShowOpt = new FlyoutShowOptions
+        {
+            Placement = FlyoutPlacementMode.Top,
+            ShowMode = FlyoutShowMode.Auto
+        };
+
+        FontIcon LocateIcon = new FontIcon();
+        LocateIcon.Glyph = "\uE890";
+
+        var locateSongInFolder = new MenuFlyoutItem()
+        {
+            Text = "Locate In Folder"
+        ,
+            Icon = LocateIcon
+        };
+        locateSongInFolder.Click += (s, e) =>
+        {
+            MyViewModel.OpenAndSelectFileInExplorer(selectedSong);
+        };
+        menuFlyout.Items.Add(locateSongInFolder);
+
+        FontIcon LocateArtist = new FontIcon();
+        LocateArtist.Glyph = "\uE720";
+        var toArtistMFI = new MenuFlyoutItem()
+        {
+            Text = $"To Artist : {selectedSong.ArtistName}",
+            Icon = LocateArtist
+        };
+        toArtistMFI.Click += (s, e) =>
+        {
+            var supNavTransInfo = new SuppressNavigationTransitionInfo();
+
+            FrameNavigationOptions navigationOptions = new FrameNavigationOptions
+            {
+                TransitionInfoOverride = supNavTransInfo,
+                IsNavigationStackEnabled = true
+
+            };
+            AnimationHelper.PrepareFromChild(
+sender as DependencyObject,
+"ArtistNameTxt",
+AnimationHelper.Key_Forward
+);
+            var navParams = new SongDetailNavArgs
+            {
+                Song = _storedSong!,
+                ExtraParam = MyViewModel,
+                ViewModel = MyViewModel
+            };
+            Type pageType = typeof(ArtistPage);
+
+            Frame?.NavigateToType(pageType, navParams, navigationOptions);
+
+        };
+
+        menuFlyout.Items.Add(toArtistMFI);
+
+        FontIcon musicAlbumIcon = new FontIcon();
+        musicAlbumIcon.Glyph = "\uE93C";
+
+        var toAlbumMFI = new MenuFlyoutItem()
+        {
+            Text = $"To Album : {selectedSong.AlbumName}",
+            Icon = musicAlbumIcon,
+        };
+        toAlbumMFI.Click += (s, e) =>
+        {
+            var supNavTransInfo = new SuppressNavigationTransitionInfo();
+
+            FrameNavigationOptions navigationOptions = new FrameNavigationOptions
+            {
+                TransitionInfoOverride = supNavTransInfo,
+                IsNavigationStackEnabled = true
+
+            };
+            AnimationHelper.PrepareFromChild(
+sender as DependencyObject,
+"ArtistNameTxt",
+AnimationHelper.Key_Forward
+);
+            var navParams = new SongDetailNavArgs
+            {
+                Song = _storedSong!,
+                ExtraParam = MyViewModel,
+                ViewModel = MyViewModel
+            };
+            Type pageType = typeof(AlbumPage);
+
+            Frame?.NavigateToType(pageType, navParams, navigationOptions);
+        };
+
+        var viewInfoPopup = new MenuFlyoutItem()
+        {
+            Text = "Info"
+            ,
+            Icon = new FontIcon() { Glyph = "\uE946" }
+        };
+        viewInfoPopup.Click += (s, e) =>
+        {
+           
+
+            AnimationHelper.Prepare(AnimationHelper.Key_ToViewSingleSongPopUp, coverImagClicked);
+
+            SingleSongPopup.Visibility = Visibility.Visible;
+
+            AnimationHelper.TryStart(
+                SingleSongPopup, // Destination: The Big View
+                null,               // Optional: Coordinated elements (like the text inside)
+                AnimationHelper.Key_ToViewSingleSongPopUp
+            );
+        };
+
+        menuFlyout.Items.Add(toAlbumMFI);
+
+        menuFlyout.Items.Add(viewInfoPopup);
+
+        menuFlyout.ShowAt(coverImagClicked, flyoutShowOpt);
+
+    }
+
+    private void SingleSongPopup_DismissedRequested(object sender, PopupDismissedEventArgs e)
+    {
+        AnimationHelper.Prepare(AnimationHelper.Key_ToViewSingleSongPopUp, SingleSongPopup);
+
+        //    // 3. START the animation back to the original list button
+        if (coverImagClicked != null)
+        {
+            // We use the helper to fly back to the button we clicked earlier
+            AnimationHelper.TryStart(
+                coverImagClicked,
+                null,
+                AnimationHelper.Key_ToViewSingleSongPopUp
+            );
+        }
+        //    // 2. Hide the Detail View
+        SingleSongPopup.Visibility = Visibility.Collapsed;
+
+        if (e.HasActionAfterDismissed)
+        {
+            switch (e.DismissedActionDescription)
+            {
+                case PopupDismissedActionEnums.GoToSingleSongDetails:
+                    ViewSongBtn_Click(sender, new());
+                    break;
+                case PopupDismissedActionEnums.GoToArtistPage:
+                    
+                default:
+                    break;
+            }
+        }
+    }
+    private void SmokeGrid_DismissRequested(object sender, EventArgs e)
+    {
+       
+        AnimationHelper.Prepare(AnimationHelper.Key_ToViewQueue, SmokeGrid);
+
+
+        //    // 3. START the animation back to the original list button
+        if (ViewQueueBtn != null)
+        {
+            // We use the helper to fly back to the button we clicked earlier
+            AnimationHelper.TryStart(
+                ViewQueueBtn,
+                null,
+                AnimationHelper.Key_ToViewQueue
+            );
+        }
+        //    // 2. Hide the Detail View
+        SmokeGrid.Visibility = Visibility.Collapsed;
+    }
+
+    private void ViewSongBtn_Click(object sender, RoutedEventArgs e)
+    {
+
+        // Store the item for the return trip
+        _storedSong = MyViewModel.SelectedSong;
+
+        var image = PlatUtils.FindVisualElementFromTableView(MySongsTableView, _storedSong, "coverArtImage");
+
+
+        if (image == null) return;
+
+        AnimationHelper.Prepare(AnimationHelper.Key_ListToDetail, ViewQueueBtn);
+        
+
+
+        // Suppress the default page transition to let ours take over.
+        var supNavTransInfo = new SuppressNavigationTransitionInfo();
+        Type songDetailType = typeof(SongDetailPage);
+        var navParams = new SongDetailNavArgs
+        {
+            Song = _storedSong!,
+            ViewModel = MyViewModel
+        };
+
+        FrameNavigationOptions navigationOptions = new FrameNavigationOptions
+        {
+            TransitionInfoOverride = supNavTransInfo,
+            IsNavigationStackEnabled = true
+
+        };
+
+        Frame?.NavigateToType(songDetailType, navParams, navigationOptions);
     }
     private async void ViewQueue_Click(object sender, RoutedEventArgs e)
     {
         if (MyViewModel.PlaybackQueue.Count < 1) return;
-        ConnectedAnimation? animation;
+      
 
         FrameworkElement send = (FrameworkElement)sender;
         var itemm = send.DataContext as SongModelView;
         _storedItem = itemm;
-        
+
         MyViewModel.SelectedSong = itemm;
-      
-         animation = ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("forwardAnimation", ViewQueue);
 
-        // 2. Make Target Visible
+
+        //    // 2. PREPARE the animation
+        //    // We "take a snapshot" of the button before the UI changes
+        AnimationHelper.Prepare(AnimationHelper.Key_ToViewQueue, ViewQueueBtn);
+
         SmokeGrid.Visibility = Visibility.Visible;
-        SmokeGrid.ViewQueueGrid.Opacity = 0; // Hide it initially so we see the animation fly in
 
-        if (ApiInformation.IsApiContractPresent("Windows.Foundation.UniversalApiContract", 7))
-        {
-            animation.Configuration = new GravityConnectedAnimationConfiguration();
-
-        }
-        await SmokeGrid.DispatcherQueue.EnqueueAsync(() =>
-        {
-            // 4. Start Animation
-            SmokeGrid.ViewQueueGrid.Opacity = 1;
-            animation.TryStart(SmokeGrid.ViewQueueGrid);
-        });
+        AnimationHelper.TryStart(
+            SmokeGrid, // Destination: The Big View
+            null,               // Optional: Coordinated elements (like the text inside)
+            AnimationHelper.Key_ToViewQueue
+        );
     }
+
 
 
     private void MySongsTableView_ItemClick(object sender, ItemClickEventArgs e)
@@ -947,8 +1027,8 @@ true
 
     private void coverArtImage_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
-        var send = (Image)sender;
-        var song = send.DataContext as SongModelView;
+        coverImagClicked = (Image)sender;
+        var song = coverImagClicked.DataContext as SongModelView;
 
         if (song != null)
         {
@@ -957,6 +1037,20 @@ true
                 MyViewModel.SelectedSong = song;
             }
 
+        }
+        var props = e.GetCurrentPoint(coverImagClicked).Properties;
+        if(props.IsMiddleButtonPressed)
+        {
+
+            AnimationHelper.Prepare(AnimationHelper.Key_ToViewSingleSongPopUp, coverImagClicked);
+
+            SingleSongPopup.Visibility = Visibility.Visible;
+
+            AnimationHelper.TryStart(
+                SingleSongPopup, // Destination: The Big View
+                null,               // Optional: Coordinated elements (like the text inside)
+                AnimationHelper.Key_ToViewSingleSongPopUp
+            );
         }
     }
 
@@ -1139,17 +1233,6 @@ true
         MyViewModel.SelectedSong = null;
     }
 
-    private void SidePanel_PointerEntered(object sender, PointerRoutedEventArgs e)
-    {
-
-        ClosePanel.Visibility = Visibility.Visible;
-    }
-
-    private void SidePanel_PointerExited(object sender, PointerRoutedEventArgs e)
-    {
-        ClosePanel.Visibility = Visibility.Collapsed;
-
-    }
 
     private void TitleColumn_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
@@ -1164,10 +1247,22 @@ true
             }
 
         }
+
+        var pointerProps = e.GetCurrentPoint((UIElement)sender).Properties;
+        if (pointerProps != null)
+        {
+            if(pointerProps.IsMiddleButtonPressed)
+            {
+
+            }
+        }
     }
 
     private void SongTitle_Click(object sender, RoutedEventArgs e)
     {
+        var send = ((FrameworkElement)sender).DataContext as SongModelView;
+        MyViewModel.SelectedSong = send;
+        _storedSong = MyViewModel.SelectedSong;
         ViewSongBtn_Click(sender, e);
     }
 
@@ -1258,17 +1353,7 @@ true
         }
     }
 
-    private void SelectedSongImg_Loaded(object sender, RoutedEventArgs e)
-    {
-        MyViewModel.WhenPropertyChange( nameof(MyViewModel.SelectedSong),newVl => MyViewModel.SelectedSong)
-        .ObserveOn(RxSchedulers.UI)
-            .Subscribe(selectedSong =>
-            {
-                if (!string.IsNullOrEmpty(selectedSong?.CoverImagePath))
-                    SelectedSongImg.Source = new BitmapImage(new Uri(selectedSong.CoverImagePath));
-            });
-    }
-
+  
 
     private void QueueReOrder_Click(object sender, RoutedEventArgs e)
     {
@@ -1285,30 +1370,7 @@ true
 
     }
 
-    private void SmokeGrid_Loaded(object sender, RoutedEventArgs e)
-    {
-        SmokeGrid.SetBaseViewModelWin(MyViewModel);
-        SmokeGrid.DismissRequested += SmokeGrid_DismissRequested;
-    }
 
-    private async void SmokeGrid_DismissRequested(object? sender, EventArgs e)
-    {
-        // 1. Retrieve the animation that the UserControl just prepared
-        var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("backwardAnimation");
-
-        // 2. Collapse the UserControl (Hide the popup)
-        SmokeGrid.Visibility = Visibility.Collapsed;
-
-        // 3. Start the animation aiming at the Parent's Button
-        if (animation != null)
-        {
-            await ViewQueue.DispatcherQueue.EnqueueAsync(() =>
-            {
-                // This makes the ghost image morph INTO the button
-                animation.TryStart(ViewQueue);
-            });
-        }
-    }
     private void AlbumBtn_RightTapped(object sender, RightTappedRoutedEventArgs e)
     {
         var send = ((Button)sender).DataContext as SongModelView;
@@ -1324,4 +1386,11 @@ true
     {
         MyArcFabControl.SetMenuItems(new List<string>() { "Page Settings", "TQL View" });
     }
+
+    private void SmokeGrid_Unloaded(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    
 }

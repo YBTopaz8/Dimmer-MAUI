@@ -25,48 +25,23 @@
     
     />
         <ScrollViewer PointerPressed="MainView_PointerPressed" x:Name="mainView">
-            <StackPanel Padding="40" Spacing="14">
+            <StackPanel Padding="40" Spacing="8">
                 <!--  Carousel Section  -->
                 <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition MaxHeight="450" MinHeight="400"/>
-                    </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="auto"/>
+                        
                     </Grid.ColumnDefinitions>
-                    <Image MaxWidth="450" Grid.Column="0"
-                           MinWidth="400" Stretch="UniformToFill"
+                    <Image MaxWidth="250" Grid.Column="0"
+                           MaxHeight="250" Stretch="UniformToFill"
                         x:Name="CurrentPlayingSongImg" Canvas.ZIndex="1"
-                        Loaded="CurrentPlayingSongImg_Loaded"
+                        Loading="CurrentPlayingSongImg_Loading" Loaded="CurrentPlayingSongImg_Loaded"
                         />
-                    <ListView SelectedItem="{x:Bind MyViewModel.CurrentLine, Mode=TwoWay}"
-                              x:Name="SyncLyricsView"
-                              SelectionChanged="SyncLyricsView_SelectionChanged"
-                             SelectionMode="Single" Visibility="{x:Bind MyViewModel.IsDimmerPlaying, Converter={StaticResource BoolToVisConverter}}"
-                           Grid.Column="0" Canvas.ZIndex="99"
-                              ItemsSource="{x:Bind MyViewModel.AllLines,Mode=OneWay}">
-                        <DataTemplate>
-                            <Grid HorizontalAlignment="Center"
-                                    Background="#1e1e1e">
-                                <Border
-                                    Background="#1e1e1e" HorizontalAlignment="Center"
-                                    Visibility="{Binding IsHighlighted, Converter={StaticResource BoolToInverseVisibilityConverter}}"
-                                    Opacity="0.7"
-                                    BorderBrush="DarkSlateBlue"/>
-
-                                <TextBlock HorizontalTextAlignment="Center" HorizontalAlignment="Center"
-                                    FontSize="{Binding NowPlayingLyricsFontSize}"
-                                    
-                                    Text="{Binding Text}"
-                                    Foreground="DarkSlateBlue" />
-                            </Grid>
-                        </DataTemplate>
-                    </ListView>
                 </Grid>
 
                 <!--  Song Info  -->
                 <StackPanel
+                    x:Name="SongInfoStackPanel"
                     HorizontalAlignment="Center"
                     Spacing="8">
                     <Button Background="Transparent"
