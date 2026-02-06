@@ -13,3 +13,4 @@ public class PlaybackEventArgs : EventArgs
         AudioServiceCurrentPlayingSongView = song;
     }
 }
+
