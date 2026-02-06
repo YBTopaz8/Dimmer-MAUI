@@ -29,7 +29,7 @@ public class DuplicateFinderService : IDuplicateFinderService
         progress?.Report("Loading all songs from the database...");
 
         // Materialize the list now that we need to process it
-        List<SongModelView>? allSongsList = SongMapper.ToSongViewList(allSongsQuery.ToList());
+        List<SongModelView>? allSongsList = allSongsQuery.AsEnumerable().Select(x=>x.ToSongModelView()).ToList();
 
         var result = new DuplicateSearchResult
         {
@@ -458,9 +458,9 @@ public class DuplicateFinderService : IDuplicateFinderService
         }
 
 
-        var duplicates = SongMapper.ToSongViewList(potentialDuplicatesQuery.ToList());
+        var duplicates = potentialDuplicatesQuery.AsEnumerable().Select(x=>x.ToSongModelView());
 
-        if (duplicates.Count == 0)
+        if (duplicates.Count() == 0)
         {
             return new DuplicateSearchResult(); // No duplicates found
         }
@@ -483,7 +483,7 @@ public class DuplicateFinderService : IDuplicateFinderService
         return new DuplicateSearchResult
         {
             CriteriaUsed = criteria,
-            TotalSongsScanned = duplicates.Count + 1, // The found songs + the original
+            TotalSongsScanned = duplicates.Count() + 1, // The found songs + the original
             DuplicateSets = new List<DuplicateSetViewModel> { set }
         };
     }

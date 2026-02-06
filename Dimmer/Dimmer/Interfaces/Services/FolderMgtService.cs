@@ -210,8 +210,6 @@ public class FolderMgtService : IFolderMgtService
                 var firstOfDef = knowPaths?.FirstOrDefault(x => x.SystemFolderPath == path);
                 if (firstOfDef is null)
                 {
-                 
-
                     appModel.UserMusicFolders?.Add(new() { SystemFolderPath = path, ReadableFolderPath = path });
                     newPathsToAdd.Add(path);
                 }
