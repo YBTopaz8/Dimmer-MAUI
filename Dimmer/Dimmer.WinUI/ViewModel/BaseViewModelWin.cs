@@ -14,7 +14,6 @@ using FolderPicker = CommunityToolkit.Maui.Storage.FolderPicker;
 namespace Dimmer.WinUI.ViewModel;
 
 public partial class BaseViewModelWin : BaseViewModel, IArtistActions
-
 {
 
     public readonly IMauiWindowManagerService windowManager;
@@ -24,7 +23,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     public SessionManagementViewModel SessionMgtVM { get; }
 
-    private readonly IFolderPicker _folderPicker;
+
     public DimmerMultiWindowCoordinator DimmerMultiWindowCoordinator;
 
     public BaseViewModelWin(IDimmerStateService dimmerStateService,
@@ -46,8 +45,6 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         };
 
         windowManager = mauiWindowManagerService;
-        //AddNextEvent += BaseViewModelWin_AddNextEvent;
-        //MainWindowActivated
 
         this.WhenPropertyChange(nameof(base.IsAppScanning), v => (base.IsAppScanning))
             .ObserveOn(RxSchedulers.UI)

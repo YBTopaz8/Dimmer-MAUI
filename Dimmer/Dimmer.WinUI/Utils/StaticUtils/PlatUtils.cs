@@ -587,7 +587,13 @@ public static class PlatUtils
             FlyoutBase.ShowAttachedFlyout(platformView);
         }
     }
-
+    public static UIElement FindVisualElementFromTableView(TableView table,
+        object concernedElt, string childName)
+    {
+        var row = table.ContainerFromItem(concernedElt) as FrameworkElement;
+        var image = PlatUtils.FindVisualChild<Image>(row, "coverArtImage");
+        return image;
+    }
 
     public static T? FindVisualChild<T>(DependencyObject? parent, string? childName) where T : FrameworkElement
     {
