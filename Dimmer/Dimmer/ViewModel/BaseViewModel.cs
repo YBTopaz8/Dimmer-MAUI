@@ -968,7 +968,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
     }
 
-    private async Task<List<SongModelView>> GetOrderedSongsFromIdsAsync(IEnumerable<ObjectId> songIdsToFetch)
+    private async Task<List<SongModelView?>?> GetOrderedSongsFromIdsAsync(IEnumerable<ObjectId> songIdsToFetch)
     {
         var ids = songIdsToFetch?.ToList() ?? new List<ObjectId>();
         if (ids.Count == 0)
@@ -986,11 +986,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         
         var songMap = songsFromDb.ToDictionary(s => s.Id);
         var orderedSongs = ids
-            .Select(id => songMap.TryGetValue(id, out var song) ? song : null)
+            .Select(id => songMap.TryGetValue(id, out var song) ? song.ToSongModelView() : null)
             .Where(s => s != null)
+            
             .ToList();
 
-        return SongMapper.ToSongViewList(orderedSongs);
+        return orderedSongs;
     }
 
 
@@ -1149,7 +1150,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 //}
                 if (lastAppEvent is not null)
                 {
-                    var songsLinked = lastAppEvent.SongsLinkingToThisEvent.AsEnumerable().Select(x => x.ToSongView());
+                    var songsLinked = lastAppEvent.SongsLinkingToThisEvent.AsEnumerable().Select(x => x.ToSongModelView());
                     PlaybackQueueSource.Edit(
                         updater =>
                         {
@@ -1193,7 +1194,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     {
                         try
                         {
-                            var safeSongView = lastSong.ToSongView();
+                            var safeSongView = lastSong.ToSongModelView();
                             RxSchedulers.UI.ScheduleTo(() =>
                             {
 
@@ -1380,7 +1381,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     private IRepository<ArtistModel> artistRepo;
     private IRepository<PlaylistModel> _playlistRepo;
     private IRepository<AlbumModel> albumRepo;
-    private IFolderMonitorService folderMonitorService;
+
     private IRepository<GenreModel> genreRepo;
     private IRepository<DimmerPlayEvent> dimmerPlayEventRepo;
     public LyricsMgtFlow _lyricsMgtFlow;
@@ -2759,7 +2760,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 var song = evt.SongsLinkingToThisEvent.ToList().FirstOrDefault();
                 if (song is null) continue;
 
-                var songView = song.ToSongView();
+                var songView = song.ToSongModelView();
                 RxSchedulers.UI.ScheduleTo(() =>
                 {
                     PlaybackQueueSource.Add(songView);
@@ -5502,7 +5503,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 return;
             }
             _logger.LogInformation("Found {Count} songs in the library to reconcile.", allSongs.Count);
-            var songItems = allSongs.AsEnumerable().Select(x=>x.ToSongView());
+            var songItems = allSongs.AsEnumerable().Select(x=>x.ToSongModelView());
             var result = await Task.Run(() => _duplicateFinderService.ReconcileLibraryAsync(songItems));
 
             if (result.MigratedCount == 0 && result.UnresolvedCount == 0)
@@ -6639,7 +6640,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
 
 
-        var updatedSongs = SongMapper.ToSongViewList(songRepo.Query(s => songIds.Contains(s.Id)));
+        //var updatedSongs = SongMapper.ToSongViewList(songRepo.Query(s => songIds.Contains(s.Id)));
     }
 
 
@@ -6688,7 +6689,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             });
 
 
-        var updatedSongs = SongMapper.ToSongViewList (songRepo.Query(s => songIds.Contains(s.Id)));
+        //var updatedSongs = songRepo.Query(s => songIds.Contains(s.Id));
     }
 
 

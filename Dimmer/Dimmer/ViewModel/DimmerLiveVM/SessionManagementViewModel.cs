@@ -77,7 +77,7 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
             AvailableBackups.Clear();
             foreach (var item in rawBackups)
             {
-                AvailableBackups.Add(new CloudBackupModel(item));
+                //AvailableBackups.Add(new CloudBackupModel(item));
             }
         }
         finally 
@@ -243,7 +243,7 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
         {
 
 
-                var result = await _sessionManager.CreateBackupAsync();
+                var result = await _sessionManager.CreateFullBackupAsync();
                 StatusMessage = result;
                 
         }
