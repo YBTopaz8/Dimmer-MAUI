@@ -51,20 +51,13 @@ public sealed partial class SmokeViewQueueGrid : UserControl
     }
     private async void PopUpBackButton_Click(object sender, RoutedEventArgs e)
     {
-        ConnectedAnimation animation = ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("backwardAnimation", this.ViewQueueGrid);
-
-        // Collapse the smoke when the animation completes.
-        animation.Completed += Animation_Completed;
-
-
-        // Use the Direct configuration to go back (if the API is available).
-        if (ApiInformation.IsApiContractPresent("Windows.Foundation.UniversalApiContract", 7))
-        {
-            animation.Configuration = new GravityConnectedAnimationConfiguration();
-
-        }
+      
+      
 
         DismissRequested?.Invoke(this, EventArgs.Empty);
+        
+
+
     }
 
     private async void SaveQueueAsPlaylist_Click(object sender, RoutedEventArgs e)
