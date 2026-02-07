@@ -14,6 +14,8 @@ public static class AnimationHelper
     #region Connected Animation Enhancements
     public const string Key_Forward = "ForwardAnimation";
     public const string Key_ListToDetail = "ListToDetailAnimation";
+    public const string Key_ArtistToSong = "ArtistToSongPage";
+    public const string Key_NowPlayingPage = "ToNowPlayingPage";
     public const string Key_DetailToList = "DetailToListAnimation";
     public const string Key_ToViewSingleSongPopUp = "ToSingleSongPopupAnimation";
     public const string Key_ToViewQueue = "ToQueueAnimation";

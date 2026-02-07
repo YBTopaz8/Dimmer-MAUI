@@ -253,19 +253,8 @@ public sealed partial class AllDimsView : Page
         Debug.WriteLine($"Items in EventsTableView: {items}");
 
 
-        if (MyViewModel.SelectedSong != null)
-        {
-            trackModel = MyViewModel.SelectedSong;
-            // CLEAN: Handles scrolling, updating layout, finding the image, and starting animation
-            await AnimationHelper.TryStartListReturn(
-                 MyEventsTableView,
-                 trackModel,
-                 "coverArtImage",
-                 AnimationHelper.Key_DetailToList
-             );
+      
 
-            trackModel = null;
-        }
     }
 
     private async void SongArtists_Click(object sender, RoutedEventArgs e)

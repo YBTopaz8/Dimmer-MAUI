@@ -192,19 +192,7 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
     Track? trackModel = null;
     private async void RecentTracksList_Loaded(object sender, RoutedEventArgs e)
     {
-        if (MyViewModel.SelectedTrack != null)
-        {
-            trackModel = MyViewModel.SelectedTrack;
-            // CLEAN: Handles scrolling, updating layout, finding the image, and starting animation
-           await AnimationHelper.TryStartListReturn(
-                RecentTracksList,
-                trackModel,
-                "coverArtImage",
-                AnimationHelper.Key_DetailToList
-            );
-
-            trackModel = null;
-        }
+       
     }
 
     private void LogoutLastFM_Click(object sender, RoutedEventArgs e)

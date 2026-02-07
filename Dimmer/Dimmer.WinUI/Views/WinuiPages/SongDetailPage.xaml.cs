@@ -351,7 +351,7 @@ public sealed partial class SongDetailPage : Page
         {
             AnimationHelper.Prepare(AnimationHelper.Key_DetailToList,
                 detailedImage,
-                false);
+                AnimationHelper.ConnectedAnimationStyle.GravitySwing);
         }
 
     }
