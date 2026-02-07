@@ -1397,12 +1397,18 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         DimmerProgressBarView.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
 
     }
-
-    internal void NavigatePageBack()
+    /// <summary>
+    /// If can navigate back, do so, else, inform false so page can know where to go back to
+    /// </summary>
+    /// <returns></returns>
+    internal bool NavigatePageBack()
     {
         if(MainWindow.ContentFrame.CanGoBack)
         {
             MainWindow.ContentFrame.GoBack();
+            return true;
         }
+
+        return false;  
     }
 }

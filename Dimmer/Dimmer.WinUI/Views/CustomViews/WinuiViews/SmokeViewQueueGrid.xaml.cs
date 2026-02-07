@@ -39,7 +39,7 @@ public sealed partial class SmokeViewQueueGrid : UserControl
         var props = e.GetCurrentPoint((UIElement)sender).Properties;
         if (props != null)
         {
-            if (props.PointerUpdateKind == Microsoft.UI.Input.PointerUpdateKind.XButton1Pressed)
+            if (props.IsXButton1Pressed || props.IsLeftButtonPressed)
             {
                 PopUpBackButton_Click(sender, e);
             }

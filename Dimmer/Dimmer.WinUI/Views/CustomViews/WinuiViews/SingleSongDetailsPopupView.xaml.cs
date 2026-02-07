@@ -52,8 +52,27 @@ public sealed partial class SingleSongDetailsPopupView : UserControl
 
     private void PathView_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
-        //DismissedRequested?.Invoke(this, false);
         MyViewModel.OpenAndSelectFileInExplorer(MyViewModel.SelectedSong!);
+    }
+
+    private void ScrollViewer_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        var props = e.GetCurrentPoint((UIElement)sender).Properties;
+        if(props is not null && props.IsLeftButtonPressed)
+        {
+            ClosePopUp_Click(sender, e);
+        }
+    }
+
+    private void TitleLine_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        PopupDismissedEventArgs evt = new()
+        {
+            HasActionAfterDismissed = true,
+            DismissedActionDescription = PopupDismissedActionEnums.GoToSingleSongDetails
+        };
+
+        DismissedRequested?.Invoke(this, evt);
     }
 }
 

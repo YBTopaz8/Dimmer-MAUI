@@ -853,7 +853,21 @@ public sealed partial class SongDetailPage : Page
         }
 
     }
-   
 
+    private void Scroller_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        var props = e.GetCurrentPoint((UIElement)sender).Properties;
+
+        if (props != null)
+        {
+            if (props.IsXButton1Pressed)
+            {
+                if (!MyViewModel.NavigatePageBack())
+                {
+                    MyViewModel.NavigateToAnyPageOfGivenType(typeof(AllSongsListPage));
+                }
+            }
+        }
+    }
 }
 

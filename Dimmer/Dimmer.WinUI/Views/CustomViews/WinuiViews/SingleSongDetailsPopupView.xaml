@@ -16,6 +16,7 @@
         
     <ScrollViewer MaxHeight="500" MaxWidth="700" 
                   Background="Black"
+                  PointerPressed="ScrollViewer_PointerPressed"
                   CornerRadius="20" Padding="15">
         
         <StackPanel 
@@ -41,11 +42,13 @@
                     </Button>
                 </Grid>
             </Border>
-            <Border BorderThickness="1"
+                <Border BorderThickness="0.5"
                     BorderBrush="Gray"
                     CornerRadius="10"
                     Padding="5">
-                <Grid>
+                <Grid
+                    x:Name="TitleLine"
+                    PointerPressed="TitleLine_PointerPressed">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
@@ -55,7 +58,7 @@
                     <TextBlock Text="{x:Bind MyViewModel.SelectedSong.Title, Mode=OneWay}" Grid.Column="1"/>
                 </Grid>
             </Border>
-                <Border BorderThickness="0.3"
+                <Border BorderThickness="0.5"
                     BorderBrush="Gray"
                     CornerRadius="10"
                     Padding="5">
@@ -97,8 +100,8 @@
                     <TextBlock Text="{x:Bind MyViewModel.SelectedSong.GenreName, Mode=OneWay}" Grid.Column="1"/>
                 </Grid>
             </Border>
-                <Border BorderThickness="1"
-                        Width="500"
+                <Button BorderThickness="1"
+                        
                     BorderBrush="Gray"
                     CornerRadius="10"
                         x:Name="PathView"
@@ -113,7 +116,7 @@
                     <TextBlock Text="Path" Grid.Column="0"/>
                     <TextBlock Text="{x:Bind MyViewModel.SelectedSong.FilePath, Mode=OneWay}" Grid.Column="1"/>
                 </Grid>
-            </Border>
+            </Button>
 
                 <Border BorderThickness="1"
                     BorderBrush="Gray"
