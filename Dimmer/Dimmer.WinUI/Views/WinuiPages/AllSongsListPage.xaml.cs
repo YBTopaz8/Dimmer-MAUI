@@ -1014,8 +1014,8 @@ AnimationHelper.Key_Forward
         };
         AnimationHelper.Prepare(
 
-AnimationHelper.Key_ListToDetail, sender as UIElement,
-true
+AnimationHelper.Key_ListToDetail, sender as FrameworkElement,
+AnimationHelper.ConnectedAnimationStyle.GravityBounce
 );
         Type pageType = typeof(AlbumPage);
 
@@ -1392,5 +1392,15 @@ true
 
     }
 
-    
+    private void SmokeGrid_Loaded(object sender, RoutedEventArgs e)
+    {
+        SmokeGrid.SetBaseViewModelWin(MyViewModel);
+
+        AnimationHelper.TryStart(
+            SmokeGrid, null,
+            AnimationHelper.Key_ToViewQueue
+            );
+
+    }
+
 }
