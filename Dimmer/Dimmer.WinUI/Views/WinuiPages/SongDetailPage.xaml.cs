@@ -351,7 +351,7 @@ public sealed partial class SongDetailPage : Page
         {
             AnimationHelper.Prepare(AnimationHelper.Key_DetailToList,
                 detailedImage,
-                false);
+                AnimationHelper.ConnectedAnimationStyle.GravitySwing);
         }
 
     }
@@ -661,7 +661,7 @@ public sealed partial class SongDetailPage : Page
         }
             AnimationHelper.TryStart(
            detailedImage,
-           new List<UIElement> { TitleBlock }, // Coordinated elements (optional)
+           new List<UIElement> { TitleBlock }, // Coordinated 
            AnimationHelper.Key_DetailToList,       // Check this key
           
            AnimationHelper.Key_ListToDetail,AnimationHelper.Key_ToViewSingleSongPopUp,       // OR Check this key
@@ -853,7 +853,21 @@ public sealed partial class SongDetailPage : Page
         }
 
     }
-   
 
+    private void Scroller_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        var props = e.GetCurrentPoint((UIElement)sender).Properties;
+
+        if (props != null)
+        {
+            if (props.IsXButton1Pressed)
+            {
+                if (!MyViewModel.NavigatePageBack())
+                {
+                    MyViewModel.NavigateToAnyPageOfGivenType(typeof(AllSongsListPage));
+                }
+            }
+        }
+    }
 }
 

@@ -63,6 +63,7 @@
                     x:Name="Scroller"
                     Grid.Row="1"
                     Margin="0,0,0,0"
+                    PointerPressed="Scroller_PointerPressed"
                     Background="Transparent"
                     VerticalScrollBarVisibility="Auto"
                     ViewChanged="ScrollViewer_ViewChanged">

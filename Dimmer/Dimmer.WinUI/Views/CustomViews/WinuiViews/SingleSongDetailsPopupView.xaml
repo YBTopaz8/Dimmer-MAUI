@@ -9,13 +9,14 @@
     mc:Ignorable="d">
 
     <Grid
-        >
+        PointerPressed="Grid_PointerPressed">
         <Grid.Background>
             <SolidColorBrush Opacity="0.8" Color="#1e1e1e"/>
         </Grid.Background>
         
     <ScrollViewer MaxHeight="500" MaxWidth="700" 
                   Background="Black"
+                  PointerPressed="ScrollViewer_PointerPressed"
                   CornerRadius="20" Padding="15">
         
         <StackPanel 
@@ -41,11 +42,13 @@
                     </Button>
                 </Grid>
             </Border>
-            <Border BorderThickness="1"
+                <Border BorderThickness="0.5"
                     BorderBrush="Gray"
                     CornerRadius="10"
                     Padding="5">
-                <Grid>
+                <Grid
+                    x:Name="TitleLine"
+                    PointerPressed="TitleLine_PointerPressed">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
@@ -55,7 +58,7 @@
                     <TextBlock Text="{x:Bind MyViewModel.SelectedSong.Title, Mode=OneWay}" Grid.Column="1"/>
                 </Grid>
             </Border>
-                <Border BorderThickness="0.3"
+                <Border BorderThickness="0.5"
                     BorderBrush="Gray"
                     CornerRadius="10"
                     Padding="5">
@@ -98,7 +101,7 @@
                 </Grid>
             </Border>
                 <Border BorderThickness="1"
-                        Width="500"
+                        
                     BorderBrush="Gray"
                     CornerRadius="10"
                         x:Name="PathView"
