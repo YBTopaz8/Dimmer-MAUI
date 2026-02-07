@@ -661,7 +661,7 @@ public sealed partial class SongDetailPage : Page
         }
             AnimationHelper.TryStart(
            detailedImage,
-           new List<UIElement> { TitleBlock }, // Coordinated elements (optional)
+           new List<UIElement> { TitleBlock }, // Coordinated 
            AnimationHelper.Key_DetailToList,       // Check this key
           
            AnimationHelper.Key_ListToDetail,AnimationHelper.Key_ToViewSingleSongPopUp,       // OR Check this key

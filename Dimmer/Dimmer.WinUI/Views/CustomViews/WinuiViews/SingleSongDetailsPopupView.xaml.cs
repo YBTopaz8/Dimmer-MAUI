@@ -74,6 +74,18 @@ public sealed partial class SingleSongDetailsPopupView : UserControl
 
         DismissedRequested?.Invoke(this, evt);
     }
+    
+    private void Grid_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        var props = e.GetCurrentPoint((UIElement)sender).Properties;
+        if (props != null)
+        {
+            if (props.IsXButton1Pressed || props.IsLeftButtonPressed)
+            {
+                ClosePopUp_Click(sender, e);
+            }
+        }
+    }
 }
 
 

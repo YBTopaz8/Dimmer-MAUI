@@ -9,7 +9,7 @@
     mc:Ignorable="d">
 
     <Grid
-        >
+        PointerPressed="Grid_PointerPressed">
         <Grid.Background>
             <SolidColorBrush Opacity="0.8" Color="#1e1e1e"/>
         </Grid.Background>
@@ -100,7 +100,7 @@
                     <TextBlock Text="{x:Bind MyViewModel.SelectedSong.GenreName, Mode=OneWay}" Grid.Column="1"/>
                 </Grid>
             </Border>
-                <Button BorderThickness="1"
+                <Border BorderThickness="1"
                         
                     BorderBrush="Gray"
                     CornerRadius="10"
@@ -116,7 +116,7 @@
                     <TextBlock Text="Path" Grid.Column="0"/>
                     <TextBlock Text="{x:Bind MyViewModel.SelectedSong.FilePath, Mode=OneWay}" Grid.Column="1"/>
                 </Grid>
-            </Button>
+            </Border>
 
                 <Border BorderThickness="1"
                     BorderBrush="Gray"

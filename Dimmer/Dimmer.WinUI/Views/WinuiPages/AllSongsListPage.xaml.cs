@@ -55,25 +55,6 @@ public sealed partial class AllSongsListPage : Page
     private void MyPageGrid_Loaded(object sender, RoutedEventArgs e)
     {
 
-        if (_storedSong != null)
-        {
-            var songToAnimate = _storedSong;
-
-
-            _storedSong = null;
-            
-            MySongsTableView.SmoothScrollIntoViewWithItemAsync(songToAnimate, (ScrollItemPlacement)ScrollIntoViewAlignment.Default);
-            var myTableViewUIElem = MySongsTableView as UIElement;
-            myTableViewUIElem.UpdateLayout();
-
-
-            AnimationHelper.PrepareFromList(
-    MySongsTableView, 
-    _storedSong, 
-    "coverArtImage", 
-    AnimationHelper.Key_Forward
-);
-        }
     }
 
 
@@ -383,6 +364,24 @@ public sealed partial class AllSongsListPage : Page
 
         MyViewModel.MySongsTableView = MySongsTableView;
 
+        if (_storedSong != null)
+        {
+
+            var image = PlatUtils.FindVisualElementFromTableView(MySongsTableView, _storedSong, "coverArtImage");
+
+
+            if (image == null) return;
+            MySongsTableView.SmoothScrollIntoViewWithItemAsync(_storedSong, (ScrollItemPlacement)ScrollIntoViewAlignment.Default);
+        var myTableViewUIElem = MySongsTableView as UIElement;
+        myTableViewUIElem.UpdateLayout();
+
+
+        AnimationHelper.TryStart(
+image,
+null,
+AnimationHelper.Key_DetailToList,AnimationHelper.Key_ListToDetail
+);
+        }
     }
 
     private void MySongsTableView_ExportSelectedContent(object sender, TableViewExportContentEventArgs e)
@@ -885,21 +884,7 @@ AnimationHelper.Key_Forward
 
     private void SingleSongPopup_DismissedRequested(object sender, PopupDismissedEventArgs e)
     {
-        AnimationHelper.Prepare(AnimationHelper.Key_ToViewSingleSongPopUp, SingleSongPopup);
-
-        //    // 3. START the animation back to the original list button
-        if (coverImagClicked != null)
-        {
-            // We use the helper to fly back to the button we clicked earlier
-            AnimationHelper.TryStart(
-                coverImagClicked,
-                null,
-                AnimationHelper.Key_ToViewSingleSongPopUp
-            );
-        }
-        //    // 2. Hide the Detail View
-        SingleSongPopup.Visibility = Visibility.Collapsed;
-
+      
         if (e.HasActionAfterDismissed)
         {
             switch (e.DismissedActionDescription)
@@ -945,7 +930,7 @@ AnimationHelper.Key_Forward
 
         if (image == null) return;
 
-        AnimationHelper.Prepare(AnimationHelper.Key_ListToDetail, ViewQueueBtn);
+        AnimationHelper.Prepare(AnimationHelper.Key_ListToDetail, ViewQueueBtn, AnimationHelper.ConnectedAnimationStyle.ScaleUp,650);
         
 
 
