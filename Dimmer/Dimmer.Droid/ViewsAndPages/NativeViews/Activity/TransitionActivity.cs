@@ -80,6 +80,8 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
 
     protected override void OnCreate(Bundle? savedInstanceState)
     {
+       
+
         SetTheme(Resource.Style.Theme_Dimmer);
         base.OnCreate(savedInstanceState);
         WindowCompat.SetDecorFitsSystemWindows(Window, false);
@@ -150,7 +152,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
 
 
         ProcessLifecycleOwner.Get().Lifecycle.AddObserver(new AppLifeCycleObserver());
-
+       
     }
     private SmoothBottomBar _bottomBar;
   
@@ -619,14 +621,18 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
         _serviceConnection = new MediaPlayerServiceConnection();
         _serviceIntent = new Intent(this, typeof(ExoPlayerService));
 
+        // Start service but delay binding
         if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
             StartForegroundService(_serviceIntent);
         else
             StartService(_serviceIntent);
 
-        BindService(_serviceIntent, _serviceConnection, Bind.AutoCreate);
+        // Bind with delay to avoid service startup contention
+        Dimmer.Utils.UiThreads.AndroidUIHanlder?.PostDelayed(() =>
+        {
+            BindService(_serviceIntent, _serviceConnection, Bind.AutoCreate);
+        }, 500);
     }
-
     // --- Bottom Sheet Controls ---
 
     public void TogglePlayer()
@@ -715,7 +721,14 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
         {
             try
             {
+                var startTime = Java.Lang.JavaSystem.CurrentTimeMillis();
+
                 MyViewModel.InitializeAllVMCoreComponents();
+
+                var duration = Java.Lang.JavaSystem.CurrentTimeMillis() - startTime;
+                Console.WriteLine($"InitializeAppLogic took {duration}ms");
+                if (duration > 2000)
+                    Android.Util.Log.Warn("ANR_WARNING", $"OnCreate took {duration}ms - ANR risk!");
             }
             catch (Exception ex)
             {

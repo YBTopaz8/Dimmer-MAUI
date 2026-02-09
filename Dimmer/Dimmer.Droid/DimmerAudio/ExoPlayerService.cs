@@ -278,6 +278,8 @@ public partial class ExoPlayerService : MediaSessionService
         base.OnCreate();
 
 
+        var notification = NotificationHelper.BuildMinimalNotification(this);
+        StartForeground(NotificationHelper.NotificationId, notification);
 
 
         try
@@ -286,25 +288,28 @@ public partial class ExoPlayerService : MediaSessionService
             var audioAttributes = new AudioAttributes.Builder()!
             .SetUsage(C.UsageMedia)! // Specify this is media playback
             .SetContentType(C.AudioContentTypeMusic)! // Specify the content is music
-            .SetIsContentSpatialized(true).Build();
+            .SetIsContentSpatialized(true)!.Build();
 
             player = new ExoPlayerBuilder(this)
                 .SetAudioAttributes(audioAttributes, true)!
                 .SetHandleAudioBecomingNoisy(true)!
-                .SetWakeMode(C.WakeModeNetwork)!
                 .SetSkipSilenceEnabled(false)!
+                .SetWakeMode(C.WakeModeNetwork)!
                 //.SetSeekParameters(new SeekParameters(10,10))
                 .SetDeviceVolumeControlEnabled(true)!
                 .SetSuppressPlaybackOnUnsuitableOutput(false)!
-                .SetPauseAtEndOfMediaItems(true )
+                .SetPauseAtEndOfMediaItems(true )!
                 
                 //.SetPauseAtEndOfMediaItems(true) could use this in combo with 
                 //is play changed but i'll need to expose the player position
                 
                 .Build();
+            //_ = Task.Run(() =>
+            //{
+            //    player?.SetWakeMode(C.WakeModeNetwork);
+            //});
 
-
-            player?.AddListener(new PlayerEventListener(this));
+                player?.AddListener(new PlayerEventListener(this));
 
             sessionCallback = new MediaPlaybackSessionCallback(this); // Use concrete type
 
@@ -349,8 +354,11 @@ public partial class ExoPlayerService : MediaSessionService
 
 
 
-            await InitializeMediaControllerAsync(); // Fire and forget, handle result in the async method
-
+           _= Task.Run(async () => {
+                var timeoutTask = Task.Delay(5000); // 5 second timeout
+                var initTask = InitializeMediaControllerAsync();
+                await Task.WhenAny(initTask, timeoutTask);
+            }).ConfigureAwait(false);
             StartPositionPolling();
 
         }

@@ -2,14 +2,14 @@
 
 public static partial class UiThreads
 {
-    public static Handler AndUI { get; set; } = null!;
+    public static Handler AndroidUIHanlder { get; set; } = null!;
 
     // Expose the main-thread Dispatcher equivalent
     public static void InitializeMainHandler()
     {
         if(Looper.MainLooper == null)
             return;
-        AndUI ??= new Handler(Looper.MainLooper);
+        AndroidUIHanlder ??= new Handler(Looper.MainLooper);
 
         Dimmer.Utilities.Extensions.UiThreads.DispatchAction = action =>
         {
@@ -21,7 +21,7 @@ public static partial class UiThreads
             else
             {
                 // Post to main thread
-                AndUI.Post(action);
+                AndroidUIHanlder.Post(action);
             }
         };
     }

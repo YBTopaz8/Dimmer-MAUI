@@ -159,6 +159,19 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
         _messageSubscription.On(
             Subscription.Event.Create,
             OnSessionTransferMessageReceived);
+
+        var updateQuery = new ParseQuery<AppUpdateModel>(ParseClient.Instance)
+            ;
+
+        var updateSubscription = _liveQueryClient.Subscribe(updateQuery);
+            updateSubscription.On(Subscription.Event.Create,
+            OnUpdatePushed);
+
+    }
+
+    private void OnUpdatePushed(AppUpdateModel AppUpdateModel)
+    {
+        //throw new NotImplementedException();
     }
 
     private async void OnSessionTransferMessageReceived(ChatMessage message)
