@@ -7,7 +7,10 @@ using System.Threading.Tasks;
 using System.Windows.Controls.Primitives;
 
 using CommunityToolkit.Maui.Core.Extensions;
+using Dimmer.WinUI.Views.CustomViews.WinuiViews;
+using Windows.UI.Core;
 using FolderPicker = CommunityToolkit.Maui.Storage.FolderPicker;
+using Visibility = Microsoft.UI.Xaml.Visibility;
 
 //using TableView = WinUI.TableView.TableView;
 
@@ -1382,7 +1385,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         DimmerProgressBarView.IsIndeterminate = true;
         
     }
-
+    
     internal void HideIndeterminateProgressBar()
     {
         DimmerProgressBarView.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
@@ -1411,4 +1414,47 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
         return false;  
     }
+    [ObservableProperty]
+    public partial FrameworkElement NowPlayingQueueCallerObject { get; set; }
+    internal void ProcessNowPlayingQueueDismiss()
+    {
+
+        if (NowPlayingQueueCallerObject != null)
+        {
+            // We use the helper to fly back to the button we clicked earlier
+            AnimationHelper.TryStart(
+                NowPlayingQueueCallerObject,
+                null,
+                AnimationHelper.Key_ToViewQueue
+            );
+        }
+
+    }
+
+    internal void ProcessNowPlayingQueueShowing(FrameworkElement viewQueueBtn)
+    {
+        NowPlayingQueueCallerObject = viewQueueBtn;
+        //    // 2. PREPARE the animation
+        //    // We "take a snapshot" of the button before the UI changes
+        AnimationHelper.Prepare(AnimationHelper.Key_ToViewQueue, NowPlayingQueueCallerObject);
+
+        NowPlayingView.Visibility = Visibility.Visible;
+
+        AnimationHelper.TryStart(
+            NowPlayingView, // Destination: The Big View
+            null,               // Optional: Coordinated elements (like the text inside)
+            AnimationHelper.Key_ToViewQueue
+        );
+    }
+
+    internal void SetCoreWindow(CoreWindow coreWindow)
+    {
+       DimmerCoreWindow = coreWindow;
+    }
+
+    [ObservableProperty]
+    public partial SmokeViewQueueGrid NowPlayingView { get; set; }
+
+    [ObservableProperty]
+    public partial CoreWindow DimmerCoreWindow { get; set; }
 }
