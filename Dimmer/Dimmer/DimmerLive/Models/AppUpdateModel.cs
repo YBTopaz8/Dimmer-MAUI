@@ -44,4 +44,46 @@ public partial class AppUpdateModel : ParseObject
         get => GetProperty<ParseUser>();
         set => SetProperty(value);
     }
+
+    [ParseFieldName("channel")]
+    public string channel
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
+
+    [ParseFieldName("isMandatory")]
+    public bool isMandatory
+    {
+        get => GetProperty<bool>();
+        set => SetProperty(value);
+    }
+
+    [ParseFieldName("minVersion")]
+    public string minVersion
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
+
+    [ParseFieldName("fileSize")]
+    public long fileSize
+    {
+        get => GetProperty<long>();
+        set => SetProperty(value);
+    }
+
+    [ParseFieldName("checksum")]
+    public string checksum
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
+
+    [ParseFieldName("rolloutPercentage")]
+    public int rolloutPercentage
+    {
+        get => GetProperty<int>();
+        set => SetProperty(value);
+    }
 }
