@@ -268,6 +268,7 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
     {
         try
         {
+            return null;
             var result = await ParseClient.Instance.CallCloudCodeFunctionAsync<IList<object>>("getUserBackups", null);
             var backups = new List<BackupMetadata>();
 

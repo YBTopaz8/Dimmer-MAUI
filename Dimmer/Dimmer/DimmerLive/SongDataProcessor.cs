@@ -114,16 +114,17 @@ public static class SongDataProcessor
                         bool saved = await lyricsService.SaveLyricsToDB(onlineResult.Instrumental,plainLyrics, song, fetchedLrcData,newLyricsInfo);
                         if (saved)
                         {
-                            var vmSong = vm.SearchResults.First(x => x.TitleDurationKey == song.TitleDurationKey);
-
-                            // Update the UI model on the main thread
-                            RxSchedulers.UI.ScheduleTo(() =>
-                            {
-                                vmSong.HasLyrics = !string.IsNullOrWhiteSpace(plainLyrics);
-                                vmSong.UnSyncLyrics = plainLyrics;
-                                vmSong.SyncLyrics = fetchedLrcData; 
-                            });
-                            stateService.SetCurrentLogMsg( $"Loaded lyrics for {vmSong.Title}",DimmerLogLevel.Info);
+                            var vmSong = vm.SearchResults.FirstOrDefault(x => x.TitleDurationKey == song.TitleDurationKey);
+                            if (vmSong is not null)
+                            {// Update the UI model on the main thread
+                                RxSchedulers.UI.ScheduleTo(() =>
+                                {
+                                    vmSong.HasLyrics = !string.IsNullOrWhiteSpace(plainLyrics);
+                                    vmSong.UnSyncLyrics = plainLyrics;
+                                    vmSong.SyncLyrics = fetchedLrcData;
+                                });
+                                stateService.SetCurrentLogMsg($"Loaded lyrics for {vmSong.Title}", DimmerLogLevel.Info);
+                            }
                         }
                     }
                 }

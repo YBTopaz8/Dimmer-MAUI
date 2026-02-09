@@ -128,13 +128,40 @@ public partial class EditorViewModel : BaseViewModel
             StatusMessage = "Error: End time must be after Start time.";
             return;
         }
-        var outputPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-            "DimmerTrimOutput");
-        progress = new Progress<double>(val => ProgressValue = val / 100.0);
-        await RunEditorTask("Trimming Audio...", async (progress) =>
+
+        try
         {
-            return await _editorService.TrimAudioAsync(SourceFilePath, TimeSpan.FromSeconds(StartTime), TimeSpan.FromSeconds(EndTime), progress);
-        });
+            var progressReporter = new Progress<double>(val => ProgressValue = val);
+            IsBusy = true;
+            StatusMessage = "Trimming audio...";
+
+            string result = await _editorService.TrimAudioAsync(
+                SourceFilePath,
+                TimeSpan.FromSeconds(StartTime),
+                TimeSpan.FromSeconds(EndTime),
+                progressReporter);
+
+            if (File.Exists(result))
+            {
+                StatusMessage = $"Saved to: {Path.GetFileName(result)}";
+                // Optionally add to library or show preview
+            }
+            else
+            {
+                StatusMessage = "Trim completed but output file not found.";
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error: {ex.Message}";
+            // Show detailed error in debug
+            System.Diagnostics.Debug.WriteLine($"Trim error: {ex}");
+        }
+        finally
+        {
+            IsBusy = false;
+            ProgressValue = 0;
+        }
     }
 
     [RelayCommand]
