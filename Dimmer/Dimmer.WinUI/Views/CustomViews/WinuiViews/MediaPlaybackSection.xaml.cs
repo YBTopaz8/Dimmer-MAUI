@@ -325,4 +325,9 @@ public sealed partial class MediaPlaybackSection : UserControl
         };
 
     }
+
+    private void ViewNowPlayingSong_Loaded(object sender, RoutedEventArgs e)
+    {
+        //CursorHelper.SetHandCursor((FrameworkElement)sender);
+    }
 }

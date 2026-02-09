@@ -11,117 +11,16 @@
     mc:Ignorable="d">
 
     <Page.Resources>
-        <ContentDialog 
-            x:Name="LyricsPreviewDialog" 
-            PrimaryButtonText="Apply" 
-            SecondaryButtonText="Edit"
-            CloseButtonText="Close"
-            PrimaryButtonClick="LyricsPreviewDialog_PrimaryButtonClick"
-            SecondaryButtonClick="LyricsPreviewDialog_SecondaryButtonClick">
-            <ContentDialog.TitleTemplate>
-                <DataTemplate x:DataType="modelsLyrics:LrcLibLyrics">
-                    <StackPanel Spacing="4">
-                        <TextBlock
-                            FontSize="18"
-                            FontWeight="SemiBold"
-                            TextWrapping="Wrap">
-                            <Run Text="{x:Bind TrackName}" />
-                            <Run Text=" - " />
-                            <Run Text="{x:Bind ArtistName}" />
-                        </TextBlock>
-                        <TextBlock
-                            FontSize="12"
-                            Opacity="0.7"
-                            Text="{x:Bind AlbumName}" />
-                    </StackPanel>
-                </DataTemplate>
-            </ContentDialog.TitleTemplate>
-
-            <Grid MaxWidth="800" MaxHeight="600">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-                
-                <!-- Metadata section -->
-                <Border 
-                    Grid.Row="0"
-                    Padding="12"
-                    Margin="0,0,0,8"
-                    Background="{ThemeResource LayerFillColorDefaultBrush}"
-                    CornerRadius="4">
-                    <StackPanel Spacing="4">
-                        <TextBlock FontSize="12" Opacity="0.8">
-                            <Run Text="Type: " FontWeight="SemiBold"/>
-                            <Run x:Name="LyricsTypeText" Text="Synced"/>
-                        </TextBlock>
-                        <TextBlock FontSize="12" Opacity="0.8">
-                            <Run Text="Duration: " FontWeight="SemiBold"/>
-                            <Run x:Name="LyricsDurationText"/>
-                        </TextBlock>
-                        <TextBlock 
-                            x:Name="InstrumentalIndicator"
-                            FontSize="12" 
-                            Opacity="0.8"
-                            Visibility="Collapsed">
-                            <Run Text="⚠ " FontWeight="SemiBold"/>
-                            <Run Text="Marked as Instrumental"/>
-                        </TextBlock>
-                    </StackPanel>
-                </Border>
-
-                <!-- Lyrics content with TabView for synced/plain -->
-                <TabView Grid.Row="1" x:Name="LyricsTabView">
-                    <TabView.TabItems>
-                        <TabViewItem Header="Synced Lyrics" x:Name="SyncedTab">
-                            <ScrollViewer Padding="8">
-                                <TextBlock
-                                    x:Name="SyncedLyricsText"
-                                    FontSize="14"
-                                    FontFamily="Consolas"
-                                    IsTextSelectionEnabled="True"
-                                    TextWrapping="Wrap" />
-                            </ScrollViewer>
-                        </TabViewItem>
-                        <TabViewItem Header="Plain Lyrics" x:Name="PlainTab">
-                            <ScrollViewer Padding="8">
-                                <TextBlock
-                                    x:Name="PlainLyricsText"
-                                    FontSize="14"
-                                    IsTextSelectionEnabled="True"
-                                    TextWrapping="Wrap" />
-                            </ScrollViewer>
-                        </TabViewItem>
-                    </TabView.TabItems>
-                </TabView>
-                
-                <!-- Action buttons at bottom -->
-                <StackPanel 
-                    Grid.Row="2" 
-                    Orientation="Horizontal" 
-                    HorizontalAlignment="Right"
-                    Margin="0,8,0,0"
-                    Spacing="8">
-                    <Button 
-                        x:Name="TimestampButton"
-                        Content="Timestamp"
-                        Click="TimestampButton_Click"
-                        Style="{StaticResource AccentButtonStyle}"
-                        ToolTipService.ToolTip="Add timestamps to plain lyrics" />
-                </StackPanel>
-            </Grid>
-        </ContentDialog>
     </Page.Resources>
 
 
-    <Grid Margin="10" PointerPressed="Grid_PointerPressed">
+    <Grid PointerPressed="Grid_PointerPressed">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <StackPanel Grid.Row="0">
+        <StackPanel Grid.Row="0" Margin="10" >
             <Button Click="BackBtnClick" x:Name="BackBtn" Content="Back" />
             <TextBlock
                 x:Name="EditLyricsTxt"
@@ -130,7 +29,7 @@
                 FontWeight="Bold"
                 Text="Edit Lyrics" />
         </StackPanel>
-        <StackPanel Grid.Row="1" Orientation="Horizontal">
+        <StackPanel Margin="10"  Grid.Row="1" Orientation="Horizontal">
 
             <Image
                 x:Name="detailedImage"
@@ -218,7 +117,7 @@
 
                         <Button
                             VerticalAlignment="Bottom"
-                            Command="{x:Bind MyViewModel.SearchLyricsCommand, Mode=OneWay}"
+                            Click="SearchLyricsBtn_Click" x:Name="SearchLyricsBtn"
                             Style="{StaticResource AccentButtonStyle}">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE721;" />
@@ -280,14 +179,12 @@
                     <ItemsRepeater.ItemTemplate>
                         <DataTemplate x:DataType="modelsLyrics:LrcLibLyrics">
 
-                            <!--  Result Card  -->
-                            <Border
-                                Padding="12"
-                                Background="{ThemeResource LayerFillColorDefaultBrush}"
-                                BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
-                                BorderThickness="1"
-                                CornerRadius="6">
-                                <Grid>
+                           
+                                <Grid Padding="12"
+Background="{ThemeResource LayerFillColorDefaultBrush}"
+BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
+BorderThickness="1"
+CornerRadius="6">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
@@ -348,6 +245,8 @@
                                         <Button
                                             x:Name="ViewLyrics"
                                             Click="ViewLyrics_Click"
+                                            
+                                            CommandParameter="{x:Bind Id, Mode=OneWay}"
                                             Content="View Lyrics" />
                                        
                                         <Button
@@ -365,7 +264,7 @@
                                             Content="Edit" />
                                     </StackPanel>
                                 </Grid>
-                            </Border>
+                         
                         </DataTemplate>
                     </ItemsRepeater.ItemTemplate>
                 </ItemsRepeater>
@@ -417,5 +316,127 @@
             </ScrollViewer>
         </Grid>
         </ScrollViewer>
+
+
+        <UserControl Grid.RowSpan="3"
+            Visibility="Collapsed"
+            x:Name="LyricsPreviewDialog" >
+            <!--PrimaryButtonText="Apply" 
+            SecondaryButtonText="Edit"
+            CloseButtonText="Close"
+            PrimaryButtonClick="LyricsPreviewDialog_PrimaryButtonClick"
+            SecondaryButtonClick="LyricsPreviewDialog_SecondaryButtonClick">-->
+            <ScrollViewer >
+                <ScrollViewer.Background>
+                    <SolidColorBrush Opacity="0.9" Color="#1e1e1e" />
+                </ScrollViewer.Background>
+                <StackPanel  MaxWidth="800">
+
+                    <Grid>
+                        <Button x:Name="CloseBtn" HorizontalAlignment="Right" Margin="0,5,5,0" VerticalAlignment="Top" 
+                                Canvas.ZIndex="9999"
+                                Click="CloseBtn_Click">
+                            <SymbolIcon Symbol="Clear"/>
+                        </Button>
+                        <StackPanel Spacing="4" 
+                    Background="{ThemeResource LayerFillColorDefaultBrush}">
+                            <TextBlock HorizontalAlignment="Center"
+                            FontSize="28"
+                            FontWeight="SemiBold"
+                            TextWrapping="Wrap">
+                            <Run Text="{Binding TrackName}" />
+                            <Run Text=" - " />
+                            <Run Text="{Binding ArtistName}" />
+                            </TextBlock>
+                            <TextBlock
+                            FontSize="17" HorizontalAlignment="Center"
+                            Opacity="0.7"
+                            Text="{Binding AlbumName}" />
+                        </StackPanel>
+                    </Grid>
+
+
+
+
+                    <Grid MaxHeight="500" 
+                    Background="{ThemeResource LayerFillColorDefaultBrush}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Metadata section -->
+                <Border 
+                    Grid.Row="0"
+                    Padding="12"
+                    Margin="0,0,0,8"
+                    Background="{ThemeResource LayerFillColorDefaultBrush}"
+                    CornerRadius="4">
+                    <StackPanel Spacing="4">
+                        <TextBlock FontSize="12" Opacity="0.8">
+                            <Run Text="Type: " FontWeight="SemiBold"/>
+                            <Run x:Name="LyricsTypeText" Text="Synced"/>
+                        </TextBlock>
+                        <TextBlock FontSize="12" Opacity="0.8">
+                            <Run Text="Duration: " FontWeight="SemiBold"/>
+                            <Run x:Name="LyricsDurationText"/>
+                        </TextBlock>
+                        <TextBlock 
+                            x:Name="InstrumentalIndicator"
+                            FontSize="12" 
+                            Opacity="0.8"
+                            Visibility="Collapsed">
+                            <Run Text="⚠ " FontWeight="SemiBold"/>
+                            <Run Text="Marked as Instrumental"/>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+
+                <!-- Lyrics content with TabView for synced/plain -->
+                <TabView Grid.Row="1" x:Name="LyricsTabView" 
+                         >
+                    <TabView.TabItems>
+                        <TabViewItem Header="Synced Lyrics" x:Name="SyncedTab">
+                                    <ScrollViewer Padding="8" >
+                                <TextBlock
+                                    x:Name="SyncedLyricsText"
+                                    FontSize="14"
+                                    FontFamily="Consolas"
+                                    IsTextSelectionEnabled="True"
+                                    TextWrapping="Wrap" />
+                            </ScrollViewer>
+                        </TabViewItem>
+                        <TabViewItem Header="Plain Lyrics" x:Name="PlainTab">
+                                    <ScrollViewer Padding="8" >
+                                <TextBlock
+                                    x:Name="PlainLyricsText"
+                                    FontSize="14"
+                                    IsTextSelectionEnabled="True"
+                                    TextWrapping="Wrap" />
+                            </ScrollViewer>
+                        </TabViewItem>
+                    </TabView.TabItems>
+                </TabView>
+
+                <!-- Action buttons at bottom -->
+                <StackPanel 
+                    Grid.Row="2" 
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Right"
+                    Margin="0,8,0,0"
+                    Spacing="8">
+                    <Button 
+                        x:Name="TimestampButton"
+                        Content="Timestamp"
+                        Click="TimestampButton_Click"
+                        Style="{StaticResource AccentButtonStyle}"
+                        ToolTipService.ToolTip="Add timestamps to plain lyrics" />
+                </StackPanel>
+            </Grid>
+
+                </StackPanel>
+            </ScrollViewer>
+        </UserControl>
     </Grid>
 </Page>

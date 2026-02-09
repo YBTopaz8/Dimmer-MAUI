@@ -43,11 +43,7 @@ public sealed partial class LyricsEditorPage : Page
 
         if (e.NavigationMode == Microsoft.UI.Xaml.Navigation.NavigationMode.Back)
         {
-            if (detailedImage != null && Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(detailedImage) != null)
-            {
-                ConnectedAnimationService.GetForCurrentView()
-                    .PrepareToAnimate("BackConnectedAnimation", detailedImage);
-            }
+           
         }
         base.OnNavigatingFrom(e);
 
@@ -130,12 +126,14 @@ public sealed partial class LyricsEditorPage : Page
         }
     }
     private LrcLibLyrics? _currentPreviewLyrics;
-
+    Button _viewLyricsBtn;
     private async void ViewLyrics_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not Button btn || btn.DataContext is not LrcLibLyrics lyricData)
-            return;
-
+            if (sender is not Button btn || btn.CommandParameter is not int lyricID)
+                return;
+        _viewLyricsBtn = btn;
+        var lyricData = MyViewModel.LyricsSearchResults
+            .First(x => x.Id == lyricID) ;
         _currentPreviewLyrics = lyricData;
         LyricsPreviewDialog.DataContext = lyricData;
 
@@ -180,10 +178,13 @@ public sealed partial class LyricsEditorPage : Page
         TimestampButton.Visibility = (hasPlainLyrics && !hasSyncedLyrics) 
             ? Microsoft.UI.Xaml.Visibility.Visible 
             : Microsoft.UI.Xaml.Visibility.Collapsed;
+        AnimationHelper.Prepare(AnimationHelper.Key_ToSingleDownloadedLyrics, (btn),
+            AnimationHelper.ConnectedAnimationStyle.ScaleUp);
 
-        LyricsPreviewDialog.XamlRoot = this.Content.XamlRoot;
+        AnimationHelper.TryStart(LyricsPreviewDialog,
+            null, AnimationHelper.Key_ToSingleDownloadedLyrics);
 
-        await LyricsPreviewDialog.ShowAsync(ContentDialogPlacement.Popup);
+
     }
 
     private void LyricsPreviewDialog_PrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
@@ -226,10 +227,15 @@ public sealed partial class LyricsEditorPage : Page
             if (!string.IsNullOrWhiteSpace(lyricsToTimestamp))
             {
                 MyViewModel.StartLyricsEditingSessionCommand.Execute(lyricsToTimestamp);
-                
+
                 // Close the dialog
-                LyricsPreviewDialog.Hide();
-                
+                AnimationHelper.Prepare(AnimationHelper.Key_ToSingleDownloadedLyrics, _viewLyricsBtn,
+             AnimationHelper.ConnectedAnimationStyle.ScaleUp);
+
+                AnimationHelper.TryStart(LyricsPreviewDialog,
+                    null, AnimationHelper.Key_ToSingleDownloadedLyrics);
+
+
                 // Navigate to the timestamping page
                 // This would typically be done through the SingleSongLyrics parent page
                 // For now, we'll rely on the ViewModel state change to trigger UI updates
@@ -251,5 +257,27 @@ public sealed partial class LyricsEditorPage : Page
     private async void GoogleItBtn_Click(object sender, RoutedEventArgs e)
     {
         await MyViewModel.SearchSongPlainLyricsnOnlineSearch(null);
+    }
+
+    private async void SearchLyricsBtn_Click(object sender, RoutedEventArgs e)
+    {
+        MyViewModel.ShowIndeterminateProgressBar();
+        await MyViewModel.SearchLyricsAsync();
+        MyViewModel.HideIndeterminateProgressBar();
+
+    }
+
+    private void LyricsPreviewDialog_Loaded(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void CloseBtn_Click(object sender, RoutedEventArgs e)
+    {
+        AnimationHelper.Prepare(AnimationHelper.Key_ToSingleDownloadedLyrics, LyricsPreviewDialog,
+            AnimationHelper.ConnectedAnimationStyle.ScaleUp);
+
+        AnimationHelper.TryStart(_viewLyricsBtn,
+            null, AnimationHelper.Key_ToSingleDownloadedLyrics);
     }
 }

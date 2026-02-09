@@ -254,11 +254,14 @@
             CornerRadius="4">
             <StackPanel Spacing="8">
                 <!--  Status Text  -->
+                <ScrollViewer>
+                    
                 <TextBlock
                     HorizontalAlignment="Center"
                     Style="{ThemeResource BodyStrongTextBlockStyle}"
                     Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}" />
 
+                </ScrollViewer>
                 <!--  Progress Bar  -->
                 <ProgressBar
                     Maximum="1"

@@ -12,8 +12,16 @@ public sealed partial class EventDateToTimeAgo : IValueConverter
     {
         try
         {
+            DateTime eventDate;
             if (value is null) return "unknown time ago";
-            var eventDate = (DateTime)value;
+            if (value is DateTime)
+            {
+                 eventDate = (DateTime)value;
+            }
+            else
+            {
+                 eventDate = ((DateTimeOffset)value).UtcDateTime;
+            }
             var timeSpan = DateTime.Now - eventDate;
             if (timeSpan.TotalSeconds < 60)
                 return $"{(int)timeSpan.TotalSeconds} seconds ago";

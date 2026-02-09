@@ -8,6 +8,7 @@ using Microsoft.UI.Composition.SystemBackdrops;
 using Windows.Graphics;
 using ProgressBar = Microsoft.UI.Xaml.Controls.ProgressBar;
 using Slider = Microsoft.UI.Xaml.Controls.Slider;
+using Visibility = Microsoft.UI.Xaml.Visibility;
 using Window = Microsoft.UI.Xaml.Window;
 
 
@@ -86,6 +87,7 @@ public sealed partial class DimmerWin : Window
 
     private async void Window_Activated(object sender, WindowActivatedEventArgs args)
     {
+        //MyViewModel.SetCoreWindow(this.CoreWindow);
         if (m_configurationSource != null)
         {
             m_configurationSource.IsInputActive = args.WindowActivationState != WindowActivationState.Deactivated;
@@ -193,16 +195,28 @@ public sealed partial class DimmerWin : Window
             }
         }
     }
-    
-    //private void SmokeGrid_Loaded(object sender, RoutedEventArgs e)
-    //{
-    //    SmokeGrid.SetBaseViewModelWin(MyViewModel);
 
-    //    AnimationHelper.TryStart(
-    //        SmokeGrid, null,
-    //        AnimationHelper.Key_ToViewQueue
-    //        );
 
-    //}
+    private void SmokeGrid_Loaded(object sender, RoutedEventArgs e)
+    {
+        MyViewModel.NowPlayingView = SmokeGrid;
+        SmokeGrid.SetBaseViewModelWin(MyViewModel);
+
+        AnimationHelper.TryStart(
+            SmokeGrid, null,
+            AnimationHelper.Key_ToViewQueue
+            );
+
+    }
+    private void SmokeGrid_DismissRequested(object sender, EventArgs e)
+    {
+
+        AnimationHelper.Prepare(AnimationHelper.Key_ToViewQueue, SmokeGrid);
+
+        MyViewModel.ProcessNowPlayingQueueDismiss();
+     
+        //    // 2. Hide the Detail View
+        SmokeGrid.Visibility = Visibility.Collapsed;
+    }
 
 }

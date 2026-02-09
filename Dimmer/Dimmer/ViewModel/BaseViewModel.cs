@@ -5572,7 +5572,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             await songRepo.DeleteAsync(song.Id); // Assuming your repo has a DeleteAsync(id)
 
-            // --- REPLACED: Refresh the UI by re-running the current search ---
+         
             _searchQuerySubject.OnNext(CurrentTqlQuery);
         }
         catch (Exception ex)
@@ -5643,6 +5643,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             IsLyricsFound = true;
             foreach (var result in results)
             {
+                
                 LyricsSearchResults.Add(result);
             }
             _logger.LogInformation(

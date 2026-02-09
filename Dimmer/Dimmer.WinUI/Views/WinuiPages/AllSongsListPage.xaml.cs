@@ -367,20 +367,21 @@ public sealed partial class AllSongsListPage : Page
         if (_storedSong != null)
         {
 
-            var image = PlatUtils.FindVisualElementFromTableView(MySongsTableView, _storedSong, "coverArtImage");
+            //            var image = PlatUtils.FindVisualElementFromTableView(MySongsTableView, _storedSong, "coverArtImage");
 
 
-            if (image == null) return;
-            MySongsTableView.SmoothScrollIntoViewWithItemAsync(_storedSong, (ScrollItemPlacement)ScrollIntoViewAlignment.Default);
-        var myTableViewUIElem = MySongsTableView as UIElement;
-        myTableViewUIElem.UpdateLayout();
+            //            if (image == null) return;
+            //            MySongsTableView.SmoothScrollIntoViewWithItemAsync(_storedSong, (ScrollItemPlacement)ScrollIntoViewAlignment.Default);
+            //        var myTableViewUIElem = MySongsTableView as UIElement;
+            //        myTableViewUIElem.UpdateLayout();
 
 
-        AnimationHelper.TryStart(
-image,
-null,
-AnimationHelper.Key_DetailToList,AnimationHelper.Key_ListToDetail
-);
+            //        AnimationHelper.TryStart(
+            //image,
+            //null,
+            //AnimationHelper.Key_DetailToListFromAlbum
+            //);
+            //        }
         }
     }
 
@@ -680,8 +681,7 @@ AnimationHelper.Key_DetailToList,AnimationHelper.Key_ListToDetail
     {
         UIElement send = (UIElement)sender;
         AnimationHelper.TryStart(send, null,
-           AnimationHelper.Key_ToViewSingleSongPopUp, AnimationHelper.Key_ListToDetail,
-AnimationHelper.Key_DetailToList);
+           AnimationHelper.Key_ToViewSingleSongPopUp, AnimationHelper.Key_ListToDetail);
     }
 
     Image? coverImagClicked;
@@ -827,31 +827,7 @@ AnimationHelper.Key_Forward
             Text = $"To Album : {selectedSong.AlbumName}",
             Icon = musicAlbumIcon,
         };
-        toAlbumMFI.Click += (s, e) =>
-        {
-            var supNavTransInfo = new SuppressNavigationTransitionInfo();
-
-            FrameNavigationOptions navigationOptions = new FrameNavigationOptions
-            {
-                TransitionInfoOverride = supNavTransInfo,
-                IsNavigationStackEnabled = true
-
-            };
-            AnimationHelper.PrepareFromChild(
-sender as DependencyObject,
-"ArtistNameTxt",
-AnimationHelper.Key_Forward
-);
-            var navParams = new SongDetailNavArgs
-            {
-                Song = _storedSong!,
-                ExtraParam = MyViewModel,
-                ViewModel = MyViewModel
-            };
-            Type pageType = typeof(AlbumPage);
-
-            Frame?.NavigateToType(pageType, navParams, navigationOptions);
-        };
+        toAlbumMFI.Click += AlbumBtn_Click;
 
         var viewInfoPopup = new MenuFlyoutItem()
         {
@@ -885,6 +861,24 @@ AnimationHelper.Key_Forward
     private void SingleSongPopup_DismissedRequested(object sender, PopupDismissedEventArgs e)
     {
       
+        
+
+        AnimationHelper.Prepare(AnimationHelper.Key_ToViewQueue, SingleSongPopup);
+
+
+        //    // 3. START the animation back to the original list button
+        if (coverImagClicked != null)
+        {
+            // We use the helper to fly back to the button we clicked earlier
+            AnimationHelper.TryStart(
+                coverImagClicked,
+                null,
+                AnimationHelper.Key_ToViewQueue
+            );
+        }
+        //    // 2. Hide the Detail View
+        SingleSongPopup.Visibility = Visibility.Collapsed;
+
         if (e.HasActionAfterDismissed)
         {
             switch (e.DismissedActionDescription)
@@ -893,32 +887,13 @@ AnimationHelper.Key_Forward
                     ViewSongBtn_Click(sender, new());
                     break;
                 case PopupDismissedActionEnums.GoToArtistPage:
-                    
+
                 default:
                     break;
             }
         }
     }
-    private void SmokeGrid_DismissRequested(object sender, EventArgs e)
-    {
-       
-        AnimationHelper.Prepare(AnimationHelper.Key_ToViewQueue, SmokeGrid);
-
-
-        //    // 3. START the animation back to the original list button
-        if (ViewQueueBtn != null)
-        {
-            // We use the helper to fly back to the button we clicked earlier
-            AnimationHelper.TryStart(
-                ViewQueueBtn,
-                null,
-                AnimationHelper.Key_ToViewQueue
-            );
-        }
-        //    // 2. Hide the Detail View
-        SmokeGrid.Visibility = Visibility.Collapsed;
-    }
-
+  
     private void ViewSongBtn_Click(object sender, RoutedEventArgs e)
     {
 
@@ -963,18 +938,9 @@ AnimationHelper.Key_Forward
 
         MyViewModel.SelectedSong = itemm;
 
+        MyViewModel.ProcessNowPlayingQueueShowing(ViewQueueBtn);
 
-        //    // 2. PREPARE the animation
-        //    // We "take a snapshot" of the button before the UI changes
-        AnimationHelper.Prepare(AnimationHelper.Key_ToViewQueue, ViewQueueBtn);
-
-        SmokeGrid.Visibility = Visibility.Visible;
-
-        AnimationHelper.TryStart(
-            SmokeGrid, // Destination: The Big View
-            null,               // Optional: Coordinated elements (like the text inside)
-            AnimationHelper.Key_ToViewQueue
-        );
+       
     }
 
 
@@ -999,8 +965,8 @@ AnimationHelper.Key_Forward
         };
         AnimationHelper.Prepare(
 
-AnimationHelper.Key_ListToDetail, sender as FrameworkElement,
-AnimationHelper.ConnectedAnimationStyle.GravityBounce
+AnimationHelper.Key_ToAlbumPage, sender as FrameworkElement,
+AnimationHelper.ConnectedAnimationStyle.ScaleUp
 );
         Type pageType = typeof(AlbumPage);
 
@@ -1033,7 +999,7 @@ AnimationHelper.ConnectedAnimationStyle.GravityBounce
 
             AnimationHelper.TryStart(
                 SingleSongPopup, // Destination: The Big View
-                null,               // Optional: Coordinated elements (like the text inside)
+                null,
                 AnimationHelper.Key_ToViewSingleSongPopUp
             );
         }
@@ -1047,15 +1013,10 @@ AnimationHelper.ConnectedAnimationStyle.GravityBounce
             var nativeElement = (Microsoft.UI.Xaml.UIElement)sender;
             var properties = e.GetCurrentPoint(nativeElement).Properties;
 
-
-
             var point = e.GetCurrentPoint(nativeElement);
             MyViewModel.SelectedSong = ((StackPanel)sender).DataContext as SongModelView;
             _storedSong = ((StackPanel)sender).DataContext as SongModelView;
 
-
-            // Navigate to the detail page, passing the selected song object.
-            // Suppress the default page transition to let ours take over.
             var supNavTransInfo = new SuppressNavigationTransitionInfo();
             Type pageType = typeof(ArtistPage);
             var navParams = new SongDetailNavArgs
@@ -1068,14 +1029,14 @@ AnimationHelper.ConnectedAnimationStyle.GravityBounce
 
             var dbSongArtists = MyViewModel.RealmFactory.GetRealmInstance();
             var dbSong = dbSongArtists
-                .Find<SongModel>(_storedSong.Id);
+                .Find<SongModel>(_storedSong!.Id);
             if (dbSong is null) return;
             if ((dbSong.ArtistToSong.Count < 1 || dbSong.Artist is null))
             {
 
                 var ArtistsInSong = MyViewModel.SelectedSong?.ArtistName.
                 Split(",").ToList();
-                await MyViewModel.AssignArtistToSongAsync(MyViewModel.SelectedSong.Id,
+                await MyViewModel.AssignArtistToSongAsync(MyViewModel.SelectedSong!.Id,
                      ArtistsInSong);
 
 
@@ -1090,7 +1051,7 @@ AnimationHelper.ConnectedAnimationStyle.GravityBounce
             });
             var namesOfartists = sel2.Select(a => a.Name);
 
-            bool isSingular = namesOfartists.Count() > 1 ? true : false;
+            bool isSingular = namesOfartists.Count() <= 1 ;
             string artistText = string.Empty;
             if (isSingular)
             {
@@ -1149,10 +1110,10 @@ AnimationHelper.ConnectedAnimationStyle.GravityBounce
 
                     };
                     AnimationHelper.PrepareFromChild(
-     sender as DependencyObject,
+     (sender as DependencyObject)!,
      "ArtistNameTxt",
      AnimationHelper.Key_Forward
- );
+            );
 
                     Frame?.NavigateToType(pageType, navParams, navigationOptions);
                 };
@@ -1171,7 +1132,7 @@ AnimationHelper.ConnectedAnimationStyle.GravityBounce
                 {
 
                     var selectedArtist = MyViewModel.RealmFactory.GetRealmInstance()
-                    .Find<SongModel>(_storedSong.Id).ArtistToSong.First()
+                    .Find<SongModel>(_storedSong.Id)?.ArtistToSong.First()
                     .ToArtistModelView();
                     if (selectedArtist is null) return;
                      MyViewModel.SetSelectedArtist(selectedArtist);
@@ -1222,9 +1183,8 @@ AnimationHelper.ConnectedAnimationStyle.GravityBounce
     private void TitleColumn_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
         var send = (FrameworkElement)sender;
-        var song = send.DataContext as SongModelView;
 
-        if (song != null)
+        if (send.DataContext is SongModelView song)
         {
             if (song.TitleDurationKey != MyViewModel.SelectedSong?.TitleDurationKey)
             {
@@ -1377,15 +1337,11 @@ AnimationHelper.ConnectedAnimationStyle.GravityBounce
 
     }
 
-    private void SmokeGrid_Loaded(object sender, RoutedEventArgs e)
+    
+    private void AlbumBtn_Loaded(object sender, RoutedEventArgs e)
     {
-        SmokeGrid.SetBaseViewModelWin(MyViewModel);
-
-        AnimationHelper.TryStart(
-            SmokeGrid, null,
-            AnimationHelper.Key_ToViewQueue
-            );
-
+        FrameworkElement send = (FrameworkElement)sender;
+        AnimationHelper.TryStart(send, null,
+            AnimationHelper.Key_DetailToListFromAlbum);
     }
-
 }

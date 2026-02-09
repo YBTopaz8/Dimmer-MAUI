@@ -81,12 +81,15 @@ public sealed partial class EditSongPage : Page
     }
     private void BackButton_Click(object sender, RoutedEventArgs e)
     {
-        // Standard navigation back
         if (Frame.CanGoBack)
         {
-
+            AnimationHelper.Prepare(AnimationHelper.Key_Backward,
+                detailedImage,
+                AnimationHelper.ConnectedAnimationStyle.ScaleDown
+                );
             Frame.GoBack();
         }
+      
     }
 
     private async void UserNoteBtn_PointerPressed(object sender, PointerRoutedEventArgs e)
@@ -199,11 +202,8 @@ public sealed partial class EditSongPage : Page
         var props = e.GetCurrentPoint((UIElement)sender).Properties;
         if (props.IsXButton1Pressed)
         {
-            if (Frame.CanGoBack)
-            {
-
-                Frame.GoBack();
-            }
+            BackButton_Click(sender, e);
+            
         }
     }
     private async void SaveChangeBtn_Click(object sender, RoutedEventArgs e)

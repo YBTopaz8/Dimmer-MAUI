@@ -25,7 +25,7 @@
     mc:Ignorable="d">
 
 
-    <ScrollViewer>
+    <ScrollViewer >
 
         <Grid>
 
@@ -66,7 +66,7 @@
 
                     <Image
                         x:Name="ArtistImageInArtistPage"
-                        Width="180"
+                        MaxWidth="180"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Top"
                         PointerReleased="ArtistImageInArtistPage_PointerReleased"
@@ -178,7 +178,7 @@
                     x:Name="ArtistDataTable"
                     Grid.Row="4"
                     MaxHeight="850"
-                    Margin="15"
+                    Margin="15" 
                     VerticalAlignment="Top"
                     AutoGenerateColumns="False"
                     BorderBrush="Transparent"

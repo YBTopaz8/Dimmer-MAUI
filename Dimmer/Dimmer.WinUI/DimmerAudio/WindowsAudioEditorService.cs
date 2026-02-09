@@ -39,46 +39,40 @@ public class WindowsAudioEditorService : IDimmerAudioEditorService
         await GuardEnsureFFmpeg();
 
         string outputFile = GenerateOutputPath(inputFile, "_trimmed", ".m4a");
-
-        // Calculate duration
         TimeSpan duration = end - start;
-
-        // RAW COMMAND CONSTRUCTION
-        // -y: Overwrite output files without asking. (Fixes the crash if file exists)
-        // -i: Input file
-        // -ss: Start Position
-        // -t: Duration
-        // -c copy: Copy the stream directly. NO Re-encoding. (Instant speed, 1:1 quality)
-        // -avoid_negative_ts 1: Helps with timestamp issues when cutting
-
-        string args = $"-y -i \"{inputFile}\" -ss {start:c} -t {duration:c} -c copy -avoid_negative_ts 1 \"{outputFile}\"";
 
         try
         {
-            var conversion = FFmpeg.Conversions.New();
+            // Use fluent API for better error handling
+            var conversion = FFmpeg.Conversions.New()
+                .AddParameter($"-y")
+                .AddParameter($"-i \"{inputFile}\"")
+                .AddParameter($"-ss {start:c}")
+                .AddParameter($"-t {duration:c}")
+                .AddParameter($"-c copy")
+                .AddParameter($"-avoid_negative_ts 1")
+                .SetOutput(outputFile);
 
-            // We can't get exact progress percentage easily with raw commands on short files 
-            // because FFmpeg outputs "size=" lines differently for Stream Copy.
-            // We report 50% to show activity.
+            // Add error logging
+            conversion.OnDataReceived += (sender, args) =>
+            {
+                if (args.Data.Contains("Error") || args.Data.Contains("error"))
+                    System.Diagnostics.Debug.WriteLine($"[FFmpeg Error]: {args.Data}");
+            };
+
             progress?.Report(10);
-
-            // Run the raw command
-            await conversion.Start(args);
-
+            await conversion.Start();
             progress?.Report(100);
+
             return outputFile;
         }
         catch (Xabe.FFmpeg.Exceptions.ConversionException cex)
         {
-            // This will print the ACTUAL error from FFmpeg (not just the version header)
-            System.Diagnostics.Debug.WriteLine($"[FFmpeg Crash Log]: {cex.InputParameters}");
-            throw new Exception($"Trim failed. The output file might be locked or invalid.\nDetails: {cex.Message}", cex);
+            System.Diagnostics.Debug.WriteLine($"[FFmpeg Crash]: {cex.InnerException?.Message}");
+            System.Diagnostics.Debug.WriteLine($"[FFmpeg Args]: {cex.InputParameters}");
+            throw new Exception($"Trim failed: {cex.Message}", cex);
         }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[Trim Error]: {ex}");
-            throw;
-        }
+    
     }
 
     public async Task<bool> EnsureFFmpegLoadedAsync()
@@ -99,11 +93,21 @@ public class WindowsAudioEditorService : IDimmerAudioEditorService
             return false;
         }
     }
-    private string GenerateOutputPath(string input, string suffix, string extension)
+    private static string GenerateOutputPath(string input, string suffix, string extension)
     {
         string name = Path.GetFileNameWithoutExtension(input);
         string cache = Environment.GetFolderPath(Environment.SpecialFolder.MyMusic);
-        return Path.Combine(cache, $"{name}{suffix}{extension}");
+        string dir = Path.Combine(cache, "Dimmer_Output");
+
+        // Ensure directory exists
+        if (!Directory.Exists(dir))
+            Directory.CreateDirectory(dir);
+
+        // Clean filename and ensure unique
+        string cleanName = Path.GetInvalidFileNameChars()
+            .Aggregate(name, (current, c) => current.Replace(c, '_'));
+
+        return Path.Combine(dir, $"{cleanName}{suffix}{extension}");
     }
     public async Task<string> CreateInfiniteLoopAsync(string inputFile, TimeSpan duration, AudioFormat format, IProgress<double> progress)
     {
@@ -139,29 +143,34 @@ public class WindowsAudioEditorService : IDimmerAudioEditorService
 
         string outputFile = GenerateOutputPath(audioPath, "_story", ".mp4");
 
-        // FFmpeg Command Logic:
-        // -loop 1: Loop the input image infinitely
-        // -i image: Input image
-        // -i audio: Input audio
-        // -c:v libx264: Use H.264 video codec (Standard for Social Media)
-        // -tune stillimage: Optimization for static images (small file size)
-        // -c:a aac: Audio codec
-        // -b:a 192k: Audio bitrate
-        // -pix_fmt yuv420p: Required pixel format for compatibility with players/Instagram
-        // -shortest: Stop encoding when the shortest input (the audio) ends.
-        // -vf scale...: Ensure even dimensions (required by some encoders) and reasonable size (1080p width)
-
-        string args = $"-y -loop 1 -i \"{imagePath}\" -i \"{audioPath}\" " +
-                      $"-c:v libx264 -tune stillimage -c:a aac -b:a 192k " +
-                      $"-pix_fmt yuv420p -vf \"scale=1080:-2\" " +
-                      $"-shortest \"{outputFile}\"";
-
         try
         {
-            var conversion = FFmpeg.Conversions.New();
-            progress?.Report(10);
-            await conversion.Start(args);
-            progress?.Report(100);
+            // Option 1: Use the New() method to build a custom conversion
+            var conversion = FFmpeg.Conversions.New()
+                .AddParameter($"-loop 1")
+                .AddParameter($"-i \"{imagePath}\"")
+                .AddParameter($"-i \"{audioPath}\"")
+                .AddParameter($"-c:v libx264")
+                .AddParameter($"-tune stillimage")
+                .AddParameter($"-c:a aac")
+                .AddParameter($"-b:a 192k")
+                .AddParameter($"-pix_fmt yuv420p")
+                .AddParameter($"-vf scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2")
+                .AddParameter($"-shortest")
+                .AddParameter($"-y")
+                .SetOutput(outputFile);
+
+            // Add progress tracking
+            conversion.OnProgress += (sender, args) =>
+            {
+                if (progress != null && args.Duration.TotalMilliseconds > 0)
+                {
+                    double percentage = (args.TotalLength.TotalMilliseconds / args.Duration.TotalMilliseconds) * 100;
+                    progress.Report(Math.Min(percentage, 100));
+                }
+            };
+
+            await conversion.Start();
             return outputFile;
         }
         catch (Exception ex)
@@ -170,7 +179,6 @@ public class WindowsAudioEditorService : IDimmerAudioEditorService
             throw;
         }
     }
-
     public async Task<bool> CreateOneHourLoopAsync(string inputFile, string outputFile)
     {
         try
@@ -393,6 +401,51 @@ public class WindowsAudioEditorService : IDimmerAudioEditorService
             default:
                 // q:a 2 is variable bitrate (VBR) roughly ~190-250kbps
                 return (".mp3", "-c:a libmp3lame -q:a 2");
+        }
+    }
+
+    public class SafeFFmpegConverter
+    {
+        private readonly string _ffmpegPath;
+
+        public SafeFFmpegConverter(string ffmpegPath)
+        {
+            _ffmpegPath = ffmpegPath;
+            FFmpeg.SetExecutablesPath(_ffmpegPath);
+        }
+
+        public async Task<string> ExecuteWithRetry(
+            Func<IConversion, Task> conversionAction,
+            string operationName,
+            int maxRetries = 2)
+        {
+            int attempt = 0;
+
+            while (attempt <= maxRetries)
+            {
+                try
+                {
+                    var conversion = FFmpeg.Conversions.New();
+                    await conversionAction(conversion);
+                    return "Success";
+                }
+                catch (Xabe.FFmpeg.Exceptions.ConversionException ex)
+                {
+                    attempt++;
+
+                    if (attempt > maxRetries)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[{operationName}] Failed after {maxRetries} attempts: {ex.Message}");
+                        throw;
+                    }
+
+                    // Wait before retry
+                    await Task.Delay(1000 * attempt);
+                    System.Diagnostics.Debug.WriteLine($"[{operationName}] Retry attempt {attempt}");
+                }
+            }
+
+            return "Failed";
         }
     }
 }

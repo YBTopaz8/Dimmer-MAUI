@@ -28,23 +28,18 @@
         <Grid Grid.Row="0">
 
             <StackPanel x:Name="TopPanel" Background="Transparent">
+
+               
+
+
                 <Grid Padding="10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="auto" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
-                    <!--<Image
-                        x:Name="currentSongCoverImage"
-                        Width="150"
-                        Height="150"
-                        Stretch="UniformToFill">
-                        <Image.Source>
-                            <BitmapImage UriSource="{x:Bind MyViewModel.CurrentCoverImagePath,Converter={StaticResource nul}, Mode=OneWay}" />
-                        </Image.Source>
-                    </Image>-->
 
-                    <StackPanel Grid.Column="1" Spacing="5">
+                    <StackPanel Grid.Column="1" Spacing="5">    
                         <StackPanel
                             VerticalAlignment="Center"
                             Orientation="Horizontal"
@@ -122,6 +117,7 @@
                                 BorderThickness="0.5"
                                 RightTapped="ViewNowPlayingSong_RightTapped"
                                 Click="ViewNowPlayingSong_Click"
+                                Loaded="ViewNowPlayingSong_Loaded"
                                 Content="{x:Bind MyViewModel.CurrentPlayingSongView.Title, Mode=OneWay}"
                                 FontSize="24" />
 
