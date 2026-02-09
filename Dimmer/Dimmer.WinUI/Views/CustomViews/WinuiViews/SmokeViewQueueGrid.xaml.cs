@@ -39,7 +39,7 @@ public sealed partial class SmokeViewQueueGrid : UserControl
         var props = e.GetCurrentPoint((UIElement)sender).Properties;
         if (props != null)
         {
-            if (props.IsXButton1Pressed || props.IsLeftButtonPressed)
+            if (props.IsXButton1Pressed)
             {
                 PopUpBackButton_Click(sender, e);
             }
@@ -52,12 +52,8 @@ public sealed partial class SmokeViewQueueGrid : UserControl
     private async void PopUpBackButton_Click(object sender, RoutedEventArgs e)
     {
       
-      
-
         DismissRequested?.Invoke(this, EventArgs.Empty);
         
-
-
     }
 
     private async void SaveQueueAsPlaylist_Click(object sender, RoutedEventArgs e)
