@@ -51,6 +51,7 @@ Unloaded="Page_Unloaded"
             <TextBlock
                 x:Name="DestinationElement"
                 Margin="10"
+                Loaded="DestinationElement_Loaded"
                 FontSize="24"
                 FontWeight="Bold"
                 Text="{x:Bind MyViewModel.SelectedAlbum.Name, Mode=OneWay}" />
@@ -66,13 +67,19 @@ Unloaded="Page_Unloaded"
                 FontSize="18"
                 FontWeight="SemiBold"
                 Text="{x:Bind MyViewModel.SelectedAlbum.Artists[0].Name, Mode=OneWay}" />
-            <ItemsRepeater ItemsSource="{x:Bind MyViewModel.SelectedAlbum.Artists, Mode=OneWay}">
+            <ScrollViewer>
+                
+            <ItemsRepeater 
+                x:Name="ArtistsInAlbumIR"
+                Loaded="ArtistsInAlbumIR_Loaded"
+               >
                 <ItemsRepeater.Layout>
                     <StackLayout Orientation="Horizontal" Spacing="5"/>
                 </ItemsRepeater.Layout>
                 <ItemsRepeater.ItemTemplate>
                     <DataTemplate>
-                        <Button IsEnabled="False">
+                        <Button x:Name="ArtistBtn"
+                                Click="ArtistBtn_Click">
                             <TextBlock Text="{Binding Name}" FontSize="10"/>
                         </Button>
                     </DataTemplate>
@@ -80,6 +87,7 @@ Unloaded="Page_Unloaded"
             </ItemsRepeater>
 
 
+            </ScrollViewer>
         </StackPanel>
 
         <dgView:TableView
@@ -241,8 +249,29 @@ Unloaded="Page_Unloaded"
                                 <Button
                                             x:Name="PlayBtn"
                                             Click="PlayBtn_Click"
-                                            Content="Play" />
-                                <Button Content="Favorite" IsEnabled="False" />
+                                            >
+                                    <SymbolIcon Symbol="Play" 
+                                                />
+                                </Button>
+                                <Button IsEnabled="True"
+                                             Background="Transparent"
+                                              >
+                                    <StackPanel>
+                                        
+                                    <FontIcon
+                                                    Width="20"
+                                                    Height="20"
+                                                    Foreground="SlateBlue"
+                                                    Glyph="&#xEB52;"
+                                                    Visibility="{Binding IsFavorite, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                                        <FontIcon Glyph="&#xEB51;" 
+                                                  Width="20"
+Height="20"
+Foreground="SlateBlue"
+Visibility="{Binding IsFavorite, Converter={StaticResource BoolToInverseVisibilityConverter}}"/>
+                                    </StackPanel>
+                                </Button>
                                 <Button Content="More" IsEnabled="False"/>
                             </StackPanel>
 

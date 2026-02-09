@@ -287,7 +287,7 @@ public sealed partial class NowPlayingPage : Page
 
         AnimationHelper.TryStart(CurrentPlayingSongImg,
             new List<UIElement> { SongInfoStackPanel },
-            AnimationHelper.Key_NowPlayingPage,AnimationHelper.Key_DetailToList,AnimationHelper.Key_ListToDetail);
+            AnimationHelper.Key_NowPlayingPage,AnimationHelper.Key_DetailToListFromAlbum,AnimationHelper.Key_ListToDetail);
         
     }
 

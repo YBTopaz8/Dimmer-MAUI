@@ -1,6 +1,8 @@
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
+using CommunityToolkit.Maui.Core.Extensions;
+
 namespace Dimmer.WinUI.Views.WinuiPages;
 
 /// <summary>
@@ -73,16 +75,7 @@ public sealed partial class AlbumPage : Page
 
         if (e.NavigationMode == Microsoft.UI.Xaml.Navigation.NavigationMode.Back)
         {
-            //if (CoordinatedPanel != null && VisualTreeHelper.GetParent(DestinationElement) != null)
-            //{
-            //    ConnectedAnimationService.GetForCurrentView()
-            //        .PrepareToAnimate("BackConnectedAnimation", DestinationElement);
-            //}
-            //if (CoordinatedPanel != null && VisualTreeHelper.GetParent(CoordinatedPanel) != null)
-            //{
-            //    ConnectedAnimationService.GetForCurrentView()
-            //        .PrepareToAnimate("BackConnectedAnimation", CoordinatedPanel);
-            //}
+           
         }
 
     }
@@ -100,9 +93,8 @@ public sealed partial class AlbumPage : Page
             
             if (Frame.CanGoBack)
             {
-                //var image = detailedImage;
-                //ConnectedAnimationService.GetForCurrentView()
-                //    .PrepareToAnimate("BackwardConnectedAnimation", image);
+                AnimationHelper.Prepare(AnimationHelper.Key_DetailToListFromAlbum,
+               DestinationElement, AnimationHelper.ConnectedAnimationStyle.ScaleDown);
                 Frame.GoBack();
             }
         }
@@ -128,9 +120,8 @@ public sealed partial class AlbumPage : Page
  
                 if (Frame.CanGoBack)
                 {
-                    var image = DestinationElement;
-                    ConnectedAnimationService.GetForCurrentView()
-                        .PrepareToAnimate("BackwardConnectedAnimation", image);
+                    AnimationHelper.Prepare(AnimationHelper.Key_DetailToListFromAlbum,
+                DestinationElement, AnimationHelper.ConnectedAnimationStyle.ScaleDown);
                     Frame.GoBack();
                 }
             }
@@ -142,9 +133,8 @@ public sealed partial class AlbumPage : Page
         // Standard navigation back
         if (Frame.CanGoBack)
         {
-            //var image = detailedImage;
-            //ConnectedAnimationService.GetForCurrentView()
-            //    .PrepareToAnimate("BackwardConnectedAnimation", image);
+            AnimationHelper.Prepare(AnimationHelper.Key_DetailToListFromAlbum,
+               DestinationElement, AnimationHelper.ConnectedAnimationStyle.ScaleDown);
             Frame.GoBack();
         }
     }
@@ -360,4 +350,22 @@ public sealed partial class AlbumPage : Page
         }
     }
 
+    private void DestinationElement_Loaded(object sender, RoutedEventArgs e)
+    {
+
+        AnimationHelper.TryStart(DestinationElement,null, AnimationHelper.Key_ToAlbumPage);
+    }
+
+    private void ArtistsInAlbumIR_Loaded(object sender, RoutedEventArgs e)
+    {
+        ArtistsInAlbumIR.ItemsSource = MyViewModel.RealmFactory.GetRealmInstance()
+            .Find<AlbumModel>(MyViewModel.SelectedAlbum.Id)
+            .Artists.DistinctBy(x => x.Name).ToObservableCollection();
+    }
+
+    private void ArtistBtn_Click(object sender, RoutedEventArgs e)
+    {
+        AnimationHelper.Prepare(AnimationHelper.Key_AlbumToArtist,
+            (FrameworkElement)sender, AnimationHelper.ConnectedAnimationStyle.GravitySwing);
+    }
 }

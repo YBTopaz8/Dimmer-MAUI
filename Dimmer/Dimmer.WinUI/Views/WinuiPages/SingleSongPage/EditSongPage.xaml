@@ -71,7 +71,7 @@
                     CornerRadius="15">
                     <TextBlock
                         HorizontalAlignment="Center"
-                        FontSize="25"
+                        FontSize="25" x:Name="SongCoreEditsTitle"
                         Text="Song Core Edits" />
                     <StackPanel Width="450" Spacing="10">
                         <Image

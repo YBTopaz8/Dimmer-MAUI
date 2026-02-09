@@ -56,58 +56,8 @@ public sealed partial class ArtistPage : Page
         ArtistImageInArtistPage.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
         this.DataContext = MyViewModel;
         pressedCounter = 0;
-        var animationBack = ConnectedAnimationService.GetForCurrentView()
-       .GetAnimation("BackConnectedAnimation");
+       
 
-        if (animationBack is not null)
-        {
-            ArtistNameInArtistPage.Loaded += async (_, __) =>
-            {
-                animationBack?.TryStart(ArtistNameInArtistPage, new List<UIElement>() { ArtistImageInArtistPage });
-
-                await Task.Delay(500);
-                Visual? visual = ElementCompositionPreview.GetElementVisual(ArtistImageInArtistPage);
-                Visual? visual2 = ElementCompositionPreview.GetElementVisual(ArtistNameInArtistPage);
-                ApplyEntranceEffect(visual);
-                ApplyEntranceEffect(visual2);
-            };
-            return;
-        }
-        var animation = ConnectedAnimationService.GetForCurrentView()
-       .GetAnimation("ForwardConnectedAnimation");
-
-        if (animation is not null)
-        {
-            ArtistNameInArtistPage.Loaded += async (_, __) =>
-            {
-                animation?.TryStart(ArtistNameInArtistPage, new List<UIElement>() { ArtistImageInArtistPage });
-
-                await Task.Delay(500);
-                Visual? visual = ElementCompositionPreview.GetElementVisual(ArtistImageInArtistPage);
-                Visual? visual2 = ElementCompositionPreview.GetElementVisual(ArtistNameInArtistPage);
-                ApplyEntranceEffect(visual);
-                ApplyEntranceEffect(visual2);
-            };
-            return;
-        }
-
-        var animFromSingleSongPage = ConnectedAnimationService.GetForCurrentView().
-            GetAnimation("MoveViewToArtistPageFromSongDetailPage");
-        if (animFromSingleSongPage is not null)
-        {
-            ArtistNameInArtistPage.Loaded += async (s, ee) =>
-            {
-                await DispatcherQueue.EnqueueAsync(() =>
-                {
-                    animFromSingleSongPage?.TryStart(ArtistNameInArtistPage, new List<UIElement>() { ArtistImageInArtistPage });
-
-                    Visual? visual = ElementCompositionPreview.GetElementVisual(ArtistImageInArtistPage);
-                    Visual? visual2 = ElementCompositionPreview.GetElementVisual(ArtistNameInArtistPage);
-                    ApplyEntranceEffect(visual);
-                    ApplyEntranceEffect(visual2);
-                });
-            };            
-        }
     }
     private async Task LoadWikiOfArtist()
     {
@@ -298,7 +248,7 @@ public sealed partial class ArtistPage : Page
         
         ObservableCollection<AlbumModelView?>? albs = MyViewModel.RealmFactory.GetRealmInstance()
             .Find<ArtistModel>(MyViewModel.SelectedArtist!.Id)!
-            .Albums.AsEnumerable().Select(x=>x.ToAlbumModelView()).ToObservableCollection();
+            .Albums.AsEnumerable().Select(x=>x.ToAlbumModelView()!).DistinctBy(x=>x.Name).ToObservableCollection()!;
      
         MyViewModel.SelectedArtist.AlbumsByArtist = albs;
         AlbumsIR.ItemsSource = MyViewModel.SelectedArtist.AlbumsByArtist;

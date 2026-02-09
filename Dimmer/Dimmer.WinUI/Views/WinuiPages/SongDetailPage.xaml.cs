@@ -209,7 +209,7 @@ public sealed partial class SongDetailPage : Page
         {
             if (detailedImage != null && Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(detailedImage) != null)
             {
-                AnimationHelper.Prepare(AnimationHelper.Key_DetailToList, detailedImage);
+                AnimationHelper.Prepare(AnimationHelper.Key_DetailToListFromAlbum, detailedImage);
             }
         }
         base.OnNavigatingFrom(e);
@@ -349,7 +349,7 @@ public sealed partial class SongDetailPage : Page
     {
         if (detailedImage != null && Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(detailedImage) != null)
         {
-            AnimationHelper.Prepare(AnimationHelper.Key_DetailToList,
+            AnimationHelper.Prepare(AnimationHelper.Key_DetailToListFromAlbum,
                 detailedImage,
                 AnimationHelper.ConnectedAnimationStyle.GravitySwing);
         }
@@ -414,7 +414,10 @@ public sealed partial class SongDetailPage : Page
 
     private void AlbumBtn_Click(object sender, RoutedEventArgs e)
     {
-
+        AnimationHelper.Prepare(AnimationHelper.Key_ToAlbumPage,
+            (FrameworkElement)sender, AnimationHelper.ConnectedAnimationStyle.ScaleUp);
+        MyViewModel.SelectedAlbum = MyViewModel.SelectedSong.Album;
+        MyViewModel.NavigateToAnyPageOfGivenType(typeof(AlbumPage));
     }
                             
     private async void LyricsSection_Click(object sender, RoutedEventArgs e)
@@ -662,8 +665,8 @@ public sealed partial class SongDetailPage : Page
             AnimationHelper.TryStart(
            detailedImage,
            new List<UIElement> { TitleBlock }, // Coordinated 
-           AnimationHelper.Key_DetailToList,       // Check this key
-          
+           AnimationHelper.Key_DetailToListFromAlbum,       // Check this key
+          AnimationHelper.Key_Backward,
            AnimationHelper.Key_ListToDetail,AnimationHelper.Key_ToViewSingleSongPopUp,       // OR Check this key
            AnimationHelper.Key_ArtistToSong        // OR Check this key
        );
@@ -835,21 +838,18 @@ public sealed partial class SongDetailPage : Page
 
     private async void CloseArtistDetail_Click(object sender, RoutedEventArgs e)
     {
-        // 1. PREPARE the return animation
-        // We take a snapshot of the whole detail border (or the specific image/text inside it)
+
         AnimationHelper.Prepare(AnimationHelper.Key_ArtistToSong, ArtistDetailBorder);
 
 
-        // 3. START the animation back to the original list button
         if (_storedSourceElement != null)
         {
-            // We use the helper to fly back to the button we clicked earlier
             AnimationHelper.TryStart(
                 _storedSourceElement,
                 null,
                 AnimationHelper.Key_ArtistToSong
             );
-        ArtistDetailBorder.Visibility = Visibility.Collapsed;
+            ArtistDetailBorder.Visibility = Visibility.Collapsed;
         }
 
     }

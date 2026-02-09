@@ -228,7 +228,7 @@
                     <dgView:TableView.Columns>
 
                         <!--  Column for the Cover Art  -->
-                        <dgView:TableViewTemplateColumn x:Name="ImgCol" Width="75">
+                        <dgView:TableViewTemplateColumn x:Name="ImgCol" Width="95">
                             <dgView:TableViewTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Border
@@ -256,7 +256,6 @@
 
                                             </Grid.RowDefinitions>
 
-                                            <!--  You can even overlay a "favorite" icon like in your example  -->
                                             <StackPanel
                                                 Grid.Row="0"
                                                 Margin="0,0,0,5"
@@ -389,6 +388,7 @@
                                                 Background="Transparent"
                                                 BorderThickness="0"
                                                 RightTapped="AlbumBtn_RightTapped"
+                                                Loaded="AlbumBtn_Loaded"
                                                 Click="AlbumBtn_Click">
 
 
@@ -492,9 +492,6 @@
                 </StackPanel>
             </StackPanel>
         </Grid>
-
-        <local:SmokeViewQueueGrid x:Name="SmokeGrid" Visibility="Collapsed" DismissRequested="SmokeGrid_DismissRequested"
-                                  Loaded="SmokeGrid_Loaded"/>
 
 
         <local:SingleSongDetailsPopupView x:Name="SingleSongPopup"
