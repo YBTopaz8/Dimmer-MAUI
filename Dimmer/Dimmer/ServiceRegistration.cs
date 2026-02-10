@@ -159,6 +159,10 @@ public static class ServiceRegistration
         services.AddSingleton<SongAchievementsViewModel>();
 
         services.AddSingleton<ChatViewModel>(); // You'll create this next
+        
+        // Song Comments Service and ViewModel
+        services.AddSingleton<ISongCommentService, ParseSongCommentService>();
+        services.AddSingleton<SongCommentsViewModel>();
 
         return services;
     }
@@ -175,6 +179,7 @@ public static class ServiceRegistration
             ParseClient.Instance.RegisterSubclass(typeof(UserModelOnline));
             ParseClient.Instance.RegisterSubclass(typeof(FriendRequest));
             ParseClient.Instance.RegisterSubclass(typeof(AppUpdateModel));
+            ParseClient.Instance.RegisterSubclass(typeof(SongComment));
 
         
     }
