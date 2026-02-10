@@ -780,8 +780,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
           
             lastfmService.Start();
 
-
-            _ = Task.Run(LoadLastTenPlayedSongsFromDBToPlayBackQueue);
+            LoadLastTenPlayedSongsFromDBToPlayBackQueue();
 
             
         }
