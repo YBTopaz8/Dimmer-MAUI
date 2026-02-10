@@ -680,7 +680,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             try
             {
                 await OnAppOpening();
-                //await HeavierBackGroundLoadings(FolderPaths);
+                await HeavierBackGroundLoadings(FolderPaths);
 
                 await EnsureAllCoverArtCachedForSongsAsync(_backgroundCachingCts.Token);
             }
@@ -706,7 +706,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         try
         {            
             // 1. Set up watchers immediately (this is now fast)
-            await _folderMgtService.StartWatchingConfiguredFoldersAsync();
+            //await _folderMgtService.StartWatchingConfiguredFoldersAsync();
 
             // 2. Perform the slow initial scan in the background
 
@@ -770,8 +770,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             //}
 
             
-            //var redoStats = new StatsRecalculator(RealmFactory, _logger);
-            //redoStats.RecalculateAllStatistics();
+            var redoStats = new StatsRecalculator(RealmFactory, _logger);
+            redoStats.RecalculateAllStatistics();
             
         
          
