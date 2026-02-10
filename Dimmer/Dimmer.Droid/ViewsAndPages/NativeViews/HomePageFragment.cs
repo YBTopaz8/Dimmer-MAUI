@@ -308,16 +308,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         _songListRecycler.SetPadding(0, 0, 0, AppUtil.DpToPx(160));
         _songListRecycler.SetClipToPadding(false);
 
-        if (MyViewModel.SearchResults.Count > 0)
-        {
-            _adapter = new SongAdapter(ctx, MyViewModel, this);
-            _songListRecycler.SetAdapter(_adapter);
-      
-
-
-        // Add Recycler to Content
         contentLinear.AddView(_songListRecycler);
-        }
         //contentLinear.AddView(pagerView);
 
         // Add Content to Root
@@ -508,9 +499,16 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
                     default:
                         var songCount = MyViewModel.SearchResults.Count;
-                        if (songCount > 1)
+                        if (songCount >= 1)
                         {
                             songsTotal.Text = $"{MyViewModel.SearchResults.Count} Songs";
+
+                            if (MyViewModel.SearchResults.Count > 0)
+                            {
+                                _adapter = new SongAdapter(this.View.Context, MyViewModel, this);
+                                _songListRecycler.SetAdapter(_adapter);
+
+                            }
                         }
                         else if (songCount == 1)
                         {

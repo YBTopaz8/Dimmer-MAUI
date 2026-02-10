@@ -122,7 +122,13 @@ internal class SongAdapter : RecyclerView.Adapter
             {
 
             sourceStream
-                .ObserveOn(RxSchedulers.UI) // Must be on UI thread to update RecyclerView
+                .ObserveOn(RxSchedulers.UI)
+                .Do(s =>
+                {
+
+
+                    Debug.WriteLine(MyViewModel.SearchResults.Count);
+                })// Must be on UI thread to update RecyclerView
                 .Bind(out _songs)           // Automatically keeps _songs in sync with the source
                 .Subscribe(changes =>
                 {

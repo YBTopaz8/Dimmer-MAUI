@@ -68,7 +68,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
     public DimmerSliderListener SeekListener { get; private set; }
     public CardView formatCard { get; private set; }
     public TextView formatViewText { get; private set; }
-    public Button infoPill { get; private set; }
+    public Button audioDevicesPill { get; private set; }
     public Chip SelectedAudioTextView { get; private set; }
 
     public NowPlayingFragment()
@@ -146,6 +146,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         ViewCompat.SetTransitionName(_miniCover, tName);
         card.Click += (s, e) =>
         {
+            if (string.IsNullOrEmpty(MyViewModel.CurrentPlayingSongView.TitleDurationKey)) return;
             string? tName = ViewCompat.GetTransitionName(_miniCover);
             if (tName != null)
             {
@@ -461,10 +462,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         SelectedAudioTextView.Text = MyViewModel.SelectedAudioDevice?.Name;
         SelectedAudioTextView.Click += (s, e) =>
         {
-            var dialog = ShowDifferentAudioDevicesDialog();
             
-
-            dialog.Show();
         };
         //volumeRow.AddView(_volumeSlider, new LinearLayout.LayoutParams(0, -2, 1f)); // Stretch slider
         //volumeRow.AddView(volUpIcon, new LinearLayout.LayoutParams(AppUtil.DpToPx(24), AppUtil.DpToPx(24)));
@@ -506,6 +504,8 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
             var queueSheet = new QueueBottomSheetFragment(MyViewModel, _queueBtn);
             _queueBtn.Enabled = false;
             queueSheet.Show(ParentFragmentManager, "QueueSheet");
+
+            await Task.Delay(1200);
             queueSheet.ScrollToSong(MyViewModel.CurrentPlayingSongView);
         };
      
@@ -594,10 +594,13 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
             }
         };
 
-        infoPill = CreatePillButton(ctx, "Info", Resource.Drawable.infocircle);
-        infoPill.Click += (s, e) =>
+        audioDevicesPill = CreatePillButton(ctx, "Info", Resource.Drawable.ic_vol_type_speaker_dark);
+        audioDevicesPill.Click += (s, e) =>
         {
-            
+            var dialog = ShowDifferentAudioDevicesDialog();
+
+
+            dialog?.Show();
         };
 
         // Distribute evenly with weights or margins
@@ -607,7 +610,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         pillsRow.AddView(_queueBtn, pillParams);
         pillsRow.AddView(_loveBtn, pillParams);
         pillsRow.AddView(_toggleLyricsViewBtn, pillParams);
-        pillsRow.AddView(infoPill, pillParams);
+        pillsRow.AddView(audioDevicesPill, pillParams);
         root.AddView(pillsRow);
 
         //// --- F. Bottom Actions (Queue, View Song, Options) ---
@@ -729,9 +732,11 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         }
     }
 
-    public MaterialAlertDialogBuilder ShowDifferentAudioDevicesDialog()
+    public MaterialAlertDialogBuilder? ShowDifferentAudioDevicesDialog()
     {
-        var builder = new MaterialAlertDialogBuilder(Activity);
+        if (MyViewModel.AudioDevices is null) return null;
+        if (MyViewModel.SelectedAudioDevice is null) return null;
+        var builder = new MaterialAlertDialogBuilder(Activity!);
         builder.SetTitle("Select Audio Device");
 
         var albumNamesArray = MyViewModel.AudioDevices.Select(x=>x.Name).ToArray();
@@ -745,6 +750,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
             
             
         });
+        
         builder.SetNegativeButton("Cancel", (sender, args) =>
         {
             //Dismiss();
@@ -776,6 +782,8 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         btn.IconPadding = AppUtil.DpToPx(4);
         btn.CornerRadius = AppUtil.DpToPx(50); // Fully rounded (Pill)
         btn.SetPadding(AppUtil.DpToPx(12), 0, AppUtil.DpToPx(12), 0);
+        //btn.SetHeight(AppUtil.DpToPx(23));
+        //btn.SetWidth(AppUtil.DpToPx(23));
         btn.TextSize = 14;
         btn.SetSingleLine(true);
         btn.Ellipsize = Android.Text.TextUtils.TruncateAt.End;

@@ -157,7 +157,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
     private SmoothBottomBar _bottomBar;
   
 
-    public static void hideKeyboard(TransitionActivity activity)
+    public static void HideKeyboard(TransitionActivity activity)
     {
         
         InputMethodManager? imm = (InputMethodManager?)activity.GetSystemService(InputMethodService);
