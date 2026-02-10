@@ -15,7 +15,7 @@ using static Android.Widget.ImageView;
 
 namespace Dimmer.ViewsAndPages.NativeViews.SingleSong;
 
-public class SongDetailFragment : Fragment , IOnBackInvokedCallback
+public partial class SongDetailFragment : Fragment , IOnBackInvokedCallback
 {
     private readonly string _transitionName;
     private readonly BaseViewModelAnd _viewModel;

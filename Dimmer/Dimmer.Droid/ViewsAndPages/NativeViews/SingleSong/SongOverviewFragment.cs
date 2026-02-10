@@ -67,7 +67,7 @@ public partial class SongOverviewFragment : Fragment
 
 
 
-         List<ArtistModelView?> artists = MyViewModel.SelectedSong!.ArtistsInDB(MyViewModel.RealmFactory)!;
+         List<ArtistModelView?> artists = MyViewModel.SelectedSong.ArtistsInDB(MyViewModel.RealmFactory)!;
         foreach (var art in artists)
         {
             if (art is null) continue;

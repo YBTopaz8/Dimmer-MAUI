@@ -189,12 +189,13 @@ public class QueueBottomSheetFragment : BottomSheetDialogFragment
         var index = MyViewModel.PlaybackQueue.IndexOf(requestedSong);
         if (_pendingScrollToCurrent)
         {
-            _recyclerView.ScrollToPosition(index); 
+            _recyclerView.SmoothScrollToPosition(index-3); 
             _pendingScrollToCurrent = false;
         }
         else
         {
-            _recyclerView.ScrollToPosition(index); 
+            _recyclerView.SmoothScrollToPosition(index-3);
+            _pendingScrollToCurrent = false;
             //_recyclerView.SmoothScrollToPosition(index); 
         }
     }
