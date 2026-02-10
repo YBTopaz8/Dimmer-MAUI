@@ -73,7 +73,7 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
         try
         {
             var rawBackups = await _sessionManager.GetAvailableBackupsAsync();
-
+            if (rawBackups is null) return;
             AvailableBackups.Clear();
             foreach (var item in rawBackups)
             {
