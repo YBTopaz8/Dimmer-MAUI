@@ -46,7 +46,10 @@ public static class RqlGenerator
 
     private static string BuildClause(FieldDefinition fieldDef, string op, object value, object? upperValue)
     {
-        // RQL operators are case-sensitive, so we use mapping. [c] denotes case-insensitivity.
+        // RQL operators support modifiers:
+        // [c] = case-insensitive
+        // [d] = diacritic-insensitive (accent-insensitive)
+        // [cd] or [dc] = both case and diacritic-insensitive
         return fieldDef.Type switch
         {
                 // --- ADD THIS NEW CASE BLOCK ---
@@ -67,11 +70,11 @@ public static class RqlGenerator
             // --- HANDLE TEXT TYPE LAST (AS IT'S THE MOST COMPLEX) ---
             FieldType.Text => op switch
             {
-                "=" => $"{fieldDef.PropertyName} == {FormatValue(value)}",
-                "^" => $"{fieldDef.PropertyName} BEGINSWITH[c] {FormatValue(value)}",
-                "$" => $"{fieldDef.PropertyName} ENDSWITH[c] {FormatValue(value)}",
-                "~" => $"{fieldDef.PropertyName} LIKE[c] '*{value}*'",
-                _ => $"{fieldDef.PropertyName} CONTAINS[c] {FormatValue(value)}", // Default to contains
+                "=" => $"{fieldDef.PropertyName} ==[cd] {FormatValue(value)}",
+                "^" => $"{fieldDef.PropertyName} BEGINSWITH[cd] {FormatValue(value)}",
+                "$" => $"{fieldDef.PropertyName} ENDSWITH[cd] {FormatValue(value)}",
+                "~" => $"{fieldDef.PropertyName} LIKE[cd] '*{value}*'",
+                _ => $"{fieldDef.PropertyName} CONTAINS[cd] {FormatValue(value)}", // Default to contains
             },
 
             // Fallback for any unhandled types
