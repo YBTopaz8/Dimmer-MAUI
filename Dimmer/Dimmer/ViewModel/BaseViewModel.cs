@@ -50,6 +50,8 @@ namespace Dimmer.ViewModel;
 public partial class BaseViewModel : ObservableObject,  IDisposable
 {
     private IDuplicateFinderService _duplicateFinderService;
+    private readonly IWeightedShuffleService _weightedShuffleService;
+    private readonly ISettingsService _settingsService;
 
     public readonly Guid InstanceId = Guid.NewGuid();
 
@@ -78,6 +80,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         ILibraryScannerService LibScannerService,
         IRepository<DimmerPlayEvent> DimmerPlayEventRepo,
         BaseAppFlow BaseAppClass,
+        IWeightedShuffleService weightedShuffleService,
         ILogger<BaseViewModel> logger)
     {
 
@@ -98,6 +101,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _lyricsMgtFlow = lyricsMgtFlow;
         _logger = logger ?? NullLogger<BaseViewModel>.Instance;
         this._audioService = audioServ;
+        _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+        _weightedShuffleService = weightedShuffleService ?? throw new ArgumentNullException(nameof(weightedShuffleService));
         //UserLocal = new UserModelView();
         dimmerPlayEventRepo ??= DimmerPlayEventRepo;
         _playlistRepo = PlaylistRepo;
@@ -1012,6 +1017,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 RepeatModePreference = (int)CurrentRepeatMode,
                 
                 ShuffleStatePreference = IsShuffleActive,
+                ShuffleModePreference = (int)CurrentShuffleMode,
                 IsStickToTop = IsStickToTop,
                 ScrobbleToLastFM = ScrobbleToLastFM,
                 KeepScreenOnDuringLyrics = true,
@@ -1070,6 +1076,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
                 _currentPlayinSongIndexInPlaybackQueue = appModel.LastKnownPlaybackQueueIndex;
                 IsShuffleActive = appModel.ShuffleStatePreference;
+                CurrentShuffleMode = (ShuffleMode)appModel.ShuffleModePreference;
                 CurrentRepeatMode = (RepeatMode)appModel.LastKnownRepeatState;
                 OpenMediaUIOnNotificationTap = appModel.OpenMediaUIOnNotificationTap;
                 CurrentTrackPositionSeconds = appModel.LastKnownPosition;
@@ -1148,6 +1155,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     IsDarkModePreference = Application.Current?.UserAppTheme == AppTheme.Dark,
                     RepeatModePreference = (int)CurrentRepeatMode,
                     ShuffleStatePreference = IsShuffleActive,
+                    ShuffleModePreference = (int)CurrentShuffleMode,
                     IsStickToTop = IsStickToTop,
                     ScrobbleToLastFM= true,
                     CurrentTheme = Application.Current?.UserAppTheme.ToString() ?? "Unspecified",
@@ -1601,6 +1609,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
 [ObservableProperty]
     public partial bool IsShuffleActive { get; set; }
+
+    [ObservableProperty]
+    public partial ShuffleMode CurrentShuffleMode { get; set; }
 
     [ObservableProperty]
     public partial RepeatMode CurrentRepeatMode { get; set; }
@@ -3395,17 +3406,126 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             var playedPart = _playbackQueue.Take(_currentPlayinSongIndexInPlaybackQueue + 1).ToList();
 
-
             var upcomingPart = _playbackQueue.Skip(_currentPlayinSongIndexInPlaybackQueue + 1).ToList();
 
-
-            var shuffledUpcoming = upcomingPart.OrderBy(x => _random.Next()).ToList();
-
+            List<SongModelView> shuffledUpcoming;
+            
+            // Check shuffle mode and apply appropriate shuffle algorithm
+            var shuffleMode = _settingsService.ShuffleMode;
+            if (shuffleMode == ShuffleMode.Weighted)
+            {
+                // Use weighted shuffle based on user behavior
+                shuffledUpcoming = upcomingPart.ToList();
+                shuffledUpcoming.WeightedShuffleInPlace(CalculateWeightForSongView);
+                _logger.LogInformation("Applied weighted shuffle to {Count} upcoming songs", shuffledUpcoming.Count);
+            }
+            else
+            {
+                // Use pure random shuffle
+                shuffledUpcoming = upcomingPart.OrderBy(x => _random.Next()).ToList();
+                _logger.LogInformation("Applied random shuffle to {Count} upcoming songs", shuffledUpcoming.Count);
+            }
 
             var newQueue = new List<SongModelView>();
             newQueue.AddRange(playedPart);
             newQueue.AddRange(shuffledUpcoming);
 
+            PlaybackQueueSource.Edit(
+                updater =>
+                {
+                    updater.Clear();
+                    updater.AddRange(newQueue);
+                });
+        }
+    }
+
+    /// <summary>
+    /// Calculates the weight for a SongModelView based on user behavior and ratings.
+    /// This mirrors the algorithm in WeightedShuffleService but works with SongModelView.
+    /// </summary>
+    private int CalculateWeightForSongView(SongModelView song)
+    {
+        // Hidden songs should never be picked
+        if (song.IsHidden)
+        {
+            return 0;
+        }
+
+        int weight = 100; // Base weight
+
+        // Rating contribution (0-100)
+        weight += song.Rating * 20;
+
+        // Favorite status
+        if (song.IsFavorite)
+        {
+            weight += 50;
+        }
+
+        // Manual favorite count
+        weight += song.ManualFavoriteCount * 10;
+
+        // Play completion bonus
+        weight += song.PlayCompletedCount * 2;
+
+        // Skip penalty
+        weight -= song.SkipCount * 5;
+
+        // Recency bonus - songs not played recently get a boost
+        if (song.LastPlayed != null && song.LastPlayed != default)
+        {
+            var daysSinceLastPlayed = (DateTimeOffset.UtcNow - song.LastPlayed.Value).TotalDays;
+            
+            // Boost songs that haven't been played in a while (up to 30 days)
+            if (daysSinceLastPlayed > 1)
+            {
+                var recencyBonus = Math.Min(daysSinceLastPlayed * 2, 60);
+                weight += (int)recencyBonus;
+            }
+        }
+        else
+        {
+            // Never played songs get a moderate boost
+            weight += 30;
+        }
+
+        // Ensure weight is never negative
+        return Math.Max(weight, 1); // Minimum weight of 1 for non-hidden songs
+    }
+
+    [RelayCommand]
+    public void ToggleShuffleMode()
+    {
+        // Toggle between Random and Weighted shuffle modes
+        CurrentShuffleMode = CurrentShuffleMode == ShuffleMode.Random 
+            ? ShuffleMode.Weighted 
+            : ShuffleMode.Random;
+        
+        // Save to settings
+        _settingsService.ShuffleMode = CurrentShuffleMode;
+        
+        _logger.LogInformation("Shuffle mode changed to: {ShuffleMode}", CurrentShuffleMode);
+        
+        // Re-shuffle the current queue if shuffle is active
+        if (IsShuffleActive && _playbackQueue.Any() && _currentPlayinSongIndexInPlaybackQueue >= 0)
+        {
+            var playedPart = _playbackQueue.Take(_currentPlayinSongIndexInPlaybackQueue + 1).ToList();
+            var upcomingPart = _playbackQueue.Skip(_currentPlayinSongIndexInPlaybackQueue + 1).ToList();
+
+            List<SongModelView> shuffledUpcoming;
+            if (CurrentShuffleMode == ShuffleMode.Weighted)
+            {
+                shuffledUpcoming = upcomingPart.ToList();
+                shuffledUpcoming.WeightedShuffleInPlace(CalculateWeightForSongView);
+            }
+            else
+            {
+                shuffledUpcoming = upcomingPart.OrderBy(x => _random.Next()).ToList();
+            }
+
+            var newQueue = new List<SongModelView>();
+            newQueue.AddRange(playedPart);
+            newQueue.AddRange(shuffledUpcoming);
 
             PlaybackQueueSource.Edit(
                 updater =>
