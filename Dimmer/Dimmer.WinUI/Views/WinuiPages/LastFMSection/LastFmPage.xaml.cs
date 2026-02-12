@@ -76,9 +76,9 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
         if (pivot != null)
             switch (pivot.SelectedIndex)
             {
-                //case 0: LoadRecentTracks(); break;
-                //case 1: LoadTopTracks(); break;
-                //case 2: LoadLovedTracks(); break;
+                case 0: /*LoadRecentTracks();*/ break;
+                case 1: /*LoadTopTracks();*/ break;
+                case 2: /*LoadLovedTracks();*/ break;
             }
     }
     private void LoginLastFM_Click(object sender, RoutedEventArgs e)

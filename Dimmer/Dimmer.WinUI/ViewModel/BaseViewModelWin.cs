@@ -822,11 +822,11 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
             artist.ListOfSimilarArtistsNames = are;
         }
         artist.TotalSongsByArtist = SearchResults.
-            Where(x => x.OtherArtistsName.Contains(artist.Name))
+            Where(x => x.OtherArtistsName.Contains(artist.Name!))
             .Count();
 
         artist.TotalAlbumsByArtist = SearchResults.
-            Where(x=> x.OtherArtistsName.Contains(artist.Name))
+            Where(x=> x.OtherArtistsName.Contains(artist.Name!))
             .Count();
 
 
@@ -1203,7 +1203,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         var realm = RealmFactory.GetRealmInstance();
         var exactArtist = realm.All<ArtistModel>().FirstOrDefault(a => a.Name == chosen);
         if (exactArtist is null) return;
-        var songInDb = realm.Find<SongModel>(SelectedSong.Id);
+        var songInDb = realm.Find<SongModel>(SelectedSong!.Id);
         if (songInDb is null) return;
         realm.Write(() =>
         {

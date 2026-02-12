@@ -147,7 +147,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 Debug.WriteLine(x.Count);
             })
             .DisposeWith(CompositeDisposables);
-        realm = RealmFactory.GetRealmInstance();
+        
 
         
         // 4. Handle Logging. Remove the temporary `if (pos == 0)` check.
@@ -389,43 +389,25 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         var realmSub = RealmFactory.GetRealmInstance();
     var songRealmSub = realmSub.All<SongModel>()
-            .AsObservableChangeSet()
+            .AsObservableChangeSet()            
 
-            .Where(changes => changes.Any())
-            .Subscribe(
-                changes =>
+            .Where(song =>
+            {
+                return song is not null;
+            })?
+             .Transform(song =>
+             {
+                 return song.ToSongModelView()!;
+             })
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(changesDone =>
+            {
+                if (changesDone is null) return;
+                SearchResultsHolder.Edit(updater =>
                 {
-                    // Handle the changes here
-                    //foreach (var change in changes)
-                    //{
-                    //    //switch (change.Reason)
-                    //    //{
-                    //    //    case ListChangeReason.Add:
-                    //    //        // Handle addition
-                    //    //        break;
-                    //    //    case ListChangeReason.Remove:
-                    //    //        // Handle removal
-                    //    //        break;
-
-                    //    //    case ListChangeReason.Refresh:
-                    //    //        break;
-
-                    //    //    case
-                    //    //    ListChangeReason.Moved:
-                    //    //        break;
-                    //    //    case ListChangeReason.Clear:
-                    //    //        break;
-                    //    //    case ListChangeReason.RemoveRange:
-                    //    //        break;
-                    //    //    case ListChangeReason.AddRange:
-                    //    //        break;
-                    //    }
-                    //}
-                },
-                ex =>
-                {
-                    _logger.LogError(ex, "Error observing SongModel changes");
-                })
+                    updater.Clone(changes: changesDone);
+                });
+            })
             .DisposeWith(CompositeDisposables);
 
 
@@ -459,15 +441,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     });
         Observable.Merge(searchStream)
     .Throttle(TimeSpan.FromMilliseconds(300), RxSchedulers.Background) // Ensure we don't spam
-    .Select(inputs =>
-    {
-        RxSchedulers.UI.ScheduleTo(() => IsTqlBusy = true);
-        // 1. NLP Parsing (Lightweight)
-        Debug.WriteLine($"[DEBUG] Processing: '{inputs.Query}'");
-        var tqlQuery = string.IsNullOrWhiteSpace(inputs.Query) ? "" : NaturalLanguageProcessor.Process(inputs.Query);
-        var plan = MetaParser.Parse(tqlQuery);
-        return (Inputs: inputs, Plan: plan);
-    })
+    .Select(query => (Query: query, Plan: MetaParser.Parse(NaturalLanguageProcessor.Process(query.Query))))
     .ObserveOn(RxSchedulers.Background) // Explicitly move to Background for DB work
     .Select(payload =>
     {
@@ -1620,7 +1594,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial bool IsDimmerPlaying { get; set; }
 
     [ObservableProperty]
-    public partial bool IsTqlBusy { get; set; }
+    public partial bool IsTqlBusy { get; set; } = true;
 
     
   
@@ -2405,7 +2379,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     {
                     
                     var coverImagePath= await LoadAndCacheCoverArtAsync(songView);
-                    RxSchedulers.UI.ScheduleTo(() => songView.CoverImagePath = coverImagePath);
+                    RxSchedulers.UI.ScheduleTo(() =>
+                    {
+                        var songInRes = SearchResults.FirstOrDefault(x => x.Id == songView.Id);
+                        songInRes?.CoverImagePath = coverImagePath;
+                    });
                     int current = Interlocked.Increment(ref processedCount);
 
                         if (current % 10 == 0 || current == totalCount)
