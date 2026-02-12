@@ -29,7 +29,8 @@ public class SongPlayHistoryFragment : Fragment
         if (songIndDb is not null)
         {
             var evts = songIndDb.PlayHistory.AsEnumerable().Select(x => x.ToDimmerPlayEventView()).ToList();
-            recycler.SetAdapter(new PlayEventAdapter(ctx, _vm, this, songIndDb));
+            if(evts.Count >=1)
+                recycler.SetAdapter(new PlayEventAdapter(ctx, _vm, this, songIndDb));
         }
         return recycler;
     }

@@ -286,14 +286,24 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
             
         };
         var SecondTQLChip = new Chip(ctx);
-        SecondTQLChip.SetChipIconResource(Resource.Drawable.sortbytime);
+        SecondTQLChip.SetBackgroundResource(Resource.Drawable.sortbytime);
         SecondTQLChip.Click += (S, e) =>
         {
             _searchBar.Text = _searchBar.Text +" desc added";
         };
 
+        var randomSort = new Chip(ctx);
+        randomSort.SetBackgroundResource(Resource.Drawable.media3_icon_shuffle_on);
+        randomSort.Click += (S, e) =>
+        {
+            _searchBar.Text = "random";
+        };
+        randomSort.ChipIconVisible = true;
+
         TQLChipHLayout.AddView(FirstTQLChip);
         TQLChipHLayout.AddView(SecondTQLChip);
+        TQLChipHLayout.AddView(randomSort);
+        
         TQLChipHLayout.Visibility = ViewStates.Gone;
 
         contentLinear.AddView(lastLayout);
@@ -423,7 +433,10 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         base.OnResume();
        
         _isNavigating = false;
-
+        TqlLine.Click += (s, e) =>
+        {
+            _searchBar.Text =  TqlLine.Text;
+        };
         MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentPlayingSongView), newVl => MyViewModel.CurrentPlayingSongView)
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(async currSong =>
@@ -503,35 +516,69 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
                         {
                             songsTotal.Text = $"{MyViewModel.SearchResults.Count} Songs";
 
-                            if (MyViewModel.SearchResults.Count > 0)
-                            {
-                                _adapter = new SongAdapter(this.View.Context, MyViewModel, this);
-                                _songListRecycler.SetAdapter(_adapter);
 
-                            }
+                                loadingIndic.Visibility = ViewStates.Visible;
+
+                                SongAdapter.CreateAsync(this.View?.Context, MyViewModel, this, SongsToWatchSource.HomePage)?
+                                .Subscribe(adapter =>
+                                {
+                                    _adapter?.Dispose();
+                                    _adapter = adapter;
+                                    _songListRecycler?.SetAdapter(_adapter);
+
+                                    int currentlyPlayingIndex = 0;
+                                    if (MyViewModel.SelectedSong is not null)
+                                    {
+                                        currentlyPlayingIndex = MyViewModel.SearchResults.IndexOf(MyViewModel.SelectedSong);
+
+                                    }
+                                    else
+                                    {
+
+                                        currentlyPlayingIndex = MyViewModel.SearchResults.IndexOf(MyViewModel.CurrentPlayingSongView);
+                                    }
+                                    if (currentlyPlayingIndex >= 0)
+                                        _songListRecycler?.ScrollToPosition(currentlyPlayingIndex);
+
+                                    loadingIndic.Visibility = ViewStates.Gone;
+
+                                },
+                                error =>
+                                {
+                                    Debug.WriteLine(error.Message);
+                                    loadingIndic.Visibility = ViewStates.Gone;
+
+                                });
+
+
+                            
+                            
                         }
-                        else if (songCount == 1)
+                        else if (songCount <= 0)
                         {
-                            songsTotal.Text = $"1 Song";
-
+                            TqlLine.Text = "No Songs Found";
+                            loadingIndic.Visibility = ViewStates.Gone;
                         }
-                        else if (songCount < 1)
-                        {
 
-                            songsTotal.Text = $"No Song";
-                        }
-                        loadingIndic.Visibility = ViewStates.Gone;
                         break;
                 }
             });
         
-        _adapter?.IsSourceCleared.
+                     _adapter?.IsSourceCleared.
             ObserveOn(RxSchedulers.UI)
             .Subscribe(observer =>
             {
                 loadingIndic.Visibility = ViewStates.Gone;
             }).DisposeWith(_disposables);
 
+    }
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _disposables.Dispose();
+        }
+        base.Dispose(disposing);
     }
     public override void OnPause()
     {
@@ -624,8 +671,10 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         _searchCts?.Cancel();
         _songListRecycler?.SetAdapter(null);
         _songListRecycler = null;
-
+        _disposables?.Dispose();
+        _adapter?.Dispose();
     }
+
 
     private void _pageFAB_LongClick(object? sender, View.LongClickEventArgs e)
     {

@@ -222,6 +222,22 @@ public static class DimmerMappers
             }
             art.AlbumsByArtist = albs!.ToObservableCollection()!;
         }
+        else
+        {
+            foreach (var songInArt in artInDb.Songs)
+            {
+                if(!artInDb.Albums.AsEnumerable().Contains(songInArt.Album))
+                {
+                    realm.Write(() =>
+                    {
+                        songInArt.Album.Artists.Add(artInDb);
+                    });
+                }
+
+            }
+            art.AlbumsByArtist = realm.Find<ArtistModel>(art.Id)?
+                .Albums.AsEnumerable().Select(x=>x.ToAlbumModelView()).ToObservableCollection();
+        }
 
     }
     public static void RefreshArtistsAndSongsFromDB(this AlbumModelView album, IRealmFactory realmFactory)

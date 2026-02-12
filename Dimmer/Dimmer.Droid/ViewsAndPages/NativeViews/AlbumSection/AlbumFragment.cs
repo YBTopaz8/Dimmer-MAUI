@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reactive.Disposables;
-using System.Reactive.Disposables.Fluent;
-using System.Text;
-using System.Threading.Tasks;
-using AndroidX.CoordinatorLayout.Widget;
+﻿using AndroidX.CoordinatorLayout.Widget;
 using AndroidX.Core.Widget;
 using AndroidX.RecyclerView.Widget;
 using Bumptech.Glide;
@@ -13,15 +6,23 @@ using Google.Android.Material.Behavior;
 using Google.Android.Material.Chip;
 using Google.Android.Material.Floatingtoolbar;
 using Google.Android.Material.Loadingindicator;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
+using System.Text;
+using System.Threading.Tasks;
 using static Android.Provider.DocumentsContract;
+using static Dimmer.ViewsAndPages.NativeViews.SongAdapter;
 
 namespace Dimmer.ViewsAndPages.NativeViews.AlbumSection;
 
 public partial class AlbumFragment : Fragment, IOnBackInvokedCallback
 {
     private TextView songsLabel;
-    private RecyclerView _recyclerView;
-    private SongAdapter MyRecycleViewAdapter;
+    private RecyclerView _songListRecycler;
+    private SongAdapter? MyRecycleViewAdapter;
     private TextView artistsLabel;
     private TextView nameTxt;
     private NestedScrollView myScrollView;
@@ -29,7 +30,7 @@ public partial class AlbumFragment : Fragment, IOnBackInvokedCallback
     private string _albumName;
     private string _albumId;
     private ChipGroup _artistChipGroup;
-    private LoadingIndicator progressIndic;
+    private LoadingIndicator loadingIndic;
 
     public AlbumFragment()
     {
@@ -144,10 +145,10 @@ public partial class AlbumFragment : Fragment, IOnBackInvokedCallback
 
 
 
-        progressIndic = new LoadingIndicator(ctx);
-        progressIndic.IndicatorSize = AppUtil.DpToPx(40);
-        progressIndic.SetForegroundGravity(GravityFlags.CenterHorizontal);
-        root.AddView(progressIndic);
+        loadingIndic = new LoadingIndicator(ctx);
+        loadingIndic.IndicatorSize = AppUtil.DpToPx(40);
+        loadingIndic.SetForegroundGravity(GravityFlags.CenterHorizontal);
+        root.AddView(loadingIndic);
 
 
 
@@ -156,15 +157,11 @@ public partial class AlbumFragment : Fragment, IOnBackInvokedCallback
         songsLabel = new MaterialTextView(ctx) { Text = "Songs " + SelectedAlbum.SongsInAlbum.Count, TextSize = 20 }; // Update count later
         recyclerContainer.AddView(songsLabel);
 
-        _recyclerView = new RecyclerView(ctx);
-        _recyclerView.NestedScrollingEnabled = false; // LET THE SCROLLVIEW HANDLE SCROLLING
-        _recyclerView.SetLayoutManager(new LinearLayoutManager(ctx));
+        _songListRecycler = new RecyclerView(ctx);
+        _songListRecycler.NestedScrollingEnabled = false; // LET THE SCROLLVIEW HANDLE SCROLLING
+        _songListRecycler.SetLayoutManager(new LinearLayoutManager(ctx));
 
-        // Set Adapter immediately with empty data or loading state to prevent UI pop-in
-        MyRecycleViewAdapter = new SongAdapter(ctx, MyViewModel, this, "artist");
-        _recyclerView.SetAdapter(MyRecycleViewAdapter);
-
-        recyclerContainer.AddView(_recyclerView);
+        recyclerContainer.AddView(_songListRecycler);
         root.AddView(recyclerContainer);
 
         // Add root to ScrollView
@@ -243,21 +240,65 @@ public partial class AlbumFragment : Fragment, IOnBackInvokedCallback
         return btn;
     }
 
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _disposables.Dispose();
+        }
+        base.Dispose(disposing);
+    }
     public override void OnResume()
     {
+        MyViewModel.CurrentFragment = this;
         base.OnResume();
         if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu)
         {
             Activity?.OnBackInvokedDispatcher.RegisterOnBackInvokedCallback(
                 (int)IOnBackInvokedDispatcher.PriorityDefault, this);
         }
+        loadingIndic.Visibility = ViewStates.Visible;
 
-        MyRecycleViewAdapter.IsSourceCleared.
+        SongAdapter.CreateAsync(this.View?.Context, MyViewModel, this, SongsToWatchSource.AlbumPage)?
+        .Subscribe(adapter =>
+        {
+            MyRecycleViewAdapter = adapter;
+            _songListRecycler?.SetAdapter(MyRecycleViewAdapter);
+
+            int currentlyPlayingIndex = 0;
+            if (MyViewModel.SelectedSong is not null)
+            {
+                currentlyPlayingIndex = MyViewModel.SearchResults.IndexOf(MyViewModel.SelectedSong);
+
+            }
+            else
+            {
+
+                currentlyPlayingIndex = MyViewModel.SearchResults.IndexOf(MyViewModel.CurrentPlayingSongView);
+            }
+            if (currentlyPlayingIndex >= 0)
+                _songListRecycler?.SmoothScrollToPosition(currentlyPlayingIndex);
+
+            loadingIndic.Visibility = ViewStates.Gone;
+
+        },
+        error =>
+        {
+            Debug.WriteLine(error.Message);
+            loadingIndic.Visibility = ViewStates.Gone;
+
+        });
+
+
+        MyRecycleViewAdapter?.IsSourceCleared.
            ObserveOn(RxSchedulers.UI)
            .Subscribe(observer =>
            {
-               progressIndic.Visibility = ViewStates.Gone;
+               loadingIndic.Visibility = ViewStates.Gone;
            }).DisposeWith(_disposables);
+
+
+
     }
     private readonly CompositeDisposable _disposables = new();
     public void OnBackInvoked()
