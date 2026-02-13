@@ -132,7 +132,7 @@ public static class ServiceRegistration
         services.AddSingleton<StatisticsService>();
         services.AddSingleton<StatisticsViewModel>();
 
-
+        services.AddSingleton<IMusicalWorkService, MusicalWorkService>();
 
         services.AddSingleton<ParseLiveQueryClient>();
 
