@@ -28,7 +28,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nuget-
 
-      # 3. DETECT VERSION & RELEASE TYPE (FIXED NEWLINE HANDLING)
+      # 3. DETECT VERSION & RELEASE TYPE
       - name: Detect Version & Release Type
         id: version_logic
         shell: pwsh
@@ -37,25 +37,18 @@ jobs:
           [xml]$xml = Get-Content $projectFile.FullName
           $currentVersionStr = $xml.Project.PropertyGroup.Version.Trim()
           $newTag = "v$currentVersionStr"
-          
-          # Clean variables for GitHub Environment
           "NEW_TAG=$newTag" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           
           git fetch --tags --force
           $allTags = git tag --sort=-version:refname 
           $validPattern = "^v?\d+(\.\d+)+$"
-          
-          # We trim here to prevent the "fatal: ambiguous argument" error
           $foundTag = $allTags | Where-Object { $_.Trim() -ne $newTag -and $_.Trim() -match $validPattern } | Select-Object -First 1
           
           if ($null -ne $foundTag) {
               $prevTag = $foundTag.Trim()
-              Write-Host "Found previous tag: $prevTag"
               "LATEST_TAG=$prevTag" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-              
-              $prevVersionStr = $prevTag -replace "[^0-9\.]", ""
               $curV = [System.Version]$currentVersionStr
-              $prevV = [System.Version]$prevVersionStr
+              $prevV = [System.Version]($prevTag -replace "[^0-9\.]", "")
               if ($curV.Major -gt $prevV.Major -or $curV.Minor -gt $prevV.Minor) { "IS_PRE=false" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8 }
               else { "IS_PRE=true" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8 }
           } else {
@@ -63,26 +56,20 @@ jobs:
               "LATEST_TAG=" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           }
 
-      # 3.5 GENERATE CHANGELOG (FIXED LOG RANGE HANDLING)
+      # 3.5 GENERATE CHANGELOG
       - name: Generate Changelog
         shell: pwsh
         run: |
           $prevTag = $env:LATEST_TAG
-          # Only use range if prevTag is actually a string with content
           if ([string]::IsNullOrWhiteSpace($prevTag)) {
-              Write-Host "No valid previous tag. Getting all commits."
               $log = git log --pretty=format:"- %s (%h)" --no-merges
           } else {
-              Write-Host "Getting commits between $prevTag and HEAD"
               $log = git log "$($prevTag)..HEAD" --pretty=format:"- %s (%h)" --no-merges
           }
-          
           $logString = if ($log -is [Array]) { $log -join "`n" } else { $log }
           if ([string]::IsNullOrWhiteSpace($logString)) { $logString = git log -n 15 --pretty=format:"- %s (%h)" --no-merges -join "`n" }
-          
           $content = "## Changes in $env:NEW_TAG`n`n$logString"
           Set-Content -Path "release_notes.md" -Value $content -Encoding UTF8
-          
           $escapedLog = $logString -replace '"', '\"' -replace "`n", "\n" -replace "`r", ""
           "ESCAPED_LOG=$escapedLog" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
@@ -113,7 +100,7 @@ jobs:
           $targetPath = Join-Path "${{ env.DIR_CORE }}" "appsettings.json"
           Set-Content -Path $targetPath -Value '${{ secrets.appsettings }}' -Encoding UTF8
 
-      # 7. PATCH CSPROJ PATHS (ABSOLUTE MAPPING)
+      # 7. PATCH CSPROJ PATHS
       - name: Fix Dependency Paths
         shell: pwsh
         run: |
@@ -132,15 +119,26 @@ jobs:
             foreach ($key in $mappings.Keys) {
               $pattern = 'Include=".*' + [Regex]::Escape($key) + '"'
               $replacement = 'Include="' + $mappings[$key] + '"'
-              if ($content -match $pattern) {
-                $content = $content -replace $pattern, $replacement
-                $changed = $true
-              }
+              if ($content -match $pattern) { $content = $content -replace $pattern, $replacement; $changed = $true }
             }
             if ($changed) { Set-Content $path $content -Encoding UTF8 }
           }
 
-      # 8. SETUP .NET & WORKLOADS
+      # 8. DISABLE EXTERNAL REPO SIGNING (FIXES PFX ERROR)
+      - name: Disable AudioSwitcher Signing
+        shell: pwsh
+        run: |
+          $audioPath = Join-Path $env:GITHUB_WORKSPACE "ExternalDeps\AudioSwitcher-master"
+          Get-ChildItem -Path $audioPath -Recurse -Filter "*.csproj" | ForEach-Object {
+            Write-Host "Disabling signing for: $($_.Name)"
+            $content = Get-Content $_.FullName -Raw
+            # Strip AssemblyOriginatorKeyFile tags and set SignAssembly to false
+            $content = $content -replace '<AssemblyOriginatorKeyFile>.*?</AssemblyOriginatorKeyFile>', ''
+            $content = $content -replace '<SignAssembly>true</SignAssembly>', '<SignAssembly>false</SignAssembly>'
+            Set-Content $_.FullName $content -Encoding UTF8
+          }
+
+      # 9. SETUP .NET & WORKLOADS
       - name: Setup .NET 9
         uses: actions/setup-dotnet@v4
         with:
@@ -149,12 +147,12 @@ jobs:
       - name: Install MAUI Workloads
         run: dotnet workload install maui-android maui-windows
 
-      # 9. BUILD WINDOWS
+      # 10. BUILD WINDOWS
       - name: Build Windows
         run: |
           dotnet publish "${{ env.PATH_WINUI }}" -f net9.0-windows10.0.19041.0 -c Release -r win-x64 -p:WindowsPackageType=None -p:GenerateAppxPackageOnBuild=false -p:AppxPackageSigningEnabled=false -o .\RawBuild\WinUI
 
-      # 10. ZIP WINDOWS
+      # 11. ZIP WINDOWS
       - name: Zip Windows Build
         shell: pwsh
         run: |
@@ -164,7 +162,7 @@ jobs:
           $size = (Get-Item $zipPath).Length
           echo "WIN_SIZE=$size" >> $env:GITHUB_ENV
 
-      # 11. BUILD ANDROID
+      # 12. BUILD ANDROID
       - name: Build Android
         run: |
           dotnet publish "${{ env.PATH_DROID }}" -f net9.0-android -c Release -r android-arm64 -p:AndroidPackageFormat=apk -o .\RawBuild\Android
@@ -175,7 +173,7 @@ jobs:
           $apk = Get-ChildItem ".\RawBuild\Android\*-Signed.apk" | Select-Object -First 1
           echo "APK_SIZE=$($apk.Length)" >> $env:GITHUB_ENV
 
-      # 12. UPLOAD ARTIFACTS
+      # 13. UPLOAD ARTIFACTS
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -184,7 +182,7 @@ jobs:
             RawBuild/Android/*.apk
             Artifacts/Dimmer-Windows-Portable-${{ env.NEW_TAG }}.zip
             
-      # 13. PUSH TAG & RELEASE
+      # 14. PUSH TAG & RELEASE
       - name: Push Tag & Create Release
         id: create_release
         uses: softprops/action-gh-release@v1        
@@ -198,7 +196,7 @@ jobs:
             RawBuild/Android/*.apk
             Artifacts/Dimmer-Windows-Portable-${{ env.NEW_TAG }}.zip
 
-      # 14. NOTIFY PARSE SERVER (postAppUpdate)
+      # 15. NOTIFY PARSE SERVER (postAppUpdate)
       - name: Notify Parse of New Update
         shell: pwsh
         env:
@@ -209,22 +207,11 @@ jobs:
           $releaseUrl = "${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ env.NEW_TAG }}"
           $title = "Dimmer ${{ env.NEW_TAG }}"
           $notes = "Android Size: $([math]::Round($env:APK_SIZE / 1MB, 2))MB`nWindows Size: $([math]::Round($env:WIN_SIZE / 1MB, 2))MB`n`n${{ env.ESCAPED_LOG }}"
-          
-          $body = @{
-              title = $title
-              notes = $notes
-              url   = $releaseUrl
-          } | ConvertTo-Json
-          
-          $headers = @{
-              "X-Parse-Application-Id" = $env:PARSE_APP_ID
-              "X-Parse-Master-Key"     = $env:PARSE_MASTER_KEY
-              "Content-Type"           = "application/json"
-          }
-          
+          $body = @{ title = $title; notes = $notes; url = $releaseUrl } | ConvertTo-Json
+          $headers = @{ "X-Parse-Application-Id" = $env:PARSE_APP_ID; "X-Parse-Master-Key" = $env:PARSE_MASTER_KEY; "Content-Type" = "application/json" }
           Invoke-RestMethod -Uri "$($env:PARSE_SERVER_URL)/functions/postAppUpdate" -Method Post -Headers $headers -Body $body
 
-      # 15. NOTIFY DISCORD
+      # 16. NOTIFY DISCORD
       - name: Notify Discord
         if: always()
         shell: pwsh
