@@ -211,15 +211,31 @@ jobs:
           PARSE_SERVER_URL: ${{ secrets.PARSE_SERVER_URL }}
         run: |
           $releaseUrl = "${{ github.server_url }}/${{ github.repository }}/releases/tag/$($env:NEW_TAG)"
-          $title = "Dimmer $($env:NEW_TAG)"
           
-          # Use $env: to prevent literal text injection/parser errors
-          $notes = "Android Size: $([math]::Round($env:APK_SIZE / 1MB, 2))MB`nWindows Size: $([math]::Round($env:WIN_SIZE / 1MB, 2))MB`n`n$($env:ESCAPED_LOG)"
+          # Calculate sizes once
+          $aSize = "$([math]::Round($env:APK_SIZE / 1MB, 2)) MB"
+          $wSize = "$([math]::Round($env:WIN_SIZE / 1MB, 2)) MB"
           
-          $body = @{ title = $title; notes = $notes; url = $releaseUrl } | ConvertTo-Json
-          $headers = @{ "X-Parse-Application-Id" = $env:PARSE_APP_ID; "X-Parse-Master-Key" = $env:PARSE_MASTER_KEY; "Content-Type" = "application/json" }
+          # Prepare Payload
+          $body = @{ 
+              title        = "Dimmer $($env:NEW_TAG)"
+              version      = "$($env:NEW_TAG)"
+              notes        = "$($env:ESCAPED_LOG)"
+              url          = $releaseUrl
+              androidSize  = $aSize
+              windowsSize  = $wSize
+              isPreRelease = [System.Convert]::ToBoolean($env:IS_PRE)
+          } | ConvertTo-Json
+          
+          # Headers - Master Key is used here to bypass the authentication error
+          $headers = @{ 
+              "X-Parse-Application-Id" = $env:PARSE_APP_ID
+              "X-Parse-Master-Key"     = $env:PARSE_MASTER_KEY
+              "Content-Type"           = "application/json" 
+          }
+          
           Invoke-RestMethod -Uri "$($env:PARSE_SERVER_URL)/functions/postAppUpdate" -Method Post -Headers $headers -Body $body
-          
+      
       # 16. NOTIFY DISCORD
       - name: Notify Discord
         if: always()
