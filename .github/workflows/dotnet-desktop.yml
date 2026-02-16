@@ -28,7 +28,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nuget-
 
-      # 3. DETECT VERSION & RELEASE TYPE (Keep your existing logic)
+      # 3. DETECT VERSION & RELEASE TYPE (FIXED NEWLINE HANDLING)
       - name: Detect Version & Release Type
         id: version_logic
         shell: pwsh
@@ -37,47 +37,65 @@ jobs:
           [xml]$xml = Get-Content $projectFile.FullName
           $currentVersionStr = $xml.Project.PropertyGroup.Version.Trim()
           $newTag = "v$currentVersionStr"
-          echo "NEW_TAG=$newTag" >> $env:GITHUB_ENV
+          
+          # Clean variables for GitHub Environment
+          "NEW_TAG=$newTag" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           
           git fetch --tags --force
           $allTags = git tag --sort=-version:refname 
           $validPattern = "^v?\d+(\.\d+)+$"
-          $prevTag = $allTags | Where-Object { $_.Trim() -ne $newTag -and $_.Trim() -match $validPattern } | Select-Object -First 1
-          echo "LATEST_TAG=$prevTag" >> $env:GITHUB_ENV
           
-          if ($prevTag) {
-            $prevVersionStr = $prevTag -replace "[^0-9\.]", ""
-            $curV = [System.Version]$currentVersionStr
-            $prevV = [System.Version]$prevVersionStr
-            if ($curV.Major -gt $prevV.Major -or $curV.Minor -gt $prevV.Minor) { echo "IS_PRE=false" >> $env:GITHUB_ENV }
-            else { echo "IS_PRE=true" >> $env:GITHUB_ENV }
-          } else { echo "IS_PRE=false" >> $env:GITHUB_ENV }
+          # We trim here to prevent the "fatal: ambiguous argument" error
+          $foundTag = $allTags | Where-Object { $_.Trim() -ne $newTag -and $_.Trim() -match $validPattern } | Select-Object -First 1
+          
+          if ($null -ne $foundTag) {
+              $prevTag = $foundTag.Trim()
+              Write-Host "Found previous tag: $prevTag"
+              "LATEST_TAG=$prevTag" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+              
+              $prevVersionStr = $prevTag -replace "[^0-9\.]", ""
+              $curV = [System.Version]$currentVersionStr
+              $prevV = [System.Version]$prevVersionStr
+              if ($curV.Major -gt $prevV.Major -or $curV.Minor -gt $prevV.Minor) { "IS_PRE=false" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8 }
+              else { "IS_PRE=true" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8 }
+          } else {
+              "IS_PRE=false" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+              "LATEST_TAG=" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          }
 
-      # 3.5 GENERATE CHANGELOG (Keep your existing logic)
+      # 3.5 GENERATE CHANGELOG (FIXED LOG RANGE HANDLING)
       - name: Generate Changelog
         shell: pwsh
         run: |
           $prevTag = $env:LATEST_TAG
-          $log = if ([string]::IsNullOrEmpty($prevTag)) { git log --pretty=format:"- %s (%h)" --no-merges } else { git log $prevTag..HEAD --pretty=format:"- %s (%h)" --no-merges }
+          # Only use range if prevTag is actually a string with content
+          if ([string]::IsNullOrWhiteSpace($prevTag)) {
+              Write-Host "No valid previous tag. Getting all commits."
+              $log = git log --pretty=format:"- %s (%h)" --no-merges
+          } else {
+              Write-Host "Getting commits between $prevTag and HEAD"
+              $log = git log "$($prevTag)..HEAD" --pretty=format:"- %s (%h)" --no-merges
+          }
+          
           $logString = if ($log -is [Array]) { $log -join "`n" } else { $log }
           if ([string]::IsNullOrWhiteSpace($logString)) { $logString = git log -n 15 --pretty=format:"- %s (%h)" --no-merges -join "`n" }
+          
           $content = "## Changes in $env:NEW_TAG`n`n$logString"
           Set-Content -Path "release_notes.md" -Value $content -Encoding UTF8
-          # Escape for JSON payload later
+          
           $escapedLog = $logString -replace '"', '\"' -replace "`n", "\n" -replace "`r", ""
-          echo "ESCAPED_LOG=$escapedLog" >> $env:GITHUB_ENV
+          "ESCAPED_LOG=$escapedLog" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
-      # 4. CHECKOUT DEPENDENCIES (Refined Paths)
+      # 4. CHECKOUT DEPENDENCIES
       - name: Checkout Dependencies
         shell: pwsh
         run: |
-          # Use specific paths that we will map in Step 7
           git clone https://github.com/YBTopaz8/Last.fm "$env:GITHUB_WORKSPACE\ExternalDeps\Last.fm"
           git clone https://github.com/YBTopaz8/Parse-LiveQueries-DOTNET "$env:GITHUB_WORKSPACE\ExternalDeps\Parse-LiveQueries-DOTNET"
           git clone https://github.com/Zeugma440/atldotnet "$env:GITHUB_WORKSPACE\ExternalDeps\atldotnet-main"
           git clone https://github.com/xenolightning/AudioSwitcher "$env:GITHUB_WORKSPACE\ExternalDeps\AudioSwitcher-master"
 
-      # 5. LOCATE PROJECT FILES (Keep your existing logic)
+      # 5. LOCATE PROJECT FILES
       - name: Locate Project Files
         shell: pwsh
         run: |
@@ -88,20 +106,18 @@ jobs:
           echo "PATH_DROID=$($droid.FullName)" >> $env:GITHUB_ENV
           echo "DIR_CORE=$($core.Directory.FullName)" >> $env:GITHUB_ENV
           
-      # 6. CREATE APPSETTINGS.JSON (Keep your existing logic)
+      # 6. CREATE APPSETTINGS.JSON
       - name: Create appsettings.json
         shell: pwsh
         run: |
           $targetPath = Join-Path "${{ env.DIR_CORE }}" "appsettings.json"
           Set-Content -Path $targetPath -Value '${{ secrets.appsettings }}' -Encoding UTF8
 
-      # 7. PATCH CSPROJ PATHS (COMPLETELY REWRITTEN FOR ROBUSTNESS)
+      # 7. PATCH CSPROJ PATHS (ABSOLUTE MAPPING)
       - name: Fix Dependency Paths
         shell: pwsh
         run: |
           $depsRoot = "$env:GITHUB_WORKSPACE\ExternalDeps"
-          
-          # Define the specific mapping between what's in your .csproj and where they are on disk
           $mappings = @{
             "Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj" = "$depsRoot\Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj"
             "Parse-LiveQueries-DOTNET\ParseLiveQuery\ParseLiveQuery.csproj" = "$depsRoot\Parse-LiveQueries-DOTNET\ParseLiveQuery\ParseLiveQuery.csproj"
@@ -109,27 +125,19 @@ jobs:
             "AudioSwitcher-master\AudioSwitcher.AudioApi.CoreAudio\AudioSwitcher.AudioApi.CoreAudio.csproj" = "$depsRoot\AudioSwitcher-master\AudioSwitcher.AudioApi.CoreAudio\AudioSwitcher.AudioApi.CoreAudio.csproj"
             "AudioSwitcher-master\AudioSwitcher.AudioApi\AudioSwitcher.AudioApi.csproj" = "$depsRoot\AudioSwitcher-master\AudioSwitcher.AudioApi\AudioSwitcher.AudioApi.csproj"
           }
-
           Get-ChildItem -Recurse -Filter *.csproj | ForEach-Object {
             $path = $_.FullName
             $content = Get-Content $path -Raw
             $changed = $false
-
             foreach ($key in $mappings.Keys) {
-              # This regex looks for any ProjectReference Include that ends with the partial path
               $pattern = 'Include=".*' + [Regex]::Escape($key) + '"'
               $replacement = 'Include="' + $mappings[$key] + '"'
-              
               if ($content -match $pattern) {
                 $content = $content -replace $pattern, $replacement
                 $changed = $true
               }
             }
-
-            if ($changed) {
-              Set-Content $path $content -Encoding UTF8
-              Write-Host "✅ Patched absolute paths in: $($_.Name)"
-            }
+            if ($changed) { Set-Content $path $content -Encoding UTF8 }
           }
 
       # 8. SETUP .NET & WORKLOADS
@@ -140,16 +148,6 @@ jobs:
 
       - name: Install MAUI Workloads
         run: dotnet workload install maui-android maui-windows
-
-      - name: Disable AudioSwitcher Signing (Keep your existing logic)
-        shell: pwsh
-        run: |
-          Get-ChildItem -Recurse -Filter "AudioSwitcher*.csproj" | ForEach-Object {
-            $content = Get-Content $_.FullName
-            $content = $content -replace '<AssemblyOriginatorKeyFile>.*?</AssemblyOriginatorKeyFile>', ''
-            $content = $content -replace '<SignAssembly>true</SignAssembly>', '<SignAssembly>false</SignAssembly>'
-            Set-Content $_.FullName $content -Encoding UTF8
-          }
 
       # 9. BUILD WINDOWS
       - name: Build Windows
@@ -171,7 +169,6 @@ jobs:
         run: |
           dotnet publish "${{ env.PATH_DROID }}" -f net9.0-android -c Release -r android-arm64 -p:AndroidPackageFormat=apk -o .\RawBuild\Android
       
-      # 11.5 Get Android Size
       - name: Get Android Size
         shell: pwsh
         run: |
@@ -201,7 +198,7 @@ jobs:
             RawBuild/Android/*.apk
             Artifacts/Dimmer-Windows-Portable-${{ env.NEW_TAG }}.zip
 
-      # 14. NOTIFY PARSE SERVER (NEW: This integrates with your Cloud Code)
+      # 14. NOTIFY PARSE SERVER (postAppUpdate)
       - name: Notify Parse of New Update
         shell: pwsh
         env:
@@ -227,7 +224,7 @@ jobs:
           
           Invoke-RestMethod -Uri "$($env:PARSE_SERVER_URL)/functions/postAppUpdate" -Method Post -Headers $headers -Body $body
 
-      # 15. NOTIFY DISCORD (Keep your existing logic)
+      # 15. NOTIFY DISCORD
       - name: Notify Discord
         if: always()
         shell: pwsh
