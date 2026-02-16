@@ -70,8 +70,8 @@ jobs:
           if ([string]::IsNullOrWhiteSpace($logString)) { $logString = git log -n 15 --pretty=format:"- %s (%h)" --no-merges -join "`n" }
           $content = "## Changes in $env:NEW_TAG`n`n$logString"
           Set-Content -Path "release_notes.md" -Value $content -Encoding UTF8
-          $escapedLog = $logString -replace '"', '\"' -replace "`n", "\n" -replace "`r", ""
-          "ESCAPED_LOG=$escapedLog" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          # Store raw log; PowerShell env will handle quotes automatically
+          "ESCAPED_LOG=$logString" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
       # 4. CHECKOUT DEPENDENCIES
       - name: Checkout Dependencies
@@ -204,13 +204,16 @@ jobs:
           PARSE_MASTER_KEY: ${{ secrets.PARSE_MASTER_KEY }}
           PARSE_SERVER_URL: ${{ secrets.PARSE_SERVER_URL }}
         run: |
-          $releaseUrl = "${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ env.NEW_TAG }}"
-          $title = "Dimmer ${{ env.NEW_TAG }}"
-          $notes = "Android Size: $([math]::Round($env:APK_SIZE / 1MB, 2))MB`nWindows Size: $([math]::Round($env:WIN_SIZE / 1MB, 2))MB`n`n${{ env.ESCAPED_LOG }}"
+          $releaseUrl = "${{ github.server_url }}/${{ github.repository }}/releases/tag/$($env:NEW_TAG)"
+          $title = "Dimmer $($env:NEW_TAG)"
+          
+          # Use $env: to prevent literal text injection/parser errors
+          $notes = "Android Size: $([math]::Round($env:APK_SIZE / 1MB, 2))MB`nWindows Size: $([math]::Round($env:WIN_SIZE / 1MB, 2))MB`n`n$($env:ESCAPED_LOG)"
+          
           $body = @{ title = $title; notes = $notes; url = $releaseUrl } | ConvertTo-Json
           $headers = @{ "X-Parse-Application-Id" = $env:PARSE_APP_ID; "X-Parse-Master-Key" = $env:PARSE_MASTER_KEY; "Content-Type" = "application/json" }
           Invoke-RestMethod -Uri "$($env:PARSE_SERVER_URL)/functions/postAppUpdate" -Method Post -Headers $headers -Body $body
-
+          
       # 16. NOTIFY DISCORD
       - name: Notify Discord
         if: always()
