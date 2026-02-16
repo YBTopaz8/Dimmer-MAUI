@@ -509,19 +509,14 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         if (!string.IsNullOrEmpty(result.ErrorMessage) || result.Plan.ErrorMessage != null)
         {
             TQLUserSearchErrorMessage = result.ErrorMessage ?? result.Plan.ErrorMessage;
-            SearchResultsHolder.Edit(u => u.Clear()); // Clear list on error
+            //SearchResultsHolder.Edit(u => u.Clear()); // Clear list on error
            IsTqlBusy = false;
             return;
         }
 
+        SearchResultsHolder.EditDiff(result.SongsResult);
 
-        SearchResultsHolder.Edit(updater =>
-        {
-            updater.Clear();
-            updater.AddRange(result.SongsResult);
-        });
 
-        
         // 3. Update NLP Text Debugger
         if (CurrentTqlQuery != NLPQuery)
         {
@@ -2106,11 +2101,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial bool IsConnected { get; set; }
 
 
-    [ObservableProperty] public partial AlbumModelView? SelectedAlbum { get; set; }
+    [ObservableProperty] public partial AlbumModelView? SelectedAlbum { get; private set; }
 
     [ObservableProperty] public partial ObservableCollection<ArtistModelView>? SelectedAlbumArtists { get; set; }
 
-    [ObservableProperty] public partial ArtistModelView? SelectedArtist { get; set; }
+    [ObservableProperty] public partial ArtistModelView? SelectedArtist { get; private set; }
 
     [ObservableProperty] public partial PlaylistModelView? SelectedPlaylist { get; set; }
 
@@ -5941,10 +5936,15 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
     #endregion
 
-    public void SetSelectedAlbum(AlbumModelView album)
+    public void SetSelectedAlbum(AlbumModelView? album)
     {
+        if(album is not null)
+        {
+
         album.RefreshArtistsAndSongsFromDB(RealmFactory);
         SelectedAlbum = album;
+
+        }
     }
     #region lyrics editing region
     [RelayCommand]

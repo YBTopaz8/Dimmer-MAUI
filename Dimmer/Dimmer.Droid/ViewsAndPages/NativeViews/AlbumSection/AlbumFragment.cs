@@ -259,36 +259,7 @@ public partial class AlbumFragment : Fragment, IOnBackInvokedCallback
         }
         loadingIndic.Visibility = ViewStates.Visible;
 
-        SongAdapter.CreateAsync(this.View?.Context, MyViewModel, this, SongsToWatchSource.AlbumPage)?
-        .Subscribe(adapter =>
-        {
-            MyRecycleViewAdapter = adapter;
-            _songListRecycler?.SetAdapter(MyRecycleViewAdapter);
-
-            int currentlyPlayingIndex = 0;
-            if (MyViewModel.SelectedSong is not null)
-            {
-                currentlyPlayingIndex = MyViewModel.SearchResults.IndexOf(MyViewModel.SelectedSong);
-
-            }
-            else
-            {
-
-                currentlyPlayingIndex = MyViewModel.SearchResults.IndexOf(MyViewModel.CurrentPlayingSongView);
-            }
-            if (currentlyPlayingIndex >= 0)
-                _songListRecycler?.SmoothScrollToPosition(currentlyPlayingIndex);
-
-            loadingIndic.Visibility = ViewStates.Gone;
-
-        },
-        error =>
-        {
-            Debug.WriteLine(error.Message);
-            loadingIndic.Visibility = ViewStates.Gone;
-
-        });
-
+        
 
         MyRecycleViewAdapter?.IsSourceCleared.
            ObserveOn(RxSchedulers.UI)

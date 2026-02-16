@@ -1,24 +1,4 @@
-﻿using Android.Text;
-using AndroidX.Core.View;
-using AndroidX.Lifecycle;
-using Bumptech.Glide;
-using Dimmer.DimmerSearch;
-using Dimmer.UiUtils;
-using Dimmer.Utils.Extensions;
-using Dimmer.ViewsAndPages.NativeViews.Misc;
-using Dimmer.ViewsAndPages.ViewUtils;
-using DynamicData;
-using Google.Android.Material.Chip;
-using Google.Android.Material.Dialog;
-using Microsoft.Maui.Controls.Shapes;
-using Microsoft.Maui.Graphics;
-using MongoDB.Bson; 
-using Parse.LiveQuery;
-using Realms;
-using System.Reactive;
-using System.Reactive.Disposables;
-using System.Reactive.Disposables.Fluent;
-using static Android.App.Assist.AssistStructure;
+﻿
 
 namespace Dimmer.ViewsAndPages.NativeViews;
 
@@ -80,47 +60,7 @@ internal partial class SongAdapter : RecyclerView.Adapter , IDisposable
         
         SetupReactivePipeline(vm, songsToWatch);
     }
-    private async Task WaitForInitializationAsync()
-    {
-        // Wait for adapter to be ready
-        await _isAdapterReady
-            .FirstAsync(isReady => isReady)
-            .Timeout(TimeSpan.FromSeconds(5)) // Add timeout for safety
-            .Catch((TimeoutException ex) =>
-            {
-                return Observable.Return(true); // Continue anyway
-            });
-    }
 
-    public static IObservable<SongAdapter>? CreateAsync(
-        Context? ctx,
-        BaseViewModelAnd myViewModel,
-        Fragment pFramgent,
-        SongsToWatchSource songsToWatch = SongsToWatchSource.HomePage)
-    {
-        if(ctx is null)
-        {
-            ctx = pFramgent.Context;
-        }
-        if(ctx is null)
-        {
-            return null;
-        }
-        return Observable.Create<SongAdapter>(async observer =>
-        {
-            var adapter = new SongAdapter(ctx, myViewModel, pFramgent, songsToWatch);
-
-
-            await adapter.WaitForInitializationAsync();
-
-            observer.OnNext(adapter);
-            observer.OnCompleted();
-
-            return Disposable.Create(() => adapter.Dispose());
-        })
-            .SubscribeOn(RxSchedulers.Background)
-            .ObserveOn(RxSchedulers.UI);
-    }
 
 
     private void SetupReactivePipeline(BaseViewModelAnd viewModel, SongsToWatchSource songsToWatch)
@@ -211,7 +151,6 @@ internal partial class SongAdapter : RecyclerView.Adapter , IDisposable
     private IObservable<IChangeSet<SongModelView>> GetAlbumSongsStream(BaseViewModelAnd viewModel)
     {
         var selAlb = viewModel.SelectedAlbum;
-        selAlb = viewModel.SelectedAlbum = viewModel.SelectedSong!.Album;
         var realm = viewModel.RealmFactory.GetRealmInstance();
 
         // Realm relationships (like .Songs) return an IList<T> that implements INotifyCollectionChanged.

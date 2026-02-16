@@ -54,35 +54,35 @@ public class QueueBottomSheetFragment : BottomSheetDialogFragment, IOnBackInvoke
 
         loadingIndic.Visibility = ViewStates.Visible;
 
-        SongAdapter.CreateAsync(this.View?.Context, MyViewModel, this, SongsToWatchSource.QueuePage)?
-        .Subscribe(adapter =>
-        {
-            MyRecycleViewAdapter = adapter;
-            _songListRecycler?.SetAdapter(MyRecycleViewAdapter);
+        //SongAdapter.CreateAsync(this.View?.Context, MyViewModel, this, SongsToWatchSource.QueuePage)?
+        //.Subscribe(adapter =>
+        //{
+        //    MyRecycleViewAdapter = adapter;
+        //    _songListRecycler?.SetAdapter(MyRecycleViewAdapter);
 
-            int currentlyPlayingIndex = 0;
-            if (MyViewModel.SelectedSong is not null)
-            {
-                currentlyPlayingIndex = MyViewModel.SearchResults.IndexOf(MyViewModel.SelectedSong);
+        //    int currentlyPlayingIndex = 0;
+        //    if (MyViewModel.SelectedSong is not null)
+        //    {
+        //        currentlyPlayingIndex = MyViewModel.SearchResults.IndexOf(MyViewModel.SelectedSong);
 
-            }
-            else
-            {
+        //    }
+        //    else
+        //    {
 
-                currentlyPlayingIndex = MyViewModel.SearchResults.IndexOf(MyViewModel.CurrentPlayingSongView);
-            }
-            if (currentlyPlayingIndex >= 0)
-                _songListRecycler?.SmoothScrollToPosition(currentlyPlayingIndex);
+        //        currentlyPlayingIndex = MyViewModel.SearchResults.IndexOf(MyViewModel.CurrentPlayingSongView);
+        //    }
+        //    if (currentlyPlayingIndex >= 0)
+        //        _songListRecycler?.SmoothScrollToPosition(currentlyPlayingIndex);
 
-            loadingIndic.Visibility = ViewStates.Gone;
+        //    loadingIndic.Visibility = ViewStates.Gone;
 
-        },
-        error =>
-        {
-            Debug.WriteLine(error.Message);
-            loadingIndic.Visibility = ViewStates.Gone;
+        //},
+        //error =>
+        //{
+        //    Debug.WriteLine(error.Message);
+        //    loadingIndic.Visibility = ViewStates.Gone;
 
-        });
+        //});
 
     }
     public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)

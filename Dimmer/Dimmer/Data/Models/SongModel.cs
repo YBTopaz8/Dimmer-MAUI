@@ -233,6 +233,7 @@ public partial class SongModel : RealmObject, IRealmObjectWithObjectId
     public int PreviousCount { get;  set; }
     public int RestartCount { get;  set; }
     public DateTimeOffset DiscoveryDate { get;  set; }
+    public string PlatformPath { get;  set; }
 }
 [Dimmer.Utils.Preserve(AllMembers = true)]
 public partial class SyncLyrics : EmbeddedObject

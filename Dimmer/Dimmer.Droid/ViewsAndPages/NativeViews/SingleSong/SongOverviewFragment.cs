@@ -8,6 +8,7 @@ using AndroidX.Lifecycle;
 
 using CommunityToolkit.Diagnostics;
 using Dimmer.UiUtils;
+using Dimmer.ViewsAndPages.NativeViews.AlbumSection;
 using Dimmer.ViewsAndPages.NativeViews.ArtistSection;
 using Google.Android.Material.Chip;
 using Microsoft.Maui;
@@ -24,7 +25,7 @@ public partial class SongOverviewFragment : Fragment
     private StatisticsViewModel statisticsViewModel;
 
     public Chip titleText { get; private set; }
-    public TextView AlbumText { get; private set; }
+    public Button AlbumText { get; private set; }
 
     public SongOverviewFragment(BaseViewModelAnd vm) { MyViewModel = vm;
 
@@ -74,7 +75,7 @@ public partial class SongOverviewFragment : Fragment
             var artistBtn = new MaterialButton(ctx, null, Resource.Attribute.borderlessButtonStyle) { Text = art.Name, TextSize = 18 };
             artistBtn.Click += async (s, e) =>
             {
-                MyViewModel.SelectedArtist = art;
+                MyViewModel.SetSelectedArtist(art);
                
                 MyViewModel.NavigateToArtistPage(this, art.Id.ToString(), art, (MaterialButton)s!);
             };
@@ -84,18 +85,17 @@ public partial class SongOverviewFragment : Fragment
 
 
         // Album
-        AlbumText = new TextView(ctx)
+        AlbumText = new MaterialButton(ctx, null, Resource.Attribute.borderlessButtonStyle) { Text = MyViewModel.SelectedSong.Album!.Name, TextSize = 18 };
+        AlbumText.Click += async (s, e) =>
         {
-            Text = SelectedSong.AlbumName,
-            TextSize = 14,
-            Typeface = Typeface.DefaultBold
-        };
+            MyViewModel.SetSelectedAlbum(MyViewModel.SelectedSong.Album);
 
+            MyViewModel.NavigateToAnyPageOfGivenType(this, new AlbumFragment(MyViewModel), MyViewModel.SelectedAlbum!.Id.ToString());
+        };
+        AlbumText.Tag = $"artist{MyViewModel.SelectedSong.Album.Id}";
+        root.AddView(AlbumText);
         AlbumText.SetForegroundGravity(GravityFlags.CenterHorizontal);
 
-
-
-        root.AddView(AlbumText);
 
         
 

@@ -48,6 +48,7 @@ public static class DimmerMappers
             Id = src.Id,
             Title = src.Title,
             FilePath = src.FilePath,
+            
             DurationInSeconds = src.DurationInSeconds,
             IsHidden = src.IsHidden,
             ReleaseYear = src.ReleaseYear,
@@ -55,6 +56,7 @@ public static class DimmerMappers
             ManualFavoriteCount = src.ManualFavoriteCount,
             TrackNumber = src.TrackNumber,
             FileFormat = src.FileFormat,
+            PlatformPath=src.PlatformPath,
             Lyricist = src.Lyricist,
             Composer = src.Composer,
             Conductor = src.Conductor,
@@ -287,6 +289,7 @@ public static class DimmerMappers
             Lyricist = src.Lyricist,
             Composer = src.Composer,
             Conductor = src.Conductor,
+            PlatformPath = src.PlatformPath,
             Description = src.Description,
             Language = src.Language,
             DiscNumber = src.DiscNumber,

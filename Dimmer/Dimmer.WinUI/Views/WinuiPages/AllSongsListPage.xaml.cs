@@ -970,7 +970,7 @@ AnimationHelper.ConnectedAnimationStyle.ScaleUp
 );
         Type pageType = typeof(AlbumPage);
 
-        MyViewModel.SelectedAlbum = song.Album;
+        MyViewModel.SetSelectedAlbum(song?.Album);
         MyViewModel.SelectedSong = song;
         MyViewModel.NavigateToAnyPageOfGivenType(pageType);
 
