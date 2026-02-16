@@ -866,7 +866,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
 
 
 
-
+        
 
         MyViewModel.AudioEngineIsPlayingObservable
             .ObserveOn(RxSchedulers.UI)

@@ -80,6 +80,27 @@ public partial class AppUpdateModel : ParseObject
         set => SetProperty(value);
     }
 
+    [ParseFieldName("androidSize")]
+    public string androidSize
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
+
+    [ParseFieldName("windowsSize")]
+    public string windowsSize
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
+
+    [ParseFieldName("version")]
+    public string version
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
+
     [ParseFieldName("rolloutPercentage")]
     public int rolloutPercentage
     {

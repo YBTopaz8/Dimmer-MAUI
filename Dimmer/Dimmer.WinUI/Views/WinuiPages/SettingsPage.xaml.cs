@@ -1,5 +1,5 @@
 using CommunityToolkit.WinUI;
-
+using Dimmer.DimmerLive.ParseStatics;
 using Microsoft.UI.Xaml.Controls.Primitives;
 
 using Grid = Microsoft.UI.Xaml.Controls.Grid;
@@ -385,5 +385,54 @@ public sealed partial class SettingsPage : Page
       await MyViewModel.BaseViewModelWin.LoadAlbumAndArtistDetailsFromLastFM();
     }
 
+    private async void CheckUpdates_Click(object sender, RoutedEventArgs e)
+    {
+        UpdateCheckProgress.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+        UpdatesListView.ItemsSource = null;
 
+        try
+        {
+            // Fetch the last 10 updates
+            var updates = await ParseStatics.GetAllAppUpdatesAsync(10);
+
+            if (updates != null && updates.Any())
+            {
+                UpdatesListView.ItemsSource = updates;
+                UpdatesExpander.IsExpanded = true;
+            }
+            else
+            {
+                // You can use your existing AppLog system here
+                MyViewModel.LatestAppLog = new AppLogEntryView
+                {
+                    Message = "No updates found."
+                };
+            }
+        }
+        finally
+        {
+            UpdateCheckProgress.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+        }
+    }
+    private async Task FetchUpdateHistorySilently()
+    {
+        var updates = await ParseStatics.GetAllAppUpdatesAsync(5);
+        UpdatesListView.ItemsSource = updates;
+    }
+    private async void DownloadUpdate_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is string url)
+        {
+            if (!string.IsNullOrEmpty(url))
+            {
+                // Opens the GitHub Release page in the default browser
+                await Windows.System.Launcher.LaunchUriAsync(new Uri(url));
+            }
+        }
+    }
+
+    private void UtilitiesGrid_Loaded(object sender, RoutedEventArgs e)
+    {
+        _ = FetchUpdateHistorySilently();
+    }
 }
