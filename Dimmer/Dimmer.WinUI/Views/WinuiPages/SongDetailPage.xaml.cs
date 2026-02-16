@@ -416,7 +416,7 @@ public sealed partial class SongDetailPage : Page
     {
         AnimationHelper.Prepare(AnimationHelper.Key_ToAlbumPage,
             (FrameworkElement)sender, AnimationHelper.ConnectedAnimationStyle.ScaleUp);
-        MyViewModel.SelectedAlbum = MyViewModel.SelectedSong.Album;
+        MyViewModel.SetSelectedAlbum(MyViewModel.SelectedSong?.Album);
         MyViewModel.NavigateToAnyPageOfGivenType(typeof(AlbumPage));
     }
                             
@@ -628,7 +628,7 @@ public sealed partial class SongDetailPage : Page
             ViewModel = MyViewModel
         };
         var artist = currentView.DataContext as ArtistModelView;
-        MyViewModel.SelectedArtist = artist;
+        MyViewModel.SetSelectedArtist(artist);
 
         FrameNavigationOptions navigationOptions = new FrameNavigationOptions
         {
@@ -799,7 +799,7 @@ public sealed partial class SongDetailPage : Page
 
         AnimationHelper.TryStart(
             //detailedImage,
-            ArtistsInSongTxtBlock,
+            UtilitiesSection,
             null,
             
             "OpenArtistSongsCatalog",      // Priority 1: Coming from Edit Page

@@ -457,14 +457,14 @@ public static class PlatUtils
     {
         string songTitle = songPlaying.Title;
         string artistName = songPlaying.OtherArtistsName;
-        string albumArtPath = songPlaying.CoverImagePath;
+        string albumArtPath = songPlaying.CoverImagePath!;
         try
         {
 
             var notificationBuilder = new AppNotificationBuilder()
                 .AddArgument("action", "viewSong")
                 //.AddArgument("songId", "12345")
-                .SetAppLogoOverride(new Uri(albumArtPath), AppNotificationImageCrop.Circle, songTitle)
+                .SetAppLogoOverride(new Uri(albumArtPath!), AppNotificationImageCrop.Circle, songTitle)
                 .AddText("Now Playing...", new AppNotificationTextProperties().SetMaxLines(2))
                 .AddText(songTitle, new AppNotificationTextProperties().SetMaxLines(2))
 

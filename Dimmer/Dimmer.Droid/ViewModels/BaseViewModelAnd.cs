@@ -7,6 +7,7 @@ using AndroidX.Lifecycle;
 
 using Bumptech.Glide;
 using Dimmer.UiUtils;
+using Dimmer.ViewsAndPages.NativeViews.Adapters;
 using Dimmer.ViewsAndPages.NativeViews.ArtistSection;
 
 
@@ -28,6 +29,8 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         isAppBooting = true;
         this._logger.LogInformation("BaseViewModelAnd initialized.");
         audioService = audioServ;
+
+        
     }
     public LoginViewModel LoginViewModel => _loginViewModel;
     private readonly LoginViewModel _loginViewModel;
@@ -619,6 +622,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     public System.Reactive.Subjects.Subject<System.Reactive.Unit> ScrollToCurrentSongRequest { get; }
     = new System.Reactive.Subjects.Subject<System.Reactive.Unit>();
+    internal HomePageAdapter HomeAdapter { get; set; }
 
     // 2. Helper method to trigger it
     public void TriggerScrollToCurrentSong()

@@ -46,6 +46,22 @@ public partial class DownloadLyricsFragment : Fragment
                        isSearchClicked = false;
                        searchBtn.Enabled = true;
                    });
+       
+               MyViewModel.WhenPropertyChange(nameof(MyViewModel.IsLyricsSearchBusy), x=>MyViewModel.IsLyricsSearchBusy)
+                   .ObserveOn(RxSchedulers.UI)
+                   .Subscribe(isBusy =>
+                   {
+                       if (isBusy)
+                       {
+                           loadingBar.Visibility = ViewStates.Visible;
+                           searchBtn.Enabled = false;
+                           return;
+                       }
+                       loadingBar.Visibility = ViewStates.Gone;
+                       searchBtn.Enabled = true;
+                           return;
+                       
+                   });
     }
     public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {

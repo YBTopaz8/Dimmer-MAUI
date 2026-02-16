@@ -1,26 +1,90 @@
 ﻿using Dimmer.UiUtils;
 using Google.Android.Material.Dialog;
+using Google.Android.Material.Loadingindicator;
+using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
+using static Android.Provider.DocumentsContract;
+using static Dimmer.ViewsAndPages.NativeViews.SongAdapter;
 
 namespace Dimmer.ViewsAndPages.NativeViews.Misc;
 
-public class QueueBottomSheetFragment : BottomSheetDialogFragment
+public class QueueBottomSheetFragment : BottomSheetDialogFragment, IOnBackInvokedCallback
 {
     private BaseViewModelAnd MyViewModel;
-    private RecyclerView _recyclerView;
-    private SongAdapter _adapter;
+    private RecyclerView _songListRecycler;
+    private SongAdapter MyRecycleViewAdapter;
     private bool _pendingScrollToCurrent;
     private MaterialButton CallerBtn;
+    private LoadingIndicator loadingIndic;
     public QueueBottomSheetFragment(BaseViewModelAnd viewModel, Button callerBtn)
     {
         MyViewModel = viewModel;
         CallerBtn = callerBtn;
+    }
+    public void OnBackInvoked()
+    {
+        TransitionActivity myAct = (Activity as TransitionActivity)!;
+        myAct?.HandleBackPressInternal();
     }
     public override void OnDismiss(IDialogInterface dialog)
     {
         base.OnDismiss(dialog);
         CallerBtn.Enabled = true;
     }
+    private readonly CompositeDisposable _disposables = new();
 
+    public override void OnResume()
+    {
+        MyViewModel.CurrentFragment = this;
+        base.OnResume();
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu)
+        {
+            Activity?.OnBackInvokedDispatcher.RegisterOnBackInvokedCallback(
+                (int)IOnBackInvokedDispatcher.PriorityDefault, this);
+        }
+
+        MyRecycleViewAdapter.IsSourceCleared.
+           ObserveOn(RxSchedulers.UI)
+           .Subscribe(observer =>
+           {
+               loadingIndic.Visibility = ViewStates.Gone;
+           }).DisposeWith(_disposables);
+
+
+
+        loadingIndic.Visibility = ViewStates.Visible;
+
+        //SongAdapter.CreateAsync(this.View?.Context, MyViewModel, this, SongsToWatchSource.QueuePage)?
+        //.Subscribe(adapter =>
+        //{
+        //    MyRecycleViewAdapter = adapter;
+        //    _songListRecycler?.SetAdapter(MyRecycleViewAdapter);
+
+        //    int currentlyPlayingIndex = 0;
+        //    if (MyViewModel.SelectedSong is not null)
+        //    {
+        //        currentlyPlayingIndex = MyViewModel.SearchResults.IndexOf(MyViewModel.SelectedSong);
+
+        //    }
+        //    else
+        //    {
+
+        //        currentlyPlayingIndex = MyViewModel.SearchResults.IndexOf(MyViewModel.CurrentPlayingSongView);
+        //    }
+        //    if (currentlyPlayingIndex >= 0)
+        //        _songListRecycler?.SmoothScrollToPosition(currentlyPlayingIndex);
+
+        //    loadingIndic.Visibility = ViewStates.Gone;
+
+        //},
+        //error =>
+        //{
+        //    Debug.WriteLine(error.Message);
+        //    loadingIndic.Visibility = ViewStates.Gone;
+
+        //});
+
+    }
     public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         var ctx = Context;
@@ -36,23 +100,28 @@ public class QueueBottomSheetFragment : BottomSheetDialogFragment
         rootFrame.SetBackgroundColor(Color.Transparent);
 
         // 2. The Recycler View (The Queue)
-        _recyclerView = new RecyclerView(ctx);
-        _recyclerView.SetLayoutManager(new LinearLayoutManager(ctx));
+        _songListRecycler = new RecyclerView(ctx);
+        _songListRecycler.SetLayoutManager(new LinearLayoutManager(ctx));
 
         var listParams = new FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MatchParent,
             ViewGroup.LayoutParams.MatchParent);
-        _recyclerView.LayoutParameters = listParams;
-        // Pass "queue" to your adapter to bind to PlaybackSource
-        _adapter = new SongAdapter(ctx, MyViewModel, this, "queue");
-        _recyclerView.SetAdapter(_adapter);
+        _songListRecycler.LayoutParameters = listParams;
+
 
         // Add padding at bottom so the last item isn't covered by the pill
-        _recyclerView.SetPadding(0, 0, 0, AppUtil.DpToPx(80));
-        _recyclerView.SetClipToPadding(false);
+        _songListRecycler.SetPadding(0, 0, 0, AppUtil.DpToPx(80));
+        _songListRecycler.SetClipToPadding(false);
 
 
-        rootFrame.AddView(_recyclerView);
+        rootFrame.AddView(_songListRecycler);
+
+
+        loadingIndic = new LoadingIndicator(ctx);
+        loadingIndic.IndicatorSize = AppUtil.DpToPx(40);
+        loadingIndic.SetForegroundGravity(GravityFlags.CenterHorizontal);
+        rootFrame.AddView(loadingIndic);
+
 
         // 3. The Pill Container (MaterialCardView)
         var pillCard = new MaterialCardView(ctx)
@@ -156,11 +225,11 @@ public class QueueBottomSheetFragment : BottomSheetDialogFragment
         base.OnViewCreated(view, savedInstanceState);
         
         // Enable drag & drop for queue reordering
-        if (_recyclerView != null && _adapter != null)
+        if (_songListRecycler != null && MyRecycleViewAdapter != null)
         {
-            var callback = new SongAdapter.SimpleItemTouchHelperCallback(_adapter);
+            var callback = new SongAdapter.SimpleItemTouchHelperCallback(MyRecycleViewAdapter);
             var itemTouchHelper = new ItemTouchHelper(callback);
-            itemTouchHelper.AttachToRecyclerView(_recyclerView);
+            itemTouchHelper.AttachToRecyclerView(_songListRecycler);
         }
         
         if (_pendingScrollToCurrent)
@@ -177,7 +246,7 @@ public class QueueBottomSheetFragment : BottomSheetDialogFragment
 
     public void ScrollToSong(SongModelView? requestedSong=null)
     {
-        if (_recyclerView == null)
+        if (_songListRecycler == null)
         {
             _pendingScrollToCurrent = true;
             return;
@@ -189,12 +258,12 @@ public class QueueBottomSheetFragment : BottomSheetDialogFragment
         var index = MyViewModel.PlaybackQueue.IndexOf(requestedSong);
         if (_pendingScrollToCurrent)
         {
-            _recyclerView.SmoothScrollToPosition(index-3); 
+            _songListRecycler.SmoothScrollToPosition(index-3); 
             _pendingScrollToCurrent = false;
         }
         else
         {
-            _recyclerView.SmoothScrollToPosition(index-3);
+            _songListRecycler.SmoothScrollToPosition(index-3);
             _pendingScrollToCurrent = false;
             //_recyclerView.SmoothScrollToPosition(index); 
         }

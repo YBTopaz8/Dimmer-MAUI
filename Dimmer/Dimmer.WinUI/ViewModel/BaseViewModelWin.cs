@@ -744,9 +744,11 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         // TODO: add matching songs to NowPlayingQueue
     }
 
-    public void NavigateToArtistPage(SongModelView song, string artistName)
+    public void NavigateToArtistPage(SongModelView? song, string artistName)
     {
-        SelectedArtist = song.ArtistsInDB(RealmFactory)?.FirstOrDefault(x=>x?.Name==artistName);
+        if (song is null) return;
+        var art = song.ArtistsInDB(RealmFactory)?.FirstOrDefault(x=>x?.Name==artistName);
+        SetSelectedArtist(art);
         Debug.WriteLine($"Navigating to artist page: {artistName}");
         if(SelectedArtist is not null)
             NavigateToAnyPageOfGivenType(typeof(ArtistPage));
@@ -822,17 +824,17 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
             artist.ListOfSimilarArtistsNames = are;
         }
         artist.TotalSongsByArtist = SearchResults.
-            Where(x => x.OtherArtistsName.Contains(artist.Name))
+            Where(x => x.OtherArtistsName.Contains(artist.Name!))
             .Count();
 
         artist.TotalAlbumsByArtist = SearchResults.
-            Where(x=> x.OtherArtistsName.Contains(artist.Name))
+            Where(x=> x.OtherArtistsName.Contains(artist.Name!))
             .Count();
 
 
         RxSchedulers.UI.ScheduleTo(() =>
         {
-            SelectedArtist = artist;
+            SetSelectedArtist (artist);
         });
     }
 
@@ -1203,7 +1205,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         var realm = RealmFactory.GetRealmInstance();
         var exactArtist = realm.All<ArtistModel>().FirstOrDefault(a => a.Name == chosen);
         if (exactArtist is null) return;
-        var songInDb = realm.Find<SongModel>(SelectedSong.Id);
+        var songInDb = realm.Find<SongModel>(SelectedSong!.Id);
         if (songInDb is null) return;
         realm.Write(() =>
         {

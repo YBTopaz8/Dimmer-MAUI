@@ -106,6 +106,22 @@ global using TransitionSet = AndroidX.Transitions.TransitionSet;
 global using ChangeImageTransform = AndroidX.Transitions.ChangeImageTransform;
 
 global using Resource = Microsoft.Maui.Resource;
+
+global using Android.Text;
+global using AndroidX.Core.View;
+global using Bumptech.Glide;
+global using Dimmer.UiUtils;
+global using Dimmer.Utils.Extensions;
+global using Dimmer.ViewsAndPages.NativeViews.Misc;
+global using DynamicData;
+global using Google.Android.Material.Chip;
+
+global using System.Reactive;
+global using System.Reactive.Disposables;
+global using System.Reactive.Disposables.Fluent;
+
+
+
 namespace Dimmer;
 
 internal class GlobalUsings

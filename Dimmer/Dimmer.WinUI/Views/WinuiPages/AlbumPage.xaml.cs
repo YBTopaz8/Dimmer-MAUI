@@ -48,7 +48,7 @@ public sealed partial class AlbumPage : Page
 
         SelectedAlbum = MyViewModel.RealmFactory.GetRealmInstance().Find<SongModel>(DetailedSong.Id)!.Album.ToAlbumModelView(withArtist: true, withSongs: true)!; ;
 
-        MyViewModel.SelectedAlbum = SelectedAlbum;
+        MyViewModel.SetSelectedAlbum (SelectedAlbum);
         MyViewModel.SelectedLastFMAlbum = await MyViewModel.LastFMService.GetAlbumInfoAsync(DetailedSong.ArtistName, SelectedAlbum!.Name);
         AnimationHelper.TryStart(
       DestinationElement,

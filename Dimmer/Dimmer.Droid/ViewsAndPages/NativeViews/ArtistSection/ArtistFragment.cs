@@ -1,6 +1,4 @@
-﻿using System.Reactive.Disposables;
-using System.Reactive.Disposables.Fluent;
-using Android.Nfc;
+﻿using Android.Nfc;
 using Android.Text;
 using AndroidX.CoordinatorLayout.Widget;
 using AndroidX.Core.Widget;
@@ -14,6 +12,9 @@ using Google.Android.Material.Chip;
 using Google.Android.Material.Floatingtoolbar;
 using Google.Android.Material.Loadingindicator;
 using Google.Android.Material.ProgressIndicator;
+using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
+using static Dimmer.ViewsAndPages.NativeViews.SongAdapter;
 using ScrollView = Android.Widget.ScrollView;
 
 namespace Dimmer.ViewsAndPages.NativeViews.ArtistSection;
@@ -24,12 +25,10 @@ public partial class ArtistFragment : Fragment, IOnBackInvokedCallback
     private BaseViewModelAnd MyViewModel;
     private string _artistName;
     private string _artistId;
-    private RecyclerView albumsRecycler;
     private NestedScrollView myScrollView;
     private FrameLayout container;
     private LinearLayout root;
     private TextView songsLabel;
-    private LoadingIndicator progressIndic;
 
     public ArtistFragment()
     {
@@ -47,7 +46,7 @@ public partial class ArtistFragment : Fragment, IOnBackInvokedCallback
     private ChipGroup _albumChipGroup;
     private TextView nameTxt;
     private TextView albumLabel;
-    private RecyclerView _recyclerView;
+    private RecyclerView _songListRecycler;
     private LinearLayout totalPlayStats;
     private LinearLayout totalSkipsStats;
     private LinearLayout libTracks;
@@ -60,7 +59,9 @@ public partial class ArtistFragment : Fragment, IOnBackInvokedCallback
         //myAct.MoveTaskToBack
     }
     public ArtistModelView SelectedArtist { get; private set; }
-    internal SongAdapter MyRecycleViewAdapter { get; private set; }
+    internal SongAdapter? MyRecycleViewAdapter { get; private set; }
+    public LoadingIndicator loadingIndic { get; private set; }
+
     public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         var ctx = Context;
@@ -153,8 +154,8 @@ public partial class ArtistFragment : Fragment, IOnBackInvokedCallback
             statsLayout.AddView(totalSkipsStats);
         
             libTracks = CreateStatRow(ctx, "Library Tracks", SelectedArtist.SongsByArtist.Count.ToString());
-        }
         statsLayout.AddView(libTracks);
+        }
 
         statsCard.AddView(statsLayout);
         root.AddView(statsCard);
@@ -162,10 +163,12 @@ public partial class ArtistFragment : Fragment, IOnBackInvokedCallback
 
 
 
-        progressIndic = new LoadingIndicator(ctx);
-        progressIndic.IndicatorSize = AppUtil.DpToPx(40);
-        progressIndic.SetForegroundGravity(GravityFlags.CenterHorizontal);
-        root.AddView(progressIndic);
+
+        loadingIndic = new LoadingIndicator(ctx);
+        loadingIndic.IndicatorSize = AppUtil.DpToPx(40);
+        loadingIndic.SetForegroundGravity(GravityFlags.CenterHorizontal);
+        root.AddView(loadingIndic);
+
 
 
 
@@ -174,15 +177,11 @@ public partial class ArtistFragment : Fragment, IOnBackInvokedCallback
         songsLabel = new MaterialTextView(ctx) { Text = "Songs "+SelectedArtist.SongsByArtist.Count, TextSize = 20 }; // Update count later
         recyclerContainer.AddView(songsLabel);
 
-        _recyclerView = new RecyclerView(ctx);
-        _recyclerView.NestedScrollingEnabled = false; // LET THE SCROLLVIEW HANDLE SCROLLING
-        _recyclerView.SetLayoutManager(new LinearLayoutManager(ctx));
+        _songListRecycler = new RecyclerView(ctx);
+        _songListRecycler.NestedScrollingEnabled = false; // LET THE SCROLLVIEW HANDLE SCROLLING
+        _songListRecycler.SetLayoutManager(new LinearLayoutManager(ctx));
 
-        // Set Adapter immediately with empty data or loading state to prevent UI pop-in
-        MyRecycleViewAdapter = new SongAdapter(ctx, MyViewModel, this, "artist");
-        _recyclerView.SetAdapter(MyRecycleViewAdapter);
-
-        recyclerContainer.AddView(_recyclerView);
+        recyclerContainer.AddView(_songListRecycler);
         root.AddView(recyclerContainer);
 
         // Add root to ScrollView
@@ -252,6 +251,14 @@ public partial class ArtistFragment : Fragment, IOnBackInvokedCallback
         return btn;
     }
 
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _disposables.Dispose();
+        }
+        base.Dispose(disposing);
+    }
     private LinearLayout CreateStatRow(Context ctx, string label, string value)
     {
         var row = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
@@ -271,12 +278,18 @@ public partial class ArtistFragment : Fragment, IOnBackInvokedCallback
         _albumChipGroup.RemoveAllViews();
         _albumChipGroup.CanScrollHorizontally(1);
         _albumChipGroup.SetChipSpacing(5);
-        
+
+        loadingIndic.Visibility = ViewStates.Visible;
+
+
+        MyRecycleViewAdapter = new SongAdapter(View!.Context!,
+            MyViewModel,this,SongsToWatchSource.ArtistPage);
+        _songListRecycler.SetAdapter(MyRecycleViewAdapter);
         var albuInArtist = SelectedArtist.AlbumsByArtist;
-        albuInArtist ??= SelectedArtist.AlbumsInDB(MyViewModel.RealmFactory).ToObservableCollection();
-            if (albuInArtist is not null)
+        albuInArtist ??= SelectedArtist.AlbumsInDB(MyViewModel.RealmFactory)?.ToObservableCollection();
+            if (albuInArtist is not null )
             {
-                foreach (var album in albuInArtist)
+                foreach (AlbumModelView? album in albuInArtist)
                 {
                     var chip = new Chip(Context) {
                         Typeface = Typeface.DefaultBold,
@@ -284,7 +297,7 @@ public partial class ArtistFragment : Fragment, IOnBackInvokedCallback
 
                         HorizontalFadingEdgeEnabled = true,
                         
-                        Text = album.Name };
+                        Text = album!.Name };
 
                 chip.TooltipText = album.Name;
                     chip.Click += (s, e) =>
@@ -309,18 +322,20 @@ public partial class ArtistFragment : Fragment, IOnBackInvokedCallback
         }
         MyViewModel.CurrentFragment = this;
         var ctx = Context;
-       
 
-        MyRecycleViewAdapter.IsSourceCleared.
-            ObserveOn(RxSchedulers.UI)
-            .Subscribe(observer =>
-            {
-                progressIndic.Visibility = ViewStates.Gone;
-            }).DisposeWith(_disposables);
-      
+
+
+
+        MyRecycleViewAdapter?.IsSourceCleared.
+       ObserveOn(RxSchedulers.UI)
+       .Subscribe(observer =>
+       {
+           loadingIndic.Visibility = ViewStates.Gone;
+       }).DisposeWith(_disposables);
+
+
 
     }
-  
     // --- Simple Adapters for this View ---
     class ArtistsFromAlbumAdapter : RecyclerView.Adapter
     {

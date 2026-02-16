@@ -7,6 +7,7 @@ using AndroidX.DrawerLayout.Widget;
 using AndroidX.Lifecycle;
 using Dimmer.NativeServices;
 using Dimmer.UiUtils;
+using Dimmer.ViewsAndPages.NativeViews.Adapters;
 using Dimmer.ViewsAndPages.NativeViews.DeviceTransfer;
 using Dimmer.ViewsAndPages.NativeViews.DimmerLive;
 using Dimmer.ViewsAndPages.NativeViews.DimmerLive.LastFMViews;
@@ -109,6 +110,11 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
         {
             // A. Load Content (Home)
             var startFragment = new HomePageFragment(MyViewModel);
+
+
+            MyViewModel.HomeAdapter = new HomePageAdapter(this.BaseContext,
+                MyViewModel, startFragment, HomePageAdapter.SongsToWatchSource.HomePage
+                );
             SupportFragmentManager
                 .BeginTransaction()
                 .Replace(_contentContainer.Id, startFragment, "HomePageFragment")
@@ -144,7 +150,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
         SupportFragmentManager.BackStackChanged += (s, e) =>
         {
             
-            Fragment current = SupportFragmentManager.FindFragmentById(_contentContainer.Id);
+            Fragment? current = SupportFragmentManager.FindFragmentById(_contentContainer.Id);
             MyViewModel.CurrentFragment = current;
         };
 
@@ -496,7 +502,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
                 break; 
             case 102:
                 
-                selectedFrag = new LastFMLoginFragment( "toLastFMInfo", MyViewModel);
+                selectedFrag = new LastFMLoginFragment( MyViewModel);
                 tag = "LastFMFragment";
                 break; 
             case 103:

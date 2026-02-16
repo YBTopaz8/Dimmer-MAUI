@@ -147,7 +147,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 Debug.WriteLine(x.Count);
             })
             .DisposeWith(CompositeDisposables);
-        realm = RealmFactory.GetRealmInstance();
+        
 
         
         // 4. Handle Logging. Remove the temporary `if (pos == 0)` check.
@@ -359,6 +359,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             }
         }
     }
+    private static readonly SongModelViewEqualityComparer _songComparer = new();
 
     public void InitializeAllVMCoreComponents()
     {
@@ -389,43 +390,25 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         var realmSub = RealmFactory.GetRealmInstance();
     var songRealmSub = realmSub.All<SongModel>()
-            .AsObservableChangeSet()
+            .AsObservableChangeSet()            
 
-            .Where(changes => changes.Any())
-            .Subscribe(
-                changes =>
+            .Where(song =>
+            {
+                return song is not null;
+            })?
+             .Transform(song =>
+             {
+                 return song.ToSongModelView()!;
+             })
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(changesDone =>
+            {
+                if (changesDone is null) return;
+                SearchResultsHolder.Edit(updater =>
                 {
-                    // Handle the changes here
-                    //foreach (var change in changes)
-                    //{
-                    //    //switch (change.Reason)
-                    //    //{
-                    //    //    case ListChangeReason.Add:
-                    //    //        // Handle addition
-                    //    //        break;
-                    //    //    case ListChangeReason.Remove:
-                    //    //        // Handle removal
-                    //    //        break;
-
-                    //    //    case ListChangeReason.Refresh:
-                    //    //        break;
-
-                    //    //    case
-                    //    //    ListChangeReason.Moved:
-                    //    //        break;
-                    //    //    case ListChangeReason.Clear:
-                    //    //        break;
-                    //    //    case ListChangeReason.RemoveRange:
-                    //    //        break;
-                    //    //    case ListChangeReason.AddRange:
-                    //    //        break;
-                    //    }
-                    //}
-                },
-                ex =>
-                {
-                    _logger.LogError(ex, "Error observing SongModel changes");
-                })
+                    updater.Clone(changes: changesDone);
+                });
+            })
             .DisposeWith(CompositeDisposables);
 
 
@@ -459,15 +442,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     });
         Observable.Merge(searchStream)
     .Throttle(TimeSpan.FromMilliseconds(300), RxSchedulers.Background) // Ensure we don't spam
-    .Select(inputs =>
-    {
-        RxSchedulers.UI.ScheduleTo(() => IsTqlBusy = true);
-        // 1. NLP Parsing (Lightweight)
-        Debug.WriteLine($"[DEBUG] Processing: '{inputs.Query}'");
-        var tqlQuery = string.IsNullOrWhiteSpace(inputs.Query) ? "" : NaturalLanguageProcessor.Process(inputs.Query);
-        var plan = MetaParser.Parse(tqlQuery);
-        return (Inputs: inputs, Plan: plan);
-    })
+    .Select(query => (Query: query, Plan: MetaParser.Parse(NaturalLanguageProcessor.Process(query.Query))))
     .ObserveOn(RxSchedulers.Background) // Explicitly move to Background for DB work
     .Select(payload =>
     {
@@ -535,19 +510,14 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         if (!string.IsNullOrEmpty(result.ErrorMessage) || result.Plan.ErrorMessage != null)
         {
             TQLUserSearchErrorMessage = result.ErrorMessage ?? result.Plan.ErrorMessage;
-            SearchResultsHolder.Edit(u => u.Clear()); // Clear list on error
+            //SearchResultsHolder.Edit(u => u.Clear()); // Clear list on error
            IsTqlBusy = false;
             return;
         }
 
 
-        SearchResultsHolder.Edit(updater =>
-        {
-            updater.Clear();
-            updater.AddRange(result.SongsResult);
-        });
+        SearchResultsHolder.EditDiff(result.SongsResult, _songComparer);
 
-        
         // 3. Update NLP Text Debugger
         if (CurrentTqlQuery != NLPQuery)
         {
@@ -1620,7 +1590,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial bool IsDimmerPlaying { get; set; }
 
     [ObservableProperty]
-    public partial bool IsTqlBusy { get; set; }
+    public partial bool IsTqlBusy { get; set; } = true;
 
     
   
@@ -1662,7 +1632,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial string AppTitle { get; set; } = "Dimmer";
 
-    public static string CurrentAppVersion = "1.7.7";
+    public static string CurrentAppVersion = "1.7.8";
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]
@@ -2132,11 +2102,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial bool IsConnected { get; set; }
 
 
-    [ObservableProperty] public partial AlbumModelView? SelectedAlbum { get; set; }
+    [ObservableProperty] public partial AlbumModelView? SelectedAlbum { get; private set; }
 
     [ObservableProperty] public partial ObservableCollection<ArtistModelView>? SelectedAlbumArtists { get; set; }
 
-    [ObservableProperty] public partial ArtistModelView? SelectedArtist { get; set; }
+    [ObservableProperty] public partial ArtistModelView? SelectedArtist { get; private set; }
 
     [ObservableProperty] public partial PlaylistModelView? SelectedPlaylist { get; set; }
 
@@ -2405,7 +2375,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     {
                     
                     var coverImagePath= await LoadAndCacheCoverArtAsync(songView);
-                    RxSchedulers.UI.ScheduleTo(() => songView.CoverImagePath = coverImagePath);
+                    RxSchedulers.UI.ScheduleTo(() =>
+                    {
+                        var songInRes = SearchResults.FirstOrDefault(x => x.Id == songView.Id);
+                        songInRes?.CoverImagePath = coverImagePath;
+                    });
                     int current = Interlocked.Increment(ref processedCount);
 
                         if (current % 10 == 0 || current == totalCount)
@@ -5963,10 +5937,15 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
     #endregion
 
-    public void SetSelectedAlbum(AlbumModelView album)
+    public void SetSelectedAlbum(AlbumModelView? album)
     {
+        if(album is not null)
+        {
+
         album.RefreshArtistsAndSongsFromDB(RealmFactory);
         SelectedAlbum = album;
+
+        }
     }
     #region lyrics editing region
     [RelayCommand]

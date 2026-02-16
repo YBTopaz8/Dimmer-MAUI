@@ -48,6 +48,7 @@ public static class DimmerMappers
             Id = src.Id,
             Title = src.Title,
             FilePath = src.FilePath,
+            
             DurationInSeconds = src.DurationInSeconds,
             IsHidden = src.IsHidden,
             ReleaseYear = src.ReleaseYear,
@@ -55,6 +56,7 @@ public static class DimmerMappers
             ManualFavoriteCount = src.ManualFavoriteCount,
             TrackNumber = src.TrackNumber,
             FileFormat = src.FileFormat,
+            PlatformPath=src.PlatformPath,
             Lyricist = src.Lyricist,
             Composer = src.Composer,
             Conductor = src.Conductor,
@@ -222,6 +224,22 @@ public static class DimmerMappers
             }
             art.AlbumsByArtist = albs!.ToObservableCollection()!;
         }
+        else
+        {
+            foreach (var songInArt in artInDb.Songs)
+            {
+                if(!artInDb.Albums.AsEnumerable().Contains(songInArt.Album))
+                {
+                    realm.Write(() =>
+                    {
+                        songInArt.Album.Artists.Add(artInDb);
+                    });
+                }
+
+            }
+            art.AlbumsByArtist = realm.Find<ArtistModel>(art.Id)?
+                .Albums.AsEnumerable().Select(x=>x.ToAlbumModelView()).ToObservableCollection();
+        }
 
     }
     public static void RefreshArtistsAndSongsFromDB(this AlbumModelView album, IRealmFactory realmFactory)
@@ -271,6 +289,7 @@ public static class DimmerMappers
             Lyricist = src.Lyricist,
             Composer = src.Composer,
             Conductor = src.Conductor,
+            PlatformPath = src.PlatformPath,
             Description = src.Description,
             Language = src.Language,
             DiscNumber = src.DiscNumber,

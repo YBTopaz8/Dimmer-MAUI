@@ -4,6 +4,7 @@ using AndroidX.Core.App;
 using AndroidX.Media3.Common;
 using AndroidX.Media3.Session;
 using AndroidX.Media3.UI;
+using Notification = Android.App.Notification;
 
 namespace Dimmer.DimmerAudio;
 

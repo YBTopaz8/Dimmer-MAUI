@@ -91,7 +91,7 @@ public static class CollectionViewCustomization
         };
     }
 
-    private static void AnimateHighlight(FrameworkElement container, bool isVisible)
+    private static void AnimateHighlight(FrameworkElement? container, bool isVisible)
     {
         if (container == null)
             return;

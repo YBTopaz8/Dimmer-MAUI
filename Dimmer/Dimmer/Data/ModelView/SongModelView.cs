@@ -153,29 +153,7 @@ public partial class SongModelView : ObservableObject
 
     [ObservableProperty]
     public partial ObservableCollection<UserNoteModelView> UserNoteAggregatedCol { get; set; } = new();
-    // Override Equals to compare based on string
-    public override bool Equals(object? obj)
-    {
-        if (string.IsNullOrEmpty(this.Title))
-        {
-            return false;
-        }
-        if (obj is SongModelView other)
-        {
-
-            if(this.TitleDurationKey is null && !string.IsNullOrEmpty(Title) && DurationInSeconds != 0)
-            {
-                SetTitleAndDuration(Title,DurationInSeconds);
-            }
-            if (other.TitleDurationKey is null && !string.IsNullOrEmpty(other.Title) && other.DurationInSeconds != 0)
-            {
-                other.SetTitleAndDuration(other.Title, other.DurationInSeconds);
-            }
-            return this.TitleDurationKey == other.TitleDurationKey;
-        }
-
-        return false;
-    }
+    
     [ObservableProperty]
     public partial int PlayCount { get; set; }
     [ObservableProperty]
@@ -190,7 +168,7 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial string? UserNoteAggregatedText { get; private set; }=string.Empty;   
 
-
+        
     public void RefreshDenormalizedProperties()
     {
 
@@ -253,10 +231,22 @@ public partial class SongModelView : ObservableObject
 
 
 
+    public override bool Equals(object? obj)
+    {
+        if (obj is SongModelView other)
+        {
+            // Ensure keys are generated
+            if (this.TitleDurationKey is null) SetTitleAndDuration(Title, DurationInSeconds);
+            if (other.TitleDurationKey is null) other.SetTitleAndDuration(other.Title, other.DurationInSeconds);
+
+            return this.TitleDurationKey == other.TitleDurationKey;
+        }
+        return false;
+    }
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(Id);
+        return TitleDurationKey?.GetHashCode() ?? 0;
     }
 
     [ObservableProperty]
