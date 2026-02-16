@@ -80,9 +80,15 @@ internal partial class HomePageAdapter : RecyclerView.Adapter, IDisposable
             .Subscribe(changes =>
             {
                 if (_isDisposed) return;
+
                 if (!_isAdapterReady.Value)
                 {
                     _isAdapterReady.OnNext(true);
+                }
+                if (changes.Count > 20)
+                {
+                    NotifyDataSetChanged();
+                    return;
                 }
 
                 foreach (var change in changes)
@@ -139,34 +145,6 @@ internal partial class HomePageAdapter : RecyclerView.Adapter, IDisposable
 
         }
 
-
-        private IObservable<IChangeSet<SongModelView>> GetArtistSongsStream(BaseViewModelAnd viewModel)
-        {
-
-
-            var selArt = viewModel.SelectedArtist;
-
-            var realm = viewModel.RealmFactory.GetRealmInstance();
-
-            // Realm relationships (like .Songs) return an IList<T> that implements INotifyCollectionChanged.
-            // We can bind directly to that.
-            var artistEntry = realm.Find<ArtistModel>(selArt.Id);
-
-            if (artistEntry != null)
-            {
-                return sourceStream = artistEntry.Songs.AsObservableChangeSet()
-
-                     .Transform(model => model.ToSongModelView())
-                     .ObserveOn(RxSchedulers.Background)
-
-                     .ObserveOn(RxSchedulers.UI)!; // Transforms DB Model -> View Model
-            }
-            else
-            {
-                // Handle edge case where artist isn't found
-                return sourceStream = Observable.Return(ChangeSet<SongModelView>.Empty);
-            }
-        }
 
         private void HandlePlaybackStateChange(PlaybackEventArgs x)
         {
@@ -502,14 +480,18 @@ internal partial class HomePageAdapter : RecyclerView.Adapter, IDisposable
                     _expandAction?.Invoke(BindingAdapterPosition);
                 };
 
-                lyrBtn.Click += (s, e) =>
+            lyricsBtn.Click += (s, e) =>
                 {
                     MyViewModel._lyricsMgtFlow.LoadLyrics(_currentSong?.SyncLyrics);
                     MyViewModel.SelectedSong = _currentSong;
                     MyViewModel.NavigateToAnyPageOfGivenType(this._parentFrag, new LyricsViewFragment(MyViewModel), "toLyricsFromNP");
 
                 };
-
+            //lyricsBtn.LongClickable = true;
+            //lyricsBtn.LongClick += (s, e) =>
+            //{
+            //    MyViewModel.SaveUserNoteToSong
+            //};
 
 
                 if (_infoBtn != null)

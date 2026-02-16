@@ -188,6 +188,7 @@ public partial class SongDetailFragment : Fragment , IOnBackInvokedCallback
             var tab = e.Tab;
             if (tab != null)
             {
+                    _collapsingToolbar.SetExpandedTitleColor(UiBuilder.IsDark(this.View) ? Color.White : Color.Black);
                 if (tab.Position != 0)
                 {
                     // Collapse header and change title
@@ -197,7 +198,6 @@ public partial class SongDetailFragment : Fragment , IOnBackInvokedCallback
                 else
                 {
                     _appBarLayout.SetExpanded(true, true);
-
                     _collapsingToolbar.Title = $"{_song?.Title} • {_song?.ArtistName}";
                 }
             }

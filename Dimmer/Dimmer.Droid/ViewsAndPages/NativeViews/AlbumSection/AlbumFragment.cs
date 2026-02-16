@@ -259,7 +259,10 @@ public partial class AlbumFragment : Fragment, IOnBackInvokedCallback
         }
         loadingIndic.Visibility = ViewStates.Visible;
 
-        
+
+        MyRecycleViewAdapter  = new SongAdapter(View!.Context!,
+            MyViewModel, this, SongsToWatchSource.AlbumPage);
+        _songListRecycler.SetAdapter(MyRecycleViewAdapter);
 
         MyRecycleViewAdapter?.IsSourceCleared.
            ObserveOn(RxSchedulers.UI)

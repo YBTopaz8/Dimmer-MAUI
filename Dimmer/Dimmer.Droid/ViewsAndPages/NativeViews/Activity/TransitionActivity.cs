@@ -502,7 +502,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
                 break; 
             case 102:
                 
-                selectedFrag = new LastFMLoginFragment( "toLastFMInfo", MyViewModel);
+                selectedFrag = new LastFMLoginFragment( MyViewModel);
                 tag = "LastFMFragment";
                 break; 
             case 103:

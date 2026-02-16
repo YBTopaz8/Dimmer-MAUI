@@ -29,7 +29,6 @@ public partial class ArtistFragment : Fragment, IOnBackInvokedCallback
     private FrameLayout container;
     private LinearLayout root;
     private TextView songsLabel;
-    private LoadingIndicator loadingIndic;
 
     public ArtistFragment()
     {
@@ -61,6 +60,8 @@ public partial class ArtistFragment : Fragment, IOnBackInvokedCallback
     }
     public ArtistModelView SelectedArtist { get; private set; }
     internal SongAdapter? MyRecycleViewAdapter { get; private set; }
+    public LoadingIndicator loadingIndic { get; private set; }
+
     public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         var ctx = Context;
@@ -162,10 +163,12 @@ public partial class ArtistFragment : Fragment, IOnBackInvokedCallback
 
 
 
+
         loadingIndic = new LoadingIndicator(ctx);
         loadingIndic.IndicatorSize = AppUtil.DpToPx(40);
         loadingIndic.SetForegroundGravity(GravityFlags.CenterHorizontal);
         root.AddView(loadingIndic);
+
 
 
 
@@ -275,12 +278,18 @@ public partial class ArtistFragment : Fragment, IOnBackInvokedCallback
         _albumChipGroup.RemoveAllViews();
         _albumChipGroup.CanScrollHorizontally(1);
         _albumChipGroup.SetChipSpacing(5);
-        
+
+        loadingIndic.Visibility = ViewStates.Visible;
+
+
+        MyRecycleViewAdapter = new SongAdapter(View!.Context!,
+            MyViewModel,this,SongsToWatchSource.ArtistPage);
+        _songListRecycler.SetAdapter(MyRecycleViewAdapter);
         var albuInArtist = SelectedArtist.AlbumsByArtist;
         albuInArtist ??= SelectedArtist.AlbumsInDB(MyViewModel.RealmFactory)?.ToObservableCollection();
-            if (albuInArtist is not null)
+            if (albuInArtist is not null )
             {
-                foreach (AlbumModelView album in albuInArtist)
+                foreach (AlbumModelView? album in albuInArtist)
                 {
                     var chip = new Chip(Context) {
                         Typeface = Typeface.DefaultBold,
@@ -313,19 +322,16 @@ public partial class ArtistFragment : Fragment, IOnBackInvokedCallback
         }
         MyViewModel.CurrentFragment = this;
         var ctx = Context;
-       
 
-        loadingIndic.Visibility = ViewStates.Visible;
 
 
 
         MyRecycleViewAdapter?.IsSourceCleared.
-            ObserveOn(RxSchedulers.UI)
-            .Subscribe(observer =>
-            {
-                loadingIndic.Visibility = ViewStates.Gone;
-            }).DisposeWith(_disposables);
-
+       ObserveOn(RxSchedulers.UI)
+       .Subscribe(observer =>
+       {
+           loadingIndic.Visibility = ViewStates.Gone;
+       }).DisposeWith(_disposables);
 
 
 

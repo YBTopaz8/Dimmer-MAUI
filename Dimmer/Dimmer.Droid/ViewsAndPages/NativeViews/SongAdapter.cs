@@ -153,14 +153,13 @@ internal partial class SongAdapter : RecyclerView.Adapter , IDisposable
         var selAlb = viewModel.SelectedAlbum;
         var realm = viewModel.RealmFactory.GetRealmInstance();
 
-        // Realm relationships (like .Songs) return an IList<T> that implements INotifyCollectionChanged.
-        // We can bind directly to that.
+
         var albumInDB = realm.Find<AlbumModel>(selAlb!.Id);
 
         if (albumInDB != null)
         {
            return sourceStream = albumInDB.SongsInAlbum!.AsObservableChangeSet()!
-                .Transform(model => model.ToSongModelView())!; // Transforms DB Model -> View Model
+                .Transform(model => model.ToSongModelView()!)!; // Transforms DB Model -> View Model
         }
         else
         {
@@ -183,9 +182,10 @@ internal partial class SongAdapter : RecyclerView.Adapter , IDisposable
 
         if (artistEntry != null)
         {
-           return sourceStream = artistEntry.Songs.AsObservableChangeSet()
-
-                .Transform(model => model.ToSongModelView())
+           return sourceStream = artistEntry.Songs
+                .AsObservableChangeSet()
+                
+                .Transform(model => model.ToSongModelView()!)
                 .ObserveOn(RxSchedulers.Background)
 
                 .ObserveOn(RxSchedulers.UI)!; // Transforms DB Model -> View Model

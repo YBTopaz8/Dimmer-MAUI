@@ -19,7 +19,6 @@ using Microsoft.Maui;
 using Microsoft.Maui.Controls.Shapes;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
-using static Android.Hardware.Camera;
 using static Android.Webkit.WebSettings;
 using static AndroidX.RecyclerView.Widget.RecyclerView;
 using static Dimmer.ViewsAndPages.NativeViews.SongAdapter;
@@ -80,7 +79,6 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
     }
     private CancellationTokenSource? _searchCts;
-    private SongAdapter _adapter;
     private ImageView _backgroundImageView;
     private  CompositeDisposable _disposables =new();
 
@@ -291,7 +289,7 @@ view.LongClick += (s, e)
         }
         else
         {
-            _searchBar.Text = currentText.Trim() + " " + tqlSortCommand;
+            _searchBar.Text =tqlSortCommand;
         }
         _searchBar.SetSelection(_searchBar.Text.Length);
     });
@@ -458,12 +456,6 @@ MyViewModel.WhenPropertyChange(nameof(MyViewModel.PlaybackQueue), newVl => MyVie
     }
 });
 
-         _adapter?.IsSourceCleared.
-ObserveOn(RxSchedulers.UI)
-.Subscribe(observer =>
-{
-    //loadingIndic.Visibility = ViewStates.Gone;
-}).DisposeWith(_disposables);
 
 }
 protected override void Dispose(bool disposing)
@@ -566,7 +558,6 @@ _searchCts?.Cancel();
 _songListRecycler?.SetAdapter(null);
 _songListRecycler = null;
 _disposables?.Dispose();
-_adapter?.Dispose();
 }
 
 
@@ -585,7 +576,7 @@ imm.ShowSoftInput(_searchBar, ShowFlags.Implicit);
 
 private void CurrentTime_Click(object? sender, EventArgs e)
 {
-Android.Widget.Toast.MakeText(Context, "hey!", ToastLength.Short).Show();
+Android.Widget.Toast.MakeText(Context, "hey!", ToastLength.Short)?.Show();
 }
 
 

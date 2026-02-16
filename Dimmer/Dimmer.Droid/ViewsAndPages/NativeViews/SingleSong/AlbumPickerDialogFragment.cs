@@ -2,7 +2,7 @@
 
 
 namespace Dimmer.ViewsAndPages.NativeViews.SingleSong;
-
+    
 internal class AlbumPickerDialogFragment:DialogFragment
 {
     private List<string> AlbumNames;
@@ -16,10 +16,10 @@ internal class AlbumPickerDialogFragment:DialogFragment
         MyViewModel = myViewModel;
         
         var enterTransition = new AndroidX.Transitions.TransitionSet()
-            .AddTransition(new AndroidX.Transitions.Fade((int)FadingMode.In))
+            .AddTransition(new AndroidX.Transitions.Fade((int)FadingMode.In))?
             .SetDuration(300);
         var exitTransition = new AndroidX.Transitions.TransitionSet()
-            .AddTransition(new AndroidX.Transitions.Fade((int)FadingMode.Out))
+            .AddTransition(new AndroidX.Transitions.Fade((int)FadingMode.Out))?
             .SetDuration(300);
         EnterTransition = enterTransition;
         ExitTransition = exitTransition;

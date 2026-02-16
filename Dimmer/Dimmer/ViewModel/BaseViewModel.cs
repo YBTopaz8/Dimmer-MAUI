@@ -359,6 +359,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             }
         }
     }
+    private static readonly SongModelViewEqualityComparer _songComparer = new();
 
     public void InitializeAllVMCoreComponents()
     {
@@ -514,8 +515,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             return;
         }
 
-        SearchResultsHolder.EditDiff(result.SongsResult);
 
+        SearchResultsHolder.EditDiff(result.SongsResult, _songComparer);
 
         // 3. Update NLP Text Debugger
         if (CurrentTqlQuery != NLPQuery)
@@ -1631,7 +1632,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial string AppTitle { get; set; } = "Dimmer";
 
-    public static string CurrentAppVersion = "1.7.7";
+    public static string CurrentAppVersion = "1.7.8";
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]
