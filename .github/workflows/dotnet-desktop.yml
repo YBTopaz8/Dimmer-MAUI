@@ -68,10 +68,16 @@ jobs:
           }
           $logString = if ($log -is [Array]) { $log -join "`n" } else { $log }
           if ([string]::IsNullOrWhiteSpace($logString)) { $logString = git log -n 15 --pretty=format:"- %s (%h)" --no-merges -join "`n" }
+          
+          # Create file for release notes
           $content = "## Changes in $env:NEW_TAG`n`n$logString"
           Set-Content -Path "release_notes.md" -Value $content -Encoding UTF8
-          # Store raw log; PowerShell env will handle quotes automatically
-          "ESCAPED_LOG=$logString" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          
+          # Use Heredoc syntax to save multi-line string to GITHUB_ENV
+          $eof = [System.Guid]::NewGuid().ToString("N")
+          "ESCAPED_LOG<<$eof" | Out-File -FilePath $env:GITHUB_ENV -Append
+          $logString | Out-File -FilePath $env:GITHUB_ENV -Append
+          "$eof" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       # 4. CHECKOUT DEPENDENCIES
       - name: Checkout Dependencies
