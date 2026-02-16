@@ -16,7 +16,11 @@ public class UserDeviceSession : ParseObject
         get => GetProperty<UserModelOnline?>();
         set => SetProperty(value);
     }
+    [ParseFieldName("libraryTag")]
+    public string LibraryTag { get => GetProperty<string>(); set => SetProperty(value); }
 
+    [ParseFieldName("lastLibrarySyncAt")]
+    public DateTime? LastLibrarySyncAt { get => GetProperty<DateTime?>(); set => SetProperty(value); }
     [ParseFieldName("deviceId")]
     public string DeviceId
     {

@@ -87,6 +87,8 @@ public class DeviceState : ParseObject
         get => GetProperty<double>();
         set => SetProperty(value);
     }
+    [ParseFieldName("SnapshotVersion")]
+    public string SnapshotVersion { get => GetProperty<string>(); set => SetProperty(value); }
 
     /// <summary>
     /// The Current volume of the Device, from 0.0 to 1.0.

@@ -12,6 +12,7 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
     private UserDeviceSession _thisDeviceSession; 
     private readonly Subject<DimmerSharedSong> _incomingTransfers = new();
 
+    public UserDeviceSession ThisDeviceSession => _thisDeviceSession;
     public IObservable<IChangeSet<UserDeviceSession, string>> OtherAvailableDevices => _otherDevicesCache.Connect();
     public IObservable<DimmerSharedSong> IncomingTransferRequests => _incomingTransfers.AsObservable();
 

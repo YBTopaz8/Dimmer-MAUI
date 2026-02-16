@@ -1,6 +1,8 @@
 ﻿
 
+using Parse.LiveQuery;
 using System.IO;
+using System.IO.Compression;
 
 namespace Dimmer.ViewModel;
 
@@ -304,5 +306,139 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
         LoginViewModel.CurrentUserOnline = parseUser;
     }
 
-    
+    [ObservableProperty]
+    public partial bool IsScreeningActive { get; set; }
+
+    [ObservableProperty]
+    public partial DeviceState? RemoteDeviceState { get; set; } // The real-time playback state
+
+    // This is the "Virtual Library" of the device we are screening
+    public ObservableCollection<SongModelView> RemoteLibrary { get; } = new();
+
+    [RelayCommand]
+    public async Task StartScreeningDevice(UserDeviceSession targetDevice)
+    {
+        if (targetDevice == null) return;
+        IsBusy = true;
+        StatusMessage = $"Connecting to {targetDevice.DeviceName}...";
+
+        try
+        {
+            // 1. Snapshot Check: Do we have Device B's library locally?
+            string cachePath = Path.Combine(FileSystem.CacheDirectory, $"lib_{targetDevice.DeviceId}.json");
+
+            bool needsFullSync = !File.Exists(cachePath) || targetDevice.LibraryTag != GetLocalLibraryTag(targetDevice.DeviceId);
+
+            if (needsFullSync)
+            {
+                StatusMessage = "Requesting library snapshot...";
+                await RequestLibraryExport(targetDevice.DeviceId);
+                // The remote device will upload a ParseFile. We wait for the update via LiveQuery.
+                // For this example, we'll poll or wait for targetDevice to update.
+            }
+            else
+            {
+                await LoadRemoteLibraryFromCache(cachePath);
+            }
+
+            // 2. Start Live Delta Monitoring (Real-time Playback)
+            await SubscribeToRemotePlayback(targetDevice.DeviceId);
+
+            IsScreeningActive = true;
+            StatusMessage = $"Screening {targetDevice.DeviceName}";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = "Screening failed: " + ex.Message;
+        }
+        finally { IsBusy = false; }
+    }
+
+    private async Task RequestLibraryExport(string targetDeviceId)
+    {
+        var cmd = new DeviceCommand
+        {
+            TargetDeviceId = targetDeviceId,
+            SourceDeviceId = _sessionManager.ThisDeviceSession.DeviceId,
+            CommandName = "EXPORT_LIBRARY",
+            Timestamp = DateTime.UtcNow
+        };
+        await cmd.SaveAsync();
+    }
+    private readonly ParseLiveQueryClient _liveQueryClient;
+
+    private async Task SubscribeToRemotePlayback(string deviceId)
+    {
+        var query = ParseClient.Instance.GetQuery<DeviceState>()
+            .WhereEqualTo("DeviceId", deviceId);
+
+        var subscription = _liveQueryClient.Subscribe(query);
+            subscription.On(Subscription.Event.Update,OnUpdatedMethod);
+
+    }
+
+    private void OnUpdatedMethod(DeviceState obj)
+    {
+        RemoteDeviceState = obj;
+
+        // LEAD DEV MOVE: Lookup Song Metadata locally from the Snapshot
+        // We only get an ID from LiveQuery, but we show full details from Cache.
+        var metadata = RemoteLibrary.FirstOrDefault(s => s.Id.ToString() == obj.CurrentSongId);
+        if (metadata != null)
+        {
+            // Update your UI with metadata found in the snapshot
+            StatusMessage = $"Remote Playing: {metadata.Title} - {metadata.ArtistName}";
+        }
+    }
+
+    // --- PRO LOGIC: COMPRESSION & STORAGE (The Snapshot) ---
+    public async Task ProcessIncomingSnapshot(UserDeviceSession updatedSession)
+    {
+        if (updatedSession.FileData == null) return;
+
+        StatusMessage = "Downloading snapshot...";
+        var stream = await new HttpClient().GetStreamAsync(updatedSession.FileData.Url);
+
+        // Lead Dev Suggestion: Use GZip for massive JSON lists
+        using var decompressionStream = new GZipStream(stream, CompressionMode.Decompress);
+        using var reader = new StreamReader(decompressionStream);
+        string json = await reader.ReadToEndAsync();
+
+        // Save to local cache
+        string cachePath = Path.Combine(FileSystem.CacheDirectory, $"lib_{updatedSession.DeviceId}.json");
+        await File.WriteAllTextAsync(cachePath, json);
+
+        await LoadRemoteLibraryFromCache(cachePath);
+    }
+
+    private async Task LoadRemoteLibraryFromCache(string path)
+    {
+        string json = await File.ReadAllTextAsync(path);
+        var songs = JsonSerializer.Deserialize<List<SongModelView>>(json);
+
+        MainThread.BeginInvokeOnMainThread(() => {
+            RemoteLibrary.Clear();
+            foreach (var s in songs) RemoteLibrary.Add(s);
+        });
+    }
+
+    private string GetLocalLibraryTag(string deviceId)
+    {
+        return Preferences.Get($"tag_{deviceId}", string.Empty);
+    }
+
+    [RelayCommand]
+    public async Task RemoteControl(string command)
+    {
+        // Example: command = "PAUSE" or "NEXT"
+        if (RemoteDeviceState == null) return;
+
+        var cmd = new DeviceCommand
+        {
+            TargetDeviceId = RemoteDeviceState.DeviceId,
+            CommandName = command,
+            IsHandled = false
+        };
+        await cmd.SaveAsync();
+    }
 }

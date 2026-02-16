@@ -1088,10 +1088,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     }
                     var songModel = songRepo.GetById(songId); 
 
-                    if (songModel != null)
+                    if (songModel != null && !string.IsNullOrEmpty(songModel.TitleDurationKey))
                     {
                         
-                        CurrentPlayingSongView = songModel.ToSongModelView();
+                        CurrentPlayingSongView = songModel.ToSongModelView()!;
                     }
                     else
                     {

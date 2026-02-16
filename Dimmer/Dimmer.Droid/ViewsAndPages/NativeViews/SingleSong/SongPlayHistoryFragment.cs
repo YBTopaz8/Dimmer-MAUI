@@ -13,9 +13,9 @@ public class SongPlayHistoryFragment : Fragment
     private BaseViewModelAnd _vm;
     public SongPlayHistoryFragment(BaseViewModelAnd vm) { _vm = vm; }
 
-    public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
-        var ctx = Context;
+        var ctx = Context!;
         var recycler = new RecyclerView(ctx);
         recycler.SetLayoutManager(new LinearLayoutManager(ctx));
 

@@ -25,12 +25,12 @@ public partial class SongModelView : ObservableObject
     public int RestartCount { get; set; }
     public DateTimeOffset DiscoveryDate { get; set; }
 
-    public void SetTitleAndDuration(string title, double duration)
+    public void SetTitleAndDuration(string? title, double duration)
     {
        
-        Title = title;
+        Title = string.IsNullOrEmpty(title)?string.Empty:title;
         DurationInSeconds = duration;
-        TitleDurationKey = $"{title.ToLowerInvariant().Trim()}|{duration}";
+        TitleDurationKey = $"{Title.ToLowerInvariant().Trim()}|{duration}";
     }
     [ObservableProperty]
     public partial string ArtistName { get; set; } 
