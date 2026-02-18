@@ -230,6 +230,7 @@
                                                     Margin="0,0,0,0"
                                                     HorizontalAlignment="Center"
                                                     FontSize="28"
+                                                                    x:Name="ArtistMiniName"
                                                     FontWeight="Bold"
                                                     Foreground="White"
                                                     Text="{Binding Name}" />

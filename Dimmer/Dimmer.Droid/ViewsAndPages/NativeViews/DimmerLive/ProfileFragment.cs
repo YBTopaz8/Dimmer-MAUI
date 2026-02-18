@@ -1,10 +1,10 @@
-﻿using System.Reactive.Disposables;
-
-using Bumptech.Glide;
-
+﻿using Bumptech.Glide;
 using Dimmer.DimmerLive.Models;
 using Dimmer.UiUtils;
 using Google.Android.Material.Dialog;
+using Google.Android.Material.Tabs;
+using System.Reactive.Disposables;
+using ScrollView = Android.Widget.ScrollView;
 
 namespace Dimmer.ViewsAndPages.NativeViews.DimmerLive;
 
@@ -16,13 +16,18 @@ public class ProfileFragment : Fragment
     public LoginViewModelAnd LoginVM { get; private set; }
     private readonly CompositeDisposable _disposables = new();
 
-    private ImageView _avatar;
-    private TextView _username, _email, _bio;
-    private TextView _statJoined, _statDevice;
-    private MaterialButton _editBtn, _changePassBtn, _logoutBtn, _pickImageBtn;
+    // UI Elements
+    private TabLayout _tabLayout;
+    private FrameLayout _contentFrame;
+    private LinearLayout _overviewTab, _securityTab, _premiumTab;
 
-    public ProfileFragment(string transitionName, LoginViewModelAnd viewModel
-        )
+    // Overview Controls
+    private ImageView _avatar;
+    private TextView _username, _email, _bio, _premiumBadge;
+    private TextView _statJoined, _statLastFm, _deviceInfoText;
+    private MaterialButton _editBtn, _shareBtn, _cloudBtn, _logoutBtn;
+
+    public ProfileFragment(string transitionName, LoginViewModelAnd viewModel)
     {
         _transitionName = transitionName;
         LoginVM = viewModel;
@@ -31,149 +36,186 @@ public class ProfileFragment : Fragment
     public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         var ctx = Context;
-        var scroll = new Android.Widget.ScrollView(ctx);
         var root = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
-        root.SetPadding(40, 60, 40, 200);
+        root.SetBackgroundColor(UiBuilder.IsDark(ctx) ? Color.ParseColor("#121212") : Color.White);
 
-        // --- 1. Header Card (Avatar + Info) ---
+        // 1. Tab Header (Pivot Parity)
+        _tabLayout = new TabLayout(ctx);
+        _tabLayout.AddTab(_tabLayout.NewTab().SetText("Overview"));
+        _tabLayout.AddTab(_tabLayout.NewTab().SetText("Security"));
+        _tabLayout.AddTab(_tabLayout.NewTab().SetText("Premium"));
+        _tabLayout.TabSelected += (s, e) => SwitchTab(e.Tab.Position);
+        root.AddView(_tabLayout);
+
+        // 2. Content Container
+        _contentFrame = new FrameLayout(ctx);
+        _contentFrame.LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent);
+
+        CreateOverviewTab(ctx);
+        CreateSecurityTab(ctx);
+        CreatePremiumTab(ctx);
+
+        _contentFrame.AddView(_overviewTab);
+        _contentFrame.AddView(_securityTab);
+        _contentFrame.AddView(_premiumTab);
+
+        root.AddView(_contentFrame);
+        SwitchTab(0); // Default to Overview
+
+        return root;
+    }
+
+    private void CreateOverviewTab(Context ctx)
+    {
+        var scroll = new ScrollView(ctx);
+        _overviewTab = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
+        _overviewTab.SetPadding(40, 40, 40, 100);
+
+        // --- Header Card ---
         var card = UiBuilder.CreateCard(ctx);
         var cardContent = new LinearLayout(ctx) { Orientation = Orientation.Horizontal, WeightSum = 3 };
         cardContent.SetPadding(30, 30, 30, 30);
 
-        // Avatar Layout
-        var avatarLayout = new FrameLayout(ctx);
-        avatarLayout.LayoutParameters = new LinearLayout.LayoutParams(180, 180);
-
         _avatar = new ImageView(ctx);
-        _avatar.LayoutParameters = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent);
-        _avatar.SetBackgroundColor(Color.DarkGray); // Placeholder
+        _avatar.LayoutParameters = new LinearLayout.LayoutParams(180, 180);
+        _avatar.SetBackgroundColor(Color.DarkGray);
+        _avatar.Click += async (s, e) => await LoginVM.PickImageFromDeviceCommand.ExecuteAsync(null);
 
-        // Pick Image Button overlay
-        _pickImageBtn = new MaterialButton(ctx, null, Resource.Attribute.materialIconButtonStyle); // Small icon button style if available
-        _pickImageBtn.SetIconResource(Resource.Drawable.album); // Ensure you have a camera icon
-        _pickImageBtn.LayoutParameters = new FrameLayout.LayoutParams(60, 60) { Gravity = GravityFlags.Bottom | GravityFlags.Right };
-        _pickImageBtn.Click += async (s, e) => await LoginVM.PickImageFromDeviceCommand.ExecuteAsync(null);
-
-        avatarLayout.AddView(_avatar);
-        avatarLayout.AddView(_pickImageBtn);
-
-        // Text Info Stack
         var infoStack = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
         infoStack.LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 2);
         infoStack.SetPadding(30, 0, 0, 0);
 
+        var nameRow = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
         _username = new TextView(ctx) { TextSize = 22, Typeface = Typeface.DefaultBold };
-        _email = new TextView(ctx) { TextSize = 14, Alpha = 0.6f };
-        _bio = new TextView(ctx) { TextSize = 14, Top = 20 };
-        _bio.SetMaxLines(3);
-        _bio.Ellipsize = Android.Text.TextUtils.TruncateAt.End;
 
-        infoStack.AddView(_username);
+        _premiumBadge = new TextView(ctx) { Text = "PREMIUM", TextSize = 10, Typeface = Typeface.DefaultBold };
+        _premiumBadge.SetTextColor(Color.Black);
+        _premiumBadge.SetBackgroundColor(Color.Gold);
+        _premiumBadge.SetPadding(10, 5, 10, 5);
+        _premiumBadge.Visibility = ViewStates.Gone; // Managed by logic
+
+        nameRow.AddView(_username);
+        nameRow.AddView(_premiumBadge);
+
+        _email = new TextView(ctx) { TextSize = 14, Alpha = 0.6f };
+        _bio = new TextView(ctx) { TextSize = 14 };
+        _bio.SetPadding(0, 15, 0, 0);
+
+        infoStack.AddView(nameRow);
         infoStack.AddView(_email);
         infoStack.AddView(_bio);
 
-        // Edit Button (Right Side)
-        _editBtn = new MaterialButton(ctx) { Text = "Edit" };
-        _editBtn.LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent);
-        _editBtn.Click += ShowEditBioDialog;
-
-        cardContent.AddView(avatarLayout);
+        cardContent.AddView(_avatar);
         cardContent.AddView(infoStack);
-        // We can add the edit button to the stack or separately. 
-        // For simplicity, let's put it below the card in the main flow or inside if layout allows.
-
         card.AddView(cardContent);
-        root.AddView(card);
+        _overviewTab.AddView(card);
 
-        // --- 2. Stats Row ---
-        root.AddView(UiBuilder.CreateSectionTitle(ctx, "Details"));
+        // --- Action Buttons ---
+        _shareBtn = new MaterialButton(ctx) { Text = "Invite / Share Profile" };
+        _shareBtn.Click += ShareProfile;
+        _overviewTab.AddView(_shareBtn);
+
+        _overviewTab.AddView(UiBuilder.CreateSectionTitle(ctx, "Details"));
         var statsRow = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
-        _statJoined = UiBuilder.CreateStatItem(ctx, "Joined", "Loading...");
-        _statDevice = UiBuilder.CreateStatItem(ctx, "Device", "Unknown"); // From WinUI parity
+        _statLastFm = UiBuilder.CreateStatItem(ctx, "Last.FM", "No");
+        _statJoined = UiBuilder.CreateStatItem(ctx, "Joined", "-");
+        statsRow.AddView(_statLastFm);
         statsRow.AddView(_statJoined);
-        statsRow.AddView(_statDevice);
-        root.AddView(statsRow);
+        _overviewTab.AddView(statsRow);
 
-        // --- 3. Security Section ---
-        root.AddView(UiBuilder.CreateSectionTitle(ctx, "Security"));
+        _overviewTab.AddView(UiBuilder.CreateSectionTitle(ctx, "Current Device"));
+        _deviceInfoText = new TextView(ctx) { Alpha = 0.7f };
+        _overviewTab.AddView(_deviceInfoText);
 
-        _changePassBtn = new MaterialButton(ctx) { Text = "Change Password" };
-        _changePassBtn.SetTextColor(AppUtil.ToColorStateList(UiBuilder.IsDark(Context) ?
-            Color.White : Color.DarkSlateBlue));
-        _changePassBtn.Click += ShowChangePassDialog;
-        root.AddView(_changePassBtn);
-
-        // --- 4. Actions ---
-        var space = new Space(ctx) { LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, 60) };
-        root.AddView(space);
+        _cloudBtn = new MaterialButton(ctx) { Text = "Cloud Space" };
+        _overviewTab.AddView(_cloudBtn);
 
         _logoutBtn = new MaterialButton(ctx) { Text = "Sign Out" };
         _logoutBtn.SetBackgroundColor(Color.DarkRed);
         _logoutBtn.Click += async (s, e) => {
             await LoginVM.LogoutCommand.ExecuteAsync(null);
-            // Navigate back to LoginFragment or handle navigation in VM
             ParentFragmentManager.PopBackStack();
         };
-        root.AddView(_logoutBtn);
+        _overviewTab.AddView(_logoutBtn);
 
-        scroll.AddView(root);
-        return scroll;
+        scroll.AddView(_overviewTab);
+        _overviewTab = new LinearLayout(ctx) { Orientation = Orientation.Vertical }; // Proxy to wrapper
+        _overviewTab.AddView(scroll);
     }
 
-    public override void OnResume()
+    private void CreateSecurityTab(Context ctx)
     {
-        base.OnResume();
+        _securityTab = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
+        _securityTab.SetPadding(50, 50, 50, 50);
 
-        // Observe Changes
-        LoginVM.PropertyChanged += OnViewModelPropertyChanged;
+        _securityTab.AddView(UiBuilder.CreateSectionTitle(ctx, "Password Management"));
 
-        // Initial Update
-        if (LoginVM.CurrentUserOnline != null)
-            UpdateProfileUI(LoginVM.CurrentUserOnline);
-    }
+        var passLayout = new TextInputLayout(ctx) { Hint = "New Password", EndIconMode = TextInputLayout.EndIconPasswordToggle };
+        var passEdit = new TextInputEditText(ctx) { InputType = Android.Text.InputTypes.TextVariationPassword | Android.Text.InputTypes.ClassText };
+        passLayout.AddView(passEdit);
 
-    public override void OnPause()
-    {
-        base.OnPause();
-        _disposables.Clear();
-        LoginVM.PropertyChanged -= OnViewModelPropertyChanged;
-    }
-    private void OnViewModelPropertyChanged(object sender, PropertyChangedEventArgs e)
-    {
-        Activity?.RunOnUiThread(() =>
-        {
-            if (e.PropertyName == nameof(LoginViewModel.CurrentUserOnline) ||
-                e.PropertyName == nameof(LoginViewModel.CurrentUser))
+        var confirmBtn = new MaterialButton(ctx) { Text = "Update Password" };
+        confirmBtn.Click += async (s, e) => {
+            if (!string.IsNullOrEmpty(passEdit.Text))
             {
-                if (LoginVM.CurrentUserOnline != null)
-                    UpdateProfileUI(LoginVM.CurrentUserOnline);
+                await LoginVM.ChangePasswordCommand.ExecuteAsync(passEdit.Text);
+                Toast.MakeText(ctx, "Updated!", ToastLength.Short).Show();
+                passEdit.Text = "";
             }
-        });
+        };
+
+        _securityTab.AddView(passLayout);
+        _securityTab.AddView(confirmBtn);
+    }
+
+    private void CreatePremiumTab(Context ctx)
+    {
+        _premiumTab = new LinearLayout(ctx) { Orientation = Orientation.Vertical};
+        _premiumTab.SetGravity(GravityFlags.Center);
+        _premiumTab.SetPadding(50, 50, 50, 50);
+
+        var title = new TextView(ctx) { Text = "Premium Plan", TextSize = 24, Gravity = GravityFlags.Center };
+        var desc = new TextView(ctx) { Text = "Unlock Cloud Backups & Audio Sharing", Gravity = GravityFlags.Center, Alpha = 0.7f };
+
+        var subBtn = new MaterialButton(ctx) { Text = "Subscribe Now" };
+        subBtn.SetBackgroundColor(Color.Gold);
+        subBtn.SetTextColor(Color.Black);
+
+        _premiumTab.AddView(title);
+        _premiumTab.AddView(desc);
+        _premiumTab.AddView(subBtn);
+    }
+
+    private void SwitchTab(int position)
+    {
+        _overviewTab.Visibility = position == 0 ? ViewStates.Visible : ViewStates.Gone;
+        _securityTab.Visibility = position == 1 ? ViewStates.Visible : ViewStates.Gone;
+        _premiumTab.Visibility = position == 2 ? ViewStates.Visible : ViewStates.Gone;
     }
 
     private void UpdateProfileUI(UserModelOnline user)
     {
         _username.Text = user.Username;
         _email.Text = user.Email;
-        // Assuming Bio isn't in UserModelOnline standard fields yet, mapped from View
         _bio.Text = LoginVM.CurrentUser?.UserBio ?? "No bio set";
 
-        // Load Avatar
-        if (!string.IsNullOrEmpty(user.ProfileImagePath)) // Assuming this property exists on your Online model or mapped View
-        {
+        // Premium Badge Logic (XAML parity)
+        _premiumBadge.Visibility = user.IsPremium ? ViewStates.Visible : ViewStates.Gone;
+
+        // Last.FM Logic (XAML parity)
+        var lastFm = LoginVM.CurrentUser?.LastFMAccountInfo?.Name;
+        _statLastFm.Text = string.IsNullOrEmpty(lastFm) ? "No" : lastFm;
+
+        // Device Info Logic (XAML parity)
+        var device = LoginVM.CurrentUser;
+        _deviceInfoText.Text = $"{device?.DeviceName}\n{device?.DeviceModel}\nOS: {device?.DeviceVersion}";
+
+        if (!string.IsNullOrEmpty(user.ProfileImagePath))
             Glide.With(this).Load(user.ProfileImagePath).CircleCrop().Into(_avatar);
-        }
-        else
-        {
-            // Fallback
-            _avatar.SetBackgroundColor(Color.DarkGray);
-        }
 
-        _statJoined.Text = user.CreatedAt.HasValue ? user.CreatedAt.Value.ToString("MMM yyyy") : "-";
-
-        // Device info isn't standard in ParseUser usually, but if you store it:
-        // _statDevice.Text = ...
+        _statJoined.Text = user.CreatedAt?.ToString("MMM yyyy") ?? "-";
     }
+
     private void ShareProfile(object sender, EventArgs e)
     {
         var user = LoginVM.CurrentUserOnline;

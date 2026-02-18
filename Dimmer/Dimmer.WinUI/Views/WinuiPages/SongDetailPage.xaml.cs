@@ -636,13 +636,8 @@ public sealed partial class SongDetailPage : Page
             IsNavigationStackEnabled = true
 
         };
-        var detailedImageVisual = ElementCompositionPreview.GetElementVisual(currentView);
-        if (detailedImageVisual != null)
-        {
-            ConnectedAnimationService.GetForCurrentView()
-                .PrepareToAnimate("MoveViewToArtistPageFromSongDetailPage", currentView);
-
-        }
+        AnimationHelper.Prepare(AnimationHelper.Key_SongDetailToArtist,
+            ArtistMiniName, AnimationHelper.ConnectedAnimationStyle.GravityBounce);
 
 
         Frame?.NavigateToType(pageType, navParams, navigationOptions);

@@ -270,7 +270,11 @@ public class AppUtil : IAppUtil
             return false;
         }
     }
-
+    public static void HideKeyboard(View view)
+    {
+        var imm = (InputMethodManager?)view.Context!.GetSystemService(Context.InputMethodService);
+        imm?.HideSoftInputFromWindow(view.WindowToken, 0);
+    }
     public static int DpToPx(int dp)
     {
         var ctx = Application.Context;

@@ -1,4 +1,5 @@
-﻿using System.Reactive.Disposables;
+﻿using Android.Views.InputMethods;
+using System.Reactive.Disposables;
 
 using ProgressBar = Android.Widget.ProgressBar;
 
@@ -113,7 +114,7 @@ public class LoginFragment : Fragment, IOnBackInvokedCallback
     {
         base.OnResume();
         loginViewModel.IsBusy = true;
-
+        _passEdit.EditorAction += PassEdit_EditorAction;
         SessionManagementViewModel sessionMgtVM= MainApplication.ServiceProvider.GetRequiredService<SessionManagementViewModel>();
         if (LoginViewModel.IsAuthenticated)
         {
@@ -138,6 +139,18 @@ public class LoginFragment : Fragment, IOnBackInvokedCallback
 
         // 3. Reactive UI Bindings (State -> UI)
         loginViewModel.PropertyChanged += OnViewModelPropertyChanged;
+
+    }
+
+    private void PassEdit_EditorAction(object? sender, Android.Widget.TextView.EditorActionEventArgs e)
+    {
+        // If the user clicks "Done", "Go", or "Next" on the keyboard
+        if (e.ActionId == ImeAction.Done || e.ActionId == ImeAction.Go || e.ActionId == ImeAction.Next)
+        {
+            ActionBtn_Click(_actionBtn, EventArgs.Empty);
+            // Hide keyboard after submission
+            AppUtil.HideKeyboard(_passEdit);
+        }
 
     }
 
@@ -215,7 +228,7 @@ public class LoginFragment : Fragment, IOnBackInvokedCallback
 
  
 
-    private TextInputLayout CreateInput(Context ctx, string hint, bool isPassword = false)
+    private TextInputLayout CreateInput(Context ctx, string hint, bool isPassword = false, ImeAction imeOptions = ImeAction.Next)
     {
         var layout = new TextInputLayout(ctx)
         {
@@ -223,8 +236,15 @@ public class LoginFragment : Fragment, IOnBackInvokedCallback
             LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent)
         };
         var edit = new TextInputEditText(ctx);
-        if (isPassword) edit.InputType = Android.Text.InputTypes.TextVariationPassword | Android.Text.InputTypes.ClassText;
-        
+
+        edit.ImeOptions = imeOptions; // Sets the bottom right button on keyboard
+
+
+        if (isPassword)
+        {
+            edit.InputType = Android.Text.InputTypes.TextVariationPassword | Android.Text.InputTypes.ClassText;
+            layout.EndIconMode = TextInputLayout.EndIconPasswordToggle; // Adds the "Eye" icon automatically
+        }
         layout.AddView(edit);
         return layout;
     }

@@ -228,7 +228,7 @@
                     <dgView:TableView.Columns>
 
                         <!--  Column for the Cover Art  -->
-                        <dgView:TableViewTemplateColumn x:Name="ImgCol" Width="95">
+                        <dgView:TableViewTemplateColumn x:Name="ImgCol" Width="75">
                             <dgView:TableViewTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Border

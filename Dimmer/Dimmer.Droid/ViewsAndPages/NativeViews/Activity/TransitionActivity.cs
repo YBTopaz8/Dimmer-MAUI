@@ -523,7 +523,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
                 var viewModel = MainApplication.ServiceProvider.GetService<SessionManagementViewModel>();
                 if (viewModel is not null)
                 {
-                    selectedFrag = new CloudDataFragment("SessionManagementTrans", viewModel);
+                    selectedFrag = new LoginFragment("LoginFragmentTrans", MyViewModel);
                     tag = "SessionMgt";
                 }
                 break;

@@ -275,65 +275,8 @@ public sealed partial class ArtistPage : Page
         MyViewModel.SearchToTQL($"{TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist.Name)} and {TQlStaticMethods.PresetQueries.ExactlyByAlbum(album.Name)}");
 
         return;
-        var albmInDb = MyViewModel.RealmFactory.GetRealmInstance()
-            .All<SongModel>()
-            .Where(x => x.AlbumName == album.Name);
-        var albmInDbThree = MyViewModel.RealmFactory.GetRealmInstance()
-            .Find<AlbumModel>(album.Id);
-            
-        var count = albmInDb.Count();
-        var count3 = albmInDbThree.SongsInAlbum.Count();
-        if (album != null && album.ImagePath == "musicalbum.png")
-        {
-            var firstSongInAlbumWithValidCoverImage = MyViewModel.RealmFactory.GetRealmInstance()
-                .Find<AlbumModel>(album.Id)!
-                .SongsInAlbum
-                .FirstOrDefault(s => !string.IsNullOrEmpty(s.CoverImagePath));
-            if (firstSongInAlbumWithValidCoverImage != null)
-                album.ImagePath = firstSongInAlbumWithValidCoverImage.CoverImagePath;
-            MyViewModel.UpdateAlbumImage(album, firstSongInAlbumWithValidCoverImage.CoverImagePath);
-        }
-        await Task.Delay(1500);
+      
 
-        var realCount = MyViewModel.SearchResults.Count;
-        Debug.WriteLine(realCount);
-        if(realCount ==0)
-        {
-            var realm = MyViewModel.RealmFactory.GetRealmInstance();
-            var frst= albmInDbThree.SongsInAlbum.FirstOrDefault();
-            if (frst == null) return;
-            var realTrack = new ATL.Track(frst.FilePath);
-            var albInDB = realm.All<AlbumModel>().FirstOrDefault(x => x.Name == realTrack.Album);
-            await realm.WriteAsync(() =>
-            {
-            if (albInDB != null)
-            {
-               
-                    foreach (var song in albmInDbThree.SongsInAlbum)
-                    {
-                        song.Album = albInDB;
-                        song.AlbumName = albInDB.Name;
-
-                    }
-            }
-            else
-            {
-                AlbumModel newAlbum = new AlbumModel();
-                newAlbum.Name = realTrack.Album;
-                newAlbum.ImagePath = albmInDbThree.ImagePath;
-                newAlbum.DiscNumber = albmInDbThree.DiscNumber;
-                newAlbum.ImagePath = albmInDbThree.ImagePath;
-                foreach (var song in albmInDbThree.SongsInAlbum)
-                {
-                    song.Album = newAlbum;
-                    song.AlbumName = newAlbum.Name;
-
-                }
-                }
-            });
-
-            Debug.WriteLine($"New Count ${albmInDbThree.SongsInAlbum.Count()}");
-        }
     }
 
     private async void CardBorder_Drop(object sender, DragEventArgs e)
@@ -525,5 +468,15 @@ public sealed partial class ArtistPage : Page
 
             }
         }
+    }
+
+    private void ArtistNameInArtistPage_Loaded(object sender, RoutedEventArgs e)
+    {
+        AnimationHelper.TryStart(ArtistNameInArtistPage,
+            null,
+            AnimationHelper.Key_AlbumToArtist,
+            //AnimationHelper.Key_AlbumToArtist,
+            AnimationHelper.Key_SongDetailToArtist
+            );
     }
 }

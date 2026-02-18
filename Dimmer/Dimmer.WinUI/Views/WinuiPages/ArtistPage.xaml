@@ -78,6 +78,7 @@
                             HorizontalAlignment="Left"
                             VerticalAlignment="Top"
                             FontSize="55"
+                            Loaded="ArtistNameInArtistPage_Loaded"
                             FontWeight="SemiBold"
                             PointerReleased="ArtistNameInArtistPage_PointerReleased"
                             Text="{Binding SelectedArtist.Name}"

@@ -1077,16 +1077,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 if (!string.IsNullOrEmpty(appModel.CurrentSongId) &&
                     ObjectId.TryParse(appModel.CurrentSongId, out var songId))
                 {
+                    SongModel? songModel=new();
                     if (songId == ObjectId.Empty)
                     {
 
-                        var existingPlaylist = _playlistRepo.FirstOrDefaultWithRQL("PlaylistName == $0", LastSessionPlaylistName);
-                        if (existingPlaylist != null)
-                        {
-                            songId = existingPlaylist.SongsIdsInPlaylist.FirstOrDefault();
-                        }
+                        songModel= realm.All<SongModel>().LastOrDefaultNullSafe();
                     }
-                    var songModel = songRepo.GetById(songId); 
 
                     if (songModel != null && !string.IsNullOrEmpty(songModel.TitleDurationKey))
                     {
@@ -1108,15 +1104,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     CurrentPlayingSongView = new();
                 }
 
-
-                //if (IsDarkModeOn)
-                //{
-                //    Application.Current?.UserAppTheme = AppTheme.Dark;
-                //}
-                //else
-                //{
-                //    Application.Current?.UserAppTheme = AppTheme.Light;
-                //}
                 if (lastAppEvent is not null)
                 {
                     var songsLinked = lastAppEvent.SongsLinkingToThisEvent.AsEnumerable().Select(x => x.ToSongModelView());
@@ -1124,7 +1111,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                         updater =>
                         {
                             updater.Clear();
-                            updater.Add(songsLinked);
+                            updater?.Add(songsLinked);
                         });
                 }
             }

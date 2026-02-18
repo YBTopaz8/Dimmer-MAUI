@@ -18,6 +18,7 @@ public static class AnimationHelper
     public const string Key_ToSingleDownloadedLyrics = "ToSingleDownloadedLyrics";
     public const string Key_ArtistToSong = "ArtistToSongPage";
     public const string Key_AlbumToArtist = "AlbumPageToArtistPage";
+    public const string Key_SongDetailToArtist = "SongDetailPageToArtistPage";
     public const string Key_ArtistToAlbum = "ArtistPageToAlbumPage";
     public const string Key_NowPlayingPage = "ToNowPlayingPage";
     public const string Key_DetailToListFromAlbum = "ToListFromAllAlbums";
@@ -169,8 +170,11 @@ public static class AnimationHelper
                 if (animation != null) break;
             }
 
-            if (animation == null) return;
+            if (animation == null)
+            {
 
+                return ;
+            }
             var style = animation.GetAnimationStyle();
             var duration = animation.GetDuration();
 
