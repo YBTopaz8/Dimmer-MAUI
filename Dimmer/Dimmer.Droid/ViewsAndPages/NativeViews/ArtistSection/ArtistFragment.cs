@@ -49,7 +49,14 @@ public partial class ArtistFragment : Fragment, IOnBackInvokedCallback
     private RecyclerView _songListRecycler;
     private LinearLayout totalPlayStats;
     private LinearLayout totalSkipsStats;
+
+    public LinearLayout totalRestartStats { get; private set; }
+
     private LinearLayout libTracks;
+
+    public LinearLayout albCount { get; private set; }
+    public LinearLayout isFav { get; private set; }
+
     private readonly CompositeDisposable _disposables = new();
 
     public void OnBackInvoked()
@@ -150,10 +157,14 @@ public partial class ArtistFragment : Fragment, IOnBackInvokedCallback
         {
             totalPlayStats = CreateStatRow(ctx, "Total Plays", SelectedArtist.SongsByArtist.Sum(x => x.PlayCompletedCount).ToString());
             totalSkipsStats = CreateStatRow(ctx, "Total Skips", SelectedArtist.SongsByArtist.Sum(x => x.SkipCount).ToString());
+            totalRestartStats = CreateStatRow(ctx, "Total Restarts", SelectedArtist.SongsByArtist.Sum(x => x.RestartCount).ToString());
             statsLayout.AddView(totalPlayStats);
+            statsLayout.AddView(totalRestartStats);
             statsLayout.AddView(totalSkipsStats);
         
-            libTracks = CreateStatRow(ctx, "Library Tracks", SelectedArtist.SongsByArtist.Count.ToString());
+            libTracks = CreateStatRow(ctx, "Library Tracks", SelectedArtist.TotalSongsByArtist.ToString());
+            albCount = CreateStatRow(ctx, "Artist Albums", SelectedArtist.TotalAlbumsByArtist.ToString());
+            isFav = CreateStatRow(ctx, "IsFav", SelectedArtist.IsFavorite.ToString());
         statsLayout.AddView(libTracks);
         }
 
@@ -217,8 +228,14 @@ public partial class ArtistFragment : Fragment, IOnBackInvokedCallback
         };
         verticalMenu.SetPadding(10, 20, 10, 20);
 
-        verticalMenu.AddView(CreateToolbarButton(ctx, Resource.Drawable.musicfilter, "Filter"));
-        verticalMenu.AddView(CreateToolbarButton(ctx, Android.Resource.Drawable.IcDelete, "Delete"));
+        var sortAsc = CreateToolbarButton(ctx, Resource.Drawable.sortfromtoptobottom, "Filter");
+        sortAsc.Click += (s, e) =>
+        {
+
+        };
+        verticalMenu.AddView(sortAsc);
+
+        verticalMenu.AddView(CreateToolbarButton(ctx, Resource.Drawable.sortfrombottomtotop, "Delete"));
         verticalMenu.AddView(CreateToolbarButton(ctx, Android.Resource.Drawable.IcMenuShare, "Share"));
 
         fToolbarLayout.AddView(verticalMenu);
@@ -273,6 +290,7 @@ public partial class ArtistFragment : Fragment, IOnBackInvokedCallback
 
     public async override void OnResume()
     {
+        Debug.WriteLine($"time stamping to debug time {DateTime.Now} !!!!");
         base.OnResume();
         
         _albumChipGroup.RemoveAllViews();
@@ -282,11 +300,18 @@ public partial class ArtistFragment : Fragment, IOnBackInvokedCallback
         loadingIndic.Visibility = ViewStates.Visible;
 
 
+        Debug.WriteLine($"time stamping to debug time {DateTime.Now} !!!!");
         MyRecycleViewAdapter = new SongAdapter(View!.Context!,
+
             MyViewModel,this,SongsToWatchSource.ArtistPage);
+
+
+
+        Debug.WriteLine($"time stamping to debug time {DateTime.Now} !!!!");
         _songListRecycler.SetAdapter(MyRecycleViewAdapter);
+
+        Debug.WriteLine($"time stamping to debug time {DateTime.Now} !!!!");
         var albuInArtist = SelectedArtist.AlbumsByArtist;
-        albuInArtist ??= SelectedArtist.AlbumsInDB(MyViewModel.RealmFactory)?.ToObservableCollection();
             if (albuInArtist is not null )
             {
                 foreach (AlbumModelView? album in albuInArtist)
@@ -313,7 +338,8 @@ public partial class ArtistFragment : Fragment, IOnBackInvokedCallback
                 }
             }
 
-        
+
+        Debug.WriteLine($"time stamping to debug time {DateTime.Now} !!!!");
 
         if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu)
         {
