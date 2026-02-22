@@ -133,6 +133,8 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
         {
             StatusMessage = "Registering device...";
             await _sessionManager.RegisterCurrentDeviceAsync();
+            _sessionManager.StartListeners();
+            await _sessionManager.SyncDeviceStateAsync();
         }
         catch (Exception ex)
         {

@@ -29,6 +29,8 @@ public partial class DimmerStats : ObservableObject
     public partial double? TotalSecondsNumeric { get; set; }
     [ObservableProperty]
     public partial double? Value { get; set; }
+    [ObservableProperty]
+    public partial string? ValueStr { get; set; }
 
     /// <summary>
     /// A generic date value (e.g., First/Last Played Date).
