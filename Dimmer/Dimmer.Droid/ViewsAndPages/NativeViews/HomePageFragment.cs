@@ -3,8 +3,10 @@ using AndroidX.CoordinatorLayout.Widget;
 using AndroidX.Core.Widget;
 using Dimmer.DimmerSearch;
 using Dimmer.ViewsAndPages.ViewUtils;
+using Google.Android.Material.AppBar;
 using Google.Android.Material.Behavior;
 using Google.Android.Material.Floatingtoolbar;
+using Microsoft.Maui.Controls.Platform;
 
 
 namespace Dimmer.ViewsAndPages.NativeViews;
@@ -84,53 +86,48 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         PostponeEnterTransition();
-        var ctx = Context!;
+        var ctx = RequireContext();
 
-        var coordinator = new CoordinatorLayout(ctx)
-        {
-            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent)
-        };
-
-        myScrollView = new NestedScrollView(ctx)
-        {
-            LayoutParameters = new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent),
-            FillViewport = true
-        };
-
-
-
+        // --- 1. Root Coordinator Layout ---
         root = new CoordinatorLayout(ctx)
         {
             LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent)
         };
-
         root.SetBackgroundColor(UiBuilder.IsDark(ctx) ? Color.ParseColor("#0D0E20") : Color.ParseColor("#CAD3DA"));
-
 
         _backgroundImageView = new ImageView(ctx)
         {
-            LayoutParameters = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent),
+            LayoutParameters = new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent)
         };
         _backgroundImageView.SetScaleType(ImageView.ScaleType.CenterCrop);
         root.AddView(_backgroundImageView);
 
-        // --- 2. Main Content Container ---
-        var contentLinear = new LinearLayout(ctx)
+        // --- 2. AppBarLayout (Replaces NestedScrollView for Performance) ---
+        var appBarLayout = new AppBarLayout(ctx)
+        {
+            LayoutParameters = new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent),
+            Background = new Android.Graphics.Drawables.ColorDrawable(Color.Transparent)
+        };
+        appBarLayout.SetElevation(0f);
+
+        // Header Content Container inside AppBar
+        var headerContent = new LinearLayout(ctx)
         {
             Orientation = Orientation.Vertical,
-            LayoutParameters = new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent)
         };
-
-        // --- 3. Header Section (Menu + Search + Help) ---
-        var headerLayout = new LinearLayout(ctx)
+        var headerParams = new AppBarLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent)
         {
-            Orientation = Orientation.Horizontal
+            // CRITICAL: This allows the header to scroll off-screen dynamically
+            ScrollFlags = AppBarLayout.LayoutParams.ScrollFlagScroll | AppBarLayout.LayoutParams.ScrollFlagEnterAlways
         };
+        headerContent.LayoutParameters = headerParams;
+
+        // --- 3. Header Section (Menu + Search + Queue) ---
+        var headerLayout = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
         headerLayout.SetGravity(GravityFlags.CenterVertical);
         headerLayout.SetPadding(20, 20, 20, 20);
 
-        // Menu Button
-        var menuBtn = new Google.Android.Material.Button.MaterialButton(ctx, null, Resource.Attribute.materialIconButtonStyle)
+        var menuBtn = new MaterialButton(ctx, null, Resource.Attribute.materialIconButtonStyle)
         {
             Icon = AndroidX.Core.Content.ContextCompat.GetDrawable(ctx, Resource.Drawable.hamburgermenu),
             IconTint = Android.Content.Res.ColorStateList.ValueOf(Color.Gray),
@@ -138,12 +135,11 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         };
         menuBtn.Click += (s, e) => { if (Activity is TransitionActivity act) act.OpenDrawer(); };
 
-        // Search Card
         var searchCard = new MaterialCardView(ctx)
         {
             Radius = AppUtil.DpToPx(25),
             CardElevation = AppUtil.DpToPx(4),
-            LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1f) // Weight 1
+            LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1f)
         };
         ((LinearLayout.LayoutParams)searchCard.LayoutParameters).SetMargins(10, 0, 10, 0);
 
@@ -158,14 +154,12 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         _searchBar.SetTextColor(!UiBuilder.IsDark(root) ? Color.Black : Color.White);
         _searchBar.SetPadding(40, 30, 40, 30);
         _searchBar.TextChanged += _searchBar_TextChanged;
-
         searchCard.AddView(_searchBar);
 
-        // Queue Button
-        QueueBtn = new Google.Android.Material.Button.MaterialButton(ctx, null, Resource.Attribute.materialIconButtonStyle)
+        QueueBtn = new MaterialButton(ctx, null, Resource.Attribute.materialIconButtonStyle)
         {
             Icon = AndroidX.Core.Content.ContextCompat.GetDrawable(ctx, Resource.Drawable.playlista),
-            IconTint = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.DarkSlateBlue),
+            IconTint = Android.Content.Res.ColorStateList.ValueOf(Color.DarkSlateBlue),
             LayoutParameters = new LinearLayout.LayoutParams(AppUtil.DpToPx(50), AppUtil.DpToPx(50))
         };
         QueueBtn.Click += async (s, e) =>
@@ -173,7 +167,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
             var queueSheet = new QueueBottomSheetFragment(MyViewModel, QueueBtn);
             queueSheet.Show(ParentFragmentManager, "QueueSheet");
             QueueBtn.Enabled = false;
-            await Task.Delay(800);
+            await Task.Delay(250);
             if (queueSheet.IsVisible) queueSheet.ScrollToSong();
             QueueBtn.Enabled = true;
         };
@@ -189,13 +183,8 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         headerLayout.AddView(searchCard);
         headerLayout.AddView(QueueBtn);
 
-       
-        
-        // --- 5. Status / Count Line ---
-        var statusLayout = new LinearLayout(ctx)
-        {
-            Orientation = Orientation.Vertical
-        };
+        // --- 4. Status / Count Line ---
+        var statusLayout = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
         statusLayout.SetGravity(GravityFlags.CenterHorizontal);
         statusLayout.SetPadding(0, 10, 0, 10);
 
@@ -208,70 +197,57 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         statusLayout.AddView(songsTotal);
         statusLayout.AddView(TqlLine);
 
-        // Add views to main linear layout
-        contentLinear.AddView(headerLayout);
-        contentLinear.AddView(statusLayout);
+        // Assemble Header
+        headerContent.AddView(headerLayout);
+        headerContent.AddView(statusLayout);
+        appBarLayout.AddView(headerContent);
+        root.AddView(appBarLayout); // ADD APPBAR TO ROOT
 
-        // --- 6. RecyclerView ---
+        // --- 5. RecyclerView (High Performance Setup) ---
         _songListRecycler = new RecyclerView(ctx);
         _songListRecycler.SetLayoutManager(new LinearLayoutManager(ctx));
-        _songListRecycler.LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent);
+        _songListRecycler.HasFixedSize = true; // Optimization
 
-        // Padding for FAB + Miniplayer
+        var recyclerParams = new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent);
+        // CRITICAL: Connects Recycler scroll to AppBar collapse
+        recyclerParams.Behavior = new AppBarLayout.ScrollingViewBehavior();
+        _songListRecycler.LayoutParameters = recyclerParams;
+
         _songListRecycler.SetPadding(0, 0, 0, AppUtil.DpToPx(160));
         _songListRecycler.SetClipToPadding(false);
 
-        contentLinear.AddView(_songListRecycler);
-        root.AddView(contentLinear);
+        root.AddView(_songListRecycler); // ADD RECYCLER TO ROOT
 
-
-        myScrollView.AddView(root);
-        coordinator.AddView(myScrollView);
-
-        var fToolbarLayout = new FloatingToolbarLayout(ctx)
-        {
-            Id = View.GenerateViewId(),
-            Clickable = true
-        };
-
-        // Position it Bottom|Center or Bottom|Right
+        // --- 6. Floating Toolbar ---
+        var fToolbarLayout = new FloatingToolbarLayout(ctx) { Id = View.GenerateViewId(), Clickable = true };
         var ftbParams = new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent)
         {
-            BottomMargin = AppUtil.DpToPx(24)
+            BottomMargin = AppUtil.DpToPx(24),
+            Gravity = (int)(GravityFlags.Bottom | GravityFlags.Right),
+            Behavior = new HideViewOnScrollBehavior(ctx, null)
         };
-        ftbParams.Gravity = (int)(GravityFlags.Bottom | GravityFlags.Right); // Or CenterVertical | Right
-
-
-        // ENABLE HIDE ON SCROLL
-        ftbParams.Behavior = new HideViewOnScrollBehavior(ctx, null);
         fToolbarLayout.LayoutParameters = ftbParams;
 
-
-        var verticalMenu = new LinearLayout(ctx)
-        {
-            Orientation = Orientation.Vertical, // Or Vertical if you want a vertical bar
-            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent)
-        };
+        var verticalMenu = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
         verticalMenu.SetPadding(10, 20, 10, 20);
 
         var sortAsc = CreateToolbarButton(ctx, Resource.Drawable.sortfrombottomtotop, "Scroll To Top");
-        sortAsc.Click += (s, e) =>
-        {
-        };
-        verticalMenu.AddView(sortAsc);
-        var scrollToSong = CreateToolbarButton(ctx, Resource.Drawable.eye, "Scroll to Current");
+        sortAsc.Click += (s, e) => { _songListRecycler.SmoothScrollToPosition(0); };
 
+        var scrollToSong = CreateToolbarButton(ctx, Resource.Drawable.eye, "Scroll to Current");
         SetupClickableFab(scrollToSong);
+
         var scrollToBottom = CreateToolbarButton(ctx, Resource.Drawable.sortfromtoptobottom, "Scroll to bottom");
+        scrollToBottom.Click += (s, e) => { _songListRecycler.SmoothScrollToPosition(MyViewModel.SearchResults.Count - 1); };
+
+        verticalMenu.AddView(sortAsc);
         verticalMenu.AddView(scrollToSong);
         verticalMenu.AddView(scrollToBottom);
 
         fToolbarLayout.AddView(verticalMenu);
+        root.AddView(fToolbarLayout);
 
-
-        coordinator.AddView(fToolbarLayout);
-
-        return coordinator;
+        return root;
     }
 
     private Chip CreateToolbarButton(Context ctx, int iconRes, string desc)
@@ -394,119 +370,76 @@ ParentFragmentManager.BeginTransaction()
 .Add(Android.Resource.Id.Content, guideFrag)
 .AddToBackStack("TqlGuide")
 .Commit();
-}
+    }
+    private CompositeDisposable _resumeDisposables = new();
 
-public override async void OnResume()
-{
-    base.OnResume();
-    _songListRecycler?.SetAdapter(MyViewModel.HomeAdapter);
-
-    _isNavigating = false;
-    TqlLine.Click += (s, e) =>
+    public override void OnResume()
     {
-         _searchBar.Text =  TqlLine.Text;
-    };
+        base.OnResume();
+
+        // REFRESH DISPOSABLES to prevent duplicate subscriptions
+        _resumeDisposables = new CompositeDisposable();
+
+        _songListRecycler?.SetAdapter(MyViewModel.HomeAdapter);
+        _isNavigating = false;
+
+        TqlLine.Click += (s, e) => { _searchBar.Text = TqlLine.Text; };
+
         if (MyViewModel.IsBackGrounded)
         {
-            var currentlyPlayingIndex = MyViewModel.SearchResults.IndexOf(MyViewModel.CurrentPlayingSongView);
-            if (currentlyPlayingIndex >= 0)
-                _songListRecycler?.ScrollToPosition(currentlyPlayingIndex);
+            ScrollToCurrent();
             MyViewModel.IsBackGrounded = false;
         }
+
+        // CRITICAL FIX: Add .DisposeWith(_resumeDisposables) to every subscription
         MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentPlayingSongView), newVl => MyViewModel.CurrentPlayingSongView)
-    .ObserveOn(RxSchedulers.UI)
-    .Subscribe(async currSong =>
-    {
-        var art = currSong.Artist;
-        var alb= currSong.Album;
-        var artImgPath = art?.ImagePath;
-        var albImgPath = alb?.ImagePath;
-        if (MyViewModel.CurrentPlayingSongView.CoverImagePath is not null)
-        {
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(currSong => { /* Update visual logic */ })
+            .DisposeWith(_resumeDisposables);
 
-            //if(UiBuilder.IsDark(this.View))
-            //{
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentTqlQueryUI), newVl => MyViewModel.CurrentTqlQueryUI)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(tql =>
+            {
+                if (string.IsNullOrEmpty(tql))
+                {
+                    TqlLine.Animate()?.Alpha(0).SetDuration(300);
+                    TqlLine.Visibility = ViewStates.Gone;
+                }
+                else
+                {
+                    TqlLine.Text = tql;
+                    TqlLine.Visibility = ViewStates.Visible;
+                    TqlLine.Animate()?.Alpha(1).SetDuration(150);
+                }
+            })
+            .DisposeWith(_resumeDisposables);
 
-            //    await _backgroundImageView.SetImageWithStringPathViaGlideAndFilterEffect(MyViewModel.CurrentPlayingSongView.CoverImagePath,
-            //         Utilities.FilterType.DarkAcrylic);
-
-            //}
-            //else
-            //{
-            //    await _backgroundImageView.SetImageWithStringPathViaGlideAndFilterEffect(MyViewModel.CurrentPlayingSongView.CoverImagePath,
-            //         Utilities.FilterType.Glassy);
-            //}
-        }
-        //currSong.IsCurrentPlayingHighlight= true; 
-    });
-
-
-    MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentTqlQueryUI), newVl => MyViewModel.CurrentTqlQueryUI)
-    .ObserveOn(RxSchedulers.UI)
-    .Subscribe(tql =>
-    {
-        if (string.IsNullOrEmpty(tql))
-        {
-            TqlLine.Animate()?.Alpha(0).SetDuration(300);
-            TqlLine.Visibility = ViewStates.Gone;
-        }
-        else
-        {
-            TqlLine.Text = tql;
-            TqlLine.Visibility = ViewStates.Visible;
-
-            TqlLine.Animate()?.Alpha(1).SetDuration(150);
-        }
-    });
-
-
-    MyViewModel.WhenPropertyChange(nameof(MyViewModel.PlaybackQueue), newVl => MyViewModel.PlaybackQueue)
-    .ObserveOn(RxSchedulers.UI)
-    .Subscribe(pbQueue =>
-    {
-        if(pbQueue is not null)
-            QueueBtn.TooltipText = $"{MyViewModel.PlaybackQueue.Count} Songs in Queue";
-    });
-
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.PlaybackQueue), newVl => MyViewModel.PlaybackQueue)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(pbQueue =>
+            {
+                if (pbQueue is not null)
+                    QueueBtn.TooltipText = $"{MyViewModel.PlaybackQueue.Count} Songs in Queue";
+            })
+            .DisposeWith(_resumeDisposables);
 
         MyViewModel.WhenPropertyChange(nameof(MyViewModel.IsTqlBusy), newVl => MyViewModel.IsTqlBusy)
-    .ObserveOn(RxSchedulers.UI)
-    .Subscribe(isBusy =>
-    {
-        switch (isBusy)
-        {
-            case true:
-
-                //loadingIndic.Visibility = ViewStates.Visible;
-                break;
-
-            default:
-                var songCount = MyViewModel.SearchResults.Count;
-                if (songCount >= 1)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(isBusy =>
+            {
+                if (!isBusy)
                 {
-                    songsTotal.Text = $"{MyViewModel.SearchResults.Count} Songs";
-
-
-                        //loadingIndic.Visibility = ViewStates.Visible;
-
-
-
-
-
+                    var songCount = MyViewModel.SearchResults.Count;
+                    if (songCount >= 1)
+                        songsTotal.Text = $"{songCount} Songs";
+                    else if (songCount <= 0)
+                        TqlLine.Text = "No Songs Found";
                 }
-                else if (songCount <= 0)
-                {
-                    TqlLine.Text = "No Songs Found";
-                    //loadingIndic.Visibility = ViewStates.Gone;
-                }
-
-                break;
-        }
-    });
-
-
-}
-protected override void Dispose(bool disposing)
+            })
+            .DisposeWith(_resumeDisposables);
+    }
+    protected override void Dispose(bool disposing)
 {
 if (disposing)
 {
@@ -514,13 +447,15 @@ _disposables.Dispose();
 }
 base.Dispose(disposing);
 }
-public override void OnPause()
-{
-base.OnPause();
-MyViewModel.PropertyChanged -= ViewModel_PropertyChanged;
-}
+    public override void OnPause()
+    {
+        base.OnPause();
+        MyViewModel.PropertyChanged -= ViewModel_PropertyChanged;
 
-private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        _resumeDisposables.Dispose();
+    }
+
+    private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
 {
 //if (e.PropertyName == nameof(MyViewModel.SongPageStatus) ||
 //    e.PropertyName == nameof(MyViewModel.CanGoNextSong) ||
