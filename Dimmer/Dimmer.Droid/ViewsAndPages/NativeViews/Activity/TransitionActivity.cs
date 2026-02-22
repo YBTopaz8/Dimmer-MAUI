@@ -10,7 +10,7 @@ using Dimmer.ViewsAndPages.NativeViews.Adapters;
 using Dimmer.ViewsAndPages.NativeViews.DeviceTransfer;
 using Dimmer.ViewsAndPages.NativeViews.DimmerLive;
 using Dimmer.ViewsAndPages.NativeViews.DimmerLive.LastFMViews;
-
+using Dimmer.ViewsAndPages.NativeViews.Stats;
 using Google.Android.Material.BottomNavigation;
 using Google.Android.Material.Navigation;
 
@@ -130,7 +130,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
 
 
             MyViewModel.HomeAdapter = new HomePageAdapter(this.BaseContext,
-                MyViewModel, startFragment, HomePageAdapter.SongsToWatchSource.HomePage
+                MyViewModel, startFragment
                 );
             SupportFragmentManager
                 .BeginTransaction()
@@ -513,10 +513,14 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
                 break;
             case 101:
 
-                selectedFrag = new LibraryStatsFragment(MyViewModel);
-                tag = "LibraryStatsFragment";
+                var statsVm = MainApplication.ServiceProvider.GetService<StatisticsViewModel>();
+                if (statsVm != null)
+                {
+                    selectedFrag = new GlobalLibraryStatsFragment(statsVm);
+                    tag = "GlobalLibraryStatsFragment";
+                }
+                break;
 
-                break; 
             case 102:
                 
                 selectedFrag = new LastFMLoginFragment( MyViewModel);
