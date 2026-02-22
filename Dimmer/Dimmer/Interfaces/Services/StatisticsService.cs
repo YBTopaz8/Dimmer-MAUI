@@ -90,8 +90,8 @@ public class StatisticsService
        
         var allSongs =  _songRepo.GetAllAsQueryable();
 
-        
-        var filteredEvents =  _eventRepo.GetEventsInDateRangeAsync(startDate, endDate).ToList();
+
+        var filteredEvents = _eventRepo.GetEventsInDateRangeAsync(startDate, endDate);
         int topCount = 15;
 
         var bundle = new LibraryStatsBundle
@@ -148,7 +148,7 @@ public class StatisticsService
         };
 
 
-        var filteredEvents = allSongEvents
+        var filteredEvents = allSongEvents.AsEnumerable()
             .Where(e => (!startDate.HasValue || e.EventDate >= startDate.Value) &&
                         (e.EventDate < endDate)).ToList()
             ;

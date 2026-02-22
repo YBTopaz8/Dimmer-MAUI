@@ -88,6 +88,7 @@
                                 Content="Edit Audio"
                                 FontSize="19" />
                         </StackPanel>
+                        
                         <Grid
                             x:Name="SectionOverview"
                             ColumnSpacing="10"
@@ -101,7 +102,8 @@
 
                             <!--  The Image that will be the target of the connected animation  -->
 
-                            <StackPanel Grid.Column="0" Spacing="10">
+                            <StackPanel Grid.Column="0" Spacing="10"
+                                    x:Name="detailedImageStackPanel" >
 
                                 <Image
                                     x:Name="detailedImage"
@@ -137,7 +139,7 @@
                                             TextWrapping="Wrap" />
 
                                         <StackPanel Orientation="Horizontal" Spacing="5">
-                                            <Grid
+                                            <Grid 
                                     x:Name="RootGrid"
                                     Grid.Column="1"
                                     VerticalAlignment="Top"
@@ -189,8 +191,9 @@
 
                                                 <Border
                                         x:Name="ArtistDetailBorder"
-                                        MaxWidth="550"
                                         MaxHeight="350"
+                                                    MaxWidth="750"
+                                                    MinWidth="350"
                                         HorizontalAlignment="Center"
                                         VerticalAlignment="Center" Padding="5"
                                         Background="#1E1E1E"
@@ -270,31 +273,46 @@ FontWeight="ExtraBold" />
                                                                             <Grid
                                                                 Padding="2" 
                                                                 BorderBrush="Gray"
-                                                                BorderThickness="0"
+                                                                BorderThickness="0" ColumnSpacing="10"
                                                                 CornerRadius="5">
                                                                                 <Grid.ColumnDefinitions>
                                                                                     <ColumnDefinition Width="*"/>
-                                                                                    <ColumnDefinition Width="*"/>
+                                                                                    <ColumnDefinition Width="auto"/>
                                                                                 </Grid.ColumnDefinitions>
                                                                                 <StackPanel 
                                                                     Grid.Column="0"
                                                                     Spacing="5">
 
                                                                                     <TextBlock
-                                                                        FontSize="12" 
+                                                                        FontSize="16" 
                                                                         MaxLines="3" TextWrapping="Wrap"
                                                                         Text="{Binding Title}" />
+                                                                                    
+                                                                                    <TextBlock
+                                                                        FontSize="9" 
+                                                                                FontStyle="Italic"        
+                                                                        MaxLines="3" TextWrapping="Wrap"
+                                                                        Text="{Binding AlbumName}" />
+                                                                                    
                                                                                 </StackPanel>
 
                                                                                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5">
-                                                                                    <Button Content="Play Now"
+                                                                                    <Button 
                                                                                 x:Name="PlaySongNowFromArtistListOfSongs"
                                                                                 Click="PlaySongNowFromArtistListOfSongs_Click"
-                                                                                FontSize="10" Background="Transparent"/>
-                                                                                    <Button Content="Add Next in Queue"
+                                                                                        RightTapped="PlaySongNowFromArtistListOfSongs_RightTapped"
+                                                                                FontSize="10" Background="Transparent"
+                                                                                        
+                                                                                        >
+                                                                                        <SymbolIcon Symbol="Play"/>
+                                                                                    </Button>
+                                                                                    <Button     
                                                                                 x:Name="AddNextInQueue"
                                                                                 Click="AddNextInQueue_Click"
-                                                                                FontSize="10" Background="Transparent"/>
+                                                                                FontSize="10" Background="Transparent">
+
+                                                                                        <SymbolIcon Symbol="List"/>
+                                                                                    </Button>
                                                                                 </StackPanel>
 
                                                                             </Grid>
@@ -309,6 +327,7 @@ FontWeight="ExtraBold" />
                                                 </Border>
                                             </Grid>
                                         </StackPanel>
+                                        
                                         <StackPanel
                                             Margin="0,10,0,0"
                                             Orientation="Horizontal"
@@ -355,8 +374,7 @@ FontWeight="ExtraBold" />
                                                 Background="Transparent"
                                                 BorderBrush="Transparent"
                                                 RightTapped="FavBtn_RightTapped" x:Name="FavBtn"
-                                                Command="{x:Bind MyViewModel.AddFavoriteRatingToSongCommand}"
-                                                CommandParameter="{x:Bind MyViewModel.SelectedSong}"
+                                                Click="FavBtn_Click"
                                                 Foreground="SlateBlue">
 
                                                 <FontIcon Glyph="&#xEB52;" />

@@ -1,10 +1,5 @@
-﻿using AndroidX.Lifecycle;
-using Dimmer.Data.Models.LyricsModels;
-using Dimmer.UiUtils;
-using DynamicData.Binding;
-using Google.Android.Material.Dialog;
-using Google.Android.Material.ProgressIndicator;
-using ProgressBar = Android.Widget.ProgressBar;
+﻿using Dimmer.Data.Models.LyricsModels;
+using Google.Android.Material.Loadingindicator;
 using ScrollView = Android.Widget.ScrollView;
 
 namespace Dimmer.ViewsAndPages.NativeViews.SingleSong;
@@ -18,8 +13,7 @@ public partial class DownloadLyricsFragment : Fragment
     public bool isSearchClicked { get; private set; }
 
     private RecyclerView resultsRecycler;
-    private ProgressBar loadingBar;
-
+    public LoadingIndicator loadingBar { get; private set; }
     public DownloadLyricsFragment(BaseViewModelAnd vm)
     {
         MyViewModel = vm;
@@ -93,7 +87,7 @@ public partial class DownloadLyricsFragment : Fragment
         root.AddView(searchBtn);
 
         // 2. Loading Indicator
-        loadingBar = new CircularProgressIndicator(ctx) { Indeterminate = true, Visibility = ViewStates.Gone };
+        loadingBar = new (ctx) {  Visibility = ViewStates.Gone };
         root.AddView(loadingBar);
 
         // 3. Results List
@@ -113,7 +107,7 @@ public partial class DownloadLyricsFragment : Fragment
         searchBtn.Enabled = false;
         loadingBar.Visibility = ViewStates.Visible;
 
-        await MyViewModel.SearchLyricsCommand.ExecuteAsync(null);
+        await MyViewModel.SearchLyricsAsync();
 
     }
 

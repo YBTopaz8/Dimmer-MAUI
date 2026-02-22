@@ -1,5 +1,4 @@
 ﻿using System.Security.Cryptography;
-using Android.Hardware.Input;
 using Android.Views.InputMethods;
 using Application = Android.App.Application;
 using Path = System.IO.Path;

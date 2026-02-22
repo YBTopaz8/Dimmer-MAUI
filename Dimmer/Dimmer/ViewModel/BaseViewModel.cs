@@ -140,6 +140,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         PlaybackManager = new RuleBasedPlaybackManager(RealmFactory);
 
         SearchResultsHolder.Connect()
+             .AutoRefresh(song => song.IsFavorite)
+        .AutoRefresh(song => song.IsCurrentPlayingHighlight)
+        .AutoRefresh(song => song.HasSyncedLyrics)
+        .AutoRefresh(song => song.CoverImagePath)
             .ObserveOn(RxSchedulers.UI) // Important for UI updates
             .Bind(out _searchResults)
             .Subscribe(x =>
@@ -173,6 +177,18 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     [ObservableProperty]
     public partial bool IsPlayEventsLoading { get; set; }
+
+
+    [ObservableProperty]
+    public partial bool IsBackGrounded { get; set; }
+
+    async partial void OnIsBackGroundedChanging(bool oldValue, bool newValue)
+    {
+        if(newValue)
+        {
+           await OnAppClosingAsync();
+        }
+    }
 
     private void SetupHistoryPipeline()
     {
@@ -403,7 +419,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(changesDone =>
             {
-                if (changesDone is null) return;
+                if (changesDone is null) return; 
+                
+                if (!string.IsNullOrWhiteSpace(CurrentTqlQuery))
+                    return;
+                 
                 SearchResultsHolder.Edit(updater =>
                 {
                     updater.Clone(changes: changesDone);
@@ -969,14 +989,14 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
 
     #region app cycle 
-    public void OnAppClosing()
+    public async Task OnAppClosingAsync()
     {
         var realmm = RealmFactory.GetRealmInstance();
         var appModel = realmm.All<AppStateModel>().ToList();
         if (appModel is not null && appModel.Count > 0)
         {
             var appmodel = appModel[0];
-            realmm.Write(
+           await realmm.WriteAsync(
                 () =>
                 {
                     appmodel.LastKnownQuery = CurrentTqlQuery;
@@ -1015,7 +1035,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 CurrentLanguage = CultureInfo.CurrentCulture.TwoLetterISOLanguageName,
                 CurrentCountry = RegionInfo.CurrentRegion.TwoLetterISORegionName,
             };
-            realmm.Write(
+          await  realmm.WriteAsync(
                 () =>
                 {
                     realmm.Add(newAppModel);
@@ -1680,125 +1700,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     #endregion
 
 
-    [RelayCommand]
-    public void RefreshSongMetadata(SongModelView songViewModel)
-    {
-        if (songViewModel == null)
-            return;
-
-        Task.Run(
-            () =>
-            {
-                if (RealmFactory is null)
-                {
-                    _logger.LogError("RealmFactory service is not registered.");
-                    return;
-                }
-                var realm = RealmFactory.GetRealmInstance();
-                if (realm is null)
-                {
-                    _logger.LogError("Failed to get Realm instance from RealmFactory.");
-                    return;
-                }
-
-
-                var songDb = realm.Find<SongModel>(songViewModel.Id);
-                if (songDb == null)
-                {
-                    _logger.LogWarning(
-                        "evt with ID {SongId} not found in DB. Cannot refresh metadata.",
-                        songViewModel.Id);
-                    return;
-                }
-
-
-                var artistNamesToLink = songDb.OtherArtistsName
-                    .Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries)
-                    .ToList();
-
-                if (artistNamesToLink.Count == 0)
-                {
-                    _logger.LogInformation("No 'OtherArtists' found for song '{Title}'. Nothing to link.", songDb.Title);
-                    return;
-                }
-
-
-                var artistClauses = Enumerable.Range(0, artistNamesToLink.Count).Select(i => $"Name == ${i}");
-
-
-                var artistQueryString = string.Join(" OR ", artistClauses);
-
-
-                var artistQueryArgs = artistNamesToLink.Select(name => (QueryArgument)name).ToArray();
-
-
-                var artistsFromDb = realm.All<ArtistModel>()
-                    .Filter(artistQueryString, artistQueryArgs)
-                    .ToDictionary(a => a.Name);
-
-
-                realm.Write(
-                    () =>
-                    {
-                        var freshSongDb = realm.Find<SongModel>(songViewModel.Id);
-                        if (freshSongDb == null)
-                            return;
-
-
-                        if (freshSongDb.Album == null)
-                        {
-                            _logger.LogWarning(
-                                "evt '{Title}' has no associated album, cannot update album artists.",
-                                freshSongDb.Title);
-                            return;
-                        }
-
-                        foreach (var artistName in artistNamesToLink)
-                        {
-                            bool songHasArtist = freshSongDb.ArtistToSong.Any(a => a.Name == artistName);
-                            if (songHasArtist)
-                            {
-                                continue;
-                            }
-
-
-                            if (artistsFromDb.TryGetValue(artistName, out var artistModel))
-                            {
-                                freshSongDb.ArtistToSong.Add(artistModel);
-                                _logger.LogInformation(
-                                    "Linked artist '{ArtistName}' to song '{Title}'.",
-                                    artistName,
-                                    freshSongDb.Title);
-
-
-                                bool albumHasArtist = freshSongDb.Album.Artists.Any(a => a.Id == artistModel.Id);
-                                if (!albumHasArtist)
-                                {
-                                    freshSongDb.Album.Artists.Add(artistModel);
-                                    _logger.LogInformation(
-                                        "Linked artist '{ArtistName}' to album '{AlbumTitle}'.",
-                                        artistName,
-                                        freshSongDb.Album.Name);
-                                }
-                            }
-                            else
-                            {
-                                _logger.LogWarning(
-                                    "Artist '{ArtistName}' not found in DB. Cannot link to song '{Title}'.",
-                                    artistName,
-                                    freshSongDb.Title);
-                            }
-                        }
-                    });
-
-
-                _logger.LogInformation(
-                    "Successfully finished refreshing metadata for song ID {SongId}",
-                    songViewModel.Id);
-            }
-            )
-            ;
-    }
 
 
     [ObservableProperty]
@@ -3106,13 +3007,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
 
             Debug.WriteLine("PlaySong invoked for: " + songToPlay.Title);
-            //// Quick exit check. The more detailed check is in PlayInternalAsync.
-            //if (string.IsNullOrEmpty(songToPlay.FilePath) || !TaggingUtils.FileExists(songToPlay.FilePath))
-            //{
-            //    _logger.LogError("Song file not found for '{Title}'.", songToPlay.Title);
-            //    await ValidateSongAsync(songToPlay);
-            //    return;
-            //}
 
 
             var sourceList = new List<SongModelView>();
@@ -4294,7 +4188,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             return;
         };
         SelectedArtist = artist;
-        SelectedArtist.RefreshAlbumAndSongsFromDB(RealmFactory);
+       _= Task.Run(()=> SelectedArtist.RefreshAlbumAndSongsFromDB(RealmFactory));
     }
     public async Task<bool> SelectedArtistAndNavtoPage(SongModelView? song)
     {
@@ -5924,13 +5818,19 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
     #endregion
 
-    public void SetSelectedAlbum(AlbumModelView? album)
+    public void SetSelectedAlbum(AlbumModelView? album=null)
     {
         if(album is not null)
         {
+            album.RefreshArtistsAndSongsFromDB(RealmFactory);
+            SelectedAlbum = album;
 
-        album.RefreshArtistsAndSongsFromDB(RealmFactory);
-        SelectedAlbum = album;
+        }
+        else if(SelectedSong is not null && SelectedSong.Album is not null)
+        {
+
+            SelectedSong.Album.RefreshArtistsAndSongsFromDB(RealmFactory);
+            SelectedAlbum = SelectedSong.Album;
 
         }
     }

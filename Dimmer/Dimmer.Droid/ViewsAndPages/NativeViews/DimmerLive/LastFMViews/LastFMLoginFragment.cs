@@ -1,16 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Dimmer.ViewsAndPages.NativeViews.DimmerLive.LastFMViews;
 
-namespace Dimmer.ViewsAndPages.NativeViews.DimmerLive.LastFMViews;
-
-using System.Reactive.Disposables;
-using Dimmer.UiUtils;
 using Dimmer.ViewModel;
-
-using ProgressBar = Android.Widget.ProgressBar;
 
 public class LastFMLoginFragment : Fragment
 {

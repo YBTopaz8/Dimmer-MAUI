@@ -1,19 +1,8 @@
 ﻿using AndroidX.CoordinatorLayout.Widget;
 using AndroidX.Core.Widget;
-using AndroidX.RecyclerView.Widget;
-using Bumptech.Glide;
 using Google.Android.Material.Behavior;
-using Google.Android.Material.Chip;
 using Google.Android.Material.Floatingtoolbar;
 using Google.Android.Material.Loadingindicator;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reactive.Disposables;
-using System.Reactive.Disposables.Fluent;
-using System.Text;
-using System.Threading.Tasks;
-using static Android.Provider.DocumentsContract;
 using static Dimmer.ViewsAndPages.NativeViews.SongAdapter;
 
 namespace Dimmer.ViewsAndPages.NativeViews.AlbumSection;

@@ -22,10 +22,11 @@ public partial class DimmerMAUIWin : Microsoft.Maui.Controls.Window
     public Microsoft.Maui.Controls.Page CurrentPage => this.Page as Microsoft.Maui.Controls.Page ?? throw new InvalidOperationException("Current Page is not a valid Page.");
     
 
+    
     protected async override void OnDestroying()
     {
         MyViewModel.windowManager.CloseWindow(this);
-        MyViewModel.OnAppClosing();
+        await MyViewModel.OnAppClosingAsync();
         if (!AppSettingsService.ShowCloseConfirmationPopUp.GetCloseConfirmation())
         {
             SubscriptionManager subMgr = IPlatformApplication.Current!.Services.GetService<SubscriptionManager>()!;

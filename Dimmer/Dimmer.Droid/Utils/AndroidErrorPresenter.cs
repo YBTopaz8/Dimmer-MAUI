@@ -1,9 +1,3 @@
-using System;
-using System.Diagnostics;
-using Android.Widget;
-using Dimmer.Interfaces;
-using Google.Android.Material.Dialog;
-
 namespace Dimmer.Utils;
 
 /// <summary>

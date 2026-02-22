@@ -1,9 +1,5 @@
-﻿using Bumptech.Glide;
-using Dimmer.DimmerLive.Models;
-using Dimmer.UiUtils;
-using Google.Android.Material.Dialog;
+﻿using Dimmer.DimmerLive.Models;
 using Google.Android.Material.Tabs;
-using System.Reactive.Disposables;
 using ScrollView = Android.Widget.ScrollView;
 
 namespace Dimmer.ViewsAndPages.NativeViews.DimmerLive;

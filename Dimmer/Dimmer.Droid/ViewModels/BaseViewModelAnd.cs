@@ -1,12 +1,7 @@
 ﻿
 //using System.Reactive.Linq;
 
-using System.Threading.Tasks;
 using AndroidX.Interpolator.View.Animation;
-using AndroidX.Lifecycle;
-
-using Bumptech.Glide;
-using Dimmer.UiUtils;
 using Dimmer.ViewsAndPages.NativeViews.Adapters;
 using Dimmer.ViewsAndPages.NativeViews.ArtistSection;
 
@@ -15,6 +10,7 @@ using Dimmer.ViewsAndPages.NativeViews.ArtistSection;
 namespace Dimmer.ViewModels;
 public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 {
+    
     public BaseViewModelAnd(
         AndroidFolderPicker picker,
         IDimmerStateService dimmerStateService, MusicDataService musicDataService,
@@ -539,11 +535,11 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         var fade = new MaterialFadeThrough();
         destinationFrag.EnterTransition = fade;
         callerFrag.ExitTransition = fade;
-        var fragmentManager = callerFrag.Activity.SupportFragmentManager;
+        var fragmentManager = callerFrag.Activity?.SupportFragmentManager;
 
-        var trans = fragmentManager.BeginTransaction()
+        var trans = fragmentManager?.BeginTransaction()
       .SetReorderingAllowed(true);
-        trans
+        trans?
             .Replace(Resource.Id.custom_fragment_container, destinationFrag)
             .AddToBackStack(tag)
             .Commit();

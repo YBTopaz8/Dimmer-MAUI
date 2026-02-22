@@ -1,14 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Android.App;
-using AndroidX.Fragment.App;
-using Dimmer.UiUtils;
-using Org.Apache.Http.Conn;
-
-namespace Dimmer.ViewsAndPages.NativeViews.Misc;
+﻿namespace Dimmer.ViewsAndPages.NativeViews.Misc;
 
 public partial class SongContextMenuFragment :BottomSheetDialogFragment
 {

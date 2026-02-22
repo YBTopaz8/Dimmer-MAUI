@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using IntelliJ.Lang.Annotations;
-
-namespace Dimmer.ViewModels;
+﻿namespace Dimmer.ViewModels;
 
 public partial class LoginViewModelAnd  : LoginViewModel
 {

@@ -1,17 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Android.Content;
-
-using AndroidX.ConstraintLayout.Widget;
-using AndroidX.Media3.Common;
-
-using Google.Android.Material.Color.Utilities;
-
-using static Android.Print.PrintAttributes;
+﻿using AndroidX.ConstraintLayout.Widget;
 using static Dimmer.Utils.UIUtils.ConstraintGrid;
 
 using Grid = Dimmer.Utils.UIUtils.ConstraintGrid.Grid;

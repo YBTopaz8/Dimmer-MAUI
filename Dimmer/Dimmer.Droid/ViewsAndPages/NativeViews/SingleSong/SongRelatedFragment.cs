@@ -1,12 +1,5 @@
-﻿using Bumptech.Glide;
-using Bumptech.Glide.Load.Resource.Bitmap;
-using Dimmer.UiUtils;
+﻿using Bumptech.Glide.Load.Resource.Bitmap;
 using Google.Android.Material.Divider;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Dimmer.ViewsAndPages.NativeViews.SingleSong;
 

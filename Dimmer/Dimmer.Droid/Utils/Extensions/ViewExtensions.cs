@@ -1,8 +1,4 @@
-﻿using System.Threading.Tasks;
-using AndroidX.Lifecycle;
-using Bumptech.Glide;
-using Bumptech.Glide.Load.Resource.Drawable;
-using Dimmer.Utilities;
+﻿using Dimmer.Utilities;
 using Point = Microsoft.Maui.Graphics.Point;
 using Rect = Microsoft.Maui.Graphics.Rect;
 
@@ -16,9 +12,20 @@ public static class ViewExts
     }
     public static void SetImageWithGlide(this ImageView ImgView, string? imgPath)
     {
-
-        Glide.With(ImgView.Context!).Load(imgPath)
-            .Into(ImgView);
+        try
+        {
+            TransitionActivity? act = ImgView.Context?.GetActivity() as TransitionActivity;
+            Glide.With(ImgView.Context!).Load(imgPath)
+                .Into(ImgView);
+        }
+        catch (Java.Lang.IllegalArgumentException ex)
+        {
+            Debug.WriteLine(ex?.Message);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex?.Message);
+        }
     }
     public static async Task SetImageWithStringPathViaGlideAndFilterEffect(this ImageView ImgView, string imgPath, FilterType desiredFilter)
     {

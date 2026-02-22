@@ -1,22 +1,4 @@
-﻿using System.Reactive.Disposables;
-using System.Reactive.Disposables.Fluent;
-using System.Threading.Tasks;
-using AndroidX.AppCompat.Widget;
-using AndroidX.Core.Content;
-using AndroidX.Core.View;
-
-using Bumptech.Glide;
-
-using Dimmer.DimmerAudio;
-using Dimmer.UiUtils;
-using Dimmer.Utilities;
-using Dimmer.Utils.Extensions;
-using Dimmer.ViewsAndPages.NativeViews.Misc;
-using DynamicData;
-using Google.Android.Material.Chip;
-using Google.Android.Material.ProgressIndicator;
-using Google.Android.Material.Tooltip;
-using ImageButton = Android.Widget.ImageButton;
+﻿using Dimmer.Utilities;
 using Math = System.Math;
 using ScrollView = Android.Widget.ScrollView;
 
@@ -824,7 +806,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         return btn;
     }
 
-    public override void OnResume()
+    public override async void OnResume()
     {
         base.OnResume();
        
@@ -833,37 +815,76 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
             Activity?.OnBackInvokedDispatcher.RegisterOnBackInvokedCallback(
                 (int)IOnBackInvokedDispatcher.PriorityDefault, this);
         }
+        try
+        {
 
-        MyViewModel.WhenPropertyChange
-            (nameof(MyViewModel.CurrentPlayingSongView), s => MyViewModel.CurrentPlayingSongView)
-            .ObserveOn(RxSchedulers.UI)
-            .Subscribe(song =>
-            {
-                UpdateSongUI(song);
-                // Only update mini cover, carousel handles its own images
-                if (!string.IsNullOrEmpty(song.CoverImagePath))
+            MyViewModel.WhenPropertyChange
+                (nameof(MyViewModel.CurrentPlayingSongView), s => MyViewModel.CurrentPlayingSongView)
+                .ObserveOn(RxSchedulers.UI)
+                .Subscribe(song =>
                 {
-                    Glide.With(this).Load(song.CoverImagePath).Into(_miniCover);
-                }
-                else
+                    UpdateSongUI(song);
+                    // Only update mini cover, carousel handles its own images
+                    if (!string.IsNullOrEmpty(song.CoverImagePath))
+                    {
+                        Glide.With(this).Load(song.CoverImagePath).Into(_miniCover);
+                    }
+                    else
+                    {
+                        _miniCover.SetImageResource(Resource.Drawable.musicnotess);
+                    }
+                    if (song is null)
+                    {
+                        _mainCoverImage.SetImageWithGlide(null);
+
+                        return;
+                    }
+                    if (MyViewModel.CurrentPlayingSongView.CoverImagePath is not null && MyViewModel.OldSongValue?.AlbumName != song.AlbumName)
+                    {
+
+                        _mainCoverImage.SetImageWithGlide(MyViewModel.CurrentPlayingSongView.CoverImagePath);
+
+
+                    }
+                }).DisposeWith(_disposables);
+
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+            await Task.Delay(2000)
+                ;
+
+            MyViewModel.WhenPropertyChange
+                (nameof(MyViewModel.CurrentPlayingSongView), s => MyViewModel.CurrentPlayingSongView)
+                .ObserveOn(RxSchedulers.UI)
+                .Subscribe(song =>
                 {
-                    _miniCover.SetImageResource(Resource.Drawable.musicnotess);
-                }
-                if (song is null)
-                {
-                    _mainCoverImage.SetImageWithGlide(null);
+                    UpdateSongUI(song);
+                    // Only update mini cover, carousel handles its own images
+                    if (!string.IsNullOrEmpty(song.CoverImagePath))
+                    {
+                        Glide.With(this).Load(song.CoverImagePath).Into(_miniCover);
+                    }
+                    else
+                    {
+                        _miniCover.SetImageResource(Resource.Drawable.musicnotess);
+                    }
+                    if (song is null)
+                    {
+                        _mainCoverImage.SetImageWithGlide(null);
 
-                    return;
-                }
-                if (MyViewModel.CurrentPlayingSongView.CoverImagePath is not null && MyViewModel.OldSongValue?.AlbumName != song.AlbumName)
-                {
+                        return;
+                    }
+                    if (MyViewModel.CurrentPlayingSongView.CoverImagePath is not null && MyViewModel.OldSongValue?.AlbumName != song.AlbumName)
+                    {
 
-                    _mainCoverImage.SetImageWithGlide(MyViewModel.CurrentPlayingSongView.CoverImagePath);
+                        _mainCoverImage.SetImageWithGlide(MyViewModel.CurrentPlayingSongView.CoverImagePath);
 
 
-                }
-            }).DisposeWith(_disposables);
-
+                    }
+                }).DisposeWith(_disposables);
+        }
 
 
         

@@ -1,15 +1,5 @@
-﻿using System.Reactive.Disposables;
-using System.Reactive.Disposables.Fluent;
-using Android.App.Backup;
-using Bumptech.Glide;
-
-using Dimmer.UiUtils;
-using Dimmer.Utils.Extensions;
-using DynamicData;
-using DynamicData.Binding;
-using Google.Android.Material.Chip;
+﻿using DynamicData.Binding;
 using Google.Android.Material.MaterialSwitch;
-using Google.Android.Material.Tooltip;
 using ScrollView = Android.Widget.ScrollView;
 
 namespace Dimmer.ViewsAndPages.NativeViews;

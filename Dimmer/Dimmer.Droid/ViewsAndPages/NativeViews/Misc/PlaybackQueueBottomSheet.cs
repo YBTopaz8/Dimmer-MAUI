@@ -1,10 +1,4 @@
-﻿using Dimmer.UiUtils;
-using Google.Android.Material.Dialog;
-using Google.Android.Material.Loadingindicator;
-using System.Reactive.Disposables;
-using System.Reactive.Disposables.Fluent;
-using static Android.Provider.DocumentsContract;
-using static Dimmer.ViewsAndPages.NativeViews.SongAdapter;
+﻿using Google.Android.Material.Loadingindicator;
 
 namespace Dimmer.ViewsAndPages.NativeViews.Misc;
 

@@ -48,7 +48,7 @@ public partial class CollectionStatsSummary : ObservableObject
     /// <summary>
     /// Gets or sets the songs played converts to completion.
     /// </summary>
-    [ObservableProperty] public partial int SongsPlayedToCompletion { get; set; }
+    [ObservableProperty] public partial int SongsPlayedToCompletionCount { get; set; }
     /// <summary>
     /// Gets or sets the songs favorited.
     /// </summary>
@@ -109,4 +109,5 @@ public partial class CollectionStatsSummary : ObservableObject
     /// Gets or sets the shortest song sec.
     /// </summary>
     [ObservableProperty] public partial int ShortestSongSec { get; set; }
+    public IEnumerable<ObjectId?> SongsPlayedToCompletionIdsCollection { get; internal set; }
 }

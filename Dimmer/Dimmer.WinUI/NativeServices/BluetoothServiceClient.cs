@@ -34,7 +34,7 @@ public class BluetoothServiceClient
         BaseVM.SearchToTQL(TQlStaticMethods.PresetQueries.ShowMyFav());
         // Gather Data locally
         var currentUser = _userService.CurrentUserValue;
-        BaseVM.OnAppClosing();
+        await BaseVM.OnAppClosingAsync();
         var appstate = BaseVM.RealmFactory.GetRealmInstance().All<AppStateModel>().FirstOrDefaultNullSafe();
         var favoriteSongsTitleAndDurationId = BaseVM.RealmFactory.GetRealmInstance().All<SongModel>().AsEnumerable().Where(x => x.IsFavorite).Select(x => x.TitleDurationKey).ToList();
         Debug.WriteLine(BaseVM.SearchResults.Count);

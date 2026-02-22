@@ -20,7 +20,6 @@ global using Android.Widget;
 global using Android.Window;
 global using AndroidX.AppCompat.App;
 global using AndroidX.RecyclerView.Widget;
-global using AndroidX.Transitions;
 global using CommunityToolkit.Mvvm.ComponentModel;
 global using CommunityToolkit.Mvvm.Input;
 global using Dimmer.Data.Models;
@@ -33,12 +32,11 @@ global using Dimmer.Utilities.Enums;
 global using Dimmer.Utils;
 global using Dimmer.Utils.PageAnimations;
 global using Dimmer.ViewModel;
-global using  Dimmer.ViewModels;
+global using Dimmer.ViewModels;
 global using Dimmer.ViewsAndPages.NativeViews.Activity;
 global using Google.Android.Material.BottomSheet;
 global using Google.Android.Material.Button;
 global using Google.Android.Material.Card;
-global using Google.Android.Material.Shape;
 global using Google.Android.Material.TextField;
 global using Google.Android.Material.Transition;
 global using Microsoft.Maui.Controls;
@@ -50,7 +48,6 @@ global using Debug = System.Diagnostics.Debug;
 global using TextView = Google.Android.Material.TextView.MaterialTextView;
 global using TransitionManager = AndroidX.Transitions.TransitionManager;
 global using Google.Android.Material.Dialog;
-global using Google.Android.Material.SwitchMaterial;
 
 global using DialogFragment = AndroidX.Fragment.App.DialogFragment;
 global using Color = Android.Graphics.Color;
@@ -80,7 +77,6 @@ global using SkiaSharp.Views.Android;
 global using Slider = Google.Android.Material.Slider.Slider;
 
 global using CommunityToolkit.Maui.Core.Extensions;
-global using CommunityToolkit.Maui.Storage;
 
 global using Dimmer.Data;
 global using Dimmer.Interfaces.IDatabase;
@@ -105,8 +101,6 @@ global using ChangeBounds = AndroidX.Transitions.ChangeBounds;
 global using TransitionSet = AndroidX.Transitions.TransitionSet;
 global using ChangeImageTransform = AndroidX.Transitions.ChangeImageTransform;
 
-global using Resource = Microsoft.Maui.Resource;
-
 global using Android.Text;
 global using AndroidX.Core.View;
 global using Bumptech.Glide;
@@ -120,6 +114,13 @@ global using System.Reactive;
 global using System.Reactive.Disposables;
 global using System.Reactive.Disposables.Fluent;
 
+global using AndroidX.CoordinatorLayout.Widget;
+global using AndroidX.Core.Widget;
+global using Dimmer.ViewsAndPages.NativeViews.AlbumSection;
+global using Google.Android.Material.Behavior;
+global using Google.Android.Material.Floatingtoolbar;
+global using Google.Android.Material.Loadingindicator;
+global using static Dimmer.ViewsAndPages.NativeViews.SongAdapter;
 
 
 namespace Dimmer;

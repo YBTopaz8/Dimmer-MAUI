@@ -1,9 +1,4 @@
-﻿using AndroidX.Lifecycle.ViewModels;
-
-using Bumptech.Glide;
-
-using Dimmer.Data.Models.LyricsModels;
-using Dimmer.UiUtils;
+﻿using Dimmer.Data.Models.LyricsModels;
 using Google.Android.Material.ProgressIndicator;
 
 using ScrollView = Android.Widget.ScrollView;

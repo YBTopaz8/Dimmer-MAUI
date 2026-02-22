@@ -1,5 +1,4 @@
 ﻿using Android.Views.InputMethods;
-using System.Reactive.Disposables;
 
 using ProgressBar = Android.Widget.ProgressBar;
 

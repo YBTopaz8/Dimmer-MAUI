@@ -1,4 +1,3 @@
-using Android.Views;
 using AndroidX.ViewPager2.Widget;
 
 namespace Dimmer.ViewsAndPages.NativeViews;

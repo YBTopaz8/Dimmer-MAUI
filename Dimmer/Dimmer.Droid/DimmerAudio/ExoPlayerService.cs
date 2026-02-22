@@ -32,8 +32,6 @@ using Java.Util.Concurrent;
 using Android.Media;
 
 using MediaController = AndroidX.Media3.Session.MediaController;
-
-using AndroidX.Lifecycle;
 using Exception = System.Exception;
 
 namespace Dimmer.DimmerAudio; // Make sure this namespace is correct

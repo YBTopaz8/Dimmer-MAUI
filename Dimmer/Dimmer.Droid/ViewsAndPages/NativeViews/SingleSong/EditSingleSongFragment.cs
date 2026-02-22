@@ -1,17 +1,4 @@
-﻿using System.Linq;
-using Android.Content;
-using Android.Views;
-using Android.Widget;
-using AndroidX.Fragment.App;
-using Bumptech.Glide;
-using Google.Android.Material.Button;
-using Google.Android.Material.Chip;
-using Google.Android.Material.Dialog;
-using Google.Android.Material.TextField;
-using Google.Android.Material.TextView;
-using Dimmer.ViewModel; // Adjust namespace
-
-namespace Dimmer.ViewsAndPages.NativeViews.SingleSong;
+﻿namespace Dimmer.ViewsAndPages.NativeViews.SingleSong;
 
 public class EditSingleSongFragment : Fragment
 {

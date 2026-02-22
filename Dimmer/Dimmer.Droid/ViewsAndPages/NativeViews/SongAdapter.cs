@@ -16,7 +16,7 @@ internal partial class SongAdapter : RecyclerView.Adapter , IDisposable
 
     public override int ItemCount => _songs?.Count ?? 0;
 
-    public void Dispose()
+    public new void Dispose()
     {
         if (_isDisposed) return;
         _isDisposed = true;
@@ -65,13 +65,7 @@ internal partial class SongAdapter : RecyclerView.Adapter , IDisposable
 
     private void SetupReactivePipeline(BaseViewModelAnd viewModel, SongsToWatchSource songsToWatch)
     {
-        viewModel.SearchResultsHolder.Connect()
-            .ObserveOn(RxSchedulers.UI)
-            .Bind(out _songs)
-            .Subscribe(changes => NotifyDataSetChanged())
-            .DisposeWith(_disposables);
-
-
+      
 
             IObservable<IChangeSet<SongModelView>> sourceStream = songsToWatch switch
             {

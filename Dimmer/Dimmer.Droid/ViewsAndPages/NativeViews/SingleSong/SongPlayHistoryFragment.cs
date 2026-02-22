@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Dimmer.ViewsAndPages.NativeViews.DimsSection;
-using Microsoft.Maui;
-
-namespace Dimmer.ViewsAndPages.NativeViews.SingleSong;
+﻿namespace Dimmer.ViewsAndPages.NativeViews.SingleSong;
 
 public class SongPlayHistoryFragment : Fragment
 {
@@ -28,9 +20,9 @@ public class SongPlayHistoryFragment : Fragment
         }
         if (songIndDb is not null)
         {
-            var evts = songIndDb.PlayHistory.AsEnumerable().Select(x => x.ToDimmerPlayEventView()).ToList();
-            if(evts.Count >=1)
-                recycler.SetAdapter(new PlayEventAdapter(ctx, _vm, this, songIndDb));
+            //var evts = songIndDb.PlayHistory.AsEnumerable().Select(x => x.ToDimmerPlayEventView()).ToList();
+            //if(evts.Count >=1)
+                ////recycler.SetAdapter(new PlayEventAdapter(ctx, _vm, this, songIndDb));
         }
         return recycler;
     }

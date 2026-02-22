@@ -1,17 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using AndroidX.Lifecycle;
-
-using CommunityToolkit.Diagnostics;
-using Dimmer.UiUtils;
-using Dimmer.ViewsAndPages.NativeViews.AlbumSection;
-using Dimmer.ViewsAndPages.NativeViews.ArtistSection;
-using Google.Android.Material.Chip;
-using Microsoft.Maui;
+﻿using AndroidX.CoordinatorLayout.Widget;
 
 namespace Dimmer.ViewsAndPages.NativeViews.SingleSong;
 
@@ -34,6 +21,7 @@ public partial class SongOverviewFragment : Fragment
         SelectedSong = MyViewModel.SelectedSong!;
         statisticsViewModel = MainApplication.ServiceProvider.GetService<StatisticsViewModel>()!;
     }
+
     private View CreateArtistChips(Context ctx)
     {
         // ChipGroup handles the wrapping of chips automatically
@@ -56,8 +44,7 @@ public partial class SongOverviewFragment : Fragment
                 Clickable = true,
                 Checkable = false,
             };
-
-            // MD3 Styling: Outlined chips look great for metadata
+            chip.ChipIconVisible = true;
             chip.SetChipDrawable(Google.Android.Material.Chip.ChipDrawable.CreateFromAttributes(ctx, null, 0,
                 Resource.Style.Widget_Material3_Chip_Suggestion_Elevated));
 
@@ -68,7 +55,6 @@ public partial class SongOverviewFragment : Fragment
             // Navigation Logic
             chip.Click += (s, e) =>
             {
-                MyViewModel.SetSelectedArtist(art);
                 MyViewModel.NavigateToArtistPage(this, art.Id.ToString(), art, ((View?)s)!);
             };
 
@@ -77,25 +63,79 @@ public partial class SongOverviewFragment : Fragment
 
         return chipGroup;
     }
+
+    private View CreateAlbumChips(Context vieww)
+    {
+        var ctx = vieww;
+        // ChipGroup handles the wrapping of chips automatically
+        var chipGroup = new Google.Android.Material.Chip.ChipGroup(ctx)
+        {
+            LayoutParameters = new LinearLayout.LayoutParams(-1, -2) { BottomMargin = 20 }
+        };
+        chipGroup.SetChipSpacing(AppUtil.DpToPx(8));
+
+        // Get the list of artists from your existing logic
+        var album = SelectedSong.Album;
+        if (album is not null)
+        {
+            var chip = new Google.Android.Material.Chip.Chip(ctx)
+            {
+                Text = album.Name,
+                Clickable = true,
+                Checkable = false,
+            };
+            chip.ChipIconVisible = true;
+            chip.SetChipIconResource(Resource.Drawable.media3_icon_artist);
+            // MD3 Styling: Outlined chips look great for metadata
+            chip.SetChipDrawable(Google.Android.Material.Chip.ChipDrawable.CreateFromAttributes(ctx, null, 0,
+                Resource.Style.Widget_Material3_Chip_Suggestion_Elevated));
+
+
+            // Navigation Logic
+            chip.Click += (s, e) =>
+            {
+                MyViewModel.SetSelectedAlbum(MyViewModel.SelectedSong?.Album);
+                MyViewModel.NavigateToAnyPageOfGivenType(this, new AlbumFragment(MyViewModel),album.Id.ToString());
+            };
+
+            chipGroup.AddView(chip);
+        }
+    
+        return chipGroup;
+    }
     public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
-        var ctx = Context;
-        var scroll = new Android.Widget.ScrollView(ctx)
+        var ctx = Context; 
+        var coordinator = new CoordinatorLayout(ctx)
         {
-            FillViewport = true,
-            LayoutParameters = new ViewGroup.LayoutParams(-1, -1)
+            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent)
         };
+        var scroll = new NestedScrollView(ctx)
+        {
+            LayoutParameters = new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent),
+            FillViewport = true
+        };
+
         // Main Container
         var root = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
         // 2. Give the root LinearLayout WrapContent height so it can grow
         root.LayoutParameters = new FrameLayout.LayoutParams(-1, -2);
         root.SetPadding(32, 32, 32, 32);
 
+        root.AddView(CreateHeader(ctx, "Artists"));
         // 1. PRIMARY METADATA (Artist/Album Chips)
         var chipContainer = new LinearLayout(ctx) { Orientation = Orientation.Horizontal }
         ;
         chipContainer.AddView(CreateArtistChips(ctx));
         root.AddView(chipContainer);
+
+
+        root.AddView(CreateHeader(ctx, "Album"));
+        var AlbumChipContainer = new LinearLayout(ctx) { Orientation = Orientation.Horizontal }
+       ;
+        AlbumChipContainer.AddView(CreateAlbumChips(ctx));
+        root.AddView(AlbumChipContainer);
+
 
         // 2. THE DASHBOARD GRID (Listening Stats)
         var statsTitle = CreateHeader(ctx, "Listening Insights");
@@ -114,9 +154,25 @@ public partial class SongOverviewFragment : Fragment
         statsGrid.AddView(CreateMetricCard(ctx, "Finished", SelectedSong.PlayCompletedCount.ToString(), Android.Resource.Drawable.StatSysUploadDone, Color.ParseColor("#2196F3")));
 
         // Card 4: Engagement Score
-        statsGrid.AddView(CreateMetricCard(ctx, "Engagement", SelectedSong.EngagementScore.ToString("F1"), Resource.Drawable.mtrl_ic_arrow_drop_up, Color.ParseColor("#9C27B0")));
+        statsGrid.AddView(CreateMetricCard(ctx, "Is Instrumental", SelectedSong.IsInstrumental is null ? "Not Instrumental" : "Instrumental", Resource.Drawable.musical_notes, Color.ParseColor("#9C27B0")));
 
         root.AddView(statsGrid);
+
+        // 3. AUDIO Stats (Stats Specs)
+        root.AddView(CreateHeader(ctx, "Audio Stats"));
+        var statsCard = new MaterialCardView(ctx) { Radius = 24, StrokeWidth = 2 };
+        statsCard.SetStrokeColor(ColorStateList.ValueOf(Color.ParseColor("#33808080")));
+
+        var statsLayout = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
+        statsLayout.SetPadding(40, 40, 40, 40);
+
+        statsLayout.AddView(CreateDnaRow(ctx, "Genre", $"{SelectedSong.GenreName.ToUpper()}"));
+        statsLayout.AddView(CreateDnaRow(ctx, "Is Favorite", $"{SelectedSong.IsFavorite}"));
+
+        statsCard.AddView(statsLayout);
+        root.AddView(statsCard);
+
+
 
         // 3. AUDIO DNA (Technical Specs)
         root.AddView(CreateHeader(ctx, "Audio DNA"));
@@ -127,9 +183,15 @@ public partial class SongOverviewFragment : Fragment
         dnaLayout.SetPadding(40, 40, 40, 40);
 
         dnaLayout.AddView(CreateDnaRow(ctx, "Format", $"{SelectedSong.FileFormat.ToUpper()} ({SelectedSong.BitDepth} bit)"));
+        dnaLayout.AddView(CreateDnaRow(ctx, "Size", $"{SelectedSong.FileSize.FromLongBytesToStringMB()}"));
         dnaLayout.AddView(CreateDnaRow(ctx, "Sample Rate", $"{SelectedSong.SampleRate / 1000:F1} kHz"));
+        dnaLayout.AddView(CreateDnaRow(ctx, "Path", $"{SelectedSong.PlatformPath}"));
+        dnaLayout.AddView(CreateDnaRow(ctx, "Path", $"{SelectedSong.FilePath}"));
         dnaLayout.AddView(CreateDnaRow(ctx, "Bitrate", $"{SelectedSong.BitRate} kbps"));
         dnaLayout.AddView(CreateDnaRow(ctx, "Channels", SelectedSong.NbOfChannels == 2 ? "Stereo" : "Mono"));
+        dnaLayout.AddView(CreateDnaRow(ctx, "Duration", SelectedSong.DurationFormatted));
+        dnaLayout.AddView(CreateDnaRow(ctx, "Language", SelectedSong.Language));
+        dnaLayout.AddView(CreateDnaRow(ctx, "Track Number", SelectedSong.TrackNumber?.ToString()));
 
         dnaCard.AddView(dnaLayout);
         root.AddView(dnaCard);
@@ -186,7 +248,7 @@ public partial class SongOverviewFragment : Fragment
         return card;
     }
 
-    private View CreateDnaRow(Context ctx, string label, string val)
+    private View CreateDnaRow(Context ctx, string label, string? val)
     {
         var row = new LinearLayout(ctx) { Orientation = Orientation.Horizontal, WeightSum = 1 };
         row.SetPadding(0, 8, 0, 8);
@@ -209,7 +271,7 @@ public partial class SongOverviewFragment : Fragment
     {
         base.OnResume();
         //titleText.Click += PlaySong;
-    _=    statisticsViewModel.LoadSongStatsAsync(SelectedSong);
+        //_=    statisticsViewModel.LoadSongStatsAsync(SelectedSong);
     }
 
     private async void PlaySong(object? sender, EventArgs e)
@@ -220,7 +282,7 @@ public partial class SongOverviewFragment : Fragment
     public override void OnDestroy()
     {
         base.OnDestroy();
-        titleText.Click -= PlaySong;
+        titleText?.Click -= PlaySong;
     }
 
     private LinearLayout CreateLyricsView(Context context, string? lyrics)

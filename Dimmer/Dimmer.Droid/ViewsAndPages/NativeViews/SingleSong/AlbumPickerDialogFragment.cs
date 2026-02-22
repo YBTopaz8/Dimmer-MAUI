@@ -1,7 +1,4 @@
-﻿using Google.Android.Material.Dialog;
-
-
-namespace Dimmer.ViewsAndPages.NativeViews.SingleSong;
+﻿namespace Dimmer.ViewsAndPages.NativeViews.SingleSong;
     
 internal class AlbumPickerDialogFragment:DialogFragment
 {

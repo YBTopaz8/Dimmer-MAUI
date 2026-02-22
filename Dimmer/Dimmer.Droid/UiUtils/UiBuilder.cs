@@ -1,11 +1,6 @@
-﻿using Android.Text;
-using AndroidX.Lifecycle;
-using CommunityToolkit.Diagnostics;
+﻿using CommunityToolkit.Diagnostics;
 using Google.Android.Material.Snackbar;
-using Xamarin.Google.Crypto.Tink.Signature;
 using static Dimmer.Utils.AppUtil;
-
-using TextAlignment = Android.Views.TextAlignment;
 
 namespace Dimmer.UiUtils;
 

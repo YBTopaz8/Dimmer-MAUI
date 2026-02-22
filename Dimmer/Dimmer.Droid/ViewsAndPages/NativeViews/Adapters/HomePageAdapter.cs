@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reactive;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.ViewsAndPages.NativeViews.Adapters;
+﻿namespace Dimmer.ViewsAndPages.NativeViews.Adapters;
 
 internal partial class HomePageAdapter : RecyclerView.Adapter, IDisposable
 {
@@ -18,11 +11,11 @@ internal partial class HomePageAdapter : RecyclerView.Adapter, IDisposable
         readonly HashSet<int> _selectedPositions = new HashSet<int>();
         public IObservable<Unit> SelectionChanged => _selectionChanged.AsObservable();
         public Subject<Unit> _selectionChanged => new();
-
-
-        public override int ItemCount => _songs?.Count ?? 0;
-
-        public void Dispose()
+    public  List<SongModelView> Songs => _localSongs;
+    private readonly List<SongModelView> _localSongs = new(); // Use a local list instead of ReadOnlyObservableCollection
+    public override int ItemCount => _localSongs.Count;
+    public SongModelView GetItem(int position) => _localSongs[position];
+    public new void Dispose()
         {
             if (_isDisposed) return;
             _isDisposed = true;
@@ -39,21 +32,19 @@ internal partial class HomePageAdapter : RecyclerView.Adapter, IDisposable
         public IObservable<bool> IsSourceCleared => _isSourceCleared.AsObservable();
         public IObservable<bool> IsAdapterReady => _isAdapterReady.AsObservable();
 
-        private ReadOnlyObservableCollection<SongModelView> _songs;
 
         public static Action<View, string, int>? AdapterCallbacks;
         private Context ctx;
         public BaseViewModelAnd MyViewModel;
         private SongsToWatchSource songSource;
-        private readonly IDimmerAudioService _audioService;
-        public IList<SongModelView> Songs => _songs;
+    private readonly IDimmerAudioService _audioService;
+
         private Fragment ParentFragement;
 
         // Accordion State
         private int _expandedPosition = -1;
         private int _previousExpandedPosition = -1;
 
-        public SongModelView GetItem(int position) => Songs.ElementAt(position);
 
         IObservable<IChangeSet<SongModelView>> sourceStream;
         public HomePageAdapter(Context ctx, BaseViewModelAnd vm, Fragment pFragment,
@@ -68,70 +59,63 @@ internal partial class HomePageAdapter : RecyclerView.Adapter, IDisposable
         }
 
 
-
-        private void SetupReactivePipeline(BaseViewModelAnd viewModel)
+    private CancellationTokenSource _diffCts = new();
+    private void SetupReactivePipeline(BaseViewModelAnd viewModel)
         {
 
         IObservable<IChangeSet<SongModelView>> sourceStream = viewModel.SearchResultsHolder.Connect();
 
-            sourceStream.ObserveOn(RxSchedulers.UI)
+            sourceStream
+            //.ObserveOn(RxSchedulers.UI)
             .Do(s => Debug.WriteLine($"Song Count in adapter: {viewModel.SearchResults.Count}"))
-            .Bind(out _songs)
-            .Subscribe(changes =>
+            .Subscribe(async changes =>
             {
                 if (_isDisposed) return;
-
+                _diffCts.Cancel();
+                _diffCts = new CancellationTokenSource();
+                var token = _diffCts.Token;
                 if (!_isAdapterReady.Value)
                 {
                     _isAdapterReady.OnNext(true);
                 }
-                if (changes.Count > 20)
-                {
-                    NotifyDataSetChanged();
-                    return;
-                }
+                var newList = viewModel.SearchResultsHolder.Items.ToList();
+                var oldListSnapshot = _localSongs.ToList();
 
-                foreach (var change in changes)
+                try
                 {
-                    switch (change.Reason)
+                    // 3. Move the heavy math to a background thread!
+                    var diffResult = await Task.Run(() =>
                     {
-                        case ListChangeReason.AddRange:
-                            NotifyItemRangeInserted(change.Range.Index, change.Range.Count);
-                            _isSourceCleared.OnNext(false);
-                            break;
-                        case ListChangeReason.RemoveRange:
-                            NotifyItemRangeRemoved(change.Range.Index, change.Range.Count);
-                            break;
-                        case ListChangeReason.Refresh:
+                        var diffCallback = new SongDiff(oldListSnapshot, newList);
+                        // This is where the heavy lifting happens, safely off the UI thread
+                        return AndroidX.RecyclerView.Widget.DiffUtil.CalculateDiff(diffCallback);
+                    }, token);
 
-                            NotifyItemChanged(change.Item.CurrentIndex);
+                    // 4. If the user typed something else while we were calculating, abort.
+                    if (token.IsCancellationRequested) return;
 
-                            break;
-                        case ListChangeReason.Add:
-                            NotifyItemInserted(change.Item.CurrentIndex);
-                            break;
-                        case ListChangeReason.Remove:
-                            NotifyItemRemoved(change.Item.CurrentIndex);
-                            break;
-                        case ListChangeReason.Moved:
-                            NotifyItemMoved(change.Item.PreviousIndex, change.Item.CurrentIndex);
-                            break;
-                        case ListChangeReason.Replace:
-                            NotifyItemChanged(change.Item.CurrentIndex);
-                            break;
-                        case ListChangeReason.Clear:
-                            _isSourceCleared.OnNext(true);
-                            NotifyDataSetChanged();
-                            break;
-                    }
+                    // 5. Jump back to the Main UI Thread to update the RecyclerView
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        if (!_isAdapterReady.Value) _isAdapterReady.OnNext(true);
+
+                        _localSongs.Clear();
+                        _localSongs.AddRange(newList);
+
+                        // Android automatically animates the insertions/deletions!
+                        diffResult.DispatchUpdatesTo(this);
+
+                        _isSourceCleared.OnNext(_localSongs.Count == 0);
+                    });
+                }
+                catch (TaskCanceledException)
+                {
+                    // Expected when user types fast
                 }
             })
+        .DisposeWith(_disposables);
 
-            .DisposeWith(_disposables);
-
-
-
-            Observable.FromEventPattern<PlaybackEventArgs>(
+        Observable.FromEventPattern<PlaybackEventArgs>(
                 h => _audioService.PlaybackStateChanged += h,
                 h => _audioService.PlaybackStateChanged -= h)
                 .Select(evt => evt.EventArgs)
@@ -171,7 +155,7 @@ internal partial class HomePageAdapter : RecyclerView.Adapter, IDisposable
         {
             if (holder is SongViewHolder songHolder)
             {
-                var song = _songs[position];
+                var song = Songs[position];
                 bool isExpanded = position == _expandedPosition;
 
                 songHolder.Bind(song, isExpanded, ToggleExpand, songSource);
@@ -476,6 +460,22 @@ internal partial class HomePageAdapter : RecyclerView.Adapter, IDisposable
                 _statsBtn = statsBtn;
                 _moreBtn.Click += (s, e) =>
                 {
+                    string imgTransName = $"img_morph_{_currentSong?.Id}";
+                    string titleTransName = $"title_morph_{_currentSong?.Id}";
+                    _img.TransitionName = imgTransName ;
+                    _title.TransitionName = titleTransName ;
+                    // 2. Instantiate our pure C# Morphing Fragment
+                    var popupFragment = new SongDetailOverlayFragment(_currentSong!, imgTransName, titleTransName);
+
+                    // 3. Fire the Animation Helper
+                    AnimationHelper.ShowMorphingFragment(
+                        _parentFrag.ParentFragmentManager,
+                        popupFragment,
+                        // Pass the Source Views and their corresponding names
+                        (_img, imgTransName),
+                        (_title, titleTransName)
+                    );
+                    return;
                     // Always invoke the latest action with the current position
                     _expandAction?.Invoke(BindingAdapterPosition);
                 };
@@ -689,84 +689,6 @@ internal partial class HomePageAdapter : RecyclerView.Adapter, IDisposable
 
                 _container.StrokeColor = isExpanded ? Color.DarkSlateBlue : Color.ParseColor("#E0E0E0");
                 _container.StrokeWidth = isExpanded ? 3 : 0;
-
-
-                song.WhenPropertyChange(nameof(SongModelView.IsFavorite), s => s.IsFavorite)
-                    .ObserveOn(RxSchedulers.UI)
-                    .Subscribe(IsFavorite =>
-                    {
-                        if (IsFavorite)
-                        {
-                            _moreBtn.CornerRadius = AppUtil.DpToPx(10);
-                            _moreBtn.StrokeWidth = AppUtil.DpToPx(1);
-                            _favBtn.StrokeWidth = 0;
-                            _moreBtn.SetStrokeColorResource(Resource.Color.m3_ref_palette_pink80);
-                        }
-                        else
-                        {
-                            _moreBtn.StrokeWidth = AppUtil.DpToPx(0);
-
-                        }
-                    });
-                song.WhenPropertyChange(nameof(SongModelView.IsCurrentPlayingHighlight), s => s.IsCurrentPlayingHighlight)
-                            .ObserveOn(RxSchedulers.UI) // Ensure UI Thread
-                            .Subscribe(isPlaying =>
-                            {
-                                if (isPlaying)
-                                {
-                                    _title.SetTextColor(Color.DarkSlateBlue); // Highlight Text
-                                                                              // _img.SetImageResource(Resource.Drawable.equalizer_anim); // Maybe show animation?
-                                }
-                                else
-                                {
-                                    // Reset to normal
-                                    var isDark = _container.Context.Resources.Configuration.UiMode.HasFlag(Android.Content.Res.UiMode.NightYes);
-                                    _title.SetTextColor(isDark ? Color.White : Color.Black);
-                                }
-                            })
-                            .DisposeWith(sessionDisposable);
-
-                song.WhenPropertyChange(nameof(SongModelView.HasSyncedLyrics), s => s.HasSyncedLyrics)
-                            .ObserveOn(RxSchedulers.UI) // Ensure UI Thread
-                            .Subscribe(hasSyncLyrics =>
-                            {
-                                if (hasSyncLyrics)
-                                {
-                                    _container.StrokeWidth = 1;
-                                }
-                                else
-                                {
-                                    //_container.StrokeWidth = 0;
-
-
-                                }
-                            })
-                            .DisposeWith(sessionDisposable);
-
-                song.WhenPropertyChange(nameof(SongModelView.CoverImagePath), s => s.CoverImagePath)
-                    .ObserveOn(RxSchedulers.UI)
-                    .Subscribe(path =>
-                    {
-                        if (!string.IsNullOrEmpty(path))
-                        {
-                            if (song.TitleDurationKey == MyViewModel.CurrentPlayingSongView.TitleDurationKey)
-                            {
-                                MyViewModel.CurrentCoverImagePath = path;
-                                MyViewModel.CurrentPlayingSongView.CoverImagePath = path;
-                            }
-                            Glide.With(_img.Context).Load(path)
-                                 .Placeholder(Resource.Drawable.musicnotess)
-                                 .Into(_img);
-
-                        }
-                        else
-                        {
-                            _img.SetImageResource(Resource.Drawable.musicnotess);
-                        }
-                    })
-                    .DisposeWith(sessionDisposable);
-
-
 
 
 

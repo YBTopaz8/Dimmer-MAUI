@@ -2,25 +2,17 @@
 
 using Android.Views.InputMethods;
 using AndroidX.CoordinatorLayout.Widget;
-using AndroidX.Core.View;
 using AndroidX.DrawerLayout.Widget;
 using AndroidX.Lifecycle;
+using ATL;
 using Dimmer.NativeServices;
-using Dimmer.UiUtils;
 using Dimmer.ViewsAndPages.NativeViews.Adapters;
 using Dimmer.ViewsAndPages.NativeViews.DeviceTransfer;
 using Dimmer.ViewsAndPages.NativeViews.DimmerLive;
 using Dimmer.ViewsAndPages.NativeViews.DimmerLive.LastFMViews;
-using Dimmer.ViewsAndPages.NativeViews.StatsSection;
 
 using Google.Android.Material.BottomNavigation;
-using Google.Android.Material.Dialog;
 using Google.Android.Material.Navigation;
-
-using Explode = AndroidX.Transitions.Explode;
-using Fade = AndroidX.Transitions.Fade;
-using Slide = AndroidX.Transitions.Slide;
-using Transition = AndroidX.Transitions.Transition;
 
 namespace Dimmer.ViewsAndPages.NativeViews.Activity;
 
@@ -52,7 +44,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
 {
     public BottomSheetBehavior SheetBehavior { get; private set; }
      private FrameLayout _sheetContainer;
-    private FrameLayout _contentContainer;
+    private FrameLayout _contentContainerFrameLayout;
     public TransitionActivity() { }
     public static int MyStaticID;
     private object? _onBackInvokedCallback; // For API 33+
@@ -77,8 +69,33 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
     const int REQUEST_AUDIO_PERMS = 99;
 
 
-    
+    protected override void OnPause()
+    {
+        base.OnPause();
+        Debug.WriteLine("pauised");
+        MyViewModel.IsBackGrounded = true;
+    }
 
+    protected override void OnStop()
+    {
+        base.OnStop();
+        Debug.WriteLine("stopped");
+    }
+
+    protected override void OnNightModeChanged(int mode)
+    {
+        base.OnNightModeChanged(mode);
+
+        Debug.WriteLine(mode);
+    }
+    
+    protected override void OnSaveInstanceState(Bundle outState)
+    {
+        base.OnSaveInstanceState(outState);
+
+         
+    }
+    LinearLayoutManager layoutManager;
     protected override void OnCreate(Bundle? savedInstanceState)
     {
        
@@ -117,7 +134,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
                 );
             SupportFragmentManager
                 .BeginTransaction()
-                .Replace(_contentContainer.Id, startFragment, "HomePageFragment")
+                .Replace(_contentContainerFrameLayout.Id, startFragment, "HomePageFragment")
                 .Commit();
 
             // B. Load Player (Sheet)
@@ -150,7 +167,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
         SupportFragmentManager.BackStackChanged += (s, e) =>
         {
             
-            Fragment? current = SupportFragmentManager.FindFragmentById(_contentContainer.Id);
+            Fragment? current = SupportFragmentManager.FindFragmentById(_contentContainerFrameLayout.Id);
             MyViewModel.CurrentFragment = current;
         };
 
@@ -219,23 +236,23 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
         var barColor = Color.ParseColor("#2D2D30"); // Dark Grey Bar
 
         // 2. ROOT: CoordinatorLayout
-        _mainContentCoordinator = new CoordinatorLayout(this)
+        _mainContentCoordinatorLayout = new CoordinatorLayout(this)
         {
             LayoutParameters = new ViewGroup.LayoutParams(-1, -1)
         };
-        _mainContentCoordinator.SetBackgroundColor(bgColor);
+        _mainContentCoordinatorLayout.SetBackgroundColor(bgColor);
 
         // 3. CONTENT CONTAINER (Where Fragments Live)
-        _contentContainer = new FrameLayout(this)
+        _contentContainerFrameLayout = new FrameLayout(this)
         {
             Id = View.GenerateViewId(),
             LayoutParameters = new CoordinatorLayout.LayoutParams(-1, -1)
         };
         // Add bottom margin (70dp) so content isn't covered by the bar
-        var contentParams = (CoordinatorLayout.LayoutParams)_contentContainer.LayoutParameters;
+        var contentParams = (CoordinatorLayout.LayoutParams)_contentContainerFrameLayout.LayoutParameters;
         contentParams.BottomMargin = (int)(70 * Resources.DisplayMetrics.Density);
-        _contentContainer.LayoutParameters = contentParams;
-        MyStaticID = _contentContainer.Id;
+        _contentContainerFrameLayout.LayoutParameters = contentParams;
+        MyStaticID = _contentContainerFrameLayout.Id;
 
         // 4. THE SMOOTH BOTTOM BAR
         _bottomBar = new SmoothBottomBar(this);
@@ -285,7 +302,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
             int navId = 100 + pos;
             if (navId == 100) // Home
             {
-                var currentFrag = SupportFragmentManager.FindFragmentById(_contentContainer.Id);
+                var currentFrag = SupportFragmentManager.FindFragmentById(_contentContainerFrameLayout.Id);
                 if (currentFrag is HomePageFragment homeFrag)
                 {
                     homeFrag.ScrollToCurrent();
@@ -316,14 +333,14 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
         sheetParams.Behavior = SheetBehavior;
         
         // 6. ADD VIEWS (Order determines Z-Index)
-        _mainContentCoordinator.AddView(_contentContainer);
+        _mainContentCoordinatorLayout.AddView(_contentContainerFrameLayout);
       
-        _mainContentCoordinator.AddView(_bottomBar);
-        _mainContentCoordinator.AddView(_sheetContainer); // Sheet sits ON TOP of the bar
+        _mainContentCoordinatorLayout.AddView(_bottomBar);
+        _mainContentCoordinatorLayout.AddView(_sheetContainer); // Sheet sits ON TOP of the bar
 
         // Set Content
-        SetContentView(_mainContentCoordinator);
-        ViewCompat.SetOnApplyWindowInsetsListener(_mainContentCoordinator, this);
+        SetContentView(_mainContentCoordinatorLayout);
+        ViewCompat.SetOnApplyWindowInsetsListener(_mainContentCoordinatorLayout, this);
     }
 
     DrawerLayout _drawerLayout;
@@ -337,19 +354,19 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
         };
         _drawerLayout.Id = View.GenerateViewId();
 
-        _mainContentCoordinator = new CoordinatorLayout(this)
+        _mainContentCoordinatorLayout = new CoordinatorLayout(this)
         {
             LayoutParameters = new DrawerLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent),
         };
-        _mainContentCoordinator.SetBackgroundColor(bgColor);
+        _mainContentCoordinatorLayout.SetBackgroundColor(bgColor);
 
         // 2a. Fragment Container (The Page)
-        _contentContainer = new FrameLayout(this)
+        _contentContainerFrameLayout = new FrameLayout(this)
         {
             Id = View.GenerateViewId(),
             LayoutParameters = new CoordinatorLayout.LayoutParams(-1, -1)
         };
-        _contentContainer.Id = Resource.Id.custom_fragment_container;
+        _contentContainerFrameLayout.Id = Resource.Id.custom_fragment_container;
         MyStaticID = Resource.Id.custom_fragment_container;
         // 2b. Player Sheet Container
         _sheetContainer = new FrameLayout(this)
@@ -374,8 +391,8 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
         sheetParams.Behavior = SheetBehavior;
 
         // Add views to Coordinator (Content first, then Player on top)
-        _mainContentCoordinator.AddView(_contentContainer);
-        _mainContentCoordinator.AddView(_sheetContainer);
+        _mainContentCoordinatorLayout.AddView(_contentContainerFrameLayout);
+        _mainContentCoordinatorLayout.AddView(_sheetContainer);
 
         // 3. Navigation View ( The Side Menu)
         _navigationView = new NavigationView(this)
@@ -387,14 +404,14 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
         };
 
         // Setup Menu Items
-        _navigationView.Menu.Add(0, 100, 0, "Home").SetIcon(Resource.Drawable.musicaba);
-        _navigationView.Menu.Add(0, 101, 0, "Library").SetIcon(Resource.Drawable.heart);
-        _navigationView.Menu.Add(0, 102, 0, "Last FM").SetIcon(Resource.Drawable.lastfm);
-        _navigationView.Menu.Add(0, 103, 0, "Settings").SetIcon(Resource.Drawable.settings);
-        _navigationView.Menu.Add(0, 104, 0, "Device Transfer").SetIcon(Resource.Drawable.media3_icon_share);
+        _navigationView.Menu?.Add(0, 100, 0, "Home")?.SetIcon(Resource.Drawable.musicaba);
+        _navigationView.Menu?.Add(0, 101, 0, "Library")?.SetIcon(Resource.Drawable.heart);
+        _navigationView.Menu?.Add(0, 102, 0, "Last FM")?.SetIcon(Resource.Drawable.lastfm);
+        _navigationView.Menu?.Add(0, 103, 0, "Settings")?.SetIcon(Resource.Drawable.settings);
+        _navigationView.Menu?.Add(0, 104, 0, "Device Transfer")?.SetIcon(Resource.Drawable.media3_icon_share);
 
-        _navigationView.Menu.Add(0, 105, 0, "Dimmer Cloud").SetIcon(Resource.Drawable.cloudbolt);
-
+        _navigationView.Menu?.Add(0, 105, 0, "Dimmer Cloud")?.SetIcon(Resource.Drawable.cloudbolt);
+        
         // Handle Clicks
         _navigationView.NavigationItemSelected += (s, e) =>
         {
@@ -403,7 +420,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
         };
 
         // 4. Assemble Root
-        _drawerLayout.AddView(_mainContentCoordinator);
+        _drawerLayout.AddView(_mainContentCoordinatorLayout);
         _drawerLayout.AddView(_navigationView);
 
 
@@ -454,7 +471,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
                 // Content: status bar + mini-player height
                 int miniPlayerHeight = AppUtil.DpToPx(70);
                 _systemBarBottom = bars.Bottom;
-                _contentContainer.SetPadding(
+                _contentContainerFrameLayout.SetPadding(
                     0,
                     top,
                     0,
@@ -533,7 +550,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
         {
             SupportFragmentManager.BeginTransaction()
                 .SetCustomAnimations(Resource.Animation.m3_bottom_sheet_slide_in, Resource.Animation.m3_bottom_sheet_slide_out)
-                .Replace(_contentContainer.Id, selectedFrag, tag)
+                .Replace(_contentContainerFrameLayout.Id, selectedFrag, tag)
                 .AddToBackStack(tag)
                 .Commit();
         }
@@ -554,7 +571,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
             Resource.Animation.m3_bottom_sheet_slide_in,
             Resource.Animation.m3_motion_fade_exit);
 
-        trans.Replace(_contentContainer.Id, fragment, tag);
+        trans.Replace(_contentContainerFrameLayout.Id, fragment, tag);
         trans.AddToBackStack(tag);
         trans.Commit();
 
@@ -783,7 +800,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
             SetupBackNavigation();
             // Log that the activity resumed
             Console.WriteLine("TransitionActivity: OnResume called.");
-
+            MyViewModel.IsBackGrounded = false;
 
 
             if (_isDialogActive)
@@ -813,7 +830,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
     const int REQUEST_OPEN_FOLDER = 100;
     TaskCompletionSource<string?>? _folderPickerTcs;
     private NavigationView _navigationView;
-    private CoordinatorLayout _mainContentCoordinator;
+    private CoordinatorLayout _mainContentCoordinatorLayout;
 
     public Task<string?> PickFolderAsync()
     {
@@ -852,7 +869,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
            
     }
 
-    protected override void OnDestroy()
+    protected override async void OnDestroy()
     {
         if (_serviceConnection != null)
         {
@@ -864,7 +881,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
             _isBackCallbackRegistered = false;
         }
 
-        MyViewModel?.OnAppClosing();
+       await MyViewModel?.OnAppClosingAsync();
         base.OnDestroy();
     }
 
@@ -1006,7 +1023,7 @@ class AppLifeCycleObserver : Java.Lang.Object, ILifecycleEventObserver
 
     public void OnStateChanged(ILifecycleOwner source, Lifecycle.Event e)
     {
-    
+        Debug.WriteLine(e.TargetState);
     }
 }
 sealed class BackInvokedCallback : Java.Lang.Object, IOnBackInvokedCallback
