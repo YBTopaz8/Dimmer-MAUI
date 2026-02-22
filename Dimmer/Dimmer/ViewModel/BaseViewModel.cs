@@ -78,6 +78,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         ILibraryScannerService LibScannerService,
         IRepository<DimmerPlayEvent> DimmerPlayEventRepo,
         BaseAppFlow BaseAppClass,
+       
         ILogger<BaseViewModel> logger)
     {
 
@@ -123,6 +124,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         CurrentPlayingSongView = new();
         BaseAppFlow = BaseAppClass;
+        //this.authService = _authService;
 
         //folderMonitorService = FolderServ;
         RealmFactory = RealmFact;
@@ -644,8 +646,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
 
         MyDeviceId = LoadOrGenerateDeviceId();
-
         
+
+
         SubscribeToStateServiceEvents();
         SubscribeToAudioServiceEvents();
         SubscribeToLyricsFlow();
@@ -1639,7 +1642,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial string AppTitle { get; set; } = "Dimmer";
 
-    public static string CurrentAppVersion = "1.7.9";
+    public static string CurrentAppVersion = "1.8.0";
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]
@@ -1968,6 +1971,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial string AchievementSecondMessage { get; set; }
     public BaseAppFlow BaseAppFlow;
+    private readonly IAuthenticationService authService;
 
 
 
@@ -3879,6 +3883,56 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     /// Subscribes to general state changes from the IStateService.
     /// </summary>
     /// 
+    private async Task SetupSession()
+    {
+        try
+        {
+            // 1. Check Connectivity FIRST
+            if (Connectivity.NetworkAccess != NetworkAccess.Internet)
+            {
+                Console.WriteLine("No internet. Skipping Parse auto-login.");
+                return;
+            }
+
+            // 2. Resolve Services
+            var authService = IPlatformApplication.Current.Services.GetRequiredService<IAuthenticationService>();
+            var sessionManager = IPlatformApplication.Current.Services.GetRequiredService<ILiveSessionManagerService>();
+            var loginVM = IPlatformApplication.Current.Services.GetRequiredService<LoginViewModel>();
+
+            // 3. Attempt Auto-Login
+            Console.WriteLine("Attempting Parse Auto-Login...");
+            bool isLoggedIn = await authService.InitializeAsync(); // This checks SecureStorage tokens
+
+            if (isLoggedIn)
+            {
+                Console.WriteLine($"Auto-Login Successful for user: {authService.CurrentUserValue?.Username}");
+
+                // 4. Update UI Model
+                loginVM.CurrentUserOnline = authService.CurrentUserValue;
+
+                // 5. CRITICAL: Register Device Session
+                // This tells Parse "I am here, my Device ID is X, send me commands"
+                await sessionManager.RegisterCurrentDeviceAsync();
+
+                // 6. Sync Initial State (Queues, Playing Song)
+                await sessionManager.SyncDeviceStateAsync();
+
+                // 7. Open the WebSocket Listeners (LiveQuery)
+                sessionManager.StartListeners();
+
+                Console.WriteLine("Device Session & Listeners Active.");
+            }
+            else
+            {
+                Console.WriteLine("Auto-Login failed or no token found.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"BOOT ERROR: {ex.Message}");
+            // Optional: Log to Analytics/Crashlytics
+        }
+    }
     private void SubscribeToStateServiceEvents()
     {
         _subsMgr.Add(_stateService.CurrentSong

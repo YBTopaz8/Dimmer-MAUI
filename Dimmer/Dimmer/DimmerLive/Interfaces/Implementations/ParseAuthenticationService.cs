@@ -98,30 +98,42 @@ public class ParseAuthenticationService : IAuthenticationService
     }
     public async Task<bool> InitializeAsync()
     {
-       
-        var parseUser = ParseUser.CurrentUser;
-        if (parseUser != null)
+        try
         {
-            try
+            // 1. Check if Parse thinks we are already logged in
+            if (ParseUser.CurrentUser != null && await ParseUser.CurrentUser.IsAuthenticatedAsync())
             {
-                await parseUser.FetchIfNeededAsync();
-                _currentUserSubject.OnNext(new UserModelOnline(parseUser));
-                _logger.LogInformation("User session restored for {Username}", parseUser.Username);
-                await SaveTokenAsync();
-                
+                _currentUserSubject.OnNext(new UserModelOnline(ParseUser.CurrentUser));
                 return true;
             }
-            catch (Exception ex)
+
+            // 2. If not, try to recover from SecureStorage
+            var sessionToken = await SecureStorage.Default.GetAsync("userToken");
+            if (string.IsNullOrEmpty(sessionToken))
             {
-                _logger.LogError(ex, "Invalid session token. Logging out.");
-                await LogoutAsync();
                 return false;
             }
+
+            // 3. "Become" the user (Validates token with Server)
+            var user = await ParseClient.Instance.BecomeAsync(sessionToken);
+            _currentUserSubject.OnNext(new UserModelOnline(user));
+
+            // 4. Refresh token just in case
+            await SaveTokenAsync();
+
+            return true;
         }
-        else
+        catch (ParseFailureException ex)
         {
-            _currentUserSubject.OnNext(null);
-            _logger.LogInformation("No user session found. User is not logged in.");
+            // Token expired or invalid
+            _logger.LogWarning($"Session invalid: {ex.Message}");
+            SecureStorage.Default.Remove("userToken");
+            await LogoutAsync();
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Auto-login crash");
             return false;
         }
     }

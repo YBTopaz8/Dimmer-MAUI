@@ -26,8 +26,14 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         this._logger.LogInformation("BaseViewModelAnd initialized.");
         audioService = audioServ;
 
-        
+        Connectivity.ConnectivityChanged += Connectivity_ConnectivityChanged;
     }
+
+    private void Connectivity_ConnectivityChanged(object? sender, ConnectivityChangedEventArgs e)
+    {
+        //throw new NotImplementedException();
+    }
+
     public LoginViewModel LoginViewModel => _loginViewModel;
     private readonly LoginViewModel _loginViewModel;
     private readonly IDimmerAudioService audioService;
