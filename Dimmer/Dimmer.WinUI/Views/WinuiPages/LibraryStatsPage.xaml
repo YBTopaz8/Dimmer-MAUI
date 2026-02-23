@@ -386,7 +386,6 @@
                                                 </Grid.ColumnDefinitions>
                                                 <StackPanel>
                                                     <TextBlock Style="{StaticResource DataLabelStyle}" Text="Completed Plays" />
-                                                    <TextBlock Style="{StaticResource DataValueStyle}" Text="{x:Bind FormatNumber(ViewModel.Stats.CollectionSummary.SongsPlayedToCompletion), Mode=OneWay}" />
                                                 </StackPanel>
                                                 <StackPanel Grid.Column="1">
                                                     <TextBlock Style="{StaticResource DataLabelStyle}" Text="Unique Devices" />
@@ -865,10 +864,6 @@
                                                         FontSize="11"
                                                         Foreground="Gray"
                                                         Text="Completed Plays" />
-                                                    <TextBlock
-                                                        FontSize="18"
-                                                        FontWeight="SemiBold"
-                                                        Text="{x:Bind FormatNumber(ViewModel.Stats.CollectionSummary.SongsPlayedToCompletion), Mode=OneWay}" />
                                                 </StackPanel>
 
                                                 <StackPanel Margin="0,0,12,12">

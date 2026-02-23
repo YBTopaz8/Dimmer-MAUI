@@ -1,6 +1,7 @@
 ﻿using Parse.LiveQuery;
 using System.IO.Compression;
 using System.Text.Json.Serialization;
+using System.Xml.Linq;
 
 namespace Dimmer.DimmerLive.Interfaces.Implementations;
 public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
@@ -40,6 +41,18 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
         _liveQueryClient = liveQueryClient;
         this.vm = vm;
     }
+
+    class DimmerEventsBackUpModel
+    {
+        public required ObjectId? SongId { get; set; }
+        public required string? SongName { get; set; }
+        public required string? PlayEventStr { get; set; }
+        public required ObjectId Id { get; set; }
+        public required DateTimeOffset EventDate { get; set; }
+        public required string? AudioOutputDeviceName { get; set; }
+        public required double PositionInSeconds { get; set; }
+    }
+
     public async Task SyncDeviceStateAsync()
     {
         return;
@@ -52,6 +65,20 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
 
             // Extract ONLY what we need (to avoid Realm cross-thread exceptions)
             var allSongKeys = realm.All<SongModel>().AsEnumerable().Select(x => x.TitleDurationKey).ToList();
+            var allPlayData = realm.All<DimmerPlayEvent>().AsEnumerable().Select(x =>
+            {
+                return new DimmerEventsBackUpModel() 
+                {
+                    SongId = x.SongId!,
+                    SongName = x.SongName,
+                    
+                    PlayEventStr = x.PlayTypeStr,
+                    PositionInSeconds = x.PositionInSeconds,
+                    AudioOutputDeviceName = x.AudioOutputDevice?.Name,
+                    EventDate = x.EventDate,
+                    Id = x.Id,
+                };
+            }).ToList();
            
             var currentQueue = vm.PlaybackQueue?.Select(x => x.TitleDurationKey).ToList();
 
@@ -61,6 +88,8 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
                 //Events = allPlayEvents,
                 Queue = currentQueue,
                 CurrentSong = vm.CurrentPlayingSongView?.TitleDurationKey
+                ,
+                Events = allPlayData,
             };
 
             // Serialize & Compress
@@ -379,13 +408,13 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
                 Platform = DeviceInfo.Platform.ToString(),
                 Songs = realm.All<SongModel>().AsEnumerable(),
                 PlayEvents = realm.All<DimmerPlayEvent>().AsEnumerable(),
-                Playlists = realm.All<PlaylistModel>().AsEnumerable(),
+                //Playlists = realm.All<PlaylistModel>().AsEnumerable(),
                 Settings = realm.All<AppStateModel>().FirstOrDefault(),
                 // Map UserStats if you have a ToView() for it, or direct object if no circular refs
-                Stats = realm.All<UserStats>().AsEnumerable()
+                //Stats = realm.All<UserStats>().AsEnumerable()
             };
 
-            if (backupData.Songs.Count() == 0 && backupData.PlayEvents.Count() == 0)
+            if (!backupData.Songs.Any() && !backupData.PlayEvents.Any())
                 return "No data to backup.";
 
             _logger.LogInformation($"Serializing {backupData.Songs.Count()} songs and {backupData.PlayEvents.Count()} events...");
