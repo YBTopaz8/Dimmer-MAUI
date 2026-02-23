@@ -181,4 +181,32 @@ public class ParseStatics
             return Enumerable.Empty<ParseObject>();
         }
     }
+    public static async Task<IEnumerable<AppUpdateModel>> GetAllAppUpdatesAsync(int limit = 10)
+    {
+        try
+        {
+            if(Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
+            {
+                Debug.WriteLine("No internet connection. Cannot fetch update history.");
+                
+                return Enumerable.Empty<AppUpdateModel>();
+            }
+            // We create a dictionary to pass the limit to a cloud function
+            // Or you can query the class directly if permissions allow
+            var parameters = new Dictionary<string, object> { { "limit", limit } };
+
+            // Note: You'll need a simple Cloud Function 'getAppUpdates' or query directly:
+            var query = ParseClient.Instance.GetQuery<AppUpdateModel>()
+                                   .OrderByDescending("createdAt")
+                                   .Limit(limit);
+
+            var e= await query.FindAsync();
+            return e.Cast<AppUpdateModel>();
+        }
+        catch (Exception e)
+        {
+            Debug.WriteLine($"Error fetching update history: {e.Message}");
+            return Enumerable.Empty<AppUpdateModel>();
+        }
+    }
 }

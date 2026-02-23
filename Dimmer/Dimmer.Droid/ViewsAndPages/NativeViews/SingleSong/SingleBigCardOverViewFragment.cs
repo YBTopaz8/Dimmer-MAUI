@@ -1,11 +1,6 @@
 ﻿
 
 using AndroidX.CoordinatorLayout.Widget;
-using AndroidX.Lifecycle;
-using Dimmer.UiUtils;
-using Dimmer.Utilities;
-using static Android.Provider.DocumentsContract;
-using static Android.Provider.MediaStore.Audio;
 
 namespace Dimmer.ViewsAndPages.NativeViews.SingleSong;
 

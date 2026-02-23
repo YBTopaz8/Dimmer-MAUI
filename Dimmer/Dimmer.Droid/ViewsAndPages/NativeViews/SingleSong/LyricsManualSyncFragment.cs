@@ -1,15 +1,3 @@
-using Android.Content;
-using Android.Views;
-using Android.Widget;
-
-using AndroidX.Fragment.App;
-using AndroidX.RecyclerView.Widget;
-
-using Dimmer.Data.ModelView;
-using Dimmer.UiUtils;
-using Google.Android.Material.Button;
-using Google.Android.Material.Card;
-
 using System.Collections.Specialized;
 using CheckBox = Android.Widget.CheckBox;
 using ScrollView = Android.Widget.ScrollView;

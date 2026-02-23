@@ -78,6 +78,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         ILibraryScannerService LibScannerService,
         IRepository<DimmerPlayEvent> DimmerPlayEventRepo,
         BaseAppFlow BaseAppClass,
+       
         ILogger<BaseViewModel> logger)
     {
 
@@ -123,6 +124,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         CurrentPlayingSongView = new();
         BaseAppFlow = BaseAppClass;
+        //this.authService = _authService;
 
         //folderMonitorService = FolderServ;
         RealmFactory = RealmFact;
@@ -140,6 +142,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         PlaybackManager = new RuleBasedPlaybackManager(RealmFactory);
 
         SearchResultsHolder.Connect()
+             .AutoRefresh(song => song.IsFavorite)
+        .AutoRefresh(song => song.IsCurrentPlayingHighlight)
+        .AutoRefresh(song => song.HasSyncedLyrics)
+        .AutoRefresh(song => song.CoverImagePath)
             .ObserveOn(RxSchedulers.UI) // Important for UI updates
             .Bind(out _searchResults)
             .Subscribe(x =>
@@ -173,6 +179,18 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     [ObservableProperty]
     public partial bool IsPlayEventsLoading { get; set; }
+
+
+    [ObservableProperty]
+    public partial bool IsBackGrounded { get; set; }
+
+    async partial void OnIsBackGroundedChanging(bool oldValue, bool newValue)
+    {
+        if(newValue)
+        {
+           await OnAppClosingAsync();
+        }
+    }
 
     private void SetupHistoryPipeline()
     {
@@ -363,6 +381,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     public void InitializeAllVMCoreComponents()
     {
+        IsFirstBoot = true;
 
         if (IsInitialized) return;
 
@@ -388,28 +407,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             //ShowAllSongsWindowActivate();
         }
 
-        var realmSub = RealmFactory.GetRealmInstance();
-    var songRealmSub = realmSub.All<SongModel>()
-            .AsObservableChangeSet()            
-
-            .Where(song =>
-            {
-                return song is not null;
-            })?
-             .Transform(song =>
-             {
-                 return song.ToSongModelView()!;
-             })
-            .ObserveOn(RxSchedulers.UI)
-            .Subscribe(changesDone =>
-            {
-                if (changesDone is null) return;
-                SearchResultsHolder.Edit(updater =>
-                {
-                    updater.Clone(changes: changesDone);
-                });
-            })
-            .DisposeWith(CompositeDisposables);
 
 
         Debug.WriteLine($"{DateTime.Now}: Starting InitializeAllVMCoreComponentsAsync...");
@@ -435,121 +432,32 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
 
         var searchStream = _searchQuerySubject
-    .Throttle(TimeSpan.FromMilliseconds(300), RxSchedulers.Background)
+    .Throttle(TimeSpan.FromMilliseconds(250), RxSchedulers.Background)
+    .DistinctUntilChanged()
+    .Do(query =>
+    {
+
+        CurrentTqlQuery = query;
+    })
     .Select(query =>
     {
-        return new { Query = query};
-    });
-        Observable.Merge(searchStream)
-    .Throttle(TimeSpan.FromMilliseconds(300), RxSchedulers.Background) // Ensure we don't spam
-    .Select(query => (Query: query, Plan: MetaParser.Parse(NaturalLanguageProcessor.Process(query.Query))))
-    .ObserveOn(RxSchedulers.Background) // Explicitly move to Background for DB work
-    .Select(payload =>
-    {
-
-        DimmerSearch.TQL.RealmSection.RealmQueryPlan? plan = payload.Plan;
-  
-
-        // Validation
-        if (plan.ErrorMessage != null)
+        return Observable.Start(() =>
+        
         {
-            return new SearchResult { ErrorMessage = plan.ErrorMessage, Plan = plan };
-        }
-
-        try
-        {
-            using var realm = RealmFactory.GetRealmInstance();
-
-            // A. Realm Filter (Fast, DB level)
-            var query = realm.All<SongModel>().Filter(plan.RqlFilter);
-
-            // B. Realm Sort (Fast, DB level)
-            if (plan.SortDescriptions.Count > 0)
-            {
-                var orderByString = string.Join(", ", plan.SortDescriptions.Select(
-                    desc => $"{desc.PropertyName} {(desc.Direction == SortDirection.Ascending ? "asc" : "desc")}"));
-                query = query.OrderBy(orderByString);
-            }
-
-            var memoryFilteredList = query.AsEnumerable()
-                            .Where(model =>
-                            {
-                                // Check if we need to filter at all
-                                if (plan.InMemoryPredicate == null) return true;
-
-                                return plan.InMemoryPredicate(model.ToSongModelView()!);
-                            });
-            if (plan.Shuffle != null)
-            {
-                var rng = new Random();
-                memoryFilteredList = memoryFilteredList.OrderBy(_ => rng.Next());
-            }
-
-            var pagedSongs = memoryFilteredList
-
-               .Select(x => x.ToSongModelView())
-                            .ToList();
-
-            return new SearchResult
-            {
-                Plan = plan
-                ,SongsResult = pagedSongs
-            };
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Search Pipeline Error");
-            return new SearchResult { ErrorMessage = "Error executing query.", Plan = plan };
-        }
+            return PerformSearchBackground(query);
+        }, RxSchedulers.Background);
     })
-    .ObserveOn(RxSchedulers.UI) 
-
-    .Subscribe(async result =>
+    .Switch()
+    .ObserveOn(RxSchedulers.UI)
+    .Subscribe(result =>
     {
-
-        if (!string.IsNullOrEmpty(result.ErrorMessage) || result.Plan.ErrorMessage != null)
-        {
-            TQLUserSearchErrorMessage = result.ErrorMessage ?? result.Plan.ErrorMessage;
-            //SearchResultsHolder.Edit(u => u.Clear()); // Clear list on error
-           IsTqlBusy = false;
-            return;
-        }
-
-
-        SearchResultsHolder.EditDiff(result.SongsResult, _songComparer);
-
-        // 3. Update NLP Text Debugger
-        if (CurrentTqlQuery != NLPQuery)
-        {
-            CurrentTqlQuery = NLPQuery;
-            CurrentTqlQueryUI = NLPQuery;
-        }
-
-        // 4. Handle Post-Search Commands (Play, Add to Queue, etc)
-        if (result.Plan.CommandNode is not null)
-        {
-            try
-            {
-                // Note: Ensure CommandEvaluator can handle ViewModels, 
-                // or you might need to re-fetch specific IDs if it needs Realm objects.
-                var commandAction = commandEvaluator.Evaluate(result.Plan.CommandNode, result.SongsResult);
-               await HandleCommandAction(commandAction);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Command Execution Failed: {ex.Message}");
-            }
-        }
-        IsTqlBusy = false;
+        // 3. Fast Update on UI Thread
+        ApplySearchResults(result);
     },
-    ex =>
-    {
-        // Fatal Pipeline Error
-        _logger.LogError(ex, "FATAL: Search pipeline crashed.");
-        Debug.WriteLine($"[DEBUG] FATAL RX EXCEPTION: {ex}"); 
-        IsTqlBusy = false;
-    })
+    ex => _logger.LogError(ex, "Search pipeline crashed"))
     .DisposeWith(CompositeDisposables);
+     
+
 
 
 
@@ -624,8 +532,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
 
         MyDeviceId = LoadOrGenerateDeviceId();
-
         
+
+
         SubscribeToStateServiceEvents();
         SubscribeToAudioServiceEvents();
         SubscribeToLyricsFlow();
@@ -668,8 +577,96 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         return;
     }
 
+    private void ApplySearchResults(SearchResult result)
+    {
+        IsTqlBusy = false;
+
+        if (!string.IsNullOrEmpty(result.ErrorMessage))
+        {
+            TQLUserSearchErrorMessage = result.ErrorMessage;
+            return;
+        }
+
+
+        SearchResultsHolder.Edit(innerList =>
+        {
+            Debug.WriteLine(innerList.Count);
+            innerList.Clear();
+            innerList.AddRange(result.SongsResult);
+        });
+
+        // Update Debuggers
+        if (result.Plan != null)
+        {
+            // Update NLP Debug text if needed
+        }
+    }
+    
+    private SearchResult PerformSearchBackground(string queryText)
+    {
+        var realmm = RealmFactory.GetRealmInstance();
+        // A. Fast Fail for Empty Query
+        if (string.IsNullOrWhiteSpace(queryText) )
+        {
+            IsFirstBoot = false;
+            var allSongs = realmm.All<SongModel>()
+             .OrderByDescending(s => s.DateCreated)
+              .AsEnumerable()
+             //.Take(500)1
+
+             .Select(x => x.ToSongModelView())
+             .ToList();
+            return new SearchResult { SongsResult = allSongs };
+        }
+
+        // B. Parse NLP (CPU Bound)
+        var nlpResult = NaturalLanguageProcessor.Process(queryText);
+        var plan = MetaParser.Parse(nlpResult);
+
+        if (plan.ErrorMessage != null)
+            return new SearchResult { ErrorMessage = plan.ErrorMessage, Plan = plan };
+
+        try
+        {
+            using var realm = RealmFactory.GetRealmInstance();
+
+            // C. Realm Filter (Zero-Copy, Fast)
+            var query = realm.All<SongModel>().Filter(plan.RqlFilter);
+
+            // D. Sorting
+            if (plan.SortDescriptions.Count > 0)
+            {
+                var orderByString = string.Join(", ", plan.SortDescriptions.Select(
+                    desc => $"{desc.PropertyName} {(desc.Direction == SortDirection.Ascending ? "asc" : "desc")}"));
+                query = query.OrderBy(orderByString);
+            }
+
+            // E. Materialization (The Heavy Part)
+            // Only materialize what passes the memory predicate to save RAM
+            IEnumerable<SongModel> intermediateList = query;
+
+            if (plan.InMemoryPredicate != null)
+            {
+                // Note: We MUST AsEnumerable() before checking C# logic
+                intermediateList = intermediateList.AsEnumerable().Where(x => plan.InMemoryPredicate(x.ToSongModelView()));
+            }
+
+            // F. Final Projection
+            // Using ToList() here snapshots the data for the UI thread
+            var finalViewList = intermediateList
+                .Select(x => x.ToSongModelView())
+                .ToList();
+
+            return new SearchResult { Plan = plan, SongsResult = finalViewList };
+        }
+        catch (Exception ex)
+        {
+            return new SearchResult { ErrorMessage = ex.Message, Plan = plan };
+        }
+    }
 
     [ObservableProperty] public partial bool CanSkipPage { get; set; } 
+    [ObservableProperty] public partial bool IsFirstBoot { get; set; } 
  
     private async Task HeavierBackGroundLoadings(IEnumerable<string>? folders)
     {
@@ -969,14 +966,14 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
 
     #region app cycle 
-    public void OnAppClosing()
+    public async Task OnAppClosingAsync()
     {
         var realmm = RealmFactory.GetRealmInstance();
         var appModel = realmm.All<AppStateModel>().ToList();
         if (appModel is not null && appModel.Count > 0)
         {
             var appmodel = appModel[0];
-            realmm.Write(
+           await realmm.WriteAsync(
                 () =>
                 {
                     appmodel.LastKnownQuery = CurrentTqlQuery;
@@ -1015,7 +1012,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 CurrentLanguage = CultureInfo.CurrentCulture.TwoLetterISOLanguageName,
                 CurrentCountry = RegionInfo.CurrentRegion.TwoLetterISORegionName,
             };
-            realmm.Write(
+          await  realmm.WriteAsync(
                 () =>
                 {
                     realmm.Add(newAppModel);
@@ -1077,21 +1074,17 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 if (!string.IsNullOrEmpty(appModel.CurrentSongId) &&
                     ObjectId.TryParse(appModel.CurrentSongId, out var songId))
                 {
+                    SongModel? songModel=new();
                     if (songId == ObjectId.Empty)
                     {
 
-                        var existingPlaylist = _playlistRepo.FirstOrDefaultWithRQL("PlaylistName == $0", LastSessionPlaylistName);
-                        if (existingPlaylist != null)
-                        {
-                            songId = existingPlaylist.SongsIdsInPlaylist.FirstOrDefault();
-                        }
+                        songModel= realm.All<SongModel>().LastOrDefaultNullSafe();
                     }
-                    var songModel = songRepo.GetById(songId); 
 
-                    if (songModel != null)
+                    if (songModel != null && !string.IsNullOrEmpty(songModel.TitleDurationKey))
                     {
                         
-                        CurrentPlayingSongView = songModel.ToSongModelView();
+                        CurrentPlayingSongView = songModel.ToSongModelView()!;
                     }
                     else
                     {
@@ -1108,15 +1101,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     CurrentPlayingSongView = new();
                 }
 
-
-                //if (IsDarkModeOn)
-                //{
-                //    Application.Current?.UserAppTheme = AppTheme.Dark;
-                //}
-                //else
-                //{
-                //    Application.Current?.UserAppTheme = AppTheme.Light;
-                //}
                 if (lastAppEvent is not null)
                 {
                     var songsLinked = lastAppEvent.SongsLinkingToThisEvent.AsEnumerable().Select(x => x.ToSongModelView());
@@ -1124,7 +1108,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                         updater =>
                         {
                             updater.Clear();
-                            updater.Add(songsLinked);
+                            updater?.Add(songsLinked);
                         });
                 }
             }
@@ -1632,7 +1616,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial string AppTitle { get; set; } = "Dimmer";
 
-    public static string CurrentAppVersion = "1.7.8";
+    public static string CurrentAppVersion = "1.8.0";
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]
@@ -1693,125 +1677,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     #endregion
 
 
-    [RelayCommand]
-    public void RefreshSongMetadata(SongModelView songViewModel)
-    {
-        if (songViewModel == null)
-            return;
-
-        Task.Run(
-            () =>
-            {
-                if (RealmFactory is null)
-                {
-                    _logger.LogError("RealmFactory service is not registered.");
-                    return;
-                }
-                var realm = RealmFactory.GetRealmInstance();
-                if (realm is null)
-                {
-                    _logger.LogError("Failed to get Realm instance from RealmFactory.");
-                    return;
-                }
-
-
-                var songDb = realm.Find<SongModel>(songViewModel.Id);
-                if (songDb == null)
-                {
-                    _logger.LogWarning(
-                        "evt with ID {SongId} not found in DB. Cannot refresh metadata.",
-                        songViewModel.Id);
-                    return;
-                }
-
-
-                var artistNamesToLink = songDb.OtherArtistsName
-                    .Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries)
-                    .ToList();
-
-                if (artistNamesToLink.Count == 0)
-                {
-                    _logger.LogInformation("No 'OtherArtists' found for song '{Title}'. Nothing to link.", songDb.Title);
-                    return;
-                }
-
-
-                var artistClauses = Enumerable.Range(0, artistNamesToLink.Count).Select(i => $"Name == ${i}");
-
-
-                var artistQueryString = string.Join(" OR ", artistClauses);
-
-
-                var artistQueryArgs = artistNamesToLink.Select(name => (QueryArgument)name).ToArray();
-
-
-                var artistsFromDb = realm.All<ArtistModel>()
-                    .Filter(artistQueryString, artistQueryArgs)
-                    .ToDictionary(a => a.Name);
-
-
-                realm.Write(
-                    () =>
-                    {
-                        var freshSongDb = realm.Find<SongModel>(songViewModel.Id);
-                        if (freshSongDb == null)
-                            return;
-
-
-                        if (freshSongDb.Album == null)
-                        {
-                            _logger.LogWarning(
-                                "evt '{Title}' has no associated album, cannot update album artists.",
-                                freshSongDb.Title);
-                            return;
-                        }
-
-                        foreach (var artistName in artistNamesToLink)
-                        {
-                            bool songHasArtist = freshSongDb.ArtistToSong.Any(a => a.Name == artistName);
-                            if (songHasArtist)
-                            {
-                                continue;
-                            }
-
-
-                            if (artistsFromDb.TryGetValue(artistName, out var artistModel))
-                            {
-                                freshSongDb.ArtistToSong.Add(artistModel);
-                                _logger.LogInformation(
-                                    "Linked artist '{ArtistName}' to song '{Title}'.",
-                                    artistName,
-                                    freshSongDb.Title);
-
-
-                                bool albumHasArtist = freshSongDb.Album.Artists.Any(a => a.Id == artistModel.Id);
-                                if (!albumHasArtist)
-                                {
-                                    freshSongDb.Album.Artists.Add(artistModel);
-                                    _logger.LogInformation(
-                                        "Linked artist '{ArtistName}' to album '{AlbumTitle}'.",
-                                        artistName,
-                                        freshSongDb.Album.Name);
-                                }
-                            }
-                            else
-                            {
-                                _logger.LogWarning(
-                                    "Artist '{ArtistName}' not found in DB. Cannot link to song '{Title}'.",
-                                    artistName,
-                                    freshSongDb.Title);
-                            }
-                        }
-                    });
-
-
-                _logger.LogInformation(
-                    "Successfully finished refreshing metadata for song ID {SongId}",
-                    songViewModel.Id);
-            }
-            )
-            ;
-    }
 
 
     [ObservableProperty]
@@ -2080,6 +1945,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial string AchievementSecondMessage { get; set; }
     public BaseAppFlow BaseAppFlow;
+    private readonly IAuthenticationService authService;
 
 
 
@@ -2125,7 +1991,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public string QueryBeforePlay { get; private set; }
 
     public IRealmFactory RealmFactory;
-    private Realm? realm;
 
 
     [ObservableProperty]
@@ -2746,7 +2611,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [RelayCommand]
     public async Task LoadDashboardAsync()
     {
-
+        var realm = RealmFactory.GetRealmInstance();
         IsLoadingDashoard = true;
 
         DashPeriod = $"From {StatsReportStartDate.Date.ToShortDateString()} - {StatsReportEndDate.Date.ToShortDateString()}";
@@ -3119,13 +2984,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
 
             Debug.WriteLine("PlaySong invoked for: " + songToPlay.Title);
-            //// Quick exit check. The more detailed check is in PlayInternalAsync.
-            //if (string.IsNullOrEmpty(songToPlay.FilePath) || !TaggingUtils.FileExists(songToPlay.FilePath))
-            //{
-            //    _logger.LogError("Song file not found for '{Title}'.", songToPlay.Title);
-            //    await ValidateSongAsync(songToPlay);
-            //    return;
-            //}
 
 
             var sourceList = new List<SongModelView>();
@@ -4307,7 +4165,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             return;
         };
         SelectedArtist = artist;
-        SelectedArtist.RefreshAlbumAndSongsFromDB(RealmFactory);
+       _= Task.Run(()=> SelectedArtist.RefreshAlbumAndSongsFromDB(RealmFactory));
     }
     public async Task<bool> SelectedArtistAndNavtoPage(SongModelView? song)
     {
@@ -4637,7 +4495,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         song ??= SelectedSong;
         if (song is null) return;
 
-        realm = RealmFactory.GetRealmInstance();
+        var realm = RealmFactory.GetRealmInstance();
         // Phase 1: Data Preparation
         var scrobblesInPeriod = realm.Find<SongModel>(song.Id)?.PlayHistory
             //.Where(p => p.EventDate >= startDate && p.EventDate < endDate &&
@@ -5085,7 +4943,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             
 
             _playEventSource.Dispose();
-            realm?.Dispose();
+
             _subsManager.Dispose();
             CompositeDisposables.Dispose();
             
@@ -5105,8 +4963,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _historyRealm?.Dispose();
         _historyRealm = null;
 
-        realm?.Dispose();
-        realm = null;
 
     }
 
@@ -5937,13 +5793,19 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
     #endregion
 
-    public void SetSelectedAlbum(AlbumModelView? album)
+    public void SetSelectedAlbum(AlbumModelView? album=null)
     {
         if(album is not null)
         {
+            album.RefreshArtistsAndSongsFromDB(RealmFactory);
+            SelectedAlbum = album;
 
-        album.RefreshArtistsAndSongsFromDB(RealmFactory);
-        SelectedAlbum = album;
+        }
+        else if(SelectedSong is not null && SelectedSong.Album is not null)
+        {
+
+            SelectedSong.Album.RefreshArtistsAndSongsFromDB(RealmFactory);
+            SelectedAlbum = SelectedSong.Album;
 
         }
     }

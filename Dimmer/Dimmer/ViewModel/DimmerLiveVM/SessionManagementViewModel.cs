@@ -1,6 +1,9 @@
 ﻿
 
+using Parse.LiveQuery;
+using SkiaSharp;
 using System.IO;
+using System.IO.Compression;
 
 namespace Dimmer.ViewModel;
 
@@ -131,6 +134,8 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
         {
             StatusMessage = "Registering device...";
             await _sessionManager.RegisterCurrentDeviceAsync();
+            _sessionManager.StartListeners();
+            await _sessionManager.SyncDeviceStateAsync();
         }
         catch (Exception ex)
         {
@@ -138,6 +143,18 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
             
             _logger.LogError(ex, "Failed to register device for session transfer.");
         }
+    }
+    public async Task TransferFullQueue(UserDeviceSession targetDevice)
+    {
+        var queue = _mainViewModel.PlaybackQueue.ToList();
+        var queueEvents = queue.Select(song => new DimmerPlayEventView
+        {
+            SongId = song.Id,
+            SongName = song.Title,
+            ArtistName = song.ArtistName
+        }).ToList();
+
+        //await _sessionManager.InitiateQueueTransferAsync(targetDevice, queueEvents);
     }
     [RelayCommand]
     public async Task TransferToDevice(UserDeviceSession targetDevice)
@@ -287,22 +304,225 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
     {
 
     }
-
     public async Task UpdateProfilePicture(byte[]? resultByteArray)
     {
-        
+        if (resultByteArray == null) return;
         if (IsBusy) return;
-        if (resultByteArray is null) return;
+        IsBusy = true;
 
-        // upload to Parse cloud and expect full User object back
-        var parseUser = await ParseClient.Instance.CallCloudCodeFunctionAsync<UserModelOnline>("uploadProfilePicture", new Dictionary<string, object>
+        try
         {
-            { "imageData", Convert.ToBase64String(resultByteArray) }
-        });
+            // Optimize image with SkiaSharp
+            using var ms = new MemoryStream(resultByteArray);
+            using var original = SKBitmap.Decode(ms);
 
-        if (parseUser == null) return;
-        LoginViewModel.CurrentUserOnline = parseUser;
+            // Resize to standard avatar size (256x256, maintain aspect ratio)
+            var resizeRatio = Math.Min(256f / original.Width, 256f / original.Height);
+            var newWidth = (int)(original.Width * resizeRatio);
+            var newHeight = (int)(original.Height * resizeRatio);
+
+            using var resized = original.Resize(new SKImageInfo(newWidth, newHeight), SKFilterQuality.High);
+
+            // Create square crop if needed (for perfect circle avatars)
+            using var square = new SKBitmap(256, 256);
+            using var canvas = new SKCanvas(square);
+
+            // Center the image
+            var x = (256 - newWidth) / 2;
+            var y = (256 - newHeight) / 2;
+            canvas.DrawBitmap(resized, x, y);
+
+            // Encode to JPEG with compression
+            using var outputMs = new MemoryStream();
+            using var image = SKImage.FromBitmap(square);
+            using var data = image.Encode(SKEncodedImageFormat.Jpeg, 85); // 85% quality
+            data.SaveTo(outputMs);
+
+            var optimizedBytes = outputMs.ToArray();
+
+            _logger.LogInformation($"Original size: {resultByteArray.Length / 1024}KB, " +
+                                   $"Optimized: {optimizedBytes.Length / 1024}KB");
+
+            // Upload to Parse
+            var parseUser = await ParseClient.Instance.CallCloudCodeFunctionAsync<UserModelOnline>(
+                "uploadProfilePicture",
+                new Dictionary<string, object>
+                {
+                { "imageData", Convert.ToBase64String(optimizedBytes) }
+                });
+
+            if (parseUser != null)
+            {
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    LoginViewModel.CurrentUserOnline = parseUser;
+                    StatusMessage = "Profile picture updated!";
+                });
+
+                // Broadcast update to other devices
+                //await _sessionManager.BroadcastUserUpdateAsync(parseUser);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update profile picture");
+            StatusMessage = "Failed to update profile picture";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
-    
+    [ObservableProperty]
+    public partial bool IsScreeningActive { get; set; }
+
+    [ObservableProperty]
+    public partial DeviceState? RemoteDeviceState { get; set; } // The real-time playback state
+
+    // This is the "Virtual Library" of the device we are screening
+    public ObservableCollection<SongModelView> RemoteLibrary { get; } = new();
+
+    [RelayCommand]
+    public async Task StartScreeningDevice(UserDeviceSession targetDevice)
+    {
+        if (targetDevice == null) return;
+        IsBusy = true;
+        StatusMessage = $"Connecting to {targetDevice.DeviceName}...";
+
+        try
+        {
+            // 1. Snapshot Check: Do we have Device B's library locally?
+            string cachePath = Path.Combine(FileSystem.CacheDirectory, $"lib_{targetDevice.DeviceId}.json");
+
+            bool needsFullSync = !File.Exists(cachePath) || targetDevice.LibraryTag != GetLocalLibraryTag(targetDevice.DeviceId);
+
+            if (needsFullSync)
+            {
+                StatusMessage = "Requesting library snapshot...";
+                await RequestLibraryExport(targetDevice.DeviceId);
+                // The remote device will upload a ParseFile. We wait for the update via LiveQuery.
+                // For this example, we'll poll or wait for targetDevice to update.
+            }
+            else
+            {
+                await LoadRemoteLibraryFromCache(cachePath);
+            }
+
+            // 2. Start Live Delta Monitoring (Real-time Playback)
+            await SubscribeToRemotePlayback(targetDevice.DeviceId);
+
+            IsScreeningActive = true;
+            StatusMessage = $"Screening {targetDevice.DeviceName}";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = "Screening failed: " + ex.Message;
+        }
+        finally { IsBusy = false; }
+    }
+    public async Task RequestDeltaExport(string targetDeviceId, DateTime lastSyncTime)
+    {
+        var cmd = new DeviceCommand
+        {
+            TargetDeviceId = targetDeviceId,
+            CommandName = "EXPORT_LIBRARY_DELTA",
+            PayloadStr = JsonSerializer.Serialize(new
+            {
+                LastSyncTime = lastSyncTime,
+                DeviceId = _sessionManager.ThisDeviceSession.DeviceId
+            })
+        };
+        await cmd.SaveAsync();
+
+        // Remote device responds with ONLY changes since lastSyncTime
+        // Much faster than full export!
+    }
+    private async Task RequestLibraryExport(string targetDeviceId)
+    {
+        var cmd = new DeviceCommand
+        {
+            TargetDeviceId = targetDeviceId,
+            SourceDeviceId = _sessionManager.ThisDeviceSession.DeviceId,
+            CommandName = "EXPORT_LIBRARY",
+            Timestamp = DateTime.UtcNow
+        };
+        await cmd.SaveAsync();
+    }
+    private readonly ParseLiveQueryClient _liveQueryClient;
+
+    private async Task SubscribeToRemotePlayback(string deviceId)
+    {
+        var query = ParseClient.Instance.GetQuery<DeviceState>()
+            .WhereEqualTo("DeviceId", deviceId);
+
+        var subscription = _liveQueryClient.Subscribe(query);
+            subscription.On(Subscription.Event.Update,OnUpdatedMethod);
+
+    }
+
+    private void OnUpdatedMethod(DeviceState obj)
+    {
+        RemoteDeviceState = obj;
+
+        // LEAD DEV MOVE: Lookup Song Metadata locally from the Snapshot
+        // We only get an ID from LiveQuery, but we show full details from Cache.
+        var metadata = RemoteLibrary.FirstOrDefault(s => s.Id.ToString() == obj.CurrentSongId);
+        if (metadata != null)
+        {
+            // Update your UI with metadata found in the snapshot
+            StatusMessage = $"Remote Playing: {metadata.Title} - {metadata.ArtistName}";
+        }
+    }
+
+    // --- PRO LOGIC: COMPRESSION & STORAGE (The Snapshot) ---
+    public async Task ProcessIncomingSnapshot(UserDeviceSession updatedSession)
+    {
+        if (updatedSession.FileData == null) return;
+
+        StatusMessage = "Downloading snapshot...";
+        var stream = await new HttpClient().GetStreamAsync(updatedSession.FileData.Url);
+
+        // Lead Dev Suggestion: Use GZip for massive JSON lists
+        using var decompressionStream = new GZipStream(stream, CompressionMode.Decompress);
+        using var reader = new StreamReader(decompressionStream);
+        string json = await reader.ReadToEndAsync();
+
+        // Save to local cache
+        string cachePath = Path.Combine(FileSystem.CacheDirectory, $"lib_{updatedSession.DeviceId}.json");
+        await File.WriteAllTextAsync(cachePath, json);
+
+        await LoadRemoteLibraryFromCache(cachePath);
+    }
+
+    private async Task LoadRemoteLibraryFromCache(string path)
+    {
+        string json = await File.ReadAllTextAsync(path);
+        var songs = JsonSerializer.Deserialize<List<SongModelView>>(json);
+
+        MainThread.BeginInvokeOnMainThread(() => {
+            RemoteLibrary.Clear();
+            foreach (var s in songs) RemoteLibrary.Add(s);
+        });
+    }
+
+    private string GetLocalLibraryTag(string deviceId)
+    {
+        return Preferences.Get($"tag_{deviceId}", string.Empty);
+    }
+
+    [RelayCommand]
+    public async Task RemoteControl(string command)
+    {
+        // Example: command = "PAUSE" or "NEXT"
+        if (RemoteDeviceState == null) return;
+
+        var cmd = new DeviceCommand
+        {
+            TargetDeviceId = RemoteDeviceState.DeviceId,
+            CommandName = command,
+            IsHandled = false
+        };
+        await cmd.SaveAsync();
+    }
 }

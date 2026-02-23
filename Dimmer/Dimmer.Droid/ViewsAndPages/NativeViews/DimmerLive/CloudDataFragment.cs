@@ -1,10 +1,4 @@
-﻿using System.Reactive.Disposables;
-using System.Reactive.Disposables.Fluent;
-
-using Dimmer.DimmerLive.Models;
-using Dimmer.UiUtils;
-using Dimmer.ViewModel;
-using DynamicData;
+﻿using Dimmer.DimmerLive.Models;
 
 using Google.Android.Material.ProgressIndicator;
 

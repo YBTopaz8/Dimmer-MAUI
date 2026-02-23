@@ -1,6 +1,4 @@
-﻿using Bumptech.Glide;
-
-namespace Dimmer.ViewsAndPages.NativeViews.SingleSong
+﻿namespace Dimmer.ViewsAndPages.NativeViews.SingleSong
 {
     internal class SongNotesRecyclerViewAdapter:RecyclerView.Adapter
     {

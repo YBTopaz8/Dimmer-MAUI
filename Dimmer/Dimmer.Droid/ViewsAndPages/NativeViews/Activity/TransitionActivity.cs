@@ -2,25 +2,20 @@
 
 using Android.Views.InputMethods;
 using AndroidX.CoordinatorLayout.Widget;
-using AndroidX.Core.View;
 using AndroidX.DrawerLayout.Widget;
 using AndroidX.Lifecycle;
+using ATL;
 using Dimmer.NativeServices;
-using Dimmer.UiUtils;
 using Dimmer.ViewsAndPages.NativeViews.Adapters;
 using Dimmer.ViewsAndPages.NativeViews.DeviceTransfer;
 using Dimmer.ViewsAndPages.NativeViews.DimmerLive;
 using Dimmer.ViewsAndPages.NativeViews.DimmerLive.LastFMViews;
-using Dimmer.ViewsAndPages.NativeViews.StatsSection;
-
+using Dimmer.ViewsAndPages.NativeViews.Stats;
 using Google.Android.Material.BottomNavigation;
-using Google.Android.Material.Dialog;
+using Google.Android.Material.ImageView;
 using Google.Android.Material.Navigation;
-
-using Explode = AndroidX.Transitions.Explode;
-using Fade = AndroidX.Transitions.Fade;
-using Slide = AndroidX.Transitions.Slide;
-using Transition = AndroidX.Transitions.Transition;
+using Google.Android.Material.Shape;
+using ImageButton = Android.Widget.ImageButton;
 
 namespace Dimmer.ViewsAndPages.NativeViews.Activity;
 
@@ -52,7 +47,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
 {
     public BottomSheetBehavior SheetBehavior { get; private set; }
      private FrameLayout _sheetContainer;
-    private FrameLayout _contentContainer;
+    private FrameLayout _contentContainerFrameLayout;
     public TransitionActivity() { }
     public static int MyStaticID;
     private object? _onBackInvokedCallback; // For API 33+
@@ -77,8 +72,34 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
     const int REQUEST_AUDIO_PERMS = 99;
 
 
-    
 
+    protected override void OnPause()
+    {
+        base.OnPause();
+        Debug.WriteLine("pauised");
+        MyViewModel.IsBackGrounded = true;
+    }
+
+    protected override void OnStop()
+    {
+        base.OnStop();
+        Debug.WriteLine("stopped");
+    }
+
+    protected override void OnNightModeChanged(int mode)
+    {
+        base.OnNightModeChanged(mode);
+
+        Debug.WriteLine(mode);
+    }
+    
+    protected override void OnSaveInstanceState(Bundle outState)
+    {
+        base.OnSaveInstanceState(outState);
+
+         
+    }
+    LinearLayoutManager layoutManager;
     protected override void OnCreate(Bundle? savedInstanceState)
     {
        
@@ -113,11 +134,11 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
 
 
             MyViewModel.HomeAdapter = new HomePageAdapter(this.BaseContext,
-                MyViewModel, startFragment, HomePageAdapter.SongsToWatchSource.HomePage
+                MyViewModel, startFragment
                 );
             SupportFragmentManager
                 .BeginTransaction()
-                .Replace(_contentContainer.Id, startFragment, "HomePageFragment")
+                .Replace(_contentContainerFrameLayout.Id, startFragment, "HomePageFragment")
                 .Commit();
 
             // B. Load Player (Sheet)
@@ -150,7 +171,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
         SupportFragmentManager.BackStackChanged += (s, e) =>
         {
             
-            Fragment? current = SupportFragmentManager.FindFragmentById(_contentContainer.Id);
+            Fragment? current = SupportFragmentManager.FindFragmentById(_contentContainerFrameLayout.Id);
             MyViewModel.CurrentFragment = current;
         };
 
@@ -211,145 +232,32 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
             .CommitNow();
     }
 
-    private void SetupCsharpUi()
-    {
-        // 1. Theme Colors
-        var currentTheme = Resources?.Configuration?.UiMode & UiMode.NightMask;
-        var bgColor = currentTheme == UiMode.NightYes ? Color.ParseColor("#121212") : Color.ParseColor("#F5F5F5");
-        var barColor = Color.ParseColor("#2D2D30"); // Dark Grey Bar
-
-        // 2. ROOT: CoordinatorLayout
-        _mainContentCoordinator = new CoordinatorLayout(this)
-        {
-            LayoutParameters = new ViewGroup.LayoutParams(-1, -1)
-        };
-        _mainContentCoordinator.SetBackgroundColor(bgColor);
-
-        // 3. CONTENT CONTAINER (Where Fragments Live)
-        _contentContainer = new FrameLayout(this)
-        {
-            Id = View.GenerateViewId(),
-            LayoutParameters = new CoordinatorLayout.LayoutParams(-1, -1)
-        };
-        // Add bottom margin (70dp) so content isn't covered by the bar
-        var contentParams = (CoordinatorLayout.LayoutParams)_contentContainer.LayoutParameters;
-        contentParams.BottomMargin = (int)(70 * Resources.DisplayMetrics.Density);
-        _contentContainer.LayoutParameters = contentParams;
-        MyStaticID = _contentContainer.Id;
-
-        // 4. THE SMOOTH BOTTOM BAR
-        _bottomBar = new SmoothBottomBar(this);
-        _bottomBar.Id = View.GenerateViewId();
-
-        // Layout Params & Behavior
-        var barParams = new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, (int)(70 * Resources.DisplayMetrics.Density));
-        barParams.Gravity = (int)GravityFlags.Bottom;
-
-        // Attach the Scroll Behavior we defined in the C# port
-        //var scrollBehavior = new HideBottomViewOnScrollBehavior<SmoothBottomBar>();
-        //barParams.Behavior = scrollBehavior;
-
-        _bottomBar.LayoutParameters = barParams;
-
-        // --- Styling ---
-        _bottomBar.SetBarBackgroundColor(Color.Red);
-        //_bottomBar.SetBarBackgroundColor(barColor);
-        _bottomBar.SetTextColor(Color.White);
-        _bottomBar.SetIndicatorColor(Color.ParseColor("#861B2D"));
-        _bottomBar.SetIconTint(Color.ParseColor("#80FFFFFF"), Color.White);
-        _bottomBar.SetBarCornerRadius(20); // 20dp corners
-
-        // --- MENU POPULATION (The Fix) ---
-        // We don't use PopupMenu anymore. We create the Items list directly.
-        var items = new List<BottomBarItem>
-    {
-        new BottomBarItem("Home", AndroidX.Core.Content.ContextCompat.GetDrawable(this, Resource.Drawable.musicaba)),
-        new BottomBarItem("Stats", AndroidX.Core.Content.ContextCompat.GetDrawable(this, Resource.Drawable.heart)),
-        new BottomBarItem("LastFM", AndroidX.Core.Content.ContextCompat.GetDrawable(this, Resource.Drawable.lastfm)),
-        new BottomBarItem("Settings", AndroidX.Core.Content.ContextCompat.GetDrawable(this, Resource.Drawable.settings))
-    };
-
-        // Pass the list to the bar
-        _bottomBar.SetMenuItems(items);
-
-        // --- LISTENERS ---
-        _bottomBar.OnItemSelected += (s, pos) =>
-        {
-            // Map Index (0,1,2..) back to your IDs (100,101..)
-            int navId = 100 + pos;
-            NavigateToId(navId);
-        };
-
-        _bottomBar.OnItemReselected += (s, pos) =>
-        {
-            int navId = 100 + pos;
-            if (navId == 100) // Home
-            {
-                var currentFrag = SupportFragmentManager.FindFragmentById(_contentContainer.Id);
-                if (currentFrag is HomePageFragment homeFrag)
-                {
-                    homeFrag.ScrollToCurrent();
-                }
-            }
-        };
-
-        // 5. PLAYER SHEET CONTAINER
-        _sheetContainer = new FrameLayout(this)
-        {
-            Id = View.GenerateViewId(),
-            LayoutParameters = new CoordinatorLayout.LayoutParams(-1, -1)
-            {
-                Gravity = (int)GravityFlags.Bottom
-            },
-
-            Background = new ColorDrawable(Color.Transparent),
-            BackgroundTintList = AppUtil.ToColorStateList(Color.Transparent),
-            Elevation = 30 * Resources.DisplayMetrics.Density,
-            Clickable = false,
-            Focusable = false
-        };
-
-        SheetBehavior = new BottomSheetBehavior();
-        // PeekHeight = Bar Height (70) + MiniPlayer Height (70) = 140dp
-        SheetBehavior.PeekHeight = (int)(140 * Resources.DisplayMetrics.Density);
-        var sheetParams = (CoordinatorLayout.LayoutParams)_sheetContainer.LayoutParameters;
-        sheetParams.Behavior = SheetBehavior;
-        
-        // 6. ADD VIEWS (Order determines Z-Index)
-        _mainContentCoordinator.AddView(_contentContainer);
-      
-        _mainContentCoordinator.AddView(_bottomBar);
-        _mainContentCoordinator.AddView(_sheetContainer); // Sheet sits ON TOP of the bar
-
-        // Set Content
-        SetContentView(_mainContentCoordinator);
-        ViewCompat.SetOnApplyWindowInsetsListener(_mainContentCoordinator, this);
-    }
 
     DrawerLayout _drawerLayout;
     private void SetupDrawerLayout()
     {
         var currentTheme = Resources?.Configuration?.UiMode & UiMode.NightMask;
         var bgColor = currentTheme == UiMode.NightYes ? Color.ParseColor("#121212") : Color.ParseColor("#F5F5F5");
+        var drawerBgColor = currentTheme == UiMode.NightYes ? Color.ParseColor("#1E1E1E") : Color.White;
         _drawerLayout = new DrawerLayout(this)
         {
             LayoutParameters = new ViewGroup.LayoutParams(-1, -1),
         };
         _drawerLayout.Id = View.GenerateViewId();
 
-        _mainContentCoordinator = new CoordinatorLayout(this)
+        _mainContentCoordinatorLayout = new CoordinatorLayout(this)
         {
             LayoutParameters = new DrawerLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent),
         };
-        _mainContentCoordinator.SetBackgroundColor(bgColor);
+        _mainContentCoordinatorLayout.SetBackgroundColor(bgColor);
 
         // 2a. Fragment Container (The Page)
-        _contentContainer = new FrameLayout(this)
+        _contentContainerFrameLayout = new FrameLayout(this)
         {
             Id = View.GenerateViewId(),
             LayoutParameters = new CoordinatorLayout.LayoutParams(-1, -1)
         };
-        _contentContainer.Id = Resource.Id.custom_fragment_container;
+        _contentContainerFrameLayout.Id = Resource.Id.custom_fragment_container;
         MyStaticID = Resource.Id.custom_fragment_container;
         // 2b. Player Sheet Container
         _sheetContainer = new FrameLayout(this)
@@ -374,27 +282,37 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
         sheetParams.Behavior = SheetBehavior;
 
         // Add views to Coordinator (Content first, then Player on top)
-        _mainContentCoordinator.AddView(_contentContainer);
-        _mainContentCoordinator.AddView(_sheetContainer);
+        _mainContentCoordinatorLayout.AddView(_contentContainerFrameLayout);
+        _mainContentCoordinatorLayout.AddView(_sheetContainer);
+
+        var drawerContainer = new LinearLayout(this)
+        {
+            Orientation = Orientation.Vertical,
+            LayoutParameters = new DrawerLayout.LayoutParams(AppUtil.DpToPx(300), ViewGroup.LayoutParams.MatchParent) // Standard Drawer Width
+            {
+                Gravity = (int)GravityFlags.Start
+            }
+        };
+        drawerContainer.SetBackgroundColor(drawerBgColor);
+        drawerContainer.Clickable = true;
+
+
 
         // 3. Navigation View ( The Side Menu)
         _navigationView = new NavigationView(this)
         {
-            LayoutParameters = new DrawerLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.MatchParent)
-            {
-                Gravity = (int)GravityFlags.Start // Slides from Left
-            }
+            LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, 0, 1f) // Weight 1 to take remaining space
         };
 
         // Setup Menu Items
-        _navigationView.Menu.Add(0, 100, 0, "Home").SetIcon(Resource.Drawable.musicaba);
-        _navigationView.Menu.Add(0, 101, 0, "Library").SetIcon(Resource.Drawable.heart);
-        _navigationView.Menu.Add(0, 102, 0, "Last FM").SetIcon(Resource.Drawable.lastfm);
-        _navigationView.Menu.Add(0, 103, 0, "Settings").SetIcon(Resource.Drawable.settings);
-        _navigationView.Menu.Add(0, 104, 0, "Device Transfer").SetIcon(Resource.Drawable.media3_icon_share);
+        _navigationView.Menu?.Add(0, 100, 0, "Home")?.SetIcon(Resource.Drawable.musicaba);
+        _navigationView.Menu?.Add(0, 101, 0, "Library")?.SetIcon(Resource.Drawable.heart);
+        _navigationView.Menu?.Add(0, 102, 0, "Last FM")?.SetIcon(Resource.Drawable.lastfm);
+        _navigationView.Menu?.Add(0, 103, 0, "Settings")?.SetIcon(Resource.Drawable.settings);
+        //_navigationView.Menu?.Add(0, 104, 0, "Device Transfer")?.SetIcon(Resource.Drawable.media3_icon_share);
 
-        _navigationView.Menu.Add(0, 105, 0, "Dimmer Cloud").SetIcon(Resource.Drawable.cloudbolt);
-
+        //_navigationView.Menu?.Add(0, 105, 0, "Dimmer Cloud")?.SetIcon(Resource.Drawable.cloudbolt);
+        
         // Handle Clicks
         _navigationView.NavigationItemSelected += (s, e) =>
         {
@@ -402,18 +320,13 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
             _drawerLayout.CloseDrawer(GravityCompat.Start); // Close after click
         };
 
-        // 4. Assemble Root
-        _drawerLayout.AddView(_mainContentCoordinator);
-        _drawerLayout.AddView(_navigationView);
-
-
         var headerView = new LinearLayout(this)
         {
             Orientation = Orientation.Vertical,
             LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, AppUtil.DpToPx(200)) // Height: 200dp
         };
         headerView.SetBackgroundColor(Color.ParseColor("#2D2D30")); // Dark Header BG
-        headerView.SetGravity (GravityFlags.Bottom);
+        headerView.SetGravity(GravityFlags.Bottom);
         headerView.SetPadding(40, 40, 40, 40);
 
         var appTitle = new TextView(this)
@@ -437,6 +350,74 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
         _navigationView.AddHeaderView(headerView);
 
 
+
+        var bottomProfileLayout = new LinearLayout(this)
+        {
+            Orientation = Orientation.Horizontal,
+            LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, AppUtil.DpToPx(80))
+        };
+        bottomProfileLayout.SetPadding(AppUtil.DpToPx(16), AppUtil.DpToPx(16), AppUtil.DpToPx(16), AppUtil.DpToPx(16));
+        bottomProfileLayout.SetGravity(GravityFlags.CenterVertical);
+
+        // Top Border
+        var border = new View(this) { LayoutParameters = new LinearLayout.LayoutParams(-1, AppUtil.DpToPx(1)) };
+        border.SetBackgroundColor(Color.ParseColor("#33808080"));
+
+        // Avatar (ImageView)
+        avatarImg = new ShapeableImageView(this)
+        {
+            LayoutParameters = new LinearLayout.LayoutParams(AppUtil.DpToPx(48), AppUtil.DpToPx(48))
+        };
+        avatarImg.SetImageResource(Resource.Drawable.usercircle); // Placeholder
+                                                                   // Make it round
+        avatarImg.ShapeAppearanceModel = avatarImg.ShapeAppearanceModel.ToBuilder().SetAllCornerSizes(ShapeAppearanceModel.Pill!).Build();
+        avatarImg.SetScaleType(ImageView.ScaleType.CenterCrop);
+        avatarImg.SetBackgroundColor(Color.Gray);
+
+        // Text Stack (Name + Device)
+        var textStack = new LinearLayout(this)
+        {
+            Orientation = Orientation.Vertical,
+            LayoutParameters = new LinearLayout.LayoutParams(0, -2, 1f) // Weight 1 to push Cog to right
+        };
+        ((LinearLayout.LayoutParams)textStack.LayoutParameters).LeftMargin = AppUtil.DpToPx(12);
+
+        userNameTv = new TextView(this) { Text = MyViewModel.CurrentUserLocal?.Username ?? "User", TextSize = 16, Typeface = Typeface.DefaultBold };
+        deviceTv = new TextView(this) { Text = Android.OS.Build.Model, TextSize = 12, Alpha = 0.7f };
+
+        textStack.AddView(userNameTv);
+        textStack.AddView(deviceTv);
+
+        // Settings Cog
+        var settingsBtn = new ImageButton(this)
+        {
+            LayoutParameters = new LinearLayout.LayoutParams(AppUtil.DpToPx(48), AppUtil.DpToPx(48))
+        };
+        settingsBtn.SetImageResource(Resource.Drawable.settings);
+        settingsBtn.SetBackgroundColor(Color.Transparent);
+        settingsBtn.Click += (s, e) =>
+        {
+            NavigateToId(103); // Settings ID
+            _drawerLayout.CloseDrawer(GravityCompat.Start);
+        };
+
+        bottomProfileLayout.AddView(avatarImg);
+        bottomProfileLayout.AddView(textStack);
+        bottomProfileLayout.AddView(settingsBtn);
+
+        // Add components to Drawer Container
+        drawerContainer.AddView(_navigationView);
+        drawerContainer.AddView(border); // Separator line
+        drawerContainer.AddView(bottomProfileLayout);
+
+
+
+        // 4. Assemble Root
+        _drawerLayout.AddView(_mainContentCoordinatorLayout);
+
+        _drawerLayout.AddView(drawerContainer);
+
+
         SetContentView(_drawerLayout);
         ViewCompat.SetOnApplyWindowInsetsListener(_drawerLayout, this);
     }
@@ -454,7 +435,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
                 // Content: status bar + mini-player height
                 int miniPlayerHeight = AppUtil.DpToPx(70);
                 _systemBarBottom = bars.Bottom;
-                _contentContainer.SetPadding(
+                _contentContainerFrameLayout.SetPadding(
                     0,
                     top,
                     0,
@@ -496,10 +477,14 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
                 break;
             case 101:
 
-                selectedFrag = new LibraryStatsFragment(MyViewModel);
-                tag = "LibraryStatsFragment";
+                var statsVm = MainApplication.ServiceProvider.GetService<StatisticsViewModel>();
+                if (statsVm != null)
+                {
+                    selectedFrag = new GlobalLibraryStatsFragment(statsVm);
+                    tag = "GlobalLibraryStatsFragment";
+                }
+                break;
 
-                break; 
             case 102:
                 
                 selectedFrag = new LastFMLoginFragment( MyViewModel);
@@ -523,7 +508,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
                 var viewModel = MainApplication.ServiceProvider.GetService<SessionManagementViewModel>();
                 if (viewModel is not null)
                 {
-                    selectedFrag = new CloudDataFragment("SessionManagementTrans", viewModel);
+                    selectedFrag = new LoginFragment("LoginFragmentTrans", MyViewModel);
                     tag = "SessionMgt";
                 }
                 break;
@@ -533,7 +518,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
         {
             SupportFragmentManager.BeginTransaction()
                 .SetCustomAnimations(Resource.Animation.m3_bottom_sheet_slide_in, Resource.Animation.m3_bottom_sheet_slide_out)
-                .Replace(_contentContainer.Id, selectedFrag, tag)
+                .Replace(_contentContainerFrameLayout.Id, selectedFrag, tag)
                 .AddToBackStack(tag)
                 .Commit();
         }
@@ -554,7 +539,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
             Resource.Animation.m3_bottom_sheet_slide_in,
             Resource.Animation.m3_motion_fade_exit);
 
-        trans.Replace(_contentContainer.Id, fragment, tag);
+        trans.Replace(_contentContainerFrameLayout.Id, fragment, tag);
         trans.AddToBackStack(tag);
         trans.Commit();
 
@@ -768,6 +753,67 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
 
 #endif
     }
+
+
+    IAuthenticationService? authService;
+    ILiveSessionManagerService? sessionManager;
+    LoginViewModel? loginVM;
+    private async Task SetupSession()
+    {
+        try
+        {
+            // 1. Check Connectivity FIRST
+            if (Connectivity.NetworkAccess != NetworkAccess.Internet)
+            {
+                Console.WriteLine("No internet. Skipping Parse auto-login.");
+                return;
+            }
+            if(authService is null)
+            {
+
+                // 2. Resolve Services
+                authService = MainApplication.ServiceProvider.GetService<IAuthenticationService>()!;
+                 sessionManager = MainApplication.ServiceProvider.GetService<ILiveSessionManagerService>()!;
+                 loginVM = MainApplication.ServiceProvider.GetService<LoginViewModel>();
+
+                // 3. Attempt Auto-Login
+                Console.WriteLine("Attempting Parse Auto-Login...");
+                bool isLoggedIn = await authService.InitializeAsync(); // This checks SecureStorage tokens
+
+                if (isLoggedIn)
+                {
+                    Console.WriteLine($"Auto-Login Successful for user: {authService.CurrentUserValue?.Username}");
+
+                    // 4. Update UI Model
+                    loginVM.CurrentUserOnline = authService.CurrentUserValue;
+
+                    // 5. CRITICAL: Register Device Session
+                    // This tells Parse "I am here, my Device ID is X, send me commands"
+                    await sessionManager.RegisterCurrentDeviceAsync();
+
+                    // 6. Sync Initial State (Queues, Playing Song)
+                    await sessionManager.SyncDeviceStateAsync();
+
+                    // 7. Open the WebSocket Listeners (LiveQuery)
+                    sessionManager.StartListeners();
+
+                    Console.WriteLine("Device Session & Listeners Active.");
+                }
+                else
+                {
+                    Console.WriteLine("Auto-Login failed or no token found.");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"BOOT ERROR: {ex.Message}");
+            // Optional: Log to Analytics/Crashlytics
+        }
+    
+    }
+
+
     private bool _isDialogActive = false;
     protected async override void OnResume()
     {
@@ -783,7 +829,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
             SetupBackNavigation();
             // Log that the activity resumed
             Console.WriteLine("TransitionActivity: OnResume called.");
-
+            MyViewModel.IsBackGrounded = false;
 
 
             if (_isDialogActive)
@@ -803,6 +849,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
                     _isDialogActive = false;
                 }
             }
+            //await SetupSession();
         }
         catch (Exception ex)
         {
@@ -813,7 +860,10 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
     const int REQUEST_OPEN_FOLDER = 100;
     TaskCompletionSource<string?>? _folderPickerTcs;
     private NavigationView _navigationView;
-    private CoordinatorLayout _mainContentCoordinator;
+    private CoordinatorLayout _mainContentCoordinatorLayout;
+    private TextView userNameTv;
+    private TextView deviceTv;
+    private ShapeableImageView avatarImg;
 
     public Task<string?> PickFolderAsync()
     {
@@ -852,7 +902,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
            
     }
 
-    protected override void OnDestroy()
+    protected override async void OnDestroy()
     {
         if (_serviceConnection != null)
         {
@@ -864,7 +914,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
             _isBackCallbackRegistered = false;
         }
 
-        MyViewModel?.OnAppClosing();
+       await MyViewModel?.OnAppClosingAsync();
         base.OnDestroy();
     }
 
@@ -1006,7 +1056,7 @@ class AppLifeCycleObserver : Java.Lang.Object, ILifecycleEventObserver
 
     public void OnStateChanged(ILifecycleOwner source, Lifecycle.Event e)
     {
-    
+        Debug.WriteLine(e.TargetState);
     }
 }
 sealed class BackInvokedCallback : Java.Lang.Object, IOnBackInvokedCallback

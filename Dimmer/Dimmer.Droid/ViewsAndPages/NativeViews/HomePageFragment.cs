@@ -1,28 +1,12 @@
-﻿using Android.Telecom;
-using Android.Text;
-using Android.Views.InputMethods;
+﻿using Android.Views.InputMethods;
 using AndroidX.CoordinatorLayout.Widget;
-using AndroidX.Lifecycle;
-using AndroidX.RecyclerView.Widget;
-using Bumptech.Glide;
-using CommunityToolkit.Maui.Views;
+using AndroidX.Core.Widget;
 using Dimmer.DimmerSearch;
-using Dimmer.UiUtils;
-using Dimmer.Utilities;
-using Dimmer.Utils;
-using Dimmer.Utils.Extensions;
-using Dimmer.ViewsAndPages.NativeViews.DimmerLive;
-using Dimmer.ViewsAndPages.NativeViews.Misc;
 using Dimmer.ViewsAndPages.ViewUtils;
-using Google.Android.Material.Chip;
-using Microsoft.Maui;
-using Microsoft.Maui.Controls.Shapes;
-using System.Reactive.Disposables;
-using System.Reactive.Disposables.Fluent;
-using static Android.Webkit.WebSettings;
-using static AndroidX.RecyclerView.Widget.RecyclerView;
-using static Dimmer.ViewsAndPages.NativeViews.SongAdapter;
-using TextAlignment = Android.Views.TextAlignment;
+using Google.Android.Material.AppBar;
+using Google.Android.Material.Behavior;
+using Google.Android.Material.Floatingtoolbar;
+using Microsoft.Maui.Controls.Platform;
 
 
 namespace Dimmer.ViewsAndPages.NativeViews;
@@ -79,6 +63,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
     }
     private CancellationTokenSource? _searchCts;
+    private NestedScrollView myScrollView;
     private ImageView _backgroundImageView;
     private  CompositeDisposable _disposables =new();
 
@@ -101,40 +86,48 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
     public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
         PostponeEnterTransition();
-        var ctx = Context;
+        var ctx = RequireContext();
 
-        // --- 1. Root: CoordinatorLayout ---
+        // --- 1. Root Coordinator Layout ---
         root = new CoordinatorLayout(ctx)
         {
             LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent)
         };
-
         root.SetBackgroundColor(UiBuilder.IsDark(ctx) ? Color.ParseColor("#0D0E20") : Color.ParseColor("#CAD3DA"));
 
         _backgroundImageView = new ImageView(ctx)
         {
-            LayoutParameters = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent),
+            LayoutParameters = new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent)
         };
         _backgroundImageView.SetScaleType(ImageView.ScaleType.CenterCrop);
         root.AddView(_backgroundImageView);
 
-        // --- 2. Main Content Container ---
-        var contentLinear = new LinearLayout(ctx)
+        // --- 2. AppBarLayout (Replaces NestedScrollView for Performance) ---
+        var appBarLayout = new AppBarLayout(ctx)
+        {
+            LayoutParameters = new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent),
+            Background = new Android.Graphics.Drawables.ColorDrawable(Color.Transparent)
+        };
+        appBarLayout.SetElevation(0f);
+
+        // Header Content Container inside AppBar
+        var headerContent = new LinearLayout(ctx)
         {
             Orientation = Orientation.Vertical,
-            LayoutParameters = new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent)
         };
-
-        // --- 3. Header Section (Menu + Search + Help) ---
-        var headerLayout = new LinearLayout(ctx)
+        var headerParams = new AppBarLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent)
         {
-            Orientation = Orientation.Horizontal
+            // CRITICAL: This allows the header to scroll off-screen dynamically
+            ScrollFlags = AppBarLayout.LayoutParams.ScrollFlagScroll | AppBarLayout.LayoutParams.ScrollFlagEnterAlways
         };
+        headerContent.LayoutParameters = headerParams;
+
+        // --- 3. Header Section (Menu + Search + Queue) ---
+        var headerLayout = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
         headerLayout.SetGravity(GravityFlags.CenterVertical);
         headerLayout.SetPadding(20, 20, 20, 20);
 
-        // Menu Button
-        var menuBtn = new Google.Android.Material.Button.MaterialButton(ctx, null, Resource.Attribute.materialIconButtonStyle)
+        var menuBtn = new MaterialButton(ctx, null, Resource.Attribute.materialIconButtonStyle)
         {
             Icon = AndroidX.Core.Content.ContextCompat.GetDrawable(ctx, Resource.Drawable.hamburgermenu),
             IconTint = Android.Content.Res.ColorStateList.ValueOf(Color.Gray),
@@ -142,12 +135,11 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         };
         menuBtn.Click += (s, e) => { if (Activity is TransitionActivity act) act.OpenDrawer(); };
 
-        // Search Card
         var searchCard = new MaterialCardView(ctx)
         {
             Radius = AppUtil.DpToPx(25),
             CardElevation = AppUtil.DpToPx(4),
-            LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1f) // Weight 1
+            LayoutParameters = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WrapContent, 1f)
         };
         ((LinearLayout.LayoutParams)searchCard.LayoutParameters).SetMargins(10, 0, 10, 0);
 
@@ -162,14 +154,12 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         _searchBar.SetTextColor(!UiBuilder.IsDark(root) ? Color.Black : Color.White);
         _searchBar.SetPadding(40, 30, 40, 30);
         _searchBar.TextChanged += _searchBar_TextChanged;
-
         searchCard.AddView(_searchBar);
 
-        // Queue Button
-        QueueBtn = new Google.Android.Material.Button.MaterialButton(ctx, null, Resource.Attribute.materialIconButtonStyle)
+        QueueBtn = new MaterialButton(ctx, null, Resource.Attribute.materialIconButtonStyle)
         {
             Icon = AndroidX.Core.Content.ContextCompat.GetDrawable(ctx, Resource.Drawable.playlista),
-            IconTint = Android.Content.Res.ColorStateList.ValueOf(Android.Graphics.Color.DarkSlateBlue),
+            IconTint = Android.Content.Res.ColorStateList.ValueOf(Color.DarkSlateBlue),
             LayoutParameters = new LinearLayout.LayoutParams(AppUtil.DpToPx(50), AppUtil.DpToPx(50))
         };
         QueueBtn.Click += async (s, e) =>
@@ -177,7 +167,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
             var queueSheet = new QueueBottomSheetFragment(MyViewModel, QueueBtn);
             queueSheet.Show(ParentFragmentManager, "QueueSheet");
             QueueBtn.Enabled = false;
-            await Task.Delay(800);
+            await Task.Delay(250);
             if (queueSheet.IsVisible) queueSheet.ScrollToSong();
             QueueBtn.Enabled = true;
         };
@@ -193,13 +183,8 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         headerLayout.AddView(searchCard);
         headerLayout.AddView(QueueBtn);
 
-       
-        
-        // --- 5. Status / Count Line ---
-        var statusLayout = new LinearLayout(ctx)
-        {
-            Orientation = Orientation.Vertical
-        };
+        // --- 4. Status / Count Line ---
+        var statusLayout = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
         statusLayout.SetGravity(GravityFlags.CenterHorizontal);
         statusLayout.SetPadding(0, 10, 0, 10);
 
@@ -212,67 +197,117 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         statusLayout.AddView(songsTotal);
         statusLayout.AddView(TqlLine);
 
-        // Add views to main linear layout
-        contentLinear.AddView(headerLayout);
-        contentLinear.AddView(statusLayout);
+        // Assemble Header
+        headerContent.AddView(headerLayout);
+        headerContent.AddView(statusLayout);
+        appBarLayout.AddView(headerContent);
+        root.AddView(appBarLayout); // ADD APPBAR TO ROOT
 
-        // --- 6. RecyclerView ---
+        // --- 5. RecyclerView (High Performance Setup) ---
         _songListRecycler = new RecyclerView(ctx);
         _songListRecycler.SetLayoutManager(new LinearLayoutManager(ctx));
-        _songListRecycler.LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent);
+        _songListRecycler.HasFixedSize = true; // Optimization
 
-        // Padding for FAB + Miniplayer
+        var recyclerParams = new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent);
+        // CRITICAL: Connects Recycler scroll to AppBar collapse
+        recyclerParams.Behavior = new AppBarLayout.ScrollingViewBehavior();
+        _songListRecycler.LayoutParameters = recyclerParams;
+
         _songListRecycler.SetPadding(0, 0, 0, AppUtil.DpToPx(160));
         _songListRecycler.SetClipToPadding(false);
 
-        contentLinear.AddView(_songListRecycler);
-        root.AddView(contentLinear);
+        root.AddView(_songListRecycler); // ADD RECYCLER TO ROOT
 
-        // --- 7. Extended FAB ---
-        fab = new Google.Android.Material.FloatingActionButton.ExtendedFloatingActionButton(ctx);
-        fab.Extended = true;
-        fab.SetBackgroundColor(UiBuilder.IsDark(ctx) ? Color.ParseColor("#1a1a1a") : Color.ParseColor("#DEDFF0"));
-        fab.SetIconResource(Resource.Drawable.musicaba);
+        // --- 6. Floating Toolbar ---
+        var fToolbarLayout = new FloatingToolbarLayout(ctx) { Id = View.GenerateViewId(), Clickable = true };
+        var ftbParams = new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent)
+        {
+            BottomMargin = AppUtil.DpToPx(24),
+            Gravity = (int)(GravityFlags.Bottom | GravityFlags.Right),
+            Behavior = new HideViewOnScrollBehavior(ctx, null)
+        };
+        fToolbarLayout.LayoutParameters = ftbParams;
 
-        var fabParams = new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent);
-        fabParams.Gravity = (int)(GravityFlags.Bottom | GravityFlags.End);
-        fabParams.SetMargins(0, 0, AppUtil.DpToPx(20), AppUtil.DpToPx(90)); // Lifted 90dp for MiniPlayer
-        fab.LayoutParameters = fabParams;
+        var verticalMenu = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
+        verticalMenu.SetPadding(10, 20, 10, 20);
 
-        SetupClickableFab(fab);
-        root.AddView(fab);
+        var sortAsc = CreateToolbarButton(ctx, Resource.Drawable.sortfrombottomtotop, "Scroll To Top");
+        sortAsc.Click += (s, e) => { _songListRecycler.SmoothScrollToPosition(0); };
 
-        // --- 8. Insets ---
-        AndroidX.Core.View.ViewCompat.SetOnApplyWindowInsetsListener(root, new HeaderInsetsListener(headerLayout));
+        var scrollToSong = CreateToolbarButton(ctx, Resource.Drawable.eye, "Scroll to Current");
+        SetupClickableFab(scrollToSong);
+
+        var scrollToBottom = CreateToolbarButton(ctx, Resource.Drawable.sortfromtoptobottom, "Scroll to bottom");
+        scrollToBottom.Click += (s, e) => { _songListRecycler.SmoothScrollToPosition(MyViewModel.SearchResults.Count - 1); };
+
+        verticalMenu.AddView(sortAsc);
+        verticalMenu.AddView(scrollToSong);
+        verticalMenu.AddView(scrollToBottom);
+
+        fToolbarLayout.AddView(verticalMenu);
+        root.AddView(fToolbarLayout);
 
         return root;
     }
+
+    private Chip CreateToolbarButton(Context ctx, int iconRes, string desc)
+    {
+        var btn = new Chip(ctx);
+        btn.SetChipIconResource(iconRes);
+        btn.ContentDescription = desc;
+        btn.SetBackgroundColor(Android.Graphics.Color.Transparent); // Make button background clear
+        btn.ChipStrokeWidth = 0;
+        //btn.SetBackgroundColor(MyViewModel.CurrentPlaySongDominantColor)
+        // Size and Margin
+        var lp = new LinearLayout.LayoutParams(AppUtil.DpToPx(48), AppUtil.DpToPx(48));
+        lp.SetMargins(0, 0, 0, 10); // Vertical gap between buttons
+        btn.LayoutParameters = lp;
+
+        // Optional: Add Ripple
+        TypedValue outValue = new TypedValue();
+        ctx.Theme.ResolveAttribute(Android.Resource.Attribute.SelectableItemBackgroundBorderless, outValue, true);
+        btn.SetBackgroundResource(outValue.ResourceId);
+
+        return btn;
+    }
+
     private void SetupClickableFab(View view)
 {
 
 view.Click += (s, e) =>
 {
 
-if (MyViewModel.CurrentPlayingSongView == null) return;
-var requestedSong = MyViewModel.CurrentPlayingSongView;
+    if (MyViewModel.CurrentPlayingSongView == null) return;
+    var requestedSong = MyViewModel.CurrentPlayingSongView;
 
-// Since we are using the "queue" mode in adapter, we need to find the index in PlaybackQueue
-var index = MyViewModel.SearchResults.IndexOf(requestedSong);
-if (index == -1) return;
-view.PerformHapticFeedback(FeedbackConstants.LongPress);
-_songListRecycler?.ScrollToPosition(index);
+    // Since we are using the "queue" mode in adapter, we need to find the index in PlaybackQueue
+    var index = MyViewModel.SearchResults.IndexOf(requestedSong);
+    if (index == -1) return;
+    view.PerformHapticFeedback(FeedbackConstants.LongPress);
+    _songListRecycler?.ScrollToPosition(index);
 
-var specificView = _songListRecycler.FindViewHolderForAdapterPosition(index);
+    _songListRecycler?.ScrollChange += (s, e) =>
+    {
+        var vieww = e.V;
+        var ScrollX = e.ScrollX;
+        var ScrollY = e.ScrollY;
+        var OldScrollY = e.OldScrollY;
+        var OldScrollX = e.OldScrollX;
+        
 
-var typew = specificView.GetType();
-var type = specificView.ItemViewType.GetType();
-if (type == null) return;
-if(type == typeof(CardView))
-{
-    var specificCard = specificView.ItemView as CardView;
-    specificCard?.SetBackgroundColor(Color.DarkSlateBlue);
-}
-Debug.WriteLine(type);
+
+        var specificView = _songListRecycler.FindViewHolderForAdapterPosition(index);
+        var typew = specificView?.GetType();
+        var type = specificView?.ItemViewType.GetType();
+        if (type == null) return;
+        if (type == typeof(CardView))
+        {
+            var specificCard = specificView?.ItemView as CardView;
+            specificCard?.SetBackgroundColor(Color.DarkSlateBlue);
+        }
+        Debug.WriteLine(type);
+    };
+    
 };
 view.LongClickable = true;
 view.LongClick += (s, e)
@@ -335,130 +370,76 @@ ParentFragmentManager.BeginTransaction()
 .Add(Android.Resource.Id.Content, guideFrag)
 .AddToBackStack("TqlGuide")
 .Commit();
-}
-
-public override void OnResume()
-{
-base.OnResume();
-_songListRecycler?.SetAdapter(MyViewModel.HomeAdapter);
-if(MyViewModel.SelectedSong is not null)
-{
-var index = MyViewModel.SearchResults.IndexOf(MyViewModel.SelectedSong);
-
-_songListRecycler?.ScrollToPosition(index);
-}
-else if(MyViewModel.CurrentPlayingSongView is not null && !string.IsNullOrEmpty(MyViewModel.CurrentPlayingSongView.TitleDurationKey))
-{
-var index = MyViewModel.SearchResults.IndexOf(MyViewModel.CurrentPlayingSongView);
-
-_songListRecycler?.ScrollToPosition(index);
-
-}
-_isNavigating = false;
-TqlLine.Click += (s, e) =>
-{
-_searchBar.Text =  TqlLine.Text;
-};
-MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentPlayingSongView), newVl => MyViewModel.CurrentPlayingSongView)
-.ObserveOn(RxSchedulers.UI)
-.Subscribe(async currSong =>
-{
-    var art = currSong.Artist;
-    var alb= currSong.Album;
-    var artImgPath = art?.ImagePath;
-    var albImgPath = alb?.ImagePath;
-    if (MyViewModel.CurrentPlayingSongView.CoverImagePath is not null)
-    {
-
-        //if(UiBuilder.IsDark(this.View))
-        //{
-
-        //    await _backgroundImageView.SetImageWithStringPathViaGlideAndFilterEffect(MyViewModel.CurrentPlayingSongView.CoverImagePath,
-        //         Utilities.FilterType.DarkAcrylic);
-
-        //}
-        //else
-        //{
-        //    await _backgroundImageView.SetImageWithStringPathViaGlideAndFilterEffect(MyViewModel.CurrentPlayingSongView.CoverImagePath,
-        //         Utilities.FilterType.Glassy);
-        //}
     }
-    //currSong.IsCurrentPlayingHighlight= true; 
-});
+    private CompositeDisposable _resumeDisposables = new();
 
-MyViewModel.WhenPropertyChange(nameof(MyViewModel.IsLibraryEmpty), newVl => MyViewModel.IsLibraryEmpty)
-.ObserveOn(RxSchedulers.UI)
-.Subscribe(count =>
-{
-});
-
-MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentTqlQueryUI), newVl => MyViewModel.CurrentTqlQueryUI)
-.ObserveOn(RxSchedulers.UI)
-.Subscribe(tql =>
-{
-    if (string.IsNullOrEmpty(tql))
+    public override void OnResume()
     {
-        TqlLine.Animate()?.Alpha(0).SetDuration(300);
-        TqlLine.Visibility = ViewStates.Gone;
-    }
-    else
-    {
-        TqlLine.Text = tql;
-        TqlLine.Visibility = ViewStates.Visible;
+        base.OnResume();
 
-        TqlLine.Animate()?.Alpha(1).SetDuration(150);
-    }
-    //currentTql.Text = tql;
-});
+        // REFRESH DISPOSABLES to prevent duplicate subscriptions
+        _resumeDisposables = new CompositeDisposable();
 
+        _songListRecycler?.SetAdapter(MyViewModel.HomeAdapter);
+        _isNavigating = false;
 
-MyViewModel.WhenPropertyChange(nameof(MyViewModel.PlaybackQueue), newVl => MyViewModel.PlaybackQueue)
-.ObserveOn(RxSchedulers.UI)
-.Subscribe(pbQueue =>
-{
-    if(pbQueue is not null)
-        QueueBtn.TooltipText = $"{MyViewModel.PlaybackQueue.Count} Songs in Queue";
-});
+        TqlLine.Click += (s, e) => { _searchBar.Text = TqlLine.Text; };
 
+        if (MyViewModel.IsBackGrounded)
+        {
+            ScrollToCurrent();
+            MyViewModel.IsBackGrounded = false;
+        }
 
-    MyViewModel.WhenPropertyChange(nameof(MyViewModel.IsTqlBusy), newVl => MyViewModel.IsTqlBusy)
-.ObserveOn(RxSchedulers.UI)
-.Subscribe(isBusy =>
-{
-    switch (isBusy)
-    {
-        case true:
+        // CRITICAL FIX: Add .DisposeWith(_resumeDisposables) to every subscription
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentPlayingSongView), newVl => MyViewModel.CurrentPlayingSongView)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(currSong => { /* Update visual logic */ })
+            .DisposeWith(_resumeDisposables);
 
-            //loadingIndic.Visibility = ViewStates.Visible;
-            break;
-
-        default:
-            var songCount = MyViewModel.SearchResults.Count;
-            if (songCount >= 1)
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentTqlQueryUI), newVl => MyViewModel.CurrentTqlQueryUI)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(tql =>
             {
-                songsTotal.Text = $"{MyViewModel.SearchResults.Count} Songs";
+                if (string.IsNullOrEmpty(tql))
+                {
+                    TqlLine.Animate()?.Alpha(0).SetDuration(300);
+                    TqlLine.Visibility = ViewStates.Gone;
+                }
+                else
+                {
+                    TqlLine.Text = tql;
+                    TqlLine.Visibility = ViewStates.Visible;
+                    TqlLine.Animate()?.Alpha(1).SetDuration(150);
+                }
+            })
+            .DisposeWith(_resumeDisposables);
 
-
-                    //loadingIndic.Visibility = ViewStates.Visible;
-
-
-
-
-
-            }
-            else if (songCount <= 0)
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.PlaybackQueue), newVl => MyViewModel.PlaybackQueue)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(pbQueue =>
             {
-                TqlLine.Text = "No Songs Found";
-                //loadingIndic.Visibility = ViewStates.Gone;
-            }
+                if (pbQueue is not null)
+                    QueueBtn.TooltipText = $"{MyViewModel.PlaybackQueue.Count} Songs in Queue";
+            })
+            .DisposeWith(_resumeDisposables);
 
-            break;
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.IsTqlBusy), newVl => MyViewModel.IsTqlBusy)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(isBusy =>
+            {
+                if (!isBusy)
+                {
+                    var songCount = MyViewModel.SearchResults.Count;
+                    if (songCount >= 1)
+                        songsTotal.Text = $"{songCount} Songs";
+                    else if (songCount <= 0)
+                        TqlLine.Text = "No Songs Found";
+                }
+            })
+            .DisposeWith(_resumeDisposables);
     }
-});
-
-
-}
-protected override void Dispose(bool disposing)
+    protected override void Dispose(bool disposing)
 {
 if (disposing)
 {
@@ -466,13 +447,15 @@ _disposables.Dispose();
 }
 base.Dispose(disposing);
 }
-public override void OnPause()
-{
-base.OnPause();
-MyViewModel.PropertyChanged -= ViewModel_PropertyChanged;
-}
+    public override void OnPause()
+    {
+        base.OnPause();
+        MyViewModel.PropertyChanged -= ViewModel_PropertyChanged;
 
-private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        _resumeDisposables.Dispose();
+    }
+
+    private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
 {
 //if (e.PropertyName == nameof(MyViewModel.SongPageStatus) ||
 //    e.PropertyName == nameof(MyViewModel.CanGoNextSong) ||
@@ -497,10 +480,6 @@ MyViewModel.CurrentFragment = this;
 this.View!.Tag = "HomePageFragment";
 
 
-
-//var currentlyPlayingIndex = MyViewModel.SearchResults.IndexOf(MyViewModel.CurrentPlayingSongView);
-//if (currentlyPlayingIndex >= 0)
-//    _songListRecycler?.ScrollToPosition(currentlyPlayingIndex);
 
 //MyViewModel.ScrollToCurrentSongRequest
 //.ObserveOn(RxSchedulers.UI) 
@@ -529,16 +508,16 @@ _songListRecycler?.ViewTreeObserver?.AddOnPreDrawListener(new MyPreDrawListener(
 }
 public void ScrollToCurrent()
 {
-if (MyViewModel.CurrentPlayingSongView == null) return;
+    if (MyViewModel.CurrentPlayingSongView == null) return;
 
-// Since we are using the "queue" mode in adapter, we need to find the index in PlaybackQueue
-var index = MyViewModel.SearchResults.IndexOf(MyViewModel.CurrentPlayingSongView);
+    // Since we are using the "queue" mode in adapter, we need to find the index in PlaybackQueue
+    var index = MyViewModel.SearchResults.IndexOf(MyViewModel.CurrentPlayingSongView);
 
-if (index >= 0)
-{
-_songListRecycler?.SmoothScrollToPosition(index);
-Toast.MakeText(Context, "Scrolled to current song", ToastLength.Short)?.Show();
-}
+    if (index >= 0)
+    {
+        _songListRecycler?.SmoothScrollToPosition(index);
+        Toast.MakeText(Context, "Scrolled to current song", ToastLength.Short)?.Show();
+    }
 }
 
 

@@ -5,6 +5,9 @@ namespace Dimmer.Utils;
 
 internal class Bootstrapper
 {
+
+
+
     public static IServiceProvider Init()
     {
         try

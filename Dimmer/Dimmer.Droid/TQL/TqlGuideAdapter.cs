@@ -1,7 +1,5 @@
 ﻿using Dimmer.DimmerSearch.TQLDoc;
 
-using Google.Android.Material.Chip;
-
 namespace Dimmer.TQL;
 
 

@@ -1,5 +1,6 @@
-﻿using System.IO.Compression;
-using Parse.LiveQuery;
+﻿using Parse.LiveQuery;
+using System.IO.Compression;
+using System.Text.Json.Serialization;
 
 namespace Dimmer.DimmerLive.Interfaces.Implementations;
 public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
@@ -12,6 +13,17 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
     private UserDeviceSession _thisDeviceSession; 
     private readonly Subject<DimmerSharedSong> _incomingTransfers = new();
 
+    private string MyDeviceId => Preferences.Get("MyDeviceId", Guid.NewGuid().ToString());
+    private Subscription<RemotePlaybackCommand>? _commandSubscription;
+    private Subscription<CloudScrobble>? _scrobbleSubscription;
+
+    public IObservable<RemotePlaybackCommand> OnRemoteCommandReceived => _remoteCommandSubject.AsObservable();
+    private readonly Subject<RemotePlaybackCommand> _remoteCommandSubject = new();
+
+    public IObservable<CloudScrobble> OnLiveScrobbleReceived => _liveScrobbleSubject.AsObservable();
+    private readonly Subject<CloudScrobble> _liveScrobbleSubject = new();
+
+    public UserDeviceSession ThisDeviceSession => _thisDeviceSession;
     public IObservable<IChangeSet<UserDeviceSession, string>> OtherAvailableDevices => _otherDevicesCache.Connect();
     public IObservable<DimmerSharedSong> IncomingTransferRequests => _incomingTransfers.AsObservable();
 
@@ -28,7 +40,178 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
         _liveQueryClient = liveQueryClient;
         this.vm = vm;
     }
+    public async Task SyncDeviceStateAsync()
+    {
+        return;
+        if (ParseUser.CurrentUser == null) return;
 
+        try
+        {
+            _logger.LogInformation("Zipping and syncing device state to Cloud...");
+            var realm = vm.RealmFactory.GetRealmInstance();
+
+            // Extract ONLY what we need (to avoid Realm cross-thread exceptions)
+            var allSongKeys = realm.All<SongModel>().AsEnumerable().Select(x => x.TitleDurationKey).ToList();
+           
+            var currentQueue = vm.PlaybackQueue?.Select(x => x.TitleDurationKey).ToList();
+
+            var stateData = new
+            {
+                Songs = allSongKeys,
+                //Events = allPlayEvents,
+                Queue = currentQueue,
+                CurrentSong = vm.CurrentPlayingSongView?.TitleDurationKey
+            };
+
+            // Serialize & Compress
+
+            var options = new JsonSerializerOptions
+            {
+                ReferenceHandler = ReferenceHandler.Preserve, // This handles cycles!
+                MaxDepth = 64 // Increase if needed
+            };
+            string jsonString = JsonSerializer.Serialize(stateData, options);
+            byte[] jsonBytes = System.Text.Encoding.UTF8.GetBytes(jsonString);
+
+            byte[] compressedBytes;
+            using (var outStream = new MemoryStream())
+            {
+                using (var archive = new GZipStream(outStream, CompressionLevel.Optimal))
+                {
+                    archive.Write(jsonBytes, 0, jsonBytes.Length);
+                }
+                compressedBytes = outStream.ToArray();
+            }
+
+            string fileName = $"state_{MyDeviceId}.json.gz";
+            ParseFile stateFile = new ParseFile(fileName, compressedBytes, "application/gzip");
+            await stateFile.SaveAsync(ParseClient.Instance);
+
+            // Check if we already have a SyncState for this Device ID
+            var query = new ParseQuery<DeviceSyncState>(ParseClient.Instance)
+                .WhereEqualTo("deviceId", MyDeviceId)
+                .WhereEqualTo("owner", ParseUser.CurrentUser);
+
+            var existingState = await query.FirstOrDefaultAsync();
+
+            var syncObj = existingState ?? new DeviceSyncState();
+            syncObj.DeviceId = MyDeviceId;
+            syncObj.DeviceName = DeviceInfo.Name;
+            syncObj.Owner = ParseUser.CurrentUser;
+            syncObj.StateFile = stateFile;
+
+            // ACL: ONLY the current user can read/write this file. Ultimate Security.
+            syncObj.ACL = new ParseACL(ParseUser.CurrentUser);
+
+            await syncObj.SaveAsync();
+            _logger.LogInformation("Device state synced successfully.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to sync device state.");
+        }
+    }
+    public async Task ScrobbleCurrentSongAsync(SongModelView song)
+    {
+        if (ParseUser.CurrentUser == null || song == null) return;
+
+        try
+        {
+            var scrobble = new CloudScrobble
+            {
+                SongTitleDurationKey = song.TitleDurationKey,
+                DeviceId = MyDeviceId,
+                Owner = ParseUser.CurrentUser,
+                ACL = new ParseACL(ParseUser.CurrentUser) // Private to user
+            };
+            await scrobble.SaveAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to scrobble song.");
+        }
+    }
+    public async Task SendPlaybackCommandAsync(string targetDeviceId, string command, string payload = "")
+    {
+        if (ParseUser.CurrentUser == null) return;
+
+        try
+        {
+            var cmd = new RemotePlaybackCommand
+            {
+                TargetDeviceId = targetDeviceId,
+                SenderDeviceId = MyDeviceId,
+                CommandType = command,
+                Payload = payload,
+                Owner = ParseUser.CurrentUser,
+                ACL = new ParseACL(ParseUser.CurrentUser)
+            };
+            await cmd.SaveAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send remote command.");
+        }
+    }
+
+    public void StartListeners()
+    {
+        if (ParseUser.CurrentUser == null) return;
+        if (_thisDeviceSession == null)
+        {
+            _logger.LogWarning("Cannot start session listeners, current device session is not registered.");
+            return;
+        }
+
+        var messageQuery = new ParseQuery<ChatMessage>(ParseClient.Instance)
+            .WhereEqualTo("messageType", "SessionTransfer")
+            .WhereEqualTo("targetDeviceSessionId", _thisDeviceSession.ObjectId); // **Listen only for messages targeting this specific device**
+
+        _messageSubscription = _liveQueryClient.Subscribe(messageQuery);
+        _messageSubscription.On(
+            Subscription.Event.Create,
+            OnSessionTransferMessageReceived);
+
+        var updateQuery = new ParseQuery<AppUpdateModel>(ParseClient.Instance)
+            ;
+
+        var updateSubscription = _liveQueryClient.Subscribe(updateQuery);
+        updateSubscription.On(Subscription.Event.Create,
+        OnUpdatePushed);
+
+        // Listen for Remote Commands targeted at THIS device (or "ALL")
+        var commandQuery = new ParseQuery<RemotePlaybackCommand>(ParseClient.Instance)
+            .WhereEqualTo("owner", ParseUser.CurrentUser)
+            .WhereNotEqualTo("senderDeviceId", MyDeviceId); // Don't listen to our own commands
+
+        _commandSubscription = _liveQueryClient.Subscribe(commandQuery);
+        _commandSubscription.On(Subscription.Event.Create, cmd =>
+        {
+            if (cmd.TargetDeviceId == MyDeviceId || cmd.TargetDeviceId == "ALL")
+            {
+                _logger.LogInformation($"Received command: {cmd.CommandType}");
+                _remoteCommandSubject.OnNext(cmd);
+            }
+        });
+
+        // Listen for Scrobbles from OTHER devices
+        var scrobbleQuery = new ParseQuery<CloudScrobble>(ParseClient.Instance)
+            .WhereEqualTo("owner", ParseUser.CurrentUser)
+            .WhereNotEqualTo("deviceId", MyDeviceId);
+
+        _scrobbleSubscription = _liveQueryClient.Subscribe(scrobbleQuery);
+        _scrobbleSubscription.On(Subscription.Event.Create, scrobble =>
+        {
+            _logger.LogInformation($"Remote device playing: {scrobble.SongTitleDurationKey}");
+            _liveScrobbleSubject.OnNext(scrobble);
+        });
+    }
+    public void StopListeners()
+    {
+        _messageSubscription?.UnsubscribeNow();
+        _commandSubscription?.UnsubscribeNow();
+        _scrobbleSubscription?.UnsubscribeNow();
+    }
     public async Task RegisterCurrentDeviceAsync()
     {
         if (_authService.CurrentUserValue == null)
@@ -43,7 +226,7 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
             var parameters = new Dictionary<string, object>
             {
                 { "currentDeviceName", DeviceInfo.Name },
-                { "currentDeviceId", Preferences.Get("MyDeviceId", Guid.NewGuid().ToString()) },
+                { "currentDeviceId", MyDeviceId},
                 { "currentDeviceIdiom", DeviceInfo.Idiom.ToString() },
                 { "currentDevicePlatform", DeviceInfo.Platform.ToString() },
                 { "currentDeviceModel", DeviceInfo.Model.ToString() },
@@ -143,31 +326,7 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
         }
     }
 
-    public void StartListeners()
-    {
-        if (_thisDeviceSession == null)
-        {
-            _logger.LogWarning("Cannot start session listeners, current device session is not registered.");
-            return;
-        }
-
-        var messageQuery = new ParseQuery<ChatMessage>(ParseClient.Instance)
-            .WhereEqualTo("messageType", "SessionTransfer")
-            .WhereEqualTo("targetDeviceSessionId", _thisDeviceSession.ObjectId); // **Listen only for messages targeting this specific device**
-
-        _messageSubscription = _liveQueryClient.Subscribe(messageQuery);
-        _messageSubscription.On(
-            Subscription.Event.Create,
-            OnSessionTransferMessageReceived);
-
-        var updateQuery = new ParseQuery<AppUpdateModel>(ParseClient.Instance)
-            ;
-
-        var updateSubscription = _liveQueryClient.Subscribe(updateQuery);
-            updateSubscription.On(Subscription.Event.Create,
-            OnUpdatePushed);
-
-    }
+  
 
     private void OnUpdatePushed(AppUpdateModel AppUpdateModel)
     {
@@ -402,11 +561,6 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
     }
 
 
-
-    public void StopListeners()
-    {
-        _messageSubscription?.UnsubscribeNow();
-    }
 
     public void Dispose()
     {

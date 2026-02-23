@@ -1,13 +1,7 @@
 ﻿using AndroidX.SwipeRefreshLayout.Widget;
-using Bumptech.Glide;
 using Bumptech.Glide.Load.Resource.Bitmap;
 using Google.Android.Material.Tabs;
 using Hqub.Lastfm.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Dimmer.ViewsAndPages.NativeViews.DimmerLive.LastFMViews;
 

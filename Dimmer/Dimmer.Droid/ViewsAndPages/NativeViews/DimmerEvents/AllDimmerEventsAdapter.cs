@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AndroidX.Lifecycle;
-using DynamicData;
-
-namespace Dimmer.ViewsAndPages.NativeViews.DimmerEvents;
+﻿namespace Dimmer.ViewsAndPages.NativeViews.DimmerEvents;
 
 public partial class AllDimmerEventsAdapter : RecyclerView.Adapter
 {

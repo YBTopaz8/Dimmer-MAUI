@@ -1,13 +1,4 @@
-﻿
-
-
-using Android.Content;
-using Android.Graphics.Drawables.Shapes;
-using Android.Text;
-using Dimmer.UiUtils;
-using Dimmer.Utils.Extensions;
-
-namespace Dimmer.ViewsAndPages.NativeViews;
+﻿namespace Dimmer.ViewsAndPages.NativeViews;
 
 public partial class SongInfoBottomSheetFragment : BottomSheetDialogFragment
 {

@@ -160,6 +160,10 @@ public partial class LoginViewModel : ObservableObject
             Debug.WriteLine(ParseClient.Instance.CurrentUser?.SessionToken+" SessTok");
             return CurrentUserOnline.IsAuthenticated;
         }
+        if (ParseClient.Instance?.CurrentUser is not null)
+        {
+            return true;
+        }
         return false;
     }
     [RelayCommand]

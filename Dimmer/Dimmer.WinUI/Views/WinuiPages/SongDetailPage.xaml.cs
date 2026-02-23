@@ -1,20 +1,17 @@
-using System.Drawing;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-
 using CommunityToolkit.Maui.Core.Extensions;
-
 using Dimmer.Charts;
 using Dimmer.Interfaces.Services;
 using Dimmer.Utilities.Extensions;
 using Dimmer.WinUI.Views.WinuiPages.SingleSongPage;
 using Dimmer.WinUI.Views.WinuiPages.SingleSongPage.SubPage;
-
+using LiveChartsCore.Generators;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media.Imaging;
-
+using System.Drawing;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Windows.Foundation.Metadata;
-
+using WinRT;
 using Border = Microsoft.UI.Xaml.Controls.Border;
 using ListView = Microsoft.UI.Xaml.Controls.ListView;
 using ListViewSelectionMode = Microsoft.UI.Xaml.Controls.ListViewSelectionMode;
@@ -636,13 +633,8 @@ public sealed partial class SongDetailPage : Page
             IsNavigationStackEnabled = true
 
         };
-        var detailedImageVisual = ElementCompositionPreview.GetElementVisual(currentView);
-        if (detailedImageVisual != null)
-        {
-            ConnectedAnimationService.GetForCurrentView()
-                .PrepareToAnimate("MoveViewToArtistPageFromSongDetailPage", currentView);
-
-        }
+        AnimationHelper.Prepare(AnimationHelper.Key_SongDetailToArtist,
+            ArtistMiniName, AnimationHelper.ConnectedAnimationStyle.GravityBounce);
 
 
         Frame?.NavigateToType(pageType, navParams, navigationOptions);
@@ -775,10 +767,25 @@ public sealed partial class SongDetailPage : Page
         send.ItemsSource = songsFromDB;
     }
 
-    private void PlaySongNowFromArtistListOfSongs_Click(object sender, RoutedEventArgs e)
+    private async void PlaySongNowFromArtistListOfSongs_Click(object sender, RoutedEventArgs e)
     {
-        var listOfSongs = ArtistSongsPreviewIR.ItemsSource.GetType();
-        Debug.WriteLine(listOfSongs);
+        var send = (Button)sender;
+        var song = send.DataContext as SongModelView;
+
+        var listOfSongs = ArtistSongsPreviewIR.ItemsSource as List<SongModelView>;
+
+
+
+
+        if (song != null)
+        {
+            await MyViewModel.PlaySongAsync(song,
+                    songs: listOfSongs);
+
+            SymbolIcon pauseIcon = new SymbolIcon();
+            pauseIcon.Symbol = Symbol.Pause;
+            send.Content = pauseIcon;
+        }
     }
 
     private async void AddNextInQueue_Click(object sender, RoutedEventArgs e)
@@ -868,6 +875,36 @@ public sealed partial class SongDetailPage : Page
                 }
             }
         }
+    }
+
+    private void PlaySongNowFromArtistListOfSongs_RightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+        var send = (Button)sender;
+        var song = send.DataContext as SongModelView;
+
+
+
+
+        if (song != null)
+        {
+            MyViewModel.AddToNext([song]);
+        }
+    }
+
+    private async void FavBtn_Click(object sender, RoutedEventArgs e)
+    {
+        var sendView = (Button)sender;
+
+        await MyViewModel.AddFavoriteRatingToSong(MyViewModel.SelectedSong!);
+        //BorderBrush = "DarkSlateBlue"
+        //BorderThickness = "4" CornerRadius = "20"
+        var br = new AcrylicBrush(); 
+        //br.TintColor = Windows.UI.Color.;
+
+        //detailedImageStackPanel.BorderBrush = 
+        detailedImageStackPanel.BorderThickness = new Microsoft.UI.Xaml.Thickness(4);
+        detailedImageStackPanel.CornerRadius = new Microsoft.UI.Xaml.CornerRadius(20);
+
     }
 }
 

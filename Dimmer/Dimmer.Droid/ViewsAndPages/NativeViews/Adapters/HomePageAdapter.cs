@@ -1,782 +1,422 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reactive;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.ViewsAndPages.NativeViews.Adapters;
+﻿namespace Dimmer.ViewsAndPages.NativeViews.Adapters;
 
 internal partial class HomePageAdapter : RecyclerView.Adapter, IDisposable
 {
+    private readonly BehaviorSubject<AdapterMode> _mode = new(AdapterMode.Normal);
+    public IObservable<AdapterMode> Mode => _mode.AsObservable();
 
+    readonly HashSet<int> _selectedPositions = new HashSet<int>();
+    public IObservable<Unit> SelectionChanged => _selectionChanged.AsObservable();
+    public Subject<Unit> _selectionChanged => new();
+    public List<SongModelView> Songs => _localSongs;
+    private readonly List<SongModelView> _localSongs = new();
 
-        private readonly BehaviorSubject<AdapterMode> _mode = new(AdapterMode.Normal);
-        public IObservable<AdapterMode> Mode => _mode.AsObservable();
+    public override int ItemCount => _localSongs.Count;
+    public SongModelView GetItem(int position) => _localSongs[position];
 
+    private readonly BehaviorSubject<bool> _isSourceCleared = new(true);
+    private readonly BehaviorSubject<bool> _isAdapterReady = new(false);
+    public IObservable<bool> IsSourceCleared => _isSourceCleared.AsObservable();
+    public IObservable<bool> IsAdapterReady => _isAdapterReady.AsObservable();
 
-        readonly HashSet<int> _selectedPositions = new HashSet<int>();
-        public IObservable<Unit> SelectionChanged => _selectionChanged.AsObservable();
-        public Subject<Unit> _selectionChanged => new();
+    public static Action<View, string, int>? AdapterCallbacks;
+    private Context ctx;
+    public BaseViewModelAnd MyViewModel;
+    private readonly IDimmerAudioService _audioService;
+    private Fragment ParentFragement;
 
+    private int _expandedPosition = -1;
+    private int _previousExpandedPosition = -1;
+    private readonly CompositeDisposable _disposables = new();
+    private bool _isDisposed;
+    private CancellationTokenSource _diffCts = new();
 
-        public override int ItemCount => _songs?.Count ?? 0;
+    public HomePageAdapter(Context ctx, BaseViewModelAnd vm, Fragment pFragment)
+    {
+        MyViewModel = vm;
+        _audioService = vm.AudioService;
+        ParentFragement = pFragment;
+        SetupReactivePipeline(vm);
+    }
 
-        public void Dispose()
-        {
-            if (_isDisposed) return;
-            _isDisposed = true;
-            _disposables.Dispose();
-
-            this.Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-
-
-        private readonly BehaviorSubject<bool> _isSourceCleared = new(true);
-        private readonly BehaviorSubject<bool> _isAdapterReady = new(false);
-        public IObservable<bool> IsSourceCleared => _isSourceCleared.AsObservable();
-        public IObservable<bool> IsAdapterReady => _isAdapterReady.AsObservable();
-
-        private ReadOnlyObservableCollection<SongModelView> _songs;
-
-        public static Action<View, string, int>? AdapterCallbacks;
-        private Context ctx;
-        public BaseViewModelAnd MyViewModel;
-        private SongsToWatchSource songSource;
-        private readonly IDimmerAudioService _audioService;
-        public IList<SongModelView> Songs => _songs;
-        private Fragment ParentFragement;
-
-        // Accordion State
-        private int _expandedPosition = -1;
-        private int _previousExpandedPosition = -1;
-
-        public SongModelView GetItem(int position) => Songs.ElementAt(position);
-
-        IObservable<IChangeSet<SongModelView>> sourceStream;
-        public HomePageAdapter(Context ctx, BaseViewModelAnd vm, Fragment pFragment,
-            SongsToWatchSource songsToWatch = SongsToWatchSource.HomePage)
-        {
-            MyViewModel = vm;
-            songSource = songsToWatch;
-            _audioService = vm.AudioService;
-            ParentFragement = pFragment;
-
-            SetupReactivePipeline(vm);
-        }
-
-
-
-        private void SetupReactivePipeline(BaseViewModelAnd viewModel)
-        {
-
+    private void SetupReactivePipeline(BaseViewModelAnd viewModel)
+    {
         IObservable<IChangeSet<SongModelView>> sourceStream = viewModel.SearchResultsHolder.Connect();
 
-            sourceStream.ObserveOn(RxSchedulers.UI)
+        sourceStream
             .Do(s => Debug.WriteLine($"Song Count in adapter: {viewModel.SearchResults.Count}"))
-            .Bind(out _songs)
-            .Subscribe(changes =>
+            .Subscribe(async changes =>
             {
                 if (_isDisposed) return;
+                _diffCts.Cancel();
+                _diffCts = new CancellationTokenSource();
+                var token = _diffCts.Token;
 
-                if (!_isAdapterReady.Value)
-                {
-                    _isAdapterReady.OnNext(true);
-                }
-                if (changes.Count > 20)
-                {
-                    NotifyDataSetChanged();
-                    return;
-                }
+                if (!_isAdapterReady.Value) _isAdapterReady.OnNext(true);
 
-                foreach (var change in changes)
+                var newList = viewModel.SearchResultsHolder.Items.ToList();
+                var oldListSnapshot = _localSongs.ToList();
+
+                try
                 {
-                    switch (change.Reason)
+                    // Background thread Diff Calculation! Excellent for performance.
+                    var diffResult = await Task.Run(() =>
                     {
-                        case ListChangeReason.AddRange:
-                            NotifyItemRangeInserted(change.Range.Index, change.Range.Count);
-                            _isSourceCleared.OnNext(false);
-                            break;
-                        case ListChangeReason.RemoveRange:
-                            NotifyItemRangeRemoved(change.Range.Index, change.Range.Count);
-                            break;
-                        case ListChangeReason.Refresh:
+                        var diffCallback = new SongDiff(oldListSnapshot, newList);
+                        return DiffUtil.CalculateDiff(diffCallback);
+                    }, token);
 
-                            NotifyItemChanged(change.Item.CurrentIndex);
+                    if (token.IsCancellationRequested) return;
 
-                            break;
-                        case ListChangeReason.Add:
-                            NotifyItemInserted(change.Item.CurrentIndex);
-                            break;
-                        case ListChangeReason.Remove:
-                            NotifyItemRemoved(change.Item.CurrentIndex);
-                            break;
-                        case ListChangeReason.Moved:
-                            NotifyItemMoved(change.Item.PreviousIndex, change.Item.CurrentIndex);
-                            break;
-                        case ListChangeReason.Replace:
-                            NotifyItemChanged(change.Item.CurrentIndex);
-                            break;
-                        case ListChangeReason.Clear:
-                            _isSourceCleared.OnNext(true);
-                            NotifyDataSetChanged();
-                            break;
-                    }
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        if (!_isAdapterReady.Value) _isAdapterReady.OnNext(true);
+
+                        _localSongs.Clear();
+                        _localSongs.AddRange(newList);
+                        diffResult.DispatchUpdatesTo(this);
+                        _isSourceCleared.OnNext(_localSongs.Count == 0);
+                    });
                 }
+                catch (TaskCanceledException) { }
             })
-
             .DisposeWith(_disposables);
 
-
-
-            Observable.FromEventPattern<PlaybackEventArgs>(
+        Observable.FromEventPattern<PlaybackEventArgs>(
                 h => _audioService.PlaybackStateChanged += h,
                 h => _audioService.PlaybackStateChanged -= h)
-                .Select(evt => evt.EventArgs)
-                .ObserveOn(RxSchedulers.UI)
-                .Subscribe(
-                     x => HandlePlaybackStateChange(x))
-                .DisposeWith(_disposables);
+            .Select(evt => evt.EventArgs)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(x => HandlePlaybackStateChange(x))
+            .DisposeWith(_disposables);
+    }
 
+    private void HandlePlaybackStateChange(PlaybackEventArgs x) { }
 
+    public new void Dispose()
+    {
+        if (_isDisposed) return;
+        _isDisposed = true;
+        _disposables.Dispose();
+        this.Dispose(true);
+        GC.SuppressFinalize(this);
+    }
 
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing) _disposables.Dispose();
+        base.Dispose(disposing);
+    }
 
+    public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
+    {
+        if (holder is SongViewHolder songHolder)
+        {
+            var song = Songs[position];
+            bool isExpanded = position == _expandedPosition;
+            songHolder.Bind(song, isExpanded, ToggleExpand);
+        }
+    }
+
+    private void ToggleExpand(int position)
+    {
+        _previousExpandedPosition = _expandedPosition;
+        _expandedPosition = _expandedPosition == position ? -1 : position;
+
+        if (_previousExpandedPosition != -1) NotifyItemChanged(_previousExpandedPosition);
+        if (_expandedPosition != -1) NotifyItemChanged(_expandedPosition);
+    }
+
+    public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType)
+    {
+        if (ctx is null && parent.Context is not null) ctx = parent.Context;
+
+        var card = new MaterialCardView(ctx)
+        {
+            Radius = AppUtil.DpToPx(12),
+            CardElevation = AppUtil.DpToPx(0),
+            StrokeWidth = AppUtil.DpToPx(0),
+            StrokeColor = Color.Transparent,
+            Clickable = true,
+            Focusable = true,
+            LayoutParameters = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent) { TopMargin = 8, BottomMargin = 8 }
+        };
+
+        var mainContainer = new LinearLayout(ctx) { Orientation = Orientation.Vertical, Clickable = true, LayoutTransition = new LayoutTransition() };
+        mainContainer.LayoutParameters = new ViewGroup.LayoutParams(-1, -2);
+
+        // TOP ROW
+        var topRow = new LinearLayout(ctx) { Orientation = Orientation.Horizontal, Clickable = true };
+        topRow.SetGravity(GravityFlags.CenterVertical);
+        topRow.SetPadding(20, 20, 20, 20);
+
+        var imgCard = new MaterialCardView(ctx) { Radius = AppUtil.DpToPx(8), CardElevation = 0 };
+        var imgView = new ImageView(ctx);
+        imgView.SetScaleType(ImageView.ScaleType.CenterCrop);
+        imgCard.AddView(imgView, new ViewGroup.LayoutParams(AppUtil.DpToPx(56), AppUtil.DpToPx(56)));
+        topRow.AddView(imgCard);
+
+        var textLayout = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
+        var txtLp = new LinearLayout.LayoutParams(0, -2, 1f) { LeftMargin = AppUtil.DpToPx(16) };
+        textLayout.LayoutParameters = txtLp;
+
+        var title = new MaterialTextView(ctx) { TextSize = 16, Typeface = Typeface.DefaultBold, Ellipsize = TextUtils.TruncateAt.End };
+        title.SetMaxLines(1);
+        var artist = new TextView(ctx) { TextSize = 14, Selected = true, Ellipsize = TextUtils.TruncateAt.Marquee };
+        artist.SetTextColor(Color.Gray);
+
+        textLayout.AddView(title);
+        textLayout.AddView(artist);
+        topRow.AddView(textLayout);
+
+        var moreBtn = new MaterialButton(ctx, null, Resource.Attribute.materialIconButtonStyle);
+        moreBtn.SetIconResource(Resource.Drawable.more1);
+        moreBtn.IconTint = Android.Content.Res.ColorStateList.ValueOf(Color.Gray);
+
+        var durationView = new TextView(ctx) { TextSize = 10, Typeface = Typeface.DefaultBold, Gravity = GravityFlags.CenterHorizontal };
+        durationView.SetTextColor(Color.Gray);
+
+        var playCountView = new TextView(ctx) { TextSize = 10, Typeface = Typeface.DefaultBold, Gravity = GravityFlags.CenterHorizontal };
+        durationView.SetTextColor(Color.Gray);
+
+        var rightLayout = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
+        rightLayout.AddView(moreBtn);
+        rightLayout.AddView(durationView);
+        //rightLayout.AddView(playCountView);
+        topRow.AddView(rightLayout);
+
+        // EXPANDABLE ROW 1
+        var expandRow = new LinearLayout(ctx) { Orientation = Orientation.Horizontal, Visibility = ViewStates.Gone };
+        expandRow.SetGravity(GravityFlags.Center);
+        expandRow.SetPadding(0, 0, 0, 20);
+
+        var favBtn = CreateActionButton("Fav", Resource.Drawable.heart);
+        var statsBtn = CreateActionButton("Stats", Resource.Drawable.stats);
+        var lyricsBtn = CreateActionButton("Note", Resource.Drawable.pen);
+        var infoBtn = CreateActionButton("Info", Resource.Drawable.infocircle);
+
+        expandRow.AddView(favBtn);
+        expandRow.AddView(statsBtn);
+        expandRow.AddView(lyricsBtn);
+        expandRow.AddView(infoBtn);
+
+        // EXPANDABLE ROW 2
+        var expandRowTwo = new LinearLayout(ctx) { Orientation = Orientation.Vertical, Visibility = ViewStates.Gone };
+        expandRowTwo.SetGravity(GravityFlags.Center);
+        expandRowTwo.SetPadding(0, 0, 0, 20);
+
+        expandRowTwo.AddView(new ChipGroup(ctx));
+        expandRowTwo.AddView(CreateActionButton("album", Resource.Drawable.musicalbum));
+
+        mainContainer.AddView(topRow);
+        mainContainer.AddView(expandRow);
+        mainContainer.AddView(expandRowTwo);
+        card.AddView(mainContainer);
+
+        return new SongViewHolder(MyViewModel, ParentFragement, card, imgView, title, artist, moreBtn, durationView, playCountView, expandRow,expandRowTwo, favBtn, lyricsBtn, infoBtn, statsBtn, topRow);
+    }
+
+    private MaterialButton CreateActionButton(string text, int iconId)
+    {
+        var btn = new MaterialButton(ctx, null, Resource.Attribute.materialButtonOutlinedStyle);
+        btn.Text = text;
+        btn.SetTextColor(UiBuilder.IsDark(btn) ? Color.Gray : Color.ParseColor("#294159"));
+        btn.SetIconResource(iconId);
+        btn.IconTint = Android.Content.Res.ColorStateList.ValueOf(UiBuilder.IsDark(btn) ? Color.Gray : Color.ParseColor("#294159"));
+        btn.SetPadding(30, 0, 30, 0);
+        var lp = new LinearLayout.LayoutParams(-2, -2);
+        lp.RightMargin = 10;
+        btn.LayoutParameters = lp;
+        btn.IconSize = AppUtil.DpToPx(30);
+        return btn;
+    }
+
+    // --- HIGH PERFORMANCE VIEWHOLDER: Native Click Interfaces Applied ---
+    class SongViewHolder : RecyclerView.ViewHolder, View.IOnClickListener, View.IOnLongClickListener
+    {
+        private readonly BaseViewModelAnd MyViewModel;
+        private readonly Fragment _parentFrag;
+        private readonly ImageView _img;
+        private readonly TextView _title;
+        private readonly TextView _artist;
+        private readonly View _expandRow;
+        private readonly MaterialButton _moreBtn;
+        private readonly TextView _durationView;
+        private readonly object _playCountView;
+        private readonly MaterialCardView _container;
+        private readonly LinearLayout _topRow;
+
+        private readonly Button _favBtn;
+        private readonly Button _infoBtn;
+        private readonly Button _lyricsBtn;
+        private readonly Button _statsBtn;
+
+        private SongModelView? _currentSong;
+        private Action<int>? _expandAction;
+
+        public SongViewHolder(BaseViewModelAnd vm, Fragment parentFrag, MaterialCardView container,
+            ImageView img, TextView title, TextView artist, MaterialButton moreBtn, TextView durationView, TextView playCountView,
+            View expandRow, LinearLayout expandRow1, Button favBtn, Button lyrBtn, Button infoBtn, Button statsBtn, LinearLayout topRow)
+            : base(container)
+        {
+            MyViewModel = vm;
+            _parentFrag = parentFrag;
+            _container = container;
+            _img = img;
+            _title = title;
+            _artist = artist;
+            _moreBtn = moreBtn;
+            _durationView = durationView;
+            _playCountView = playCountView;
+            _expandRow = expandRow;
+            _favBtn = favBtn;
+            _infoBtn = infoBtn;
+            _lyricsBtn = lyrBtn;
+            _statsBtn = statsBtn;
+            _topRow = topRow;
+
+            // NO C# += DELEGATES. Bind to native Java interface.
+            _topRow.SetOnClickListener(this);
+            _moreBtn.SetOnClickListener(this);
+            _moreBtn.SetOnLongClickListener(this);
+            _lyricsBtn.SetOnClickListener(this);
+            _infoBtn.SetOnClickListener(this);
+            _statsBtn.SetOnClickListener(this);
+            _img.SetOnClickListener(this);
+            _artist.SetOnLongClickListener(this);
+            _favBtn.SetOnClickListener(this);
+            _favBtn.SetOnLongClickListener(this);
         }
 
-
-        private void HandlePlaybackStateChange(PlaybackEventArgs x)
+        public void Bind(SongModelView song, bool isExpanded, Action<int> onExpandToggle)
         {
-            //throw new NotImplementedException();
-        }
+            _currentSong = song;
+            _expandAction = onExpandToggle;
 
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
+            _title.Text = song.Title;
+            _artist.Text = song.OtherArtistsName ?? "Unknown";
+            _durationView.Text = $"{song.DurationFormatted}";
+            _durationView.Text = $"{song.PlayCompletedCount}";
+
+            if (song.HasSyncedLyrics)
             {
-                if (disposing) _disposables.Dispose();
-                _disposables.Dispose();
-            }
-            base.Dispose(disposing);
-        }
-        private readonly CompositeDisposable _disposables = new();
-
-        private bool _isDisposed;
-        public Button moreBtn { get; private set; }
-        public Button StatsBtn { get; private set; }
-        public Button favBtn { get; private set; }
-
-        public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
-        {
-            if (holder is SongViewHolder songHolder)
-            {
-                var song = _songs[position];
-                bool isExpanded = position == _expandedPosition;
-
-                songHolder.Bind(song, isExpanded, ToggleExpand, songSource);
-            }
-        }
-
-        public class SimpleItemTouchHelperCallback : ItemTouchHelper.Callback
-        {
-            private readonly SongAdapter _adapter;
-            public SimpleItemTouchHelperCallback(SongAdapter adapter) => _adapter = adapter;
-
-            public override int GetMovementFlags(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder)
-            {
-                int dragFlags = ItemTouchHelper.Up | ItemTouchHelper.Down;
-                int swipeFlags = ItemTouchHelper.Start | ItemTouchHelper.End; // Enable Swipe to Remove?
-                return MakeMovementFlags(dragFlags, swipeFlags);
-            }
-
-            public override bool OnMove(RecyclerView recyclerView, RecyclerView.ViewHolder source, RecyclerView.ViewHolder target)
-            {
-                // Notify Adapter to swap items in the ObservableCollection
-                _adapter.OnItemMove(source.BindingAdapterPosition, target.BindingAdapterPosition);
-                return true;
-            }
-
-            public override void OnSwiped(RecyclerView.ViewHolder viewHolder, int direction)
-            {
-                _adapter.OnItemDismiss(viewHolder.BindingAdapterPosition);
-            }
-        }
-
-        public bool OnItemMove(int fromPosition, int toPosition)
-        {
-            // 1. Move the item in the actual data list
-            // Use the ViewModel's MoveSongInQueue to ensure proper queue index tracking
-            MyViewModel.MoveSongInQueue(fromPosition, toPosition);
-
-            // 2. Notify the RecyclerView that the item moved visually
-            // IMPORTANT: Do NOT call NotifyDataSetChanged(), it breaks animations.
-            NotifyItemMoved(fromPosition, toPosition);
-
-            return true;
-        }
-
-        public void OnItemDismiss(int position)
-        {
-            // 1. Remove from data source
-            MyViewModel.PlaybackQueueSource.Edit(upd =>
-            {
-                MyViewModel.PlaybackQueueSource.RemoveAt(position);
-            });
-
-            // 2. Notify RecyclerView
-            NotifyItemRemoved(position);
-
-            // 3. Optional: Notify Playback service that the queue changed?
-            // _viewModel.UpdateQueueService(); 
-        }
-
-
-        private void ToggleExpand(int position)
-        {
-            _previousExpandedPosition = _expandedPosition;
-
-            if (_expandedPosition == position)
-            {
-                // Collapse current
-                _expandedPosition = -1;
+                _container.StrokeWidth = 4;
+                _container.SetStrokeColor(AppUtil.ToColorStateList(Color.DarkSlateBlue));
             }
             else
             {
-                // Expand new
-                _expandedPosition = position;
-            }
-
-            // Only notify the rows that changed to animate/update efficiently
-            if (_previousExpandedPosition != -1) NotifyItemChanged(_previousExpandedPosition);
-            if (_expandedPosition != -1) NotifyItemChanged(_expandedPosition);
-        }
-
-        public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType)
-        {
-            if (ctx is null && parent.Context is not null)
-                ctx = parent.Context;
-
-            // Root Card
-            var card = new MaterialCardView(ctx)
-            {
-                Radius = AppUtil.DpToPx(12),
-                CardElevation = AppUtil.DpToPx(0), // Flat style is modern
-                StrokeWidth = AppUtil.DpToPx(0),
-                StrokeColor = Color.Transparent,
-                Clickable = true,
-                Focusable = true
-            };
-
-
-            var lp = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent);
-            lp.SetMargins(0, 8, 0, 8);
-            card.LayoutParameters = lp;
-
-            // Main Vertical Layout (Holds TopRow + HiddenActions)
-            var mainContainer = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
-            mainContainer.Clickable = true;
-            mainContainer.LayoutTransition = new LayoutTransition();
-
-            mainContainer.LayoutParameters = new ViewGroup.LayoutParams(-1, -2);
-
-            // --- TOP ROW (Visible) ---
-            var topRow = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
-            topRow.SetGravity(GravityFlags.CenterVertical);
-            topRow.SetPadding(20, 20, 20, 20);
-            topRow.LayoutParameters = new LinearLayout.LayoutParams(-1, -2);
-            topRow.Clickable = true;
-            topRow.Visibility = ViewStates.Visible;
-            topRow.Click += (o, s) =>
-            {
-                card.PerformClick();
-            };
-
-            // Image
-            var imgCard = new MaterialCardView(ctx) { Radius = AppUtil.DpToPx(8), CardElevation = 0 };
-            var imgView = new ImageView(ctx);
-            imgView.SetScaleType(ImageView.ScaleType.CenterCrop);
-            imgCard.AddView(imgView, new ViewGroup.LayoutParams(AppUtil.DpToPx(56), AppUtil.DpToPx(56)));
-            topRow.AddView(imgCard);
-
-            // Texts
-            var textLayout = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
-            var txtLp = new LinearLayout.LayoutParams(0, -2, 1f); // Weight 1
-            txtLp.LeftMargin = AppUtil.DpToPx(16);
-            textLayout.LayoutParameters = txtLp;
-
-            var title = new MaterialTextView(ctx) { TextSize = 16, Typeface = Typeface.DefaultBold };
-            title.SetMaxLines(1);
-            title.Ellipsize = Android.Text.TextUtils.TruncateAt.End;
-
-            var artist = new TextView(ctx) { TextSize = 14 };
-            var llyout = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent);
-            llyout.SetMargins(0, 0, 0, 0);
-            artist.TextAlignment = Android.Views.TextAlignment.ViewStart;
-            artist.SetTextColor(Color.Gray);
-            artist.Ellipsize = TextUtils.TruncateAt.Marquee;
-            artist.Selected = true;
-            textLayout.AddView(title);
-            textLayout.AddView(artist);
-            topRow.AddView(textLayout);
-
-            // More Button (The Trigger)
-            moreBtn = new MaterialButton(ctx, null, Resource.Attribute.materialIconButtonStyle);
-            moreBtn.SetIconResource(Resource.Drawable.more1); // Ensure this drawable exists
-            moreBtn.IconTint = Android.Content.Res.ColorStateList.ValueOf(Color.Gray);
-            moreBtn.BackgroundTintList = Android.Content.Res.ColorStateList.ValueOf(Color.Transparent);
-            moreBtn.RippleColor = Android.Content.Res.ColorStateList.ValueOf(Color.LightGray);
-            var durationView = new TextView(ctx) { TextSize = 18, Typeface = Typeface.DefaultBold };
-            durationView.SetTextColor(UiBuilder.IsDark(durationView) ? Color.Gray : Color.Black);
-            durationView.TextSize = 10;
-            durationView.Gravity = GravityFlags.CenterHorizontal;
-
-            var rightLinearLayout = new LinearLayout(ctx)
-            {
-                Orientation = Android.Widget.Orientation.Vertical
-            };
-            rightLinearLayout.AddView(moreBtn);
-            rightLinearLayout.AddView(durationView);
-
-
-
-            topRow.AddView(rightLinearLayout);
-
-
-            // --- EXPANDABLE ROW (Hidden by default) ---
-            var expandRow = new LinearLayout(ctx) { Orientation = Orientation.Horizontal };
-            expandRow.SetGravity(GravityFlags.Center);
-            expandRow.Visibility = ViewStates.Gone; // Hidden initially
-            expandRow.LayoutParameters = new LinearLayout.LayoutParams(-1, -2);
-            expandRow.SetPadding(0, 0, 0, 20);
-
-
-
-
-            favBtn = CreateActionButton("Fav", Resource.Drawable.heart);
-            expandRow.AddView(favBtn);
-
-            StatsBtn = CreateActionButton("Stats", Resource.Drawable.stats);
-
-            MaterialButton? LyricsBtn = CreateActionButton("Note", Resource.Drawable.pen);
-
-            expandRow.AddView(StatsBtn);
-            expandRow.AddView(LyricsBtn);
-
-            MaterialButton? InfoBtn = CreateActionButton("Info", Resource.Drawable.infocircle);
-
-
-            InfoBtn.TooltipText = $"View Song Info {MyViewModel.CurrentPlayingSongView.Title}";
-            //expandRow.AddView(insertBeforeBtn);
-
-            expandRow.AddView(InfoBtn);
-
-
-
-            // --- EXPANDABLE ROW Two (Hidden by default) ---
-            var expandRowTwo = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
-            expandRowTwo.SetGravity(GravityFlags.Center);
-            expandRowTwo.Visibility = ViewStates.Gone; // Hidden initially
-            expandRowTwo.LayoutParameters = new LinearLayout.LayoutParams(-1, -2);
-            expandRowTwo.SetPadding(0, 0, 0, 20);
-
-
-            ChipGroup artistsChipGroup = new ChipGroup(ctx);
-
-            expandRowTwo.AddView(artistsChipGroup);
-
-
-
-
-            MaterialButton? albumBtn = CreateActionButton("album", Resource.Drawable.musicalbum);
-            albumBtn.Ellipsize = Android.Text.TextUtils.TruncateAt.Marquee;
-
-            expandRowTwo.AddView(albumBtn);
-
-
-
-
-
-
-
-            // Assemble
-            mainContainer.AddView(topRow);
-            mainContainer.AddView(expandRow);
-            mainContainer.AddView(expandRowTwo);
-
-
-
-
-            card.AddView(mainContainer);
-
-            return new SongViewHolder(MyViewModel, ParentFragement, card, imgView, title, artist, moreBtn, durationView, expandRow, (Button)favBtn,
-                LyricsBtn, InfoBtn, StatsBtn);
-        }
-
-
-        private MaterialButton CreateActionButton(string text, int iconId)
-        {
-            var btn = new MaterialButton(ctx, null, Resource.Attribute.materialButtonOutlinedStyle);
-            btn.Text = text;
-
-            btn.SetTextColor(UiBuilder.IsDark(btn) ? Color.Gray : Color.ParseColor("#294159"));
-            btn.SetIconResource(iconId);
-            //btn.IconGravity = (int)GravityFlags.st;
-            btn.IconTint = Android.Content.Res.ColorStateList.ValueOf(UiBuilder.IsDark(btn) ? Color.Gray : Color.ParseColor("#294159"));
-            btn.SetPadding(30, 0, 30, 0);
-            var lp = new LinearLayout.LayoutParams(-2, -2);
-            lp.RightMargin = 10;
-            btn.LayoutParameters = lp;
-            btn.IconSize = AppUtil.DpToPx(30);
-            return btn;
-        }
-
-
-        class SongViewHolder : AndroidX.RecyclerView.Widget.RecyclerView.ViewHolder
-        {
-            private readonly SerialDisposable _itemSubscription = new SerialDisposable();
-
-
-            private readonly BaseViewModelAnd MyViewModel;
-            private readonly Fragment _parentFrag;
-            private readonly ImageView _img;
-            private readonly TextView _title;
-            private readonly TextView _artist;
-            private readonly View _expandRow;
-            private readonly MaterialButton _moreBtn;
-            private readonly TextView _durationView;
-            private readonly MaterialCardView _container;
-            public View ContainerView => base.ItemView;
-
-            public SongContextMenuFragment SongContexFragment { get; private set; }
-
-            private readonly Button _favBtn;
-            private readonly Button _infoBtn;
-            private readonly Button lyricsBtn;
-            private readonly Button _statsBtn;
-            private SongModelView? _currentSong;
-            private Action<int>? _expandAction;
-
-            public SongViewHolder(BaseViewModelAnd vm, Fragment parentFrag, MaterialCardView container, ImageView img, TextView title, TextView artist, MaterialButton moreBtn, TextView durationView,
-     View expandRow, Button favBtn, Button lyrBtn, MaterialButton infoBtn, Button statsBtn)
-                : base(container)
-            {
-                MyViewModel = vm;
-                _parentFrag = parentFrag;
-                _container = container;
-                _img = img;
-                _title = title;
-                _artist = artist;
-                _moreBtn = moreBtn;
-                _durationView = durationView;
-                _expandRow = expandRow;
-                _favBtn = favBtn;
-                _infoBtn = infoBtn;
-                lyricsBtn = lyrBtn;
-                _statsBtn = statsBtn;
-                _moreBtn.Click += (s, e) =>
-                {
-                    // Always invoke the latest action with the current position
-                    _expandAction?.Invoke(BindingAdapterPosition);
-                };
-
-            lyricsBtn.Click += (s, e) =>
-                {
-                    MyViewModel._lyricsMgtFlow.LoadLyrics(_currentSong?.SyncLyrics);
-                    MyViewModel.SelectedSong = _currentSong;
-                    MyViewModel.NavigateToAnyPageOfGivenType(this._parentFrag, new LyricsViewFragment(MyViewModel), "toLyricsFromNP");
-
-                };
-            //lyricsBtn.LongClickable = true;
-            //lyricsBtn.LongClick += (s, e) =>
-            //{
-            //    MyViewModel.SaveUserNoteToSong
-            //};
-
-
-                if (_infoBtn != null)
-                {
-                    _infoBtn.Click += (s, e) =>
-                    {
-                        if (_currentSong != null)
-                        {
-                            MyViewModel.SelectedSong = _currentSong;
-
-                            SongContexFragment = new SongContextMenuFragment(MyViewModel);
-
-
-                            SongContexFragment.Show(parentFrag.ParentFragmentManager, "infoDiag");
-
-
-                        }
-                    };
-                }
-
-                // 2. Container Click (Play)
-                _container.Click += async (s, e) =>
-                {
-                    if (_currentSong != null)
-                        await MyViewModel.PlaySongAsync(_currentSong);
-                };
-
-                _moreBtn.LongClickable = true;
-                _moreBtn.LongClick += (s, e) =>
-                {
-                    _container.PerformHapticFeedback(FeedbackConstants.LongPress);
-
-                    // Long press shows context menu with options
-                    ShowPlaybackOptionsMenu();
-                };
-
-                _statsBtn.Click += (s, e) =>
-                {
-
-                    var infoSheet = new SongInfoBottomSheetFragment(MyViewModel, _currentSong);
-                    infoSheet.Show(_parentFrag.ParentFragmentManager, "SongInfoSheet");
-                };
-
-
-
-                lyrBtn.Click += async (s, e) =>
-                {
-                    if (_currentSong != null)
-                    {
-                        await MyViewModel.ShareSongViewClipboard(_currentSong);
-                    }
-                };
-
-
-
-
-                // 4. Image Click (Navigate)
-                _img.Click += (s, e) =>
-                {
-                    if (_currentSong != null)
-                    {
-
-                        MyViewModel.SelectedSong = _currentSong;
-                        // Note: Transition name must be updated in Bind, but we can read it from the view here
-                        string? tName = ViewCompat.GetTransitionName(_img);
-
-                        if (tName != null)
-                        {
-
-                            switch (_mode)
-                            {
-                                case SongsToWatchSource.HomePage:
-                                    MyViewModel.NavigateToSingleSongPageFromHome(_parentFrag, tName, _img);
-                                    break;
-
-                                default:
-                                    break;
-                            }
-
-                        }
-                        else
-                        {
-                            TransitionActivity act = (this._parentFrag!.Activity as TransitionActivity)!;
-                            act.HandleBackPressInternal();
-                        }
-
-                    }
-                };
-
-                // 5. Artist Long Click
-                _artist.LongClickable = true;
-                _artist.LongClick += (s, e) =>
-                {
-                    if (_currentSong?.ArtistName != null)
-                    {
-                        var artistPickBtmSheet = new ArtistPickerBottomSheet(MyViewModel, _currentSong.ArtistsInDB(MyViewModel.RealmFactory));
-
-                        artistPickBtmSheet.Show(parentFrag.ParentFragmentManager, "QueueSheet");
-
-                    }
-                };
-
-                // 6. Fav Button
-                _favBtn.Click += async (s, e) =>
-                {
-
-                    if (_currentSong != null)
-                    {
-                        await MyViewModel.AddFavoriteRatingToSong(_currentSong);
-                        // Instant visual feedback
-                        _favBtn.Text = !_currentSong.IsFavorite ? "Unfav" : "Fav";
-                        _favBtn.SetIconResource(_currentSong.IsFavorite ? Resource.Drawable.heartlock : Resource.Drawable.heart);
-                        _favBtn.IconTint = _currentSong.IsFavorite ? AppUtil.ToColorStateList(Color.DarkSlateBlue) : AppUtil.ToColorStateList(Color.Gray);
-                        UiBuilder.ShowSnackBar(
-       parentFrag.View,
-       _currentSong.IsFavorite ? $"Added {_currentSong.Title} by {_currentSong.ArtistName} to Favorites " : $"Removed {_currentSong.Title} by {_currentSong.ArtistName} from Favorites",
-       textColor: Color.Black
-
-    );
-                        _favBtn.PerformHapticFeedback(FeedbackConstants.Confirm);
-                    }
-                };
-                _favBtn.LongClick += async (s, e) =>
-                {
-
-
-
-                    if (_currentSong != null)
-                    {
-                        await MyViewModel.RemoveSongFromFavorite(_currentSong);
-                        var iconRes = _currentSong.IsFavorite ? Resource.Drawable.heartlock : Resource.Drawable.heart;
-                        // Instant visual feedback
-                        _favBtn.Text = !_currentSong.IsFavorite ? "Unfav" : "Fav";
-                        _favBtn.SetIconResource(iconRes);
-                        _favBtn.PerformHapticFeedback(FeedbackConstants.Reject);
-                        UiBuilder.ShowSnackBar(
-        parentFrag.View,
-        _currentSong.IsFavorite ? $"Added {_currentSong.Title} by {_currentSong.ArtistName} to Favorites " : $"Removed {_currentSong.Title} by {_currentSong.ArtistName} from Favorites",
-        textColor: Color.Black,
-        iconResId: iconRes
-    );
-                    }
-                };
-            }
-
-            private void SongContextBottomSheetDismissed()
-            {
-                // do something
-            }
-            SongsToWatchSource _mode;
-            public void Bind(SongModelView song, bool isExpanded, Action<int> onExpandToggle, SongsToWatchSource mode)
-            {
-                _currentSong = song;
-                _expandAction = onExpandToggle;
-                var sessionDisposable = new CompositeDisposable();
-                _title.Text = song.Title;
-                _artist.Text = song.OtherArtistsName ?? "Unknown";
-                _durationView.Text = $"{song.DurationFormatted}";
-                _mode = mode;
-                if (song.HasSyncedLyrics)
-                {
-                    _container.StrokeWidth = 4;
-                    _container.SetStrokeColor(AppUtil.ToColorStateList(Color.DarkSlateBlue));
-                }
-
-                // Set Transition Name
-                var tName = $"sharedImage_{song.Id}";
-                ViewCompat.SetTransitionName(_img, tName);
-
-                // Image Loading
-                if (!string.IsNullOrEmpty(song.CoverImagePath))
-                {
-                    var domCol = MyViewModel.CurrentPlaySongDominantColor;
-                    if (domCol is not null)
-                    {
-                        var colorBGA = (int)domCol.Alpha;
-                        var colorBGR = (int)domCol.Red;
-                        var colorBGG = (int)domCol.Green;
-                        var colorBGB = (int)domCol.Blue;
-
-                        _container.SetBackgroundColor(Color.Argb(10, colorBGR, colorBGB, colorBGB));
-                    }
-                    _img.SetImageWithGlide(song.CoverImagePath);
-
-                }
-                else
-                {
-                    _img.SetImageResource(Resource.Drawable.musicnotess);
-                }
-
-
-                _expandRow.Visibility = isExpanded ? ViewStates.Visible : ViewStates.Gone;
-
-
-
-                _container.StrokeColor = isExpanded ? Color.DarkSlateBlue : Color.ParseColor("#E0E0E0");
                 _container.StrokeWidth = isExpanded ? 3 : 0;
-
-
-                song.WhenPropertyChange(nameof(SongModelView.IsFavorite), s => s.IsFavorite)
-                    .ObserveOn(RxSchedulers.UI)
-                    .Subscribe(IsFavorite =>
-                    {
-                        if (IsFavorite)
-                        {
-                            _moreBtn.CornerRadius = AppUtil.DpToPx(10);
-                            _moreBtn.StrokeWidth = AppUtil.DpToPx(1);
-                            _favBtn.StrokeWidth = 0;
-                            _moreBtn.SetStrokeColorResource(Resource.Color.m3_ref_palette_pink80);
-                        }
-                        else
-                        {
-                            _moreBtn.StrokeWidth = AppUtil.DpToPx(0);
-
-                        }
-                    });
-                song.WhenPropertyChange(nameof(SongModelView.IsCurrentPlayingHighlight), s => s.IsCurrentPlayingHighlight)
-                            .ObserveOn(RxSchedulers.UI) // Ensure UI Thread
-                            .Subscribe(isPlaying =>
-                            {
-                                if (isPlaying)
-                                {
-                                    _title.SetTextColor(Color.DarkSlateBlue); // Highlight Text
-                                                                              // _img.SetImageResource(Resource.Drawable.equalizer_anim); // Maybe show animation?
-                                }
-                                else
-                                {
-                                    // Reset to normal
-                                    var isDark = _container.Context.Resources.Configuration.UiMode.HasFlag(Android.Content.Res.UiMode.NightYes);
-                                    _title.SetTextColor(isDark ? Color.White : Color.Black);
-                                }
-                            })
-                            .DisposeWith(sessionDisposable);
-
-                song.WhenPropertyChange(nameof(SongModelView.HasSyncedLyrics), s => s.HasSyncedLyrics)
-                            .ObserveOn(RxSchedulers.UI) // Ensure UI Thread
-                            .Subscribe(hasSyncLyrics =>
-                            {
-                                if (hasSyncLyrics)
-                                {
-                                    _container.StrokeWidth = 1;
-                                }
-                                else
-                                {
-                                    //_container.StrokeWidth = 0;
-
-
-                                }
-                            })
-                            .DisposeWith(sessionDisposable);
-
-                song.WhenPropertyChange(nameof(SongModelView.CoverImagePath), s => s.CoverImagePath)
-                    .ObserveOn(RxSchedulers.UI)
-                    .Subscribe(path =>
-                    {
-                        if (!string.IsNullOrEmpty(path))
-                        {
-                            if (song.TitleDurationKey == MyViewModel.CurrentPlayingSongView.TitleDurationKey)
-                            {
-                                MyViewModel.CurrentCoverImagePath = path;
-                                MyViewModel.CurrentPlayingSongView.CoverImagePath = path;
-                            }
-                            Glide.With(_img.Context).Load(path)
-                                 .Placeholder(Resource.Drawable.musicnotess)
-                                 .Into(_img);
-
-                        }
-                        else
-                        {
-                            _img.SetImageResource(Resource.Drawable.musicnotess);
-                        }
-                    })
-                    .DisposeWith(sessionDisposable);
-
-
-
-
-
-
-
-                _itemSubscription.Disposable = sessionDisposable;
-
+                _container.StrokeColor = isExpanded ? Color.DarkSlateBlue : Color.ParseColor("#E0E0E0");
             }
 
-            private void ShowPlaybackOptionsMenu()
+            ViewCompat.SetTransitionName(_img, $"sharedImage_{song.Id}");
+
+            if (!string.IsNullOrEmpty(song.CoverImagePath))
+            {
+                var domCol = MyViewModel.CurrentPlaySongDominantColor;
+                if (domCol is not null)
+                {
+                    _container.SetBackgroundColor(Color.Argb(10, (int)domCol.Red, (int)domCol.Green, (int)domCol.Blue));
+                }
+                _img.SetImageWithGlide(song.CoverImagePath);
+            }
+            else
+            {
+                _img.SetImageResource(Resource.Drawable.musicnotess);
+            }
+
+            _expandRow.Visibility = isExpanded ? ViewStates.Visible : ViewStates.Gone;
+        }
+
+        // --- CENTRALIZED CLICK HANDLER ---
+        public void OnClick(View? v)
+        {
+            if (_currentSong == null) return;
+
+            if (v == _topRow)
+            {
+                _ = MyViewModel.PlaySongAsync(_currentSong); // Fire and forget
+            }
+            else if (v == _moreBtn)
+            {
+                string imgTransName = $"img_morph_{_currentSong.Id}";
+                string titleTransName = $"title_morph_{_currentSong.Id}";
+                _img.TransitionName = imgTransName;
+                _title.TransitionName = titleTransName;
+
+                var popupFragment = new SongDetailOverlayFragment(_currentSong, imgTransName, titleTransName);
+                AnimationHelper.ShowMorphingFragment(_parentFrag.ParentFragmentManager, popupFragment,
+                    (_img, imgTransName), (_title, titleTransName));
+            }
+            else if (v == _lyricsBtn)
+            {
+                MyViewModel._lyricsMgtFlow.LoadLyrics(_currentSong.SyncLyrics);
+                MyViewModel.SelectedSong = _currentSong;
+                MyViewModel.NavigateToAnyPageOfGivenType(_parentFrag, new LyricsViewFragment(MyViewModel), "toLyricsFromNP");
+            }
+            else if (v == _infoBtn)
+            {
+                MyViewModel.SelectedSong = _currentSong;
+                var songContexFragment = new SongContextMenuFragment(MyViewModel);
+                songContexFragment.Show(_parentFrag.ParentFragmentManager, "infoDiag");
+            }
+            else if (v == _statsBtn)
+            {
+                var infoSheet = new SongInfoBottomSheetFragment(MyViewModel, _currentSong);
+                infoSheet.Show(_parentFrag.ParentFragmentManager, "SongInfoSheet");
+            }
+            else if (v == _img)
+            {
+                MyViewModel.SelectedSong = _currentSong;
+                string? tName = ViewCompat.GetTransitionName(_img);
+                if (tName != null)
+                    MyViewModel.NavigateToSingleSongPageFromHome(_parentFrag, tName, _img);
+                else
+                    (_parentFrag.Activity as TransitionActivity)?.HandleBackPressInternal();
+            }
+            else if (v == _favBtn)
+            {
+                _ = MyViewModel.AddFavoriteRatingToSong(_currentSong);
+                _favBtn.Text = !_currentSong.IsFavorite ? "Unfav" : "Fav";
+                _favBtn.SetIconResource(_currentSong.IsFavorite ? Resource.Drawable.heartlock : Resource.Drawable.heart);
+                _favBtn.IconTint = _currentSong.IsFavorite ? AppUtil.ToColorStateList(Color.DarkSlateBlue) : AppUtil.ToColorStateList(Color.Gray);
+                v.PerformHapticFeedback(FeedbackConstants.Confirm);
+            }
+        }
+
+        // --- CENTRALIZED LONG CLICK HANDLER ---
+        public bool OnLongClick(View? v)
+        {
+            if (_currentSong == null) return false;
+
+            if (v == _moreBtn)
+            {
+                _container.PerformHapticFeedback(FeedbackConstants.LongPress);
+                ShowPlaybackOptionsMenu();
+                return true;
+            }
+            else if (v == _artist)
+            {
+                if (_currentSong.ArtistName != null)
+                {
+                    var artistPickBtmSheet = new ArtistPickerBottomSheet(MyViewModel, _currentSong.ArtistsInDB(MyViewModel.RealmFactory));
+                    artistPickBtmSheet.Show(_parentFrag.ParentFragmentManager, "QueueSheet");
+                }
+                return true;
+            }
+            else if (v == _favBtn)
+            {
+                _ = MyViewModel.RemoveSongFromFavorite(_currentSong);
+                var iconRes = _currentSong.IsFavorite ? Resource.Drawable.heartlock : Resource.Drawable.heart;
+                _favBtn.Text = !_currentSong.IsFavorite ? "Unfav" : "Fav";
+                _favBtn.SetIconResource(iconRes);
+                v.PerformHapticFeedback(FeedbackConstants.Reject);
+                return true;
+            }
+            return false;
+        }
+
+        private void ShowPlaybackOptionsMenu()
             {
                 if (_currentSong == null)
                     return;
@@ -1031,12 +671,5 @@ internal partial class HomePageAdapter : RecyclerView.Adapter, IDisposable
             SingleSelect
         }
 
-        public enum SongsToWatchSource
-        {
-            HomePage,
-            QueuePage,
-            AlbumPage,
-            ArtistPage,
-            PlaylistPage
-        }
+
     }

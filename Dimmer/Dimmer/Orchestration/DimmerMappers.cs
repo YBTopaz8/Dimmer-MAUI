@@ -244,10 +244,11 @@ public static class DimmerMappers
     }
     public static void RefreshArtistsAndSongsFromDB(this AlbumModelView album, IRealmFactory realmFactory)
     {
-        var arts = realmFactory.GetRealmInstance().Find<AlbumModel>(album.Id)!
+        var arts = realmFactory.GetRealmInstance().Find<AlbumModel>(album.Id);
+       var rr= arts!
             .Artists.AsEnumerable().Select(x=>x.ToArtistModelView()).ToList();
 
-        album.Artists = arts!;
+        album.Artists = rr!;
         album.SongsInAlbum = realmFactory.GetRealmInstance().Find<AlbumModel>(album.Id)!
             .SongsInAlbum!.AsEnumerable().Select(x => x.ToSongModelView()).ToObservableCollection()!;
         var realm = realmFactory.GetRealmInstance();

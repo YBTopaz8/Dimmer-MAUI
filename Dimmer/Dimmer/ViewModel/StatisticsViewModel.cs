@@ -118,7 +118,7 @@ public partial class StatisticsViewModel : ObservableObject
     /// Command to load stats for a specific artist.
     /// </summary>
     [RelayCommand]
-    private async Task LoadArtistStatsAsync(ArtistModel? artist)
+    public async Task LoadArtistStatsAsync(ArtistModel? artist)
     {
         if (artist is null || IsBusy)
             return;
@@ -146,7 +146,7 @@ public partial class StatisticsViewModel : ObservableObject
     /// Command to load stats for a specific album.
     /// </summary>
     [RelayCommand]
-    private async Task LoadAlbumStatsAsync(AlbumModel? album)
+    public async Task LoadAlbumStatsAsync(AlbumModel? album)
     {
         if (album is null || IsBusy)
             return;

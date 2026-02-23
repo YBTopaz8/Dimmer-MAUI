@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AndroidX.CoordinatorLayout.Widget;
+﻿using AndroidX.CoordinatorLayout.Widget;
 
 namespace Dimmer.ViewsAndPages.NativeViews.DeviceTransfer;
 

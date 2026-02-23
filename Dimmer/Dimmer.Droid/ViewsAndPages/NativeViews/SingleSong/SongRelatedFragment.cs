@@ -1,12 +1,9 @@
-﻿using Bumptech.Glide;
-using Bumptech.Glide.Load.Resource.Bitmap;
-using Dimmer.UiUtils;
+﻿using Android.Views;
+using AndroidX.Fragment.App;
+using AndroidX.RecyclerView.Widget;
+using Google.Android.Material.Card;
 using Google.Android.Material.Divider;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Bumptech.Glide.Load.Resource.Bitmap;
 
 namespace Dimmer.ViewsAndPages.NativeViews.SingleSong;
 
@@ -22,45 +19,48 @@ public class SongRelatedFragment : Fragment
 
         var root = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
         root.LayoutParameters = new FrameLayout.LayoutParams(-1, -2);
-        root.SetPadding(40, 20, 40, 40);
+        root.SetPadding(40, 20, 40, 200); // Bottom padding for safety
 
-        // 1. SECTION: MORE FROM ALBUM
+        var songInDb = _vm.RealmFactory.GetRealmInstance()!.Find<SongModel>(_vm.SelectedSong!.Id);
+        if (songInDb == null) return scroll;
+
+        // 1. MORE FROM ALBUM
         var albumName = _vm.SelectedSong?.AlbumName ?? "Unknown Album";
         root.AddView(CreateSectionHeader(ctx, "More from Album", albumName));
 
+        var albumSongs = songInDb.Album?.SongsInAlbum.AsEnumerable().Select(x => x.ToSongModelView()).ToList() ?? new();
         var albumRecycler = CreateHorizontalRecycler(ctx);
-        var songInDb = _vm.RealmFactory.GetRealmInstance().Find<SongModel>(_vm.SelectedSong!.Id);
-        var albumSongs = songInDb.Album.SongsInAlbum.AsEnumerable().Select(x => x.ToSongModelView()).ToList();
         albumRecycler.SetAdapter(new ModernRelatedAdapter(albumSongs, _vm));
         root.AddView(albumRecycler);
 
-        var divb = new MaterialDivider(ctx) { Alpha = 0.1f };
-        divb.SetPadding(0, 40, 0, 40);
-        root.AddView(divb);
+        root.AddView(CreateDivider(ctx));
 
-        // 2. SECTION: MORE BY ARTIST
+        // 2. MORE BY ARTIST
         var artistName = _vm.SelectedSong?.ArtistName ?? "Unknown Artist";
         root.AddView(CreateSectionHeader(ctx, "Artist Spotlight", artistName));
 
+        var artistSongs = songInDb.Artist?.Songs.AsEnumerable().Select(x => x.ToSongModelView()).ToList() ?? new();
         var artistRecycler = CreateHorizontalRecycler(ctx);
-        // Logic to get artist songs (Example: from the same artist in DB)
-        var artistSongs = songInDb.Artist.Songs.AsEnumerable().Select(x => x.ToSongModelView()!).ToList();
-        if (artistSongs is not  null && artistSongs.Count > 0)
-        {
-            artistRecycler.SetAdapter(new ModernRelatedAdapter(artistSongs, _vm));
-        }
+        artistRecycler.SetAdapter(new ModernRelatedAdapter(artistSongs, _vm));
         root.AddView(artistRecycler);
 
-        // 3. SECTION: SIMILAR GENRE
+        // 3. EXPLORE GENRE (Fixed missing logic)
         if (!string.IsNullOrEmpty(_vm.SelectedSong?.GenreName))
         {
-
-            var diva = new MaterialDivider(ctx) { Alpha = 0.1f };
-            diva.SetPadding(0, 40, 0, 40);
-            root.AddView(diva);
+            root.AddView(CreateDivider(ctx));
             root.AddView(CreateSectionHeader(ctx, "Explore Genre", _vm.SelectedSong.GenreName));
+
             var genreRecycler = CreateHorizontalRecycler(ctx);
-           
+            // Example of filtering DB by Genre Name
+            var genreSongs = _vm.RealmFactory.GetRealmInstance()!.All<SongModel>()
+                .Where(x => x.GenreName == _vm.SelectedSong.GenreName && x.Id != songInDb.Id)
+                .AsEnumerable()
+                .Take(15) // Limit to 15 to keep it fast
+                
+                .Select(x => x.ToSongModelView())
+                .ToList();
+
+            genreRecycler.SetAdapter(new ModernRelatedAdapter(genreSongs, _vm));
             root.AddView(genreRecycler);
         }
 
@@ -68,19 +68,26 @@ public class SongRelatedFragment : Fragment
         return scroll;
     }
 
+    private View CreateDivider(Context ctx)
+    {
+        var div = new MaterialDivider(ctx) { Alpha = 0.1f };
+        div.SetPadding(0, AppUtil.DpToPx(24), 0, AppUtil.DpToPx(24));
+        return div;
+    }
+
     private View CreateSectionHeader(Context ctx, string title, string subtitle)
     {
         var layout = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
-        layout.SetPadding(0, 20, 0, 10);
+        layout.SetPadding(0, AppUtil.DpToPx(10), 0, AppUtil.DpToPx(10));
 
-        var titleView = new TextView(ctx) { Text = title, TextSize = 14 };
-        titleView.SetTextColor(Color.ParseColor("#808080")); // Muted label
+        var titleView = new TextView(ctx) { Text = title, TextSize = 12 };
+        titleView.SetTextColor(Color.Gray);
         titleView.SetTypeface(Typeface.DefaultBold, TypefaceStyle.Normal);
         titleView.LetterSpacing = 0.05f;
 
-        var subView = new TextView(ctx) { Text = subtitle, TextSize = 22 };
+        var subView = new TextView(ctx) { Text = subtitle, TextSize = 20 };
         subView.SetTypeface(Typeface.DefaultBold, TypefaceStyle.Normal);
-        subView.SetTextColor(UiBuilder.IsDark(ctx) ? Color.White : Color.Black);
+        subView.SetTextColor(UiBuilder.IsDark(this.View) ? Color.White : Color.Black);
 
         layout.AddView(titleView);
         layout.AddView(subView);
@@ -96,14 +103,57 @@ public class SongRelatedFragment : Fragment
         recycler.SetClipToPadding(false);
         recycler.SetPadding(0, 10, 0, 10);
 
-        // This makes it feel like Spotify - cards snap to the center/start
         var snapHelper = new LinearSnapHelper();
         snapHelper.AttachToRecyclerView(recycler);
+
+        // FIX: The Magic Touch Listener that prevents ViewPager2 swipe conflicts!
+        recycler.AddOnItemTouchListener(new HorizontalScrollTouchListener());
 
         return recycler;
     }
 
-    // --- RE-ENGINEERED ADAPTER ---
+    // --- FIX FOR VIEWPAGER2 SWIPE CONFLICT ---
+    class HorizontalScrollTouchListener : Java.Lang.Object, RecyclerView.IOnItemTouchListener
+    {
+        private float _startX;
+        private float _startY;
+
+        public bool OnInterceptTouchEvent(RecyclerView rv, MotionEvent e)
+        {
+            switch (e.ActionMasked)
+            {
+                case MotionEventActions.Down:
+                    _startX = e.GetX();
+                    _startY = e.GetY();
+                    // Don't intercept immediately, just record start
+                    rv.Parent?.RequestDisallowInterceptTouchEvent(true);
+                    break;
+                case MotionEventActions.Move:
+                    float dx = Math.Abs(e.GetX() - _startX);
+                    float dy = Math.Abs(e.GetY() - _startY);
+
+                    // If user is swiping horizontally more than vertically, lock the ViewPager
+                    if (dx > dy)
+                    {
+                        rv.Parent?.RequestDisallowInterceptTouchEvent(true);
+                    }
+                    else
+                    {
+                        rv.Parent?.RequestDisallowInterceptTouchEvent(false);
+                    }
+                    break;
+                case MotionEventActions.Up:
+                case MotionEventActions.Cancel:
+                    rv.Parent?.RequestDisallowInterceptTouchEvent(false);
+                    break;
+            }
+            return false;
+        }
+        public void OnTouchEvent(RecyclerView rv, MotionEvent e) { }
+        public void OnRequestDisallowInterceptTouchEvent(bool disallowIntercept) { }
+    }
+
+    // --- MODERN ADAPTER ---
     class ModernRelatedAdapter : RecyclerView.Adapter
     {
         private readonly List<SongModelView> _items;
@@ -119,34 +169,27 @@ public class SongRelatedFragment : Fragment
 
         public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType)
         {
-            var ctx = parent.Context;
-
-            var card = new MaterialCardView(ctx)
-            {
-                Radius = AppUtil.DpToPx(16),
-                CardElevation = 0,
-                StrokeWidth = 0,
-            };
+            var ctx = parent.Context!;
+            var card = new MaterialCardView(ctx) { Radius = AppUtil.DpToPx(12), CardElevation = 0, StrokeWidth = 0 };
             card.SetCardBackgroundColor(Color.Transparent);
-            var lp = new RecyclerView.LayoutParams(AppUtil.DpToPx(160), -2);
+
+            var lp = new RecyclerView.LayoutParams(AppUtil.DpToPx(140), -2); // Slightly wider card
             lp.SetMargins(0, 0, AppUtil.DpToPx(16), 0);
             card.LayoutParameters = lp;
 
             var layout = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
 
-            // Image with rounded corners via Glide
-            var img = new ImageView(ctx) { LayoutParameters = new LinearLayout.LayoutParams(-1, AppUtil.DpToPx(160)) };
+            var img = new ImageView(ctx) { LayoutParameters = new LinearLayout.LayoutParams(-1, AppUtil.DpToPx(140)) };
             img.SetScaleType(ImageView.ScaleType.CenterCrop);
 
             var title = new TextView(ctx) { TextSize = 14 };
-            title.SetMaxLines (1);
+            title.SetMaxLines(1);
             title.SetTypeface(Typeface.DefaultBold, TypefaceStyle.Normal);
-            title.SetPadding(4, 12, 4, 0);
+            title.SetPadding(0, AppUtil.DpToPx(8), 0, 0);
             title.Ellipsize = Android.Text.TextUtils.TruncateAt.End;
 
-            var artist = new TextView(ctx) { TextSize = 12, Alpha = 0.6f};
+            var artist = new TextView(ctx) { TextSize = 12, Alpha = 0.6f };
             artist.SetMaxLines(1);
-            artist.SetPadding(4, 4, 4, 8);
             artist.Ellipsize = Android.Text.TextUtils.TruncateAt.End;
 
             layout.AddView(img);
@@ -165,17 +208,20 @@ public class SongRelatedFragment : Fragment
             vh.Title.Text = item.Title;
             vh.Artist.Text = item.ArtistName;
 
-            // Use Glide for professional image loading with rounded transformation
             Glide.With(vh.ItemView.Context)
                 .Load(item.CoverImagePath)
-                .Transform(new CenterCrop(), new RoundedCorners(AppUtil.DpToPx(16)))
-                .Placeholder(Resource.Drawable.musicaba)
+                .Transform(new CenterCrop(), new RoundedCorners(AppUtil.DpToPx(12)))
+                .Placeholder(Resource.Drawable.musicaba) // Placeholder
                 .Into(vh.Image);
 
-            vh.ItemView.Click += async (s, e) =>
+            // Setup click handler to play song
+            vh.ItemView.Click -= vh.OnClick; // Prevent memory leak
+            vh.OnClick = async (s, e) =>
             {
-                await _vm.PlaySongAsync(item, CurrentPage.SingleSongPage, _items);
+                // Note: passing _items makes it so the new queue is just these related songs!
+                await _vm.PlaySongAsync(item, CurrentPage.SingleSongPage, new System.Collections.ObjectModel.ObservableCollection<SongModelView>(_items));
             };
+            vh.ItemView.Click += vh.OnClick;
         }
 
         class RelatedVH : RecyclerView.ViewHolder
@@ -183,6 +229,8 @@ public class SongRelatedFragment : Fragment
             public ImageView Image { get; }
             public TextView Title { get; }
             public TextView Artist { get; }
+            public EventHandler? OnClick;
+
             public RelatedVH(View v, ImageView i, TextView t, TextView a) : base(v)
             { Image = i; Title = t; Artist = a; }
         }

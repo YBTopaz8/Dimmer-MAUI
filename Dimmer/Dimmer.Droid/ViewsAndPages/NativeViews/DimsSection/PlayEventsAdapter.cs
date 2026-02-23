@@ -1,19 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reactive.Disposables;
-using System.Reactive.Disposables.Fluent;
-using System.Text;
-using System.Threading.Tasks;
-
-using Bumptech.Glide;
-using Dimmer.UiUtils;
-
-using DynamicData;
-using MongoDB.Bson;
-using static Android.Provider.CalendarContract;
-
-namespace Dimmer.ViewsAndPages.NativeViews.DimsSection;
+﻿namespace Dimmer.ViewsAndPages.NativeViews.DimsSection;
 
 
 internal class PlayEventAdapter : RecyclerView.Adapter

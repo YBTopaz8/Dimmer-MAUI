@@ -1,6 +1,4 @@
-﻿using System.Reactive.Disposables;
-
-using Dimmer.DimmerLive.Models;
+﻿using Dimmer.DimmerLive.Models;
 using Dimmer.ViewModel.DimmerLiveVM;
 
 using Google.Android.Material.Tabs;

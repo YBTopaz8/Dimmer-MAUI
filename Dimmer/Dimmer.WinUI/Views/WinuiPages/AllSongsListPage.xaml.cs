@@ -193,14 +193,11 @@ public sealed partial class AllSongsListPage : Page
             element = (FrameworkElement)element.Parent;
         }
         var songs = MySongsTableView.Items;
-        Debug.WriteLine(songs.Count);
-
-
-        // now we need items as enumerable of SongModelView
+        
 
         var SongsEnumerable = songs.OfType<SongModelView>();
 
-        Debug.WriteLine(SongsEnumerable.Count());
+
 
 
         if (song != null)

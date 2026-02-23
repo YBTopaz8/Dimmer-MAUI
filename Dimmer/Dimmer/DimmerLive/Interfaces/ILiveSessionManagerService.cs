@@ -8,6 +8,7 @@ public interface ILiveSessionManagerService
     IObservable<IChangeSet<UserDeviceSession, string>> OtherAvailableDevices { get; }
     // An observable that fires when a new session transfer request arrives for this device
     IObservable<DimmerSharedSong> IncomingTransferRequests { get; }
+    UserDeviceSession ThisDeviceSession { get; }
 
     Task RegisterCurrentDeviceAsync();
     Task MarkCurrentDeviceInactiveAsync();
@@ -21,4 +22,5 @@ public interface ILiveSessionManagerService
     Task<ParseObject?> GenerateReferralCodeAsync();
     Task<string> CreateFullBackupAsync();
     Task<List<BackupMetadata>> GetAvailableBackupsAsync();
+    Task SyncDeviceStateAsync();
 }

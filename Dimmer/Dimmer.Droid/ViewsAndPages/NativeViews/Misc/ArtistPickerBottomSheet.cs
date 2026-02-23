@@ -1,8 +1,4 @@
-﻿using Android.Content;
-using AndroidX.Lifecycle;
-using Dimmer.DimmerSearch;
-using Dimmer.UiUtils;
-using Google.Android.Material.Chip;
+﻿using Dimmer.DimmerSearch;
 
 namespace Dimmer.ViewsAndPages.NativeViews.Misc;
 

@@ -1,8 +1,6 @@
 ﻿using Dimmer.DimmerSearch.TQLDoc;
 using Dimmer.TQL;
 
-using Google.Android.Material.Chip;
-
 namespace Dimmer.ViewsAndPages.NativeViews;
 
 

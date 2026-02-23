@@ -1,6 +1,4 @@
-﻿using Android.Content;
-
-using AndroidX.Core.App;
+﻿using AndroidX.Core.App;
 using AndroidX.Media3.Common;
 using AndroidX.Media3.Session;
 using AndroidX.Media3.UI;

@@ -2,10 +2,7 @@
 using AndroidX.ViewPager2.Adapter;
 using AndroidX.ViewPager2.Widget;
 
-using Bumptech.Glide;
-
 using Google.Android.Material.AppBar;
-using Google.Android.Material.Dialog;
 using Google.Android.Material.Tabs;
 
 using static Android.Widget.ImageView;
@@ -86,13 +83,13 @@ public partial class SongDetailFragment : Fragment , IOnBackInvokedCallback
     {
         var ctx = Context;
         var root = new CoordinatorLayout(ctx) { LayoutParameters = new ViewGroup.LayoutParams(-1, -1) };
-
+     
         // --- 1. App Bar Setup ---
         _appBarLayout = new AppBarLayout(ctx)
         {
             LayoutParameters = new CoordinatorLayout.LayoutParams(-1, AppUtil.DpToPx(350))
         };
-
+        _appBarLayout.SetBackgroundColor(Color.Red);
         _collapsingToolbar = new CollapsingToolbarLayout(ctx)
         {
             LayoutParameters = new AppBarLayout.LayoutParams(-1, -1)
@@ -120,7 +117,9 @@ public partial class SongDetailFragment : Fragment , IOnBackInvokedCallback
         var androidDomColor = _viewModel.SelectedSecondDominantColor;
         if (androidDomColor is not null)
         {
-            var domCol = androidDomColor.ToHex();
+            string? domCol = androidDomColor.ToHex();
+            root.SetBackgroundColor(Color.ParseColor(domCol));
+
             _collapsingToolbar.SetBackgroundColor(Color.ParseColor(domCol));
             _heroImage.SetBackgroundColor(Color.ParseColor(domCol));
         }
@@ -134,6 +133,7 @@ public partial class SongDetailFragment : Fragment , IOnBackInvokedCallback
             CollapseMode = CollapsingToolbarLayout.LayoutParams.CollapseModePin
         };
         toolbar.SetNavigationIcon(Resource.Drawable.ic_arrow_back_black_24);
+        toolbar.SetNavigationIconTint(Resource.Color.m3_ref_palette_purple100);
         toolbar.NavigationClick += (s, e) => ParentFragmentManager.PopBackStack();
         _collapsingToolbar.AddView(toolbar, toolbarParams);
 
@@ -160,8 +160,7 @@ public partial class SongDetailFragment : Fragment , IOnBackInvokedCallback
         // MD3 Tab Styling
         _tabLayout.TabMode = TabLayout.ModeScrollable; // Allows many tabs
         _tabLayout.SetSelectedTabIndicatorColor(Color.ParseColor("#6750A4")); // MD3 Purple
-        _tabLayout.SetTabTextColors(Color.Gray, Color.White);
-       
+        _tabLayout.SetTabTextColors(Color.Gray, UiBuilder.IsDark(this.View) ? Color.White : Color.Black);
         // ViewPager
         _viewPager = new ViewPager2(ctx);
         _viewPager.LayoutParameters = new LinearLayout.LayoutParams(
@@ -169,6 +168,8 @@ public partial class SongDetailFragment : Fragment , IOnBackInvokedCallback
             0,
             1f // Fill remaining space
         );
+
+        //_tabLayout.SetBackgroundColor(Color.ParseColor(domCol));
 
         contentLinear.AddView(_tabLayout);
         contentLinear.AddView(_viewPager)
@@ -195,6 +196,9 @@ public partial class SongDetailFragment : Fragment , IOnBackInvokedCallback
                     _appBarLayout.SetExpanded(false, true);
                     _collapsingToolbar.Title = tab.Text;
                 }
+                else if(tab.Position == 3)
+                {
+                }
                 else
                 {
                     _appBarLayout.SetExpanded(true, true);
@@ -202,6 +206,7 @@ public partial class SongDetailFragment : Fragment , IOnBackInvokedCallback
                 }
             }
         };
+        
 
         _tabLayout.TabReselected += (s, e) =>
         {
@@ -220,7 +225,17 @@ public partial class SongDetailFragment : Fragment , IOnBackInvokedCallback
     {
         public void OnConfigureTab(TabLayout.Tab tab, int position)
         {
-            tab.SetText(position switch { 0 => "Overview", 1 => "Lyrics", 2 => "History", 3 => "Related", _ => "" });
+            var txt = position switch { 0 => "Overview", 1 => "Lyrics", 2 => "History", 3 => "Related", _ => "" };
+            var Icon = position switch { 0 => Resource.Drawable.musicaa, 1 =>
+                Resource.Drawable.lyrics, 2 => Resource.Drawable.time, 
+                3 => Resource.Drawable.musical_notes, _ => Resource.Drawable.musicaa
+            };
+
+
+            tab.SetText(txt);
+            tab.SetIcon(Icon);
+
+            
         }
     }
 

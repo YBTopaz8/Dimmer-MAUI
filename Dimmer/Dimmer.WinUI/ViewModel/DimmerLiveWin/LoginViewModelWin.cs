@@ -28,6 +28,7 @@ public partial class LoginViewModelWin : LoginViewModel
             {
                 ServiceRegistration.RegisterParseAndItsClasses();   
             }
+            await InitializeAsync();
             LoginCurrentStatus = IsAuthenticated ? "Logged In 😊" : "Logged Out";
             if (!IsAuthenticated)
             {

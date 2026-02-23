@@ -155,7 +155,8 @@ public static class CollectionStats
             SongsFavorited = songsFavorited,
 
             // "Played to Completion" in this date range
-            SongsPlayedToCompletion = completedEvents.Select(e => e.SongId).Distinct().Count(),
+            SongsPlayedToCompletionCount = completedEvents.Select(e => e.SongId).Distinct().Count(),
+            SongsPlayedToCompletionIdsCollection = completedEvents.Select(e => e.SongId).Distinct(),
 
             MostPlayedSongCount = mostPlayedGroup?.Count() ?? 0,
             MostPlayedSongTitle = mostPlayedTitle,

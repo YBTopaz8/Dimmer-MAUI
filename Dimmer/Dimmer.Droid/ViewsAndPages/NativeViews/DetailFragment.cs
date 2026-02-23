@@ -1,6 +1,4 @@
-﻿using Google.Android.Material.Dialog;
-
-namespace Dimmer.ViewsAndPages.NativeViews;
+﻿namespace Dimmer.ViewsAndPages.NativeViews;
 
 
 public class DetailFragment : Fragment, IOnBackInvokedCallback

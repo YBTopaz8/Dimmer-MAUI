@@ -1,189 +1,200 @@
-﻿using Dimmer.UiUtils;
-using Google.Android.Material.Dialog;
-using Google.Android.Material.Loadingindicator;
-using System.Reactive.Disposables;
-using System.Reactive.Disposables.Fluent;
-using static Android.Provider.DocumentsContract;
-using static Dimmer.ViewsAndPages.NativeViews.SongAdapter;
+﻿using Google.Android.Material.Loadingindicator;
+using Google.Android.Material.ProgressIndicator;
 
 namespace Dimmer.ViewsAndPages.NativeViews.Misc;
+
 
 public class QueueBottomSheetFragment : BottomSheetDialogFragment, IOnBackInvokedCallback
 {
     private BaseViewModelAnd MyViewModel;
     private RecyclerView _songListRecycler;
-    private SongAdapter MyRecycleViewAdapter;
+    private SongAdapter _adapter;
+    private MaterialButton _callerBtn;
+    private LinearProgressIndicator _loadingIndicator;
+    private CompositeDisposable _disposables = new();
     private bool _pendingScrollToCurrent;
-    private MaterialButton CallerBtn;
-    private LoadingIndicator loadingIndic;
+
     public QueueBottomSheetFragment(BaseViewModelAnd viewModel, Button callerBtn)
     {
         MyViewModel = viewModel;
-        CallerBtn = callerBtn;
+        _callerBtn = (MaterialButton)callerBtn;
     }
+
     public void OnBackInvoked()
     {
-        TransitionActivity myAct = (Activity as TransitionActivity)!;
-        myAct?.HandleBackPressInternal();
+        (Activity as TransitionActivity)?.HandleBackPressInternal();
     }
+
     public override void OnDismiss(IDialogInterface dialog)
     {
         base.OnDismiss(dialog);
-        CallerBtn.Enabled = true;
+        if (_callerBtn != null) _callerBtn.Enabled = true;
     }
-    private readonly CompositeDisposable _disposables = new();
 
-    public override void OnResume()
-    {
-        MyViewModel.CurrentFragment = this;
-        base.OnResume();
-        if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu)
-        {
-            Activity?.OnBackInvokedDispatcher.RegisterOnBackInvokedCallback(
-                (int)IOnBackInvokedDispatcher.PriorityDefault, this);
-        }
-
-        MyRecycleViewAdapter.IsSourceCleared.
-           ObserveOn(RxSchedulers.UI)
-           .Subscribe(observer =>
-           {
-               loadingIndic.Visibility = ViewStates.Gone;
-           }).DisposeWith(_disposables);
-
-
-
-        loadingIndic.Visibility = ViewStates.Visible;
-
-        //SongAdapter.CreateAsync(this.View?.Context, MyViewModel, this, SongsToWatchSource.QueuePage)?
-        //.Subscribe(adapter =>
-        //{
-        //    MyRecycleViewAdapter = adapter;
-        //    _songListRecycler?.SetAdapter(MyRecycleViewAdapter);
-
-        //    int currentlyPlayingIndex = 0;
-        //    if (MyViewModel.SelectedSong is not null)
-        //    {
-        //        currentlyPlayingIndex = MyViewModel.SearchResults.IndexOf(MyViewModel.SelectedSong);
-
-        //    }
-        //    else
-        //    {
-
-        //        currentlyPlayingIndex = MyViewModel.SearchResults.IndexOf(MyViewModel.CurrentPlayingSongView);
-        //    }
-        //    if (currentlyPlayingIndex >= 0)
-        //        _songListRecycler?.SmoothScrollToPosition(currentlyPlayingIndex);
-
-        //    loadingIndic.Visibility = ViewStates.Gone;
-
-        //},
-        //error =>
-        //{
-        //    Debug.WriteLine(error.Message);
-        //    loadingIndic.Visibility = ViewStates.Gone;
-
-        //});
-
-    }
     public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
-        var ctx = Context;
+        var ctx = RequireContext();
 
-        // 1. Root Container (FrameLayout allows stacking the Pill over the List)
+        // 1. Root Container
         var rootFrame = new FrameLayout(ctx)
         {
-            LayoutParameters = new ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MatchParent,
-                ViewGroup.LayoutParams.MatchParent)
+            LayoutParameters = new ViewGroup.LayoutParams(-1, -1)
         };
-        // Optional: Set a background if needed, though BottomSheet usually handles this
-        rootFrame.SetBackgroundColor(Color.Transparent);
 
-        // 2. The Recycler View (The Queue)
+        // 2. RecyclerView
         _songListRecycler = new RecyclerView(ctx);
         _songListRecycler.SetLayoutManager(new LinearLayoutManager(ctx));
-
-        var listParams = new FrameLayout.LayoutParams(
-            ViewGroup.LayoutParams.MatchParent,
-            ViewGroup.LayoutParams.MatchParent);
-        _songListRecycler.LayoutParameters = listParams;
-
-
-        // Add padding at bottom so the last item isn't covered by the pill
-        _songListRecycler.SetPadding(0, 0, 0, AppUtil.DpToPx(80));
+        _songListRecycler.SetPadding(0, 0, 0, AppUtil.DpToPx(80)); // Padding for Pill
         _songListRecycler.SetClipToPadding(false);
-
-
         rootFrame.AddView(_songListRecycler);
 
+        // 3. Loading Indicator
+        _loadingIndicator = new LinearProgressIndicator(ctx)
+        {
+            Indeterminate = true,
+            LayoutParameters = new FrameLayout.LayoutParams(-1, AppUtil.DpToPx(4)) { Gravity = GravityFlags.Top },
+            Visibility = ViewStates.Visible
+        };
+        rootFrame.AddView(_loadingIndicator);
 
-        loadingIndic = new LoadingIndicator(ctx);
-        loadingIndic.IndicatorSize = AppUtil.DpToPx(40);
-        loadingIndic.SetForegroundGravity(GravityFlags.CenterHorizontal);
-        rootFrame.AddView(loadingIndic);
-
-
-        // 3. The Pill Container (MaterialCardView)
+        // 4. The Pill Container (Floating Action Bar style)
         var pillCard = new MaterialCardView(ctx)
         {
-            Radius = AppUtil.DpToPx(25), // High radius for Pill shape
+            Radius = AppUtil.DpToPx(25),
             CardElevation = AppUtil.DpToPx(6),
-            CardBackgroundColor = Android.Content.Res.ColorStateList.ValueOf(Color.ParseColor("#303030")) // Dark grey pill
+            CardBackgroundColor = Android.Content.Res.ColorStateList.ValueOf(Color.ParseColor("#303030")),
+            LayoutParameters = new FrameLayout.LayoutParams(-2, AppUtil.DpToPx(50))
+            {
+                Gravity = GravityFlags.Bottom | GravityFlags.CenterHorizontal,
+                BottomMargin = AppUtil.DpToPx(20)
+            }
         };
 
-        var pillParams = new FrameLayout.LayoutParams(
-            ViewGroup.LayoutParams.WrapContent,
-            AppUtil.DpToPx(50)); // Fixed height for the pill
-
-        // --- POSITIONING: Absolute Bottom Center ---
-        pillParams.Gravity = GravityFlags.Bottom | GravityFlags.CenterHorizontal;
-        pillParams.SetMargins(0, 0, 0, AppUtil.DpToPx(20)); // Lift it up slightly
-        pillCard.LayoutParameters = pillParams;
-
-        // 4. Horizontal Layout inside the Pill
         var pillContent = new LinearLayout(ctx)
         {
             Orientation = Orientation.Horizontal,
-            LayoutParameters = new ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.WrapContent,
-                ViewGroup.LayoutParams.MatchParent)
+            LayoutParameters = new ViewGroup.LayoutParams(-2, -1)
         };
+
         pillContent.SetGravity(GravityFlags.Center);
         pillContent.SetPadding(AppUtil.DpToPx(15), 0, AppUtil.DpToPx(15), 0);
 
-        // 5. The Eye Button
-        var eyeBtn = new MaterialButton(ctx, null, Resource.Attribute.borderlessButtonStyle);
-        eyeBtn.IconTint = Android.Content.Res.ColorStateList.ValueOf(Color.White);
-        eyeBtn.Text = "Scroll To"; // Optional text, or remove for icon only
-        eyeBtn.SetTextColor(!UiBuilder.IsDark(this.View) ?  Color.Black : Color.White);
-        eyeBtn.SetIconResource(Resource.Drawable.eye);
-        eyeBtn.IconSize = AppUtil.DpToPx(18);
-        eyeBtn.BackgroundTintList = Android.Content.Res.ColorStateList.ValueOf(Color.Transparent);
+        // Buttons inside Pill
+        pillContent.AddView(CreatePillButton(ctx, "Scroll To", Resource.Drawable.eye, (s, e) => ScrollToSong()));
+        pillContent.AddView(CreatePillButton(ctx, "Sort", Resource.Drawable.sortfromtoptobottom, (s, e) => ShowSortMenu())); // NEW
+        pillContent.AddView(CreatePillButton(ctx, "Save", Resource.Drawable.savea, async (s, e) => await SaveQueueAsPlaylist()));
 
-        // Button Action: Scroll to currently playing
-        eyeBtn.Click += (s, e) => ScrollToSong();
-
-        // 6. Save Queue as Playlist Button
-        var saveBtn = new MaterialButton(ctx, null, Resource.Attribute.borderlessButtonStyle);
-        saveBtn.IconTint = Android.Content.Res.ColorStateList.ValueOf(Color.White);
-        saveBtn.Text = "Save";
-        eyeBtn.SetTextColor(!UiBuilder.IsDark(this.View) ? Color.Black : Color.White);
-        saveBtn.SetIconResource(Resource.Drawable.savea);
-        saveBtn.IconSize = AppUtil.DpToPx(18);
-        saveBtn.BackgroundTintList = Android.Content.Res.ColorStateList.ValueOf(Color.Transparent);
-
-        // Button Action: Save queue as playlist
-        saveBtn.Click += async (s, e) => await SaveQueueAsPlaylist();
-
-
-        pillContent.AddView(eyeBtn);
-        pillContent.AddView(saveBtn);
         pillCard.AddView(pillContent);
-
-        // Add Pill to Root (It draws on top of RecyclerView because it's added last)
         rootFrame.AddView(pillCard);
 
         return rootFrame;
+    }
+
+    private View CreatePillButton(Context ctx, string text, int iconRes, EventHandler clickHandler)
+    {
+        var btn = new MaterialButton(ctx, null, Resource.Attribute.borderlessButtonStyle);
+        btn.Text = text;
+        btn.SetIconResource(iconRes);
+        btn.IconTint = Android.Content.Res.ColorStateList.ValueOf(Color.White);
+        btn.SetTextColor(Color.White);
+        btn.IconSize = AppUtil.DpToPx(18);
+        btn.BackgroundTintList = Android.Content.Res.ColorStateList.ValueOf(Color.Transparent);
+        btn.Click += clickHandler;
+        return btn;
+    }
+
+    public override void OnViewCreated(View view, Bundle? savedInstanceState)
+    {
+        base.OnViewCreated(view, savedInstanceState);
+
+        // Initialize Adapter
+        _adapter = new SongAdapter(RequireContext(), MyViewModel, this, SongAdapter.SongsToWatchSource.QueuePage);
+        _songListRecycler.SetAdapter(_adapter);
+
+        // Attach Drag & Drop Helper
+        var callback = new SongAdapter.SimpleItemTouchHelperCallback(_adapter);
+        var itemTouchHelper = new ItemTouchHelper(callback);
+        itemTouchHelper.AttachToRecyclerView(_songListRecycler);
+
+        if (_pendingScrollToCurrent)
+        {
+            view.Post(() => ScrollToSong());
+        }
+    }
+
+    public override void OnResume()
+    {
+        base.OnResume();
+        MyViewModel.CurrentFragment = this;
+        _disposables = new CompositeDisposable();
+
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu)
+        {
+            Activity?.OnBackInvokedDispatcher.RegisterOnBackInvokedCallback((int)IOnBackInvokedDispatcher.PriorityDefault, this);
+        }
+
+        // Listen for when the adapter finishes loading data
+        _adapter.IsAdapterReady
+            .Where(ready => ready)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(_ =>
+            {
+                _loadingIndicator.Visibility = ViewStates.Gone;
+                ScrollToSong(); // Auto-scroll on first load
+            })
+            .DisposeWith(_disposables);
+    }
+
+    public override void OnPause()
+    {
+        base.OnPause();
+        _disposables.Dispose();
+    }
+
+    public void ScrollToSong(SongModelView? requestedSong = null)
+    {
+        if (_songListRecycler == null || _adapter == null)
+        {
+            _pendingScrollToCurrent = true;
+            return;
+        }
+
+        var song = requestedSong ?? MyViewModel.CurrentPlayingSongView;
+        if (song == null) return;
+
+        // Find index in the adapter's CURRENT list (not just the ViewModel's list, to be safe)
+        var index = _adapter.Songs.IndexOf(song);
+
+        if (index >= 0)
+        {
+            // Scroll with offset so it's not hidden behind top bars
+            ((LinearLayoutManager)_songListRecycler.GetLayoutManager())?.ScrollToPositionWithOffset(index, AppUtil.DpToPx(100));
+            _pendingScrollToCurrent = false;
+        }
+    }
+
+    private void ShowSortMenu()
+    {
+        var popup = new PopupMenu(Context, View, GravityFlags.Center);
+        popup.Menu.Add(0, 1, 0, "Title (A-Z)");
+        popup.Menu.Add(0, 2, 0, "Artist (A-Z)");
+        popup.Menu.Add(0, 3, 0, "Duration (Short-Long)");
+        popup.Menu.Add(0, 4, 0, "Shuffle"); // Randomize
+
+        popup.MenuItemClick += (s, e) =>
+        {
+            switch (e.Item.ItemId)
+            {
+                // NOTE: Implement SortQueue in your ViewModel if not present!
+                // case 1: MyViewModel.SortQueue(s => s.Title); break;
+                // case 2: MyViewModel.SortQueue(s => s.ArtistName); break;
+                // case 3: MyViewModel.SortQueue(s => s.DurationInSeconds); break;
+                //case 4: MyViewModel.ShuffleCurrentQueue(); break;
+            }
+            _adapter.NotifyDataSetChanged(); // Refresh UI
+            ScrollToSong();
+        };
+        popup.Show();
     }
 
     private async Task SaveQueueAsPlaylist()
@@ -191,81 +202,24 @@ public class QueueBottomSheetFragment : BottomSheetDialogFragment, IOnBackInvoke
         var ctx = Context;
         if (ctx == null) return;
 
-        // Create a simple EditText dialog for playlist name
-        var inputEditText = new EditText(ctx)
-        {
-            Hint = "Enter playlist name"
-        };
-        inputEditText.SetPadding(AppUtil.DpToPx(20), AppUtil.DpToPx(10), AppUtil.DpToPx(20), AppUtil.DpToPx(10));
+        var input = new TextInputEditText(ctx) { Hint = "Playlist Name" };
+        var container = new FrameLayout(ctx);
+        container.SetPaddingRelative(AppUtil.DpToPx(24), AppUtil.DpToPx(12), AppUtil.DpToPx(24), 0);
+        container.AddView(input);
 
-        var dialog = new MaterialAlertDialogBuilder(ctx)?
-            .SetTitle("Save Queue as Playlist")?
-            .SetView(inputEditText)?
-            .SetPositiveButton("Save", (sender, args) =>
+        new MaterialAlertDialogBuilder(ctx)
+            .SetTitle("Save Queue")
+            .SetView(container)
+            .SetPositiveButton("Save", (s, e) =>
             {
-                
-                var playlistName = inputEditText.Text?.Trim();
-                if (!string.IsNullOrWhiteSpace(playlistName))
+                var name = input.Text?.Trim();
+                if (!string.IsNullOrEmpty(name))
                 {
-                    //MyViewModel.SaveQueueAsPlaylistCommand.Execute(playlistName);
-                    
-                    // Show success message
-                    Toast.MakeText(ctx, $"Queue saved as '{playlistName}'", ToastLength.Short)?.Show();
+                    // MyViewModel.SaveQueueAsPlaylist(name); // Implement in VM
+                    Toast.MakeText(ctx, $"Saved '{name}'", ToastLength.Short)?.Show();
                 }
             })
-            .SetNegativeButton("Cancel", (sender, args) => { })
-            .Create();
-
-        dialog?.Show();
-    }
-
-
-    public override void OnViewCreated(View? view, Bundle? savedInstanceState)
-    {
-        base.OnViewCreated(view, savedInstanceState);
-        
-        // Enable drag & drop for queue reordering
-        if (_songListRecycler != null && MyRecycleViewAdapter != null)
-        {
-            var callback = new SongAdapter.SimpleItemTouchHelperCallback(MyRecycleViewAdapter);
-            var itemTouchHelper = new ItemTouchHelper(callback);
-            itemTouchHelper.AttachToRecyclerView(_songListRecycler);
-        }
-        
-        if (_pendingScrollToCurrent)
-        {
-            
-            view.Post(() =>
-            {
-                ScrollToSong();
-            });
-        }
-    }
-
-
-
-    public void ScrollToSong(SongModelView? requestedSong=null)
-    {
-        if (_songListRecycler == null)
-        {
-            _pendingScrollToCurrent = true;
-            return;
-        }
-        if (MyViewModel.CurrentPlayingSongView == null) return;
-        requestedSong ??= MyViewModel.CurrentPlayingSongView;
-
-        // Since we are using the "queue" mode in adapter, we need to find the index in PlaybackQueue
-        var index = MyViewModel.PlaybackQueue.IndexOf(requestedSong);
-        if (_pendingScrollToCurrent)
-        {
-            _songListRecycler.SmoothScrollToPosition(index-3); 
-            _pendingScrollToCurrent = false;
-        }
-        else
-        {
-            _songListRecycler.SmoothScrollToPosition(index-3);
-            _pendingScrollToCurrent = false;
-            //_recyclerView.SmoothScrollToPosition(index); 
-        }
+            .SetNegativeButton("Cancel", handler: null)
+            .Show();
     }
 }

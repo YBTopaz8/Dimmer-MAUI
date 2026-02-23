@@ -1,21 +1,4 @@
-﻿
-
-using System.Reactive.Disposables;
-using System.Reactive.Disposables.Fluent;
-
-using Android.Content.Res;
-using Android.Text;
-using Android.Views;
-using Android.Widget;
-
-using AndroidX.Lifecycle;
-
-using Bumptech.Glide;
-using CommunityToolkit.Diagnostics;
-using DynamicData.Binding;
-using Kotlin;
-
-namespace Dimmer.ViewsAndPages.NativeViews;
+﻿namespace Dimmer.ViewsAndPages.NativeViews;
 
 
 internal class LyricsViewFragment : Fragment, IOnBackInvokedCallback,IOnBackAnimationCallback

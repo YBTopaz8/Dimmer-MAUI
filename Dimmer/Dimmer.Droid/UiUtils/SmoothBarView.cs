@@ -1,18 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Maui.Controls.PlatformConfiguration;
-
-namespace Dimmer.UiUtils;
+﻿namespace Dimmer.UiUtils;
 
 using Android.Animation;
 using Android.Content;
@@ -24,15 +10,14 @@ using Android.Views.Animations;
 using AndroidX.CoordinatorLayout.Widget;
 using AndroidX.Core.Graphics.Drawable;
 using AndroidX.Core.View;
-using Google.Android.Material.Behavior;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
 
-    // --- 1. ENUMS & MODELS ---
+// --- 1. ENUMS & MODELS ---
 
-    public enum BadgeType { Circle, Box }
+public enum BadgeType { Circle, Box }
     public enum TextOrientation { Side, Bottom }
 
     public class Badge
