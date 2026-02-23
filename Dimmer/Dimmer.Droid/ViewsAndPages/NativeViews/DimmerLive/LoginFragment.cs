@@ -181,7 +181,7 @@ public class LoginFragment : Fragment, IOnBackInvokedCallback
             await loginViewModel.LoginAsync();
             if(loginViewModel.CurrentUserOnline is not null && loginViewModel.CurrentUserOnline.IsAuthenticated)
             {
-                if(_transitionName == "IntoLoginFromCloud")
+                
                     loginViewModel.NavigateToProfilePage(this, new ProfileFragment(_transitionName, loginViewModel), "ProfileFragment");
             }
         }

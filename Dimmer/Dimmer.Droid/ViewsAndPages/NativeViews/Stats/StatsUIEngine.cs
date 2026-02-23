@@ -132,7 +132,7 @@ public class DimmerStatsCarouselAdapter : RecyclerView.Adapter
             vh.Value.Text = item.Value.ToString();
 
             // Load Image with Glide
-            if (!string.IsNullOrEmpty(item.Song.CoverImagePath))
+            if (!string.IsNullOrEmpty(item.Song?.CoverImagePath))
                 Glide.With(_ctx).Load(item.Song.CoverImagePath).Placeholder(Resource.Drawable.musicnotess).Into(vh.Image);
             else
                 vh.Image.SetImageResource(Resource.Drawable.musicnotess);

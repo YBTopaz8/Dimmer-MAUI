@@ -128,6 +128,11 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         ViewCompat.SetTransitionName(_miniCover, tName);
         card.Click += (s, e) =>
         {
+            if(MyViewModel.CurrentFragment is HomePageFragment)
+            {
+                MyViewModel.SelectedSong = MyViewModel.CurrentPlayingSongView;
+                return;
+            }
             if (string.IsNullOrEmpty(MyViewModel.CurrentPlayingSongView.TitleDurationKey)) return;
             string? tName = ViewCompat.GetTransitionName(_miniCover);
             if (tName != null)
@@ -137,6 +142,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
             }
         }
         ;
+
 
         card.AddView(_miniCover, new ViewGroup.LayoutParams(AppUtil.DpToPx(60), AppUtil.DpToPx(60)));
        

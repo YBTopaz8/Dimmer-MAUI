@@ -381,6 +381,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     public void InitializeAllVMCoreComponents()
     {
+        IsFirstBoot = true;
 
         if (IsInitialized) return;
 
@@ -406,32 +407,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             //ShowAllSongsWindowActivate();
         }
 
-        var realmSub = RealmFactory.GetRealmInstance();
-    var songRealmSub = realmSub.All<SongModel>()
-            .AsObservableChangeSet()            
-
-            .Where(song =>
-            {
-                return song is not null;
-            })?
-             .Transform(song =>
-             {
-                 return song.ToSongModelView()!;
-             })
-            .ObserveOn(RxSchedulers.UI)
-            .Subscribe(changesDone =>
-            {
-                if (changesDone is null) return; 
-                
-                if (!string.IsNullOrWhiteSpace(CurrentTqlQuery))
-                    return;
-                 
-                SearchResultsHolder.Edit(updater =>
-                {
-                    updater.Clone(changes: changesDone);
-                });
-            })
-            .DisposeWith(CompositeDisposables);
 
 
         Debug.WriteLine($"{DateTime.Now}: Starting InitializeAllVMCoreComponentsAsync...");
@@ -457,121 +432,32 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
 
         var searchStream = _searchQuerySubject
-    .Throttle(TimeSpan.FromMilliseconds(300), RxSchedulers.Background)
+    .Throttle(TimeSpan.FromMilliseconds(250), RxSchedulers.Background)
+    .DistinctUntilChanged()
+    .Do(query =>
+    {
+
+        CurrentTqlQuery = query;
+    })
     .Select(query =>
     {
-        return new { Query = query};
-    });
-        Observable.Merge(searchStream)
-    .Throttle(TimeSpan.FromMilliseconds(300), RxSchedulers.Background) // Ensure we don't spam
-    .Select(query => (Query: query, Plan: MetaParser.Parse(NaturalLanguageProcessor.Process(query.Query))))
-    .ObserveOn(RxSchedulers.Background) // Explicitly move to Background for DB work
-    .Select(payload =>
-    {
-
-        DimmerSearch.TQL.RealmSection.RealmQueryPlan? plan = payload.Plan;
-  
-
-        // Validation
-        if (plan.ErrorMessage != null)
+        return Observable.Start(() =>
+        
         {
-            return new SearchResult { ErrorMessage = plan.ErrorMessage, Plan = plan };
-        }
-
-        try
-        {
-            using var realm = RealmFactory.GetRealmInstance();
-
-            // A. Realm Filter (Fast, DB level)
-            var query = realm.All<SongModel>().Filter(plan.RqlFilter);
-
-            // B. Realm Sort (Fast, DB level)
-            if (plan.SortDescriptions.Count > 0)
-            {
-                var orderByString = string.Join(", ", plan.SortDescriptions.Select(
-                    desc => $"{desc.PropertyName} {(desc.Direction == SortDirection.Ascending ? "asc" : "desc")}"));
-                query = query.OrderBy(orderByString);
-            }
-
-            var memoryFilteredList = query.AsEnumerable()
-                            .Where(model =>
-                            {
-                                // Check if we need to filter at all
-                                if (plan.InMemoryPredicate == null) return true;
-
-                                return plan.InMemoryPredicate(model.ToSongModelView()!);
-                            });
-            if (plan.Shuffle != null)
-            {
-                var rng = new Random();
-                memoryFilteredList = memoryFilteredList.OrderBy(_ => rng.Next());
-            }
-
-            var pagedSongs = memoryFilteredList
-
-               .Select(x => x.ToSongModelView())
-                            .ToList();
-
-            return new SearchResult
-            {
-                Plan = plan
-                ,SongsResult = pagedSongs
-            };
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Search Pipeline Error");
-            return new SearchResult { ErrorMessage = "Error executing query.", Plan = plan };
-        }
+            return PerformSearchBackground(query);
+        }, RxSchedulers.Background);
     })
-    .ObserveOn(RxSchedulers.UI) 
-
-    .Subscribe(async result =>
+    .Switch()
+    .ObserveOn(RxSchedulers.UI)
+    .Subscribe(result =>
     {
-
-        if (!string.IsNullOrEmpty(result.ErrorMessage) || result.Plan.ErrorMessage != null)
-        {
-            TQLUserSearchErrorMessage = result.ErrorMessage ?? result.Plan.ErrorMessage;
-            //SearchResultsHolder.Edit(u => u.Clear()); // Clear list on error
-           IsTqlBusy = false;
-            return;
-        }
-
-
-        SearchResultsHolder.EditDiff(result.SongsResult, _songComparer);
-
-        // 3. Update NLP Text Debugger
-        if (CurrentTqlQuery != NLPQuery)
-        {
-            CurrentTqlQuery = NLPQuery;
-            CurrentTqlQueryUI = NLPQuery;
-        }
-
-        // 4. Handle Post-Search Commands (Play, Add to Queue, etc)
-        if (result.Plan.CommandNode is not null)
-        {
-            try
-            {
-                // Note: Ensure CommandEvaluator can handle ViewModels, 
-                // or you might need to re-fetch specific IDs if it needs Realm objects.
-                var commandAction = commandEvaluator.Evaluate(result.Plan.CommandNode, result.SongsResult);
-               await HandleCommandAction(commandAction);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Command Execution Failed: {ex.Message}");
-            }
-        }
-        IsTqlBusy = false;
+        // 3. Fast Update on UI Thread
+        ApplySearchResults(result);
     },
-    ex =>
-    {
-        // Fatal Pipeline Error
-        _logger.LogError(ex, "FATAL: Search pipeline crashed.");
-        Debug.WriteLine($"[DEBUG] FATAL RX EXCEPTION: {ex}"); 
-        IsTqlBusy = false;
-    })
+    ex => _logger.LogError(ex, "Search pipeline crashed"))
     .DisposeWith(CompositeDisposables);
+     
+
 
 
 
@@ -691,8 +577,96 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         return;
     }
 
+    private void ApplySearchResults(SearchResult result)
+    {
+        IsTqlBusy = false;
+
+        if (!string.IsNullOrEmpty(result.ErrorMessage))
+        {
+            TQLUserSearchErrorMessage = result.ErrorMessage;
+            return;
+        }
+
+
+        SearchResultsHolder.Edit(innerList =>
+        {
+            Debug.WriteLine(innerList.Count);
+            innerList.Clear();
+            innerList.AddRange(result.SongsResult);
+        });
+
+        // Update Debuggers
+        if (result.Plan != null)
+        {
+            // Update NLP Debug text if needed
+        }
+    }
+    
+    private SearchResult PerformSearchBackground(string queryText)
+    {
+        var realmm = RealmFactory.GetRealmInstance();
+        // A. Fast Fail for Empty Query
+        if (string.IsNullOrWhiteSpace(queryText) )
+        {
+            IsFirstBoot = false;
+            var allSongs = realmm.All<SongModel>()
+             .OrderByDescending(s => s.DateCreated)
+              .AsEnumerable()
+             .Take(500)
+
+             .Select(x => x.ToSongModelView())
+             .ToList();
+            return new SearchResult { SongsResult = allSongs };
+        }
+
+        // B. Parse NLP (CPU Bound)
+        var nlpResult = NaturalLanguageProcessor.Process(queryText);
+        var plan = MetaParser.Parse(nlpResult);
+
+        if (plan.ErrorMessage != null)
+            return new SearchResult { ErrorMessage = plan.ErrorMessage, Plan = plan };
+
+        try
+        {
+            using var realm = RealmFactory.GetRealmInstance();
+
+            // C. Realm Filter (Zero-Copy, Fast)
+            var query = realm.All<SongModel>().Filter(plan.RqlFilter);
+
+            // D. Sorting
+            if (plan.SortDescriptions.Count > 0)
+            {
+                var orderByString = string.Join(", ", plan.SortDescriptions.Select(
+                    desc => $"{desc.PropertyName} {(desc.Direction == SortDirection.Ascending ? "asc" : "desc")}"));
+                query = query.OrderBy(orderByString);
+            }
+
+            // E. Materialization (The Heavy Part)
+            // Only materialize what passes the memory predicate to save RAM
+            IEnumerable<SongModel> intermediateList = query;
+
+            if (plan.InMemoryPredicate != null)
+            {
+                // Note: We MUST AsEnumerable() before checking C# logic
+                intermediateList = intermediateList.AsEnumerable().Where(x => plan.InMemoryPredicate(x.ToSongModelView()));
+            }
+
+            // F. Final Projection
+            // Using ToList() here snapshots the data for the UI thread
+            var finalViewList = intermediateList
+                .Select(x => x.ToSongModelView())
+                .ToList();
+
+            return new SearchResult { Plan = plan, SongsResult = finalViewList };
+        }
+        catch (Exception ex)
+        {
+            return new SearchResult { ErrorMessage = ex.Message, Plan = plan };
+        }
+    }
 
     [ObservableProperty] public partial bool CanSkipPage { get; set; } 
+    [ObservableProperty] public partial bool IsFirstBoot { get; set; } 
  
     private async Task HeavierBackGroundLoadings(IEnumerable<string>? folders)
     {
@@ -2017,7 +1991,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public string QueryBeforePlay { get; private set; }
 
     public IRealmFactory RealmFactory;
-    private Realm? realm;
 
 
     [ObservableProperty]
@@ -2638,7 +2611,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [RelayCommand]
     public async Task LoadDashboardAsync()
     {
-
+        var realm = RealmFactory.GetRealmInstance();
         IsLoadingDashoard = true;
 
         DashPeriod = $"From {StatsReportStartDate.Date.ToShortDateString()} - {StatsReportEndDate.Date.ToShortDateString()}";
@@ -3883,56 +3856,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     /// Subscribes to general state changes from the IStateService.
     /// </summary>
     /// 
-    private async Task SetupSession()
-    {
-        try
-        {
-            // 1. Check Connectivity FIRST
-            if (Connectivity.NetworkAccess != NetworkAccess.Internet)
-            {
-                Console.WriteLine("No internet. Skipping Parse auto-login.");
-                return;
-            }
-
-            // 2. Resolve Services
-            var authService = IPlatformApplication.Current.Services.GetRequiredService<IAuthenticationService>();
-            var sessionManager = IPlatformApplication.Current.Services.GetRequiredService<ILiveSessionManagerService>();
-            var loginVM = IPlatformApplication.Current.Services.GetRequiredService<LoginViewModel>();
-
-            // 3. Attempt Auto-Login
-            Console.WriteLine("Attempting Parse Auto-Login...");
-            bool isLoggedIn = await authService.InitializeAsync(); // This checks SecureStorage tokens
-
-            if (isLoggedIn)
-            {
-                Console.WriteLine($"Auto-Login Successful for user: {authService.CurrentUserValue?.Username}");
-
-                // 4. Update UI Model
-                loginVM.CurrentUserOnline = authService.CurrentUserValue;
-
-                // 5. CRITICAL: Register Device Session
-                // This tells Parse "I am here, my Device ID is X, send me commands"
-                await sessionManager.RegisterCurrentDeviceAsync();
-
-                // 6. Sync Initial State (Queues, Playing Song)
-                await sessionManager.SyncDeviceStateAsync();
-
-                // 7. Open the WebSocket Listeners (LiveQuery)
-                sessionManager.StartListeners();
-
-                Console.WriteLine("Device Session & Listeners Active.");
-            }
-            else
-            {
-                Console.WriteLine("Auto-Login failed or no token found.");
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"BOOT ERROR: {ex.Message}");
-            // Optional: Log to Analytics/Crashlytics
-        }
-    }
     private void SubscribeToStateServiceEvents()
     {
         _subsMgr.Add(_stateService.CurrentSong
@@ -4572,7 +4495,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         song ??= SelectedSong;
         if (song is null) return;
 
-        realm = RealmFactory.GetRealmInstance();
+        var realm = RealmFactory.GetRealmInstance();
         // Phase 1: Data Preparation
         var scrobblesInPeriod = realm.Find<SongModel>(song.Id)?.PlayHistory
             //.Where(p => p.EventDate >= startDate && p.EventDate < endDate &&
@@ -5020,7 +4943,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             
 
             _playEventSource.Dispose();
-            realm?.Dispose();
+
             _subsManager.Dispose();
             CompositeDisposables.Dispose();
             
@@ -5040,8 +4963,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _historyRealm?.Dispose();
         _historyRealm = null;
 
-        realm?.Dispose();
-        realm = null;
 
     }
 

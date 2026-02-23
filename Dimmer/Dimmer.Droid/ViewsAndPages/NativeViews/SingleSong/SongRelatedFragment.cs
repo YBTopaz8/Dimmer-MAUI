@@ -54,8 +54,9 @@ public class SongRelatedFragment : Fragment
             // Example of filtering DB by Genre Name
             var genreSongs = _vm.RealmFactory.GetRealmInstance()!.All<SongModel>()
                 .Where(x => x.GenreName == _vm.SelectedSong.GenreName && x.Id != songInDb.Id)
-                .Take(15) // Limit to 15 to keep it fast
                 .AsEnumerable()
+                .Take(15) // Limit to 15 to keep it fast
+                
                 .Select(x => x.ToSongModelView())
                 .ToList();
 

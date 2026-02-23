@@ -1,5 +1,6 @@
-﻿using System.IO.Compression;
-using Parse.LiveQuery;
+﻿using Parse.LiveQuery;
+using System.IO.Compression;
+using System.Text.Json.Serialization;
 
 namespace Dimmer.DimmerLive.Interfaces.Implementations;
 public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
@@ -41,6 +42,7 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
     }
     public async Task SyncDeviceStateAsync()
     {
+        return;
         if (ParseUser.CurrentUser == null) return;
 
         try
@@ -50,19 +52,25 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
 
             // Extract ONLY what we need (to avoid Realm cross-thread exceptions)
             var allSongKeys = realm.All<SongModel>().AsEnumerable().Select(x => x.TitleDurationKey).ToList();
-            var allPlayEvents = realm.All<DimmerPlayEvent>().ToList();
-            var currentQueue = vm.PlaybackQueue.Select(x => x.TitleDurationKey).ToList();
+           
+            var currentQueue = vm.PlaybackQueue?.Select(x => x.TitleDurationKey).ToList();
 
             var stateData = new
             {
                 Songs = allSongKeys,
-                Events = allPlayEvents,
+                //Events = allPlayEvents,
                 Queue = currentQueue,
                 CurrentSong = vm.CurrentPlayingSongView?.TitleDurationKey
             };
 
             // Serialize & Compress
-            string jsonString = JsonSerializer.Serialize(stateData);
+
+            var options = new JsonSerializerOptions
+            {
+                ReferenceHandler = ReferenceHandler.Preserve, // This handles cycles!
+                MaxDepth = 64 // Increase if needed
+            };
+            string jsonString = JsonSerializer.Serialize(stateData, options);
             byte[] jsonBytes = System.Text.Encoding.UTF8.GetBytes(jsonString);
 
             byte[] compressedBytes;

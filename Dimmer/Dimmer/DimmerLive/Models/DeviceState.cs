@@ -197,5 +197,5 @@ public class DeviceCommand : ParseObject
         get => GetProperty<DateTime?>();
         set => SetProperty(value);
     }
-
+    public string PayloadStr { get; internal set; }
 }
