@@ -612,7 +612,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             var allSongs = realmm.All<SongModel>()
              .OrderByDescending(s => s.DateCreated)
               .AsEnumerable()
-             .Take(500)
+             //.Take(500)1
 
              .Select(x => x.ToSongModelView())
              .ToList();

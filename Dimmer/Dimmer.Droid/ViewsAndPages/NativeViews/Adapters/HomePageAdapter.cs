@@ -176,9 +176,13 @@ internal partial class HomePageAdapter : RecyclerView.Adapter, IDisposable
         var durationView = new TextView(ctx) { TextSize = 10, Typeface = Typeface.DefaultBold, Gravity = GravityFlags.CenterHorizontal };
         durationView.SetTextColor(Color.Gray);
 
+        var playCountView = new TextView(ctx) { TextSize = 10, Typeface = Typeface.DefaultBold, Gravity = GravityFlags.CenterHorizontal };
+        durationView.SetTextColor(Color.Gray);
+
         var rightLayout = new LinearLayout(ctx) { Orientation = Orientation.Vertical };
         rightLayout.AddView(moreBtn);
         rightLayout.AddView(durationView);
+        //rightLayout.AddView(playCountView);
         topRow.AddView(rightLayout);
 
         // EXPANDABLE ROW 1
@@ -209,7 +213,7 @@ internal partial class HomePageAdapter : RecyclerView.Adapter, IDisposable
         mainContainer.AddView(expandRowTwo);
         card.AddView(mainContainer);
 
-        return new SongViewHolder(MyViewModel, ParentFragement, card, imgView, title, artist, moreBtn, durationView, expandRow, favBtn, lyricsBtn, infoBtn, statsBtn, topRow);
+        return new SongViewHolder(MyViewModel, ParentFragement, card, imgView, title, artist, moreBtn, durationView, playCountView, expandRow,expandRowTwo, favBtn, lyricsBtn, infoBtn, statsBtn, topRow);
     }
 
     private MaterialButton CreateActionButton(string text, int iconId)
@@ -238,6 +242,7 @@ internal partial class HomePageAdapter : RecyclerView.Adapter, IDisposable
         private readonly View _expandRow;
         private readonly MaterialButton _moreBtn;
         private readonly TextView _durationView;
+        private readonly object _playCountView;
         private readonly MaterialCardView _container;
         private readonly LinearLayout _topRow;
 
@@ -250,8 +255,8 @@ internal partial class HomePageAdapter : RecyclerView.Adapter, IDisposable
         private Action<int>? _expandAction;
 
         public SongViewHolder(BaseViewModelAnd vm, Fragment parentFrag, MaterialCardView container,
-            ImageView img, TextView title, TextView artist, MaterialButton moreBtn, TextView durationView,
-            View expandRow, Button favBtn, Button lyrBtn, Button infoBtn, Button statsBtn, LinearLayout topRow)
+            ImageView img, TextView title, TextView artist, MaterialButton moreBtn, TextView durationView, TextView playCountView,
+            View expandRow, LinearLayout expandRow1, Button favBtn, Button lyrBtn, Button infoBtn, Button statsBtn, LinearLayout topRow)
             : base(container)
         {
             MyViewModel = vm;
@@ -262,6 +267,7 @@ internal partial class HomePageAdapter : RecyclerView.Adapter, IDisposable
             _artist = artist;
             _moreBtn = moreBtn;
             _durationView = durationView;
+            _playCountView = playCountView;
             _expandRow = expandRow;
             _favBtn = favBtn;
             _infoBtn = infoBtn;
@@ -290,6 +296,7 @@ internal partial class HomePageAdapter : RecyclerView.Adapter, IDisposable
             _title.Text = song.Title;
             _artist.Text = song.OtherArtistsName ?? "Unknown";
             _durationView.Text = $"{song.DurationFormatted}";
+            _durationView.Text = $"{song.PlayCompletedCount}";
 
             if (song.HasSyncedLyrics)
             {

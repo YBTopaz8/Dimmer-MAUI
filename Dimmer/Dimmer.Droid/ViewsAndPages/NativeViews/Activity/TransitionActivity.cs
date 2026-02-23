@@ -163,7 +163,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
 
         // 4. Standard Setup
         ProcessIntent(Intent);
-        //SetupService();
+        SetupService();
         SetStatusBarColor();
         SetupBackNavigation();
 
@@ -849,7 +849,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
                     _isDialogActive = false;
                 }
             }
-            await SetupSession();
+            //await SetupSession();
         }
         catch (Exception ex)
         {

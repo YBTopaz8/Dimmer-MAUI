@@ -115,10 +115,9 @@ public partial class SongDetailFragment : Fragment , IOnBackInvokedCallback
             CollapseMode = CollapsingToolbarLayout.LayoutParams.CollapseModeParallax
         };
         var androidDomColor = _viewModel.SelectedSecondDominantColor;
-        string? domCol = string.Empty;
         if (androidDomColor is not null)
         {
-             domCol = androidDomColor.ToHex();
+            string? domCol = androidDomColor.ToHex();
             root.SetBackgroundColor(Color.ParseColor(domCol));
 
             _collapsingToolbar.SetBackgroundColor(Color.ParseColor(domCol));

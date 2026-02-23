@@ -320,6 +320,7 @@ public partial class SongOverviewFragment : Fragment
             _statsGrid.AddView(CreateMetricCard(ctx, "Streak", $"{sum.LongestListeningStreakDays} Days", Resource.Drawable.calendardate, Color.ParseColor("#FF5722")));
 
             _statsGrid.AddView(CreateMetricCard(ctx, "Peak Hour", sum.MostFrequentPlayHourFormatted, Resource.Drawable.clockcircle, Color.ParseColor("#607D8B")));
+            _statsGrid.AddView(CreateMetricCard(ctx, "Total Skips", sum.TotalSkips.ToString(), Resource.Drawable.clockcircle, Color.ParseColor("#607D8B")));
         }
         else
         {
