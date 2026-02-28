@@ -126,6 +126,7 @@
 
 	<ItemGroup>
 	  <Folder Include="Adapters\HomePage\" />
+	  <Folder Include="Resources\layout\" />
 	  <Folder Include="Utils\CustomObjects\" />
 	</ItemGroup>
 

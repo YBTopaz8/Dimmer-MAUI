@@ -8,6 +8,7 @@ using ATL;
 using Dimmer.NativeServices;
 using Dimmer.ViewsAndPages.NativeViews.Adapters;
 using Dimmer.ViewsAndPages.NativeViews.DeviceTransfer;
+using Dimmer.ViewsAndPages.NativeViews.DimmerEvents;
 using Dimmer.ViewsAndPages.NativeViews.DimmerLive;
 using Dimmer.ViewsAndPages.NativeViews.DimmerLive.LastFMViews;
 using Dimmer.ViewsAndPages.NativeViews.Stats;
@@ -125,17 +126,21 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
 
         // 2. Setup Coordinator Layout Architecture
         SetupDrawerLayout();
+
         //SetupCsharpUi();
+
         // 3. Load Fragments (If fresh start)
         if (savedInstanceState == null)
         {
             // A. Load Content (Home)
             var startFragment = new HomePageFragment(MyViewModel);
 
-
-            MyViewModel.HomeAdapter = new HomePageAdapter(this.BaseContext,
-                MyViewModel, startFragment
-                );
+            if (BaseContext is not null)
+            {
+                MyViewModel.HomeAdapter = new HomePageAdapter(this.BaseContext,
+                    MyViewModel, startFragment
+                    );
+            }
             SupportFragmentManager
                 .BeginTransaction()
                 .Replace(_contentContainerFrameLayout.Id, startFragment, "HomePageFragment")
@@ -308,6 +313,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
         _navigationView.Menu?.Add(0, 100, 0, "Home")?.SetIcon(Resource.Drawable.musicaba);
         _navigationView.Menu?.Add(0, 101, 0, "Library")?.SetIcon(Resource.Drawable.heart);
         _navigationView.Menu?.Add(0, 102, 0, "Last FM")?.SetIcon(Resource.Drawable.lastfm);
+        _navigationView.Menu?.Add(0, 104, 0, "Play History")?.SetIcon(Resource.Drawable.time);
         _navigationView.Menu?.Add(0, 103, 0, "Settings")?.SetIcon(Resource.Drawable.settings);
         //_navigationView.Menu?.Add(0, 104, 0, "Device Transfer")?.SetIcon(Resource.Drawable.media3_icon_share);
 
@@ -504,6 +510,13 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
                 }
                 break;
             case 105:
+
+                
+                    selectedFrag = new HistoryFragment( MyViewModel);
+                    tag = "HistoryFragment";
+                
+                break;
+            case 106:
 
                 var viewModel = MainApplication.ServiceProvider.GetService<SessionManagementViewModel>();
                 if (viewModel is not null)
