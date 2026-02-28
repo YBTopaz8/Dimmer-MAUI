@@ -207,6 +207,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         _songListRecycler = new RecyclerView(ctx);
         _songListRecycler.SetLayoutManager(new LinearLayoutManager(ctx));
         _songListRecycler.HasFixedSize = true; // Optimization
+        _songListRecycler.SetItemViewCacheSize(20);
 
         var recyclerParams = new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent);
         // CRITICAL: Connects Recycler scroll to AppBar collapse

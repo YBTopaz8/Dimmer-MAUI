@@ -25,7 +25,7 @@
             x:Name="MyEventsTableView"
             Grid.Row="1"
             AutoGenerateColumns="False"
-            ItemsSource="{x:Bind MyViewModel.DimmerEvents, Mode=OneWay}"
+            ItemsSource="{x:Bind MyViewModel.DimmerEventsCollection, Mode=OneWay}"
             Loaded="MyEventsTableView_Loaded"
             RowHeight="120"
             Unloaded="MyEventsTableView_Unloaded">

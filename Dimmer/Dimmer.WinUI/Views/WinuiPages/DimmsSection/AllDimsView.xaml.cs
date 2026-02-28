@@ -49,7 +49,7 @@ public sealed partial class AllDimsView : Page
             MyViewModel.ActivateHistory();
 
 
-            MyEventsTableView.ItemsSource = MyViewModel.DimmerEvents;
+            MyEventsTableView.ItemsSource = MyViewModel.DimmerEvents.Items.ToList();
             var items = MyEventsTableView.Items.Count;
             Debug.WriteLine($"Items in EventsTableView: {items}");
 
@@ -192,60 +192,11 @@ public sealed partial class AllDimsView : Page
 
         Frame?.NavigateToType(songDetailType, navParams, navigationOptions);
     }
-    
-    private ScrollViewer? _innerScrollViewer;
-    
-    private void InnerScrollViewer_ViewChanged(object? sender, ScrollViewerViewChangedEventArgs e)
-    {
-        CalculateVirtualRange();
-    }
+   
+   
     private int _lastStartIndex = -1;
     private int _lastVisibleCount = -1;
-    private void CalculateVirtualRange()
-    {
-        if (_innerScrollViewer == null) return;
-
-        const double rowHeight = 120;
-
-        // Current State
-        int firstVisibleIndex = (int)(_innerScrollViewer.VerticalOffset / rowHeight);
-        int visibleRowCount = (int)(_innerScrollViewer.ViewportHeight / rowHeight);
-
-        // Define your Buffer (Keep it generous)
-        int buffer = 20;
-
-        int proposedStart = Math.Max(0, firstVisibleIndex - 10);
-        int proposedCount = visibleRowCount + buffer;
-
-
-        bool countChanged = Math.Abs(proposedCount - _lastVisibleCount) > 1;
-
-        bool scrollChangedSignificant = Math.Abs(proposedStart - _lastStartIndex) > 5;
-
-        if (!countChanged && !scrollChangedSignificant)
-        {
-            return;
-        }
-
-        // 4. Update State
-        _lastStartIndex = proposedStart;
-        _lastVisibleCount = proposedCount;
-
-        RxSchedulers.UI.ScheduleTo(() =>
-        {
-            MyViewModel.UpdateHistoryVirtualRange(proposedStart, proposedCount);
-            Debug.WriteLine($"[Virtualize] UPDATE SENT -> Start: {proposedStart}, Count: {proposedCount}");
-        });
-    }
-    private void MyEventsTableView_Unloaded(object sender, RoutedEventArgs e)
-    {
-        if (_innerScrollViewer != null)
-        {
-            // Unsubscribe from the SCROLL event to prevent memory leaks
-            _innerScrollViewer.ViewChanged -= InnerScrollViewer_ViewChanged;
-            _innerScrollViewer = null;
-        }
-    }
+ 
     private async void MyEventsTableView_Loaded(object sender, RoutedEventArgs e)
     {
         
@@ -436,5 +387,10 @@ public sealed partial class AllDimsView : Page
             }
         }
         return null;
+    }
+
+    private void MyEventsTableView_Unloaded(object sender, RoutedEventArgs e)
+    {
+
     }
 }

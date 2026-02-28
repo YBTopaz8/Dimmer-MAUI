@@ -191,70 +191,40 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
            await OnAppClosingAsync();
         }
     }
+    private readonly BehaviorSubject<PageRequest> _pagingController = new(new PageRequest(0, 50));
 
     private void SetupHistoryPipeline()
     {
-        IsPlayEventsLoading=true;
-        _historyDisposable.Disposable = null;
+        // Get Realm instance
+        var _realm = RealmFactory.GetRealmInstance();
 
-        Debug.WriteLine($"[Instance: {InstanceId}] [PIPELINE] ");
-        if (_historyRealm == null || _historyRealm.IsClosed)
-        {
-            _historyRealm = RealmFactory.GetRealmInstance();
-        }
+        var totalItems = _realm.All<DimmerPlayEvent>().Count();
+        TotalPages = (int)Math.Ceiling((double)totalItems / 50);
+        UpdatePageStatus();
 
-        var newSubscriptions = _historyRealm.All<DimmerPlayEvent>()
-        .OrderByDescending(p => p.EventDate).ToList();
-
-        var newSubscription = _historyRealm.All<DimmerPlayEvent>()
-        .OrderByDescending(p => p.EventDate)
-        .AsObservableChangeSet()
-        .Virtualise(_historyRequest)
-        .Transform(x =>
-        {
-            // 2. Convert to ViewObject and project/enrich
-            var viewObj = x.Freeze().ToDimmerPlayEventView()!;
-
-
-            var frozenEvent = x.Freeze();
-            var song = frozenEvent.SongsLinkingToThisEvent.FirstOrDefaultNullSafe();
-
-            if (song != null)
+        // Build the reactive pipeline
+        var pipeline = _realm.All<DimmerPlayEvent>()
+            .OrderByDescending(p => p.EventDate)
+            .AsObservableChangeSet() 
+            .Filter(x => x.SongId != null) // Optional: filter out invalid events
+            .Sort(SortExpressionComparer<DimmerPlayEvent>.Descending(x => x.EventDate))
+            .Page(_pagingController) 
+            .Transform(playEvent => playEvent.ToDimmerPlayEventView()!)
+            .ObserveOn(RxSchedulers.UI)
+            .Bind(out _dimmerEventsCollection)
+            .DisposeMany()
+           
+            .Subscribe(changes =>
             {
-                viewObj.SongViewObject = song.ToSongModelView();
-            }
-            else
-            {
+                IsLoading = false;
+                // No need to manually clear/add here anymore, .Bind() handles it!
+                OnPropertyChanged(nameof(DimmerEventsCollection));
+            });
 
-                viewObj.SongViewObject = SearchResults.FirstOrDefault(s => s.Id == frozenEvent.SongId);
-
-                var eventId = frozenEvent.Id;
-                ObjectId? songId = frozenEvent.SongId;
-                if (songId is not null)
-                {
-                    FixMissingEventRelationship(eventId, (ObjectId)songId);
-                }
-            }
-            return viewObj;
-        })
-        .ObserveOn(RxSchedulers.Background)
-        .ObserveOn(RxSchedulers.UI)
-        .Bind(out _dimmerEvents)
-        .Subscribe(changes =>
-        {
-            IsPlayEventsLoading = false;
-
-            OnPropertyChanged(nameof(DimmerEvents));
-        },
-        ex =>
-        {
-
-            Debug.WriteLine($"[Instance: {InstanceId}] [PIPELINE ERROR] {ex.Message}");
-        });
-
-        _historyDisposable.Disposable = newSubscription;
-        Debug.WriteLine("History pipeline setup complete.");
+        pipeline.DisposeWith(CompositeDisposables);
     }
+
+
 
     [RelayCommand]
     public void NextEvtPage()
@@ -418,7 +388,37 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             try
             {
+                using (var db = RealmFactory.GetRealmInstance())
+                {
+                    var usrs = db.All<UserModel>().FirstOrDefaultNullSafe();
+
+                    await db.WriteAsync(() =>
+                    {
+
+                       var usr = usrs ?? new UserModel
+                        {
+                            Id = ObjectId.GenerateNewId(),
+                            UserDateCreated = DateTimeOffset.UtcNow,
+                            IsNew = true,
+                        };
+                        // Only update if logged in, or set defaults
+                        if (usrs != null) usr.UserName = lastfmService.AuthenticatedUser;
+
+                        usr.DeviceFormFactor ??= DeviceInfo.Current.DeviceType.ToString();
+                        usr.DeviceManufacturer ??= DeviceInfo.Current.Manufacturer.ToString();
+                        usr.DeviceModel ??= DeviceInfo.Current.Model.ToString();
+                        usr.DeviceName ??= DeviceInfo.Current.Name.ToString();
+                        usr.DeviceVersion ??= DeviceInfo.Current.VersionString;
+
+                        db.Add(usr, update: true); // update: true handles both Add and Update logic safely
+
+                        CurrentUserLocal = usr.ToUserModelView()!;
+                    });
+                }
+
                 await OnAppOpening();
+
+                await Task.Delay(8000);
                 await HeavierBackGroundLoadings(FolderPaths);
 
                 await EnsureAllCoverArtCachedForSongsAsync(_backgroundCachingCts.Token);
@@ -457,8 +457,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     .DistinctUntilChanged()
     .Do(query =>
     {
+        RxSchedulers.UI.ScheduleTo(() =>
+        {
 
-        CurrentTqlQuery = query;
+            CurrentTqlQueryUI = query;
+
+        });
     })
     .Select(query =>
     {
@@ -474,8 +478,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             return PerformSearchBackground(query);
         }, RxSchedulers.Background);
     })
+    
     .Switch()
     .ObserveOn(RxSchedulers.UI)
+    
     .Subscribe(result =>
     {
 
@@ -506,36 +512,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         _logger.LogInformation(string.Format("{0}: Calculating ranks using RQL sorting...", DateTime.Now));
 
-        UserModel usr = new UserModel();
         // Use a single, large write transaction for performance.
-        using (var db = RealmFactory.GetRealmInstance())
-        {
-            var usrs = db.All<UserModel>().FirstOrDefaultNullSafe();
-
-            db.Write(() =>
-            {
-
-                usr= usrs ?? new UserModel
-                {
-                    Id = ObjectId.GenerateNewId(),
-                    UserDateCreated = DateTimeOffset.UtcNow,
-                    IsNew = true,
-                };
-                // Only update if logged in, or set defaults
-                if (usrs != null) usr.UserName = lastfmService.AuthenticatedUser;
-
-                usr.DeviceFormFactor ??= DeviceInfo.Current.DeviceType.ToString();
-                usr.DeviceManufacturer ??= DeviceInfo.Current.Manufacturer.ToString();
-                usr.DeviceModel ??= DeviceInfo.Current.Model.ToString();
-                usr.DeviceName ??= DeviceInfo.Current.Name.ToString();
-                usr.DeviceVersion ??= DeviceInfo.Current.VersionString;
-
-                db.Add(usr, update: true); // update: true handles both Add and Update logic safely
-
-                CurrentUserLocal = usr.ToUserModelView()!;
-            });
-        }
-        lastfmService.IsAuthenticatedChanged
+         lastfmService.IsAuthenticatedChanged
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(
                 async isAuthenticated =>
@@ -1330,14 +1308,21 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     #region private fields
     public SourceList<SongModelView> SearchResultsHolder = new SourceList<SongModelView>();
-    public SourceList<DimmerPlayEventView> DimmerPlayEvtsHolder = new ();
 
     private readonly ReadOnlyObservableCollection<SongModelView> _searchResults;
-    private  ReadOnlyObservableCollection<DimmerPlayEventView>? _dimmerEvents;
     public ReadOnlyObservableCollection<SongModelView> SearchResults => _searchResults;
-    public ReadOnlyObservableCollection<DimmerPlayEventView> DimmerEvents => _dimmerEvents;
 
 
+    private readonly SourceList<DimmerPlayEventView> _dimmerEvents = new();
+    // Expose the connectable source for adapters
+    public IObservable<IChangeSet<DimmerPlayEventView>> Connect() => _dimmerEvents.Connect();
+
+    // For backward compatibility with your existing code
+    public IObservableList<DimmerPlayEventView> DimmerEvents => _dimmerEvents;
+    private ReadOnlyObservableCollection<DimmerPlayEventView> _dimmerEventsCollection;
+
+    // 2. Expose it for XAML binding
+    public ReadOnlyObservableCollection<DimmerPlayEventView> DimmerEventsCollection => _dimmerEventsCollection;
     private readonly CommandEvaluator commandEvaluator = new();
     #endregion
 
@@ -1639,7 +1624,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial string AppTitle { get; set; } = "Dimmer";
 
-    public static string CurrentAppVersion = "1.8.0";
+    public static string CurrentAppVersion = "1.8.1";
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]
@@ -4982,7 +4967,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _historyDisposable.Dispose();
         CompositeDisposables?.Dispose();
 
-        _dimmerEvents = null;
+
         _historyRealm?.Dispose();
         _historyRealm = null;
 

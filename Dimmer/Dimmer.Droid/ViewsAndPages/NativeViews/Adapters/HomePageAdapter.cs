@@ -51,32 +51,25 @@ internal partial class HomePageAdapter : RecyclerView.Adapter, IDisposable
         IObservable<IChangeSet<SongModelView>> sourceStream = viewModel.SearchResultsHolder.Connect();
 
         sourceStream
-            .ObserveOn(RxSchedulers.UI) // <--- CRITICAL: Force this to run on the Main UI Thread instantly
-            .Subscribe(changes =>
-            {
-                if (_isDisposed) return;
+      .ObserveOn(RxSchedulers.UI) // <--- Stay on UI thread for instant response
+      .Subscribe(changes =>
+      {
+          if (_isDisposed) return;
 
-                if (!_isAdapterReady.Value) _isAdapterReady.OnNext(true);
+          // 1. Snapshot the items from the holder instantly
+          var newList = viewModel.SearchResultsHolder.Items.ToList();
 
-                // 1. Grab the fresh data instantly
-                var newList = viewModel.SearchResultsHolder.Items.ToList();
+          // 2. Clear and Swap
+          _localSongs.Clear();
+          _localSongs.AddRange(newList);
 
-                Debug.WriteLine(DateTime.Now + " starting clear & update");
+          // 3. Instant redraw without the Task.Run/DiffUtil overhead
+          NotifyDataSetChanged();
 
-                // 2. Swap the lists in memory
-                _localSongs.Clear();
-                _localSongs.AddRange(newList);
-
-                // 3. INSTANT REDRAW! 
-                // No Task.Run. No DiffUtil calculation. No thread pool starvation.
-                NotifyDataSetChanged();
-
-                _isSourceCleared.OnNext(_localSongs.Count == 0);
-
-                Debug.WriteLine(DateTime.Now + " ending adapter update");
-            })
-            .DisposeWith(_disposables);
-
+          if (!_isAdapterReady.Value) _isAdapterReady.OnNext(true);
+          _isSourceCleared.OnNext(_localSongs.Count == 0);
+      })
+      .DisposeWith(_disposables);
         Observable.FromEventPattern<PlaybackEventArgs>(
                 h => _audioService.PlaybackStateChanged += h,
                 h => _audioService.PlaybackStateChanged -= h)

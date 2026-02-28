@@ -15,7 +15,12 @@ public static class ViewExts
         try
         {
             TransitionActivity? act = ImgView.Context?.GetActivity() as TransitionActivity;
-            Glide.With(ImgView.Context!).Load(imgPath)
+            Glide.With(ImgView.Context!)
+                .AsBitmap()
+                .Load(imgPath)?
+                .SetPriority(Bumptech.Glide.Priority.Low!)
+                .Override(AppUtil.DpToPx(56), AppUtil.DpToPx(56))
+                .DontAnimate()
                 .Into(ImgView);
         }
         catch (Java.Lang.IllegalArgumentException ex)
