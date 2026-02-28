@@ -33,6 +33,11 @@ internal partial class HomePageAdapter : RecyclerView.Adapter, IDisposable
 
     public HomePageAdapter(Context ctx, BaseViewModelAnd vm, Fragment pFragment)
     {
+        Debug.WriteLine(DateTime.Now + "starting adapter");
+
+        Debug.WriteLine(DateTime.Now.TimeOfDay.Seconds + "starting adapter ctor");
+        Debug.WriteLine(DateTime.Now.TimeOfDay.Microseconds + "starting adapter ctor");
+        Debug.WriteLine(DateTime.Now.TimeOfDay.Milliseconds + "starting adapter ctor");
         MyViewModel = vm;
         _audioService = vm.AudioService;
         ParentFragement = pFragment;
@@ -41,44 +46,34 @@ internal partial class HomePageAdapter : RecyclerView.Adapter, IDisposable
 
     private void SetupReactivePipeline(BaseViewModelAnd viewModel)
     {
+        Debug.WriteLine(DateTime.Now + " starting adapter2");
+
         IObservable<IChangeSet<SongModelView>> sourceStream = viewModel.SearchResultsHolder.Connect();
 
         sourceStream
-            .Do(s => Debug.WriteLine($"Song Count in adapter: {viewModel.SearchResults.Count}"))
-            .Subscribe(async changes =>
+            .ObserveOn(RxSchedulers.UI) // <--- CRITICAL: Force this to run on the Main UI Thread instantly
+            .Subscribe(changes =>
             {
                 if (_isDisposed) return;
-                _diffCts.Cancel();
-                _diffCts = new CancellationTokenSource();
-                var token = _diffCts.Token;
 
                 if (!_isAdapterReady.Value) _isAdapterReady.OnNext(true);
 
+                // 1. Grab the fresh data instantly
                 var newList = viewModel.SearchResultsHolder.Items.ToList();
-                var oldListSnapshot = _localSongs.ToList();
 
-                try
-                {
-                    // Background thread Diff Calculation! Excellent for performance.
-                    var diffResult = await Task.Run(() =>
-                    {
-                        var diffCallback = new SongDiff(oldListSnapshot, newList);
-                        return DiffUtil.CalculateDiff(diffCallback);
-                    }, token);
+                Debug.WriteLine(DateTime.Now + " starting clear & update");
 
-                    if (token.IsCancellationRequested) return;
+                // 2. Swap the lists in memory
+                _localSongs.Clear();
+                _localSongs.AddRange(newList);
 
-                    MainThread.BeginInvokeOnMainThread(() =>
-                    {
-                        if (!_isAdapterReady.Value) _isAdapterReady.OnNext(true);
+                // 3. INSTANT REDRAW! 
+                // No Task.Run. No DiffUtil calculation. No thread pool starvation.
+                NotifyDataSetChanged();
 
-                        _localSongs.Clear();
-                        _localSongs.AddRange(newList);
-                        diffResult.DispatchUpdatesTo(this);
-                        _isSourceCleared.OnNext(_localSongs.Count == 0);
-                    });
-                }
-                catch (TaskCanceledException) { }
+                _isSourceCleared.OnNext(_localSongs.Count == 0);
+
+                Debug.WriteLine(DateTime.Now + " ending adapter update");
             })
             .DisposeWith(_disposables);
 
@@ -90,7 +85,6 @@ internal partial class HomePageAdapter : RecyclerView.Adapter, IDisposable
             .Subscribe(x => HandlePlaybackStateChange(x))
             .DisposeWith(_disposables);
     }
-
     private void HandlePlaybackStateChange(PlaybackEventArgs x) { }
 
     public new void Dispose()

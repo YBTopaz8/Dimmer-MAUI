@@ -232,13 +232,13 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         verticalMenu.SetPadding(10, 20, 10, 20);
 
         var sortAsc = CreateToolbarButton(ctx, Resource.Drawable.sortfrombottomtotop, "Scroll To Top");
-        sortAsc.Click += (s, e) => { _songListRecycler.SmoothScrollToPosition(0); };
+        sortAsc.Click += (s, e) => _songListRecycler.ScrollToPosition(0);
 
         var scrollToSong = CreateToolbarButton(ctx, Resource.Drawable.eye, "Scroll to Current");
         SetupClickableFab(scrollToSong);
 
         var scrollToBottom = CreateToolbarButton(ctx, Resource.Drawable.sortfromtoptobottom, "Scroll to bottom");
-        scrollToBottom.Click += (s, e) => { _songListRecycler.SmoothScrollToPosition(MyViewModel.SearchResults.Count - 1); };
+        scrollToBottom.Click += (s, e) => { _songListRecycler.ScrollToPosition(MyViewModel.SearchResults.Count - 1); };
 
         verticalMenu.AddView(sortAsc);
         verticalMenu.AddView(scrollToSong);

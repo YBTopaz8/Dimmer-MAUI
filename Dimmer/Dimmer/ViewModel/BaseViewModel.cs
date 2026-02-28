@@ -407,15 +407,34 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             //ShowAllSongsWindowActivate();
         }
 
-
+        _backgroundCachingCts = new();
 
         Debug.WriteLine($"{DateTime.Now}: Starting InitializeAllVMCoreComponentsAsync...");
 
-      
 
-        Debug.WriteLine($"{DateTime.Now}: Folder monitoring started.");
+        Debug.WriteLine(DateTime.Now + "start start bg task");
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await OnAppOpening();
+                await HeavierBackGroundLoadings(FolderPaths);
+
+                await EnsureAllCoverArtCachedForSongsAsync(_backgroundCachingCts.Token);
+            }
+            catch (OperationCanceledException er)
+            {
+                _logger.LogInformation("Background cover art caching was cancelled." + er.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during background initialization and cover art caching.");
+            }
+        }, _backgroundCachingCts.Token);
 
 
+        Debug.WriteLine(DateTime.Now + "start connect pb source") ;
         PlaybackQueueSource.Connect()
             .ObserveOn(RxSchedulers.UI)
             .Bind(out _playbackQueue)
@@ -431,8 +450,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
 
 
+
+        Debug.WriteLine(DateTime.Now + "start auery pipeline");
         var searchStream = _searchQuerySubject
-    .Throttle(TimeSpan.FromMilliseconds(250), RxSchedulers.Background)
+    .Throttle(TimeSpan.FromMilliseconds(150), RxSchedulers.Background)
     .DistinctUntilChanged()
     .Do(query =>
     {
@@ -444,6 +465,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         return Observable.Start(() =>
         
         {
+
+            Debug.WriteLine(DateTime.Now.TimeOfDay.Seconds + "starting running by search");
+            Debug.WriteLine(DateTime.Now.TimeOfDay.Microseconds + "starting running by search");
+            Debug.WriteLine(DateTime.Now.TimeOfDay.Milliseconds + "starting running by search");
+
+            Debug.WriteLine(DateTime.Now + "start running bg seqrch");
             return PerformSearchBackground(query);
         }, RxSchedulers.Background);
     })
@@ -451,8 +478,22 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     .ObserveOn(RxSchedulers.UI)
     .Subscribe(result =>
     {
+
+        Debug.WriteLine(DateTime.Now + "start connect qpply search");
+
+
+        Debug.WriteLine(DateTime.Now.TimeOfDay.Seconds + "start connect  ctor");
+        Debug.WriteLine(DateTime.Now.TimeOfDay.Microseconds + "start connect ctor");
+        Debug.WriteLine(DateTime.Now.TimeOfDay.Milliseconds + "start connect  ctor");
+
         // 3. Fast Update on UI Thread
         ApplySearchResults(result);
+
+        Debug.WriteLine(DateTime.Now + "end apply result");
+
+        Debug.WriteLine(DateTime.Now.TimeOfDay.Seconds + "end apply result");
+        Debug.WriteLine(DateTime.Now.TimeOfDay.Microseconds + "end apply result");
+        Debug.WriteLine(DateTime.Now.TimeOfDay.Milliseconds + "end apply result");
     },
     ex => _logger.LogError(ex, "Search pipeline crashed"))
     .DisposeWith(CompositeDisposables);
@@ -554,25 +595,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _backgroundCachingCts?.Dispose();
         _backgroundCachingCts = new CancellationTokenSource();
         
-        _ = Task.Run(async () =>
-        {
-            try
-            {
-                await OnAppOpening();
-                await HeavierBackGroundLoadings(FolderPaths);
-
-                await EnsureAllCoverArtCachedForSongsAsync(_backgroundCachingCts.Token);
-            }
-            catch (OperationCanceledException er)
-            {
-                _logger.LogInformation("Background cover art caching was cancelled."+er.Message);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error during background initialization and cover art caching.");
-            }
-        }, _backgroundCachingCts.Token);
-
+      
         IsInitialized = true;
         return;
     }
