@@ -17,6 +17,7 @@ Building this as a hobby and also because the music app I use on Windows (Dopami
   - Edit fetched lyrics before saving
   - Timestamp plain lyrics directly from search results
 - Social Share
+- **A-B Loop** - Loop specific sections of songs for practice, learning, or enjoyment. [Learn more](DOCS/AB_LOOP_FEATURE.md)
 - More to come such as playlist management, song's editing, statistics etc..
 
 # Requirements

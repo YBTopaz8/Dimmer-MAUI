@@ -37,6 +37,8 @@
         <converters:DateTimeToLocalTimeConverter x:Key="DateTimeToTimeConverter" />
         <converters:BoolToYesNoConverter x:Key="BoolToYesNo" />
         <converters:VolumeConverter x:Key="VolConverter" />
+        <converters:EmptyStringToFalseConverter x:Key="EmptyStringToFalseConverter" />
+        <converters:IsNotNullConverter x:Key="IsNotNullConverter" />
 
 
         <ResourceDictionary />
@@ -577,6 +579,85 @@
                             Text="{Binding CurrentPlayingSongView.DurationInSeconds, Converter={StaticResource DurationConverter}}" />
 
                     </HorizontalStackLayout>
+
+                    <!--  A-B Loop Controls  -->
+                    <HorizontalStackLayout
+                        HorizontalOptions="Center"
+                        Spacing="10"
+                        Margin="0,10,0,0">
+                        <Button
+                            x:Name="SetPointABtn"
+                            Background="Transparent"
+                            BorderWidth="1"
+                            BorderColor="{AppThemeBinding Light=Black, Dark=White}"
+                            Command="{Binding SetPointACommand}"
+                            Text="Set A"
+                            FontSize="12"
+                            HeightRequest="35"
+                            WidthRequest="60"
+                            ToolTipProperties.Text="Set loop start point (Point A)">
+                            <Button.Triggers>
+                                <DataTrigger
+                                    Binding="{Binding ABLoopState.StartPosition, Converter={converters:IsNotNullConverter}}"
+                                    TargetType="Button"
+                                    Value="True">
+                                    <Setter Property="BorderColor" Value="Green" />
+                                    <Setter Property="BorderWidth" Value="2" />
+                                    <Setter Property="TextColor" Value="Green" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+                        
+                        <Button
+                            x:Name="SetPointBBtn"
+                            Background="Transparent"
+                            BorderWidth="1"
+                            BorderColor="{AppThemeBinding Light=Black, Dark=White}"
+                            Command="{Binding SetPointBCommand}"
+                            Text="Set B"
+                            FontSize="12"
+                            HeightRequest="35"
+                            WidthRequest="60"
+                            ToolTipProperties.Text="Set loop end point (Point B)">
+                            <Button.Triggers>
+                                <DataTrigger
+                                    Binding="{Binding ABLoopState.EndPosition, Converter={converters:IsNotNullConverter}}"
+                                    TargetType="Button"
+                                    Value="True">
+                                    <Setter Property="BorderColor" Value="Green" />
+                                    <Setter Property="BorderWidth" Value="2" />
+                                    <Setter Property="TextColor" Value="Green" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+
+                        <Button
+                            x:Name="ClearABLoopBtn"
+                            Background="Transparent"
+                            BorderWidth="1"
+                            BorderColor="{AppThemeBinding Light=Black, Dark=White}"
+                            Command="{Binding ClearABLoopCommand}"
+                            Text="Clear"
+                            FontSize="12"
+                            HeightRequest="35"
+                            WidthRequest="60"
+                            IsVisible="{Binding IsABLoopEnabled}"
+                            ToolTipProperties.Text="Clear A-B loop">
+                            <Button.Behaviors>
+                                <toolkit:IconTintColorBehavior TintColor="Red" />
+                            </Button.Behaviors>
+                        </Button>
+                    </HorizontalStackLayout>
+
+                    <!--  A-B Loop Status  -->
+                    <Label
+                        Text="{Binding ABLoopStatusText}"
+                        FontSize="13"
+                        FontAttributes="Bold"
+                        HorizontalOptions="Center"
+                        Margin="0,5,0,0"
+                        TextColor="{AppThemeBinding Light=DarkSlateBlue, Dark=LightBlue}"
+                        IsVisible="{Binding ABLoopStatusText, Converter={converters:EmptyStringToFalseConverter}}" />
 
                 </VerticalStackLayout>
             </Grid>
