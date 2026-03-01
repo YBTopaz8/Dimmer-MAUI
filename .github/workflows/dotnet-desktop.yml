@@ -28,8 +28,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nuget-
 
-      # 3. DETECT VERSION & RELEASE TYPE
-      - name: Detect Version & Release Type
+      # 3. DETECT VERSION (FORCED FULL RELEASE)
+      - name: Detect Version
         id: version_logic
         shell: pwsh
         run: |
@@ -37,7 +37,10 @@ jobs:
           [xml]$xml = Get-Content $projectFile.FullName
           $currentVersionStr = $xml.Project.PropertyGroup.Version.Trim()
           $newTag = "v$currentVersionStr"
+          
+          # Set Env Variables (Force IS_PRE to false)
           "NEW_TAG=$newTag" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "IS_PRE=false" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           
           git fetch --tags --force
           $allTags = git tag --sort=-version:refname 
@@ -45,35 +48,35 @@ jobs:
           $foundTag = $allTags | Where-Object { $_.Trim() -ne $newTag -and $_.Trim() -match $validPattern } | Select-Object -First 1
           
           if ($null -ne $foundTag) {
-              $prevTag = $foundTag.Trim()
-              "LATEST_TAG=$prevTag" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-              $curV = [System.Version]$currentVersionStr
-              $prevV = [System.Version]($prevTag -replace "[^0-9\.]", "")
-              if ($curV.Major -gt $prevV.Major -or $curV.Minor -gt $prevV.Minor) { "IS_PRE=false" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8 }
-              else { "IS_PRE=true" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8 }
+              "LATEST_TAG=$($foundTag.Trim())" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           } else {
-              "IS_PRE=false" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
               "LATEST_TAG=" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           }
 
-      # 3.5 GENERATE CHANGELOG
+      # 3.5 GENERATE CHANGELOG (LIMITED TO LAST 10)
       - name: Generate Changelog
         shell: pwsh
         run: |
           $prevTag = $env:LATEST_TAG
+          # Fetch only the last 10 commits to keep the release notes clean
           if ([string]::IsNullOrWhiteSpace($prevTag)) {
-              $log = git log --pretty=format:"- %s (%h)" --no-merges
+              $log = git log -n 10 --pretty=format:"- %s (%h)" --no-merges
           } else {
-              $log = git log "$($prevTag)..HEAD" --pretty=format:"- %s (%h)" --no-merges
+              $log = git log "$($prevTag)..HEAD" -n 10 --pretty=format:"- %s (%h)" --no-merges
           }
+          
           $logString = if ($log -is [Array]) { $log -join "`n" } else { $log }
-          if ([string]::IsNullOrWhiteSpace($logString)) { $logString = git log -n 15 --pretty=format:"- %s (%h)" --no-merges -join "`n" }
+          
+          # Final fallback if log is still empty
+          if ([string]::IsNullOrWhiteSpace($logString)) { 
+              $logString = git log -n 10 --pretty=format:"- %s (%h)" --no-merges -join "`n" 
+          }
           
           # Create file for release notes
           $content = "## Changes in $env:NEW_TAG`n`n$logString"
           Set-Content -Path "release_notes.md" -Value $content -Encoding UTF8
           
-          # Use Heredoc syntax to save multi-line string to GITHUB_ENV
+          # Save to GITHUB_ENV for Parse/Discord steps
           $eof = [System.Guid]::NewGuid().ToString("N")
           "ESCAPED_LOG<<$eof" | Out-File -FilePath $env:GITHUB_ENV -Append
           $logString | Out-File -FilePath $env:GITHUB_ENV -Append
@@ -130,15 +133,13 @@ jobs:
             if ($changed) { Set-Content $path $content -Encoding UTF8 }
           }
 
-      # 8. DISABLE EXTERNAL REPO SIGNING (FIXES PFX ERROR)
+      # 8. DISABLE EXTERNAL REPO SIGNING
       - name: Disable AudioSwitcher Signing
         shell: pwsh
         run: |
           $audioPath = Join-Path $env:GITHUB_WORKSPACE "ExternalDeps\AudioSwitcher-master"
           Get-ChildItem -Path $audioPath -Recurse -Filter "*.csproj" | ForEach-Object {
-            Write-Host "Disabling signing for: $($_.Name)"
             $content = Get-Content $_.FullName -Raw
-            # Strip AssemblyOriginatorKeyFile tags and set SignAssembly to false
             $content = $content -replace '<AssemblyOriginatorKeyFile>.*?</AssemblyOriginatorKeyFile>', ''
             $content = $content -replace '<SignAssembly>true</SignAssembly>', '<SignAssembly>false</SignAssembly>'
             Set-Content $_.FullName $content -Encoding UTF8
@@ -165,8 +166,7 @@ jobs:
           $zipPath = ".\Artifacts\Dimmer-Windows-Portable-${{ env.NEW_TAG }}.zip"
           New-Item -ItemType Directory -Force -Path .\Artifacts
           Compress-Archive -Path .\RawBuild\WinUI\* -DestinationPath $zipPath
-          $size = (Get-Item $zipPath).Length
-          echo "WIN_SIZE=$size" >> $env:GITHUB_ENV
+          echo "WIN_SIZE=$((Get-Item $zipPath).Length)" >> $env:GITHUB_ENV
 
       # 12. BUILD ANDROID
       - name: Build Android
@@ -188,7 +188,7 @@ jobs:
             RawBuild/Android/*.apk
             Artifacts/Dimmer-Windows-Portable-${{ env.NEW_TAG }}.zip
             
-      # 14. PUSH TAG & RELEASE
+      # 14. PUSH TAG & RELEASE (PRERELEASE: FALSE)
       - name: Push Tag & Create Release
         id: create_release
         uses: softprops/action-gh-release@v1        
@@ -196,13 +196,13 @@ jobs:
           tag_name: ${{ env.NEW_TAG }}
           name: Release ${{ env.NEW_TAG }}
           draft: false
-          prerelease: ${{ env.IS_PRE }}
+          prerelease: false
           body_path: release_notes.md
           files: |
             RawBuild/Android/*.apk
             Artifacts/Dimmer-Windows-Portable-${{ env.NEW_TAG }}.zip
 
-      # 15. NOTIFY PARSE SERVER (postAppUpdate)
+      # 15. NOTIFY PARSE SERVER
       - name: Notify Parse of New Update
         shell: pwsh
         env:
@@ -211,12 +211,9 @@ jobs:
           PARSE_SERVER_URL: ${{ secrets.PARSE_SERVER_URL }}
         run: |
           $releaseUrl = "${{ github.server_url }}/${{ github.repository }}/releases/tag/$($env:NEW_TAG)"
-          
-          # Calculate sizes once
           $aSize = "$([math]::Round($env:APK_SIZE / 1MB, 2)) MB"
           $wSize = "$([math]::Round($env:WIN_SIZE / 1MB, 2)) MB"
           
-          # Prepare Payload
           $body = @{ 
               title        = "Dimmer $($env:NEW_TAG)"
               version      = "$($env:NEW_TAG)"
@@ -224,10 +221,9 @@ jobs:
               url          = $releaseUrl
               androidSize  = $aSize
               windowsSize  = $wSize
-              isPreRelease = [System.Convert]::ToBoolean($env:IS_PRE)
+              isPreRelease = $false
           } | ConvertTo-Json
           
-          # Headers - Master Key is used here to bypass the authentication error
           $headers = @{ 
               "X-Parse-Application-Id" = $env:PARSE_APP_ID
               "X-Parse-Master-Key"     = $env:PARSE_MASTER_KEY
