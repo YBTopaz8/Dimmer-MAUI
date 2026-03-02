@@ -1,14 +1,4 @@
-﻿using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Runtime.ConstrainedExecution;
-using System.Security.Cryptography;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-
-using ATL;
-
+﻿using ATL;
 using AudioSwitcher.AudioApi;
 using CommunityToolkit.Diagnostics;
 using Dimmer.DimmerLive.ParseStatics;
@@ -21,22 +11,22 @@ using Dimmer.UIUtils;
 using Dimmer.Utilities.Enums;
 using Dimmer.Utilities.TypeConverters;
 using Dimmer.Utils;
-
 using DynamicData.Binding;
-
 using Hqub.Lastfm.Entities;
-
 using Microsoft.Extensions.Logging.Abstractions;
-
 using Parse.LiveQuery;
-
 using Realms;
-
+using System.ComponentModel;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Runtime.ConstrainedExecution;
+using System.Security.Cryptography;
+using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using static Dimmer.Data.ModelView.LastFMUserView;
 using static Microsoft.Maui.ApplicationModel.Permissions;
-
-
-
 //using MoreLinq;
 //using MoreLinq.Extensions;
 
@@ -207,8 +197,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             .OrderByDescending(p => p.EventDate)
             .AsObservableChangeSet() 
             .Filter(x => x.SongId != null) // Optional: filter out invalid events
-            .Sort(SortExpressionComparer<DimmerPlayEvent>.Descending(x => x.EventDate))
-            .Page(_pagingController) 
+            //.Sort(SortExpressionComparer<DimmerPlayEvent>.Descending(x => x.EventDate))
+            //.Page(_pagingController) 
             .Transform(playEvent => playEvent.ToDimmerPlayEventView()!)
             .ObserveOn(RxSchedulers.UI)
             .Bind(out _dimmerEventsCollection)
@@ -217,7 +207,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             .Subscribe(changes =>
             {
                 IsLoading = false;
-                // No need to manually clear/add here anymore, .Bind() handles it!
+
                 OnPropertyChanged(nameof(DimmerEventsCollection));
             });
 
@@ -262,9 +252,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     private class SearchResult
     {
        
-        public RealmQueryPlan Plan { get; set; }
-        public IEnumerable<SongModelView> SongsResult { get; set; }
-        public string ErrorMessage { get; set; }
+        public RealmQueryPlan? Plan { get; set; }
+        public IEnumerable<SongModelView?>? SongsResult { get; set; }
+        public string? ErrorMessage { get; set; }
     }
 
 
@@ -289,7 +279,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         using var tmpRealm = RealmFactory.GetRealmInstance();
         _totalItemsCount = tmpRealm.All<DimmerPlayEvent>().Count();
         TotalPages = (int)Math.Ceiling((double)_totalItemsCount / PAGE_SIZE);
-        UpdatePageStatus();
+       
+
         // Now that we are called from the View, RxSchedulers.UI will be valid
         SetupHistoryPipeline();
         _isPipelineActive = true;
@@ -418,9 +409,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
                 await OnAppOpening();
 
-                await Task.Delay(8000);
                 await HeavierBackGroundLoadings(FolderPaths);
 
+                await Task.Delay(15000);
                 await EnsureAllCoverArtCachedForSongsAsync(_backgroundCachingCts.Token);
             }
             catch (OperationCanceledException er)
@@ -470,11 +461,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         
         {
 
-            Debug.WriteLine(DateTime.Now.TimeOfDay.Seconds + "starting running by search");
-            Debug.WriteLine(DateTime.Now.TimeOfDay.Microseconds + "starting running by search");
-            Debug.WriteLine(DateTime.Now.TimeOfDay.Milliseconds + "starting running by search");
 
-            Debug.WriteLine(DateTime.Now + "start running bg seqrch");
             return PerformSearchBackground(query);
         }, RxSchedulers.Background);
     })
@@ -485,21 +472,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     .Subscribe(result =>
     {
 
-        Debug.WriteLine(DateTime.Now + "start connect qpply search");
-
-
-        Debug.WriteLine(DateTime.Now.TimeOfDay.Seconds + "start connect  ctor");
-        Debug.WriteLine(DateTime.Now.TimeOfDay.Microseconds + "start connect ctor");
-        Debug.WriteLine(DateTime.Now.TimeOfDay.Milliseconds + "start connect  ctor");
 
         // 3. Fast Update on UI Thread
         ApplySearchResults(result);
 
-        Debug.WriteLine(DateTime.Now + "end apply result");
-
-        Debug.WriteLine(DateTime.Now.TimeOfDay.Seconds + "end apply result");
-        Debug.WriteLine(DateTime.Now.TimeOfDay.Microseconds + "end apply result");
-        Debug.WriteLine(DateTime.Now.TimeOfDay.Milliseconds + "end apply result");
     },
     ex => _logger.LogError(ex, "Search pipeline crashed"))
     .DisposeWith(CompositeDisposables);
@@ -599,6 +575,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         // Update Debuggers
         if (result.Plan != null)
         {
+
+            //HandleCommandAction(result.Plan.CommandNode);
             // Update NLP Debug text if needed
         }
     }
@@ -612,9 +590,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             IsFirstBoot = false;
             var allSongs = realmm.All<SongModel>()
              .OrderByDescending(s => s.DateCreated)
-              .AsEnumerable()
-             //.Take(500)1
-
+             .AsEnumerable()
+             
              .Select(x => x.ToSongModelView())
              .ToList();
             return new SearchResult { SongsResult = allSongs };
@@ -656,7 +633,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             // Using ToList() here snapshots the data for the UI thread
             var finalViewList = intermediateList
                 .Select(x => x.ToSongModelView())
-                .ToList();
+              
+                ;
 
             return new SearchResult { Plan = plan, SongsResult = finalViewList };
         }
@@ -1312,13 +1290,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     private readonly ReadOnlyObservableCollection<SongModelView> _searchResults;
     public ReadOnlyObservableCollection<SongModelView> SearchResults => _searchResults;
 
-
-    private readonly SourceList<DimmerPlayEventView> _dimmerEvents = new();
-    // Expose the connectable source for adapters
-    public IObservable<IChangeSet<DimmerPlayEventView>> Connect() => _dimmerEvents.Connect();
-
-    // For backward compatibility with your existing code
-    public IObservableList<DimmerPlayEventView> DimmerEvents => _dimmerEvents;
     private ReadOnlyObservableCollection<DimmerPlayEventView> _dimmerEventsCollection;
 
     // 2. Expose it for XAML binding
@@ -4765,7 +4736,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
     [RelayCommand]
-    public async Task RemoveSongFromFavorite(SongModelView concernedSong)
+    public async Task RemoveSongFromFavoriteAsync(SongModelView concernedSong)
     {
         try
         {
@@ -4795,7 +4766,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
     [RelayCommand]
-    public async Task AddFavoriteRatingToSong(SongModelView songModel)
+    public async Task AddFavoriteRatingToSongAsync(SongModelView songModel)
     {
         if (songModel is null || songModel.Id == ObjectId.Empty)
         {
@@ -8430,150 +8401,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         await _lyricsMgtFlow.GetLyrics(concernedSong);
     }
 
-
-
-    private readonly object _logLock = new();
-    public void SaveBackUp(string logContent,string Name,string fileExt)
-    {
-      
-        try
-        {
-            // Define the directory path.
-            string directoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DimmerBackUp");
-
-            // Ensure the directory exists.
-            if (!Directory.Exists(directoryPath))
-            {
-                Directory.CreateDirectory(directoryPath);
-            }
-
-            // Use a date-specific file name.
-            string fileName = $"DimmerBackUp_{DateTime.Now:yyyy-MM-dd}{Name}.{fileExt}";
-            string filePath = Path.Combine(directoryPath, fileName);
-
-            // Retry mechanism for file writing.
-            bool success = false;
-            int retries = 3;
-            int delay = 500; // Delay between retries in milliseconds
-
-            lock (_logLock)
-            {
-                while (retries-- > 0 && !success)
-                {
-                    try
-                    {
-                        File.AppendAllText(filePath, logContent);
-                        success = true; // Write successful.
-
-                    }
-                    catch (IOException ioEx) when (retries > 0)
-                    {
-                        Debug.WriteLine($"Failed to backUp, retrying... ({ioEx.Message})");
-                        Thread.Sleep(delay);
-                    }
-                }
-
-                if (!success)
-                {
-                    Debug.WriteLine("Failed to backUp exception after multiple attempts.");
-                }
-            }
-        }
-        catch (Exception backUpEx)
-        {
-            Debug.WriteLine($"Failed to backUp exception: {backUpEx}");
-        }
-    }
-    public void BackUpAppData()
-    {
-        var realm = RealmFactory.GetRealmInstance();
-
-        var appModel = realm.All<AppStateModel>().FirstOrDefaultNullSafe();
-        if (appModel is null) return ;
-        var modelView = appModel.ToAppStateModelView();
-        var newBackUpJson = JsonSerializer.Serialize<AppStateModelView?>(value: modelView, new JsonSerializerOptions() { PropertyNameCaseInsensitive=true});
-        var allFavs = realm.All<SongModel>().AsEnumerable()
-            .Where(x=>x.IsFavorite).Select(x=>x.ToSongModelView()).ToList();
-
-        var allFavsBackUpJson = JsonSerializer.Serialize<List<SongModelView?>?>(value: allFavs, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
-
-        SaveBackUp(newBackUpJson, "AppState", "json");
-        SaveBackUp(allFavsBackUpJson, "allFavs", "json");
-
-        return ;   
-    }
-    public async Task RestoreAppDataAsync(string folderPath)
-    {
-        var config = new BackUpRestoreProcessingConfig(folderPath);
-
-        var files = await TaggingUtils.GetAllFilesFromPathsAsync(new List<string>() { folderPath }, config.SupportedFileExtensions);
-        foreach (var filePath in files)
-        {
-            if (filePath.Contains("allFavs"))
-            {
-                if (filePath.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (TaggingUtils.PlatformGetStreamHook != null)
-                    {
-                        using (Stream? fileStream = TaggingUtils.PlatformGetStreamHook(filePath))
-                        {
-                            if (fileStream == null)
-                            {
-
-                                return;
-                            }
-                            else
-                            {
-
-                                var songs = await JsonSerializer.DeserializeAsync<List<SongModelView?>?>(fileStream, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    var fData = await File.ReadAllBytesAsync(filePath);
-                    Stream fStream = new MemoryStream(fData);
-
-                    var songs = await JsonSerializer.DeserializeAsync<List<SongModelView?>?>(fStream, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
-                }
-            }
-            if (filePath.Contains("AppState"))
-            {
-
-                if (filePath.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (TaggingUtils.PlatformGetStreamHook != null)
-                    {
-                        using (Stream? fileStream = TaggingUtils.PlatformGetStreamHook(filePath))
-                        {
-                            if (fileStream == null)
-                            {
-
-                                return;
-                            }
-                            else
-                            {
-
-                                var state = await JsonSerializer.DeserializeAsync<AppStateModelView>(fileStream, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    var fData = await File.ReadAllBytesAsync(filePath);
-                    Stream fStream = new MemoryStream(fData);
-
-                    var state = await JsonSerializer.DeserializeAsync<AppStateModelView>(fStream, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
-                }
-            }
-        }
-        //var 
-    }
-
 }
-
 
 public enum CollectionViewMode
 {

@@ -741,7 +741,7 @@ public sealed partial class AllSongsListPage : Page
             toggleFavBtn.Click += (s, e) =>
             {
 
-                _ = MyViewModel.AddFavoriteRatingToSong(selectedSong);
+                _ = MyViewModel.AddFavoriteRatingToSongAsync(selectedSong);
                 toggleFavBtn.Text = "UnLove";
             };
 
@@ -753,7 +753,7 @@ public sealed partial class AllSongsListPage : Page
 
             toggleFavBtn.Click += (s, e) =>
             {
-                _ = MyViewModel.RemoveSongFromFavorite(selectedSong);
+                _ = MyViewModel.RemoveSongFromFavoriteAsync(selectedSong);
                 toggleFavBtn.Text = "Love";
             };
         }

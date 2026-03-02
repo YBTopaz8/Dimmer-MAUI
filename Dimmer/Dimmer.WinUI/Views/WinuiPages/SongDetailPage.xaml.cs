@@ -797,7 +797,7 @@ public sealed partial class SongDetailPage : Page
 
     private async void FavBtn_RightTapped(object sender, RightTappedRoutedEventArgs e)
     {
-        await MyViewModel.RemoveSongFromFavorite(MyViewModel.SelectedSong!);
+        await MyViewModel.RemoveSongFromFavoriteAsync(MyViewModel.SelectedSong!);
     }
 
     private void ArtistNameBtn_Loaded(object sender, RoutedEventArgs e)
@@ -895,7 +895,7 @@ public sealed partial class SongDetailPage : Page
     {
         var sendView = (Button)sender;
 
-        await MyViewModel.AddFavoriteRatingToSong(MyViewModel.SelectedSong!);
+        await MyViewModel.AddFavoriteRatingToSongAsync(MyViewModel.SelectedSong!);
         //BorderBrush = "DarkSlateBlue"
         //BorderThickness = "4" CornerRadius = "20"
         var br = new AcrylicBrush(); 

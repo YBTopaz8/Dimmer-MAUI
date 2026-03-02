@@ -49,11 +49,11 @@ public sealed partial class AllDimsView : Page
             MyViewModel.ActivateHistory();
 
 
-            MyEventsTableView.ItemsSource = MyViewModel.DimmerEvents.Items.ToList();
+            MyEventsTableView.ItemsSource = MyViewModel.DimmerEventsCollection;
             var items = MyEventsTableView.Items.Count;
             Debug.WriteLine($"Items in EventsTableView: {items}");
 
-            var dims = MyViewModel.DimmerEvents.Count;
+            var dims = MyViewModel.DimmerEventsCollection.Count;
     }
     private void MoreBtn_Click(object sender, RoutedEventArgs e)
     {

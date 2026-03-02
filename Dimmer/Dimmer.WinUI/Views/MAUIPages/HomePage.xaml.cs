@@ -669,7 +669,7 @@ public partial class HomePage : ContentPage
     private async void AddFavoriteRatingToSong_TouchUp(object sender, EventArgs e)
     {
 
-        await MyViewModel.AddFavoriteRatingToSong(MyViewModel.CurrentPlayingSongView);
+        await MyViewModel.AddFavoriteRatingToSongAsync(MyViewModel.CurrentPlayingSongView);
     }
 
     private void AddFavoriteRatingToSong_Loaded(object sender, EventArgs e)
@@ -693,11 +693,11 @@ public partial class HomePage : ContentPage
         if (properties is null) return;
         if (properties.IsLeftButtonPressed)
         {
-            await MyViewModel.AddFavoriteRatingToSong(MyViewModel.CurrentPlayingSongView);
+            await MyViewModel.AddFavoriteRatingToSongAsync(MyViewModel.CurrentPlayingSongView);
         }
         if (properties.IsRightButtonPressed)
         {
-            await MyViewModel.RemoveSongFromFavorite(MyViewModel.CurrentPlayingSongView);
+            await MyViewModel.RemoveSongFromFavoriteAsync(MyViewModel.CurrentPlayingSongView);
             return;
         }
     }
@@ -899,7 +899,7 @@ public partial class HomePage : ContentPage
 
     private async void AddFavoriteRatingToSong_Clicked(object sender, EventArgs e)
     {
-        await MyViewModel.AddFavoriteRatingToSong(MyViewModel.CurrentPlayingSongView);
+        await MyViewModel.AddFavoriteRatingToSongAsync(MyViewModel.CurrentPlayingSongView);
     }
 
 
