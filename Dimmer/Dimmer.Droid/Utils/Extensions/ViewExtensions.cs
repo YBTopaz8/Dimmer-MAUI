@@ -32,6 +32,28 @@ public static class ViewExts
             Debug.WriteLine(ex?.Message);
         }
     }
+    public static void SetImageWithGlideHighRes(this ImageView ImgView, string? imgPath)
+    {
+        try
+        {
+            TransitionActivity? act = ImgView.Context?.GetActivity() as TransitionActivity;
+            Glide.With(ImgView.Context!)
+                .AsBitmap()
+                .Load(imgPath)?
+                .SetPriority(Bumptech.Glide.Priority.Low!)
+                .Override(AppUtil.DpToPx(150), AppUtil.DpToPx(150))
+                .DontAnimate()
+                .Into(ImgView);
+        }
+        catch (Java.Lang.IllegalArgumentException ex)
+        {
+            Debug.WriteLine(ex?.Message);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex?.Message);
+        }
+    }
     public static async Task SetImageWithStringPathViaGlideAndFilterEffect(this ImageView ImgView, string imgPath, FilterType desiredFilter)
     {
      

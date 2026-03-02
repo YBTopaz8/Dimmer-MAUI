@@ -11,33 +11,106 @@ public class ArtistPickerBottomSheet : BottomSheetDialogFragment
         ListOfArtistsInSong = listOfArtistmodelView;
     }
 
+    private readonly SongModelView _song;
+    private FrameLayout _rootScrim;
     public BaseViewModelAnd MyViewModel { get; }
     public List<ArtistModelView> ListOfArtistsInSong { get; }
 
-    public override View? OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
+    public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
     {
-        var context = Context;
-        if (context == null) return null;
-        var layout = new LinearLayout(context) { Orientation = Orientation.Vertical };
-        layout.SetPadding(32, 32, 32, 32);
+        var ctx = Context!;
 
-        // Title
-        var title = new TextView(context) { Text = $"Select Artist", TextSize = 22 };
-        title.SetPadding(8, 8, 8, 8);
-        title.SetTypeface(null, Android.Graphics.TypefaceStyle.Bold);
-        layout.AddView(title);
+        // 1. The Background Scrim (Full Screen)
+        _rootScrim = new FrameLayout(ctx)
+        {
+            LayoutParameters = new ViewGroup.LayoutParams(-1, -1)
+        };
 
-        // RecyclerView for Artists
-        var recyclerView = new RecyclerView(context);
-        recyclerView.SetLayoutManager(new LinearLayoutManager(context));
-        // In a real app, pass your ViewModel's Artist list here
+        // API 31+ Real Blur, Pre-31 Dark Scrim
+        if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.S)
+        {
+            _rootScrim.SetBackgroundColor(Color.ParseColor("#66000000"));
+
+
+        }
+        else
+        {
+            _rootScrim.SetBackgroundColor(Color.ParseColor("#AA000000")); // Just dark
+        }
+
+        // Fade in the scrim manually
+        _rootScrim.Alpha = 0f;
+        _rootScrim.Animate()?.Alpha(1f).SetDuration(300).Start();
+
+        // Click background to dismiss (reverse animation)
+        _rootScrim.Click += (s, e) =>
+        {
+            Dismiss();
+        };
+
+        // 2. The Centered Card (The popup content)
+        var card = new MaterialCardView(ctx)
+        {
+            Radius = AppUtil.DpToPx(20),
+            CardElevation = AppUtil.DpToPx(12),
+
+        };
+        card.SetCardBackgroundColor(Color.ParseColor("#1E1E1E")); // Dark theme parity
+        var cardLp = new FrameLayout.LayoutParams(AppUtil.DpToPx(350), AppUtil.DpToPx(450))
+        {
+            Gravity = GravityFlags.Center
+        };
+        card.LayoutParameters = cardLp;
+
+        // Prevent clicks on the card from dismissing the fragment
+        card.Click += (s, e) =>
+        {
+            /* Consume click */
+        };
+
+        var cardContent = new LinearLayout(ctx)
+        {
+            Orientation = Orientation.Vertical,
+            LayoutParameters = new ViewGroup.LayoutParams(-1, -2)
+        };
+        cardContent.SetPadding(AppUtil.DpToPx(24), AppUtil.DpToPx(24), AppUtil.DpToPx(24), AppUtil.DpToPx(24));
+
+     
+
+
+        ChipGroup statisChipGroup = new ChipGroup(ctx);
+        statisChipGroup.Clickable = false;
+
+        foreach (var artist in ListOfArtistsInSong)
+        {
+            var artistChip = new Chip(ctx);
+            artistChip.SetChipIconResource(Resource.Drawable.media3_icon_artist);
+            artistChip.Clickable = true;
+            artistChip.Text = artist.Name;
+            artistChip.Click += (s, e)
+            =>
+            {
+
+
+            };
+
+            statisChipGroup.AddView(artistChip);
+        }
         
-        recyclerView.SetAdapter(new ArtistBottomSheetRecyclerViewAdapter(ListOfArtistsInSong, MyViewModel, this));
 
-        layout.AddView(recyclerView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, 800)); // Fixed height or use weight
 
-        return layout;
+
+        cardContent.AddView(statisChipGroup);
+
+
+        card.AddView(cardContent);
+
+        _rootScrim.AddView(card);
+
+
+        return _rootScrim;
     }
+
 
     // Simple Adapter for the list
     class ArtistBottomSheetRecyclerViewAdapter : RecyclerView.Adapter

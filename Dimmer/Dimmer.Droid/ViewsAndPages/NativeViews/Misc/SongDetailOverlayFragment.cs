@@ -1,16 +1,20 @@
-﻿namespace Dimmer.ViewsAndPages.NativeViews.Misc;
+﻿using System.Threading.Channels;
+
+namespace Dimmer.ViewsAndPages.NativeViews.Misc;
 
 
 public class SongDetailOverlayFragment : Fragment
 {
+    private readonly BaseViewModelAnd MyViewModel;
     private readonly SongModelView _song;
     private readonly string _imageTransitionName;
     private readonly string _titleTransitionName;
 
     private FrameLayout _rootScrim;
 
-    public SongDetailOverlayFragment(SongModelView song, string imageTransName, string titleTransName)
+    public SongDetailOverlayFragment(BaseViewModelAnd myViewModel, SongModelView song, string imageTransName, string titleTransName)
     {
+        this.MyViewModel = myViewModel;
         _song = song;
         _imageTransitionName = imageTransName;
         _titleTransitionName = titleTransName;
@@ -56,7 +60,7 @@ public class SongDetailOverlayFragment : Fragment
             
         };
         card.SetCardBackgroundColor(Color.ParseColor("#1E1E1E")); // Dark theme parity
-        var cardLp = new FrameLayout.LayoutParams(AppUtil.DpToPx(320), ViewGroup.LayoutParams.WrapContent)
+        var cardLp = new FrameLayout.LayoutParams(AppUtil.DpToPx(350), AppUtil.DpToPx(450))
         {
             Gravity = GravityFlags.Center
         };
@@ -78,13 +82,14 @@ public class SongDetailOverlayFragment : Fragment
         // 3. The Shared Image
         var imgView = new ImageView(ctx)
         {
-            LayoutParameters = new LinearLayout.LayoutParams(AppUtil.DpToPx(200), AppUtil.DpToPx(200))
+            LayoutParameters = new LinearLayout.LayoutParams(AppUtil.DpToPx(150), AppUtil.DpToPx(150))
             {
                 Gravity = GravityFlags.CenterHorizontal,
                 BottomMargin = AppUtil.DpToPx(16)
             }
         };
         imgView.SetScaleType(ImageView.ScaleType.CenterCrop);
+        
         // CRITICAL: Set the exact same transition name sent from the Adapter
         ViewCompat.SetTransitionName(imgView, _imageTransitionName);
 
@@ -100,24 +105,138 @@ public class SongDetailOverlayFragment : Fragment
             Gravity = GravityFlags.CenterHorizontal
         };
         titleView.SetTextColor(Color.White);
-        // CRITICAL: Set the exact same transition name sent from the Adapter
         ViewCompat.SetTransitionName(titleView, _titleTransitionName);
 
-        // Add some extra controls inside the popup (Play, Add to Queue, etc.)
-        var playBtn = new MaterialButton(ctx) { Text = "Play Now" };
-        playBtn.LayoutParameters = new LinearLayout.LayoutParams(-1, -2) { TopMargin = AppUtil.DpToPx(20) };
-        playBtn.Click += (s, e) =>
+        var artistView = new MaterialTextView(ctx)
         {
-            // Call ViewModel to play
-            Dismiss();
+            Text = _song.ArtistName,
+            TextSize = 15,
+            Typeface = Typeface.DefaultBold,
+            Gravity = GravityFlags.CenterHorizontal
         };
+        artistView.SetTextColor(Color.White);
+
+        var albumView = new MaterialTextView(ctx)
+        {
+            Text = _song.AlbumName,
+            TextSize = 15,
+            Typeface = Typeface.DefaultBold,
+            Gravity = GravityFlags.CenterHorizontal
+        };
+        albumView.SetTextColor(Color.White);
+
+        var GenreNameView = new MaterialTextView(ctx)
+        {
+            Text = _song.GenreName,
+            TextSize = 15,
+            Typeface = Typeface.DefaultBold,
+            Gravity = GravityFlags.CenterHorizontal
+        };
+        GenreNameView.SetTextColor(Color.White);
+
+        var durationView = new Chip(ctx)
+        {
+            Text = _song.DurationFormatted,
+            TextSize = 12,
+            Typeface = Typeface.DefaultBold,
+            Gravity = GravityFlags.CenterHorizontal
+        };
+        durationView.SetTextColor(Color.White);
+
+        // Add some extra controls inside the popup (Play, Add to Queue, etc.)
+      
+
         ChipGroup optionsChipGroup = new ChipGroup(ctx);
+        optionsChipGroup.SetForegroundGravity(GravityFlags.CenterHorizontal);
+        optionsChipGroup.SetBackgroundColor(Color.Transparent);
+        //optionsChipGroup.AddView(vieww);
+
+        var noteChip = new Chip(ctx);
+        noteChip.SetChipIconResource(Resource.Drawable.pennewround);
+        noteChip.LayoutParameters = new LinearLayout.LayoutParams(AppUtil.DpToPx(50),AppUtil.DpToPx(50)) { TopMargin = AppUtil.DpToPx(20) };
+        noteChip.Click += (s, e) =>
+        {
+            Toast.MakeText(ctx, "note chip", ToastLength.Short);
+        };
+
+        var favoriteBtn = new Chip(ctx);
+        favoriteBtn.SetChipIconResource(_song.IsFavorite ? Resource.Drawable.heart : Resource.Drawable.media3_icon_heart_unfilled);
+        favoriteBtn.LayoutParameters = new LinearLayout.LayoutParams(AppUtil.DpToPx(50), AppUtil.DpToPx(50)) { TopMargin = AppUtil.DpToPx(20) };
+        favoriteBtn.Click += async (s, e) =>
+        {
+            if (_song.IsFavorite)
+            {
+                await MyViewModel.AddFavoriteRatingToSongAsync(_song);
+                favoriteBtn.SetChipIconResource(Resource.Drawable.media3_icon_heart_filled);
+                Toast.MakeText(ctx, "song is faved", ToastLength.Short);
+            }
+            else
+            {
+                await MyViewModel.RemoveSongFromFavoriteAsync(_song);
+                favoriteBtn.SetChipIconResource(Resource.Drawable.media3_icon_heart_unfilled);
+                Toast.MakeText(ctx, "song is unfaved", ToastLength.Short);
+            }
+            
+        };
+
+
+        optionsChipGroup.Clickable = true;
+        optionsChipGroup.AddView(noteChip);
+        optionsChipGroup.AddView(favoriteBtn);
+        
         cardContent.AddView(imgView);
         cardContent.AddView(titleView);
-        cardContent.AddView(playBtn);
+        cardContent.AddView(artistView);
+        cardContent.AddView(albumView);
+        cardContent.AddView(GenreNameView);
+
+        
+
+        ChipGroup statisChipGroup = new ChipGroup(ctx);
+        statisChipGroup.Clickable = false;
+
+        var playsCompletedChip = new Chip(ctx);
+        playsCompletedChip.SetChipIconResource(Resource.Drawable.media3_icon_play);
+        playsCompletedChip.Clickable = false;
+        playsCompletedChip.Text = _song.PlayCompletedCount.ToString();
+        statisChipGroup.AddView(playsCompletedChip);
+
+        var pausedChip = new Chip(ctx);
+        pausedChip.SetChipIconResource(Resource.Drawable.pausecircle);
+        pausedChip.Clickable = false;
+        pausedChip.Text = _song.PauseCount.ToString();
+        statisChipGroup.AddView(pausedChip);
+
+
+        var PlayStreakDaysChip = new Chip(ctx);
+        PlayStreakDaysChip.SetChipIconResource(Resource.Drawable.calendardate);
+        PlayStreakDaysChip.Clickable = false;
+        PlayStreakDaysChip.Text = _song.PlayStreakDays.ToString();
+        statisChipGroup.AddView(PlayStreakDaysChip);
+
+
+        var SkipCountChip = new Chip(ctx);
+        SkipCountChip.Clickable = false;
+        SkipCountChip.SetChipIconResource(Resource.Drawable.forwardskip);
+        SkipCountChip.Text = _song.SkipCount.ToString();
+        statisChipGroup.AddView(SkipCountChip);
+
+        var HasLyricsChip = new Chip(ctx);
+        HasLyricsChip.Clickable = false;
+        HasLyricsChip.SetChipIconResource(Resource.Drawable.lyrics);
+        HasLyricsChip.Visibility = _song.HasLyrics ? ViewStates.Visible : ViewStates.Gone;
+
+        statisChipGroup.AddView(HasLyricsChip);
+
+
+        cardContent.AddView(optionsChipGroup);
+        cardContent.AddView(statisChipGroup);
+        
+
         card.AddView(cardContent);
 
         _rootScrim.AddView(card);
+
 
         return _rootScrim;
     }

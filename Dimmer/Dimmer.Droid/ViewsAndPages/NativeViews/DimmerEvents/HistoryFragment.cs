@@ -7,7 +7,7 @@ public partial class HistoryFragment : Fragment
 {
     private RecyclerView? _songListRecycler;
     private PlayEventsAdapter? _adapter;
-    private BaseViewModelAnd? _viewModel;
+    private BaseViewModelAnd MyViewModel;
     private LinearLayoutManager _layoutManager;
     private CompositeDisposable _disposables = new();
 
@@ -23,7 +23,7 @@ public partial class HistoryFragment : Fragment
 
     public HistoryFragment(BaseViewModelAnd vm)
     {
-        _viewModel = vm;
+        MyViewModel = vm;
     }
 
     public override View OnCreateView(LayoutInflater inflater, ViewGroup? container, Bundle? savedInstanceState)
@@ -52,14 +52,14 @@ public partial class HistoryFragment : Fragment
         };
 
         _songListRecycler.SetItemViewCacheSize(10); // Don't cache too many off-screen items initially
-        _songListRecycler.DrawingCacheEnabled = true;
-        _songListRecycler.DrawingCacheQuality = DrawingCacheQuality.Low;
+        _songListRecycler?.DrawingCacheEnabled = true;
+        _songListRecycler?.DrawingCacheQuality = DrawingCacheQuality.Low;
         _layoutManager = new LinearLayoutManager(ctx);
-        _songListRecycler.SetLayoutManager(_layoutManager);
+        _songListRecycler?.SetLayoutManager(_layoutManager);
 
         // Add divider
         var divider = new DividerItemDecoration(ctx, DividerItemDecoration.Vertical);
-        _songListRecycler.AddItemDecoration(divider);
+        _songListRecycler?.AddItemDecoration(divider);
 
         // 4. Create Overlays
         _loadingOverlay = CreateLoadingOverlay(ctx);
@@ -70,7 +70,7 @@ public partial class HistoryFragment : Fragment
         mainStack.AddView(_loadingOverlay);
         mainStack.AddView(_emptyOverlay);
         root.AddView(mainStack);
-
+        
         // 6. Initialize Logic
         SetupAdapterAndListeners();
         SubscribeToViewModelStates();
@@ -80,15 +80,16 @@ public partial class HistoryFragment : Fragment
 
     private void SetupAdapterAndListeners()
     {
-        _adapter = new PlayEventsAdapter(_viewModel.DimmerEvents, _viewModel.RealmFactory);
-        _songListRecycler.SetAdapter(_adapter);
+        MyViewModel.ActivateHistory();
+        _adapter = new PlayEventsAdapter(MyViewModel!.DimmerEventsCollection, MyViewModel.RealmFactory);
+        _songListRecycler?.SetAdapter(_adapter);
 
         // Infinite Scroll
-        _songListRecycler.AddOnScrollListener(new EndlessScrollListener(_layoutManager, () =>
+        _songListRecycler?.AddOnScrollListener(new EndlessScrollListener(_layoutManager, () =>
         {
-            if (_viewModel.CanGoNext)
+            if (MyViewModel.CanGoNext)
             {
-                _viewModel.NextEvtPageCommand.Execute(null);
+                MyViewModel.NextEvtPageCommand.Execute(null);
                 _adapter.SetLoadingMore(true);
             }
         }));
@@ -98,7 +99,7 @@ public partial class HistoryFragment : Fragment
         _disposables = new CompositeDisposable();
 
         // Fix: Replace WhenAnyValue with your project's WhenPropertyChange extension
-        _viewModel?.WhenPropertyChange(nameof(_viewModel.IsLoading), x => x.IsLoading)
+        MyViewModel?.WhenPropertyChange(nameof(MyViewModel.IsLoading), x => x.IsLoading)
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(isLoading =>
             {
@@ -113,11 +114,11 @@ public partial class HistoryFragment : Fragment
             .DisposeWith(_disposables);
 
         // Observe Data count for Empty State
-        _viewModel?.DimmerEvents.Connect()
+        MyViewModel?.DimmerEventsCollection.AsObservableChangeSet()
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(_ =>
             {
-                var isEmpty = _viewModel.DimmerEvents.Count == 0 && !_viewModel.IsLoading;
+                var isEmpty = MyViewModel.DimmerEventsCollection.Count == 0 && !MyViewModel.IsLoading;
                 if (_emptyOverlay != null)
                 {
                     _emptyOverlay.Visibility = isEmpty ? ViewStates.Visible : ViewStates.Gone;
@@ -180,7 +181,7 @@ public partial class HistoryFragment : Fragment
     public override void OnResume()
     {
         base.OnResume();
-        _viewModel?.ActivateHistory();
+        MyViewModel?.ActivateHistory();
     }
 
     public override void OnDestroyView()

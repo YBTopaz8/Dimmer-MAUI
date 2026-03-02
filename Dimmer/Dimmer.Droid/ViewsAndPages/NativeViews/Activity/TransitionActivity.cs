@@ -500,7 +500,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
                 selectedFrag = new SettingsFragment("settingsTrans", MyViewModel);
                 tag = "SettingsFragment";
                 break;
-            case 104:
+            case 105:
 
                 var DeviceTransferViaBTViewModel = MainApplication.ServiceProvider.GetService<DeviceTransferViaBTViewModel>();
                 if (DeviceTransferViaBTViewModel is not null)
@@ -509,7 +509,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
                     tag = "devTransMgt";
                 }
                 break;
-            case 105:
+            case 104:
 
                 
                     selectedFrag = new HistoryFragment( MyViewModel);
@@ -989,7 +989,7 @@ public class TransitionActivity :  AppCompatActivity, IOnApplyWindowInsetsListen
     public override void OnLowMemory()
     {
         base.OnLowMemory();
-        System.Diagnostics.Debugger.Break();
+        //System.Diagnostics.Debugger.Break();
     }
     private void ProcessIntent(Android.Content.Intent? intent)
     {

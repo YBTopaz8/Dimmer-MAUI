@@ -504,7 +504,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
         {
             if (!_loveBtn.Checked)
             {
-                await MyViewModel.AddFavoriteRatingToSong(MyViewModel.CurrentPlayingSongView);
+                await MyViewModel.AddFavoriteRatingToSongAsync(MyViewModel.CurrentPlayingSongView);
                 _loveBtn.Checked = true;
                 _loveBtn.PerformHapticFeedback(FeedbackConstants.Confirm);
             }
@@ -515,7 +515,7 @@ public partial class NowPlayingFragment : Fragment, IOnBackInvokedCallback
 
             if (_loveBtn.Checked)
             {
-                await MyViewModel.RemoveSongFromFavorite(MyViewModel.CurrentPlayingSongView);
+                await MyViewModel.RemoveSongFromFavoriteAsync(MyViewModel.CurrentPlayingSongView);
                 _loveBtn.Checked = false;
                 _loveBtn.PerformHapticFeedback(FeedbackConstants.Reject);
             }

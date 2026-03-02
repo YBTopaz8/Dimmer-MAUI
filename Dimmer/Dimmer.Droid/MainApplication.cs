@@ -98,7 +98,7 @@ public class MainApplication : Application, Application.IActivityLifecycleCallba
                 return; // Skip logging for filtered exceptions
             }
 
-            string errorDetails = $"********** UNHANDLED EXCEPTION! **********\n" +
+            string errorDetails = $"********** UNHANDLED EXCEPTION! DROID **********\n" +
                                      $"Exception Type: {e.Exception.GetType()}\n" +
                                      $"Message: {e.Exception.Message}\n" +
                                      $"Source: {e.Exception.Source}\n" +

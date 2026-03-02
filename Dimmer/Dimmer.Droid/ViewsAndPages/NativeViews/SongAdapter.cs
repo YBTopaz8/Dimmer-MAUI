@@ -465,7 +465,7 @@ internal partial class SongAdapter : RecyclerView.Adapter, IDisposable
             }
             else if (v == _favBtn)
             {
-                _ = MyViewModel.AddFavoriteRatingToSong(_currentSong);
+                _ = MyViewModel.AddFavoriteRatingToSongAsync(_currentSong);
                 _favBtn.Text = !_currentSong.IsFavorite ? "Unfav" : "Fav";
                 _favBtn.SetIconResource(_currentSong.IsFavorite ? Resource.Drawable.heartlock : Resource.Drawable.heart);
                 _favBtn.IconTint = _currentSong.IsFavorite ? AppUtil.ToColorStateList(Color.DarkSlateBlue) : AppUtil.ToColorStateList(Color.Gray);
@@ -496,7 +496,7 @@ internal partial class SongAdapter : RecyclerView.Adapter, IDisposable
             }
             else if (v == _favBtn)
             {
-                _ = MyViewModel.RemoveSongFromFavorite(_currentSong);
+                _ = MyViewModel.RemoveSongFromFavoriteAsync(_currentSong);
                 var iconRes = _currentSong.IsFavorite ? Resource.Drawable.heartlock : Resource.Drawable.heart;
                 _favBtn.Text = !_currentSong.IsFavorite ? "Unfav" : "Fav";
                 _favBtn.SetIconResource(iconRes);
