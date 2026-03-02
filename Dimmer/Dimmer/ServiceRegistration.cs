@@ -110,6 +110,7 @@ public static class ServiceRegistration
         services.AddTransient<LoginViewModel>();
         services.AddSingleton<SettingsViewModel>();
         services.AddSingleton<SessionManagementViewModel>();
+        services.AddSingleton<DimmerBackupService>();
 
 
 
