@@ -719,58 +719,58 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     internal async Task RestoreAppDataAsync()
     {
-        var includeDefaultLocation = false;
-        var secondaryPath = string.Empty;
-        var RestoreFromCustomFolderYesOrNo = new MaterialAlertDialogBuilder(CurrentFragment!.Context!)
-            .SetTitle("Restore Backup")?
-            .SetMessage("Do you want to select a folder to restore backup from? If no, it will look for backups in default location.")?
-            .SetPositiveButton("Yes",  async (s, e) =>
+        var tcs = new TaskCompletionSource<(bool includeDefault, string customPath)>();
+
+        new MaterialAlertDialogBuilder(CurrentFragment!.Context!)
+            .SetTitle("Restore Backup")
+            .SetMessage("Do you want to select a folder to restore backup from? If no, it will look for backups in default location.")
+            .SetPositiveButton("Yes", async (s, e) =>
             {
-                includeDefaultLocation= true;
+                var customPath = string.Empty;
                 if (CurrentFragment.Activity is TransitionActivity act)
                 {
-                    var path = await act.PickFolderAsync();
-                    if (!string.IsNullOrEmpty(path))
-                    {
-                        secondaryPath = path;
-                    }
+                    customPath = await act.PickFolderAsync() ?? string.Empty;
                 }
+                tcs.SetResult((true, customPath));
             })
-            .SetNegativeButton("No",  (s, e) =>
+            .SetNegativeButton("No", (s, e) =>
             {
-                includeDefaultLocation = false;
-            });
+                tcs.SetResult((false, string.Empty));
+            })
+            .Show();
 
-        // Restore from backup
-        var files = await BackupService.GetBackupFilesAsync(secondaryPath,
-            includeDefaultLocation);
+        // Wait for user's decision
+        var (includeDefaultLocation, secondaryPath) = await tcs.Task;
+
+        // Now proceed with backup restoration
+        var files = await BackupService.GetBackupFilesAsync(secondaryPath, includeDefaultLocation);
+
         if (files.Count != 0)
         {
-            // Let user select which backup to restore
-            var selectedFile = files.First(); // Or let user pick
-
+            // TODO: Implement file picker for multiple backups
+            var selectedFile = files.First();
             var result = await BackupService.RestoreFromBackupAsync(selectedFile);
 
             if (result.EventsRestored > 0)
             {
                 Debug.WriteLine(result.ToString());
-                Toast.MakeText(CurrentFragment!.Context,
-                    "Restore Completed", ToastLength.Short);
-                
+                Toast.MakeText(CurrentFragment.Context!, "Restore Completed", ToastLength.Short).Show();
             }
             else
             {
                 Debug.WriteLine($"Restore failed: {result.ErrorMessage}");
+                Toast.MakeText(CurrentFragment!.Context, "Restore failed", ToastLength.Short)?.Show();
             }
         }
-
 
         BackupService.CleanupOldBackups(3);
     }
 
     internal async Task BackUpAppDataAsync()
     {
-        var SelectFolderYesNoDialogFragment = new MaterialAlertDialogBuilder(CurrentFragment!.Context!)
+        var tcs = new TaskCompletionSource<bool>();
+
+        new MaterialAlertDialogBuilder(CurrentFragment!.Context!)?
             .SetTitle("Backup Data")?
             .SetMessage("Do you want to select a folder for backup? If no, backup will be saved in default location.")?
             .SetPositiveButton("Yes", async (s, e) =>
@@ -780,14 +780,18 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
                     var path = await act.PickFolderAsync();
                     if (!string.IsNullOrEmpty(path))
                     {
-                        await BackupService.CreateCompleteBackupAsync();
+                        await BackupService.CreateCompleteBackupAsync(path);
                     }
                 }
+                tcs.SetResult(true);
             })
             .SetNegativeButton("No", async (s, e) =>
             {
                 await BackupService.CreateCompleteBackupAsync();
-            });
-        await BackupService.CreateCompleteBackupAsync();
+                tcs.SetResult(true);
+            })
+            .Show();
+
+        await tcs.Task; // Wait for backup to complete
     }
 }

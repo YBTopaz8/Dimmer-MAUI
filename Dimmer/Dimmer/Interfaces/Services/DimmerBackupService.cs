@@ -29,28 +29,51 @@ public class DimmerBackupService
     }
 
     // Save individual backup files (legacy support)
-    public void SaveBackUp(string logContent, string name, string fileExt, string? secondPath=null)
+    public void SaveBackUp(string logContent, string name, string fileExt, string? secondPath = null)
     {
         try
         {
+            // Use your FileExists method to check if we can write to the backup directory
             if (!Directory.Exists(_backupDirectory))
                 Directory.CreateDirectory(_backupDirectory);
 
             string fileName = $"DimmerBackUp_{DateTime.Now:yyyy-MM-dd_HHmmss}_{name}.{fileExt}";
             string filePath = Path.Combine(_backupDirectory, fileName);
-            
+
             lock (_logLock)
             {
+                // For the primary path (assuming it's a regular path)
                 File.WriteAllText(filePath, logContent);
             }
+
             if (!string.IsNullOrEmpty(secondPath))
             {
-
                 string secondFilePath = Path.Combine(secondPath, fileName);
 
                 lock (_logLock)
                 {
-                    File.WriteAllText(secondFilePath, logContent);
+                    // Check if secondPath is a content URI
+                    if (secondPath.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Use your platform-specific hooks!
+                        if (TaggingUtils.PlatformGetStreamHook != null)
+                        {
+                            using var stream = TaggingUtils.PlatformGetStreamHook(secondFilePath);
+                            using var writer = new StreamWriter(stream);
+                            writer.Write(logContent);
+                        }
+                        else
+                        {
+                            // Fallback - try to get a readable path
+                            var readablePath = TaggingUtils.GetReadableFilePath(secondFilePath);
+                            File.WriteAllText(readablePath, logContent);
+                        }
+                    }
+                    else
+                    {
+                        // Regular file system path
+                        File.WriteAllText(secondFilePath, logContent);
+                    }
                 }
             }
 
@@ -61,7 +84,6 @@ public class DimmerBackupService
             Debug.WriteLine($"Backup write failed: {ex}");
         }
     }
-
     // New method: Create complete backup
     public async Task<bool> CreateCompleteBackupAsync(string? secondPath =null)
     {

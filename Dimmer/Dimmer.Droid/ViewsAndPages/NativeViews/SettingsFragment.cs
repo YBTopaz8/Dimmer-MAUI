@@ -386,6 +386,7 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
             ,
             IconSize = 13,
         };
+        backAppState.SetTextColor(Color.White );
         backAppState.Click += async (s, e) =>
         {
             await MyViewModel.BackUpAppDataAsync();
@@ -401,6 +402,7 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
             ,
             IconSize = 13,
         };
+        restoreState.SetTextColor(Color.White);
         restoreState.Click += async (s, e) =>
         {
            
