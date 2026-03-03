@@ -48,30 +48,20 @@ public class DimmerBackupService
 
             if (!string.IsNullOrEmpty(secondPath))
             {
-                string secondFilePath = Path.Combine(secondPath, fileName);
-
                 lock (_logLock)
                 {
-                    // Check if secondPath is a content URI
                     if (secondPath.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
                     {
-                        // Use your platform-specific hooks!
+                        // FIX: Don't construct URI with string concatenation!
+                        // Use the platform hook that accepts folder URI + filename
                         if (TaggingUtils.PlatformGetStreamHook != null)
                         {
-                            using var stream = TaggingUtils.PlatformGetStreamHook(secondFilePath);
-                            using var writer = new StreamWriter(stream);
-                            writer.Write(logContent);
-                        }
-                        else
-                        {
-                            // Fallback - try to get a readable path
-                            var readablePath = TaggingUtils.GetReadableFilePath(secondFilePath);
-                            File.WriteAllText(readablePath, logContent);
+                            TaggingUtils.PlatformSpecificFileCreator(secondPath, fileName, logContent);
                         }
                     }
                     else
                     {
-                        // Regular file system path
+                        string secondFilePath = Path.Combine(secondPath, fileName);
                         File.WriteAllText(secondFilePath, logContent);
                     }
                 }
@@ -292,9 +282,12 @@ public class DimmerBackupService
                 foreach (var backupEvent in data.PlayEvents)
                 {
                     var newEvent = ConvertFromBackup(backupEvent);
+                    
                     if (newEvent != null)
                     {
-                        realm.Add(newEvent);
+                        var obj = realm.Find<DimmerPlayEvent>(newEvent.Id);
+                        if(obj is null)
+                            realm.Add(newEvent);
                     }
                 }
                 result.EventsRestored = data.PlayEvents.Count;
@@ -418,37 +411,46 @@ public class DimmerBackupService
     // Get all backup files
     public async Task<List<string>> GetBackupFilesAsync(string? OptionalPath = null, bool includeDefaultPath = true)
     {
-        if(!includeDefaultPath && string.IsNullOrEmpty(OptionalPath))
+        if (!includeDefaultPath && string.IsNullOrEmpty(OptionalPath))
             return new List<string>();
-        List<string>? filesInDefaultPath = new();
-        List<string>? filesInSecondPath = new();
 
-        if (includeDefaultPath)
+        List<string> filesInDefaultPath = new();
+        List<string> filesInSecondPath = new();
+
+        // FIX: Handle optional path FIRST (this is the user-selected folder)
+        if (!string.IsNullOrEmpty(OptionalPath))
         {
-            var pathsToScan = new List<string>();
-            if (!Directory.Exists(OptionalPath))
-                return new List<string>();
-
             var supportedExtensions = new HashSet<string> { ".json" };
-            filesInSecondPath = await TaggingUtils.GetAllFilesFromPathsAsync(
-                new List<string> { OptionalPath },
-                supportedExtensions);
+
+            // Check if it's a content URI
+            if (OptionalPath.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
+            {
+                // Use platform-specific scanner for content URIs
+                if (TaggingUtils.PlatformSpecificScanner != null)
+                {
+                    filesInSecondPath = TaggingUtils.PlatformSpecificScanner(OptionalPath, supportedExtensions);
+                }
+            }
+            else
+            {
+                // Regular path
+                filesInSecondPath = await TaggingUtils.GetAllFilesFromPathsAsync(
+                    new List<string> { OptionalPath },
+                    supportedExtensions);
+            }
         }
 
-        if (includeDefaultPath)
+        // THEN handle default path if requested
+        if (includeDefaultPath && Directory.Exists(_backupDirectory))
         {
-            var pathsToScan = new List<string>();
-            if (!Directory.Exists(_backupDirectory))
-                return new List<string>();
-
             var supportedExtensions = new HashSet<string> { ".json" };
             filesInDefaultPath = await TaggingUtils.GetAllFilesFromPathsAsync(
                 new List<string> { _backupDirectory },
                 supportedExtensions);
         }
+
         return filesInDefaultPath.Concat(filesInSecondPath).ToList();
     }
-
     // Delete old backups (optional)
     public void CleanupOldBackups(int keepLatest = 10)
     {

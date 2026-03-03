@@ -722,9 +722,9 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         var tcs = new TaskCompletionSource<(bool includeDefault, string customPath)>();
 
         new MaterialAlertDialogBuilder(CurrentFragment!.Context!)
-            .SetTitle("Restore Backup")
+            .SetTitle("Restore Backup")?
             .SetMessage("Do you want to select a folder to restore backup from? If no, it will look for backups in default location.")
-            .SetPositiveButton("Yes", async (s, e) =>
+            ?.SetPositiveButton("Yes", async (s, e) =>
             {
                 var customPath = string.Empty;
                 if (CurrentFragment.Activity is TransitionActivity act)
@@ -754,7 +754,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             if (result.EventsRestored > 0)
             {
                 Debug.WriteLine(result.ToString());
-                Toast.MakeText(CurrentFragment.Context!, "Restore Completed", ToastLength.Short).Show();
+                Toast.MakeText(CurrentFragment.Context!, "Restore Completed", ToastLength.Short)?.Show();
             }
             else
             {
