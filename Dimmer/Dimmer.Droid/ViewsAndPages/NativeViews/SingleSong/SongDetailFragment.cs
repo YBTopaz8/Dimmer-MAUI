@@ -118,7 +118,7 @@ public partial class SongDetailFragment : Fragment , IOnBackInvokedCallback
         if (androidDomColor is not null)
         {
             string? domCol = androidDomColor.ToHex();
-            root.SetBackgroundColor(Color.ParseColor(domCol));
+            //root.SetBackgroundColor(Color.ParseColor(domCol));
 
             _collapsingToolbar.SetBackgroundColor(Color.ParseColor(domCol));
             _heroImage.SetBackgroundColor(Color.ParseColor(domCol));

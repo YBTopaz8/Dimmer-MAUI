@@ -54,3 +54,37 @@ public partial class PlayEventGroup : ObservableCollection<DimmerPlayEventView>
 
     public override string ToString() => Name;
 }
+[Utils.Preserve(AllMembers = true)]
+public class DimmerPlayEventBackup
+{
+    public string Id { get; set; } = string.Empty;
+    public bool IsNewOrModified { get; set; }
+    public string? SongName { get; set; }
+    public string? ArtistName { get; set; }
+    public string? AlbumName { get; set; }
+    public string? CoverImagePath { get; set; }
+    public bool IsFav { get; set; }
+    public string? SongId { get; set; }
+    public int PlayType { get; set; }
+    public string? PlayTypeStr { get; set; }
+    public DateTimeOffset DatePlayed { get; set; }
+    public bool WasPlayCompleted { get; set; }
+    public double PositionInSeconds { get; set; }
+    public DateTimeOffset EventDate { get; set; }
+    public string? DeviceName { get; set; }
+    public string? DeviceFormFactor { get; set; }
+    public string? DeviceModel { get; set; }
+    public string? DeviceManufacturer { get; set; }
+    public string? DeviceVersion { get; set; }
+    public string? TitleAndDurationKey { get; internal set; }
+}
+
+// Wrapper class for complete backup data
+public class CompleteBackupData
+{
+    public AppStateModelView? AppState { get; set; }
+    public List<SongModelView?>? FavoriteSongs { get; set; }
+    public List<DimmerPlayEventBackup>? PlayEvents { get; set; }
+    public DateTime BackupDate { get; set; }
+    public string Version { get; set; } = "1.0";
+}

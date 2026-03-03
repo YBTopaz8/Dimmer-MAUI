@@ -7,7 +7,7 @@ namespace Dimmer.ViewsAndPages.NativeViews.Adapters;
 
 public partial class PlayEventsAdapter : RecyclerView.Adapter, IDisposable
 {
-    private readonly IObservableList<DimmerPlayEventView> _sourceList;
+    private readonly ReadOnlyObservableCollection<DimmerPlayEventView> _sourceList;
     private readonly IRealmFactory _realmFactory;
     private readonly List<DimmerPlayEventView> _displayItems = new();
     private readonly CompositeDisposable _cleanup = new();
@@ -30,7 +30,7 @@ public partial class PlayEventsAdapter : RecyclerView.Adapter, IDisposable
     private static readonly int IdErrorText = View.GenerateViewId();
     private static readonly int IdRetryBtn = View.GenerateViewId();
 
-    public PlayEventsAdapter(IObservableList<DimmerPlayEventView> sourceList, IRealmFactory realmFactory)
+    public PlayEventsAdapter(ReadOnlyObservableCollection<DimmerPlayEventView> sourceList, IRealmFactory realmFactory)
     {
         _sourceList = sourceList;
         _realmFactory = realmFactory;
@@ -39,10 +39,13 @@ public partial class PlayEventsAdapter : RecyclerView.Adapter, IDisposable
 
     private void SubscribeToChanges()
     {
-        _sourceList.Connect()
+        _sourceList.AsObservableChangeSet()
             .ObserveOn(RxSchedulers.UI)
             .Clone(_displayItems)
-            .Subscribe(changes => NotifyRecyclerViewChanges(changes))
+            .Subscribe(changes =>
+            {
+                NotifyRecyclerViewChanges(changes);
+            })
             .DisposeWith(_cleanup);
     }
 
@@ -64,7 +67,7 @@ public partial class PlayEventsAdapter : RecyclerView.Adapter, IDisposable
     private void RefreshAllItems()
     {
         _displayItems.Clear();
-        _displayItems.AddRange(_sourceList.Items);
+        _displayItems.AddRange(_sourceList);
         NotifyDataSetChanged();
     }
 

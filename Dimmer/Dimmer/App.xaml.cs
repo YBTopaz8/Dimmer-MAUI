@@ -76,7 +76,7 @@ public partial class App : Application
         {
             //Debugger.Break();
         }
-        string errorDetails = $"********** UNHANDLED EXCEPTION! **********\n" +
+        string errorDetails = $"********** UNHANDLED EXCEPTION! MAUI **********\n" +
                               $"Exception Type: {e.Exception.GetType()}\n" +
                               $"Message: {e.Exception.Message}\n" +
                               $"Source: {e.Exception.Source}\n" +

@@ -1277,20 +1277,9 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     {
         try
         {
-            CancellationTokenSource cts= new();
-            var res = await FolderPicker.Default.PickAsync(cts.Token);
+            
 
-            if (res is not null && res.Folder is not null)
-            {
-                string? selectedFolderPath = res!.Folder!.Path;
-
-                if (!string.IsNullOrEmpty(selectedFolderPath))
-                {
-                    await RestoreAppDataAsync(selectedFolderPath);
-                    return;
-                }
-
-            }
+                    //await RestoreAppDataAsync();
         }
         catch (Exception ex)
         {

@@ -43,8 +43,34 @@ public static class AndroidContentScanner
         TaggingUtils.PlatformGetFileSizeHook = GetContentFileSize;
         TaggingUtils.PlatformGetStreamHook = GetSeekableStream;
         TaggingUtils.PlatformSpecificCleanPathGetter = GetCleanPathFromUri;
-    }
 
+        TaggingUtils.PlatformSpecificFileCreator = CreateFileInFolder;
+    }
+    private static void CreateFileInFolder(string folderUriString, string fileName, string content)
+{
+    try
+    {
+        var context = Android.App.Application.Context;
+        var folderUri = Android.Net.Uri.Parse(folderUriString);
+        var folderDoc = DocumentFile.FromTreeUri(context, folderUri);
+        
+        if (folderDoc != null && folderDoc.CanWrite())
+        {
+            // Create the file in the folder - this returns the proper file URI
+            var fileDoc = folderDoc.CreateFile("application/json", fileName);
+            if (fileDoc != null)
+            {
+                using var stream = context.ContentResolver.OpenOutputStream(fileDoc.Uri);
+                using var writer = new StreamWriter(stream);
+                writer.Write(content);
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        System.Diagnostics.Debug.WriteLine($"Failed to create file: {ex}");
+    }
+}
     private static string GetCleanPathFromUri(string path)
     {
         var uriFromStr = Android.Net.Uri.Parse(path);
@@ -184,10 +210,8 @@ public static class AndroidContentScanner
         {
             var context = Android.App.Application.Context;
             var treeUri = Uri.Parse(uriString);
-
-            // This is safe here because this file is inside Platforms/Android
             DocumentFile? rootDir = DocumentFile.FromTreeUri(context, treeUri);
-            
+
             if (rootDir != null && rootDir.CanRead())
             {
                 Traverse(rootDir, results, supportedExtensions);

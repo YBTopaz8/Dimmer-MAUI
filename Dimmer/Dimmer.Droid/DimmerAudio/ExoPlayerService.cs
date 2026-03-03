@@ -452,11 +452,11 @@ public partial class ExoPlayerService : MediaSessionService
                     {
                         if (CurrentSongContext.IsFavorite)
                         {
-                            await viewModel.RemoveSongFromFavorite(CurrentSongContext);
+                            await viewModel.RemoveSongFromFavoriteAsync(CurrentSongContext);
                         }
                         else
                         {
-                            await viewModel.AddFavoriteRatingToSong(CurrentSongContext);
+                            await viewModel.AddFavoriteRatingToSongAsync(CurrentSongContext);
                         }
                         
                         RxSchedulers.UI.ScheduleTo(() => RefreshNotification());
@@ -1118,11 +1118,11 @@ public partial class ExoPlayerService : MediaSessionService
                                 {
                                     if (currentSong.IsFavorite)
                                     {
-                                        await viewModel.RemoveSongFromFavorite(currentSong);
+                                        await viewModel.RemoveSongFromFavoriteAsync(currentSong);
                                     }
                                     else
                                     {
-                                        await viewModel.AddFavoriteRatingToSong(currentSong);
+                                        await viewModel.AddFavoriteRatingToSongAsync(currentSong);
                                     }
                                     
                                     RxSchedulers.UI.ScheduleTo(() => service.UpdateMediaSessionLayout());

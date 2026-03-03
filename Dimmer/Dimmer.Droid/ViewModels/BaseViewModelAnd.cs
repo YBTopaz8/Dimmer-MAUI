@@ -10,8 +10,9 @@ using Dimmer.ViewsAndPages.NativeViews.ArtistSection;
 namespace Dimmer.ViewModels;
 public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 {
-    
+    DimmerBackupService BackupService;
     public BaseViewModelAnd(
+        DimmerBackupService backupService,
         AndroidFolderPicker picker,
         IDimmerStateService dimmerStateService, MusicDataService musicDataService,
 
@@ -20,7 +21,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         fPicker = picker;
         // mapper and stateService are accessible via base class protected fields.
         // _subs (passed as subsManager) is managed by BaseViewModel as _subsManager.
-
+        BackupService = backupService;
         this._logger = new LoggerFactory().CreateLogger<BaseViewModelAnd>();
         isAppBooting = true;
         this._logger.LogInformation("BaseViewModelAnd initialized.");
@@ -39,10 +40,8 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     private readonly IDimmerAudioService audioService;
     private readonly IAnimationService animService;
     private readonly IRepository<SongModel> songRepository;
-    private readonly BaseViewModel baseVM;
     AndroidFolderPicker fPicker;
-    public BaseViewModel BaseVM => baseVM; // Expose BaseViewModel reference if needed
-
+    
     public Fragment? PreviousPage { get; set; }
     public Fragment? CurrentFragment { get; set; }
 
@@ -660,22 +659,6 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     {
         try
         {
-            if (CurrentFragment!.Activity is TransitionActivity act)
-            {
-                var path = await act.PickFolderAsync();
-                if (!string.IsNullOrEmpty(path))
-                {
-
-                    CancellationTokenSource cts = new();
-
-                    if (!string.IsNullOrEmpty(path))
-                    {
-                        await RestoreAppDataAsync(path);
-                        return;
-                    }
-                } 
-            
-            }
         }
         catch (Exception ex)
         {
@@ -733,6 +716,82 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
         return true;
     }
-   
 
+    internal async Task RestoreAppDataAsync()
+    {
+        var tcs = new TaskCompletionSource<(bool includeDefault, string customPath)>();
+
+        new MaterialAlertDialogBuilder(CurrentFragment!.Context!)
+            .SetTitle("Restore Backup")?
+            .SetMessage("Do you want to select a folder to restore backup from? If no, it will look for backups in default location.")
+            ?.SetPositiveButton("Yes", async (s, e) =>
+            {
+                var customPath = string.Empty;
+                if (CurrentFragment.Activity is TransitionActivity act)
+                {
+                    customPath = await act.PickFolderAsync() ?? string.Empty;
+                }
+                tcs.SetResult((true, customPath));
+            })
+            .SetNegativeButton("No", (s, e) =>
+            {
+                tcs.SetResult((false, string.Empty));
+            })
+            .Show();
+
+        // Wait for user's decision
+        var (includeDefaultLocation, secondaryPath) = await tcs.Task;
+
+        // Now proceed with backup restoration
+        var files = await BackupService.GetBackupFilesAsync(secondaryPath, includeDefaultLocation);
+
+        if (files.Count != 0)
+        {
+            // TODO: Implement file picker for multiple backups
+            var selectedFile = files.First();
+            var result = await BackupService.RestoreFromBackupAsync(selectedFile);
+
+            if (result.EventsRestored > 0)
+            {
+                Debug.WriteLine(result.ToString());
+                Toast.MakeText(CurrentFragment.Context!, "Restore Completed", ToastLength.Short)?.Show();
+            }
+            else
+            {
+                Debug.WriteLine($"Restore failed: {result.ErrorMessage}");
+                Toast.MakeText(CurrentFragment!.Context, "Restore failed", ToastLength.Short)?.Show();
+            }
+        }
+
+        BackupService.CleanupOldBackups(3);
+    }
+
+    internal async Task BackUpAppDataAsync()
+    {
+        var tcs = new TaskCompletionSource<bool>();
+
+        new MaterialAlertDialogBuilder(CurrentFragment!.Context!)?
+            .SetTitle("Backup Data")?
+            .SetMessage("Do you want to select a folder for backup? If no, backup will be saved in default location.")?
+            .SetPositiveButton("Yes", async (s, e) =>
+            {
+                if (CurrentFragment.Activity is TransitionActivity act)
+                {
+                    var path = await act.PickFolderAsync();
+                    if (!string.IsNullOrEmpty(path))
+                    {
+                        await BackupService.CreateCompleteBackupAsync(path);
+                    }
+                }
+                tcs.SetResult(true);
+            })
+            .SetNegativeButton("No", async (s, e) =>
+            {
+                await BackupService.CreateCompleteBackupAsync();
+                tcs.SetResult(true);
+            })
+            .Show();
+
+        await tcs.Task; // Wait for backup to complete
+    }
 }

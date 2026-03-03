@@ -283,7 +283,6 @@ internal partial class HomePageAdapter : RecyclerView.Adapter, IDisposable
             _title.Text = song.Title;
             _artist.Text = song.OtherArtistsName ?? "Unknown";
             _durationView.Text = $"{song.DurationFormatted}";
-            _durationView.Text = $"{song.PlayCompletedCount}";
 
             if (song.HasSyncedLyrics)
             {
@@ -331,7 +330,7 @@ internal partial class HomePageAdapter : RecyclerView.Adapter, IDisposable
                 _img.TransitionName = imgTransName;
                 _title.TransitionName = titleTransName;
 
-                var popupFragment = new SongDetailOverlayFragment(_currentSong, imgTransName, titleTransName);
+                var popupFragment = new SongDetailOverlayFragment(MyViewModel, _currentSong, imgTransName, titleTransName);
                 AnimationHelper.ShowMorphingFragment(_parentFrag.ParentFragmentManager, popupFragment,
                     (_img, imgTransName), (_title, titleTransName));
             }
@@ -363,7 +362,7 @@ internal partial class HomePageAdapter : RecyclerView.Adapter, IDisposable
             }
             else if (v == _favBtn)
             {
-                _ = MyViewModel.AddFavoriteRatingToSong(_currentSong);
+                _ = MyViewModel.AddFavoriteRatingToSongAsync(_currentSong);
                 _favBtn.Text = !_currentSong.IsFavorite ? "Unfav" : "Fav";
                 _favBtn.SetIconResource(_currentSong.IsFavorite ? Resource.Drawable.heartlock : Resource.Drawable.heart);
                 _favBtn.IconTint = _currentSong.IsFavorite ? AppUtil.ToColorStateList(Color.DarkSlateBlue) : AppUtil.ToColorStateList(Color.Gray);
@@ -393,7 +392,7 @@ internal partial class HomePageAdapter : RecyclerView.Adapter, IDisposable
             }
             else if (v == _favBtn)
             {
-                _ = MyViewModel.RemoveSongFromFavorite(_currentSong);
+                _ = MyViewModel.RemoveSongFromFavoriteAsync(_currentSong);
                 var iconRes = _currentSong.IsFavorite ? Resource.Drawable.heartlock : Resource.Drawable.heart;
                 _favBtn.Text = !_currentSong.IsFavorite ? "Unfav" : "Fav";
                 _favBtn.SetIconResource(iconRes);
@@ -414,7 +413,7 @@ internal partial class HomePageAdapter : RecyclerView.Adapter, IDisposable
 
                 // Create a bottom sheet dialog with playback options
                 var dialog = new BottomSheetDialog(ctx);
-
+            
                 // Create the layout programmatically
                 var mainLayout = new LinearLayout(ctx)
                 {
@@ -432,6 +431,7 @@ internal partial class HomePageAdapter : RecyclerView.Adapter, IDisposable
                     TextSize = 20,
                     Typeface = Typeface.DefaultBold
                 };
+            titleView.SetTextColor(Color.White);
                 titleView.SetForegroundGravity(GravityFlags.CenterHorizontal | GravityFlags.CenterVertical);
                 titleView.SetPadding(0, 0, 0, AppUtil.DpToPx(16));
                 mainLayout.AddView(titleView);
@@ -447,7 +447,8 @@ internal partial class HomePageAdapter : RecyclerView.Adapter, IDisposable
                         BottomMargin = AppUtil.DpToPx(8)
                     }
                 };
-                playNowBtn.SetIconResource(Resource.Drawable.play);
+            playNowBtn.SetTextColor(Color.White);
+            playNowBtn.SetIconResource(Resource.Drawable.play);
                 playNowBtn.Click += async (s, e) =>
                 {
                     await MyViewModel.PlaySongWithActionAsync(_currentSong, Dimmer.Utilities.Enums.PlaybackAction.PlayNow);
@@ -467,7 +468,8 @@ internal partial class HomePageAdapter : RecyclerView.Adapter, IDisposable
                         BottomMargin = AppUtil.DpToPx(8)
                     }
                 };
-                playNextBtn.SetIconResource(Resource.Drawable.media3_icon_next);
+            playNextBtn.SetTextColor(Color.White);
+            playNextBtn.SetIconResource(Resource.Drawable.media3_icon_next);
                 playNextBtn.Click += async (s, e) =>
                 {
                     await MyViewModel.PlaySongWithActionAsync(_currentSong, Dimmer.Utilities.Enums.PlaybackAction.PlayNext);
@@ -487,7 +489,8 @@ internal partial class HomePageAdapter : RecyclerView.Adapter, IDisposable
                         BottomMargin = AppUtil.DpToPx(8)
                     }
                 };
-                addToQueueBtn.SetIconResource(Resource.Drawable.media3_icon_queue_add);
+            addToQueueBtn.SetTextColor(Color.White);
+            addToQueueBtn.SetIconResource(Resource.Drawable.media3_icon_queue_add);
                 addToQueueBtn.Click += async (s, e) =>
                 {
                     await MyViewModel.PlaySongWithActionAsync(_currentSong, Dimmer.Utilities.Enums.PlaybackAction.AddToQueue);
@@ -504,10 +507,14 @@ internal partial class HomePageAdapter : RecyclerView.Adapter, IDisposable
                         ViewGroup.LayoutParams.MatchParent,
                         ViewGroup.LayoutParams.WrapContent)
                 };
-                viewInQueueBtn.SetIconResource(Resource.Drawable.eye);
+            viewInQueueBtn.SetTextColor(Color.White);
+            viewInQueueBtn.SetIconResource(Resource.Drawable.eye);
                 viewInQueueBtn.Click += (s, e) =>
                 {
+
+
                     MyViewModel.SelectedSong = _currentSong;
+
                     var queueSheet = new QueueBottomSheetFragment(MyViewModel, viewInQueueBtn);
                     viewInQueueBtn.Enabled = false;
                     queueSheet.Show(_parentFrag.ParentFragmentManager, "QueueSheet");

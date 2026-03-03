@@ -1,4 +1,5 @@
 ﻿using DynamicData.Binding;
+using Google.Android.Material.Color.Utilities;
 using Google.Android.Material.MaterialSwitch;
 using ScrollView = Android.Widget.ScrollView;
 
@@ -385,9 +386,10 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
             ,
             IconSize = 13,
         };
-        backAppState.Click += (s, e) =>
+        backAppState.SetTextColor(Color.White );
+        backAppState.Click += async (s, e) =>
         {
-            MyViewModel.BaseVM.BackUpAppData();
+            await MyViewModel.BackUpAppDataAsync();
         };
         layout.AddView(backAppState);
         layout.AddView(CreateDivider(ctx));
@@ -400,9 +402,11 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
             ,
             IconSize = 13,
         };
-        restoreState.Click += (s, e) =>
+        restoreState.SetTextColor(Color.White);
+        restoreState.Click += async (s, e) =>
         {
-
+           
+                    await MyViewModel.RestoreAppDataAsync();
         };
         layout.AddView(restoreState);
         layout.AddView(CreateDivider(ctx));
@@ -421,7 +425,7 @@ public class SettingsFragment  : Fragment, IOnBackInvokedCallback
             MyViewModel.KeepScreenOnDuringLyrics, (v) =>
             {
 
-                    MyViewModel.BaseVM.ToggleLastFMScrobbling(v);
+                    MyViewModel.ToggleLastFMScrobbling(v);
 
 
             });

@@ -238,7 +238,7 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
         var send = (sender as Button)!;
         var trackk = (send.DataContext as Track)!;
         var songg = MyViewModel.SearchResults.First(x => x.Id.ToString() == trackk.OnDeviceObjectId);
-        await MyViewModel.AddFavoriteRatingToSong(songg);
+        await MyViewModel.AddFavoriteRatingToSongAsync(songg);
     }
 
     private void BanTrackButton_Click(object sender, RoutedEventArgs e)

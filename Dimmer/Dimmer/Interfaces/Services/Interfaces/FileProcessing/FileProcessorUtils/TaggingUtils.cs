@@ -293,7 +293,7 @@ public static class TaggingUtils
     public static Func<string, IReadOnlySet<string>, List<string>>? PlatformSpecificScanner { get; set; }
     public static Func<string, Stream>? PlatformGetStreamHook { get; set; }
     public static Func<string, string>? PlatformSpecificCleanPathGetter { get; set; }
-    
+    public static Action<string, string, string>? PlatformSpecificFileCreator { get; set; }
 
     public static Func<string, long>? PlatformGetFileSizeHook { get; set; }
     public static Func<string, bool>? PlatformSpecificDeleter { get; set; }

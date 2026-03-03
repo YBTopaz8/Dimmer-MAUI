@@ -145,7 +145,7 @@ public static class DimmerMappers
 
             // --- Collections ---
             // Mapping RealmLists to ObservableCollections
-            PlayEvents = src.PlayHistory?.Select(x => x.ToDimmerPlayEventView()).ToObservableCollection() ?? new(),
+            //PlayEvents = src.PlayHistory?.Select(x => x.ToDimmerPlayEventView()).ToObservableCollection() ?? new(),
             UserNoteAggregatedCol = src.UserNotes?.Select(x => x.ToUserNoteModelView()).ToObservableCollection() ?? new(),
             EmbeddedSync = src.EmbeddedSync?.Select(x => x.ToLyricPhraseModelView()).ToObservableCollection() ?? new(),
 
@@ -158,6 +158,105 @@ public static class DimmerMappers
 
         // Equivalent to AfterMap logic
         // dest.RefreshDenormalizedProperties(); 
+
+        return dest;
+    }
+    
+    public static SongModelView? ToSongForDimmerEventModelView(this SongModel? src)
+    {
+        if (src is null) return null;
+
+        var dest = new SongModelView
+        {
+            // --- Scalar Properties ---
+            Id = src.Id,
+            Title = src.Title,
+            FilePath = src.FilePath,
+            
+            DurationInSeconds = src.DurationInSeconds,
+            IsHidden = src.IsHidden,
+            ReleaseYear = src.ReleaseYear,
+            NumberOfTimesFaved = src.NumberOfTimesFaved,
+            ManualFavoriteCount = src.ManualFavoriteCount,
+            TrackNumber = src.TrackNumber,
+            FileFormat = src.FileFormat,
+            PlatformPath=src.PlatformPath,
+            Lyricist = src.Lyricist,
+            Composer = src.Composer,
+            Conductor = src.Conductor,
+            Description = src.Description,
+            Language = src.Language,
+            DiscNumber = src.DiscNumber,
+            DiscTotal = src.DiscTotal,
+            FileSize = src.FileSize,
+            BitRate = src.BitRate,
+            Rating = src.Rating,
+            HasLyrics = src.HasLyrics,
+            HasSyncedLyrics = src.HasSyncedLyrics,
+            IsInstrumental = src.IsInstrumental,
+            SyncLyrics = src.SyncLyrics,
+            CoverImagePath = src.CoverImagePath,
+            TrackTotal = src.TrackTotal,
+            SampleRate = src.SampleRate,
+            Encoder = src.Encoder,
+            BitDepth = src.BitDepth,
+            NbOfChannels = src.NbOfChannels,
+            UnSyncLyrics = src.UnSyncLyrics,
+            IsFavorite = src.IsFavorite,
+            Achievement = src.Achievement,
+            IsFileExists = src.IsFileExists,
+            LastDateUpdated = src.LastDateUpdated,
+            DateCreated = src.DateCreated,
+            DeviceName = src.DeviceName,
+            DeviceFormFactor = src.DeviceFormFactor,
+            DeviceModel = src.DeviceModel,
+            DeviceManufacturer = src.DeviceManufacturer,
+            DeviceVersion = src.DeviceVersion,
+            UserIDOnline = src.UserIDOnline,
+            IsNew = src.IsNew,
+            BPM = src.BPM,
+            TitleDurationKey = src.TitleDurationKey,
+            SongTypeValue = src.SongTypeValue,
+            ParentSongId = src.ParentSongId,
+            SegmentStartTime = src.SegmentStartTime,
+            SegmentEndTime = src.SegmentEndTime,
+            SegmentEndBehaviorValue = src.SegmentEndBehaviorValue,
+            CoverArtHash = src.CoverArtHash,
+            // SearchableText is computed in ViewModel usually, or mapped here if saved
+            // UserNoteAggregatedText is computed
+
+            // --- Statistics ---
+            PlayCount = src.PlayCount,
+            PlayCompletedCount = src.PlayCompletedCount,
+            SkipCount = src.SkipCount,
+            LastPlayed = src.LastPlayed,
+            ListenThroughRate = src.ListenThroughRate,
+            SkipRate = src.SkipRate,
+            FirstPlayed = src.FirstPlayed,
+            PopularityScore = src.PopularityScore,
+            GlobalRank = src.GlobalRank,
+            RankInAlbum = src.RankInAlbum,
+            RankInArtist = src.RankInArtist,
+            PauseCount = src.PauseCount,
+            ResumeCount = src.ResumeCount,
+            SeekCount = src.SeekCount,
+            LastPlayEventType = src.LastPlayEventType,
+            PlayStreakDays = src.PlayStreakDays,
+            EddingtonNumber = src.EddingtonNumber,
+            EngagementScore = src.EngagementScore,
+            TotalPlayDurationSeconds = src.TotalPlayDurationSeconds,
+            RepeatCount = src.RepeatCount,
+            PreviousCount = src.PreviousCount,
+            RestartCount = src.RestartCount,
+            DiscoveryDate = src.DiscoveryDate,
+
+            // --- Custom Mappings (From your AutoMapper config) ---
+            ArtistName = src.ArtistName,
+            OtherArtistsName = src.OtherArtistsName,
+            AlbumName = src.AlbumName,
+            GenreName = src.Genre?.Name ?? string.Empty,
+
+        };
 
         return dest;
     }
@@ -214,7 +313,10 @@ public static class DimmerMappers
             foreach (var alb in songAlbs)
             {
                 if (alb is null) continue;
-                art.AlbumsByArtist ??= new();
+                RxSchedulers.UI.ScheduleTo(() =>
+                {
+                    art.AlbumsByArtist ??= new();
+                });
                 realm.Write(() =>
                 {
                     var albInDb = realm.Find<AlbumModel>(alb.Id)!;
@@ -222,7 +324,10 @@ public static class DimmerMappers
                 });
 
             }
-            art.AlbumsByArtist = albs!.ToObservableCollection()!;
+           RxSchedulers.UI.ScheduleTo(() =>
+           {
+               art.AlbumsByArtist = albs?.ToObservableCollection();
+           });
         }
         else
         {
@@ -237,8 +342,8 @@ public static class DimmerMappers
                 }
 
             }
-            art.AlbumsByArtist = realm.Find<ArtistModel>(art.Id)?
-                .Albums.AsEnumerable().Select(x=>x.ToAlbumModelView()).ToObservableCollection();
+            RxSchedulers.UI.ScheduleTo(()=>art.AlbumsByArtist = realm.Find<ArtistModel>(art.Id)?
+                .Albums.AsEnumerable().Select(x=>x.ToAlbumModelView()).ToObservableCollection()!);
         }
 
     }
@@ -848,9 +953,9 @@ public static class DimmerMappers
                 dest.AlbumName = concernedSong.AlbumName;
             }
         }
-        //dest.SongViewObject = src.SongsLinkingToThisEvent != null && src.SongsLinkingToThisEvent.Any()
-        //    ? src.SongsLinkingToThisEvent.FirstOrDefaultNullSafe()?.ToSongModelView()
-        //    : null;
+        dest.SongViewObject = src.SongsLinkingToThisEvent != null && src.SongsLinkingToThisEvent.Any()
+            ? src.SongsLinkingToThisEvent.FirstOrDefaultNullSafe()?.ToSongForDimmerEventModelView()
+            : null;
         //dest.ListOfSongViewObjects = src.SongsLinkingToThisEvent.AsEnumerable().Select(x => x.ToSongModelView()).ToObservableCollection();
 
         return dest;

@@ -117,7 +117,7 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
         };
         var headerParams = new AppBarLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent)
         {
-            // CRITICAL: This allows the header to scroll off-screen dynamically
+
             ScrollFlags = AppBarLayout.LayoutParams.ScrollFlagScroll | AppBarLayout.LayoutParams.ScrollFlagEnterAlways
         };
         headerContent.LayoutParameters = headerParams;
@@ -190,9 +190,11 @@ public partial class HomePageFragment : Fragment, IOnBackInvokedCallback
 
         songsTotal = new TextView(ctx, null, Resource.Attribute.titleTextStyle);
         songsTotal.SetTextColor(UiBuilder.IsDark(root) ? Color.White : Color.Black);
-
+        songsTotal.SetForegroundGravity(GravityFlags.CenterHorizontal);
         TqlLine = new TextView(ctx, null, Resource.Attribute.titleTextStyle) { TextSize = 12 };
         TqlLine.SetTextColor(Color.Gray);
+
+        TqlLine.SetForegroundGravity(GravityFlags.CenterHorizontal);
 
         statusLayout.AddView(songsTotal);
         statusLayout.AddView(TqlLine);
@@ -395,7 +397,10 @@ ParentFragmentManager.BeginTransaction()
         // CRITICAL FIX: Add .DisposeWith(_resumeDisposables) to every subscription
         MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentPlayingSongView), newVl => MyViewModel.CurrentPlayingSongView)
             .ObserveOn(RxSchedulers.UI)
-            .Subscribe(currSong => { /* Update visual logic */ })
+            .Subscribe(currSong => 
+            { 
+            
+            })
             .DisposeWith(_resumeDisposables);
 
         MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentTqlQueryUI), newVl => MyViewModel.CurrentTqlQueryUI)
