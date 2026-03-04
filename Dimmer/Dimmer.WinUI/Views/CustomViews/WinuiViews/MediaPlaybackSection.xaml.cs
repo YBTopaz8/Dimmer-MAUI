@@ -330,4 +330,38 @@ public sealed partial class MediaPlaybackSection : UserControl
     {
         //CursorHelper.SetHandCursor((FrameworkElement)sender);
     }
+
+    private void CloudSyncButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            // Get the SessionManagementViewModel to check auth status
+            var sessionMgmt = IPlatformApplication.Current?.Services.GetService<SessionManagementViewModel>();
+            var loginViewModel = sessionMgmt?.LoginViewModel;
+            
+            if (loginViewModel?.CurrentUserOnline == null || !loginViewModel.CurrentUserOnline.IsAuthenticated)
+            {
+                // User not logged in, show message
+                var flyout = new Microsoft.UI.Xaml.Controls.MenuFlyout();
+                flyout.Items.Add(new Microsoft.UI.Xaml.Controls.MenuFlyoutItem
+                {
+                    Text = "Please log in to sync sessions across devices",
+                    IsEnabled = false
+                });
+                flyout.ShowAt(sender as Microsoft.UI.Xaml.FrameworkElement);
+                return;
+            }
+
+            // Navigate to CloudDataPage
+            var dimmerWindow = MyViewModel?.winUIWindowMgrService.GetWindow<DimmerWin>();
+            if (dimmerWindow != null)
+            {
+                dimmerWindow.NavigateToPage(typeof(Dimmer.WinUI.Views.WinuiPages.DimmerLive.CloudDataPage));
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error navigating to CloudDataPage: {ex.Message}");
+        }
+    }
 }

@@ -153,6 +153,17 @@
                                     Height="19"
                                     Glyph="&#xEC71;" />
                             </Button>
+                            
+                            <Button
+                                x:Name="CloudSyncButton"
+                                Background="Transparent"
+                                Click="CloudSyncButton_Click"
+                                ToolTipService.ToolTip="Transfer session to another device">
+                                <FontIcon
+                                    Width="19"
+                                    Height="19"
+                                    Glyph="&#xE753;" />
+                            </Button>
                         </StackPanel>
 
 
