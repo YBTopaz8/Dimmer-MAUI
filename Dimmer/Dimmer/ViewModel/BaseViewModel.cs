@@ -444,7 +444,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         Debug.WriteLine(DateTime.Now + "start auery pipeline");
         var searchStream = _searchQuerySubject
-    .Throttle(TimeSpan.FromMilliseconds(150), RxSchedulers.Background)
+    .Throttle(TimeSpan.FromMilliseconds(350), RxSchedulers.Background)
     .DistinctUntilChanged()
     .Do(query =>
     {
@@ -633,7 +633,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             // Using ToList() here snapshots the data for the UI thread
             var finalViewList = intermediateList
                 .Select(x => x.ToSongModelView())
-              
+             .ToList()
                 ;
 
             return new SearchResult { Plan = plan, SongsResult = finalViewList };
@@ -1595,7 +1595,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial string AppTitle { get; set; } = "Dimmer";
 
-    public static string CurrentAppVersion = "1.8.4";
+    public static string CurrentAppVersion = "1.8.5";
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]
@@ -2263,7 +2263,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         CurrentPlayingSongView.IsCurrentPlayingHighlight = true;
         _logger.LogInformation("AudioService confirmed: Playback resumed for '{Title}'", args.AudioServiceCurrentPlayingSongView.Title);
         await BaseAppFlow.UpdateDatabaseWithPlayEvent(
-             RealmFactory,
+             
              args.AudioServiceCurrentPlayingSongView,
              StatesMapper.Map(DimmerPlaybackState.Resumed),
              CurrentTrackPositionSeconds);
@@ -2282,7 +2282,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         CurrentPlayingSongView.IsCurrentPlayingHighlight = false;
 
         await BaseAppFlow.UpdateDatabaseWithPlayEvent(
-            RealmFactory,
+            
             CurrentPlayingSongView,
             StatesMapper.Map(DimmerPlaybackState.PlayCompleted),
             CurrentTrackDurationSeconds);
@@ -2392,7 +2392,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             if (CurrentPlayingSongView.TitleDurationKey is null) return;
             _logger.LogInformation("AudioService confirmed: Seek completed to {Position}s.", newPosition);
             await BaseAppFlow.UpdateDatabaseWithPlayEvent(
-                RealmFactory,
+                
                 CurrentPlayingSongView,
                 StatesMapper.Map(DimmerPlaybackState.Seeked),
                 newPosition);
@@ -2443,7 +2443,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         _logger.LogInformation("AudioService confirmed: Playback started for '{Title}'", args.AudioServiceCurrentPlayingSongView.Title);
         await BaseAppFlow.UpdateDatabaseWithPlayEvent(
-            RealmFactory,
+            
             args.AudioServiceCurrentPlayingSongView,
             StatesMapper.Map(DimmerPlaybackState.Playing),
             0);
@@ -3295,7 +3295,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         if (IsDimmerPlaying && CurrentPlayingSongView != null && CurrentTrackPositionPercentage < 90)
         {
             await BaseAppFlow.UpdateDatabaseWithPlayEvent(
-                RealmFactory,
+                
                 CurrentPlayingSongView,
                 StatesMapper.Map(DimmerPlaybackState.Skipped),
                 CurrentTrackPositionSeconds);
@@ -3311,7 +3311,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         else if (IsDimmerPlaying && CurrentPlayingSongView != null && CurrentTrackPositionPercentage >= 90)
         {
             await BaseAppFlow.UpdateDatabaseWithPlayEvent(
-                RealmFactory,
+                
                 CurrentPlayingSongView,
                 StatesMapper.Map(DimmerPlaybackState.PlayCompleted),
                 CurrentTrackDurationSeconds);
@@ -3378,7 +3378,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         if (IsDimmerPlaying && CurrentPlayingSongView != null)
         {
             await BaseAppFlow.UpdateDatabaseWithPlayEvent(
-                  RealmFactory,
+                  
                   CurrentPlayingSongView,
                   StatesMapper.Map(DimmerPlaybackState.Skipped),
                   CurrentTrackPositionSeconds);
@@ -4724,7 +4724,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public void ToggleArtistAsFavorite(ArtistModelView artist)
     {
         artist.IsFavorite = !artist.IsFavorite;
-        BaseAppFlow.UpsertArtist(artist.ToArtistModel());
+        BaseAppFlow.UpsertArtist(artist.ToArtistModel()!);
     }
     
 
@@ -4781,7 +4781,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             // record event (favorited)
             await BaseAppFlow.UpdateDatabaseWithPlayEvent(
-                RealmFactory,
                 songModel,
                 StatesMapper.Map(DimmerPlaybackState.Favorited),
                 CurrentTrackPositionSeconds);

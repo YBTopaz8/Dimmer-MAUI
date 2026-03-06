@@ -134,8 +134,8 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
         {
             StatusMessage = "Registering device...";
             await _sessionManager.RegisterCurrentDeviceAsync();
-            _sessionManager.StartListeners();
-            await _sessionManager.SyncDeviceStateAsync();
+            //_sessionManager.StartListeners();
+            //await _sessionManager.SyncDeviceStateAsync();
         }
         catch (Exception ex)
         {
@@ -146,8 +146,7 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
     }
     public async Task TransferFullQueue(UserDeviceSession targetDevice)
     {
-        var queue = _mainViewModel.PlaybackQueue.ToList();
-        var queueEvents = queue.Select(song => new DimmerPlayEventView
+        var queue = _mainViewModel.PlaybackQueue.Select(song => new DimmerPlayEventView
         {
             SongId = song.Id,
             SongName = song.Title,
@@ -190,7 +189,20 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
         StatusMessage = "Transfer request sent.";
     }
 
+    [RelayCommand]
+    public async Task RemoteControl(string commandType)
+    {
+        // If screening a device, send a command to it
+        if (RemoteDeviceState == null) return;
 
+        var cmd = new DeviceCommand
+        {
+            TargetDeviceId = RemoteDeviceState.DeviceId,
+            Command = commandType, // e.g., "PAUSE"
+            IsProcessed = false
+        };
+        await cmd.SaveAsync();
+    }
     private async void HandleIncomingTransferRequest(DimmerSharedSong request)
     {
         // UI Prompt
@@ -383,97 +395,12 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
     // This is the "Virtual Library" of the device we are screening
     public ObservableCollection<SongModelView> RemoteLibrary { get; } = new();
 
-    [RelayCommand]
-    public async Task StartScreeningDevice(UserDeviceSession targetDevice)
-    {
-        if (targetDevice == null) return;
-        IsBusy = true;
-        StatusMessage = $"Connecting to {targetDevice.DeviceName}...";
+  
 
-        try
-        {
-            // 1. Snapshot Check: Do we have Device B's library locally?
-            string cachePath = Path.Combine(FileSystem.CacheDirectory, $"lib_{targetDevice.DeviceId}.json");
-
-            bool needsFullSync = !File.Exists(cachePath) || targetDevice.LibraryTag != GetLocalLibraryTag(targetDevice.DeviceId);
-
-            if (needsFullSync)
-            {
-                StatusMessage = "Requesting library snapshot...";
-                await RequestLibraryExport(targetDevice.DeviceId);
-                // The remote device will upload a ParseFile. We wait for the update via LiveQuery.
-                // For this example, we'll poll or wait for targetDevice to update.
-            }
-            else
-            {
-                await LoadRemoteLibraryFromCache(cachePath);
-            }
-
-            // 2. Start Live Delta Monitoring (Real-time Playback)
-            await SubscribeToRemotePlayback(targetDevice.DeviceId);
-
-            IsScreeningActive = true;
-            StatusMessage = $"Screening {targetDevice.DeviceName}";
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = "Screening failed: " + ex.Message;
-        }
-        finally { IsBusy = false; }
-    }
-    public async Task RequestDeltaExport(string targetDeviceId, DateTime lastSyncTime)
-    {
-        var cmd = new DeviceCommand
-        {
-            TargetDeviceId = targetDeviceId,
-            CommandName = "EXPORT_LIBRARY_DELTA",
-            PayloadStr = JsonSerializer.Serialize(new
-            {
-                LastSyncTime = lastSyncTime,
-                DeviceId = _sessionManager.ThisDeviceSession.DeviceId
-            })
-        };
-        await cmd.SaveAsync();
-
-        // Remote device responds with ONLY changes since lastSyncTime
-        // Much faster than full export!
-    }
-    private async Task RequestLibraryExport(string targetDeviceId)
-    {
-        var cmd = new DeviceCommand
-        {
-            TargetDeviceId = targetDeviceId,
-            SourceDeviceId = _sessionManager.ThisDeviceSession.DeviceId,
-            CommandName = "EXPORT_LIBRARY",
-            Timestamp = DateTime.UtcNow
-        };
-        await cmd.SaveAsync();
-    }
     private readonly ParseLiveQueryClient _liveQueryClient;
 
-    private async Task SubscribeToRemotePlayback(string deviceId)
-    {
-        var query = ParseClient.Instance.GetQuery<DeviceState>()
-            .WhereEqualTo("DeviceId", deviceId);
+ 
 
-        var subscription = _liveQueryClient.Subscribe(query);
-            subscription.On(Subscription.Event.Update,OnUpdatedMethod);
-
-    }
-
-    private void OnUpdatedMethod(DeviceState obj)
-    {
-        RemoteDeviceState = obj;
-
-        // LEAD DEV MOVE: Lookup Song Metadata locally from the Snapshot
-        // We only get an ID from LiveQuery, but we show full details from Cache.
-        var metadata = RemoteLibrary.FirstOrDefault(s => s.Id.ToString() == obj.CurrentSongId);
-        if (metadata != null)
-        {
-            // Update your UI with metadata found in the snapshot
-            StatusMessage = $"Remote Playing: {metadata.Title} - {metadata.ArtistName}";
-        }
-    }
 
     // --- PRO LOGIC: COMPRESSION & STORAGE (The Snapshot) ---
     public async Task ProcessIncomingSnapshot(UserDeviceSession updatedSession)
@@ -511,18 +438,5 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
         return Preferences.Get($"tag_{deviceId}", string.Empty);
     }
 
-    [RelayCommand]
-    public async Task RemoteControl(string command)
-    {
-        // Example: command = "PAUSE" or "NEXT"
-        if (RemoteDeviceState == null) return;
 
-        var cmd = new DeviceCommand
-        {
-            TargetDeviceId = RemoteDeviceState.DeviceId,
-            CommandName = command,
-            IsHandled = false
-        };
-        await cmd.SaveAsync();
-    }
 }

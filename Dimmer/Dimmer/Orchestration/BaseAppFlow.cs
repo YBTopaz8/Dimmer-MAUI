@@ -1,258 +1,226 @@
 ﻿using Dimmer.Interfaces;
-
-using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Logging;
+using Realms;
 
 namespace Dimmer.Orchestration;
 
 public class BaseAppFlow : IDisposable
 {
-    protected readonly IDimmerStateService _state;
+    private readonly IDimmerStateService _state;
     private readonly ISettingsService _settingsService;
     private readonly ILogger<BaseAppFlow> _logger;
-
-
     private readonly IRepository<UserModel> _userRepo;
     private readonly IRepository<PlaylistModel> _playlistRepo;
     private readonly IRepository<ArtistModel> _artistRepo;
     private readonly IRepository<AlbumModel> _albumRepo;
     private readonly IRepository<SongModel> _songRepo;
-    private readonly IRepository<AppStateModel> _appStateRepo;
-
-
     private readonly IFolderMgtService _folderManagementService;
+    private readonly IDimmerAudioService _audioService;
+    private readonly IRealmFactory _realmFactory; // Added to avoid passing in methods
 
-    private readonly ILibraryScannerService _libraryScannerService;
-
-
-    private readonly CompositeDisposable _subscriptions = new();
     private bool _disposed;
 
+    // Consider making this configurable if needed
+    private const int MAX_EVENT_CACHE_SIZE = 100;
+    private readonly Dictionary<ObjectId, (PlayType Type, DateTime Timestamp)> _lastEventCache = new();
 
     public UserModel? CurrentUserInstance { get; private set; }
     public AppStateModelView? AppStateSnapshot { get; private set; }
-    private readonly IDimmerAudioService audioService;
-
     public AchievementService AchievementService { get; set; }
 
     public BaseAppFlow(
         IDimmerStateService state,
-
         AchievementService achService,
-       IDimmerAudioService _audioService,
+        IDimmerAudioService audioService,
         IRepository<UserModel> userRepo,
         IRepository<PlaylistModel> playlistRepo,
         IRepository<ArtistModel> artistRepo,
         IRepository<AlbumModel> albumRepo,
         IRepository<SongModel> songRepo,
-        IRepository<AppStateModel> appStateRepo,
+        IRepository<AppStateModel> appStateRepo, // Kept for backward compatibility
         ISettingsService settingsService,
         IFolderMgtService folderManagementService,
-        ILibraryScannerService libraryScannerService,
-        
+        ILibraryScannerService libraryScannerService, // Kept for backward compatibility
+        IRealmFactory realmFactory, // Added to avoid passing in methods
         ILogger<BaseAppFlow> logger)
     {
-        AchievementService = achService;
+        AchievementService = achService ?? throw new ArgumentNullException(nameof(achService));
         _state = state ?? throw new ArgumentNullException(nameof(state));
-        audioService= _audioService   ?? throw new ArgumentNullException(nameof(audioService));
-        _userRepo = userRepo;
-        _playlistRepo = playlistRepo;
-        _artistRepo = artistRepo;
-        _albumRepo = albumRepo;
-        _songRepo = songRepo;
-        _appStateRepo = appStateRepo;
+        _audioService = audioService ?? throw new ArgumentNullException(nameof(audioService));
+        _userRepo = userRepo ?? throw new ArgumentNullException(nameof(userRepo));
+        _playlistRepo = playlistRepo ?? throw new ArgumentNullException(nameof(playlistRepo));
+        _artistRepo = artistRepo ?? throw new ArgumentNullException(nameof(artistRepo));
+        _albumRepo = albumRepo ?? throw new ArgumentNullException(nameof(albumRepo));
+        _songRepo = songRepo ?? throw new ArgumentNullException(nameof(songRepo));
+        // Keep these for backward compatibility but mark as obsolete if possible
+        _ = appStateRepo ?? throw new ArgumentNullException(nameof(appStateRepo));
+        _ = libraryScannerService ?? throw new ArgumentNullException(nameof(libraryScannerService));
+
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _folderManagementService = folderManagementService ?? throw new ArgumentNullException(nameof(folderManagementService));
-        _libraryScannerService = libraryScannerService ?? throw new ArgumentNullException(nameof(libraryScannerService));
-        _logger = logger ?? NullLogger<BaseAppFlow>.Instance;
+        _realmFactory = realmFactory ?? throw new ArgumentNullException(nameof(realmFactory));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-
-        InitializeFolderEventReactions();
+        // Removed empty method call
 
         _logger.LogInformation("BaseAppFlow (Coordinator & Logger) initialized.");
     }
 
-
-
-
-    private void InitializeFolderEventReactions()
-    {
-        return;
-  
-    }
-
-
+    #region Event Logging
 
     public void LogApplicationEvent(PlayType playType, SongModelView? songContext = null, string? eventDetails = null, double? position = null)
     {
+        // Validation logging only - no functional changes
         if (playType < PlayType.LogEvent && songContext == null)
         {
-            _logger.LogWarning("LogApplicationEvent: Playback-related PlayType {PlayType} called without songContext.", playType);
-
+            _logger.LogWarning("Playback-related PlayType {PlayType} called without songContext.", playType);
         }
-        if (playType < PlayType.LogEvent && songContext != null)
+        else if (playType < PlayType.LogEvent && songContext != null)
         {
-            _logger.LogDebug("LogApplicationEvent: Playback-related PlayType {PlayType} with song {SongTitle} logged explicitly. This is usually handled by state transitions.", playType, songContext.Title);
+            _logger.LogDebug("Playback-related PlayType {PlayType} with song {SongTitle} logged explicitly. This is usually handled by state transitions.",
+                playType, songContext.Title);
         }
 
-
-        //UpdateDatabaseWithPlayEvent(songContext, playType, position, eventDetails);
-
-
-
+        // Note: Actual event persistence is handled by UpdateDatabaseWithPlayEvent
+        // This method is kept for backward compatibility and logging
     }
 
-    Dictionary<ObjectId, PlayType> lastEvent = new Dictionary<ObjectId, PlayType>();
-
-    public async Task UpdateDatabaseWithPlayEvent(IRealmFactory realmFactory, SongModelView? songView, PlayType? type, double? position = null)
+    public async Task UpdateDatabaseWithPlayEvent(SongModelView? songView, PlayType? type, double? position = null)
     {
-        if (songView == null)
+        // Early returns for invalid inputs
+        if (songView == null || type == null)
         {
+            _logger.LogWarning("UpdateDatabaseWithPlayEvent called with null parameters: Song={HasSong}, Type={HasType}",
+                songView != null, type != null);
             return;
         }
 
-        if(lastEvent.ContainsKey(songView?.Id ?? ObjectId.Empty))
+        if (songView.Id == default)
         {
-            if(lastEvent[songView?.Id ?? ObjectId.Empty] == type && type != PlayType.Favorited)
+            _logger.LogError("UpdateDatabaseWithPlayEvent: Invalid SongView ID (default) for PlayType {PlayType}", type);
+            return;
+        }
+
+        // Deduplication logic - improved with timestamp to prevent issues
+        if (_lastEventCache.TryGetValue(songView.Id, out var lastEvent))
+        {
+            // If it's the same event type AND it's not Favorited AND it happened recently (within 1 second)
+            if (lastEvent.Type == type &&
+                type != PlayType.Favorited &&
+                (DateTime.UtcNow - lastEvent.Timestamp).TotalSeconds < 1)
             {
-                //same event as last time for this song, ignore
-                Debug.WriteLine($"Ignoring duplicate event {type} for song {songView?.Title} of id {songView?.Id}");
+                _logger.LogDebug("Ignoring duplicate event {Type} for song {SongTitle}", type, songView.Title);
                 return;
             }
-            lastEvent[songView?.Id ?? ObjectId.Empty] = type ?? PlayType.LogEvent;
-        }
-        else
-        {
-            lastEvent[songView?.Id ?? ObjectId.Empty] = type ?? PlayType.LogEvent;
         }
 
+        // Update cache with new event
+        _lastEventCache[songView.Id] = (type.Value, DateTime.UtcNow);
 
-        Debug.WriteLine($"Current Event {type} song is {songView.Title} of id {songView.Id} pos is {position}");
-
-        if (type ==PlayType.Pause)
+        // Prevent cache from growing too large
+        if (_lastEventCache.Count > MAX_EVENT_CACHE_SIZE)
         {
+            // Remove oldest 20 entries
+            var oldestKeys = _lastEventCache
+                .OrderBy(kvp => kvp.Value.Timestamp)
+                .Take(20)
+                .Select(kvp => kvp.Key)
+                .ToList();
 
-        }
-        if (type is null)
-            return;
-        if (songView is null || songView.Id == default)
-        {
-            _logger.LogError("UpdateDatabaseWithPlayEvent: Invalid SongView provided for PlayType {PlayType}. Event cannot be logged.", type);
-            return;
-        }
-
-
-        ObjectId? songObjectId = null;
-
-        if (songView != null)
-        {
-            if (songView.Id != default)
+            foreach (var key in oldestKeys)
             {
-                songObjectId = songView.Id;
+                _lastEventCache.Remove(key);
             }
+        }
 
+        _logger.LogDebug("Processing Event {Type} for song {SongTitle} at position {Position}",
+            type, songView.Title, position ?? 0);
+
+        // Special handling for pause events (if needed in the future)
+        if (type == PlayType.Pause)
+        {
+            // Future expansion point
         }
 
         try
         {
-            // Step 1: Create and save the play event FIRST.
-            // This is a simple, standalone operation.
+            var realm = _realmFactory.GetRealmInstance();
+
+            // Create the play event
             var playEvent = new DimmerPlayEvent
             {
-                // The event ID is generated by the repo's Create method.
-                SongId = songView!.Id,
+                SongId = songView.Id,
                 SongName = songView.Title,
                 PlayType = (int)type,
                 PlayTypeStr = type.ToString(),
                 EventDate = DateTimeOffset.UtcNow,
                 DatePlayed = DateTimeOffset.UtcNow,
-                AudioOutputDevice = audioService.GetCurrentAudioOutputDevice().ToAudioOutputDevice(),
+                AudioOutputDevice = _audioService.GetCurrentAudioOutputDevice().ToAudioOutputDevice(),
                 PositionInSeconds = position ?? 0,
                 WasPlayCompleted = type == PlayType.Completed,
             };
-            
-            // Use the IRepository<DimmerPlayEvent> to create it.
 
-
-            var realm = realmFactory.GetRealmInstance();
             await realm.WriteAsync(() =>
             {
-                var pl = realm.Add(playEvent, true);
+                // Add the event and link it to the song in one transaction
+                var addedEvent = realm.Add(playEvent, true);
 
                 var song = realm.Find<SongModel>(songView.Id);
-                var evt = realm.Find<DimmerPlayEvent>(pl.Id);
-                if (song is null || evt is null)
+                if (song != null)
                 {
-                    return;
+                    song.PlayHistory.Add(addedEvent);
                 }
-                song.PlayHistory.Add(evt);
-
+                else
+                {
+                    _logger.LogWarning("Song {SongId} not found when adding play event", songView.Id);
+                }
             });
 
-            _logger.LogInformation("Added play event {EventId} of type {PlayType} to history of song {SongTitle}", playEvent.Id,playEvent.PlayTypeStr,songView.Title);
+            _logger.LogInformation("Added play event {EventId} of type {PlayType} to history of song {SongTitle}",
+                playEvent.Id, playEvent.PlayTypeStr, songView.Title);
 
-            // Step 3: Update the UI state.
+            // Update UI state with user-friendly message
             string userFriendlyMessage = UserFriendlyLogGenerator.GetPlaybackStateMessage(type, songView, position);
             _state.SetCurrentLogMsg(userFriendlyMessage, DimmerLogLevel.Info);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "UpdateDatabaseWithPlayEvent: Exception occurred. Type={PlayType}, Song={SongTitle}", type, songView.Title);
+            _logger.LogError(ex, "UpdateDatabaseWithPlayEvent: Exception occurred. Type={PlayType}, Song={SongTitle}",
+                type, songView.Title);
         }
     }
 
-    public UserModel UpsertUserAsync(UserModel user)
-    {
-        if (user == null)
-            throw new ArgumentNullException(nameof(user));
-        var updatedUser = _userRepo.Upsert(user);
-        LogApplicationEvent(PlayType.LogEvent, eventDetails: $"User upserted: {user.UserName ?? user.Id.ToString()}");
-        if (CurrentUserInstance?.Id == updatedUser.Id || CurrentUserInstance == null)
-        {
-            CurrentUserInstance = updatedUser;
-            _state.SetCurrentUser(updatedUser.ToUserModelView());
-        }
-        return updatedUser;
-    }
+    #endregion
 
-    public PlaylistModel? UpsertPlaylist(PlaylistModel playlist)
-    {
-        if (playlist == null)
-            throw new ArgumentNullException(nameof(playlist));
+    #region CRUD Operations
 
 
-
-        var updatedPlaylist = _playlistRepo.Upsert(playlist);
-        LogApplicationEvent(PlayType.LogEvent, eventDetails: $"Playlist upserted: {playlist.PlaylistName}");
-        return updatedPlaylist;
-    }
 
     public ArtistModel? UpsertArtist(ArtistModel artist)
     {
-        if (artist == null)
-            throw new ArgumentNullException(nameof(artist));
+        ArgumentNullException.ThrowIfNull(artist);
+
         var updatedArtist = _artistRepo.Upsert(artist);
         LogApplicationEvent(PlayType.LogEvent, eventDetails: $"Artist upserted: {artist.Name}");
+
         return updatedArtist;
     }
 
     public AlbumModel? UpsertAlbum(AlbumModel? album)
     {
-        if (album == null)
-            throw new ArgumentNullException(nameof(album));
+        ArgumentNullException.ThrowIfNull(album);
+
         var updatedAlbum = _albumRepo.Upsert(album);
         LogApplicationEvent(PlayType.LogEvent, eventDetails: $"Album upserted: {album.Name}");
+
         return updatedAlbum;
     }
 
-    public SongModel? UpsertSong(SongModel? song)
-    {
-        if (song == null)
-            throw new ArgumentNullException(nameof(song));
-        var updatedSong = _songRepo.Upsert(song);
-        LogApplicationEvent(PlayType.LogEvent, updatedSong.ToSongModelView(), eventDetails: $"Song upserted: {song.Title}");
-        return updatedSong;
-    }
 
+
+    #endregion
+
+    #region IDisposable Implementation
 
     public void Dispose()
     {
@@ -262,15 +230,17 @@ public class BaseAppFlow : IDisposable
 
     protected virtual void Dispose(bool disposing)
     {
-        if (_disposed)
-            return;
+        if (_disposed) return;
+
         if (disposing)
         {
-            _logger.LogInformation("BaseAppFlow (Coordinator & Logger) disposing.");
-            _subscriptions.Dispose();
-
-
+            _logger.LogInformation("BaseAppFlow disposing.");
+            _lastEventCache.Clear();
+            // Note: We don't dispose owned services as they're injected
         }
+
         _disposed = true;
     }
+
+    #endregion
 }

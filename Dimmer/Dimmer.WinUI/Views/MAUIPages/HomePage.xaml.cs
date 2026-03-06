@@ -1126,7 +1126,7 @@ public partial class HomePage : ContentPage
 
         var audioDevicesList = MyViewModel.AudioDevices.Select(x =>
         {
-            if(MyViewModel.SelectedAudioDevice.Id == x.Id)
+            if(MyViewModel.SelectedAudioDevice?.Id == x.Id)
             {
                 var menFlyOut = new Microsoft.UI.Xaml.Controls.ToggleMenuFlyoutItem
                 {
