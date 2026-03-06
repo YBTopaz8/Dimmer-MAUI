@@ -168,16 +168,21 @@ public static class ServiceRegistration
     {
         InitializeParseClient();
         ParseClient.Instance.RegisterSubclass(typeof(UserDeviceSession));
-            ParseClient.Instance.RegisterSubclass(typeof(ChatConversation));
-            ParseClient.Instance.RegisterSubclass(typeof(ChatMessage));
-            ParseClient.Instance.RegisterSubclass(typeof(DimmerSharedSong));
-            ParseClient.Instance.RegisterSubclass(typeof(UserModelOnline));
-            ParseClient.Instance.RegisterSubclass(typeof(DeviceState));
-            ParseClient.Instance.RegisterSubclass(typeof(UserModelOnline));
-            ParseClient.Instance.RegisterSubclass(typeof(FriendRequest));
-            ParseClient.Instance.RegisterSubclass(typeof(AppUpdateModel));
+        ParseClient.Instance.RegisterSubclass(typeof(DeviceState));
+        ParseClient.Instance.RegisterSubclass(typeof(ChatConversation));
+        ParseClient.Instance.RegisterSubclass(typeof(ChatMessage));
+        ParseClient.Instance.RegisterSubclass(typeof(DimmerSharedSong));
+        ParseClient.Instance.RegisterSubclass(typeof(UserModelOnline));
+        ParseClient.Instance.RegisterSubclass(typeof(DeviceState));
+        ParseClient.Instance.RegisterSubclass(typeof(UserModelOnline));
+        ParseClient.Instance.RegisterSubclass(typeof(FriendRequest));
+        ParseClient.Instance.RegisterSubclass(typeof(AppUpdateModel));
 
-        
+        string.IsNullOrEmpty(YBParse.ApplicationId);
+        string.IsNullOrEmpty(YBParse.ServerUri);
+        string.IsNullOrEmpty(YBParse.DotNetKEY);
+
+
     }
     private static IConfigurationRoot? BuildConfiguration()
     {

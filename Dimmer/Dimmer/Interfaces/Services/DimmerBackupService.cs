@@ -128,14 +128,29 @@ public class DimmerBackupService
     // Convert DimmerPlayEventView to plain backup model
     private DimmerPlayEventBackup ConvertToBackup(DimmerPlayEvent playEvent)
     {
+        var songg = playEvent.SongsLinkingToThisEvent.FirstOrDefaultNullSafe();
+        if(songg is null)
+        {
+            var tempRealm = RealmFactory.GetRealmInstance();
+            songg = tempRealm.Find<SongModel>
+                (playEvent.SongId);
+            if (songg is not null)
+            {
+                tempRealm.Write(() =>
+                {
+                    if(!songg.PlayHistory.Contains(playEvent))
+                        songg.PlayHistory.Add(playEvent);
+                });
+            }
+        }
         return new DimmerPlayEventBackup
         {
             Id = playEvent.Id.ToString(),
             SongName = playEvent.SongName,
-            ArtistName = playEvent.ArtistName,
-            AlbumName = playEvent.AlbumName,
-            TitleAndDurationKey = playEvent.SongsLinkingToThisEvent.FirstOrDefaultNullSafe()?.TitleDurationKey,
-            CoverImagePath = playEvent.CoverImagePath,
+            ArtistName = songg?.ArtistName,
+            AlbumName = songg?.AlbumName,
+            TitleAndDurationKey = songg?.TitleDurationKey,
+            CoverImagePath = songg?.CoverImagePath,
             IsFav = playEvent.IsFav,
             SongId = playEvent.SongId?.ToString(),
             PlayType = playEvent.PlayType,
@@ -249,34 +264,31 @@ public class DimmerBackupService
                 }
                 result.AppStateRestored = true;
             }
+            Dictionary<string, SongModel>? songsByKey = realm.All<SongModel>()
+.ToDictionary(s => s.TitleDurationKey, s => s);
+
 
             // Restore favorite songs
             if (data.FavoriteSongs?.Count >0)
             {
-                // First, clear existing favorite flags
-                var allSongs = realm.All<SongModel>().ToList();
-               
-
-                // Set favorites based on backup
                 foreach (var favView in data.FavoriteSongs)
                 {
-                    if (favView is null) continue;
-                    var song = realm.All<SongModel>()
-                        .FirstOrDefaultNullSafe(s => s.TitleDurationKey == favView.TitleDurationKey);
-
-                    if (song != null)
+                    if (favView != null)
                     {
-                        song.IsFavorite = true;
+                        if (songsByKey.TryGetValue(favView.TitleDurationKey!, out var song))
+                        {
+
+                            song.IsFavorite = true;
+                        }
                     }
                 }
+
                 result.FavoritesRestored = data.FavoriteSongs.Count;
             }
 
             // Restore play events
-            if (data.PlayEvents?.Any() == true)
+            if (data.PlayEvents?.Count >0 )
             {
-
-
 
                 // Add restored events
                 foreach (var backupEvent in data.PlayEvents)
@@ -285,9 +297,28 @@ public class DimmerBackupService
                     
                     if (newEvent != null)
                     {
-                        var obj = realm.Find<DimmerPlayEvent>(newEvent.Id);
-                        if(obj is null)
-                            realm.Add(newEvent);
+                        var eventInDb = realm.Find<DimmerPlayEvent>(newEvent.Id);
+
+                        if (eventInDb is null)
+
+                        {
+                            eventInDb = new();
+
+                        }
+                        else
+                        {
+                            eventInDb = newEvent;
+                        }
+
+                        if (backupEvent.TitleAndDurationKey is not null && songsByKey.TryGetValue(backupEvent.TitleAndDurationKey, out var song))
+                        {
+                            eventInDb.SongId = song.Id;
+                            eventInDb.SongName = song.Title;
+                            song.PlayHistory.Add(eventInDb);
+                        }
+
+                        realm.Add(eventInDb, true);
+
                     }
                 }
                 result.EventsRestored = data.PlayEvents.Count;
@@ -353,16 +384,17 @@ public class DimmerBackupService
 
         await realm.WriteAsync(() =>
         {
-           
-
-            // Add restored events
             foreach (var backupEvent in events)
             {
                 var newEvent = ConvertFromBackup(backupEvent);
-                var isNull = realm.Find<DimmerPlayEvent>(newEvent.Id);
-                if (isNull is null)
+                var eventInDb = realm.Find<DimmerPlayEvent>(newEvent.Id);
+                if (eventInDb is null)
                 {
-                    realm.Add(newEvent);
+                    eventInDb = newEvent;
+                    var songInDb = realm.All<SongModel>().FirstOrDefaultNullSafe(x=>x.TitleDurationKey == backupEvent.TitleAndDurationKey);
+                    songInDb?.PlayHistory.Add(eventInDb);
+                    
+                    realm.Add(eventInDb);
                 }
             }
         });
@@ -374,6 +406,7 @@ public class DimmerBackupService
     // Helper methods
     private DimmerPlayEvent ConvertFromBackup(DimmerPlayEventBackup backup)
     {
+        
         return new DimmerPlayEvent
         {
             Id = ObjectId.Parse(backup.Id),

@@ -358,15 +358,15 @@ public sealed partial class SettingsPage : Page
         MyViewModel.ToggleLastFMScrobbling(false);
     }
 
-    private void BackUpData_Click(object sender, RoutedEventArgs e)
+    private async void BackUpData_Click(object sender, RoutedEventArgs e)
     {
 
-        
+        await MyViewModel.BaseViewModelWin.BackUpAppDataAsync();   
     }
 
     private async void RestoreData_Click(object sender, RoutedEventArgs e)
     {
-        await MyViewModel.BaseViewModelWin.LoadFolderToScanForBackUpFiles();
+        await MyViewModel.BaseViewModelWin.RestoreAppDataAsync();
     }
 
     private void FetchLyricsData_Click(object sender, RoutedEventArgs e)

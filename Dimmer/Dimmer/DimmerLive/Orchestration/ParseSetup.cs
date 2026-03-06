@@ -42,10 +42,8 @@ public static class ParseSetup
             {
                 ApplicationID = YBParse.ApplicationId,
                 ServerURI = YBParse.ServerUri,
-                Key = YBParse.DotNetKEY,
-                
-            }
-            );
+                Key = YBParse.DotNetKEY,                
+            });
           
 
             client.Publicize();

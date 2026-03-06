@@ -780,14 +780,14 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
                     var path = await act.PickFolderAsync();
                     if (!string.IsNullOrEmpty(path))
                     {
-                        await BackupService.CreateCompleteBackupAsync(path);
+                        _= BackupService.CreateCompleteBackupAsync(path);
                     }
                 }
                 tcs.SetResult(true);
             })
             .SetNegativeButton("No", async (s, e) =>
             {
-                await BackupService.CreateCompleteBackupAsync();
+                _= BackupService.CreateCompleteBackupAsync();
                 tcs.SetResult(true);
             })
             .Show();

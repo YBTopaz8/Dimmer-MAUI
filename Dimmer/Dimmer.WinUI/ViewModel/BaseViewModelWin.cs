@@ -3,11 +3,11 @@
 
 
 
-using System.Threading.Tasks;
-using System.Windows.Controls.Primitives;
-
+using CommunityToolkit.Maui.Alerts;
 using CommunityToolkit.Maui.Core.Extensions;
 using Dimmer.WinUI.Views.CustomViews.WinuiViews;
+using System.Threading.Tasks;
+using System.Windows.Controls.Primitives;
 using Windows.UI.Core;
 using FolderPicker = CommunityToolkit.Maui.Storage.FolderPicker;
 using Visibility = Microsoft.UI.Xaml.Visibility;
@@ -29,7 +29,9 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     public DimmerMultiWindowCoordinator DimmerMultiWindowCoordinator;
 
+    DimmerBackupService BackupService;
     public BaseViewModelWin(IDimmerStateService dimmerStateService,
+        DimmerBackupService backupService,
         LoginViewModel _loginViewModel,
         DimmerMultiWindowCoordinator dimmerMultiWindowCoordinator,
         IMauiWindowManagerService mauiWindowManagerService,
@@ -37,6 +39,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         SessionManagementViewModel sessionManagementViewModel,
     MusicDataService musicDataService, IAppInitializerService appInitializerService, IDimmerAudioService audioServ, ISettingsService settingsService, ILyricsMetadataService lyricsMetadataService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> _songRepo, IDuplicateFinderService duplicateFinderService, ILastfmService _lastfmService, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, IDialogueService dialogueService, IRepository<PlaylistModel> PlaylistRepo, IRealmFactory RealmFact, IFolderMonitorService FolderServ, ILibraryScannerService LibScannerService, IRepository<DimmerPlayEvent> DimmerPlayEventRepo, BaseAppFlow BaseAppClass, ILogger<BaseViewModel> logger) : base(dimmerStateService, musicDataService, appInitializerService, audioServ, settingsService, lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, _songRepo, duplicateFinderService, _lastfmService, artistRepo, albumModel, genreModel, dialogueService, PlaylistRepo, RealmFact, FolderServ, LibScannerService, DimmerPlayEventRepo, BaseAppClass, logger)
     {
+        BackupService = backupService;
         this.winUIWindowMgrService = winUIWinMgrService;
         this.loginViewModel = _loginViewModel;
         SessionMgtVM=sessionManagementViewModel;
@@ -1272,20 +1275,116 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     }
 
-    [RelayCommand]
-    public async Task LoadFolderToScanForBackUpFiles()
+
+    internal async Task RestoreAppDataAsync()
     {
-        try
+        var tcs = new TaskCompletionSource<(bool includeDefault, string customPath)>();
+
+       
+    ContentDialog restoreFolderPickerContentDialog = new ContentDialog
+    {
+        Title = "Restore Backup",
+        Content = "Do you want to select a folder to restore backup from? If no, it will look for backups in default location.",
+        PrimaryButtonText = "Yes",
+        CloseButtonText = "No",
+        XamlRoot = MainWindow?.ContentFrame.XamlRoot
+
+    };
+
+        restoreFolderPickerContentDialog.PrimaryButtonClick += async (s, e) =>
         {
+
+            var picker = new FileOpenPicker();
+            // Get the HWND of the current window
+            var hwnd = PlatUtils.DimmerHandle;
+            // Initialize the picker with the window handle
+            WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+            picker.FileTypeFilter.Add(".json");
+            var file = await picker.PickSingleFileAsync();
+
+
+            if (file is null)
+            {
+                tcs.SetResult((false, string.Empty));
+
+                return;
+            }
+            tcs.SetResult((true, file.Path));
+        };
+        restoreFolderPickerContentDialog.CloseButtonClick += (s, e) =>
+        {
+            tcs.SetResult((false, string.Empty));
+        };
+          
+        await restoreFolderPickerContentDialog.ShowAsync();
+
+        // Wait for user's decision
+        var (includeDefaultLocation, secondaryPath) = await tcs.Task;
+
+        var selectedFile = secondaryPath;
+            var result = await BackupService.RestoreFromBackupAsync(selectedFile);
+
+            if (result.EventsRestored > 0)
+            {
+                Debug.WriteLine(result.ToString());
+            }
+            else
+            {
+                Debug.WriteLine($"Restore failed: {result.ErrorMessage}");
             
+            }
+    
 
-                    //await RestoreAppDataAsync();
-        }
-        catch (Exception ex)
+        BackupService.CleanupOldBackups(3);
+    }
+
+
+
+    internal async Task BackUpAppDataAsync()
+    {
+        var tcs = new TaskCompletionSource<bool>();
+
+
+        ContentDialog restoreFolderPickerContentDialog = new ContentDialog
         {
-            Debug.WriteLine(ex.Message);
-        }
+            Title = "Backup Data",
+            Content = "Do you want to select a folder for backup? If no, backup will be saved in default location.",
+            PrimaryButtonText = "Yes",
+            CloseButtonText = "No",
+            XamlRoot = MainWindow?.ContentFrame.XamlRoot
 
+        };
+
+        restoreFolderPickerContentDialog.PrimaryButtonClick += async (s, e) =>
+        {
+
+            var picker = await FolderPicker.Default.PickAsync();
+
+            if (picker != null)
+            {
+
+
+
+                if (!picker.IsSuccessful)
+                {
+                    tcs.SetResult(false);
+
+                    return;
+                }
+                string path = picker.Folder.Path;
+                if (!string.IsNullOrEmpty(picker.Folder.Path))
+                {
+                    await BackupService.CreateCompleteBackupAsync(path);
+                }
+            }
+            tcs.SetResult((true));
+        };
+        restoreFolderPickerContentDialog.CloseButtonClick += (s, e) =>
+        {
+            tcs.SetResult((false));
+        };
+
+        await restoreFolderPickerContentDialog.ShowAsync();
     }
     internal async Task ToggleFavoriteRatingToArtist(ArtistModelView artist)
     {
