@@ -31,6 +31,7 @@
 	  <None Remove="Views\CustomViews\WinuiViews\MorphContainerView.xaml" />
 	  <None Remove="Views\CustomViews\WinuiViews\SearchHelpDialog.xaml" />
 	  <None Remove="Views\CustomViews\WinuiViews\SingleSongDetailsPopupView.xaml" />
+	  <None Remove="Views\CustomViews\WinuiViews\SingleSongSection\ChangesReviewPopup.xaml" />
 	  <None Remove="Views\CustomViews\WinuiViews\SmokeViewQueueGrid.xaml" />
 	  <None Remove="Views\CustomViews\WinuiViews\SongCoverView.xaml" />
 	  <None Remove="Views\CustomViews\WinuiViews\SongLyricsView.xaml" />
@@ -133,6 +134,11 @@
 	  <MauiXaml Include="Views\MAUIPages\HomePage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Update="Views\CustomViews\WinuiViews\SingleSongSection\ChangesReviewPopup.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
 	</ItemGroup>
 	<ItemGroup>
 	  <Page Update="Views\WinuiPages\DimmerLive\AppUpdateCenter.xaml">

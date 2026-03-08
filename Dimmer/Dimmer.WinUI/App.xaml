@@ -208,7 +208,10 @@
                 <Setter Property="CornerRadius" Value="4" />
                 <Setter Property="Margin" Value="12" />
             </Style>
-
+            <Style TargetType="TextBox" x:Key="MyTextBoxStyle">
+                <Setter Property="BorderBrush" Value="DarkSlateBlue"/>
+                <Setter Property="BorderThickness" Value="1"/>
+            </Style>
             <!--  D. TextBox with Acrylic Border on Focus  -->
             <!--  A subtle effect to make text input feel more integrated.  -->
             <Style TargetType="TextBox">

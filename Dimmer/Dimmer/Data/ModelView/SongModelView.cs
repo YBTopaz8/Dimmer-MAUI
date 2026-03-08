@@ -83,7 +83,7 @@ public partial class SongModelView : ObservableObject
     public partial bool HasLyrics { get; set; }
 
     [ObservableProperty]
-    public partial bool HasSyncedLyrics { get; internal set; }
+    public partial bool HasSyncedLyrics { get;  set; }
     [ObservableProperty]
     public partial string SyncLyrics { get; set; } = string.Empty;
   
@@ -309,16 +309,16 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial double EngagementScore { get;  set; }
     [ObservableProperty]
-    public partial int? TrackTotal { get; internal set; }
+    public partial int? TrackTotal { get;  set; }
     [ObservableProperty]
-    public partial double SampleRate { get; internal set; }
+    public partial double SampleRate { get;  set; }
     [ObservableProperty]
-    public partial string Encoder { get; internal set; }
+    public partial string Encoder { get;  set; }
     [ObservableProperty]
-    public partial int BitDepth { get; internal set; }
+    public partial int BitDepth { get; set; }
     [ObservableProperty]
-    public partial int NbOfChannels { get; internal set; }
-    public string PlatformPath { get; internal set; }
+    public partial int NbOfChannels { get;  set; }
+    public string PlatformPath { get;  set; }
 
     public SongModelView ShallowCopy()
     {

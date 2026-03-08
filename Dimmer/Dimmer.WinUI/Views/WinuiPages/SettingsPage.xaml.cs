@@ -20,20 +20,21 @@ public sealed partial class SettingsPage : Page
     }
 
     SettingsViewModelWin MyViewModel { get; set; }
+    BaseViewModelWin BaseViewModel { get; set; }
 
     string CurrentPageTQL = string.Empty;
     protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
-        MyViewModel ??= IPlatformApplication.Current?.Services.GetService<SettingsViewModelWin>();
-        var baseVM = IPlatformApplication.Current?.Services.GetService<BaseViewModelWin>();
+        MyViewModel ??= IPlatformApplication.Current?.Services.GetService<SettingsViewModelWin>()!;
+        BaseViewModel = IPlatformApplication.Current?.Services.GetService<BaseViewModelWin>()!;
         // The parameter passed from Frame.Navigate is in e.Parameter.
         // Cast it to your ViewModel type and set your properties.
         if (MyViewModel != null)
         {
             //MyViewModel.CurrentWinUIPage = this;
             // Now that the ViewModel is set, you can set the DataContext.
-            this.DataContext = baseVM;
+            this.DataContext = BaseViewModel;
         }
 
     }
@@ -275,12 +276,12 @@ public sealed partial class SettingsPage : Page
 
     private void MusicFoldersGrid_Loaded(object sender, RoutedEventArgs e)
     {
-        MyViewModel.GetLibState();
-        if(MyViewModel.IsLibraryEmpty)
+        BaseViewModel.GetLibState();
+        if(BaseViewModel.IsLibraryEmpty)
         {
             AddMusicFolderTip.IsOpen = true;
         }
-        MyViewModel.BaseViewModelWin.WhenPropertyChange(nameof(MyViewModel.BaseViewModelWin.FolderPaths), x => MyViewModel.BaseViewModelWin.FolderPaths)
+        BaseViewModel.WhenPropertyChange(nameof(BaseViewModel.FolderPaths), x => BaseViewModel.FolderPaths)
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(obsCol =>
             {
@@ -290,7 +291,7 @@ public sealed partial class SettingsPage : Page
                     {
                         AddMusicFolderTip.IsOpen = false;
                     }
-                    if (MyViewModel.SearchResults.Count < 1)
+                    if (BaseViewModel.SearchResults.Count < 1)
                     {
                         AddMusicFolderTip.Subtitle = AddMusicFolderTip.Subtitle + " Or Rescan existing one";
                         AddMusicFolderTip.IsOpen = true;

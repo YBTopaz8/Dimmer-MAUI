@@ -76,7 +76,7 @@ public class DimmerPlayEventBackup
     public string? DeviceModel { get; set; }
     public string? DeviceManufacturer { get; set; }
     public string? DeviceVersion { get; set; }
-    public string? TitleAndDurationKey { get; internal set; }
+    public string? TitleAndDurationKey { get;  set; }
 }
 
 // Wrapper class for complete backup data
@@ -86,5 +86,5 @@ public class CompleteBackupData
     public List<SongModelView?>? FavoriteSongs { get; set; }
     public List<DimmerPlayEventBackup>? PlayEvents { get; set; }
     public DateTime BackupDate { get; set; }
-    public string Version { get; set; } = "1.0";
+    public string Version { get; set; } = BaseViewModel.CurrentAppVersion + BaseViewModel.CurrentAppStage;
 }

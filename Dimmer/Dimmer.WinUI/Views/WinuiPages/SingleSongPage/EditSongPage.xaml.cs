@@ -1,25 +1,20 @@
 
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.Windows;
-
 using CommunityToolkit.Maui.Core.Extensions;
 using CommunityToolkit.WinUI;
-
 using Dimmer.Utilities.Extensions;
+using Dimmer.WinUI.ViewModel.SingleSongVMSection;
 using Dimmer.WinUI.Views.CustomViews.WinuiViews;
-
+using Dimmer.WinUI.Views.CustomViews.WinuiViews.SingleSongSection;
 using DynamicData;
-
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.Windows.AppNotifications;
 using Microsoft.Windows.AppNotifications.Builder;
-
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using System.Windows;
 using Windows.ApplicationModel.DataTransfer;
-
 using WinRT;
 using WinRT.Dimmer_WinUIVtableClasses;
-
 using Clipboard = Windows.ApplicationModel.DataTransfer.Clipboard;
 using DataPackage = Windows.ApplicationModel.DataTransfer.DataPackage;
 using DataTemplate = Microsoft.UI.Xaml.DataTemplate;
@@ -30,6 +25,7 @@ using NavigationEventArgs = Microsoft.UI.Xaml.Navigation.NavigationEventArgs;
 using PropertyPath = Microsoft.UI.Xaml.PropertyPath;
 using RoutedEventArgs = Microsoft.UI.Xaml.RoutedEventArgs;
 using TextWrapping = Microsoft.UI.Xaml.TextWrapping;
+using Visibility = Microsoft.UI.Xaml.Visibility;
 using ToolTip = Microsoft.UI.Xaml.Controls.ToolTip;
 using UIElement = Microsoft.UI.Xaml.UIElement;
 using Visual = Microsoft.UI.Composition.Visual;
@@ -71,14 +67,23 @@ public sealed partial class EditSongPage : Page
                 DetailedSong = args.Song;
 
                 MyViewModel.CurrentWinUIPage = this;
-              
+                _editViewModel = new EditSongViewModel(vm, vm.SelectedSong);
                 MyViewModel.SelectedSong = DetailedSong;
                 await MyViewModel.LoadSelectedSongLastFMData();
                 //LoadUiComponents();
-
+                SetupArtistBindings();
             }
         }
     }
+    private void SetupArtistBindings()
+    {
+        // Bind AllArtistsIR to EditViewModel.AllArtists
+        AllArtistsIR.ItemsSource = _editViewModel.AllArtists;
+
+        // Bind selected artists
+        ArtistsToBeAdded.ItemsSource = _editViewModel.SelectedArtists;
+    }
+    private EditSongViewModel _editViewModel;
     private void BackButton_Click(object sender, RoutedEventArgs e)
     {
         if (Frame.CanGoBack)
@@ -177,17 +182,17 @@ public sealed partial class EditSongPage : Page
 
     private void RemoveImageFromSong_Click(object sender, RoutedEventArgs e)
     {
-        MyViewModel.SelectedSong?.CoverImagePath = string.Empty;
+        _editViewModel.EditingSong.CoverImagePath = string.Empty;
     }
 
     private void Image_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
-        var img = sender as Microsoft.UI.Xaml.Controls.Image;
-        var pathh = img?.DataContext.ToString();
-        MyViewModel.SelectedSong?.CoverImagePath = pathh;
+        if (sender is Image img && img.DataContext is string path)
+        {
+            _editViewModel.EditingSong.CoverImagePath = path;
+        }
     }
 
-   
     private void GridOfOtherImagesCloseButton_Click(object sender, RoutedEventArgs e)
     {
         GridOfOtherImages.Visibility= WinUIVisibility.Collapsed;
@@ -206,33 +211,74 @@ public sealed partial class EditSongPage : Page
             
         }
     }
+
+
+    private async Task ShowChangesReviewPopup()
+    {
+        // Create and show the review popup
+        var popup = new ChangesReviewPopup
+        {
+            ViewModel = _editViewModel,
+            
+            Width = 600,
+            Height = 700
+        };
+
+        //var popupResult = await popup.ShowAsync();
+
+        //if (popupResult == ContentDialogResult.Primary) // Save clicked
+        //{
+        //    await _editViewModel.SaveAcceptedChangesAsync();
+        //    ShowNotification("Changes saved successfully!");
+
+        //    // Update current playing song if needed
+        //    if (MyViewModel.CurrentPlayingSongView?.TitleDurationKey ==
+        //        _editViewModel.OriginalSong.TitleDurationKey)
+        //    {
+        //        MyViewModel.CurrentPlayingSongView?.CoverImagePath =
+        //            _editViewModel.OriginalSong.CoverImagePath;
+        //    }
+        //}
+        //else if (popupResult == ContentDialogResult.Secondary) // Cancel clicked
+        //{
+        //    _editViewModel.DiscardAllChanges();
+        //    ShowNotification("Changes discarded");
+        //}
+    }
+    private void ShowNotification(string message)
+    {
+        PageNotificationText.Text = message;
+        PageNotificationText.Visibility = Visibility.Visible;
+
+        var vis = ElementCompositionPreview.GetElementVisual(PageNotificationText);
+        PlatUtils.ApplyEntranceEffect(vis, PageNotificationText,
+            SongTransitionAnimation.Fade, _compositor);
+
+        _ = Task.Delay(2600).ContinueWith(_ =>
+        {
+            DispatcherQueue.TryEnqueue(() =>
+                PageNotificationText.Visibility = Visibility.Collapsed);
+        });
+    }
+
     private async void SaveChangeBtn_Click(object sender, RoutedEventArgs e)
     {
         var vis = ElementCompositionPreview.GetElementVisual(PageNotificationText);
-        var ischecked = IsInstrumentalBox.IsChecked;
-        if(ischecked is not null)
+        if (IsInstrumentalBox.IsChecked.HasValue)
         {
-            MyViewModel.SelectedSong?.IsInstrumental = (bool)ischecked;
-        }
-        if(MyViewModel.CurrentPlayingSongView.TitleDurationKey == MyViewModel.SelectedSong!.TitleDurationKey)
-        {
-            MyViewModel.CurrentPlayingSongView.CoverImagePath ??= MyViewModel.SelectedSong.CoverImagePath;
+            _editViewModel.EditingSong.IsInstrumental = IsInstrumentalBox.IsChecked.Value;
         }
 
-        MyViewModel.SelectedSong.ArtistToSong = listOfArtistsModelView!.ToObservableCollection();
-        
-        await MyViewModel.ApplyNewSongEdits(MyViewModel.SelectedSong!);
-
-
-
-
-        Visibility = Microsoft.UI.Xaml.Visibility.Visible;
-        PageNotificationText.Text = "Changes saved!";
-        PlatUtils.ApplyEntranceEffect(vis, PageNotificationText,SongTransitionAnimation.Fade , _compositor);
-
-        await Task.Delay(2600); 
-        PageNotificationText.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
-
+        // Show review popup if there are changes
+        if (_editViewModel.HasChanges)
+        {
+            await ShowChangesReviewPopup();
+        }
+        else
+        {
+            // No changes, just show notification
+            ShowNotification("No changes to save");
+        }
     }
 
     protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
@@ -276,24 +322,23 @@ public sealed partial class EditSongPage : Page
 
     private void AddArtist_Click(object sender, RoutedEventArgs e)
     {
-        if (AddArtistGrid.Visibility == Microsoft.UI.Xaml.Visibility.Visible)
+        // Toggle visibility logic
+        if (AddArtistGrid.Visibility == Visibility.Visible)
         {
-            FontIcon addArt = new FontIcon();
-            addArt.Glyph = "\uE8FA";
-            AddArtist.Content = addArt;
-            AddArtistGrid.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
-            return;
+            AddArtistGrid.Visibility = Visibility.Collapsed;
+            (AddArtist.Content as FontIcon).Glyph = "\uE8FA";
         }
         else
         {
-
             AddArtistGrid.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
-        }
-        LoadAddArtistSectionView();
+            (AddArtist.Content as FontIcon).Glyph = "\uE711";
 
-        FontIcon icon = new FontIcon();
-        icon.Glyph = "\uE711";
-        AddArtist.Content = icon;
+            // Load artists if needed
+            if (AllArtistsIR.ItemsSource == null)
+            {
+                AllArtistsIR.ItemsSource = _editViewModel.AllArtists;
+            }
+        }
     }
 
     private void LoadAddArtistSectionView()
@@ -348,29 +393,14 @@ public sealed partial class EditSongPage : Page
     List<string> selectedItems;
     private void AllArtistsIR_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
     {
-        var selectedStrings = e.AddedItems.Cast<string>().ToList();
-        var unSelectedStrings = e.RemovedItems.Cast<string>().ToList();
+        var added = e.AddedItems.Cast<string>();
+        var removed = e.RemovedItems.Cast<string>();
 
-        if (selectedItems is null && selectedStrings is not null)
-        {        
-            selectedItems =selectedStrings;
-            ArtistsToBeAdded.ItemsSource = selectedStrings;
-            return;
-        }
+        foreach (var artist in added)
+            _editViewModel.AddArtist(artist);
 
-        if (selectedStrings?.Count > 0)
-        {            
-            selectedItems?.Add(selectedStrings);
-        }
-        
-        if (selectedItems is null)return;
-        ArtistsToBeAdded.ItemsSource = selectedItems.ToList();
-
-        if (unSelectedStrings.Count == 0)return;
-        selectedItems.RemoveMany(unSelectedStrings);
-        ArtistsToBeAdded.ItemsSource = selectedItems.ToList();
-
-
+        foreach (var artist in removed)
+            _editViewModel.RemoveArtist(artist);
     }
 
     private void ResetFieldsBtn_Click(object sender, RoutedEventArgs e)
@@ -383,9 +413,9 @@ public sealed partial class EditSongPage : Page
 
     private void PrefillFieldsBtn_Click(object sender, RoutedEventArgs e)
     {
-        SongTitleSearch.Text = MyViewModel.SelectedSong?.Title;
-        SongArtistNameSearch.Text = MyViewModel.SelectedSong?.ArtistName;
-        SongAlbumNameSearch.Text = MyViewModel.SelectedSong?.AlbumName;
+        SongTitleSearch.Text = _editViewModel.EditingSong.Title;
+        SongArtistNameSearch.Text = _editViewModel.EditingSong.ArtistName;
+        SongAlbumNameSearch.Text = _editViewModel.EditingSong.AlbumName;
     }
 
     private void DetailedImage_Loaded(object sender, RoutedEventArgs e)

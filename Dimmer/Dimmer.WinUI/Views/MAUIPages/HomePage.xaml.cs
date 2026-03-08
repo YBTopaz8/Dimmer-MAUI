@@ -1000,7 +1000,8 @@ public partial class HomePage : ContentPage
     private void ViewNPQ_Loaded(object sender, EventArgs e)
     {
         ButtonLoaded(sender, e);
-        var senderUIElement = (sender as ButtonM).Handler.PlatformView as Microsoft.UI.Xaml.UIElement;
+        var senderUIElement = (sender as ButtonM)?.Handler?.PlatformView as Microsoft.UI.Xaml.UIElement;
+
         if(senderUIElement is null) return;
         ElementCompositionPreview.SetIsTranslationEnabled(senderUIElement, true);
 
@@ -1052,7 +1053,7 @@ public partial class HomePage : ContentPage
     private void ThemeToggler_Loaded(object sender, EventArgs e)
     {
         ButtonLoaded(sender, e);
-        var currentTheme = Application.Current.RequestedTheme;
+        var currentTheme = Application.Current?.RequestedTheme;
         MyViewModel.IsDarkModeOn = currentTheme == AppTheme.Dark;
     }
 

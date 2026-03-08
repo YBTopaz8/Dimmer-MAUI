@@ -18,6 +18,8 @@ public partial class DimmerMAUIWin : Microsoft.Maui.Controls.Window
         MyViewModel = vm;
         AppUtil = appUtil;
         BindingContext = vm;
+        this.Height = 800;
+        this.Width = 600;
     }
     public Microsoft.Maui.Controls.Page CurrentPage => this.Page as Microsoft.Maui.Controls.Page ?? throw new InvalidOperationException("Current Page is not a valid Page.");
     

@@ -1,4 +1,4 @@
-using System;
+        using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -60,7 +60,7 @@ public sealed partial class SingleSongDetailsPopupView : UserControl
         var props = e.GetCurrentPoint((UIElement)sender).Properties;
         if(props is not null && props.IsLeftButtonPressed)
         {
-            ClosePopUp_Click(sender, e);
+            //ClosePopUp_Click(sender, e);
         }
     }
 

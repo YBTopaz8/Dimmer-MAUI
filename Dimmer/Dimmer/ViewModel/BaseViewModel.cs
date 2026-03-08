@@ -457,18 +457,14 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     })
     .Select(query =>
     {
-        return Observable.Start(() =>
-        
+        return Observable.Start(() =>        
         {
-
-
             return PerformSearchBackground(query);
         }, RxSchedulers.Background);
     })
     
     .Switch()
-    .ObserveOn(RxSchedulers.UI)
-    
+    .ObserveOn(RxSchedulers.UI)    
     .Subscribe(result =>
     {
 
@@ -1595,7 +1591,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial string AppTitle { get; set; } = "Dimmer";
 
-    public static string CurrentAppVersion = "1.8.5";
+    public static string CurrentAppVersion = "1.8.6";
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]
