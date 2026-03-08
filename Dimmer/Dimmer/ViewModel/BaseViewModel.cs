@@ -338,7 +338,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             }
         }
     }
-    private static readonly SongModelViewEqualityComparer _songComparer = new();
+
 
     public void InitializeAllVMCoreComponents()
     {

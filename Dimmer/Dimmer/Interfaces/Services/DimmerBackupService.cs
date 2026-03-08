@@ -203,14 +203,8 @@ public class DimmerBackupService
                     if (completeData != null)
                     {
                         await RestoreCompleteDataAsync(completeData, result);
-                        ShareFile shrFile = new ShareFile(filePath);
-                        
+                       
 
-                        await Share.Default.RequestAsync(new ShareFileRequest
-                        {
-                            Title = "Share Events BackUp file",
-                            File = shrFile
-                        });
                     }
                 }
                 else if (filePath.Contains("AllFavs", StringComparison.OrdinalIgnoreCase))
@@ -240,7 +234,7 @@ public class DimmerBackupService
     }
 
     // Restore complete data to Realm
-    private async Task RestoreCompleteDataAsync(CompleteBackupData data, RestoreResult result)
+    private async Task<bool> RestoreCompleteDataAsync(CompleteBackupData data, RestoreResult result)
     {
         var realm = RealmFactory.GetRealmInstance();
 
@@ -287,44 +281,56 @@ public class DimmerBackupService
             }
 
             // Restore play events
-            if (data.PlayEvents?.Count >0 )
+            if (data.PlayEvents?.Count > 0)
             {
-
-                // Add restored events
                 foreach (var backupEvent in data.PlayEvents)
                 {
                     var newEvent = ConvertFromBackup(backupEvent);
-                    
+
                     if (newEvent != null)
                     {
-                        var eventInDb = realm.Find<DimmerPlayEvent>(newEvent.Id);
+                        var existingEvent = realm.Find<DimmerPlayEvent>(newEvent.Id);
 
-                        if (eventInDb is null)
-
+                        if (existingEvent != null)
                         {
-                            eventInDb = new();
+                            // Update the existing event's properties
+                            if (backupEvent.TitleAndDurationKey is not null &&
+                                songsByKey.TryGetValue(backupEvent.TitleAndDurationKey, out var song))
+                            {
+                                existingEvent.SongId = song.Id;
+                                existingEvent.SongName = song.Title;
 
+                                if (!song.PlayHistory.Contains(existingEvent))
+                                {
+                                    song.PlayHistory.Add(existingEvent);
+                                }
+                            }
+
+                            // No need to add - it's already in the database
                         }
                         else
                         {
-                            eventInDb = newEvent;
+                            // This is a new event - set up its relationships
+                            if (backupEvent.TitleAndDurationKey is not null &&
+                                songsByKey.TryGetValue(backupEvent.TitleAndDurationKey, out var song))
+                            {
+                                newEvent.SongId = song.Id;
+                                newEvent.SongName = song.Title;
+                                song.PlayHistory.Add(newEvent);
+                            }
+
+                            // Add the new event to Realm
+                            realm.Add(newEvent);
                         }
-
-                        if (backupEvent.TitleAndDurationKey is not null && songsByKey.TryGetValue(backupEvent.TitleAndDurationKey, out var song))
-                        {
-                            eventInDb.SongId = song.Id;
-                            eventInDb.SongName = song.Title;
-                            song.PlayHistory.Add(eventInDb);
-                        }
-
-                        realm.Add(eventInDb, true);
-
                     }
                 }
                 result.EventsRestored = data.PlayEvents.Count;
             }
         });
+
+        return true;
     }
+    
 
     // Individual restore methods
     private async Task RestoreFavoritesAsync(List<SongModelView>? favorites, RestoreResult result)
