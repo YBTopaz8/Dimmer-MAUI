@@ -54,7 +54,7 @@ public static class MetaParser
 
             // 6. Generate the RQL and the in-memory predicate
             var rqlFilter = RqlGenerator.Generate(databaseAst);
-            var inMemoryPredicate = new AstEvaluator().CreatePredicate(inMemoryAst); // Always use the full master AST here
+            var inMemoryPredicate = new AstEvaluator().CreatePredicate(masterAst); // Always use the full master AST here
 
             // 7. Parse the separated directive tokens
             var sortDescriptions = CreateSortDescriptions(directiveTokens);
@@ -325,11 +325,21 @@ public static class MetaParser
     private static ShuffleNode? CreateShuffleNode(IReadOnlyList<Token> allDirectives)
     {
         // Find the 'shuffle' or 'random' token.
-        var shuffleTokenIndex = allDirectives.ToList().FindIndex(t => t.Type is TokenType.Shuffle or TokenType.Random);
+        var shuffleTokenIndex = -1;
+        for (int i = 0; i < allDirectives.Count; i++)
+        {
+            if (allDirectives[i].Type is TokenType.Shuffle or TokenType.Random)
+            {
+                shuffleTokenIndex = i;
+                break;
+            }
+        }
+
         if (shuffleTokenIndex == -1)
         {
             return null; // No shuffle directive found.
         }
+
 
         var shuffleToken = allDirectives[shuffleTokenIndex];
         int count = int.MaxValue;
