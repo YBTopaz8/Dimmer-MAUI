@@ -19,6 +19,7 @@ public static class AnimationHelper
     public const string Key_ArtistToSong = "ArtistToSongPage";
     public const string Key_AlbumToArtist = "AlbumPageToArtistPage";
     public const string Key_SongDetailToArtist = "SongDetailPageToArtistPage";
+    public const string Key_BackFromSongDetailPage = "BackFromSongDetailPage";
     public const string Key_ArtistToAlbum = "ArtistPageToAlbumPage";
     public const string Key_NowPlayingPage = "ToNowPlayingPage";
     public const string Key_DetailToListFromAlbum = "ToListFromAllAlbums";
