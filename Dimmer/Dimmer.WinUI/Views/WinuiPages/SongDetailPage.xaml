@@ -397,7 +397,7 @@ FontWeight="ExtraBold" />
                         <StackPanel
                             Padding="24"
                             Spacing="16"
-                            Visibility="{x:Bind MyViewModel.SelectedSong.HasLyrics, Converter={StaticResource BoolToVis}}">
+                            Visibility="{x:Bind MyViewModel.SelectedSong.PlayEvents.Count, Converter={StaticResource CollectionSizeToVisibility},Mode=OneWay}">
                             <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Playback History" />
 
                             <StackPanel Orientation="Horizontal" Spacing="5">
@@ -574,8 +574,27 @@ FontWeight="ExtraBold" />
 
                         </StackPanel>
 
+                        <StackPanel x:Name="StatsCardsPanel">
+                            <GridViewItem
+                                >
+                                <Grid Width="200" Height="150" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8">
+                                    <!-- Use a circular progress bar here -->
+                                   
+                                    
+                                    <TextBlock x:Name="CompletionRateStr" 
+                                               Text="{x:Bind MyViewModel.SelectedSong.PlayCompletedCount, Mode=OneWay}"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Completion Rate" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,15"/>
+                                </Grid>
+                            </GridViewItem>
+
+                        </StackPanel>
+                        
+                        
                         <!--  SECTION 3: LYRICS  -->
-                        <StackPanel x:Name="SectionLyricsStackPanel" Background="Transparent">
+                        <StackPanel
+                            Visibility="{x:Bind MyViewModel.SelectedSong.HasLyrics, Converter={StaticResource BoolToVisibilityConverter}}"
+                            x:Name="SectionLyricsStackPanel" Background="Transparent">
 
                             <StackPanel Orientation="Horizontal">
 

@@ -588,6 +588,12 @@ public sealed partial class SongDetailPage : Page
 
     }
 
+    protected override void OnNavigatedFrom(NavigationEventArgs e)
+    {
+        base.OnNavigatedFrom(e);
+
+        AnimationHelper.Prepare(AnimationHelper.Key_BackFromSongDetailPage, detailedImage, AnimationHelper.ConnectedAnimationStyle.ScaleDown, 250);
+    }
     private void EditSongAudioBtn_Click(object sender, RoutedEventArgs e)
     {
 
