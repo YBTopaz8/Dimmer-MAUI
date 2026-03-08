@@ -34,12 +34,14 @@ public sealed partial class SongStatsContainerPage : Page
     {
 
     }
+
+
     protected override void OnNavigatedTo(NavigationEventArgs e)
     {
         // Pass the Song Model or ID from the previous page
-        if (e.Parameter is SongModelView song)
+        if (e.Parameter is SongDetailNavArgs navParam)
         {
-            _currentSong = song;
+            _currentSong = navParam.Song;
             // Default to Overview
             StatsNavView.SelectedItem = StatsNavView.MenuItems[0];
         }

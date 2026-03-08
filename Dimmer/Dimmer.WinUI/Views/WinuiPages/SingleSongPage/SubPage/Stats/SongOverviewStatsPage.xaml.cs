@@ -27,4 +27,16 @@ public sealed partial class SongOverviewStatsPage : Page
     {
         InitializeComponent();
     }
+
+    protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
+    {
+        base.OnNavigatedTo(e);
+
+        var param = e.Parameter as SongModelView;
+
+        if (param != null)
+        {
+
+        }
+    }
 }
