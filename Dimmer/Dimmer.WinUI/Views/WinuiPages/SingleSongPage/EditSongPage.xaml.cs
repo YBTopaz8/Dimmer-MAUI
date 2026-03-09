@@ -390,7 +390,7 @@ public sealed partial class EditSongPage : Page
         selectedItems.Remove(artName);
     }
 
-    List<string> selectedItems;
+    List<string>? selectedItems;
     private void AllArtistsIR_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
     {
         var added = e.AddedItems.Cast<string>();

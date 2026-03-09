@@ -48,7 +48,6 @@ public sealed partial class AllSongsListPage : Page
     }
     BaseViewModelWin MyViewModel { get; set; }
 
-    private TableViewCellSlot _lastActiveCellSlot;
 
 
 
