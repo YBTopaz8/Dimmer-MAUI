@@ -67,7 +67,7 @@ public sealed partial class EditSongPage : Page
                 DetailedSong = args.Song;
 
                 MyViewModel.CurrentWinUIPage = this;
-                _editViewModel = new EditSongViewModel(vm, vm.SelectedSong);
+                _editViewModel = new EditSongViewModel(vm, vm.SelectedSong!);
                 MyViewModel.SelectedSong = DetailedSong;
                 await MyViewModel.LoadSelectedSongLastFMData();
                 //LoadUiComponents();
@@ -286,7 +286,7 @@ public sealed partial class EditSongPage : Page
 
         if (e.NavigationMode == Microsoft.UI.Xaml.Navigation.NavigationMode.Back)
         {
-            if (detailedImage != null && Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(detailedImage) != null)
+            if (detailedImage != null && VisualTreeHelper.GetParent(detailedImage) != null)
             {
                 ConnectedAnimationService.GetForCurrentView()
                     .PrepareToAnimate("BackConnectedAnimation", detailedImage);
@@ -330,7 +330,7 @@ public sealed partial class EditSongPage : Page
         }
         else
         {
-            AddArtistGrid.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+            AddArtistGrid.Visibility = Visibility.Visible;
             (AddArtist.Content as FontIcon).Glyph = "\uE711";
 
             // Load artists if needed

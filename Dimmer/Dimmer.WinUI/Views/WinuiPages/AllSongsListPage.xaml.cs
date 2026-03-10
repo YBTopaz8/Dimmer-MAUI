@@ -40,7 +40,7 @@ public sealed partial class AllSongsListPage : Page
     {
         InitializeComponent();
 
-        this.NavigationCacheMode = Microsoft.UI.Xaml.Navigation.NavigationCacheMode.Enabled;
+        this.NavigationCacheMode = NavigationCacheMode.Enabled;
 
         _compositor = ElementCompositionPreview.GetElementVisual(this).Compositor;
 
@@ -314,12 +314,12 @@ public sealed partial class AllSongsListPage : Page
         var songsToDrag = e.Items.OfType<SongModelView>().ToList();
 
         // Package the songs' IDs or other identifiers.
-        e.Data.RequestedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.Copy;
+        e.Data.RequestedOperation = DataPackageOperation.Copy;
         e.Items.Clear(); // Prevent default drag UI
         e.Items.Add(songsToDrag);
 
         var storageItems = songsToDrag
-            .Select(s => Windows.Storage.StorageFile.GetFileFromPathAsync(s.FilePath).AsTask())
+            .Select(s => StorageFile.GetFileFromPathAsync(s.FilePath).AsTask())
             .ToArray();
         var files = await Task.WhenAll(storageItems);
         // pass song ids as text as well so that we can identify them in the drop target
@@ -506,10 +506,79 @@ public sealed partial class AllSongsListPage : Page
         //SuggestList.ItemsSource = matches;
         //SuggestList.Visibility = matches.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
     }
+    FontIcon CaretSolidUp = new FontIcon() {Glyph = "\uEDD7" };
+    FontIcon CaretSolidDown = new FontIcon() {Glyph = "\uEDD8" };
+    string lastKey;
+    string lastSort;
     private void SortClick(object sender, RoutedEventArgs e)
     {
-        var key = (sender as MenuFlyoutItem)?.Tag.ToString();
-        //SortSongs(key);
+
+        var send = sender as RadioMenuFlyoutItem;
+        if (send is null) return;
+        var key = send.Tag.ToString()?.ToLower();
+
+        if (string.IsNullOrEmpty(key) || send == null)
+            return;
+        lastKey = key;
+
+
+        //if is checked then its sorting Desc, now we maintain check and sort desc and updatetext
+
+        bool isSortAsc;
+        if (lastKey == key && lastSort == "asc")
+        {
+            isSortAsc = false;
+            lastSort = "desc";
+            
+        }
+        else if(lastKey == key && lastSort == "desc")
+        {
+            isSortAsc = true;
+            lastSort = "asc";
+        }
+        else
+        {
+            isSortAsc = MyViewModel.CurrentTqlQueryUI.Contains("asc", StringComparison.CurrentCultureIgnoreCase);
+            lastSort = isSortAsc ? "asc" : "desc";
+        }
+
+
+        switch (key)
+        {
+            case "title":
+                if(isSortAsc)
+                   MyViewModel.SearchToTQL(PresetQueries.SortByTitleAsc());
+                else
+                    MyViewModel.SearchToTQL(PresetQueries.SortByTitleDesc());
+                break;
+            case "artist":
+                if (isSortAsc)
+                    MyViewModel.SearchToTQL(PresetQueries.SortByArtistAsc());
+                else
+                    MyViewModel.SearchToTQL(PresetQueries.SortByArtistDesc());
+                break;
+
+            case "album":
+                if (isSortAsc)
+                    MyViewModel.SearchToTQL(PresetQueries.SortByAlbumAsc());
+                else
+                    MyViewModel.SearchToTQL(PresetQueries.SortByAlbumDesc());
+                break;
+            case "dims":
+                if (isSortAsc)
+                    MyViewModel.SearchToTQL(PresetQueries.SortByDimsAsc());
+                else
+                    MyViewModel.SearchToTQL(PresetQueries.SortByDimsDesc());
+                break;
+
+            default:
+                break;
+        }
+
+        lastKey = key;
+
+        
+
     }
 
     private async void OpenHelp(object sender, RoutedEventArgs e)
@@ -525,34 +594,34 @@ public sealed partial class AllSongsListPage : Page
 
     private void ProcessCellClick(bool isExclusion, bool isAdditive = false) // Added isAdditive flag
     {
-        // 1. Validation (Same as yours)
-        if (_lastActiveCellSlot.Equals(default(TableViewCellSlot))) return;
+        //// 1. Validation (Same as yours)
+        //if (_lastActiveCellSlot.Equals(default(TableViewCellSlot))) return;
         
-        // 2. Get Content
-        string tableViewContent = MySongsTableView.GetCellsContent(
-            slots: new[] { _lastActiveCellSlot },
-            includeHeaders: true
-        );
+        //// 2. Get Content
+        //string tableViewContent = MySongsTableView.GetCellsContent(
+        //    slots: new[] { _lastActiveCellSlot },
+        //    includeHeaders: true
+        //);
 
-        if (string.IsNullOrWhiteSpace(tableViewContent)) return;
+        //if (string.IsNullOrWhiteSpace(tableViewContent)) return;
 
-        // 3. Robust Split & Empty Value Check
-        var parts = tableViewContent.Split(new[] { '\n' }, 2);
-        if (parts.Length < 2 || string.IsNullOrWhiteSpace(parts[1]))
-        {
-            // Important: If user clicks an empty "Genre" cell, we probably don't want to search "Genre:''"
-            // Unless your TQL supports "Genre:null" or "Genre:empty" explicitly.
-            Debug.WriteLine("[ProcessCellClick] Ignored empty cell.");
-            return;
-        }
+        //// 3. Robust Split & Empty Value Check
+        //var parts = tableViewContent.Split(new[] { '\n' }, 2);
+        //if (parts.Length < 2 || string.IsNullOrWhiteSpace(parts[1]))
+        //{
+        //    // Important: If user clicks an empty "Genre" cell, we probably don't want to search "Genre:''"
+        //    // Unless your TQL supports "Genre:null" or "Genre:empty" explicitly.
+        //    Debug.WriteLine("[ProcessCellClick] Ignored empty cell.");
+        //    return;
+        //}
 
-        // 4. Convert to TQL
-        string tqlClause = TqlConverter.ConvertTableViewContentToTql(tableViewContent);
-        if (string.IsNullOrEmpty(tqlClause)) return;
+        //// 4. Convert to TQL
+        //string tqlClause = TqlConverter.ConvertTableViewContentToTql(tableViewContent);
+        //if (string.IsNullOrEmpty(tqlClause)) return;
 
-        // 5. ViewModel Integration
-        // Pass the intent: Are we excluding? Are we adding to existing filters?
-        //MyViewModel?.UpdateQueryWithClause(tqlClause, isExclusion, isAdditive);
+        //// 5. ViewModel Integration
+        //// Pass the intent: Are we excluding? Are we adding to existing filters?
+        ////MyViewModel?.UpdateQueryWithClause(tqlClause, isExclusion, isAdditive);
     }
 
     private void ExtraPanel_Loaded(object sender, RoutedEventArgs e)
@@ -1136,7 +1205,7 @@ AnimationHelper.ConnectedAnimationStyle.ScaleUp
 
                     if (properties.IsRightButtonPressed)
                     {
-                        MyViewModel.SearchToTQL(TQlStaticMethods.PresetQueries.ByArtist(selectedArtist!.Name!));
+                        MyViewModel.SearchToTQL(PresetQueries.ByArtist(selectedArtist!.Name!));
                         return;
                     }
 
@@ -1315,7 +1384,7 @@ AnimationHelper.ConnectedAnimationStyle.ScaleUp
     private void AlbumBtn_RightTapped(object sender, RightTappedRoutedEventArgs e)
     {
         var send = ((Button)sender).DataContext as SongModelView;
-        MyViewModel.SearchToTQL(TQlStaticMethods.PresetQueries.ByAlbum(send.AlbumName));
+        MyViewModel.SearchToTQL(PresetQueries.ByAlbum(send.AlbumName));
     }
 
     private void MainFab_Click(object sender, RoutedEventArgs e)
@@ -1323,10 +1392,7 @@ AnimationHelper.ConnectedAnimationStyle.ScaleUp
 
     }
 
-    private void MyArcFabControl_Loaded(object sender, RoutedEventArgs e)
-    {
-        MyArcFabControl.SetMenuItems(new List<string>() { "Page Settings", "TQL View" });
-    }
+  
 
     private void SmokeGrid_Unloaded(object sender, RoutedEventArgs e)
     {

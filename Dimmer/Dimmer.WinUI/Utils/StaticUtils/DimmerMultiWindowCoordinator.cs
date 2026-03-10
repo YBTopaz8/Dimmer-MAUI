@@ -67,7 +67,7 @@ public class DimmerMultiWindowCoordinator
                 appWin.Move(new Windows.Graphics.PointInt32(100, 100));
 
                 // 2. Force the state
-                if (appWin.Presenter.Kind == Microsoft.UI.Windowing.AppWindowPresenterKind.Overlapped)
+                if (appWin.Presenter.Kind == AppWindowPresenterKind.Overlapped)
                 {
                     // Toggle minimize/restore to force redraw
                     ((Microsoft.UI.Windowing.OverlappedPresenter)appWin.Presenter).Restore(true);

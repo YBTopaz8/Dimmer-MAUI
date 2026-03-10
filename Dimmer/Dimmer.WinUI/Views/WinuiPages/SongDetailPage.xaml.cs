@@ -65,8 +65,8 @@ public sealed partial class SongDetailPage : Page
             if(CurrentSectionLabel.Text == name)
             {
                 
-                item.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.DarkSlateBlue);
-                item.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.White);
+                item.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Colors.DarkSlateBlue);
+                item.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Colors.White);
 
             }
             menu.Items.Add(item);
@@ -204,7 +204,7 @@ public sealed partial class SongDetailPage : Page
     {
         if (e.NavigationMode == Microsoft.UI.Xaml.Navigation.NavigationMode.Back)
         {
-            if (detailedImage != null && Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(detailedImage) != null)
+            if (detailedImage != null && VisualTreeHelper.GetParent(detailedImage) != null)
             {
                 AnimationHelper.Prepare(AnimationHelper.Key_DetailToListFromAlbum, detailedImage);
             }
@@ -344,7 +344,7 @@ public sealed partial class SongDetailPage : Page
 
     private void NavigateBackToPreviousPage()
     {
-        if (detailedImage != null && Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(detailedImage) != null)
+        if (detailedImage != null && VisualTreeHelper.GetParent(detailedImage) != null)
         {
             AnimationHelper.Prepare(AnimationHelper.Key_DetailToListFromAlbum,
                 detailedImage,

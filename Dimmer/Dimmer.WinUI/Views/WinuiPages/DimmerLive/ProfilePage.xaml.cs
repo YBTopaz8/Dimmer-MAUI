@@ -157,7 +157,7 @@ public sealed partial class ProfilePage : Page
 
     private void PPGrid_PointerEntered(object sender, PointerRoutedEventArgs e)
     {
-        editPPBtn.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+        editPPBtn.Visibility = WinUIVisibility.Visible;
         ProfilePic.OpacityTransition = new ScalarTransition() { Duration = TimeSpan.FromMilliseconds(200) };
         ProfilePic.Opacity = 0.1;
     }
@@ -165,7 +165,7 @@ public sealed partial class ProfilePage : Page
     private void PPGrid_PointerExited(object sender, PointerRoutedEventArgs e)
     {
 
-        editPPBtn.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+        editPPBtn.Visibility = WinUIVisibility.Collapsed;
 
         ProfilePic.OpacityTransition = new ScalarTransition() { Duration = TimeSpan.FromMilliseconds(200) };
         ProfilePic.Opacity = 1;

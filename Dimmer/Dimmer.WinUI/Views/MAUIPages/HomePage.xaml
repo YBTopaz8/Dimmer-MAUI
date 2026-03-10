@@ -46,9 +46,10 @@
 
     </ContentPage.Resources>
     <Grid >
-        <Image
+        <Image 
+            Margin="0,0,10,0"
        Grid.Row="0"
-       Grid.RowSpan="3"
+       Grid.RowSpan="4"
        Aspect="AspectFit"
        BackgroundColor="Transparent"
        HorizontalOptions="Center"
@@ -59,7 +60,7 @@
    
     <ScrollView x:Name="MainScrollView" VerticalScrollBarVisibility="Default">
 
-        <Grid RowDefinitions="*,*,auto,auto">
+        <Grid RowDefinitions="*,*,auto">
          
             <VerticalStackLayout
                 Grid.Row="0"
@@ -186,7 +187,7 @@
                     Margin="0,0"
                     BackgroundColor="Transparent"
                     StrokeShape="RoundRectangle 20"
-                    StrokeThickness="3">
+                    StrokeThickness="0">
                     <Border.Triggers>
 
 
@@ -450,8 +451,10 @@
                                 x:Name="PlayPauseBtn"
                                 windows:VisualElement.AccessKey="P"
                                 windows:VisualElement.AccessKeyPlacement="Bottom"
-                                Background="Transparent"
-                                BorderWidth="0"
+                                BorderColor="{Binding CurrentPlaySongDominantColor}"
+                                BorderWidth="1"
+                                BackgroundColor="Transparent"
+                                
                                 Command="{Binding PlayPauseToggleCommand}"
                                 ImageSource="play.png"
                                 Loaded="ButtonLoaded">
@@ -685,15 +688,6 @@
 
             </Grid>
 
-            <Grid
-                x:Name="NowPlayingGrid"
-                Grid.Row="3"
-                Padding="3"
-                BackgroundColor="Transparent">
-                <Grid.GestureRecognizers>
-                    <PointerGestureRecognizer x:Name="NowPlayingQueuePGR" PointerReleased="NowPlayingQueuePGR_PointerReleased" />
-                </Grid.GestureRecognizers>
-            </Grid>
         </Grid>
 
     </ScrollView>

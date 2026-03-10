@@ -55,7 +55,7 @@ public sealed partial class LyricsEditorPage : Page
         base.OnNavigatedTo(e);
         if(!Frame.CanGoBack)
         {
-            BackBtn.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+            BackBtn.Visibility = WinUIVisibility.Collapsed;
         }
         if (e.Parameter is SongDetailNavArgs args)
         {
@@ -85,7 +85,7 @@ public sealed partial class LyricsEditorPage : Page
 
                     animation.TryStart(EditLyricsTxt);
                 }
-                EditLyricsTxt.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+                EditLyricsTxt.Visibility = WinUIVisibility.Visible;
                 EditLyricsTxt.Opacity = 1;
                 MyViewModel.ReadySearchViewAndProduceSearchText();
             });
@@ -147,7 +147,7 @@ public sealed partial class LyricsEditorPage : Page
         // Set metadata
         LyricsTypeText.Text = hasSyncedLyrics ? "Synced" : "Plain";
         LyricsDurationText.Text = TimeSpan.FromSeconds(lyricData.Duration).ToString(@"mm\:ss");
-        InstrumentalIndicator.Visibility = lyricData.Instrumental ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
+        InstrumentalIndicator.Visibility = lyricData.Instrumental ? WinUIVisibility.Visible : WinUIVisibility.Collapsed;
 
         // Set the default tab based on what's available
         if (hasSyncedLyrics)
@@ -176,8 +176,8 @@ public sealed partial class LyricsEditorPage : Page
         // Show/hide the timestamp button based on lyrics type
         // Only show timestamp button if we have plain lyrics but no synced lyrics
         TimestampButton.Visibility = (hasPlainLyrics && !hasSyncedLyrics) 
-            ? Microsoft.UI.Xaml.Visibility.Visible 
-            : Microsoft.UI.Xaml.Visibility.Collapsed;
+            ? WinUIVisibility.Visible 
+            : WinUIVisibility.Collapsed;
         AnimationHelper.Prepare(AnimationHelper.Key_ToSingleDownloadedLyrics, (btn),
             AnimationHelper.ConnectedAnimationStyle.ScaleUp);
 

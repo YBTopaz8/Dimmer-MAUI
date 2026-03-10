@@ -87,7 +87,7 @@ public partial class StoryViewModel : ObservableObject
         StatusMessage = $"Saved to: {videoPath}";
 
         // 5. Open Explorer to file
-        System.Diagnostics.Process.Start("explorer.exe", $"/select, \"{videoPath}\"");
+        Process.Start("explorer.exe", $"/select, \"{videoPath}\"");
 
         IsBusy = false;
     }

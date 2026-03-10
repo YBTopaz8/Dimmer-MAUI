@@ -142,7 +142,7 @@ public sealed partial class DimmerWin : Window
     private void DimmerProgressBar_Loaded(object sender, RoutedEventArgs e)
     {
 
-        DimmerProgressBar.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+        DimmerProgressBar.Visibility = Visibility.Collapsed;
         MyViewModel!.DimmerProgressBarView = (ProgressBar)sender;
     }
 
@@ -159,7 +159,7 @@ public sealed partial class DimmerWin : Window
 
     private void ClearStatus_Click(object sender, RoutedEventArgs e)
     {
-        DimmerStatusPanel.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+        DimmerStatusPanel.Visibility = Visibility.Collapsed;
     }
 
     private void TopMediaControlSection_Loaded(object sender, RoutedEventArgs e)
@@ -169,11 +169,11 @@ public sealed partial class DimmerWin : Window
             {
                 if (v.TitleDurationKey is null)
                 {
-                    TopMediaControlSection.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+                    TopMediaControlSection.Visibility = Visibility.Collapsed;
                 }
                 else
                 {
-                    TopMediaControlSection.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+                    TopMediaControlSection.Visibility = Visibility.Visible;
 
                 }
             });

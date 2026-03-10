@@ -137,7 +137,7 @@ public partial class App : MauiWinUIApplication
 
 
 
-        Dimmer.WinUI.Utils.StaticUtils.UiThreads.EnsureInitialized();
+        Utils.StaticUtils.UiThreads.EnsureInitialized();
     }
     //protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
     //{

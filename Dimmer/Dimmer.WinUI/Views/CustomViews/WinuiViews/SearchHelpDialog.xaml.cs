@@ -34,25 +34,15 @@ public sealed partial class SearchHelpDialog : ContentDialog
     {
         var groups = FieldRegistry.AllFields.GroupBy(f => f.Type);
 
-        //foreach (var g in groups)
-        //{
-        //    FieldsList.Children.Add(new TextBlock
-        //    {
-        //        Text = g.Key.ToString(),
-        //        FontWeight = new Windows.UI.Text.FontWeight(1),
-        //        Margin = new Thickness(0, 10, 0, 4)
-        //    });
+        List<(string Key, List<string> Description)> fields = new List<(string Key, List<string> Description)>();
 
-        //    foreach (var field in g)
-        //    {
-        //        FieldsList.Children.Add(new TextBlock
-        //        {
-        //            Text = $"{field.PrimaryName} ({string.Join(", ", field.Aliases)}) — {field.Description}",
-        //            TextWrapping = TextWrapping.Wrap,
-        //            Margin = new Thickness(8, 0, 0, 2)
-        //        });
-        //    }
-        //}
+        foreach (var g in groups)
+        {
+            fields.Add((g.Key.ToString(), g.Select(f => $"{f.PrimaryName} ({string.Join(", ", f.Aliases)}) — {f.Description}").ToList()));
+            
+        }
+
+        FieldsList.ItemsSource = fields;
     }
 
     void LoadExamples()

@@ -84,7 +84,7 @@ public sealed partial class ArcFabControl : UserControl
                 Width = ItemSize,
                 Height = ItemSize,
                 CornerRadius = new Microsoft.UI.Xaml.CornerRadius(ItemSize / 2),
-                Background = new SolidColorBrush(Microsoft.UI.Colors.WhiteSmoke), // Reference style
+                Background = new SolidColorBrush(Colors.WhiteSmoke), // Reference style
                 HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Stretch,
                 VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment.Stretch,
                 Padding = new Thickness(0),
@@ -106,8 +106,8 @@ public sealed partial class ArcFabControl : UserControl
                 Width = ItemSize,
                 Height = ItemSize,
                 CornerRadius = new Microsoft.UI.Xaml.CornerRadius(ItemSize / 2),
-                Background = new SolidColorBrush(Microsoft.UI.Colors.White),
-                BorderBrush = new SolidColorBrush(Microsoft.UI.Colors.LightGray),
+                Background = new SolidColorBrush(Colors.White),
+                BorderBrush = new SolidColorBrush(Colors.LightGray),
                 BorderThickness = new Thickness(1),
                 Opacity = 0,
                 Child = btn,
@@ -148,7 +148,7 @@ public sealed partial class ArcFabControl : UserControl
         _isOpen = true;
 
         // 1. Show Dimmer
-        DimmerOverlay.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+        DimmerOverlay.Visibility = WinUIVisibility.Visible;
         DimmerOverlay.IsHitTestVisible = true;
         AnimateOpacity(DimmerOverlay, 0.4f);
 
@@ -158,8 +158,8 @@ public sealed partial class ArcFabControl : UserControl
             var anim = new Microsoft.UI.Xaml.Media.Animation.DoubleAnimation { To = 45, Duration = TimeSpan.FromMilliseconds(100) };
             var sb = new Microsoft.UI.Xaml.Media.Animation.Storyboard();
             sb.Children.Add(anim);
-            Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTarget(anim, rot);
-            Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTargetProperty(anim, "Angle");
+            Storyboard.SetTarget(anim, rot);
+            Storyboard.SetTargetProperty(anim, "Angle");
             sb.Begin();
         }
 
@@ -214,8 +214,8 @@ public sealed partial class ArcFabControl : UserControl
             var anim = new Microsoft.UI.Xaml.Media.Animation.DoubleAnimation { To = 0, Duration = TimeSpan.FromMilliseconds(200) };
             var sb = new Microsoft.UI.Xaml.Media.Animation.Storyboard();
             sb.Children.Add(anim);
-            Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTarget(anim, rot);
-            Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTargetProperty(anim, "Angle");
+            Storyboard.SetTarget(anim, rot);
+            Storyboard.SetTargetProperty(anim, "Angle");
             sb.Begin();
         }
 

@@ -85,15 +85,15 @@ public sealed partial class SettingsPage : Page
         switch (addedName)
         {
             case "MusicFoldersBtn":
-                MusicFoldersBtn.Background = new SolidColorBrush(Microsoft.UI.Colors.DarkSlateBlue);
+                MusicFoldersBtn.Background = new SolidColorBrush(Colors.DarkSlateBlue);
                 
                 break;
             case "LastFMBtn":
-                MusicFoldersBtn.Background = new SolidColorBrush(Microsoft.UI.Colors.Gray);
+                MusicFoldersBtn.Background = new SolidColorBrush(Colors.Gray);
                 
                 break;
             case "UtilsBtn":
-                MusicFoldersBtn.Background = new SolidColorBrush(Microsoft.UI.Colors.Gray);
+                MusicFoldersBtn.Background = new SolidColorBrush(Colors.Gray);
                 
                 break;
             default:
@@ -313,12 +313,12 @@ public sealed partial class SettingsPage : Page
                 if (isLoadingCovers)
                 {
                     OptionLogBtn.Content = "View Songs";
-                    OptionLogBtn.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+                    OptionLogBtn.Visibility = WinUIVisibility.Visible;
                     OptionLogBtn.Click += OptionLogBtn_Click;
                 }
                 else
                 {
-                    OptionLogBtn.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+                    OptionLogBtn.Visibility = WinUIVisibility.Collapsed;
                     OptionLogBtn.Click -= OptionLogBtn_Click;
                 }
             });
@@ -329,12 +329,12 @@ public sealed partial class SettingsPage : Page
                 if (IsAppScanning && !MyViewModel.IsLibraryEmpty)
                 {
                     OptionLogBtn.Content = "View Songs";
-                    OptionLogBtn.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+                    OptionLogBtn.Visibility = WinUIVisibility.Visible;
                     OptionLogBtn.Click += OptionLogBtn_Click;
                 }
                 else
                 {
-                    OptionLogBtn.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+                    OptionLogBtn.Visibility = WinUIVisibility.Collapsed;
                     OptionLogBtn.Click -= OptionLogBtn_Click;
                 }
             });
@@ -388,7 +388,7 @@ public sealed partial class SettingsPage : Page
 
     private async void CheckUpdates_Click(object sender, RoutedEventArgs e)
     {
-        UpdateCheckProgress.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+        UpdateCheckProgress.Visibility = WinUIVisibility.Visible;
         UpdatesListView.ItemsSource = null;
 
         try
@@ -412,7 +412,7 @@ public sealed partial class SettingsPage : Page
         }
         finally
         {
-            UpdateCheckProgress.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+            UpdateCheckProgress.Visibility = WinUIVisibility.Collapsed;
         }
     }
     private async Task FetchUpdateHistorySilently()

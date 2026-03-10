@@ -47,7 +47,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     {
         get
         {
-            return _controller.GetDefaultDevice(AudioSwitcher.AudioApi.DeviceType.Playback, AudioSwitcher.AudioApi.Role.Multimedia);
+            return _controller.GetDefaultDevice(DeviceType.Playback, Role.Multimedia);
         }
     }
 
@@ -133,7 +133,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     private void SubscribeToSystemEvents()
     {
         MediaDevice.DefaultAudioRenderDeviceChanged += MediaDevice_DefaultAudioRenderDeviceChanged;
-        DefaultAudioDevice = _controller.GetDefaultDevice(DeviceType.Playback, AudioSwitcher.AudioApi.Role.Multimedia);
+        DefaultAudioDevice = _controller.GetDefaultDevice(DeviceType.Playback, Role.Multimedia);
         _controller.AudioDeviceChanged.Subscribe(e =>
         {
             switch (e)
@@ -202,7 +202,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     public void WatchVolume()
     {
         
-        var dev = _controller.GetDefaultDevice(DeviceType.Playback, AudioSwitcher.AudioApi.Role.Multimedia);
+        var dev = _controller.GetDefaultDevice(DeviceType.Playback, Role.Multimedia);
         dev.VolumeChanged.Subscribe(x =>
         {
             Debug.WriteLine($"Volume: {x.Volume}");
@@ -1371,8 +1371,8 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     {
         // Get all active playback devices from the controller.
         //var devices = _audioController.GetPla ybackDevices(AudioSwitcher.AudioApi.DeviceState.Active);
-        IEnumerable<CoreAudioDevice>? devices = _controller.GetPlaybackDevices(AudioSwitcher.AudioApi.DeviceState.Active)
-            . Where(x=>x.DeviceType == AudioSwitcher.AudioApi.DeviceType.Playback);
+        IEnumerable<CoreAudioDevice>? devices = _controller.GetPlaybackDevices(DeviceState.Active)
+            . Where(x=>x.DeviceType == DeviceType.Playback);
 
         // Map them to your own simple model.
         return devices.Select(d => new AudioOutputDevice

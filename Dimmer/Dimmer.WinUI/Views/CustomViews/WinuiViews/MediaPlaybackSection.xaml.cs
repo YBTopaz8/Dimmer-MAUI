@@ -316,12 +316,12 @@ public sealed partial class MediaPlaybackSection : UserControl
         // Subscribe to playback feedback events
         MyViewModel.OnSongAddedToQueue += async (sender, message) =>
         {
-            await ShowNotification(message, Microsoft.UI.Xaml.Controls.InfoBarSeverity.Success);
+            await ShowNotification(message, InfoBarSeverity.Success);
         };
 
         MyViewModel.OnSongPlayingNow += async (sender, message) =>
         {
-            await ShowNotification(message, Microsoft.UI.Xaml.Controls.InfoBarSeverity.Informational);
+            await ShowNotification(message, InfoBarSeverity.Informational);
         };
 
     }

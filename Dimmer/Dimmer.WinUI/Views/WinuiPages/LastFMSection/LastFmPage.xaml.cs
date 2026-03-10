@@ -110,8 +110,8 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
         
         if (MyViewModel.LastFMService.IsAuthenticated)
         {
-            LastFMGridNonAuth.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
-            LastFMAuthedSection.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+            LastFMGridNonAuth.Visibility = WinUIVisibility.Collapsed;
+            LastFMAuthedSection.Visibility = WinUIVisibility.Visible;
             // User Info
             var userr = await MyViewModel.LastFMService.GetUserInfoAsync();
             if (userr is null)
@@ -151,8 +151,8 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
         }
         else
         {
-            LastFMGridNonAuth.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
-            LastFMAuthedSection.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+            LastFMGridNonAuth.Visibility = WinUIVisibility.Visible;
+            LastFMAuthedSection.Visibility = WinUIVisibility.Collapsed;
             UserNameTxt.Text = "Not Connected";
             TotalScrobblesTxt.Text = "Log in via Settings";
         }

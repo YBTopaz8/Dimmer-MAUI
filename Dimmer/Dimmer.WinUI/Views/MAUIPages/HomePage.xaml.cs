@@ -537,7 +537,7 @@ public partial class HomePage : ContentPage
         {
             HoveredAnimationDuration = 250,
             HoveredAnimationEasing = Easing.CubicOut,
-            HoveredBackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue,
+            HoveredBackgroundColor = ColorsM.DarkSlateBlue,
 
             PressedScale = 0.7, // Adjusted for a smoother feel
             PressedAnimationDuration = 300,
@@ -619,7 +619,7 @@ public partial class HomePage : ContentPage
         {
             HoveredAnimationDuration = 250,
             HoveredAnimationEasing = Easing.CubicOut,
-            HoveredBackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue,
+            HoveredBackgroundColor = ColorsM.DarkSlateBlue,
 
             PressedScale = 0.7, // Adjusted for a smoother feel
             PressedAnimationDuration = 300,
@@ -750,7 +750,7 @@ public partial class HomePage : ContentPage
 
 
         border.FocusVisualPrimaryThickness = new Microsoft.UI.Xaml.Thickness(2);
-        border.FocusVisualPrimaryBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.DarkSlateBlue);
+        border.FocusVisualPrimaryBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(Colors.DarkSlateBlue);
         // --- create a stroke animation around the panel ---
         var visual = ElementCompositionPreview.GetElementVisual(border);
 
@@ -924,7 +924,7 @@ public partial class HomePage : ContentPage
             ToolTip volumeToolTip = new()
             {
                 Content = CurrentVolumeAndCurrentDeviceSelected,
-                Placement = Microsoft.UI.Xaml.Controls.Primitives.PlacementMode.Top,
+                Placement = PlacementMode.Top,
 
             };
             
@@ -1117,7 +1117,7 @@ public partial class HomePage : ContentPage
     }
 
     private void AudioDeviceSwitcherButton_Clicked(object sender, EventArgs e)
-    { 
+    {  
         var send = (View)sender;
         var platView = send.Handler?.PlatformView as Microsoft.UI.Xaml.UIElement;
 
@@ -1131,7 +1131,7 @@ public partial class HomePage : ContentPage
             {
                 var menFlyOut = new Microsoft.UI.Xaml.Controls.ToggleMenuFlyoutItem
                 {
-                    Text = x.Name,
+                    Text = $"Device Name : {x.Name}, Volume : {x.Volume} %",
                     Command = MyViewModel.SetPreferredAudioDeviceCommand,
                     CommandParameter = x
                 };

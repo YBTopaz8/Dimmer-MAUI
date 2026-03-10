@@ -70,7 +70,7 @@ public partial class EditSongViewModel : ObservableObject
     private void LoadAllArtists()
     {
         AllArtists = _realmFactory.GetRealmInstance()
-            .All<ArtistModel>()
+            .All<ArtistModel>().AsEnumerable()
             .Where(a => !string.IsNullOrWhiteSpace(a.Name))
             .Select(a => a.Name)
             .Distinct()

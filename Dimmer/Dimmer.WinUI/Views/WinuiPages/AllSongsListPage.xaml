@@ -122,27 +122,32 @@
                             Content="Sort By"
                             IsEnabled="True"
                             Loaded="SortByWithTQL_Loaded"
-                            Visibility="Collapsed">
+                            Visibility="Visible">
                             <SplitButton.Flyout>
                                 <MenuFlyout>
-                                    <MenuFlyoutItem
-                                        Click="SortClick"
+                                    <RadioMenuFlyoutItem GroupName="SortGroup"
+                                        Click="SortClick" 
                                         Tag="title"
                                         Text="Title" />
-                                    <MenuFlyoutItem
+                                    <RadioMenuFlyoutItem GroupName="SortGroup"
                                         Click="SortClick"
                                         Tag="artist"
                                         Text="Artist" />
-                                    <MenuFlyoutItem
+                                    <RadioMenuFlyoutItem GroupName="SortGroup"
                                         Click="SortClick"
                                         Tag="album"
                                         Text="Album" />
-                                    <MenuFlyoutItem
+                                    <RadioMenuFlyoutItem GroupName="SortGroup"
                                         Click="SortClick"
                                         Tag="dims"
-                                        Text="Dims" />
-                                    <MenuFlyoutSeparator />
-                                    <MenuFlyoutItem Click="OpenHelp" Text="More fields..." />
+                                        Text="Play Count" />
+                                    <RadioMenuFlyoutItem GroupName="SortGroup"
+                                        Click="SortClick"
+                                        Tag="added" Visibility="Collapsed"
+                                        Text="Added" />
+                                    
+                                    <!--<MenuFlyoutSeparator />-->
+                                    <MenuFlyoutItem Visibility="Collapsed" Click="OpenHelp" Text="More fields..." />
                                 </MenuFlyout>
                             </SplitButton.Flyout>
                         </SplitButton>
@@ -175,15 +180,7 @@
 
 
                 </StackPanel>
-                <StackPanel Grid.Column="1" HorizontalAlignment="Right">
-
-
-                    <local:ArcFabControl HorizontalAlignment="Stretch" 
-                                         x:Name="MyArcFabControl" Visibility="Collapsed"
-                                         Loaded="MyArcFabControl_Loaded"
-                             VerticalAlignment="Stretch" Canvas.ZIndex="100"
-                                             ExpandDirection="Left"/>
-                </StackPanel>
+               
             </Grid>
 
             <Grid Grid.Row="1" Visibility="Visible">
@@ -445,23 +442,9 @@
                                         <TextBlock
                                             HorizontalAlignment="Center"
                                             FontSize="15"
-                                            Text="{Binding PlayCount}"
+                                            Text="{Binding PlayCompletedCount}"
                                             TextWrapping="WrapWholeWords" />
-                                        <StackPanel
-                                            HorizontalAlignment="Center"
-                                            Orientation="Horizontal"
-                                            Spacing="2">
-                                            <TextBlock
-                                                HorizontalAlignment="Center"
-                                                FontSize="9"
-                                                Text="{Binding PlayCompletedCount}"
-                                                TextWrapping="WrapWholeWords" />
-                                            <TextBlock
-                                                HorizontalAlignment="Center"
-                                                FontSize="9"
-                                                Text="Completed"
-                                                TextWrapping="WrapWholeWords" />
-                                        </StackPanel>
+                                        
                                     </StackPanel>
                                 </DataTemplate>
 

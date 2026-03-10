@@ -160,7 +160,7 @@ public static class AnimationHelper
                                 IEnumerable<UIElement>? coordinatedElements = null,
                                 params string[] potentialKeys)
     {
-        destination.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Normal, () =>
+        destination.DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, () =>
         {
             var service = ConnectedAnimationService.GetForCurrentView();
             ConnectedAnimation? animation = null;

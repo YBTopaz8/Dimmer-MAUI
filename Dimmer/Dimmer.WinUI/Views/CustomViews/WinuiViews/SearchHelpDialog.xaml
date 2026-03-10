@@ -17,9 +17,16 @@
             <!--  Fields  -->
             <TabViewItem Header="Fields">
                 <ScrollViewer>
-                    <ItemsControl  x:Name="FieldsList">
-                        <!--  Filled in code-behind  -->
-                    </ItemsControl>
+                    <ItemsRepeater  x:Name="FieldsList">
+                        <ItemsRepeater.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Spacing="4" Margin="0,0,0,12">
+                                    <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="14"/>
+                                    <TextBlock Text="{Binding Description}" TextWrapping="Wrap" Opacity="0.7"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
                 </ScrollViewer>
             </TabViewItem>
 

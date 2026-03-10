@@ -11,9 +11,9 @@ public partial class IsObjNullToVisConverter : IValueConverter
     public object Convert(object value, Type targetType, object parameter, string language)
     {
         if (value == null)
-            return Microsoft.UI.Xaml.Visibility.Visible;
+            return WinUIVisibility.Visible;
         else
-            return Microsoft.UI.Xaml.Visibility.Collapsed;
+            return WinUIVisibility.Collapsed;
     }
     public object ConvertBack(object value, Type targetType, object parameter, string language)
     {

@@ -25,7 +25,7 @@ public partial class SyncLyricsPopUpViewWindow : Window
         if (this.Page is null) return;
         //if (this.Page.IsLoaded && AllLyricsColView.IsLoaded)
         //{
-        if (MyViewModel.AllLines?.Count == 1)
+        if (MyViewModel.AllLines?.Count <= 1)
         {
             Application.Current?.CloseWindow(this);
         }
@@ -54,7 +54,7 @@ public partial class SyncLyricsPopUpViewWindow : Window
 
     private async void OpenLyricsViewOnly_Clicked(object sender, EventArgs e)
     {
-        await this.myPage.FadeOut(easing: Microsoft.Maui.Easing.SpringOut, duration: 500);
+        await this.myPage.FadeOut(easing: Easing.SpringOut, duration: 500);
         Application.Current?.CloseWindow(this);
 
         MyViewModel.ActivateMainWindow();

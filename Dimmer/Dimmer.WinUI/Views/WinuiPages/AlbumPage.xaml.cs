@@ -14,7 +14,7 @@ public sealed partial class AlbumPage : Page
     {
         InitializeComponent();
 
-        this.NavigationCacheMode = Microsoft.UI.Xaml.Navigation.NavigationCacheMode.Enabled;
+        this.NavigationCacheMode = NavigationCacheMode.Enabled;
 
         _compositor = ElementCompositionPreview.GetElementVisual(this).Compositor;
 
