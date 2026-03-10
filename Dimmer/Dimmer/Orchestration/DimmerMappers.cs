@@ -300,33 +300,36 @@ public static class DimmerMappers
         var realm = realmFactory.GetRealmInstance();
         var artInDb = realm.Find<ArtistModel>(art.Id)!;
 
-        var albs = realm.Find<ArtistModel>
-            (art.Id)?.Albums.AsEnumerable().DistinctBy(x=>x.Name).Select(x => x.ToAlbumModelView())
-            ;
-        if(albs!.Any())
+        var albumsInArtistInDB = realm.Find<ArtistModel>
+            (art.Id)?.Albums.AsEnumerable().DistinctBy(x=>x.Name);
+        if(albumsInArtistInDB!.Any())
         {
             art.SongsByArtist = artInDb.Songs.AsEnumerable().Select(x => x.ToSongModelView())
     .ToObservableCollection();
-            var songAlbs = artInDb.Albums;
+            var artistInDbAlbums = artInDb.Albums;
 
 
-            foreach (var alb in songAlbs)
+            foreach (var alb in artistInDbAlbums)
             {
                 if (alb is null) continue;
-                RxSchedulers.UI.ScheduleTo(() =>
-                {
-                    art.AlbumsByArtist ??= new();
-                });
+              
+
                 realm.Write(() =>
                 {
+                    alb.NumberOfTracks = alb.SongsInAlbum?.Count() ?? 0;
+                    alb.TotalCompletedPlays = alb.SongsInAlbum?.Sum(x => x.PlayCompletedCount) ?? 0;
+                    alb.TotalDuration = alb.SongsInAlbum?.Sum(x => x.DurationInSeconds).ToString() ?? "0";
+
                     var albInDb = realm.Find<AlbumModel>(alb.Id)!;
+                    
                     albInDb.Artists.Add(artInDb);
                 });
 
             }
            RxSchedulers.UI.ScheduleTo(() =>
            {
-               art.AlbumsByArtist = albs?.ToObservableCollection();
+               
+               art.AlbumsByArtist = albumsInArtistInDB?.AsEnumerable().Select(x=>x.ToAlbumModelView()).ToObservableCollection();
            });
         }
         else
@@ -342,8 +345,11 @@ public static class DimmerMappers
                 }
 
             }
-            RxSchedulers.UI.ScheduleTo(()=>art.AlbumsByArtist = realm.Find<ArtistModel>(art.Id)?
-                .Albums.AsEnumerable().Select(x=>x.ToAlbumModelView()).ToObservableCollection()!);
+            RxSchedulers.UI.ScheduleTo(() =>
+            {
+                art.AlbumsByArtist = realm.Find<ArtistModel>(art.Id)?
+                                .Albums.AsEnumerable().Select(x => x.ToAlbumModelView()).ToObservableCollection()!;
+            });
         }
 
     }

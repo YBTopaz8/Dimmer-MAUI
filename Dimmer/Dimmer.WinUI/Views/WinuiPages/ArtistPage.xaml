@@ -360,7 +360,7 @@
                     CornerRadius="10"
                     Orientation="Horizontal"
                     Spacing="5">
-                    <TextBlock HorizontalAlignment="Center" Text="{Binding SearchResults.Count}" />
+                    <TextBlock HorizontalAlignment="Center" Text="{x:Bind MyViewModel.SelectedArtist.SongsByArtist.Count, Mode=OneWay}" />
                     <TextBlock HorizontalAlignment="Center" Text="Songs" />
                 </StackPanel>
             </Grid>

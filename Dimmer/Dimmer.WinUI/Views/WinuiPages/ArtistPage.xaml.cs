@@ -245,12 +245,9 @@ public sealed partial class ArtistPage : Page
 
     private void AlbumsIR_Loaded(object sender, RoutedEventArgs e)
     {
+        if (MyViewModel.SelectedArtist?.SongsByArtist is null) return;
         
-        ObservableCollection<AlbumModelView?>? albs = MyViewModel.RealmFactory.GetRealmInstance()
-            .Find<ArtistModel>(MyViewModel.SelectedArtist!.Id)!
-            .Albums.AsEnumerable().Select(x=>x.ToAlbumModelView()!).DistinctBy(x=>x.Name).ToObservableCollection()!;
-     
-        MyViewModel.SelectedArtist.AlbumsByArtist = albs;
+
         AlbumsIR.ItemsSource = MyViewModel.SelectedArtist.AlbumsByArtist;
     }
 

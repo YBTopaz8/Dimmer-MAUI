@@ -131,7 +131,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         PlaybackManager = new RuleBasedPlaybackManager(RealmFactory);
 
+
+
+
         SearchResultsHolder.Connect()
+            
              .AutoRefresh(song => song.IsFavorite)
         .AutoRefresh(song => song.IsCurrentPlayingHighlight)
         .AutoRefresh(song => song.HasSyncedLyrics)
@@ -1053,7 +1057,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     if (songId == ObjectId.Empty)
                     {
 
-                        songModel= realm.All<SongModel>().LastOrDefaultNullSafe();
+                        songModel = realm.All<DimmerPlayEvent>().LastOrDefaultNullSafe().SongsLinkingToThisEvent.FirstOrDefaultNullSafe();
                     }
 
                     if (songModel != null && !string.IsNullOrEmpty(songModel.TitleDurationKey))
@@ -4140,7 +4144,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             return;
         };
         SelectedArtist = artist;
-       _= Task.Run(()=> SelectedArtist.RefreshAlbumAndSongsFromDB(RealmFactory));
+       SelectedArtist.RefreshAlbumAndSongsFromDB(RealmFactory);
     }
     public async Task<bool> SelectedArtistAndNavtoPage(SongModelView? song)
     {
