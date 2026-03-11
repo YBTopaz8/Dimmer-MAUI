@@ -53,12 +53,13 @@
        Aspect="AspectFit"
        BackgroundColor="Transparent"
        HorizontalOptions="Center"
-       Opacity="0.10"
+       Opacity="0.30"
        Source="{Binding CurrentPlayingSongView.CoverImagePath, Converter={converters:PathToImageConverter}}"
        ToolTipProperties.Text="Click to view song details"
        VerticalOptions="Center" />
    
-    <ScrollView x:Name="MainScrollView" VerticalScrollBarVisibility="Default">
+    <ScrollView x:Name="MainScrollView"
+                VerticalScrollBarVisibility="Default">
 
         <Grid RowDefinitions="*,*,auto">
          

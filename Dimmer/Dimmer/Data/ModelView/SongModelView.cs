@@ -85,7 +85,7 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial bool HasSyncedLyrics { get;  set; }
     [ObservableProperty]
-    public partial string SyncLyrics { get; set; } = string.Empty;
+    public partial string? SyncLyrics { get; set; } = string.Empty;
   
 
     [ObservableProperty]
@@ -152,7 +152,7 @@ public partial class SongModelView : ObservableObject
     public partial ObservableCollection<PlaylistModelView> PlaylistsHavingSong { get; set; } = new();
 
     [ObservableProperty]
-    public partial ObservableCollection<UserNoteModelView> UserNoteAggregatedCol { get; set; } = new();
+    public partial ObservableCollection<UserNoteModelView?> UserNoteAggregatedCol { get; set; } = new();
     
     [ObservableProperty]
     public partial int PlayCount { get; set; }
@@ -271,7 +271,7 @@ public partial class SongModelView : ObservableObject
     public partial bool IsHidden { get;  set; }
     public string CoverArtHash { get; set; }
     [ObservableProperty]
-    public partial ObservableCollection<LyricPhraseModelView> EmbeddedSync { get;  set; }
+    public partial ObservableCollection<LyricPhraseModelView?> EmbeddedSync { get;  set; }
     [ObservableProperty]
     public partial double ListenThroughRate { get; set; }
 

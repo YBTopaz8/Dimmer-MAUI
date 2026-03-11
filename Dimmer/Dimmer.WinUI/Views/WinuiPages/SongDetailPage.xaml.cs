@@ -412,7 +412,9 @@ public sealed partial class SongDetailPage : Page
     private void AlbumBtn_Click(object sender, RoutedEventArgs e)
     {
         AnimationHelper.Prepare(AnimationHelper.Key_ToAlbumPage,
-            (FrameworkElement)sender, AnimationHelper.ConnectedAnimationStyle.ScaleUp);
+            (FrameworkElement)detailedImage, AnimationHelper.ConnectedAnimationStyle.ScaleUp);
+        //AnimationHelper.Prepare(AnimationHelper.Key_ToAlbumPage,
+        //    (FrameworkElement)sender, AnimationHelper.ConnectedAnimationStyle.ScaleUp);
         MyViewModel.SetSelectedAlbum(MyViewModel.SelectedSong?.Album);
         MyViewModel.NavigateToAnyPageOfGivenType(typeof(AlbumPage));
     }
@@ -910,6 +912,12 @@ public sealed partial class SongDetailPage : Page
         //detailedImageStackPanel.BorderBrush = 
         detailedImageStackPanel.BorderThickness = new Microsoft.UI.Xaml.Thickness(4);
         detailedImageStackPanel.CornerRadius = new Microsoft.UI.Xaml.CornerRadius(20);
+
+    }
+
+    private void AlbumBtn_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        var prop = e.GetCurrentPoint((UIElement)sender).Properties;
 
     }
 }

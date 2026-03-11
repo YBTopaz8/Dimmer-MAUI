@@ -814,6 +814,7 @@ public partial class HomePage : ContentPage
     private void ButtonLoaded(object sender, EventArgs e)
     {
         ButtonM send = (ButtonM)sender;
+
         var native = send.Handler?.PlatformView as Microsoft.UI.Xaml.UIElement;
 
         if (native is not null)
@@ -834,10 +835,19 @@ public partial class HomePage : ContentPage
                 send.BorderColor = ColorsM.Transparent;
             };
 
+            native.RightTapped += (s, e) =>
+            {
+                MyViewModel.SetSelectedArtist( MyViewModel.CurrentPlayingSongView.Artist);
+                MyViewModel.NavigateToAnyPageOfGivenType(typeof(ArtistPage));
+            
+
+            };
+            
             //stats.Items.Add(new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = $"Total plays: {playCount}", IsEnabled = false });
             //stats.Items.Add(new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = $"Followed: {(isFollowed ? "Yes" : "No")}", IsEnabled = false });
 
         }
+        //MainScrollView.ScrollToAsync
     }
 
     private void Native_PointerEntered(object sender, PointerRoutedEventArgs e)

@@ -45,11 +45,11 @@ public sealed partial class ArtistPage : Page
         base.OnNavigatedTo(e);
         //DetailedSong = DetailedSong is null ? MyViewModel.SelectedSong : DetailedSong;
 
-        if (e.Parameter is SongDetailNavArgs args)
+        if (e.Parameter is BaseViewModelWin args)
         {
-            MyViewModel = (args.ExtraParam as BaseViewModelWin)!;       // reference, not copy
+            MyViewModel = args;       // reference, not copy
             MyViewModel.CurrentWinUIPage = this;
-            DetailedSong = args.Song;
+            DetailedSong = args.CurrentPlayingSongView;
         }
         MyViewModel.IsBackButtonVisible = WinUIVisibility.Visible;
         ArtistNameInArtistPage.Visibility = WinUIVisibility.Visible;
@@ -238,14 +238,15 @@ public sealed partial class ArtistPage : Page
     private void ArtistDataTable_Loaded(object sender, RoutedEventArgs e)
     {
         MyViewModel.SearchToTQL(TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist?.Name));
-        
+
+
 
 
     }
 
     private void AlbumsIR_Loaded(object sender, RoutedEventArgs e)
     {
-        if (MyViewModel.SelectedArtist?.SongsByArtist is null) return;
+        if (MyViewModel.SelectedArtist?.AlbumsByArtist is null) return;
         
 
         AlbumsIR.ItemsSource = MyViewModel.SelectedArtist.AlbumsByArtist;
@@ -257,7 +258,7 @@ public sealed partial class ArtistPage : Page
         var send = (Button)sender;
                 var album = (AlbumModelView)send.DataContext;
 
-        AlbumModelView prevAlb ;
+        AlbumModelView? prevAlb ;
         if (prevAlbBtn is not null)
         {
             prevAlbBtn.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Colors.Transparent);

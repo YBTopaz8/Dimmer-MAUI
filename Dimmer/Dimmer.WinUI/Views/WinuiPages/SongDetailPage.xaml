@@ -339,6 +339,7 @@ FontWeight="ExtraBold" />
                                                 Background="Transparent"
                                                 BorderThickness="2"
                                                 Click="AlbumBtn_Click"
+                                                PointerPressed="AlbumBtn_PointerPressed"
                                                 Content="{x:Bind DetailedSong.AlbumName}"
                                                 FontSize="30" />
                                             <TextBlock

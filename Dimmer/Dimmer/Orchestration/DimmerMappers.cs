@@ -1,13 +1,12 @@
-﻿using System;
+﻿using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
-using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
-
 using static Dimmer.Data.Models.LastFMUser;
 using static Dimmer.Data.ModelView.LastFMUserView;
+using static Microsoft.Maui.ApplicationModel.Permissions;
 
 namespace Dimmer.Orchestration;
 
@@ -269,116 +268,9 @@ public static class DimmerMappers
             .ToList();
     }
 
-    public static AlbumModelView AlbumInDB(this SongModelView song,IRealmFactory realmFactory)
-    {
+   
 
-        return realmFactory.GetRealmInstance().Find<SongModel>
-            (song.Id)?.Album.ToAlbumModelView()!;
-    }
-
-    public static List<SongModelView?>? SongsInDB(this ArtistModelView artist,IRealmFactory realmFactory)
-    {
-        var ss = realmFactory.GetRealmInstance().Find<ArtistModel>
-            (artist.Id);
-        Debug.WriteLine(ss.Songs.Count());
-        return realmFactory.GetRealmInstance().Find<ArtistModel>
-            (artist.Id)?.Songs.AsEnumerable().Select(x => x.ToSongModelView())
-            .ToList();
-    }
-
-    public static List<AlbumModelView?>? AlbumsInDB(this ArtistModelView song,IRealmFactory realmFactory)
-    {
-        var albs = realmFactory.GetRealmInstance().Find<ArtistModel>
-            (song.Id)?.Albums.AsEnumerable().Select(x => x.ToAlbumModelView())
-            ;
-        song.AlbumsByArtist = albs?.ToObservableCollection();
-        return albs?.ToList();
-    }
-
-    public static void RefreshAlbumAndSongsFromDB(this ArtistModelView art,IRealmFactory realmFactory)
-    {
-        var realm = realmFactory.GetRealmInstance();
-        var artInDb = realm.Find<ArtistModel>(art.Id)!;
-
-        var albumsInArtistInDB = realm.Find<ArtistModel>
-            (art.Id)?.Albums.AsEnumerable().DistinctBy(x=>x.Name);
-        if(albumsInArtistInDB!.Any())
-        {
-            art.SongsByArtist = artInDb.Songs.AsEnumerable().Select(x => x.ToSongModelView())
-    .ToObservableCollection();
-            var artistInDbAlbums = artInDb.Albums;
-
-
-            foreach (var alb in artistInDbAlbums)
-            {
-                if (alb is null) continue;
-              
-
-                realm.Write(() =>
-                {
-                    alb.NumberOfTracks = alb.SongsInAlbum?.Count() ?? 0;
-                    alb.TotalCompletedPlays = alb.SongsInAlbum?.Sum(x => x.PlayCompletedCount) ?? 0;
-                    alb.TotalDuration = alb.SongsInAlbum?.Sum(x => x.DurationInSeconds).ToString() ?? "0";
-
-                    var albInDb = realm.Find<AlbumModel>(alb.Id)!;
-                    
-                    albInDb.Artists.Add(artInDb);
-                });
-
-            }
-           RxSchedulers.UI.ScheduleTo(() =>
-           {
-               
-               art.AlbumsByArtist = albumsInArtistInDB?.AsEnumerable().Select(x=>x.ToAlbumModelView()).ToObservableCollection();
-           });
-        }
-        else
-        {
-            foreach (var songInArt in artInDb.Songs)
-            {
-                if(!artInDb.Albums.AsEnumerable().Contains(songInArt.Album))
-                {
-                    realm.Write(() =>
-                    {
-                        songInArt.Album.Artists.Add(artInDb);
-                    });
-                }
-
-            }
-            RxSchedulers.UI.ScheduleTo(() =>
-            {
-                art.AlbumsByArtist = realm.Find<ArtistModel>(art.Id)?
-                                .Albums.AsEnumerable().Select(x => x.ToAlbumModelView()).ToObservableCollection()!;
-            });
-        }
-
-    }
-    public static void RefreshArtistsAndSongsFromDB(this AlbumModelView album, IRealmFactory realmFactory)
-    {
-        var arts = realmFactory.GetRealmInstance().Find<AlbumModel>(album.Id);
-       var rr= arts!
-            .Artists.AsEnumerable().Select(x=>x.ToArtistModelView()).ToList();
-
-        album.Artists = rr!;
-        album.SongsInAlbum = realmFactory.GetRealmInstance().Find<AlbumModel>(album.Id)!
-            .SongsInAlbum!.AsEnumerable().Select(x => x.ToSongModelView()).ToObservableCollection()!;
-        var realm = realmFactory.GetRealmInstance();
-        var albInDB = realm.Find<AlbumModel>(album.Id)!;
-        if(string.IsNullOrEmpty(albInDB.ImagePath))
-        {
-            var firstSongWithImg = albInDB.SongsInAlbum?.AsEnumerable().FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.CoverImagePath));
-            if(firstSongWithImg is not null)
-            {
-                realm.Write(() =>
-                {
-                    albInDB.ImagePath = firstSongWithImg.CoverImagePath;
-                });
-
-                album.ImagePath = firstSongWithImg.CoverImagePath;
-            }
-        }
-
-    }
+ 
     public static SongModel? ToSongModel(this SongModelView? src)
     {
         if (src is null) return null;
@@ -487,7 +379,7 @@ public static class DimmerMappers
         {
             Id = src.Id,
             Name = src.Name,
-            Url = src.Url,
+            Url = src.Url is not null ? src.Url : string.Empty,
             ReleaseYear = src.ReleaseYear,
             IsNew = src.IsNew,
             NumberOfTracks = src.NumberOfTracks,
@@ -1147,8 +1039,8 @@ public static class DimmerMappers
         if (src is null) return null;
         return new LastImageView
         {
-            Size = src.Size,
-            Url = src.Url
+            Size = src.Size is not null?src.Size : string.Empty,
+            Url = src.Url is not null ? src.Url : string.Empty
         };
     }
 
