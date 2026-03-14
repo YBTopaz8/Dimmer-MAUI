@@ -1,5 +1,4 @@
 ﻿using AndroidX.Core.App;
-using AndroidX.Media3.Common;
 using AndroidX.Media3.Session;
 using AndroidX.Media3.UI;
 using Notification = Android.App.Notification;
@@ -69,7 +68,7 @@ public static class NotificationHelper
         chan.SetShowBadge(true);
         chan.SetBypassDnd(true);
         chan.EnableVibration(false);
-        
+
 
 
 
@@ -86,7 +85,7 @@ public static class NotificationHelper
     {
         CreateChannel(service);
 
-        var mainIntent = new Intent(service, typeof(TransitionActivity))
+        var mainIntent = new Intent(service, typeof(DimmerActivity))
             .SetAction("ShowMiniPlayer")
             .AddCategory(Intent.CategoryLauncher);
 
@@ -101,7 +100,7 @@ public static class NotificationHelper
         var customActionReceiver = new DimmerActionReceiver(service);
 
         var descrAdapter = new DefaultMediaDescriptionAdapter(pi);
-        
+
 
         PlayerNotificationManager? mgr = new PlayerNotificationManager.Builder(
                 service, NotificationId, ChannelId
@@ -115,7 +114,7 @@ public static class NotificationHelper
 
         mgr.SetShowPlayButtonIfPlaybackIsSuppressed(true);
         mgr.SetMediaSessionToken(session.PlatformToken);
-        
+
         var actionList = new List<string> {
         DimmerActionReceiver.ActionFavorite,
         DimmerActionReceiver.ActionShuffle,
@@ -127,16 +126,16 @@ public static class NotificationHelper
         {
             mgr.SetUseChronometer(song.HasSyncedLyrics); // optional: show time counter if lyrics exist
         }
-        
 
-            mgr.SetUseFastForwardActionInCompactView(false);
+
+        mgr.SetUseFastForwardActionInCompactView(false);
         mgr.SetUsePreviousAction(false);
         mgr.SetUseNextActionInCompactView(false);
         mgr.SetUsePreviousActionInCompactView(false);
         mgr.SetUseNextAction(false);
         mgr.SetUseRewindActionInCompactView(false);
         mgr.SetUseStopAction(false);
-        
+
 
         Log.Debug("NotifHelper", "Manager built");
         return mgr;
@@ -147,7 +146,7 @@ public static class NotificationHelper
         readonly MediaSessionService _svc;
         public NotificationListener(MediaSessionService svc) => _svc = svc;
 
-        
+
         public void OnNotificationPosted(int notificationId, Notification? notification, bool ongoing)
         {
             try
@@ -237,8 +236,8 @@ public static class NotificationHelper
                 case ActionShuffle:
                     // Check shuffle state to pick icon
                     bool isShuffleOn = ExoPlayerService.GetShuffleState();
-                    int shuffleIcon = isShuffleOn 
-                        ? Resource.Drawable.media3_icon_shuffle_on 
+                    int shuffleIcon = isShuffleOn
+                        ? Resource.Drawable.media3_icon_shuffle_on
                         : Resource.Drawable.media3_icon_shuffle_off;
                     return CreateAction(context, shuffleIcon, "Shuffle", ActionShuffle);
 
@@ -318,10 +317,10 @@ public static class NotificationHelper
             switch (action)
             {
                 case ActionFavorite:
-                    // Check C# state for the heart icon
-                    //bool isFav = _service.MyViewModel.CurrentPlayingSongView?.IsFavorite ?? false;
-                    //int heartIcon = isFav ? Resource.Drawable.heart_filled : Resource.Drawable.heart_outline;
-                    //return BuildAction(context, heartIcon, "Favorite", ActionFavorite);
+                // Check C# state for the heart icon
+                //bool isFav = _service.MyViewModel.CurrentPlayingSongView?.IsFavorite ?? false;
+                //int heartIcon = isFav ? Resource.Drawable.heart_filled : Resource.Drawable.heart_outline;
+                //return BuildAction(context, heartIcon, "Favorite", ActionFavorite);
 
                 case ActionShuffle:
                     return BuildAction(context, Resource.Drawable.shuffle, "Shuffle", ActionShuffle);

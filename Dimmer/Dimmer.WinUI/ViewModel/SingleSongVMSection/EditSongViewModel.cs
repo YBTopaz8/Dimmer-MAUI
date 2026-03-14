@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Dimmer.WinUI.ViewModel.SingleSongVMSection;
 
@@ -22,23 +19,23 @@ public partial class EditSongViewModel : ObservableObject
     public partial ObservableCollection<PropertyChangeModelView> PendingChanges { get; set; } = new();
 
     [ObservableProperty]
-    public partial  bool HasChanges { get; set; }
+    public partial bool HasChanges { get; set; }
 
     [ObservableProperty]
-    public partial  int TotalChangesCount { get; set; }
+    public partial int TotalChangesCount { get; set; }
 
     [ObservableProperty]
-    public partial  int AcceptedChangesCount { get; set; }
+    public partial int AcceptedChangesCount { get; set; }
 
     [ObservableProperty]
-    public partial  bool IsReviewPopupOpen { get; set; }
+    public partial bool IsReviewPopupOpen { get; set; }
 
     // For artist selection
     [ObservableProperty]
-    public partial  List<string> AllArtists { get; set; }
+    public partial List<string> AllArtists { get; set; }
 
     [ObservableProperty]
-    public partial  ObservableCollection<string?> SelectedArtists { get; set; } = new();
+    public partial ObservableCollection<string?> SelectedArtists { get; set; } = new();
 
     // Track original artists for comparison
     List<string?> _originalArtistNames;
@@ -176,7 +173,7 @@ public partial class EditSongViewModel : ObservableObject
     }
     private void AddOrUpdateChange(string? propertyName, object? oldValue, object? newValue)
     {
-        if(propertyName is null) return;
+        if (propertyName is null) return;
         if (ShouldSkipTracking(propertyName))
             return;
 

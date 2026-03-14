@@ -133,29 +133,13 @@ public partial class App : MauiWinUIApplication
     protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
     {
         base.OnLaunched(args);
-        MainSyncContext = SynchronizationContext.Current;
+        MainSyncContext = SynchronizationContext.Current!;
 
 
 
         Utils.StaticUtils.UiThreads.EnsureInitialized();
     }
-    //protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
-    //{
-    //    try
-    //    {
-
-    //        base.OnLaunched(args);
-
-    //        var activatedArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
-    //        HandleActivation(activatedArgs);
-
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        Debug.WriteLine(ex.Message);
-    //    }
-    //}
-
+ 
 
 
     /// <summary>
@@ -336,7 +320,6 @@ public partial class App : MauiWinUIApplication
 
     protected override MauiApp CreateMauiApp()
     {
-        var s = IPlatformApplication.Current;
 
         return MauiProgram.CreateMauiApp();
     }

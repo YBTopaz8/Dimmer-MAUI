@@ -1,6 +1,7 @@
 ﻿using Android.Service.QuickSettings;
 
 using AndroidX.Media3.Session;
+using Google.Android.Material.Dialog;
 
 namespace Dimmer.DimmerAudio;
 [Service(Name = "com.yvanbrunel.dimmer.QuickSettingsTileService", // <<< CHANGE TO YOUR UNIQUE NAME
@@ -57,7 +58,7 @@ public class QuickSettingsTileService : TileService
 
     private void LaunchMainActivity()
     {
-        Intent mainActivityIntent = new Intent(this, typeof(TransitionActivity)); // <<< YOUR MAIN ACTIVITY
+        Intent mainActivityIntent = new Intent(this, typeof(DimmerActivity)); // <<< YOUR MAIN ACTIVITY
         mainActivityIntent.AddFlags(ActivityFlags.NewTask | ActivityFlags.ClearTop);
         try
         {
@@ -178,7 +179,7 @@ public class QuickSettingsTileService : TileService
     {
         try
         {
-            Intent activityIntent = new Intent(this, typeof(TransitionActivity));
+            Intent activityIntent = new Intent(this, typeof(DimmerActivity));
             activityIntent.AddFlags(ActivityFlags.NewTask);
             activityIntent.SetAction(ActionTogglePlayback);
             StartActivity(activityIntent);

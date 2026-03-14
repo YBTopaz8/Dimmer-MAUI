@@ -87,14 +87,14 @@
             </VerticalStackLayout>
                     <VerticalStackLayout WidthRequest="60"
                       Spacing="5">
-                        <Button
-     BackgroundColor="Transparent"
-     BorderWidth="1"
-     Clicked="ViewFullStatsClicked"
-     ImageSource="chart.png"
-      />
+                            <Button
+         BackgroundColor="Transparent"
+         BorderWidth="1"
+         Clicked="ViewFullStatsClicked"
+         ImageSource="chart.png"
+          />    
 
-                        <Label Text="Dimmer stats" FontSize="10"
+                            <Label Text="Dimmer stats" FontSize="10"
             HorizontalOptions="Center"/>
                     </VerticalStackLayout>
                     <VerticalStackLayout WidthRequest="60"

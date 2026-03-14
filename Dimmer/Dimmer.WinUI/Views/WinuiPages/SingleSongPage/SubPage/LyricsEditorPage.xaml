@@ -246,7 +246,7 @@ CornerRadius="6">
                                             x:Name="ViewLyrics"
                                             Click="ViewLyrics_Click"
                                             
-                                            CommandParameter="{x:Bind Id, Mode=OneWay}"
+                                            CommandParameter="{x:Bind Id}"
                                             Content="View Lyrics" />
                                        
                                         <Button

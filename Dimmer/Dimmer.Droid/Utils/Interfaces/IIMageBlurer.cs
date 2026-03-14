@@ -1,4 +1,5 @@
-﻿using Android.Renderscripts;
+﻿using Android.Graphics;
+using Android.Renderscripts;
 
 using Element = Android.Renderscripts.Element;
 

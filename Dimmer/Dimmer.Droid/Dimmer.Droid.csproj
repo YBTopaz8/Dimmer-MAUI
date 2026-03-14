@@ -33,34 +33,21 @@
 		<EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
 	</PropertyGroup>
 
-
-
-	<ItemGroup>
-	  <AndroidJavaSource Remove="ViewsAndPages\NativeViews\NewFolder\**" />
-	  <AndroidLibrary Remove="ViewsAndPages\NativeViews\NewFolder\**" />
-	  <AndroidNativeLibrary Remove="ViewsAndPages\NativeViews\NewFolder\**" />
-	  <Compile Remove="ViewsAndPages\NativeViews\NewFolder\**" />
-	  <EmbeddedResource Remove="ViewsAndPages\NativeViews\NewFolder\**" />
-	  <JavaSourceJar Remove="ViewsAndPages\NativeViews\NewFolder\**" />
-	  <MauiCss Remove="ViewsAndPages\NativeViews\NewFolder\**" />
-	  <MauiXaml Remove="ViewsAndPages\NativeViews\NewFolder\**" />
-	  <None Remove="ViewsAndPages\NativeViews\NewFolder\**" />
-	  <ProguardConfiguration Remove="ViewsAndPages\NativeViews\NewFolder\**" />
-	  <TransformFile Remove="ViewsAndPages\NativeViews\NewFolder\**" />
-	</ItemGroup>
-
-
-
-	<ItemGroup>
-	  <Compile Remove="ViewsAndPages\NativeViews\GraphFragment.cs" />
-	</ItemGroup>
-
 	<ItemGroup>
 	  <None Remove="Linker.xml" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<!--<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.120" />-->
+		<PackageReference Include="DevExpress.Maui.Charts" Version="24.2.12" />
+		<PackageReference Include="DevExpress.Maui.CollectionView" Version="24.2.12" />
+		<PackageReference Include="DevExpress.Maui.Controls" Version="24.2.12" />
+		<PackageReference Include="DevExpress.Maui.Core" Version="24.2.12" />
+		<PackageReference Include="DevExpress.Maui.DataGrid" Version="24.2.12" />
+		<PackageReference Include="DevExpress.Maui.Editors" Version="24.2.12" />
+		<PackageReference Include="DevExpress.Maui.Gauges" Version="24.2.12" />
+		<PackageReference Include="DevExpress.Maui.ProjectTemplates" Version="24.2.14" />
+		<PackageReference Include="DevExpress.Maui.TreeView" Version="24.2.12" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.3" />
 		<PackageReference Include="SkiaSharp.Views" Version="3.119.2" />
 		<PackageReference Include="Xamarin.AndroidX.Activity.Ktx" Version="1.12.4.1" />
@@ -126,6 +113,7 @@
 
 	<ItemGroup>
 	  <Folder Include="Adapters\HomePage\" />
+	  <Folder Include="DevExpressViews\" />
 	  <Folder Include="Resources\layout\" />
 	  <Folder Include="Utils\CustomObjects\" />
 	</ItemGroup>

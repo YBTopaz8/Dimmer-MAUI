@@ -14,25 +14,19 @@ internal class Bootstrapper
         {
             var services = new ServiceCollection();
             LinkerKeepAlive.Keep();
-        // 1. Logging (Replaces builder.Logging)
-        services.AddLogging(configure =>
-        {
-            configure.AddDebug();
-        });
+
         services.AddDimmerCoreServices();
 
-            services.AddSingleton<AndroidFolderPicker>();
-            // Register Android-specific error presenter (overrides the default one from core services)
-            services.AddSingleton<IUiErrorPresenter, AndroidErrorPresenter>();
-            // 2. Register your Core Services (Same as before)
+
+          
+
             services.AddSingleton<IDimmerAudioService, AudioService>();
-        services.AddSingleton<IAnimationService, AndroidAnimationService>();
+
             services.AddSingleton<IBluetoothService, AndroidBluetoothService>();
 
         // 3. Register ViewModels
         services.AddSingleton<BaseViewModelAnd>();
-        services.AddSingleton<DeviceTransferViaBTViewModel>();
-        services.AddSingleton<LoginViewModelAnd>();
+
 
         // 4. Register Logic/Data Services
         services.AddScoped<IAppUtil, AppUtil>();
