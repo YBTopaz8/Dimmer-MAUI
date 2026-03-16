@@ -21,7 +21,7 @@ public enum DimmerPlaybackState
     PlayNextUI,
     PlayNextUser,
     Skipped,
-    RepeatSame,
+    RestartSong,
     RepeatAll,
     RepeatPlaylist,
     MoveToNextSongInQueue,

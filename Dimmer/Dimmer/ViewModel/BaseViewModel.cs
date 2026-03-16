@@ -140,6 +140,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         .AutoRefresh(song => song.IsCurrentPlayingHighlight)
         .AutoRefresh(song => song.HasSyncedLyrics)
         .AutoRefresh(song => song.CoverImagePath)
+        .AutoRefresh(song => song.PlayCompletedCount)
             .ObserveOn(RxSchedulers.UI) // Important for UI updates
             .Bind(out _searchResults)
             .Subscribe(x =>
@@ -2983,8 +2984,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                         }
                         else
                         {
-                            const int songsToTakeBefore = 100;
-                            const int songsToTakeAfter = 100;
+                            const int songsToTakeBefore = 500;
+                            const int songsToTakeAfter = 500;
                             const int totalQueueSize = songsToTakeBefore + 1 + songsToTakeAfter;
 
                             int sliceStart = Math.Max(0, startIndex - songsToTakeBefore);
@@ -3285,36 +3286,28 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial bool ScrobbleOnCompletion { get; set; } = true;
 
-    [ObservableProperty]
-    public partial bool ScrobbleOnStart { get; set; } = false;
+   
 
 
     [RelayCommand]
-    public async Task NextTrackAsync()
+    public async Task NextTrackAsync(bool IsSkipYes=true)
     {
-        if (IsDimmerPlaying && CurrentPlayingSongView != null && CurrentTrackPositionPercentage < 90)
+        if (IsDimmerPlaying && CurrentPlayingSongView != null && (CurrentTrackPositionPercentage < 90 || IsSkipYes))
         {
             await BaseAppFlow.UpdateDatabaseWithPlayEvent(
                 
                 CurrentPlayingSongView,
                 StatesMapper.Map(DimmerPlaybackState.Skipped),
                 CurrentTrackPositionSeconds);
-            if (ScrobbleOnCompletion)
-            {
-                if (IsDimmerPlaying && _songToScrobble != null && IsLastfmAuthenticated && ScrobbleToLastFM)
-                {
-                    await lastfmService.ScrobbleAsync(_songToScrobble);
-                }
-                _stateService.SetCurrentLogMsg("Ended manually", Data.Models.DimmerLogLevel.Info);
-            }
+           
+
         }
-        else if (IsDimmerPlaying && CurrentPlayingSongView != null && CurrentTrackPositionPercentage >= 90)
+        else if (IsDimmerPlaying && CurrentPlayingSongView != null && (CurrentTrackPositionPercentage >= 90 || !IsSkipYes))
         {
             await BaseAppFlow.UpdateDatabaseWithPlayEvent(
                 
                 CurrentPlayingSongView,
-                StatesMapper.Map(DimmerPlaybackState.PlayCompleted),
-                CurrentTrackDurationSeconds);
+                StatesMapper.Map(DimmerPlaybackState.PlayCompleted));
             if (ScrobbleOnCompletion)
             {
                 if (IsDimmerPlaying && _songToScrobble != null && IsLastfmAuthenticated && ScrobbleToLastFM)
@@ -3368,11 +3361,16 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
     [RelayCommand]
-    public async Task PreviousTrackAsync()
+    public async Task PreviousTrackAsync(bool SkipToPreviousDirectly=false)
     {
-        if (_audioService.CurrentPosition > 5)
+        if (_audioService.CurrentPosition > 15 && !SkipToPreviousDirectly)
         {
             _audioService.Seek(0);
+            await BaseAppFlow.UpdateDatabaseWithPlayEvent(
+
+                  CurrentPlayingSongView,
+                  StatesMapper.Map(DimmerPlaybackState.RestartSong),
+                  CurrentTrackPositionSeconds);
             return;
         }
         if (IsDimmerPlaying && CurrentPlayingSongView != null)
