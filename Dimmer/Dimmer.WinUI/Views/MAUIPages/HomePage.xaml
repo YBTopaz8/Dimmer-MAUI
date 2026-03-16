@@ -53,7 +53,7 @@
        Aspect="AspectFit"
        BackgroundColor="Transparent"
        HorizontalOptions="Center"
-       Opacity="0.30"
+       Opacity="0.20"
        Source="{Binding CurrentPlayingSongView.CoverImagePath, Converter={converters:PathToImageConverter}}"
        ToolTipProperties.Text="Click to view song details"
        VerticalOptions="Center" />
@@ -490,7 +490,7 @@
                             Command="{Binding NextTrackCommand}"
                             ImageSource="skipnext.png"
                             IsEnabled="{Binding IsTimestampingInProgress, Converter={converters:BoolToInverseConverter}}"
-                            Loaded="NextButtonLoaded">
+                            Loaded="ButtonLoaded">
                             <Button.Behaviors>
                                 <toolkit:IconTintColorBehavior TintColor="{Binding CurrentPlaySongDominantColor}" />
                             </Button.Behaviors>
