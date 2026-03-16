@@ -439,7 +439,7 @@
                                 Command="{Binding PreviousTrackCommand}"
                                 ImageSource="skipprevious.png"
                                 IsEnabled="{Binding IsTimestampingInProgress, Converter={converters:BoolToInverseConverter}}"
-                                Loaded="ButtonLoaded">
+                                Loaded="PreviousButtonLoaded">
                                 <Button.Behaviors>
                                     <toolkit:IconTintColorBehavior TintColor="{Binding CurrentPlaySongDominantColor}" />
                                 </Button.Behaviors>
@@ -486,10 +486,11 @@
                             windows:VisualElement.AccessKeyPlacement="Bottom"
                             Background="Transparent"
                             BorderWidth="0"
+                            
                             Command="{Binding NextTrackCommand}"
                             ImageSource="skipnext.png"
                             IsEnabled="{Binding IsTimestampingInProgress, Converter={converters:BoolToInverseConverter}}"
-                            Loaded="ButtonLoaded">
+                            Loaded="NextButtonLoaded">
                             <Button.Behaviors>
                                 <toolkit:IconTintColorBehavior TintColor="{Binding CurrentPlaySongDominantColor}" />
                             </Button.Behaviors>

@@ -811,6 +811,19 @@ public partial class HomePage : ContentPage
         }
     }
 
+    ToolTip? toolTipAboutClickToCompleteOrSetSkipped;
+    void ShowToolTipTellingUserThatSkippingWillAutomaticallySaveSongAsCompletedTooAndRightClickWillSaveAsSkipped(UIElement nativeElement)
+    {
+        var toolTip = new ToolTip();
+        toolTip.Content = "Skipping will automatically save the song as completed too. Right-click will save as skipped.";
+        ToolTipService.SetToolTip(nativeElement, toolTip);
+
+        toolTip.IsOpen = true;
+        toolTipAboutClickToCompleteOrSetSkipped = toolTip;
+    }
+
+
+
     private void ButtonLoaded(object sender, EventArgs e)
     {
         ButtonM send = (ButtonM)sender;
@@ -826,6 +839,7 @@ public partial class HomePage : ContentPage
                 Native_PointerEntered(s, e); 
                 send.BorderWidth = 2;
                 send.BorderColor = ColorsM.DarkSlateBlue;
+                
             };
 
             native.PointerExited += (s, e) =>
@@ -833,16 +847,11 @@ public partial class HomePage : ContentPage
                 Native_PointerExited(s, e); 
                 send.BorderWidth = 0;
                 send.BorderColor = ColorsM.Transparent;
+                toolTipAboutClickToCompleteOrSetSkipped?.IsOpen = false;
+                toolTipAboutClickToCompleteOrSetSkipped= null;
             };
 
-            native.RightTapped += (s, e) =>
-            {
-                MyViewModel.SetSelectedArtist( MyViewModel.CurrentPlayingSongView.Artist);
-                MyViewModel.NavigateToAnyPageOfGivenType(typeof(ArtistPage));
-            
 
-            };
-            
             //stats.Items.Add(new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = $"Total plays: {playCount}", IsEnabled = false });
             //stats.Items.Add(new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = $"Followed: {(isFollowed ? "Yes" : "No")}", IsEnabled = false });
 
@@ -1183,4 +1192,38 @@ public partial class HomePage : ContentPage
 
     }
 
+    private void NextButtonLoaded(object sender, EventArgs e)
+    {
+        ButtonLoaded(sender, e);
+        if (MyViewModel.CurrentTrackPositionPercentage >= 90)
+        {
+            var nativeElement = (UIElement)sender;
+            ShowToolTipTellingUserThatSkippingWillAutomaticallySaveSongAsCompletedTooAndRightClickWillSaveAsSkipped(
+                nativeElement);
+            nativeElement.RightTapped += NativeElement_RightTapped;
+        }
+    }
+
+    private async void NativeElement_RightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+        await MyViewModel.NextTrackAsync(true);
+    }
+
+    private void PreviousButtonLoaded(object sender, EventArgs e)
+    {
+        ButtonLoaded(sender, e);
+        if (MyViewModel.CurrentTrackPositionPercentage >= 90)
+        {
+            var nativePreviousBtn= (UIElement)sender;
+            ShowToolTipTellingUserThatSkippingWillAutomaticallySaveSongAsCompletedTooAndRightClickWillSaveAsSkipped(
+                nativePreviousBtn);
+            nativePreviousBtn.RightTapped += NativePreviousBtn_RightTapped; ;
+        }
+    }
+
+    private async void NativePreviousBtn_RightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+        await MyViewModel.PreviousTrackAsync(true);
+
+    }
 }

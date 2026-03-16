@@ -89,7 +89,7 @@
                             Click="ViewQueue_Click"
                             Content="View Queue" />
 
-                        <Button Command="{x:Bind MyViewModel.ScrollToCurrentPlayingSongCommand}">
+                        <Button Command="{x:Bind MyViewModel.ScrollToRequestedSongCommand}">
                             <SymbolIcon Symbol="View" />
                         </Button>
 
@@ -121,6 +121,7 @@
                             x:Name="SortByWithTQL"
                             Content="Sort By"
                             IsEnabled="True"
+                            Click="SortByWithTQL_Click"
                             Loaded="SortByWithTQL_Loaded"
                             Visibility="Visible">
                             <SplitButton.Flyout>
@@ -200,6 +201,7 @@
                     CanDragItems="True"
                     CellContextFlyoutOpening="MySongsTableView_CellContextFlyoutOpening"
                     DoubleTapped="TableView_DoubleTapped"
+                    RightTapped="MySongsTableView_RightTapped"
                     DragItemsCompleted="MySongsTableView_DragItemsCompleted"
                     DragItemsStarting="MySongsTableView_DragItemsStarting"
                     DragStarting="MySongsTableView_DragStarting"
@@ -225,7 +227,7 @@
                     <dgView:TableView.Columns>
 
                         <!--  Column for the Cover Art  -->
-                        <dgView:TableViewTemplateColumn x:Name="ImgCol" Width="75">
+                        <dgView:TableViewTemplateColumn x:Name="ImgCol" Width="95">
                             <dgView:TableViewTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Border
@@ -409,49 +411,21 @@
 
 
 
-                        <dgView:TableViewTemplateColumn x:Name="DurationFormatted" IsReadOnly="True">
-                            <dgView:TableViewTemplateColumn.Header>
-                                <FontIcon Glyph="&#xE823;" />
-                            </dgView:TableViewTemplateColumn.Header>
-                            <dgView:TableViewTemplateColumn.CellTemplate>
-                                <DataTemplate>
-
-                                    <StackPanel HorizontalAlignment="Center" x:Name="DurationFormatted"
-                                                DoubleTapped="DurationFormatted_DoubleTapped">
-                                        <TextBlock
-                                            HorizontalAlignment="Center"
-                                            Text="{Binding DurationFormatted}"
-                                            TextWrapping="WrapWholeWords" />
-                                    </StackPanel>
-                                </DataTemplate>
-
-                            </dgView:TableViewTemplateColumn.CellTemplate>
-
-                        </dgView:TableViewTemplateColumn>
-
-                        <dgView:TableViewTemplateColumn
-                            x:Name="PlayCompletedCount"
-                            Header="Dims"
-                            IsReadOnly="True">
-                            <dgView:TableViewTemplateColumn.CellTemplate>
-                                <DataTemplate>
+                        <dgView:TableViewTextColumn Binding="{Binding DurationFormatted}" x:Name="DurationFormatted"
+                                                        
+                                                        IsReadOnly="True"
+                                                    Header="⌛"/>
 
 
-                                    <StackPanel HorizontalAlignment="Center">
 
-                                        <TextBlock
-                                            HorizontalAlignment="Center"
-                                            FontSize="15"
-                                            Text="{Binding PlayCompletedCount}"
-                                            TextWrapping="WrapWholeWords" />
-                                        
-                                    </StackPanel>
-                                </DataTemplate>
+                        <dgView:TableViewTextColumn Binding="{Binding PlayCompletedCount}" x:Name="PlayCompletedCount"
+                                                        
+                                                        IsReadOnly="True"
+                                                    Header="🎶"/>
 
-                            </dgView:TableViewTemplateColumn.CellTemplate>
-
-                        </dgView:TableViewTemplateColumn>
-
+                        
+                       
+                        
 
                     </dgView:TableView.Columns>
                 </dgView:TableView>
