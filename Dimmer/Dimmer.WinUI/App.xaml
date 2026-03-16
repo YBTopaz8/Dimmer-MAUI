@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:WinUI.TableView"
     xmlns:converters="using:Dimmer.WinUI.Utils.Converters"
+    
     xmlns:local="using:Dimmer.WinUI"
     xmlns:maui="using:Microsoft.Maui">
     <maui:MauiWinUIApplication.Resources>
@@ -208,7 +209,10 @@
                 <Setter Property="CornerRadius" Value="4" />
                 <Setter Property="Margin" Value="12" />
             </Style>
-
+            <Style TargetType="TextBox" x:Key="MyTextBoxStyle">
+                <Setter Property="BorderBrush" Value="DarkSlateBlue"/>
+                <Setter Property="BorderThickness" Value="1"/>
+            </Style>
             <!--  D. TextBox with Acrylic Border on Focus  -->
             <!--  A subtle effect to make text input feel more integrated.  -->
             <Style TargetType="TextBox">
@@ -226,6 +230,9 @@
                 <Setter Property="Background" Value="{StaticResource CustomAcrylicPaneBackground}" />
                 <Setter Property="DefaultLabelPosition" Value="Right" />
             </Style>
+
+
+            
         </ResourceDictionary>
     </maui:MauiWinUIApplication.Resources>
 </maui:MauiWinUIApplication>

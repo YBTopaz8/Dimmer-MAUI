@@ -65,8 +65,8 @@ public sealed partial class SongDetailPage : Page
             if(CurrentSectionLabel.Text == name)
             {
                 
-                item.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.DarkSlateBlue);
-                item.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.White);
+                item.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Colors.DarkSlateBlue);
+                item.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Colors.White);
 
             }
             menu.Items.Add(item);
@@ -204,7 +204,7 @@ public sealed partial class SongDetailPage : Page
     {
         if (e.NavigationMode == Microsoft.UI.Xaml.Navigation.NavigationMode.Back)
         {
-            if (detailedImage != null && Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(detailedImage) != null)
+            if (detailedImage != null && VisualTreeHelper.GetParent(detailedImage) != null)
             {
                 AnimationHelper.Prepare(AnimationHelper.Key_DetailToListFromAlbum, detailedImage);
             }
@@ -344,7 +344,7 @@ public sealed partial class SongDetailPage : Page
 
     private void NavigateBackToPreviousPage()
     {
-        if (detailedImage != null && Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(detailedImage) != null)
+        if (detailedImage != null && VisualTreeHelper.GetParent(detailedImage) != null)
         {
             AnimationHelper.Prepare(AnimationHelper.Key_DetailToListFromAlbum,
                 detailedImage,
@@ -412,7 +412,9 @@ public sealed partial class SongDetailPage : Page
     private void AlbumBtn_Click(object sender, RoutedEventArgs e)
     {
         AnimationHelper.Prepare(AnimationHelper.Key_ToAlbumPage,
-            (FrameworkElement)sender, AnimationHelper.ConnectedAnimationStyle.ScaleUp);
+            (FrameworkElement)detailedImage, AnimationHelper.ConnectedAnimationStyle.ScaleUp);
+        //AnimationHelper.Prepare(AnimationHelper.Key_ToAlbumPage,
+        //    (FrameworkElement)sender, AnimationHelper.ConnectedAnimationStyle.ScaleUp);
         MyViewModel.SetSelectedAlbum(MyViewModel.SelectedSong?.Album);
         MyViewModel.NavigateToAnyPageOfGivenType(typeof(AlbumPage));
     }
@@ -588,6 +590,12 @@ public sealed partial class SongDetailPage : Page
 
     }
 
+    protected override void OnNavigatedFrom(NavigationEventArgs e)
+    {
+        base.OnNavigatedFrom(e);
+
+        AnimationHelper.Prepare(AnimationHelper.Key_BackFromSongDetailPage, detailedImage, AnimationHelper.ConnectedAnimationStyle.ScaleDown, 250);
+    }
     private void EditSongAudioBtn_Click(object sender, RoutedEventArgs e)
     {
 
@@ -904,6 +912,12 @@ public sealed partial class SongDetailPage : Page
         //detailedImageStackPanel.BorderBrush = 
         detailedImageStackPanel.BorderThickness = new Microsoft.UI.Xaml.Thickness(4);
         detailedImageStackPanel.CornerRadius = new Microsoft.UI.Xaml.CornerRadius(20);
+
+    }
+
+    private void AlbumBtn_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        var prop = e.GetCurrentPoint((UIElement)sender).Properties;
 
     }
 }

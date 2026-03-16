@@ -20,7 +20,7 @@
                   CornerRadius="20" Padding="15">
         
         <StackPanel 
-            Spacing="5"
+            Spacing="5" 
             Orientation="Vertical">
            
             <Border >

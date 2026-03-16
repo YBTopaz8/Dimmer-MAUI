@@ -18,7 +18,7 @@ public class AstEvaluator
         LogicalNode n => EvaluateLogical(n, song),
         NotNode n => !Evaluate(n.NodeToNegate, song),
         ClauseNode n => EvaluateClause(n, song),
-        RandomChanceNode n => _random.Next(100) < n.Percentage,
+        RandomChanceNode n => (Math.Abs(song.Id.GetHashCode()) % 100) < n.Percentage,
         FuzzyDateNode n => EvaluateFuzzyDate(n, song),
         DaypartNode n => EvaluateDaypart(n, song),
         _ => true

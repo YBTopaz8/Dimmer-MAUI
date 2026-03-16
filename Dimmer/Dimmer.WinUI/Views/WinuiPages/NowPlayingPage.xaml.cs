@@ -46,10 +46,8 @@ public sealed partial class NowPlayingPage : Page
         }
     }
 
-       private void SyncLyricsView_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
-    {
+     
 
-    }
 
     private void Button_Click(object sender, RoutedEventArgs e)
     {
@@ -320,4 +318,9 @@ public sealed partial class NowPlayingPage : Page
         }
       
     }
+
+    private void ListView_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
+    {
+        SyncLyricsListView.ScrollIntoView(MyViewModel.CurrentLine);
+            }
 }

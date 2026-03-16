@@ -67,4 +67,62 @@ public sealed partial class LibraryStatsPage : Page
         if (total == 0) return "0%";
         return $"{(double)part / total:P1}";
     }
+
+    private void SongBtn_Loaded(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void SongBtn_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        Button? fElt = sender as Button;
+        if (fElt == null) return;
+        tip?.Target = fElt;
+
+        var songConcerned = (fElt.CommandParameter as SongModelView);
+
+        Image heroImg = new Microsoft.UI.Xaml.Controls.Image();
+        var coverImgPath = songConcerned?.CoverImagePath;
+        heroImg.Source = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(coverImgPath ?? "ms-appx:///Assets/PlaceholderCover.png"));    
+        tip?.Title = songConcerned?.Title ?? "Unknown Song";
+        tip?.Subtitle = $"By {songConcerned?.ArtistName ?? "Unknown Artist"}";
+
+        TextBlock tipContext = new();
+        tipContext.Text = $"Album: {songConcerned?.AlbumName ?? "Unknown Album"}\n" +
+                         $"Duration: {FormatDurationDouble(songConcerned?.DurationInSeconds ?? 0)}\n" +
+                         $"Last Played: {FormatDate(songConcerned?.LastPlayed)}";
+        tip?.Content = tipContext;
+
+        heroImg.Height = tipContext.Height;
+        tip?.HeroContent = heroImg;
+        tip?.PreferredPlacement = TeachingTipPlacementMode.Right;
+        tip?.IsOpen = true;
+    }
+
+    private void SongBtn_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        tip?.IsOpen = false;
+    }
+    TeachingTip? tip;
+    private void TestButton3TeachingTip_Loaded(object sender, RoutedEventArgs e)
+    {
+        tip = sender as TeachingTip;
+    }
+
+    private void SongBtn_Click(object sender, RoutedEventArgs e)
+    {
+        AnimationHelper.Prepare(AnimationHelper.Key_ListToDetail, sender as Button,AnimationHelper.ConnectedAnimationStyle.GravityBounce,250);
+
+        var song = (sender as Button)?.CommandParameter as SongModelView;
+        ViewModel.BaseVM.SelectedSong = song;
+
+        ViewModel.BaseVM.NavigateToAnyPageOfGivenType(typeof(SongDetailPage));
+    }
+
+    private void TitleTextBlock_Loaded(object sender, RoutedEventArgs e)
+    {
+
+        AnimationHelper.Prepare(AnimationHelper.Key_BackFromSongDetailPage,TitleTextBlock, AnimationHelper.ConnectedAnimationStyle.ScaleDown);
+        AnimationHelper.TryStart(TitleTextBlock as UIElement, null,AnimationHelper.Key_BackFromSongDetailPage);
+    }
 }

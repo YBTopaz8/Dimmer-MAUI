@@ -32,7 +32,7 @@
                     Background="#BE0606"
                     Click="LoginLastFM_Click"
                     Content="Login to Last FM"
-                    FontSize="19"
+                    FontSize="19" x:Name="LoginLastFMBtn"
                     FontWeight="Bold"
                     IsEnabled="{x:Bind MyViewModel.IsLastFMAuthButtonClickable , Mode=OneWay, Converter={StaticResource BoolToInverseConverter}}" />
                     <TextBlock Text="LastFM UserName Required" Visibility="{x:Bind MyViewModel.IsLastFMNeedsUsername}" />

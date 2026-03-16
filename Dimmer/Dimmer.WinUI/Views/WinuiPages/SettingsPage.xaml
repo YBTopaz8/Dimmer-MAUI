@@ -123,7 +123,7 @@
 
                         <TextBlock
                             VerticalAlignment="Center"
-                            Foreground="White" Text="{x:Bind MyViewModel.FolderPaths.Count, Mode=OneWay}"
+                            Foreground="White" Text="{x:Bind BaseViewModel.FolderPaths.Count, Mode=OneWay}"
                              />
 
                     </StackPanel>
@@ -150,7 +150,7 @@
                         </TeachingTip>
                     </StackPanel>
 
-                    <ItemsRepeater ItemsSource="{x:Bind MyViewModel.FolderPaths, Mode=OneWay}">
+                    <ItemsRepeater ItemsSource="{x:Bind BaseViewModel.FolderPaths, Mode=OneWay}">
                         <ItemsRepeater.Layout>
                             <StackLayout Orientation="Vertical" Spacing="10" />
                         </ItemsRepeater.Layout>
@@ -582,7 +582,7 @@
      Grid.Row="2"
      VerticalAlignment="Bottom"
                 x:Name="AppLog"
-     Text="{x:Bind MyViewModel.LatestAppLog.Message, Mode=OneWay}"/>
+     Text="{x:Bind BaseViewModel.LatestAppLog.Message, Mode=OneWay}"/>
             <Button x:Name="OptionLogBtn"
                     Loaded="OptionLogBtn_Loaded"
                     Content="View Songs"/>

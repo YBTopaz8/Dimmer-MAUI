@@ -30,7 +30,7 @@
             <Image
                 Grid.RowSpan="3"
                 Opacity="0.08"
-                Source="{Binding CurrentCoverImagePath}" />
+                Source="{Binding CurrentPlayingSongView.CoverImagePath}" />
             <Grid Grid.Row="0" ColumnDefinitions="auto,*,55">
                 <Grid Grid.Column="0" Margin="5">
                     <VerticalStackLayout>

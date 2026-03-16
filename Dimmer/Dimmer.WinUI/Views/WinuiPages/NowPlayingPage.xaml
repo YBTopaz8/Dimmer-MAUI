@@ -30,13 +30,34 @@
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
-                        
+
                     </Grid.ColumnDefinitions>
-                    <Image MaxWidth="250" Grid.Column="0"
-                           MaxHeight="250" Stretch="UniformToFill"
+                    <Image MaxWidth="350" Grid.Column="0"
+                           MaxHeight="350" Stretch="UniformToFill"
                         x:Name="CurrentPlayingSongImg" Canvas.ZIndex="1"
                         Loading="CurrentPlayingSongImg_Loading" Loaded="CurrentPlayingSongImg_Loaded"
                         />
+
+                    <ListView 
+                        x:Name="SyncLyricsListView"
+                        ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                        Grid.Column="0" HorizontalAlignment="Right"
+                        MaxHeight="290" 
+                        SelectionChanged="ListView_SelectionChanged"
+                        SelectionMode="Single"
+                        Margin="0,0,50,0"
+                        SelectedItem="{x:Bind MyViewModel.CurrentLine, Mode=OneWay}"
+                        
+                        ItemsSource="{x:Bind MyViewModel.AllLines}"
+                                   >
+                        <ListView.ItemTemplate>
+                            <DataTemplate >
+                                <Border>
+                                    <TextBlock Text="{Binding Text}"/>
+                                </Border>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
                 </Grid>
 
                 <!--  Song Info  -->
@@ -74,6 +95,7 @@ x:Name="ArtistBtn" Click="ArtistBtn_Click"
                 <!--  Progress Section  -->
                 <StackPanel Spacing="5">
                     <Slider
+                        
                         x:Name="ProgressSlider" IsThumbToolTipEnabled="True"
                         Foreground="DarkSlateBlue"
                         Maximum="{x:Bind MyViewModel.CurrentTrackDurationSeconds, Mode=OneWay}"

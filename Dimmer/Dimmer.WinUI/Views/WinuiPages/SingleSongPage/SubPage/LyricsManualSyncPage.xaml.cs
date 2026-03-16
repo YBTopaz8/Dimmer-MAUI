@@ -107,11 +107,11 @@ public sealed partial class LyricsManualSyncPage : Page
         // Show/hide batch actions toolbar based on selection
         if (LyricsListView.SelectedItems.Count > 0)
         {
-            BatchActionsToolbar.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+            BatchActionsToolbar.Visibility = WinUIVisibility.Visible;
         }
         else
         {
-            BatchActionsToolbar.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+            BatchActionsToolbar.Visibility = WinUIVisibility.Collapsed;
         }
     }
 

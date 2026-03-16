@@ -82,12 +82,15 @@ public partial class StatsViewModelWin : StatisticsViewModel
 
     public ISeries[] DropOffSeries { get; set; }
     public ICartesianAxis[] DropOffXAxes { get; set; }
+    public BaseViewModelWin BaseVM { get; }
+
     StatisticsService _statsService;
 
     public StatsViewModelWin(StatisticsService statsService,  ILogger<StatisticsViewModel> logger
         ,BaseViewModelWin baseVM, IRealmFactory realmFactory) : base(statsService, logger)
     {
         _statsService= statsService;
+        BaseVM = baseVM;
         HourlyXAxes = new ICartesianAxis[] { new Axis { Labels = Enumerable.Range(0, 24).Select(x => $"{x}:00").ToList() } };
         LoadLibraryStats(DateRangeFilter.AllTime);
         musicArtistryService = new(realmFactory);

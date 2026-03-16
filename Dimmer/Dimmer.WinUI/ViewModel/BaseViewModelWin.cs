@@ -52,7 +52,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
         windowManager = mauiWindowManagerService;
 
-        this.WhenPropertyChange(nameof(base.IsAppScanning), v => (base.IsAppScanning))
+        this.WhenPropertyChange(nameof(IsAppScanning), v => (IsAppScanning))
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(x =>
             {
@@ -66,7 +66,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
                 }
             });
 
-        this.WhenPropertyChange(nameof(base.DimmerProgressBarViewVisible), v => (base.DimmerProgressBarViewVisible))
+        this.WhenPropertyChange(nameof(DimmerProgressBarViewVisible), v => (DimmerProgressBarViewVisible))
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(x =>
             {
@@ -80,7 +80,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
                 }
             });
 
-        this.WhenPropertyChange(nameof(base.DimmerProgressBarViewVisibleValue), v => (base.DimmerProgressBarViewVisibleValue))
+        this.WhenPropertyChange(nameof(DimmerProgressBarViewVisibleValue), v => (DimmerProgressBarViewVisibleValue))
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(x =>
             {                
@@ -273,10 +273,10 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         {
             if (newValue.GetType() == typeof(AllSongsListPage))
             {
-                CoverImageSong.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+                CoverImageSong.Visibility = Visibility.Visible;
                 return;
             }
-            CoverImageSong.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+            CoverImageSong.Visibility = Visibility.Collapsed;
         }
     }
 
@@ -544,10 +544,10 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     [RelayCommand]
     public void OpenAndSelectFileInExplorer(SongModelView song)
     {
-        if (song is not null && !string.IsNullOrWhiteSpace(song.FilePath) && System.IO.File.Exists(song.FilePath))
+        if (song is not null && !string.IsNullOrWhiteSpace(song.FilePath) && File.Exists(song.FilePath))
         {
             string argument = "/select, \"" + song.FilePath + "\"";
-            System.Diagnostics.Process.Start("explorer.exe", argument);
+            Process.Start("explorer.exe", argument);
         }
     }
 
@@ -569,23 +569,19 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         base.Dispose(disposing);
 
     }
+
     [RelayCommand]
-    private async Task ScrollToCurrentPlayingSong()
+    public async Task ScrollToRequestedSong(SongModelView? song=null)
     {
 
-        try
+        if(song is null)
         {
-            await MySongsTableView.SmoothScrollIntoViewWithItemAsync(CurrentPlayingSongView, ScrollItemPlacement.Center, false, true);
+            if (CurrentPlayingSongView.TitleDurationKey is null)
+            {
+                return;
+            }
+            song = CurrentPlayingSongView;
         }
-        catch (Exception ex)
-        {
-            await Shell.Current.DisplayAlert("Error", $"Failed to scroll to current playing song: {ex.Message}", "OK");
-        }
-    }
-    [RelayCommand]
-    private async Task ScrollToSpecificSong(SongModelView song)
-    {
-
         try
         {
 
@@ -608,6 +604,8 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
             if (contentTableRow is null)
             {
+
+
                 Debug.WriteLine("No content Table Row found");
                 return;
             }
@@ -630,9 +628,8 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
             //contentTableRow?.BorderBrush = new SolidColorBrush(Colors.Pink);
             //contentTableRow?.BorderThickness = new Microsoft.UI.Xaml.Thickness(4);
 
-            TableViewCell? coverImageCell = cells[0];
 
-            await PulseWithBorderAsync(coverImageCell, pulses: 3, duration: 300);
+
 
         }
         catch (Exception ex)
@@ -641,61 +638,6 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         }
     }
 
-
-    public static async Task PulseWithBorderAsync(
-     TableViewCell element,
-     int pulses = 2,
-     double scale = 1.08,
-     int duration = 180)
-    {
-        if (element is null) return;
-
-
-
-        var visual = ElementCompositionPreview.GetElementVisual(element);
-
-        var compositor = visual.Compositor;
-
-        visual.CenterPoint = new Vector3(
-            (float)(element.RenderSize.Width / 2),
-            (float)(element.RenderSize.Height / 2),
-            0f);
-
-        for (int i = 0; i < pulses; i++)
-        {
-            // SCALE UP
-            var up = compositor.CreateVector3KeyFrameAnimation();
-            up.Target = "Scale";
-            up.Duration = TimeSpan.FromMilliseconds(duration);
-            up.InsertKeyFrame(1f, new Vector3((float)scale, (float)scale, 1f));
-
-            visual.StartAnimation("Scale", up);
-
-            if (element != null)
-            {
-                element.BorderThickness = new Thickness(2);
-                element.BorderBrush = new SolidColorBrush(Colors.DarkSlateBlue);
-            }
-
-            await Task.Delay(duration);
-
-            // SCALE DOWN
-            var down = compositor.CreateVector3KeyFrameAnimation();
-            down.Target = "Scale";
-            down.Duration = TimeSpan.FromMilliseconds(duration);
-            down.InsertKeyFrame(1f, new Vector3(1f, 1f, 1f));
-
-            visual.StartAnimation("Scale", down);
-
-            if (element != null)
-            {
-                element.BorderThickness = new Thickness(0);
-                element.BorderBrush = new SolidColorBrush(Colors.Transparent);
-            }
-
-            await Task.Delay(duration);
-        }
-    }
 
     [ObservableProperty]
     public partial ObservableCollection<WindowEntry> AllWindows { get; set; }
@@ -1193,7 +1135,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         {
             // Log error: "Only a single ContentDialog can be open" 
             // We catch this to prevent the app from crashing.
-            System.Diagnostics.Debug.WriteLine(ex.Message);
+            Debug.WriteLine(ex.Message);
         }
         finally
         {
@@ -1298,7 +1240,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
             // Get the HWND of the current window
             var hwnd = PlatUtils.DimmerHandle;
             // Initialize the picker with the window handle
-            WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+            InitializeWithWindow.Initialize(picker, hwnd);
             picker.FileTypeFilter.Add(".json");
             var file = await picker.PickSingleFileAsync();
 
@@ -1453,7 +1395,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         // Get the HWND of the current window
         var hwnd = PlatUtils.DimmerHandle;
         // Initialize the picker with the window handle
-        WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+        InitializeWithWindow.Initialize(picker, hwnd);
         picker.FileTypeFilter.Add(".jpg");
         picker.FileTypeFilter.Add(".png");
         var file = await picker.PickSingleFileAsync();
@@ -1471,14 +1413,14 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     internal void ShowIndeterminateProgressBar()
     {
-        DimmerProgressBarView.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+        DimmerProgressBarView.Visibility = Visibility.Visible;
         DimmerProgressBarView.IsIndeterminate = true;
         
     }
     
     internal void HideIndeterminateProgressBar()
     {
-        DimmerProgressBarView.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+        DimmerProgressBarView.Visibility = Visibility.Collapsed;
         DimmerProgressBarView.IsIndeterminate = true;
         
     }
@@ -1487,7 +1429,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     {
         DimmerProgressBarView.IsIndeterminate = false;
         DimmerProgressBarView.Value = newVal;
-        DimmerProgressBarView.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+        DimmerProgressBarView.Visibility = Visibility.Visible;
 
     }
     /// <summary>

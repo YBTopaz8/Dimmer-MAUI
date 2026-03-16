@@ -46,20 +46,22 @@
 
     </ContentPage.Resources>
     <Grid >
-        <Image
+        <Image 
+            Margin="0,0,10,0"
        Grid.Row="0"
-       Grid.RowSpan="3"
+       Grid.RowSpan="4"
        Aspect="AspectFit"
        BackgroundColor="Transparent"
        HorizontalOptions="Center"
-       Opacity="0.10"
+       Opacity="0.20"
        Source="{Binding CurrentPlayingSongView.CoverImagePath, Converter={converters:PathToImageConverter}}"
        ToolTipProperties.Text="Click to view song details"
        VerticalOptions="Center" />
    
-    <ScrollView x:Name="MainScrollView" VerticalScrollBarVisibility="Default">
+    <ScrollView x:Name="MainScrollView"
+                VerticalScrollBarVisibility="Default">
 
-        <Grid RowDefinitions="*,*,auto,auto">
+        <Grid RowDefinitions="*,*,auto">
          
             <VerticalStackLayout
                 Grid.Row="0"
@@ -85,14 +87,14 @@
             </VerticalStackLayout>
                     <VerticalStackLayout WidthRequest="60"
                       Spacing="5">
-                        <Button
-     BackgroundColor="Transparent"
-     BorderWidth="1"
-     Clicked="ViewFullStatsClicked"
-     ImageSource="chart.png"
-      />
+                            <Button
+         BackgroundColor="Transparent"
+         BorderWidth="1"
+         Clicked="ViewFullStatsClicked"
+         ImageSource="chart.png"
+          />    
 
-                        <Label Text="Dimmer stats" FontSize="10"
+                            <Label Text="Dimmer stats" FontSize="10"
             HorizontalOptions="Center"/>
                     </VerticalStackLayout>
                     <VerticalStackLayout WidthRequest="60"
@@ -186,7 +188,7 @@
                     Margin="0,0"
                     BackgroundColor="Transparent"
                     StrokeShape="RoundRectangle 20"
-                    StrokeThickness="3">
+                    StrokeThickness="0">
                     <Border.Triggers>
 
 
@@ -437,7 +439,7 @@
                                 Command="{Binding PreviousTrackCommand}"
                                 ImageSource="skipprevious.png"
                                 IsEnabled="{Binding IsTimestampingInProgress, Converter={converters:BoolToInverseConverter}}"
-                                Loaded="ButtonLoaded">
+                                Loaded="PreviousButtonLoaded">
                                 <Button.Behaviors>
                                     <toolkit:IconTintColorBehavior TintColor="{Binding CurrentPlaySongDominantColor}" />
                                 </Button.Behaviors>
@@ -450,8 +452,10 @@
                                 x:Name="PlayPauseBtn"
                                 windows:VisualElement.AccessKey="P"
                                 windows:VisualElement.AccessKeyPlacement="Bottom"
-                                Background="Transparent"
-                                BorderWidth="0"
+                                BorderColor="{Binding CurrentPlaySongDominantColor}"
+                                BorderWidth="1"
+                                BackgroundColor="Transparent"
+                                
                                 Command="{Binding PlayPauseToggleCommand}"
                                 ImageSource="play.png"
                                 Loaded="ButtonLoaded">
@@ -482,6 +486,7 @@
                             windows:VisualElement.AccessKeyPlacement="Bottom"
                             Background="Transparent"
                             BorderWidth="0"
+                            
                             Command="{Binding NextTrackCommand}"
                             ImageSource="skipnext.png"
                             IsEnabled="{Binding IsTimestampingInProgress, Converter={converters:BoolToInverseConverter}}"
@@ -685,15 +690,6 @@
 
             </Grid>
 
-            <Grid
-                x:Name="NowPlayingGrid"
-                Grid.Row="3"
-                Padding="3"
-                BackgroundColor="Transparent">
-                <Grid.GestureRecognizers>
-                    <PointerGestureRecognizer x:Name="NowPlayingQueuePGR" PointerReleased="NowPlayingQueuePGR_PointerReleased" />
-                </Grid.GestureRecognizers>
-            </Grid>
         </Grid>
 
     </ScrollView>

@@ -57,8 +57,8 @@ public sealed partial class DimmerLivePage : Page
                 if (isAuth is null) return;
                 if ((bool)isAuth)
                 {
-                    GridOfAuth.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
-                    GridFullView.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+                    GridOfAuth.Visibility = WinUIVisibility.Collapsed;
+                    GridFullView.Visibility = WinUIVisibility.Visible;
                 }
             }
             catch (Exception ex)
@@ -111,7 +111,7 @@ public sealed partial class DimmerLivePage : Page
     public async Task ApplyEntranceEffectAsync(FrameworkElement frameElt, SongTransitionAnimation defAnim = SongTransitionAnimation.Spring)
     {
         // 1. Ensure the element is visible to the layout engine
-        frameElt.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+        frameElt.Visibility = WinUIVisibility.Visible;
 
         // Optional: Ensure layout is calculated so ActualWidth/Height are correct for CenterPoint
         // frameElt.UpdateLayout(); 

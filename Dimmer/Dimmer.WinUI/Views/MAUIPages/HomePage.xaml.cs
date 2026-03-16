@@ -537,7 +537,7 @@ public partial class HomePage : ContentPage
         {
             HoveredAnimationDuration = 250,
             HoveredAnimationEasing = Easing.CubicOut,
-            HoveredBackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue,
+            HoveredBackgroundColor = ColorsM.DarkSlateBlue,
 
             PressedScale = 0.7, // Adjusted for a smoother feel
             PressedAnimationDuration = 300,
@@ -619,7 +619,7 @@ public partial class HomePage : ContentPage
         {
             HoveredAnimationDuration = 250,
             HoveredAnimationEasing = Easing.CubicOut,
-            HoveredBackgroundColor = Microsoft.Maui.Graphics.Colors.DarkSlateBlue,
+            HoveredBackgroundColor = ColorsM.DarkSlateBlue,
 
             PressedScale = 0.7, // Adjusted for a smoother feel
             PressedAnimationDuration = 300,
@@ -750,7 +750,7 @@ public partial class HomePage : ContentPage
 
 
         border.FocusVisualPrimaryThickness = new Microsoft.UI.Xaml.Thickness(2);
-        border.FocusVisualPrimaryBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.DarkSlateBlue);
+        border.FocusVisualPrimaryBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(Colors.DarkSlateBlue);
         // --- create a stroke animation around the panel ---
         var visual = ElementCompositionPreview.GetElementVisual(border);
 
@@ -811,9 +811,23 @@ public partial class HomePage : ContentPage
         }
     }
 
+    ToolTip? toolTipAboutClickToCompleteOrSetSkipped;
+    void ShowToolTipTellingUserThatSkippingWillAutomaticallySaveSongAsCompletedTooAndRightClickWillSaveAsSkipped(UIElement nativeElement)
+    {
+        var toolTip = new ToolTip();
+        toolTip.Content = "Skipping will automatically save the song as completed too. Right-click will save as skipped.";
+        ToolTipService.SetToolTip(nativeElement, toolTip);
+
+        toolTip.IsOpen = true;
+        toolTipAboutClickToCompleteOrSetSkipped = toolTip;
+    }
+
+
+
     private void ButtonLoaded(object sender, EventArgs e)
     {
         ButtonM send = (ButtonM)sender;
+
         var native = send.Handler?.PlatformView as Microsoft.UI.Xaml.UIElement;
 
         if (native is not null)
@@ -825,6 +839,7 @@ public partial class HomePage : ContentPage
                 Native_PointerEntered(s, e); 
                 send.BorderWidth = 2;
                 send.BorderColor = ColorsM.DarkSlateBlue;
+                
             };
 
             native.PointerExited += (s, e) =>
@@ -832,12 +847,16 @@ public partial class HomePage : ContentPage
                 Native_PointerExited(s, e); 
                 send.BorderWidth = 0;
                 send.BorderColor = ColorsM.Transparent;
+                toolTipAboutClickToCompleteOrSetSkipped?.IsOpen = false;
+                toolTipAboutClickToCompleteOrSetSkipped= null;
             };
+
 
             //stats.Items.Add(new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = $"Total plays: {playCount}", IsEnabled = false });
             //stats.Items.Add(new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = $"Followed: {(isFollowed ? "Yes" : "No")}", IsEnabled = false });
 
         }
+        //MainScrollView.ScrollToAsync
     }
 
     private void Native_PointerEntered(object sender, PointerRoutedEventArgs e)
@@ -924,7 +943,7 @@ public partial class HomePage : ContentPage
             ToolTip volumeToolTip = new()
             {
                 Content = CurrentVolumeAndCurrentDeviceSelected,
-                Placement = Microsoft.UI.Xaml.Controls.Primitives.PlacementMode.Top,
+                Placement = PlacementMode.Top,
 
             };
             
@@ -1000,7 +1019,8 @@ public partial class HomePage : ContentPage
     private void ViewNPQ_Loaded(object sender, EventArgs e)
     {
         ButtonLoaded(sender, e);
-        var senderUIElement = (sender as ButtonM).Handler.PlatformView as Microsoft.UI.Xaml.UIElement;
+        var senderUIElement = (sender as ButtonM)?.Handler?.PlatformView as Microsoft.UI.Xaml.UIElement;
+
         if(senderUIElement is null) return;
         ElementCompositionPreview.SetIsTranslationEnabled(senderUIElement, true);
 
@@ -1052,7 +1072,7 @@ public partial class HomePage : ContentPage
     private void ThemeToggler_Loaded(object sender, EventArgs e)
     {
         ButtonLoaded(sender, e);
-        var currentTheme = Application.Current.RequestedTheme;
+        var currentTheme = Application.Current?.RequestedTheme;
         MyViewModel.IsDarkModeOn = currentTheme == AppTheme.Dark;
     }
 
@@ -1116,7 +1136,7 @@ public partial class HomePage : ContentPage
     }
 
     private void AudioDeviceSwitcherButton_Clicked(object sender, EventArgs e)
-    { 
+    {  
         var send = (View)sender;
         var platView = send.Handler?.PlatformView as Microsoft.UI.Xaml.UIElement;
 
@@ -1130,7 +1150,7 @@ public partial class HomePage : ContentPage
             {
                 var menFlyOut = new Microsoft.UI.Xaml.Controls.ToggleMenuFlyoutItem
                 {
-                    Text = x.Name,
+                    Text = $"Device Name : {x.Name}, Volume : {x.Volume} %",
                     Command = MyViewModel.SetPreferredAudioDeviceCommand,
                     CommandParameter = x
                 };
@@ -1172,4 +1192,38 @@ public partial class HomePage : ContentPage
 
     }
 
+    private void NextButtonLoaded(object sender, EventArgs e)
+    {
+        ButtonLoaded(sender, e);
+        if (MyViewModel.CurrentTrackPositionPercentage >= 90)
+        {
+            var nativeElement = (UIElement)sender;
+            ShowToolTipTellingUserThatSkippingWillAutomaticallySaveSongAsCompletedTooAndRightClickWillSaveAsSkipped(
+                nativeElement);
+            nativeElement.RightTapped += NativeElement_RightTapped;
+        }
+    }
+
+    private async void NativeElement_RightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+        await MyViewModel.NextTrackAsync(true);
+    }
+
+    private void PreviousButtonLoaded(object sender, EventArgs e)
+    {
+        ButtonLoaded(sender, e);
+        if (MyViewModel.CurrentTrackPositionPercentage >= 90)
+        {
+            var nativePreviousBtn= (UIElement)sender;
+            ShowToolTipTellingUserThatSkippingWillAutomaticallySaveSongAsCompletedTooAndRightClickWillSaveAsSkipped(
+                nativePreviousBtn);
+            nativePreviousBtn.RightTapped += NativePreviousBtn_RightTapped; ;
+        }
+    }
+
+    private async void NativePreviousBtn_RightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+        await MyViewModel.PreviousTrackAsync(true);
+
+    }
 }

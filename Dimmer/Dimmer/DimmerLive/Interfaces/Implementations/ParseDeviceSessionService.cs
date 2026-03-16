@@ -169,17 +169,17 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
     }
     private async Task UploadLibraryMapAsync()
     {
-        var realm = _vm.RealmFactory.GetRealmInstance();
-        // We only care about the keys. This allows other devices to check if they have the file.
-        var keys = realm.All<SongModel>().AsEnumerable().Select(s => s.TitleDurationKey).ToList();
+        //var realm = _vm.RealmFactory.GetRealmInstance();
+        //// We only care about the keys. This allows other devices to check if they have the file.
+        //var keys = realm.All<SongModel>().AsEnumerable().Select(s => s.TitleDurationKey).ToList();
 
-        var json = JsonSerializer.Serialize(keys);
-        var file = new ParseFile($"lib_{MyDeviceId}.json", System.Text.Encoding.UTF8.GetBytes(json));
-        await file.SaveAsync(ParseClient.Instance);
+        //var json = JsonSerializer.Serialize(keys);
+        //var file = new ParseFile($"lib_{MyDeviceId}.json", System.Text.Encoding.UTF8.GetBytes(json));
+        //await file.SaveAsync(ParseClient.Instance);
 
         // Update the session object with the link to this map
-        var parameters = new Dictionary<string, object> { { "mapUrl", file.Url } };
-        await ParseClient.Instance.CallCloudCodeFunctionAsync<string>("updateDeviceLibraryMap", parameters);
+        //var parameters = new Dictionary<string, object> { { "mapUrl", file.Url } };
+        //await ParseClient.Instance.CallCloudCodeFunctionAsync<string>("updateDeviceLibraryMap", parameters);
     }
 
     public async Task SyncDeviceStateAsync()

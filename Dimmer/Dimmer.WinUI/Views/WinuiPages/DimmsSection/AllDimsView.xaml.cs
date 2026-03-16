@@ -377,9 +377,9 @@ public sealed partial class AllDimsView : Page
             return scrollViewer; 
         }
 
-        for (int i = 0; i < Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChildrenCount(depObj); i++)
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(depObj); i++)
         {
-            var child = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChild(depObj, i);
+            var child = VisualTreeHelper.GetChild(depObj, i);
             var result = GetScrollViewer(child);
             if (result != null)
             {

@@ -57,7 +57,7 @@ public class WindowsAudioEditorService : IDimmerAudioEditorService
             conversion.OnDataReceived += (sender, args) =>
             {
                 if (args.Data.Contains("Error") || args.Data.Contains("error"))
-                    System.Diagnostics.Debug.WriteLine($"[FFmpeg Error]: {args.Data}");
+                    Debug.WriteLine($"[FFmpeg Error]: {args.Data}");
             };
 
             progress?.Report(10);
@@ -68,8 +68,8 @@ public class WindowsAudioEditorService : IDimmerAudioEditorService
         }
         catch (Xabe.FFmpeg.Exceptions.ConversionException cex)
         {
-            System.Diagnostics.Debug.WriteLine($"[FFmpeg Crash]: {cex.InnerException?.Message}");
-            System.Diagnostics.Debug.WriteLine($"[FFmpeg Args]: {cex.InputParameters}");
+            Debug.WriteLine($"[FFmpeg Crash]: {cex.InnerException?.Message}");
+            Debug.WriteLine($"[FFmpeg Args]: {cex.InputParameters}");
             throw new Exception($"Trim failed: {cex.Message}", cex);
         }
     
@@ -89,7 +89,7 @@ public class WindowsAudioEditorService : IDimmerAudioEditorService
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"FFmpeg Setup Failed: {ex.Message}");
+            Debug.WriteLine($"FFmpeg Setup Failed: {ex.Message}");
             return false;
         }
     }
@@ -132,7 +132,7 @@ public class WindowsAudioEditorService : IDimmerAudioEditorService
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Loop Error: {ex}");
+            Debug.WriteLine($"Loop Error: {ex}");
             return null;
         }
     }
@@ -175,7 +175,7 @@ public class WindowsAudioEditorService : IDimmerAudioEditorService
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Video Gen Error: {ex}");
+            Debug.WriteLine($"Video Gen Error: {ex}");
             throw;
         }
     }
@@ -292,7 +292,7 @@ public class WindowsAudioEditorService : IDimmerAudioEditorService
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[Effects Error]: {ex}");
+            Debug.WriteLine($"[Effects Error]: {ex}");
             throw;
         }
     }
@@ -349,7 +349,7 @@ public class WindowsAudioEditorService : IDimmerAudioEditorService
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Cut Error: {ex}");
+            Debug.WriteLine($"Cut Error: {ex}");
             return null;
         }
     }
@@ -377,7 +377,7 @@ public class WindowsAudioEditorService : IDimmerAudioEditorService
             progress?.Report(100);
             return outputFile;
         }
-        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"8D Error: {ex}"); throw; }
+        catch (Exception ex) { Debug.WriteLine($"8D Error: {ex}"); throw; }
     }
     private (string Extension, string EncoderArgs) GetEncoderSettings(AudioFormat format)
     {
@@ -435,13 +435,13 @@ public class WindowsAudioEditorService : IDimmerAudioEditorService
 
                     if (attempt > maxRetries)
                     {
-                        System.Diagnostics.Debug.WriteLine($"[{operationName}] Failed after {maxRetries} attempts: {ex.Message}");
+                        Debug.WriteLine($"[{operationName}] Failed after {maxRetries} attempts: {ex.Message}");
                         throw;
                     }
 
                     // Wait before retry
                     await Task.Delay(1000 * attempt);
-                    System.Diagnostics.Debug.WriteLine($"[{operationName}] Retry attempt {attempt}");
+                    Debug.WriteLine($"[{operationName}] Retry attempt {attempt}");
                 }
             }
 

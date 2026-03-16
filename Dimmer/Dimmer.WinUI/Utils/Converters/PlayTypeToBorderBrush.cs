@@ -36,57 +36,57 @@ public sealed partial class PlayTypeToBorderBrush : IValueConverter
         if (playType == 3)
         {
 
-            var successBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 76, 175, 80)); // Green color for Completed
+            var successBrush = new SolidColorBrush(Color.FromArgb(255, 76, 175, 80)); // Green color for Completed
             return successBrush;
         }
         else if (playType == 0)
         {
-            var playBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 33, 150, 243)); // Blue color for Play
+            var playBrush = new SolidColorBrush(Color.FromArgb(255, 33, 150, 243)); // Blue color for Play
             return playBrush;
         }
         else if (playType == 1)
         {
-            var pauseBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 193, 7)); // Yellow color for Pause
+            var pauseBrush = new SolidColorBrush(Color.FromArgb(255, 255, 193, 7)); // Yellow color for Pause
             return pauseBrush;
         }
         else if (playType == 5)
         {
-            var skipBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 244, 67, 54)); // Red color for Skipped
+            var skipBrush = new SolidColorBrush(Color.FromArgb(255, 244, 67, 54)); // Red color for Skipped
             return skipBrush;
         }
         else if (playType == 4)
         {
-            var seekBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 156, 39, 176)); // Purple color for Seeked
+            var seekBrush = new SolidColorBrush(Color.FromArgb(255, 156, 39, 176)); // Purple color for Seeked
             return seekBrush;
         }
         else if (playType == 2)
         {
-            var resumeBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 0, 150, 136)); // Teal color for Resume
+            var resumeBrush = new SolidColorBrush(Color.FromArgb(255, 0, 150, 136)); // Teal color for Resume
             return resumeBrush;
         }
         else if(playType == 9)
         {
-            var previousBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 121, 85, 72)); // Brown color for Previous
+            var previousBrush = new SolidColorBrush(Color.FromArgb(255, 121, 85, 72)); // Brown color for Previous
             return previousBrush;
         }
         else if (playType == 6)
         {
-            var restartedBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 63, 81, 181)); // Indigo color for Restarted
+            var restartedBrush = new SolidColorBrush(Color.FromArgb(255, 63, 81, 181)); // Indigo color for Restarted
             return restartedBrush;
         }
         else if (playType == 7)
         {
-            var seekRestartedBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 0, 188, 212)); // Cyan color for SeekRestarted
+            var seekRestartedBrush = new SolidColorBrush(Color.FromArgb(255, 0, 188, 212)); // Cyan color for SeekRestarted
             return seekRestartedBrush;
         }
         else if (playType == 8)
         {
-            var customRepeatBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 205, 220, 57)); // Lime color for CustomRepeat
+            var customRepeatBrush = new SolidColorBrush(Color.FromArgb(255, 205, 220, 57)); // Lime color for CustomRepeat
             return customRepeatBrush;
         }
         else
         {
-            var defaultBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 158, 158, 158)); // Grey color for others
+            var defaultBrush = new SolidColorBrush(Color.FromArgb(255, 158, 158, 158)); // Grey color for others
             return defaultBrush;
         }
     }

@@ -312,7 +312,7 @@ public partial class ExoPlayerService : MediaSessionService
             sessionCallback = new MediaPlaybackSessionCallback(this); // Use concrete type
 
 
-            Intent nIntent = new Intent(Platform.AppContext, typeof(TransitionActivity));
+            Intent nIntent = new Intent(Platform.AppContext, typeof(DimmerActivity));
 
             PendingIntentFlags flags = PendingIntentFlags.UpdateCurrent;
             if (Build.VERSION.SdkInt >= BuildVersionCodes.S) // Or BuildVersionCodes.M for broader compatibility with Immutable
@@ -515,7 +515,7 @@ public partial class ExoPlayerService : MediaSessionService
     private void HandleLyricsAction()
     {
         // Open the app to the lyrics view
-        var intent = new Intent(this, typeof(TransitionActivity));
+        var intent = new Intent(this, typeof(DimmerActivity));
         intent.SetAction(Intent.ActionMain);
         intent.AddCategory(Intent.CategoryLauncher);
         intent.AddFlags(ActivityFlags.NewTask);

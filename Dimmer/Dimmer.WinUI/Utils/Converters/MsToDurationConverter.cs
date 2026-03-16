@@ -44,8 +44,8 @@ public partial class BoolToHeartColorConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language)
     {
-        if (value is bool b && b) return new SolidColorBrush(Microsoft.UI.Colors.Red);
-        return new SolidColorBrush(Microsoft.UI.Colors.Gray);
+        if (value is bool b && b) return new SolidColorBrush(Colors.Red);
+        return new SolidColorBrush(Colors.Gray);
     }
     public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotImplementedException();
 }

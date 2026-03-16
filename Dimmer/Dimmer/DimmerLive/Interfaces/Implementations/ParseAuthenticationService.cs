@@ -21,54 +21,62 @@ public class ParseAuthenticationService : IAuthenticationService
 
     public async Task AutoLoginAsync()
     {
-        if (ParseClient.Instance is null) return;
-        if (CurrentUserValue == null || CurrentUserValue.SessionToken is null)
+        try
         {
-            //get saved sessionToken
 
-            var Tokenn = await SecureStorage.Default.GetAsync("userToken");
-
-            if (Tokenn != null)
+            if (ParseClient.Instance is null) return;
+            if (CurrentUserValue == null || CurrentUserValue.SessionToken is null)
             {
-                try
+                //get saved sessionToken
+
+                var Tokenn = await SecureStorage.Default.GetAsync("userToken");
+
+                if (Tokenn != null)
                 {
-
-                 await ParseClient.Instance.BecomeAsync(Tokenn);
-                var realm = _realmFactory.GetRealmInstance();
-                    if (realm != null)
+                    try
                     {
-                        var curUsr = realm.All<UserModel>().FirstOrDefaultNullSafe();
 
-                        if (curUsr != null)
+                        await ParseClient.Instance.BecomeAsync(Tokenn);
+                        var realm = _realmFactory.GetRealmInstance();
+                        if (realm != null)
                         {
-                            await realm.WriteAsync(() =>
-                            {
-                                curUsr.UserIDOnline = ParseClient.Instance.CurrentUser.ObjectId;
-                                curUsr.UsernameOnline = ParseClient.Instance.CurrentUser.Username;
-                                curUsr.UserName ??= ParseClient.Instance.CurrentUser.Username;
+                            var curUsr = realm.All<UserModel>().FirstOrDefaultNullSafe();
 
-                            });
+                            if (curUsr != null)
+                            {
+                                await realm.WriteAsync(() =>
+                                {
+                                    curUsr.UserIDOnline = ParseClient.Instance.CurrentUser.ObjectId;
+                                    curUsr.UsernameOnline = ParseClient.Instance.CurrentUser.Username;
+                                    curUsr.UserName ??= ParseClient.Instance.CurrentUser.Username;
+
+                                });
+                            }
+                        }
+                    }
+                    catch (ParseFailureException ex)
+                    {
+                        if (ex.Message == "Invalid session token")
+                        {
+                            SecureStorage.Default.Remove("userToken");
                         }
                     }
                 }
-                catch (ParseFailureException ex)
+
+            }
+
+            if (ParseClient.Instance.CurrentUser != null && !string.IsNullOrEmpty(ParseClient.Instance.CurrentUser.SessionToken))
+            {
+                var result = await InitializeAsync();
+                if (result)
                 {
-                    if(ex.Message == "Invalid session token")
-                    {
-                        SecureStorage.Default.Remove("userToken");
-                    }
+
                 }
             }
-
         }
-
-        if (ParseClient.Instance.CurrentUser != null && !string.IsNullOrEmpty(ParseClient.Instance.CurrentUser.SessionToken))
+        catch (Exception ex)
         {
-            var result = await InitializeAsync();
-            if (result)
-            {
-
-            }
+            Debug.WriteLine(ex.Message);
         }
     }
     // method for auto login if token exists

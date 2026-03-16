@@ -107,7 +107,7 @@ public static class PlatUtils
     {
 
         var nativeWindow = win.Handler.PlatformView;
-        IntPtr windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(nativeWindow);
+        IntPtr windowHandle = WindowNative.GetWindowHandle(nativeWindow);
         ShowWindow(windowHandle, SW_HIDE);
         //System.Windows.SystemCommands.MinimizeWindow(win);
     }
@@ -361,19 +361,19 @@ public static class PlatUtils
     }
     public static nint GetHWIdnInt(Microsoft.UI.Xaml.Window win)
     {
-        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(win);
+        var hwnd = WindowNative.GetWindowHandle(win);
         return hwnd;
     }
     public static string GetHWId(Microsoft.UI.Xaml.Window win)
 
     {
-        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(win);
+        var hwnd = WindowNative.GetWindowHandle(win);
         return hwnd.ToInt64().ToString();
     }
 
     public static AppWindow GetAppWindow(Microsoft.UI.Xaml.Window win)
     {
-        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(win);
+        var hwnd = WindowNative.GetWindowHandle(win);
         var id = Win32Interop.GetWindowIdFromWindow(hwnd);
         return AppWindow.GetFromWindowId(id);
     }
@@ -521,7 +521,7 @@ public static class PlatUtils
                     else
                     {
 
-                        imageUri = new Uri(System.IO.Path.GetFullPath(albumArtPath));
+                        imageUri = new Uri(Path.GetFullPath(albumArtPath));
                     }
                 }
                 catch
@@ -591,7 +591,7 @@ public static class PlatUtils
         object concernedElt, string childName)
     {
         var row = table.ContainerFromItem(concernedElt) as FrameworkElement;
-        var image = PlatUtils.FindVisualChild<Image>(row, "coverArtImage");
+        var image = FindVisualChild<Image>(row, "coverArtImage");
         return image;
     }
 
@@ -846,7 +846,7 @@ public static class PlatUtils
         await tcs.Task;
 
         // 4. CLEANUP: Now that animation is done, hide the XAML element
-        frameElt.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+        frameElt.Visibility = WinUIVisibility.Collapsed;
 
         // 5. RESET: Reset visuals so if you set Visibility.Visible later, it looks normal
         ResetElementVisual(frameElt);

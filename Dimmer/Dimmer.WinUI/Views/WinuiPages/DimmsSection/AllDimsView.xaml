@@ -74,7 +74,7 @@
                                         <TextBlock
                                             FontSize="21"
                                             FontWeight="Bold"
-                                            Text="{Binding SongViewObject.Title}"
+                                            Text="{Binding SongName}"
                                             TextWrapping="WrapWholeWords" />
 
                                     </Button>
@@ -135,7 +135,7 @@
                                     HorizontalAlignment="Center"
                                     Text="{Binding EventDate, Converter={StaticResource EventDateOffsetToTimeAgo}}"
                                     TextWrapping="WrapWholeWords"
-                                    ToolTipService.ToolTip="{Binding EventDate.Value.LocalDateTime}" />
+                                    />
 
                                 <Button
                                     x:Name="MoreBtn"

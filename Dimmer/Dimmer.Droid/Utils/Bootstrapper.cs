@@ -8,34 +8,29 @@ internal class Bootstrapper
 
 
 
-    public static IServiceProvider Init()
+    public static IServiceProvider Init(MauiAppBuilder builder)
     {
         try
         {
-            var services = new ServiceCollection();
-            LinkerKeepAlive.Keep();
-        // 1. Logging (Replaces builder.Logging)
-        services.AddLogging(configure =>
-        {
-            configure.AddDebug();
-        });
-        services.AddDimmerCoreServices();
+            
+                var services = builder.Services;
+            
 
-            services.AddSingleton<AndroidFolderPicker>();
-            // Register Android-specific error presenter (overrides the default one from core services)
-            services.AddSingleton<IUiErrorPresenter, AndroidErrorPresenter>();
-            // 2. Register your Core Services (Same as before)
+            services.AddDimmerCoreServices();
+
+
+          
+
             services.AddSingleton<IDimmerAudioService, AudioService>();
-        services.AddSingleton<IAnimationService, AndroidAnimationService>();
+
             services.AddSingleton<IBluetoothService, AndroidBluetoothService>();
 
         // 3. Register ViewModels
         services.AddSingleton<BaseViewModelAnd>();
-        services.AddSingleton<DeviceTransferViaBTViewModel>();
-        services.AddSingleton<LoginViewModelAnd>();
+
 
         // 4. Register Logic/Data Services
-        services.AddScoped<IAppUtil, AppUtil>();
+        services.AddSingleton<IAppUtil, AppUtil>();
 
 
             // 6. Build the provider

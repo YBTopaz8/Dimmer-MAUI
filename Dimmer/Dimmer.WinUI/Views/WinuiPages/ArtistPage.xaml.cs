@@ -25,7 +25,7 @@ public sealed partial class ArtistPage : Page
     public ArtistPage()
     {
         InitializeComponent();
-        this.NavigationCacheMode = Microsoft.UI.Xaml.Navigation.NavigationCacheMode.Enabled;
+        this.NavigationCacheMode = NavigationCacheMode.Enabled;
 
         _compositor = ElementCompositionPreview.GetElementVisual(this).Compositor;
 
@@ -45,15 +45,15 @@ public sealed partial class ArtistPage : Page
         base.OnNavigatedTo(e);
         //DetailedSong = DetailedSong is null ? MyViewModel.SelectedSong : DetailedSong;
 
-        if (e.Parameter is SongDetailNavArgs args)
+        if (e.Parameter is BaseViewModelWin args)
         {
-            MyViewModel = (args.ExtraParam as BaseViewModelWin)!;       // reference, not copy
+            MyViewModel = args;       // reference, not copy
             MyViewModel.CurrentWinUIPage = this;
-            DetailedSong = args.Song;
+            DetailedSong = args.CurrentPlayingSongView;
         }
         MyViewModel.IsBackButtonVisible = WinUIVisibility.Visible;
-        ArtistNameInArtistPage.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
-        ArtistImageInArtistPage.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+        ArtistNameInArtistPage.Visibility = WinUIVisibility.Visible;
+        ArtistImageInArtistPage.Visibility = WinUIVisibility.Visible;
         this.DataContext = MyViewModel;
         pressedCounter = 0;
        
@@ -144,8 +144,8 @@ public sealed partial class ArtistPage : Page
             //    ConnectedAnimationService.GetForCurrentView()
             //        .PrepareToAnimate("BackConnectedAnimation", ArtistNameInArtistPage);
             //}
-            ArtistNameInArtistPage.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
-            ArtistImageInArtistPage.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+            ArtistNameInArtistPage.Visibility = WinUIVisibility.Collapsed;
+            ArtistImageInArtistPage.Visibility = WinUIVisibility.Collapsed;
             if (ArtistImageInArtistPage != null && VisualTreeHelper.GetParent(ArtistImageInArtistPage) != null)
             {
                 ConnectedAnimationService.GetForCurrentView()
@@ -238,19 +238,17 @@ public sealed partial class ArtistPage : Page
     private void ArtistDataTable_Loaded(object sender, RoutedEventArgs e)
     {
         MyViewModel.SearchToTQL(TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist?.Name));
-        
+
+
 
 
     }
 
     private void AlbumsIR_Loaded(object sender, RoutedEventArgs e)
     {
+        if (MyViewModel.SelectedArtist?.AlbumsByArtist is null) return;
         
-        ObservableCollection<AlbumModelView?>? albs = MyViewModel.RealmFactory.GetRealmInstance()
-            .Find<ArtistModel>(MyViewModel.SelectedArtist!.Id)!
-            .Albums.AsEnumerable().Select(x=>x.ToAlbumModelView()!).DistinctBy(x=>x.Name).ToObservableCollection()!;
-     
-        MyViewModel.SelectedArtist.AlbumsByArtist = albs;
+
         AlbumsIR.ItemsSource = MyViewModel.SelectedArtist.AlbumsByArtist;
     }
 
@@ -260,7 +258,7 @@ public sealed partial class ArtistPage : Page
         var send = (Button)sender;
                 var album = (AlbumModelView)send.DataContext;
 
-        AlbumModelView prevAlb ;
+        AlbumModelView? prevAlb ;
         if (prevAlbBtn is not null)
         {
             prevAlbBtn.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Colors.Transparent);
@@ -404,7 +402,7 @@ public sealed partial class ArtistPage : Page
         var bitmap = new  BitmapImage();
 
         // 5. Open the stream and assign it to the bitmap
-        using (var stream = await file.OpenAsync(Windows.Storage.FileAccessMode.Read))
+        using (var stream = await file.OpenAsync(FileAccessMode.Read))
         {
             await bitmap.SetSourceAsync(stream);
         }

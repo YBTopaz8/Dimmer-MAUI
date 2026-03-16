@@ -76,5 +76,12 @@
             {
                 return $"my fav";
             }
+
+            public static string? SortByDimsDesc () => "desc dims";
+       
+            public static string? SortByDimsAsc() => "asc dims";
+
+            public static string? SortByAlbumDesc() => "desc album";    
+
         }
     }

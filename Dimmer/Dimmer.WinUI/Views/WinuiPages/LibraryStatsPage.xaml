@@ -452,8 +452,8 @@
                                 <!--  Top Songs & Artists (Side by Side)  -->
                                 <Grid ColumnSpacing="12">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="auto" />
+                                        <ColumnDefinition Width="auto" />
                                     </Grid.ColumnDefinitions>
 
                                     <!--  Songs  -->
@@ -467,30 +467,72 @@
                                             Style="{StaticResource SubtitleTextBlockStyle}"
                                             Text="Top Songs (By Play Count)" />
 
-                                        <ItemsControl Grid.Row="1" ItemsSource="{x:Bind ViewModel.Stats.TopSongsByPlays, Mode=OneWay}">
-                                            <ItemsControl.ItemTemplate>
+                                        <ItemsRepeater Grid.Row="1"
+                                                      
+                                                      ItemsSource="{x:Bind ViewModel.Stats.TopSongsByPlays, Mode=OneWay}">
+                                            <ItemsRepeater.Layout>
+                                                <StackLayout Spacing="10"
+                                                             Orientation="Vertical" />
+
+
+                                            </ItemsRepeater.Layout>
+                                            <ItemsRepeater.ItemTemplate>
                                                 <DataTemplate x:DataType="local:DimmerStats">
-                                                    <Grid Margin="0,0,0,8">
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*" />
-                                                            <ColumnDefinition Width="Auto" />
-                                                        </Grid.ColumnDefinitions>
-                                                        <StackPanel>
-                                                            <TextBlock FontWeight="SemiBold" Text="{x:Bind Song.Title}" />
-                                                            <TextBlock
-                                                                FontSize="11"
-                                                                Foreground="Gray"
-                                                                Text="{x:Bind Song.ArtistName}" />
-                                                        </StackPanel>
-                                                        <TextBlock
-                                                            Grid.Column="1"
-                                                            VerticalAlignment="Center"
-                                                            FontWeight="Bold"
-                                                            Text="{x:Bind Count}" />
+                                                    <Grid>
+
+                                                        <Button Background="Transparent" BorderThickness="1"
+         Loaded="SongBtn_Loaded" x:Name="SongBtn"
+                                                                Click="SongBtn_Click"
+                                                                PointerEntered="SongBtn_PointerEntered"
+                                                                CommandParameter="{x:Bind Song, Mode=OneWay}"
+                                                                PointerExited="SongBtn_PointerExited">
+
+                                                            <Grid Margin="0,0,0,8" ColumnSpacing="10">
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*" />
+                                                                    <ColumnDefinition Width="Auto" />
+                                                                </Grid.ColumnDefinitions>
+                                                                <StackPanel>
+                                                                    <TextBlock FontWeight="SemiBold" Text="{x:Bind Song.Title}" />
+                                                                    <TextBlock
+             FontSize="11"
+             Foreground="Gray"
+             Text="{x:Bind Song.ArtistName}" />
+                                                                </StackPanel>
+                                                                <TextBlock
+         Grid.Column="1"
+         VerticalAlignment="Top"
+         FontWeight="Bold"
+         Text="{x:Bind Count}" />
+                                                            </Grid>
+
+                                                        </Button>
+
+
+
+                                                        <TeachingTip
+    x:Name="TestButton3TeachingTip" Loaded="TestButton3TeachingTip_Loaded"
+    Title="This is the title"
+    PreferredPlacement="Bottom"
+    Subtitle="And this is the subtitle"
+    >
+                                                            <TeachingTip.HeroContent>
+                                                                <Image
+            AutomationProperties.Name="Sunset"
+            Source="/Assets/SampleMedia/sunset.jpg" />
+                                                            </TeachingTip.HeroContent>
+                                                            <TeachingTip.Content>
+                                                                <TextBlock
+            Margin="0,16,0,0"
+            Text="Description can go here"
+            TextWrapping="WrapWholeWords" />
+                                                            </TeachingTip.Content>
+                                                        </TeachingTip>
                                                     </Grid>
+                                                   
                                                 </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
+                                            </ItemsRepeater.ItemTemplate>
+                                        </ItemsRepeater>
                                     </Grid>
 
                                     <!--  Artists  -->
@@ -506,7 +548,7 @@
                                         <ItemsControl Grid.Row="1" ItemsSource="{x:Bind ViewModel.Stats.TopArtistsByPlays, Mode=OneWay}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate x:DataType="local:DimmerStats">
-                                                    <Grid Margin="0,0,0,8">
+                                                    <Grid Margin="0,0,0,8" ColumnSpacing="10">
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="*" />
                                                             <ColumnDefinition Width="Auto" />
@@ -718,7 +760,8 @@
                         <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE72B;" />
                     </Button>
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                        <TextBlock Style="{ThemeResource TitleTextBlockStyle}" Text="Library Analytics" />
+                        <TextBlock Style="{ThemeResource TitleTextBlockStyle}" Text="Library Analytics" 
+                                   x:Name="TitleTextBlock" Loaded="TitleTextBlock_Loaded"/>
                         <TextBlock
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             Style="{ThemeResource CaptionTextBlockStyle}"

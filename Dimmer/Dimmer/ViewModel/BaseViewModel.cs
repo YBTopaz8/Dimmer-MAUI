@@ -131,11 +131,16 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         PlaybackManager = new RuleBasedPlaybackManager(RealmFactory);
 
+
+
+
         SearchResultsHolder.Connect()
+            
              .AutoRefresh(song => song.IsFavorite)
         .AutoRefresh(song => song.IsCurrentPlayingHighlight)
         .AutoRefresh(song => song.HasSyncedLyrics)
         .AutoRefresh(song => song.CoverImagePath)
+        .AutoRefresh(song => song.PlayCompletedCount)
             .ObserveOn(RxSchedulers.UI) // Important for UI updates
             .Bind(out _searchResults)
             .Subscribe(x =>
@@ -338,7 +343,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             }
         }
     }
-    private static readonly SongModelViewEqualityComparer _songComparer = new();
+
 
     public void InitializeAllVMCoreComponents()
     {
@@ -457,18 +462,14 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     })
     .Select(query =>
     {
-        return Observable.Start(() =>
-        
+        return Observable.Start(() =>        
         {
-
-
             return PerformSearchBackground(query);
         }, RxSchedulers.Background);
     })
     
     .Switch()
-    .ObserveOn(RxSchedulers.UI)
-    
+    .ObserveOn(RxSchedulers.UI)    
     .Subscribe(result =>
     {
 
@@ -1057,7 +1058,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     if (songId == ObjectId.Empty)
                     {
 
-                        songModel= realm.All<SongModel>().LastOrDefaultNullSafe();
+                        songModel = realm.All<DimmerPlayEvent>().LastOrDefaultNullSafe().SongsLinkingToThisEvent.FirstOrDefaultNullSafe();
                     }
 
                     if (songModel != null && !string.IsNullOrEmpty(songModel.TitleDurationKey))
@@ -1595,7 +1596,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial string AppTitle { get; set; } = "Dimmer";
 
-    public static string CurrentAppVersion = "1.8.5";
+    public static string CurrentAppVersion = "1.8.7";
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]
@@ -2983,8 +2984,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                         }
                         else
                         {
-                            const int songsToTakeBefore = 100;
-                            const int songsToTakeAfter = 100;
+                            const int songsToTakeBefore = 500;
+                            const int songsToTakeAfter = 500;
                             const int totalQueueSize = songsToTakeBefore + 1 + songsToTakeAfter;
 
                             int sliceStart = Math.Max(0, startIndex - songsToTakeBefore);
@@ -3285,36 +3286,28 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial bool ScrobbleOnCompletion { get; set; } = true;
 
-    [ObservableProperty]
-    public partial bool ScrobbleOnStart { get; set; } = false;
+   
 
 
     [RelayCommand]
-    public async Task NextTrackAsync()
+    public async Task NextTrackAsync(bool IsSkipYes=true)
     {
-        if (IsDimmerPlaying && CurrentPlayingSongView != null && CurrentTrackPositionPercentage < 90)
+        if (IsDimmerPlaying && CurrentPlayingSongView != null && (CurrentTrackPositionPercentage < 90 || IsSkipYes))
         {
             await BaseAppFlow.UpdateDatabaseWithPlayEvent(
                 
                 CurrentPlayingSongView,
                 StatesMapper.Map(DimmerPlaybackState.Skipped),
                 CurrentTrackPositionSeconds);
-            if (ScrobbleOnCompletion)
-            {
-                if (IsDimmerPlaying && _songToScrobble != null && IsLastfmAuthenticated && ScrobbleToLastFM)
-                {
-                    await lastfmService.ScrobbleAsync(_songToScrobble);
-                }
-                _stateService.SetCurrentLogMsg("Ended manually", Data.Models.DimmerLogLevel.Info);
-            }
+           
+
         }
-        else if (IsDimmerPlaying && CurrentPlayingSongView != null && CurrentTrackPositionPercentage >= 90)
+        else if (IsDimmerPlaying && CurrentPlayingSongView != null && (CurrentTrackPositionPercentage >= 90 || !IsSkipYes))
         {
             await BaseAppFlow.UpdateDatabaseWithPlayEvent(
                 
                 CurrentPlayingSongView,
-                StatesMapper.Map(DimmerPlaybackState.PlayCompleted),
-                CurrentTrackDurationSeconds);
+                StatesMapper.Map(DimmerPlaybackState.PlayCompleted));
             if (ScrobbleOnCompletion)
             {
                 if (IsDimmerPlaying && _songToScrobble != null && IsLastfmAuthenticated && ScrobbleToLastFM)
@@ -3368,11 +3361,16 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
     [RelayCommand]
-    public async Task PreviousTrackAsync()
+    public async Task PreviousTrackAsync(bool SkipToPreviousDirectly=false)
     {
-        if (_audioService.CurrentPosition > 5)
+        if (_audioService.CurrentPosition > 15 && !SkipToPreviousDirectly)
         {
             _audioService.Seek(0);
+            await BaseAppFlow.UpdateDatabaseWithPlayEvent(
+
+                  CurrentPlayingSongView,
+                  StatesMapper.Map(DimmerPlaybackState.RestartSong),
+                  CurrentTrackPositionSeconds);
             return;
         }
         if (IsDimmerPlaying && CurrentPlayingSongView != null)
@@ -4144,7 +4142,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             return;
         };
         SelectedArtist = artist;
-       _= Task.Run(()=> SelectedArtist.RefreshAlbumAndSongsFromDB(RealmFactory));
+       SelectedArtist.RefreshAlbumAndSongsFromDB(RealmFactory);
     }
     public async Task<bool> SelectedArtistAndNavtoPage(SongModelView? song)
     {
@@ -7715,6 +7713,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [RelayCommand]
     public async Task LoadUserLastFMInfo()
     {
+        try
+        {
+
         if (!lastfmService.IsAuthenticated)
         {
             return;
@@ -7735,9 +7736,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         CurrentUserLocal.LastFMAccountInfo.Playlists = usr.Playlists;
         CurrentUserLocal.LastFMAccountInfo.Registered = usr.Registered;
         CurrentUserLocal.LastFMAccountInfo.Gender = usr.Gender;
-        CurrentUserLocal.LastFMAccountInfo.Image ??= new LastImageView();
-        CurrentUserLocal.LastFMAccountInfo.Image.Url = usr.Images.LastOrDefault()?.Url;
-        CurrentUserLocal.LastFMAccountInfo.Image.Size = usr.Images.LastOrDefault()?.Size;
+        CurrentUserLocal.LastFMAccountInfo.Image ??= new LastImageView(){
+            Url = usr.Images.LastOrDefault()?.Url
+        ,Size = usr.Images.LastOrDefault()?.Size
+        };
+        
         var rlm = RealmFactory.GetRealmInstance();
         await rlm.WriteAsync(
             () =>
@@ -7748,20 +7751,22 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     var usrr = usre.FirstOrDefault();
                     if (usrr is not null)
                     {
-                        usrr.LastFMAccountInfo = new();
-                        usrr.LastFMAccountInfo.Name = usr.Name;
-                        usrr.LastFMAccountInfo.RealName = usr.RealName;
-                        usrr.LastFMAccountInfo.Url = usr.Url;
-                        usrr.LastFMAccountInfo.Country = usr.Country;
-                        usrr.LastFMAccountInfo.Age = usr.Age;
-                        usrr.LastFMAccountInfo.Playcount = usr.Playcount;
-                        usrr.LastFMAccountInfo.Playlists = usr.Playlists;
-                        usrr.LastFMAccountInfo.Registered = usr.Registered;
-                        usrr.LastFMAccountInfo.Gender = usr.Gender;
+                        usrr.LastFMAccountInfo = new()
+                        {
+                            Name = usr.Name,
+                            RealName = usr.RealName,
+                            Url = usr.Url,
+                            Country = usr.Country,
+                            Age = usr.Age,
+                            Playcount = usr.Playcount,
+                            Playlists = usr.Playlists,
+                            Registered = usr.Registered,
+                            Gender = usr.Gender,
 
-                        usrr.LastFMAccountInfo.Image = new LastFMUser.LastImage();
-                        usrr.LastFMAccountInfo.Image.Url = usr.Images.LastOrDefault().Url;
-                        usrr.LastFMAccountInfo.Image.Size = usr.Images.LastOrDefault().Size;
+                            Image = new LastFMUser.LastImage()
+                        };
+                        usrr.LastFMAccountInfo.Image.Url = usr?.Images?.LastOrDefault()?.Url;
+                        usrr.LastFMAccountInfo.Image.Size = usr?.Images?.LastOrDefault()?.Size;
                         rlm.Add(usrr, update: true);
                     }
                     else
@@ -7787,6 +7792,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     }
                 }
             });
+
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
         //await LoadUserLastFMDataAsync();
     }
 
