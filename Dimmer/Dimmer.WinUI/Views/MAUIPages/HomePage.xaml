@@ -437,9 +437,13 @@
                                 Background="Transparent"
                                 BorderWidth="0"
                                 Command="{Binding PreviousTrackCommand}"
+                                
                                 ImageSource="skipprevious.png"
                                 IsEnabled="{Binding IsTimestampingInProgress, Converter={converters:BoolToInverseConverter}}"
-                                Loaded="PreviousButtonLoaded">
+                                Loaded="ButtonLoaded">
+                                    <Button.CommandParameter>
+                                        <x:Boolean>False</x:Boolean>
+                                    </Button.CommandParameter>
                                 <Button.Behaviors>
                                     <toolkit:IconTintColorBehavior TintColor="{Binding CurrentPlaySongDominantColor}" />
                                 </Button.Behaviors>
@@ -491,7 +495,10 @@
                             ImageSource="skipnext.png"
                             IsEnabled="{Binding IsTimestampingInProgress, Converter={converters:BoolToInverseConverter}}"
                             Loaded="ButtonLoaded">
-                            <Button.Behaviors>
+                                <Button.CommandParameter>
+                                    <x:Boolean>True</x:Boolean>
+                                </Button.CommandParameter>
+                                <Button.Behaviors>
                                 <toolkit:IconTintColorBehavior TintColor="{Binding CurrentPlaySongDominantColor}" />
                             </Button.Behaviors>
                         </Button>
