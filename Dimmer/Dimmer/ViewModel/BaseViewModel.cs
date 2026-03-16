@@ -1596,7 +1596,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial string AppTitle { get; set; } = "Dimmer";
 
-    public static string CurrentAppVersion = "1.8.6";
+    public static string CurrentAppVersion = "1.8.7";
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]
@@ -7713,6 +7713,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [RelayCommand]
     public async Task LoadUserLastFMInfo()
     {
+        try
+        {
+
         if (!lastfmService.IsAuthenticated)
         {
             return;
@@ -7733,9 +7736,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         CurrentUserLocal.LastFMAccountInfo.Playlists = usr.Playlists;
         CurrentUserLocal.LastFMAccountInfo.Registered = usr.Registered;
         CurrentUserLocal.LastFMAccountInfo.Gender = usr.Gender;
-        CurrentUserLocal.LastFMAccountInfo.Image ??= new LastImageView();
-        CurrentUserLocal.LastFMAccountInfo.Image.Url = usr.Images.LastOrDefault()?.Url;
-        CurrentUserLocal.LastFMAccountInfo.Image.Size = usr.Images.LastOrDefault()?.Size;
+        CurrentUserLocal.LastFMAccountInfo.Image ??= new LastImageView(){
+            Url = usr.Images.LastOrDefault()?.Url
+        ,Size = usr.Images.LastOrDefault()?.Size
+        };
+        
         var rlm = RealmFactory.GetRealmInstance();
         await rlm.WriteAsync(
             () =>
@@ -7746,20 +7751,22 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     var usrr = usre.FirstOrDefault();
                     if (usrr is not null)
                     {
-                        usrr.LastFMAccountInfo = new();
-                        usrr.LastFMAccountInfo.Name = usr.Name;
-                        usrr.LastFMAccountInfo.RealName = usr.RealName;
-                        usrr.LastFMAccountInfo.Url = usr.Url;
-                        usrr.LastFMAccountInfo.Country = usr.Country;
-                        usrr.LastFMAccountInfo.Age = usr.Age;
-                        usrr.LastFMAccountInfo.Playcount = usr.Playcount;
-                        usrr.LastFMAccountInfo.Playlists = usr.Playlists;
-                        usrr.LastFMAccountInfo.Registered = usr.Registered;
-                        usrr.LastFMAccountInfo.Gender = usr.Gender;
+                        usrr.LastFMAccountInfo = new()
+                        {
+                            Name = usr.Name,
+                            RealName = usr.RealName,
+                            Url = usr.Url,
+                            Country = usr.Country,
+                            Age = usr.Age,
+                            Playcount = usr.Playcount,
+                            Playlists = usr.Playlists,
+                            Registered = usr.Registered,
+                            Gender = usr.Gender,
 
-                        usrr.LastFMAccountInfo.Image = new LastFMUser.LastImage();
-                        usrr.LastFMAccountInfo.Image.Url = usr.Images.LastOrDefault().Url;
-                        usrr.LastFMAccountInfo.Image.Size = usr.Images.LastOrDefault().Size;
+                            Image = new LastFMUser.LastImage()
+                        };
+                        usrr.LastFMAccountInfo.Image.Url = usr?.Images?.LastOrDefault()?.Url;
+                        usrr.LastFMAccountInfo.Image.Size = usr?.Images?.LastOrDefault()?.Size;
                         rlm.Add(usrr, update: true);
                     }
                     else
@@ -7785,6 +7792,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     }
                 }
             });
+
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
         //await LoadUserLastFMDataAsync();
     }
 
