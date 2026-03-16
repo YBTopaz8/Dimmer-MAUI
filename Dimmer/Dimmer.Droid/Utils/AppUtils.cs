@@ -23,7 +23,7 @@ internal class AppUtil : IAppUtil
     BaseViewModelAnd baseViewModelAnd { get; }
     public Shell GetShell()
     {
-        return new AppShell(baseViewModelAnd);
+        return new DimmerAppShell(baseViewModelAnd);
     }
 
     public Window LoadWindow()

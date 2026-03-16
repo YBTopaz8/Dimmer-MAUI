@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Dimmer.ViewModels;
 
-internal partial class BaseViewModelAnd : BaseViewModel, IDisposable
+public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 {
     public BaseViewModelAnd(
         IDimmerStateService dimmerStateService,

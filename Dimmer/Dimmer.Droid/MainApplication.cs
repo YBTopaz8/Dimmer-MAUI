@@ -15,7 +15,7 @@ namespace Dimmer;
 // [Application(Debuggable = false)]
 #endif
 [Application(Debuggable = true)]
-public class MainApplication : Application, Application.IActivityLifecycleCallbacks
+public partial class MainApplication : MauiApplication, Application.IActivityLifecycleCallbacks
 {
 
     public static IServiceProvider ServiceProvider { get; set; }
@@ -43,7 +43,6 @@ public class MainApplication : Application, Application.IActivityLifecycleCallba
         base.OnCreate();
 
 
-        ServiceProvider = Bootstrapper.Init();
 
 
     }
@@ -83,6 +82,7 @@ public class MainApplication : Application, Application.IActivityLifecycleCallba
         // However, we still log here for completeness.
     }
 
+    
 
     private static readonly ExceptionFilterPolicy _filterPolicy = new ExceptionFilterPolicy();
 
@@ -290,4 +290,6 @@ public class MainApplication : Application, Application.IActivityLifecycleCallba
     {
 
     }
+
+    protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
 }

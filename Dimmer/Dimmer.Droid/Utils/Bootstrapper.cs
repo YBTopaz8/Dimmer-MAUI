@@ -8,14 +8,15 @@ internal class Bootstrapper
 
 
 
-    public static IServiceProvider Init()
+    public static IServiceProvider Init(MauiAppBuilder builder)
     {
         try
         {
-            var services = new ServiceCollection();
-            LinkerKeepAlive.Keep();
+            
+                var services = builder.Services;
+            
 
-        services.AddDimmerCoreServices();
+            services.AddDimmerCoreServices();
 
 
           
@@ -29,7 +30,7 @@ internal class Bootstrapper
 
 
         // 4. Register Logic/Data Services
-        services.AddScoped<IAppUtil, AppUtil>();
+        services.AddSingleton<IAppUtil, AppUtil>();
 
 
             // 6. Build the provider
