@@ -1,15 +1,20 @@
-﻿namespace DimmerDroid.Droid
+﻿using Dimmer;
+using Dimmer.Utils;
+
+namespace DimmerDroid.Droid;
+
+public static class MauiProgram
 {
-    public static class MauiProgram
+    public static MauiApp CreateMauiApp()
     {
-        public static MauiApp CreateMauiApp()
-        {
-            var builder = MauiApp.CreateBuilder();
+        var builder = MauiApp.CreateBuilder();
 
-            builder
-                .UseSharedMauiApp();
+        builder
+            .UseSharedMauiApp();
 
-            return builder.Build();
-        }
+
+        MainApplication.ServiceProvider = Bootstrapper.Init(builder);
+
+        return builder.Build();
     }
 }
