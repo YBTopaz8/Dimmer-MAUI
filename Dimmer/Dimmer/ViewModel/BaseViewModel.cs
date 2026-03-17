@@ -5604,7 +5604,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             SelectedSong.HasLyrics = SelectedSong.HasSyncedLyrics || (!string.IsNullOrEmpty(selectedResult.PlainLyrics) && selectedResult.PlainLyrics.Length > 10);
             _logger.LogInformation("Lyrics selected and saved for song '{SongTitle}'", SelectedSong.Title);
 
-            
+            OnPropertyChanged(nameof(SelectedSong));
             LyricsSearchResults.Clear();
             
         }

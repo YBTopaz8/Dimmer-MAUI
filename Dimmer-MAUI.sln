@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hqub.Lastfm", "..\Last.fm\s
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParseLiveQuery", "..\Parse-LiveQueries-DOTNET\ParseLiveQuery\ParseLiveQuery.csproj", "{D4A7B2CC-1D4A-337E-2B56-B6E76ACE9E43}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DimmerDroid.Droid", "Dimmer\DimmerDroid.Droid\DimmerDroid.Droid.csproj", "{30A25BF1-CDE5-B644-9309-0C400C5A6300}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -59,6 +61,12 @@ Global
 		{D4A7B2CC-1D4A-337E-2B56-B6E76ACE9E43}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D4A7B2CC-1D4A-337E-2B56-B6E76ACE9E43}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D4A7B2CC-1D4A-337E-2B56-B6E76ACE9E43}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30A25BF1-CDE5-B644-9309-0C400C5A6300}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30A25BF1-CDE5-B644-9309-0C400C5A6300}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30A25BF1-CDE5-B644-9309-0C400C5A6300}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{30A25BF1-CDE5-B644-9309-0C400C5A6300}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30A25BF1-CDE5-B644-9309-0C400C5A6300}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30A25BF1-CDE5-B644-9309-0C400C5A6300}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

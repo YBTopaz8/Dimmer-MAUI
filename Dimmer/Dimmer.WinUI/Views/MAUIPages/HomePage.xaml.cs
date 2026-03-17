@@ -24,7 +24,9 @@ using Slider = Microsoft.Maui.Controls.Slider;
 
 using ToolTip = Microsoft.UI.Xaml.Controls.ToolTip;
 using View = Microsoft.Maui.Controls.View;
-
+using MButton = Microsoft.Maui.Controls.Button;
+using Dimmer.WinUI.Views.WinuiPages.SingleSongPage.SubPage;
+using Dimmer.WinUI.Views.WinuiPages.SingleSongPage;
 
 
 namespace Dimmer.WinUI.Views.MAUIPages;
@@ -34,6 +36,7 @@ public partial class HomePage : ContentPage
 {
 
     public BaseViewModelWin MyViewModel { get; internal set; }
+    SongModelView CurrentPlayingSong => MyViewModel.CurrentPlayingSongView;
     private readonly Compositor _compositor = PlatUtils.MainWindowCompositor;
     public HomePage(BaseViewModelWin vm, IWinUIWindowMgrService windowManagerService, LoginViewModelWin LoginVM,
         SessionManagementViewModel sessVM)
@@ -1225,5 +1228,50 @@ public partial class HomePage : ContentPage
     {
         await MyViewModel.PreviousTrackAsync(true);
 
+    }
+
+    private void ViewLyricsChip_Loaded(object sender, EventArgs e)
+    {
+        if(CurrentPlayingSong.HasSyncedLyrics)
+        {
+            ViewLyricsChip.Behaviors
+                .Add(
+                    new IconTintColorBehavior()                        
+                    {
+                        TintColor = ColorsM.DarkSlateBlue,
+                    });
+            return;
+        }
+        if(CurrentPlayingSong.HasLyrics)
+        {
+            ViewLyricsChip.Behaviors
+                .Add(
+                    new IconTintColorBehavior()
+                    {
+                        TintColor = ColorsM.DarkSlateGray,
+                    });
+            return;
+        }
+        var platElt = ((MButton)sender).Handler?.PlatformView;
+        var nativeElt = (UIElement?)platElt;
+        if(nativeElt is null)
+            return;
+
+        nativeElt.RightTapped += async (s, e) =>
+        {
+            MyViewModel.NavigateToAnyPageOfGivenType(typeof(SingleSongLyrics));
+            MyViewModel.SelectedSong = CurrentPlayingSong;
+
+            await Task.Delay(450);
+            
+
+            if(MyViewModel.MainWindow.ContentFrame.CurrentSourcePageType?.Name == "SingleSongLyrics")
+            {
+                var typee= MyViewModel.MainWindow.ContentFrame.Content.GetType();
+
+                await MyViewModel.ShowProgressSearchLyricsThenHideProgressAsync();
+                
+            }
+        };
     }
 }

@@ -1483,6 +1483,13 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     {
        DimmerCoreWindow = coreWindow;
     }
+    public async Task ShowProgressSearchLyricsThenHideProgressAsync()
+    {
+        ShowIndeterminateProgressBar();
+        await SearchLyricsAsync();
+        HideIndeterminateProgressBar();
+
+    }
 
     [ObservableProperty]
     public partial SmokeViewQueueGrid NowPlayingView { get; set; }

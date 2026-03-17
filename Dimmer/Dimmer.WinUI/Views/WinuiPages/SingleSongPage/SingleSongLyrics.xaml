@@ -38,7 +38,7 @@
 
         <Frame
             x:Name="ContentFrame"
-            Grid.Row="1"
+            Grid.Row="1" x:FieldModifier="Public"
             IsNavigationStackEnabled="False" />
     </Grid>
 

@@ -287,7 +287,7 @@
                                             <Image
                                                 x:Name="coverArtImage"
                                                 Grid.Row="1"
-                                                Width="55"
+                                                Width="65"
                                                 HorizontalAlignment="Left"
                                                 x:FieldModifier="Public"
                                                 Loaded="CoverArtImage_Loaded"
@@ -410,6 +410,16 @@
                         </dgView:TableViewTemplateColumn>
 
 
+
+                        <dgView:TableViewTextColumn Binding="{Binding OtherArtistName}" x:Name="ArtistsColumn"
+                                                        
+                                                        IsReadOnly="True"
+                                                    Header="Artists" />
+
+                        <dgView:TableViewTextColumn Binding="{Binding AlbumName}" x:Name="AlbumColumn"
+                                                        
+                                                        IsReadOnly="True"
+                                                    Header="Album" />
 
                         <dgView:TableViewTextColumn Binding="{Binding DurationFormatted}" x:Name="DurationFormatted"
                                                         
