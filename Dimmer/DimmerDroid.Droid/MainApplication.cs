@@ -3,7 +3,7 @@ using Android.Content;
 using Android.OS;
 using Android.Runtime;
 using Dimmer.Utils;
-using Debug =System.Diagnostics.Debug;
+//using Debug =System.Diagnostics.Debug;
 using Application = Android.App.Application;
 using Environment = System.Environment;
 using Path = System.IO.Path;
