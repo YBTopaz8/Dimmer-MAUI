@@ -145,6 +145,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             .Bind(out _searchResults)
             .Subscribe(x =>
             {
+                    IsSearchResultEmpty = SearchResults.Count == 0;
+                UpdateIsSearchResultEmpty(IsSearchResultEmpty);
                 Debug.WriteLine(x.Count);
             })
             .DisposeWith(CompositeDisposables);
@@ -162,6 +164,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
 
+    public virtual void UpdateIsSearchResultEmpty(bool isSearchResultEmpty)
+    {
+
+    }
     private readonly BehaviorSubject<IVirtualRequest> _historyRequest =
     new(new VirtualRequest(0, 150));
     public void UpdateHistoryVirtualRange(int startIndex, int size)
@@ -174,6 +180,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     [ObservableProperty]
     public partial bool IsPlayEventsLoading { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsSearchResultEmpty { get; set; }
 
 
     [ObservableProperty]
@@ -258,7 +267,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     {
        
         public RealmQueryPlan? Plan { get; set; }
-        public IEnumerable<SongModelView?>? SongsResult { get; set; }
+        public IEnumerable<SongModelView>? SongsResult { get; set; }
         public string? ErrorMessage { get; set; }
     }
 
@@ -448,41 +457,50 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
 
         Debug.WriteLine(DateTime.Now + "start auery pipeline");
+
+
         var searchStream = _searchQuerySubject
-    .Throttle(TimeSpan.FromMilliseconds(350), RxSchedulers.Background)
-    .DistinctUntilChanged()
-    .Do(query =>
-    {
-        RxSchedulers.UI.ScheduleTo(() =>
-        {
+       .Throttle(TimeSpan.FromMilliseconds(350), RxSchedulers.Background)
+       .DistinctUntilChanged()
+       .Do(query =>
+       {
+           RxSchedulers.UI.ScheduleTo(() =>
+           {
+               CurrentTqlQueryUI = query;
+               Debug.WriteLine($"[UI] Query updated: {query}");
+           });
+       })
+       .Select(query =>
+       {
+           Debug.WriteLine($"[Background] Starting search for: {query}");
 
-            CurrentTqlQueryUI = query;
-
-        });
-    })
-    .Select(query =>
-    {
-        return Observable.Start(() =>        
-        {
-            return PerformSearchBackground(query);
-        }, RxSchedulers.Background);
-    })
-    
-    .Switch()
-    .ObserveOn(RxSchedulers.UI)    
-    .Subscribe(result =>
-    {
-
-
-        // 3. Fast Update on UI Thread
-        ApplySearchResults(result);
-
-    },
-    ex => _logger.LogError(ex, "Search pipeline crashed"))
-    .DisposeWith(CompositeDisposables);
-     
-
-
+           // FIX 1: Use Observable.Start + Ensure operator to keep observable alive
+           return Observable.Start(() =>
+           {
+               Debug.WriteLine($"[ThreadPool] Task started for: {query}");
+               var result = PerformSearchBackground(query); // NOT Task.Run!
+               Debug.WriteLine($"[ThreadPool] Task completed with {result?.SongsResult?.Count()} songs");
+               return result;
+           }, RxSchedulers.Background)
+           .ObserveOn(RxSchedulers.UI) // FIX 2: ObserveOn HERE, inside the select
+           .Do(result =>
+           {
+               // This now runs on UI thread!
+               Debug.WriteLine($"[UI Thread] Got result with {result?.SongsResult?.Count()} songs, thread: {Environment.CurrentManagedThreadId}");
+           });
+       })
+       .Switch() // Now switching between observables that already target UI
+       .Subscribe(result =>
+       {
+           Debug.WriteLine($"[Subscribe] UI thread executing ApplySearchResults with {result?.SongsResult?.Count()} songs");
+           ApplySearchResults(result);
+       },
+       ex =>
+       {
+           Debug.WriteLine($"[Error] {ex.Message}");
+           _logger.LogError(ex, "Search pipeline crashed");
+       })
+       .DisposeWith(CompositeDisposables);
 
 
         Debug.WriteLine($"{DateTime.Now}: Search query subscription set up.");
@@ -555,24 +573,28 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         return;
     }
 
-    private void ApplySearchResults(SearchResult result)
+    private void ApplySearchResults(SearchResult? result)
     {
         IsTqlBusy = false;
 
-        if (!string.IsNullOrEmpty(result.ErrorMessage))
+        if(result == null)
+            return;
+
+        if(!string.IsNullOrEmpty(result.ErrorMessage))
         {
             TQLUserSearchErrorMessage = result.ErrorMessage;
             return;
         }
 
-
-        SearchResultsHolder.Edit(innerList =>
-        {
-            Debug.WriteLine(innerList.Count);
-            innerList.Clear();
-            innerList.AddRange(result.SongsResult);
-        });
-
+        if(result.SongsResult is not null)
+        {       SearchResultsHolder.Edit(
+                innerList =>
+                {
+                    Debug.WriteLine(innerList.Count);
+                    innerList.Clear();
+                    innerList.AddRange(result.SongsResult);
+                });
+        }
         // Update Debuggers
         if (result.Plan != null)
         {
@@ -584,7 +606,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     
     private SearchResult PerformSearchBackground(string queryText)
     {
-        var realmm = RealmFactory.GetRealmInstance();
+        using var realmm = RealmFactory.GetRealmInstance();
         // A. Fast Fail for Empty Query
         if (string.IsNullOrWhiteSpace(queryText) )
         {
@@ -607,10 +629,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         try
         {
-            using var realm = RealmFactory.GetRealmInstance();
-
+           
             // C. Realm Filter (Zero-Copy, Fast)
-            var query = realm.All<SongModel>().Filter(plan.RqlFilter);
+            var query = realmm.All<SongModel>().Filter(plan.RqlFilter);
 
             // D. Sorting
             if (plan.SortDescriptions.Count > 0)
@@ -627,13 +648,13 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             if (plan.InMemoryPredicate != null)
             {
                 // Note: We MUST AsEnumerable() before checking C# logic
-                intermediateList = intermediateList.AsEnumerable().Where(x => plan.InMemoryPredicate(x.ToSongModelView()));
+                intermediateList = intermediateList.AsEnumerable().Where(x => plan.InMemoryPredicate(x.ToSongModelView()!));
             }
 
             // F. Final Projection
             // Using ToList() here snapshots the data for the UI thread
             var finalViewList = intermediateList
-                .Select(x => x.ToSongModelView())
+                .Select(x => x.ToSongModelView()!)
              .ToList()
                 ;
 
@@ -884,7 +905,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 switch (aia.Position)
                 {
                     case "next":
-                        PlaybackQueueSource.InsertRange(songsToAdd, _currentPlayinSongIndexInPlaybackQueue + 1);
+                        PlaybackQueueSource.InsertRange(songsToAdd, nextIndexToAddIn);
                         //_= ShowNotification($"Added {songsToAdd.Count} songs to next in queue.");
                         break;
                     case "end":
@@ -1596,7 +1617,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial string AppTitle { get; set; } = "Dimmer";
 
-    public static string CurrentAppVersion = "1.8.7";
+    public static string CurrentAppVersion = "1.8.8";
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]
@@ -2879,9 +2900,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             }
         }
     }
-
     #endregion
 
+    /// <summary>
+    /// Used to let me know where to slot in the "AddToNext" song 
+    /// </summary>
+    int nextIndexToAddIn;
     /// <summary>
     /// The single, core method responsible for playing a song. Handles all validation, audio service interaction, and
     /// UI updates.
@@ -2890,6 +2914,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     /// <returns>True if playback started successfully, otherwise false.</returns>
     private async Task<bool> PlayInternalAsync(SongModelView? songToPlay)
     {
+
         // A. Stop current playback and clear UI if the new song is null.
         if (songToPlay == null)
         {
@@ -2928,6 +2953,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             // F. Update history and UI state *after* successful initialization.
             PlaybackManager.AddSongToHistory(songToPlay);
 
+            nextIndexToAddIn = _currentPlayinSongIndexInPlaybackQueue + 1;
             return true; // Playback started successfully
         }
         catch (Exception ex)
