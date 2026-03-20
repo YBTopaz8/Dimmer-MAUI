@@ -14,8 +14,8 @@
     xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
     mc:Ignorable="d">
 
-    <ScrollViewer>
-    <StackPanel Margin="10,0">
+    <ScrollViewer Background="#1e1e1e">
+    <StackPanel Margin="10,0" HorizontalAlignment="Center" Width="1000">
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -26,13 +26,15 @@
                 <Button x:Name="PickBackupFolder" Content="PickFolder"
                         Click="PickBackupFolder_Click"/>
             </StackPanel>
-            <Button Grid.Column="1">
+            <Button Grid.Column="1" x:Name="ClosePopup" Click="ClosePopup_Click">
                 <SymbolIcon Symbol="Cancel" />
             </Button>
         </Grid>
         <TextBlock Text="{x:Bind MyViewModel.PickedUpBackup.BackupDate,Mode=OneWay}" />
         <TextBlock Text="{x:Bind MyViewModel.PickedUpBackup.Version,Mode=OneWay}" />
 
+            <Button Content="Confirm Restore" Click="ConfirmRestore_Click" x:Name="ConfirmRestore"
+                />
         <Expander>
             <Expander.Header>
                 <StackPanel Orientation="Horizontal">
@@ -61,7 +63,8 @@
                                       HorizontalAlignment="Center"  AutoGenerateColumns="False" >
 
                         <dgView:TableView.Columns>
-                            <dgView:TableViewTemplateColumn
+
+                             <dgView:TableViewTemplateColumn
                             x:Name="CoverImg"
                             Width="*" 
                             IsReadOnly="True"
@@ -71,7 +74,7 @@
                                     <DataTemplate>
 
                                         <StackPanel x:Name="TitleColumn"
-                                            Background="Transparent" PointerPressed="TitleColumn_PointerPressed">
+                                            Background="Transparent" >
                                             <Image Source="{Binding CoverImagePath}" Width="50" Height="50"/>
 
                                             
@@ -82,20 +85,20 @@
                                 </dgView:TableViewTemplateColumn.CellTemplate>
 
                             </dgView:TableViewTemplateColumn>
-                            <dgView:TableViewTextColumn Binding="{Binding SongName}"/>
-                    <dgView:TableViewTextColumn Binding="{Binding ArtistName}"/>
-                    <dgView:TableViewTextColumn Binding="{Binding AlbumName}"/>
-                    <dgView:TableViewTextColumn Binding="{Binding PlayTypeStr}"/>
-                    <dgView:TableViewCheckBoxColumn Binding="{Binding WasPlayCompleted}"/>
-                    <dgView:TableViewTextColumn Binding="{Binding PositionInSeconds}"/>
-                    <dgView:TableViewDateColumn Binding="{Binding EventDate}"/>
+                            <dgView:TableViewTextColumn Header="Play Type" Binding="{Binding PlayTypeStr}"/>
+
+                            <dgView:TableViewTextColumn Header="Song" Binding="{Binding SongName}"/>
+                    <dgView:TableViewTextColumn Header="Artist" Binding="{Binding ArtistName}"/>
+                    <dgView:TableViewTextColumn Header="Album" Binding="{Binding AlbumName}"/>
+                    <dgView:TableViewCheckBoxColumn Header="Was Play Completed" Binding="{Binding WasPlayCompleted}"/>
+                    <dgView:TableViewTextColumn Header="Position (Seconds)" Binding="{Binding PositionInSeconds}"/>
+                    <dgView:TableViewDateColumn Header="Event Date" Binding="{Binding EventDate}"/>
                     </dgView:TableView.Columns>
                 </dgView:TableView>
        
                 
                 </Expander.Content>
         </Expander>
-        
-    </StackPanel>
+        </StackPanel>
     </ScrollViewer>
 </Page>

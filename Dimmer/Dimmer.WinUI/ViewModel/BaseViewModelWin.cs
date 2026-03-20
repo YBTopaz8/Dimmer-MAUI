@@ -6,6 +6,7 @@
 using CommunityToolkit.Maui.Alerts;
 using CommunityToolkit.Maui.Core.Extensions;
 using Dimmer.WinUI.Views.CustomViews.WinuiViews;
+using Dimmer.WinUI.Views.WinuiPages.Settings;
 using System.Threading.Tasks;
 using System.Windows.Controls.Primitives;
 using Windows.UI.Core;
@@ -1214,6 +1215,14 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     }
 
     [RelayCommand]
+    public async Task RestoreCompleteDataAsync()
+    {
+        RestoreResult res = new();
+        if(PickedUpBackup is not null)
+            IsRestoreDone= await BackupService.RestoreCompleteDataAsync(PickedUpBackup, res);
+        
+    }
+    [RelayCommand]
     public async Task PickFolderToRestoreAppDataAsync()
     {
         var tcs = new TaskCompletionSource<(bool includeDefault, string customPath)>();
@@ -1273,6 +1282,9 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     [ObservableProperty]
     public partial string? SelectedFile { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsRestoreDone { get; set; }
 
 
     internal async Task BackUpAppDataAsync()

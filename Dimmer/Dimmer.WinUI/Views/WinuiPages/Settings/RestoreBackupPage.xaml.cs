@@ -38,4 +38,19 @@ public sealed partial class RestoreBackupPage : Page
         PickedUpBackupExpander.IsExpanded = true;
         await MyViewModel.PickFolderToRestoreAppDataAsync();
     }
+
+    public static event EventHandler? IsPopupDismissedRequested;
+    private async void ConfirmRestore_Click(object sender, RoutedEventArgs e)
+    {
+       await MyViewModel.RestoreCompleteDataAsync();
+        if(MyViewModel.IsRestoreDone)
+        {
+            ClosePopup_Click(sender, e);
+        }
+    }
+
+    private void ClosePopup_Click(object sender, RoutedEventArgs e)
+    {
+        IsPopupDismissedRequested?.Invoke(this, EventArgs.Empty);
+    }
 }

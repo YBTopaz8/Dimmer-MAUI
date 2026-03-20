@@ -367,10 +367,6 @@ public sealed partial class SettingsPage : Page
         await MyViewModel.BaseViewModelWin.BackUpAppDataAsync();   
     }
 
-    private async void RestoreData_Click(object sender, RoutedEventArgs e)
-    {
-        await MyViewModel.BaseViewModelWin.PickFolderToRestoreAppDataAsync();
-    }
 
     private void FetchLyricsData_Click(object sender, RoutedEventArgs e)
     {
@@ -470,5 +466,32 @@ public sealed partial class SettingsPage : Page
         
         ContentFrame.Navigate(pageType,MyViewModel,
             new SlideNavigationTransitionInfo { Effect = sliderNavigationTransitionEffect });
+    }
+
+    private void BackUpRestoreGrid_Loaded(object sender, RoutedEventArgs e)
+    {
+        RestoreBackupPage.IsPopupDismissedRequested += (s,e)=>
+        {
+            AnimationHelper.Prepare(AnimationHelper.Key_Backward, BackUpRestoreGrid);
+            AnimationHelper.TryStart(RestoreData, null, AnimationHelper.Key_Backward);
+
+            BackUpRestoreGrid.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed; 
+            MainGrid.Opacity = 1;
+            MainGrid.IsHitTestVisible = true;
+        };
+    }
+
+    private void RestoreData_Loaded(object sender, RoutedEventArgs e)
+    {
+        AnimationHelper.Prepare(AnimationHelper.Key_Backward, RestoreData);
+
+    }
+    private async void RestoreData_Click(object sender, RoutedEventArgs e)
+    {
+        AnimationHelper.Prepare(AnimationHelper.Key_Forward, RestoreData);
+        BackUpRestoreGrid.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+        AnimationHelper.TryStart(BackUpRestoreGrid, null, AnimationHelper.Key_Forward);
+        MainGrid.Opacity = 0.2;
+        MainGrid.IsHitTestVisible = false;
     }
 }
