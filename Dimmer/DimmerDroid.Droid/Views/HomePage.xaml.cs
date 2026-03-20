@@ -112,4 +112,52 @@ public partial class HomePage : ContentPage
         MyViewModel.SelectedSong=song;
         await Shell.Current.GoToAsync(nameof(DetailsOverview), true);    
     }
+
+    private void NPBottomBar_PanUpdated(object sender, PanUpdatedEventArgs e)
+    {
+        bool IsSwipedUp = e.TotalY < -100; // Adjust the threshold as needed
+        bool IsSwipedDown = e.TotalY > 100; // Adjust the threshold as needed
+        bool IsSwipedLeft = e.TotalX < -100; // Adjust the threshold as needed
+        bool IsSwipedRight = e.TotalX > 100; // Adjust the threshold as needed
+
+        if (IsSwipedUp)
+        {
+            NPBtmSheet.Show();
+            // Handle swipe up action
+            Debug.WriteLine("Swiped Up");
+        }
+        else if (IsSwipedDown)
+        {
+            // Handle swipe down action
+            Debug.WriteLine("Swiped Down");
+        }
+        else if (IsSwipedLeft)
+        {
+            // Handle swipe left action
+            Debug.WriteLine("Swiped Left");
+        }
+        else if (IsSwipedRight)
+        {
+            // Handle swipe right action
+            Debug.WriteLine("Swiped Right");
+        }
+
+    }
+
+    private void NPBtmSheet_StateChanged(object sender, DevExpress.Maui.Core.ValueChangedEventArgs<BottomSheetState> e)
+    {
+
+    }
+
+    private void CurrentPlayingTitleChip_Tap(object sender, HandledEventArgs e)
+    {
+
+        NPBtmSheet.Show();
+        NPBtmSheet.State = BottomSheetState.FullExpanded;
+    }
+
+    private void CurrentPlayingArtistChip_LongPress(object sender, HandledEventArgs e)
+    {
+
+    }
 }

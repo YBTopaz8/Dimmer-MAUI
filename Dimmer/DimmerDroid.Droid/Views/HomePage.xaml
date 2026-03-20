@@ -100,10 +100,13 @@
         </dx:DXCollectionView>
 
 
-        <dx:DXStackLayout Margin="10,10" CornerRadius="20" Grid.Row="2" BackgroundColor="#1e1e1e" BorderThickness="2" VerticalOptions="End"
+        <dx:DXStackLayout Margin="2,0" CornerRadius="5" Grid.Row="2" BackgroundColor="Black" BorderThickness="2" VerticalOptions="End"
                           ZIndex="1" x:Name="NPBottomBar">
+            <dx:DXStackLayout.GestureRecognizers>
+                <PanGestureRecognizer PanUpdated="NPBottomBar_PanUpdated"/>
+            </dx:DXStackLayout.GestureRecognizers>
            
-            <Grid ColumnDefinitions="40,*,auto">
+            <Grid ColumnDefinitions="0.2*,*,0.4*">
                 <dx:DXStackLayout Grid.Column="0">
                     <dx:DXImage Source="{Binding CurrentPlayingSongView.CoverImagePath}" Aspect="AspectFit" HeightRequest="40" WidthRequest="40">
                         <dx:DXImage.GestureRecognizers>
@@ -111,14 +114,16 @@
                         </dx:DXImage.GestureRecognizers>
                     </dx:DXImage>
                 </dx:DXStackLayout>
+                
                 <dx:DXStackLayout Grid.Column="1" Orientation="Vertical" HorizontalOptions="Start" Margin="10,0">
                     <dx:Chip Text="{Binding CurrentPlayingSongView.Title}" BorderThickness="0" HorizontalOptions="Start" 
-                             FontAttributes="Bold"
+                             FontAttributes="Bold" Tap="CurrentPlayingTitleChip_Tap"
                              x:Name="CurrentPlayingTitleChip"/>
                     <dx:Chip Text="{Binding CurrentPlayingSongView.OtherArtistsName}" BorderThickness="0" 
                              x:Name="CurrentPlayingArtistChip" HorizontalOptions="Start"
-                             FontSize="13"/>
+                             FontSize="13" LongPress="CurrentPlayingArtistChip_LongPress"/>
                     </dx:DXStackLayout>
+                
                 <dx:DXStackLayout Grid.Column="2" Orientation="Horizontal" HorizontalOptions="End" VerticalOptions="Center">
                     <dx:Chip Icon="skipprevious.png" IsIconVisible="True" IconSize="25,25" 
                                 x:Name="PreviousBtn" BorderThickness="0" BackgroundColor="Transparent"
@@ -143,12 +148,15 @@
                 </dx:DXStackLayout>
             </Grid>
         </dx:DXStackLayout>
-        
+
+        <local:NowPlayingBottomSheet x:Name="NPBtmSheet" 
+            StateChanged="NPBtmSheet_StateChanged"/>
         <local:PlaybackQueueBtmSheet 
-           Loaded="PlaybackQueueBtmSheet_Loaded"
             AllowDismiss="True" x:Name="PBQueueBtmSheet"
-            AllowedState="All"
+            AllowedState="HalfExpanded" 
             StateChanged="PBQueueBtmSheet_StateChanged"
            />
+        
+        
     </Grid>
 </ContentPage>
