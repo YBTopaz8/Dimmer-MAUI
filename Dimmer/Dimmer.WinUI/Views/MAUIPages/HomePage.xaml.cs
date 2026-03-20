@@ -405,23 +405,6 @@ public partial class HomePage : ContentPage
 
     }
 
-    private bool _isThrottling = false;
-    private readonly int throttleDelay = 200; // Time in milliseconds
-
-    private async void Slider_DragCompleted(object sender, EventArgs e)
-    {
-        var send = (Slider)sender;
-        if (_isThrottling)
-            return;
-
-        _isThrottling = true;
-
-        MyViewModel.SeekTrackPosition(send.Value);
-
-
-        await Task.Delay(throttleDelay);
-        _isThrottling = false;
-    }
 
     private void ViewAllSongsWindow_Clicked(object sender, EventArgs e)
     {
@@ -1273,5 +1256,47 @@ public partial class HomePage : ContentPage
                 
             }
         };
+    }
+    private bool _isUserDragging = false;
+    private double _pendingSeekValue;
+    private Timer _debounceTimer;
+    private void OnSliderDragStarted(object sender, EventArgs e)
+    {
+        _isUserDragging = true;
+        _pendingSeekValue = TrackProgressSlider.Value;
+
+        // Optional: Show preview label
+        //PreviewTimeLabel.IsVisible = true;
+        //UpdatePreviewLabel(_pendingSeekValue);
+    }
+
+    private void OnSliderDragCompleted(object sender, EventArgs e)
+    {
+        _isUserDragging = false;
+        _pendingSeekValue = TrackProgressSlider.Value;
+
+        // Debounce to prevent rapid seeks
+        _debounceTimer?.Dispose();
+        _debounceTimer = new Timer(ExecuteSeek, null, 150, Timeout.Infinite);
+    }
+    private void ExecuteSeek(object? state)
+    {
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            // Critical: Don't let timer cause multiple seeks
+            var value = _pendingSeekValue;
+            _pendingSeekValue = -1;
+
+            // Update ViewModel's property to keep binding in sync
+            MyViewModel.CurrentTrackPositionSeconds = value;
+            MyViewModel.SeekTrackPosition(value);
+
+            //PreviewTimeLabel.IsVisible = false;
+        });
+    }
+
+    private void myPage_Unloaded(object sender, EventArgs e)
+    {
+        _debounceTimer?.Dispose();
     }
 }
