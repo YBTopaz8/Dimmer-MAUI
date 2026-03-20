@@ -6,7 +6,12 @@
 /// </summary>
 public class MediaPlayerServiceConnection : Java.Lang.Object, IServiceConnection
 {
-    public MediaPlayerServiceConnection() { }
+    Guid serviceId;
+    public MediaPlayerServiceConnection() { 
+    
+        serviceId = Guid.NewGuid();
+        Debug.WriteLine($"Service created with id {serviceId}");
+    }
 
     public void OnServiceConnected(ComponentName? name, IBinder? service)
     {
@@ -16,11 +21,10 @@ public class MediaPlayerServiceConnection : Java.Lang.Object, IServiceConnection
             return;
         }
 
-        // Step 2: Get the application-wide singleton instance of our AudioService proxy.
-        // We need the concrete class to call the 'SetBinder' method.
+
         var audioServiceProxy = MainApplication.ServiceProvider.GetService<IDimmerAudioService>() as Dimmer.DimmerAudio.AudioService;
-        // Step 3: Activate the proxy by giving it the binder.
-        // The proxy's internal logic will then handle subscribing to all necessary events.
+        
+        Debug.WriteLine($"Service id {serviceId}");
         audioServiceProxy?.SetBinder(binder);
     }
 

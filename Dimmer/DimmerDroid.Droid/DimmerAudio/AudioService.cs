@@ -3,17 +3,24 @@
 
 
 
+using Android.Views.InputMethods;
+
 namespace Dimmer.DimmerAudio;
 
 public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged, IAsyncDisposable
 {
     private ExoPlayerServiceBinder? _binder;
+
     private ExoPlayerService? Service => _binder?.Service;
     private IPlayer? Player => Service?.GetPlayerInstance();
 
     // Store the last known song model to provide context in events.
     private SongModelView? _currentSongModel;
 
+
+    public AudioService()
+    {
+    }
 
     public SongModelView? CurrentTrackMetadata => ExoPlayerService.CurrentSongExposed;
 
@@ -73,15 +80,23 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     #endregion
 
+   
+
     public void SetBinder(ExoPlayerServiceBinder? binder)
     {
-        if (_binder == binder)
+        Debug.WriteLine($"[DEBUG-AUDIO] SetBinder called with: {(binder == null ? "NULL" : "VALID BINDER")}. AudioService Instance ID: {this.GetHashCode()}");
+        if (binder == null)
+            throw new ArgumentNullException("binder is null");
+
+        if(_binder == binder)
+        {
             return;
+        }
 
         DisconnectEvents();
         _binder = binder;
 
-        if (_binder?.Service != null)
+        if (Service != null)
         {
             ConnectEvents();
             Console.WriteLine("[AudioService] Binder set and events connected.");
@@ -92,16 +107,24 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             Console.WriteLine("[AudioService] Binder set to null or service not available.");
         }
     }
-
     #region IDimmerAudioService Implementation (Commands)
 
     public Task InitializeAsync(SongModelView songModel, double pos)
     {
+        Debug.WriteLine($"[DEBUG-AUDIO] InitializeAsync called. AudioService Instance ID: {this.GetHashCode()}");
+        Debug.WriteLine($"[DEBUG-AUDIO] Is Service Null? {(Service == null ? "YES" : "NO")}");
+        if (Service is null )
+        {
+            
+        
+        }
+        
         _currentSongModel = songModel;
         // Tell the native service to prepare the track.
         var finalSongTitle = songModel.IsFavorite ? "❤️ " + songModel.Title : songModel.Title;
         var finalArtName = songModel.HasSyncedLyrics ? "🎙️ " + songModel.OtherArtistsName : songModel.OtherArtistsName;
         long positionMs = (long)(pos * 1000.0);
+
         Service?.Prepare(songModel.FilePath, finalSongTitle, finalArtName, songModel.AlbumName, songModel,startPositionMs: positionMs);
 
         return Task.CompletedTask;
@@ -260,7 +283,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     public Task SetDefaultAsync(AudioOutputDevice device)
     {
-        Service.SetPreferredDevice(device);
+        Service?.SetPreferredDevice(device);
         return Task.CompletedTask;
     }
 

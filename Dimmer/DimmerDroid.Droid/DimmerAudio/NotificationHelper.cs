@@ -85,7 +85,7 @@ public static class NotificationHelper
     {
         CreateChannel(service);
 
-        var mainIntent = new Intent(service, typeof(DimmerActivity))
+        var mainIntent = new Intent(service, typeof(MainActivity))
             .SetAction("ShowMiniPlayer")
             .AddCategory(Intent.CategoryLauncher);
 

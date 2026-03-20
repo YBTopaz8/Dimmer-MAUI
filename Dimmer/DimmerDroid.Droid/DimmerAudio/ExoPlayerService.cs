@@ -44,6 +44,106 @@ namespace Dimmer.DimmerAudio; // Make sure this namespace is correct
 public partial class ExoPlayerService : MediaSessionService
 {
 
+
+    public ExoPlayerService()
+    {
+
+    }
+    //private IPlayer? notificationPlayer;
+    public async override void OnCreate()
+    {
+        base.OnCreate();
+
+
+        var notification = NotificationHelper.BuildMinimalNotification(this);
+        StartForeground(NotificationHelper.NotificationId, notification);
+
+
+        try
+        {
+
+            var audioAttributes = new AudioAttributes.Builder()!
+            .SetUsage(C.UsageMedia)! // Specify this is media playback
+            .SetContentType(C.AudioContentTypeMusic)! // Specify the content is music
+            .SetIsContentSpatialized(true)!.Build();
+
+            player = new ExoPlayerBuilder(this)
+                .SetAudioAttributes(audioAttributes, true)!
+                .SetHandleAudioBecomingNoisy(true)!
+                .SetSkipSilenceEnabled(false)!
+                .SetWakeMode(C.WakeModeNetwork)!
+                //.SetSeekParameters(new SeekParameters(10,10))
+                .SetDeviceVolumeControlEnabled(true)!
+                .SetSuppressPlaybackOnUnsuitableOutput(false)!
+                .SetPauseAtEndOfMediaItems(true)!
+
+                //.SetPauseAtEndOfMediaItems(true) could use this in combo with 
+                //is play changed but i'll need to expose the player position
+
+                .Build();
+            //_ = Task.Run(() =>
+            //{
+            //    player?.SetWakeMode(C.WakeModeNetwork);
+            //});
+
+            player?.AddListener(new PlayerEventListener(this));
+
+            sessionCallback = new MediaPlaybackSessionCallback(this); // Use concrete type
+
+
+            Intent nIntent = new Intent(Platform.AppContext, typeof(MainActivity));
+
+            PendingIntentFlags flags = PendingIntentFlags.UpdateCurrent;
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.S) // Or BuildVersionCodes.M for broader compatibility with Immutable
+            {
+                flags |= PendingIntentFlags.Immutable;
+            }
+            PendingIntent? pendingIntent = PendingIntent.GetActivity(Platform.AppContext, 0, nIntent, flags);
+            FavoriteSessionCommand.CommandCode = 88;
+
+            var heartButton = new CommandButton.Builder(CommandButton.IconUndefined)
+                .SetDisplayName("Favorite")
+                .SetSessionCommand(FavoriteSessionCommand)
+                //.SetPlayerCommand(88)
+                //.SetSlots()
+
+                .SetCustomIconResId(Resource.Drawable.heart)
+                .SetEnabled(true)
+
+                .Build();
+
+            mediaSession = new MediaSession.Builder(this, player)!
+                .SetSessionActivity(pendingIntent)!
+                .SetCallback(sessionCallback)!
+                .SetId("Dimmer_MediaSession_Main")!
+    //.SetCommandButtonsForMediaItems(commandButtons: new List<CommandButton> { heartButton })
+    //.SetMediaButtonPreferences(mediaButtonPreferences:new List<CommandButton> { heartButton })
+    .SetCustomLayout(customLayout: new List<CommandButton> { heartButton })
+                .Build();
+
+
+            _binder = new ExoPlayerServiceBinder(this);
+
+            // 2) NotificationManager
+            NotificationHelper.CreateChannel(this);
+            _notifMgr = NotificationHelper.BuildManager(this, mediaSession!, CurrentSongContext);
+
+            _notifMgr.SetPlayer(player);
+
+
+
+            _ = Task.Run(async () => {
+                var timeoutTask = Task.Delay(5000); // 5 second timeout
+                var initTask = InitializeMediaControllerAsync();
+                await Task.WhenAny(initTask, timeoutTask);
+            }).ConfigureAwait(false);
+            StartPositionPolling();
+
+        }
+        catch (Java.Lang.Throwable ex) { HandleInitError("JAVA INITIALIZATION", ex); StopSelf(); }
+
+    }
+
     // --- Components ---
     private MediaSession? mediaSession;
     private IExoPlayer? player;
@@ -82,19 +182,8 @@ public partial class ExoPlayerService : MediaSessionService
     // ---  Service Lifecycle ---
     private ExoPlayerServiceBinder? _binder;
 
-    //public event StatusChangedEventHandler? StatusChanged;
-    //public event BufferingEventHandler? Buffering;
-    //public event CoverReloadedEventHandler? CoverReloaded;
+   
 
-    //public event PlayingChangedEventHandler? PlayingChanged;
-    //public event PlayingChangedEventHandler? PlayingEnded;
-    //public event PlayingChangedEventHandler? PlayListEnded;
-    //public event PositionChangedEventHandler? PositionChanged;
-    //public event SeekCompletedEventHandler? SeekCompleted;
-    //public event PlayNextEventHandler? PlayNextPressed; // Triggered by MediaKeyNextPressed
-    //public event PlayPreviousEventHandler? PlayPreviousPressed; // Triggered by MediaKeyPreviousPressed
-    //public event EventHandler<long>? DurationChanged;
-    //public event EventHandler<double>? SeekCompleted; // Triggered after a seek operation completes
 
     public event EventHandler<PlaybackEventArgs>? PlaybackStateChanged;
     public event EventHandler<PlaybackEventArgs>? IsPlayingChanged;
@@ -269,100 +358,6 @@ public partial class ExoPlayerService : MediaSessionService
     private bool _isPolling = false;
 
 
-
-    //private IPlayer? notificationPlayer;
-    public async override void OnCreate()
-    {
-        base.OnCreate();
-
-
-        var notification = NotificationHelper.BuildMinimalNotification(this);
-        StartForeground(NotificationHelper.NotificationId, notification);
-
-
-        try
-        {
-
-            var audioAttributes = new AudioAttributes.Builder()!
-            .SetUsage(C.UsageMedia)! // Specify this is media playback
-            .SetContentType(C.AudioContentTypeMusic)! // Specify the content is music
-            .SetIsContentSpatialized(true)!.Build();
-
-            player = new ExoPlayerBuilder(this)
-                .SetAudioAttributes(audioAttributes, true)!
-                .SetHandleAudioBecomingNoisy(true)!
-                .SetSkipSilenceEnabled(false)!
-                .SetWakeMode(C.WakeModeNetwork)!
-                //.SetSeekParameters(new SeekParameters(10,10))
-                .SetDeviceVolumeControlEnabled(true)!
-                .SetSuppressPlaybackOnUnsuitableOutput(false)!
-                .SetPauseAtEndOfMediaItems(true )!
-                
-                //.SetPauseAtEndOfMediaItems(true) could use this in combo with 
-                //is play changed but i'll need to expose the player position
-                
-                .Build();
-            //_ = Task.Run(() =>
-            //{
-            //    player?.SetWakeMode(C.WakeModeNetwork);
-            //});
-
-                player?.AddListener(new PlayerEventListener(this));
-
-            sessionCallback = new MediaPlaybackSessionCallback(this); // Use concrete type
-
-
-            Intent nIntent = new Intent(Platform.AppContext, typeof(DimmerActivity));
-
-            PendingIntentFlags flags = PendingIntentFlags.UpdateCurrent;
-            if (Build.VERSION.SdkInt >= BuildVersionCodes.S) // Or BuildVersionCodes.M for broader compatibility with Immutable
-            {
-                flags |= PendingIntentFlags.Immutable;
-            }
-            PendingIntent? pendingIntent = PendingIntent.GetActivity(Platform.AppContext, 0, nIntent, flags);
-            FavoriteSessionCommand.CommandCode = 88;
-
-            var heartButton = new CommandButton.Builder(CommandButton.IconUndefined)
-                .SetDisplayName("Favorite")
-                .SetSessionCommand(FavoriteSessionCommand)
-                //.SetPlayerCommand(88)
-                //.SetSlots()
-                
-                .SetCustomIconResId(Resource.Drawable.heart)
-                .SetEnabled(true)
-                
-                .Build();
-                
-            mediaSession = new MediaSession.Builder(this, player)!
-                .SetSessionActivity(pendingIntent)!
-                .SetCallback(sessionCallback)!
-                .SetId("Dimmer_MediaSession_Main")!
-                //.SetCommandButtonsForMediaItems(commandButtons: new List<CommandButton> { heartButton })
-                //.SetMediaButtonPreferences(mediaButtonPreferences:new List<CommandButton> { heartButton })
-    .SetCustomLayout(customLayout: new List<CommandButton> { heartButton})
-                .Build();
-            
-            _binder = new ExoPlayerServiceBinder(this);
-
-            // 2) NotificationManager
-            NotificationHelper.CreateChannel(this);
-            _notifMgr = NotificationHelper.BuildManager(this, mediaSession!, CurrentSongContext);
-
-            _notifMgr.SetPlayer(player);
-
-
-
-           _= Task.Run(async () => {
-                var timeoutTask = Task.Delay(5000); // 5 second timeout
-                var initTask = InitializeMediaControllerAsync();
-                await Task.WhenAny(initTask, timeoutTask);
-            }).ConfigureAwait(false);
-            StartPositionPolling();
-
-        }
-        catch (Java.Lang.Throwable ex) { HandleInitError("JAVA INITIALIZATION", ex); StopSelf(); }
-
-    }
     private async void StartPositionPolling()
     {
         if (_isPolling) return;
@@ -515,7 +510,7 @@ public partial class ExoPlayerService : MediaSessionService
     private void HandleLyricsAction()
     {
         // Open the app to the lyrics view
-        var intent = new Intent(this, typeof(DimmerActivity));
+        var intent = new Intent(this, typeof(MainActivity));
         intent.SetAction(Intent.ActionMain);
         intent.AddCategory(Intent.CategoryLauncher);
         intent.AddFlags(ActivityFlags.NewTask);
@@ -523,13 +518,17 @@ public partial class ExoPlayerService : MediaSessionService
         StartActivity(intent);
     }
 
-
     public override IBinder? OnBind(Intent? intent)
     {
+        // If Media3 (System) is trying to bind, let it!
+        if (intent?.Action == "androidx.media3.session.MediaSessionService")
+        {
+            return base.OnBind(intent);
+        }
+
+        // If our app's MainActivity is binding via ComponentName, return our custom binder
         return _binder;
     }
-
-
 
     public override MediaSession? OnGetSession(MediaSession.ControllerInfo? p0)
     {
