@@ -1590,6 +1590,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial double CurrentTrackPositionSeconds { get; set; }
 
     [ObservableProperty]
+    public partial string CurrentTrackPositionSecondsTxt { get; set; }
+
+    [ObservableProperty]
     public partial double SliderPosition { get; set; }
 
     partial void OnCurrentTrackPositionSecondsChanged(double oldValue, double newValue)
@@ -2311,7 +2314,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         CurrentTrackPositionSeconds = 0;
         CurrentTrackPositionPercentage = 0;
-
+        IsProgrammaticSeek = false;
         await NextTrackAsync();
     }
 
@@ -2443,6 +2446,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 ? (positionSeconds / CurrentTrackDurationSeconds)
                 : 0) *
             100;
+        CurrentTrackPositionSecondsTxt = string.Format("{0:mm\\:ss}", TimeSpan.FromSeconds(CurrentTrackPositionSeconds));
+        IsProgrammaticSeek = false;
     }
 
     protected virtual async Task OnPlaybackStarted(PlaybackEventArgs args)
@@ -4127,7 +4132,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     private Random _random = new();
 
-
+    public bool IsProgrammaticSeek;
     [RelayCommand]
     public void SeekTrackPosition(double positionSeconds)
     {

@@ -168,7 +168,7 @@ public class DimmerBackupService
     }
 
     // Restore from backup file
-    public async Task<RestoreResult> RestoreFromBackupAsync(string filePath)
+    public async Task<CompleteBackupData?> PickFolderTeRestoreFromBackupAsync(string filePath)
     {
         var result = new RestoreResult();
 
@@ -191,37 +191,36 @@ public class DimmerBackupService
             if (stream == null)
             {
                 result.ErrorMessage = "Could not open file stream";
-                return result;
+                return null;
             }
-
+            CompleteBackupData? completeData;
             using (stream)
             {
                 // Try to read as complete backup first
                 if (filePath.Contains("CompleteBackup", StringComparison.OrdinalIgnoreCase))
                 {
-                    var completeData = await JsonSerializer.DeserializeAsync<CompleteBackupData>(stream, _jsonOptions);
+                    completeData = await JsonSerializer.DeserializeAsync<CompleteBackupData>(stream, _jsonOptions);
                     if (completeData != null)
                     {
-                        await RestoreCompleteDataAsync(completeData, result);
-                       
+                        if(completeData.PlayEvents is not null)
+                        {
+                            foreach(var evt in completeData.PlayEvents)
+                            {
+                                var songInDb = RealmFactory.GetRealmInstance()
+                                    .All<SongModel>()
+                                    .FirstOrDefaultNullSafe(x => x.TitleDurationKey == evt.TitleAndDurationKey);
+                                if(songInDb != null)
+                                {
+                                    evt.CoverImagePath = songInDb.CoverImagePath;
+                                }
+                            }
+                        }
+                        return completeData;
+                      
 
                     }
                 }
-                else if (filePath.Contains("AllFavs", StringComparison.OrdinalIgnoreCase))
-                {
-                    var favorites = await JsonSerializer.DeserializeAsync<List<SongModelView>>(stream, _jsonOptions);
-                    await RestoreFavoritesAsync(favorites, result);
-                }
-                else if (filePath.Contains("AppState", StringComparison.OrdinalIgnoreCase))
-                {
-                    var appState = await JsonSerializer.DeserializeAsync<AppStateModelView>(stream, _jsonOptions);
-                    await RestoreAppStateAsync(appState, result);
-                }
-                else if (filePath.Contains("AllDimmerEvents", StringComparison.OrdinalIgnoreCase))
-                {
-                    var events = await JsonSerializer.DeserializeAsync<List<DimmerPlayEventBackup>>(stream, _jsonOptions);
-                    await RestorePlayEventsAsync(events, result);
-                }
+            
             }
         }
         catch (Exception ex)
@@ -230,11 +229,11 @@ public class DimmerBackupService
             Debug.WriteLine($"Error during restore: {ex}");
         }
 
-        return result;
+        return null;
     }
 
     // Restore complete data to Realm
-    private async Task<bool> RestoreCompleteDataAsync(CompleteBackupData data, RestoreResult result)
+    public async Task<bool> RestoreCompleteDataAsync(CompleteBackupData data, RestoreResult result)
     {
         var realm = RealmFactory.GetRealmInstance();
 

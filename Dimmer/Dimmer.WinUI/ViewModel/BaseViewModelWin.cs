@@ -1213,8 +1213,8 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     }
 
-
-    internal async Task RestoreAppDataAsync()
+    [RelayCommand]
+    public async Task PickFolderToRestoreAppDataAsync()
     {
         var tcs = new TaskCompletionSource<(bool includeDefault, string customPath)>();
 
@@ -1259,23 +1259,20 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         // Wait for user's decision
         var (includeDefaultLocation, secondaryPath) = await tcs.Task;
 
-        var selectedFile = secondaryPath;
-            var result = await BackupService.RestoreFromBackupAsync(selectedFile);
+         SelectedFile = secondaryPath;
+        PickedUpBackup = await BackupService.PickFolderTeRestoreFromBackupAsync(SelectedFile);
 
-            if (result.EventsRestored > 0)
-            {
-                Debug.WriteLine(result.ToString());
-            }
-            else
-            {
-                Debug.WriteLine($"Restore failed: {result.ErrorMessage}");
-            
-            }
-    
+           
 
-        BackupService.CleanupOldBackups(3);
+
+        //BackupService.CleanupOldBackups(3);
     }
 
+    [ObservableProperty]
+    public partial CompleteBackupData? PickedUpBackup { get; set; }
+
+    [ObservableProperty]
+    public partial string? SelectedFile { get; set; }
 
 
     internal async Task BackUpAppDataAsync()
