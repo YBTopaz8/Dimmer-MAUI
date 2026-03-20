@@ -207,8 +207,8 @@ public class DimmerBackupService
                             foreach(var evt in completeData.PlayEvents)
                             {
                                 var songInDb = RealmFactory.GetRealmInstance()
-                                    .All<SongModel>()
-                                    .FirstOrDefaultNullSafe(x => x.TitleDurationKey == evt.TitleAndDurationKey);
+                                    .All<SongModel>().AsEnumerable()
+                                    .FirstOrDefault(x => x.TitleDurationKey == evt.TitleAndDurationKey);
                                 if(songInDb != null)
                                 {
                                     evt.CoverImagePath = songInDb.CoverImagePath;
@@ -257,8 +257,21 @@ public class DimmerBackupService
                 }
                 result.AppStateRestored = true;
             }
-            Dictionary<string, SongModel>? songsByKey = realm.All<SongModel>()
-.ToDictionary(s => s.TitleDurationKey, s => s);
+                Dictionary<string, SongModel> songsByKey=new();
+                var songs = realm.All<SongModel>();
+            foreach (var item in songs)
+            {
+                if(string.IsNullOrEmpty(item.TitleDurationKey))
+                    return;
+                if(songsByKey.ContainsKey(item.TitleDurationKey))
+                {
+                    // Handle duplicate key scenario if needed
+                }
+                else
+                {
+                    songsByKey[item.TitleDurationKey] = item;
+                }
+            }
 
 
             // Restore favorite songs

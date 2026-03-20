@@ -445,16 +445,16 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             var selectedFile = files.First();
             var result = await BackupService.PickFolderTeRestoreFromBackupAsync(selectedFile);
 
-            if (result.EventsRestored > 0)
-            {
-                Debug.WriteLine(result.ToString());
+            //if (result.EventsRestored > 0)
+            //{
+            //    Debug.WriteLine(result.ToString());
             
-            }
-            else
-            {
-                Debug.WriteLine($"Restore failed: {result.ErrorMessage}");
+            //}
+            //else
+            //{
+            //    Debug.WriteLine($"Restore failed: {result.ErrorMessage}");
             
-            }
+            //}
         }
 
         BackupService.CleanupOldBackups(3);
