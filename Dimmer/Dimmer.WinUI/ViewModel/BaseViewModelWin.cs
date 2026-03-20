@@ -591,36 +591,32 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
             var itemIndex = MySongsTableView.Items.IndexOf(song);
 
             var contentTableRow = MySongsTableView.ContainerFromIndex(itemIndex) as TableViewRow;
-            var cellPresenter = contentTableRow?.CellPresenter;
-            IList<TableViewCell>? cells = cellPresenter?.Cells;
+            //var cellPresenter = contentTableRow?.CellPresenter;
+            //IList<TableViewCell>? cells = cellPresenter?.Cells;
 
-            if (cells is null && cells?.Count > 0)
-            {
-                Debug.WriteLine("No cells found");
-                return;
-            }
-
-
-
-            if (contentTableRow is null)
-            {
+            //if (cells is null && cells?.Count > 0)
+            //{
+            //    Debug.WriteLine("No cells found");
+            //    return;
+            //}
 
 
-                Debug.WriteLine("No content Table Row found");
-                return;
-            }
 
-            if (cellPresenter is null)
-            {
-                Debug.WriteLine("No cell presenter found");
-                return;
-            }
+            //if (contentTableRow is null)
+            //{
 
-            if (cells is null)
-            {
-                Debug.WriteLine("No cell presenter found");
-                return;
-            }
+
+            //    Debug.WriteLine("No content Table Row found");
+            //    return;
+            //}
+
+           
+
+            //if (cells is null)
+            //{
+            //    Debug.WriteLine("No cell presenter found");
+            //    return;
+            //}
 
             //cellPresenter?.BorderBrush = new SolidColorBrush(Colors.Red);
             //cellPresenter?.BorderThickness = new Microsoft.UI.Xaml.Thickness(2);
