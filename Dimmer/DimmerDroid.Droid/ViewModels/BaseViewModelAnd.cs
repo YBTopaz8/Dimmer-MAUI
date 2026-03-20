@@ -443,7 +443,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         {
             // TODO: Implement file picker for multiple backups
             var selectedFile = files.First();
-            var result = await BackupService.RestoreFromBackupAsync(selectedFile);
+            var result = await BackupService.PickFolderTeRestoreFromBackupAsync(selectedFile);
 
             if (result.EventsRestored > 0)
             {
@@ -524,5 +524,18 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     public void ClearSubscriptionToSearchBar()
     {
         SearchBarTextEdit = null;
+    }
+
+    [RelayCommand]
+    void SeekToPosition(double position)
+    {
+        IsProgrammaticSeek = true;
+        base.SeekTrackPosition(position);
+    }
+
+    [RelayCommand]
+    void UpdatePreviewTime(double position)
+    {
+        //PreviewTimeLabel = (position).ToString("mm:ss");
     }
 }
