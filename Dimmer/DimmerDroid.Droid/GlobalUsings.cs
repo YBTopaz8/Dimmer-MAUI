@@ -48,6 +48,7 @@ global using Debug = System.Diagnostics.Debug;
 global using AndroidX.Media3.Common;
 global using Dimmer.Interfaces;
 global using System.ComponentModel;
+global using DimmerDroid.Droid;
 
 namespace Dimmer;
 

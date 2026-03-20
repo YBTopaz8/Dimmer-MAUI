@@ -1,31 +1,33 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net9.0-android</TargetFramework>
+		<TargetFramework>net10.0-android</TargetFramework>
 		<SupportedOSPlatformVersion>23.0</SupportedOSPlatformVersion>
 		<OutputType>Exe</OutputType>
 		<RootNamespace>Dimmer</RootNamespace>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<LangVersion>preview</LangVersion>
+		<UseMaui>true</UseMaui>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<!--<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.120" />-->
-		<PackageReference Include="DevExpress.Maui.Charts" Version="24.2.12" />
-		<PackageReference Include="DevExpress.Maui.CollectionView" Version="24.2.12" />
-		<PackageReference Include="DevExpress.Maui.Controls" Version="24.2.12" />
-		<PackageReference Include="DevExpress.Maui.Core" Version="24.2.12" />
-		<PackageReference Include="DevExpress.Maui.DataGrid" Version="24.2.12" />
-		<PackageReference Include="DevExpress.Maui.Editors" Version="24.2.12" />
-		<PackageReference Include="DevExpress.Maui.Gauges" Version="24.2.12" />
-		<PackageReference Include="DevExpress.Maui.ProjectTemplates" Version="24.2.14" />
-		<PackageReference Include="DevExpress.Maui.TreeView" Version="24.2.12" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.3" />
+		<PackageReference Include="DevExpress.Maui.Charts" Version="25.2.5" />
+		<PackageReference Include="DevExpress.Maui.CollectionView" Version="25.2.5" />
+		<PackageReference Include="DevExpress.Maui.Controls" Version="25.2.5" />
+		<PackageReference Include="DevExpress.Maui.Core" Version="25.2.5" />
+		<PackageReference Include="DevExpress.Maui.DataGrid" Version="25.2.5" />
+		<PackageReference Include="DevExpress.Maui.Editors" Version="25.2.5" />
+		<PackageReference Include="DevExpress.Maui.Gauges" Version="25.2.5" />
+		<PackageReference Include="DevExpress.Maui.ProjectTemplates" Version="25.2.5" />
+		<PackageReference Include="DevExpress.Maui.TreeView" Version="25.2.5" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.5" />
 		<PackageReference Include="SkiaSharp.Views" Version="3.119.2" />
 		<PackageReference Include="Xamarin.AndroidX.Activity.Ktx" Version="1.12.4.1" />
 
 
+		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.5" />
 
 		<PackageReference Include="Xamarin.AndroidX.Fragment" Version="1.8.9.2" />
 
@@ -76,11 +78,39 @@
 		<PackageReference Include="Xamarin.AndroidX.SavedState.SavedState.Ktx" Version="1.4.0.2" />
 		<PackageReference Include="Xamarin.AndroidX.Window" Version="1.5.1.2" />
 		<PackageReference Include="Xamarin.Google.Android.Material" Version="1.13.0.2" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.50" />
 
 		<PackageReference Include="Xamarin.AndroidX.Compose.Runtime.Annotation.Jvm" Version="1.10.4.1" ExcludeAssets="all" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\Dimmer\Dimmer.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Update="DimmerShell.xaml.cs">
+	    <DependentUpon>DimmerShell.xaml</DependentUpon>
+	  </Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <MauiXaml Update="DimmerShell.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\CustomViews\NowPlayingBottomSheet.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\CustomViews\PlaybackQueueBtmSheet.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\SingleSong\DetailsOverview.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Views\Artist\" />
+	  <Folder Include="Views\Album\" />
+	  <Folder Include="Views\Settings\" />
 	</ItemGroup>
 </Project>
