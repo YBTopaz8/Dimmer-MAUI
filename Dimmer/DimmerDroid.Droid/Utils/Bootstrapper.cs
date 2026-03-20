@@ -1,5 +1,7 @@
 ﻿using Dimmer.DimmerLive;
 using Dimmer.NativeServices;
+using Dimmer.Views.CustomViews;
+using Dimmer.Views.SingleSong;
 
 namespace Dimmer.Utils;
 
@@ -8,7 +10,7 @@ internal class Bootstrapper
 
 
 
-    public static IServiceProvider Init(MauiAppBuilder builder)
+    public static void Init(MauiAppBuilder builder)
     {
         try
         {
@@ -27,17 +29,16 @@ internal class Bootstrapper
 
         // 3. Register ViewModels
         services.AddSingleton<BaseViewModelAnd>();
-
+        services.AddSingleton<DetailsOverview>();
+        services.AddSingleton<PlaybackQueueBtmSheet>();
+        services.AddSingleton<NowPlayingBottomSheet>();
+        
 
         // 4. Register Logic/Data Services
         services.AddSingleton<IAppUtil, AppUtil>();
 
 
-            // 6. Build the provider
-            var provider = services.BuildServiceProvider();
-
-            Log.Error("DIMMER_BOOT", "Bootstrapper finished successfully.");
-            return provider;
+           
         }
         catch (Exception ex)
         {

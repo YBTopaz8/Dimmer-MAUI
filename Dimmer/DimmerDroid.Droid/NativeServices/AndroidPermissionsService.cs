@@ -60,4 +60,41 @@ public static class AndroidPermissionsService
         var permissions = GetRequiredAudioPermissions();
         ActivityCompat.RequestPermissions(activity, permissions, requestCode);
     }
+
+    public static string[] GetRequiredStoragePermissions()
+    {
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.R) // Android 11/12
+        {
+            return new[] { Manifest.Permission.ReadExternalStorage };
+        }
+        else // Android 10 and below
+        {
+            return new[]
+            {
+                Manifest.Permission.ReadExternalStorage,
+                Manifest.Permission.WriteExternalStorage
+            };
+        }
+    }
+
+    public static bool HasStoragePermissions()
+        {
+            var context = Application.Context;
+            var permissions = GetRequiredStoragePermissions();
+    
+            foreach (var perm in permissions)
+            {
+                if (ContextCompat.CheckSelfPermission(context, perm) != Permission.Granted)
+                {
+                    return false;
+                }
+            }
+            return true;
+    }
+
+    public static void RequestStoragePermissions(Activity activity, int requestCode = 1002)
+    {
+        var permissions = GetRequiredStoragePermissions();
+        ActivityCompat.RequestPermissions(activity, permissions, requestCode);
+    }
 }
