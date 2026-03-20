@@ -57,6 +57,7 @@
 	  <None Remove="Views\WinuiPages\LastFMSection\LastFmPage.xaml" />
 	  <None Remove="Views\WinuiPages\LibraryStatsPage.xaml" />
 	  <None Remove="Views\WinuiPages\SettingsPage.xaml" />
+	  <None Remove="Views\WinuiPages\Settings\RestoreBackupPage.xaml" />
 	  <None Remove="Views\WinuiPages\SingleSongPage\EditSongPage.xaml" />
 	  <None Remove="Views\WinuiPages\SingleSongPage\SingleSongLyrics.xaml" />
 	  <None Remove="Views\WinuiPages\SingleSongPage\SongStatsContainerPage.xaml" />
@@ -134,6 +135,11 @@
 	  <MauiXaml Include="Views\MAUIPages\HomePage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Update="Views\WinuiPages\Settings\RestoreBackupPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
 	</ItemGroup>
 	<ItemGroup>
 	  <Page Update="Views\CustomViews\WinuiViews\SingleSongSection\ChangesReviewPopup.xaml">

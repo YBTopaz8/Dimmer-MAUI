@@ -34,7 +34,7 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
-        <StackPanel
+        <StackPanel Visibility="Collapsed"
             Grid.Row="0" 
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
@@ -88,7 +88,7 @@
 
         </StackPanel>
         <!--  Wizard content  -->
-        <FlipView
+        <FlipView Visibility="Collapsed"
             x:Name="WizardFlipView"
             Grid.Row="1"
             PointerReleased="WizardFlipView_PointerReleased"
@@ -574,7 +574,7 @@
             </Grid>
         </FlipView>
 
-        <StackPanel Grid.Row="2"
+        <StackPanel Grid.Row="2" Visibility="Collapsed"
                     Spacing="5"
      Padding="5"
                     Orientation="Horizontal">
@@ -587,8 +587,20 @@
                     Loaded="OptionLogBtn_Loaded"
                     Content="View Songs"/>
         </StackPanel>
-       
-        <!--  Navigation buttons  -->
-  
+
+        <Grid >
+            <StackPanel >
+                <SelectorBar x:Name="BackUpRestoreSelector"
+                             SelectionChanged="BackUpRestoreSelector_SelectionChanged">
+                    <SelectorBarItem x:Name="BackUpSelector" Text="Restore" Icon="Download" IsSelected="True"/>
+                    <SelectorBarItem  x:Name="RestoreSelector" Text="Backup" Icon="SaveLocal" />
+                </SelectorBar>
+
+                <Frame
+            x:Name="ContentFrame"
+            Grid.Row="1" x:FieldModifier="Public"
+            IsNavigationStackEnabled="False" />
+            </StackPanel>
+        </Grid>
     </Grid>
 </Page>

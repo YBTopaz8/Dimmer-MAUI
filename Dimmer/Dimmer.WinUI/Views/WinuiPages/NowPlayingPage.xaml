@@ -95,9 +95,12 @@ x:Name="ArtistBtn" Click="ArtistBtn_Click"
                 <!--  Progress Section  -->
                 <StackPanel Spacing="5">
                     <Slider
-                        
+                                Minimum="0"
                         x:Name="ProgressSlider" IsThumbToolTipEnabled="True"
                         Foreground="DarkSlateBlue"
+                        PointerPressed="OnSliderPointerPressed"
+        PointerReleased="OnSliderPointerReleased"
+        PointerMoved="OnSliderPointerMoved"
                         Maximum="{x:Bind MyViewModel.CurrentTrackDurationSeconds, Mode=OneWay}"
                         Value="{x:Bind MyViewModel.CurrentTrackPositionSeconds, Mode=OneWay}" />
                     <Grid>
