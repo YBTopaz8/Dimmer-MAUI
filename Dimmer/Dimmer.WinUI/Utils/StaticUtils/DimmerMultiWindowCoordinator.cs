@@ -125,7 +125,9 @@ public class DimmerMultiWindowCoordinator
                 _homeWindow.DispatcherQueue.TryEnqueue(() =>
                 {
                     winUIMgrService.BringToFront(_homeWindow);
-                    PlatUtils.GetAppWindow(_homeWindow).Show(true);
+                    var win = PlatUtils.GetAppWindow(_homeWindow);
+                    if(win is not null)
+                        win.Show(true);
                 });
             }
             catch (Exception ex)

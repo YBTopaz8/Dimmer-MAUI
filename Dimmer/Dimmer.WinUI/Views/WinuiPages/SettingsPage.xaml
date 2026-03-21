@@ -26,7 +26,9 @@
             <convertersWinUI:BoolToInverseVisibilityConverter x:Key="BoolToInverseVisibilityConverter" />
         </ResourceDictionary>
     </Page.Resources>
-    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    <Grid>
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" x:Name="MainGrid"
           RowSpacing="10">
 
         <Grid.RowDefinitions>
@@ -34,7 +36,7 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
-        <StackPanel
+        <StackPanel Visibility="Visible"
             Grid.Row="0" 
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
@@ -88,7 +90,7 @@
 
         </StackPanel>
         <!--  Wizard content  -->
-        <FlipView
+        <FlipView Visibility="Visible"
             x:Name="WizardFlipView"
             Grid.Row="1"
             PointerReleased="WizardFlipView_PointerReleased"
@@ -574,7 +576,7 @@
             </Grid>
         </FlipView>
 
-        <StackPanel Grid.Row="2"
+        <StackPanel Grid.Row="2" Visibility="Visible"
                     Spacing="5"
      Padding="5"
                     Orientation="Horizontal">
@@ -587,8 +589,25 @@
                     Loaded="OptionLogBtn_Loaded"
                     Content="View Songs"/>
         </StackPanel>
-       
-        <!--  Navigation buttons  -->
-  
+
+    </Grid>
+
+        <Grid Visibility="Collapsed" x:Name="BackUpRestoreGrid" Loaded="BackUpRestoreGrid_Loaded"  HorizontalAlignment="Center" >
+            <ScrollViewer>
+                
+            <StackPanel Background="#1d1d1d">
+                <SelectorBar x:Name="BackUpRestoreSelector"  HorizontalAlignment="Center"
+                             SelectionChanged="BackUpRestoreSelector_SelectionChanged">
+                    <SelectorBarItem x:Name="BackUpSelector" Text="Restore" Icon="Download" IsSelected="True"/>
+                    <SelectorBarItem  x:Name="RestoreSelector" Text="Backup" Icon="SaveLocal" />
+                </SelectorBar>
+
+                <Frame
+            x:Name="ContentFrame"
+            Grid.Row="1" x:FieldModifier="Public"
+            IsNavigationStackEnabled="False" />
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
     </Grid>
 </Page>

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer.Views.Settings.SettingsPage"
+              Shell.NavBarIsVisible="False"
+ xmlns:vm="clr-namespace:Dimmer.ViewModels"
+ xmlns:local="clr-namespace:Dimmer.Views.CustomViews"
+ xmlns:dx="http://schemas.devexpress.com/maui"
+ xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+ x:DataType="vm:BaseViewModelAnd">
+    <dx:DXScrollView Margin="5,50,5,0">
+        <dx:DXStackLayout>
+            
+        <dx:DXStackLayout >
+                <ProgressBar Progress="{Binding LatestAppLog.ProgressValue}"
+                         />
+                <Label Text="{Binding LatestAppLog.Message}"
+                         />
+                <dx:DXButton ShowContent="False"
+                                Clicked="GoBackBtn_Clicked"
+                             HorizontalContentAlignment="Start"
+                             HorizontalOptions="Start"
+                             Icon="backa.png"/>
+                <dx:Chip Text="Last FM" 
+                     Tap="LastFMHeaderChip_Tap" x:Name="LastFMHeaderChip"/>
+                <dx:DXExpander x:Name="LastFmExpander">
+                    <dx:DXExpander.Content>
+                        <dx:DXStackLayout ItemSpacing="10">
+                            <Label Text="Username" />
+                            <dx:TextEdit 
+                                x:Name="LastFMUname"
+                                ReturnType="Go"
+                                
+                                PlaceholderText="Ex. YBTopaz8.."
+                                         PlaceholderColor="Gray"/>
+                            
+                            
+                            
+                            
+                            <dx:DXButton ShowContent="False"
+                                         x:Name="ConnectToLastFM" Clicked="ConnectToLastFM_Clicked"
+                                         
+                                         Icon="lastfm.png" IconColor="White" BackgroundColor="Red"/>
+
+                        </dx:DXStackLayout>
+                    </dx:DXExpander.Content>
+                </dx:DXExpander>
+        </dx:DXStackLayout>
+        <dx:DXStackLayout ItemSpacing="10">
+            <dx:DXCollectionView ItemsSource="{Binding FolderPaths}" Header="Folders" HeightRequest="300">
+                <dx:DXCollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                        <Grid ColumnDefinitions="*,auto" RowSpacing="5">
+                            <Label Text="{Binding .}" />
+                            
+                            <dx:DXStackLayout Orientation="Horizontal" HorizontalOptions="End" Grid.Column="1">
+                            
+                                              <dx:Chip Text="Remove" Tap="RemoveFolderBtn_Clicked"/>
+                            </dx:DXStackLayout>
+                        </Grid>
+                    </DataTemplate>
+                </dx:DXCollectionView.ItemTemplate>
+            </dx:DXCollectionView>
+            </dx:DXStackLayout>
+            
+            <dx:DXButton Content="Fetch Lyrics Online"
+                          Clicked="FetchLyricsData_Click" x:Name="FetchLyricsDataBtn"/>
+            
+            <dx:DXButton Content="Select Folder to scan"
+                          Clicked="OpenFolderScannerBtn_Clicked" x:Name="OpenFolderScannerBtn"/>
+
+            <dx:DXStackLayout ItemSpacing="10">
+
+                <dx:DXButton Content="Backup Device"
+                         x:Name="BackupDeviceBtn"
+                         Clicked="BackupDeviceBtn_Clicked">
+                </dx:DXButton>
+            
+
+                <dx:DXButton Content="Restore Backup Device"
+                         x:Name="RestoreBackupDeviceBtn"
+                         Clicked="RestoreBackupDeviceBtn_Clicked">
+                </dx:DXButton>
+            
+
+                <dx:DXButton Content="Confirm Restore"
+                         x:Name="ConfirmRestoreBtn"
+                         Clicked="ConfirmRestoreBtn_Clicked">
+                </dx:DXButton>
+                <dx:DXExpander x:Name="EventsExpander">
+                    <dx:DXExpander.Content>
+                        <dx:DataGridView ItemsSource="{Binding PickedUpBackup.PlayEvents}"
+                                AutoGenerateColumnsMode="None"     HeightRequest="450"    >
+                            <dx:DataGridView.Columns>
+                                <dx:ImageColumn FieldName="CoverImagePath" Width="50"
+                                                />
+                                <dx:TextColumn FieldName="PlayTypeStr" />
+                                <dx:TextColumn FieldName="ArtistName"/>
+                                <dx:TextColumn FieldName="AlbumName"/>
+                                <dx:CheckBoxColumn IsReadOnly="True"
+                                                   FieldName="WasPlayCompleted"/>
+                                <dx:TextColumn FieldName="AlbumName"/>
+                                <dx:DateColumn FieldName="EventDate"/>
+                            </dx:DataGridView.Columns>
+                        </dx:DataGridView>
+                    </dx:DXExpander.Content>
+                </dx:DXExpander>
+        </dx:DXStackLayout>
+
+        </dx:DXStackLayout>
+    </dx:DXScrollView>
+</ContentPage>

@@ -843,9 +843,7 @@ public static class DimmerMappers
             var concernedSong = src.SongsLinkingToThisEvent.FirstOrDefaultNullSafe();
             if (concernedSong != null)
             {
-                dest.CoverImagePath = string.IsNullOrEmpty(concernedSong.CoverImagePath)
-                    ? string.Empty
-                    : concernedSong.CoverImagePath;
+              
                 dest.IsFav = concernedSong.IsFavorite;
                 dest.ArtistName = concernedSong.ArtistName;
                 dest.AlbumName = concernedSong.AlbumName;

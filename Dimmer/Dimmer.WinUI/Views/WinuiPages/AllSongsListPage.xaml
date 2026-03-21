@@ -89,7 +89,7 @@
                             Click="ViewQueue_Click"
                             Content="View Queue" />
 
-                        <Button Command="{x:Bind MyViewModel.ScrollToCurrentPlayingSongCommand}">
+                        <Button Command="{x:Bind MyViewModel.ScrollToRequestedSongCommand}">
                             <SymbolIcon Symbol="View" />
                         </Button>
 
@@ -121,6 +121,7 @@
                             x:Name="SortByWithTQL"
                             Content="Sort By"
                             IsEnabled="True"
+                            Click="SortByWithTQL_Click"
                             Loaded="SortByWithTQL_Loaded"
                             Visibility="Visible">
                             <SplitButton.Flyout>
@@ -200,6 +201,7 @@
                     CanDragItems="True"
                     CellContextFlyoutOpening="MySongsTableView_CellContextFlyoutOpening"
                     DoubleTapped="TableView_DoubleTapped"
+                    RightTapped="MySongsTableView_RightTapped"
                     DragItemsCompleted="MySongsTableView_DragItemsCompleted"
                     DragItemsStarting="MySongsTableView_DragItemsStarting"
                     DragStarting="MySongsTableView_DragStarting"
@@ -225,7 +227,7 @@
                     <dgView:TableView.Columns>
 
                         <!--  Column for the Cover Art  -->
-                        <dgView:TableViewTemplateColumn x:Name="ImgCol" Width="75">
+                        <dgView:TableViewTemplateColumn x:Name="ImgCol" Width="95">
                             <dgView:TableViewTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Border
@@ -285,7 +287,7 @@
                                             <Image
                                                 x:Name="coverArtImage"
                                                 Grid.Row="1"
-                                                Width="55"
+                                                Width="65"
                                                 HorizontalAlignment="Left"
                                                 x:FieldModifier="Public"
                                                 Loaded="CoverArtImage_Loaded"
@@ -340,118 +342,45 @@
                         </dgView:TableViewTemplateColumn>
 
 
-                        <dgView:TableViewTemplateColumn
+                        <dgView:TableViewTextColumn
                             x:Name="Title"
+                            Header="Title"
+                            Binding="{Binding Title}"
                             Width="*" 
                             IsReadOnly="True"
                             ToolTipService.Placement="Mouse"
                             ToolTipService.ToolTip="{x:Bind MyViewModel.CurrentPlayingSongView.Title}">
-                            <dgView:TableViewTemplateColumn.CellTemplate>
-                                <DataTemplate>
+                            
 
-                                    <StackPanel x:Name="TitleColumn"
-                                            Background="Transparent" PointerPressed="TitleColumn_PointerPressed">
-
-                                        <Button
-                                            x:Name="SongTitle"
-                                            Background="Transparent"
-                                            BorderThickness="0"
-                                            Click="SongTitle_Click">
-                                            <TextBlock Text="{Binding Title}" TextWrapping="WrapWholeWords" />
-                                        </Button>
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="*" />
-                                            </Grid.ColumnDefinitions>
-
-                                            <Button Background="Transparent">
-                                                <StackPanel
-                                                    Orientation="Horizontal"
-                                                    PointerPressed="ArtistBtnStackPanel_PointerPressed"
-                                                    Spacing="2">
-                                                    <FontIcon FontSize="12" Glyph="&#xF8B1;" />
-                                                    <TextBlock
-                                                        VerticalAlignment="Center"
-                                                        Text="{Binding OtherArtistsName}"
-                                                        TextWrapping="WrapWholeWords" />
-                                                </StackPanel>
-                                            </Button>
-
-                                            <Button
-                                                x:Name="AlbumBtn"
-                                                Grid.Column="1" HorizontalAlignment="Right"
-                                                HorizontalContentAlignment="Right"
-                                                Background="Transparent"
-                                                BorderThickness="0"
-                                                RightTapped="AlbumBtn_RightTapped"
-                                                Loaded="AlbumBtn_Loaded"
-                                                Click="AlbumBtn_Click">
-
-
-                                                <StackPanel Orientation="Horizontal" Spacing="2">
-                                                    <FontIcon FontSize="14" Glyph="&#xE93C;" />
-                                                    <TextBlock
-                                                        VerticalAlignment="Bottom"
-                                                        Text="{Binding AlbumName}"
-                                                        TextWrapping="WrapWholeWords" />
-                                                </StackPanel>
-                                            </Button>
-
-                                        </Grid>
-                                    </StackPanel>
-
-                                </DataTemplate>
-
-                            </dgView:TableViewTemplateColumn.CellTemplate>
-
-                        </dgView:TableViewTemplateColumn>
+                        </dgView:TableViewTextColumn>
 
 
 
-                        <dgView:TableViewTemplateColumn x:Name="DurationFormatted" IsReadOnly="True">
-                            <dgView:TableViewTemplateColumn.Header>
-                                <FontIcon Glyph="&#xE823;" />
-                            </dgView:TableViewTemplateColumn.Header>
-                            <dgView:TableViewTemplateColumn.CellTemplate>
-                                <DataTemplate>
+                        <dgView:TableViewTextColumn Binding="{Binding OtherArtistsName}" x:Name="ArtistsColumn"
+                                                        
+                                                        IsReadOnly="True"
+                                                    Header="Artists" />
 
-                                    <StackPanel HorizontalAlignment="Center" x:Name="DurationFormatted"
-                                                DoubleTapped="DurationFormatted_DoubleTapped">
-                                        <TextBlock
-                                            HorizontalAlignment="Center"
-                                            Text="{Binding DurationFormatted}"
-                                            TextWrapping="WrapWholeWords" />
-                                    </StackPanel>
-                                </DataTemplate>
+                        <dgView:TableViewTextColumn Binding="{Binding AlbumName}" x:Name="AlbumColumn"
+                                                        
+                                                        IsReadOnly="True"
+                                                    Header="Album" />
 
-                            </dgView:TableViewTemplateColumn.CellTemplate>
-
-                        </dgView:TableViewTemplateColumn>
-
-                        <dgView:TableViewTemplateColumn
-                            x:Name="PlayCompletedCount"
-                            Header="Dims"
-                            IsReadOnly="True">
-                            <dgView:TableViewTemplateColumn.CellTemplate>
-                                <DataTemplate>
+                        <dgView:TableViewTextColumn Binding="{Binding DurationFormatted}" x:Name="DurationFormatted"
+                                                        
+                                                        IsReadOnly="True"
+                                                    Header="⌛"/>
 
 
-                                    <StackPanel HorizontalAlignment="Center">
 
-                                        <TextBlock
-                                            HorizontalAlignment="Center"
-                                            FontSize="15"
-                                            Text="{Binding PlayCompletedCount}"
-                                            TextWrapping="WrapWholeWords" />
-                                        
-                                    </StackPanel>
-                                </DataTemplate>
+                        <dgView:TableViewTextColumn Binding="{Binding PlayCompletedCount}" x:Name="PlayCompletedCount"
+                                                        
+                                                        IsReadOnly="True"
+                                                    Header="🎶"/>
 
-                            </dgView:TableViewTemplateColumn.CellTemplate>
-
-                        </dgView:TableViewTemplateColumn>
-
+                        
+                       
+                        
 
                     </dgView:TableView.Columns>
                 </dgView:TableView>

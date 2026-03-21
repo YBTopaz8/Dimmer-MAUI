@@ -208,12 +208,12 @@ public sealed partial class AllSongsListPage : Page
          
         }
     }
-    public void ScrollToSong(SongModelView songToFind)
+    public async void ScrollToSong(SongModelView songToFind)
     {
         if (songToFind == null)
             return;
        
-        MySongsTableView.SmoothScrollIntoViewWithItemAsync(songToFind, (ScrollItemPlacement)ScrollIntoViewAlignment.Leading);
+        await MyViewModel.ScrollToRequestedSong( songToFind);
     }
 
     public Microsoft.UI.Xaml.Data.ICollectionView? GetCurrentVisibleItems()
@@ -407,7 +407,7 @@ public sealed partial class AllSongsListPage : Page
             || updateKind == Microsoft.UI.Input.PointerUpdateKind.MiddleButtonPressed)
         {
 
-            await MyViewModel.ScrollToCurrentPlayingSongCommand.ExecuteAsync(null);
+            await MyViewModel.ScrollToRequestedSongCommand.ExecuteAsync(null);
 
 
         }
@@ -704,7 +704,7 @@ public sealed partial class AllSongsListPage : Page
         {
             if(prop.IsMiddleButtonPressed)
             {
-                MyViewModel.ScrollToCurrentPlayingSongCommand.Execute(null);
+                MyViewModel.ScrollToRequestedSongCommand.Execute(null);
                 
             }
         }
@@ -717,13 +717,11 @@ public sealed partial class AllSongsListPage : Page
 
     private void CardBorder_PointerReleased(object sender, PointerRoutedEventArgs e)
     {
-        ViewSongBtn_Click(sender, e);
     }
 
     
     private void coverArtImage_RightTapped(object sender, RightTappedRoutedEventArgs e)
     {
-        ViewOtherBtn_Click(sender, e);
     }
 
     private void HideBtmPart_Click(object sender, RoutedEventArgs e)
@@ -749,12 +747,14 @@ public sealed partial class AllSongsListPage : Page
            AnimationHelper.Key_ToViewSingleSongPopUp, AnimationHelper.Key_ListToDetail);
     }
 
-    Image? coverImagClicked;
+
     private void ViewOtherBtn_Click(object sender, RoutedEventArgs e)
     {
-         coverImagClicked = (Image)sender;
+        
 
-        var selectedSong = (SongModelView)((FrameworkElement)sender).DataContext;
+
+        var selectedSong = (SongModelView)((FrameworkElement)e.OriginalSource).DataContext;
+        MyViewModel.SelectedSong = selectedSong;
         var menuFlyout = new MenuFlyout();
         var addNoteToSongMFItem = new MenuFlyoutItem { Text = "Add Note to Song" };
         addNoteToSongMFItem.Click += async (s, args) =>
@@ -866,7 +866,7 @@ public sealed partial class AllSongsListPage : Page
 
             };
             AnimationHelper.PrepareFromChild(
-sender as DependencyObject,
+s as DependencyObject,
 "ArtistNameTxt",
 AnimationHelper.Key_Forward
 );
@@ -904,7 +904,8 @@ AnimationHelper.Key_Forward
         {
            
 
-            AnimationHelper.Prepare(AnimationHelper.Key_ToViewSingleSongPopUp, coverImagClicked);
+
+            AnimationHelper.Prepare(AnimationHelper.Key_ToViewSingleSongPopUp, coverImageClicked);
 
             SingleSongPopup.Visibility = Visibility.Visible;
 
@@ -919,9 +920,11 @@ AnimationHelper.Key_Forward
 
         menuFlyout.Items.Add(viewInfoPopup);
 
-        menuFlyout.ShowAt(coverImagClicked, flyoutShowOpt);
+        menuFlyout.ShowAt((UIElement)e.OriginalSource, flyoutShowOpt);
 
     }
+
+    Image coverImageClicked;
 
     private void SingleSongPopup_DismissedRequested(object sender, PopupDismissedEventArgs e)
     {
@@ -931,12 +934,12 @@ AnimationHelper.Key_Forward
         AnimationHelper.Prepare(AnimationHelper.Key_ToViewQueue, SingleSongPopup);
 
 
-        //    // 3. START the animation back to the original list button
-        if (coverImagClicked != null)
+       // 3. START the animation back to the original list button
+        if (coverImageClicked != null)
         {
             // We use the helper to fly back to the button we clicked earlier
             AnimationHelper.TryStart(
-                coverImagClicked,
+                coverImageClicked,
                 null,
                 AnimationHelper.Key_ToViewQueue
             );
@@ -1043,8 +1046,8 @@ AnimationHelper.ConnectedAnimationStyle.ScaleUp
 
     private void coverArtImage_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
-        coverImagClicked = (Image)sender;
-        var song = coverImagClicked.DataContext as SongModelView;
+        coverImageClicked = (Image)sender;
+        var song = coverImageClicked.DataContext as SongModelView;
 
         if (song != null)
         {
@@ -1054,11 +1057,11 @@ AnimationHelper.ConnectedAnimationStyle.ScaleUp
             }
 
         }
-        var props = e.GetCurrentPoint(coverImagClicked).Properties;
+        var props = e.GetCurrentPoint(coverImageClicked).Properties;
         if(props.IsMiddleButtonPressed)
         {
 
-            AnimationHelper.Prepare(AnimationHelper.Key_ToViewSingleSongPopUp, coverImagClicked);
+            AnimationHelper.Prepare(AnimationHelper.Key_ToViewSingleSongPopUp, coverImageClicked);
 
             SingleSongPopup.Visibility = Visibility.Visible;
 
@@ -1405,5 +1408,15 @@ AnimationHelper.ConnectedAnimationStyle.ScaleUp
         FrameworkElement send = (FrameworkElement)sender;
         AnimationHelper.TryStart(send, null,
             AnimationHelper.Key_DetailToListFromAlbum);
+    }
+
+    private void MySongsTableView_RightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+        ViewOtherBtn_Click(sender, e);
+    }
+
+    private void SortByWithTQL_Click(SplitButton sender, SplitButtonClickEventArgs args)
+    {
+        SortByWithTQL.Flyout.ShowAt(sender);
     }
 }

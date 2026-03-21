@@ -96,7 +96,7 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
         if (isPressedKeyEnterOrReturn)
         {
             BaseViewModel.LastFMName = LastFMUname.Text;
-
+            //LoginLastFMBtn.IsEnabled = false;
             MyViewModel?.LoginToLastfmCommand.Execute(null);
 
         }
@@ -131,11 +131,11 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
                 user = userr.ToLastFMUserView();
             }
             
-            UserNameTxt.Text = user.Name;
-            TotalScrobblesTxt.Text = $"{user.Playcount:N0} Scrobbles";
-            scrobblingSince.Text = $"Scrobbling since {user.Registered:dd MMM yyyy}";
+            UserNameTxt.Text = user?.Name;
+            TotalScrobblesTxt.Text = $"{user?.Playcount:N0} Scrobbles";
+            scrobblingSince.Text = $"Scrobbling since {user?.Registered:dd MMM yyyy}";
             // If user.Image is a string URL:
-            if (!string.IsNullOrEmpty(user.Image.Url))
+            if (!string.IsNullOrEmpty(user?.Image?.Url))
             {
                 if (!string.IsNullOrEmpty(user.Image.Url))
                 {

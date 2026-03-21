@@ -46,7 +46,7 @@ public class FolderMgtService : IFolderMgtService
 
     public async Task StartWatchingConfiguredFoldersAsync(List<string>? paths = null)
     {
-        return;
+        
         try
         {
             if (_isCurrentlyWatching)
@@ -271,7 +271,7 @@ public class FolderMgtService : IFolderMgtService
         var foldersToWatchPaths = appModel?.UserMusicFolders;
 
         _logger.LogInformation("Clearing all watched folders and settings.");
-        foldersToWatchPaths.Clear();
+        foldersToWatchPaths?.Clear();
        await StartWatchingConfiguredFoldersAsync();
 
         _state.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderRemoved, "ALL_FOLDERS_CLEARED", null, null));

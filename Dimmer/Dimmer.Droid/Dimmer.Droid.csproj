@@ -8,7 +8,7 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<LangVersion>preview</LangVersion>
-		<UseMaui>false</UseMaui>
+		<UseMaui>true</UseMaui>
 	</PropertyGroup>
 
 
@@ -18,49 +18,27 @@
 		<DebugType>portable</DebugType>
 		<RunAOTCompilation>false</RunAOTCompilation>
 		<AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
-		<Optimize>false</Optimize>
-		<AndroidLinkSkip>Dimmer;Dimmer.Droid;Realm;System.Reactive;CommunityToolkit.Mvvm;System.Linq.Expressions</AndroidLinkSkip>
+		<Optimize>true</Optimize>
 		<OutputPath>bin\Release\</OutputPath>
 
-		<!-- FIX 1: Disable Resource Shrinking temporarily -->
-		<AndroidLinkResources>false</AndroidLinkResources>
-
-		<AndroidLinkMode>None</AndroidLinkMode>
-		<!-- FIX 2: Make Linker less aggressive -->
-		<AndroidLinkMode>SdkOnly</AndroidLinkMode>
-		<!-- "SdkOnly" links Android assemblies but leaves YOUR code and NuGet packages alone. -->
-
+	
+		
+		
+		
 		<EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
 	</PropertyGroup>
 
-
-
-	<ItemGroup>
-	  <AndroidJavaSource Remove="ViewsAndPages\NativeViews\NewFolder\**" />
-	  <AndroidLibrary Remove="ViewsAndPages\NativeViews\NewFolder\**" />
-	  <AndroidNativeLibrary Remove="ViewsAndPages\NativeViews\NewFolder\**" />
-	  <Compile Remove="ViewsAndPages\NativeViews\NewFolder\**" />
-	  <EmbeddedResource Remove="ViewsAndPages\NativeViews\NewFolder\**" />
-	  <JavaSourceJar Remove="ViewsAndPages\NativeViews\NewFolder\**" />
-	  <MauiCss Remove="ViewsAndPages\NativeViews\NewFolder\**" />
-	  <MauiXaml Remove="ViewsAndPages\NativeViews\NewFolder\**" />
-	  <None Remove="ViewsAndPages\NativeViews\NewFolder\**" />
-	  <ProguardConfiguration Remove="ViewsAndPages\NativeViews\NewFolder\**" />
-	  <TransformFile Remove="ViewsAndPages\NativeViews\NewFolder\**" />
-	</ItemGroup>
-
-
-
-	<ItemGroup>
-	  <Compile Remove="ViewsAndPages\NativeViews\GraphFragment.cs" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <None Remove="Linker.xml" />
-	</ItemGroup>
-
 	<ItemGroup>
 		<!--<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.120" />-->
+		<PackageReference Include="DevExpress.Maui.Charts" Version="24.2.12" />
+		<PackageReference Include="DevExpress.Maui.CollectionView" Version="24.2.12" />
+		<PackageReference Include="DevExpress.Maui.Controls" Version="24.2.12" />
+		<PackageReference Include="DevExpress.Maui.Core" Version="24.2.12" />
+		<PackageReference Include="DevExpress.Maui.DataGrid" Version="24.2.12" />
+		<PackageReference Include="DevExpress.Maui.Editors" Version="24.2.12" />
+		<PackageReference Include="DevExpress.Maui.Gauges" Version="24.2.12" />
+		<PackageReference Include="DevExpress.Maui.ProjectTemplates" Version="24.2.14" />
+		<PackageReference Include="DevExpress.Maui.TreeView" Version="24.2.12" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.3" />
 		<PackageReference Include="SkiaSharp.Views" Version="3.119.2" />
 		<PackageReference Include="Xamarin.AndroidX.Activity.Ktx" Version="1.12.4.1" />
@@ -120,18 +98,29 @@
 		<PackageReference Include="Xamarin.AndroidX.Compose.Runtime.Annotation.Jvm" Version="1.10.4.1" ExcludeAssets="all" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\Dimmer\Dimmer.csproj" />
-	</ItemGroup>
+
 
 	<ItemGroup>
 	  <Folder Include="Adapters\HomePage\" />
+	  <Folder Include="DevExpressViews\" />
+	  <Folder Include="NewFolder\" />
 	  <Folder Include="Resources\layout\" />
 	  <Folder Include="Utils\CustomObjects\" />
 	</ItemGroup>
 
+
+
 	<ItemGroup>
-	  <LinkDescription Include="Linker.xml" />
+	  <ProjectReference Include="..\Dimmer\Dimmer.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <MauiXaml Update="DimmerAppShell.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\HomePage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	</ItemGroup>
 
 </Project>
