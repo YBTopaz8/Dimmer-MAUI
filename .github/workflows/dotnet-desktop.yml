@@ -146,10 +146,10 @@ jobs:
           }
 
       # 9. SETUP .NET & WORKLOADS
-      - name: Setup .NET 9
+      - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.0.x
+          dotnet-version: 10.0.x
 
       - name: Install MAUI Workloads
         run: dotnet workload install maui-android maui-windows
@@ -157,7 +157,7 @@ jobs:
       # 10. BUILD WINDOWS
       - name: Build Windows
         run: |
-          dotnet publish "${{ env.PATH_WINUI }}" -f net9.0-windows10.0.19041.0 -c Release -r win-x64 -p:WindowsPackageType=None -p:GenerateAppxPackageOnBuild=false -p:AppxPackageSigningEnabled=false -o .\RawBuild\WinUI
+          dotnet publish "${{ env.PATH_WINUI }}" -f net10.0-windows10.0.19041.0 -c Release -r win-x64 -p:WindowsPackageType=None -p:GenerateAppxPackageOnBuild=false -p:AppxPackageSigningEnabled=false -o .\RawBuild\WinUI
 
       # 11. ZIP WINDOWS
       - name: Zip Windows Build
@@ -171,7 +171,7 @@ jobs:
       # 12. BUILD ANDROID
       - name: Build Android
         run: |
-          dotnet publish "${{ env.PATH_DROID }}" -f net9.0-android -c Release -r android-arm64 -p:AndroidPackageFormat=apk -o .\RawBuild\Android
+          dotnet publish "${{ env.PATH_DROID }}" -f net10.0-android -c Release -r android-arm64 -p:AndroidPackageFormat=apk -o .\RawBuild\Android
       
       - name: Get Android Size
         shell: pwsh
