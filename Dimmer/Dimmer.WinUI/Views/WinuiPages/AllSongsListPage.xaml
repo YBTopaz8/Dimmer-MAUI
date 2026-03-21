@@ -342,76 +342,21 @@
                         </dgView:TableViewTemplateColumn>
 
 
-                        <dgView:TableViewTemplateColumn
+                        <dgView:TableViewTextColumn
                             x:Name="Title"
+                            Header="Title"
+                            Binding="{Binding Title}"
                             Width="*" 
                             IsReadOnly="True"
                             ToolTipService.Placement="Mouse"
                             ToolTipService.ToolTip="{x:Bind MyViewModel.CurrentPlayingSongView.Title}">
-                            <dgView:TableViewTemplateColumn.CellTemplate>
-                                <DataTemplate>
+                            
 
-                                    <StackPanel x:Name="TitleColumn"
-                                            Background="Transparent" PointerPressed="TitleColumn_PointerPressed">
-
-                                        <Button
-                                            x:Name="SongTitle"
-                                            Background="Transparent"
-                                            BorderThickness="0"
-                                            Click="SongTitle_Click">
-                                            <TextBlock Text="{Binding Title}" TextWrapping="WrapWholeWords" />
-                                        </Button>
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="*" />
-                                            </Grid.ColumnDefinitions>
-
-                                            <Button Background="Transparent">
-                                                <StackPanel
-                                                    Orientation="Horizontal"
-                                                    PointerPressed="ArtistBtnStackPanel_PointerPressed"
-                                                    Spacing="2">
-                                                    <FontIcon FontSize="12" Glyph="&#xF8B1;" />
-                                                    <TextBlock
-                                                        VerticalAlignment="Center"
-                                                        Text="{Binding OtherArtistsName}"
-                                                        TextWrapping="WrapWholeWords" />
-                                                </StackPanel>
-                                            </Button>
-
-                                            <Button
-                                                x:Name="AlbumBtn"
-                                                Grid.Column="1" HorizontalAlignment="Right"
-                                                HorizontalContentAlignment="Right"
-                                                Background="Transparent"
-                                                BorderThickness="0"
-                                                RightTapped="AlbumBtn_RightTapped"
-                                                Loaded="AlbumBtn_Loaded"
-                                                Click="AlbumBtn_Click">
-
-
-                                                <StackPanel Orientation="Horizontal" Spacing="2">
-                                                    <FontIcon FontSize="14" Glyph="&#xE93C;" />
-                                                    <TextBlock
-                                                        VerticalAlignment="Bottom"
-                                                        Text="{Binding AlbumName}"
-                                                        TextWrapping="WrapWholeWords" />
-                                                </StackPanel>
-                                            </Button>
-
-                                        </Grid>
-                                    </StackPanel>
-
-                                </DataTemplate>
-
-                            </dgView:TableViewTemplateColumn.CellTemplate>
-
-                        </dgView:TableViewTemplateColumn>
+                        </dgView:TableViewTextColumn>
 
 
 
-                        <dgView:TableViewTextColumn Binding="{Binding OtherArtistName}" x:Name="ArtistsColumn"
+                        <dgView:TableViewTextColumn Binding="{Binding OtherArtistsName}" x:Name="ArtistsColumn"
                                                         
                                                         IsReadOnly="True"
                                                     Header="Artists" />

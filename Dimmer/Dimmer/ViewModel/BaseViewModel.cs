@@ -7179,6 +7179,16 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
 
+
+    [ObservableProperty]
+    public partial string? SelectedFile { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsRestoreDone { get; set; }
+
+    [ObservableProperty]
+    public partial CompleteBackupData? PickedUpBackup { get; set; }
+
     [RelayCommand]
     private void ToggleEditMode()
     { CurrentEditMode = (CurrentEditMode == PlaylistEditMode.Add) ? PlaylistEditMode.Remove : PlaylistEditMode.Add; }

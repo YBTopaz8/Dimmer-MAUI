@@ -99,6 +99,7 @@ x:Name="ArtistBtn" Click="ArtistBtn_Click"
                         x:Name="ProgressSlider" IsThumbToolTipEnabled="True"
                         Foreground="DarkSlateBlue"
                         PointerPressed="OnSliderPointerPressed"
+                        
         PointerReleased="OnSliderPointerReleased"
         PointerMoved="OnSliderPointerMoved"
                         Maximum="{x:Bind MyViewModel.CurrentTrackDurationSeconds, Mode=OneWay}"

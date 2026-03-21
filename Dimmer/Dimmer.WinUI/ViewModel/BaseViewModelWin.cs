@@ -1277,16 +1277,6 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         //BackupService.CleanupOldBackups(3);
     }
 
-    [ObservableProperty]
-    public partial CompleteBackupData? PickedUpBackup { get; set; }
-
-    [ObservableProperty]
-    public partial string? SelectedFile { get; set; }
-
-    [ObservableProperty]
-    public partial bool IsRestoreDone { get; set; }
-
-
     internal async Task BackUpAppDataAsync()
     {
         var tcs = new TaskCompletionSource<bool>();
