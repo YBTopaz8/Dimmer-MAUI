@@ -19,6 +19,7 @@
     xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
     xmlns:windows="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;assembly=Microsoft.Maui.Controls"
     x:Name="myPage"
+    Unloaded="myPage_Unloaded"
     Title="HomePage"
     x:DataType="vm:BaseViewModelWin"
     BackgroundColor="{AppThemeBinding Light=#F5F5F5,
@@ -379,8 +380,8 @@
                                 CornerRadius="20"
                                 HeightRequest="70"
                                 ImageSource="lyrics.png"
-                                IsVisible="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
-                                Loaded="ButtonLoaded"
+                                
+                                Loaded="ViewLyricsChip_Loaded"
                                 WidthRequest="70" />
 
                         </VerticalStackLayout>
@@ -555,7 +556,8 @@
                     <Slider
                         x:Name="TrackProgressSlider"
                         Grid.Column="1"
-                        DragCompleted="Slider_DragCompleted"
+                        DragStarted="OnSliderDragStarted"
+        DragCompleted="OnSliderDragCompleted"
                         Maximum="{Binding CurrentPlayingSongView.DurationInSeconds}"
                         MaximumTrackColor="{AppThemeBinding Dark=White,
                                                             Light=Black}"

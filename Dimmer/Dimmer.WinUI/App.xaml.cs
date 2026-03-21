@@ -118,7 +118,7 @@ public partial class App : MauiWinUIApplication
         {
             RxSchedulers.UI.Schedule(async () =>
             {
-                await Shell.Current.DisplayAlert("Error", $"An error occurred during activation: {ex.Message}", "OK");
+                await Shell.Current.DisplayAlertAsync("Error", $"An error occurred during activation: {ex.Message}", "OK");
             });
         }
     }

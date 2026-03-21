@@ -4,7 +4,7 @@ using Microsoft.Maui.Platform;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
-
+using Point = Windows.Foundation.Point;
 namespace Dimmer.WinUI.Views.WinuiPages;
 
 public sealed partial class NowPlayingPage : Page
@@ -12,6 +12,10 @@ public sealed partial class NowPlayingPage : Page
     public NowPlayingPage()
     {
         InitializeComponent();
+
+        _previewTimer = new DispatcherTimer();
+        _previewTimer.Interval = TimeSpan.FromMilliseconds(50);
+        _previewTimer.Tick += OnPreviewTick;
     }
 
     public BaseViewModelWin MyViewModel { get; internal set; }
@@ -323,4 +327,77 @@ public sealed partial class NowPlayingPage : Page
     {
         SyncLyricsListView.ScrollIntoView(MyViewModel.CurrentLine);
             }
+
+    private bool _isDragging = false;
+    private double _dragStartValue;
+    private DispatcherTimer _previewTimer;
+    private void OnSliderPointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        _isDragging = true;
+        _dragStartValue = ProgressSlider.Value;
+
+        // Capture pointer for smooth tracking
+        ProgressSlider.CapturePointer(e.Pointer);
+
+        // Update position immediately on click
+        var point = e.GetCurrentPoint(ProgressSlider);
+        var newValue = CalculateValueFromPoint(point.Position);
+        ProgressSlider.Value = newValue;
+
+        // Start preview timer
+        _previewTimer.Start();
+
+        e.Handled = true;
+    }
+
+    private void OnSliderPointerMoved(object sender, PointerRoutedEventArgs e)
+    {
+        if (!_isDragging) return;
+
+        var point = e.GetCurrentPoint(ProgressSlider);
+        var newValue = CalculateValueFromPoint(point.Position);
+        ProgressSlider.Value = newValue;
+
+        // Live preview
+        //MyViewModel.PreviewTrackPosition(newValue);
+
+        e.Handled = true;
+    }
+
+    private async void OnSliderPointerReleased(object sender, PointerRoutedEventArgs e)
+    {
+        _isDragging = false;
+
+        // Stop preview timer
+        _previewTimer.Stop();
+
+        // Only seek if value actually changed
+        if (Math.Abs(ProgressSlider.Value - _dragStartValue) > 0.01)
+        {
+            var finalValue = ProgressSlider.Value;
+
+            // Update ViewModel binding first
+            MyViewModel.CurrentTrackPositionSeconds = finalValue;
+
+            // Then perform seek
+            MyViewModel.SeekTrackPosition(finalValue);
+        }
+
+        ProgressSlider.ReleasePointerCapture(e.Pointer);
+        e.Handled = true;
+    }
+
+    private double CalculateValueFromPoint(Point point)
+    {
+        var range = ProgressSlider.Maximum - ProgressSlider.Minimum;
+        var percent = point.X / ProgressSlider.ActualWidth;
+        return ProgressSlider.Minimum + (percent * range);
+    }
+
+    private void OnPreviewTick(object? sender, object e)
+    {
+        // Update preview label during drag
+        //PreviewTimeText.Text = TimeSpan.FromSeconds(ProgressSlider.Value).ToString(@"mm\:ss");
+    }
+
 }

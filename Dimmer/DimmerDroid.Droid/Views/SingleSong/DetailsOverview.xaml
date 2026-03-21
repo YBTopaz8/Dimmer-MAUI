@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer.Views.SingleSong.DetailsOverview"
+             
+            xmlns:vm="clr-namespace:Dimmer.ViewModels"
+ xmlns:local="clr-namespace:Dimmer.Views.CustomViews"
+ xmlns:dx="http://schemas.devexpress.com/maui"
+ xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+ x:DataType="models:SongModelView" Shell.NavBarIsVisible="True"
+Title="{Binding Title}"             
+>
+    <dx:DXScrollView Margin="5,0">
+
+        <dx:TabView x:Name="SongTabView" HeaderPanelPosition="Bottom">
+            <dx:TabViewItem x:Name="OverViewTab" HeaderText="OverView" >
+                
+                <dx:DXStackLayout ItemSpacing="5">
+                    <dx:DXImage Source="{Binding CoverImagePath}" MaximumHeightRequest="300" MaximumWidthRequest="300" Aspect="AspectFit" HorizontalOptions="Center"/> 
+                    <Label Text="{Binding Title}" HorizontalTextAlignment="Justify"
+                           LineBreakMode="WordWrap"
+                           FontSize="23" />
+                    <dx:Chip  Text="{Binding OtherArtistsName}" HorizontalOptions="Center"
+                          
+                           FontSize="17" />
+                    <dx:Chip  Text="{Binding AlbumName}" HorizontalOptions="Center"
+                          
+                           FontSize="14" />
+                    <dx:Chip Text="{Binding GenreName}" HorizontalOptions="Center"
+                           
+                             FontSize="12" />
+
+                    <dx:Chip Text="{Binding PlayCompletedCount}"/>
+                    <dx:Chip Text="{Binding PauseCount}"/>
+                    <dx:Chip Text="{Binding SkipCount}"/>
+                    
+                    <dx:Chip Icon="heart.png" IsVisible="{Binding IsFavorite}"/>
+                </dx:DXStackLayout>
+            </dx:TabViewItem>
+
+            <dx:TabViewItem HeaderText="Lyrics">
+                <dx:DXStackLayout>
+                    
+                </dx:DXStackLayout>
+            </dx:TabViewItem>
+
+            <dx:TabViewItem HeaderText="Play History">
+                <dx:DXStackLayout>
+
+                    <dx:DataGridView ItemsSource="{Binding PlayEvents}"
+                                     AutoGenerateColumnsMode="None">
+                        <dx:DataGridView.Columns>
+                            <dx:TemplateColumn FieldName="PlayTypeStr"/>
+                            <dx:DateColumn FieldName="EventDate"/>
+                            <dx:NumberColumn FieldName="PositionInSeconds"
+                                             />
+                        </dx:DataGridView.Columns>
+                    </dx:DataGridView>
+                </dx:DXStackLayout>
+            </dx:TabViewItem>
+        </dx:TabView>
+        
+    </dx:DXScrollView>
+</ContentPage>
