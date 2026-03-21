@@ -30,7 +30,7 @@
                 <dx:TextEdit x:Name="SearchBarTextEdit"  CornerRadius="20" PlaceholderText="Search with TQL..."
                          TextChanged="SearchBar_TextChanged" PlaceholderColor="Gray"
                              Loaded="SearchBar_Loaded" HorizontalOptions="Fill" 
-                             UnLoaded="SearchBar_UnLoaded"
+                             Unloaded="SearchBar_UnLoaded"
                              >
                    
                     
@@ -38,6 +38,9 @@
             </Grid>
             <dx:DXButton Content="Select Folder to scan"
                           Clicked="OpenFolderScannerBtn_Clicked" x:Name="OpenFolderScannerBtn"/>
+
+            <dx:DXButton Content="Settings"
+                          Clicked="SettingsBtn_Clicked" x:Name="SettingsBtn"/>
 
         
 

@@ -103,6 +103,9 @@
 	  <MauiXaml Update="Views\CustomViews\PlaybackQueueBtmSheet.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="Views\Settings\SettingsPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Views\SingleSong\DetailsOverview.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
@@ -111,6 +114,5 @@
 	<ItemGroup>
 	  <Folder Include="Views\Artist\" />
 	  <Folder Include="Views\Album\" />
-	  <Folder Include="Views\Settings\" />
 	</ItemGroup>
 </Project>

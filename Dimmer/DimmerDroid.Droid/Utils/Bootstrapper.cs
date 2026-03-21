@@ -1,6 +1,7 @@
 ﻿using Dimmer.DimmerLive;
 using Dimmer.NativeServices;
 using Dimmer.Views.CustomViews;
+using Dimmer.Views.Settings;
 using Dimmer.Views.SingleSong;
 
 namespace Dimmer.Utils;
@@ -29,6 +30,8 @@ internal class Bootstrapper
 
         // 3. Register ViewModels
         services.AddSingleton<BaseViewModelAnd>();
+        services.AddSingleton<SettingsPage>();
+
         services.AddSingleton<DetailsOverview>();
         services.AddSingleton<PlaybackQueueBtmSheet>();
         services.AddSingleton<NowPlayingBottomSheet>();

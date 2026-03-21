@@ -13,7 +13,7 @@ using Google.Android.Material.Dialog;
 using Microsoft.Extensions.Logging;
 using System.Text.RegularExpressions;
 using Label = Microsoft.Maui.Controls.Label;
-
+using TextEdit = DevExpress.Maui.Editors.TextEdit;
 namespace Dimmer.ViewModels;
 
 public partial class BaseViewModelAnd : BaseViewModel, IDisposable
@@ -334,7 +334,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     [RelayCommand]
     public async Task DeleteFileFromSystem(SongModelView song)
     {
-        bool confirm = await Shell.Current.DisplayAlert("Confirm Delete", $"Are you sure you want to delete '{song.Title}' from your device? This action cannot be undone.", "Delete", "Cancel");
+        bool confirm = await Shell.Current.DisplayAlertAsync("Confirm Delete", $"Are you sure you want to delete '{song.Title}' from your device? This action cannot be undone.", "Delete", "Cancel");
         if (confirm)
         {
             try
@@ -350,11 +350,11 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
                 }
 
-                await Shell.Current.DisplayAlert("Deleted", $"'{song.Title}' has been deleted from your device.", "OK");
+                await Shell.Current.DisplayAlertAsync("Deleted", $"'{song.Title}' has been deleted from your device.", "OK");
             }
             catch (Exception ex)
             {
-                await Shell.Current.DisplayAlert("Error", $"Failed to delete '{song.Title}': {ex.Message}", "OK");
+                await Shell.Current.DisplayAlertAsync("Error", $"Failed to delete '{song.Title}': {ex.Message}", "OK");
             }
         }
     }
@@ -425,49 +425,80 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             OpenMediaUIOnNotificationTap = v;
         }
     }
-   
-    internal async Task RestoreAppDataAsync()
+
+    [RelayCommand]
+    public async Task RestoreCompleteDataAsync()
+    {
+        RestoreResult res = new();
+        if (PickedUpBackup is not null)
+            IsRestoreDone = await BackupService.RestoreCompleteDataAsync(PickedUpBackup, res);
+
+    }
+    [RelayCommand]
+    public async Task PickFolderToRestoreAppDataAsync()
     {
         var tcs = new TaskCompletionSource<(bool includeDefault, string customPath)>();
-        DXPopup backUpPopup = new DXPopup();
-        backUpPopup.Content = new Label() { Text = "Do you want to select a folder to restore backup from? If no, it will look for backups in default location." };
-       
 
-        // Wait for user's decision
-        var (includeDefaultLocation, secondaryPath) = await tcs.Task;
 
-        // Now proceed with backup restoration
-        var files = await BackupService.GetBackupFilesAsync(secondaryPath, includeDefaultLocation);
+        var fPicker = await FilePicker.Default
+            .PickAsync(
+                new
+            PickOptions()
+                {
+                    FileTypes =
+                        new FilePickerFileType(
+                                new Dictionary<DevicePlatform, IEnumerable<string>>
+                                {
+                        { DevicePlatform.Android, new[] { "application/json" } },
+                        { DevicePlatform.WinUI, new[] { ".json" } },
+                        { DevicePlatform.MacCatalyst, new[] { "public.json" } },
+                        { DevicePlatform.iOS, new[] { "public.json" } }
+                                }),
+                });
+        if(fPicker == null)
+            return;
+        var file = fPicker.FullPath;
 
-        if (files.Count != 0)
-        {
-            // TODO: Implement file picker for multiple backups
-            var selectedFile = files.First();
-            var result = await BackupService.PickFolderTeRestoreFromBackupAsync(selectedFile);
 
-            //if (result.EventsRestored > 0)
-            //{
-            //    Debug.WriteLine(result.ToString());
+        if(file is null)
+            return;
             
-            //}
-            //else
-            //{
-            //    Debug.WriteLine($"Restore failed: {result.ErrorMessage}");
-            
-            //}
-        }
 
-        BackupService.CleanupOldBackups(3);
+
+
+        SelectedFile = file;
+        PickedUpBackup = await BackupService.PickFolderTeRestoreFromBackupAsync(SelectedFile);
+
+
+
+
+        //BackupService.CleanupOldBackups(3);
     }
+
 
     internal async Task BackUpAppDataAsync()
     {
-       
+        var picker = await FolderPicker.Default.PickAsync();
 
+        if(picker != null)
+        {
+            if(!picker.IsSuccessful)
+            {
+                return;
+            }
+            string path = picker.Folder.Path;
+            if(!string.IsNullOrEmpty(picker.Folder.Path))
+            {
+                await BackupService.CreateCompleteBackupAsync(path);
+            }
 
-        //_ = BackupService.CreateCompleteBackupAsync(path);
+            //_ = BackupService.CreateCompleteBackupAsync(path);
+        }
+        else
+        {
+
+        }
     }
-
     public override void UpdateIsSearchResultEmpty(bool isSearchResultEmpty)
     {
         if (SearchBarTextEdit is null) return;

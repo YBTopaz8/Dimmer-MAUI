@@ -1,4 +1,5 @@
 using Android.App.AppSearch;
+using Dimmer.Views.Settings;
 using DynamicData.Binding;
 using View = Microsoft.Maui.Controls.View;
 
@@ -93,13 +94,16 @@ public partial class HomePage : ContentPage
 
     }
 
-    private void SearchBar_UnLoaded(object sender, EventArgs e)
+    private void SearchBar_Unloaded(object sender, EventArgs e)
     {
         MyViewModel.ClearSubscriptionToSearchBar();
     }
 
     private void SearchBar_Loaded(object sender, EventArgs e)
     {
+       
+        
+
         MyViewModel.SubscribeToPlayCount(SearchBarTextEdit);
 
      
@@ -159,5 +163,10 @@ public partial class HomePage : ContentPage
     private void CurrentPlayingArtistChip_LongPress(object sender, HandledEventArgs e)
     {
 
+    }
+
+    private async void SettingsBtn_Clicked(object sender, EventArgs e)
+    {
+        await Shell.Current.GoToAsync(nameof(SettingsPage), true);
     }
 }
