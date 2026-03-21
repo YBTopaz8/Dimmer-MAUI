@@ -177,7 +177,7 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
             ArtistName = currentSong.ArtistName,
             AlbumName = currentSong.AlbumName,
             SongId = currentSong.Id, // CRITICAL: This ID allows the other device to find the file
-            CoverImagePath = currentSong.CoverImagePath,
+            //CoverImagePath = currentSong.CoverImagePath,
             PositionInSeconds = _mainViewModel.CurrentTrackPositionSeconds,
             IsFav = currentSong.IsFavorite
         };

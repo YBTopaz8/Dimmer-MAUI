@@ -37,6 +37,7 @@
 		<PackageReference Include="CommunityToolkit.Diagnostics" Version="8.4.0" />
 		<PackageReference Include="DynamicData" Version="9.4.31" />
 		<PackageReference Include="Fastenshtein" Version="1.0.12" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 
 
 		<PackageReference Include="System.Linq.Dynamic.Core" Version="1.7.1" />

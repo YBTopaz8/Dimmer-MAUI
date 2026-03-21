@@ -9,7 +9,7 @@ public class DimmerPlayEventView
     public string? SongName { get; set; }
     public string? ArtistName { get; set; }
     public string? AlbumName { get; set; }
-    public string? CoverImagePath { get; set; }
+
     public bool IsFav { get; set; }
 
     public ObjectId? SongId { get; set; } 
@@ -34,6 +34,11 @@ public class DimmerPlayEventView
     public string? DeviceManufacturer { get; set; }
     public string? DeviceVersion { get; set; }
     public SongModelView? SongViewObject { get; internal set; }
+
+    public string? CoverImagePath => SongViewObject?.CoverImagePath;
+    public string? SongTitle => SongViewObject?.Title;
+    public string? SongArtistName => SongViewObject?.ArtistName;
+    public string? SongAlbumName => SongViewObject?.AlbumName;
     public ObservableCollection<SongModelView?> ListOfSongViewObjects { get; internal set; }
     public AudioOutputDevice? AudioPlaybackDevice { get; internal set; }
 

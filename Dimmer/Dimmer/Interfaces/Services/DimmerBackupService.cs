@@ -1,27 +1,32 @@
 ﻿using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
+using MongoDB.Bson.IO;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using JsonReader = Newtonsoft.Json.JsonReader;
+using JsonToken = Newtonsoft.Json.JsonToken;
 
 namespace Dimmer.Interfaces.Services;
 public class DimmerBackupService
 {
-    private readonly JsonSerializerOptions _jsonOptions;
+    private readonly JsonSerializerSettings _jsonSettings;
     private readonly object _logLock = new();
     private readonly string _backupDirectory;
     IRealmFactory RealmFactory;
     public DimmerBackupService(IRealmFactory factory)
     {
         RealmFactory = factory;
-        _jsonOptions = new JsonSerializerOptions
+        _jsonSettings = new JsonSerializerSettings
         {
-            PropertyNameCaseInsensitive = true,
-            WriteIndented = true, // Makes JSON human-readable
-            Converters = { new ObjectIdNullableConverter(), new ObjectIdNullableConverter() }
+            Formatting = Formatting.Indented,
+            NullValueHandling = NullValueHandling.Ignore
         };
+        // Add converter
+        _jsonSettings.Converters.Add(new ObjectIdNullableConverter());
 
         _backupDirectory = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
@@ -109,7 +114,7 @@ public class DimmerBackupService
             };
 
             // Serialize to JSON
-            var json = JsonSerializer.Serialize(backupData, _jsonOptions);
+            var json = Newtonsoft.Json.JsonConvert.SerializeObject(backupData, Newtonsoft.Json.Formatting.Indented);
 
             // Save as single file
             SaveBackUp(json, "CompleteBackup", "json",secondPath);
@@ -125,7 +130,8 @@ public class DimmerBackupService
         }
     }
 
-    // Convert DimmerPlayEventView to plain backup model
+
+
     private DimmerPlayEventBackup ConvertToBackup(DimmerPlayEvent playEvent)
     {
         var songg = playEvent.SongsLinkingToThisEvent.FirstOrDefaultNullSafe();
@@ -167,11 +173,11 @@ public class DimmerBackupService
         };
     }
 
-    // Restore from backup file
-    public async Task<CompleteBackupData?> PickFolderTeRestoreFromBackupAsync(string filePath)
-    {
-        var result = new RestoreResult();
 
+    public async Task<CompleteBackupData?> PickFolderTeRestoreFromBackupAsync(
+        string filePath,
+        IProgress<string>? progress = null)
+    {
         try
         {
             Stream? stream = null;
@@ -190,47 +196,137 @@ public class DimmerBackupService
 
             if (stream == null)
             {
-                result.ErrorMessage = "Could not open file stream";
                 return null;
             }
-            CompleteBackupData? completeData;
-            using (stream)
-            {
-                // Try to read as complete backup first
-                if (filePath.Contains("CompleteBackup", StringComparison.OrdinalIgnoreCase))
-                {
-                    completeData = await JsonSerializer.DeserializeAsync<CompleteBackupData>(stream, _jsonOptions);
-                    if (completeData != null)
-                    {
-                        if(completeData.PlayEvents is not null)
-                        {
-                            foreach(var evt in completeData.PlayEvents)
-                            {
-                                var songInDb = RealmFactory.GetRealmInstance()
-                                    .All<SongModel>().AsEnumerable()
-                                    .FirstOrDefault(x => x.TitleDurationKey == evt.TitleAndDurationKey);
-                                if(songInDb != null)
-                                {
-                                    evt.CoverImagePath = songInDb.CoverImagePath;
-                                }
-                            }
-                        }
-                        return completeData;
-                      
 
-                    }
-                }
-            
+            if (filePath.Contains("CompleteBackup", StringComparison.OrdinalIgnoreCase))
+            {
+                progress?.Report("Loading song cache...");
+                var songCache = await BuildSongCacheAsync(progress);
+
+                progress?.Report("Reading backup file...");
+                return await DeserializeBackupWithStreamingAsync(stream, songCache, progress);
             }
         }
         catch (Exception ex)
         {
-            result.ErrorMessage = $"Restore failed: {ex.Message}";
             Debug.WriteLine($"Error during restore: {ex}");
         }
 
         return null;
     }
+
+
+    private async Task<Dictionary<string, SongModel>> BuildSongCacheAsync(IProgress<string>? progress = null)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var realm = RealmFactory.GetRealmInstance();
+                var allSongs = realm.All<SongModel>().ToList();
+
+                progress?.Report($"Caching {allSongs.Count} songs...");
+
+                var cache = new Dictionary<string, SongModel>(
+                    allSongs.Count,
+                    StringComparer.OrdinalIgnoreCase);
+
+                foreach (var song in allSongs)
+                {
+                    if (!string.IsNullOrEmpty(song.TitleDurationKey))
+                    {
+                        cache[song.TitleDurationKey] = song;
+                    }
+                }
+
+                progress?.Report($"Cached {cache.Count} songs");
+                return cache;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error building song cache: {ex}");
+                return new Dictionary<string, SongModel>(StringComparer.OrdinalIgnoreCase);
+            }
+        }).ConfigureAwait(false);
+    }
+
+    private async Task<CompleteBackupData?> DeserializeBackupWithStreamingAsync(
+        Stream stream,
+        Dictionary<string, SongModel> songCache,
+        IProgress<string>? progress = null)
+    {
+        var completeData = new CompleteBackupData();
+        var dimmerPlayEvents = new List<DimmerPlayEventBackup>();
+
+        using (var reader = new StreamReader(stream))
+        using (var jsonReader = new JsonTextReader(reader))
+        {
+            int eventCount = 0;
+            int processedCount = 0;
+
+            while (await jsonReader.ReadAsync().ConfigureAwait(false))
+            {
+                if (jsonReader.TokenType == JsonToken.PropertyName &&
+                    jsonReader.Value?.ToString() == "PlayEvents")
+                {
+                    await jsonReader.ReadAsync().ConfigureAwait(false); // Move to array start
+
+                    if (jsonReader.TokenType == JsonToken.StartArray)
+                    {
+                        var serializer = new  Newtonsoft.Json.JsonSerializer();
+
+                        while (await jsonReader.ReadAsync().ConfigureAwait(false) &&
+                               jsonReader.TokenType != JsonToken.EndArray)
+                        {
+                            if (jsonReader.TokenType == JsonToken.StartObject)
+                            {
+                                var playEvent = serializer.Deserialize<DimmerPlayEventBackup>(jsonReader);
+                                if (playEvent != null)
+                                {
+                                    dimmerPlayEvents.Add(playEvent);
+                                    eventCount++;
+
+                                    // Update progress every 1000 events
+                                    if (eventCount % 1000 == 0)
+                                    {
+                                        progress?.Report($"Processed {eventCount} events...");
+                                        await Task.Yield(); // Allow UI to update
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            progress?.Report($"Processing {eventCount} events with song cache...");
+
+            // Update cover paths using cache
+            foreach (var evt in dimmerPlayEvents)
+            {
+                if (!string.IsNullOrEmpty(evt.TitleAndDurationKey) &&
+                    songCache.TryGetValue(evt.TitleAndDurationKey, out var songInDb))
+                {
+                    evt.CoverImagePath = songInDb.CoverImagePath;
+                    processedCount++;
+
+                    // Update progress every 1000 updates
+                    if (processedCount % 1000 == 0)
+                    {
+                        progress?.Report($"Updated {processedCount}/{eventCount} events...");
+                        await Task.Yield();
+                    }
+                }
+            }
+
+            progress?.Report($"Completed: {processedCount} events updated");
+        }
+
+        completeData.PlayEvents = dimmerPlayEvents;
+        return completeData;
+    }
+
 
     // Restore complete data to Realm
     public async Task<bool> RestoreCompleteDataAsync(CompleteBackupData data, RestoreResult result)
@@ -547,21 +643,24 @@ public class RestoreResult
     }
 }
 
-// Additional converter for nullable ObjectId
-public class ObjectIdNullableConverter : JsonConverter<ObjectId?>
+public class ObjectIdNullableConverter : Newtonsoft.Json.JsonConverter<ObjectId?>
 {
-    public override ObjectId? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        var str = reader.GetString();
-        return string.IsNullOrEmpty(str) ? null : new ObjectId(str);
-    }
+   
 
-    public override void Write(Utf8JsonWriter writer, ObjectId? value, JsonSerializerOptions options)
+    public override void WriteJson(Newtonsoft.Json.JsonWriter writer, ObjectId? value, Newtonsoft.Json.JsonSerializer serializer)
     {
         if (value.HasValue)
-            writer.WriteStringValue(value.Value.ToString());
+            writer.WriteValue(value.Value.ToString());
         else
-            writer.WriteNullValue();
+            writer.WriteNull();
+    }
+
+    public override ObjectId? ReadJson(JsonReader reader, Type objectType, ObjectId? existingValue, bool hasExistingValue, Newtonsoft.Json.JsonSerializer serializer)
+    {
+        if (reader.TokenType == JsonToken.Null)
+            return null;
+
+        var str = reader.Value?.ToString();
+        return string.IsNullOrEmpty(str) ? null : new ObjectId(str);
     }
 }
-

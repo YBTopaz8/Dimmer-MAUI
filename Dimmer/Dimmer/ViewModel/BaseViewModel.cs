@@ -5063,16 +5063,27 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial ObservableCollection<DimmerStats> DailyListeningRoutineOHLC { get; set; }
 
-
+    [ObservableProperty]
+    public partial  IProgress<LyricsProcessingProgress> LyricsProgress { get; set; }
     public async Task LoadAllSongsLyricsFromOnlineAsync(
         CancellationTokenSource _lyricsCts)
     {
         
+        var lp = new Progress<LyricsProcessingProgress>(progress =>
+        {
+            LatestAppLog = new AppLogEntryView()
+            {
+                Message = $"Processing lyrics: {progress.ProcessedCount}/{progress.TotalCount} ({progress.CurrentFile})",
+                ProgressValue = progress.ProcessedCount,
+                ProgressTotal = progress.TotalCount
+            };
+        });
+        LyricsProgress = lp;
         await SongDataProcessor.ProcessLyricsAsync(
             this,_stateService,
             RealmFactory,
             _lyricsMetadataService,
-            null,
+            LyricsProgress,
             _lyricsCts.Token);
     }
 
@@ -8056,6 +8067,71 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
 
+    public async Task LoadArtistLastFMDataAsync(ArtistModelView? art)
+    {
+        if(art is null || art.Name == "Unknown Artist")
+        {
+            return;
+        }
+
+
+        var realm = RealmFactory.GetRealmInstance();
+        var artInDb
+            = realm.Find<ArtistModel>(art.Id);
+        if(artInDb is null)
+            return;
+        var artistName = artInDb.Name;
+
+
+        //await UpdateSongFromLastFMDataAsync();
+        var lastFMArt = await lastfmService.GetArtistInfoAsync(artistName);
+        art.ImagePath = lastFMArt.Images.FirstOrDefault(x => x.Size == "mega")?.Url;
+        realm.Write(
+            () =>
+            {
+                artInDb.ImagePath = art.ImagePath;
+            });
+
+        //SimilarTracks = await lastfmService.GetSimilarAsync(artistName, SelectedSongLastFMData.Name);
+
+        //await UpdateSongArtistInDbWithLastFMData();
+        //await UpdateSongAlbumInDbWithLastFMData();
+    }
+
+
+    public async Task LoadAlbumLastFMDataAsync(AlbumModelView? alb)
+    {
+        if(alb is null || alb.Name == "Unknown Album")
+        {
+            return;
+        }
+
+
+        var realm = RealmFactory.GetRealmInstance();
+        var albInDb
+            = realm.Find<AlbumModel>(alb.Id);
+        if(albInDb is null)
+            return;
+        var artistName = albInDb.Artist?.Name;
+
+
+        //await UpdateSongFromLastFMDataAsync();
+        var lastFMArt = await lastfmService.GetAlbumInfoAsync(artistName, albInDb.Name);
+
+        alb.ImagePath = lastFMArt.Images.FirstOrDefault(x => x.Size == "mega")?.Url;
+        realm.Write(
+            () =>
+            {
+                albInDb.ImagePath = alb.ImagePath;
+            });
+
+        //SimilarTracks = await lastfmService.GetSimilarAsync(artistName, SelectedSongLastFMData.Name);
+
+        //await UpdateSongArtistInDbWithLastFMData();
+        //await UpdateSongAlbumInDbWithLastFMData();
+    }
+
+
 
     public async Task UpdateSongFromLastFMDataAsync()
     {
@@ -8244,7 +8320,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         await Clipboard.Default.SetTextAsync(shareText);
     }
 
-
+    [RelayCommand]
     public async Task LoadAlbumAndArtistDetailsFromLastFM()
     {
         var realm = RealmFactory.GetRealmInstance();
