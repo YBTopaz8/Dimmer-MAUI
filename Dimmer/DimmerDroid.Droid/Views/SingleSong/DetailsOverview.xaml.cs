@@ -9,8 +9,12 @@ public partial class DetailsOverview : ContentPage
 		InitializeComponent();
 		MyViewModel = baseViewModel;
 		
-		BindingContext = MyViewModel.SelectedSong;
 	}
     public BaseViewModelAnd MyViewModel { get; }
 
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        BindingContext = MyViewModel.SelectedSong;
+    }
 }

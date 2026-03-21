@@ -13,10 +13,8 @@ Title="{Binding Title}"
     <dx:DXScrollView Margin="5,0">
 
         <dx:TabView x:Name="SongTabView" HeaderPanelPosition="Bottom">
-            <dx:TabViewItem x:Name="OverViewTab" >
-                <dx:TabViewItem.HeaderContent>
-                    <Label Text="🎵"/>
-                </dx:TabViewItem.HeaderContent>
+            <dx:TabViewItem x:Name="OverViewTab" HeaderText="OverView" >
+                
                 <dx:DXStackLayout ItemSpacing="5">
                     <dx:DXImage Source="{Binding CoverImagePath}" MaximumHeightRequest="300" MaximumWidthRequest="300" Aspect="AspectFit" HorizontalOptions="Center"/> 
                     <Label Text="{Binding Title}" HorizontalTextAlignment="Justify"
@@ -35,7 +33,29 @@ Title="{Binding Title}"
                     <dx:Chip Text="{Binding PlayCompletedCount}"/>
                     <dx:Chip Text="{Binding PauseCount}"/>
                     <dx:Chip Text="{Binding SkipCount}"/>
+                    
                     <dx:Chip Icon="heart.png" IsVisible="{Binding IsFavorite}"/>
+                </dx:DXStackLayout>
+            </dx:TabViewItem>
+
+            <dx:TabViewItem HeaderText="Lyrics">
+                <dx:DXStackLayout>
+                    
+                </dx:DXStackLayout>
+            </dx:TabViewItem>
+
+            <dx:TabViewItem HeaderText="Play History">
+                <dx:DXStackLayout>
+
+                    <dx:DataGridView ItemsSource="{Binding PlayEvents}"
+                                     AutoGenerateColumnsMode="None">
+                        <dx:DataGridView.Columns>
+                            <dx:TemplateColumn FieldName="PlayTypeStr"/>
+                            <dx:DateColumn FieldName="EventDate"/>
+                            <dx:NumberColumn FieldName="PositionInSeconds"
+                                             />
+                        </dx:DataGridView.Columns>
+                    </dx:DataGridView>
                 </dx:DXStackLayout>
             </dx:TabViewItem>
         </dx:TabView>

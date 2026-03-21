@@ -97,6 +97,12 @@
 	  <MauiXaml Update="DimmerShell.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="Views\Album\AlbumPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Artist\ArtistPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Views\CustomViews\NowPlayingBottomSheet.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
@@ -109,10 +115,5 @@
 	  <MauiXaml Update="Views\SingleSong\DetailsOverview.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Views\Artist\" />
-	  <Folder Include="Views\Album\" />
 	</ItemGroup>
 </Project>

@@ -12,7 +12,16 @@
         <dx:DXStackLayout>
             
         <dx:DXStackLayout >
-            <dx:Chip Text="Last FM" 
+                <ProgressBar Progress="{Binding LatestAppLog.ProgressValue}"
+                         />
+                <Label Text="{Binding LatestAppLog.Message}"
+                         />
+                <dx:DXButton ShowContent="False"
+                                Clicked="GoBackBtn_Clicked"
+                             HorizontalContentAlignment="Start"
+                             HorizontalOptions="Start"
+                             Icon="backa.png"/>
+                <dx:Chip Text="Last FM" 
                      Tap="LastFMHeaderChip_Tap" x:Name="LastFMHeaderChip"/>
                 <dx:DXExpander x:Name="LastFmExpander">
                     <dx:DXExpander.Content>
@@ -37,7 +46,7 @@
                     </dx:DXExpander.Content>
                 </dx:DXExpander>
         </dx:DXStackLayout>
-        <dx:DXStackLayout>
+        <dx:DXStackLayout ItemSpacing="10">
             <dx:DXCollectionView ItemsSource="{Binding FolderPaths}" Header="Folders" HeightRequest="300">
                 <dx:DXCollectionView.ItemTemplate>
                     <DataTemplate x:DataType="x:String">
@@ -52,9 +61,15 @@
                     </DataTemplate>
                 </dx:DXCollectionView.ItemTemplate>
             </dx:DXCollectionView>
-        </dx:DXStackLayout>
+            </dx:DXStackLayout>
+            
+            <dx:DXButton Content="Fetch Lyrics Online"
+                          Clicked="FetchLyricsData_Click" x:Name="FetchLyricsDataBtn"/>
+            
+            <dx:DXButton Content="Select Folder to scan"
+                          Clicked="OpenFolderScannerBtn_Clicked" x:Name="OpenFolderScannerBtn"/>
 
-        <dx:DXStackLayout ItemSpacing="10">
+            <dx:DXStackLayout ItemSpacing="10">
 
                 <dx:DXButton Content="Backup Device"
                          x:Name="BackupDeviceBtn"

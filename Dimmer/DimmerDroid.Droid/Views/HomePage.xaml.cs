@@ -1,4 +1,5 @@
 using Android.App.AppSearch;
+using Dimmer.DimmerSearch;
 using Dimmer.Views.Settings;
 using DynamicData.Binding;
 using View = Microsoft.Maui.Controls.View;
@@ -61,7 +62,14 @@ public partial class HomePage : ContentPage
 
     private void ArtistChip_LongPress(object sender, HandledEventArgs e)
     {
-
+        var send = (View)sender;
+        var song = (SongModelView)send.BindingContext;
+        //var artInDb = MyViewModel.RealmFactory.GetRealmInstance().Find<SongModel>(song.Id)?.Artist.ToArtistModelView();
+        //if(artInDb == null)
+        //    return;
+        //MyViewModel.SetSelectedArtist(artInDb);
+        MyViewModel.SelectedSong= song;
+        ArtistsChoiceBtmSheet.Show();
     }
 
     private void PlaybackQueueBtmSheet_Loaded(object sender, EventArgs e)
@@ -168,5 +176,81 @@ public partial class HomePage : ContentPage
     private async void SettingsBtn_Clicked(object sender, EventArgs e)
     {
         await Shell.Current.GoToAsync(nameof(SettingsPage), true);
+    }
+
+    private void ArtistChip_Tap_1(object sender, HandledEventArgs e)
+    {
+
+    }
+
+    private async void ArtistBtmChip_Tap(object sender, HandledEventArgs e)
+    {
+        var artChip = (DevExpress.Maui.Editors.Chip)sender;
+        var art = artChip.LongPressCommandParameter as ArtistModelView;
+
+        MyViewModel.SetSelectedArtist(art);
+
+        await Shell.Current.GoToAsync(nameof(ArtistPage), true);    
+    }
+
+    private void ArtistBtmChip_LongPress(object sender, HandledEventArgs e)
+    {
+        var artChip = (DevExpress.Maui.Editors.Chip)sender;
+        var art = artChip.LongPressCommandParameter as ArtistModelView;
+
+        if(art != null && !string.IsNullOrEmpty(art.Name))
+        {
+            MyViewModel.SearchToTQL(TQlStaticMethods.PresetQueries.ByArtist(art.Name));
+        }
+    }
+
+    private void ArtistGrid_Tapped(object sender, TappedEventArgs e)
+    {
+
+    }
+
+    private void SearchArtistBtnTQL_Tap(object sender, HandledEventArgs e)
+    {
+
+        var artChip = (DevExpress.Maui.Editors.Chip)sender;
+        var art = artChip.LongPressCommandParameter as string;
+
+        MyViewModel.SearchToTQL(TQlStaticMethods.PresetQueries.ByArtist(art));
+    }
+
+    private async void ViewArtistBtn_Tap(object sender, HandledEventArgs e)
+    {
+        var artChip = (DevExpress.Maui.Editors.Chip)sender;
+        var art = artChip.LongPressCommandParameter as ArtistModelView;
+
+        MyViewModel.SetSelectedArtist(art);
+
+        await ArtistsChoiceBtmSheet.CloseAsync();
+        await Shell.Current.GoToAsync(nameof(ArtistPage), true);
+
+}
+
+    private void DXToggleButton_Tap(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
+    {
+
+    }
+
+    private async void ToggleFavBtn_Tap(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
+    {
+       await MyViewModel.AddFavoriteRatingToSongAsync(MyViewModel.SelectedSong!);
+    }
+
+    private void MoreBtn_Tap(object sender, HandledEventArgs e)
+    {
+        var send = (View)sender;
+        var song = (SongModelView)send.BindingContext;
+        MyViewModel.SelectedSong = song;
+        SingleSongBtmSheet.Show();
+    }
+
+    private async void DeleteSongBtn_Tap(object sender, HandledEventArgs e)
+
+    { 
+        await MyViewModel.DeleteSongs(new List<SongModelView>(){MyViewModel.SelectedSong! });
     }
 }

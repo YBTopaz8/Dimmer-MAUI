@@ -103,6 +103,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     public partial int NowPlayingQueueItemSpan { get; set; }
 
 
+
     [ObservableProperty]
     public partial int NowPlayingTabIndex { get; set; }
 
@@ -434,7 +435,8 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             IsRestoreDone = await BackupService.RestoreCompleteDataAsync(PickedUpBackup, res);
 
     }
-    [RelayCommand]
+
+        [RelayCommand]
     public async Task PickFolderToRestoreAppDataAsync()
     {
         var tcs = new TaskCompletionSource<(bool includeDefault, string customPath)>();
@@ -467,7 +469,17 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
 
         SelectedFile = file;
-        PickedUpBackup = await BackupService.PickFolderTeRestoreFromBackupAsync(SelectedFile);
+
+        var progress = new Progress<string>(msg =>
+        {
+            // Update UI on main thread
+            MainThread.BeginInvokeOnMainThread(() => {
+                StatusLabelText = msg;
+            });
+        });
+
+
+         PickedUpBackup = await BackupService.PickFolderTeRestoreFromBackupAsync(SelectedFile);
 
 
 
@@ -476,6 +488,8 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     }
 
 
+    [ObservableProperty]
+    public partial string StatusLabelText { get; set; }
     internal async Task BackUpAppDataAsync()
     {
         var picker = await FolderPicker.Default.PickAsync();

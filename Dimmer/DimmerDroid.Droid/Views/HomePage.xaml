@@ -10,10 +10,12 @@
              xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
              x:DataType="vm:BaseViewModelAnd">
 
-    <Grid RowDefinitions="auto,*,auto"
-              Margin="10,0">
-
-        <dx:DXStackLayout Orientation="Vertical" Grid.Row="0" ItemSpacing="5">
+    <Grid RowDefinitions="auto,*,auto" 
+              >
+        <Border Grid.RowSpan="3" Opacity="0.01" BackgroundColor="{Binding CurrentPlaySongDominantColor}"/>
+        <dx:DXStackLayout CornerRadius="10" Orientation="Vertical" Margin="5,0"  Grid.Row="0" ItemSpacing="5" Opacity="1" BackgroundColor="#1e1e1e">
+            <dx:DXButton Content="Settings" HorizontalOptions="End"
+                          Clicked="SettingsBtn_Clicked" x:Name="SettingsBtn"/>
             <FlexLayout JustifyContent="SpaceBetween">
                 <dx:Chip Icon="hamburgermenu.png" x:Name="MenuBtn" IsIconVisible="True" BackgroundColor="Transparent" IconColor="DarkSlateBlue"
                          IconSize="35,35"
@@ -36,19 +38,15 @@
                     
                 </dx:TextEdit>
             </Grid>
-            <dx:DXButton Content="Select Folder to scan"
-                          Clicked="OpenFolderScannerBtn_Clicked" x:Name="OpenFolderScannerBtn"/>
 
-            <dx:DXButton Content="Settings"
-                          Clicked="SettingsBtn_Clicked" x:Name="SettingsBtn"/>
 
         
 
         </dx:DXStackLayout>
-        <dx:DXCollectionView ItemsSource="{Binding SearchResults}" Grid.Row="1">
+        <dx:DXCollectionView  ItemsSource="{Binding SearchResults}" Grid.Row="1" Margin="5,0" BackgroundColor="#1e1e1e">
                 <dx:DXCollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:SongModelView">
-                        <Grid ColumnDefinitions="60,*,auto" RowDefinitions="80">
+                        <Grid ColumnDefinitions="60,*,auto" RowDefinitions="80" RowSpacing="5">
                             <dx:DXStackLayout Grid.Column="0">
                                 <dx:DXStackLayout.Triggers>
                                     <DataTrigger TargetType="dx:DXStackLayout" Binding="{Binding HasSyncedLyrics}"
@@ -83,7 +81,7 @@
                                          Tap="TitleChip_Tap"
                                          FontAttributes="Bold"
                                          x:Name="TitleChip"/>
-                                <dx:Chip Text="{Binding ArtistName}" BorderThickness="0" 
+                                <dx:Chip Text="{Binding OtherArtistsName}" BorderThickness="0" 
                                          x:Name="ArtistChip" Tap="ArtistChip_Tap"
                                          HorizontalOptions="Start"
                                          FontSize="13"
@@ -92,9 +90,11 @@
 
                             <dx:DXStackLayout Grid.Column="2" Orientation="Vertical">
                                 <dx:Chip Icon="more1.png" IsIconVisible="True"
+                                         Tap="MoreBtn_Tap"
                                          x:Name="MoreBtn" BorderThickness="0" BackgroundColor="Transparent"
                                          HeightRequest="30" WidthRequest="30"/>
                             <Label Text="{Binding DurationFormatted}" HorizontalOptions="End" VerticalOptions="Center" FontSize="8" Margin="5,0"/>
+                            <Label HorizontalOptions="Center" Text="{Binding PlayCompletedCount}" VerticalOptions="Center" FontSize="8" Margin="5,0"/>
                         </dx:DXStackLayout>
                             
                         </Grid>
@@ -103,20 +103,21 @@
         </dx:DXCollectionView>
 
 
-        <dx:DXStackLayout Margin="2,0" CornerRadius="5" Grid.Row="2" BackgroundColor="Black" BorderThickness="2" VerticalOptions="End"
+        <dx:DXStackLayout Margin="5,0" CornerRadius="15" Grid.Row="2" BorderThickness="2" VerticalOptions="End"
                           ZIndex="1" x:Name="NPBottomBar">
             <dx:DXStackLayout.GestureRecognizers>
                 <PanGestureRecognizer PanUpdated="NPBottomBar_PanUpdated"/>
             </dx:DXStackLayout.GestureRecognizers>
            
-            <Grid ColumnDefinitions="0.2*,*,0.4*">
-                <dx:DXStackLayout Grid.Column="0">
-                    <dx:DXImage Source="{Binding CurrentPlayingSongView.CoverImagePath}" Aspect="AspectFit" HeightRequest="40" WidthRequest="40">
+            <Grid ColumnDefinitions="0.3*,*,0.4*">
+                
+                    <dx:DXImage Grid.Column="0" 
+                                Source="{Binding CurrentPlayingSongView.CoverImagePath}" Aspect="AspectFill" >
                         <dx:DXImage.GestureRecognizers>
                             <TapGestureRecognizer x:Name="CurrentPlayingCoverTapGesture" Tapped="CurrentPlayingCoverTapGesture_Tapped"/>
                         </dx:DXImage.GestureRecognizers>
                     </dx:DXImage>
-                </dx:DXStackLayout>
+                
                 
                 <dx:DXStackLayout Grid.Column="1" Orientation="Vertical" HorizontalOptions="Start" Margin="10,0">
                     <dx:Chip Text="{Binding CurrentPlayingSongView.Title}" BorderThickness="0" HorizontalOptions="Start" 
@@ -159,6 +160,70 @@
             AllowedState="HalfExpanded" 
             StateChanged="PBQueueBtmSheet_StateChanged"
            />
+
+        <dx:BottomSheet x:Name="ArtistsChoiceBtmSheet" AllowDismiss="True" >
+            <dx:BottomSheet.Content>
+                <dx:DXStackLayout Margin="10,0">
+                    
+
+                    <dx:DXCollectionView ItemsSource="{Binding SelectedSong.ArtistToSong}" >
+                        <dx:DXCollectionView.HeaderTemplate>
+                            <DataTemplate>
+                                <Label Text="Artists" FontSize="20" HorizontalOptions="Center"/>
+                            </DataTemplate>
+                        </dx:DXCollectionView.HeaderTemplate>
+                    <dx:DXCollectionView.ItemTemplate>
+                        <DataTemplate x:DataType ="models:ArtistModelView">
+                            
+                                    
+                            <Grid  ColumnDefinitions="*,*" ColumnSpacing="10">
+                                    <Grid.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="ArtistGrid_Tapped"/>
+                                    </Grid.GestureRecognizers>
+                                <dx:DXStackLayout>
+                                    <Label Text="{Binding Name}" FontSize="20" />
+                                </dx:DXStackLayout>
+
+                                                <dx:DXStackLayout Grid.Column="1" HorizontalOptions="End">
+                                    <Label Text="{Binding TotalSongsByArtist, StringFormat='{0} Songs'}" FontSize="20" />
+                                        <dx:DXStackLayout Orientation="Horizontal" HorizontalOptions="Center">
+                                            <dx:Chip Icon="searchalta.png" IconSize="30,30"
+                                                     IconColor="DarkSlateBlue" LongPressCommandParameter="{Binding Name}"
+                                                     Tap="SearchArtistBtnTQL_Tap" x:Name="SearchArtistBtnTQL"
+                                                     IsIconVisible="True" BorderThickness="0"/>
+                                            <dx:Chip Icon="eye.png" IconSize="30,30"
+                                                     x:Name="ViewArtistBtn" Tap="ViewArtistBtn_Tap"
+                                                     IconColor="DarkSlateBlue" LongPressCommandParameter="{Binding .}"
+                                                     IsIconVisible="True" BorderThickness="0"/>
+                                        </dx:DXStackLayout>
+                                </dx:DXStackLayout>
+                                </Grid>
+                            
+                        </DataTemplate>
+                    </dx:DXCollectionView.ItemTemplate>
+                </dx:DXCollectionView>
+                </dx:DXStackLayout>
+            </dx:BottomSheet.Content>
+        </dx:BottomSheet>
+        
+
+        <dx:BottomSheet x:Name="SingleSongBtmSheet" AllowDismiss="True" >
+            <dx:BottomSheet.Content>
+                <dx:DXStackLayout Margin="10,0">
+
+                    <dx:DXToggleButton IsChecked="{Binding SelectedSong.IsFavorite}"
+                   x:Name="ToggleFavBtn" Icon="heart.png"
+                                       BackgroundColor="Transparent"
+                                       IconHeight="40"
+                                       IconWidth="40"
+                   Tap="ToggleFavBtn_Tap"/>
+
+                    <dx:Chip Icon="deletesonginterfacesymbol.png" 
+         x:Name="DeleteSongBtn" Text="Delete Song" IsIconVisible="True"
+ Tap="DeleteSongBtn_Tap"/>
+                </dx:DXStackLayout>
+            </dx:BottomSheet.Content>
+        </dx:BottomSheet>
         
         
     </Grid>

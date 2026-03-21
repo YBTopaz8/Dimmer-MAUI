@@ -56,4 +56,17 @@ public partial class SettingsPage : ContentPage
     {
         await MyViewModel.RestoreCompleteDataAsync();
     }
+
+    private async void GoBackBtn_Clicked(object sender, EventArgs e)
+    {
+        await Shell.Current.GoToAsync("..");
+    }
+
+
+    private void FetchLyricsData_Click(object sender, EventArgs e)
+    {
+        CancellationTokenSource cts = new CancellationTokenSource();
+        _ = Task.Run(async () => await MyViewModel.LoadAllSongsLyricsFromOnlineAsync(cts));
+    }
+
 }

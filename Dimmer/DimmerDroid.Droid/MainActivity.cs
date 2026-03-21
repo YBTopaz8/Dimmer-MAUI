@@ -3,6 +3,8 @@ using Android.Content.PM;
 using Android.OS;
 using Dimmer.NativeServices;
 using Google.Android.Material.Dialog;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace DimmerDroid.Droid;
 
@@ -52,9 +54,29 @@ public partial class MainActivity : MauiAppCompatActivity
 
 
 
-        CheckAndRequestPermissions();
-    }
+        CheckAndRequestPermissions();     
+        
+        // Increase thread pool for background operations
+        ThreadPool.SetMinThreads(4, 4);
 
+        // Configure JsonSerializer for mobile
+        ConfigureJsonOptions();
+    }
+    public static JsonSerializerOptions JsonOptions => _jsonOptions;
+    private static JsonSerializerOptions _jsonOptions;
+    private void ConfigureJsonOptions()
+    {
+        // Use these settings for better mobile performance
+        _jsonOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            NumberHandling = JsonNumberHandling.AllowReadingFromString,
+            MaxDepth = 32, // Limit depth for security/performance
+            AllowTrailingCommas = true,
+            ReadCommentHandling = JsonCommentHandling.Skip
+        };
+    }
     public void SetupService()
     {
         _serviceConnection = new MediaPlayerServiceConnection();
