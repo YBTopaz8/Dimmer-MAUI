@@ -79,6 +79,9 @@ public partial class ArtistModelView : ObservableObject
     [ObservableProperty]
     public partial int TotalAlbumsByArtist { get; set; }
     [ObservableProperty]
+    public partial ObservableCollection<DimmerPlayEventView> PlayEvents { get; set; } = new();
+
+    [ObservableProperty]
     public partial ObservableCollection<string> ListOfSimilarArtistsNames { get;  set; }
     public ObservableCollection<SongModelView?> SongsByArtist { get;  set; }
     public ObservableCollection<Artist>? ListOfSimilarArtists { get; set; }

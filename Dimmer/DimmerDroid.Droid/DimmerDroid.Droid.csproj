@@ -11,6 +11,7 @@
 		<UseMaui>true</UseMaui>
 	</PropertyGroup>
 
+<<<<<<<< HEAD:Dimmer/DimmerDroid.Droid/DimmerDroid.Droid.csproj
 	<ItemGroup>
 		<!--<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.120" />-->
 		<PackageReference Include="DevExpress.Maui.Charts" Version="25.2.5" />
@@ -23,6 +24,37 @@
 		<PackageReference Include="DevExpress.Maui.ProjectTemplates" Version="25.2.5" />
 		<PackageReference Include="DevExpress.Maui.TreeView" Version="25.2.5" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.5" />
+========
+
+
+	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+		<DebugSymbols>false</DebugSymbols>
+		<DebugType>portable</DebugType>
+		<RunAOTCompilation>false</RunAOTCompilation>
+		<AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
+		<Optimize>true</Optimize>
+		<OutputPath>bin\Release\</OutputPath>
+
+	
+		
+		
+		
+		<EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!--<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.120" />-->
+		<PackageReference Include="DevExpress.Maui.Charts" Version="24.2.12" />
+		<PackageReference Include="DevExpress.Maui.CollectionView" Version="24.2.12" />
+		<PackageReference Include="DevExpress.Maui.Controls" Version="24.2.12" />
+		<PackageReference Include="DevExpress.Maui.Core" Version="24.2.12" />
+		<PackageReference Include="DevExpress.Maui.DataGrid" Version="24.2.12" />
+		<PackageReference Include="DevExpress.Maui.Editors" Version="24.2.12" />
+		<PackageReference Include="DevExpress.Maui.Gauges" Version="24.2.12" />
+		<PackageReference Include="DevExpress.Maui.ProjectTemplates" Version="24.2.14" />
+		<PackageReference Include="DevExpress.Maui.TreeView" Version="24.2.12" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.3" />
+>>>>>>>> 745b30da0cd7deadd21da9bc088e39664044b163:Dimmer/Dimmer.Droid/Dimmer.Droid.csproj
 		<PackageReference Include="SkiaSharp.Views" Version="3.119.2" />
 		<PackageReference Include="Xamarin.AndroidX.Activity.Ktx" Version="1.12.4.1" />
 
@@ -83,17 +115,26 @@
 		<PackageReference Include="Xamarin.AndroidX.Compose.Runtime.Annotation.Jvm" Version="1.10.4.1" ExcludeAssets="all" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\Dimmer\Dimmer.csproj" />
-	</ItemGroup>
+
 
 	<ItemGroup>
+<<<<<<<< HEAD:Dimmer/DimmerDroid.Droid/DimmerDroid.Droid.csproj
 	  <Compile Update="DimmerShell.xaml.cs">
 	    <DependentUpon>DimmerShell.xaml</DependentUpon>
 	  </Compile>
+========
+	  <Folder Include="Adapters\HomePage\" />
+	  <Folder Include="DevExpressViews\" />
+	  <Folder Include="NewFolder\" />
+	  <Folder Include="Resources\layout\" />
+	  <Folder Include="Utils\CustomObjects\" />
+>>>>>>>> 745b30da0cd7deadd21da9bc088e39664044b163:Dimmer/Dimmer.Droid/Dimmer.Droid.csproj
 	</ItemGroup>
 
+
+
 	<ItemGroup>
+<<<<<<<< HEAD:Dimmer/DimmerDroid.Droid/DimmerDroid.Droid.csproj
 	  <MauiXaml Update="DimmerShell.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
@@ -113,6 +154,16 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\SingleSong\DetailsOverview.xaml">
+========
+	  <ProjectReference Include="..\Dimmer\Dimmer.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <MauiXaml Update="DimmerAppShell.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\HomePage.xaml">
+>>>>>>>> 745b30da0cd7deadd21da9bc088e39664044b163:Dimmer/Dimmer.Droid/Dimmer.Droid.csproj
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>

@@ -53,7 +53,7 @@ public static class AlbumModelViewExtensions
                 alb.TotalSkipCount = songsInAlbum.Sum(x => x.SkipCount);
 
                 // Ensure artist-album relationship exists exactly once
-                if (!alb.Artists.Contains(artInDb))
+                if (!alb.Artists.AsEnumerable().Contains(artInDb))
                 {
                     alb.Artists.Add(artInDb);
                 }
@@ -62,7 +62,7 @@ public static class AlbumModelViewExtensions
             // Handle songs without albums
             foreach (var song in songsInDb)
             {
-                if (song.Album != null && !song.Album.Artists.Contains(artInDb))
+                if (song.Album != null && !song.Album.Artists.AsEnumerable().Contains(artInDb))
                 {
                     song.Album.Artists.Add(artInDb);
                 }
@@ -73,8 +73,8 @@ public static class AlbumModelViewExtensions
     private static void CleanupDuplicateArtistRelationships(Realm realm, ArtistModel artist)
     {
         // Find all albums that have this artist multiple times
-        var albumsWithArtist = realm.All<AlbumModel>()
-            .Where(a => a.Artists.Contains(artist))
+        var albumsWithArtist = realm.All<AlbumModel>().AsEnumerable()
+            .Where(a => a.Artists.AsEnumerable().Contains(artist))
             .ToList();
 
         foreach (var album in albumsWithArtist)
@@ -97,6 +97,7 @@ public static class AlbumModelViewExtensions
         // Materialize fresh data
         var songsInDb = artInDb.Songs.AsEnumerable();
         var albumsInDb = artInDb.Albums.AsEnumerable();
+        var eventsInDb = artInDb.Songs.AsEnumerable().SelectMany(s => s.PlayHistory).AsEnumerable();
 
         RxSchedulers.UI.ScheduleTo(() =>
         {
@@ -127,6 +128,14 @@ public static class AlbumModelViewExtensions
             {
                 art.AlbumsByArtist.Add(albumView);
             }
+                art.PlayEvents ??= new();
+            art.PlayEvents.Clear();
+
+            var playEventViews = eventsInDb
+                .Select(e => e.ToDimmerPlayEventView())
+                .Where(e => e != null)
+                .ToList();
+            art.PlayEvents!.AddRange(playEventViews);
         });
     }
 }

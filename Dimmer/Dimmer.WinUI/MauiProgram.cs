@@ -47,7 +47,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<BluetoothServiceClient>();
 
 
-        builder.Services.AddScoped<IAppUtil, AppUtil>();
+        builder.Services.AddSingleton<IAppUtil, AppUtil>();
         builder.Services.AddSingleton<IUiErrorPresenter, WinUiErrorPresenter>();
 
         builder.ConfigureLifecycleEvents(events =>

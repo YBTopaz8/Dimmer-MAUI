@@ -68,6 +68,8 @@ public static class WindowDockManager
         try
         {
             var hApp = PlatUtils.GetAppWindow(home);
+            if(hApp is null)
+                return;
             var area = DisplayArea.GetFromWindowId(hApp.Id, DisplayAreaFallback.Primary);
             var work = area.WorkArea;
 

@@ -1,5 +1,7 @@
 using CommunityToolkit.WinUI;
 using Dimmer.DimmerLive.ParseStatics;
+using Dimmer.WinUI.Views.WinuiPages.Settings;
+using Dimmer.WinUI.Views.WinuiPages.SingleSongPage.SubPage;
 using Microsoft.UI.Xaml.Controls.Primitives;
 
 using Grid = Microsoft.UI.Xaml.Controls.Grid;
@@ -365,10 +367,6 @@ public sealed partial class SettingsPage : Page
         await MyViewModel.BaseViewModelWin.BackUpAppDataAsync();   
     }
 
-    private async void RestoreData_Click(object sender, RoutedEventArgs e)
-    {
-        await MyViewModel.BaseViewModelWin.RestoreAppDataAsync();
-    }
 
     private void FetchLyricsData_Click(object sender, RoutedEventArgs e)
     {
@@ -435,5 +433,65 @@ public sealed partial class SettingsPage : Page
     private void UtilitiesGrid_Loaded(object sender, RoutedEventArgs e)
     {
         _ = FetchUpdateHistorySilently();
+    }
+
+    private Type pageType;
+    private int previousSelectedIndex;
+    public Type CurrentPageSelected => pageType;
+    private void BackUpRestoreSelector_SelectionChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs args)
+    {
+        SelectorBarItem selectedItem = sender.SelectedItem;
+        int currentSelectedIndex = sender.Items.IndexOf(selectedItem);
+        switch (currentSelectedIndex)
+        {
+            case 0:
+                pageType = typeof(RestoreBackupPage);
+                break;
+            case 1:
+                break;
+            case 2:
+                //pageTy?pe = typeof(LyricsManualSyncPage);
+                break;
+            case 3:
+                break;
+            default:
+                break;
+        }
+      
+
+
+
+        var sliderNavigationTransitionEffect = currentSelectedIndex - previousSelectedIndex > 0
+            ? SlideNavigationTransitionEffect.FromRight : SlideNavigationTransitionEffect.FromBottom;
+        
+        ContentFrame.Navigate(pageType,MyViewModel,
+            new SlideNavigationTransitionInfo { Effect = sliderNavigationTransitionEffect });
+    }
+
+    private void BackUpRestoreGrid_Loaded(object sender, RoutedEventArgs e)
+    {
+        RestoreBackupPage.IsPopupDismissedRequested += (s,e)=>
+        {
+            AnimationHelper.Prepare(AnimationHelper.Key_Backward, BackUpRestoreGrid);
+            AnimationHelper.TryStart(RestoreData, null, AnimationHelper.Key_Backward);
+
+            BackUpRestoreGrid.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed; 
+            MainGrid.Opacity = 1;
+            MainGrid.IsHitTestVisible = true;
+        };
+    }
+
+    private void RestoreData_Loaded(object sender, RoutedEventArgs e)
+    {
+        AnimationHelper.Prepare(AnimationHelper.Key_Backward, RestoreData);
+
+    }
+    private async void RestoreData_Click(object sender, RoutedEventArgs e)
+    {
+        AnimationHelper.Prepare(AnimationHelper.Key_Forward, RestoreData);
+        BackUpRestoreGrid.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+        AnimationHelper.TryStart(BackUpRestoreGrid, null, AnimationHelper.Key_Forward);
+        MainGrid.Opacity = 0.2;
+        MainGrid.IsHitTestVisible = false;
     }
 }

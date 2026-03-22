@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="Dimmer.WinUI.Views.WinuiPages.Settings.RestoreBackupPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Dimmer.WinUI.Views.WinuiPages.Settings"
+    xmlns:dgView="using:WinUI.TableView"
+    xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+    xmlns:convertersWinUI="using:Dimmer.WinUI.Utils.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+    xmlns:modelsDb="clr-namespace:Dimmer.Data.Models;assembly=Dimmer"
+    xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
+    mc:Ignorable="d">
+
+    <ScrollViewer Background="#1e1e1e">
+    <StackPanel Margin="10,0" HorizontalAlignment="Center" Width="1000">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="auto" />
+                </Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal" Grid.Column="0" Spacing="10">
+                <TextBlock Text="{x:Bind MyViewModel.SelectedFile,Mode=OneWay}" VerticalAlignment="Center"/>
+                <Button x:Name="PickBackupFolder" Content="PickFolder"
+                        Click="PickBackupFolder_Click"/>
+            </StackPanel>
+            <Button Grid.Column="1" x:Name="ClosePopup" Click="ClosePopup_Click">
+                <SymbolIcon Symbol="Cancel" />
+            </Button>
+        </Grid>
+        <TextBlock Text="{x:Bind MyViewModel.PickedUpBackup.BackupDate,Mode=OneWay}" />
+        <TextBlock Text="{x:Bind MyViewModel.PickedUpBackup.Version,Mode=OneWay}" />
+
+            <Button Content="Confirm Restore" Click="ConfirmRestore_Click" x:Name="ConfirmRestore"
+                />
+        <Expander>
+            <Expander.Header>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Favorite Songs: " />
+                    <TextBlock Text="{x:Bind MyViewModel.PickedUpBackup.FavoriteSongs.Count,Mode=OneWay}" />
+                </StackPanel>
+            </Expander.Header>
+            <Expander.Content>
+                <dgView:TableView ItemsSource="{x:Bind MyViewModel.PickedUpBackup.FavoriteSongs, Mode=OneWay}"
+                                  AutoGenerateColumns="True"/>
+            </Expander.Content>
+        </Expander>
+
+        <Expander x:Name="PickedUpBackupExpander">
+            <Expander.Header>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="PlayEvents Songs: " />
+                    <TextBlock Text="{x:Bind MyViewModel.PickedUpBackup.PlayEvents.Count,Mode=OneWay}" />
+                </StackPanel>
+            </Expander.Header>
+            <Expander.Content>
+                
+                    <dgView:TableView ItemsSource="{x:Bind MyViewModel.PickedUpBackup.PlayEvents, Mode=OneWay}" 
+                              Width="1200"
+                                      Height="500"
+                                      HorizontalAlignment="Center"  AutoGenerateColumns="False" >
+
+                        <dgView:TableView.Columns>
+
+                             <dgView:TableViewTemplateColumn
+                            x:Name="CoverImg"
+                            Width="*" 
+                            IsReadOnly="True"
+                            ToolTipService.Placement="Mouse"
+                                >
+                                <dgView:TableViewTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+
+                                        <StackPanel x:Name="TitleColumn"
+                                            Background="Transparent" >
+                                            <Image Source="{Binding CoverImagePath}" Width="50" Height="50"/>
+
+                                            
+                                        </StackPanel>
+
+                                    </DataTemplate>
+
+                                </dgView:TableViewTemplateColumn.CellTemplate>
+
+                            </dgView:TableViewTemplateColumn>
+                            <dgView:TableViewTextColumn Header="Play Type" Binding="{Binding PlayTypeStr}"/>
+
+                            <dgView:TableViewTextColumn Header="Song" Binding="{Binding SongName}"/>
+                    <dgView:TableViewTextColumn Header="Artist" Binding="{Binding ArtistName}"/>
+                    <dgView:TableViewTextColumn Header="Album" Binding="{Binding AlbumName}"/>
+                    <dgView:TableViewCheckBoxColumn IsReadOnly="True" Header="Was Play Completed" Binding="{Binding WasPlayCompleted}"/>
+                    <dgView:TableViewTextColumn Header="Position (Seconds)" Binding="{Binding PositionInSeconds}"/>
+                    <dgView:TableViewDateColumn Header="Event Date" Binding="{Binding EventDate}"/>
+                    </dgView:TableView.Columns>
+                </dgView:TableView>
+       
+                
+                </Expander.Content>
+        </Expander>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

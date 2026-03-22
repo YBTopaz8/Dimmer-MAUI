@@ -24,7 +24,9 @@ using Slider = Microsoft.Maui.Controls.Slider;
 
 using ToolTip = Microsoft.UI.Xaml.Controls.ToolTip;
 using View = Microsoft.Maui.Controls.View;
-
+using MButton = Microsoft.Maui.Controls.Button;
+using Dimmer.WinUI.Views.WinuiPages.SingleSongPage.SubPage;
+using Dimmer.WinUI.Views.WinuiPages.SingleSongPage;
 
 
 namespace Dimmer.WinUI.Views.MAUIPages;
@@ -34,6 +36,7 @@ public partial class HomePage : ContentPage
 {
 
     public BaseViewModelWin MyViewModel { get; internal set; }
+    SongModelView CurrentPlayingSong => MyViewModel.CurrentPlayingSongView;
     private readonly Compositor _compositor = PlatUtils.MainWindowCompositor;
     public HomePage(BaseViewModelWin vm, IWinUIWindowMgrService windowManagerService, LoginViewModelWin LoginVM,
         SessionManagementViewModel sessVM)
@@ -402,23 +405,6 @@ public partial class HomePage : ContentPage
 
     }
 
-    private bool _isThrottling = false;
-    private readonly int throttleDelay = 200; // Time in milliseconds
-
-    private async void Slider_DragCompleted(object sender, EventArgs e)
-    {
-        var send = (Slider)sender;
-        if (_isThrottling)
-            return;
-
-        _isThrottling = true;
-
-        MyViewModel.SeekTrackPosition(send.Value);
-
-
-        await Task.Delay(throttleDelay);
-        _isThrottling = false;
-    }
 
     private void ViewAllSongsWindow_Clicked(object sender, EventArgs e)
     {
@@ -811,6 +797,19 @@ public partial class HomePage : ContentPage
         }
     }
 
+    ToolTip? toolTipAboutClickToCompleteOrSetSkipped;
+    void ShowToolTipTellingUserThatSkippingWillAutomaticallySaveSongAsCompletedTooAndRightClickWillSaveAsSkipped(UIElement nativeElement)
+    {
+        var toolTip = new ToolTip();
+        toolTip.Content = "Skipping will automatically save the song as completed too. Right-click will save as skipped.";
+        ToolTipService.SetToolTip(nativeElement, toolTip);
+
+        toolTip.IsOpen = true;
+        toolTipAboutClickToCompleteOrSetSkipped = toolTip;
+    }
+
+
+
     private void ButtonLoaded(object sender, EventArgs e)
     {
         ButtonM send = (ButtonM)sender;
@@ -826,6 +825,7 @@ public partial class HomePage : ContentPage
                 Native_PointerEntered(s, e); 
                 send.BorderWidth = 2;
                 send.BorderColor = ColorsM.DarkSlateBlue;
+                
             };
 
             native.PointerExited += (s, e) =>
@@ -833,16 +833,11 @@ public partial class HomePage : ContentPage
                 Native_PointerExited(s, e); 
                 send.BorderWidth = 0;
                 send.BorderColor = ColorsM.Transparent;
+                toolTipAboutClickToCompleteOrSetSkipped?.IsOpen = false;
+                toolTipAboutClickToCompleteOrSetSkipped= null;
             };
 
-            native.RightTapped += (s, e) =>
-            {
-                MyViewModel.SetSelectedArtist( MyViewModel.CurrentPlayingSongView.Artist);
-                MyViewModel.NavigateToAnyPageOfGivenType(typeof(ArtistPage));
-            
 
-            };
-            
             //stats.Items.Add(new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = $"Total plays: {playCount}", IsEnabled = false });
             //stats.Items.Add(new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = $"Followed: {(isFollowed ? "Yes" : "No")}", IsEnabled = false });
 
@@ -1183,4 +1178,125 @@ public partial class HomePage : ContentPage
 
     }
 
+    private void NextButtonLoaded(object sender, EventArgs e)
+    {
+        ButtonLoaded(sender, e);
+        if (MyViewModel.CurrentTrackPositionPercentage >= 90)
+        {
+            var nativeElement = (UIElement)sender;
+            ShowToolTipTellingUserThatSkippingWillAutomaticallySaveSongAsCompletedTooAndRightClickWillSaveAsSkipped(
+                nativeElement);
+            nativeElement.RightTapped += NativeElement_RightTapped;
+        }
+    }
+
+    private async void NativeElement_RightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+        await MyViewModel.NextTrackAsync(true);
+    }
+
+    private void PreviousButtonLoaded(object sender, EventArgs e)
+    {
+        ButtonLoaded(sender, e);
+        if (MyViewModel.CurrentTrackPositionPercentage >= 90)
+        {
+            var nativePreviousBtn= (UIElement)sender;
+            ShowToolTipTellingUserThatSkippingWillAutomaticallySaveSongAsCompletedTooAndRightClickWillSaveAsSkipped(
+                nativePreviousBtn);
+            nativePreviousBtn.RightTapped += NativePreviousBtn_RightTapped; ;
+        }
+    }
+
+    private async void NativePreviousBtn_RightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+        await MyViewModel.PreviousTrackAsync(true);
+
+    }
+
+    private void ViewLyricsChip_Loaded(object sender, EventArgs e)
+    {
+        if(CurrentPlayingSong.HasSyncedLyrics)
+        {
+            ViewLyricsChip.Behaviors
+                .Add(
+                    new IconTintColorBehavior()                        
+                    {
+                        TintColor = ColorsM.DarkSlateBlue,
+                    });
+            return;
+        }
+        if(CurrentPlayingSong.HasLyrics)
+        {
+            ViewLyricsChip.Behaviors
+                .Add(
+                    new IconTintColorBehavior()
+                    {
+                        TintColor = ColorsM.DarkSlateGray,
+                    });
+            return;
+        }
+        var platElt = ((MButton)sender).Handler?.PlatformView;
+        var nativeElt = (UIElement?)platElt;
+        if(nativeElt is null)
+            return;
+
+        nativeElt.RightTapped += async (s, e) =>
+        {
+            MyViewModel.NavigateToAnyPageOfGivenType(typeof(SingleSongLyrics));
+            MyViewModel.SelectedSong = CurrentPlayingSong;
+
+            await Task.Delay(450);
+            
+
+            if(MyViewModel.MainWindow.ContentFrame.CurrentSourcePageType?.Name == "SingleSongLyrics")
+            {
+                var typee= MyViewModel.MainWindow.ContentFrame.Content.GetType();
+
+                await MyViewModel.ShowProgressSearchLyricsThenHideProgressAsync();
+                
+            }
+        };
+    }
+    private bool _isUserDragging = false;
+    private double _pendingSeekValue;
+    private Timer _debounceTimer;
+    private void OnSliderDragStarted(object sender, EventArgs e)
+    {
+        _isUserDragging = true;
+        _pendingSeekValue = TrackProgressSlider.Value;
+
+        // Optional: Show preview label
+        //PreviewTimeLabel.IsVisible = true;
+        //UpdatePreviewLabel(_pendingSeekValue);
+    }
+
+    private void OnSliderDragCompleted(object sender, EventArgs e)
+    {
+        _isUserDragging = false;
+        _pendingSeekValue = TrackProgressSlider.Value;
+
+        // Debounce to prevent rapid seeks
+        _debounceTimer?.Dispose();
+        _debounceTimer = new Timer(ExecuteSeek, null, 150, Timeout.Infinite);
+    }
+    private void ExecuteSeek(object? state)
+    {
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            // Critical: Don't let timer cause multiple seeks
+            var value = _pendingSeekValue;
+            _pendingSeekValue = -1;
+
+            // Update ViewModel's property to keep binding in sync
+            MyViewModel.CurrentTrackPositionSeconds = value;
+            MyViewModel.SeekTrackPosition(value);
+
+            //PreviewTimeLabel.IsVisible = false;
+        });
+    }
+
+    private void myPage_Unloaded(object sender, EventArgs e)
+    {
+        _debounceTimer?.Dispose();
+    }
 }

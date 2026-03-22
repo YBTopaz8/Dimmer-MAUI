@@ -27,7 +27,7 @@ public sealed partial class SingleSongLyrics : Page
 {
     private Type pageType;
     private int previousSelectedIndex;
-
+    public Type CurrentPageSelected => pageType;
     public BaseViewModelWin? MyViewModel { get; private set; }
 
     private SongModelView? _storedSong;
@@ -46,7 +46,7 @@ public sealed partial class SingleSongLyrics : Page
         switch (currentSelectedIndex)
         {
             case 0:
-                pageType = typeof(LyricsEditorPage);
+                pageType = typeof(OnlineLyricsSearchPage);
                 break;
                 case 1:
                 break;
@@ -58,7 +58,7 @@ public sealed partial class SingleSongLyrics : Page
             default:
                 break;
         }
-        MyViewModel = IPlatformApplication.Current.Services.GetService<BaseViewModelWin>();
+        MyViewModel = IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>();
         _storedSong = MyViewModel!.SelectedSong;
         var navParams = new SongDetailNavArgs
         {
@@ -72,5 +72,6 @@ public sealed partial class SingleSongLyrics : Page
 
         ContentFrame.Navigate(pageType, navParams,
             new SlideNavigationTransitionInfo { Effect = sliderNavigationTransitionEffect });
+        
     }
 }

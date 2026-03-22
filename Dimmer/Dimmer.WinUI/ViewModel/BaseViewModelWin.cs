@@ -6,6 +6,7 @@
 using CommunityToolkit.Maui.Alerts;
 using CommunityToolkit.Maui.Core.Extensions;
 using Dimmer.WinUI.Views.CustomViews.WinuiViews;
+using Dimmer.WinUI.Views.WinuiPages.Settings;
 using System.Threading.Tasks;
 using System.Windows.Controls.Primitives;
 using Windows.UI.Core;
@@ -569,23 +570,19 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         base.Dispose(disposing);
 
     }
+
     [RelayCommand]
-    private async Task ScrollToCurrentPlayingSong()
+    public async Task ScrollToRequestedSong(SongModelView? song=null)
     {
 
-        try
+        if(song is null)
         {
-            await MySongsTableView.SmoothScrollIntoViewWithItemAsync(CurrentPlayingSongView, ScrollItemPlacement.Center, false, true);
+            if (CurrentPlayingSongView.TitleDurationKey is null)
+            {
+                return;
+            }
+            song = CurrentPlayingSongView;
         }
-        catch (Exception ex)
-        {
-            await Shell.Current.DisplayAlert("Error", $"Failed to scroll to current playing song: {ex.Message}", "OK");
-        }
-    }
-    [RelayCommand]
-    private async Task ScrollToSpecificSong(SongModelView song)
-    {
-
         try
         {
 
@@ -595,34 +592,32 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
             var itemIndex = MySongsTableView.Items.IndexOf(song);
 
             var contentTableRow = MySongsTableView.ContainerFromIndex(itemIndex) as TableViewRow;
-            var cellPresenter = contentTableRow?.CellPresenter;
-            IList<TableViewCell>? cells = cellPresenter?.Cells;
+            //var cellPresenter = contentTableRow?.CellPresenter;
+            //IList<TableViewCell>? cells = cellPresenter?.Cells;
 
-            if (cells is null && cells?.Count > 0)
-            {
-                Debug.WriteLine("No cells found");
-                return;
-            }
+            //if (cells is null && cells?.Count > 0)
+            //{
+            //    Debug.WriteLine("No cells found");
+            //    return;
+            //}
 
 
 
-            if (contentTableRow is null)
-            {
-                Debug.WriteLine("No content Table Row found");
-                return;
-            }
+            //if (contentTableRow is null)
+            //{
 
-            if (cellPresenter is null)
-            {
-                Debug.WriteLine("No cell presenter found");
-                return;
-            }
 
-            if (cells is null)
-            {
-                Debug.WriteLine("No cell presenter found");
-                return;
-            }
+            //    Debug.WriteLine("No content Table Row found");
+            //    return;
+            //}
+
+           
+
+            //if (cells is null)
+            //{
+            //    Debug.WriteLine("No cell presenter found");
+            //    return;
+            //}
 
             //cellPresenter?.BorderBrush = new SolidColorBrush(Colors.Red);
             //cellPresenter?.BorderThickness = new Microsoft.UI.Xaml.Thickness(2);
@@ -630,9 +625,8 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
             //contentTableRow?.BorderBrush = new SolidColorBrush(Colors.Pink);
             //contentTableRow?.BorderThickness = new Microsoft.UI.Xaml.Thickness(4);
 
-            TableViewCell? coverImageCell = cells[0];
 
-            await PulseWithBorderAsync(coverImageCell, pulses: 3, duration: 300);
+
 
         }
         catch (Exception ex)
@@ -641,61 +635,6 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         }
     }
 
-
-    public static async Task PulseWithBorderAsync(
-     TableViewCell element,
-     int pulses = 2,
-     double scale = 1.08,
-     int duration = 180)
-    {
-        if (element is null) return;
-
-
-
-        var visual = ElementCompositionPreview.GetElementVisual(element);
-
-        var compositor = visual.Compositor;
-
-        visual.CenterPoint = new Vector3(
-            (float)(element.RenderSize.Width / 2),
-            (float)(element.RenderSize.Height / 2),
-            0f);
-
-        for (int i = 0; i < pulses; i++)
-        {
-            // SCALE UP
-            var up = compositor.CreateVector3KeyFrameAnimation();
-            up.Target = "Scale";
-            up.Duration = TimeSpan.FromMilliseconds(duration);
-            up.InsertKeyFrame(1f, new Vector3((float)scale, (float)scale, 1f));
-
-            visual.StartAnimation("Scale", up);
-
-            if (element != null)
-            {
-                element.BorderThickness = new Thickness(2);
-                element.BorderBrush = new SolidColorBrush(Colors.DarkSlateBlue);
-            }
-
-            await Task.Delay(duration);
-
-            // SCALE DOWN
-            var down = compositor.CreateVector3KeyFrameAnimation();
-            down.Target = "Scale";
-            down.Duration = TimeSpan.FromMilliseconds(duration);
-            down.InsertKeyFrame(1f, new Vector3(1f, 1f, 1f));
-
-            visual.StartAnimation("Scale", down);
-
-            if (element != null)
-            {
-                element.BorderThickness = new Thickness(0);
-                element.BorderBrush = new SolidColorBrush(Colors.Transparent);
-            }
-
-            await Task.Delay(duration);
-        }
-    }
 
     [ObservableProperty]
     public partial ObservableCollection<WindowEntry> AllWindows { get; set; }
@@ -1275,8 +1214,16 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     }
 
-
-    internal async Task RestoreAppDataAsync()
+    [RelayCommand]
+    public async Task RestoreCompleteDataAsync()
+    {
+        RestoreResult res = new();
+        if(PickedUpBackup is not null)
+            IsRestoreDone= await BackupService.RestoreCompleteDataAsync(PickedUpBackup, res);
+        
+    }
+    [RelayCommand]
+    public async Task PickFolderToRestoreAppDataAsync()
     {
         var tcs = new TaskCompletionSource<(bool includeDefault, string customPath)>();
 
@@ -1321,24 +1268,14 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         // Wait for user's decision
         var (includeDefaultLocation, secondaryPath) = await tcs.Task;
 
-        var selectedFile = secondaryPath;
-            var result = await BackupService.RestoreFromBackupAsync(selectedFile);
+         SelectedFile = secondaryPath;
+        PickedUpBackup = await BackupService.PickFolderTeRestoreFromBackupAsync(SelectedFile);
 
-            if (result.EventsRestored > 0)
-            {
-                Debug.WriteLine(result.ToString());
-            }
-            else
-            {
-                Debug.WriteLine($"Restore failed: {result.ErrorMessage}");
-            
-            }
-    
+           
 
-        BackupService.CleanupOldBackups(3);
+
+        //BackupService.CleanupOldBackups(3);
     }
-
-
 
     internal async Task BackUpAppDataAsync()
     {
@@ -1540,6 +1477,13 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     internal void SetCoreWindow(CoreWindow coreWindow)
     {
        DimmerCoreWindow = coreWindow;
+    }
+    public async Task ShowProgressSearchLyricsThenHideProgressAsync()
+    {
+        ShowIndeterminateProgressBar();
+        await SearchLyricsAsync();
+        HideIndeterminateProgressBar();
+
     }
 
     [ObservableProperty]

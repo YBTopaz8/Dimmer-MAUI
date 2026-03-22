@@ -1,13 +1,5 @@
-using System.Windows.Controls.Primitives;
-
-using CommunityToolkit.WinUI;
-
-using Microsoft.Extensions.Configuration;
 using Microsoft.UI.Composition.SystemBackdrops;
-
-using Windows.Graphics;
 using ProgressBar = Microsoft.UI.Xaml.Controls.ProgressBar;
-using Slider = Microsoft.UI.Xaml.Controls.Slider;
 using Visibility = Microsoft.UI.Xaml.Visibility;
 using Window = Microsoft.UI.Xaml.Window;
 
@@ -34,8 +26,8 @@ public sealed partial class DimmerWin : Window
 
         this.SystemBackdrop = new Microsoft.UI.Xaml.Media.DesktopAcrylicBackdrop();
         var appWin = PlatUtils.GetAppWindow(this);
-        
-        
+
+
         _compositorMainGrid = ElementCompositionPreview.GetElementVisual(MainGrid).Compositor;
 
 #if DEBUG
@@ -50,7 +42,7 @@ public sealed partial class DimmerWin : Window
     /// </summary>
     /// <param name="pageType"></param>
     /// <param name="OptionalParameter"></param>
-    public async void NavigateToPage(Type pageType, object? OptionalParameter=null)
+    public async void NavigateToPage(Type pageType, object? OptionalParameter = null)
     {
         if (MyViewModel is not null && OptionalParameter is null)
         {
@@ -58,14 +50,14 @@ public sealed partial class DimmerWin : Window
             await DispatcherQueue.EnqueueAsync(() =>
             {
                 WinUIWindowsMgr?.BringToFront(this);
-                if(pageType != ContentFrame.CurrentSourcePageType)
+                if (pageType != ContentFrame.CurrentSourcePageType)
                     ContentFrame.Navigate(pageType, MyViewModel);
 
             });
             MyViewModel.DimmerMultiWindowCoordinator?.SnapAllToHomeAsync();
 
         }
-        if(OptionalParameter is not null)
+        if (OptionalParameter is not null)
         {
             List<object> parameters = new();
             parameters.Add(OptionalParameter);
@@ -119,37 +111,18 @@ public sealed partial class DimmerWin : Window
 
     private void Window_SizeChanged(object sender, WindowSizeChangedEventArgs args)
     {
-        
+
         Debug.WriteLine($"New window size: {args.Size.Width} x {args.Size.Height}");
     }
 
 
     SystemBackdropConfiguration m_configurationSource;
 
-    private void SetConfigurationSourceTheme()
-    {
-        if (this.Content is FrameworkElement fe)
-        {
-            switch (fe.ActualTheme)
-            {
-                case ElementTheme.Dark: m_configurationSource.Theme = SystemBackdropTheme.Dark; break;
-                case ElementTheme.Light: m_configurationSource.Theme = SystemBackdropTheme.Light; break;
-                case ElementTheme.Default: m_configurationSource.Theme = SystemBackdropTheme.Default; break;
-            }
-        }
-    }
-
     private void DimmerProgressBar_Loaded(object sender, RoutedEventArgs e)
     {
 
         DimmerProgressBar.Visibility = Visibility.Collapsed;
         MyViewModel!.DimmerProgressBarView = (ProgressBar)sender;
-    }
-
-    private void DimmerProgressRing_Loaded(object sender, RoutedEventArgs e)
-    {
-
-        MyViewModel!.DimmerProgressRingView = (ProgressRing)sender;
     }
 
     private void DimmerStatusTextBlock_Loaded(object sender, RoutedEventArgs e)
@@ -214,8 +187,8 @@ public sealed partial class DimmerWin : Window
         AnimationHelper.Prepare(AnimationHelper.Key_ToViewQueue, SmokeGrid);
 
         MyViewModel.ProcessNowPlayingQueueDismiss();
-     
-        //    // 2. Hide the Detail View
+
+        //    // 2. Hmyvide the Detail View
         SmokeGrid.Visibility = Visibility.Collapsed;
     }
 
