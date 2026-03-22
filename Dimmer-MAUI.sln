@@ -58,7 +58,6 @@ Global
 		{30A25BF1-CDE5-B644-9309-0C400C5A6300}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
 		{30A25BF1-CDE5-B644-9309-0C400C5A6300}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{30A25BF1-CDE5-B644-9309-0C400C5A6300}.Release|Any CPU.Build.0 = Release|Any CPU
-		{30A25BF1-CDE5-B644-9309-0C400C5A6300}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

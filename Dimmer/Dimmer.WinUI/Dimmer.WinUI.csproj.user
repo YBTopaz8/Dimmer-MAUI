@@ -106,9 +106,6 @@
     <Page Update="Views\WinuiPages\SingleSongPage\SongStatsContainerPage.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Views\WinuiPages\SingleSongPage\SubPage\LyricsEditorPage.xaml">
-      <SubType>Designer</SubType>
-    </Page>
     <Page Update="Views\WinuiPages\SingleSongPage\SubPage\OnlineLyricsSearchPage.xaml">
       <SubType>Designer</SubType>
     </Page>

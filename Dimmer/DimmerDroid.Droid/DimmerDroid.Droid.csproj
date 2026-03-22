@@ -84,16 +84,23 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Dimmer\Dimmer.csproj" />
+	  <ProjectReference Include="..\Dimmer\Dimmer.csproj" />
 	</ItemGroup>
 
+
+
 	<ItemGroup>
+	
 	  <Compile Update="DimmerShell.xaml.cs">
 	    <DependentUpon>DimmerShell.xaml</DependentUpon>
 	  </Compile>
+	  
 	</ItemGroup>
 
+
+
 	<ItemGroup>
+	
 	  <MauiXaml Update="DimmerShell.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
@@ -113,6 +120,7 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\SingleSong\DetailsOverview.xaml">
+	  
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>
