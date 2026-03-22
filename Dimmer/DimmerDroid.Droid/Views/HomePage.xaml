@@ -32,7 +32,7 @@
                 <dx:TextEdit x:Name="SearchBarTextEdit"  CornerRadius="20" PlaceholderText="Search with TQL..."
                          TextChanged="SearchBar_TextChanged" PlaceholderColor="Gray"
                              Loaded="SearchBar_Loaded" HorizontalOptions="Fill" 
-                             Unloaded="SearchBar_UnLoaded"
+                             Unloaded="SearchBar_Unloaded"
                              >
                    
                     
@@ -43,7 +43,7 @@
         
 
         </dx:DXStackLayout>
-        <dx:DXCollectionView  ItemsSource="{Binding SearchResults}" Grid.Row="1" Margin="5,0" BackgroundColor="#1e1e1e">
+        <dx:DXCollectionView x:Name="SongsCV"  ItemsSource="{Binding SearchResults}" Grid.Row="1" Margin="5,0" BackgroundColor="#1e1e1e">
                 <dx:DXCollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:SongModelView">
                         <Grid ColumnDefinitions="60,*,auto" RowDefinitions="80" RowSpacing="5">
@@ -121,7 +121,7 @@
                 
                 <dx:DXStackLayout Grid.Column="1" Orientation="Vertical" HorizontalOptions="Start" Margin="10,0">
                     <dx:Chip Text="{Binding CurrentPlayingSongView.Title}" BorderThickness="0" HorizontalOptions="Start" 
-                             FontAttributes="Bold" Tap="CurrentPlayingTitleChip_Tap"
+                             FontAttributes="Bold" Tap="CurrentPlayingTitleChip_Tap" LongPress="CurrentPlayingTitleChip_LongPress"
                              x:Name="CurrentPlayingTitleChip"/>
                     <dx:Chip Text="{Binding CurrentPlayingSongView.OtherArtistsName}" BorderThickness="0" 
                              x:Name="CurrentPlayingArtistChip" HorizontalOptions="Start"
