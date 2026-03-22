@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<dx:BottomSheet xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer.Views.CustomViews.PlaybackQueueBtmSheet"
+             xmlns:vm="clr-namespace:Dimmer.ViewModels"
+             xmlns:dx="http://schemas.devexpress.com/maui"
+             xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+             x:DataType="vm:BaseViewModelAnd">  
+    
+    <Grid RowDefinitions="auto,*">
+        <dx:DXStackLayout Grid.Row="0">
+            <dx:Chip>
+                <dx:Chip.Text>
+                    <MultiBinding StringFormat="{}{0} {1}">
+                        <Binding Path="PlaybackQueue.Count" />
+                        <Binding Path="Songs" />                        
+                    </MultiBinding>
+                </dx:Chip.Text>
+            </dx:Chip>
+        </dx:DXStackLayout>
+        
+        <dx:DXCollectionView ItemsSource="{Binding PlaybackQueue}" Grid.Row="1">
+            <dx:DXCollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:SongModelView">
+                    <Grid ColumnDefinitions="60,*,auto" RowDefinitions="80">
+                        <dx:DXStackLayout Grid.Column="0">
+                            <dx:DXStackLayout.Triggers>
+                                <DataTrigger TargetType="dx:DXStackLayout" Binding="{Binding HasSyncedLyrics}"
+                                           Value="True">
+                                    <Setter Property="BorderThickness" Value="1"/>
+                                    <Setter Property="BorderColor" Value="DarkSlateBlue"/>
+
+                                </DataTrigger>
+
+                                <DataTrigger TargetType="dx:DXStackLayout" Binding="{Binding HasSyncedLyrics}"
+                                           Value="False">
+                                    <Setter Property="BorderThickness" Value="0"/>
+
+                                </DataTrigger>
+
+                            </dx:DXStackLayout.Triggers>
+                            <dx:DXImage Source="{Binding CoverImagePath}" Aspect="AspectFit"/>
+                        </dx:DXStackLayout>
+
+                        <dx:DXStackLayout Grid.Column="1" Orientation="Vertical" >
+                            <dx:DXStackLayout.GestureRecognizers>
+                                <TapGestureRecognizer NumberOfTapsRequired="1"
+                                                   x:Name="MiddleGridSection"
+                                                    Tapped="MiddleGridSection_Tapped"
+                                                   />
+                            </dx:DXStackLayout.GestureRecognizers>
+                            <dx:Chip Text="{Binding Title}" BorderThickness="0" HorizontalOptions="Start" 
+                                   Tap="TitleChip_Tap" x:Name="TitleChip"/>
+                            <dx:Chip Text="{Binding ArtistName}" BorderThickness="0" 
+                                   x:Name="ArtistChip" Tap="ArtistChip_Tap"
+                                   
+                                   LongPress="ArtistChip_LongPress"/>
+                        </dx:DXStackLayout>
+
+                        <dx:DXStackLayout Grid.Column="2" Orientation="Horizontal">
+                            <dx:Chip Icon="more1.png" IsIconVisible="True"
+                                   x:Name="MoreBtn"
+                                   HeightRequest="30" WidthRequest="30"/>
+                        </dx:DXStackLayout>
+                    </Grid>
+                </DataTemplate>
+            </dx:DXCollectionView.ItemTemplate>
+        </dx:DXCollectionView>
+    </Grid>
+</dx:BottomSheet>
