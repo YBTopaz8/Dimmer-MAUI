@@ -52,10 +52,10 @@
                 <Grid VerticalOptions="End">
                     <dx:DXBorder BackgroundColor="Gray"
                                   CornerRadius="20"
-                                 Opacity="0.6"/>
+                                 Opacity="0.25"/>
                     <dx:DXStackLayout BorderThickness="2" ItemSpacing="15"
                                   CornerRadius="20" Padding="15"
-                                  BorderColor="DarkGrey"
+                                  BorderColor="Transparent"
                                   >
                     <FlexLayout JustifyContent="SpaceBetween">
                         <dx:Chip Text="{Binding SelectedAudioDevice.Name}"
@@ -175,13 +175,13 @@
 
 
 
-                            <dx:Chip Grid.Column="1" BorderThickness="0"
+                            <dx:Chip Grid.Column="1" BorderThickness="0" HorizontalOptions="Center"
                                      IsIconVisible="True" TapCommand="{Binding PreviousTrackCommand}"
                                      IconSize="30,30" IconColor="DarkSlateBlue"
                                      Icon="skipprevious.png"/>
                             
                             <dx:Chip Grid.Column="2" BorderThickness="0"
-         IsIconVisible="True"
+         IsIconVisible="True" HorizontalOptions="Center"
          IconSize="30,30" IconColor="DarkSlateBlue"
     x:Name="PlayPauseBtn"
     BorderColor="{Binding CurrentPlaySongDominantColor}"
@@ -211,14 +211,23 @@
                             </dx:Chip>
                             
                             <dx:Chip Grid.Column="3" BorderThickness="0"
-                                     IsIconVisible="True"
+                                     IsIconVisible="True" HorizontalOptions="Center"
                                      IconSize="30,30" IconColor="DarkSlateBlue" TapCommand="{Binding NextTrackCommand}"
                                      Icon="skipnext.png"/>
-                            <dx:Chip Grid.Column="4" BorderThickness="0"
+                            <dx:Chip Grid.Column="4" BorderThickness="0" HorizontalOptions="Center"
                                      IsIconVisible="True" TapCommand="{Binding AddFavoriteRatingToSongCommand}"
                                      IconSize="30,30" IconColor="DarkSlateBlue"
                                      TapCommandParameter="{Binding CurrentPlayingSongView}"
-                                     Icon="heart.png"/>
+                                     Icon="heart.png">
+                                <dx:Chip.Triggers>
+                                    <DataTrigger TargetType="dx:Chip" Binding="{Binding CurrentPlayingSongView.IsFavorite}" Value="true">
+                                        <Setter Property="Icon" Value="heartlock.png" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="dx:Chip" Binding="{Binding CurrentPlayingSongView.IsFavorite}" Value="false">
+                                        <Setter Property="Icon" Value="heart.png" />
+                                    </DataTrigger>
+                                </dx:Chip.Triggers>
+                            </dx:Chip>
                         </Grid>
                     </dx:DXStackLayout>
 

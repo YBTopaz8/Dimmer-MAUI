@@ -7,13 +7,12 @@
              xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
              x:DataType="vm:BaseViewModelAnd">  
     
-    <Grid RowDefinitions="auto,*">
+    <Grid RowDefinitions="auto,*" RowSpacing="5" Margin="15,0">
         <dx:DXStackLayout Grid.Row="0">
             <dx:Chip>
                 <dx:Chip.Text>
-                    <MultiBinding StringFormat="{}{0} {1}">
+                    <MultiBinding StringFormat="{}{0} Songs">
                         <Binding Path="PlaybackQueue.Count" />
-                        <Binding Path="Songs" />                        
                     </MultiBinding>
                 </dx:Chip.Text>
             </dx:Chip>
@@ -53,14 +52,17 @@
                                    Tap="TitleChip_Tap" x:Name="TitleChip"/>
                             <dx:Chip Text="{Binding ArtistName}" BorderThickness="0" 
                                    x:Name="ArtistChip" Tap="ArtistChip_Tap"
-                                   
+                                   HorizontalOptions="Start"
                                    LongPress="ArtistChip_LongPress"/>
                         </dx:DXStackLayout>
 
                         <dx:DXStackLayout Grid.Column="2" Orientation="Horizontal">
-                            <dx:Chip Icon="more1.png" IsIconVisible="True"
-                                   x:Name="MoreBtn"
-                                   HeightRequest="30" WidthRequest="30"/>
+                            <dx:Chip Icon="more1.png" VerticalOptions="Center" IsIconVisible="False"
+                                   x:Name="MoreBtn" Text="{Binding DurationFormatted}"
+                                   HeightRequest="30" BorderThickness="0"/>
+                            <dx:Chip IsVisible="{Binding IsFavorite}" IsIconVisible="True"
+                                   x:Name="FavoriteBtn" Icon="heartlock.png"
+                                   HeightRequest="30" BorderThickness="0"/>
                         </dx:DXStackLayout>
                     </Grid>
                 </DataTemplate>

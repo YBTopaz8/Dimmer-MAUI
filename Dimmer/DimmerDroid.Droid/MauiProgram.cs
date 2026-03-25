@@ -19,7 +19,7 @@ public static class MauiProgram
             .UseDevExpressEditors()
             .UseDevExpressGauges()
             .UseDevExpressTreeView()
-            
+            .UseDevExpressControls()
             .UseSharedMauiApp();
 
         // 1. Register all services (NO provider is built here anymore)

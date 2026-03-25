@@ -74,4 +74,5 @@ public partial class SettingsPage : ContentPage
     {
         await MyViewModel.AddMusicFolderViaPickerAsync();
     }
+
 }
