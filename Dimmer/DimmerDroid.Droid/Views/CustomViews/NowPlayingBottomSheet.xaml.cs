@@ -23,10 +23,7 @@ public partial class NowPlayingBottomSheet : BottomSheet
         }
     }
 
-    private void SongTitleLabel_Loaded(object sender, EventArgs e)
-    {
-
-    }
+  
 
     private void SongTitleLabel_SizeChanged(object sender, EventArgs e)
     {
