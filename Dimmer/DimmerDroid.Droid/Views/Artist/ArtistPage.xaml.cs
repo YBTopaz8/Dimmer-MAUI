@@ -1,3 +1,5 @@
+
+
 namespace Dimmer.Views.Artist;
 
 public partial class ArtistPage : ContentPage
@@ -26,5 +28,34 @@ public partial class ArtistPage : ContentPage
     private void ExportEvt_Tap(object sender, HandledEventArgs e)
     {
         
+    }
+
+    private async void CurrentPlayingCoverTapGesture_Tapped(object sender, TappedEventArgs e)
+    {
+        var song = ((View)sender).BindingContext as SongModelView;
+        MyViewModel.SelectedSong = song;
+        await Shell.Current.GoToAsync(nameof(DetailsOverview), true);
+    }
+
+    private async void MiddleGridSection_Tapped(object sender, TappedEventArgs e)
+    {
+        var send = (View)sender;
+        var song = (SongModelView)send.BindingContext;
+        await MyViewModel.PlaySongAsync(song, CurrentPage.HomePage, MyViewModel.SearchResults);
+    }
+
+    private void TitleChip_Tap(object sender, HandledEventArgs e)
+    {
+
+    }
+
+    private void ArtistChip_Tap(object sender, HandledEventArgs e)
+    {
+
+    }
+
+    private void ArtistChip_LongPress(object sender, HandledEventArgs e)
+    {
+
     }
 }

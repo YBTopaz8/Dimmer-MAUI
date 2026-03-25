@@ -1,8 +1,9 @@
-using Android.App.AppSearch;
+
+global using View = Microsoft.Maui.Controls.View;
+using DevExpress.Maui.Core;
 using Dimmer.DimmerSearch;
 using Dimmer.Views.Settings;
 using DynamicData.Binding;
-using View = Microsoft.Maui.Controls.View;
 
 namespace Dimmer.Views;
 
@@ -25,10 +26,6 @@ public partial class HomePage : ContentPage
 		Debug.WriteLine("HomePage OnAppearing" + MyViewModel.SearchResults.Count);
     }
 
-    private async void OpenFolderScannerBtn_Clicked(object sender, EventArgs e)
-    {
-        await MyViewModel.AddMusicFolderViaPickerAsync();
-    }
 
     private void PlayButton_Clicked(object sender, EventArgs e)
     {
@@ -225,10 +222,9 @@ public partial class HomePage : ContentPage
 
         MyViewModel.SetSelectedArtist(art);
 
-        await ArtistsChoiceBtmSheet.CloseAsync();
-        await Shell.Current.GoToAsync(nameof(ArtistPage), true);
+        ArtistSongsExpander?.IsExpanded = !ArtistSongsExpander.IsExpanded;
 
-}
+    }
 
     private void DXToggleButton_Tap(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
     {
@@ -252,5 +248,37 @@ public partial class HomePage : ContentPage
 
     { 
         await MyViewModel.DeleteSongs(new List<SongModelView>(){MyViewModel.SelectedSong! });
+    }
+
+    private void CurrentPlayingTitleChip_LongPress(object sender, HandledEventArgs e)
+    {
+        var songHandle = SongsCV.FindItemHandle(MyViewModel.CurrentPlayingSongView);
+
+        SongsCV.ScrollTo(songHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
+    }
+
+    private void SongTitle_Loaded(object sender, EventArgs e)
+    {
+        SongTitle.Text = MyViewModel.CurrentPlayingSongView?.Title is null ? "" : $"❤️{ MyViewModel.CurrentPlayingSongView?.Title}"
+        ;
+    }
+
+    private void PlayNextBtn_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.AddToNext(new List<SongModelView>() { MyViewModel.SelectedSong! });
+    }
+
+    private void AlbumChip_Tap(object sender, HandledEventArgs e)
+    {
+        
+    }
+    DXExpander? ArtistSongsExpander;
+    private void ArtistSongsExpander_Loaded(object sender, EventArgs e)
+    {
+        ArtistSongsExpander = (DXExpander)sender;
+    }
+    private void ArtistSongsExpander_Unloaded(object sender, EventArgs e)
+    {
+        ArtistSongsExpander = null;
     }
 }

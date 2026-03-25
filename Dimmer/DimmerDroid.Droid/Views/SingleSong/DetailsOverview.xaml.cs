@@ -11,7 +11,11 @@ public partial class DetailsOverview : ContentPage
 		
 	}
     public BaseViewModelAnd MyViewModel { get; }
-
+    protected override bool  OnBackButtonPressed()
+    {
+        _= Shell.Current.GoToAsync("..");
+        return base.OnBackButtonPressed();
+    }
     protected override void OnAppearing()
     {
         base.OnAppearing();

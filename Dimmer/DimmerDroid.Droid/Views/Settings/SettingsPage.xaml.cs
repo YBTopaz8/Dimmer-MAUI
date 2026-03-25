@@ -69,4 +69,10 @@ public partial class SettingsPage : ContentPage
         _ = Task.Run(async () => await MyViewModel.LoadAllSongsLyricsFromOnlineAsync(cts));
     }
 
+
+    private async void OpenFolderScannerBtn_Clicked(object sender, EventArgs e)
+    {
+        await MyViewModel.AddMusicFolderViaPickerAsync();
+    }
+
 }

@@ -7,13 +7,12 @@
              xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
              x:DataType="vm:BaseViewModelAnd">  
     
-    <Grid RowDefinitions="auto,*">
+    <Grid RowDefinitions="auto,*" RowSpacing="5" Margin="15,0">
         <dx:DXStackLayout Grid.Row="0">
             <dx:Chip>
                 <dx:Chip.Text>
-                    <MultiBinding StringFormat="{}{0} {1}">
+                    <MultiBinding StringFormat="{}{0} Songs">
                         <Binding Path="PlaybackQueue.Count" />
-                        <Binding Path="Songs" />                        
                     </MultiBinding>
                 </dx:Chip.Text>
             </dx:Chip>
@@ -53,18 +52,66 @@
                                    Tap="TitleChip_Tap" x:Name="TitleChip"/>
                             <dx:Chip Text="{Binding ArtistName}" BorderThickness="0" 
                                    x:Name="ArtistChip" Tap="ArtistChip_Tap"
-                                   
+                                   HorizontalOptions="Start"
                                    LongPress="ArtistChip_LongPress"/>
                         </dx:DXStackLayout>
 
                         <dx:DXStackLayout Grid.Column="2" Orientation="Horizontal">
-                            <dx:Chip Icon="more1.png" IsIconVisible="True"
-                                   x:Name="MoreBtn"
-                                   HeightRequest="30" WidthRequest="30"/>
+                            <dx:Chip Icon="more1.png" VerticalOptions="Center" IsIconVisible="False"
+                                   x:Name="MoreBtn" Text="{Binding DurationFormatted}"
+                                   HeightRequest="30" BorderThickness="0"/>
+                            <dx:Chip IsVisible="{Binding IsFavorite}" IsIconVisible="True"
+                                   x:Name="FavoriteBtn" Icon="heartlock.png"
+                                   HeightRequest="30" BorderThickness="0"/>
                         </dx:DXStackLayout>
                     </Grid>
                 </DataTemplate>
             </dx:DXCollectionView.ItemTemplate>
         </dx:DXCollectionView>
+
+
+        <dx:BottomSheet x:Name="ArtistsChoiceBtmSheet" AllowDismiss="True" >
+            <dx:BottomSheet.Content>
+                <dx:DXStackLayout Margin="10,0">
+
+
+                    <dx:DXCollectionView ItemsSource="{Binding SelectedSong.ArtistToSong}" >
+                        <dx:DXCollectionView.HeaderTemplate>
+                            <DataTemplate>
+                                <Label Text="Artists" FontSize="20" HorizontalOptions="Center"/>
+                            </DataTemplate>
+                        </dx:DXCollectionView.HeaderTemplate>
+                        <dx:DXCollectionView.ItemTemplate>
+                            <DataTemplate x:DataType ="models:ArtistModelView">
+
+
+                                <Grid  ColumnDefinitions="*,*" ColumnSpacing="10">
+                                  
+                                    <dx:DXStackLayout>
+                                        <Label Text="{Binding Name}" FontSize="20" />
+                                    </dx:DXStackLayout>
+
+                                    <dx:DXStackLayout Grid.Column="1" HorizontalOptions="End">
+                                        <Label Text="{Binding TotalSongsByArtist, StringFormat='{0} Songs'}" FontSize="20" />
+                                        <dx:DXStackLayout Orientation="Horizontal" HorizontalOptions="Center">
+                                            <dx:Chip Icon="searchalta.png" IconSize="30,30"
+                                                     IconColor="DarkSlateBlue" LongPressCommandParameter="{Binding Name}"
+                                                    x:Name="SearchArtistBtnTQL"
+                                                     IsIconVisible="True" BorderThickness="0"/>
+                                            <dx:Chip Icon="eye.png" IconSize="30,30"
+                                                     x:Name="ViewArtistBtn" 
+                                                     IconColor="DarkSlateBlue" LongPressCommandParameter="{Binding .}"
+                                                     IsIconVisible="True" BorderThickness="0"/>
+                                        </dx:DXStackLayout>
+                                    </dx:DXStackLayout>
+                                </Grid>
+
+                            </DataTemplate>
+                        </dx:DXCollectionView.ItemTemplate>
+                    </dx:DXCollectionView>
+                </dx:DXStackLayout>
+            </dx:BottomSheet.Content>
+        </dx:BottomSheet>
+
     </Grid>
 </dx:BottomSheet>
