@@ -77,13 +77,15 @@
                                                           Tapped="MiddleGridSection_Tapped"
                                                          />
                                 </dx:DXStackLayout.GestureRecognizers>
+                                
                                 <dx:Chip Text="{Binding Title}" BorderThickness="0" HorizontalOptions="Start" 
-                                         Tap="TitleChip_Tap" FontSize="16"
+                                         Tap="TitleChip_Tap" FontSize="17"
                                          FontAttributes="Bold"
                                          x:Name="TitleChip"/>
                             <dx:Chip Text="{Binding OtherArtistsName}" BorderThickness="0" 
                                          x:Name="ArtistChip" Tap="ArtistChip_Tap"
                                          HorizontalOptions="Start"
+                                     DoubleTap="ArtistChip_DoubleTap"
                                          FontSize="13" FontAttributes="Italic"
                                          LongPress="ArtistChip_LongPress">
                                 <dx:Chip.Triggers>
@@ -237,7 +239,7 @@ Icon="play.png">
                                 <dx:DXExpander Grid.Row="1" Grid.ColumnSpan="2" x:Name="ArtistSongsExpander" Loaded="ArtistSongsExpander_Loaded" IsExpanded="False"
                                                VerticalExpandMode="FromStartToEnd">
                                         <dx:DXExpander.Content>
-                                            <dx:DXCollectionView Header="Songs" ItemsSource="{Binding SongsByArtist}">
+                                            <dx:DXCollectionView Header="Songs" x:Name="ArtistsSongs" Loaded="ArtistsSongs_Loaded">
                                                 <dx:DXCollectionView.ItemTemplate>
 
                                                     <DataTemplate x:DataType="models:SongModelView">
@@ -307,7 +309,7 @@ Icon="play.png">
         <dx:BottomSheet x:Name="SingleSongBtmSheet" AllowDismiss="True" >
             <dx:BottomSheet.Content>
                 <dx:DXStackLayout Margin="10,0">
-                    <Label x:Name="SongTitle"
+                    <Label x:Name="SongTitle" HorizontalOptions="Center"
        Loaded="SongTitle_Loaded" />
                     <dx:DXButton Content="Play Next"
                                  Clicked="PlayNextBtn_Clicked" x:Name="PlayNextBtn"
@@ -323,6 +325,7 @@ Icon="play.png">
                     <dx:Chip Icon="deletesonginterfacesymbol.png" 
          x:Name="DeleteSongBtn" Text="Delete Song" IsIconVisible="True"
  Tap="DeleteSongBtn_Tap"/>
+                    
                 </dx:DXStackLayout>
             </dx:BottomSheet.Content>
         </dx:BottomSheet>

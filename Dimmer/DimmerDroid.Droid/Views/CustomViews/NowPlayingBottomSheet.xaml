@@ -3,6 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer.Views.CustomViews.NowPlayingBottomSheet"
               xmlns:vm="clr-namespace:Dimmer.ViewModels"
+                 xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+   
  xmlns:dx="http://schemas.devexpress.com/maui"
  xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
  x:DataType="vm:BaseViewModelAnd"
@@ -41,7 +43,10 @@
                 </dx:Chip>
             </dx:DXStackLayout>
             <dx:DXStackLayout ItemSpacing="15" VerticalOptions="Start" Grid.Row="1">
-                <Label Text="{Binding CurrentPlayingSongView.Title}" HorizontalOptions="Center" HorizontalTextAlignment="Justify" FontSize="16"
+                <Label Text="{Binding CurrentPlayingSongView.Title}" 
+                       SizeChanged="SongTitleLabel_SizeChanged"
+                       Loaded="SongTitleLabel_Loadsed" x:Name="SongTitleLabel"
+                       HorizontalOptions="Center" HorizontalTextAlignment="Justify" FontSize="20"
                    FontAttributes="Bold"/>
 
                 <dx:Chip Text="{Binding CurrentPlayingSongView.OtherArtistsName}" Grid.Column="0"
@@ -58,13 +63,44 @@
                                   BorderColor="Transparent"
                                   >
                     <FlexLayout JustifyContent="SpaceBetween">
-                        <dx:Chip Text="{Binding SelectedAudioDevice.Name}"
-                                 />
                         <dx:DXStackLayout Orientation="Horizontal">
-                            <dx:Chip Text="🎙️" BorderThickness="0"
-                                     IconSize="25,25"/>
+
+                                <dx:Chip
+     Background="Transparent"
+     BorderThickness="0"
+     TapCommand="{Binding ToggleShuffleCommand}"
+     Icon="shuffle.png"
+     IsIconVisible="True"
+                                    IsEnabled="{Binding IsTimestampingInProgress, Converter={converters:BoolToInverseConverter}}"
+     ToolTipProperties.Text="{Binding IsShuffleActive, Converter={converters:BoolToYesNoConverter}, StringFormat='Is Shuffle Active? : {0}'}"
+     WidthRequest="60">
+                                    
+                                    <dx:Chip.Triggers>
+                                        <DataTrigger
+             Binding="{Binding IsShuffleActive}"
+             TargetType="dx:Chip"
+             Value="True">
+                                            <Setter Property="BorderColor" Value="{Binding CurrentPlaySongDominantColor}" />
+                                            <Setter Property="BorderThickness" Value="2" />
+
+                                        </DataTrigger>
+                                    </dx:Chip.Triggers>
+
+                                </dx:Chip>
+
+                                <dx:Chip Text="🎙️" BorderThickness="0"
+                                     IconSize="25,25"
+                                     x:Name="LyricsChip"  
+                                         Tap="LyricsChip_Tap"/>
                         </dx:DXStackLayout>
-                    </FlexLayout>
+
+                            <dx:Chip 
+                                Icon="playlistminimalistic3.png"
+                                x:Name="PlaybackChip"
+                                Tap="PlaybackChip_Tap"
+                                />
+
+                        </FlexLayout>
 
                         <dx:DXSlider MaxValue="100" MinValue="0" Value="{Binding CurrentTrackPositionPercentage}" TickmarkStep="4"
            TooltipDisplayFormat="mm:ss"
@@ -202,9 +238,9 @@
                                     </DataTrigger>
 
                                     <DataTrigger
-            Binding="{Binding IsDimmerPlaying}"
-            TargetType="dx:Chip"
-            Value="false">
+                                        Binding="{Binding IsDimmerPlaying}"
+                                        TargetType="dx:Chip"
+                                        Value="false">          
                                         <Setter Property="Icon" Value="play.png" />
                                     </DataTrigger>
                                 </dx:Chip.Triggers>

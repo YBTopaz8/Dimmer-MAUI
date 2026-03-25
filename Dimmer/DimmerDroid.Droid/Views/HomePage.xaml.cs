@@ -1,6 +1,8 @@
 
 global using View = Microsoft.Maui.Controls.View;
+using DevExpress.Maui.CollectionView;
 using DevExpress.Maui.Core;
+using DevExpress.Utils;
 using Dimmer.DimmerSearch;
 using Dimmer.Views.Settings;
 using DynamicData.Binding;
@@ -52,8 +54,15 @@ public partial class HomePage : ContentPage
 
     }
 
-    private void ArtistChip_DoubleTap(object sender, HandledEventArgs e)
+    private async void ArtistChip_DoubleTap(object sender, HandledEventArgs e)
     {
+
+        var send = (View)sender;
+        var song = (SongModelView)send.BindingContext;
+
+        MyViewModel.SetSelectedArtist(song.Artist);
+
+        await Shell.Current.GoToAsync(nameof(ArtistPage), true);
 
     }
 
@@ -259,7 +268,7 @@ public partial class HomePage : ContentPage
 
     private void SongTitle_Loaded(object sender, EventArgs e)
     {
-        SongTitle.Text = MyViewModel.CurrentPlayingSongView?.Title is null ? "" : $"❤️{ MyViewModel.CurrentPlayingSongView?.Title}"
+        SongTitle.Text = MyViewModel.SelectedSong?.Title is null ? "" : $"❤️{ MyViewModel.SelectedSong?.Title}"
         ;
     }
 
@@ -280,5 +289,13 @@ public partial class HomePage : ContentPage
     private void ArtistSongsExpander_Unloaded(object sender, EventArgs e)
     {
         ArtistSongsExpander = null;
+    }
+
+    private void ArtistsSongs_Loaded(object sender, EventArgs e)
+    {
+        DXCollectionView cv = (DXCollectionView)sender;
+        cv.ItemsSource = MyViewModel.SelectedArtist?.SongsByArtist;
+
+
     }
 }
