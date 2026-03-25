@@ -11,6 +11,9 @@ public partial class SettingsPage : ContentPage
         InitializeComponent();
         BindingContext = viewModelAnd;
         MyViewModel = viewModelAnd;
+
+        var platView = this.Handler?.PlatformView as Fragment;
+        var platView2 = this.Handler?.PlatformView as View;
     }
 
     BaseViewModelAnd MyViewModel { get; }

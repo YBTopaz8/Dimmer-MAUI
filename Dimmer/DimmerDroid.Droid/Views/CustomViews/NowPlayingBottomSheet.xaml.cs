@@ -19,7 +19,8 @@ public partial class NowPlayingBottomSheet : BottomSheet
         {
             songForLyrics = MyViewModel.SelectedSong;
             MyViewModel.SelectedSong = MyViewModel.CurrentPlayingSongView;
-            await MyViewModel.SearchLyricsAsync();
+            await Shell.Current.GoToAsync(nameof(DetailsOverview), true);
+            _= MyViewModel.SearchLyricsAsync();
         }
     }
 
@@ -36,6 +37,11 @@ public partial class NowPlayingBottomSheet : BottomSheet
     }
 
     private void PlaybackChip_Tap(object sender, HandledEventArgs e)
+    {
+
+    }
+
+    private void SongTitleLabel_Loaded(object sender, EventArgs e)
     {
 
     }

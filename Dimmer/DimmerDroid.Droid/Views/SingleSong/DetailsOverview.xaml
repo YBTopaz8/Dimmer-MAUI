@@ -19,7 +19,7 @@
                 <dx:DXStackLayout 
                     
                     ItemSpacing="5">
-                    <Grid ColumnDefinitions="250,*">
+                    <Grid ColumnDefinitions="150,*">
                         <dx:DXImage 
                             Grid.Column="0"
                             Source="{Binding CoverImagePath}" MaximumHeightRequest="300" MaximumWidthRequest="300" Aspect="AspectFit" HorizontalOptions="Center"/>
@@ -57,7 +57,8 @@
                 <dx:DXStackLayout x:DataType="vm:BaseViewModelAnd" Loaded="LyricsTabVSL_Loaded" x:Name="LyricsTabVSL">
                     <dx:DXStackLayout 
                         ItemSpacing="10">
-                        <dx:TextEdit Text="{Binding LyricsTrackNameSearch}"/>
+                        <dx:TextEdit Text="{Binding LyricsTrackNameSearch}"
+                                     LabelText="Track Name"/>
 
                         <!--<dx:Chip BorderThickness="0"
                                  
@@ -72,14 +73,16 @@
                     </dx:DXStackLayout>
                     <dx:DXStackLayout 
     ItemSpacing="10">
-                        <dx:TextEdit Text="{Binding LyricsArtistNameSearch}"/>
+                        <dx:TextEdit Text="{Binding LyricsArtistNameSearch}" LabelText="Artist Name"/>
                         </dx:DXStackLayout>
 
-                    <dx:DXStackLayout 
+                        <dx:DXStackLayout  
     ItemSpacing="10">
-                        <dx:TextEdit Text="{Binding LyricsAlbumNameSearch}"/>
+                        <dx:TextEdit 
+                            LabelText="Album Name"
+                            Text="{Binding LyricsAlbumNameSearch}"/>
                     </dx:DXStackLayout>
-                    <dx:DXButton x:Name="SearchLyricsBtn"
+                    <dx:DXButton x:Name="SearchLyricsBtn" Content="Search Online"
                                  Command="{Binding SearchLyricsCommand}"/>
                     <ActivityIndicator IsRunning="{Binding IsLyricsSearchBusy}"
                                        IsVisible="{Binding IsLyricsSearchBusy}"
@@ -99,8 +102,12 @@
                                         <Label IsVisible="{Binding Instrumental}"/>
                                         <dx:DXButton x:Name="ApplyLyrics" Command="{Binding SelectLyricsCommand}" x:DataType="vm:BaseViewModelAnd"
             CommandParameter="{Binding .}" />
+                                        <dx:DXScrollView MaximumHeightRequest="250">
+                                            
                                     <Label Text="{Binding SyncedLyrics}"/>
-                                </dx:DXStackLayout>
+
+                                        </dx:DXScrollView>
+                                    </dx:DXStackLayout>
                             </DataTemplate>
                         </dx:DXCollectionView.ItemTemplate>
                     </dx:DXCollectionView>
@@ -118,7 +125,26 @@
                     <dx:DataGridView ItemsSource="{Binding PlayEvents}"
                                      AutoGenerateColumnsMode="None">
                         <dx:DataGridView.Columns>
-                            <dx:TemplateColumn FieldName="PlayTypeStr"/>
+                            <dx:TextColumn FieldName="PlayTypeStr"/>
+                            <dx:DateColumn FieldName="EventDate"/>
+                            <dx:NumberColumn FieldName="PositionInSeconds"
+                                             />
+                        </dx:DataGridView.Columns>
+                    </dx:DataGridView>
+                </dx:DXStackLayout>
+
+                </dx:DXScrollView>
+            </dx:TabViewItem>
+
+            <dx:TabViewItem HeaderText="Play History">
+                <dx:DXScrollView>
+                    
+                <dx:DXStackLayout>
+
+                    <dx:DataGridView ItemsSource="{Binding PlayEvents}"
+                                     AutoGenerateColumnsMode="None">
+                        <dx:DataGridView.Columns>
+                            <dx:TextColumn FieldName="PlayTypeStr"/>
                             <dx:DateColumn FieldName="EventDate"/>
                             <dx:NumberColumn FieldName="PositionInSeconds"
                                              />

@@ -103,7 +103,12 @@
                                          x:Name="MoreBtn" BorderThickness="0" BackgroundColor="Transparent"
                                          HeightRequest="30" WidthRequest="30"/>
                             <Label Text="{Binding DurationFormatted}" HorizontalOptions="End" VerticalOptions="Center" FontSize="8" Margin="5,0"/>
-                            <Label HorizontalOptions="Center" Text="{Binding PlayCompletedCount}" VerticalOptions="Center" FontSize="8" Margin="5,0"/>
+
+                            <dx:DXStackLayout Orientation="Horizontal">
+                        
+                                <Label HorizontalOptions="Center" Text="{Binding PlayCompletedCount}" VerticalOptions="Center" FontSize="8" Margin="5,0"/>
+                                <Label Text="🎙️" IsVisible="{Binding HasSyncedLyrics}"/>
+                            </dx:DXStackLayout>
                         </dx:DXStackLayout>
                             
                         </Grid>
