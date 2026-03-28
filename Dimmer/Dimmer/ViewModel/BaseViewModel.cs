@@ -5534,13 +5534,13 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             return string.Empty;
 
         // 1. Process locally (don't set class properties)
-        LyricsTrackNameSearch = CleanSongTitle(SelectedSong.Title ?? string.Empty);
-        LyricsArtistNameSearch = GetPrimaryArtist(SelectedSong.ArtistName ?? string.Empty);
+        LyricsTrackNameSearch ??= CleanSongTitle(SelectedSong.Title ?? string.Empty);
+        LyricsArtistNameSearch ??= GetPrimaryArtist(SelectedSong.ArtistName ?? string.Empty);
 
         // Album is often "noise" for lyric searches. Only include it if it's very specific.
         // Ideally, for lyrics, Artist + Title is usually the strongest query.
         var album = SelectedSong.AlbumName ?? string.Empty;
-        LyricsAlbumNameSearch = !IsGenericAlbumName(album) ? album : string.Empty;
+        LyricsAlbumNameSearch ??= !IsGenericAlbumName(album) ? album : string.Empty;
 
         // 2. Build the list, filtering out empties immediately
         var searchParts = new List<string>();

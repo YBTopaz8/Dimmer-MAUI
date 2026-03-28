@@ -1,25 +1,27 @@
+using DevExpress.Maui.Core;
 using Java.Interop;
 
 namespace Dimmer.Views.SingleSong;
 
 public partial class DetailsOverview : ContentPage
 {
-	public DetailsOverview(BaseViewModelAnd baseViewModel)
+	public DetailsOverview(BaseViewModelAnd baseViewModel, StatisticsViewModel statisticsService)
 	{
 		InitializeComponent();
 		MyViewModel = baseViewModel;
+        StatsViewModel= statisticsService;
 		
 	}
     public BaseViewModelAnd MyViewModel { get; }
-    protected override bool  OnBackButtonPressed()
-    {
-        _= Shell.Current.GoToAsync("..");
-        return base.OnBackButtonPressed();
-    }
-    protected override void OnAppearing()
+    public StatisticsViewModel StatsViewModel { get; }
+ 
+
+    protected async override void OnAppearing()
     {
         base.OnAppearing();
         BindingContext = MyViewModel.SelectedSong;
+
+        await StatsViewModel.LoadSongStatsAsync(MyViewModel.SelectedSong);
     }
 
 
@@ -36,5 +38,28 @@ public partial class DetailsOverview : ContentPage
     private void LyricsTabVSL_Loaded(object sender, EventArgs e)
     {
         LyricsTabVSL.BindingContext = MyViewModel;
+    }
+
+    private void SongTabView_PropertyChanging(object sender, Microsoft.Maui.Controls.PropertyChangingEventArgs e)
+    {
+        var propName = e.PropertyName;
+        if(propName == nameof(SongTabView.SelectedItemIndex))
+        {
+            if(SongTabView.SelectedItemIndex==0)
+            {
+                MyViewModel.ReadySearchViewAndProduceSearchText();
+            }
+        }
+    }
+
+    private void MiniNPExpander_Loaded(object sender, EventArgs e)
+    {
+        MiniNPExpander.BindingContext = MyViewModel;
+    }
+
+    private void StatisticsScrollView_Loaded(object sender, EventArgs e)
+    {
+        DXScrollView dXScroll=(DXScrollView)sender;
+        dXScroll.BindingContext = StatsViewModel;
     }
 }

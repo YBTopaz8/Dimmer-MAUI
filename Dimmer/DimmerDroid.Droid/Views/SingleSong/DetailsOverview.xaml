@@ -2,18 +2,19 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer.Views.SingleSong.DetailsOverview"
-             
+             xmlns:globalVM="clr-namespace:Dimmer.ViewModel;assembly=Dimmer"
             xmlns:vm="clr-namespace:Dimmer.ViewModels"
              xmlns:lyrModels="clr-namespace:Dimmer.Data.Models.LyricsModels;assembly=Dimmer"
  xmlns:local="clr-namespace:Dimmer.Views.CustomViews"
  xmlns:dx="http://schemas.devexpress.com/maui"
  xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
- x:DataType="models:SongModelView" Shell.NavBarIsVisible="True"
+ x:DataType="models:SongModelView" Shell.NavBarIsVisible="False"
             
 >
     <dx:DXScrollView Margin="5,0">
-
-        <dx:TabView x:Name="SongTabView" HeaderPanelPosition="Bottom">
+        <Grid>
+            
+        <dx:TabView x:Name="SongTabView" HeaderPanelPosition="Bottom" PropertyChanging="SongTabView_PropertyChanging">
             <dx:TabViewItem x:Name="OverViewTab" HeaderText="OverView" >
                 
                 <dx:DXStackLayout 
@@ -54,7 +55,7 @@
             <dx:TabViewItem HeaderText="Lyrics" >
                 <dx:DXScrollView>
                     
-                <dx:DXStackLayout x:DataType="vm:BaseViewModelAnd" Loaded="LyricsTabVSL_Loaded" x:Name="LyricsTabVSL">
+                <dx:DXStackLayout ItemSpacing="10" x:DataType="vm:BaseViewModelAnd" Loaded="LyricsTabVSL_Loaded" x:Name="LyricsTabVSL">
                     <dx:DXStackLayout 
                         ItemSpacing="10">
                         <dx:TextEdit Text="{Binding LyricsTrackNameSearch}"
@@ -72,7 +73,7 @@
                                  Icon="clipboard.png"/>-->
                     </dx:DXStackLayout>
                     <dx:DXStackLayout 
-    ItemSpacing="10">
+    >
                         <dx:TextEdit Text="{Binding LyricsArtistNameSearch}" LabelText="Artist Name"/>
                         </dx:DXStackLayout>
 
@@ -125,8 +126,14 @@
                     <dx:DataGridView ItemsSource="{Binding PlayEvents}"
                                      AutoGenerateColumnsMode="None">
                         <dx:DataGridView.Columns>
-                            <dx:TextColumn FieldName="PlayTypeStr"/>
-                            <dx:DateColumn FieldName="EventDate"/>
+                                <dx:TextColumn Caption="Play Type" FieldName="PlayTypeStr"/>
+                                <dx:TemplateColumn FieldName="EventDate">
+                                    <dx:TemplateColumn.DisplayTemplate>
+                                        <DataTemplate x:DataType="x:String">
+                                            <Label Text="{Binding .,StringFormat='{0:dd-MM-yyyy HH:mm}'}"/>
+                                        </DataTemplate>
+                                    </dx:TemplateColumn.DisplayTemplate>
+                                </dx:TemplateColumn>
                             <dx:NumberColumn FieldName="PositionInSeconds"
                                              />
                         </dx:DataGridView.Columns>
@@ -135,26 +142,91 @@
 
                 </dx:DXScrollView>
             </dx:TabViewItem>
+                <dx:TabViewItem HeaderText="Statistics">
+                    <dx:DXScrollView Loaded="StatisticsScrollView_Loaded"
+                                     x:DataType="globalVM:StatisticsViewModel">
+                        <dx:DXStackLayout ItemSpacing="5">
+                            <dx:DXStackLayout.Resources>
+                                <Style TargetType="Grid">
+                                    <Setter Property="ColumnSpacing" Value="5"/>
+                                </Style>
+                                <Style TargetType="dx:DXStackLayout">
+                                    <Setter Property="ItemSpacing" Value="5"/>
+                                </Style>
+                            </dx:DXStackLayout.Resources>
+                            <Grid ColumnDefinitions="*,*" >
+                                <dx:Chip Grid.Column="0" >
+                                    <dx:Chip.ContentTemplate>
+                                        <DataTemplate >
+                                            <dx:DXStackLayout>
+                                                <Label Text="Total Play Time"/>
+                                                <Label Text="{Binding SongStats.Summary.TotalListeningTimeFormatted}"/>
+                                            </dx:DXStackLayout>
+                                        </DataTemplate>
+                                    </dx:Chip.ContentTemplate>
+                                </dx:Chip>
 
-            <dx:TabViewItem HeaderText="Play History">
-                <dx:DXScrollView>
-                    
-                <dx:DXStackLayout>
+                                <dx:Chip Grid.Column="1" >
+                                    <dx:Chip.ContentTemplate>
+                                        <DataTemplate >
+                                            <dx:DXStackLayout >
+                                    <Label Text="Total Skips"/>
+                                    <Label Text="{Binding SongStats.Summary.TotalSkips}"/>
+                                </dx:DXStackLayout>
+                                            </DataTemplate>
+                                        </dx:Chip.ContentTemplate>
+                                    </dx:Chip>
+                            </Grid>
 
-                    <dx:DataGridView ItemsSource="{Binding PlayEvents}"
-                                     AutoGenerateColumnsMode="None">
-                        <dx:DataGridView.Columns>
-                            <dx:TextColumn FieldName="PlayTypeStr"/>
-                            <dx:DateColumn FieldName="EventDate"/>
-                            <dx:NumberColumn FieldName="PositionInSeconds"
-                                             />
-                        </dx:DataGridView.Columns>
-                    </dx:DataGridView>
-                </dx:DXStackLayout>
+                            <Grid ColumnDefinitions="*,*" >
+                                <dx:Chip Grid.Column="0" >
+                                    <dx:Chip.ContentTemplate>
+                                        <DataTemplate >
+                                            <dx:DXStackLayout>
+                                                <Label Text="Most Frequent Play Hour"/>
+                                                <Label Text="{Binding SongStats.Summary.MostFrequentPlayHourFormatted}"/>
+                                            </dx:DXStackLayout>
+                                        </DataTemplate>
+                                    </dx:Chip.ContentTemplate>
+                                </dx:Chip>
 
-                </dx:DXScrollView>
-            </dx:TabViewItem>
+                                <dx:Chip Grid.Column="1" >
+                                    <dx:Chip.ContentTemplate>
+                                        <DataTemplate >
+                                            <dx:DXStackLayout  >
+                                    <Label Text="Total Skips"/>
+                                    <Label Text="{Binding SongStats.FirstImpression}"/>
+                                </dx:DXStackLayout>
+                                            </DataTemplate>
+                                        </dx:Chip.ContentTemplate>
+                                    </dx:Chip>
+                            </Grid>
+                            
+                        </dx:DXStackLayout>
+                    </dx:DXScrollView>
+                </dx:TabViewItem>
         </dx:TabView>
-        
+
+         <HorizontalStackLayout HorizontalOptions="End" VerticalOptions="End">
+                <dx:DXExpander IsExpanded="False" x:DataType="vm:BaseViewModelAnd"
+                               Loaded="MiniNPExpander_Loaded"
+                    x:Name="MiniNPExpander" HorizontalExpandMode="FromEndToStart"
+                    VerticalExpandMode="FromCenter">
+                    <dx:DXExpander.Content>
+                        <dx:DXStackLayout>
+                            <dx:DXStackLayout>
+                                <Label Text="{Binding CurrentPlayingSongView.Title}"/>
+                                <Label Text="{Binding CurrentPlayingSongView.ArtistName}"/>
+                                <Label Text="{Binding CurrentPlayingSongView.AlbumName}"/>
+                            </dx:DXStackLayout>
+                            <dx:DXStackLayout Orientation="Horizontal"
+                                              ItemSpacing="10" HorizontalOptions="Center">
+                                
+                            </dx:DXStackLayout>
+                        </dx:DXStackLayout>
+                    </dx:DXExpander.Content>
+                </dx:DXExpander>
+            </HorizontalStackLayout>
+        </Grid>
     </dx:DXScrollView>
 </ContentPage>

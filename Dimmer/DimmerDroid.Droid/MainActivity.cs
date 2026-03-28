@@ -182,7 +182,8 @@ public partial class MainActivity : MauiAppCompatActivity
         // The dangerous code lives exclusively in here
         _onBackInvokedCallback = new BackInvokedCallback(() =>
         {
-
+            if(Shell.Current.CurrentPage.GetType() != typeof(HomePage))
+                Shell.Current.GoToAsync("..");
         });
 
         // Note: Ensure _onBackInvokedCallback is defined as 'object' or inside this scope 

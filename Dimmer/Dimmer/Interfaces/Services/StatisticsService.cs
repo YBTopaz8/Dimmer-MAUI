@@ -19,6 +19,9 @@ public class SongStatsBundle
     public string Title { get; internal set; }
     public string Subtitle { get; internal set; }
     public DateRangeFilter FilterUsed { get; internal set; }
+    public List<DimmerStats> PlayHistoryOverTime { get; set; }
+    public DimmerStats PowerHour { get; set; }
+    public List<DimmerStats> DailyListeningRhythm { get; set; }
 }
 // --- Single Artist stats ---
 public class ArtistStatsBundle : StatsBundleBase
@@ -166,7 +169,12 @@ public class StatisticsService
             PlayDistributionByHour = SongStatTwo.GetPlayCountPerHourOfDay(songDb, filteredEvents),
             ListeningStreak = TopStats.GetListeningStreak(filteredEvents),
             FirstImpression = TopStats.GetSongsFirstImpression(allSongEvents.ToList()),
-            DropOffPoints = ChartSpecificStats.GetSongDropOffPoints(filteredEvents)
+            PowerHour = TopStats.GetPowerHour(allSongEvents.ToList()),
+            DailyListeningRhythm = TopStats.GetDailyListeningRhythm(allSongEvents.ToList(),songDb),
+            DropOffPoints = ChartSpecificStats.GetSongDropOffPoints(filteredEvents),
+            PlayHistoryOverTime = ChartSpecificStats.GetSongPlayHistoryOverTime(filteredEvents)
+            
+            
         };
         return bundle;
     }
