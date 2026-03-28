@@ -184,6 +184,9 @@ public partial class HomePage : ContentPage
     private void CurrentPlayingArtistChip_LongPress(object sender, HandledEventArgs e)
     {
 
+        var songHandle = SongsCV.FindItemHandle(MyViewModel.CurrentPlayingSongView);
+
+        SongsCV.ScrollTo(songHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
     }
 
     private async void SettingsBtn_Clicked(object sender, EventArgs e)
@@ -261,9 +264,6 @@ public partial class HomePage : ContentPage
 
     private void CurrentPlayingTitleChip_LongPress(object sender, HandledEventArgs e)
     {
-        var songHandle = SongsCV.FindItemHandle(MyViewModel.CurrentPlayingSongView);
-
-        SongsCV.ScrollTo(songHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
     }
 
     private void SongTitle_Loaded(object sender, EventArgs e)

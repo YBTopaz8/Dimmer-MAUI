@@ -153,10 +153,7 @@
                                   IconColorizationEnabled="True" IconColor="{Binding CurrentPlaySongDominantColor}" Icon="heartlock.png"
                                   ShowIcon="{Binding CurrentPlayingSongView.IsFavorite}" ShowContent="True" IconPlacement="Left"
                                   Tap="CurrentPlayingTitleChip_Tap"   >
-                        <dx:DXButton.Behaviors>
-                            <toolkit:TouchBehavior LongPressDuration="250"
-                                                   LongPressCompleted="TouchBehavior_LongPressCompleted"/>
-                        </dx:DXButton.Behaviors>
+                     
                         
                                 
                         <Label Text="{Binding CurrentPlayingSongView.Title}" HorizontalOptions="Start" BackgroundColor="Transparent" Padding="2"

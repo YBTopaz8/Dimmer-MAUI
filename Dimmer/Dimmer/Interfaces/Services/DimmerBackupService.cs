@@ -217,7 +217,7 @@ public class DimmerBackupService
     }
 
 
-    private async Task<Dictionary<string, SongModel>> BuildSongCacheAsync(IProgress<string>? progress = null)
+    private async Task<Dictionary<string, SongModelView>> BuildSongCacheAsync(IProgress<string>? progress = null)
     {
         return await Task.Run(() =>
         {
@@ -228,7 +228,7 @@ public class DimmerBackupService
 
                 progress?.Report($"Caching {allSongs.Count} songs...");
 
-                var cache = new Dictionary<string, SongModel>(
+                var cache = new Dictionary<string, SongModelView>(
                     allSongs.Count,
                     StringComparer.OrdinalIgnoreCase);
 
@@ -236,7 +236,7 @@ public class DimmerBackupService
                 {
                     if (!string.IsNullOrEmpty(song.TitleDurationKey))
                     {
-                        cache[song.TitleDurationKey] = song;
+                        cache[song.TitleDurationKey] = song.ToSongModelView()!;
                     }
                 }
 
@@ -246,14 +246,14 @@ public class DimmerBackupService
             catch (Exception ex)
             {
                 Debug.WriteLine($"Error building song cache: {ex}");
-                return new Dictionary<string, SongModel>(StringComparer.OrdinalIgnoreCase);
+                return new Dictionary<string, SongModelView>(StringComparer.OrdinalIgnoreCase);
             }
         }).ConfigureAwait(false);
     }
 
     private async Task<CompleteBackupData?> DeserializeBackupWithStreamingAsync(
         Stream stream,
-        Dictionary<string, SongModel> songCache,
+        Dictionary<string, SongModelView> songCache,
         IProgress<string>? progress = null)
     {
         var completeData = new CompleteBackupData();

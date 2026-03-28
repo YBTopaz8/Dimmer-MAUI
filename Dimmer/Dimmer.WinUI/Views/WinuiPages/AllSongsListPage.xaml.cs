@@ -157,7 +157,16 @@ public sealed partial class AllSongsListPage : Page
     }
     private void TableView_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
+        var senderFrmWkElt = (FrameworkElement)sender;
 
+        var senderUIElt = (UIElement)sender;
+        var prop = e.GetCurrentPoint(senderUIElt).Properties;
+        if(prop.IsMiddleButtonPressed)
+        {
+            MyViewModel.SelectedSong = (senderFrmWkElt.DataContext as SongModelView)!;
+            ViewSongBtn_Click(sender, e); 
+            return;
+        }
     }
 
     private void TableView_CellContextFlyoutOpening(object sender, global::WinUI.TableView.TableViewCellContextFlyoutEventArgs e)
@@ -630,9 +639,9 @@ public sealed partial class AllSongsListPage : Page
 
     }
 
-    private void AddToNextMFItem_Click(object sender, RoutedEventArgs e)
+    private void viewSongINfo(object sender, RoutedEventArgs e)
     {
-        MyViewModel.AddToNext(new List<SongModelView>() { MyViewModel.SelectedSong! });
+        ViewSongBtn_Click(sender, e);
     }
 
     private SongModelView? _storedItem;
@@ -783,15 +792,15 @@ public sealed partial class AllSongsListPage : Page
 
 
 
-        var AddToNextMFItem = new MenuFlyoutItem
+        var viewSongInfo = new MenuFlyoutItem
         {
-            Text = "Add to Next",
+            Text = "View Song Details",
         };
-        AddToNextMFItem.Click += AddToNextMFItem_Click;
+        viewSongInfo.Click += viewSongINfo;
         FontIcon icon = new FontIcon();
-        icon.Glyph = "\uE70E";
-        AddToNextMFItem.Icon = icon;
-        menuFlyout.Items.Add(AddToNextMFItem);
+        icon.Glyph = "\uE90B";
+        viewSongInfo.Icon = icon;
+        menuFlyout.Items.Add(viewSongInfo);
 
         FontIcon heartIcon = new FontIcon();
         heartIcon.Glyph = "\uEB51";
@@ -1419,4 +1428,11 @@ AnimationHelper.ConnectedAnimationStyle.ScaleUp
     {
         SortByWithTQL.Flyout.ShowAt(sender);
     }
+
+    private void MySongsTableView_CellDoubleTapped(object sender , TableViewCellDoubleTappedEventArgs e)
+    {
+
+    }
+
+
 }
