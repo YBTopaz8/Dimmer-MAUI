@@ -356,4 +356,14 @@ public partial class HomePage : ContentPage
         MyViewModel.SelectedSong = song;
         SingleSongBtmSheet.Show();
     }
+
+    private async void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
+    {
+        var send = (View)sender;
+        var song = send.BindingContext as SongModelView;
+        MyViewModel.SelectedSong = song;
+
+        if (Shell.Current.CurrentPage.GetType() != typeof(DetailsOverview))
+            await Shell.Current.GoToAsync(nameof(DetailsOverview), true);
+    }
 }

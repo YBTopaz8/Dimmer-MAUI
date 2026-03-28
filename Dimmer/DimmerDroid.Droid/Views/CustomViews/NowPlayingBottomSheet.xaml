@@ -293,11 +293,13 @@ IconWidth="40" Padding="10" IconColor="DarkSlateBlue"
             
             <dx:DXExpander x:Name="PlayBackQueueExp" IsExpanded="False"
                            Grid.Row="1">
+            <Grid>
+                
                     <dx:DXStackLayout ItemSpacing="15" Margin="10,0">
                         <FlexLayout JustifyContent="SpaceBetween">
                             <dx:DXStackLayout>
                                 <Label Text="Queue" FontSize="38" FontAttributes="Bold"/>
-                                <Label Text="{Binding PlaybackQueue.Count, StringFormat='Total {0} songs in queue'}" FontSize="22"/>
+                                <Label Text="{Binding PlaybackQueue.Count, StringFormat='Total {0} songs'}" FontSize="22"/>
                             </dx:DXStackLayout>
 
                             <dx:DXStackLayout Orientation="Horizontal" ItemSpacing="5" IsVisible="False">
@@ -309,9 +311,9 @@ IconWidth="40" Padding="10" IconColor="DarkSlateBlue"
                         
                         <dx:DXButton CornerRadius="10" Padding="5" BackgroundColor="Transparent" PressedBackgroundColor="{Binding CurrentPlaySongDominantColor}"
                                      TapPressed="NowPlayingHighlightBtn_TapPressed" x:Name="NowPlayingHighlightBtn"
-                                     HeightRequest="90" HorizontalContentAlignment="Fill">
+                                     HeightRequest="100" HorizontalContentAlignment="Fill">
                            
-                                <Grid ColumnDefinitions="auto, *,auto" RowDefinitions="80" Padding="0" BackgroundColor="Transparent">
+                                <Grid ColumnDefinitions="auto, *,auto" RowDefinitions="90" Padding="0" BackgroundColor="Transparent">
                         <dx:DXBorder BackgroundColor="{Binding CurrentPlaySongDominantColor}"
               Opacity="0.8" Grid.ColumnSpan="3" Padding="15" CornerRadius="10"/>
                         <dx:DXImage Source="{Binding CurrentPlayingSongView.CoverImagePath}" Margin="5,0"
@@ -354,7 +356,7 @@ IconWidth="40" Padding="10" IconColor="DarkSlateBlue"
                             <dx:Chip Text="{Binding PlaybackQueue.Count}" Grid.Column="2" BorderThickness="0"
                                      BackgroundColor="{Binding CurrentPlaySongDominantColor}"/>
                         </Grid>
-                <dx:DXCollectionView ItemsSource="{Binding PlaybackQueue}" ItemSpacing="8" MaximumHeightRequest="450" Scrolled="PlaybackQueueCV_Scrolled" x:Name="PlaybackQueueCV">
+                      <dx:DXCollectionView ItemsSource="{Binding PlaybackQueue}" ItemSpacing="8" MaximumHeightRequest="450" Scrolled="PlaybackQueueCV_Scrolled" x:Name="PlaybackQueueCV">
                             <dx:DXCollectionView.ItemTemplate>
                                 <DataTemplate x:DataType="models:SongModelView">
                                     <dx:DXBorder BorderThickness="1" BorderColor="Gray"
@@ -366,7 +368,7 @@ IconWidth="40" Padding="10" IconColor="DarkSlateBlue"
                                                     <Label.Triggers>
                                                         <DataTrigger TargetType="Label" Binding="{Binding IsCurrentPlayingHighlight}"
                  Value="true">
-                                                            <Setter Property="TextColor" Value="{Binding CurrentPlaySongDominantColor}"/>
+                                                            <Setter Property="TextColor" Value="DarkSlateBlue"/>
 
                                                         </DataTrigger>
                                                     </Label.Triggers>
@@ -381,8 +383,8 @@ IconWidth="40" Padding="10" IconColor="DarkSlateBlue"
               x:Name="PlaySongInQueue" Tap="PlaySongInQueue_Tap"
               Padding="5" IconHeight="25" IconWidth="25" BackgroundColor="Transparent" IconColor="White"/>
 
-                                                <dx:DXButton Icon="heart.png"
-                                                             x:Name="AddSongToFav"
+                                                <dx:DXButton Icon="heart.png" Tap="AddSongToFav_Tap"
+                                                             x:Name="AddSongToFav" CommandParameter="{Binding .}"
                                                              Padding="5" IconHeight="25" IconWidth="25" BackgroundColor="Transparent" IconColor="White">
                                                     <dx:DXButton.Triggers>
                                                         <DataTrigger TargetType="dx:DXButton" Binding="{Binding IsFavorite}" Value="true">
@@ -403,7 +405,13 @@ IconWidth="40" Padding="10" IconColor="DarkSlateBlue"
                             </dx:DXCollectionView.ItemTemplate>
                         </dx:DXCollectionView>
                     </dx:DXStackLayout>
-            </dx:DXExpander>
+                <dx:DXStackLayout VerticalOptions="End" HorizontalOptions="Center" Margin="60">
+                    <dx:DXButton Icon="eye.png" ShowContent="False" BackgroundColor="DarkSlateBlue" IconColor="White" IconHeight="35" IconWidth="35"
+                                 Padding="15"
+                                 x:Name="ScrollToInPlayBackQueue" Tap="ScrollToInPlayBackQueue_Tap"/>
+                </dx:DXStackLayout>
+            </Grid>
+        </dx:DXExpander>
 
         <dx:DXExpander x:Name="SingleSongLyricsView" IsExpanded="False">
             <dx:DXStackLayout>

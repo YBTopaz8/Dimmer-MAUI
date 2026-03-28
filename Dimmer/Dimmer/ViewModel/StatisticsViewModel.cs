@@ -100,7 +100,7 @@ public partial class StatisticsViewModel : ObservableObject
         {
             ClearAllStats();
             
-            SongStats = await Task.Run(() => _statsService.GetSongStatisticsAsync(song.Id, SelectedFilter));
+            SongStats =  _statsService.GetSongStatistics(song.Id, SelectedFilter);
         }
         catch (Exception ex)
         {

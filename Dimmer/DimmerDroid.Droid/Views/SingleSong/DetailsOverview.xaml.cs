@@ -20,6 +20,7 @@ public partial class DetailsOverview : ContentPage
     {
         base.OnAppearing();
         BindingContext = MyViewModel.SelectedSong;
+        StatisticsScrollV.BindingContext = StatsViewModel;
 
         await StatsViewModel.LoadSongStatsAsync(MyViewModel.SelectedSong);
     }
@@ -61,5 +62,10 @@ public partial class DetailsOverview : ContentPage
     {
         DXScrollView dXScroll=(DXScrollView)sender;
         dXScroll.BindingContext = StatsViewModel;
+    }
+
+    private void Label_Loaded(object sender, EventArgs e)
+    {
+
     }
 }

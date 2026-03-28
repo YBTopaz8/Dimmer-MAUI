@@ -128,7 +128,7 @@ public class StatisticsService
     /// <summary>
     /// Gets all relevant statistics for a single selected song.
     /// </summary>
-    public SongStatsBundle? GetSongStatisticsAsync(ObjectId songId, DateRangeFilter filter)
+    public SongStatsBundle? GetSongStatistics(ObjectId songId, DateRangeFilter filter)
     {
         var songDb =  _songRepo.GetById(songId);
         if (songDb == null)

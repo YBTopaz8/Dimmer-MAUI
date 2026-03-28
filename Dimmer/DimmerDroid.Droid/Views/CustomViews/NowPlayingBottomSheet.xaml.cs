@@ -1,4 +1,5 @@
 global using Animation = Microsoft.Maui.Controls.Animation;
+using DevExpress.Maui.Core;
 
 namespace Dimmer.Views.CustomViews;
 
@@ -152,4 +153,22 @@ public partial class NowPlayingBottomSheet : BottomSheet
         await MyViewModel.PlaySongWithActionAsync(song, PlaybackAction.JumpInQueue);
 
     }
+
+    private async void AddSongToFav_Tap(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
+    {
+        DXButton send = (DXButton)sender;
+        var song = send.CommandParameter as SongModelView;
+        if(song is null)
+            return;
+        await MyViewModel.AddFavoriteRatingToSongAsync(song);
+    }
+
+    private void ScrollToInPlayBackQueue_Tap(object sender, DXTapEventArgs e)
+    {
+
+        var songHandle = PlaybackQueueCV.FindItemHandle(MyViewModel.CurrentPlayingSongView);
+
+        PlaybackQueueCV.ScrollTo(songHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
+    }
+
 }

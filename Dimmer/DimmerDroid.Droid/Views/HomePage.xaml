@@ -55,7 +55,7 @@
                         
                             <dx:DXImage Source="{Binding CoverImagePath}" Aspect="AspectFit" HeightRequest="80" Grid.Column="0">
                                 <dx:DXImage.GestureRecognizers>
-                                    <TapGestureRecognizer  Tapped="CurrentPlayingCoverTapGesture_Tapped"/>
+                                    <TapGestureRecognizer  Tapped="TapGestureRecognizer_Tapped"/>
                                 </dx:DXImage.GestureRecognizers>
                             </dx:DXImage>
                         

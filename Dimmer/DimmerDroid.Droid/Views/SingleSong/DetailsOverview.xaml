@@ -8,7 +8,7 @@
  xmlns:local="clr-namespace:Dimmer.Views.CustomViews"
  xmlns:dx="http://schemas.devexpress.com/maui"
  xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
- x:DataType="models:SongModelView" Shell.NavBarIsVisible="False"
+  Shell.NavBarIsVisible="False"
             
 >
     <dx:DXScrollView Margin="5,0">
@@ -118,7 +118,7 @@
                 </dx:DXScrollView>
             </dx:TabViewItem>
 
-            <dx:TabViewItem HeaderText="Play History">
+                <dx:TabViewItem HeaderText="Play History" x:DataType="models:SongModelView">
                 <dx:DXScrollView>
                     
                 <dx:DXStackLayout>
@@ -143,7 +143,7 @@
                 </dx:DXScrollView>
             </dx:TabViewItem>
                 <dx:TabViewItem HeaderText="Statistics">
-                    <dx:DXScrollView Loaded="StatisticsScrollView_Loaded"
+                    <dx:DXScrollView Loaded="StatisticsScrollView_Loaded" x:Name="StatisticsScrollV"
                                      x:DataType="globalVM:StatisticsViewModel">
                         <dx:DXStackLayout ItemSpacing="5">
                             <dx:DXStackLayout.Resources>
@@ -160,7 +160,7 @@
                                         <DataTemplate >
                                             <dx:DXStackLayout>
                                                 <Label Text="Total Play Time"/>
-                                                <Label Text="{Binding SongStats.Summary.TotalListeningTimeFormatted}"/>
+                                                <Label Text="{Binding SongStats.Summary.TotalListeningTimeFormatted}" Loaded="Label_Loaded"/>
                                             </dx:DXStackLayout>
                                         </DataTemplate>
                                     </dx:Chip.ContentTemplate>
@@ -193,9 +193,9 @@
                                 <dx:Chip Grid.Column="1" >
                                     <dx:Chip.ContentTemplate>
                                         <DataTemplate >
-                                            <dx:DXStackLayout  >
-                                    <Label Text="Total Skips"/>
-                                    <Label Text="{Binding SongStats.FirstImpression}"/>
+                                            <dx:DXStackLayout HorizontalOptions="Center" >
+                                                <Label Text="Longest Listening Streak "/>
+                                                <Label Text="{Binding SongStats.Summary.LongestListeningStreakDays}"  HorizontalOptions="Center"/>
                                 </dx:DXStackLayout>
                                             </DataTemplate>
                                         </dx:Chip.ContentTemplate>
