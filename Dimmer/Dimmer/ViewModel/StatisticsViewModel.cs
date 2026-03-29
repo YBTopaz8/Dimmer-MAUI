@@ -118,7 +118,7 @@ public partial class StatisticsViewModel : ObservableObject
     /// Command to load stats for a specific artist.
     /// </summary>
     [RelayCommand]
-    public async Task LoadArtistStatsAsync(ArtistModel? artist)
+    public async Task LoadArtistStatsAsync(ArtistModelView? artist)
     {
         if (artist is null || IsBusy)
             return;
@@ -146,7 +146,7 @@ public partial class StatisticsViewModel : ObservableObject
     /// Command to load stats for a specific album.
     /// </summary>
     [RelayCommand]
-    public async Task LoadAlbumStatsAsync(AlbumModel? album)
+    public async Task LoadAlbumStatsAsync(AlbumModelView? album)
     {
         if (album is null || IsBusy)
             return;
@@ -185,9 +185,9 @@ public partial class StatisticsViewModel : ObservableObject
         else if (SongStats is not null)
             await LoadSongStatsAsync(new SongModelView { Id = new ObjectId(SongStats.Summary.SongTitle) /* hack - needs proper ID*/ }); // You'd need a way to get the original song ID
         else if (ArtistStats is not null)
-            await LoadArtistStatsAsync(new ArtistModel { Id = ArtistStats.Summary.ArtistId });
+            await LoadArtistStatsAsync(new ArtistModelView { Id = ArtistStats.Summary.ArtistId });
         else if (AlbumStats is not null)
-            await LoadAlbumStatsAsync(new AlbumModel { Id = AlbumStats.Summary.AlbumId });
+            await LoadAlbumStatsAsync(new AlbumModelView { Id = AlbumStats.Summary.AlbumId });
     }
 
     private void ClearAllStats()

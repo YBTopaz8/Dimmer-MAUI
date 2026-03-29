@@ -116,7 +116,7 @@ public static class TopStats
                 Name = $"{g.Key:00}:00", // "09:00"
                 Count = g.Count()
             })
-            .OrderBy(s => s.Name)
+            .OrderByDescending(s => s.Count)
             .ToList();
     }
 

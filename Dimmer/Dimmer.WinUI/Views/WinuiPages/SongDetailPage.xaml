@@ -582,7 +582,7 @@ FontWeight="ExtraBold" />
                                     <!-- Use a circular progress bar here -->
                                    
                                     
-                                    <TextBlock x:Name="CompletionRateStr" 
+                                    <TextBlock
                                                Text="{x:Bind MyViewModel.SelectedSong.PlayCompletedCount, Mode=OneWay}"
                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     <TextBlock Text="Completion Rate" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,15"/>

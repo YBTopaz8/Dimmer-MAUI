@@ -311,14 +311,16 @@ IconWidth="40" Padding="10" IconColor="DarkSlateBlue"
                         
                         <dx:DXButton CornerRadius="10" Padding="5" BackgroundColor="Transparent" PressedBackgroundColor="{Binding CurrentPlaySongDominantColor}"
                                      TapPressed="NowPlayingHighlightBtn_TapPressed" x:Name="NowPlayingHighlightBtn"
-                                     HeightRequest="100" HorizontalContentAlignment="Fill">
+                                     HeightRequest="100" HorizontalContentAlignment="Fill" IsVisible="{Binding IsDimmerPlaying}">
                            
-                                <Grid ColumnDefinitions="auto, *,auto" RowDefinitions="90" Padding="0" BackgroundColor="Transparent">
+                                <Grid ColumnDefinitions="auto, *,auto" RowDefinitions="90" Padding="0" BackgroundColor="Transparent"
+                                      >
                         <dx:DXBorder BackgroundColor="{Binding CurrentPlaySongDominantColor}"
               Opacity="0.8" Grid.ColumnSpan="3" Padding="15" CornerRadius="10"/>
                         <dx:DXImage Source="{Binding CurrentPlayingSongView.CoverImagePath}" Margin="5,0"
                                                  Aspect="AspectFill" HeightRequest="70" WidthRequest="70"
                                                  Grid.Column="0"/>
+                                    
                         <dx:DXStackLayout Grid.Column="1" Padding="2" Margin="0,5">
                                         <Label Text="Now Playing" FontAttributes="Italic" FontSize="12"/>
                                         <Label Text="{Binding CurrentPlayingSongView.Title}" FontSize="19" FontAttributes="Bold">
@@ -332,7 +334,7 @@ IconWidth="40" Padding="10" IconColor="DarkSlateBlue"
                                         </dx:DXStackLayout>
                                     </dx:DXStackLayout>
 
-                                    <dx:DXStackLayout Grid.Column="2" Orientation="Vertical">
+                                    <dx:DXStackLayout Grid.Column="2" Orientation="Vertical" >
                                         <dx:DXImage Source="musical_notes.png" 
                                                      HeightRequest="30" BackgroundColor="Transparent"
                                                      WidthRequest="30"

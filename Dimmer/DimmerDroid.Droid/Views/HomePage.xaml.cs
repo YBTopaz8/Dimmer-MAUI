@@ -84,11 +84,6 @@ public partial class HomePage : ContentPage
         
     }
 
-    private void ViewPlaybackQueueBtn_Clicked(object sender, EventArgs e)
-    {
-
-        
-    }
 
     private void PBQueueBtmSheet_StateChanged(object sender, DevExpress.Maui.Core.ValueChangedEventArgs<BottomSheetState> e)
     {

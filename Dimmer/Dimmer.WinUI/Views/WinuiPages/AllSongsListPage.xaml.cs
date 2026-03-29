@@ -160,10 +160,12 @@ public sealed partial class AllSongsListPage : Page
         var senderFrmWkElt = (FrameworkElement)sender;
 
         var senderUIElt = (UIElement)sender;
+        var OriginalSourceFWElt = e.OriginalSource as FrameworkElement;
+        var OriginalSourceUIElt = e.OriginalSource as UIElement;
         var prop = e.GetCurrentPoint(senderUIElt).Properties;
         if(prop.IsMiddleButtonPressed)
         {
-            MyViewModel.SelectedSong = (senderFrmWkElt.DataContext as SongModelView)!;
+            MyViewModel.SelectedSong = (OriginalSourceFWElt?.DataContext as SongModelView)!;
             ViewSongBtn_Click(sender, e); 
             return;
         }
@@ -977,7 +979,7 @@ AnimationHelper.Key_Forward
         // Store the item for the return trip
         _storedSong = MyViewModel.SelectedSong;
 
-        var image = PlatUtils.FindVisualElementFromTableView(MySongsTableView, _storedSong, "coverArtImage");
+        var image = PlatUtils.FindVisualElementFromTableView(MySongsTableView, _storedSong!, "coverArtImage");
 
 
         if (image == null) return;

@@ -4,6 +4,7 @@
              x:Class="Dimmer.Views.Artist.ArtistPage"
              
             xmlns:vm="clr-namespace:Dimmer.ViewModels"
+            xmlns:globalVM="clr-namespace:Dimmer.ViewModel;assembly=Dimmer"
  xmlns:local="clr-namespace:Dimmer.Views.CustomViews"
  xmlns:dx="http://schemas.devexpress.com/maui"
  xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
@@ -143,19 +144,20 @@
                         <dx:DataGridView.Columns>
 
 
-                            <dx:ImageColumn FieldName="CoverImagePath" Caption="Image"/>
-                            <dx:TextColumn FieldName="SongTitle" Caption="Title"/>
-                            <dx:TextColumn FieldName="SongArtistName" Caption="Artist Name"/>
-                            <dx:TextColumn FieldName="SongAlbumName" Caption="Album Name"/>
-                            <dx:TextColumn FieldName="PlayTypeStr" Caption="Play Type"/>
-                            <dx:DateColumn FieldName="EventDate" Caption="Event Date"/>
+                            <dx:ImageColumn FieldName="CoverImagePath" Caption="Image" Width="100"/>
+                            <dx:TextColumn FieldName="SongTitle" Caption="Title" Width="150"/>
+                            <dx:TextColumn FieldName="SongAlbumName" Caption="Album Name" Width="150"/>
+                            <dx:TextColumn FieldName="PlayTypeStr" Caption="Play Type" Width="110"/>
+                            <dx:DateColumn FieldName="EventDate" Caption="Event Date" Width="110"/>
                             <dx:TextColumn FieldName="PositionInSeconds" Caption="Position"
-                                             DisplayFormat="mm:ss"/>
+                                            Width="80"/>
                         </dx:DataGridView.Columns>
                     </dx:DataGridView>
                 </dx:DXStackLayout>
             </dx:TabViewItem>
-            <dx:TabViewItem HeaderText="Charts" >
+            <dx:TabViewItem HeaderText="Charts" x:Name="ChartsTab">
+                <dx:DXScrollView x:Name="ChartsScrollView" Loaded="ChartsScrollView_Loaded" x:DataType="globalVM:StatisticsViewModel">
+                    
                 <dx:DXStackLayout >
                  
                     <dx:ChartView>
@@ -173,6 +175,8 @@
                         
                     </dx:ChartView>
                 </dx:DXStackLayout>
+
+                </dx:DXScrollView>
             </dx:TabViewItem>
         </dx:TabView>
         

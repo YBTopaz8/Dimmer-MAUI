@@ -9,7 +9,7 @@
  xmlns:dx="http://schemas.devexpress.com/maui"
  xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
   Shell.NavBarIsVisible="False"
-            
+            x:DataType="models:SongModelView"
 >
     <dx:DXScrollView Margin="5,0">
         <Grid>
@@ -118,92 +118,30 @@
                 </dx:DXScrollView>
             </dx:TabViewItem>
 
-                <dx:TabViewItem HeaderText="Play History" x:DataType="models:SongModelView">
-                <dx:DXScrollView>
-                    
-                <dx:DXStackLayout>
-
-                    <dx:DataGridView ItemsSource="{Binding PlayEvents}"
-                                     AutoGenerateColumnsMode="None">
-                        <dx:DataGridView.Columns>
-                                <dx:TextColumn Caption="Play Type" FieldName="PlayTypeStr"/>
-                                <dx:TemplateColumn FieldName="EventDate">
-                                    <dx:TemplateColumn.DisplayTemplate>
-                                        <DataTemplate x:DataType="x:String">
-                                            <Label Text="{Binding .,StringFormat='{0:dd-MM-yyyy HH:mm}'}"/>
-                                        </DataTemplate>
-                                    </dx:TemplateColumn.DisplayTemplate>
-                                </dx:TemplateColumn>
-                            <dx:NumberColumn FieldName="PositionInSeconds"
-                                             />
-                        </dx:DataGridView.Columns>
-                    </dx:DataGridView>
-                </dx:DXStackLayout>
-
-                </dx:DXScrollView>
-            </dx:TabViewItem>
+            
                 <dx:TabViewItem HeaderText="Statistics">
-                    <dx:DXScrollView Loaded="StatisticsScrollView_Loaded" x:Name="StatisticsScrollV"
-                                     x:DataType="globalVM:StatisticsViewModel">
-                        <dx:DXStackLayout ItemSpacing="5">
-                            <dx:DXStackLayout.Resources>
-                                <Style TargetType="Grid">
-                                    <Setter Property="ColumnSpacing" Value="5"/>
-                                </Style>
-                                <Style TargetType="dx:DXStackLayout">
-                                    <Setter Property="ItemSpacing" Value="5"/>
-                                </Style>
-                            </dx:DXStackLayout.Resources>
-                            <Grid ColumnDefinitions="*,*" >
-                                <dx:Chip Grid.Column="0" >
-                                    <dx:Chip.ContentTemplate>
-                                        <DataTemplate >
-                                            <dx:DXStackLayout>
-                                                <Label Text="Total Play Time"/>
-                                                <Label Text="{Binding SongStats.Summary.TotalListeningTimeFormatted}" Loaded="Label_Loaded"/>
-                                            </dx:DXStackLayout>
-                                        </DataTemplate>
-                                    </dx:Chip.ContentTemplate>
-                                </dx:Chip>
+                    
+                        <dx:DXScrollView Loaded="StatisticsScrollView_Loaded" x:Name="StatisticsScrollV"
+                      x:DataType="globalVM:StatisticsViewModel" >
 
-                                <dx:Chip Grid.Column="1" >
-                                    <dx:Chip.ContentTemplate>
-                                        <DataTemplate >
-                                            <dx:DXStackLayout >
-                                    <Label Text="Total Skips"/>
-                                    <Label Text="{Binding SongStats.Summary.TotalSkips}"/>
-                                </dx:DXStackLayout>
-                                            </DataTemplate>
-                                        </dx:Chip.ContentTemplate>
-                                    </dx:Chip>
-                            </Grid>
-
-                            <Grid ColumnDefinitions="*,*" >
-                                <dx:Chip Grid.Column="0" >
-                                    <dx:Chip.ContentTemplate>
-                                        <DataTemplate >
-                                            <dx:DXStackLayout>
-                                                <Label Text="Most Frequent Play Hour"/>
-                                                <Label Text="{Binding SongStats.Summary.MostFrequentPlayHourFormatted}"/>
-                                            </dx:DXStackLayout>
-                                        </DataTemplate>
-                                    </dx:Chip.ContentTemplate>
-                                </dx:Chip>
-
-                                <dx:Chip Grid.Column="1" >
-                                    <dx:Chip.ContentTemplate>
-                                        <DataTemplate >
-                                            <dx:DXStackLayout HorizontalOptions="Center" >
-                                                <Label Text="Longest Listening Streak "/>
-                                                <Label Text="{Binding SongStats.Summary.LongestListeningStreakDays}"  HorizontalOptions="Center"/>
-                                </dx:DXStackLayout>
-                                            </DataTemplate>
-                                        </dx:Chip.ContentTemplate>
-                                    </dx:Chip>
-                            </Grid>
+                        <dx:DXStackLayout ItemSpacing="10">
+                            <Label Text="{Binding SongStats.FilterUsed, StringFormat='Filter: {0}'}" HorizontalOptions="Center"/>
+                            <Label Text="{Binding SongStats.Summary.TotalPlays, StringFormat='TotalPlays : {0}'}" HorizontalOptions="Start"/>
+                            <Label Text="{Binding SongStats.Summary.TotalSkips, StringFormat='TotalSkips : {0}'}" HorizontalOptions="Start"/>
+                            <Label Text="{Binding SongStats.Summary.Completions, StringFormat='Completions : {0}'}" HorizontalOptions="Start"/>
+                            <Label Text="{Binding SongStats.Summary.TotalListeningTimeSeconds, StringFormat='Total Listening Time : {0}s'}" HorizontalOptions="Start"/>
+                            <Label Text="{Binding SongStats.Summary.AveragePercentListened, StringFormat='Average Percent Listened : {0}%'}" HorizontalOptions="Start"/>
+                            <Label Text="{Binding SongStats.Summary.FirstPlayedDate, StringFormat='First Played Date : {0:dd-MM-yyyy}'}" HorizontalOptions="Start"/>
+                            <Label Text="{Binding SongStats.Summary.LastPlayedDate, StringFormat='Last Played Date : {0:dd-MM-yyyy}'}" HorizontalOptions="Start"/>
+                            <Label Text="{Binding SongStats.Summary.MostFrequentPlayHour, StringFormat='Most Frequent PlayHour : {0}'}" HorizontalOptions="Start"/>
+                            <Label Text="{Binding SongStats.Summary.LongestListeningStreakDays, StringFormat='Longest Listening Streak Days : {0} days'}" HorizontalOptions="Start"/>
+                            <Label Text="{Binding SongStats.Summary.AverageDaysBetweenPlays, StringFormat='Average Days BetweenPlays : {0:n2} days'}" HorizontalOptions="Start"/>
+                            <Label Text="{Binding SongStats.Summary.IsPlayCountFibonacci, StringFormat='Is PlayCount Fibonacci: {0}'}" HorizontalOptions="Start"/>
+                            
                             
                         </dx:DXStackLayout>
-                    </dx:DXScrollView>
+                            </dx:DXScrollView>
+                    
                 </dx:TabViewItem>
         </dx:TabView>
 

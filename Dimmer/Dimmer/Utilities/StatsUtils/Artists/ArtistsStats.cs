@@ -393,7 +393,7 @@ public static class ArtistStats
             .Select(g => new { BucketValue = g.Key, Count = g.Count() })
             .OrderBy(x => x.BucketValue)
             .Select(x => new LabelValue($"{x.BucketValue} min", x.Count))];
-        // Alt label: .Select(x => new LabelValue($"{x.BucketValue * 60}-{(x.BucketValue * 60) + 59}s", x.Count)).ToList();
+     
 
 
         return data;

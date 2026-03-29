@@ -2287,7 +2287,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         CurrentPlayingSongView.IsCurrentPlayingHighlight = true;
         _logger.LogInformation("AudioService confirmed: Playback resumed for '{Title}'", args.AudioServiceCurrentPlayingSongView.Title);
-        await BaseAppFlow.UpdateDatabaseWithPlayEvent(
+        CurrentPlayingSongView = await BaseAppFlow.UpdateDatabaseWithPlayEvent(
              
              args.AudioServiceCurrentPlayingSongView,
              StatesMapper.Map(DimmerPlaybackState.Resumed),
@@ -2306,7 +2306,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         CurrentPlayingSongView.IsCurrentPlayingHighlight = false;
 
-        await BaseAppFlow.UpdateDatabaseWithPlayEvent(
+        CurrentPlayingSongView=  await BaseAppFlow.UpdateDatabaseWithPlayEvent(
             
             CurrentPlayingSongView,
             StatesMapper.Map(DimmerPlaybackState.PlayCompleted),
@@ -2416,7 +2416,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             if (CurrentPlayingSongView.TitleDurationKey is null) return;
             _logger.LogInformation("AudioService confirmed: Seek completed to {Position}s.", newPosition);
-            await BaseAppFlow.UpdateDatabaseWithPlayEvent(
+            CurrentPlayingSongView = await BaseAppFlow.UpdateDatabaseWithPlayEvent(
                 
                 CurrentPlayingSongView,
                 StatesMapper.Map(DimmerPlaybackState.Seeked),

@@ -19,6 +19,8 @@
 		<PackageReference Include="DevExpress.Maui.Core" Version="25.2.5" />
 		<PackageReference Include="DevExpress.Maui.DataGrid" Version="25.2.5" />
 		<PackageReference Include="DevExpress.Maui.Editors" Version="25.2.5" />
+		<PackageReference Include="DevExpress.Maui.DataGrid.Export" Version="25.2.5" />
+		<PackageReference Include="DevExpress.Maui.Scheduler" Version="25.2.5" />
 		<PackageReference Include="DevExpress.Maui.Gauges" Version="25.2.5" />
 		<PackageReference Include="DevExpress.Maui.ProjectTemplates" Version="25.2.5" />
 		<PackageReference Include="DevExpress.Maui.TreeView" Version="25.2.5" />
