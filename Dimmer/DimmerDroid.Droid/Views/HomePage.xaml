@@ -325,7 +325,7 @@ Icon="play.png">
                                        IconWidth="40"
                    Tap="ToggleFavBtn_Tap"/>
 
-                    <dx:Chip Icon="deletesonginterfacesymbol.png" 
+                    <dx:Chip Icon="deletesonginterfacesymbol.png"  IsVisible="False"
          x:Name="DeleteSongBtn" Text="Delete Song" IsIconVisible="True"
  Tap="DeleteSongBtn_Tap"/>
                     

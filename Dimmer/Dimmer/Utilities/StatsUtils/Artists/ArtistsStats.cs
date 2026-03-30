@@ -6,7 +6,7 @@ public static class ArtistStats
     /// <summary>
     /// Retrieves all songs associated with a given artist ID from the entire library.
     /// </summary>
-    private static IQueryable<SongModel> GetSongsByArtistId(ObjectId artistId, IQueryable<SongModel> allSongsInLibrary)
+    private static IEnumerable<SongModel> GetSongsByArtistId(ObjectId artistId, IEnumerable<SongModel> allSongsInLibrary)
     {
         return allSongsInLibrary.Where(s => s.ArtistToSong.Any(a => a.Id == artistId));
     }
@@ -15,7 +15,7 @@ public static class ArtistStats
     /// Filters all play events to get only those relevant to a specific collection of songs.
     /// </summary>
     private static List<DimmerPlayEvent> GetRelevantEventsForArtistSongs(
-        IQueryable<SongModel> songsByArtist,
+        IEnumerable<SongModel> songsByArtist,
         List<DimmerPlayEvent> allEvents)
     {
         if (songsByArtist == null || !songsByArtist.Any())
@@ -123,13 +123,13 @@ public static class ArtistStats
 
     public static ArtistSingleStatsSummary GetSingleArtistStats(
         ArtistModel targetArtist,
-        IQueryable<SongModel> allSongsInLibrary,
+        IEnumerable<SongModel> allSongsInLibrary,
         List<DimmerPlayEvent> allEvents)
     {
         if (targetArtist == null)
             return new ArtistSingleStatsSummary { ArtistName = "Error: Artist not provided" };
 
-        var songsByArtist = GetSongsByArtistId(targetArtist.Id, allSongsInLibrary);
+        var songsByArtist = GetSongsByArtistId(targetArtist.Id, allSongsInLibrary).AsEnumerable();
         var summary = new ArtistSingleStatsSummary
         {
             ArtistName = targetArtist.Name ?? "Unknown Artist",
@@ -274,7 +274,7 @@ public static class ArtistStats
     public static ArtistSingleStatsSummary GetSingleArtistStats(
         SongModel sourceSongForArtistSelection,
         int artistIndexInSourceSong,
-        IQueryable<SongModel> allSongsInLibrary,
+        IEnumerable<SongModel> allSongsInLibrary,
         List<DimmerPlayEvent> allEvents)
     {
         if (sourceSongForArtistSelection?.ArtistToSong == null || artistIndexInSourceSong < 0 || artistIndexInSourceSong >= sourceSongForArtistSelection.ArtistToSong.Count)
@@ -299,7 +299,7 @@ public static class ArtistStats
 
     public static ArtistComparisonResult CompareTwoArtists(
         ArtistModel artist1, ArtistModel artist2,
-        IQueryable<SongModel> allSongsInLibrary,
+        IEnumerable<SongModel> allSongsInLibrary,
         List<DimmerPlayEvent> allEvents)
     {
         if (artist1 == null || artist2 == null)
@@ -329,7 +329,7 @@ public static class ArtistStats
     // Overload for selection by index
     public static ArtistComparisonResult CompareTwoArtists(
         SongModel sourceSong, int artist1Index, int artist2Index,
-        IQueryable<SongModel> allSongsInLibrary,
+        IEnumerable<SongModel> allSongsInLibrary,
         List<DimmerPlayEvent> allEvents)
     {
         if (sourceSong?.ArtistToSong == null ||
@@ -360,7 +360,7 @@ public static class ArtistStats
 
     public static ArtistPlottableData GetSingleArtistPlottableData(
         ArtistModel targetArtist,
-        IQueryable<SongModel> allSongsInLibrary,
+        IEnumerable<SongModel> allSongsInLibrary,
         List<DimmerPlayEvent> allEvents)
     {
         if (targetArtist == null)
@@ -402,7 +402,7 @@ public static class ArtistStats
     // Overload for selection by index
     public static ArtistPlottableData GetSingleArtistPlottableData(
         SongModel sourceSong, int artistIndex,
-        IQueryable<SongModel> allSongsInLibrary,
+        IEnumerable<SongModel> allSongsInLibrary,
         List<DimmerPlayEvent> allEvents)
     {
         if (sourceSong?.ArtistToSong == null || artistIndex < 0 || artistIndex >= sourceSong.ArtistToSong.Count)
@@ -418,7 +418,7 @@ public static class ArtistStats
 
     public static List<ArtistSingleStatsSummary> GetMultipleArtistStats(
         List<ArtistModel> targetArtists,
-        IQueryable<SongModel> allSongsInLibrary,
+        IEnumerable<SongModel> allSongsInLibrary,
         List<DimmerPlayEvent> allEvents)
     {
         if (targetArtists == null || targetArtists.Count==0)
@@ -430,7 +430,7 @@ public static class ArtistStats
     // Overload for selection by indices
     public static List<ArtistSingleStatsSummary> GetMultipleArtistStats(
         SongModel sourceSong, List<int> artistIndices,
-        IQueryable<SongModel> allSongsInLibrary,
+        IEnumerable<SongModel> allSongsInLibrary,
         List<DimmerPlayEvent> allEvents)
     {
         if (sourceSong?.ArtistToSong == null || artistIndices == null || artistIndices.Count==0)

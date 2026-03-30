@@ -101,7 +101,8 @@ public partial class HomePage : ContentPage
 
     private void MenuBtn_Tap(object sender, HandledEventArgs e)
     {
-
+        Shell.Current.FlyoutIsPresented = !Shell.Current.FlyoutIsPresented;
+        
     }
 
     private void SearchBar_Unloaded(object sender, EventArgs e)
@@ -236,7 +237,7 @@ public partial class HomePage : ContentPage
 
         MyViewModel.SetSelectedArtist(art);
 
-
+        await ArtistsChoiceBtmSheet.CloseAsync();
         await Shell.Current.GoToAsync(nameof(ArtistPage), true);
     }
 

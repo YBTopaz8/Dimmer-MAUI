@@ -2,12 +2,18 @@
 <Shell xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Dimmer.DimmerShell"
-             Shell.FlyoutBehavior="Disabled"
+       
        xmlns:local="clr-namespace:Dimmer.Views"
-    Title="DimmerDroid">
+    Title="DimmerDroid" 
+       Shell.FlyoutBehavior="Flyout">
 
     <ShellContent
         Title="Home"
         ContentTemplate="{DataTemplate local:HomePage}"
         Route="MainPage" />
+
+    <ShellContent
+        Title="Artists"
+        FlyoutItemIsVisible="False"
+        Route="ArtistsPage" />
 </Shell>

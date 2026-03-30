@@ -1,5 +1,4 @@
 ﻿using ATL;
-using AudioSwitcher.AudioApi;
 using CommunityToolkit.Diagnostics;
 using Dimmer.DimmerLive.ParseStatics;
 using Dimmer.DimmerSearch.TQL.RealmSection;
@@ -8069,33 +8068,43 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     public async Task LoadArtistLastFMDataAsync(ArtistModelView? art)
     {
-        if(art is null || art.Name == "Unknown Artist")
+        try
         {
-            return;
-        }
 
-
-        var realm = RealmFactory.GetRealmInstance();
-        var artInDb
-            = realm.Find<ArtistModel>(art.Id);
-        if(artInDb is null)
-            return;
-        var artistName = artInDb.Name;
-
-
-        //await UpdateSongFromLastFMDataAsync();
-        var lastFMArt = await lastfmService.GetArtistInfoAsync(artistName);
-        art.ImagePath = lastFMArt.Images.FirstOrDefault(x => x.Size == "mega")?.Url;
-        realm.Write(
-            () =>
+            if (art is null || art.Name == "Unknown Artist")
             {
-                artInDb.ImagePath = art.ImagePath;
-            });
+                return;
+            }
 
-        //SimilarTracks = await lastfmService.GetSimilarAsync(artistName, SelectedSongLastFMData.Name);
 
-        //await UpdateSongArtistInDbWithLastFMData();
-        //await UpdateSongAlbumInDbWithLastFMData();
+            var realm = RealmFactory.GetRealmInstance();
+            var artInDb
+                = realm.Find<ArtistModel>(art.Id);
+            if (artInDb is null)
+                return;
+            var artistName = artInDb.Name;
+
+
+            //await UpdateSongFromLastFMDataAsync();
+            var lastFMArt = await lastfmService.GetArtistInfoAsync(artistName);
+            if(lastFMArt is null)
+                return;
+            art.ImagePath = lastFMArt.Images.FirstOrDefault(x => x.Size == "mega")?.Url;
+            await realm.WriteAsync(
+                () =>
+                {
+                    artInDb.ImagePath = art.ImagePath;
+                });
+
+            //SimilarTracks = await lastfmService.GetSimilarAsync(artistName, SelectedSongLastFMData.Name);
+
+            //await UpdateSongArtistInDbWithLastFMData();
+            //await UpdateSongAlbumInDbWithLastFMData();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
     }
 
 
@@ -8113,13 +8122,15 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         if(albInDb is null)
             return;
         var artistName = albInDb.Artist?.Name;
-
+        if (artistName is null)
+            return;
 
         //await UpdateSongFromLastFMDataAsync();
         var lastFMArt = await lastfmService.GetAlbumInfoAsync(artistName, albInDb.Name);
-
+        if (lastFMArt is null)
+            return;
         alb.ImagePath = lastFMArt.Images.FirstOrDefault(x => x.Size == "mega")?.Url;
-        realm.Write(
+        await realm.WriteAsync(
             () =>
             {
                 albInDb.ImagePath = alb.ImagePath;

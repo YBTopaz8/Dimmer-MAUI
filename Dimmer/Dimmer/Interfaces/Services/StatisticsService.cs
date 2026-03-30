@@ -135,7 +135,7 @@ public class StatisticsService
             return null;
 
        
-        var allSongEvents =  _eventRepo.GetAllAsQueryable().Where(x=>x.SongId==songId);
+        var allSongEvents =  _eventRepo.GetAllAsQueryable().AsEnumerable().Where(x=>x.SongId==songId);
         if (!allSongEvents.Any())
             return null;
 
@@ -151,7 +151,7 @@ public class StatisticsService
         };
 
 
-        var filteredEvents = allSongEvents.AsEnumerable()
+        var filteredEvents = allSongEvents
             .Where(e => (!startDate.HasValue || e.EventDate >= startDate.Value) &&
                         (e.EventDate < endDate)).ToList()
             ;
@@ -197,7 +197,7 @@ public class StatisticsService
             _ => null
         };
 
-        var allSongs =  _songRepo.GetAllAsQueryable();
+        var allSongs =  _songRepo.GetAll();
         var filteredEvents =  _eventRepo.GetEventsInDateRangeAsync(startDate, endDate);
 
         var bundle = new ArtistStatsBundle
