@@ -1,5 +1,4 @@
 ﻿using ATL;
-using AudioSwitcher.AudioApi;
 using CommunityToolkit.Diagnostics;
 using Dimmer.DimmerLive.ParseStatics;
 using Dimmer.DimmerSearch.TQL.RealmSection;
@@ -1620,7 +1619,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial string AppTitle { get; set; } = "Dimmer";
 
-    public static string CurrentAppVersion = "1.8.9";
+    public static string CurrentAppVersion = "1.8.11";
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]
@@ -2287,7 +2286,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         CurrentPlayingSongView.IsCurrentPlayingHighlight = true;
         _logger.LogInformation("AudioService confirmed: Playback resumed for '{Title}'", args.AudioServiceCurrentPlayingSongView.Title);
-        await BaseAppFlow.UpdateDatabaseWithPlayEvent(
+        CurrentPlayingSongView = await BaseAppFlow.UpdateDatabaseWithPlayEvent(
              
              args.AudioServiceCurrentPlayingSongView,
              StatesMapper.Map(DimmerPlaybackState.Resumed),
@@ -2306,7 +2305,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         CurrentPlayingSongView.IsCurrentPlayingHighlight = false;
 
-        await BaseAppFlow.UpdateDatabaseWithPlayEvent(
+        CurrentPlayingSongView=  await BaseAppFlow.UpdateDatabaseWithPlayEvent(
             
             CurrentPlayingSongView,
             StatesMapper.Map(DimmerPlaybackState.PlayCompleted),
@@ -2416,7 +2415,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             if (CurrentPlayingSongView.TitleDurationKey is null) return;
             _logger.LogInformation("AudioService confirmed: Seek completed to {Position}s.", newPosition);
-            await BaseAppFlow.UpdateDatabaseWithPlayEvent(
+            CurrentPlayingSongView = await BaseAppFlow.UpdateDatabaseWithPlayEvent(
                 
                 CurrentPlayingSongView,
                 StatesMapper.Map(DimmerPlaybackState.Seeked),
@@ -5534,13 +5533,13 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             return string.Empty;
 
         // 1. Process locally (don't set class properties)
-        LyricsTrackNameSearch = CleanSongTitle(SelectedSong.Title ?? string.Empty);
-        LyricsArtistNameSearch = GetPrimaryArtist(SelectedSong.ArtistName ?? string.Empty);
+        LyricsTrackNameSearch ??= CleanSongTitle(SelectedSong.Title ?? string.Empty);
+        LyricsArtistNameSearch ??= GetPrimaryArtist(SelectedSong.ArtistName ?? string.Empty);
 
         // Album is often "noise" for lyric searches. Only include it if it's very specific.
         // Ideally, for lyrics, Artist + Title is usually the strongest query.
         var album = SelectedSong.AlbumName ?? string.Empty;
-        LyricsAlbumNameSearch = !IsGenericAlbumName(album) ? album : string.Empty;
+        LyricsAlbumNameSearch ??= !IsGenericAlbumName(album) ? album : string.Empty;
 
         // 2. Build the list, filtering out empties immediately
         var searchParts = new List<string>();
@@ -8069,33 +8068,43 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     public async Task LoadArtistLastFMDataAsync(ArtistModelView? art)
     {
-        if(art is null || art.Name == "Unknown Artist")
+        try
         {
-            return;
-        }
 
-
-        var realm = RealmFactory.GetRealmInstance();
-        var artInDb
-            = realm.Find<ArtistModel>(art.Id);
-        if(artInDb is null)
-            return;
-        var artistName = artInDb.Name;
-
-
-        //await UpdateSongFromLastFMDataAsync();
-        var lastFMArt = await lastfmService.GetArtistInfoAsync(artistName);
-        art.ImagePath = lastFMArt.Images.FirstOrDefault(x => x.Size == "mega")?.Url;
-        realm.Write(
-            () =>
+            if (art is null || art.Name == "Unknown Artist")
             {
-                artInDb.ImagePath = art.ImagePath;
-            });
+                return;
+            }
 
-        //SimilarTracks = await lastfmService.GetSimilarAsync(artistName, SelectedSongLastFMData.Name);
 
-        //await UpdateSongArtistInDbWithLastFMData();
-        //await UpdateSongAlbumInDbWithLastFMData();
+            var realm = RealmFactory.GetRealmInstance();
+            var artInDb
+                = realm.Find<ArtistModel>(art.Id);
+            if (artInDb is null)
+                return;
+            var artistName = artInDb.Name;
+
+
+            //await UpdateSongFromLastFMDataAsync();
+            var lastFMArt = await lastfmService.GetArtistInfoAsync(artistName);
+            if(lastFMArt is null)
+                return;
+            art.ImagePath = lastFMArt.Images.FirstOrDefault(x => x.Size == "mega")?.Url;
+            await realm.WriteAsync(
+                () =>
+                {
+                    artInDb.ImagePath = art.ImagePath;
+                });
+
+            //SimilarTracks = await lastfmService.GetSimilarAsync(artistName, SelectedSongLastFMData.Name);
+
+            //await UpdateSongArtistInDbWithLastFMData();
+            //await UpdateSongAlbumInDbWithLastFMData();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
     }
 
 
@@ -8113,13 +8122,15 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         if(albInDb is null)
             return;
         var artistName = albInDb.Artist?.Name;
-
+        if (artistName is null)
+            return;
 
         //await UpdateSongFromLastFMDataAsync();
         var lastFMArt = await lastfmService.GetAlbumInfoAsync(artistName, albInDb.Name);
-
+        if (lastFMArt is null)
+            return;
         alb.ImagePath = lastFMArt.Images.FirstOrDefault(x => x.Size == "mega")?.Url;
-        realm.Write(
+        await realm.WriteAsync(
             () =>
             {
                 albInDb.ImagePath = alb.ImagePath;

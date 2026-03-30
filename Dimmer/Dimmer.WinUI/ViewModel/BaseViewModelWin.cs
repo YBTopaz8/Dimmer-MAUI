@@ -5,6 +5,7 @@
 
 using CommunityToolkit.Maui.Alerts;
 using CommunityToolkit.Maui.Core.Extensions;
+using Dimmer.Utils;
 using Dimmer.WinUI.Views.CustomViews.WinuiViews;
 using Dimmer.WinUI.Views.WinuiPages.Settings;
 using System.Threading.Tasks;
@@ -1220,7 +1221,9 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         RestoreResult res = new();
         if(PickedUpBackup is not null)
             IsRestoreDone= await BackupService.RestoreCompleteDataAsync(PickedUpBackup, res);
-        
+
+        var redoStats = new StatsRecalculator(RealmFactory, _logger);
+        redoStats.RecalculateAllStatistics();
     }
     [RelayCommand]
     public async Task PickFolderToRestoreAppDataAsync()

@@ -434,6 +434,8 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         if (PickedUpBackup is not null)
             IsRestoreDone = await BackupService.RestoreCompleteDataAsync(PickedUpBackup, res);
 
+        var redoStats = new StatsRecalculator(RealmFactory, _logger);
+        redoStats.RecalculateAllStatistics();
     }
 
         [RelayCommand]

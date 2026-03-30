@@ -120,7 +120,12 @@ public static class AlbumModelViewExtensions
             art.AlbumsByArtist.Clear();
 
             var albumViews = albumsInDb
-                .Select(a => a.ToAlbumModelView())
+                .Select(a =>
+                {
+                            var albView = a.ToAlbumModelView();
+                    albView?.ImagePath = a.SongsInAlbum?.Where(s => !string.IsNullOrEmpty(s.CoverImagePath)).AsEnumerable().Select(s => s.CoverImagePath).FirstOrDefault();
+                    return albView;
+                })
                 .Where(a => a != null)
                 .ToList();
 

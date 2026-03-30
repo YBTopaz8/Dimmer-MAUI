@@ -206,7 +206,7 @@
                     DragItemsStarting="MySongsTableView_DragItemsStarting"
                     DragStarting="MySongsTableView_DragStarting"
                     ExportSelectedContent="TableView_ExportSelectedContent"
-                    IsItemClickEnabled="True"
+                    IsItemClickEnabled="True" 
                     IsMultiSelectCheckBoxEnabled="True"
                     IsRightTapEnabled="True"
                     IsSwipeEnabled="False"
@@ -217,7 +217,7 @@
                     PointerExited="MySongsTableView_PointerExited"
                     PointerPressed="TableView_PointerPressed"
                     PointerReleased="MySongsTableView_PointerReleased"
-                    
+                    CellDoubleTapped="MySongsTableView_CellDoubleTapped"
                     SelectionChanged="MySongsTableView_SelectionChanged"
                     SelectionMode="Single"
                     Sorting="MySongsTableView_Sorting"
@@ -346,7 +346,7 @@
                             x:Name="Title"
                             Header="Title"
                             Binding="{Binding Title}"
-                            Width="*" 
+                            Width="*"  
                             IsReadOnly="True"
                             ToolTipService.Placement="Mouse"
                             ToolTipService.ToolTip="{x:Bind MyViewModel.CurrentPlayingSongView.Title}">
@@ -377,6 +377,10 @@
                                                         
                                                         IsReadOnly="True"
                                                     Header="🎶"/>
+
+                        <dgView:TableViewCheckBoxColumn Binding="{Binding IsFavorite}" x:Name="IsFavorite"
+                                                       IsReadOnly="True" 
+                                                    Header="Favorite?"/>
 
                         
                        

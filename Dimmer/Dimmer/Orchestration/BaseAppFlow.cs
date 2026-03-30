@@ -85,20 +85,20 @@ public class BaseAppFlow : IDisposable
         // This method is kept for backward compatibility and logging
     }
 
-    public async Task UpdateDatabaseWithPlayEvent(SongModelView? songView, PlayType? type, double? position = null)
+    public async Task<SongModelView?> UpdateDatabaseWithPlayEvent(SongModelView? songView, PlayType? type, double? position = null)
     {
         // Early returns for invalid inputs
         if (songView == null || type == null)
         {
             _logger.LogWarning("UpdateDatabaseWithPlayEvent called with null parameters: Song={HasSong}, Type={HasType}",
                 songView != null, type != null);
-            return;
+            return null;
         }
 
         if (songView.Id == default)
         {
             _logger.LogError("UpdateDatabaseWithPlayEvent: Invalid SongView ID (default) for PlayType {PlayType}", type);
-            return;
+            return null;
         }
 
         // Deduplication logic - improved with timestamp to prevent issues
@@ -110,7 +110,7 @@ public class BaseAppFlow : IDisposable
                 (DateTime.UtcNow - lastEvent.Timestamp).TotalSeconds < 1)
             {
                 _logger.LogDebug("Ignoring duplicate event {Type} for song {SongTitle}", type, songView.Title);
-                return;
+                return null;
             }
         }
 
@@ -174,19 +174,24 @@ public class BaseAppFlow : IDisposable
                 {
                     _logger.LogWarning("Song {SongId} not found when adding play event", songView.Id);
                 }
+
+                    songView = song.ToSongModelView();
             });
 
+            
             _logger.LogInformation("Added play event {EventId} of type {PlayType} to history of song {SongTitle}",
                 playEvent.Id, playEvent.PlayTypeStr, songView.Title);
 
             // Update UI state with user-friendly message
             string userFriendlyMessage = UserFriendlyLogGenerator.GetPlaybackStateMessage(type, songView, position);
             _state.SetCurrentLogMsg(userFriendlyMessage, DimmerLogLevel.Info);
+            return songView;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "UpdateDatabaseWithPlayEvent: Exception occurred. Type={PlayType}, Song={SongTitle}",
                 type, songView.Title);
+            return null;
         }
     }
 

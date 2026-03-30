@@ -19,6 +19,9 @@ public class SongStatsBundle
     public string Title { get; internal set; }
     public string Subtitle { get; internal set; }
     public DateRangeFilter FilterUsed { get; internal set; }
+    public List<DimmerStats> PlayHistoryOverTime { get; set; }
+    public DimmerStats PowerHour { get; set; }
+    public List<DimmerStats> DailyListeningRhythm { get; set; }
 }
 // --- Single Artist stats ---
 public class ArtistStatsBundle : StatsBundleBase
@@ -125,14 +128,14 @@ public class StatisticsService
     /// <summary>
     /// Gets all relevant statistics for a single selected song.
     /// </summary>
-    public SongStatsBundle? GetSongStatisticsAsync(ObjectId songId, DateRangeFilter filter)
+    public SongStatsBundle? GetSongStatistics(ObjectId songId, DateRangeFilter filter)
     {
         var songDb =  _songRepo.GetById(songId);
         if (songDb == null)
             return null;
 
        
-        var allSongEvents =  _eventRepo.GetAllAsQueryable().Where(x=>x.SongId==songId);
+        var allSongEvents =  _eventRepo.GetAllAsQueryable().AsEnumerable().Where(x=>x.SongId==songId);
         if (!allSongEvents.Any())
             return null;
 
@@ -148,7 +151,7 @@ public class StatisticsService
         };
 
 
-        var filteredEvents = allSongEvents.AsEnumerable()
+        var filteredEvents = allSongEvents
             .Where(e => (!startDate.HasValue || e.EventDate >= startDate.Value) &&
                         (e.EventDate < endDate)).ToList()
             ;
@@ -166,7 +169,12 @@ public class StatisticsService
             PlayDistributionByHour = SongStatTwo.GetPlayCountPerHourOfDay(songDb, filteredEvents),
             ListeningStreak = TopStats.GetListeningStreak(filteredEvents),
             FirstImpression = TopStats.GetSongsFirstImpression(allSongEvents.ToList()),
-            DropOffPoints = ChartSpecificStats.GetSongDropOffPoints(filteredEvents)
+            PowerHour = TopStats.GetPowerHour(allSongEvents.ToList()),
+            DailyListeningRhythm = TopStats.GetDailyListeningRhythm(allSongEvents.ToList(),songDb),
+            DropOffPoints = ChartSpecificStats.GetSongDropOffPoints(filteredEvents),
+            PlayHistoryOverTime = ChartSpecificStats.GetSongPlayHistoryOverTime(filteredEvents)
+            
+            
         };
         return bundle;
     }
@@ -189,7 +197,7 @@ public class StatisticsService
             _ => null
         };
 
-        var allSongs =  _songRepo.GetAllAsQueryable();
+        var allSongs =  _songRepo.GetAll();
         var filteredEvents =  _eventRepo.GetEventsInDateRangeAsync(startDate, endDate);
 
         var bundle = new ArtistStatsBundle

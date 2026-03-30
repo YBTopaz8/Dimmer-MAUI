@@ -24,9 +24,22 @@ public class LrcLibLyrics
     public string AlbumName { get; set; } = string.Empty;
 
     [JsonPropertyName("duration")]
-    public double Duration { get; set; } // <--- CRITICAL FIX: int -> double
+    public double Duration { get; set; }
 
-    [JsonPropertyName("instrumental")]
+    [Ignored]
+
+    public string DurationFormatted
+    {
+        get
+        {
+            TimeSpan time = TimeSpan.FromSeconds(Duration);
+            if(time.Hours > 0)
+                return time.ToString(@"hh\:mm\:ss");
+            else
+                return time.ToString(@"mm\:ss");
+        }
+    }
+        [JsonPropertyName("instrumental")]
     public bool Instrumental { get; set; }
 
     [JsonPropertyName("plainLyrics")]

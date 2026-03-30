@@ -1,4 +1,4 @@
-global using DevExpress.Android.Editors;
+global using Chip = DevExpress.Maui.Editors.Chip;
 using DevExpress.Maui.Core;
 using Microsoft.Maui.Controls.PlatformConfiguration;
 
@@ -11,6 +11,9 @@ public partial class SettingsPage : ContentPage
         InitializeComponent();
         BindingContext = viewModelAnd;
         MyViewModel = viewModelAnd;
+
+        var platView = this.Handler?.PlatformView as Fragment;
+        var platView2 = this.Handler?.PlatformView as View;
     }
 
     BaseViewModelAnd MyViewModel { get; }
@@ -21,7 +24,11 @@ public partial class SettingsPage : ContentPage
         var folderPath = (string)chip.Text;
         MyViewModel.DeleteFolderPath(folderPath);
     }
-
+    protected override bool OnBackButtonPressed()
+    {
+        GoBackBtn_Clicked(this, new EventArgs());
+        return base.OnBackButtonPressed();
+    }
     private async void BackupDeviceBtn_Clicked(object sender, EventArgs e)
     {
         await MyViewModel.BackUpAppDataAsync();
@@ -29,7 +36,7 @@ public partial class SettingsPage : ContentPage
 
     private async void RestoreBackupDeviceBtn_Clicked(object sender, EventArgs e)
     {
-        EventsExpander.IsExpanded = true;
+
         await  MyViewModel.PickFolderToRestoreAppDataAsync();
 
     }
@@ -75,4 +82,18 @@ public partial class SettingsPage : ContentPage
         await MyViewModel.AddMusicFolderViaPickerAsync();
     }
 
+    private void FoldersSectionChip_Tap(object sender, HandledEventArgs e)
+    {
+        FoldersSectionExpander.IsExpanded = !FoldersSectionExpander.IsExpanded;
+    }
+
+    private async void RescanFolderChip_Tap(object sender, HandledEventArgs e)
+    {
+        var send = (Chip)sender;
+        var path = send.BindingContext as string;
+        if (path != null)
+        {
+           await MyViewModel.ReScanMusicFolderByPassingToService(path);
+        }
+    }
 }

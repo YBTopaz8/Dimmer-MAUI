@@ -4,15 +4,17 @@ namespace Dimmer.Views.Artist;
 
 public partial class ArtistPage : ContentPage
 {
-	public ArtistPage(BaseViewModelAnd baseViewModel)
+	public ArtistPage(BaseViewModelAnd baseViewModel , StatisticsViewModel statsVM)
 
     {
         InitializeComponent();
         MyViewModel = baseViewModel;
+        StatsVM = statsVM;
 
         BindingContext = MyViewModel.SelectedArtist;
     }
     public BaseViewModelAnd MyViewModel { get; }
+    public StatisticsViewModel StatsVM { get; }
 
     private async void LoadLastFMInfo_Clicked(object sender, EventArgs e)
     {
@@ -23,6 +25,7 @@ public partial class ArtistPage : ContentPage
     {
         base.OnAppearing();
         await MyViewModel.LoadArtistLastFMDataAsync(MyViewModel.SelectedArtist);
+       await StatsVM.LoadArtistStatsAsync(MyViewModel.SelectedArtist);
     }
 
     private void ExportEvt_Tap(object sender, HandledEventArgs e)
@@ -57,5 +60,10 @@ public partial class ArtistPage : ContentPage
     private void ArtistChip_LongPress(object sender, HandledEventArgs e)
     {
 
+    }
+
+    private void ChartsScrollView_Loaded(object sender, EventArgs e)
+    {
+        ChartsScrollView.BindingContext = StatsVM;
     }
 }

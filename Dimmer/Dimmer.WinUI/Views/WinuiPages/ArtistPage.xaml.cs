@@ -51,6 +51,16 @@ public sealed partial class ArtistPage : Page
             MyViewModel.CurrentWinUIPage = this;
             DetailedSong = args.CurrentPlayingSongView;
         }
+
+        if (e.Parameter is SongDetailNavArgs songDetailNavArgs)
+        {
+            //Song = _storedSong!,
+            //    ExtraParam = MyViewModel,
+            //    ViewModel = MyViewModel
+            MyViewModel = (songDetailNavArgs.ExtraParam as BaseViewModelWin)!;       // reference, not copy
+            MyViewModel.CurrentWinUIPage = this;
+            DetailedSong = songDetailNavArgs.Song;
+        }
         MyViewModel.IsBackButtonVisible = WinUIVisibility.Visible;
         ArtistNameInArtistPage.Visibility = WinUIVisibility.Visible;
         ArtistImageInArtistPage.Visibility = WinUIVisibility.Visible;

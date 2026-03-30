@@ -1,4 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="..\externals.props" Condition="Exists('..\externals.props')" />
 
 	<PropertyGroup>
 		<TargetFramework>net10.0</TargetFramework>
@@ -8,7 +9,7 @@
 		<UseMaui>true</UseMaui>
 		<Nullable>enable</Nullable>
 		<LangVersion>preview</LangVersion>
-		<Version>1.8.9</Version>
+		<Version>1.8.11</Version>
 
 	</PropertyGroup>
 
@@ -70,20 +71,12 @@
 
 
 	<ItemGroup>
-		
-		
-	 
 	  <ProjectReference Include="..\..\..\Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj" />
-		
-		
-	 
 	  <ProjectReference Include="..\..\..\Parse-LiveQueries-DOTNET\ParseLiveQuery\ParseLiveQuery.csproj" />
-		
-		
-	 
 	  <ProjectReference Include="..\..\atldotnet-main\ATL\ATL.csproj" />
-	  <ProjectReference Include="..\..\AudioSwitcher-master\AudioSwitcher.AudioApi.CoreAudio\AudioSwitcher.AudioApi.CoreAudio.csproj" />
-	  <ProjectReference Include="..\..\AudioSwitcher-master\AudioSwitcher.AudioApi\AudioSwitcher.AudioApi.csproj" />
 	</ItemGroup>
+
+
+
 
 </Project>

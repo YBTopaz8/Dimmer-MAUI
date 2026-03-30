@@ -80,7 +80,7 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
         _myCurrentState.ACL = new ParseACL(ParseUser.CurrentUser);
         await _myCurrentState.SaveAsync();
 
-        StartHeartbeat();
+
         StartCommandListener();
         await UploadLibraryMapAsync(); // Upload the "What I have" list
         await FetchOtherDevicesAsync();

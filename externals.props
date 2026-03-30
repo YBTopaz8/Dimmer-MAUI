@@ -1,0 +1,13 @@
+<Project>
+  <PropertyGroup>
+    <!-- Base path for external dependencies -->
+    <ExternalDepsPath>$(MSBuildThisFileDirectory)ExternalDeps\</ExternalDepsPath>
+    
+    <!-- Individual project paths -->
+    <LastFmProjectPath>$(ExternalDepsPath)Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj</LastFmProjectPath>
+    <ParseProjectPath>$(ExternalDepsPath)Parse-LiveQueries-DOTNET\ParseLiveQuery\ParseLiveQuery.csproj</ParseProjectPath>
+    <AtlProjectPath>$(ExternalDepsPath)atldotnet-main\ATL\ATL.csproj</AtlProjectPath>
+    <AudioSwitcherCorePath>$(ExternalDepsPath)AudioSwitcher-master\AudioSwitcher.AudioApi.CoreAudio\AudioSwitcher.AudioApi.CoreAudio.csproj</AudioSwitcherCorePath>
+    <AudioSwitcherApiPath>$(ExternalDepsPath)AudioSwitcher-master\AudioSwitcher.AudioApi\AudioSwitcher.AudioApi.csproj</AudioSwitcherApiPath>
+  </PropertyGroup>
+</Project>
