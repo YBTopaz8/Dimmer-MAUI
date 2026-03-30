@@ -86,12 +86,34 @@ jobs:
       - name: Checkout Dependencies
         shell: pwsh
         run: |
-          git clone https://github.com/YBTopaz8/Last.fm "$env:GITHUB_WORKSPACE\ExternalDeps\Last.fm"
-          git clone https://github.com/YBTopaz8/Parse-LiveQueries-DOTNET "$env:GITHUB_WORKSPACE\ExternalDeps\Parse-LiveQueries-DOTNET"
-          git clone https://github.com/Zeugma440/atldotnet "$env:GITHUB_WORKSPACE\ExternalDeps\atldotnet-main"
-          git clone https://github.com/xenolightning/AudioSwitcher "$env:GITHUB_WORKSPACE\ExternalDeps\AudioSwitcher-master"
+          $depsRoot = "$env:GITHUB_WORKSPACE\ExternalDeps"
+          New-Item -ItemType Directory -Force -Path $depsRoot
+          
+          git clone https://github.com/YBTopaz8/Last.fm "$depsRoot\Last.fm"
+          git clone https://github.com/YBTopaz8/Parse-LiveQueries-DOTNET "$depsRoot\Parse-LiveQueries-DOTNET"
+          git clone https://github.com/Zeugma440/atldotnet "$depsRoot\atldotnet-main"
+          git clone https://github.com/xenolightning/AudioSwitcher "$depsRoot\AudioSwitcher-master"
 
-      # 5. LOCATE PROJECT FILES
+      # 5. CREATE EXTERNALS.PROP FILE
+      - name: Create externals.props
+        shell: pwsh
+        run: |
+          $propsContent = @'
+<Project>
+  <PropertyGroup>
+    <ExternalDepsPath>$(MSBuildThisFileDirectory)ExternalDeps\</ExternalDepsPath>
+    <LastFmProjectPath>$(ExternalDepsPath)Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj</LastFmProjectPath>
+    <ParseProjectPath>$(ExternalDepsPath)Parse-LiveQueries-DOTNET\ParseLiveQuery\ParseLiveQuery.csproj</ParseProjectPath>
+    <AtlProjectPath>$(ExternalDepsPath)atldotnet-main\ATL\ATL.csproj</AtlProjectPath>
+    <AudioSwitcherCorePath>$(ExternalDepsPath)AudioSwitcher-master\AudioSwitcher.AudioApi.CoreAudio\AudioSwitcher.AudioApi.CoreAudio.csproj</AudioSwitcherCorePath>
+    <AudioSwitcherApiPath>$(ExternalDepsPath)AudioSwitcher-master\AudioSwitcher.AudioApi\AudioSwitcher.AudioApi.csproj</AudioSwitcherApiPath>
+  </PropertyGroup>
+</Project>
+'@
+          Set-Content -Path "externals.props" -Value $propsContent -Encoding UTF8
+          Write-Host "Created externals.props"
+
+      # 6. LOCATE PROJECT FILES
       - name: Locate Project Files
         shell: pwsh
         run: |
@@ -102,38 +124,31 @@ jobs:
           echo "PATH_DROID=$($droid.FullName)" >> $env:GITHUB_ENV
           echo "DIR_CORE=$($core.Directory.FullName)" >> $env:GITHUB_ENV
           
-      # 6. CREATE APPSETTINGS.JSON
+      # 7. CREATE APPSETTINGS.JSON
       - name: Create appsettings.json
         shell: pwsh
         run: |
           $targetPath = Join-Path "${{ env.DIR_CORE }}" "appsettings.json"
           Set-Content -Path $targetPath -Value '${{ secrets.appsettings }}' -Encoding UTF8
 
-      # 7. PATCH CSPROJ PATHS
-      - name: Fix Dependency Paths
+      # 8. UPDATE DIMMER.CSPROJ TO USE EXTERNALS.PROP
+      - name: Fix Dimmer.csproj References
         shell: pwsh
         run: |
-          $depsRoot = "$env:GITHUB_WORKSPACE\ExternalDeps"
-          $mappings = @{
-            "Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj" = "$depsRoot\Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj"
-            "Parse-LiveQueries-DOTNET\ParseLiveQuery\ParseLiveQuery.csproj" = "$depsRoot\Parse-LiveQueries-DOTNET\ParseLiveQuery\ParseLiveQuery.csproj"
-            "atldotnet-main\ATL\ATL.csproj" = "$depsRoot\atldotnet-main\ATL\ATL.csproj"
-            "AudioSwitcher-master\AudioSwitcher.AudioApi.CoreAudio\AudioSwitcher.AudioApi.CoreAudio.csproj" = "$depsRoot\AudioSwitcher-master\AudioSwitcher.AudioApi.CoreAudio\AudioSwitcher.AudioApi.CoreAudio.csproj"
-            "AudioSwitcher-master\AudioSwitcher.AudioApi\AudioSwitcher.AudioApi.csproj" = "$depsRoot\AudioSwitcher-master\AudioSwitcher.AudioApi\AudioSwitcher.AudioApi.csproj"
-          }
-          Get-ChildItem -Recurse -Filter *.csproj | ForEach-Object {
-            $path = $_.FullName
-            $content = Get-Content $path -Raw
-            $changed = $false
-            foreach ($key in $mappings.Keys) {
-              $pattern = 'Include=".*' + [Regex]::Escape($key) + '"'
-              $replacement = 'Include="' + $mappings[$key] + '"'
-              if ($content -match $pattern) { $content = $content -replace $pattern, $replacement; $changed = $true }
-            }
-            if ($changed) { Set-Content $path $content -Encoding UTF8 }
-          }
+          $dimmerCsproj = Get-ChildItem -Recurse -Filter "Dimmer.csproj" | Select-Object -First 1
+          $content = Get-Content $dimmerCsproj.FullName -Raw
+          
+          # Replace all hardcoded paths with property references
+          $content = $content -replace '<ProjectReference Include="\.\.\\\.\.\\\.\.\\Last\.fm\\src\\Hqub\.Lastfm\\Hqub\.Lastfm\.csproj" />', '<ProjectReference Include="$(LastFmProjectPath)" />'
+          $content = $content -replace '<ProjectReference Include="\.\.\\\.\.\\\.\.\\Parse-LiveQueries-DOTNET\\ParseLiveQuery\\ParseLiveQuery\.csproj" />', '<ProjectReference Include="$(ParseProjectPath)" />'
+          $content = $content -replace '<ProjectReference Include="\.\.\\\.\.\\atldotnet-main\\ATL\\ATL\.csproj" />', '<ProjectReference Include="$(AtlProjectPath)" />'
+          $content = $content -replace '<ProjectReference Include="\.\.\\\.\.\\AudioSwitcher-master\\AudioSwitcher\.AudioApi\.CoreAudio\\AudioSwitcher\.AudioApi\.CoreAudio\.csproj" />', '<ProjectReference Include="$(AudioSwitcherCorePath)" />'
+          $content = $content -replace '<ProjectReference Include="\.\.\\\.\.\\AudioSwitcher-master\\AudioSwitcher\.AudioApi\\AudioSwitcher\.AudioApi\.csproj" />', '<ProjectReference Include="$(AudioSwitcherApiPath)" />'
+          
+          Set-Content $dimmerCsproj.FullName $content -Encoding UTF8
+          Write-Host "Updated Dimmer.csproj"
 
-      # 8. DISABLE EXTERNAL REPO SIGNING
+      # 9. DISABLE EXTERNAL REPO SIGNING
       - name: Disable AudioSwitcher Signing
         shell: pwsh
         run: |
@@ -145,7 +160,7 @@ jobs:
             Set-Content $_.FullName $content -Encoding UTF8
           }
 
-      # 9. SETUP .NET & WORKLOADS
+      # 10. SETUP .NET & WORKLOADS
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
         with:
@@ -154,12 +169,12 @@ jobs:
       - name: Install MAUI Workloads
         run: dotnet workload install maui-android maui-windows
 
-      # 10. BUILD WINDOWS
+      # 11. BUILD WINDOWS
       - name: Build Windows
         run: |
           dotnet publish "${{ env.PATH_WINUI }}" -f net10.0-windows10.0.19041.0 -c Release -r win-x64 -p:WindowsPackageType=None -p:GenerateAppxPackageOnBuild=false -p:AppxPackageSigningEnabled=false -o .\RawBuild\WinUI
 
-      # 11. ZIP WINDOWS
+      # 12. ZIP WINDOWS
       - name: Zip Windows Build
         shell: pwsh
         run: |
@@ -168,7 +183,7 @@ jobs:
           Compress-Archive -Path .\RawBuild\WinUI\* -DestinationPath $zipPath
           echo "WIN_SIZE=$((Get-Item $zipPath).Length)" >> $env:GITHUB_ENV
 
-      # 12. BUILD ANDROID
+      # 13. BUILD ANDROID
       - name: Build Android
         run: |
           dotnet publish "${{ env.PATH_DROID }}" -f net10.0-android -c Release -r android-arm64 -p:AndroidPackageFormat=apk -o .\RawBuild\Android
@@ -179,7 +194,7 @@ jobs:
           $apk = Get-ChildItem ".\RawBuild\Android\*-Signed.apk" | Select-Object -First 1
           echo "APK_SIZE=$($apk.Length)" >> $env:GITHUB_ENV
 
-      # 13. UPLOAD ARTIFACTS
+      # 14. UPLOAD ARTIFACTS
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -188,7 +203,7 @@ jobs:
             RawBuild/Android/*.apk
             Artifacts/Dimmer-Windows-Portable-${{ env.NEW_TAG }}.zip
             
-      # 14. PUSH TAG & RELEASE (PRERELEASE: FALSE)
+      # 15. PUSH TAG & RELEASE
       - name: Push Tag & Create Release
         id: create_release
         uses: softprops/action-gh-release@v1        
@@ -202,7 +217,7 @@ jobs:
             RawBuild/Android/*.apk
             Artifacts/Dimmer-Windows-Portable-${{ env.NEW_TAG }}.zip
 
-      # 15. NOTIFY PARSE SERVER
+      # 16. NOTIFY PARSE SERVER
       - name: Notify Parse of New Update
         shell: pwsh
         env:
@@ -232,7 +247,7 @@ jobs:
           
           Invoke-RestMethod -Uri "$($env:PARSE_SERVER_URL)/functions/postAppUpdate" -Method Post -Headers $headers -Body $body
       
-      # 16. NOTIFY DISCORD
+      # 17. NOTIFY DISCORD
       - name: Notify Discord
         if: always()
         shell: pwsh
