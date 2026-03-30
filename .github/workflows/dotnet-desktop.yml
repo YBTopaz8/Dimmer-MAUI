@@ -98,18 +98,18 @@ jobs:
       - name: Create externals.props
         shell: pwsh
         run: |
-          $propsContent = @'
-<Project>
-  <PropertyGroup>
-    <ExternalDepsPath>$(MSBuildThisFileDirectory)ExternalDeps\</ExternalDepsPath>
-    <LastFmProjectPath>$(ExternalDepsPath)Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj</LastFmProjectPath>
-    <ParseProjectPath>$(ExternalDepsPath)Parse-LiveQueries-DOTNET\ParseLiveQuery\ParseLiveQuery.csproj</ParseProjectPath>
-    <AtlProjectPath>$(ExternalDepsPath)atldotnet-main\ATL\ATL.csproj</AtlProjectPath>
-    <AudioSwitcherCorePath>$(ExternalDepsPath)AudioSwitcher-master\AudioSwitcher.AudioApi.CoreAudio\AudioSwitcher.AudioApi.CoreAudio.csproj</AudioSwitcherCorePath>
-    <AudioSwitcherApiPath>$(ExternalDepsPath)AudioSwitcher-master\AudioSwitcher.AudioApi\AudioSwitcher.AudioApi.csproj</AudioSwitcherApiPath>
-  </PropertyGroup>
-</Project>
-'@
+          $propsContent = @"
+          <Project>
+            <PropertyGroup>
+              <ExternalDepsPath>$(MSBuildThisFileDirectory)ExternalDeps\</ExternalDepsPath>
+              <LastFmProjectPath>$(ExternalDepsPath)Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj</LastFmProjectPath>
+              <ParseProjectPath>$(ExternalDepsPath)Parse-LiveQueries-DOTNET\ParseLiveQuery\ParseLiveQuery.csproj</ParseProjectPath>
+              <AtlProjectPath>$(ExternalDepsPath)atldotnet-main\ATL\ATL.csproj</AtlProjectPath>
+              <AudioSwitcherCorePath>$(ExternalDepsPath)AudioSwitcher-master\AudioSwitcher.AudioApi.CoreAudio\AudioSwitcher.AudioApi.CoreAudio.csproj</AudioSwitcherCorePath>
+              <AudioSwitcherApiPath>$(ExternalDepsPath)AudioSwitcher-master\AudioSwitcher.AudioApi\AudioSwitcher.AudioApi.csproj</AudioSwitcherApiPath>
+            </PropertyGroup>
+          </Project>
+          "@
           Set-Content -Path "externals.props" -Value $propsContent -Encoding UTF8
           Write-Host "Created externals.props"
 
