@@ -133,8 +133,10 @@
 
                 
                     <dx:DXImage Grid.Column="0"  BackgroundColor="Transparent" HeightRequest="70" WidthRequest="70"
-                                Source="{Binding CurrentPlayingSongView.CoverImagePath}" Aspect="AspectFill" >
+                            x:Name="BtmbarImg"
+                                Loaded="BtmbarImg_Loaded" Source="{Binding CurrentPlayingSongView.CoverImagePath}" Aspect="AspectFill" >
                         <dx:DXImage.GestureRecognizers>
+                            
                             <TapGestureRecognizer x:Name="CurrentPlayingCoverTapGesture" Tapped="CurrentPlayingCoverTapGesture_Tapped"/>
                         </dx:DXImage.GestureRecognizers>
                     </dx:DXImage>

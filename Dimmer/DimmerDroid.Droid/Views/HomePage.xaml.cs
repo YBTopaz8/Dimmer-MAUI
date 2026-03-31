@@ -362,4 +362,16 @@ public partial class HomePage : ContentPage
         if (Shell.Current.CurrentPage.GetType() != typeof(DetailsOverview))
             await Shell.Current.GoToAsync(nameof(DetailsOverview), true);
     }
+
+    private void BtmbarImg_Loaded(object sender, EventArgs e)
+    {
+        DXImage send = (DXImage)sender;
+        var pltView = send.Handler?.PlatformView as Android.Views.View;
+        pltView?.LongClickable = true;
+        pltView?.LongClick += (s,  args) =>
+        {
+            var songHandle = SongsCV.FindItemHandle(MyViewModel.CurrentPlayingSongView);
+            SongsCV.ScrollTo(songHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
+        };
+    }
 }
