@@ -136,6 +136,7 @@ jobs:
           
           # Fix the import path to look in the root (two levels up)
           $content = $content -replace '<Import Project="\.\.\\externals\.props"', '<Import Project="..\..\externals.props"'
+          $content = $content -replace '<Import Project="\.\.\\\.\.\\externals\.props"', '<Import Project="..\..\externals.props"'
           
           # Replace hardcoded project references
           $content = $content -replace '<ProjectReference Include="\.\.\\\.\.\\\.\.\\Last\.fm\\src\\Hqub\.Lastfm\\Hqub\.Lastfm\.csproj" />', '<ProjectReference Include="$(LastFmProjectPath)" />'
@@ -156,7 +157,36 @@ jobs:
           $winuiContent = $winuiContent -replace '<ProjectReference Include="\.\.\\\.\.\\AudioSwitcher-master\\AudioSwitcher\.AudioApi\\AudioSwitcher\.AudioApi\.csproj" />', '<ProjectReference Include="$(AudioSwitcherApiPath)" />'
           
           Set-Content $winuiCsproj.FullName $winuiContent -Encoding UTF8
-          Write-Host "Updated both project files"
+          
+          # Fix DimmerDroid.Droid.csproj - THIS IS THE CRITICAL ADDITION
+          $droidCsproj = Get-ChildItem -Recurse -Filter "DimmerDroid.Droid.csproj" | Select-Object -First 1
+          if ($droidCsproj) {
+            Write-Host "Fixing Android project: $($droidCsproj.FullName)"
+            $droidContent = Get-Content $droidCsproj.FullName -Raw
+            
+            # Add import to externals.props if it doesn't exist
+            if ($droidContent -notmatch '<Import Project=".*externals\.props"') {
+              # Add import after the first <Project> tag
+              $droidContent = $droidContent -replace '(<Project[^>]*>)', "`$1`n  <Import Project=`"..\..\externals.props`" Condition=`"Exists('..\..\externals.props')`" />"
+            } else {
+              # Fix existing import path
+              $droidContent = $droidContent -replace '<Import Project="\.\.\\externals\.props"', '<Import Project="..\..\externals.props"'
+            }
+            
+            # Replace hardcoded project references with variable references
+            $droidContent = $droidContent -replace '<ProjectReference Include="\.\.\\\.\.\\\.\.\\Last\.fm\\src\\Hqub\.Lastfm\\Hqub\.Lastfm\.csproj" />', '<ProjectReference Include="$(LastFmProjectPath)" />'
+            $droidContent = $droidContent -replace '<ProjectReference Include="\.\.\\\.\.\\\.\.\\Parse-LiveQueries-DOTNET\\ParseLiveQuery\\ParseLiveQuery\.csproj" />', '<ProjectReference Include="$(ParseProjectPath)" />'
+            $droidContent = $droidContent -replace '<ProjectReference Include="\.\.\\\.\.\\atldotnet-main\\ATL\\ATL\.csproj" />', '<ProjectReference Include="$(AtlProjectPath)" />'
+            
+            Set-Content $droidCsproj.FullName $droidContent -Encoding UTF8
+            Write-Host "Android project fixed"
+          } else {
+            Write-Host "Warning: DimmerDroid.Droid.csproj not found"
+          }
+          
+          Write-Host "Updated all project files"
+
+
 
       # 9. DISABLE EXTERNAL REPO SIGNING
       - name: Disable AudioSwitcher Signing
