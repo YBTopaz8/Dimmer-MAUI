@@ -38,7 +38,6 @@ jobs:
           $currentVersionStr = $xml.Project.PropertyGroup.Version.Trim()
           $newTag = "v$currentVersionStr"
           
-          # Set Env Variables (Force IS_PRE to false)
           "NEW_TAG=$newTag" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           "IS_PRE=false" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           
@@ -58,7 +57,6 @@ jobs:
         shell: pwsh
         run: |
           $prevTag = $env:LATEST_TAG
-          # Fetch only the last 10 commits to keep the release notes clean
           if ([string]::IsNullOrWhiteSpace($prevTag)) {
               $log = git log -n 10 --pretty=format:"- %s (%h)" --no-merges
           } else {
@@ -67,16 +65,13 @@ jobs:
           
           $logString = if ($log -is [Array]) { $log -join "`n" } else { $log }
           
-          # Final fallback if log is still empty
           if ([string]::IsNullOrWhiteSpace($logString)) { 
               $logString = git log -n 10 --pretty=format:"- %s (%h)" --no-merges -join "`n" 
           }
           
-          # Create file for release notes
           $content = "## Changes in $env:NEW_TAG`n`n$logString"
           Set-Content -Path "release_notes.md" -Value $content -Encoding UTF8
           
-          # Save to GITHUB_ENV for Parse/Discord steps
           $eof = [System.Guid]::NewGuid().ToString("N")
           "ESCAPED_LOG<<$eof" | Out-File -FilePath $env:GITHUB_ENV -Append
           $logString | Out-File -FilePath $env:GITHUB_ENV -Append
@@ -94,6 +89,7 @@ jobs:
           git clone https://github.com/Zeugma440/atldotnet "$depsRoot\atldotnet-main"
           git clone https://github.com/xenolightning/AudioSwitcher "$depsRoot\AudioSwitcher-master"
 
+      # 5. CREATE EXTERNALS.PROP
       - name: Create externals.props
         shell: pwsh
         run: |
@@ -130,22 +126,37 @@ jobs:
           $targetPath = Join-Path "${{ env.DIR_CORE }}" "appsettings.json"
           Set-Content -Path $targetPath -Value '${{ secrets.appsettings }}' -Encoding UTF8
 
-      # 8. UPDATE DIMMER.CSPROJ TO USE EXTERNALS.PROP
-      - name: Fix Dimmer.csproj References
+      # 8. UPDATE CSPROJ FILES TO USE EXTERNALS.PROP AND FIX IMPORT PATHS
+      - name: Fix Project Files
         shell: pwsh
         run: |
+          # Fix Dimmer.csproj
           $dimmerCsproj = Get-ChildItem -Recurse -Filter "Dimmer.csproj" | Select-Object -First 1
           $content = Get-Content $dimmerCsproj.FullName -Raw
           
-          # Replace all hardcoded paths with property references
+          # Fix the import path to look in the root (two levels up)
+          $content = $content -replace '<Import Project="\.\.\\externals\.props"', '<Import Project="..\..\externals.props"'
+          
+          # Replace hardcoded project references
           $content = $content -replace '<ProjectReference Include="\.\.\\\.\.\\\.\.\\Last\.fm\\src\\Hqub\.Lastfm\\Hqub\.Lastfm\.csproj" />', '<ProjectReference Include="$(LastFmProjectPath)" />'
           $content = $content -replace '<ProjectReference Include="\.\.\\\.\.\\\.\.\\Parse-LiveQueries-DOTNET\\ParseLiveQuery\\ParseLiveQuery\.csproj" />', '<ProjectReference Include="$(ParseProjectPath)" />'
           $content = $content -replace '<ProjectReference Include="\.\.\\\.\.\\atldotnet-main\\ATL\\ATL\.csproj" />', '<ProjectReference Include="$(AtlProjectPath)" />'
-          $content = $content -replace '<ProjectReference Include="\.\.\\\.\.\\AudioSwitcher-master\\AudioSwitcher\.AudioApi\.CoreAudio\\AudioSwitcher\.AudioApi\.CoreAudio\.csproj" />', '<ProjectReference Include="$(AudioSwitcherCorePath)" />'
-          $content = $content -replace '<ProjectReference Include="\.\.\\\.\.\\AudioSwitcher-master\\AudioSwitcher\.AudioApi\\AudioSwitcher\.AudioApi\.csproj" />', '<ProjectReference Include="$(AudioSwitcherApiPath)" />'
           
           Set-Content $dimmerCsproj.FullName $content -Encoding UTF8
-          Write-Host "Updated Dimmer.csproj"
+          
+          # Fix Dimmer.WinUI.csproj
+          $winuiCsproj = Get-ChildItem -Recurse -Filter "Dimmer.WinUI.csproj" | Select-Object -First 1
+          $winuiContent = Get-Content $winuiCsproj.FullName -Raw
+          
+          # Fix the import path
+          $winuiContent = $winuiContent -replace '<Import Project="\.\.\\externals\.props"', '<Import Project="..\..\externals.props"'
+          
+          # Replace hardcoded AudioSwitcher references
+          $winuiContent = $winuiContent -replace '<ProjectReference Include="\.\.\\\.\.\\AudioSwitcher-master\\AudioSwitcher\.AudioApi\.CoreAudio\\AudioSwitcher\.AudioApi\.CoreAudio\.csproj" />', '<ProjectReference Include="$(AudioSwitcherCorePath)" />'
+          $winuiContent = $winuiContent -replace '<ProjectReference Include="\.\.\\\.\.\\AudioSwitcher-master\\AudioSwitcher\.AudioApi\\AudioSwitcher\.AudioApi\.csproj" />', '<ProjectReference Include="$(AudioSwitcherApiPath)" />'
+          
+          Set-Content $winuiCsproj.FullName $winuiContent -Encoding UTF8
+          Write-Host "Updated both project files"
 
       # 9. DISABLE EXTERNAL REPO SIGNING
       - name: Disable AudioSwitcher Signing
