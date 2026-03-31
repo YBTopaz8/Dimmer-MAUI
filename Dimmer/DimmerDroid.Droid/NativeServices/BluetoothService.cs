@@ -26,7 +26,7 @@ public class AndroidBluetoothService : IBluetoothService
         _adapter = BluetoothAdapter.DefaultAdapter;
     }
 
-    public Task<List<string?>?> GetPairedDevicesAsync()
+    public Task<List<string>> GetPairedDevicesAsync()
     {
         if (_adapter == null || !_adapter.IsEnabled) return Task.FromResult(new List<string>());
 
