@@ -1,6 +1,6 @@
 ﻿	<Project Sdk="Microsoft.NET.Sdk">
-		<Import Project="..\externals.props" Condition="Exists('..\externals.props')" />
-
+		<Import Project="..\..\externals.props" Condition="Exists('..\..\externals.props')" />
+		
 		<PropertyGroup>
 			<OutputType>WinExe</OutputType>
 			<TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
@@ -99,8 +99,9 @@
 			<PackageReference Include="Xabe.FFmpeg.Downloader" Version="6.0.2" />
 		</ItemGroup>
 		<ItemGroup>
-			<ProjectReference Include="..\..\AudioSwitcher-master\AudioSwitcher.AudioApi.CoreAudio\AudioSwitcher.AudioApi.CoreAudio.csproj" />
-			<ProjectReference Include="..\..\AudioSwitcher-master\AudioSwitcher.AudioApi\AudioSwitcher.AudioApi.csproj" />
+			
+			<ProjectReference Include="$(AudioSwitcherCorePath)" />
+			<ProjectReference Include="$(AudioSwitcherApiPath)" />
 			<ProjectReference Include="..\Dimmer\Dimmer.csproj" />
 		</ItemGroup>
 

@@ -1439,7 +1439,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     {
         if (songToView is null || string.IsNullOrEmpty(songToView.FilePath))
         {
-            await Shell.Current.DisplayAlert("Error", "No song selected or file path is empty.", "OK");
+            await Shell.Current.DisplayAlertAsync("Error", "No song selected or file path is empty.", "OK");
             return;
         }
         try
