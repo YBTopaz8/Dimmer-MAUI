@@ -108,16 +108,25 @@ jobs:
           Set-Content -Path "externals.props" -Value $propsContent -Encoding UTF8
           Write-Host "Created externals.props"
 
-      # 6. LOCATE PROJECT FILES
+      # 6. LOCATE PROJECT FILES - FIXED: Look for DimmerDroid.Droid.csproj
       - name: Locate Project Files
         shell: pwsh
         run: |
           $winui = Get-ChildItem -Recurse -Filter "Dimmer.WinUI.csproj" | Select-Object -First 1
-          $droid = Get-ChildItem -Recurse -Filter "Dimmer.Droid.csproj" | Select-Object -First 1
+          $droid = Get-ChildItem -Recurse -Filter "DimmerDroid.Droid.csproj" | Select-Object -First 1
           $core  = Get-ChildItem -Recurse -Filter "Dimmer.csproj" | Select-Object -First 1
+          
+          if (-not $droid) {
+            Write-Error "DimmerDroid.Droid.csproj not found!"
+            exit 1
+          }
+          
           echo "PATH_WINUI=$($winui.FullName)" >> $env:GITHUB_ENV
           echo "PATH_DROID=$($droid.FullName)" >> $env:GITHUB_ENV
           echo "DIR_CORE=$($core.Directory.FullName)" >> $env:GITHUB_ENV
+          echo "DROID_DIR=$($droid.Directory.FullName)" >> $env:GITHUB_ENV
+          
+          Write-Host "Found Android project at: $($droid.FullName)"
           
       # 7. CREATE APPSETTINGS.JSON
       - name: Create appsettings.json
@@ -125,68 +134,59 @@ jobs:
         run: |
           $targetPath = Join-Path "${{ env.DIR_CORE }}" "appsettings.json"
           Set-Content -Path $targetPath -Value '${{ secrets.appsettings }}' -Encoding UTF8
+          Write-Host "Created appsettings.json at $targetPath"
 
-      # 8. UPDATE CSPROJ FILES TO USE EXTERNALS.PROP AND FIX IMPORT PATHS
-      - name: Fix Project Files
+      # 8. FIX ALL CSPROJ FILES - COMPREHENSIVE FIX
+      - name: Fix All Project Files
         shell: pwsh
         run: |
-          # Fix Dimmer.csproj
-          $dimmerCsproj = Get-ChildItem -Recurse -Filter "Dimmer.csproj" | Select-Object -First 1
-          $content = Get-Content $dimmerCsproj.FullName -Raw
-          
-          # Fix the import path to look in the root (two levels up)
-          $content = $content -replace '<Import Project="\.\.\\externals\.props"', '<Import Project="..\..\externals.props"'
-          $content = $content -replace '<Import Project="\.\.\\\.\.\\externals\.props"', '<Import Project="..\..\externals.props"'
-          
-          # Replace hardcoded project references
-          $content = $content -replace '<ProjectReference Include="\.\.\\\.\.\\\.\.\\Last\.fm\\src\\Hqub\.Lastfm\\Hqub\.Lastfm\.csproj" />', '<ProjectReference Include="$(LastFmProjectPath)" />'
-          $content = $content -replace '<ProjectReference Include="\.\.\\\.\.\\\.\.\\Parse-LiveQueries-DOTNET\\ParseLiveQuery\\ParseLiveQuery\.csproj" />', '<ProjectReference Include="$(ParseProjectPath)" />'
-          $content = $content -replace '<ProjectReference Include="\.\.\\\.\.\\atldotnet-main\\ATL\\ATL\.csproj" />', '<ProjectReference Include="$(AtlProjectPath)" />'
-          
-          Set-Content $dimmerCsproj.FullName $content -Encoding UTF8
-          
-          # Fix Dimmer.WinUI.csproj
-          $winuiCsproj = Get-ChildItem -Recurse -Filter "Dimmer.WinUI.csproj" | Select-Object -First 1
-          $winuiContent = Get-Content $winuiCsproj.FullName -Raw
-          
-          # Fix the import path
-          $winuiContent = $winuiContent -replace '<Import Project="\.\.\\externals\.props"', '<Import Project="..\..\externals.props"'
-          
-          # Replace hardcoded AudioSwitcher references
-          $winuiContent = $winuiContent -replace '<ProjectReference Include="\.\.\\\.\.\\AudioSwitcher-master\\AudioSwitcher\.AudioApi\.CoreAudio\\AudioSwitcher\.AudioApi\.CoreAudio\.csproj" />', '<ProjectReference Include="$(AudioSwitcherCorePath)" />'
-          $winuiContent = $winuiContent -replace '<ProjectReference Include="\.\.\\\.\.\\AudioSwitcher-master\\AudioSwitcher\.AudioApi\\AudioSwitcher\.AudioApi\.csproj" />', '<ProjectReference Include="$(AudioSwitcherApiPath)" />'
-          
-          Set-Content $winuiCsproj.FullName $winuiContent -Encoding UTF8
-          
-          # Fix DimmerDroid.Droid.csproj - THIS IS THE CRITICAL ADDITION
-          $droidCsproj = Get-ChildItem -Recurse -Filter "DimmerDroid.Droid.csproj" | Select-Object -First 1
-          if ($droidCsproj) {
-            Write-Host "Fixing Android project: $($droidCsproj.FullName)"
-            $droidContent = Get-Content $droidCsproj.FullName -Raw
+          # Function to fix project file
+          function Fix-ProjectFile {
+            param($csprojPath, $projectType)
             
-            # Add import to externals.props if it doesn't exist
-            if ($droidContent -notmatch '<Import Project=".*externals\.props"') {
-              # Add import after the first <Project> tag
-              $droidContent = $droidContent -replace '(<Project[^>]*>)', "`$1`n  <Import Project=`"..\..\externals.props`" Condition=`"Exists('..\..\externals.props')`" />"
-            } else {
-              # Fix existing import path
-              $droidContent = $droidContent -replace '<Import Project="\.\.\\externals\.props"', '<Import Project="..\..\externals.props"'
+            if (-not (Test-Path $csprojPath)) {
+              Write-Host "Warning: $csprojPath not found"
+              return $false
             }
             
-            # Replace hardcoded project references with variable references
-            $droidContent = $droidContent -replace '<ProjectReference Include="\.\.\\\.\.\\\.\.\\Last\.fm\\src\\Hqub\.Lastfm\\Hqub\.Lastfm\.csproj" />', '<ProjectReference Include="$(LastFmProjectPath)" />'
-            $droidContent = $droidContent -replace '<ProjectReference Include="\.\.\\\.\.\\\.\.\\Parse-LiveQueries-DOTNET\\ParseLiveQuery\\ParseLiveQuery\.csproj" />', '<ProjectReference Include="$(ParseProjectPath)" />'
-            $droidContent = $droidContent -replace '<ProjectReference Include="\.\.\\\.\.\\atldotnet-main\\ATL\\ATL\.csproj" />', '<ProjectReference Include="$(AtlProjectPath)" />'
+            Write-Host "Fixing $projectType project: $csprojPath"
+            $content = Get-Content $csprojPath -Raw
             
-            Set-Content $droidCsproj.FullName $droidContent -Encoding UTF8
-            Write-Host "Android project fixed"
-          } else {
-            Write-Host "Warning: DimmerDroid.Droid.csproj not found"
+            # Fix import path to externals.props
+            if ($content -match '<Import Project=".*externals\.props"') {
+              $content = $content -replace '<Import Project="\.\.\\externals\.props"', '<Import Project="..\..\externals.props"'
+              $content = $content -replace '<Import Project="\.\.\\\.\.\\externals\.props"', '<Import Project="..\..\externals.props"'
+            } else {
+              # Add import after Project tag
+              $content = $content -replace '(<Project[^>]*>)', "`$1`n  <Import Project=`"..\..\externals.props`" Condition=`"Exists('..\..\externals.props')`" />"
+            }
+            
+            # Replace hardcoded project references
+            $content = $content -replace '<ProjectReference Include="\.\.\\\.\.\\\.\.\\Last\.fm\\src\\Hqub\.Lastfm\\Hqub\.Lastfm\.csproj" />', '<ProjectReference Include="$(LastFmProjectPath)" />'
+            $content = $content -replace '<ProjectReference Include="\.\.\\\.\.\\\.\.\\Parse-LiveQueries-DOTNET\\ParseLiveQuery\\ParseLiveQuery\.csproj" />', '<ProjectReference Include="$(ParseProjectPath)" />'
+            $content = $content -replace '<ProjectReference Include="\.\.\\\.\.\\atldotnet-main\\ATL\\ATL\.csproj" />', '<ProjectReference Include="$(AtlProjectPath)" />'
+            
+            # For WinUI specifically
+            if ($projectType -eq "WinUI") {
+              $content = $content -replace '<ProjectReference Include="\.\.\\\.\.\\AudioSwitcher-master\\AudioSwitcher\.AudioApi\.CoreAudio\\AudioSwitcher\.AudioApi\.CoreAudio\.csproj" />', '<ProjectReference Include="$(AudioSwitcherCorePath)" />'
+              $content = $content -replace '<ProjectReference Include="\.\.\\\.\.\\AudioSwitcher-master\\AudioSwitcher\.AudioApi\\AudioSwitcher\.AudioApi\.csproj" />', '<ProjectReference Include="$(AudioSwitcherApiPath)" />'
+            }
+            
+            Set-Content $csprojPath $content -Encoding UTF8
+            Write-Host "Fixed $projectType project"
+            return $true
           }
           
-          Write-Host "Updated all project files"
-
-
+          # Fix all three projects
+          $coreCsproj = Get-ChildItem -Recurse -Filter "Dimmer.csproj" | Select-Object -First 1
+          $winuiCsproj = Get-ChildItem -Recurse -Filter "Dimmer.WinUI.csproj" | Select-Object -First 1
+          $droidCsproj = Get-ChildItem -Recurse -Filter "DimmerDroid.Droid.csproj" | Select-Object -First 1
+          
+          if ($coreCsproj) { Fix-ProjectFile $coreCsproj.FullName "Core" }
+          if ($winuiCsproj) { Fix-ProjectFile $winuiCsproj.FullName "WinUI" }
+          if ($droidCsproj) { Fix-ProjectFile $droidCsproj.FullName "Android" }
+          
+          Write-Host "All project files fixed"
 
       # 9. DISABLE EXTERNAL REPO SIGNING
       - name: Disable AudioSwitcher Signing
@@ -232,7 +232,11 @@ jobs:
         shell: pwsh
         run: |
           $apk = Get-ChildItem ".\RawBuild\Android\*-Signed.apk" | Select-Object -First 1
-          echo "APK_SIZE=$($apk.Length)" >> $env:GITHUB_ENV
+          if ($apk) {
+            echo "APK_SIZE=$($apk.Length)" >> $env:GITHUB_ENV
+          } else {
+            echo "APK_SIZE=0" >> $env:GITHUB_ENV
+          }
 
       # 14. UPLOAD ARTIFACTS
       - name: Upload Build Artifacts
@@ -243,7 +247,7 @@ jobs:
             RawBuild/Android/*.apk
             Artifacts/Dimmer-Windows-Portable-${{ env.NEW_TAG }}.zip
             
-      # 15. PUSH TAG & RELEASE
+      # 15. PUSH TAG & CREATE RELEASE
       - name: Push Tag & Create Release
         id: create_release
         uses: softprops/action-gh-release@v1        
