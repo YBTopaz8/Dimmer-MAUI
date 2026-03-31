@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
-    <!-- Base path for external dependencies -->
-    <ExternalDepsPath>$(MSBuildThisFileDirectory)ExternalDeps\</ExternalDepsPath>
+    <!-- Base path is the directory where this props file lives (Dimmer-MAUI root) -->
+    <ExternalDepsPath>$(MSBuildThisFileDirectory)</ExternalDepsPath>
     
     <!-- Individual project paths -->
     <LastFmProjectPath>$(ExternalDepsPath)Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj</LastFmProjectPath>

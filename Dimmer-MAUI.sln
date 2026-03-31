@@ -13,16 +13,16 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dimmer", "Dimmer\Dimmer\Dim
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dimmer.WinUI", "Dimmer\Dimmer.WinUI\Dimmer.WinUI.csproj", "{0E16CC04-4DD3-425A-B34C-8F59955676F2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hqub.Lastfm", "..\Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj", "{BC63A063-98DB-4E36-2BFC-ADF891F208E3}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParseLiveQuery", "..\Parse-LiveQueries-DOTNET\ParseLiveQuery\ParseLiveQuery.csproj", "{D4A7B2CC-1D4A-337E-2B56-B6E76ACE9E43}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DimmerDroid.Droid", "Dimmer\DimmerDroid.Droid\DimmerDroid.Droid.csproj", "{30A25BF1-CDE5-B644-9309-0C400C5A6300}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{936EEFDB-B607-4BC3-BB4E-966E5FB0088B}"
 	ProjectSection(SolutionItems) = preProject
 		externals.props = externals.props
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hqub.Lastfm", "Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj", "{46219299-E514-B8FA-13A7-B9194F6B3B8A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParseLiveQuery", "Parse-LiveQueries-DOTNET\ParseLiveQuery\ParseLiveQuery.csproj", "{8DD4BC7E-98FD-BB06-BB8F-BA00CBAF6D54}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -50,19 +50,19 @@ Global
 		{0E16CC04-4DD3-425A-B34C-8F59955676F2}.Debug|Any CPU.Build.0 = Debug|x64
 		{0E16CC04-4DD3-425A-B34C-8F59955676F2}.Release|Any CPU.ActiveCfg = Release|x64
 		{0E16CC04-4DD3-425A-B34C-8F59955676F2}.Release|Any CPU.Build.0 = Release|x64
-		{BC63A063-98DB-4E36-2BFC-ADF891F208E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BC63A063-98DB-4E36-2BFC-ADF891F208E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BC63A063-98DB-4E36-2BFC-ADF891F208E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BC63A063-98DB-4E36-2BFC-ADF891F208E3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D4A7B2CC-1D4A-337E-2B56-B6E76ACE9E43}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D4A7B2CC-1D4A-337E-2B56-B6E76ACE9E43}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D4A7B2CC-1D4A-337E-2B56-B6E76ACE9E43}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D4A7B2CC-1D4A-337E-2B56-B6E76ACE9E43}.Release|Any CPU.Build.0 = Release|Any CPU
 		{30A25BF1-CDE5-B644-9309-0C400C5A6300}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{30A25BF1-CDE5-B644-9309-0C400C5A6300}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{30A25BF1-CDE5-B644-9309-0C400C5A6300}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
 		{30A25BF1-CDE5-B644-9309-0C400C5A6300}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{30A25BF1-CDE5-B644-9309-0C400C5A6300}.Release|Any CPU.Build.0 = Release|Any CPU
+		{46219299-E514-B8FA-13A7-B9194F6B3B8A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46219299-E514-B8FA-13A7-B9194F6B3B8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46219299-E514-B8FA-13A7-B9194F6B3B8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46219299-E514-B8FA-13A7-B9194F6B3B8A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8DD4BC7E-98FD-BB06-BB8F-BA00CBAF6D54}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8DD4BC7E-98FD-BB06-BB8F-BA00CBAF6D54}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8DD4BC7E-98FD-BB06-BB8F-BA00CBAF6D54}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8DD4BC7E-98FD-BB06-BB8F-BA00CBAF6D54}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
