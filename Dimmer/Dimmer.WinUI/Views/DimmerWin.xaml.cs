@@ -1,3 +1,4 @@
+using Hqub.Lastfm.Entities;
 using Microsoft.UI.Composition.SystemBackdrops;
 using ProgressBar = Microsoft.UI.Xaml.Controls.ProgressBar;
 using Visibility = Microsoft.UI.Xaml.Visibility;
@@ -202,15 +203,56 @@ public sealed partial class DimmerWin : Window
         {
             navOptions.IsNavigationStackEnabled = false;
         }
-        Type pageType;
-        if(args.InvokedItem == SamplePage1Item)
+        Type? pageType=null;
+        if((string)args.InvokedItemContainer.Name == "AllSongsItem"!)
         {
             pageType = typeof(AllSongsListPage);
-        } else if(args.InvokedItem == SamplePage2Item)
-        {
-            pageType = typeof(SettingsPage);
         }
-
-        NavigateToPage(pageType, null);
+        if(pageType is not null)
+            NavigateToPage(pageType, null);
     }
+
+    private void nvSample_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+    {
+
+    }
+
+    private void nvSample_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+
+    }
+
+    private void nvSample_BackRequested(NavigationView sender, NavigationViewBackRequestedEventArgs args)
+    {
+        if(ContentFrame.CanGoBack)
+        {
+            ContentFrame.GoBack();
+        }
+    }
+
+    private void nvSample_Tapped_1(object sender, TappedRoutedEventArgs e)
+    {
+
+    }
+
+    private void ArtistsItem_Loaded(object sender, RoutedEventArgs e)
+    {
+        var artistsCount = MyViewModel.RealmFactory.GetRealmInstance().All<ArtistModel>().Count();
+        ArtistsLabelView.Text = $"Artists ({artistsCount})";
+    }
+
+    private void SearchAutoSuggestBox_AccessKeyInvoked(UIElement sender, AccessKeyInvokedEventArgs args)
+    {
+
+    }
+
+    private void SearchAutoSuggestBox_TextChanged(object sender, Microsoft.UI.Xaml.Controls.AutoSuggestBoxTextChangedEventArgs e)
+    {
+
+        MyViewModel.SearchToTQL(SearchTextBox.Text);
+
+       
+    }
+
+
 }

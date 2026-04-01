@@ -15,7 +15,7 @@
     mc:Ignorable="d">
 
     <ScrollViewer Background="#1e1e1e">
-    <StackPanel Margin="10,0" HorizontalAlignment="Center" Width="1000">
+    <StackPanel Margin="10,0" HorizontalAlignment="Center" >
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -89,7 +89,6 @@
 
                             <dgView:TableViewTextColumn Header="Song" Binding="{Binding SongName}"/>
                     <dgView:TableViewTextColumn Header="Artist" Binding="{Binding ArtistName}"/>
-                    <dgView:TableViewTextColumn Header="Album" Binding="{Binding AlbumName}"/>
                     <dgView:TableViewCheckBoxColumn IsReadOnly="True" Header="Was Play Completed" Binding="{Binding WasPlayCompleted}"/>
                     <dgView:TableViewTextColumn Header="Position (Seconds)" Binding="{Binding PositionInSeconds}"/>
                     <dgView:TableViewDateColumn Header="Event Date" Binding="{Binding EventDate}"/>

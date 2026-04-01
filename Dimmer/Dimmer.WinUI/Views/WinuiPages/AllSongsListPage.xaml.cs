@@ -504,7 +504,7 @@ public sealed partial class AllSongsListPage : Page
 
     private void SearchAutoSuggestBox_TextChanged(object sender, Microsoft.UI.Xaml.Controls.TextChangedEventArgs e)
     {
-        MyViewModel.SearchToTQL(SearchTextBox.Text);
+        //MyViewModel.SearchToTQL(SearchTextBox.Text);
    
         //var text = SearchTextBox.Text.ToLower();
 
@@ -1299,32 +1299,32 @@ AnimationHelper.ConnectedAnimationStyle.ScaleUp
     {
 
         var currentTQL = "my fav";
-           SearchTextBox.Text = currentTQL;
+           //SearchTextBox.Text = currentTQL;
     }
 
     private void ShowSongWithLyrics_Click(object sender, RoutedEventArgs e)
     {
 
         var currentTQL = "has lyrics";
-        SearchTextBox.Text = currentTQL;
+        //SearchTextBox.Text = currentTQL;
     }
 
     private void ShowSongWithLyrics_RightTapped(object sender, RightTappedRoutedEventArgs e)
     {
         var currentTQL = "has lyrics add " + MyViewModel.CurrentTqlQuery;
-        SearchTextBox.Text = currentTQL;
+        //SearchTextBox.Text = currentTQL;
 
     }
 
     private void ShowFavSongs_RightTapped(object sender, RightTappedRoutedEventArgs e)
     {
         var currentTQL = "my fav add " +MyViewModel.CurrentTqlQuery ;
-           SearchTextBox.Text = currentTQL;
+           //SearchTextBox.Text = currentTQL;
     }
 
     private void ShuffleSongs_Click(object sender, RoutedEventArgs e)
     {
-        SearchTextBox.Text = "random";
+        //SearchTextBox.Text = "random";
     }
 
     private void MiddlePointer_PointerReleased(object sender, PointerRoutedEventArgs e)
@@ -1359,11 +1359,11 @@ AnimationHelper.ConnectedAnimationStyle.ScaleUp
         var item = (MenuFlyoutItem)sender;
         string? field = item.CommandParameter?.ToString();
         if (field == null) return;
-        if (props.IsRightButtonPressed)
-            SearchTextBox.Text = field + " add " + MyViewModel.CurrentTqlQuery;
+        //if (props.IsRightButtonPressed)
+        //    Search/*T*/extBox.Text = field + " add " + MyViewModel.CurrentTqlQuery;
 
-        if (props.IsMiddleButtonPressed)
-            SearchTextBox.Text = "random " + field;
+        //if (props.IsMiddleButtonPressed)
+            //SearchTextBox.Text = "random " + field;
     }
     private void Page_Unloaded(object sender, RoutedEventArgs e)
     {
@@ -1431,9 +1431,30 @@ AnimationHelper.ConnectedAnimationStyle.ScaleUp
         SortByWithTQL.Flyout.ShowAt(sender);
     }
 
-    private void MySongsTableView_CellDoubleTapped(object sender , TableViewCellDoubleTappedEventArgs e)
+    private async void MySongsTableView_CellDoubleTapped(object sender , TableViewCellDoubleTappedEventArgs e)
     {
+        FrameworkElement element = (e.Cell as FrameworkElement)!;
+        SongModelView? song = null;
+        if (element == null)
+            return;
 
+        if (e.Item is SongModelView currentSong)
+        {
+            song = currentSong;
+        }
+
+        var songs = MySongsTableView.Items;
+
+
+
+        if (song != null)
+        {
+            // Default behavior: Add to play next (non-interrupting)
+            Debug.WriteLine($"Double-tapped on song: {song.Title}");
+            await MyViewModel.PlaySongAsync(song,
+                    songs: MyViewModel.SearchResults);
+
+        }
     }
 
 
