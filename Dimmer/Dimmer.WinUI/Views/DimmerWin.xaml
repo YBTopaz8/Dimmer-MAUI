@@ -18,28 +18,80 @@
     mc:Ignorable="d">
 
 
+    <NavigationView x:Name="nvSample"
+    IsSettingsVisible="True"
+    IsBackButtonVisible="Visible"
+    IsBackEnabled="True"
+    SelectionChanged="NavigationView_SelectionChanged"
+    Header="Sample Page 1" ItemInvoked="nvSample_ItemInvoked"
+    AlwaysShowHeader="True"
+    PaneTitle="Pane Title"
+    PaneDisplayMode="Left"
+    ExpandedModeThresholdWidth="500"
+    SelectionFollowsFocus="Disabled"
+    IsTabStop="False">
+
+        <NavigationView.MenuItems>
+            
+            <NavigationViewItem Content="Menu Item1" Tag="SamplePage1" x:Name="SamplePage1Item">
+                <NavigationViewItem.Icon>
+                    <SymbolIcon Symbol="Play" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+            
+            <NavigationViewItemHeader Content="Actions"/>
+            
+            <NavigationViewItem Content="Menu Item2" Tag="SamplePage2" x:Name="SamplePage2Item" SelectsOnInvoked="True">
+                <NavigationViewItem.Icon>
+                    <SymbolIcon Symbol="Save" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+           
+            <NavigationViewItem Content="Menu Item3" Tag="SamplePage3" x:Name="SamplePage3Item">
+                <NavigationViewItem.Icon>
+                    <SymbolIcon Symbol="Refresh" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+        
+        </NavigationView.MenuItems>
+
+        <NavigationView.PaneCustomContent>
+            <HyperlinkButton x:Name="PaneHyperlink" Content="More Info" Margin="12,0" Visibility="Collapsed" />
+        </NavigationView.PaneCustomContent>
+
+        <NavigationView.AutoSuggestBox>
+            <AutoSuggestBox QueryIcon="Find" AutomationProperties.Name="Search" />
+        </NavigationView.AutoSuggestBox>
+
+        <NavigationView.PaneFooter>
+            <StackPanel x:Name="FooterStackPanel" Orientation="Vertical" Visibility="Collapsed">
+                <NavigationViewItem Icon="Download" AutomationProperties.Name="download" />
+                <NavigationViewItem Icon="Favorite" AutomationProperties.Name="favorite" />
+            </StackPanel>
+        </NavigationView.PaneFooter>
 
 
-    <Grid x:Name="MainGrid" Background="Transparent"
+
+        <Grid x:Name="MainGrid" Background="Transparent"
           KeyDown="MainGrid_KeyDown">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="auto" />
-            <RowDefinition Height="auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="auto"/>
-            </Grid.ColumnDefinitions>
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="auto"/>
+                </Grid.ColumnDefinitions>
 
-            <StackPanel Grid.Column="0" Margin="5" Loaded="DimmerStatusPanel_Loaded"
+                <StackPanel Grid.Column="0" Margin="5" Loaded="DimmerStatusPanel_Loaded"
                         x:Name="DimmerStatusPanel"
      Visibility="{x:Bind MyViewModel.DimmerProgressBarView.Visibility, Mode=OneWay}">
 
-               
-                <ProgressBar IsIndeterminate="True"
+
+                    <ProgressBar IsIndeterminate="True"
                          
                          Value="30"
      Visibility="{x:Bind MyViewModel.DimmerProgressBarView.Visibility, Mode=OneWay}"
@@ -48,7 +100,7 @@
                          x:Name="DimmerProgressBar"
                          />
 
-                <TextBlock  HorizontalAlignment="Center"
+                    <TextBlock  HorizontalAlignment="Center"
                        x:Name="DimmerStatusTextBlock"
      Visibility="{x:Bind MyViewModel.DimmerProgressBarView.Visibility, Mode=OneWay}"
      Text="{x:Bind MyViewModel.LatestAppLog.Message, Mode=OneWay}"
@@ -56,24 +108,28 @@
 
 
 
-            </StackPanel>
-            <Button Grid.Column="1"  Click="ClearStatus_Click" 
+                </StackPanel>
+                <Button Grid.Column="1"  Click="ClearStatus_Click" 
                     Background="Transparent"
                     x:Name="ClearStatus" HorizontalAlignment="Right">
-                <SymbolIcon Symbol="Clear" Height="15" Width="15" />
-            </Button>
-        </Grid>
-        <customViews:MediaPlaybackSection
+                    <SymbolIcon Symbol="Clear" Height="15" Width="15" />
+                </Button>
+            </Grid>
+            <customViews:MediaPlaybackSection
            Loaded="TopMediaControlSection_Loaded"
             x:Name="TopMediaControlSection" Grid.Row="1" />
 
-        <Frame
+            <Frame
             x:Name="ContentFrame"
             Grid.Row="2"
             x:FieldModifier="Public" />
-        
-        <localViews:SmokeViewQueueGrid x:Name="SmokeGrid" Visibility="Collapsed" Grid.RowSpan="3" DismissRequested="SmokeGrid_DismissRequested"
+
+            <localViews:SmokeViewQueueGrid x:Name="SmokeGrid" Visibility="Collapsed" Grid.RowSpan="3" DismissRequested="SmokeGrid_DismissRequested"
                             Loaded="SmokeGrid_Loaded"/>
 
-    </Grid>
+        </Grid>
+
+
+    </NavigationView>
+
 </Window>

@@ -420,7 +420,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     });
                 }
 
-                await OnAppOpening();
+                await OnAppOpeningAsync();
 
                 await HeavierBackGroundLoadings(FolderPaths);
 
@@ -1023,7 +1023,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     [ObservableProperty]
     public partial bool OpenMediaUIOnNotificationTap { get;  set; }
-    public async Task OnAppOpening()
+    public async Task OnAppOpeningAsync()
     {
         try
         {

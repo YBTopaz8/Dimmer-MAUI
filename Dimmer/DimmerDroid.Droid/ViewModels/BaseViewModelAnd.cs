@@ -585,4 +585,16 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     {
         //PreviewTimeLabel = (position).ToString("mm:ss");
     }
+
+    [RelayCommand]
+    void DragPreview(double position)
+    {
+
+    }
+
+    [RelayCommand]
+    void UserChangedTrackPosition(double position)
+    {
+
+    }
 }

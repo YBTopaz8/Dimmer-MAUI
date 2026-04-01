@@ -107,7 +107,7 @@
                      >
                             <dx:DXSlider.Behaviors>
                                 <localBehv:SliderDragCompletedBehavior
-                    DragPreviewCommand="{Binding DragPreviewCommand}"
+                    DragPreviewCommand="{Binding DragPreviewCommand}" 
                     UserValueChangedCommand="{Binding UserChangedTrackPositionCommand}"/>
 
                             </dx:DXSlider.Behaviors>

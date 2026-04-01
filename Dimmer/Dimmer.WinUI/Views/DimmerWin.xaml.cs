@@ -192,4 +192,25 @@ public sealed partial class DimmerWin : Window
         SmokeGrid.Visibility = Visibility.Collapsed;
     }
 
+
+
+    private void nvSample_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
+    {
+        FrameNavigationOptions navOptions = new FrameNavigationOptions();
+        navOptions.TransitionInfoOverride = args.RecommendedNavigationTransitionInfo;
+        if(sender.PaneDisplayMode == NavigationViewPaneDisplayMode.Top)
+        {
+            navOptions.IsNavigationStackEnabled = false;
+        }
+        Type pageType;
+        if(args.InvokedItem == SamplePage1Item)
+        {
+            pageType = typeof(AllSongsListPage);
+        } else if(args.InvokedItem == SamplePage2Item)
+        {
+            pageType = typeof(SettingsPage);
+        }
+
+        NavigateToPage(pageType, null);
+    }
 }
