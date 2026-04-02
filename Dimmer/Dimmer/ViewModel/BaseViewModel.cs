@@ -420,7 +420,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     });
                 }
 
-                await OnAppOpening();
+                await OnAppOpeningAsync();
 
                 await HeavierBackGroundLoadings(FolderPaths);
 
@@ -1023,7 +1023,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     [ObservableProperty]
     public partial bool OpenMediaUIOnNotificationTap { get;  set; }
-    public async Task OnAppOpening()
+    public async Task OnAppOpeningAsync()
     {
         try
         {
@@ -1619,7 +1619,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial string AppTitle { get; set; } = "Dimmer";
 
-    public static string CurrentAppVersion = "1.8.11";
+    public static string CurrentAppVersion = "1.8.12";
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]

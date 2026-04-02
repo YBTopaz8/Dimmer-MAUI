@@ -18,28 +18,102 @@
     mc:Ignorable="d">
 
 
+    <NavigationView x:Name="nvSample"
+    IsSettingsVisible="False"
+    IsBackButtonVisible="Visible"
+    IsBackEnabled="True" Tapped="nvSample_Tapped"
+    BackRequested="nvSample_BackRequested"                    SelectionChanged="nvSample_SelectionChanged"
+    ItemInvoked="nvSample_ItemInvoked" 
+    AlwaysShowHeader="True"
+    PaneTitle="Dimmer"
+    PaneDisplayMode="Left"
+    ExpandedModeThresholdWidth="500"
+    SelectionFollowsFocus="Disabled"
+    IsTabStop="False">
+        <NavigationView.Header>
+            <customViews:MediaPlaybackSection
+Loaded="TopMediaControlSection_Loaded"
+ x:Name="TopMediaControlSection" Grid.Row="1" />
 
 
-    <Grid x:Name="MainGrid" Background="Transparent"
+        </NavigationView.Header>
+
+        <NavigationView.MenuItems>
+
+            <NavigationViewItem Content="All Songs" Tag="AllSongsItem" x:Name="AllSongsItem">
+                <NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xEC4F;" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+
+            <NavigationViewItem Content="View Queue" Tag="ViewQueueItem" x:Name="ViewQueueItem">
+                <NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xEA41;" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+            
+            <NavigationViewItemHeader Content="Actions"/>
+
+            <NavigationViewItem 
+                                Tag="SamplePage2" x:Name="ArtistsItem" SelectsOnInvoked="True">
+                <NavigationViewItem.Content>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock 
+                                Loaded="ArtistsItem_Loaded" x:Name="ArtistsLabelView" Text="Artists"/>
+                        
+                        </StackPanel>
+                </NavigationViewItem.Content>
+                <NavigationViewItem.Icon>
+                    <SymbolIcon Symbol="Contact" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+
+        </NavigationView.MenuItems>
+
+        
+        
+        <NavigationView.AutoSuggestBox>
+           
+            <AutoSuggestBox
+                            x:Name="SearchTextBox"
+                            Width="435"
+                            AccessKey="F" 
+                            AccessKeyInvoked="SearchAutoSuggestBox_AccessKeyInvoked"
+                            BorderThickness="2"
+                            KeyboardAcceleratorPlacementMode="Auto"
+                            PlaceholderText="Search with TQL..."
+                            Text="{x:Bind MyViewModel.CurrentTqlQuery, Mode=OneWay}"
+                            TextChanged="SearchAutoSuggestBox_TextChanged" />
+        </NavigationView.AutoSuggestBox>
+
+        <NavigationView.PaneFooter>
+            <StackPanel x:Name="FooterStackPanel" Orientation="Vertical" Visibility="Visible">
+                </StackPanel>
+        </NavigationView.PaneFooter>
+        
+
+
+
+        <Grid x:Name="MainGrid" Background="Transparent"
           KeyDown="MainGrid_KeyDown">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="auto" />
-            <RowDefinition Height="auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="auto"/>
-            </Grid.ColumnDefinitions>
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="auto"/>
+                </Grid.ColumnDefinitions>
 
-            <StackPanel Grid.Column="0" Margin="5" Loaded="DimmerStatusPanel_Loaded"
+                <StackPanel Grid.Column="0" Margin="5" Loaded="DimmerStatusPanel_Loaded"
                         x:Name="DimmerStatusPanel"
      Visibility="{x:Bind MyViewModel.DimmerProgressBarView.Visibility, Mode=OneWay}">
 
-               
-                <ProgressBar IsIndeterminate="True"
+
+                    <ProgressBar IsIndeterminate="True"
                          
                          Value="30"
      Visibility="{x:Bind MyViewModel.DimmerProgressBarView.Visibility, Mode=OneWay}"
@@ -48,7 +122,7 @@
                          x:Name="DimmerProgressBar"
                          />
 
-                <TextBlock  HorizontalAlignment="Center"
+                    <TextBlock  HorizontalAlignment="Center"
                        x:Name="DimmerStatusTextBlock"
      Visibility="{x:Bind MyViewModel.DimmerProgressBarView.Visibility, Mode=OneWay}"
      Text="{x:Bind MyViewModel.LatestAppLog.Message, Mode=OneWay}"
@@ -56,24 +130,26 @@
 
 
 
-            </StackPanel>
-            <Button Grid.Column="1"  Click="ClearStatus_Click" 
+                </StackPanel>
+                <Button Grid.Column="1"  Click="ClearStatus_Click" 
                     Background="Transparent"
                     x:Name="ClearStatus" HorizontalAlignment="Right">
-                <SymbolIcon Symbol="Clear" Height="15" Width="15" />
-            </Button>
-        </Grid>
-        <customViews:MediaPlaybackSection
-           Loaded="TopMediaControlSection_Loaded"
-            x:Name="TopMediaControlSection" Grid.Row="1" />
+                    <SymbolIcon Symbol="Clear" Height="15" Width="15" />
+                </Button>
+            </Grid>
+           
 
-        <Frame
+            <Frame
             x:Name="ContentFrame"
             Grid.Row="2"
             x:FieldModifier="Public" />
-        
-        <localViews:SmokeViewQueueGrid x:Name="SmokeGrid" Visibility="Collapsed" Grid.RowSpan="3" DismissRequested="SmokeGrid_DismissRequested"
+
+            <localViews:SmokeViewQueueGrid x:Name="SmokeGrid" Visibility="Collapsed" Grid.RowSpan="3" DismissRequested="SmokeGrid_DismissRequested"
                             Loaded="SmokeGrid_Loaded"/>
 
-    </Grid>
+        </Grid>
+
+
+    </NavigationView>
+
 </Window>

@@ -183,7 +183,22 @@ public partial class MainActivity : MauiAppCompatActivity
         _onBackInvokedCallback = new BackInvokedCallback(() =>
         {
             if(Shell.Current.CurrentPage.GetType() != typeof(HomePage))
-                Shell.Current.GoToAsync("..");
+                Shell.Current.GoToAsync("..",true);
+            else
+            {
+
+                // create a materialDialog askig to swipe again in order to confirm exit, to avoid accidental exits
+                new MaterialAlertDialogBuilder(this)?
+                    .SetTitle("Exit App")?
+                    .SetMessage("Close Application?")?
+                    .SetPositiveButton("Exit", async (s, e) =>
+                    {
+                            await MyViewModel.OnAppClosingAsync();
+                        FinishAffinity();
+                    })
+                    .SetNegativeButton("Cancel", (s, e) => { /* Do nothing */ })
+                    .Show();
+            }
         });
 
         // Note: Ensure _onBackInvokedCallback is defined as 'object' or inside this scope 

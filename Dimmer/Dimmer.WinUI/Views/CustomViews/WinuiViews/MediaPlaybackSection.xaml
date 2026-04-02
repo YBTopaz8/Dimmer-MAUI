@@ -107,7 +107,6 @@
                             </StackPanel>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal"
-                                    Visibility="{x:Bind MyViewModel.CurrentPlayingSongView.TitleDurationKey, Converter={StaticResource IsObjNullToVisInverseConverter}}"
                                     Spacing="10">
                             <Button
                                 x:Name="ViewNowPlayingSong"

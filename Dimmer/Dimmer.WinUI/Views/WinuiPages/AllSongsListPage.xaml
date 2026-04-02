@@ -161,16 +161,6 @@
                         Spacing="10">
 
 
-                        <TextBox
-                            x:Name="SearchTextBox"
-                            Width="435"
-                            AccessKey="F"
-                            AccessKeyInvoked="SearchAutoSuggestBox_AccessKeyInvoked"
-                            BorderThickness="2"
-                            KeyboardAcceleratorPlacementMode="Auto"
-                            PlaceholderText="Search with TQL..."
-                            Text="{x:Bind MyViewModel.CurrentTqlQuery, Mode=OneWay}"
-                            TextChanged="SearchAutoSuggestBox_TextChanged" />
                        
 
                         <TextBlock VerticalAlignment="Center" Text="{x:Bind MyViewModel.SearchResults.Count, Mode=OneWay}" />
