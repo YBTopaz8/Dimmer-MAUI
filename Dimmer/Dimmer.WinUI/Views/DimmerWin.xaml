@@ -25,7 +25,7 @@
     BackRequested="nvSample_BackRequested"                    SelectionChanged="nvSample_SelectionChanged"
     ItemInvoked="nvSample_ItemInvoked" 
     AlwaysShowHeader="True"
-    PaneTitle="Pane Title"
+    PaneTitle="Dimmer"
     PaneDisplayMode="Left"
     ExpandedModeThresholdWidth="500"
     SelectionFollowsFocus="Disabled"
