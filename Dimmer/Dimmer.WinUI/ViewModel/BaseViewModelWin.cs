@@ -1460,7 +1460,18 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         }
 
     }
-
+    public void ViewQueueFromAllSongsPageGivenPage()
+    {
+        if(CurrentWinUIPage.GetType() == typeof(AllSongsListPage))
+        {
+            var allSongsPage = CurrentWinUIPage as AllSongsListPage;    
+            if(allSongsPage is not null)
+            {
+                allSongsPage.ViewQueue_Click(this,new RoutedEventArgs());
+              
+            }
+        }
+    }
     internal void ProcessNowPlayingQueueShowing(FrameworkElement viewQueueBtn)
     {
         NowPlayingQueueCallerObject = viewQueueBtn;

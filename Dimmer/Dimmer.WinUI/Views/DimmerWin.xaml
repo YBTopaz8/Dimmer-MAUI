@@ -31,17 +31,17 @@
     ExpandedModeThresholdWidth="500"
     SelectionFollowsFocus="Disabled"
     IsTabStop="False">
-        <NavigationView.Header>
-            <customViews:MediaPlaybackSection
-Loaded="TopMediaControlSection_Loaded"
- x:Name="TopMediaControlSection" Grid.Row="1" />
-
-
-        </NavigationView.Header>
+       
 
         <NavigationView.MenuItems>
 
-            <NavigationViewItem Padding="10" Content="All Songs" Tag="AllSongsItem" x:Name="AllSongsItem">
+            <NavigationViewItem Padding="10" Tag="AllSongsItem" x:Name="AllSongsItem">
+                <NavigationViewItem.Content>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="All Songs"/>
+                        <TextBlock Text="{x:Bind MyViewModel.SearchResults.Count,Mode=OneWay}"/>
+                    </StackPanel>
+                </NavigationViewItem.Content>
                 <NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xEC4F;" />
                 </NavigationViewItem.Icon>
@@ -191,8 +191,9 @@ Loaded="TopMediaControlSection_Loaded"
 
                             <Button Grid.Column="2" Command="{x:Bind MyViewModel.PlayPauseToggleCommand, Mode=OneWay}"
                             x:Name="PlayPauseBtn" Loaded="PlayPauseBtn_Loaded"      
-                                    >
-                            
+                                     >
+                                
+
                             </Button>
 
                             <Button Grid.Column="3" Command="{x:Bind MyViewModel.NextTrackCommand, Mode=OneWay}">
