@@ -1,6 +1,7 @@
 using Dimmer.WinUI.Views.WinuiPages.Artist;
 using Hqub.Lastfm.Entities;
 using Microsoft.UI.Composition.SystemBackdrops;
+using Border = Microsoft.UI.Xaml.Controls.Border;
 using ProgressBar = Microsoft.UI.Xaml.Controls.ProgressBar;
 using Visibility = Microsoft.UI.Xaml.Visibility;
 using Window = Microsoft.UI.Xaml.Window;
@@ -20,7 +21,7 @@ public sealed partial class DimmerWin : Window
     public DimmerWin()
     {
         InitializeComponent();
-        MyViewModel = IPlatformApplication.Current?.Services.GetService<BaseViewModelWin>();
+        MyViewModel = IPlatformApplication.Current?.Services.GetService<BaseViewModelWin>()!;
         WinUIWindowsMgr = IPlatformApplication.Current?.Services.GetService<IWinUIWindowMgrService>();
         MyViewModel?.MainWindow = this;
         MainGrid.DataContext = MyViewModel;
@@ -194,7 +195,7 @@ public sealed partial class DimmerWin : Window
         }
         if((string)args.InvokedItemContainer.Name == "ArtistsItem"!)
         {
-            pageType = typeof(AllArtistsPage);
+            pageType = typeof(ArtistsOverViewPage);
         }
         if((string)args.InvokedItemContainer.Name == "ViewQueueItem"!)
         {
@@ -289,26 +290,8 @@ public sealed partial class DimmerWin : Window
 
     private void PlayPauseBtn_Loaded(object sender, RoutedEventArgs e)
     {
-        Button playPauseBtn = (Button)sender;   
-        MyViewModel.WhenPropertyChange(nameof(MyViewModel.IsDimmerPlaying), v=>MyViewModel.IsDimmerPlaying)
-            
-            .ObserveOn(RxSchedulers.UI)
-            .Subscribe(IsPlaying =>
-            {
-                if (IsPlaying)
-                {
-                    Symbol pauseSymbol = new SymbolIcon().Symbol = Symbol.Pause;
-                    playPauseBtn.Content = pauseSymbol;
-                    var darkSlateBlueBrush = new SolidColorBrush(Colors.DarkSlateBlue);
-                    playPauseBtn.Background = darkSlateBlueBrush;
-                }
-                else
-                {
-                    Symbol playSymbol = new SymbolIcon().Symbol = Symbol.Play;
-                    playPauseBtn.Content = playSymbol;
-                    playPauseBtn.Background = new SolidColorBrush(Colors.Transparent);
-                }
-            });
+        
+
 
     }
 
@@ -321,5 +304,30 @@ public sealed partial class DimmerWin : Window
     private void nvSample_PaneOpened(NavigationView sender, object args)
     {
         FooterGrid.Visibility = Visibility.Visible;
+    }
+
+    private static void ApplyCustomShadow(Border card)
+    {
+        // Get the compositor
+        var compositor = ElementCompositionPreview.GetElementVisual(card).Compositor;
+
+        // Create the drop shadow
+        var dropShadow = compositor.CreateDropShadow();
+        dropShadow.Color = Colors.Black;
+        dropShadow.BlurRadius = 12.0f;
+        dropShadow.Offset = new System.Numerics.Vector3(5, 5, 0);
+
+        // Create a visual for the card
+        var visual = compositor.CreateSpriteVisual();
+        visual.Size = new System.Numerics.Vector2((float)(card.Width), (float)card.Height); // Match card size
+        visual.Shadow = dropShadow;
+
+        // Apply it to the card
+        ElementCompositionPreview.SetElementChildVisual(card, visual);
+    }
+
+    private void FooterGrid_Loaded(object sender, RoutedEventArgs e)
+    {
+        ApplyCustomShadow(MiniPlayBorder);
     }
 }

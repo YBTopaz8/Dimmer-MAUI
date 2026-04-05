@@ -29,7 +29,7 @@
        
             <Grid  Margin="10,0,0,80" Padding="5,0" BackgroundColor="Transparent" VerticalOptions="End"  RowDefinitions="auto,auto"  >
             <dx:DXStackLayout Grid.Row="0">
-                <dx:Chip Text="{Binding CurrentLine}"
+                <dx:Chip Text="{Binding CurrentLine.Text}"
                          HorizontalOptions="Center"
                          >
                     <dx:Chip.Triggers>

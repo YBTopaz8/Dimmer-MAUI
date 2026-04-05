@@ -14,9 +14,10 @@
     xmlns:localViews="using:Dimmer.WinUI.Views.CustomViews.WinuiViews"
     Closed="DimmerWindowClosed"
     SizeChanged="Window_SizeChanged"
-    
+    xmlns:stateTriggers="using:Dimmer.WinUI.Utils.StateTriggers"
     mc:Ignorable="d">
 
+    
 
     <NavigationView x:Name="nvSample"
     IsSettingsVisible="False"
@@ -31,15 +32,22 @@
     ExpandedModeThresholdWidth="500"
     SelectionFollowsFocus="Disabled"
     IsTabStop="False">
-       
+        
 
         <NavigationView.MenuItems>
 
             <NavigationViewItem Padding="10" Tag="AllSongsItem" x:Name="AllSongsItem">
                 <NavigationViewItem.Content>
-                    <StackPanel Orientation="Horizontal">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
                         <TextBlock Text="All Songs"/>
+
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="("/>
+                        
                         <TextBlock Text="{x:Bind MyViewModel.SearchResults.Count,Mode=OneWay}"/>
+                        <TextBlock Text=" Songs)"/>
+
+                        </StackPanel>
                     </StackPanel>
                 </NavigationViewItem.Content>
                 <NavigationViewItem.Icon>
@@ -87,17 +95,21 @@
                             TextChanged="SearchAutoSuggestBox_TextChanged" />
         </NavigationView.AutoSuggestBox>
 
+        <!--Footer Part-->
         <NavigationView.PaneFooter>
-<Grid Padding="5" RowSpacing="5" x:Name="FooterGrid">
+       
+<Grid CornerRadius="15" Padding="10" RowSpacing="5" x:Name="FooterGrid" ColumnSpacing="5" Loaded="FooterGrid_Loaded"
+      Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+           
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="100"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
                 </Grid.RowDefinitions>
-                <Border CornerRadius="20" Height="120">
+                <Border CornerRadius="20" Height="100">
                     
                     <Image HorizontalAlignment="Left"
          Height="120">
@@ -115,8 +127,9 @@
                 <Button HorizontalAlignment="Right" Background="Transparent" Content="{x:Bind MyViewModel.CurrentPlayingSongView.AlbumName, Mode=OneWay}" FontSize="10"/>
               
             </StackPanel>
-    
-                <Border Grid.Row="1" Grid.ColumnSpan="2">
+
+                <Border x:Name="MiniPlayBorder"  Grid.Row="1" Grid.ColumnSpan="2"
+      >
                     <StackPanel>
 
                         <Grid >
@@ -141,7 +154,9 @@
                                 </Button>
                             </StackPanel>
                         </Grid>
+              
                         <Slider Minimum="0" Maximum="100" Value="{x:Bind MyViewModel.CurrentTrackPositionPercentage,Mode=OneWay}"/>
+            
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -191,9 +206,14 @@
 
                             <Button Grid.Column="2" Command="{x:Bind MyViewModel.PlayPauseToggleCommand, Mode=OneWay}"
                             x:Name="PlayPauseBtn" Loaded="PlayPauseBtn_Loaded"      
-                                     >
-                                
+                                     Visibility="{x:Bind MyViewModel.IsDimmerPlayingVisibility, Mode=OneWay}"  >
+                                <StackPanel>
+                                    <SymbolIcon x:Name="PlayIcon" Symbol="Play" />
+                                    <SymbolIcon x:Name="PauseIcon" Symbol="Pause"
+                                                Visibility="{x:Bind MyViewModel.IsDimmerPlayingVisibilityInv, Mode=OneWay}"/>
+                                </StackPanel>
 
+                                
                             </Button>
 
                             <Button Grid.Column="3" Command="{x:Bind MyViewModel.NextTrackCommand, Mode=OneWay}">
@@ -258,11 +278,8 @@
 
 
                 </StackPanel>
-                <Button Grid.Column="1"  Click="ClearStatus_Click" 
-                    Background="Transparent"
-                    x:Name="ClearStatus" HorizontalAlignment="Right">
-                    
-                </Button>
+               
+                
             </Grid>
            
 

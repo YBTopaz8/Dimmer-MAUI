@@ -320,8 +320,11 @@
                                     </DataTrigger>
                                 </Button.Triggers>
 
-                            </Button>
+                            </Button >
 
+                              
+
+                                
                         </VerticalStackLayout>
 
 

@@ -7,7 +7,6 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
     xmlns:convertersWinUI="using:Dimmer.WinUI.Utils.Converters"
-    
     xmlns:dgView="using:WinUI.TableView"
     xmlns:dimmSearch="clr-namespace:Dimmer.Data.ModelView.DimmerSearch;assembly=Dimmer"
     xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
@@ -18,72 +17,79 @@
     xmlns:modelsDb="clr-namespace:Dimmer.Data.Models;assembly=Dimmer"
     xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
     xmlns:queryBuilder="queries"
+    
     xmlns:tql="clr-namespace:Dimmer.DimmerSearch.TQL;assembly=Dimmer"
     xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
     mc:Ignorable="d">
+    
     <Page.Resources>
-        <ResourceDictionary>
+        <UniformGridLayout x:Key="UniformGridLayout2" MinItemWidth="180" MinItemHeight="160"
+                       MinRowSpacing="12" MinColumnSpacing="12"/>
 
-            <DataTemplate x:Key="LinedFlowLayoutItemTemplate">
-                <ItemContainer AutomationProperties.Name="{Binding Name}">
-                    <Grid>
-                        <Image Stretch="UniformToFill" HorizontalAlignment="Center" 
-                               Height="110" Opacity="0.7"
-                               VerticalAlignment="Center" Width="130">
-                            <Image.Source>
-                                <BitmapImage UriSource="{Binding ImagePath}"/>
-                            </Image.Source>
-                             
-                        </Image>
-                        <Grid>
-                            <Border VerticalAlignment="Bottom" Height="40"  Background="DarkSlateBlue" Opacity=".75">
+        <DataTemplate x:Key="ArtistDT">
+            <Grid>
+
+                <StackPanel Background="#1e1e1e" CornerRadius="12" Padding="5">
+                    <Image Height="105" Width="105"
+                               >
+                        <Image.Source>
+                            <BitmapImage UriSource="{Binding ImagePath}"/>
+                        </Image.Source>
+                    </Image>
+                    <TextBlock Text="{Binding Name}" HorizontalAlignment="Center"/>
+
+                    <StackPanel
+                        
+                        
+                        Spacing="5" Orientation="Horizontal" HorizontalAlignment="Center">
+                        <ToolTipService.ToolTip >
+                            <StackPanel Orientation="Horizontal" Spacing="2">
+                                <TextBlock Text="{Binding TotalSongsByArtist}" FontWeight="Bold"/>
+                                <TextBlock Text="Songs"/>
+                                <TextBlock Text="|"/> 
+                                <TextBlock Text="{Binding TotalAlbumsByArtist}" FontWeight="Bold"/>
+                                <TextBlock Text="Albums"/>
+
+                              
                                 
-                            </Border>
-                            <StackPanel Orientation="Vertical" Height="40" Padding="5,1,5,1" VerticalAlignment="Bottom">
-                            <TextBlock Text="{Binding Name}" Foreground="White"/>
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="{Binding TotalCompletedPlays}" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="White"/>
-                                <TextBlock Text=" Plays" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="White"/>
+
                             </StackPanel>
+                        </ToolTipService.ToolTip>
+                        
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"
+                                    >
+                            <TextBlock Text="{Binding TotalSongsByArtist}" FontWeight="Bold"/>
+                                <SymbolIcon Symbol="Audio" Height="20" Width="20"/>
+
                         </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"
+                                    >
+                            <TextBlock Text="{Binding TotalAlbumsByArtist}" FontWeight="Bold"/>
+                                <FontIcon Glyph="&#xE93C;" Height="20" Width="20"/>
 
-                        </Grid>
-                    </Grid>
-                </ItemContainer>
-            </DataTemplate>
-        </ResourceDictionary>
+                        </StackPanel>
+                       
+                        
+
+                    </StackPanel>
+                </StackPanel>
+
+            </Grid>
+        </DataTemplate>
+        
     </Page.Resources>
-    <ScrollView>
-        <StackPanel>
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10">
-                <TextBlock Text="{x:Bind MyViewModel.ArtistsCollection.Count}"/>
-                <TextBlock Text="Artists"/>
-            </StackPanel>
 
-
+    <Grid  CornerRadius="10" Margin="5,2">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
             
-                <GridView HorizontalAlignment="Left" ItemsSource="{x:Bind MyViewModel.ArtistsCollection, Mode=OneWay}"
-                     ItemTemplate="{StaticResource LinedFlowLayoutItemTemplate}" 
-    x:Name="StyledGrid"
-                          >
+        <ItemsRepeater ItemsSource="{x:Bind MyViewModel.ArtistsCollection, Mode=OneWay}"
+                       Layout="{StaticResource UniformGridLayout2}" Tapped="ArtistsItemsRepeater_Tapped" x:Name="ArtistsItemsRepeater"
+                       ItemTemplate="{StaticResource ArtistDT}">
 
-                    <GridView.ItemContainerStyle>
-                        <Style TargetType="GridViewItem" BasedOn="{StaticResource DefaultGridViewItemStyle}">
-                            <Setter Property="Margin" Value="5, 5, 5, 5"/>
-                        </Style>
-                    </GridView.ItemContainerStyle>
+            </ItemsRepeater>
+        </ScrollViewer>
 
-                    <!-- An extra property also needs to be added to the GridView's ItemsWrapGrid.
-    The following sets the maximum # of items to show before wrapping.-->
-                    <GridView.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <ItemsWrapGrid x:Name="MaxItemsWrapGrid"
-                           MaximumRowsOrColumns="15" 
-                           Orientation="Horizontal"/>
-                        </ItemsPanelTemplate>
-                    </GridView.ItemsPanel>
-                </GridView>
+        
+    </Grid>
 
-        </StackPanel>
-    </ScrollView>
 </Page>

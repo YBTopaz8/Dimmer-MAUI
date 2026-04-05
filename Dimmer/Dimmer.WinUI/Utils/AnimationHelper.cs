@@ -17,7 +17,8 @@ public static class AnimationHelper
     public const string Key_ListToDetail = "ListToDetailAnimation";
     public const string Key_ToSingleDownloadedLyrics = "ToSingleDownloadedLyrics";
     public const string Key_ArtistToSong = "ArtistToSongPage";
-    public const string Key_AlbumToArtist = "AlbumPageToArtistPage";
+    public const string Key_AlbumPageToArtistPage = "AlbumPageToArtistPage";
+    public const string Key_ArtistOnly = "ArtistOnly";
     public const string Key_SongDetailToArtist = "SongDetailPageToArtistPage";
     public const string Key_BackFromSongDetailPage = "BackFromSongDetailPage";
     public const string Key_ArtistToAlbum = "ArtistPageToAlbumPage";
@@ -38,7 +39,7 @@ public static class AnimationHelper
 
     public static void Prepare(string key, FrameworkElement? source,
                                ConnectedAnimationStyle style = ConnectedAnimationStyle.GravitySwing,
-                               double duration = 500)
+                               double duration = 500, bool disableGravity = false)
     {
         if (source == null) return;
 
@@ -63,34 +64,66 @@ public static class AnimationHelper
             Prepare(key, child, style);
         }
     }
-
-    public static void AddHoverImplicitAnimations(UIElement element)
+    public static void TryStart(UIElement destination,
+                                IEnumerable<UIElement>? coordinatedElements = null,
+                                params string[] potentialKeys)
     {
-        var visual = ElementCompositionPreview.GetElementVisual(element);
-        var compositor = visual.Compositor;
+        destination.DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, () =>
+        {
+            var service = ConnectedAnimationService.GetForCurrentView();
+            ConnectedAnimation? animation = null;
 
-        // Create implicit animation collection
-        var implicitAnimations = compositor.CreateImplicitAnimationCollection();
+            foreach (var key in potentialKeys)
+            {
+                animation = service.GetAnimation(key);
+                if (animation != null) break;
+            }
 
-        // Scale animation
-        var scaleAnimation = compositor.CreateVector3KeyFrameAnimation();
-        scaleAnimation.Target = "Scale";
-        scaleAnimation.InsertExpressionKeyFrame(1.0f, "this.FinalValue");
-        scaleAnimation.Duration = TimeSpan.FromMilliseconds(300);
+            if (animation == null)
+            {
 
-        // Offset animation
-        var offsetAnimation = compositor.CreateVector3KeyFrameAnimation();
-        offsetAnimation.Target = "Offset";
-        offsetAnimation.InsertExpressionKeyFrame(1.0f, "this.FinalValue");
-        offsetAnimation.Duration = TimeSpan.FromMilliseconds(300);
+                return;
+            }
+            var style = animation.GetAnimationStyle();
+            var duration = animation.GetDuration();
 
-        // Apply to properties
-        implicitAnimations["Scale"] = scaleAnimation;
-        implicitAnimations["Offset"] = offsetAnimation;
+            // Configure based on style
+            animation.Configuration = CreateConfiguration(style);
 
-        visual.ImplicitAnimations = implicitAnimations;
+            destination.Opacity = 1;
+            destination.Visibility = Visibility.Visible;
+
+            if (coordinatedElements != null)
+                animation.TryStart(destination, coordinatedElements);
+            else
+                animation.TryStart(destination);
+        });
     }
+    private static ConnectedAnimationConfiguration? CreateConfiguration(ConnectedAnimationStyle style)
+    {
+        switch (style)
+        {
+            case ConnectedAnimationStyle.GravityBounce:
+                return new BasicConnectedAnimationConfiguration();
 
+            case ConnectedAnimationStyle.DirectTransport:
+                return new DirectConnectedAnimationConfiguration();
+
+            case ConnectedAnimationStyle.CrossFadeOnly:
+                return null; // Basic fade
+
+            case ConnectedAnimationStyle.ScaleUp:
+            case ConnectedAnimationStyle.ScaleDown:
+                // FIX: Use Direct for pure scale without gravity
+                return new DirectConnectedAnimationConfiguration();
+
+            default: // GravitySwing
+                return new GravityConnectedAnimationConfiguration
+                {
+                    IsShadowEnabled = true
+                };
+        }
+    }
     /// <summary>
     /// Finds a container in a List/TableView, finds a named element inside it, and prepares the animation.
     /// </summary>
@@ -156,66 +189,32 @@ public static class AnimationHelper
         }
         return null;
     }
-    public static void TryStart(UIElement destination,
-                                IEnumerable<UIElement>? coordinatedElements = null,
-                                params string[] potentialKeys)
+    
+
+
+    public static void ConfigureAnimation(string key,
+    bool disableBoundsCorrection = true,
+    bool useDirectTransport = false)
     {
-        destination.DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, () =>
+        var service = ConnectedAnimationService.GetForCurrentView();
+        var animation = service.GetAnimation(key);
+
+        if (animation == null) return;
+
+        if (disableBoundsCorrection)
         {
-            var service = ConnectedAnimationService.GetForCurrentView();
-            ConnectedAnimation? animation = null;
+            // This prevents the "jump" by not trying to correct bounds
+            animation.Configuration = new DirectConnectedAnimationConfiguration();
+        }
 
-            foreach (var key in potentialKeys)
-            {
-                animation = service.GetAnimation(key);
-                if (animation != null) break;
-            }
-
-            if (animation == null)
-            {
-
-                return ;
-            }
-            var style = animation.GetAnimationStyle();
-            var duration = animation.GetDuration();
-
-            // Configure based on style
-            animation.Configuration = CreateConfiguration(style);
-
-            destination.Opacity = 1;
-            destination.Visibility = Visibility.Visible;
-
-            if (coordinatedElements != null)
-                animation.TryStart(destination, coordinatedElements);
-            else
-                animation.TryStart(destination);
-        });
-    }
-
-    private static ConnectedAnimationConfiguration? CreateConfiguration(ConnectedAnimationStyle style)
-    {
-        switch (style)
+        if (useDirectTransport)
         {
-            case ConnectedAnimationStyle.GravityBounce:
-                return new BasicConnectedAnimationConfiguration();
-
-            case ConnectedAnimationStyle.DirectTransport:
-                return new DirectConnectedAnimationConfiguration();
-
-            case ConnectedAnimationStyle.CrossFadeOnly:
-                return null; // Basic fade
-
-            case ConnectedAnimationStyle.ScaleUp:
-            case ConnectedAnimationStyle.ScaleDown:
-                return new BasicConnectedAnimationConfiguration();
-
-            default: // GravitySwing
-                return new GravityConnectedAnimationConfiguration
-                {
-                    IsShadowEnabled = true // This works here
-                };
+            // Most precise, no gravity/bounce effects
+            animation.Configuration = new DirectConnectedAnimationConfiguration();
         }
     }
+
+
 
     #endregion
 

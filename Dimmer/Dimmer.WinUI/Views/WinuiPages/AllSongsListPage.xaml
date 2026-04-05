@@ -175,14 +175,8 @@
             </Grid>
 
             <Grid Grid.Row="1" Visibility="Visible">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    
-                </Grid.ColumnDefinitions>
-
                 <dgView:TableView
                     x:Name="MySongsTableView"
-                    Grid.Column="0"
                     HorizontalAlignment="Stretch"
                     HorizontalContentAlignment="Stretch"
                     AllowFocusOnInteraction="False"

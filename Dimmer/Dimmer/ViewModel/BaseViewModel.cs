@@ -210,11 +210,15 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             .Transform(artistInDB =>
             {
                 var artMV = artistInDB.ToArtistModelView()!;
-                artMV.ImagePath = artistInDB.Songs?
+                artMV.ImagePath ??= artistInDB.Songs?
                 .AsEnumerable().FirstOrDefault(x => !string.IsNullOrEmpty(x.CoverImagePath))?
                 .CoverImagePath;
                 return artMV;
             })
+             .AutoRefresh(artist => artist.ImagePath)
+             .AutoRefresh(artist => artist.TotalCompletedPlays)
+             .AutoRefresh(artist => artist.TotalSongsByArtist)
+             .AutoRefresh(artist => artist.Name)
             .ObserveOn(RxSchedulers.UI)
             .Bind(out _artistCollection)
             .DisposeMany()
@@ -1646,6 +1650,14 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial bool IsDimmerPlaying { get; set; }
 
+    partial void OnIsDimmerPlayingChanged(bool oldValue, bool newValue)
+    {
+        UpdateDimmerPlayingState();
+    }
+    public virtual void UpdateDimmerPlayingState()
+    {
+        // This method can be overridden in platform-specific ViewModels to trigger UI updates when playback state changes.
+    }
     [ObservableProperty]
     public partial bool IsTqlBusy { get; set; } = true;
 
@@ -1814,13 +1826,17 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         if (newValue is not null)
         {
             SelectedSecondDominantColor = await ImageFilterUtils.GetDominantMauiColorAsync(newValue.CoverImagePath);
-        
-
-           
+            
+            if(SelectedSecondDominantColor is not null)
+                NotifySelectedSecondDomColorChange(SelectedSecondDominantColor.Red, SelectedSecondDominantColor.Green, SelectedSecondDominantColor.Blue, SelectedSecondDominantColor.Alpha);
         }
 
     }
 
+    public virtual void NotifySelectedSecondDomColorChange(float red,float green, float blue, float alpha)
+    {
+
+    }
     [ObservableProperty]
     public partial Color? SelectedSecondDominantColor { get; set; }
 
@@ -2378,7 +2394,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         CurrentPlayingSongView.IsCurrentPlayingHighlight = false;
 
-        CurrentPlayingSongView=  await BaseAppFlow.UpdateDatabaseWithPlayEvent(
+        var dbOutputSong=  await BaseAppFlow.UpdateDatabaseWithPlayEvent(
             
             CurrentPlayingSongView,
             StatesMapper.Map(DimmerPlaybackState.PlayCompleted),
