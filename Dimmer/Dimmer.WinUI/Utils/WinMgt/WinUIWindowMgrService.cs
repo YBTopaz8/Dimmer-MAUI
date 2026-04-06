@@ -11,10 +11,7 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
     private readonly Dictionary<string, Window> _trackedUniqueContentWindows = new();
     private readonly Dictionary<Type, Window> _trackedUniqueTypedWindows = new();
 
-    /// <summary>
-    /// Fired just before a window is closed. Can be cancelled by subscribers.
-    /// </summary>
-    public event EventHandler<WindowClosingEventArgs>? WindowClosing;
+ 
 
     /// <summary>
     /// Fired after a window has been closed.
@@ -340,23 +337,14 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
         if (sender is Window closedWindow)
         {
             WindowDockManager.SaveWindowPosition(closedWindow); // Save position on close
-            var customArgs = new WindowClosingEventArgs(closedWindow);
-            WindowClosing?.Invoke(this, customArgs); // Notify any subscribers
+           
+
             UntrackWindow(closedWindow);
             Debug.WriteLine($"Native WinUI window closed and untracked: {closedWindow.Title}");
         }
     }
     // This is a custom EventArgs class you'll need to create for the cancellable event
-    public class WindowClosingEventArgs : EventArgs
-    {
-        public bool Cancel { get; set; } = false;
-        public Window Window { get; }
-
-        public WindowClosingEventArgs(Window window)
-        {
-            Window = window;
-        }
-    }
+    
 
     public void BringToFront(Window window)
     {

@@ -9,7 +9,6 @@
 			<ApplicationManifest>app.manifest</ApplicationManifest>
 			<Platforms>x86;x64;ARM64</Platforms>
 			<RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
-			<RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
 			<PublishProfile>win-$(Platform).pubxml</PublishProfile>
 			<UseWinUI>true</UseWinUI>
 			<EnableMsixTooling>true</EnableMsixTooling>
@@ -83,9 +82,11 @@
 		  <Page Remove="Views\CustomViews\MauiViews\SyncLyricsPopUpViewWindow.xaml" />
 		  <Page Remove="Views\MAUIPages\HomePage.xaml" />
 		</ItemGroup>
-		<PropertyGroup Condition="'$(TargetFramework)'=='net9.0-windows10.0.19041.0'">
+		<PropertyGroup Condition="'$(TargetFramework)'=='net10.0-windows10.0.19041.0'">
 			<DefineConstants>WINDOWS</DefineConstants>
 		</PropertyGroup>
+		
+		
 		<ItemGroup>
 			<PackageReference Include="LiveChartsCore.SkiaSharpView.WinUI" Version="2.0.0" />
 			<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.51" />
