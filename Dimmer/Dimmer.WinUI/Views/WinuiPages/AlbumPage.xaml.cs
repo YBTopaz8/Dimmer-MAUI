@@ -365,7 +365,7 @@ public sealed partial class AlbumPage : Page
 
     private void ArtistBtn_Click(object sender, RoutedEventArgs e)
     {
-        AnimationHelper.Prepare(AnimationHelper.Key_AlbumToArtist,
+        AnimationHelper.Prepare(AnimationHelper.Key_AlbumPageToArtistPage,
             (FrameworkElement)sender, AnimationHelper.ConnectedAnimationStyle.GravitySwing);
     }
 }

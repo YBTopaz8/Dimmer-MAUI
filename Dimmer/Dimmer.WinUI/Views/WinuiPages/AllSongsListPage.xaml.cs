@@ -1006,12 +1006,12 @@ AnimationHelper.Key_Forward
 
         Frame?.NavigateToType(songDetailType, navParams, navigationOptions);
     }
-    private async void ViewQueue_Click(object sender, RoutedEventArgs e)
+    public async void ViewQueue_Click(object sender, RoutedEventArgs e)
     {
         if (MyViewModel.PlaybackQueue.Count < 1) return;
       
 
-        FrameworkElement send = (FrameworkElement)sender;
+        FrameworkElement send = (FrameworkElement)ViewQueueBtn;
         var itemm = send.DataContext as SongModelView;
         _storedItem = itemm;
 

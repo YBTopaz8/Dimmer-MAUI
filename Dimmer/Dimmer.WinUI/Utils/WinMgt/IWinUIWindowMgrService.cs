@@ -4,7 +4,7 @@ namespace Dimmer.WinUI.Utils.WinMgt;
 
 public interface IWinUIWindowMgrService
 {
-    event EventHandler<WinUIWindowMgrService.WindowClosingEventArgs>? WindowClosing; 
+
     public event EventHandler<WindowActivatedWithSourceEventArgs>? WindowActivated;
 
     event EventHandler<Window>? WindowClosed;

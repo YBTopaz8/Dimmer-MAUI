@@ -21,11 +21,12 @@
 
         <StackPanel Grid.Row="0" />
 
-        <dgView:TableView
+        
+        <dgView:TableView MaxHeight="300"
             x:Name="MyEventsTableView"
             Grid.Row="1"
             AutoGenerateColumns="False"
-            ItemsSource="{x:Bind MyViewModel.DimmerEventsCollection, Mode=OneWay}"
+            ItemsSource="{x:Bind MyViewModel.ArtistsCollection, Mode=OneWay}"
             Loaded="MyEventsTableView_Loaded"
             RowHeight="120"
             Unloaded="MyEventsTableView_Unloaded">

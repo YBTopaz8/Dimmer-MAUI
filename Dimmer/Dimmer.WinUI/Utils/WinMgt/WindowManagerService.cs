@@ -324,13 +324,3 @@ internal class WindowManagerService : IMauiWindowManagerService
     }
 }
 
-
-
-internal static class NativeMethods
-{
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    [return: System.Runtime.InteropServices.MarshalAs(UnmanagedType.Bool)]
-    internal static extern bool SetForegroundWindow(IntPtr hWnd);
-}
-
-

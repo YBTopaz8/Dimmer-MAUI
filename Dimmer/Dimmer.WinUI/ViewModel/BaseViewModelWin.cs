@@ -8,9 +8,12 @@ using CommunityToolkit.Maui.Core.Extensions;
 using Dimmer.Utils;
 using Dimmer.WinUI.Views.CustomViews.WinuiViews;
 using Dimmer.WinUI.Views.WinuiPages.Settings;
+using MongoDB.Bson;
 using System.Threading.Tasks;
 using System.Windows.Controls.Primitives;
 using Windows.UI.Core;
+using Brush = Microsoft.UI.Xaml.Media.Brush;
+using Color = System.Drawing.Color;
 using FolderPicker = CommunityToolkit.Maui.Storage.FolderPicker;
 using Visibility = Microsoft.UI.Xaml.Visibility;
 
@@ -453,6 +456,43 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         press?.Minimize();
 
     }
+
+
+    public override void NotifySelectedSecondDomColorChange(float red, float green, float blue, float alpha)
+    {
+        var color = Windows.UI.Color.FromArgb(
+           (byte)(alpha * 255),
+           (byte)(red * 255),
+           (byte)(green * 255),
+           (byte)(blue * 255)
+       );
+
+        SelectedSecondDominantBrush = new SolidColorBrush(color);
+    }
+
+    [ObservableProperty]
+    public partial Brush? SelectedSecondDominantBrush { get; set; }
+
+    [ObservableProperty]
+    public partial Visibility IsDimmerPlayingVisibility { get; set; }
+
+    [ObservableProperty]
+    public partial Visibility IsDimmerPlayingVisibilityInv { get; set; } = Visibility.Collapsed;
+    public override void UpdateDimmerPlayingState()
+    {
+        base.UpdateDimmerPlayingState();
+        if(IsDimmerPlaying)
+        {
+            IsDimmerPlayingVisibility = Visibility.Visible;
+            IsDimmerPlayingVisibilityInv = Visibility.Collapsed;
+        }
+        else
+        {
+            IsDimmerPlayingVisibility = Visibility.Collapsed;
+            IsDimmerPlayingVisibilityInv = Visibility.Visible;
+        }
+    }
+
     public override async Task AppSetupPageNextBtnClick(bool isLastTab)
     {
         await base.AppSetupPageNextBtnClick(isLastTab);
@@ -693,6 +733,16 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         var art = song.ArtistsInDB(RealmFactory)?.FirstOrDefault(x=>x?.Name==artistName);
         SetSelectedArtist(art);
         Debug.WriteLine($"Navigating to artist page: {artistName}");
+        if(SelectedArtist is not null)
+            NavigateToAnyPageOfGivenType(typeof(ArtistPage));
+    }
+
+    public void NavigateToArtistPageWithArtistId(ObjectId artistId)
+    {
+        var artModel =ArtistsCollection.First(x => x.Id == artistId);
+
+        SetSelectedArtist(artModel);
+        Debug.WriteLine($"Navigating to artist page: {artistId}");
         if(SelectedArtist is not null)
             NavigateToAnyPageOfGivenType(typeof(ArtistPage));
     }
@@ -1355,20 +1405,21 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         var lastFmArtist = await lastfmService.GetArtistInfoAsync(selectedArtist.Name!);
 
         if (lastFmArtist is null) return;
-        SelectedArtist!.ImagePath = lastFmArtist.Images?.Where(x => x.Size == "mega").LastOrDefault()?.Url;
+
+        selectedArtist!.ImagePath = lastFmArtist.Images?.Where(x => x.Size == "mega").LastOrDefault()?.Url;
         if(lastFmArtist.Biography is not null)
-            SelectedArtist.Bio = lastFmArtist.Biography.Summary;
-        SelectedArtist.ListOfSimilarArtists = lastFmArtist.Similar?.ToObservableCollection();
-        SelectedArtist.Url = lastFmArtist.Url;
+            selectedArtist.Bio = lastFmArtist.Biography.Summary;
+        selectedArtist.ListOfSimilarArtists = lastFmArtist.Similar?.ToObservableCollection();
+        selectedArtist.Url = lastFmArtist.Url;
         var realmm = RealmFactory.GetRealmInstance();
         await realmm.WriteAsync(async () =>
         {
             var artInDB = realmm.Find<ArtistModel>(selectedArtist.Id);
             if (artInDB is null) return;
 
-            artInDB.ImagePath = SelectedArtist.ImagePath;
-            artInDB.Bio = SelectedArtist.Bio;
-            artInDB.Url = SelectedArtist.Url;
+            artInDB.ImagePath = selectedArtist.ImagePath;
+            artInDB.Bio = selectedArtist.Bio;
+            artInDB.Url = selectedArtist.Url;
 
         });
     }
@@ -1460,7 +1511,18 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         }
 
     }
-
+    public void ViewQueueFromAllSongsPageGivenPage()
+    {
+        if(CurrentWinUIPage.GetType() == typeof(AllSongsListPage))
+        {
+            var allSongsPage = CurrentWinUIPage as AllSongsListPage;    
+            if(allSongsPage is not null)
+            {
+                allSongsPage.ViewQueue_Click(this,new RoutedEventArgs());
+              
+            }
+        }
+    }
     internal void ProcessNowPlayingQueueShowing(FrameworkElement viewQueueBtn)
     {
         NowPlayingQueueCallerObject = viewQueueBtn;

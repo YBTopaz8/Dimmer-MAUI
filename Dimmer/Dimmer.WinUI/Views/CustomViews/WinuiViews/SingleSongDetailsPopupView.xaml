@@ -15,8 +15,9 @@
         </Grid.Background>
         
     <ScrollViewer MaxHeight="500" MaxWidth="700" 
-                  Background="Black"
-                  PointerPressed="ScrollViewer_PointerPressed"
+                  Background="Black" x:Name="PopUpScrollViewer"
+                  PointerPressed="ScrollViewer_PointerPressed" 
+                  
                   CornerRadius="20" Padding="15">
         
         <StackPanel 

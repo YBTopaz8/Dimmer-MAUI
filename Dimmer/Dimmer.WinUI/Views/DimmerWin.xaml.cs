@@ -1,5 +1,7 @@
+using Dimmer.WinUI.Views.WinuiPages.Artist;
 using Hqub.Lastfm.Entities;
 using Microsoft.UI.Composition.SystemBackdrops;
+using Border = Microsoft.UI.Xaml.Controls.Border;
 using ProgressBar = Microsoft.UI.Xaml.Controls.ProgressBar;
 using Visibility = Microsoft.UI.Xaml.Visibility;
 using Window = Microsoft.UI.Xaml.Window;
@@ -19,11 +21,10 @@ public sealed partial class DimmerWin : Window
     public DimmerWin()
     {
         InitializeComponent();
-        MyViewModel = IPlatformApplication.Current?.Services.GetService<BaseViewModelWin>();
+        MyViewModel = IPlatformApplication.Current?.Services.GetService<BaseViewModelWin>()!;
         WinUIWindowsMgr = IPlatformApplication.Current?.Services.GetService<IWinUIWindowMgrService>();
         MyViewModel?.MainWindow = this;
         MainGrid.DataContext = MyViewModel;
-        TopMediaControlSection.DataContext = MyViewModel;
 
         this.SystemBackdrop = new Microsoft.UI.Xaml.Media.DesktopAcrylicBackdrop();
         var appWin = PlatUtils.GetAppWindow(this);
@@ -136,22 +137,6 @@ public sealed partial class DimmerWin : Window
         DimmerStatusPanel.Visibility = Visibility.Collapsed;
     }
 
-    private void TopMediaControlSection_Loaded(object sender, RoutedEventArgs e)
-    {
-        MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentPlayingSongView), v => MyViewModel.CurrentPlayingSongView)
-            .Subscribe(v =>
-            {
-                if (v.TitleDurationKey is null)
-                {
-                    TopMediaControlSection.Visibility = Visibility.Collapsed;
-                }
-                else
-                {
-                    TopMediaControlSection.Visibility = Visibility.Visible;
-
-                }
-            });
-    }
 
     private void DimmerStatusPanel_Loaded(object sender, RoutedEventArgs e)
     {
@@ -208,6 +193,14 @@ public sealed partial class DimmerWin : Window
         {
             pageType = typeof(AllSongsListPage);
         }
+        if((string)args.InvokedItemContainer.Name == "ArtistsItem"!)
+        {
+            pageType = typeof(ArtistsOverViewPage);
+        }
+        if((string)args.InvokedItemContainer.Name == "ViewQueueItem"!)
+        {
+            MyViewModel.ViewQueueFromAllSongsPageGivenPage();
+        }
         if(pageType is not null)
             NavigateToPage(pageType, null);
     }
@@ -237,7 +230,8 @@ public sealed partial class DimmerWin : Window
 
     private void ArtistsItem_Loaded(object sender, RoutedEventArgs e)
     {
-        var artistsCount = MyViewModel.RealmFactory.GetRealmInstance().All<ArtistModel>().Count();
+        var artistsCount =
+            MyViewModel.ArtistsCollection.Count;
         ArtistsLabelView.Text = $"Artists ({artistsCount})";
     }
 
@@ -254,5 +248,86 @@ public sealed partial class DimmerWin : Window
        
     }
 
+    private void LyricsChip_Tap(object sender, RoutedEventArgs e)
+    {
 
+    }
+
+    private void PlaybackChip_TapPressed(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void NowPlayingHighlightBtn_TapPressed(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void RemoveSongFromQueueBtn_TapPressed(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void AddSongToFav_Tap(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void PlaySongInQueue_Tap(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void ScrollToInPlayBackQueue_Tap(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void SongTitleTextBlock_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+
+    }
+
+    private void PlayPauseBtn_Loaded(object sender, RoutedEventArgs e)
+    {
+        
+
+
+    }
+
+    private void nvSample_PaneClosing(NavigationView sender, NavigationViewPaneClosingEventArgs args)
+    {
+
+        FooterGrid.Visibility = Visibility.Collapsed;
+    }
+
+    private void nvSample_PaneOpened(NavigationView sender, object args)
+    {
+        FooterGrid.Visibility = Visibility.Visible;
+    }
+
+    private static void ApplyCustomShadow(Border card)
+    {
+        // Get the compositor
+        var compositor = ElementCompositionPreview.GetElementVisual(card).Compositor;
+
+        // Create the drop shadow
+        var dropShadow = compositor.CreateDropShadow();
+        dropShadow.Color = Colors.Black;
+        dropShadow.BlurRadius = 12.0f;
+        dropShadow.Offset = new System.Numerics.Vector3(5, 5, 0);
+
+        // Create a visual for the card
+        var visual = compositor.CreateSpriteVisual();
+        visual.Size = new System.Numerics.Vector2((float)(card.Width), (float)card.Height); // Match card size
+        visual.Shadow = dropShadow;
+
+        // Apply it to the card
+        ElementCompositionPreview.SetElementChildVisual(card, visual);
+    }
+
+    private void FooterGrid_Loaded(object sender, RoutedEventArgs e)
+    {
+        ApplyCustomShadow(MiniPlayBorder);
+    }
 }

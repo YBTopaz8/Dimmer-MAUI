@@ -61,6 +61,8 @@ public sealed partial class ArtistPage : Page
             MyViewModel.CurrentWinUIPage = this;
             DetailedSong = songDetailNavArgs.Song;
         }
+
+        MyViewModel ??= IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
         MyViewModel.IsBackButtonVisible = WinUIVisibility.Visible;
         ArtistNameInArtistPage.Visibility = WinUIVisibility.Visible;
         ArtistImageInArtistPage.Visibility = WinUIVisibility.Visible;
@@ -482,7 +484,7 @@ public sealed partial class ArtistPage : Page
     {
         AnimationHelper.TryStart(ArtistNameInArtistPage,
             null,
-            AnimationHelper.Key_AlbumToArtist,
+            AnimationHelper.Key_AlbumPageToArtistPage,
             //AnimationHelper.Key_AlbumToArtist,
             AnimationHelper.Key_SongDetailToArtist
             );

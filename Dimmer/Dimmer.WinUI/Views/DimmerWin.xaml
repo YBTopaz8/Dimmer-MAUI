@@ -6,7 +6,7 @@
     xmlns:animatedvisuals="using:Microsoft.UI.Xaml.Controls.AnimatedVisuals"
     xmlns:converters="using:Dimmer.WinUI.Utils.Converters"
     xmlns:customViews="using:Dimmer.WinUI.Views.CustomViews.WinuiViews"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:d="http://schemas.microsoft.com/expression/blBottom/2008"
     xmlns:local="using:Dimmer.WinUI.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="DimmerWin"
@@ -14,9 +14,10 @@
     xmlns:localViews="using:Dimmer.WinUI.Views.CustomViews.WinuiViews"
     Closed="DimmerWindowClosed"
     SizeChanged="Window_SizeChanged"
-    
+    xmlns:stateTriggers="using:Dimmer.WinUI.Utils.StateTriggers"
     mc:Ignorable="d">
 
+    
 
     <NavigationView x:Name="nvSample"
     IsSettingsVisible="False"
@@ -25,28 +26,36 @@
     BackRequested="nvSample_BackRequested"                    SelectionChanged="nvSample_SelectionChanged"
     ItemInvoked="nvSample_ItemInvoked" 
     AlwaysShowHeader="True"
-    PaneTitle="Dimmer"
+    PaneTitle="Dimmer" PaneClosing="nvSample_PaneClosing"
+                    PaneOpened="nvSample_PaneOpened"
     PaneDisplayMode="Left"
     ExpandedModeThresholdWidth="500"
     SelectionFollowsFocus="Disabled"
     IsTabStop="False">
-        <NavigationView.Header>
-            <customViews:MediaPlaybackSection
-Loaded="TopMediaControlSection_Loaded"
- x:Name="TopMediaControlSection" Grid.Row="1" />
-
-
-        </NavigationView.Header>
+        
 
         <NavigationView.MenuItems>
 
-            <NavigationViewItem Content="All Songs" Tag="AllSongsItem" x:Name="AllSongsItem">
+            <NavigationViewItem Padding="10" Tag="AllSongsItem" x:Name="AllSongsItem">
+                <NavigationViewItem.Content>
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="All Songs"/>
+
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="("/>
+                        
+                        <TextBlock Text="{x:Bind MyViewModel.SearchResults.Count,Mode=OneWay}"/>
+                        <TextBlock Text=" Songs)"/>
+
+                        </StackPanel>
+                    </StackPanel>
+                </NavigationViewItem.Content>
                 <NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xEC4F;" />
                 </NavigationViewItem.Icon>
             </NavigationViewItem>
 
-            <NavigationViewItem Content="View Queue" Tag="ViewQueueItem" x:Name="ViewQueueItem">
+            <NavigationViewItem Padding="10" Content="View Queue" Tag="ViewQueueItem" x:Name="ViewQueueItem">
                 <NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xEA41;" />
                 </NavigationViewItem.Icon>
@@ -57,7 +66,7 @@ Loaded="TopMediaControlSection_Loaded"
             <NavigationViewItem 
                                 Tag="SamplePage2" x:Name="ArtistsItem" SelectsOnInvoked="True">
                 <NavigationViewItem.Content>
-                    <StackPanel Orientation="Horizontal">
+                    <StackPanel Orientation="Horizontal" Padding="10">
                         <TextBlock 
                                 Loaded="ArtistsItem_Loaded" x:Name="ArtistsLabelView" Text="Artists"/>
                         
@@ -86,9 +95,147 @@ Loaded="TopMediaControlSection_Loaded"
                             TextChanged="SearchAutoSuggestBox_TextChanged" />
         </NavigationView.AutoSuggestBox>
 
+        <!--Footer Part-->
         <NavigationView.PaneFooter>
-            <StackPanel x:Name="FooterStackPanel" Orientation="Vertical" Visibility="Visible">
-                </StackPanel>
+       
+<Grid CornerRadius="15" Padding="10" RowSpacing="5" x:Name="FooterGrid" ColumnSpacing="5" Loaded="FooterGrid_Loaded"
+      Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+           
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+                <Border CornerRadius="20" Height="100">
+                    
+                    <Image HorizontalAlignment="Left"
+         Height="120">
+                        <Image.Source>
+                            <BitmapImage UriSource="{x:Bind MyViewModel.CurrentPlayingSongView.CoverImagePath,Mode=OneWay}"/>
+                        </Image.Source>
+                    </Image>
+
+                </Border>
+                <StackPanel Spacing="5" Grid.Column="1" HorizontalAlignment="Right" >
+
+
+                    <Button x:Name="TitleBtn"  HorizontalAlignment="Right" Background="Transparent" Content="{x:Bind MyViewModel.CurrentPlayingSongView.Title, Mode=OneWay}" FontSize="16"/>
+                    <Button HorizontalAlignment="Right" Background="Transparent" Content="{x:Bind MyViewModel.CurrentPlayingSongView.ArtistName, Mode=OneWay}" FontSize="14"/>
+                <Button HorizontalAlignment="Right" Background="Transparent" Content="{x:Bind MyViewModel.CurrentPlayingSongView.AlbumName, Mode=OneWay}" FontSize="10"/>
+              
+            </StackPanel>
+
+                <Border x:Name="MiniPlayBorder"  Grid.Row="1" Grid.ColumnSpan="2"
+      >
+                    <StackPanel>
+
+                        <Grid >
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Orientation="Horizontal" Spacing="10"
+                  Grid.Column="0">
+                                <Button
+                  >
+
+                                    <SymbolIcon Symbol="Shuffle" />
+                                </Button>
+                                <Button Content="🎙️"/>
+
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal"
+                 HorizontalAlignment="Right" Grid.Column="1">
+                                <Button>
+                                    <FontIcon Glyph="&#xEA65;" />
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+              
+                        <Slider Minimum="0" Maximum="100" Value="{x:Bind MyViewModel.CurrentTrackPositionPercentage,Mode=OneWay}"/>
+            
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0"
+                         Text="{x:Bind MyViewModel.CurrentTrackPositionSecondsTxt, Mode=OneWay}"/>
+                            <TextBlock HorizontalAlignment="Right"
+                  Text="{x:Bind MyViewModel.CurrentPlayingSongView.DurationFormatted, Mode=OneWay}"
+                  Grid.Column="1"/>
+                        </Grid>
+                        
+                        
+                        <Grid HorizontalAlignment="Stretch" x:Name="PlaybackBtnsGrid">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+
+
+
+                            </Grid.ColumnDefinitions>
+
+                            <Button Grid.Column="0">
+                                <Button.Content>
+                                    <StackPanel>
+
+                                        <SymbolIcon Symbol="RepeatAll" />
+
+                                    </StackPanel>
+                                </Button.Content>
+                            </Button>
+
+                            <Button Grid.Column="1" Command="{x:Bind MyViewModel.PreviousTrackCommand, Mode=OneWay}">
+                                <Button.Content>
+                                    <SymbolIcon Symbol="Previous" />
+                                </Button.Content>
+                                <Button.CommandParameter>
+                                    <x:Boolean>False</x:Boolean>
+                                </Button.CommandParameter>
+                            </Button>
+
+                            
+
+                            <Button Grid.Column="2" Command="{x:Bind MyViewModel.PlayPauseToggleCommand, Mode=OneWay}"
+                            x:Name="PlayPauseBtn" Loaded="PlayPauseBtn_Loaded"      
+                                     Visibility="{x:Bind MyViewModel.IsDimmerPlayingVisibility, Mode=OneWay}"  >
+                                <StackPanel>
+                                    <SymbolIcon x:Name="PlayIcon" Symbol="Play" />
+                                    <SymbolIcon x:Name="PauseIcon" Symbol="Pause"
+                                                Visibility="{x:Bind MyViewModel.IsDimmerPlayingVisibilityInv, Mode=OneWay}"/>
+                                </StackPanel>
+
+                                
+                            </Button>
+
+                            <Button Grid.Column="3" Command="{x:Bind MyViewModel.NextTrackCommand, Mode=OneWay}">
+                                <Button.Content>
+                                    <SymbolIcon Symbol="Next" />
+                                </Button.Content>
+                                <Button.CommandParameter>
+                                    <x:Boolean>False</x:Boolean>
+                                </Button.CommandParameter>
+                            </Button>
+
+                            <Button Grid.Column="4">
+                                <Button.Content>
+                                    <FontIcon Glyph="&#xEB51;" />
+                                </Button.Content>
+                            </Button>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+            </Grid>
+
         </NavigationView.PaneFooter>
         
 
@@ -131,11 +278,8 @@ Loaded="TopMediaControlSection_Loaded"
 
 
                 </StackPanel>
-                <Button Grid.Column="1"  Click="ClearStatus_Click" 
-                    Background="Transparent"
-                    x:Name="ClearStatus" HorizontalAlignment="Right">
-                    <SymbolIcon Symbol="Clear" Height="15" Width="15" />
-                </Button>
+               
+                
             </Grid>
            
 

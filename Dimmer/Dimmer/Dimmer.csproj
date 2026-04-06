@@ -9,7 +9,7 @@
 		<UseMaui>true</UseMaui>
 		<Nullable>enable</Nullable>
 		<LangVersion>preview</LangVersion>
-		<Version>1.8.12</Version>
+		<Version>1.8.13</Version>
 
 
 
@@ -45,7 +45,7 @@
 
 	<ItemGroup>
 
-		<PackageReference Include="CommunityToolkit.Diagnostics" Version="8.4.0" />
+		<PackageReference Include="CommunityToolkit.Diagnostics" Version="8.4.2" />
 		<PackageReference Include="DynamicData" Version="9.4.31" />
 		<PackageReference Include="Fastenshtein" Version="1.0.12" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
@@ -54,7 +54,7 @@
 		<PackageReference Include="System.Linq.Dynamic.Core" Version="1.7.1" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.5" />
 		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.5" />
-		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.50" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.51" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.5" />
 		<PackageReference Include="SkiaSharp" Version="3.119.2" />
 		<PackageReference Include="System.Reactive" Version="6.1.0" />
@@ -64,7 +64,7 @@
 		<PackageReference Include="System.Reactive.PlatformServices" Version="6.1.0" />
 
 
-		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
 		<PackageReference Include="CommunityToolkit.Maui" Version="14.0.1" />
 		<PackageReference Include="Realm" Version="20.1.0" />
 		<PackageReference Include="Xabe.FFmpeg" Version="6.0.2" />

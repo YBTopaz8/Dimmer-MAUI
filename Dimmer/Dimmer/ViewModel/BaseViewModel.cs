@@ -196,6 +196,76 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
     private readonly BehaviorSubject<PageRequest> _pagingController = new(new PageRequest(0, 50));
 
+    private void SetupArtistPipeline()
+    {
+        // Get Realm instance
+        var _realm = RealmFactory.GetRealmInstance();
+
+        var totalItems = _realm.All<ArtistModel>().Count();
+
+        // Build the reactive pipeline
+        var pipeline = _realm.All<ArtistModel>()
+            .OrderBy(p => p.Name)
+            .AsObservableChangeSet()
+            .Transform(artistInDB =>
+            {
+                var artMV = artistInDB.ToArtistModelView()!;
+                artMV.ImagePath ??= artistInDB.Songs?
+                .AsEnumerable().FirstOrDefault(x => !string.IsNullOrEmpty(x.CoverImagePath))?
+                .CoverImagePath;
+                return artMV;
+            })
+             .AutoRefresh(artist => artist.ImagePath)
+             .AutoRefresh(artist => artist.TotalCompletedPlays)
+             .AutoRefresh(artist => artist.TotalSongsByArtist)
+             .AutoRefresh(artist => artist.Name)
+            .ObserveOn(RxSchedulers.UI)
+            .Bind(out _artistCollection)
+            .DisposeMany()
+           
+            .Subscribe(changes =>
+            {
+                IsLoading = false;
+
+                OnPropertyChanged(nameof(ArtistsCollection));
+            });
+
+        pipeline.DisposeWith(CompositeDisposables);
+    }
+
+    private void SetupAlbumPipeline()
+    {
+        // Get Realm instance
+        var _realm = RealmFactory.GetRealmInstance();
+
+        var totalItems = _realm.All<AlbumModel>().Count();
+
+        // Build the reactive pipeline
+        var pipeline = _realm.All<AlbumModel>()
+            .OrderBy(p => p.Name)
+            .AsObservableChangeSet() 
+            .Transform(album =>
+            {
+                    var albumMV = album.ToAlbumModelView()!;
+                    albumMV.ImagePath = album.SongsInAlbum?
+                    .AsEnumerable().FirstOrDefault(x => !string.IsNullOrEmpty(x.CoverImagePath))?
+                    .CoverImagePath;
+                return albumMV;
+            })
+            .ObserveOn(RxSchedulers.UI)
+            .Bind(out _albumsCollection)
+            .DisposeMany()
+           
+            .Subscribe(changes =>
+            {
+                IsLoading = false;
+
+                OnPropertyChanged(nameof(ArtistsCollection));
+            });
+
+        pipeline.DisposeWith(CompositeDisposables);
+    }
+
     private void SetupHistoryPipeline()
     {
         // Get Realm instance
@@ -545,9 +615,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
 
         MyDeviceId = LoadOrGenerateDeviceId();
-        
 
 
+        SetupArtistPipeline();
+        SetupAlbumPipeline();
         SubscribeToStateServiceEvents();
         SubscribeToAudioServiceEvents();
         SubscribeToLyricsFlow();
@@ -1313,8 +1384,14 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     private ReadOnlyObservableCollection<DimmerPlayEventView> _dimmerEventsCollection;
 
-    // 2. Expose it for XAML binding
     public ReadOnlyObservableCollection<DimmerPlayEventView> DimmerEventsCollection => _dimmerEventsCollection;
+    private ReadOnlyObservableCollection<ArtistModelView> _artistCollection;
+
+    public ReadOnlyObservableCollection<ArtistModelView> ArtistsCollection => _artistCollection;
+        
+        private ReadOnlyObservableCollection<AlbumModelView> _albumsCollection;
+
+    public ReadOnlyObservableCollection<AlbumModelView> AlbumsCollection => _albumsCollection;
     private readonly CommandEvaluator commandEvaluator = new();
     #endregion
 
@@ -1573,6 +1650,14 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial bool IsDimmerPlaying { get; set; }
 
+    partial void OnIsDimmerPlayingChanged(bool oldValue, bool newValue)
+    {
+        UpdateDimmerPlayingState();
+    }
+    public virtual void UpdateDimmerPlayingState()
+    {
+        // This method can be overridden in platform-specific ViewModels to trigger UI updates when playback state changes.
+    }
     [ObservableProperty]
     public partial bool IsTqlBusy { get; set; } = true;
 
@@ -1619,7 +1704,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial string AppTitle { get; set; } = "Dimmer";
 
-    public static string CurrentAppVersion = "1.8.12";
+    public static string CurrentAppVersion = "1.8.13";
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]
@@ -1741,13 +1826,17 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         if (newValue is not null)
         {
             SelectedSecondDominantColor = await ImageFilterUtils.GetDominantMauiColorAsync(newValue.CoverImagePath);
-        
-
-           
+            
+            if(SelectedSecondDominantColor is not null)
+                NotifySelectedSecondDomColorChange(SelectedSecondDominantColor.Red, SelectedSecondDominantColor.Green, SelectedSecondDominantColor.Blue, SelectedSecondDominantColor.Alpha);
         }
 
     }
 
+    public virtual void NotifySelectedSecondDomColorChange(float red,float green, float blue, float alpha)
+    {
+
+    }
     [ObservableProperty]
     public partial Color? SelectedSecondDominantColor { get; set; }
 
@@ -2305,7 +2394,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         CurrentPlayingSongView.IsCurrentPlayingHighlight = false;
 
-        CurrentPlayingSongView=  await BaseAppFlow.UpdateDatabaseWithPlayEvent(
+        var dbOutputSong=  await BaseAppFlow.UpdateDatabaseWithPlayEvent(
             
             CurrentPlayingSongView,
             StatesMapper.Map(DimmerPlaybackState.PlayCompleted),

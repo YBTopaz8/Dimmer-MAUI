@@ -86,6 +86,8 @@ public sealed partial class SingleSongDetailsPopupView : UserControl
             }
         }
     }
+
+ 
 }
 
 

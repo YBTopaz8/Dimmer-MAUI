@@ -84,7 +84,7 @@
 		<PackageReference Include="Xamarin.AndroidX.SavedState.SavedState.Ktx" Version="1.4.0.2" />
 		<PackageReference Include="Xamarin.AndroidX.Window" Version="1.5.1.2" />
 		<PackageReference Include="Xamarin.Google.Android.Material" Version="1.13.0.2" />
-		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.50" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.51" />
 
 		<PackageReference Include="Xamarin.AndroidX.Compose.Runtime.Annotation.Jvm" Version="1.10.4.1" ExcludeAssets="all" />
 	</ItemGroup>

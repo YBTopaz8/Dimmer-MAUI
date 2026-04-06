@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="Dimmer.WinUI.Views.WinuiPages.Artist.AllArtistsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:localArtist="using:Dimmer.WinUI.Views.WinuiPages.Artist"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+    xmlns:convertersWinUI="using:Dimmer.WinUI.Utils.Converters"
+    xmlns:dgView="using:WinUI.TableView"
+    xmlns:dimmSearch="clr-namespace:Dimmer.Data.ModelView.DimmerSearch;assembly=Dimmer"
+    xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
+    xmlns:local="using:Dimmer.WinUI.Views.CustomViews.WinuiViews"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:media="using:Microsoft.UI.Xaml.Media"
+    xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+    xmlns:modelsDb="clr-namespace:Dimmer.Data.Models;assembly=Dimmer"
+    xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
+    xmlns:queryBuilder="queries"
+    
+    xmlns:tql="clr-namespace:Dimmer.DimmerSearch.TQL;assembly=Dimmer"
+    xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
+    mc:Ignorable="d">
+    
+    <Page.Resources>
+        <UniformGridLayout x:Key="UniformGridLayout2" MinItemWidth="180" MinItemHeight="160"
+                       MinRowSpacing="12" MinColumnSpacing="12"/>
+
+        <DataTemplate x:Key="ArtistDT">
+            <Grid>
+
+                <StackPanel Background="#1e1e1e" CornerRadius="12" Padding="5">
+                    <Image Height="105" Width="105"
+                               >
+                        <Image.Source>
+                            <BitmapImage UriSource="{Binding ImagePath}"/>
+                        </Image.Source>
+                    </Image>
+                    <TextBlock Text="{Binding Name}" HorizontalAlignment="Center"/>
+
+                    <StackPanel
+                        
+                        
+                        Spacing="5" Orientation="Horizontal" HorizontalAlignment="Center">
+                        <ToolTipService.ToolTip >
+                            <StackPanel Orientation="Horizontal" Spacing="2">
+                                <TextBlock Text="{Binding TotalSongsByArtist}" FontWeight="Bold"/>
+                                <TextBlock Text="Songs"/>
+                                <TextBlock Text="|"/> 
+                                <TextBlock Text="{Binding TotalAlbumsByArtist}" FontWeight="Bold"/>
+                                <TextBlock Text="Albums"/>
+
+                              
+                                
+
+                            </StackPanel>
+                        </ToolTipService.ToolTip>
+                        
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"
+                                    >
+                            <TextBlock Text="{Binding TotalSongsByArtist}" FontWeight="Bold"/>
+                                <SymbolIcon Symbol="Audio" Height="20" Width="20"/>
+
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"
+                                    >
+                            <TextBlock Text="{Binding TotalAlbumsByArtist}" FontWeight="Bold"/>
+                                <FontIcon Glyph="&#xE93C;" Height="20" Width="20"/>
+
+                        </StackPanel>
+                       
+                        
+
+                    </StackPanel>
+                </StackPanel>
+
+            </Grid>
+        </DataTemplate>
+        
+    </Page.Resources>
+
+    <Grid  CornerRadius="10" Margin="5,2">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            
+        <ItemsRepeater ItemsSource="{x:Bind MyViewModel.ArtistsCollection, Mode=OneWay}"
+                       Layout="{StaticResource UniformGridLayout2}" Tapped="ArtistsItemsRepeater_Tapped" x:Name="ArtistsItemsRepeater"
+                       ItemTemplate="{StaticResource ArtistDT}">
+
+            </ItemsRepeater>
+        </ScrollViewer>
+
+        
+    </Grid>
+
+</Page>
