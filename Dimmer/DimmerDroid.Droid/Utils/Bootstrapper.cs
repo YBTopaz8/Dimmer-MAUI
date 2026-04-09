@@ -37,6 +37,7 @@ internal class Bootstrapper
         services.AddSingleton<NowPlayingBottomSheet>();
         services.AddSingleton<AlbumPage>();
         services.AddSingleton<ArtistPage>();
+        services.AddSingleton<AllArtistsPage>();
         
 
         // 4. Register Logic/Data Services

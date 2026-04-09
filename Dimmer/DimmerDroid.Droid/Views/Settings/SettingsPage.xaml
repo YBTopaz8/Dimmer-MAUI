@@ -11,16 +11,23 @@
              >
     <dx:DXScrollView Margin="5,50,5,0">
         <dx:DXStackLayout ItemSpacing="5">
+            <dx:DXStackLayout.Resources>
+                <ResourceDictionary>
+                    <Style TargetType="dx:DXStackLayout">
+                        <Setter Property="CornerRadius" Value="10"/>
+                        <Setter Property="ItemSpacing" Value="5"/>
+                        <Setter Property="Padding" Value="5"/>
+                    </Style>
+                </ResourceDictionary>
+            </dx:DXStackLayout.Resources>
 
-            <dx:DXStackLayout ItemSpacing="5">
+            <dx:DXStackLayout >
                 <ProgressBar Progress="{Binding LatestAppLog.ProgressValue}"
                          />
                 <Label Text="{Binding LatestAppLog.Message}"
                          />
                 <dx:DXStackLayout Orientation="Horizontal" HorizontalOptions="Center">
                     <Label Text="{Binding AppTitle}"
-                         />
-                    <Label Text="{Binding CurrentAppVersion}"
                          />
                     <Label Text="{Binding CurrentAppStage}"
                          />
@@ -32,18 +39,30 @@
                              HorizontalContentAlignment="Start"
                              HorizontalOptions="Start"
                              Icon="backa.png"/>
-                <dx:DXStackLayout  Padding="10" CornerRadius="10">
-                    <dx:DXStackLayout.Triggers>
-                        <DataTrigger 
+
+            </dx:DXStackLayout>
+            
+            <dx:DXStackLayout>
+                <dx:DXStackLayout.Triggers>
+                    <DataTrigger 
          Binding="{Binding IsExpanded,Source={x:Reference LastFmExpander}}"
          TargetType="dx:DXStackLayout" Value="true">
-                            <Setter Property="BorderThickness" Value="1"/>
-                            <Setter Property="BorderColor" Value="DarkSlateBlue"/>
+                        <Setter Property="BorderThickness" Value="1"/>
+                        <Setter Property="BorderColor" Value="DarkSlateBlue"/>
 
-                        </DataTrigger>
-                    </dx:DXStackLayout.Triggers>
+                    </DataTrigger>
+                    <DataTrigger 
+         Binding="{Binding IsExpanded,Source={x:Reference LastFmExpander}}"
+         TargetType="dx:DXStackLayout" Value="false">
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="BorderColor" Value="Transparent"/>
+
+                    </DataTrigger>
+                </dx:DXStackLayout.Triggers>
                 <dx:Chip Text="Last FM"  Icon="arrowdown.png" IsIconVisible="True" 
-                     Tap="LastFMHeaderChip_Tap" x:Name="LastFMHeaderChip"/>
+                         
+                    TapCommand="{Binding Commands.ToggleExpandState,Source={x:Reference LastFmExpander}}"
+                     x:Name="LastFMHeaderChip"/>
                 <dx:DXExpander x:Name="LastFmExpander" IsExpanded="False"
                                >
                     <dx:DXExpander.Content>
@@ -55,10 +74,10 @@
                                 
                                 PlaceholderText="Ex. YBTopaz8.."
                                          PlaceholderColor="Gray"/>
-                            
-                            
-                            
-                            
+
+
+
+
                             <dx:DXButton ShowContent="False"
                                          x:Name="ConnectToLastFM" Clicked="ConnectToLastFM_Clicked"
                                          
@@ -67,58 +86,112 @@
                         </dx:DXStackLayout>
                     </dx:DXExpander.Content>
                 </dx:DXExpander>
-                </dx:DXStackLayout>
-
             </dx:DXStackLayout>
-            <dx:DXStackLayout ItemSpacing="10" Padding="10" CornerRadius="10">
+
+            <dx:DXStackLayout >
+
                 <dx:DXStackLayout.Triggers>
                     <DataTrigger 
-                        Binding="{Binding IsExpanded,Source={x:Reference FoldersSectionExpander}}"
-                        TargetType="dx:DXStackLayout" Value="true">
+         Binding="{Binding IsExpanded,Source={x:Reference LastFmExpander}}"
+         TargetType="dx:DXStackLayout" Value="true">
                         <Setter Property="BorderThickness" Value="1"/>
                         <Setter Property="BorderColor" Value="DarkSlateBlue"/>
+
+                    </DataTrigger>
+                    <DataTrigger 
+         Binding="{Binding IsExpanded,Source={x:Reference LastFmExpander}}"
+         TargetType="dx:DXStackLayout" Value="false">
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="BorderColor" Value="Transparent"/>
 
                     </DataTrigger>
                 </dx:DXStackLayout.Triggers>
                 <dx:Chip 
                     Icon="roundaltarrowdown.png"
-                    IconSize="25,25"
-                    x:Name="FoldersSectionChip" Tap="FoldersSectionChip_Tap"
+                    IconSize="25,25" IsIconVisible="True"
+                    TapCommand="{Binding Commands.ToggleExpandState,Source={x:Reference FoldersSectionExpander}}"
+                    x:Name="FoldersSectionChip" 
                     Text="Folders Section" />
-                <dx:DXButton Content="Add Folder to Library"
-               Clicked="OpenFolderScannerBtn_Clicked" x:Name="OpenFolderScannerBtn"/>
 
                 <dx:DXExpander x:Name="FoldersSectionExpander"
                                
                                IsExpanded="False">
                     <dx:DXExpander.Content>
-                    <dx:DXCollectionView ItemsSource="{Binding FolderPaths}" Header="Folders" HeightRequest="300">
-                <dx:DXCollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="x:String">
-                        <Grid ColumnDefinitions="*,auto" RowSpacing="5">
-                            <Label Text="{Binding .}" />
-                            
-                            <dx:DXStackLayout Orientation="Horizontal" HorizontalOptions="End" Grid.Column="1">
-                                            <dx:Chip Text="Rescan" x:Name="RescanFolderChip"
-                                                     Tap="RescanFolderChip_Tap"/>
-                                            <dx:Chip Text="Remove" Tap="RemoveFolderBtn_Clicked"/>
+                        <Grid RowDefinitions="auto,*">
+                            <dx:DXStackLayout Grid.Row="0">
+                                
+                            <dx:DXButton Content="Add Folder to Library"
+               Clicked="OpenFolderScannerBtn_Clicked" x:Name="OpenFolderScannerBtn"/>
+
                             </dx:DXStackLayout>
+                            <dx:DXCollectionView Grid.Row="1" ItemsSource="{Binding FolderPaths}" Header="Folders" HeightRequest="300">
+                                <dx:DXCollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="x:String">
+                                        <Grid ColumnDefinitions="*,auto" RowSpacing="5">
+                                            <Label Text="{Binding .}" />
+
+                                            <dx:DXStackLayout Orientation="Horizontal" HorizontalOptions="End" Grid.Column="1">
+                                                <dx:Chip Text="Rescan" x:Name="RescanFolderChip"
+                                                         Tap="RescanFolderChip_Tap"/>
+                                                <dx:Chip Text="Remove" Tap="RemoveFolderBtn_Clicked"/>
+                                            </dx:DXStackLayout>
+                                        </Grid>
+                                    </DataTemplate>
+                                </dx:DXCollectionView.ItemTemplate>
+                            </dx:DXCollectionView>
+
                         </Grid>
-                    </DataTemplate>
-                </dx:DXCollectionView.ItemTemplate>
-            </dx:DXCollectionView>
                     </dx:DXExpander.Content>
                 </dx:DXExpander>
             </dx:DXStackLayout>
-            
-            <dx:DXButton Content="Fetch Lyrics Online"
+
+            <dx:DXStackLayout >
+                <dx:DXStackLayout.Triggers>
+                    <DataTrigger 
+         Binding="{Binding IsExpanded,Source={x:Reference LastFmExpander}}"
+         TargetType="dx:DXStackLayout" Value="true">
+                        <Setter Property="BorderThickness" Value="1"/>
+                        <Setter Property="BorderColor" Value="DarkSlateBlue"/>
+
+                    </DataTrigger>
+                    <DataTrigger 
+         Binding="{Binding IsExpanded,Source={x:Reference LastFmExpander}}"
+         TargetType="dx:DXStackLayout" Value="false">
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="BorderColor" Value="Transparent"/>
+
+                    </DataTrigger>
+                </dx:DXStackLayout.Triggers>
+                <dx:Chip Text="Lyrics Section" Icon="arrowdown.png" IconSize="20,20" IsIconVisible="True"
+       TapCommand="{Binding Commands.ToggleExpandState,Source={x:Reference FetchLyricsDataExpander}}"  />
+                <dx:DXExpander x:Name="FetchLyricsDataExpander" IsExpanded="False" >
+                    <dx:DXExpander.Content>
+                        <dx:DXButton Content="Fetch Lyrics Online"
                           Clicked="FetchLyricsData_Click" x:Name="FetchLyricsDataBtn"/>
-            
-           
-            <dx:DXStackLayout ItemSpacing="10">
-                <dx:Chip Text="Backup/Restore" Icon="arrowdown.png" IconSize="20,20"
+            </dx:DXExpander.Content>
+                    </dx:DXExpander>
+                </dx:DXStackLayout>
+
+            <dx:DXStackLayout >
+                <dx:DXStackLayout.Triggers>
+                    <DataTrigger 
+         Binding="{Binding IsExpanded,Source={x:Reference LastFmExpander}}"
+         TargetType="dx:DXStackLayout" Value="true">
+                        <Setter Property="BorderThickness" Value="1"/>
+                        <Setter Property="BorderColor" Value="DarkSlateBlue"/>
+
+                    </DataTrigger>
+                    <DataTrigger 
+         Binding="{Binding IsExpanded,Source={x:Reference LastFmExpander}}"
+         TargetType="dx:DXStackLayout" Value="false">
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="BorderColor" Value="Transparent"/>
+
+                    </DataTrigger>
+                </dx:DXStackLayout.Triggers>
+                <dx:Chip Text="Backup/Restore" Icon="arrowdown.png" IconSize="20,20" IsIconVisible="True"
        TapCommand="{Binding Commands.ToggleExpandState,Source={x:Reference BackupRestoreExpander}}"  />
-                <dx:DXExpander x:Name="BackupRestoreExpander" IsExpanded="False">
+                <dx:DXExpander x:Name="BackupRestoreExpander" IsExpanded="False" >
                     <dx:DXExpander.Content>
                         <dx:DXStackLayout ItemSpacing="10">
                             <dx:DXButton Content="Backup Device"
@@ -138,20 +211,8 @@
                          Clicked="ConfirmRestoreBtn_Clicked">
                             </dx:DXButton>
 
-                            <dx:DataGridView ItemsSource="{Binding PickedUpBackup.PlayEvents}"
-                                AutoGenerateColumnsMode="None"     HeightRequest="450"    >
-                                <dx:DataGridView.Columns>
-                                    <dx:ImageColumn FieldName="CoverImagePath" Width="50"
-                                                />
-                                    <dx:TextColumn FieldName="PlayTypeStr" />
-                                    <dx:TextColumn FieldName="ArtistName"/>
-                                    <dx:TextColumn FieldName="AlbumName"/>
-                                    <dx:CheckBoxColumn IsReadOnly="True"
-                                                   FieldName="WasPlayCompleted"/>
-                                    <dx:TextColumn FieldName="AlbumName"/>
-                                    <dx:DateColumn FieldName="EventDate"/>
-                                </dx:DataGridView.Columns>
-                            </dx:DataGridView>
+                           
+                            
                         </dx:DXStackLayout>
                     </dx:DXExpander.Content>
                 </dx:DXExpander>

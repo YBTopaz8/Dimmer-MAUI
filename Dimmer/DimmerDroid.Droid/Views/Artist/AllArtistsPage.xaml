@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Dimmer.Views.Artist.AllArtistsPage"
+            xmlns:vm="clr-namespace:Dimmer.ViewModels"
+            xmlns:globalVM="clr-namespace:Dimmer.ViewModel;assembly=Dimmer"
+ xmlns:local="clr-namespace:Dimmer.Views.CustomViews"
+ xmlns:dx="http://schemas.devexpress.com/maui"
+ xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+ x:DataType="vm:BaseViewModelAnd"
+             Shell.NavBarIsVisible="True"
+             Title="All Artists"
+             >
+    <Grid RowDefinitions="auto,*">
+        <dx:DXStackLayout Grid.Row="0">
+            <Label Text="{Binding ArtistsCollection.Count}"/>
+        </dx:DXStackLayout>
+        
+        <dx:DXCollectionView Grid.Row="1" ItemsSource="{Binding ArtistsCollection}" SelectionMode="Single" SelectedItem="{Binding SelectedArtist}">
+            <dx:DXCollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:ArtistModelView">
+                    <dx:DXButton>
+                        <dx:DXButton.Content>
+                            <Grid RowDefinitions="*,*" >
+                                <Image Source="{Binding ImagePath}" Aspect="AspectFill" HeightRequest="50" WidthRequest="50" Grid.RowSpan="2"/>
+                                <dx:DXStackLayout Grid.Row="1">
+                                    <Label Text="{Binding Name}" FontSize="20" TextColor="White"/>
+                                </dx:DXStackLayout>
+                            </Grid>
+                        </dx:DXButton.Content>
+                    </dx:DXButton>
+                </DataTemplate>
+            </dx:DXCollectionView.ItemTemplate>
+        </dx:DXCollectionView>
+    </Grid>
+</ContentPage>

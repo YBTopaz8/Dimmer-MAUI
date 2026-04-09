@@ -1,6 +1,6 @@
-﻿using ATL;
-using CommunityToolkit.Diagnostics;
-using Dimmer.DimmerLive.ParseStatics;
+﻿global using ATL;
+global using CommunityToolkit.Diagnostics;
+global using Dimmer.DimmerLive.ParseStatics;
 using Dimmer.DimmerSearch.TQL.RealmSection;
 using Dimmer.Hoarder;
 using Dimmer.Interfaces;
@@ -1149,7 +1149,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     if (songId == ObjectId.Empty)
                     {
 
-                        songModel = realm.All<DimmerPlayEvent>().LastOrDefaultNullSafe().SongsLinkingToThisEvent.FirstOrDefaultNullSafe();
+                        songModel = realm.All<DimmerPlayEvent>().LastOrDefaultNullSafe()?.SongsLinkingToThisEvent.FirstOrDefaultNullSafe();
                     }
 
                     if (songModel != null && !string.IsNullOrEmpty(songModel.TitleDurationKey))
@@ -5581,6 +5581,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 
                 LyricsSearchResults.Add(result);
             }
+            
             _logger.LogInformation(
                 "Successfully fetched {Count} lyrics search results for '{Query}'",
                 LyricsSearchResults.Count,
@@ -5602,7 +5603,13 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     "Found {Count} lyrics results for query: {Query}",
                     LyricsSearchResults.Count,
                     query);
+                if (SelectedSong.TitleDurationKey == CurrentPlayingSongView.TitleDurationKey)
+                {
+                    _lyricsMgtFlow.LoadLyrics(LyricsSearchResults.First().SyncedLyrics);
+                }
+
             }
+
 
         }
         catch (Exception ex)

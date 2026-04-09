@@ -17,5 +17,6 @@ public partial class DimmerShell : Shell
 		Routing.RegisterRoute(nameof(SettingsPage), typeof(SettingsPage));
 		Routing.RegisterRoute(nameof(ArtistPage), typeof(ArtistPage));
 		Routing.RegisterRoute(nameof(AlbumPage), typeof(AlbumPage));
+		Routing.RegisterRoute(nameof(AllArtistsPage), typeof(AllArtistsPage));
     }
 }
