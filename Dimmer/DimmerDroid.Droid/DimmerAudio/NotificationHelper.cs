@@ -28,7 +28,6 @@ public static class NotificationHelper
         var existingChannel = notificationManager.GetNotificationChannel(ChannelId);
         if (existingChannel != null)
         {
-            bool needsUpdate = false;
             if (Build.VERSION.SdkInt >= BuildVersionCodes.Q && !existingChannel.CanBubble())
             {
 

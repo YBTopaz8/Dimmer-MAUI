@@ -228,25 +228,25 @@ public sealed partial class DimmerWin : Window
 
     }
 
-    private void ArtistsItem_Loaded(object sender, RoutedEventArgs e)
-    {
-        var artistsCount =
-            MyViewModel.ArtistsCollection.Count;
-        ArtistsLabelView.Text = $"Artists ({artistsCount})";
-    }
+    //private void ArtistsItem_Loaded(object sender, RoutedEventArgs e)
+    //{
+    //    var artistsCount =
+    //        MyViewModel.ArtistsCollection.Count;
+    //    ArtistsLabelView.Text = $"Artists ({artistsCount})";
+    //}
 
     private void SearchAutoSuggestBox_AccessKeyInvoked(UIElement sender, AccessKeyInvokedEventArgs args)
     {
 
     }
 
-    private void SearchAutoSuggestBox_TextChanged(object sender, Microsoft.UI.Xaml.Controls.AutoSuggestBoxTextChangedEventArgs e)
-    {
+    //private void SearchAutoSuggestBox_TextChanged(object sender, Microsoft.UI.Xaml.Controls.AutoSuggestBoxTextChangedEventArgs e)
+    //{
 
-        MyViewModel.SearchToTQL(SearchTextBox.Text);
+    //    MyViewModel.SearchToTQL(SearchTextBox.Text);
 
        
-    }
+    //}
 
     private void LyricsChip_Tap(object sender, RoutedEventArgs e)
     {
@@ -295,16 +295,7 @@ public sealed partial class DimmerWin : Window
 
     }
 
-    private void nvSample_PaneClosing(NavigationView sender, NavigationViewPaneClosingEventArgs args)
-    {
 
-        FooterGrid.Visibility = Visibility.Collapsed;
-    }
-
-    private void nvSample_PaneOpened(NavigationView sender, object args)
-    {
-        FooterGrid.Visibility = Visibility.Visible;
-    }
 
     private static void ApplyCustomShadow(Border card)
     {
@@ -326,8 +317,6 @@ public sealed partial class DimmerWin : Window
         ElementCompositionPreview.SetElementChildVisual(card, visual);
     }
 
-    private void FooterGrid_Loaded(object sender, RoutedEventArgs e)
-    {
-        ApplyCustomShadow(MiniPlayBorder);
-    }
+   
+
 }

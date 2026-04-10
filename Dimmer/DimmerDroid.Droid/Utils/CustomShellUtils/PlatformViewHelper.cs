@@ -4,7 +4,7 @@ namespace Dimmer.Utils.CustomShellUtils;
 
 public static class PlatformViewHelper
 {
-    public static AView GetNativeView(VisualElement mauiView) // Changed to VisualElement for broader compatibility
+    public static AView? GetNativeView(VisualElement mauiView) // Changed to VisualElement for broader compatibility
     {
         if (mauiView == null)
         {
@@ -22,7 +22,7 @@ public static class PlatformViewHelper
         // Getting the MauiContext:
         // A View's MauiContext is typically inherited from its parent or the window.
         // If the view is not yet part of the visual tree, its Handler.MauiContext might be null.
-        IMauiContext mauiContext = mauiView.Handler?.MauiContext ??
+        IMauiContext? mauiContext = mauiView.Handler?.MauiContext ??
                                    (mauiView.Parent as Element)?.Handler?.MauiContext ??
                                    Microsoft.Maui.Controls.Application.Current?.Windows.FirstOrDefault()?.Handler?.MauiContext;
 
@@ -32,9 +32,9 @@ public static class PlatformViewHelper
             // As a last resort, if you are sure there's a global context (e.g., for views added very late or programmatically without a parent yet)
             // This is less safe as it assumes a single window scenario or that the view will eventually belong to it.
             // mauiContext = MauiApplication.Current?.Application?.Handler?.MauiContext; // Might not always work
-            if (MauiApplication.Current?.Services != null)
+            if (IPlatformApplication.Current != null)
             {
-                mauiContext = MauiApplication.Current.Services.GetService<IMauiContext>();
+                mauiContext = IPlatformApplication.Current.Services.GetService<IMauiContext>();
             }
 
             if (mauiContext == null)
@@ -60,7 +60,7 @@ public static class PlatformViewHelper
 
     // Overload for Microsoft.Maui.Controls.View if specifically needed,
     // but VisualElement is usually what you'll have.
-    public static AView GetNativeView(Microsoft.Maui.Controls.View mauiView)
+    public static AView? GetNativeView(Microsoft.Maui.Controls.View mauiView)
     {
         return GetNativeView(mauiView as VisualElement);
     }

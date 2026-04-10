@@ -36,7 +36,7 @@ public partial class MainActivity : MauiAppCompatActivity
     const int REQUEST_STORAGE_PERMS = 98;
 
     private object? _onBackInvokedCallback;
-    private bool _isBackCallbackRegistered = false;
+
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         base.OnCreate(savedInstanceState);
@@ -211,9 +211,9 @@ public partial class MainActivity : MauiAppCompatActivity
                                 .SetMessage("Return to Home Page?")?
                                 .SetPositiveButton(
                     "Confirm",
-                     (s, e) =>
+                     async (s, e) =>
                     {
-                        Shell.Current.CurrentItem = Shell.Current.Items.FirstOrDefault(i => i.Route == "HomePage"); 
+                                        await Shell.Current.GoToAsync("//HomePage");
                         
                     })
                     .SetNegativeButton(
@@ -231,9 +231,9 @@ public partial class MainActivity : MauiAppCompatActivity
                             .SetMessage("Return to Home Page?")?
                             .SetPositiveButton(
                 "Confirm",
-                    (s, e) =>
+                    async (s, e) =>
                     {
-                        Shell.Current.CurrentItem = Shell.Current.Items.FirstOrDefault(i => i.Route == "HomePage");
+                                        await Shell.Current.GoToAsync("//HomePage");
 
                     })
                 .SetNegativeButton(
@@ -259,7 +259,7 @@ public partial class MainActivity : MauiAppCompatActivity
             (IOnBackInvokedCallback)_onBackInvokedCallback
         );
 
-        _isBackCallbackRegistered = true;
+
     }
     private void CheckAndRequestPermissions()
     {
