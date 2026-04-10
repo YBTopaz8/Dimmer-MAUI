@@ -32,7 +32,7 @@ public static class GeneralViewUtil
             return true;
         }
     }
-    public static Task MyBackgroundColorToBuiltIn(this VisualElement element, Color targetColor, uint length = 250, Easing easing = null)
+    public static Task MyBackgroundColorToBuiltIn(this VisualElement element, Color targetColor, uint length = 250, Easing? easing = null)
     {
         if (element.BackgroundColor == null)
             element.BackgroundColor = Colors.Transparent; // Or some default

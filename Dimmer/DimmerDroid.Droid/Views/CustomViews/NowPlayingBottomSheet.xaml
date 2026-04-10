@@ -110,7 +110,7 @@
                                                 Binding="{Binding IsShuffleActive}"
                                                 TargetType="dx:Chip"
                                                 Value="True">
-                                                <Setter Property="BorderColor" Value="{Binding CurrentPlaySongDominantColor}" />
+                                                <Setter Property="BorderColor" Value="DarkSlateBlue" />
                                                 <Setter Property="BorderThickness" Value="2" />
 
                                             </DataTrigger>
@@ -222,7 +222,7 @@
                                             Binding="{Binding CurrentRepeatMode}"
                                             TargetType="dx:DXButton"
                                             Value="0">
-                                            <Setter Property="BorderColor" Value="{Binding CurrentPlaySongDominantColor}" />
+                                            <Setter Property="BorderColor" Value="DarkSlateBlue" />
                                             <Setter Property="BorderThickness" Value="1" />
 
 

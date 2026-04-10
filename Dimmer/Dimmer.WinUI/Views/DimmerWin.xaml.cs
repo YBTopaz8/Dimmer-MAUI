@@ -317,6 +317,31 @@ public sealed partial class DimmerWin : Window
         ElementCompositionPreview.SetElementChildVisual(card, visual);
     }
 
-   
+    int previousSelectedIndex;
+    private void DimmerAppSelectorBar_SelectionChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs args)
+    {
+        SelectorBarItem selectedItem = sender.SelectedItem;
+        int currentSelectedIndex = sender.Items.IndexOf(selectedItem);
+        Type? pageType=null;
 
+        switch (currentSelectedIndex)
+        {
+            case 0:
+                pageType = typeof(AllSongsListPage);
+                break;
+            case 1:
+                pageType = typeof(AllArtistsPage);
+                break;
+          
+
+        }
+        if (pageType is null)
+            return;
+        var slideNavigationTransitionEffect = currentSelectedIndex - previousSelectedIndex > 0 ? SlideNavigationTransitionEffect.FromRight : SlideNavigationTransitionEffect.FromLeft;
+       
+        ContentFrame.Navigate(pageType, null, new SlideNavigationTransitionInfo() { Effect = slideNavigationTransitionEffect });
+
+        previousSelectedIndex = currentSelectedIndex;
+
+    }
 }

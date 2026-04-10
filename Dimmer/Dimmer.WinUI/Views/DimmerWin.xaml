@@ -246,67 +246,99 @@
 
     </NavigationView>-->
 
-
-    <Grid
-        x:Name="MainGrid"
-        Background="Transparent"
-        KeyDown="MainGrid_KeyDown">
+    <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="auto" />
-            </Grid.ColumnDefinitions>
-
-            <StackPanel
-                x:Name="DimmerStatusPanel"
-                Grid.Column="0"
-                Margin="5"
-                Loaded="DimmerStatusPanel_Loaded"
-                Visibility="{x:Bind MyViewModel.DimmerProgressBarView.Visibility, Mode=OneWay}">
-
-
-                <ProgressBar
-                    x:Name="DimmerProgressBar"
-                    Margin="10,5"
-                    IsIndeterminate="True"
-                    Loaded="DimmerProgressBar_Loaded"
-                    Visibility="{x:Bind MyViewModel.DimmerProgressBarView.Visibility, Mode=OneWay}"
-                    Value="30" />
-
-                <TextBlock
-                    x:Name="DimmerStatusTextBlock"
-                    HorizontalAlignment="Center"
-                    Loaded="DimmerStatusTextBlock_Loaded"
-                    Text="{x:Bind MyViewModel.LatestAppLog.Message, Mode=OneWay}"
-                    Visibility="{x:Bind MyViewModel.DimmerProgressBarView.Visibility, Mode=OneWay}" />
+        <StackPanel Grid.Row="0">
+            <SelectorBar x:Name="DimmerAppSelectorBar" SelectionChanged="DimmerAppSelectorBar_SelectionChanged">
+                <SelectorBarItem x:Name="SelectorBarItemHome" Text="Home">
+                    <SelectorBarItem.Icon>
+                        <SymbolIcon Symbol="MusicInfo" />
+                    </SelectorBarItem.Icon>
+                </SelectorBarItem>
+                <SelectorBarItem x:Name="SelectorBarItemArtists" Text="Artists">
+                    <SelectorBarItem.Icon>
+                        <SymbolIcon Symbol="Microphone" />
+                    </SelectorBarItem.Icon>
+                </SelectorBarItem>
+                <SelectorBarItem x:Name="SelectorBarItemAlbums" Text="Albums">
+                    <SelectorBarItem.Icon>
+                        <FontIcon Glyph="&#xE93C;" />
+                    </SelectorBarItem.Icon>
+                </SelectorBarItem>
+                <SelectorBarItem x:Name="SelectorBarItemSettings" Text="Settings">
+                    <SelectorBarItem.Icon>
+                        <FontIcon Glyph="&#xE713;" />
+                    </SelectorBarItem.Icon>
+                </SelectorBarItem>
+            </SelectorBar>
+        </StackPanel>
 
 
+        <Grid
+            x:Name="MainGrid"
+            Grid.Row="1"
+            Background="Transparent"
+            KeyDown="MainGrid_KeyDown">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
 
-            </StackPanel>
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="auto" />
+                </Grid.ColumnDefinitions>
 
+                <StackPanel
+                    x:Name="DimmerStatusPanel"
+                    Grid.Column="0"
+                    Margin="5"
+                    Loaded="DimmerStatusPanel_Loaded"
+                    Visibility="{x:Bind MyViewModel.DimmerProgressBarView.Visibility, Mode=OneWay}">
+
+
+                    <ProgressBar
+                        x:Name="DimmerProgressBar"
+                        Margin="10,5"
+                        IsIndeterminate="True"
+                        Loaded="DimmerProgressBar_Loaded"
+                        Visibility="{x:Bind MyViewModel.DimmerProgressBarView.Visibility, Mode=OneWay}"
+                        Value="30" />
+
+                    <TextBlock
+                        x:Name="DimmerStatusTextBlock"
+                        HorizontalAlignment="Center"
+                        Loaded="DimmerStatusTextBlock_Loaded"
+                        Text="{x:Bind MyViewModel.LatestAppLog.Message, Mode=OneWay}"
+                        Visibility="{x:Bind MyViewModel.DimmerProgressBarView.Visibility, Mode=OneWay}" />
+
+
+
+                </StackPanel>
+
+
+            </Grid>
+
+
+            <Frame
+                x:Name="ContentFrame"
+                Grid.Row="2"
+                x:FieldModifier="Public" />
+
+            <localViews:SmokeViewQueueGrid
+                x:Name="SmokeGrid"
+                Grid.RowSpan="3"
+                DismissRequested="SmokeGrid_DismissRequested"
+                Loaded="SmokeGrid_Loaded"
+                Visibility="Collapsed" />
 
         </Grid>
-
-
-        <Frame
-            x:Name="ContentFrame"
-            Grid.Row="2"
-            x:FieldModifier="Public" />
-
-        <localViews:SmokeViewQueueGrid
-            x:Name="SmokeGrid"
-            Grid.RowSpan="3"
-            DismissRequested="SmokeGrid_DismissRequested"
-            Loaded="SmokeGrid_Loaded"
-            Visibility="Collapsed" />
-
     </Grid>
-
 
 </Window>

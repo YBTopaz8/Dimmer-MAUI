@@ -5,7 +5,6 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:WinUI.TableView"
     xmlns:converters="using:Dimmer.WinUI.Utils.Converters"
-    
     xmlns:local="using:Dimmer.WinUI"
     xmlns:maui="using:Microsoft.Maui">
     <maui:MauiWinUIApplication.Resources>
@@ -35,7 +34,7 @@
             <converters:StringToImageSourceConverter x:Key="StringToImageConverter" />
             <converters:IsObjNullToVisInverseConverter x:Key="IsObjNullToVisInverseConverter" />
             <converters:BoolToHeartColorConverter x:Key="BoolToHeartColorConverter" />
-            
+
             <converters:BoolToInverseConverter x:Key="BoolToInverseConverter" />
             <converters:IsObjNullToVisConverter x:Key="IsObjNullToVisConverter" />
             <converters:IsFavoriteToFontIcon x:Key="IsFavoriteToFontIcon" />
@@ -135,16 +134,16 @@
                 <Setter Property="CornerRadius" Value="4" />
             </Style>
             <Style x:Key="SubBtnStyle" TargetType="Button">
-                <Setter Property="Width" Value="45"/>
-                <Setter Property="Height" Value="45"/>
-                <Setter Property="CornerRadius" Value="25"/>
-                <Setter Property="Background" Value="{ThemeResource SystemControlBackgroundChromeMediumBrush}"/>
-                <Setter Property="HorizontalAlignment" Value="Center"/>
-                <Setter Property="VerticalAlignment" Value="Center"/>
-                <Setter Property="Opacity" Value="0"/>
-                <!-- Hidden initially -->
-                <Setter Property="Content" Value="A"/>
-                <!-- Placeholder -->
+                <Setter Property="Width" Value="45" />
+                <Setter Property="Height" Value="45" />
+                <Setter Property="CornerRadius" Value="25" />
+                <Setter Property="Background" Value="{ThemeResource SystemControlBackgroundChromeMediumBrush}" />
+                <Setter Property="HorizontalAlignment" Value="Center" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="Opacity" Value="0" />
+                <!--  Hidden initially  -->
+                <Setter Property="Content" Value="A" />
+                <!--  Placeholder  -->
             </Style>
             <!--  Primary Button: Accent color fill  -->
             <Style
@@ -209,9 +208,9 @@
                 <Setter Property="CornerRadius" Value="4" />
                 <Setter Property="Margin" Value="12" />
             </Style>
-            <Style TargetType="TextBox" x:Key="MyTextBoxStyle">
-                <Setter Property="BorderBrush" Value="DarkSlateBlue"/>
-                <Setter Property="BorderThickness" Value="1"/>
+            <Style x:Key="MyTextBoxStyle" TargetType="TextBox">
+                <Setter Property="BorderBrush" Value="DarkSlateBlue" />
+                <Setter Property="BorderThickness" Value="1" />
             </Style>
             <!--  D. TextBox with Acrylic Border on Focus  -->
             <!--  A subtle effect to make text input feel more integrated.  -->
@@ -232,7 +231,7 @@
             </Style>
 
 
-            
+
         </ResourceDictionary>
     </maui:MauiWinUIApplication.Resources>
 </maui:MauiWinUIApplication>

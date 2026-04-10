@@ -44,6 +44,7 @@
 		  <None Remove="Views\WinuiPages\Achievements\SongAchievementsControl.xaml" />
 		  <None Remove="Views\WinuiPages\AlbumPage.xaml" />
 		  <None Remove="Views\WinuiPages\AlbumSection\AlbumsStats.xaml" />
+		  <None Remove="Views\WinuiPages\AlbumSection\AllAlbumsPage.xaml" />
 		  <None Remove="Views\WinuiPages\AllSongsListPage.xaml" />
 		  <None Remove="Views\WinuiPages\ArtistPage.xaml" />
 		  <None Remove="Views\WinuiPages\Artist\AllArtistsPage.xaml" />
@@ -140,6 +141,11 @@
 		  <MauiXaml Include="Views\MAUIPages\HomePage.xaml">
 			<Generator>MSBuild:Compile</Generator>
 		  </MauiXaml>
+		</ItemGroup>
+		<ItemGroup>
+		  <Page Update="Views\WinuiPages\AlbumSection\AllAlbumsPage.xaml">
+		    <Generator>MSBuild:Compile</Generator>
+		  </Page>
 		</ItemGroup>
 		<ItemGroup>
 		  <Page Update="Views\WinuiPages\Artist\ArtistsOverViewPage.xaml">
