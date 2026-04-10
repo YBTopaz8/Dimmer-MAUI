@@ -10,7 +10,7 @@ jobs:
   build-and-release:
     runs-on: windows-latest
     permissions:
-      contents: write # REQUIRED for pushing tags
+      contents: write
 
     steps:
       # 1. CHECKOUT
@@ -28,242 +28,217 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nuget-
 
-          
-# 3. DETECT VERSION CHANGE TYPE (FIXED)
-      - name: Detect Version & Release Type
+      # 3. DETECT VERSION (FORCED FULL RELEASE)
+      - name: Detect Version
         id: version_logic
         shell: pwsh
         run: |
-          # --- A. READ CURRENT VERSION FROM FILE ---
           $projectFile = Get-ChildItem -Recurse -Filter "Dimmer.csproj" | Select-Object -First 1
-          if (-not $projectFile) { Write-Error "❌ Dimmer.csproj not found"; exit 1 }
-          
           [xml]$xml = Get-Content $projectFile.FullName
           $currentVersionStr = $xml.Project.PropertyGroup.Version.Trim()
-          
-          if ([string]::IsNullOrWhiteSpace($currentVersionStr)) {
-            Write-Error "❌ No <Version> tag found in Dimmer.csproj."
-            exit 1
-          }
-          
           $newTag = "v$currentVersionStr"
-          Write-Host "🔹 Current File Version: $currentVersionStr"
-          echo "NEW_TAG=$newTag" >> $env:GITHUB_ENV
           
-          # --- B. FIND PREVIOUS TAG ---
+          "NEW_TAG=$newTag" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "IS_PRE=false" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          
           git fetch --tags --force
-          
-          # Get all tags
           $allTags = git tag --sort=-version:refname 
-          
-          # Filter: Exclude current tag AND ensure tag looks like a standard version (e.g. v1.0, 1.0.5)
-          # This ignores tags like "v1.92a" which cause the crash
           $validPattern = "^v?\d+(\.\d+)+$"
-          $prevTag = $allTags | Where-Object { $_.Trim() -ne $newTag -and $_.Trim() -match $validPattern } | Select-Object -First 1
+          $foundTag = $allTags | Where-Object { $_.Trim() -ne $newTag -and $_.Trim() -match $validPattern } | Select-Object -First 1
           
-          if ([string]::IsNullOrWhiteSpace($prevTag)) {
-            Write-Host "⚠️ No previous standard tag found. Treating as first STABLE release."
-            echo "IS_PRE=false" >> $env:GITHUB_ENV
-            echo "LATEST_TAG=" >> $env:GITHUB_ENV
+          if ($null -ne $foundTag) {
+              "LATEST_TAG=$($foundTag.Trim())" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           } else {
-            Write-Host "🔹 Previous Valid Tag found: $prevTag"
-            echo "LATEST_TAG=$prevTag" >> $env:GITHUB_ENV
-          }
-          
-          # --- C. COMPARE VERSIONS ---
-          if ($prevTag) {
-            # Sanitize: Remove 'v' and anything that isn't a number or dot
-            $prevVersionStr = $prevTag -replace "[^0-9\.]", ""
-            
-            try {
-              $curV = [System.Version]$currentVersionStr
-              $prevV = [System.Version]$prevVersionStr
-              
-              Write-Host "Comparing $curV vs $prevV"
-              
-              if ($curV.Major -gt $prevV.Major -or $curV.Minor -gt $prevV.Minor) {
-                  Write-Host "🚀 Major/Minor change. Marking as STABLE RELEASE."
-                  echo "IS_PRE=false" >> $env:GITHUB_ENV
-              } else {
-                  Write-Host "🧪 Patch change. Marking as PRE-RELEASE."
-                  echo "IS_PRE=true" >> $env:GITHUB_ENV
-              }
-            } catch {
-              Write-Warning "Could not parse versions despite sanitization. Defaulting to Pre-Release."
-              echo "IS_PRE=true" >> $env:GITHUB_ENV
-            }
+              "LATEST_TAG=" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           }
 
-      # 3.5 GENERATE CHANGELOG (FIXED with Fallback)
+      # 3.5 GENERATE CHANGELOG (LIMITED TO LAST 10)
       - name: Generate Changelog
         shell: pwsh
         run: |
           $prevTag = $env:LATEST_TAG
-          $newTag = $env:NEW_TAG
-          
-          Write-Host "Generating log..."
-
-          # 1. Try Standard Range Log
-          if ([string]::IsNullOrEmpty($prevTag)) {
-              $log = git log --pretty=format:"- %s (%h)" --no-merges
+          if ([string]::IsNullOrWhiteSpace($prevTag)) {
+              $log = git log -n 10 --pretty=format:"- %s (%h)" --no-merges
           } else {
-              $log = git log $prevTag..HEAD --pretty=format:"- %s (%h)" --no-merges
+              $log = git log "$($prevTag)..HEAD" -n 10 --pretty=format:"- %s (%h)" --no-merges
           }
-
-          # Convert array to string if necessary
-          if ($log -is [Array]) { $logString = $log -join "`n" } else { $logString = $log }
-
-          # 2. Fallback: If empty, grab last 15 commits (Ensures no empty release notes)
+          
+          $logString = if ($log -is [Array]) { $log -join "`n" } else { $log }
+          
           if ([string]::IsNullOrWhiteSpace($logString)) { 
-             Write-Warning "Standard log range was empty. Falling back to last 15 commits."
-             $log = git log -n 15 --pretty=format:"- %s (%h)" --no-merges
-             if ($log -is [Array]) { $logString = $log -join "`n" } else { $logString = $log }
+              $logString = git log -n 10 --pretty=format:"- %s (%h)" --no-merges -join "`n" 
           }
-
-          # 3. Final Check
-          if ([string]::IsNullOrWhiteSpace($logString)) { 
-            $logString = "- No commit messages found (Manual Check Recommended)." 
-          }
-
-          $content = "## Changes in $newTag`n`n$logString"
+          
+          $content = "## Changes in $env:NEW_TAG`n`n$logString"
           Set-Content -Path "release_notes.md" -Value $content -Encoding UTF8
           
-          Write-Host "--- RELEASE NOTES PREVIEW ---"
-          Write-Host $content
-          Write-Host "-----------------------------"
+          $eof = [System.Guid]::NewGuid().ToString("N")
+          "ESCAPED_LOG<<$eof" | Out-File -FilePath $env:GITHUB_ENV -Append
+          $logString | Out-File -FilePath $env:GITHUB_ENV -Append
+          "$eof" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       # 4. CHECKOUT DEPENDENCIES
-      - name: Checkout Last.fm
-        uses: actions/checkout@v4
-        with:
-          repository: YBTopaz8/Last.fm
-          path: ExternalDeps/Last.fm
-
-      - name: Checkout ParseLiveQuery
-        uses: actions/checkout@v4
-        with:
-          repository: YBTopaz8/Parse-LiveQueries-DOTNET
-          path: ExternalDeps/Parse-LiveQueries-DOTNET
-
-      - name: Checkout ATL
-        uses: actions/checkout@v4
-        with:
-          repository: Zeugma440/atldotnet
-          path: ExternalDeps/atldotnet-main
-
-      - name: Checkout AudioSwitcher
-        uses: actions/checkout@v4
-        with:
-          repository: xenolightning/AudioSwitcher
-          path: ExternalDeps/AudioSwitcher-master
+      - name: Checkout Dependencies
+        shell: pwsh
+        run: |
+          $depsRoot = "$env:GITHUB_WORKSPACE\ExternalDeps"
+          New-Item -ItemType Directory -Force -Path $depsRoot
           
-      # 5. LOCATE PROJECT FILES
+          git clone https://github.com/YBTopaz8/Last.fm "$depsRoot\Last.fm"
+          git clone https://github.com/YBTopaz8/Parse-LiveQueries-DOTNET "$depsRoot\Parse-LiveQueries-DOTNET"
+          git clone https://github.com/Zeugma440/atldotnet "$depsRoot\atldotnet-main"
+          git clone https://github.com/xenolightning/AudioSwitcher "$depsRoot\AudioSwitcher-master"
+
+      # 5. CREATE EXTERNALS.PROP
+      - name: Create externals.props
+        shell: pwsh
+        run: |
+          $propsContent = @'
+          <Project>
+            <PropertyGroup>
+              <ExternalDepsPath>$(MSBuildThisFileDirectory)ExternalDeps\</ExternalDepsPath>
+              <LastFmProjectPath>$(ExternalDepsPath)Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj</LastFmProjectPath>
+              <ParseProjectPath>$(ExternalDepsPath)Parse-LiveQueries-DOTNET\ParseLiveQuery\ParseLiveQuery.csproj</ParseProjectPath>
+              <AtlProjectPath>$(ExternalDepsPath)atldotnet-main\ATL\ATL.csproj</AtlProjectPath>
+              <AudioSwitcherCorePath>$(ExternalDepsPath)AudioSwitcher-master\AudioSwitcher.AudioApi.CoreAudio\AudioSwitcher.AudioApi.CoreAudio.csproj</AudioSwitcherCorePath>
+              <AudioSwitcherApiPath>$(ExternalDepsPath)AudioSwitcher-master\AudioSwitcher.AudioApi\AudioSwitcher.AudioApi.csproj</AudioSwitcherApiPath>
+            </PropertyGroup>
+          </Project>
+          '@
+          Set-Content -Path "externals.props" -Value $propsContent -Encoding UTF8
+          Write-Host "Created externals.props"
+
+      # 6. LOCATE PROJECT FILES - FIXED: Look for DimmerDroid.Droid.csproj
       - name: Locate Project Files
         shell: pwsh
         run: |
           $winui = Get-ChildItem -Recurse -Filter "Dimmer.WinUI.csproj" | Select-Object -First 1
-          $droid = Get-ChildItem -Recurse -Filter "Dimmer.Droid.csproj" | Select-Object -First 1
+          $droid = Get-ChildItem -Recurse -Filter "DimmerDroid.Droid.csproj" | Select-Object -First 1
           $core  = Get-ChildItem -Recurse -Filter "Dimmer.csproj" | Select-Object -First 1
-
-          if (-not $winui) { Write-Error "❌ Missing Dimmer.WinUI.csproj"; exit 1 }
-          if (-not $droid) { Write-Error "❌ Missing Dimmer.Droid.csproj"; exit 1 }
-          if (-not $core)  { Write-Error "❌ Missing Dimmer.csproj"; exit 1 }
-
+          
+          if (-not $droid) {
+            Write-Error "DimmerDroid.Droid.csproj not found!"
+            exit 1
+          }
+          
           echo "PATH_WINUI=$($winui.FullName)" >> $env:GITHUB_ENV
           echo "PATH_DROID=$($droid.FullName)" >> $env:GITHUB_ENV
           echo "DIR_CORE=$($core.Directory.FullName)" >> $env:GITHUB_ENV
+          echo "DROID_DIR=$($droid.Directory.FullName)" >> $env:GITHUB_ENV
           
-      # 6. CREATE APPSETTINGS.JSON
+          Write-Host "Found Android project at: $($droid.FullName)"
+          
+      # 7. CREATE APPSETTINGS.JSON
       - name: Create appsettings.json
         shell: pwsh
         run: |
           $targetPath = Join-Path "${{ env.DIR_CORE }}" "appsettings.json"
-          $jsonContent = @'
-          ${{ secrets.appsettings }}
-          '@
-          Set-Content -Path $targetPath -Value $jsonContent -Encoding UTF8
+          Set-Content -Path $targetPath -Value '${{ secrets.appsettings }}' -Encoding UTF8
+          Write-Host "Created appsettings.json at $targetPath"
 
-      # 7. PATCH CSPROJ PATHS (FIXED: Handles -master folders and slashes)
-      - name: Fix Dependency Paths
+      # 8. FIX ALL CSPROJ FILES - COMPREHENSIVE FIX
+      - name: Fix All Project Files
         shell: pwsh
         run: |
-          $depsPath = Join-Path $env:GITHUB_WORKSPACE "ExternalDeps"
-          
-          # Match ".." followed by slash or backslash, repeated
-          $relPattern = '(\.\.[\\/])+' 
-          
-          Get-ChildItem -Recurse -Filter *.csproj | ForEach-Object {
-            $content = Get-Content $_.FullName
+          # Function to fix project file
+          function Fix-ProjectFile {
+            param($csprojPath, $projectType)
             
-            # 1. Last.fm: In csproj it is "Last.fm-master" -> We map to checkout folder "Last.fm"
-            $content = $content -replace "${relPattern}Last\.fm-master", "$depsPath\Last.fm"
-
-            # 2. Parse: In csproj it is "Parse-LiveQueries-DOTNET-master" -> Map to "Parse-LiveQueries-DOTNET"
-            $content = $content -replace "${relPattern}Parse-LiveQueries-DOTNET-master", "$depsPath\Parse-LiveQueries-DOTNET"
-
-            # 3. ATL: In csproj it is "atldotnet-main" -> Map to "atldotnet-main"
-            $content = $content -replace "${relPattern}atldotnet-main", "$depsPath\atldotnet-main"
-
-            # 4. AudioSwitcher: In csproj it is "AudioSwitcher-master" -> Map to "AudioSwitcher-master"
-            $content = $content -replace "${relPattern}AudioSwitcher-master", "$depsPath\AudioSwitcher-master"
-
-            Set-Content $_.FullName $content -Encoding UTF8
+            if (-not (Test-Path $csprojPath)) {
+              Write-Host "Warning: $csprojPath not found"
+              return $false
+            }
+            
+            Write-Host "Fixing $projectType project: $csprojPath"
+            $content = Get-Content $csprojPath -Raw
+            
+            # Fix import path to externals.props
+            if ($content -match '<Import Project=".*externals\.props"') {
+              $content = $content -replace '<Import Project="\.\.\\externals\.props"', '<Import Project="..\..\externals.props"'
+              $content = $content -replace '<Import Project="\.\.\\\.\.\\externals\.props"', '<Import Project="..\..\externals.props"'
+            } else {
+              # Add import after Project tag
+              $content = $content -replace '(<Project[^>]*>)', "`$1`n  <Import Project=`"..\..\externals.props`" Condition=`"Exists('..\..\externals.props')`" />"
+            }
+            
+            # Replace hardcoded project references
+            $content = $content -replace '<ProjectReference Include="\.\.\\\.\.\\\.\.\\Last\.fm\\src\\Hqub\.Lastfm\\Hqub\.Lastfm\.csproj" />', '<ProjectReference Include="$(LastFmProjectPath)" />'
+            $content = $content -replace '<ProjectReference Include="\.\.\\\.\.\\\.\.\\Parse-LiveQueries-DOTNET\\ParseLiveQuery\\ParseLiveQuery\.csproj" />', '<ProjectReference Include="$(ParseProjectPath)" />'
+            $content = $content -replace '<ProjectReference Include="\.\.\\\.\.\\atldotnet-main\\ATL\\ATL\.csproj" />', '<ProjectReference Include="$(AtlProjectPath)" />'
+            
+            # For WinUI specifically
+            if ($projectType -eq "WinUI") {
+              $content = $content -replace '<ProjectReference Include="\.\.\\\.\.\\AudioSwitcher-master\\AudioSwitcher\.AudioApi\.CoreAudio\\AudioSwitcher\.AudioApi\.CoreAudio\.csproj" />', '<ProjectReference Include="$(AudioSwitcherCorePath)" />'
+              $content = $content -replace '<ProjectReference Include="\.\.\\\.\.\\AudioSwitcher-master\\AudioSwitcher\.AudioApi\\AudioSwitcher\.AudioApi\.csproj" />', '<ProjectReference Include="$(AudioSwitcherApiPath)" />'
+            }
+            
+            Set-Content $csprojPath $content -Encoding UTF8
+            Write-Host "Fixed $projectType project"
+            return $true
           }
           
-          # Debug: Prove it worked
-          Select-String -Path "${{ env.DIR_CORE }}\Dimmer.csproj" -Pattern "ProjectReference"
+          # Fix all three projects
+          $coreCsproj = Get-ChildItem -Recurse -Filter "Dimmer.csproj" | Select-Object -First 1
+          $winuiCsproj = Get-ChildItem -Recurse -Filter "Dimmer.WinUI.csproj" | Select-Object -First 1
+          $droidCsproj = Get-ChildItem -Recurse -Filter "DimmerDroid.Droid.csproj" | Select-Object -First 1
+          
+          if ($coreCsproj) { Fix-ProjectFile $coreCsproj.FullName "Core" }
+          if ($winuiCsproj) { Fix-ProjectFile $winuiCsproj.FullName "WinUI" }
+          if ($droidCsproj) { Fix-ProjectFile $droidCsproj.FullName "Android" }
+          
+          Write-Host "All project files fixed"
 
-      # 8. SETUP .NET & WORKLOADS
-      - name: Setup .NET 9
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 9.0.x
-
-      - name: Install MAUI Workloads
-        run: dotnet workload install maui-android maui-windows
-
+      # 9. DISABLE EXTERNAL REPO SIGNING
       - name: Disable AudioSwitcher Signing
         shell: pwsh
         run: |
-          Get-ChildItem -Recurse -Filter "AudioSwitcher*.csproj" | ForEach-Object {
-            $content = Get-Content $_.FullName
+          $audioPath = Join-Path $env:GITHUB_WORKSPACE "ExternalDeps\AudioSwitcher-master"
+          Get-ChildItem -Path $audioPath -Recurse -Filter "*.csproj" | ForEach-Object {
+            $content = Get-Content $_.FullName -Raw
             $content = $content -replace '<AssemblyOriginatorKeyFile>.*?</AssemblyOriginatorKeyFile>', ''
             $content = $content -replace '<SignAssembly>true</SignAssembly>', '<SignAssembly>false</SignAssembly>'
             Set-Content $_.FullName $content -Encoding UTF8
           }
 
-      # 9. BUILD WINDOWS
+      # 10. SETUP .NET & WORKLOADS
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install MAUI Workloads
+        run: dotnet workload install maui-android maui-windows
+
+      # 11. BUILD WINDOWS
       - name: Build Windows
         run: |
-          dotnet publish "${{ env.PATH_WINUI }}" `
-            -f net9.0-windows10.0.19041.0 `
-            -c Release `
-            -r win-x64 `
-            -p:WindowsPackageType=None `
-            -p:GenerateAppxPackageOnBuild=false `
-            -p:AppxPackageSigningEnabled=false `
-            -p:EnableMrtResourceGeneration=false `
-            --self-contained=false `
-            -o .\RawBuild\WinUI
+          dotnet publish "${{ env.PATH_WINUI }}" -f net10.0-windows10.0.19041.0 -c Release -r win-x64 -p:WindowsPackageType=None -p:GenerateAppxPackageOnBuild=false -p:AppxPackageSigningEnabled=false -o .\RawBuild\WinUI
 
-      # 10. ZIP WINDOWS
+      # 12. ZIP WINDOWS
       - name: Zip Windows Build
         shell: pwsh
         run: |
+          $zipPath = ".\Artifacts\Dimmer-Windows-Portable-${{ env.NEW_TAG }}.zip"
           New-Item -ItemType Directory -Force -Path .\Artifacts
-          Compress-Archive -Path .\RawBuild\WinUI\* -DestinationPath .\Artifacts\Dimmer-Windows-Portable-${{ env.NEW_TAG }}.zip
+          Compress-Archive -Path .\RawBuild\WinUI\* -DestinationPath $zipPath
+          echo "WIN_SIZE=$((Get-Item $zipPath).Length)" >> $env:GITHUB_ENV
 
-      # 11. BUILD ANDROID
+      # 13. BUILD ANDROID
       - name: Build Android
         run: |
-          dotnet publish "${{ env.PATH_DROID }}" `
-            -f net9.0-android `
-            -c Release `
-            -r android-arm64 `
-            -p:AndroidPackageFormat=apk `
-            -o .\RawBuild\Android
+          dotnet publish "${{ env.PATH_DROID }}" -f net10.0-android -c Release -r android-arm64 -p:AndroidPackageFormat=apk -o .\RawBuild\Android
       
-      # 12. UPLOAD ARTIFACTS
+      - name: Get Android Size
+        shell: pwsh
+        run: |
+          $apk = Get-ChildItem ".\RawBuild\Android\*-Signed.apk" | Select-Object -First 1
+          if ($apk) {
+            echo "APK_SIZE=$($apk.Length)" >> $env:GITHUB_ENV
+          } else {
+            echo "APK_SIZE=0" >> $env:GITHUB_ENV
+          }
+
+      # 14. UPLOAD ARTIFACTS
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -272,54 +247,59 @@ jobs:
             RawBuild/Android/*.apk
             Artifacts/Dimmer-Windows-Portable-${{ env.NEW_TAG }}.zip
             
-      # 13. PUSH TAG & RELEASE
+      # 15. PUSH TAG & CREATE RELEASE
       - name: Push Tag & Create Release
+        id: create_release
         uses: softprops/action-gh-release@v1        
         with:
           tag_name: ${{ env.NEW_TAG }}
           name: Release ${{ env.NEW_TAG }}
           draft: false
-          prerelease: ${{ env.IS_PRE }}
+          prerelease: false
           body_path: release_notes.md
           files: |
             RawBuild/Android/*.apk
             Artifacts/Dimmer-Windows-Portable-${{ env.NEW_TAG }}.zip
+
+      # 16. NOTIFY PARSE SERVER
+      - name: Notify Parse of New Update
+        shell: pwsh
+        env:
+          PARSE_APP_ID: ${{ secrets.PARSE_APP_ID }}
+          PARSE_MASTER_KEY: ${{ secrets.PARSE_MASTER_KEY }}
+          PARSE_SERVER_URL: ${{ secrets.PARSE_SERVER_URL }}
+        run: |
+          $releaseUrl = "${{ github.server_url }}/${{ github.repository }}/releases/tag/$($env:NEW_TAG)"
+          $aSize = "$([math]::Round($env:APK_SIZE / 1MB, 2)) MB"
+          $wSize = "$([math]::Round($env:WIN_SIZE / 1MB, 2)) MB"
+          
+          $body = @{ 
+              title        = "Dimmer $($env:NEW_TAG)"
+              version      = "$($env:NEW_TAG)"
+              notes        = "$($env:ESCAPED_LOG)"
+              url          = $releaseUrl
+              androidSize  = $aSize
+              windowsSize  = $wSize
+              isPreRelease = $false
+          } | ConvertTo-Json
+          
+          $headers = @{ 
+              "X-Parse-Application-Id" = $env:PARSE_APP_ID
+              "X-Parse-Master-Key"     = $env:PARSE_MASTER_KEY
+              "Content-Type"           = "application/json" 
+          }
+          
+          Invoke-RestMethod -Uri "$($env:PARSE_SERVER_URL)/functions/postAppUpdate" -Method Post -Headers $headers -Body $body
       
-      # 14. NOTIFY DISCORD
+      # 17. NOTIFY DISCORD
       - name: Notify Discord
         if: always()
         shell: pwsh
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: |
-          if (-not $env:DISCORD_WEBHOOK) { Write-Host "No Webhook found"; exit 0 }
-          
+          if (-not $env:DISCORD_WEBHOOK) { exit 0 }
           $status = "${{ job.status }}"
-          $branch = "${{ github.ref_name }}"
-          
-          if ($status -eq 'success') { 
-              $title = "Dimmer Release: ${{ env.NEW_TAG }}"
-              $color = 3066993 # Green
-              if ("${{ env.IS_PRE }}" -eq "true") { 
-                $title = "Dimmer Pre-Release: ${{ env.NEW_TAG }}" 
-                $color = 16776960 # Yellow
-              }
-          } else { 
-              $title = "❌ Dimmer Build Failed"
-              $color = 15158332 # Red
-          }
-
-          $body = @{
-            embeds = @(
-              @{
-                title = $title
-                description = "Status: $status`nBranch: $branch"
-                color = $color
-                fields = @(
-                  @{ name = "View Release on GitHub"; value = "[Click Here](${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ env.NEW_TAG }})" }
-                )
-              }
-            )
-          } | ConvertTo-Json -Depth 4
-          
+          $color = if ($status -eq 'success') { 3066993 } else { 15158332 }
+          $body = @{ embeds = @(@{ title = "Dimmer Release: ${{ env.NEW_TAG }}"; description = "Status: $status"; color = $color; fields = @(@{ name = "Release"; value = "[View](${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ env.NEW_TAG }})" }) }) } | ConvertTo-Json -Depth 4
           Invoke-RestMethod -Uri $env:DISCORD_WEBHOOK -Method Post -ContentType 'application/json' -Body $body
