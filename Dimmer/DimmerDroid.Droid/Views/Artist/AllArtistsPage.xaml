@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Dimmer.Views.Artist.AllArtistsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:dx="http://schemas.devexpress.com/maui"
+    xmlns:globalVM="clr-namespace:Dimmer.ViewModel;assembly=Dimmer"
+    xmlns:local="clr-namespace:Dimmer.Views.CustomViews"
+    xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+    xmlns:vm="clr-namespace:Dimmer.ViewModels"
+    Title="All Artists"
+    x:DataType="vm:BaseViewModelAnd"
+    Shell.NavBarIsVisible="True">
+    <Grid RowDefinitions="auto,*">
+        <dx:DXStackLayout Grid.Row="0">
+            <Label Text="{Binding ArtistsCollection.Count}" />
+            <Label Text="Count" />
+        </dx:DXStackLayout>
+
+        <dx:DXCollectionView
+            Grid.Row="1"
+            ItemSpacing="5"
+            ItemSpanCount="3"
+            ItemSpanSpacing="5"
+            ItemsSource="{Binding ArtistsCollection}"
+            SelectedItem="{Binding SelectedArtist}"
+            SelectionMode="Single">
+            <dx:DXCollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:ArtistModelView">
+                    <dx:DXBorder 
+                        Padding="5"
+                        CornerRadius="20"
+                        BorderColor="DarkSlateBlue" BorderThickness="1">
+
+                        <Grid RowDefinitions="50,*">
+                            <Image
+                                Grid.RowSpan="2"
+                                Aspect="AspectFill"
+                                HeightRequest="50"
+                                Source="{Binding ImagePath}"
+                                WidthRequest="50" />
+                            <dx:DXStackLayout Grid.Row="1">
+                                <Label
+                                    FontSize="20"
+                                    Text="{Binding Name}"
+                                    TextColor="White" />
+                            </dx:DXStackLayout>
+                        </Grid>
+
+                    </dx:DXBorder>
+                </DataTemplate>
+            </dx:DXCollectionView.ItemTemplate>
+        </dx:DXCollectionView>
+    </Grid>
+</ContentPage>

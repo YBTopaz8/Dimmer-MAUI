@@ -41,10 +41,6 @@ public partial class SettingsPage : ContentPage
 
     }
 
-    private void LastFMHeaderChip_Tap(object sender, HandledEventArgs e)
-    {
-        LastFmExpander.IsExpanded = !LastFmExpander.IsExpanded;
-    }
 
     private void ConnectToLastFM_Clicked(object sender, EventArgs e)
     {
@@ -82,10 +78,6 @@ public partial class SettingsPage : ContentPage
         await MyViewModel.AddMusicFolderViaPickerAsync();
     }
 
-    private void FoldersSectionChip_Tap(object sender, HandledEventArgs e)
-    {
-        FoldersSectionExpander.IsExpanded = !FoldersSectionExpander.IsExpanded;
-    }
 
     private async void RescanFolderChip_Tap(object sender, HandledEventArgs e)
     {

@@ -113,6 +113,9 @@
 	  <MauiXaml Update="Views\Album\AlbumPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="Views\Artist\AllArtistsPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Views\Artist\ArtistPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
@@ -129,5 +132,11 @@
 	  
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	</ItemGroup>
+
+
+
+	<ItemGroup>
+	  <Folder Include="Utils\CustomHandlers\" />
 	</ItemGroup>
 </Project>

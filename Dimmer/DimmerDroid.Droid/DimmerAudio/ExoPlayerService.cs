@@ -671,8 +671,7 @@ public partial class ExoPlayerService : MediaSessionService
             .SetAlbumTitle(album)!
             .SetMediaType(new Java.Lang.Integer(MediaMetadata.MediaTypeMusic))! // Use Java Integer wrapper
             .SetGenre(genre)!
-            .SetArtworkUri(string.IsNullOrEmpty(imagePath) ? null : Uri.FromFile(new Java.IO.File(imagePath)))
-
+            .SetArtworkUri(string.IsNullOrEmpty(imagePath) ? null : Uri.FromFile(new Java.IO.File(imagePath)))?
             .SetIsPlayable(Java.Lang.Boolean.True)!; // Use Java Boolean wrapper
 
 

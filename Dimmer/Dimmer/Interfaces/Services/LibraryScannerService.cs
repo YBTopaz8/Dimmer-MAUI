@@ -257,7 +257,7 @@ progress,processedResults.Count);
                                 {
 
 
-                                    AlbumModel? albIfAny = null;
+                                    //AlbumModel? albIfAny = null;
                                     var songView = newSongs.Find(x => x.Id == songModel.Id);
                                     if (songView is not null)
                                     {
@@ -273,8 +273,7 @@ progress,processedResults.Count);
                                             var alb = managedAlbums.Values.Where(a => a.Name == songView.AlbumName).FirstOrDefault();
                                             if(alb is not null)
                                             {                                                
-                                                songModel.Album = alb;
-                                              
+                                                songModel.Album = alb;                                              
                                             }
                                         }
                                         if(songModel.Album is null)

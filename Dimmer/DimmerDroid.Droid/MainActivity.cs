@@ -36,7 +36,7 @@ public partial class MainActivity : MauiAppCompatActivity
     const int REQUEST_STORAGE_PERMS = 98;
 
     private object? _onBackInvokedCallback;
-    private bool _isBackCallbackRegistered = false;
+
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         base.OnCreate(savedInstanceState);
@@ -180,25 +180,75 @@ public partial class MainActivity : MauiAppCompatActivity
     private void SetupBackNavigationApi33()
     {
         // The dangerous code lives exclusively in here
-        _onBackInvokedCallback = new BackInvokedCallback(() =>
+        _onBackInvokedCallback = new BackInvokedCallback(async () =>
         {
-            if(Shell.Current.CurrentPage.GetType() != typeof(HomePage))
-                Shell.Current.GoToAsync("..",true);
-            else
-            {
 
-                // create a materialDialog askig to swipe again in order to confirm exit, to avoid accidental exits
-                new MaterialAlertDialogBuilder(this)?
-                    .SetTitle("Exit App")?
-                    .SetMessage("Close Application?")?
-                    .SetPositiveButton("Exit", async (s, e) =>
+            switch (Shell.Current.CurrentItem.Title)
+            {
+                case "Home":
+
+                    new MaterialAlertDialogBuilder(this)?
+                                .SetTitle("Exit App")?
+                                .SetMessage("Close Application?")?
+                                .SetPositiveButton(
+                    "Exit",
+                    async (s, e) =>
                     {
-                            await MyViewModel.OnAppClosingAsync();
+                        await MyViewModel.OnAppClosingAsync();
                         FinishAffinity();
                     })
-                    .SetNegativeButton("Cancel", (s, e) => { /* Do nothing */ })
+                    .SetNegativeButton(
+                        "Cancel",
+                        (s, e) =>
+                        { /* Do nothing */
+                        })
                     .Show();
+                    break;
+                case "Artists":
+
+                    new MaterialAlertDialogBuilder(this)?
+                                .SetTitle("Confirm action")?
+                                .SetMessage("Return to Home Page?")?
+                                .SetPositiveButton(
+                    "Confirm",
+                     async (s, e) =>
+                    {
+                                        await Shell.Current.GoToAsync("//HomePage");
+                        
+                    })
+                    .SetNegativeButton(
+                        "Cancel",
+                        (s, e) =>
+                        { /* Do nothing */
+                        })
+                    .Show();
+                    break;
+
+                case "Settings":
+
+                new MaterialAlertDialogBuilder(this)?
+                            .SetTitle("Confirm action")?
+                            .SetMessage("Return to Home Page?")?
+                            .SetPositiveButton(
+                "Confirm",
+                    async (s, e) =>
+                    {
+                                        await Shell.Current.GoToAsync("//HomePage");
+
+                    })
+                .SetNegativeButton(
+                    "Cancel",
+                    (s, e) =>
+                    { /* Do nothing */
+                    })
+                .Show();
+                break;
+
+                default:
+                  await  Shell.Current.GoToAsync("..");
+                    break;
             }
+           
         });
 
         // Note: Ensure _onBackInvokedCallback is defined as 'object' or inside this scope 
@@ -209,7 +259,7 @@ public partial class MainActivity : MauiAppCompatActivity
             (IOnBackInvokedCallback)_onBackInvokedCallback
         );
 
-        _isBackCallbackRegistered = true;
+
     }
     private void CheckAndRequestPermissions()
     {

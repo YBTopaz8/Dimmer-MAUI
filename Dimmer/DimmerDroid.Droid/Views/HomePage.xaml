@@ -14,8 +14,7 @@
               >
         <Border Grid.RowSpan="3" Opacity="0.01" BackgroundColor="{Binding CurrentPlaySongDominantColor}"/>
         <dx:DXStackLayout CornerRadius="10" Orientation="Vertical" Margin="5,0"  Grid.Row="0" ItemSpacing="5" Opacity="1" BackgroundColor="#1e1e1e">
-            <dx:DXButton Content="Settings" HorizontalOptions="End"
-                          Clicked="SettingsBtn_Clicked" x:Name="SettingsBtn"/>
+           
             <FlexLayout JustifyContent="SpaceBetween">
                 <dx:Chip Icon="hamburgermenu.png" x:Name="MenuBtn" IsIconVisible="True" BackgroundColor="Transparent" IconColor="DarkSlateBlue"
                          IconSize="35,35"

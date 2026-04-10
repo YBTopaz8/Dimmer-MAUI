@@ -21,7 +21,8 @@ public partial class NowPlayingBottomSheet : BottomSheet
             songForLyrics = MyViewModel.SelectedSong;
             MyViewModel.SelectedSong = MyViewModel.CurrentPlayingSongView;
             await Shell.Current.GoToAsync(nameof(DetailsOverview), true);
-            _= MyViewModel.SearchLyricsAsync();
+
+            await MyViewModel.SearchLyricsAsync();
         }
     }
 
@@ -171,4 +172,10 @@ public partial class NowPlayingBottomSheet : BottomSheet
         PlaybackQueueCV.ScrollTo(songHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
     }
 
+    private void CurrentLyricLine_Tap(object sender, HandledEventArgs e)
+    {
+        PlayBackQueueExp.IsExpanded = false;
+        NowPlayingExp.IsExpanded = false;
+        SingleSongLyricsView.SetIsExpanded(true,true);
+    }
 }

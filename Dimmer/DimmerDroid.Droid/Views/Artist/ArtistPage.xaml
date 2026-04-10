@@ -8,7 +8,8 @@
  xmlns:local="clr-namespace:Dimmer.Views.CustomViews"
  xmlns:dx="http://schemas.devexpress.com/maui"
  xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
- x:DataType="models:ArtistModelView" Shell.NavBarIsVisible="True"
+ x:DataType="models:ArtistModelView"
+             Shell.NavBarIsVisible="True"
              Title="{Binding Name}">
     <Grid RowDefinitions="auto,*">
         <Grid Grid.Row="0"  ColumnDefinitions="*,*" >
