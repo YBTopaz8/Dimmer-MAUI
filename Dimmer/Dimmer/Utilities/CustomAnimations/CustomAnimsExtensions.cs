@@ -74,11 +74,11 @@ public static class CustomAnimsExtensions
             element.FadeTo(1.0, (uint)duration, Easing.CubicInOut)
         );
     }
-    public static Task AnimateScaleHeightBackZero(this VisualElement element, double startScale, double endScale = 0, uint duration = 250, Easing easing = null)
+    public static async Task<bool> AnimateScaleHeightBackZero(this VisualElement element, double startScale, double endScale = 0, uint duration = 250, Easing? easing = null)
     {
         element.AnchorY = 0; // Anchor at the top to scale downwards
         element.ScaleY = startScale;
-        return element.ScaleYTo(endScale, duration, easing);
+        return await element.ScaleYToAsync(endScale, duration, easing);
     }
     public static Task AnimateScaleHeightOnePointFive(this VisualElement element, double startScale = 0, double endScale = 1.5, uint duration = 450, Easing easing = null)
     {
