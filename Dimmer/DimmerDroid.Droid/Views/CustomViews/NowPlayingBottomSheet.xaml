@@ -8,9 +8,11 @@
     xmlns:localBehv="clr-namespace:Dimmer.Utils.Behaviors"
     xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
     xmlns:vm="clr-namespace:Dimmer.ViewModels"
+    x:Name="NowPlayingBtmSheet"
     x:DataType="vm:BaseViewModelAnd"
     AllowedState="FullExpanded"
-    ShowGrabber="False">
+    ShowGrabber="False"
+    StateChanged="NowPlayingBtmSheet_StateChanged">
     <dx:BottomSheet.Resources>
         <ResourceDictionary>
             <Style TargetType="dx:DXButton">
@@ -29,6 +31,7 @@
             Source="{Binding CurrentPlayingSongView.CoverImagePath}" />
         <dx:DXExpander
             x:Name="NowPlayingExp"
+            x:FieldModifier="Public"
             IsExpanded="True"
             VerticalOptions="End">
 
@@ -39,27 +42,36 @@
                 RowDefinitions="auto,auto"
                 VerticalOptions="End">
                 <dx:DXStackLayout Grid.Row="0">
-                    <dx:Chip
+                    <dx:DXStackLayout.GestureRecognizers>
+
+                        <TapGestureRecognizer
+                            x:Name="CurrentLyricLineTapGestRec"
+                            NumberOfTapsRequired="1"
+                            Tapped="CurrentLyricLineTapGestRec_Tapped" />
+                    </dx:DXStackLayout.GestureRecognizers>
+                    <Label
                         x:Name="CurrentLyricLine"
                         FontSize="19"
                         HorizontalOptions="Center"
-                        Tap="CurrentLyricLine_Tap"
+                        LineBreakMode="WordWrap"
                         Text="{Binding CurrentLine.Text}">
-                        <dx:Chip.Triggers>
+
+                        <Label.Triggers>
                             <DataTrigger
                                 Binding="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
-                                TargetType="dx:Chip"
+                                TargetType="Label"
                                 Value="True">
                                 <Setter Property="IsVisible" Value="True" />
                             </DataTrigger>
                             <DataTrigger
                                 Binding="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
-                                TargetType="dx:Chip"
+                                TargetType="Label"
                                 Value="False">
                                 <Setter Property="IsVisible" Value="False" />
                             </DataTrigger>
-                        </dx:Chip.Triggers>
-                    </dx:Chip>
+                        </Label.Triggers>
+                    </Label>
+
                 </dx:DXStackLayout>
                 <dx:DXStackLayout Grid.Row="1" ItemSpacing="15">
                     <Label
@@ -366,10 +378,19 @@
         <dx:DXExpander
             x:Name="PlayBackQueueExp"
             Grid.Row="1"
+            x:FieldModifier="Public"
             IsExpanded="False">
             <Grid>
 
                 <dx:DXStackLayout Margin="10,0" ItemSpacing="15">
+                    <dx:DXButton
+                        x:Name="BackBtn"
+                        BackgroundColor="Transparent"
+                        Icon="backb.png"
+                        IconColor="DarkSlateBlue"
+                        ShowContent="False"
+                        ShowIcon="True"
+                        Tap="BackBtn_Tap" />
                     <FlexLayout JustifyContent="SpaceBetween">
                         <dx:DXStackLayout>
                             <Label
@@ -585,7 +606,10 @@
             </Grid>
         </dx:DXExpander>
 
-        <dx:DXExpander x:Name="SingleSongLyricsView" IsExpanded="False">
+        <dx:DXExpander
+            x:Name="SingleSongLyricsViewExp"
+            x:FieldModifier="Public"
+            IsExpanded="False">
             <dx:DXStackLayout>
                 <Grid ColumnDefinitions="80,*">
                     <dx:DXImage
@@ -594,7 +618,14 @@
                         HeightRequest="70"
                         Opacity="0.5"
                         Source="{Binding CurrentPlayingSongView.CoverImagePath}"
-                        WidthRequest="70" />
+                        WidthRequest="70">
+                        <dx:DXImage.GestureRecognizers>
+                            <TapGestureRecognizer
+                                x:Name="CoverImgInNowPlayinggPage"
+                                NumberOfTapsRequired="1"
+                                Tapped="CoverImgInNowPlayinggPage_Tapped" />
+                        </dx:DXImage.GestureRecognizers>
+                    </dx:DXImage>
 
                     <dx:DXStackLayout
                         Grid.Column="1"
@@ -613,7 +644,8 @@
                     ItemsSource="{Binding AllLines}"
                     SelectedItem="{Binding CurrentLine}"
                     SelectionChanged="AllLyricsColView_SelectionChanged"
-                    SelectionMode="Single">
+                    SelectionMode="Single"
+                    Tap="AllLyricsColView_Tap">
                     <dx:DXCollectionView.ItemTemplate>
                         <DataTemplate x:DataType="models:LyricPhraseModelView">
                             <Grid>

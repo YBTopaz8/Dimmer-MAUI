@@ -1546,7 +1546,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     public async Task ShowProgressSearchLyricsThenHideProgressAsync()
     {
         ShowIndeterminateProgressBar();
-        await SearchLyricsAsync();
+        await SearchLyricsAndLoadLyricsIfFoundAsync();
         HideIndeterminateProgressBar();
 
     }

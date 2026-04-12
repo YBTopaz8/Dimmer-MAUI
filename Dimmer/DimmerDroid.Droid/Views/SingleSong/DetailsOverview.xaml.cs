@@ -22,6 +22,11 @@ public partial class DetailsOverview : ContentPage
         BindingContext = MyViewModel.SelectedSong;
         StatisticsScrollV.BindingContext = StatsViewModel;
 
+        if(MyViewModel.IsSearchingLyrics)
+        {
+            SongTabView.SelectedItemIndex = 1;
+        }
+
         await StatsViewModel.LoadSongStatsAsync(MyViewModel.SelectedSong);
     }
 

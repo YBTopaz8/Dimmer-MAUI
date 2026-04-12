@@ -94,12 +94,31 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         _duplicateFinderService = duplicateFinderService;
         libScannerService = LibScannerService;
-        AudioEngineIsPlayingObservable = Observable.FromEventPattern<PlaybackEventArgs>
-            (
+Observable.FromEventPattern<PlaybackEventArgs>(
             h => audioServ.IsPlayingChanged += h,
             h => audioServ.IsPlayingChanged -= h)
             .Select(evt => evt.EventArgs.IsPlaying)
             .StartWith(false)
+            .Subscribe(
+                async obs =>
+                {
+                    if(obs)
+                    {
+                        _= Task.Run(
+                            async () =>
+                            {
+                                var currentAudioServiceSong = await audioServ.CurrentSong.LastOrDefaultAsync();
+                                if(currentAudioServiceSong is null)
+                                {
+                                    return;
+                                }
+                                if(CurrentPlayingSongView.TitleDurationKey != currentAudioServiceSong.TitleDurationKey)
+                                {
+                                    CurrentPlayingSongView = currentAudioServiceSong;
+                                }
+                            });
+                    }
+                });
             ;
 
 
@@ -5547,7 +5566,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
 
     [RelayCommand]
-    public async Task SearchLyricsAsync()
+    public async Task SearchLyricsAndLoadLyricsIfFoundAsync()
     {
         if (SelectedSong == null)
             return;

@@ -1,4 +1,5 @@
 global using Animation = Microsoft.Maui.Controls.Animation;
+using DevExpress.Maui.CollectionView;
 using DevExpress.Maui.Core;
 
 namespace Dimmer.Views.CustomViews;
@@ -20,9 +21,10 @@ public partial class NowPlayingBottomSheet : BottomSheet
         {
             songForLyrics = MyViewModel.SelectedSong;
             MyViewModel.SelectedSong = MyViewModel.CurrentPlayingSongView;
+            MyViewModel.IsSearchingLyrics = true;
             await Shell.Current.GoToAsync(nameof(DetailsOverview), true);
 
-            await MyViewModel.SearchLyricsAsync();
+            await this.CloseAsync();
         }
     }
 
@@ -172,10 +174,49 @@ public partial class NowPlayingBottomSheet : BottomSheet
         PlaybackQueueCV.ScrollTo(songHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
     }
 
-    private void CurrentLyricLine_Tap(object sender, HandledEventArgs e)
+    
+
+    private void NowPlayingBtmSheet_StateChanged(object sender, ValueChangedEventArgs<BottomSheetState> e)
     {
+        MyViewModel.IsNowPlayingBtmSheetOpened = e.NewValue == BottomSheetState.FullExpanded;
+    }
+
+    private void CurrentLyricLineTapGestRec_Tapped(object sender, TappedEventArgs e)
+    {
+
         PlayBackQueueExp.IsExpanded = false;
         NowPlayingExp.IsExpanded = false;
-        SingleSongLyricsView.SetIsExpanded(true,true);
+        SingleSongLyricsViewExp.SetIsExpanded(true, true);
+
     }
+
+    private void CoverImgInNowPlayinggPage_Tapped(object sender, TappedEventArgs e)
+    {
+        NowPlayingExp.IsExpanded = true;
+        SingleSongLyricsViewExp.IsExpanded = false ;
+        PlayBackQueueExp.IsExpanded= false;
+        
+    }
+
+    private void BackBtn_Tap(object sender, DXTapEventArgs e)
+    {
+        NowPlayingExp.IsExpanded = true;
+        SingleSongLyricsViewExp.IsExpanded = false;
+        PlayBackQueueExp.IsExpanded = false;
+
+    }
+
+    private void AllLyricsColView_Tap(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
+    {
+
+        LyricPhraseModelView? lyricTapped = e.Item as LyricPhraseModelView;
+        var lyricTappedHandle = e.ItemHandle;
+        if (lyricTapped is null)
+            return;
+        var timeInSec = TimeSpan.FromMilliseconds(lyricTapped.TimeStampMs).Seconds;
+        MyViewModel.SeekTrackPosition(timeInSec);
+        AllLyricsColView.ScrollTo(lyricTappedHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
+
+    }
+
 }

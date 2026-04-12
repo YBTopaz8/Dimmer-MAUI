@@ -135,7 +135,7 @@ public class LyricsMgtFlow : IDisposable
         var _lyrics = GetListLyricsCol(res);
         if(_lyrics is null)
         {
-            var OnlineLyrics = await GetLyricsContentAsync(songConcerned);
+            var OnlineLyrics = await GetLyricsAndSaveContentToDBAsync(songConcerned);
             var collectionfOfLyricModelViewsFromOnlineLyrics
                 = new List<LyricPhraseModelView > { };
             
@@ -219,7 +219,7 @@ public class LyricsMgtFlow : IDisposable
     }
 
     SongModelView? currentSong;
-    private async Task ProcessExistingLyricsForSong(SongModelView? song)
+    private async Task ProcessExistingLyricsForSong(SongModelView? song,bool loadLyricsInSyncMode=true)
     {
         if (song == null || currentSong?.TitleDurationKey == song.TitleDurationKey)
         {
@@ -242,18 +242,22 @@ public class LyricsMgtFlow : IDisposable
             ClearLyrics();
             isSearchingLyrics.OnNext(true);
             isLoadingLyrics.OnNext(false);
-            var res = await GetLyricsContentAsync(song);
+            var res = await GetLyricsAndSaveContentToDBAsync(song);
 
-            if (res is not null && res.Any())
+            if(res is not null && res.Any())
             {
-                var lyrics = res.Where(x=>!string.IsNullOrEmpty(x.SyncedLyrics)).FirstOrDefault()?.SyncedLyrics;
-                if (lyrics is null) 
-                { 
-                    return; 
+                var lyrics = res.Where(x => !string.IsNullOrEmpty(x.SyncedLyrics)).FirstOrDefault()?.SyncedLyrics;
+                if(lyrics is null)
+                {
+                    return;
                 }
-                LoadLyrics(lyrics);
-                isSearchingLyrics.OnNext(false);
-                isLoadingLyrics.OnNext(false);
+                if(loadLyricsInSyncMode)
+                {
+
+                    LoadLyrics(lyrics);
+                    isSearchingLyrics.OnNext(false);
+                    isLoadingLyrics.OnNext(false);
+                }
             }
         }
     }
@@ -266,7 +270,7 @@ public class LyricsMgtFlow : IDisposable
         _currentLyricSubject.OnNext(null);
         _nextLyricSubject.OnNext(_lyrics.FirstOrDefault());
     }
-    private async Task<IEnumerable<LrcLibLyrics>?> GetLyricsContentAsync(SongModelView song)
+    private async Task<IEnumerable<LrcLibLyrics>?> GetLyricsAndSaveContentToDBAsync(SongModelView song,bool saveToDB=true)
     {
         CancellationTokenSource cts = new();
         var instru = song.IsInstrumental is null || song.IsInstrumental is false && song.SyncLyrics.Length < 1;
@@ -302,9 +306,16 @@ public class LyricsMgtFlow : IDisposable
 
             _logger.LogTrace(message: "LYRICS FINDER :::::: Found online lyrics for {SongTitle} from {Source}", song.Title);
 
-            // Optionally, save to DB or local storage here.
-            await _lyricsMetadataService.SaveLyricsForSongAsync(song.Id, false,onlineLyrics.PlainLyrics, onlineLyrics.SyncedLyrics, false
-                );
+            if(saveToDB)
+            {
+                // Optionally, save to DB or local storage here.
+                await _lyricsMetadataService.SaveLyricsForSongAsync(
+                    song.Id,
+                    false,
+                    onlineLyrics.PlainLyrics,
+                    onlineLyrics.SyncedLyrics,
+                    false);
+            }
             return onlineResults;
 
         }

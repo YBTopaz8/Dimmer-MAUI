@@ -179,31 +179,38 @@ public partial class MainActivity : MauiAppCompatActivity
     [System.Runtime.Versioning.SupportedOSPlatform("android33.0")]
     private void SetupBackNavigationApi33()
     {
-        // The dangerous code lives exclusively in here
-        _onBackInvokedCallback = new BackInvokedCallback(async () =>
+       
+            // The dangerous code lives exclusively in here
+            _onBackInvokedCallback = new BackInvokedCallback(async () =>
         {
+            if (MyViewModel.IsNowPlayingBtmSheetOpened)
+            {
+                return;
+            }
+            if (Shell.Current.CurrentPage.GetType() == typeof(HomePage))
 
+            {
+                new MaterialAlertDialogBuilder(this)?
+                                    .SetTitle("Exit App")?
+                                    .SetMessage("Close Application?")?
+                                    .SetPositiveButton(
+                "Exit",
+                async (s, e) =>
+                {
+                    await MyViewModel.OnAppClosingAsync();
+                    FinishAffinity();
+                })
+                .SetNegativeButton(
+                    "Cancel",
+                    (s, e) =>
+                    { /* Do nothing */
+                    })
+                .Show();
+                return;
+            }
             switch (Shell.Current.CurrentItem.Title)
             {
-                case "Home":
-
-                    new MaterialAlertDialogBuilder(this)?
-                                .SetTitle("Exit App")?
-                                .SetMessage("Close Application?")?
-                                .SetPositiveButton(
-                    "Exit",
-                    async (s, e) =>
-                    {
-                        await MyViewModel.OnAppClosingAsync();
-                        FinishAffinity();
-                    })
-                    .SetNegativeButton(
-                        "Cancel",
-                        (s, e) =>
-                        { /* Do nothing */
-                        })
-                    .Show();
-                    break;
+               
                 case "Artists":
 
                     new MaterialAlertDialogBuilder(this)?
@@ -211,7 +218,7 @@ public partial class MainActivity : MauiAppCompatActivity
                                 .SetMessage("Return to Home Page?")?
                                 .SetPositiveButton(
                     "Confirm",
-                     async (s, e) =>
+                        async (s, e) =>
                     {
                                         await Shell.Current.GoToAsync("//HomePage");
                         
@@ -245,7 +252,7 @@ public partial class MainActivity : MauiAppCompatActivity
                 break;
 
                 default:
-                  await  Shell.Current.GoToAsync("..");
+                    await  Shell.Current.GoToAsync("..");
                     break;
             }
            

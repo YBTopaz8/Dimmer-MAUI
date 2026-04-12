@@ -515,6 +515,8 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
         }
     }
+    [ObservableProperty]
+    public partial bool IsNowPlayingBtmSheetOpened { get; set; }
     public override void UpdateIsSearchResultEmpty(bool isSearchResultEmpty)
     {
         if (SearchBarTextEdit is null) return;
