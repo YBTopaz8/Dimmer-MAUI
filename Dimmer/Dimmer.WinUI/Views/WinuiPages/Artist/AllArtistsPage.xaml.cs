@@ -50,11 +50,13 @@ public sealed partial class AllArtistsPage : Page
         FrameworkElement? artistClicked = (FrameworkElement)e.OriginalSource;
 
         var artist = artistClicked.DataContext as ArtistModelView;
-
+   
         if(artist != null)
         {
+             
             MyViewModel.NavigateToArtistPageWithArtistId(artist.Id);
         }
     }
 
+  
 }

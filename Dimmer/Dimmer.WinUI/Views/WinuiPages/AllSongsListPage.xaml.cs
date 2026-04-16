@@ -469,7 +469,7 @@ public sealed partial class AllSongsListPage : Page
         {
             if (e.Parameter == null)
             {
-                throw new InvalidOperationException("Navigation parameter is null");
+                vm = IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
             }
 
             if (vm == null)

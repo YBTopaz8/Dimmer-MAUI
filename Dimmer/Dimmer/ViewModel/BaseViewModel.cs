@@ -1,8 +1,8 @@
 ﻿global using ATL;
 global using CommunityToolkit.Diagnostics;
 global using Dimmer.DimmerLive.ParseStatics;
-using Dimmer.DimmerSearch.TQL.RealmSection;
-using Dimmer.Hoarder;
+global using Dimmer.DimmerSearch.TQL.RealmSection;
+global using Dimmer.Hoarder;
 using Dimmer.Interfaces;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.Resources.Localization;
@@ -227,13 +227,17 @@ Observable.FromEventPattern<PlaybackEventArgs>(
             .OrderBy(p => p.Name)
             .AsObservableChangeSet()
             .Transform(artistInDB =>
-            {
-                var artMV = artistInDB.ToArtistModelView()!;
-                artMV.ImagePath ??= artistInDB.Songs?
-                .AsEnumerable().FirstOrDefault(x => !string.IsNullOrEmpty(x.CoverImagePath))?
-                .CoverImagePath;
-                return artMV;
-            })
+                {
+                    var artMV = artistInDB.ToArtistModelView()!;
+                    if(artMV.ImagePath is null)
+                    {
+                        artMV.ImagePath = artistInDB.Songs?
+                                    .AsEnumerable().FirstOrDefault(x => !string.IsNullOrEmpty(x.CoverImagePath))?
+                                    .CoverImagePath;
+                    }
+                    return artMV;
+                }
+            )
              .AutoRefresh(artist => artist.ImagePath)
              .AutoRefresh(artist => artist.TotalCompletedPlays)
              .AutoRefresh(artist => artist.TotalSongsByArtist)

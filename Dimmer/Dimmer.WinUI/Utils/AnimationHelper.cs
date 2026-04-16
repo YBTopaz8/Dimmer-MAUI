@@ -41,14 +41,21 @@ public static class AnimationHelper
                                ConnectedAnimationStyle style = ConnectedAnimationStyle.GravitySwing,
                                double duration = 500, bool disableGravity = false)
     {
-        if (source == null) return;
+        try
+        {
+            if (source == null) return;
 
-        var service = ConnectedAnimationService.GetForCurrentView();
-        var animation = service.PrepareToAnimate(key, source);
+            var service = ConnectedAnimationService.GetForCurrentView();
+            var animation = service.PrepareToAnimate(key, source);
 
-        // Store style and duration
-        animation.SetAnimationStyle(style);
-        animation.SetDuration(duration);
+            // Store style and duration
+            animation.SetAnimationStyle(style);
+            animation.SetDuration(duration);
+        }
+        catch(Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
     }
     /// <summary>
     /// Finds a named child (e.g., "ArtistNameTxt") inside a parent element and prepares the animation.

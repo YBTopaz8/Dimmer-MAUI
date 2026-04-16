@@ -36,7 +36,7 @@ public static class SongDataProcessor
         IProgress<LyricsProcessingProgress>? progress,
         CancellationToken cancellationToken)
     {
-        var songs = RealmFactory.GetRealmInstance().All<SongModel>().Freeze();
+        var songs = RealmFactory.GetRealmInstance().All<SongModel>().Where(x=>!string.IsNullOrEmpty(x.SyncLyrics)).Freeze();
         var songList = songs;
         int totalCount = songs.Count();
         int processedCount = 0;
@@ -50,11 +50,6 @@ public static class SongDataProcessor
                 // Operation was cancelled before we started this item.
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // Skip if lyrics are already present.
-                if (!string.IsNullOrEmpty(song.SyncLyrics))
-                {
-                    return;
-                }
 
                 // --- STEP 1: Fetch Lyrics from local file first ---
                 Track track;
@@ -97,33 +92,34 @@ public static class SongDataProcessor
                     if (onlineResult is not null)
                     {
 
-                        var newLyricsInfo = new LyricsInfo();
+                        var newSyncLyricsInfo = new LyricsInfo();
+                        var newUnSyncLyrics = new LyricsInfo();
                         if (!string.IsNullOrWhiteSpace(fetchedLrcData))
                         {
-                            newLyricsInfo.Parse(fetchedLrcData);
+                            newSyncLyricsInfo.Parse(fetchedLrcData);
+                            newUnSyncLyrics.Parse(plainLyrics);
                         }
                         else
                         {
-                            newLyricsInfo.UnsynchronizedLyrics = plainLyrics;
+                            newUnSyncLyrics.UnsynchronizedLyrics = plainLyrics;
                         }
 
                         fetchedLrcData = onlineResult.SyncedLyrics;
                         plainLyrics = onlineResult.PlainLyrics;
 
                         // Save the new lyrics back to the file metadata
-                        bool saved = await lyricsService.SaveLyricsToDB(onlineResult.Instrumental,plainLyrics, song, fetchedLrcData,newLyricsInfo);
+                        bool saved = await lyricsService.SaveLyricsToDB(onlineResult.Instrumental,plainLyrics, song, fetchedLrcData,newSyncLyricsInfo);
                         if (saved)
                         {
-                            var vmSong = vm.SearchResults.FirstOrDefault(x => x.TitleDurationKey == song.TitleDurationKey);
-                            if (vmSong is not null)
-                            {// Update the UI model on the main thread
-                                RxSchedulers.UI.ScheduleTo(() =>
-                                {
-                                    vmSong.HasLyrics = !string.IsNullOrWhiteSpace(plainLyrics);
-                                    vmSong.UnSyncLyrics = plainLyrics;
-                                    vmSong.SyncLyrics = fetchedLrcData;
-                                });
-                                stateService.SetCurrentLogMsg($"Loaded lyrics for {vmSong.Title}", DimmerLogLevel.Info);
+
+
+                            track.Lyrics ??= new List<LyricsInfo>();
+                            track.Lyrics.Clear();
+                            track.Lyrics.Add(newSyncLyricsInfo);
+                            track.Lyrics.Add(newUnSyncLyrics);
+                            if(vm.CurrentPlayingSongView.TitleDurationKey != song.TitleDurationKey)
+                            {
+                                await track.SaveAsync();
                             }
                         }
                     }

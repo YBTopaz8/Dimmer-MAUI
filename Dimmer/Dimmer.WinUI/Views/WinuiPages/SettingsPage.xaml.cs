@@ -80,8 +80,8 @@ public sealed partial class SettingsPage : Page
     {
         var addedItems = e.AddedItems;
         var removedItems = e.RemovedItems;
-        Grid addedGrid = (Grid)addedItems[0];
-        Grid? removedGrid = removedItems.Count > 0 ? (Grid)removedItems[0]:null;
+        FrameworkElement addedGrid = (FrameworkElement)addedItems[0];
+        FrameworkElement? removedGrid = removedItems.Count > 0 ? (FrameworkElement)removedItems[0]:null;
         string addedName = addedGrid.Name;
         //string? removedName = removedGrid?.Name;
         switch (addedName)
@@ -493,5 +493,11 @@ public sealed partial class SettingsPage : Page
         AnimationHelper.TryStart(BackUpRestoreGrid, null, AnimationHelper.Key_Forward);
         MainGrid.Opacity = 0.2;
         MainGrid.IsHitTestVisible = false;
+    }
+
+    private void BackupRestoreSection_Click(object sender, RoutedEventArgs e)
+    {
+
+        WizardFlipView.SelectedIndex = 2;
     }
 }

@@ -424,4 +424,14 @@ public partial class HomePage : ContentPage
         await Shell.Current.GoToAsync(nameof(AlbumPage), true);
     }
 
+    private void SongsCV_PropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+        if(e.PropertyName == nameof(SongsCV.VisibleItemCount))
+        {
+
+            var newCount = (SongsCV.ItemsSource as ReadOnlyObservableCollection<SongModelView>)?.Count;
+            string? fullStr = newCount.ToString();
+            SearchBarTextEdit.Suffix = fullStr;
+        }
+    }
 }

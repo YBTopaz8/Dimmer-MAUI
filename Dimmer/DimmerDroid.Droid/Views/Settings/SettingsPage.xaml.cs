@@ -62,7 +62,7 @@ public partial class SettingsPage : ContentPage
 
     private async void GoBackBtn_Clicked(object sender, EventArgs e)
     {
-        await Shell.Current.GoToAsync("..");
+        
     }
 
 

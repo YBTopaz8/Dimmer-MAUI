@@ -525,7 +525,6 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         {
             SearchBarTextEdit.Prefix = "🔍";
             
-            SearchBarTextEdit.Suffix = string.Empty;
 
 
         }
@@ -533,8 +532,6 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         {
 
 
-            string fullStr = newCount.ToString();
-            SearchBarTextEdit.Suffix = fullStr;
             SearchBarTextEdit.Prefix = string.Empty;
 
 

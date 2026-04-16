@@ -268,6 +268,7 @@ public partial class MainActivity : MauiAppCompatActivity
 
 
     }
+
     private void CheckAndRequestPermissions()
     {
         if (!AndroidPermissionsService.HasAudioPermissions())

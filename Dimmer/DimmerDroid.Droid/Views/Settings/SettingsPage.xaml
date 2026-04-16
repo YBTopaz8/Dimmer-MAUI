@@ -30,12 +30,6 @@
 
                 </dx:DXStackLayout>
 
-                <dx:DXButton
-                    HorizontalContentAlignment="Start"
-                    Clicked="GoBackBtn_Clicked"
-                    HorizontalOptions="Start"
-                    Icon="backa.png"
-                    ShowContent="False" />
 
             </dx:DXStackLayout>
 
@@ -112,7 +106,7 @@
                 </dx:DXStackLayout.Triggers>
                 <dx:Chip
                     x:Name="FoldersSectionChip"
-                    Icon="roundaltarrowdown.png"
+                    Icon="arrowdown.png"
                     IconSize="25,25"
                     IsIconVisible="True"
                     TapCommand="{Binding Commands.ToggleExpandState, Source={x:Reference FoldersSectionExpander}}"
@@ -238,6 +232,48 @@
                                 x:Name="ConfirmRestoreBtn"
                                 Clicked="ConfirmRestoreBtn_Clicked"
                                 Content="Confirm Restore" />
+
+
+
+                        </dx:DXStackLayout>
+                    </dx:DXExpander.Content>
+                </dx:DXExpander>
+
+            </dx:DXStackLayout>
+            <dx:DXStackLayout>
+                <dx:DXStackLayout.Triggers>
+                    <DataTrigger
+                        Binding="{Binding IsExpanded, Source={x:Reference LastFmExpander}}"
+                        TargetType="dx:DXStackLayout"
+                        Value="true">
+                        <Setter Property="BorderThickness" Value="1" />
+                        <Setter Property="BorderColor" Value="DarkSlateBlue" />
+
+                    </DataTrigger>
+                    <DataTrigger
+                        Binding="{Binding IsExpanded, Source={x:Reference LastFmExpander}}"
+                        TargetType="dx:DXStackLayout"
+                        Value="false">
+                        <Setter Property="BorderThickness" Value="0" />
+                        <Setter Property="BorderColor" Value="Transparent" />
+
+                    </DataTrigger>
+                </dx:DXStackLayout.Triggers>
+                <dx:Chip
+                    Icon="arrowdown.png"
+                    IconSize="20,20"
+                    IsIconVisible="True"
+                    TapCommand="{Binding Commands.ToggleExpandState, Source={x:Reference AppUtilsExp}}"
+                    Text="App Utilities" />
+                <dx:DXExpander x:Name="AppUtilsExp" IsExpanded="False">
+                    <dx:DXExpander.Content>
+                        <dx:DXStackLayout ItemSpacing="10">
+                            <dx:DXButton
+                                x:Name="ReloadSongsCoverImage"
+                                Command="{Binding EnsureAllCoverArtCachedForSongsCommand}"
+                                Content="Reload Songs Cover Image" />
+
+
 
 
 

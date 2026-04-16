@@ -60,15 +60,7 @@
                     TextChanged="SearchBar_TextChanged"
                     Unloaded="SearchBar_Unloaded" />
 
-                <dx:DXButton
-                    Grid.Column="1"
-                    Padding="5"
-                    BackgroundColor="Transparent"
-                    Icon="filter.png"
-                    IconHeight="30"
-                    IconWidth="30"
-                    Loaded="DXButton_Loaded"
-                    ShowIcon="True" />
+
             </Grid>
 
 
@@ -82,6 +74,7 @@
             BackgroundColor="Transparent"
             ItemSpacing="5"
             ItemsSource="{Binding SearchResults}"
+            PropertyChanged="SongsCV_PropertyChanged"
             PullToRefresh="SongsCV_PullToRefresh">
             <dx:DXCollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:SongModelView">
@@ -192,6 +185,22 @@
                 </DataTemplate>
             </dx:DXCollectionView.ItemTemplate>
         </dx:DXCollectionView>
+        <dx:DXStackLayout
+            Grid.Row="1"
+            Margin="10,0"
+            HorizontalOptions="End"
+            VerticalOptions="End">
+            <dx:DXButton
+                Padding="5"
+                BackgroundColor="#1e1e1e"
+                Command="{Binding Commands.Show, Source={Reference FilteringBtmSheet}}"
+                Icon="searchd.png"
+                IconHeight="50"
+                IconWidth="50"
+                ShowContent="False"
+                ShowIcon="True" />
+
+        </dx:DXStackLayout>
 
 
         <dx:DXStackLayout
@@ -515,6 +524,26 @@
             </dx:BottomSheet.Content>
         </dx:BottomSheet>
 
-
+        <dx:BottomSheet
+            x:Name="FilteringBtmSheet"
+            AllowDismiss="True"
+            AllowedState="HalfExpanded"
+            HalfExpandedRatio="0.6">
+            <dx:BottomSheet.Content>
+                <dx:DXStackLayout>
+                    <dx:FilterCheckItem
+                        AllowIndeterminateInput="True"
+                        Context="{Binding FilteringContext, Source={x:Reference SongsCV}}"
+                        FieldName="IsFavorite"
+                        Text="Is Favorite?" />
+                    <dx:FilterNumericRangeSliderItem
+                        Context="{Binding FilteringContext, Source={Reference SongsCV}}"
+                        FieldName="PlayCount"
+                        Max="20"
+                        Text="Play Count"
+                        ValueStep="1" />
+                </dx:DXStackLayout>
+            </dx:BottomSheet.Content>
+        </dx:BottomSheet>
     </Grid>
 </ContentPage>
