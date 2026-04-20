@@ -85,7 +85,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         var currentUser = _authService.CurrentUserValue;
         if (currentUser == null)
         {
-            await Shell.Current.DisplayAlert("Not Logged In", "Please log in to use this feature.", "OK");
+            await Shell.Current.DisplayAlertAsync("Not Logged In", "Please log in to use this feature.", "OK");
             // Optionally, show a message telling the user to log in
             return;
         }
@@ -106,7 +106,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         // The service handles all the backend logic
         await _chatService.ShareSongAsync( currentSong, _mainViewModel.CurrentTrackPositionSeconds);
         // Optionally, show a "Song shared!" notification
-        await Shell.Current.DisplayAlert("Song Shared", $"Shared '{currentSong.Title}' in chat.", "OK");
+        await Shell.Current.DisplayAlertAsync("Song Shared", $"Shared '{currentSong.Title}' in chat.", "OK");
 
 
     }
@@ -134,7 +134,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         //if (_authService.CurrentUserValue is null)
         //{
 
-        //    var res = await Shell.Current.DisplayAlert("Not Logged In", "Please log in to send messages.", "Log In", "Cancel");
+        //    var res = await Shell.Current.DisplayAlertAsync("Not Logged In", "Please log in to send messages.", "Log In", "Cancel");
            
 
         //}

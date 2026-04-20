@@ -1,4 +1,5 @@
 global using Animation = Microsoft.Maui.Controls.Animation;
+using DevExpress.Maui.CollectionView;
 using DevExpress.Maui.Core;
 
 namespace Dimmer.Views.CustomViews;
@@ -16,14 +17,10 @@ public partial class NowPlayingBottomSheet : BottomSheet
     SongModelView? songForLyrics;
     private async void LyricsChip_Tap(object sender, HandledEventArgs e)
     {
-        if(MyViewModel != null)
-        {
-            songForLyrics = MyViewModel.SelectedSong;
-            MyViewModel.SelectedSong = MyViewModel.CurrentPlayingSongView;
-            await Shell.Current.GoToAsync(nameof(DetailsOverview), true);
 
-            await MyViewModel.SearchLyricsAsync();
-        }
+        PlayBackQueueExp.IsExpanded = false;
+        NowPlayingExp.IsExpanded = false;
+        SingleSongLyricsViewExp.SetIsExpanded(true, true);
     }
 
   
@@ -172,10 +169,100 @@ public partial class NowPlayingBottomSheet : BottomSheet
         PlaybackQueueCV.ScrollTo(songHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
     }
 
-    private void CurrentLyricLine_Tap(object sender, HandledEventArgs e)
+    
+
+    private void NowPlayingBtmSheet_StateChanged(object sender, ValueChangedEventArgs<BottomSheetState> e)
     {
+        MyViewModel.IsNowPlayingBtmSheetOpened = e.NewValue == BottomSheetState.FullExpanded;
+    }
+
+    private void CurrentLyricLineTapGestRec_Tapped(object sender, TappedEventArgs e)
+    {
+
         PlayBackQueueExp.IsExpanded = false;
         NowPlayingExp.IsExpanded = false;
-        SingleSongLyricsView.SetIsExpanded(true,true);
+        SingleSongLyricsViewExp.SetIsExpanded(true, true);
+
     }
+
+    private void CoverImgInNowPlayinggPage_Tapped(object sender, TappedEventArgs e)
+    {
+        NowPlayingExp.IsExpanded = true;
+        SingleSongLyricsViewExp.IsExpanded = false ;
+        PlayBackQueueExp.IsExpanded= false;
+        
+    }
+
+    private void BackBtn_Tap(object sender, DXTapEventArgs e)
+    {
+        NowPlayingExp.IsExpanded = true;
+        SingleSongLyricsViewExp.IsExpanded = false;
+        PlayBackQueueExp.IsExpanded = false;
+
+    }
+
+    private void AllLyricsColView_Tap(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
+    {
+
+        LyricPhraseModelView? lyricTapped = e.Item as LyricPhraseModelView;
+        var lyricTappedHandle = e.ItemHandle;
+        if (lyricTapped is null)
+            return;
+        var timeInSec = TimeSpan.FromMilliseconds(lyricTapped.EndTimeMs).Seconds;
+        MyViewModel.SeekTrackPosition(timeInSec);
+        AllLyricsColView.ScrollTo(lyricTappedHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
+
+    }
+
+    private void LyricsChip_Tap_1(object sender, HandledEventArgs e)
+    {
+
+    }
+
+
+    private bool _isUserDragging = false;
+    private double _pendingSeekValue;
+    private Timer _debounceTimer;
+    private void OnSliderDragStarted(object sender, EventArgs e)
+    {
+        _isUserDragging = true;
+        _pendingSeekValue = TrackProgressSlider.Value;
+
+        // Optional: Show preview label
+        //PreviewTimeLabel.IsVisible = true;
+        //UpdatePreviewLabel(_pendingSeekValue);
+    }
+
+    private void OnSliderDragCompleted(object sender, EventArgs e)
+    {
+        _isUserDragging = false;
+        _pendingSeekValue = TrackProgressSlider.Value;
+
+        // Debounce to prevent rapid seeks
+        _debounceTimer?.Dispose();
+        _debounceTimer = new Timer(ExecuteSeek, null, 150, Timeout.Infinite);
+    }
+    private void ExecuteSeek(object? state)
+    {
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            // Critical: Don't let timer cause multiple seeks
+            var value = _pendingSeekValue;
+            _pendingSeekValue = -1;
+
+            // Update ViewModel's property to keep binding in sync
+            MyViewModel.CurrentTrackPositionSeconds = value;
+            MyViewModel.SeekTrackPosition(value);
+
+            //PreviewTimeLabel.IsVisible = false;
+        });
+    }
+
+    private void myPage_Unloaded(object sender, EventArgs e)
+    {
+        _debounceTimer?.Dispose();
+    }
+
+
+
 }

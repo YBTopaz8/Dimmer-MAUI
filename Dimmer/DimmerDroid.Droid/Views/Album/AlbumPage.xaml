@@ -1,12 +1,44 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Dimmer.Views.Album.AlbumPage"
-             Title="AlbumPage">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+<ContentPage
+    x:Class="Dimmer.Views.Album.AlbumPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:dx="http://schemas.devexpress.com/maui"
+    xmlns:globalVM="clr-namespace:Dimmer.ViewModel;assembly=Dimmer"
+    xmlns:local="clr-namespace:Dimmer.Views.CustomViews"
+    xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+    xmlns:vm="clr-namespace:Dimmer.ViewModels"
+    x:DataType="models:AlbumModelView"
+    Shell.NavBarIsVisible="false">
+    <Grid Padding="10" RowDefinitions="auto,*">
+        <Grid ColumnDefinitions="*,auto">
+            <dx:DXStackLayout Grid.Column="0" ItemSpacing="10">
+                <Label FontSize="30" Text="{Binding Name}" />
+                <dx:Chip
+                    FontSize="23"
+                    HorizontalOptions="Start"
+                    Text="{Binding Artists[0].Name}" />
+                <Label Text="{Binding Artists.Count, StringFormat='{0} Artists'}" />
+                <Label 
+                    
+                    Text="{Binding SongsInAlbum.Count, StringFormat='{0} Artists'}" />
+            </dx:DXStackLayout>
+
+            <dx:DXImage
+                Grid.Column="1"
+                MaximumWidthRequest="50"
+                Source="{Binding ImagePath}" />
+        </Grid>
+
+        <dx:TabView Grid.Row="1">
+            <dx:TabViewItem HeaderText="Songs">
+                <dx:DataGridView AutoGenerateColumnsMode="None" ItemsSource="{Binding SongsInAlbum}">
+                    <dx:DataGridView.Columns>
+                        <dx:TextColumn FieldName="Title" />
+                        <dx:TextColumn FieldName="OtherArtistsName" />
+                    </dx:DataGridView.Columns>
+                </dx:DataGridView>
+            </dx:TabViewItem>
+        </dx:TabView>
+    </Grid>
 </ContentPage>

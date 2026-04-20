@@ -66,6 +66,7 @@ public partial class AlbumModelView : ObservableObject
     public partial List<ArtistModelView>? Artists { get;  set; }
     [ObservableProperty]
     public partial ObservableCollection<SongModelView>? SongsInAlbum { get; set; }
+    
     [ObservableProperty]
     public partial bool IsFavorite { get; internal set; }
 }

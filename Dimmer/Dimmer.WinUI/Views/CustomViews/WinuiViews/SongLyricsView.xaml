@@ -29,7 +29,7 @@
                 <TextBox Header="Album" Text="{x:Bind ViewModel.LyricsAlbumNameSearch, Mode=TwoWay}" />
                 <Button
                     HorizontalAlignment="Stretch"
-                    Command="{x:Bind ViewModel.SearchLyricsCommand}"
+                    Command="{x:Bind ViewModel.SearchLyricsAndLoadLyricsIfFoundCommand}"
                     Content="Search LrcLib" />
             </StackPanel>
 

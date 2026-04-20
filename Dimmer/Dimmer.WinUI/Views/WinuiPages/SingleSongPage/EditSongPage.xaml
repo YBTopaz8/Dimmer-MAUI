@@ -29,7 +29,7 @@
             FalseValue="heartbroken.png"
             TrueValue="heartlock.png" />
 
-       
+
     </Page.Resources>
     <Grid PointerPressed="Grid_PointerPressed">
         <Grid.RowDefinitions>
@@ -42,9 +42,9 @@
             Orientation="Horizontal"
             Spacing="15">
             <Button
+                x:Name="BackBtn"
                 VerticalAlignment="Center"
                 Click="BackButton_Click"
-                x:Name="BackBtn" 
                 Content="Back" />
             <Button
                 x:Name="SaveChangeBtn"
@@ -72,16 +72,17 @@
                     BorderThickness="1"
                     CornerRadius="15">
                     <TextBlock
+                        x:Name="SongCoreEditsTitle"
                         HorizontalAlignment="Center"
-                        FontSize="25" x:Name="SongCoreEditsTitle"
+                        FontSize="25"
                         Text="Song Core Edits" />
                     <StackPanel Width="450" Spacing="10">
                         <Image
                             x:Name="detailedImage"
                             MaxWidth="300"
-                            Loaded="DetailedImage_Loaded"
                             MaxHeight="300"
                             HorizontalAlignment="Center"
+                            Loaded="DetailedImage_Loaded"
                             Source="{Binding SelectedSong.CoverImagePath}"
                             Visibility="{Binding SelectedSong.CoverImagePath, Converter={StaticResource StringNullOrEmptyToVisibility}}" />
 
@@ -158,9 +159,8 @@
                                 Text="Title:" />
                             <TextBox
                                 x:Name="TitleTextBox"
-
-                                Style="{StaticResource MyTextBoxStyle}"
                                 Margin="0,5,0,15"
+                                Style="{StaticResource MyTextBoxStyle}"
                                 Text="{x:Bind MyViewModel.SelectedSong.Title, Mode=TwoWay}" />
                         </StackPanel>
 
@@ -178,8 +178,8 @@
                                 Text="Track #" />
                             <TextBox
                                 x:Name="TrackNumberTextBox"
-                                Style="{StaticResource MyTextBoxStyle}"
                                 Margin="0,5,0,15"
+                                Style="{StaticResource MyTextBoxStyle}"
                                 Text="{x:Bind MyViewModel.SelectedSong.TrackNumber, Mode=TwoWay}" />
                         </StackPanel>
                     </Grid>
@@ -205,10 +205,9 @@
 
                             <TextBox
                                 x:Name="ReleaseYearTextBox"
-                               
-                                Style="{StaticResource MyTextBoxStyle}"
                                 Margin="0,5,0,15"
                                 InputScope="Digits"
+                                Style="{StaticResource MyTextBoxStyle}"
                                 Text="{x:Bind MyViewModel.SelectedSong.ReleaseYear, Mode=TwoWay}" />
                         </StackPanel>
 
@@ -228,9 +227,8 @@
                                 Text="Conductor:" />
                             <TextBox
                                 x:Name="ConductorTextBox"
-                               
-                                Style="{StaticResource MyTextBoxStyle}"
                                 Margin="0,5,0,15"
+                                Style="{StaticResource MyTextBoxStyle}"
                                 Text="{x:Bind MyViewModel.SelectedSong.Conductor, Mode=TwoWay}" />
                         </StackPanel>
                     </Grid>
@@ -255,9 +253,8 @@
                                 Text="Composer:" />
                             <TextBox
                                 x:Name="ComposerTextBox"
-                                
-                                Style="{StaticResource MyTextBoxStyle}"
                                 Margin="0,5,0,15"
+                                Style="{StaticResource MyTextBoxStyle}"
                                 Text="{x:Bind MyViewModel.SelectedSong.Composer, Mode=TwoWay}" />
                         </StackPanel>
 
@@ -274,11 +271,7 @@
                                 VerticalAlignment="Center"
                                 FontWeight="SemiBold"
                                 Text="Description:" />
-                            <RichEditBox
-                                x:Name="DescriptionTextBox"
-                               
-                               
-                                Margin="0,5,0,15" />
+                            <RichEditBox x:Name="DescriptionTextBox" Margin="0,5,0,15" />
                         </StackPanel>
                     </Grid>
 
@@ -606,7 +599,7 @@
                 <TextBox x:Name="SongAlbumNameSearch" PlaceholderText="Song Album Name" />
 
                 <Button
-                    Command="{x:Bind MyViewModel.FetchSongOnlineOnLastFMCommand}"
+                    Command="{x:Bind MyLastFMViewModel.FetchSongOnlineOnLastFMCommand}"
                     CommandParameter="{x:Bind DetailedSong}"
                     Content="Search On Last FM" />
 

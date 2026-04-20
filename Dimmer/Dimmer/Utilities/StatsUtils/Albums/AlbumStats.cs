@@ -3,19 +3,13 @@ public static class AlbumStats
 {
     #region Helper Methods
 
-    /// <summary>
-    /// Retrieves all songs associated with a given Album ID from the entire library.
-    /// </summary>
-    private static IQueryable<SongModel> GetSongsByAlbumId(ObjectId albumId, IQueryable<SongModel> allSongsInLibrary)
-    {
-        return allSongsInLibrary.Where(s => s.Album != null && s.Album.Id == albumId);
-    }
+ 
 
     /// <summary>
     /// Filters all play events to get only those relevant to a specific collection of songs (e.g., songs on an album).
     /// </summary>
     private static List<DimmerPlayEvent> GetRelevantEventsForSongs(
-        IQueryable<SongModel> songs,
+        IList<SongModel> songs,
         List<DimmerPlayEvent> allEvents)
     {
         if (songs == null || !songs.Any())
@@ -127,13 +121,14 @@ public static class AlbumStats
         if (targetAlbum == null)
             return new AlbumSingleStatsSummary { AlbumName = "Error: Album not provided" };
 
-        var songsOnAlbum = GetSongsByAlbumId(targetAlbum.Id, allSongsInLibrary);
+        var songsOnAlbum = (targetAlbum.SongsInAlbum)?.ToList() ?? new List<SongModel>();
+
         var summary = new AlbumSingleStatsSummary
         {
             AlbumName = targetAlbum.Name ?? "Unknown Album",
             AlbumId = targetAlbum.Id,
             ReleaseYear = targetAlbum.ReleaseYear,
-            TotalTracksInLibraryForAlbum = songsOnAlbum.Count()
+            TotalTracksInLibraryForAlbum = songsOnAlbum.Count // No longer need Count()
         };
 
         if (!songsOnAlbum.Any())
@@ -295,9 +290,9 @@ public static class AlbumStats
     {
         if (targetAlbum == null)
             return new AlbumPlottableData { AlbumName = "Error: Album not provided" };
+        var songsOnAlbum = (targetAlbum.SongsInAlbum)?.ToList() ?? new List<SongModel>();
 
-        var songsOnAlbum = GetSongsByAlbumId(targetAlbum.Id, allSongsInLibrary)
-                            .OrderBy(s => s.TrackNumber ?? int.MaxValue) // Ensure consistent order
+        songsOnAlbum.OrderBy(s => s.TrackNumber ?? int.MaxValue) // Ensure consistent order
                             .ThenBy(s => s.Title)
                             .ToList();
 
@@ -576,8 +571,9 @@ public static class AlbumStats
 
         if (bundle.AlbumOverallStats.TotalTracksInLibraryForAlbum == 0)
             return bundle; // No songs on album
+        var songsOnAlbum = (targetAlbum.SongsInAlbum)?.ToList() ?? new List<SongModel>();
 
-        var songsOnThisAlbum = GetSongsByAlbumId(targetAlbum.Id, allSongsInLibrary);
+
 
         HashSet<ObjectId> artistsToConsiderIds;
         if (specificArtistsToCompare != null && specificArtistsToCompare.Count!=0)
@@ -586,7 +582,7 @@ public static class AlbumStats
         }
         else // Get all distinct artists from the songs on this album
         {
-            artistsToConsiderIds = [.. songsOnThisAlbum
+            artistsToConsiderIds = [.. songsOnAlbum
                 .SelectMany(s => s.ArtistToSong.Select(a => a.Id))
                 .Distinct()];
         }

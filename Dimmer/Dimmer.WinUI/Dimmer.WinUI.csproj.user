@@ -130,9 +130,6 @@
     <Page Update="Views\WinuiPages\DimmerLivePage.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Views\CustomViews\WinuiViews\SongCoverView.xaml">
-      <SubType>Designer</SubType>
-    </Page>
     <Page Update="Views\CustomViews\WinuiViews\SongLyricsView.xaml">
       <SubType>Designer</SubType>
     </Page>

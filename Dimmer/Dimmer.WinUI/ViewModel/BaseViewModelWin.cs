@@ -35,19 +35,22 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     public DimmerMultiWindowCoordinator DimmerMultiWindowCoordinator;
 
     DimmerBackupService BackupService;
-    public BaseViewModelWin(IDimmerStateService dimmerStateService,
-        DimmerBackupService backupService,
+
+    public BaseViewModelWin(
+    LastFMViewModel lastFMViewModel,
+    DimmerBackupService backupService,
         LoginViewModel _loginViewModel,
         DimmerMultiWindowCoordinator dimmerMultiWindowCoordinator,
         IMauiWindowManagerService mauiWindowManagerService,
         IWinUIWindowMgrService winUIWinMgrService,
         SessionManagementViewModel sessionManagementViewModel,
-    MusicDataService musicDataService, IAppInitializerService appInitializerService, IDimmerAudioService audioServ, ISettingsService settingsService, ILyricsMetadataService lyricsMetadataService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> _songRepo, IDuplicateFinderService duplicateFinderService, ILastfmService _lastfmService, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, IDialogueService dialogueService, IRepository<PlaylistModel> PlaylistRepo, IRealmFactory RealmFact, IFolderMonitorService FolderServ, ILibraryScannerService LibScannerService, IRepository<DimmerPlayEvent> DimmerPlayEventRepo, BaseAppFlow BaseAppClass, ILogger<BaseViewModel> logger) : base(dimmerStateService, musicDataService, appInitializerService, audioServ, settingsService, lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, _songRepo, duplicateFinderService, _lastfmService, artistRepo, albumModel, genreModel, dialogueService, PlaylistRepo, RealmFact, FolderServ, LibScannerService, DimmerPlayEventRepo, BaseAppClass, logger)
+        IDimmerStateService dimmerStateService, MusicDataService musicDataService, IAppInitializerService appInitializerService, IDimmerAudioService audioServ, ISettingsService settingsService, ILyricsMetadataService lyricsMetadataService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> songRepo, IDuplicateFinderService duplicateFinderService, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, IDialogueService dialogueService, IRepository<PlaylistModel> playlistRepo, IRealmFactory realmFact, IFolderMonitorService folderServ, ILibraryScannerService libScannerService, IRepository<DimmerPlayEvent> dimmerPlayEventRepo, BaseAppFlow baseAppClass, ILastfmService lastfmService, ILogger<BaseViewModel> logger) : base(dimmerStateService, musicDataService, appInitializerService, audioServ, settingsService, lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, songRepo, duplicateFinderService, artistRepo, albumModel, genreModel, dialogueService, playlistRepo, realmFact, folderServ, libScannerService, dimmerPlayEventRepo, baseAppClass, lastfmService, logger)
     {
+        lastFMVM = lastFMViewModel;
         BackupService = backupService;
         this.winUIWindowMgrService = winUIWinMgrService;
         this.loginViewModel = _loginViewModel;
-        SessionMgtVM=sessionManagementViewModel;
+        SessionMgtVM = sessionManagementViewModel;
         DimmerMultiWindowCoordinator = dimmerMultiWindowCoordinator;
         DimmerMultiWindowCoordinator.BaseVM = this;
         UIQueryComponents.CollectionChanged += (s, e) =>
@@ -61,7 +64,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(x =>
             {
-                if(x)
+                if (x)
                 {
                     ShowIndeterminateProgressBar();
                 }
@@ -75,7 +78,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(x =>
             {
-                if(x)
+                if (x)
                 {
                     ShowIndeterminateProgressBar();
                 }
@@ -88,8 +91,8 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         this.WhenPropertyChange(nameof(DimmerProgressBarViewVisibleValue), v => (DimmerProgressBarViewVisibleValue))
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(x =>
-            {                
-                    ShowOrSetIndeterminateProgressBar(x);                
+            {
+                ShowOrSetIndeterminateProgressBar(x);
             });
     }
 
@@ -323,7 +326,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         {
             if (CurrentPlayingSongView is null)
             {
-                await Shell.Current.DisplayAlert("No Song Selected", "Please select a song to view its details.", "OK");
+                await Shell.Current.DisplayAlertAsync("No Song Selected", "Please select a song to view its details.", "OK");
                 return;
             }
             SelectedSong ??= CurrentPlayingSongView;
@@ -336,7 +339,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
         if (string.IsNullOrEmpty(SelectedSong.TitleDurationKey))
         {
-            await Shell.Current.DisplayAlert("Issue!", "No Song Selected To View", "Ok");
+            await Shell.Current.DisplayAlertAsync("Issue!", "No Song Selected To View", "Ok");
             return;
         }
 
@@ -600,7 +603,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     public async Task LoadPlainLyricsFromFile()
     {
 
-        await Shell.Current.DisplayAlert("Soon...", "Feature Not available Yet...", "OK");
+        await Shell.Current.DisplayAlertAsync("Soon...", "Feature Not available Yet...", "OK");
 
 
 
@@ -672,7 +675,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         }
         catch (Exception ex)
         {
-            await Shell.Current.DisplayAlert("Error", $"Failed to scroll to current playing song: {ex.Message}", "OK");
+            await Shell.Current.DisplayAlertAsync("Error", $"Failed to scroll to current playing song: {ex.Message}", "OK");
         }
     }
 
@@ -804,7 +807,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     {
 
         SearchToTQL(TQlStaticMethods.PresetQueries.ByArtist(artist.Name!));
-        var tempVar = await lastfmService.GetArtistInfoAsync(artist.Name!);
+        var tempVar = await LastfmService.GetArtistInfoAsync(artist.Name!);
 
         if (tempVar is not null)
         {
@@ -1137,13 +1140,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     public partial Microsoft.UI.Xaml.Controls.ProgressBar DimmerProgressBarView { get;  set; }
     public StackPanel DimmerStatusPanel { get; internal set; }
 
-    public override bool AutoConfirmLastFM(bool val)
-    {
-
-        AutoConfirmLastFMVar = base.AutoConfirmLastFM(val);
-
-        return AutoConfirmLastFMVar;
-    }
+    LastFMViewModel lastFMVM;
     public async Task<bool> CheckToCompleteActivation(string typee)
     {
         if (typee != "Confirm LastFM") return false;
@@ -1164,7 +1161,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
             if (result == ContentDialogResult.Primary)
             {
-                await CompleteLastFMLoginAsync();
+                await lastFMVM.CompleteLastFMLoginAsync();
             }
             else
             {
@@ -1175,7 +1172,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
                     CloseButtonText = "OK",
                     XamlRoot = MainWindow?.ContentFrame.XamlRoot
                 };
-                IsLastFMAuthButtonClickable = true;
+                lastFMVM.IsLastFMAuthButtonClickable = true;
                 await cancelledDialog.ShowAsync();
             }
         }
@@ -1187,7 +1184,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         }
         finally
         {
-            WindowActivationRequestTypeStatic = string.Empty;
+            LastFMViewModel.WindowActivationRequestTypeStatic = string.Empty;
         }
 
         return true;
@@ -1402,7 +1399,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     internal async Task LoadLastFMArtist(ArtistModelView? selectedArtist)
     {
         if (selectedArtist is null) return;
-        var lastFmArtist = await lastfmService.GetArtistInfoAsync(selectedArtist.Name!);
+        var lastFmArtist = await LastfmService.GetArtistInfoAsync(selectedArtist.Name!);
 
         if (lastFmArtist is null) return;
 
@@ -1546,7 +1543,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     public async Task ShowProgressSearchLyricsThenHideProgressAsync()
     {
         ShowIndeterminateProgressBar();
-        await SearchLyricsAsync();
+        await SearchLyricsAndLoadLyricsIfFoundAsync();
         HideIndeterminateProgressBar();
 
     }

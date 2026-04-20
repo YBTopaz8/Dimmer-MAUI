@@ -5,9 +5,10 @@ using MongoDB.Bson.Serialization.Attributes;
 namespace Dimmer.Data.Models;
 
 [Dimmer.Utils.Preserve(AllMembers = true)]
+[MapTo("SongModel")]
 public partial class SongModel : RealmObject, IRealmObjectWithObjectId
 {
-
+    
     [PrimaryKey]
     [MapTo("_id")]
     public ObjectId Id { get; set; }

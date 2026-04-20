@@ -40,7 +40,7 @@ public partial class DimmerMAUIWin : Microsoft.Maui.Controls.Window
 
             return;
         }
-        bool result = await Shell.Current.DisplayAlert(
+        bool result = await Shell.Current.DisplayAlertAsync(
             "Confirm Action",
             "You sure want to close app?",
             "Yes",

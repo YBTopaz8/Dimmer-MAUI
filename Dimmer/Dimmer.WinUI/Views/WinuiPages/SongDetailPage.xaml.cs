@@ -94,11 +94,13 @@ public sealed partial class SongDetailPage : Page
     }
 
     BaseViewModelWin MyViewModel { get; set; }
+    public LastFMViewModel MyLastFMViewModel { get; internal set; }
     protected override async void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
+        MyLastFMViewModel = IPlatformApplication.Current!.Services.GetService<LastFMViewModel>()!;
         //DetailedSong = DetailedSong is null ? MyViewModel.SelectedSong : DetailedSong;
-        if(e.Parameter is BaseViewModelWin myVm)
+        if (e.Parameter is BaseViewModelWin myVm)
         {
             MyViewModel = myVm;
             this.DataContext = MyViewModel;
@@ -161,7 +163,7 @@ public sealed partial class SongDetailPage : Page
 
         MyViewModel.CurrentWinUIPage = this;
         await MyViewModel.LoadLyricsFromOnlineOrDBIfNeededAsync(MyViewModel.SelectedSong!);
-        await MyViewModel.LoadSelectedSongLastFMData();
+        await MyLastFMViewModel.LoadSelectedSongLastFMData();
         LoadUiComponents();
     }
 
@@ -172,9 +174,9 @@ public sealed partial class SongDetailPage : Page
 
     private void LoadWikiOfSong()
     {
-        if (MyViewModel.SelectedSongLastFMData is null || MyViewModel.SelectedSongLastFMData.Wiki is null ||
-            MyViewModel.SelectedSongLastFMData.Wiki.Summary is null) return;
-        var html = MyViewModel.SelectedSongLastFMData.Wiki.Summary;
+        if (MyLastFMViewModel.SelectedSongLastFMData is null || MyLastFMViewModel.SelectedSongLastFMData.Wiki is null ||
+            MyLastFMViewModel.SelectedSongLastFMData.Wiki.Summary is null) return;
+        var html = MyLastFMViewModel.SelectedSongLastFMData.Wiki.Summary;
         BioBlock.Blocks.Clear();
 
         Paragraph p = new Paragraph();

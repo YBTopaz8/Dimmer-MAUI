@@ -48,7 +48,7 @@ public class DimmerBackupService
             lock (_logLock)
             {
                 // For the primary path (assuming it's a regular path)
-                File.WriteAllText(filePath, logContent);
+               File.WriteAllText(filePath, logContent);
             }
 
             if (!string.IsNullOrEmpty(secondPath))
@@ -59,10 +59,7 @@ public class DimmerBackupService
                     {
                         // FIX: Don't construct URI with string concatenation!
                         // Use the platform hook that accepts folder URI + filename
-                        if (TaggingUtils.PlatformGetStreamHook != null)
-                        {
-                            TaggingUtils.PlatformSpecificFileCreator(secondPath, fileName, logContent);
-                        }
+                        TaggingUtils.PlatformSpecificFileCreator?.Invoke(secondPath, fileName, logContent);
                     }
                     else
                     {

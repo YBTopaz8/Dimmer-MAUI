@@ -1,3 +1,4 @@
+using Dimmer.WinUI.Views.WinuiPages.AlbumSection;
 using Dimmer.WinUI.Views.WinuiPages.Artist;
 using Hqub.Lastfm.Entities;
 using Microsoft.UI.Composition.SystemBackdrops;
@@ -93,7 +94,7 @@ public sealed partial class DimmerWin : Window
         if (_isDialogActive)
             return;
 
-        var typee = BaseViewModel.WindowActivationRequestTypeStatic;
+        var typee = LastFMViewModel.WindowActivationRequestTypeStatic;
         if (typee == "Confirm LastFM")
         {
             _isDialogActive = true;
@@ -332,6 +333,13 @@ public sealed partial class DimmerWin : Window
             case 1:
                 pageType = typeof(AllArtistsPage);
                 break;
+            case 2:
+                pageType = typeof(AllAlbumsPage);
+                break;
+            case 3:
+                pageType = typeof(SettingsPage);
+                break;
+
           
 
         }
@@ -343,5 +351,28 @@ public sealed partial class DimmerWin : Window
 
         previousSelectedIndex = currentSelectedIndex;
 
+    }
+
+    private void ContentFrame_Navigated(object sender, Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
+    {
+        var navPageType = e.SourcePageType;
+        if(navPageType is null) return;
+
+        if(navPageType == typeof(AllSongsListPage))
+        {
+            DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[0];
+        }
+        else if (navPageType == typeof(AllArtistsPage))
+        {
+            DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[1];
+        }
+        else if (navPageType == typeof(AllAlbumsPage))
+        {
+            DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[2];
+        }
+        else if (navPageType == typeof(SettingsPage))
+        {
+            DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[3];
+        }
     }
 }

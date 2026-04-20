@@ -25,6 +25,7 @@ public sealed partial class AlbumPage : Page
     private readonly Microsoft.UI.Composition.Compositor _compositor;
 
     BaseViewModelWin MyViewModel { get; set; }
+    public LastFMViewModel MyLastFMViewModel { get; internal set; }
 
     public SongModelView DetailedSong { get; set; }
     public AlbumModelView SelectedAlbum { get; private set; }
@@ -40,6 +41,7 @@ public sealed partial class AlbumPage : Page
             DetailedSong = args.SelectedSong!;
         }
         this.DataContext = MyViewModel;
+        MyLastFMViewModel = IPlatformApplication.Current!.Services.GetService<LastFMViewModel>()!;
 
         MyViewModel.IsBackButtonVisible = WinUIVisibility.Visible;
 
@@ -49,7 +51,7 @@ public sealed partial class AlbumPage : Page
         SelectedAlbum = MyViewModel.RealmFactory.GetRealmInstance().Find<SongModel>(DetailedSong.Id)!.Album.ToAlbumModelView(withArtist: true, withSongs: true)!; ;
 
         MyViewModel.SetSelectedAlbum (SelectedAlbum);
-        MyViewModel.SelectedLastFMAlbum = await MyViewModel.LastFMService.GetAlbumInfoAsync(DetailedSong.ArtistName, SelectedAlbum!.Name);
+        MyViewModel.SelectedLastFMAlbum = await MyLastFMViewModel.LastFMService.GetAlbumInfoAsync(DetailedSong.ArtistName, SelectedAlbum!.Name);
         AnimationHelper.TryStart(
       DestinationElement,
       null,

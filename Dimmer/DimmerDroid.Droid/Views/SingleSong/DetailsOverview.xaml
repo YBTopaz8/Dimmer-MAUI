@@ -1,170 +1,283 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Dimmer.Views.SingleSong.DetailsOverview"
-             xmlns:globalVM="clr-namespace:Dimmer.ViewModel;assembly=Dimmer"
-            xmlns:vm="clr-namespace:Dimmer.ViewModels"
-             xmlns:lyrModels="clr-namespace:Dimmer.Data.Models.LyricsModels;assembly=Dimmer"
- xmlns:local="clr-namespace:Dimmer.Views.CustomViews"
- xmlns:dx="http://schemas.devexpress.com/maui"
- xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
-  Shell.NavBarIsVisible="False"
-            x:DataType="models:SongModelView"
->
+<ContentPage
+    x:Class="Dimmer.Views.SingleSong.DetailsOverview"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:dx="http://schemas.devexpress.com/maui"
+    xmlns:globalVM="clr-namespace:Dimmer.ViewModel;assembly=Dimmer"
+    xmlns:local="clr-namespace:Dimmer.Views.CustomViews"
+    xmlns:lyrModels="clr-namespace:Dimmer.Data.Models.LyricsModels;assembly=Dimmer"
+    xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+    xmlns:vm="clr-namespace:Dimmer.ViewModels"
+    x:DataType="models:SongModelView"
+    Shell.NavBarIsVisible="False">
     <dx:DXScrollView Margin="5,0">
         <Grid>
-            
-        <dx:TabView x:Name="SongTabView" HeaderPanelPosition="Bottom" PropertyChanging="SongTabView_PropertyChanging">
-            <dx:TabViewItem x:Name="OverViewTab" HeaderText="OverView" >
-                
-                <dx:DXStackLayout 
-                    
-                    ItemSpacing="5">
-                    <Grid ColumnDefinitions="150,*">
-                        <dx:DXImage 
-                            Grid.Column="0"
-                            Source="{Binding CoverImagePath}" MaximumHeightRequest="300" MaximumWidthRequest="300" Aspect="AspectFit" HorizontalOptions="Center"/>
-                        
-                        <dx:DXStackLayout Grid.Column="1" ItemSpacing="5">
-                            <Label Text="{Binding Title}" HorizontalTextAlignment="Justify"
-                           LineBreakMode="WordWrap" 
-                                   x:Name="TitleLabel"
-                                   SizeChanged="SongTitleLabel_SizeChanged"
-                                   FontSize="23" />
-                            <dx:Chip  Text="{Binding OtherArtistsName}" HorizontalOptions="Center"
-                          
-                                   FontSize="17" />
-                            <dx:Chip  Text="{Binding AlbumName}" HorizontalOptions="Center"
-                          
-                                   FontSize="14" />
-                        </dx:DXStackLayout>
-                    </Grid>
-                    
-                    <dx:Chip Text="{Binding GenreName}" HorizontalOptions="Center"
-                           
-                             FontSize="12" />
 
-                    <dx:Chip Text="{Binding PlayCompletedCount}"/>
-                    <dx:Chip Text="{Binding PauseCount}"/>
-                    <dx:Chip Text="{Binding SkipCount}"/>
-                    
-                    <dx:Chip Icon="heart.png" IsVisible="{Binding IsFavorite}"/>
-                </dx:DXStackLayout>
-            </dx:TabViewItem>
+            <dx:TabView
+                x:Name="SongTabView"
+                HeaderPanelPosition="Bottom"
+                PropertyChanging="SongTabView_PropertyChanging">
+                <dx:TabViewItem x:Name="OverViewTab" HeaderText="OverView">
 
-            <dx:TabViewItem HeaderText="Lyrics" >
-                <dx:DXScrollView>
-                    
-                <dx:DXStackLayout ItemSpacing="10" x:DataType="vm:BaseViewModelAnd" Loaded="LyricsTabVSL_Loaded" x:Name="LyricsTabVSL">
-                    <dx:DXStackLayout 
-                        ItemSpacing="10">
-                        <dx:TextEdit Text="{Binding LyricsTrackNameSearch}"
-                                     LabelText="Track Name"/>
+                    <dx:DXScrollView>
+                        <dx:DXStackLayout ItemSpacing="5">
 
-                        <!--<dx:Chip BorderThickness="0"
-                                 
-                                 Icon="copy.png"/>
+                            <Grid ColumnDefinitions="150,*" ColumnSpacing="5">
+                                <dx:DXImage
+                                    Grid.Column="0"
+                                    Aspect="AspectFit"
+                                    HorizontalOptions="Center"
+                                    MaximumHeightRequest="300"
+                                    MaximumWidthRequest="300"
+                                    Source="{Binding CoverImagePath}" />
 
-                        <dx:Chip BorderThickness="0"
-                                 Icon="clearalt.png"/>
+                                <dx:DXStackLayout
+                                    Grid.Column="1"
+                                    ItemSpacing="5"
+                                    VerticalOptions="Start">
+                                    <Label
+                                        x:Name="TitleLabel"
+                                        FontSize="23"
+                                        HorizontalTextAlignment="Justify"
+                                        LineBreakMode="WordWrap"
+                                        SizeChanged="SongTitleLabel_SizeChanged"
+                                        Text="{Binding Title}" />
+                                    <dx:Chip
+                                        x:Name="ArtistNamesChip"
+                                        FontSize="17"
+                                        HorizontalOptions="Start"
+                                        Tap="ArtistNamesChip_Tap"
+                                        Text="{Binding OtherArtistsName}" />
+                                    <dx:Chip
+                                        x:Name="AlbumChip"
+                                        FontSize="14"
+                                        HorizontalOptions="Start"
+                                        Tap="AlbumChip_Tap"
+                                        TapCommandParameter="{Binding Album}"
+                                        Text="{Binding AlbumName}" />
+                                    <dx:Chip
+                                        FontSize="12"
+                                        HorizontalOptions="Start"
+                                        Text="{Binding GenreName}" />
 
-                        <dx:Chip BorderThickness="0"
-                                 
-                                 Icon="clipboard.png"/>-->
-                    </dx:DXStackLayout>
-                    <dx:DXStackLayout 
-    >
-                        <dx:TextEdit Text="{Binding LyricsArtistNameSearch}" LabelText="Artist Name"/>
-                        </dx:DXStackLayout>
+                                </dx:DXStackLayout>
+                            </Grid>
 
-                        <dx:DXStackLayout  
-    ItemSpacing="10">
-                        <dx:TextEdit 
-                            LabelText="Album Name"
-                            Text="{Binding LyricsAlbumNameSearch}"/>
-                    </dx:DXStackLayout>
-                    <dx:DXButton x:Name="SearchLyricsBtn" Content="Search Online"
-                                 Command="{Binding SearchLyricsCommand}"/>
-                    <ActivityIndicator IsRunning="{Binding IsLyricsSearchBusy}"
-                                       IsVisible="{Binding IsLyricsSearchBusy}"
-                                       />
-                    <dx:DXCollectionView ItemsSource="{Binding LyricsSearchResults}"
-                                         >
-                        <dx:DXCollectionView.ItemTemplate>
-                            <DataTemplate x:DataType="lyrModels:LrcLibLyrics">
-                                <dx:DXStackLayout>
-                                    <dx:DXStackLayout Orientation="Horizontal" ItemSpacing="10">
-                                        <Label Text="{Binding TrackName}"/>
-                                        <Label Text="{Binding DurationFormatted}"/>
-                                        
-                                    </dx:DXStackLayout>
-                                        <Label Text="{Binding ArtistName}"/>
-                                        <Label Text="{Binding AlbumName}"/>
-                                        <Label IsVisible="{Binding Instrumental}"/>
-                                        <dx:DXButton x:Name="ApplyLyrics" Command="{Binding SelectLyricsCommand}" x:DataType="vm:BaseViewModelAnd"
-            CommandParameter="{Binding .}" />
-                                        <dx:DXScrollView MaximumHeightRequest="250">
-                                            
-                                    <Label Text="{Binding SyncedLyrics}"/>
 
-                                        </dx:DXScrollView>
-                                    </dx:DXStackLayout>
-                            </DataTemplate>
-                        </dx:DXCollectionView.ItemTemplate>
-                    </dx:DXCollectionView>
 
-                </dx:DXStackLayout>
-
-                </dx:DXScrollView>
-            </dx:TabViewItem>
-
-            
-                <dx:TabViewItem HeaderText="Statistics">
-                    
-                        <dx:DXScrollView Loaded="StatisticsScrollView_Loaded" x:Name="StatisticsScrollV"
-                      x:DataType="globalVM:StatisticsViewModel" >
-
-                        <dx:DXStackLayout ItemSpacing="10">
-                            <Label Text="{Binding SongStats.FilterUsed, StringFormat='Filter: {0}'}" HorizontalOptions="Center"/>
-                            <Label Text="{Binding SongStats.Summary.TotalPlays, StringFormat='TotalPlays : {0}'}" HorizontalOptions="Start"/>
-                            <Label Text="{Binding SongStats.Summary.TotalSkips, StringFormat='TotalSkips : {0}'}" HorizontalOptions="Start"/>
-                            <Label Text="{Binding SongStats.Summary.Completions, StringFormat='Completions : {0}'}" HorizontalOptions="Start"/>
-                            <Label Text="{Binding SongStats.Summary.TotalListeningTimeSeconds, StringFormat='Total Listening Time : {0}s'}" HorizontalOptions="Start"/>
-                            <Label Text="{Binding SongStats.Summary.AveragePercentListened, StringFormat='Average Percent Listened : {0}%'}" HorizontalOptions="Start"/>
-                            <Label Text="{Binding SongStats.Summary.FirstPlayedDate, StringFormat='First Played Date : {0:dd-MM-yyyy}'}" HorizontalOptions="Start"/>
-                            <Label Text="{Binding SongStats.Summary.LastPlayedDate, StringFormat='Last Played Date : {0:dd-MM-yyyy}'}" HorizontalOptions="Start"/>
-                            <Label Text="{Binding SongStats.Summary.MostFrequentPlayHour, StringFormat='Most Frequent PlayHour : {0}'}" HorizontalOptions="Start"/>
-                            <Label Text="{Binding SongStats.Summary.LongestListeningStreakDays, StringFormat='Longest Listening Streak Days : {0} days'}" HorizontalOptions="Start"/>
-                            <Label Text="{Binding SongStats.Summary.AverageDaysBetweenPlays, StringFormat='Average Days BetweenPlays : {0:n2} days'}" HorizontalOptions="Start"/>
-                            <Label Text="{Binding SongStats.Summary.IsPlayCountFibonacci, StringFormat='Is PlayCount Fibonacci: {0}'}" HorizontalOptions="Start"/>
-                            
-                            
-                        </dx:DXStackLayout>
+                            <dx:Chip Icon="heart.png" IsVisible="{Binding IsFavorite}" />
+                            <dx:DXScrollView>
+                                <Label Text="{Binding SyncLyrics}" />
                             </dx:DXScrollView>
-                    
-                </dx:TabViewItem>
-        </dx:TabView>
 
-         <HorizontalStackLayout HorizontalOptions="End" VerticalOptions="End">
-                <dx:DXExpander IsExpanded="False" x:DataType="vm:BaseViewModelAnd"
-                               Loaded="MiniNPExpander_Loaded"
-                    x:Name="MiniNPExpander" HorizontalExpandMode="FromEndToStart"
-                    VerticalExpandMode="FromCenter">
-                    <dx:DXExpander.Content>
-                        <dx:DXStackLayout>
-                            <dx:DXStackLayout>
-                                <Label Text="{Binding CurrentPlayingSongView.Title}"/>
-                                <Label Text="{Binding CurrentPlayingSongView.ArtistName}"/>
-                                <Label Text="{Binding CurrentPlayingSongView.AlbumName}"/>
-                            </dx:DXStackLayout>
-                            <dx:DXStackLayout Orientation="Horizontal"
-                                              ItemSpacing="10" HorizontalOptions="Center">
-                                
-                            </dx:DXStackLayout>
+                            <dx:DXPopup
+                                x:Name="ArtistToSongPopup"
+                                Margin="10"
+                                HeightRequest="300">
+                                <dx:DXPopup.Content>
+                                    <Grid Margin="10" RowDefinitions="auto,*">
+                                        <Label
+                                            Grid.Row="0"
+                                            HorizontalOptions="Center"
+                                            Text="{Binding ArtistToSong.Count, StringFormat='{0} Artists'}" />
+
+                                        <dx:DXCollectionView 
+                                            ItemSpacing="10"
+                                            MaximumHeightRequest="300" Grid.Row="1" ItemsSource="{Binding ArtistToSong}">
+                                            <dx:DXCollectionView.ItemTemplate>
+                                                <DataTemplate x:DataType="models:ArtistModelView">
+                                                    <Grid ColumnDefinitions="*,auto">
+                                                        <dx:DXStackLayout Grid.Column="0">
+                                                            <Label Text="{Binding Name}" />
+                                                        </dx:DXStackLayout>
+
+                                                        <dx:DXStackLayout Grid.Column="1">
+                                                            <dx:DXButton
+                                                                x:Name="NavToArtistPage"
+                                                                Clicked="NavToArtistPage_Clicked"
+                                                                CommandParameter="{Binding .}"
+                                                                Icon="eye.png"
+                                                                ShowContent="False"
+                                                                ShowIcon="True" />
+
+
+                                                        </dx:DXStackLayout>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </dx:DXCollectionView.ItemTemplate>
+                                        </dx:DXCollectionView>
+                                    </Grid>
+                                </dx:DXPopup.Content>
+                            </dx:DXPopup>
                         </dx:DXStackLayout>
-                    </dx:DXExpander.Content>
-                </dx:DXExpander>
-            </HorizontalStackLayout>
+                    </dx:DXScrollView>
+                </dx:TabViewItem>
+
+                <dx:TabViewItem HeaderText="Search Lyrics">
+                    <dx:DXScrollView>
+
+                        <dx:DXStackLayout
+                            x:Name="LyricsTabVSL"
+                            x:DataType="vm:BaseViewModelAnd"
+                            ItemSpacing="10"
+                            Loaded="LyricsTabVSL_Loaded">
+                            <Grid ColumnDefinitions="*,auto" ColumnSpacing="5">
+
+                                <dx:TextEdit LabelText="Track Name" Text="{Binding LyricsTrackNameSearch}" />
+
+                                <dx:DXStackLayout
+                                    Grid.Column="1"
+                                    ItemSpacing="10"
+                                    Orientation="Horizontal"
+                                    VerticalOptions="End">
+
+                                    <dx:Chip
+                                        BorderThickness="0"
+                                        HeightRequest="50"
+                                        Icon="copy.png"
+                                        IconSize="35,35"
+                                        IsIconVisible="True" />
+                                    <dx:Chip
+                                        BorderThickness="0"
+                                        HeightRequest="55"
+                                        Icon="clipboard.png"
+                                        IconSize="35,35"
+                                        IsIconVisible="True" />
+
+                                </dx:DXStackLayout>
+                            </Grid>
+
+                            <Grid ColumnDefinitions="*,auto" ColumnSpacing="5">
+
+                                <dx:TextEdit LabelText="Track Name" Text="{Binding LyricsArtistNameSearch}" />
+
+                                <dx:DXStackLayout
+                                    Grid.Column="1"
+                                    ItemSpacing="10"
+                                    Orientation="Horizontal"
+                                    VerticalOptions="End">
+
+                                    <dx:Chip
+                                        BorderThickness="0"
+                                        HeightRequest="50"
+                                        Icon="copy.png"
+                                        IconSize="35,35"
+                                        IsIconVisible="True" />
+                                    <dx:Chip
+                                        BorderThickness="0"
+                                        HeightRequest="55"
+                                        Icon="clipboard.png"
+                                        IconSize="35,35"
+                                        IsIconVisible="True" />
+
+                                </dx:DXStackLayout>
+                            </Grid>
+
+
+                            <dx:DXStackLayout ItemSpacing="10">
+                                <dx:TextEdit LabelText="Album Name" Text="{Binding LyricsAlbumNameSearch}" />
+                            </dx:DXStackLayout>
+                            <dx:DXButton
+                                x:Name="SearchLyricsBtn"
+                                Clicked="SearchLyricsBtn_Clicked"
+                                Content="Search Sync Lyrics Online" />
+                            <ActivityIndicator IsRunning="{Binding IsLyricsSearchBusy}" IsVisible="{Binding IsLyricsSearchBusy}" />
+                            <dx:DXCollectionView ItemSpacing="10" ItemsSource="{Binding LyricsSearchResults}">
+
+                                <dx:DXCollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="lyrModels:LrcLibLyrics">
+                                        <dx:DXStackLayout
+                                            Padding="10"
+                                            BorderColor="DarkSlateBlue"
+                                            BorderThickness="1"
+                                            CornerRadius="10"
+                                            ItemSpacing="5">
+                                            <Label FontAttributes="Bold" Text="{Binding TrackName, StringFormat='Title: {0}'}" />
+                                            <Label FontAttributes="Bold" Text="{Binding DurationFormatted, StringFormat='Duration : {0}'}" />
+
+                                            <Label Text="{Binding ArtistName, StringFormat='Artist : {0}'}" />
+                                            <Label Text="{Binding AlbumName, StringFormat='Album : {0}'}" />
+                                            <Label IsVisible="{Binding Instrumental}" Text="Is Instrumental" />
+                                            <dx:DXButton
+                                                x:Name="ApplyLyrics"
+                                                Clicked="ApplyLyrics_Clicked"
+                                                CommandParameter="{Binding .}"
+                                                Content="Save Lyrics" />
+                                            <dx:DXScrollView MaximumHeightRequest="250">
+
+                                                <Label Text="{Binding SyncedLyrics}" />
+
+                                            </dx:DXScrollView>
+                                        </dx:DXStackLayout>
+                                    </DataTemplate>
+                                </dx:DXCollectionView.ItemTemplate>
+                            </dx:DXCollectionView>
+
+                        </dx:DXStackLayout>
+
+                    </dx:DXScrollView>
+                </dx:TabViewItem>
+
+
+                <dx:TabViewItem HeaderText="Statistics">
+
+                    <dx:DXStackLayout
+                        x:Name="StatisticsStackLayout"
+                        x:DataType="globalVM:StatisticsViewModel"
+                        Loaded="StatisticsStackLayout_Loaded">
+
+
+                        <dx:SlideView
+                            AllowAnimation="True"
+                            AllowLooping="True"
+                            AllowSwipe="True"
+                            Orientation="Vertical">
+                            <dx:SlideView.Items>
+
+                                <dx:DXStackLayout>
+                                    <Label Text="ss" />
+                                </dx:DXStackLayout>
+                                <dx:DXStackLayout>
+                                    <Label Text="ss" />
+                                </dx:DXStackLayout>
+                                <dx:DXStackLayout>
+                                    <Label Text="ss" />
+                                </dx:DXStackLayout>
+
+                            </dx:SlideView.Items>
+                        </dx:SlideView>
+                    </dx:DXStackLayout>
+
+                </dx:TabViewItem>
+
+                <dx:TabViewItem HeaderText="TimeLine">
+                    <dx:DXScrollView>
+                        <Grid RowDefinitions="auto,*">
+                            <dx:DXStackLayout Grid.Row="0">
+                                <Label Text="{Binding PlayEvents.Count}" />
+                            </dx:DXStackLayout>
+                            <dx:DataGridView
+                                Grid.Row="1"
+                                AutoGenerateColumnsMode="None"
+                                ItemsSource="{Binding PlayEvents}"
+                                RowHeight="80"
+                                ShowAutoFilterRow="True"
+                                ShowFilterIcon="True">
+                                <dx:DataGridView.Columns>
+                                    <dx:TextColumn AllowSort="True" FieldName="PlayTypeStr" />
+                                    <dx:DateColumn FieldName="EventDate" />
+                                    <dx:CheckBoxColumn FieldName="WasPlayCompleted" />
+                                </dx:DataGridView.Columns>
+                            </dx:DataGridView>
+                        </Grid>
+                    </dx:DXScrollView>
+                </dx:TabViewItem>
+
+
+            </dx:TabView>
+
+
         </Grid>
     </dx:DXScrollView>
 </ContentPage>

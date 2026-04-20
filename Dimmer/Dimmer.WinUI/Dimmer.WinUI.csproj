@@ -34,7 +34,6 @@
 		  <None Remove="Views\CustomViews\WinuiViews\SingleSongDetailsPopupView.xaml" />
 		  <None Remove="Views\CustomViews\WinuiViews\SingleSongSection\ChangesReviewPopup.xaml" />
 		  <None Remove="Views\CustomViews\WinuiViews\SmokeViewQueueGrid.xaml" />
-		  <None Remove="Views\CustomViews\WinuiViews\SongCoverView.xaml" />
 		  <None Remove="Views\CustomViews\WinuiViews\SongLyricsView.xaml" />
 		  <None Remove="Views\CustomViews\WinuiViews\SongMetadataView.xaml" />
 		  <None Remove="Views\CustomViews\WinuiViews\SongStatsView.xaml" />
@@ -91,13 +90,14 @@
 		<ItemGroup>
 			<PackageReference Include="LiveChartsCore.SkiaSharpView.WinUI" Version="2.0.0" />
 			<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.51" />
-			<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.5" />
+			<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.6" />
 
 
 			<PackageReference Include="CommunityToolkit.WinUI.Animations" Version="8.2.251219" />
 			<PackageReference Include="CommunityToolkit.WinUI.Extensions" Version="8.2.251219" />
 			<PackageReference Include="CommunityToolkit.WinUI.Helpers" Version="8.2.251219" />
 			<PackageReference Include="CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.1.2" />
+			<PackageReference Include="Syncfusion.Maui.Toolkit" Version="1.0.9" />
 			<PackageReference Include="WinUI.TableView" Version="1.4.0" />
 			<PackageReference Include="Xabe.FFmpeg" Version="6.0.2" />
 			<PackageReference Include="Xabe.FFmpeg.Downloader" Version="6.0.2" />
@@ -329,11 +329,6 @@
 		</ItemGroup>
 		<ItemGroup>
 		  <Page Update="Views\WinuiPages\DimmerLivePage.xaml">
-			<Generator>MSBuild:Compile</Generator>
-		  </Page>
-		</ItemGroup>
-		<ItemGroup>
-		  <Page Update="Views\CustomViews\WinuiViews\SongCoverView.xaml">
 			<Generator>MSBuild:Compile</Generator>
 		  </Page>
 		</ItemGroup>

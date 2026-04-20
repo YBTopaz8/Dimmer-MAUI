@@ -1,129 +1,175 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Dimmer.Views.Artist.ArtistPage"
-             
-            xmlns:vm="clr-namespace:Dimmer.ViewModels"
-            xmlns:globalVM="clr-namespace:Dimmer.ViewModel;assembly=Dimmer"
- xmlns:local="clr-namespace:Dimmer.Views.CustomViews"
- xmlns:dx="http://schemas.devexpress.com/maui"
- xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
- x:DataType="models:ArtistModelView"
-             Shell.NavBarIsVisible="True"
-             Title="{Binding Name}">
+<ContentPage
+    x:Class="Dimmer.Views.Artist.ArtistPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:dx="http://schemas.devexpress.com/maui"
+    xmlns:globalVM="clr-namespace:Dimmer.ViewModel;assembly=Dimmer"
+    xmlns:local="clr-namespace:Dimmer.Views.CustomViews"
+    xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+    xmlns:vm="clr-namespace:Dimmer.ViewModels"
+    Title="{Binding Name}"
+    x:DataType="models:ArtistModelView"
+    Shell.NavBarIsVisible="True">
     <Grid RowDefinitions="auto,*">
-        <Grid Grid.Row="0"  ColumnDefinitions="*,*" >
+        <Grid Grid.Row="0" ColumnDefinitions="*,*">
 
-            <dx:DXImage Source="{Binding ImagePath}" Grid.Column="0"/>
+            <dx:DXImage Grid.Column="0" Source="{Binding ImagePath}" />
 
             <dx:DXStackLayout Grid.Column="1" ItemSpacing="10">
                 <dx:Chip Text="{Binding SongsByArtist.Count, StringFormat='{0} Songs'}" />
                 <dx:Chip Text="{Binding AlbumsByArtist.Count, StringFormat='{0} Albums'}" />
-                <dx:DXButton Icon="lastfm.png" ShowContent="False" ShowIcon="True"
-                             BackgroundColor="Transparent" IconHeight="30" IconWidth="30"
-                             IconColor="Red"
-                             Clicked="LoadLastFMInfo_Clicked" x:Name="LoadLastFMInfo"
-                         />
+                <dx:DXButton
+                    x:Name="LoadLastFMInfo"
+                    BackgroundColor="Transparent"
+                    Clicked="LoadLastFMInfo_Clicked"
+                    Icon="lastfm.png"
+                    IconColor="Red"
+                    IconHeight="30"
+                    IconWidth="30"
+                    ShowContent="False"
+                    ShowIcon="True" />
 
             </dx:DXStackLayout>
         </Grid>
 
-        <dx:TabView  Grid.Row="1" x:Name="ArtistDetailsTableView" Margin="0,10,0,0" BackgroundColor="Transparent">
+        <dx:TabView
+            x:Name="ArtistDetailsTableView"
+            Grid.Row="1"
+            Margin="0,10,0,0"
+            BackgroundColor="Transparent">
             <dx:TabViewItem x:Name="SongsByArtistTab" HeaderText="Songs">
-                <dx:DXStackLayout>
 
-                    <dx:DXCollectionView ItemsSource="{Binding SongsByArtist}" Grid.Row="1">
-                        <dx:DXCollectionView.ItemTemplate>
-                            <DataTemplate x:DataType="models:SongModelView">
-                                <Grid ColumnDefinitions="60,*,auto" RowDefinitions="80">
-                                    <dx:DXStackLayout Grid.Column="0">
-                                        <dx:DXStackLayout.Triggers>
-                                            <DataTrigger TargetType="dx:DXStackLayout" Binding="{Binding HasSyncedLyrics}"
-                                                 Value="True">
-                                                <Setter Property="BorderThickness" Value="1"/>
-                                                <Setter Property="BorderColor" Value="DarkSlateBlue"/>
 
-                                            </DataTrigger>
+                <dx:DXCollectionView Grid.Row="1" ItemsSource="{Binding SongsByArtist}">
+                    <dx:DXCollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:SongModelView">
+                            <Grid ColumnDefinitions="60,*,auto" RowDefinitions="80">
+                                <dx:DXStackLayout Grid.Column="0">
+                                    <dx:DXStackLayout.Triggers>
+                                        <DataTrigger
+                                            Binding="{Binding HasSyncedLyrics}"
+                                            TargetType="dx:DXStackLayout"
+                                            Value="True">
+                                            <Setter Property="BorderThickness" Value="1" />
+                                            <Setter Property="BorderColor" Value="DarkSlateBlue" />
 
-                                            <DataTrigger TargetType="dx:DXStackLayout" Binding="{Binding HasSyncedLyrics}"
-                                                 Value="False">
-                                                <Setter Property="BorderThickness" Value="0"/>
+                                        </DataTrigger>
 
-                                            </DataTrigger>
+                                        <DataTrigger
+                                            Binding="{Binding HasSyncedLyrics}"
+                                            TargetType="dx:DXStackLayout"
+                                            Value="False">
+                                            <Setter Property="BorderThickness" Value="0" />
 
-                                        </dx:DXStackLayout.Triggers>
-                                        <dx:DXImage Source="{Binding CoverImagePath}" Aspect="AspectFit">
-                                            <dx:DXImage.GestureRecognizers>
-                                                <TapGestureRecognizer  Tapped="CurrentPlayingCoverTapGesture_Tapped"/>
-                                            </dx:DXImage.GestureRecognizers>
-                                        </dx:DXImage>
-                                    </dx:DXStackLayout>
+                                        </DataTrigger>
 
-                                    <dx:DXStackLayout Grid.Column="1" Orientation="Vertical" >
-                                        <dx:DXStackLayout.GestureRecognizers>
-                                            <TapGestureRecognizer NumberOfTapsRequired="1"
-                                                         x:Name="MiddleGridSection"
-                                                          Tapped="MiddleGridSection_Tapped"
-                                                         />
-                                        </dx:DXStackLayout.GestureRecognizers>
-                                        <dx:Chip Text="{Binding Title}" BorderThickness="0" HorizontalOptions="Start" 
-                                         Tap="TitleChip_Tap"
-                                         FontAttributes="Bold"
-                                         x:Name="TitleChip"/>
-                                        <dx:Chip Text="{Binding ArtistName}" BorderThickness="0" 
-                                         x:Name="ArtistChip" Tap="ArtistChip_Tap"
-                                         HorizontalOptions="Start"
-                                         FontSize="13"
-                                         LongPress="ArtistChip_LongPress"/>
-                                    </dx:DXStackLayout>
+                                    </dx:DXStackLayout.Triggers>
+                                    <dx:DXImage Aspect="AspectFit" Source="{Binding CoverImagePath}">
+                                        <dx:DXImage.GestureRecognizers>
+                                            <TapGestureRecognizer Tapped="CurrentPlayingCoverTapGesture_Tapped" />
+                                        </dx:DXImage.GestureRecognizers>
+                                    </dx:DXImage>
+                                </dx:DXStackLayout>
 
-                                    <dx:DXStackLayout Grid.Column="2" Orientation="Vertical">
-                                        <dx:Chip Icon="more1.png" IsIconVisible="True"
-                                         x:Name="MoreBtn" BorderThickness="0" BackgroundColor="Transparent"
-                                         HeightRequest="30" WidthRequest="30"/>
-                                        <Label Text="{Binding DurationFormatted}" HorizontalOptions="End" VerticalOptions="Center" FontSize="8" Margin="5,0"/>
-                                        <Label Text="{Binding TrackNumber}" HorizontalOptions="End" VerticalOptions="Center" FontSize="8" Margin="5,0"/>
-                                    </dx:DXStackLayout>
+                                <dx:DXStackLayout Grid.Column="1" Orientation="Vertical">
+                                    <dx:DXStackLayout.GestureRecognizers>
+                                        <TapGestureRecognizer
+                                            x:Name="MiddleGridSection"
+                                            NumberOfTapsRequired="1"
+                                            Tapped="MiddleGridSection_Tapped" />
+                                    </dx:DXStackLayout.GestureRecognizers>
+                                    <dx:Chip
+                                        x:Name="TitleChip"
+                                        BorderThickness="0"
+                                        FontAttributes="Bold"
+                                        HorizontalOptions="Start"
+                                        Tap="TitleChip_Tap"
+                                        Text="{Binding Title}" />
+                                    <dx:Chip
+                                        x:Name="ArtistChip"
+                                        BorderThickness="0"
+                                        FontSize="13"
+                                        HorizontalOptions="Start"
+                                        LongPress="ArtistChip_LongPress"
+                                        Tap="ArtistChip_Tap"
+                                        Text="{Binding ArtistName}" />
+                                </dx:DXStackLayout>
 
-                                </Grid>
-                            </DataTemplate>
-                        </dx:DXCollectionView.ItemTemplate>
-                    </dx:DXCollectionView>
-                </dx:DXStackLayout>
+                                <dx:DXStackLayout Grid.Column="2" Orientation="Vertical">
+                                    <dx:Chip
+                                        x:Name="MoreBtn"
+                                        BackgroundColor="Transparent"
+                                        BorderThickness="0"
+                                        HeightRequest="30"
+                                        Icon="more1.png"
+                                        IsIconVisible="True"
+                                        WidthRequest="30" />
+                                    <Label
+                                        Margin="5,0"
+                                        FontSize="8"
+                                        HorizontalOptions="End"
+                                        Text="{Binding DurationFormatted}"
+                                        VerticalOptions="Center" />
+                                    <Label
+                                        Margin="5,0"
+                                        FontSize="8"
+                                        HorizontalOptions="End"
+                                        Text="{Binding TrackNumber}"
+                                        VerticalOptions="Center" />
+                                </dx:DXStackLayout>
+
+                            </Grid>
+                        </DataTemplate>
+                    </dx:DXCollectionView.ItemTemplate>
+                </dx:DXCollectionView>
+
             </dx:TabViewItem>
             <dx:TabViewItem x:Name="AlbumsByArtist" HeaderText="Albums">
                 <dx:DXStackLayout>
 
-                    <dx:DXCollectionView ItemsSource="{Binding AlbumsByArtist}" Grid.Row="1">
+                    <dx:DXCollectionView Grid.Row="1" ItemsSource="{Binding AlbumsByArtist}">
                         <dx:DXCollectionView.ItemTemplate>
                             <DataTemplate x:DataType="models:AlbumModelView">
                                 <Grid ColumnDefinitions="60,*,auto" RowDefinitions="80">
                                     <dx:DXStackLayout Grid.Column="0">
-                                       
-                                        <dx:DXImage Source="{Binding ImagePath}" Aspect="AspectFit">
-                                        </dx:DXImage>
+
+                                        <dx:DXImage Aspect="AspectFit" Source="{Binding ImagePath}" />
                                     </dx:DXStackLayout>
 
-                                    <dx:DXStackLayout Grid.Column="1" Orientation="Vertical" >
+                                    <dx:DXStackLayout Grid.Column="1" Orientation="Vertical">
                                         <dx:DXStackLayout.GestureRecognizers>
-                                            <TapGestureRecognizer NumberOfTapsRequired="1"
-                                                         x:Name="MiddleGridSection"
-                                                         />
+                                            <TapGestureRecognizer x:Name="MiddleGridSection" NumberOfTapsRequired="1" />
                                         </dx:DXStackLayout.GestureRecognizers>
-                                        <dx:Chip Text="{Binding Name}" BorderThickness="0" HorizontalOptions="Start" 
-                                         FontAttributes="Bold"
-                                         x:Name="TitleChip"/>
-                                        <dx:Chip Text="{Binding SongsInAlbum.Count}" BorderThickness="0" 
-                                         x:Name="SongsInAlbumCount" 
-                                         HorizontalOptions="Start"
-                                         FontSize="13"/>
+                                        <dx:Chip
+                                            x:Name="TitleChip"
+                                            BorderThickness="0"
+                                            FontAttributes="Bold"
+                                            HorizontalOptions="Start"
+                                            Text="{Binding Name}" />
+                                        <dx:Chip
+                                            x:Name="SongsInAlbumCount"
+                                            BorderThickness="0"
+                                            FontSize="13"
+                                            HorizontalOptions="Start"
+                                            Text="{Binding SongsInAlbum.Count}" />
                                     </dx:DXStackLayout>
 
                                     <dx:DXStackLayout Grid.Column="2" Orientation="Vertical">
-                                        <dx:Chip Icon="more1.png" IsIconVisible="True"
-                                         x:Name="MoreBtn" BorderThickness="0" BackgroundColor="Transparent"
-                                         HeightRequest="30" WidthRequest="30"/>
-                                        <Label Text="{Binding TotalDuration,StringFormat='{0:mm\\:ss}'}" HorizontalOptions="End" VerticalOptions="Center" FontSize="8" Margin="5,0"/>
+                                        <dx:Chip
+                                            x:Name="MoreBtn"
+                                            BackgroundColor="Transparent"
+                                            BorderThickness="0"
+                                            HeightRequest="30"
+                                            Icon="more1.png"
+                                            IsIconVisible="True"
+                                            WidthRequest="30" />
+                                        <Label
+                                            Margin="5,0"
+                                            FontSize="8"
+                                            HorizontalOptions="End"
+                                            Text="{Binding TotalDuration, StringFormat='{0:mm\\:ss}'}"
+                                            VerticalOptions="Center" />
                                     </dx:DXStackLayout>
 
                                 </Grid>
@@ -136,51 +182,71 @@
 
             <dx:TabViewItem HeaderText="Play History">
                 <dx:DXStackLayout>
-                    <dx:Chip x:Name="ExportEvt"
-                             Tap="ExportEvt_Tap"/>
-                    <dx:DataGridView ItemsSource="{Binding PlayEvents}"
-                                     x:Name="PlayEventDG"
-                                     
-                                     AutoGenerateColumnsMode="None">
+                    <dx:Chip x:Name="ExportEvt" Tap="ExportEvt_Tap" />
+                    <dx:DataGridView
+                        x:Name="PlayEventDG"
+                        AutoGenerateColumnsMode="None"
+                        ItemsSource="{Binding PlayEvents}">
                         <dx:DataGridView.Columns>
 
 
-                            <dx:ImageColumn FieldName="CoverImagePath" Caption="Image" Width="100"/>
-                            <dx:TextColumn FieldName="SongTitle" Caption="Title" Width="150"/>
-                            <dx:TextColumn FieldName="SongAlbumName" Caption="Album Name" Width="150"/>
-                            <dx:TextColumn FieldName="PlayTypeStr" Caption="Play Type" Width="110"/>
-                            <dx:DateColumn FieldName="EventDate" Caption="Event Date" Width="110"/>
-                            <dx:TextColumn FieldName="PositionInSeconds" Caption="Position"
-                                            Width="80"/>
+                            <dx:ImageColumn
+                                Width="100"
+                                Caption="Image"
+                                FieldName="CoverImagePath" />
+                            <dx:TextColumn
+                                Width="150"
+                                Caption="Title"
+                                FieldName="SongTitle" />
+                            <dx:TextColumn
+                                Width="150"
+                                Caption="Album Name"
+                                FieldName="SongAlbumName" />
+                            <dx:TextColumn
+                                Width="110"
+                                Caption="Play Type"
+                                FieldName="PlayTypeStr" />
+                            <dx:DateColumn
+                                Width="110"
+                                Caption="Event Date"
+                                FieldName="EventDate" />
+                            <dx:TextColumn
+                                Width="80"
+                                Caption="Position"
+                                FieldName="PositionInSeconds" />
                         </dx:DataGridView.Columns>
                     </dx:DataGridView>
                 </dx:DXStackLayout>
             </dx:TabViewItem>
-            <dx:TabViewItem HeaderText="Charts" x:Name="ChartsTab">
-                <dx:DXScrollView x:Name="ChartsScrollView" Loaded="ChartsScrollView_Loaded" x:DataType="globalVM:StatisticsViewModel">
-                    
-                <dx:DXStackLayout >
-                 
-                    <dx:ChartView>
-                        
+
+            <dx:TabViewItem x:Name="LastFMSection" HeaderText="Last FM" />
+            <dx:TabViewItem x:Name="ChartsTab" HeaderText="Charts">
+                <dx:DXScrollView
+                    x:Name="ChartsScrollView"
+                    x:DataType="globalVM:StatisticsViewModel"
+                    Loaded="ChartsScrollView_Loaded">
+
+                    <dx:DXStackLayout>
+
+                        <dx:ChartView>
+
                             <dx:ChartView.Series>
                                 <dx:PointSeries>
                                     <dx:PointSeries.Data>
-                                        <dx:SeriesDataAdapter DataSource="{Binding PlayEvents}"
-                                       ArgumentDataMember="EventDate">
-                                            <dx:ValueDataMember Type="Value" Member="Temperature"/>
+                                        <dx:SeriesDataAdapter ArgumentDataMember="EventDate" DataSource="{Binding PlayEvents}">
+                                            <dx:ValueDataMember Member="Temperature" Type="Value" />
                                         </dx:SeriesDataAdapter>
                                     </dx:PointSeries.Data>
                                 </dx:PointSeries>
                             </dx:ChartView.Series>
-                        
-                    </dx:ChartView>
-                </dx:DXStackLayout>
+
+                        </dx:ChartView>
+                    </dx:DXStackLayout>
 
                 </dx:DXScrollView>
             </dx:TabViewItem>
         </dx:TabView>
-        
-        
+
+
     </Grid>
 </ContentPage>

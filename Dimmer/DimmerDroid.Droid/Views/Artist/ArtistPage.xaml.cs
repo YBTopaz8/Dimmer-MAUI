@@ -4,28 +4,37 @@ namespace Dimmer.Views.Artist;
 
 public partial class ArtistPage : ContentPage
 {
-	public ArtistPage(BaseViewModelAnd baseViewModel , StatisticsViewModel statsVM)
+	public ArtistPage(BaseViewModelAnd baseViewModel , StatisticsViewModel statsVM,
+    LastFMViewModel lastFMVM)
 
     {
         InitializeComponent();
         MyViewModel = baseViewModel;
+        MylastFMViewModel = lastFMVM;
         StatsVM = statsVM;
 
-        BindingContext = MyViewModel.SelectedArtist;
     }
     public BaseViewModelAnd MyViewModel { get; }
+    
+    LastFMViewModel MylastFMViewModel { get; }
     public StatisticsViewModel StatsVM { get; }
 
     private async void LoadLastFMInfo_Clicked(object sender, EventArgs e)
     {
-        await MyViewModel.LoadArtistLastFMDataAsync(MyViewModel.SelectedArtist);
+        await MylastFMViewModel.LoadArtistLastFMDataAsync(MyViewModel.SelectedArtist);
     }
 
     protected async override void OnAppearing()
     {
+        BindingContext = MyViewModel.SelectedArtist;
         base.OnAppearing();
-        await MyViewModel.LoadArtistLastFMDataAsync(MyViewModel.SelectedArtist);
-       await StatsVM.LoadArtistStatsAsync(MyViewModel.SelectedArtist);
+        _ =Task.Run(
+            async () =>
+            {
+            await MylastFMViewModel.LoadArtistLastFMDataAsync(MyViewModel.SelectedArtist);
+           await StatsVM.LoadArtistStatsAsync(MyViewModel.SelectedArtist);
+
+            });
     }
 
     private void ExportEvt_Tap(object sender, HandledEventArgs e)

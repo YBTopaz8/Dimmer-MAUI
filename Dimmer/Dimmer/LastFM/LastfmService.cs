@@ -295,7 +295,7 @@ public class LastfmService : ILastfmService
         }
         catch (Exception ex)
         {
-            //await Shell.Current.DisplayAlert("Error", $"Failed to scrobble on Last.fm. {ex.Message}", "OK");
+            //await Shell.Current.DisplayAlertAsync("Error", $"Failed to scrobble on Last.fm. {ex.Message}", "OK");
             Debug.WriteLine(ex);
             // Log error
         }
@@ -613,7 +613,7 @@ public class LastfmService : ILastfmService
         }
     }
 
-    public async Task<Track> GetTrackInfoAsync(string artistName, string trackName)
+    public async Task<Track?> GetTrackInfoAsync(string artistName, string trackName)
     {
         if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         try

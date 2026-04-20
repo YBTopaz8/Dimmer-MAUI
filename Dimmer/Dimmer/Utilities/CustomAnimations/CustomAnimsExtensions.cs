@@ -6,41 +6,41 @@ public static class CustomAnimsExtensions
 {
     public static async Task AnimateHighlightPointerPressed(this View element)
     {
-        await element.ScaleTo(0.95, 80, Easing.CubicIn);
+        await element.ScaleToAsync(0.95, 80, Easing.CubicIn);
     }
     public static async Task AnimateHighlightPointerReleased(this View element)
     {
-        await element.ScaleTo(1.0, 80, Easing.CubicOut);
+        await element.ScaleToAsync(1.0, 80, Easing.CubicOut);
     }
 
     public static async Task DimmOut(this View element, double duration = 350, double endOpacity = 0.70)
     {
-        await element.FadeTo(endOpacity, (uint)duration, Easing.CubicIn);
+        await element.FadeToAsync(endOpacity, (uint)duration, Easing.CubicIn);
     }
     public static async Task DimmIn(this View element, double duration = 350)
     {
-        await element.FadeTo(1.0, (uint)duration, Easing.CubicOut);
+        await element.FadeToAsync(1.0, (uint)duration, Easing.CubicOut);
 
 
     }
     public static async Task DimmOutCompletely(this View element, double duration = 350)
     {
-        await element.FadeTo(0.01, (uint)duration, Easing.CubicIn);
+        await element.FadeToAsync(0.01, (uint)duration, Easing.CubicIn);
     }
     public static async Task DimmOutCompletelyAndHide(this View element, double duration = 550)
     {
-        await element.FadeTo(0.01, (uint)duration, Easing.CubicIn);
+        await element.FadeToAsync(0.01, (uint)duration, Easing.CubicIn);
         element.IsVisible=false;
     }
     public static async Task DimmInCompletely(this View element, double duration = 350)
     {
-        await element.FadeTo(1.0, (uint)duration, Easing.CubicOut);
+        await element.FadeToAsync(1.0, (uint)duration, Easing.CubicOut);
 
     }
     public static async Task DimmInCompletelyAndShow(this View element, double duration = 550)
     {
         element.IsVisible=true;
-        await element.FadeTo(1.0, (uint)duration, Easing.CubicOut);
+        await element.FadeToAsync(1.0, (uint)duration, Easing.CubicOut);
 
 
     }
@@ -50,10 +50,10 @@ public static class CustomAnimsExtensions
         for (int i = 0; i < bounceCount; i++)
         {
 
-            await element.TranslateTo(0, bounceHeight, duration / 2, Easing.CubicIn);
+            await element.TranslateToAsync(0, bounceHeight, duration / 2, Easing.CubicIn);
 
 
-            await element.TranslateTo(0, 0, duration / 2, Easing.CubicOut);
+            await element.TranslateToAsync(0, 0, duration / 2, Easing.CubicOut);
 
 
             bounceHeight *= 0.5;
@@ -70,8 +70,8 @@ public static class CustomAnimsExtensions
     {
 
         await Task.WhenAll(
-            element.ScaleTo(endScale, (uint)duration, Easing.CubicInOut),
-            element.FadeTo(1.0, (uint)duration, Easing.CubicInOut)
+            element.ScaleToAsync(endScale, (uint)duration, Easing.CubicInOut),
+            element.FadeToAsync(1.0, (uint)duration, Easing.CubicInOut)
         );
     }
     public static async Task<bool> AnimateScaleHeightBackZero(this VisualElement element, double startScale, double endScale = 0, uint duration = 250, Easing? easing = null)
@@ -84,14 +84,14 @@ public static class CustomAnimsExtensions
     {
         element.AnchorY = 0; // Anchor at the top to scale downwards
         element.ScaleY = startScale;
-        return element.ScaleYTo(endScale, duration, easing);
+        return element.ScaleYToAsync(endScale, duration, easing);
     }
     public static async Task AnimateFocusModePointerExited(this View element, double duration = 250, double endOpacity = 0.7, double endScale = 0.7)
     {
 
         await Task.WhenAll(
-            element.ScaleTo(endScale, (uint)duration, Easing.CubicInOut),
-            element.FadeTo(endOpacity, (uint)duration, Easing.CubicInOut)
+            element.ScaleToAsync(endScale, (uint)duration, Easing.CubicInOut),
+            element.FadeToAsync(endOpacity, (uint)duration, Easing.CubicInOut)
         );
     }
 
@@ -99,8 +99,8 @@ public static class CustomAnimsExtensions
     public static async Task AnimateFadeOutBack(this View element, uint duration = 250)
     {
         await Task.WhenAll(
-            element.FadeTo(0, duration, Easing.CubicInOut),
-            element.TranslateTo(0, 50, duration, Easing.CubicInOut)
+            element.FadeToAsync(0, duration, Easing.CubicInOut),
+            element.TranslateToAsync(0, 50, duration, Easing.CubicInOut)
         );
         element.IsVisible = false;
     }
@@ -112,20 +112,20 @@ public static class CustomAnimsExtensions
         element.Opacity = 0;
         element.TranslationY = 50;
         await Task.WhenAll(
-            element.FadeTo(1, duration, Easing.CubicInOut),
-            element.TranslateTo(0, 0, duration, Easing.CubicInOut)
+            element.FadeToAsync(1, duration, Easing.CubicInOut),
+            element.TranslateToAsync(0, 0, duration, Easing.CubicInOut)
         );
     }
 
     public static async Task AnimateSlideDown(this View element, double heightToSlide)
     {
-        await element.TranslateTo(0, heightToSlide, 350, Easing.CubicInOut);
+        await element.TranslateToAsync(0, heightToSlide, 350, Easing.CubicInOut);
         element.HeightRequest = element.Height - heightToSlide;
     }
 
     public static async Task AnimateSlideUp(this View element, double heightToSlide)
     {
-        await element.TranslateTo(0, 0, 250, Easing.CubicInOut);
+        await element.TranslateToAsync(0, 0, 250, Easing.CubicInOut);
         element.HeightRequest = element.Height + heightToSlide;
     }
 
@@ -165,15 +165,15 @@ public static class CustomAnimsExtensions
     public static async Task AnimateIslandPulse(this View island, double scale = 1.1, uint duration = 500)
     {
 
-        await island.ScaleTo(scale, duration / 2, Easing.SinInOut);
-        await island.ScaleTo(1.0, duration / 2, Easing.SinInOut);
+        await island.ScaleToAsync(scale, duration / 2, Easing.SinInOut);
+        await island.ScaleToAsync(1.0, duration / 2, Easing.SinInOut);
     }
 
 
     public static async Task AnimateIslandExpand(this View island, IList<View> controls, uint duration = 300)
     {
 
-        await island.ScaleTo(1.2, duration, Easing.CubicOut);
+        await island.ScaleToAsync(1.2, duration, Easing.CubicOut);
 
 
         foreach (View control in controls)
@@ -186,7 +186,7 @@ public static class CustomAnimsExtensions
 
 
 
-            await control.FadeTo(1.0, duration, Easing.CubicOut);
+            await control.FadeToAsync(1.0, duration, Easing.CubicOut);
         }
     }
 
@@ -196,12 +196,12 @@ public static class CustomAnimsExtensions
 
         foreach (View control in controls)
         {
-            await control.FadeTo(0.0, duration, Easing.CubicIn);
+            await control.FadeToAsync(0.0, duration, Easing.CubicIn);
             control.IsVisible = false;
         }
 
 
-        await island.ScaleTo(1.0, duration, Easing.CubicIn);
+        await island.ScaleToAsync(1.0, duration, Easing.CubicIn);
     }
 
     // Attached property to hold our CancellationTokenSource
@@ -236,18 +236,18 @@ public static class CustomAnimsExtensions
                 while (!token.IsCancellationRequested)
                 {
                     // first bounce
-                    await view.ScaleTo(scale, half, Easing.CubicOut);
+                    await view.ScaleToAsync(scale, half, Easing.CubicOut);
                     if (token.IsCancellationRequested)
                         break;
-                    await view.ScaleTo(1, half, Easing.CubicIn);
+                    await view.ScaleToAsync(1, half, Easing.CubicIn);
                     if (token.IsCancellationRequested)
                         break;
 
                     // second bounce
-                    await view.ScaleTo(scale, half, Easing.CubicOut);
+                    await view.ScaleToAsync(scale, half, Easing.CubicOut);
                     if (token.IsCancellationRequested)
                         break;
-                    await view.ScaleTo(1, half, Easing.CubicIn);
+                    await view.ScaleToAsync(1, half, Easing.CubicIn);
                     if (token.IsCancellationRequested)
                         break;
 
@@ -275,21 +275,21 @@ public static class CustomAnimsExtensions
     public static async Task AnimateNewTrackBounce(this View island, double scale = 1.3, uint duration = 200)
     {
 
-        await island.ScaleTo(scale, duration / 2, Easing.CubicOut);
-        await island.ScaleTo(1.0, duration / 2, Easing.CubicIn);
+        await island.ScaleToAsync(scale, duration / 2, Easing.CubicOut);
+        await island.ScaleToAsync(1.0, duration / 2, Easing.CubicIn);
     }
 
     public static async Task AnimateRotate(this View view, double rotation, uint duration = 250, Easing? easing = null)
     {
-        await view.RotateTo(rotation, duration, easing ?? Easing.Linear);
+        await view.RotateToAsync(rotation, duration, easing ?? Easing.Linear);
     }
 
 
     public static async Task AnimateRotateAndScale(this View view, double rotation, double scale, uint duration = 250, Easing easing = null)
     {
         await Task.WhenAll(
-            view.RotateTo(rotation, duration, easing ?? Easing.Linear),
-            view.ScaleTo(scale, duration, easing ?? Easing.Linear)
+            view.RotateToAsync(rotation, duration, easing ?? Easing.Linear),
+            view.ScaleToAsync(scale, duration, easing ?? Easing.Linear)
         );
     }
 
@@ -313,16 +313,16 @@ public static class CustomAnimsExtensions
     {
         for (int i = 0; i < shakes; i++)
         {
-            await view.TranslateTo(distance, 0, duration, Easing.Linear);
-            await view.TranslateTo(-distance, 0, duration, Easing.Linear);
+            await view.TranslateToAsync(distance, 0, duration, Easing.Linear);
+            await view.TranslateToAsync(-distance, 0, duration, Easing.Linear);
         }
-        await view.TranslateTo(0, 0, duration, Easing.Linear);
+        await view.TranslateToAsync(0, 0, duration, Easing.Linear);
     }
 
     public static async Task Pulse(this VisualElement element, double scale = 1.1, uint duration = 100)
     {
-        await element.ScaleTo(scale, duration / 2, Easing.CubicOut);
-        await element.ScaleTo(1, duration / 2, Easing.CubicIn);
+        await element.ScaleToAsync(scale, duration / 2, Easing.CubicOut);
+        await element.ScaleToAsync(1, duration / 2, Easing.CubicIn);
     }
 
     public static async Task FadeIn(this VisualElement element, Easing? easing , uint duration = 250, double startOpacity = 0 )
@@ -333,7 +333,7 @@ public static class CustomAnimsExtensions
             easing = Easing.Linear;
         }
         element.Opacity = startOpacity;
-        await element.FadeTo(1, duration, easing);
+        await element.FadeToAsync(1, duration, easing);
     }
 
     public static async Task FadeOut(this VisualElement element, Easing? easing, uint duration = 200, double endOpacity = 0)
@@ -342,7 +342,7 @@ public static class CustomAnimsExtensions
         {
             easing = Easing.Linear;
         }
-        await element.FadeTo(endOpacity, duration, easing); 
+        await element.FadeToAsync(endOpacity, duration, easing); 
         element.IsVisible = false;
     }
     public static async Task SlideInFromRight(this VisualElement element, uint duration = 300)
@@ -353,7 +353,7 @@ public static class CustomAnimsExtensions
 
         await Task.WhenAll(
             element.FadeIn(null,duration),
-            element.TranslateTo(0, 0, duration, Easing.CubicOut)
+            element.TranslateToAsync(0, 0, duration, Easing.CubicOut)
         );
     }
 
@@ -361,7 +361,7 @@ public static class CustomAnimsExtensions
     {
         await Task.WhenAll(
             element.FadeOut(null,duration),
-            element.TranslateTo(Shell.Current.Width, 0, duration, Easing.CubicIn)
+            element.TranslateToAsync(Shell.Current.Width, 0, duration, Easing.CubicIn)
         );
         element.IsVisible = false;
     }
@@ -373,7 +373,7 @@ public static class CustomAnimsExtensions
         element.IsVisible = true;
         await Task.WhenAll(
             element.FadeIn(null, duration),
-            element.TranslateTo(0, 0, duration, Easing.CubicOut)
+            element.TranslateToAsync(0, 0, duration, Easing.CubicOut)
         );
     }
 
@@ -381,7 +381,7 @@ public static class CustomAnimsExtensions
     {
         await Task.WhenAll(
             element.FadeOut(null,duration),
-            element.TranslateTo(-Shell.Current.Width, 0, duration, Easing.CubicIn)
+            element.TranslateToAsync(-Shell.Current.Width, 0, duration, Easing.CubicIn)
         );
         element.IsVisible = false;
     }
@@ -393,7 +393,7 @@ public static class CustomAnimsExtensions
         element.IsVisible = true;
         await Task.WhenAll(
             element.FadeIn(null,duration),
-            element.TranslateTo(0, 0, duration, Easing.CubicOut)
+            element.TranslateToAsync(0, 0, duration, Easing.CubicOut)
         );
     }
 
@@ -437,17 +437,17 @@ public static class CustomAnimsExtensions
     public static async Task Rotate(this VisualElement element, double degrees, uint duration = 250)
     {
         await element.Pulse();
-        await element.RotateTo(degrees, duration, Easing.CubicInOut);
+        await element.RotateToAsync(degrees, duration, Easing.CubicInOut);
     }
     public static async Task Shake(this VisualElement element, uint duration = 300, double distance = 10)
     {
 
         uint shakeDuration = duration / 6;
-        await element.TranslateTo(distance, 0, shakeDuration, Easing.Linear);
-        await element.TranslateTo(-distance, 0, shakeDuration, Easing.Linear);
-        await element.TranslateTo(distance, 0, shakeDuration, Easing.Linear);
-        await element.TranslateTo(-distance, 0, shakeDuration, Easing.Linear);
-        await element.TranslateTo(0, 0, shakeDuration, Easing.Linear);
+        await element.TranslateToAsync(distance, 0, shakeDuration, Easing.Linear);
+        await element.TranslateToAsync(-distance, 0, shakeDuration, Easing.Linear);
+        await element.TranslateToAsync(distance, 0, shakeDuration, Easing.Linear);
+        await element.TranslateToAsync(-distance, 0, shakeDuration, Easing.Linear);
+        await element.TranslateToAsync(0, 0, shakeDuration, Easing.Linear);
     }
     public static async Task BounceIn(this VisualElement element, uint duration = 400)
     {
@@ -455,7 +455,7 @@ public static class CustomAnimsExtensions
         element.Opacity = 0;
         element.IsVisible = true;
         await Task.WhenAll(
-            element.ScaleTo(1, duration, Easing.SpringOut),
+            element.ScaleToAsync(1, duration, Easing.SpringOut),
             element.FadeIn(null,duration - 100)
         );
     }
@@ -464,8 +464,8 @@ public static class CustomAnimsExtensions
     {
         //quick scale up, scale down with spring out, fade out.
 
-        await element.ScaleTo(1.2, duration / 4, Easing.CubicOut); //quick scale up
-        await element.ScaleTo(0, duration * 3 / 4, Easing.SpringOut); //scale down to 0
+        await element.ScaleToAsync(1.2, duration / 4, Easing.CubicOut); //quick scale up
+        await element.ScaleToAsync(0, duration * 3 / 4, Easing.SpringOut); //scale down to 0
         await element.FadeOut(null,duration * 3 / 4);
         element.IsVisible = false;
     }
@@ -473,8 +473,8 @@ public static class CustomAnimsExtensions
     public static async Task Flash(this VisualElement element, uint duration = 200)
     {
 
-        await element.FadeTo(0, duration / 2, Easing.Linear);
-        await element.FadeTo(1, duration / 2, Easing.Linear);
+        await element.FadeToAsync(0, duration / 2, Easing.Linear);
+        await element.FadeToAsync(1, duration / 2, Easing.Linear);
     }
 
 
@@ -490,8 +490,8 @@ public static class CustomAnimsExtensions
 
 
         await Task.WhenAll(
-            overlay.ScaleTo(2, duration, Easing.CubicOut),
-            overlay.FadeTo(0, duration, Easing.CubicOut)
+            overlay.ScaleToAsync(2, duration, Easing.CubicOut),
+            overlay.FadeToAsync(0, duration, Easing.CubicOut)
         );
         overlay.IsVisible = false;
 
@@ -532,15 +532,15 @@ public static class CustomAnimsExtensions
 
 
         await Task.WhenAll(
-            frontView.RotateYTo(toBack ? 90 : -90, duration / 2, Easing.CubicIn),
-            backView.RotateYTo(toBack ? -90 : 90, duration / 2, Easing.CubicIn)
+            frontView.RotateYToAsync(toBack ? 90 : -90, duration / 2, Easing.CubicIn),
+            backView.RotateYToAsync(toBack ? -90 : 90, duration / 2, Easing.CubicIn)
         );
         frontView.IsVisible = !toBack;
         backView.IsVisible = toBack;
 
         await Task.WhenAll(
-            frontView.RotateYTo(toBack ? 180 : -180, duration / 2, Easing.CubicOut),
-            backView.RotateYTo(toBack ? 0 : 180, duration / 2, Easing.CubicOut)
+            frontView.RotateYToAsync(toBack ? 180 : -180, duration / 2, Easing.CubicOut),
+            backView.RotateYToAsync(toBack ? 0 : 180, duration / 2, Easing.CubicOut)
         );
     }
 
@@ -597,7 +597,7 @@ public static class CustomAnimsExtensions
             child.IsVisible = true; //make sure it's visible
 
             await Task.WhenAll(
-                child.TranslateTo(0, 0, duration, Easing.CubicOut),
+                child.TranslateToAsync(0, 0, duration, Easing.CubicOut),
                 child.FadeIn(null,duration - 100)
             );
 
@@ -680,7 +680,7 @@ public static class CustomAnimsExtensions
 
 
         await Task.WhenAll(
-            notificationLabel.TranslateTo(0, 0, duration, Easing.CubicOut),
+            notificationLabel.TranslateToAsync(0, 0, duration, Easing.CubicOut),
             notificationLabel.FadeIn(null,duration - 100)
         );
 
@@ -689,7 +689,7 @@ public static class CustomAnimsExtensions
 
 
         await Task.WhenAll(
-            notificationLabel.TranslateTo(0, -notificationLabel.Height, duration, Easing.CubicIn),
+            notificationLabel.TranslateToAsync(0, -notificationLabel.Height, duration, Easing.CubicIn),
             notificationLabel.FadeOut(null,duration - 100)
         );
     }
@@ -728,9 +728,9 @@ public static class CustomAnimsExtensions
 
 
         await Task.WhenAll(
-            currentImage.TranslateTo(slideRight ? -AppUtils.UserScreenWidth : AppUtils.UserScreenWidth, 0, duration, Easing.CubicInOut),
+            currentImage.TranslateToAsync(slideRight ? -AppUtils.UserScreenWidth : AppUtils.UserScreenWidth, 0, duration, Easing.CubicInOut),
             currentImage.FadeOut(null,duration),
-            nextImage.TranslateTo(0, 0, duration, Easing.CubicInOut),
+            nextImage.TranslateToAsync(0, 0, duration, Easing.CubicInOut),
             nextImage.FadeIn(null,duration)
         );
         currentImage.IsVisible = false; //hide the prev image at last.
@@ -787,9 +787,9 @@ public static class CustomAnimsExtensions
 
 
         await Task.WhenAll(
-            currentContent.TranslateTo(slideRight ? -AppUtils.UserScreenWidth : AppUtils.UserScreenWidth, 0, duration, Easing.CubicInOut),
+            currentContent.TranslateToAsync(slideRight ? -AppUtils.UserScreenWidth : AppUtils.UserScreenWidth, 0, duration, Easing.CubicInOut),
             currentContent.FadeOut(null,duration),
-            nextContent.TranslateTo(0, 0, duration, Easing.CubicInOut),
+            nextContent.TranslateToAsync(0, 0, duration, Easing.CubicInOut),
             nextContent.FadeIn(null,duration)
         );
 
@@ -959,9 +959,9 @@ public static class CustomAnimsExtensions
 
 
         await Task.WhenAll(
-            view1.TranslateTo(endX1, 0, duration, Easing.CubicInOut),
+            view1.TranslateToAsync(endX1, 0, duration, Easing.CubicInOut),
             view1.FadeOut(null,duration),
-            view2.TranslateTo(endX2, 0, duration, Easing.CubicInOut),
+            view2.TranslateToAsync(endX2, 0, duration, Easing.CubicInOut),
             view2.FadeIn(null,duration)
         );
         view1.IsVisible = false;
@@ -997,8 +997,8 @@ public static class CustomAnimsExtensions
 
 
         await Task.WhenAll(
-            background.ScaleTo(0.8, duration, Easing.CubicInOut),
-            foreground.ScaleTo(1, duration, Easing.CubicOut),
+            background.ScaleToAsync(0.8, duration, Easing.CubicInOut),
+            foreground.ScaleToAsync(1, duration, Easing.CubicOut),
             foreground.FadeIn(null,duration)
         );
     }
@@ -1041,7 +1041,7 @@ public static class CustomAnimsExtensions
         {
 
             await Task.WhenAll(
-                view1.TranslateTo(-Shell.Current.Window.Width / 2, 0, duration, Easing.CubicInOut),
+                view1.TranslateToAsync(-Shell.Current.Window.Width / 2, 0, duration, Easing.CubicInOut),
                 view2.FadeIn(null,duration)
             );
         }
@@ -1049,7 +1049,7 @@ public static class CustomAnimsExtensions
         {
 
             await Task.WhenAll(
-                view1.TranslateTo(0, 0, duration, Easing.CubicInOut),
+                view1.TranslateToAsync(0, 0, duration, Easing.CubicInOut),
                 view2.FadeOut(null,duration)
             );
         }
@@ -1084,9 +1084,9 @@ public static class CustomAnimsExtensions
 
 
         await Task.WhenAll(
-            currentPage.RotateYTo(90, duration, Easing.CubicInOut),
+            currentPage.RotateYToAsync(90, duration, Easing.CubicInOut),
             currentPage.FadeOut(null,duration),
-            nextPage.RotateYTo(0, duration, Easing.CubicInOut),
+            nextPage.RotateYToAsync(0, duration, Easing.CubicInOut),
             nextPage.FadeIn(null,duration)
 
         );
@@ -1128,7 +1128,7 @@ public static class CustomAnimsExtensions
 
 
 
-        await mask.TranslateTo(image.Width, 0, duration, Easing.CubicInOut);
+        await mask.TranslateToAsync(image.Width, 0, duration, Easing.CubicInOut);
         mask.IsVisible = false; //hid it
 
 
@@ -1165,8 +1165,8 @@ public static class CustomAnimsExtensions
 
 
             await Task.WhenAll(
-               child.TranslateTo(translateX, translateY, duration, Easing.CubicOut),
-               child.RotateTo(rotation, duration, Easing.CubicOut),
+               child.TranslateToAsync(translateX, translateY, duration, Easing.CubicOut),
+               child.RotateToAsync(rotation, duration, Easing.CubicOut),
                child.FadeOut(null,duration)
            );
             child.IsVisible = false;
@@ -1236,21 +1236,12 @@ public static class CustomAnimsExtensions
 
     //C#
 
-
-
-
-
-
-
-
-
-
     public static async Task Blink(this VisualElement element, uint duration = 100, int blinks = 3)
     {
         for (int i = 0; i < blinks; i++)
         {
-            await element.FadeTo(0, duration, Easing.Linear);
-            await element.FadeTo(1, duration, Easing.Linear);
+            await element.FadeToAsync(0, duration, Easing.Linear);
+            await element.FadeToAsync(1, duration, Easing.Linear);
         }
     }
 
@@ -1273,28 +1264,28 @@ public static class CustomAnimsExtensions
 
     public static async Task ScaleX(this VisualElement element, double targetScaleX, uint duration = 250)
     {
-        await element.ScaleXTo(targetScaleX, duration, Easing.CubicInOut);
+        await element.ScaleXToAsync(targetScaleX, duration, Easing.CubicInOut);
     }
 
 
 
     public static async Task ScaleY(this VisualElement element, double targetScaleY, uint duration = 250)
     {
-        await element.ScaleYTo(targetScaleY, duration, Easing.CubicInOut);
+        await element.ScaleYToAsync(targetScaleY, duration, Easing.CubicInOut);
     }
 
 
 
     public static async Task TranslateX(this VisualElement element, double targetX, uint duration = 250)
     {
-        await element.TranslateTo(targetX, element.TranslationY, duration, Easing.CubicInOut);
+        await element.TranslateToAsync(targetX, element.TranslationY, duration, Easing.CubicInOut);
     }
 
 
 
     public static async Task TranslateY(this VisualElement element, double targetY, uint duration = 250)
     {
-        await element.TranslateTo(element.TranslationX, targetY, duration, Easing.CubicInOut);
+        await element.TranslateToAsync(element.TranslationX, targetY, duration, Easing.CubicInOut);
     }
 
 
@@ -1303,10 +1294,10 @@ public static class CustomAnimsExtensions
     public static async Task FadeAndTranslate(this VisualElement element, double targetX, double targetY, uint duration = 300)
     {
         await Task.WhenAll(
-            element.FadeTo(0.5, duration / 2, Easing.Linear),
-            element.TranslateTo(targetX, targetY, duration, Easing.CubicInOut)
+            element.FadeToAsync(0.5, duration / 2, Easing.Linear),
+            element.TranslateToAsync(targetX, targetY, duration, Easing.CubicInOut)
         );
-        await element.FadeTo(1, duration / 2, Easing.Linear);    //fade in to complete.
+        await element.FadeToAsync(1, duration / 2, Easing.Linear);    //fade in to complete.
     }
 
 
@@ -1352,9 +1343,9 @@ public static class CustomAnimsExtensions
         for (int i = 0; i < jiggles; i++)
         {
             double rotation = (random.NextDouble() * 2 - 1) * angle;
-            await element.RotateTo(rotation, duration / (uint)jiggles, Easing.CubicInOut);
+            await element.RotateToAsync(rotation, duration / (uint)jiggles, Easing.CubicInOut);
         }
-        await element.RotateTo(0, duration / (uint)jiggles, Easing.CubicInOut);
+        await element.RotateToAsync(0, duration / (uint)jiggles, Easing.CubicInOut);
     }
 
 
@@ -1396,8 +1387,8 @@ public static class CustomAnimsExtensions
         element.Opacity = 0;
         element.IsVisible = true;
         await Task.WhenAll(
-            element.RotateTo(0, duration, Easing.CubicOut),
-            element.ScaleTo(1, duration, Easing.CubicOut),
+            element.RotateToAsync(0, duration, Easing.CubicOut),
+            element.ScaleToAsync(1, duration, Easing.CubicOut),
             element.FadeIn(null,duration)
         );
     }
@@ -1407,8 +1398,8 @@ public static class CustomAnimsExtensions
     public static async Task SwirlOut(this VisualElement element, uint duration = 400, double rotations = 2)
     {
         await Task.WhenAll(
-          element.RotateTo(360 * rotations, duration, Easing.CubicIn),
-          element.ScaleTo(0, duration, Easing.CubicIn),
+          element.RotateToAsync(360 * rotations, duration, Easing.CubicIn),
+          element.ScaleToAsync(0, duration, Easing.CubicIn),
           element.FadeOut(null,duration)
         );
         element.IsVisible = false;
@@ -1419,16 +1410,16 @@ public static class CustomAnimsExtensions
     public static async Task SquashAndStretch(this VisualElement element, double squashFactor = 0.7, uint duration = 200)
     {
         await Task.WhenAll(
-            element.ScaleXTo(1 + (1 - squashFactor), duration / 2, Easing.CubicOut),
-            element.ScaleYTo(squashFactor, duration / 2, Easing.CubicOut)
+            element.ScaleXToAsync(1 + (1 - squashFactor), duration / 2, Easing.CubicOut),
+            element.ScaleYToAsync(squashFactor, duration / 2, Easing.CubicOut)
         );
         await Task.WhenAll(
-             element.ScaleXTo(squashFactor, duration / 2, Easing.CubicIn),
-             element.ScaleYTo(1 + (1 - squashFactor), duration / 2, Easing.CubicIn)
+             element.ScaleXToAsync(squashFactor, duration / 2, Easing.CubicIn),
+             element.ScaleYToAsync(1 + (1 - squashFactor), duration / 2, Easing.CubicIn)
         );
         await Task.WhenAll(
-            element.ScaleXTo(1, duration / 4, Easing.CubicOut),
-            element.ScaleYTo(1, duration / 4, Easing.CubicOut)
+            element.ScaleXToAsync(1, duration / 4, Easing.CubicOut),
+            element.ScaleYToAsync(1, duration / 4, Easing.CubicOut)
         );
     }
 
@@ -1437,9 +1428,9 @@ public static class CustomAnimsExtensions
     public static async Task ElasticSnap(this VisualElement element, double displacementX, double displacementY, uint duration = 300)
     {
 
-        await element.TranslateTo(displacementX, displacementY, duration / 2, Easing.CubicOut);
+        await element.TranslateToAsync(displacementX, displacementY, duration / 2, Easing.CubicOut);
 
-        await element.TranslateTo(0, 0, duration / 2, Easing.SpringOut);
+        await element.TranslateToAsync(0, 0, duration / 2, Easing.SpringOut);
     }
 
 

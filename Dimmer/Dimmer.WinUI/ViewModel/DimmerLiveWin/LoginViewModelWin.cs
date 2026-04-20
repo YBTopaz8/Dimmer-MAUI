@@ -41,7 +41,7 @@ public partial class LoginViewModelWin : LoginViewModel
         }
         else
         {
-            await Shell.Current.DisplayAlert(
+            await Shell.Current.DisplayAlertAsync(
                  "No Internet",
                 "Please connection your device to the internet and retry",
                 "OK");
@@ -97,7 +97,7 @@ public partial class LoginViewModelWin : LoginViewModel
             CurrentUser.IsPremium = true;
             // await CurrentUser.SaveAsync(); // Usually handled by server
 
-            await Shell.Current.DisplayAlert("Premium", "Welcome to Dimmer Premium!", "Let's Go");
+            await Shell.Current.DisplayAlertAsync("Premium", "Welcome to Dimmer Premium!", "Let's Go");
         }
         catch (Exception ex)
         {

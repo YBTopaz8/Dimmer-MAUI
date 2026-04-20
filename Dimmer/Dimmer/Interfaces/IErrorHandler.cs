@@ -89,6 +89,6 @@ public class ErrorHandler : IErrorHandler, IUiErrorPresenter
         if (page == null)
             return;
 
-        await page.DisplayAlert("Not Implemented", message, "OK");
+        await page.DisplayAlertAsync("Not Implemented", message, "OK");
     }
 }
