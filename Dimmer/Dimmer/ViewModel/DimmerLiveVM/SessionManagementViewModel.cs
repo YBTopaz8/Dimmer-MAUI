@@ -206,7 +206,7 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
     private async void HandleIncomingTransferRequest(DimmerSharedSong request)
     {
         // UI Prompt
-        bool accept = await Shell.Current.DisplayAlert(
+        bool accept = await Shell.Current.DisplayAlertAsync(
             "Session Transfer",
             $"Resume '{request.Title}' from {request.Uploader?.Username ?? "remote device"}?",
             "Yes", "No"
@@ -247,7 +247,7 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
             {
                 // Fallback: If song not found locally, maybe search YouTube/Spotify?
                 StatusMessage = "Song file not found on this device.";
-                await Shell.Current.DisplayAlert("Missing File", $"Could not find '{request.Title}' on this device.", "OK");
+                await Shell.Current.DisplayAlertAsync("Missing File", $"Could not find '{request.Title}' on this device.", "OK");
             }
         }
         catch (Exception ex)

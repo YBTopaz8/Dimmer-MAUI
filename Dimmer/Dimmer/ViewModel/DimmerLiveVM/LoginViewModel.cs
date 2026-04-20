@@ -67,6 +67,7 @@ public partial class LoginViewModel : ObservableObject
         return !IsBusy && !string.IsNullOrWhiteSpace(Username) && !string.IsNullOrWhiteSpace(Password);
     }
 
+    [RelayCommand]
     public async Task LoginAsync()
     {
         IsBusy = true;
@@ -81,7 +82,7 @@ public partial class LoginViewModel : ObservableObject
             SelectedIndex= 1;
 
             // Navigate to the main part of the app
-            // e.g., await Shell.Current.GoToAsync("//MainPage");
+             await Shell.Current.GoToAsync("//DimmerHomeCenter");
         }
         else
         {
@@ -107,7 +108,7 @@ public partial class LoginViewModel : ObservableObject
         {
             // Successful registration, navigate to the main part of the app.
             // await _navigationService.NavigateToMainPageAsync();
-            await Shell.Current.DisplayAlert("Welcome!", $"Your account has been created." +
+            await Shell.Current.DisplayAlertAsync("Welcome!", $"Your account has been created." +
                 $"{Environment.NewLine} Verify Your Account Via Emails", "OK");
             
         }
@@ -187,12 +188,12 @@ public partial class LoginViewModel : ObservableObject
             var result = await UpdateProfileImageAsync(stream, sanitizedFileName);
             if (result.IsSuccess)
             {
-                await Shell.Current.DisplayAlert("Success", "Profile image updated successfully.", "OK");
+                await Shell.Current.DisplayAlertAsync("Success", "Profile image updated successfully.", "OK");
             
             }
             else
             {
-                await Shell.Current.DisplayAlert("Error", result.ErrorMessage, "OK");
+                await Shell.Current.DisplayAlertAsync("Error", result.ErrorMessage, "OK");
 
                 // Handle failure, e.g., show an error message
             }
