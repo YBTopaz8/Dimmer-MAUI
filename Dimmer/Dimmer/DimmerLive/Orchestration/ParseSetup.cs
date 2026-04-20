@@ -102,7 +102,7 @@ public static class ParseSetup
 
         if ((string.IsNullOrEmpty(CurrentUser.Password)||string.IsNullOrEmpty(CurrentUser.Username)) && !isSilent)
         {
-            await Shell.Current.DisplayAlert("Error!", "Empty UserName/Password", "Ok");
+            await Shell.Current.DisplayAlertAsync("Error!", "Empty UserName/Password", "Ok");
 
             return false;
         }
@@ -111,7 +111,7 @@ public static class ParseSetup
         {
             if (!isSilent)
             {
-                await Shell.Current.DisplayAlert("Error!", "No Internet Connection", "Ok");
+                await Shell.Current.DisplayAlertAsync("Error!", "No Internet Connection", "Ok");
 
                 return false;
             }
@@ -125,7 +125,7 @@ public static class ParseSetup
         {
             if (!isSilent)
             {
-                await Shell.Current.DisplayAlert("Error!", "Please Verify Email/Password", "Ok");
+                await Shell.Current.DisplayAlertAsync("Error!", "Please Verify Email/Password", "Ok");
 
                 return false;
             }
@@ -150,7 +150,7 @@ public static class ParseSetup
         {
             if (ex.Source == "System.Net.Http")
             {
-                await Shell.Current.DisplayAlert("Error!", "Invalid Credentials", "Ok");
+                await Shell.Current.DisplayAlertAsync("Error!", "Invalid Credentials", "Ok");
 
             }
             return false;

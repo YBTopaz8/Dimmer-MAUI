@@ -8,7 +8,7 @@ namespace Dimmer.Data.Models;
 [MapTo("SongModel")]
 public partial class SongModel : RealmObject, IRealmObjectWithObjectId
 {
-
+    
     [PrimaryKey]
     [MapTo("_id")]
     public ObjectId Id { get; set; }

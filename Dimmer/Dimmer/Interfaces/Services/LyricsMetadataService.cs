@@ -445,8 +445,8 @@ IRepository<SongModel> songRepository, // Inject the repository
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to update lyrics in database for song ID {SongId}.", song.Id);
-            // At this point, the file is updated but the DB is not. This is an inconsistent state.
-            // For a production app, you might add logic here to revert the file change.
+       
+
             return false;
         }
     }

@@ -213,7 +213,7 @@ public static List<DimmerStats> GetSongDropOffPoints(IList<DimmerPlayEvent> song
                     YValue = e.PositionInSeconds                    // Y-Axis: Position in song
                 };
             })
-            .OrderBy(s => (DateTimeOffset)s.XValue)
+            .OrderBy(s => (DateTime)s.XValue)
             .ToList();
     }
 

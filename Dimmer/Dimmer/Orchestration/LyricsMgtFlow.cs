@@ -273,7 +273,7 @@ public class LyricsMgtFlow : IDisposable
     private async Task<IEnumerable<LrcLibLyrics>?> GetLyricsAndSaveContentToDBAsync(SongModelView song,bool saveToDB=true)
     {
         CancellationTokenSource cts = new();
-        var instru = song.IsInstrumental is null || song.IsInstrumental is false && song.SyncLyrics.Length < 1;
+        var instru = song.IsInstrumental is null || song.IsInstrumental is false && song.SyncLyrics?.Length < 1;
         if (instru)
         {
             return null;
