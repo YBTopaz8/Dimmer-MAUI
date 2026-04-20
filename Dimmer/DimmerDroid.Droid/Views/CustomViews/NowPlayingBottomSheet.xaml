@@ -12,7 +12,8 @@
     x:DataType="vm:BaseViewModelAnd"
     AllowedState="FullExpanded"
     ShowGrabber="False"
-    StateChanged="NowPlayingBtmSheet_StateChanged">
+    StateChanged="NowPlayingBtmSheet_StateChanged"
+    Unloaded="myPage_Unloaded">
     <dx:BottomSheet.Resources>
         <ResourceDictionary>
             <Style TargetType="dx:DXButton">
@@ -51,7 +52,7 @@
                     </dx:DXStackLayout.GestureRecognizers>
                     <Label
                         x:Name="CurrentLyricLine"
-                        FontSize="19"
+                        FontSize="25"
                         HorizontalOptions="Center"
                         LineBreakMode="WordWrap"
                         Text="{Binding CurrentLine.Text}">
@@ -84,6 +85,7 @@
                         Text="{Binding CurrentPlayingSongView.Title}" />
 
                     <dx:Chip
+                        x:Name="ArtistChip"
                         Grid.Column="0"
                         BorderThickness="0"
                         FontSize="14"
@@ -134,6 +136,7 @@
                                         x:Name="LyricsChip"
                                         BorderThickness="0"
                                         IconSize="25,25"
+                                        IsVisible="{Binding CurrentPlayingSongView.IsFavorite}"
                                         Tap="LyricsChip_Tap"
                                         Text="🎙️" />
 
@@ -151,57 +154,18 @@
 
                             </FlexLayout>
 
-                            <dx:DXSlider
-                                BackgroundColor="Transparent"
-                                MaxValue="100"
-                                MinValue="0"
-                                TickmarkStep="4"
-                                TooltipDisplayFormat="mm:ss"
-                                Value="{Binding CurrentTrackPositionPercentage}">
-                                <dx:DXSlider.Behaviors>
-                                    <localBehv:SliderDragCompletedBehavior DragPreviewCommand="{Binding DragPreviewCommand}" UserValueChangedCommand="{Binding UserChangedTrackPositionCommand}" />
-
-                                </dx:DXSlider.Behaviors>
-
-
-                                <dx:DXSlider.TrackAppearance>
-                                    <dx:DXSliderTrackAppearance
-                                        ActiveBackgroundColor="{Binding CurrentPlaySongDominantColor}"
-                                        BackgroundColor="DimGray"
-                                        CornerRadius="10"
-                                        DisabledActiveBackgroundColor="Red"
-                                        DisabledBackgroundColor="Red"
-                                        Thickness="10" />
-
-
-                                </dx:DXSlider.TrackAppearance>
-
-                                <dx:DXSlider.ThumbAppearance>
-                                    <dx:DXSliderThumbAppearance
-                                        Width="10"
-                                        Height="25"
-                                        BackgroundColor="{Binding CurrentPlaySongDominantColor}"
-                                        BorderColor="DarkSlateBlue"
-                                        BorderThickness="1"
-                                        PressedHeight="20"
-                                        PressedWidth="20" />
-                                </dx:DXSlider.ThumbAppearance>
-
-                                <dx:DXSlider.TooltipAppearance>
-                                    <dx:DXSliderTooltipAppearance
-                                        MinWidth="25"
-                                        MinHeight="25"
-                                        Padding="20"
-                                        BackgroundColor="{Binding CurrentPlaySongDominantColor}"
-                                        CornerRadius="15"
-                                        FontAttributes="Italic"
-                                        FontSize="18"
-                                        Indent="15"
-                                        TextColor="White" />
-
-                                </dx:DXSlider.TooltipAppearance>
-
-                            </dx:DXSlider>
+                            <Slider
+                                x:Name="TrackProgressSlider"
+                                Grid.Column="1"
+                                DragCompleted="OnSliderDragCompleted"
+                                DragStarted="OnSliderDragStarted"
+                                Maximum="{Binding CurrentPlayingSongView.DurationInSeconds}"
+                                MaximumTrackColor="{AppThemeBinding Dark=White,
+                                                                    Light=Black}"
+                                Minimum="0"
+                                MinimumTrackColor="DarkSlateBlue"
+                                ThumbColor="{Binding CurrentPlaySongDominantColor}"
+                                Value="{Binding CurrentTrackPositionSeconds}" />
 
                             <FlexLayout JustifyContent="SpaceBetween">
                                 <dx:Chip BorderThickness="0" Text="{Binding CurrentTrackPositionSecondsTxt}" />
@@ -386,6 +350,7 @@
                     <dx:DXButton
                         x:Name="BackBtn"
                         BackgroundColor="Transparent"
+                        HorizontalOptions="Start"
                         Icon="backb.png"
                         IconColor="DarkSlateBlue"
                         ShowContent="False"
@@ -667,5 +632,6 @@
 
             </dx:DXStackLayout>
         </dx:DXExpander>
+
     </Grid>
 </dx:BottomSheet>

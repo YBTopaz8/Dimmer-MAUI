@@ -3,6 +3,7 @@ global using View = Microsoft.Maui.Controls.View;
 using Android.Views.InputMethods;
 using CommunityToolkit.Maui.Alerts;
 using DevExpress.Maui.CollectionView;
+using DevExpress.Maui.Controls.Internal;
 using DevExpress.Maui.Core;
 using DevExpress.Office.Utils;
 using DevExpress.Utils;
@@ -15,12 +16,14 @@ namespace Dimmer.Views;
 
 public partial class HomePage : ContentPage
 {
-	public HomePage(BaseViewModelAnd viewModelAnd)
+	public HomePage(BaseViewModelAnd viewModelAnd, LastFMViewModel lastFMVM)
 	{
 		InitializeComponent();
 		BindingContext = viewModelAnd;
 		MyViewModel = viewModelAnd;
-	}
+
+        lastFMVM.LoadBaseViewModel(viewModelAnd);
+    }
 
     BaseViewModelAnd MyViewModel { get; }
 
@@ -55,7 +58,14 @@ public partial class HomePage : ContentPage
 
     private void ArtistChip_Tap(object sender, HandledEventArgs e)
     {
-
+        var send = (View)sender;
+        var song = (SongModelView)send.BindingContext;
+        //var artInDb = MyViewModel.RealmFactory.GetRealmInstance().Find<SongModel>(song.Id)?.Artist.ToArtistModelView();
+        //if(artInDb == null)
+        //    return;
+        //MyViewModel.SetSelectedArtist(artInDb);
+        MyViewModel.SelectedSong = song;
+        ArtistsChoiceBtmSheet.Show();
     }
 
     private async void ArtistChip_DoubleTap(object sender, HandledEventArgs e)
@@ -72,14 +82,7 @@ public partial class HomePage : ContentPage
 
     private void ArtistChip_LongPress(object sender, HandledEventArgs e)
     {
-        var send = (View)sender;
-        var song = (SongModelView)send.BindingContext;
-        //var artInDb = MyViewModel.RealmFactory.GetRealmInstance().Find<SongModel>(song.Id)?.Artist.ToArtistModelView();
-        //if(artInDb == null)
-        //    return;
-        //MyViewModel.SetSelectedArtist(artInDb);
-        MyViewModel.SelectedSong= song;
-        ArtistsChoiceBtmSheet.Show();
+       
     }
 
     private void PlaybackQueueBtmSheet_Loaded(object sender, EventArgs e)
@@ -165,12 +168,7 @@ public partial class HomePage : ContentPage
 
     }
 
-    private void NPBtmSheet_StateChanged(object sender, DevExpress.Maui.Core.ValueChangedEventArgs<BottomSheetState> e)
-    {
-
-    }
-
-
+  
 
     private void CurrentPlayingArtistChip_LongPress(object sender, HandledEventArgs e)
     {
@@ -408,7 +406,7 @@ public partial class HomePage : ContentPage
             return;
 
         MyViewModel.SetSelectedArtist(song.Artist);
-
+        await SingleSongBtmSheet.CloseAsync();
         await Shell.Current.GoToAsync(nameof(ArtistPage), true);
     }
 
@@ -421,6 +419,7 @@ public partial class HomePage : ContentPage
             return;
         MyViewModel.SetSelectedAlbum(song.Album);
 
+        await SingleSongBtmSheet.CloseAsync();
         await Shell.Current.GoToAsync(nameof(AlbumPage), true);
     }
 

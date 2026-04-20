@@ -17,15 +17,10 @@ public partial class NowPlayingBottomSheet : BottomSheet
     SongModelView? songForLyrics;
     private async void LyricsChip_Tap(object sender, HandledEventArgs e)
     {
-        if(MyViewModel != null)
-        {
-            songForLyrics = MyViewModel.SelectedSong;
-            MyViewModel.SelectedSong = MyViewModel.CurrentPlayingSongView;
-            MyViewModel.IsSearchingLyrics = true;
-            await Shell.Current.GoToAsync(nameof(DetailsOverview), true);
 
-            await this.CloseAsync();
-        }
+        PlayBackQueueExp.IsExpanded = false;
+        NowPlayingExp.IsExpanded = false;
+        SingleSongLyricsViewExp.SetIsExpanded(true, true);
     }
 
   
@@ -213,10 +208,61 @@ public partial class NowPlayingBottomSheet : BottomSheet
         var lyricTappedHandle = e.ItemHandle;
         if (lyricTapped is null)
             return;
-        var timeInSec = TimeSpan.FromMilliseconds(lyricTapped.TimeStampMs).Seconds;
+        var timeInSec = TimeSpan.FromMilliseconds(lyricTapped.EndTimeMs).Seconds;
         MyViewModel.SeekTrackPosition(timeInSec);
         AllLyricsColView.ScrollTo(lyricTappedHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
 
     }
+
+    private void LyricsChip_Tap_1(object sender, HandledEventArgs e)
+    {
+
+    }
+
+
+    private bool _isUserDragging = false;
+    private double _pendingSeekValue;
+    private Timer _debounceTimer;
+    private void OnSliderDragStarted(object sender, EventArgs e)
+    {
+        _isUserDragging = true;
+        _pendingSeekValue = TrackProgressSlider.Value;
+
+        // Optional: Show preview label
+        //PreviewTimeLabel.IsVisible = true;
+        //UpdatePreviewLabel(_pendingSeekValue);
+    }
+
+    private void OnSliderDragCompleted(object sender, EventArgs e)
+    {
+        _isUserDragging = false;
+        _pendingSeekValue = TrackProgressSlider.Value;
+
+        // Debounce to prevent rapid seeks
+        _debounceTimer?.Dispose();
+        _debounceTimer = new Timer(ExecuteSeek, null, 150, Timeout.Infinite);
+    }
+    private void ExecuteSeek(object? state)
+    {
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            // Critical: Don't let timer cause multiple seeks
+            var value = _pendingSeekValue;
+            _pendingSeekValue = -1;
+
+            // Update ViewModel's property to keep binding in sync
+            MyViewModel.CurrentTrackPositionSeconds = value;
+            MyViewModel.SeekTrackPosition(value);
+
+            //PreviewTimeLabel.IsVisible = false;
+        });
+    }
+
+    private void myPage_Unloaded(object sender, EventArgs e)
+    {
+        _debounceTimer?.Dispose();
+    }
+
+
 
 }

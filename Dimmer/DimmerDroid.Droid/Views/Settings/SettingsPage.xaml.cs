@@ -6,12 +6,13 @@ namespace Dimmer.Views.Settings;
 
 public partial class SettingsPage : ContentPage
 {
-	public SettingsPage(BaseViewModelAnd viewModelAnd)
+	public SettingsPage(BaseViewModelAnd viewModelAnd,
+    LastFMViewModel lastFMVM)
     {
         InitializeComponent();
         BindingContext = viewModelAnd;
         MyViewModel = viewModelAnd;
-
+        MyLastFMViewModel = lastFMVM;   
         var platView = this.Handler?.PlatformView as Fragment;
         var platView2 = this.Handler?.PlatformView as View;
     }
@@ -49,12 +50,13 @@ public partial class SettingsPage : ContentPage
         if (MyViewModel is null) return;
 
 
-            BaseViewModel.LastFMName = LastFMUname.Text;
-            //LoginLastFMBtn.IsEnabled = false;
-            MyViewModel?.LoginToLastfmCommand.Execute(null);
+            MyLastFMViewModel.LastFMName = LastFMUname.Text;
+        //LoginLastFMBtn.IsEnabled = false;
+        MyLastFMViewModel?.LoginToLastfmCommand.Execute(null);
 
     }
 
+    LastFMViewModel MyLastFMViewModel;
     private async void ConfirmRestoreBtn_Clicked(object sender, EventArgs e)
     {
         await MyViewModel.RestoreCompleteDataAsync();

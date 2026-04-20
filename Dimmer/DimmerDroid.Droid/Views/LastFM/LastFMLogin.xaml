@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Dimmer.Views.LastFM.LastFMLogin"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:dx="http://schemas.devexpress.com/maui"
+    xmlns:globalVM="clr-namespace:Dimmer.ViewModel;assembly=Dimmer"
+    xmlns:local="clr-namespace:Dimmer.Views.CustomViews"
+    xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+    xmlns:vm="clr-namespace:Dimmer.ViewModels"
+    Title="LastFMLogin"
+    Padding="0,50,0,0"
+    x:DataType="globalVM:LastFMViewModel"
+    Shell.NavBarIsVisible="False">
+    <dx:DXStackLayout Padding="10" ItemSpacing="10">
+        <dx:DXStackLayout
+            HorizontalOptions="Center"
+            ItemSpacing="5"
+            Orientation="Horizontal">
+
+            <Label
+                FontAttributes="Bold"
+                FontSize="20"
+                HorizontalOptions="Center"
+                Text="Login To" />
+            <dx:DXImage
+                HeightRequest="30"
+                Source="lastfm.png"
+                TintColor="Red"
+                WidthRequest="30" />
+        </dx:DXStackLayout>
+        <dx:TextEdit
+            LabelText="Enter User Name"
+            PlaceholderText="E.g. John Doe"
+            Text="{Binding LastFMName}" />
+
+
+        <dx:DXButton
+            BackgroundColor="Red"
+            Command="{Binding LoginToLastfmCommand}"
+            Content="Login"
+            FontSize="25"
+            IconHeight="35"
+            IconWidth="35"
+            ShowIcon="False" />
+
+        <dx:DXButton
+            BackgroundColor="Red"
+            Clicked="DXButton_Clicked"
+            Content="Quick Login"
+            FontSize="25"
+            IconHeight="35"
+            IconWidth="35"
+            ShowIcon="False" />
+    </dx:DXStackLayout>
+</ContentPage>
