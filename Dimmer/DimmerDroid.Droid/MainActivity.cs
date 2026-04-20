@@ -77,6 +77,7 @@ public partial class MainActivity : MauiAppCompatActivity
             ReadCommentHandling = JsonCommentHandling.Skip
         };
     }
+
     public void SetupService()
     {
         _serviceConnection = new MediaPlayerServiceConnection();
@@ -210,8 +211,9 @@ public partial class MainActivity : MauiAppCompatActivity
             }
             switch (Shell.Current.CurrentItem.Title)
             {
-               
+
                 case "Artists":
+                case "LastFM":
 
                     new MaterialAlertDialogBuilder(this)?
                                 .SetTitle("Confirm action")?
@@ -252,6 +254,7 @@ public partial class MainActivity : MauiAppCompatActivity
                 break;
 
                 default:
+                    //await Shell.Current.Navigation.PopAsync(true);
                     await  Shell.Current.GoToAsync("..");
                     break;
             }
@@ -318,11 +321,15 @@ public partial class MainActivity : MauiAppCompatActivity
         ProcessIntent(intent);
     }
 
-
+    protected override void OnResume()
+    {
+        base.OnResume();
+        MyViewModel.IsBackGrounded = false;
+    }
     protected override void OnPause()
     {
         base.OnPause();
-        Debug.WriteLine("pauised");
+        Debug.WriteLine("paused");
         MyViewModel.IsBackGrounded = true;
     }
 

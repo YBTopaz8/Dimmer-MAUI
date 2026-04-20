@@ -11,6 +11,7 @@ using Dimmer.LastFM;
 using Dimmer.Utilities.StatsUtils;
 using Google.Android.Material.Dialog;
 using Microsoft.Extensions.Logging;
+using Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific;
 using System.Text.RegularExpressions;
 using Label = Microsoft.Maui.Controls.Label;
 using TextEdit = DevExpress.Maui.Editors.TextEdit;
@@ -18,75 +19,8 @@ namespace Dimmer.ViewModels;
 
 public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 {
-    public BaseViewModelAnd(
-        IDimmerStateService dimmerStateService,
-        MusicDataService musicDataService,
-        IAppInitializerService appInitializerService,
-        IDimmerAudioService audioServ,
-        ISettingsService settingsService,
-        ILyricsMetadataService lyricsMetadataService,
-        SubscriptionManager subsManager,
-        LyricsMgtFlow lyricsMgtFlow,
-        ICoverArtService coverArtService,
-        IFolderMgtService folderMgtService,
-        IRepository<SongModel> songRepo,
-        IDuplicateFinderService duplicateFinderService,
-        ILastfmService lastfmService,
-        IRepository<ArtistModel> artistRepo,
-        IRepository<AlbumModel> albumModel,
-        IRepository<GenreModel> genreModel,
-        IDialogueService dialogueService,
-        IRepository<PlaylistModel> playlistRepo,
-        IRealmFactory realmFact,
-        IFolderMonitorService folderServ,
-        ILibraryScannerService libScannerService,
-        IRepository<DimmerPlayEvent> dimmerPlayEventRepo,
-        BaseAppFlow baseAppClass,
-        ILogger<BaseViewModel> logger
-        ,
-
-        DimmerBackupService backupService
-        ,IFolderPicker picker
 
 
-
-        ) : base(
-        dimmerStateService,
-        musicDataService,
-        appInitializerService,
-        audioServ,
-        settingsService,
-        lyricsMetadataService,
-        subsManager,
-        lyricsMgtFlow,
-        coverArtService,
-        folderMgtService,
-        songRepo,
-        duplicateFinderService,
-        lastfmService,
-        artistRepo,
-        albumModel,
-        genreModel,
-        dialogueService,
-        playlistRepo,
-        realmFact,
-        folderServ,
-        libScannerService,
-        dimmerPlayEventRepo,
-        baseAppClass,
-        logger)
-    {
-
-
-        fPicker = picker;
-        BackupService = backupService;
-        this._logger = new LoggerFactory().CreateLogger<BaseViewModelAnd>();
-        isAppBooting = true;
-        this._logger.LogInformation("BaseViewModelAnd initialized.");
-        audioService = audioServ;
-
-        Connectivity.ConnectivityChanged += Connectivity_ConnectivityChanged;
-    }
     private readonly IDimmerAudioService audioService;
     private readonly IRepository<SongModel> songRepository;
     IFolderPicker fPicker;
@@ -380,8 +314,6 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     }
 
 
-
-
     #region Binding Views Section
 
     private readonly BehaviorSubject<SongModelView?> _currentSong = new(null);
@@ -400,18 +332,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     #endregion
 
-    [RelayCommand]
-    public async Task LoadFolderToScanForBackUpFiles()
-    {
-        try
-        {
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex.Message);
-        }
-
-    }
+    
 
     internal void ToggleOpenMediaUIOnNotificationTap(bool v)
     {
@@ -538,6 +459,22 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         }
     }
     TextEdit? SearchBarTextEdit;
+
+    public BaseViewModelAnd(IDimmerStateService dimmerStateService,
+        IFolderPicker picker,
+    DimmerBackupService backupService
+        , MusicDataService musicDataService, IAppInitializerService appInitializerService, IDimmerAudioService audioServ, ISettingsService settingsService, ILyricsMetadataService lyricsMetadataService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> songRepo, IDuplicateFinderService duplicateFinderService, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, IDialogueService dialogueService, IRepository<PlaylistModel> playlistRepo, IRealmFactory realmFact, IFolderMonitorService folderServ, ILibraryScannerService libScannerService, IRepository<DimmerPlayEvent> dimmerPlayEventRepo, BaseAppFlow baseAppClass, ILastfmService lastfmService, ILogger<BaseViewModel> logger) : base(dimmerStateService, musicDataService, appInitializerService, audioServ, settingsService, lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, songRepo, duplicateFinderService, artistRepo, albumModel, genreModel, dialogueService, playlistRepo, realmFact, folderServ, libScannerService, dimmerPlayEventRepo, baseAppClass, lastfmService, logger)
+    {
+        fPicker = picker;
+        BackupService = backupService;
+        this._logger = new LoggerFactory().CreateLogger<BaseViewModelAnd>();
+        isAppBooting = true;
+        this._logger.LogInformation("BaseViewModelAnd initialized.");
+        audioService = audioServ;
+
+        Connectivity.ConnectivityChanged += Connectivity_ConnectivityChanged;
+    }
+
     public void SubscribeToPlayCount(TextEdit searchBarTextEdit)
     {
         SearchBarTextEdit = searchBarTextEdit;

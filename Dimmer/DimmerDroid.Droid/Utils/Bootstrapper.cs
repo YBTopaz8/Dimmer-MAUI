@@ -1,6 +1,9 @@
 ﻿using Dimmer.DimmerLive;
 using Dimmer.NativeServices;
 using Dimmer.Views.CustomViews;
+using Dimmer.Views.DimmerCloud;
+using Dimmer.Views.DimmerStats;
+using Dimmer.Views.LastFM;
 using Dimmer.Views.Settings;
 using Dimmer.Views.SingleSong;
 
@@ -31,13 +34,21 @@ internal class Bootstrapper
         // 3. Register ViewModels
         services.AddSingleton<BaseViewModelAnd>();
         services.AddSingleton<SettingsPage>();
+        services.AddSingleton<AllAlbumsPage>();
+        services.AddSingleton<DimmerLiveLogin>();
 
         services.AddSingleton<DetailsOverview>();
         services.AddSingleton<PlaybackQueueBtmSheet>();
         services.AddSingleton<NowPlayingBottomSheet>();
         services.AddSingleton<AlbumPage>();
         services.AddSingleton<ArtistPage>();
+
+        services.AddTransient<LastFMLogin>();
         services.AddSingleton<AllArtistsPage>();
+        services.AddSingleton<LastFMHomePage>();
+        services.AddSingleton<AllStats>();
+        services.AddSingleton<DimmerHomeCenter>();
+        services.AddTransient<DimmerLiveLogin>();
         
 
         // 4. Register Logic/Data Services

@@ -102,7 +102,7 @@ namespace DimmerDroid.Droid
                 Debug.WriteLine(errorDetails);
 
                 // Log to file
-                LogException(e.Exception);
+               LogException(e.Exception);
             } catch(Exception ex)
             {
                 Debug.WriteLine(ex.Message);

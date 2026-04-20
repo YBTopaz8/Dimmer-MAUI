@@ -1,30 +1,62 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<Shell xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Dimmer.DimmerShell"
-       xmlns:artistPages="clr-namespace:Dimmer.Views.Artist"
-       xmlns:settingsPages="clr-namespace:Dimmer.Views.Settings"
-       xmlns:local="clr-namespace:Dimmer.Views"
-    Title="DimmerDroid" BackgroundColor="#1C1C1C" FlyoutBackgroundColor="#1C1C1C"
-       Shell.FlyoutBehavior="Flyout">
+<Shell
+    x:Class="Dimmer.DimmerShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:albumPages="clr-namespace:Dimmer.Views.Album"
+    xmlns:artistPages="clr-namespace:Dimmer.Views.Artist"
+    xmlns:dimmerCloudPages="clr-namespace:Dimmer.Views.DimmerCloud"
+    xmlns:dimmerStatsPages="clr-namespace:Dimmer.Views.DimmerStats"
+    xmlns:lastFMPages="clr-namespace:Dimmer.Views.LastFM"
+    xmlns:local="clr-namespace:Dimmer.Views"
+    xmlns:settingsPages="clr-namespace:Dimmer.Views.Settings"
+    Title="DimmerDroid"
+    BackgroundColor="{AppThemeBinding Dark=#1C1C1C,
+                                      Light=#FFFFFF}"
+    FlyoutBackgroundColor="{AppThemeBinding Dark=#1C1C1C,
+                                            Light=#FFFFFF}"
+    Shell.FlyoutBehavior="Flyout">
 
     <ShellContent
-        Title="Home" FlyoutIcon="house.png"
-        
+        Title="Home"
         ContentTemplate="{DataTemplate local:HomePage}"
+        FlyoutIcon="house.png"
         Route="HomePage" />
 
     <ShellContent
+        Title="Statistics"
+        ContentTemplate="{DataTemplate dimmerStatsPages:AllStats}"
+        FlyoutIcon="chartb.png"
+        Route="DimmerStats" />
+
+    <ShellContent
         Title="Artists"
-        FlyoutIcon="artistt.png"
         ContentTemplate="{DataTemplate artistPages:AllArtistsPage}"
+        FlyoutIcon="artistt.png"
         Route="AllArtistsPage" />
 
     <ShellContent
+        Title="Albums"
+        ContentTemplate="{DataTemplate albumPages:AllAlbumsPage}"
+        FlyoutIcon="musicalbum.png"
+        Route="AllAlbumsPage" />
+
+    <ShellContent
+        Title="LastFM"
+        ContentTemplate="{DataTemplate lastFMPages:LastFMHomePage}"
+        FlyoutIcon="lastfmsmoll.png"
+        Route="LastFM" />
+
+    <ShellContent
+        Title="Dimmer Cloud"
+        ContentTemplate="{DataTemplate dimmerCloudPages:DimmerLiveLogin}"
+        FlyoutIcon="cloudbolt.png"
+        Route="DimmerLiveLoginRoute" />
+
+    <ShellContent
         Title="Settings"
-        FlyoutIcon="settings.png" 
         ContentTemplate="{DataTemplate settingsPages:SettingsPage}"
-        Route="SettingsPage">
-    </ShellContent>
+        FlyoutIcon="settings.png"
+        Route="SettingsPage" />
 
 </Shell>
