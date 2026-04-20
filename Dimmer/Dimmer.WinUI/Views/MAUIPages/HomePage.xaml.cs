@@ -36,14 +36,18 @@ public partial class HomePage : ContentPage
 {
 
     public BaseViewModelWin MyViewModel { get; internal set; }
+    public LastFMViewModel MyLastFMViewModel { get; internal set; }
     SongModelView CurrentPlayingSong => MyViewModel.CurrentPlayingSongView;
     private readonly Compositor _compositor = PlatUtils.MainWindowCompositor;
-    public HomePage(BaseViewModelWin vm, IWinUIWindowMgrService windowManagerService, LoginViewModelWin LoginVM,
+    public HomePage(BaseViewModelWin vm, IWinUIWindowMgrService windowManagerService, 
+        LoginViewModelWin LoginVM,
+        LastFMViewModel lastFMViewModel,
         SessionManagementViewModel sessVM)
     {
         InitializeComponent();
         BindingContext = vm;
         MyViewModel = vm;
+        MyLastFMViewModel = lastFMViewModel;
         windowMgrService = windowManagerService;
         this.loginVM = LoginVM;
         this.sessionVM = sessVM;
@@ -86,7 +90,7 @@ public partial class HomePage : ContentPage
         }
         catch (Exception ex)
         {
-            await Shell.Current.DisplayAlert("Error", ex.Message, "OK");
+            await Shell.Current.DisplayAlertAsync("Error", ex.Message, "OK");
         }
     }
     private async void ConsolidateDuplicates_Clicked(object sender, EventArgs e)
@@ -347,7 +351,7 @@ public partial class HomePage : ContentPage
     private async void Logintolastfm_Clicked(object sender, EventArgs e)
     {
 
-        await MyViewModel.LoginToLastfm();
+        await MyLastFMViewModel.LoginToLastfmAsync();
     }
 
     private void FindDuplicatesBtn_Clicked(object sender, EventArgs e)

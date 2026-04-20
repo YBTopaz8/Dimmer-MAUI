@@ -301,7 +301,7 @@ public partial class App : MauiWinUIApplication
         //{
         //    if (win.Title != "MyWin")
         //    {
-        //        bool result = await win!.Page!.DisplayAlert(
+        //        bool result = await win!.Page!.DisplayAlertAsync(
         //            "Confirm Action",
         //            "You sure want to close app?",
         //            "Yes",

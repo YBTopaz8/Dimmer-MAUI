@@ -51,6 +51,7 @@ public sealed partial class EditSongPage : Page
     }
 
     BaseViewModelWin MyViewModel { get; set; }
+    LastFMViewModel MyLastFMViewModel { get; set; }
     protected override async void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
@@ -69,7 +70,7 @@ public sealed partial class EditSongPage : Page
                 MyViewModel.CurrentWinUIPage = this;
                 _editViewModel = new EditSongViewModel(vm, vm.SelectedSong!);
                 MyViewModel.SelectedSong = DetailedSong;
-                await MyViewModel.LoadSelectedSongLastFMData();
+                //await MyViewModel.LoadSelectedSongLastFMData();
                 //LoadUiComponents();
                 SetupArtistBindings();
             }

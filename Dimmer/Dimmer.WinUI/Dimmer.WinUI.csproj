@@ -34,7 +34,6 @@
 		  <None Remove="Views\CustomViews\WinuiViews\SingleSongDetailsPopupView.xaml" />
 		  <None Remove="Views\CustomViews\WinuiViews\SingleSongSection\ChangesReviewPopup.xaml" />
 		  <None Remove="Views\CustomViews\WinuiViews\SmokeViewQueueGrid.xaml" />
-		  <None Remove="Views\CustomViews\WinuiViews\SongCoverView.xaml" />
 		  <None Remove="Views\CustomViews\WinuiViews\SongLyricsView.xaml" />
 		  <None Remove="Views\CustomViews\WinuiViews\SongMetadataView.xaml" />
 		  <None Remove="Views\CustomViews\WinuiViews\SongStatsView.xaml" />
@@ -330,11 +329,6 @@
 		</ItemGroup>
 		<ItemGroup>
 		  <Page Update="Views\WinuiPages\DimmerLivePage.xaml">
-			<Generator>MSBuild:Compile</Generator>
-		  </Page>
-		</ItemGroup>
-		<ItemGroup>
-		  <Page Update="Views\CustomViews\WinuiViews\SongCoverView.xaml">
 			<Generator>MSBuild:Compile</Generator>
 		  </Page>
 		</ItemGroup>

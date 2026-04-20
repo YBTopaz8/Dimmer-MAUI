@@ -16,7 +16,10 @@
     mc:Ignorable="d">
 
     <ScrollViewer Background="#1e1e1e">
-        <StackPanel Margin="10,0" HorizontalAlignment="Center">
+        <StackPanel
+            Margin="10,0"
+            HorizontalAlignment="Left"
+            Spacing="10">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -24,6 +27,7 @@
                 </Grid.ColumnDefinitions>
                 <StackPanel
                     Grid.Column="0"
+                    HorizontalAlignment="Left"
                     Orientation="Horizontal"
                     Spacing="10">
                     <TextBlock VerticalAlignment="Center" Text="{x:Bind MyViewModel.SelectedFile, Mode=OneWay}" />
@@ -46,22 +50,12 @@
                 x:Name="ConfirmRestore"
                 Click="ConfirmRestore_Click"
                 Content="Confirm Restore" />
-            <Expander>
-                <Expander.Header>
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="Favorite Songs: " />
-                        <TextBlock Text="{x:Bind MyViewModel.PickedUpBackup.FavoriteSongs.Count, Mode=OneWay}" />
-                    </StackPanel>
-                </Expander.Header>
-                <Expander.Content>
-                    <dgView:TableView AutoGenerateColumns="True" ItemsSource="{x:Bind MyViewModel.PickedUpBackup.FavoriteSongs, Mode=OneWay}" />
-                </Expander.Content>
-            </Expander>
+
 
             <Expander x:Name="PickedUpBackupExpander">
                 <Expander.Header>
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="PlayEvents Songs: " />
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                        <TextBlock Text="Play Events: " />
                         <TextBlock Text="{x:Bind MyViewModel.PickedUpBackup.PlayEvents.Count, Mode=OneWay}" />
                     </StackPanel>
                 </Expander.Header>

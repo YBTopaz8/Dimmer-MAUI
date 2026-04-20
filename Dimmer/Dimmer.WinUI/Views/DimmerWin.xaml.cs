@@ -94,7 +94,7 @@ public sealed partial class DimmerWin : Window
         if (_isDialogActive)
             return;
 
-        var typee = BaseViewModel.WindowActivationRequestTypeStatic;
+        var typee = LastFMViewModel.WindowActivationRequestTypeStatic;
         if (typee == "Confirm LastFM")
         {
             _isDialogActive = true;

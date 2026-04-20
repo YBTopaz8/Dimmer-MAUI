@@ -231,13 +231,8 @@
                                             Foreground="White"
                                             Text="Enable Auto Scrobbling to Last FM" />
 
-                                        <ToggleButton
-                                            x:Name="AutoScrobbleToggle"
-                                            Grid.Column="1"
-                                            Margin="10"
-                                            Checked="AutoScrobbleToggle_Checked"
-                                            Content="Enable"
-                                            Unchecked="AutoScrobbleToggle_Unchecked" />
+
+
                                     </Grid>
 
 
@@ -638,7 +633,7 @@
 
         <Grid
             x:Name="BackUpRestoreGrid"
-            MinWidth="500"
+            MinWidth="800"
             HorizontalAlignment="Center"
             Loaded="BackUpRestoreGrid_Loaded"
             Visibility="Collapsed">

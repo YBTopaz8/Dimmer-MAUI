@@ -14,32 +14,33 @@
         <Grid>
 
             <Grid
-            x:Name="LastFMGridNonAuth"
-            Padding="40"
-            Background="Transparent">
+                x:Name="LastFMGridNonAuth"
+                Padding="40"
+                Background="Transparent">
                 <StackPanel HorizontalAlignment="Center" Visibility="{Binding IsLastfmAuthenticated, Converter={StaticResource BoolToInverseVisibilityConverter}}">
 
                     <TextBox
-                    x:Name="LastFMUname"
-                    FontSize="25"
-                    Header="Enter your Last FM username:"
-                    KeyUp="LastFMUname_KeyUp"
-                    PlaceholderText="User Name" />
+                        x:Name="LastFMUname"
+                        FontSize="25"
+                        Header="Enter your Last FM username:"
+                        KeyUp="LastFMUname_KeyUp"
+                        PlaceholderText="User Name" />
 
                     <Button
-                    Margin="0,10,0,0"
-                    HorizontalAlignment="Center"
-                    Background="#BE0606"
-                    Click="LoginLastFM_Click"
-                    Content="Login to Last FM"
-                    FontSize="19" x:Name="LoginLastFMBtn"
-                    FontWeight="Bold"
-                    IsEnabled="{x:Bind MyViewModel.IsLastFMAuthButtonClickable , Mode=OneWay, Converter={StaticResource BoolToInverseConverter}}" />
-                    <TextBlock Text="LastFM UserName Required" Visibility="{x:Bind MyViewModel.IsLastFMNeedsUsername}" />
+                        x:Name="LoginLastFMBtn"
+                        Margin="0,10,0,0"
+                        HorizontalAlignment="Center"
+                        Background="#BE0606"
+                        Click="LoginLastFM_Click"
+                        Content="Login to Last FM"
+                        FontSize="19"
+                        FontWeight="Bold"
+                        IsEnabled="{x:Bind MyLastFMViewModel.IsLastFMAuthButtonClickable, Mode=OneWay, Converter={StaticResource BoolToInverseConverter}}" />
+                    <TextBlock Text="LastFM UserName Required" Visibility="{x:Bind MyLastFMViewModel.IsLastFMNeedsUsername}" />
                 </StackPanel>
 
 
-                <StackPanel Visibility="{x:Bind MyViewModel.IsLastfmAuthenticated, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                <StackPanel Visibility="{x:Bind MyLastFMViewModel.IsLastfmAuthenticated, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -48,45 +49,43 @@
                         <StackPanel Grid.Column="1" Spacing="5">
 
                             <Button
-                            HorizontalAlignment="Right"
-                            Background="DarkRed"
-                            BorderBrush="DarkRed"
-                            Click="LogoutLastFM_Click"
-                            Content="Logout" />
+                                HorizontalAlignment="Right"
+                                Background="DarkRed"
+                                BorderBrush="DarkRed"
+                                Click="LogoutLastFM_Click"
+                                Content="Logout" />
 
 
                             <Border CornerRadius="40">
                                 <Image
-                                Height="60"
-                                Width="60"
-                                Source="{x:Bind MyViewModel.CurrentUserLocal.LastFMAccountInfo.Image.Url, Mode=OneWay}"
-                                Stretch="UniformToFill" />
+                                    Width="60"
+                                    Height="60"
+                                    Source="{x:Bind MyViewModel.CurrentUserLocal.LastFMAccountInfo.Image.Url, Mode=OneWay}"
+                                    Stretch="UniformToFill" />
                             </Border>
                             <TextBlock
-                            Margin="0,0,0,5"
-                            HorizontalAlignment="Center"
-                            FontSize="24"
-                            Foreground="White"
-                            Text="{x:Bind MyViewModel.CurrentUserLocal.LastFMAccountInfo.RealName, Mode=OneWay}"
-                            />
-
-
-                            <StackPanel
-                            HorizontalAlignment="Center"
-                            Orientation="Horizontal"
-                            Spacing="10">
-                                <TextBlock
-                                Margin="0,0,0,5"
-                                FontSize="24"
-                                Foreground="White"
-                                Text="{x:Bind MyViewModel.CurrentUserLocal.LastFMAccountInfo.Playcount, Mode=OneWay}"
-                                />
-                                <TextBlock
                                 Margin="0,0,0,5"
                                 HorizontalAlignment="Center"
                                 FontSize="24"
                                 Foreground="White"
-                                Text="Scrobbles" />
+                                Text="{x:Bind MyViewModel.CurrentUserLocal.LastFMAccountInfo.RealName, Mode=OneWay}" />
+
+
+                            <StackPanel
+                                HorizontalAlignment="Center"
+                                Orientation="Horizontal"
+                                Spacing="10">
+                                <TextBlock
+                                    Margin="0,0,0,5"
+                                    FontSize="24"
+                                    Foreground="White"
+                                    Text="{x:Bind MyViewModel.CurrentUserLocal.LastFMAccountInfo.Playcount, Mode=OneWay}" />
+                                <TextBlock
+                                    Margin="0,0,0,5"
+                                    HorizontalAlignment="Center"
+                                    FontSize="24"
+                                    Foreground="White"
+                                    Text="Scrobbles" />
 
                             </StackPanel>
 
@@ -103,75 +102,77 @@
                 </Grid.RowDefinitions>
 
                 <Image
+                    Grid.Row="0"
+                    Grid.RowSpan="2"
                     VerticalAlignment="Top"
-                                                    Source="{Binding Images[3].Url, Mode=OneWay, Converter={StaticResource StringToImageConverter}}"
-                    Opacity="0.05" Grid.Row="0" Grid.RowSpan="2"
-                    Stretch="UniformToFill">
-                  
-                    
-                </Image>
+                    Opacity="0.05"
+                    Source="{Binding Images[3].Url, Mode=OneWay, Converter={StaticResource StringToImageConverter}}"
+                    Stretch="UniformToFill" />
 
                 <!--  1. HEADER (Profile Info)  -->
                 <!--  Mimics the Android FrameLayout with Image + Scrim + Text  -->
                 <Grid
-                Grid.Row="0"
-                Margin="0,0,0,12" 
-                CornerRadius="0,0,12,12">
+                    Grid.Row="0"
+                    Margin="0,0,0,12"
+                    CornerRadius="0,0,12,12">
 
-                    <StackPanel Orientation="Horizontal" Spacing="15" 
-            Background="Transparent">
+                    <StackPanel
+                        Background="Transparent"
+                        Orientation="Horizontal"
+                        Spacing="15">
 
                         <PersonPicture
-                        x:Name="UserAvatarImg"
-                        Width="100"
-                        Height="100"
-                        Opacity="0.6" />
+                            x:Name="UserAvatarImg"
+                            Width="100"
+                            Height="100"
+                            Opacity="0.6" />
                         <StackPanel
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Center"
-                        Spacing="4">
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            Spacing="4">
                             <TextBlock
-                            x:Name="UserNameTxt"
-                            FontSize="28"
-                            FontWeight="Bold"
-                            Foreground="White"
-                            HorizontalTextAlignment="Center"
-                            Style="{StaticResource TitleTextBlockStyle}"
-                            Text="Loading..." />
+                                x:Name="UserNameTxt"
+                                FontSize="28"
+                                FontWeight="Bold"
+                                Foreground="White"
+                                HorizontalTextAlignment="Center"
+                                Style="{StaticResource TitleTextBlockStyle}"
+                                Text="Loading..." />
 
                             <TextBlock
-                            x:Name="TotalScrobblesTxt"
-                            Foreground="LightGray"
-                            HorizontalTextAlignment="Center"
-                            Style="{StaticResource BodyTextBlockStyle}"
-                            Text="0 Scrobbles" />
+                                x:Name="TotalScrobblesTxt"
+                                Foreground="LightGray"
+                                HorizontalTextAlignment="Center"
+                                Style="{StaticResource BodyTextBlockStyle}"
+                                Text="0 Scrobbles" />
 
                             <TextBlock
-                            x:Name="scrobblingSince"
-                            Foreground="LightGray"
-                            HorizontalTextAlignment="Center"
-                            Style="{StaticResource BodyTextBlockStyle}" />
+                                x:Name="scrobblingSince"
+                                Foreground="LightGray"
+                                HorizontalTextAlignment="Center"
+                                Style="{StaticResource BodyTextBlockStyle}" />
 
-                            <CheckBox
-                            x:Name="AutoScrobbleCheck"
-                            Content="Auto-Scrobble"
-                            IsChecked="{x:Bind MyViewModel.ScrobbleToLastFM, Mode=TwoWay}" />
+
                         </StackPanel>
                     </StackPanel>
                 </Grid>
 
                 <!--  2. TABS (Pivot)  -->
-                <Pivot Grid.Row="1" SelectionChanged="Pivot_SelectionChanged" Background="Transparent">
+                <Pivot
+                    Grid.Row="1"
+                    Background="Transparent"
+                    SelectionChanged="Pivot_SelectionChanged">
 
                     <!--  RECENT TRACKS  -->
                     <PivotItem Header="Recent">
                         <dgView:TableView
-                        x:Name="RecentTracksList"
-                        Width="auto" Background="Transparent"
-                        AutoGenerateColumns="False"
-                        ItemsSource="{x:Bind MyViewModel.ListOfUserRecentTracks, Mode=OneWay}"
-                        Loaded="RecentTracksList_Loaded"
-                        SelectionMode="None">
+                            x:Name="RecentTracksList"
+                            Width="auto"
+                            AutoGenerateColumns="False"
+                            Background="Transparent"
+                            ItemsSource="{x:Bind MyLastFMViewModel.CollectionOfUserRecentTracks, Mode=OneWay}"
+                            Loaded="RecentTracksList_Loaded"
+                            SelectionMode="None">
                             <dgView:TableView.Columns>
 
                                 <!--  Column for the Cover Art  -->
@@ -180,12 +181,11 @@
                                         <DataTemplate>
                                             <Border>
                                                 <Image
-                                                x:Name="coverArtImage"
-                                                Width="150"
+                                                    x:Name="coverArtImage"
+                                                    Width="150"
+                                                    Height="150"
                                                     Source="{Binding Images[3].Url, Mode=OneWay, Converter={StaticResource StringToImageConverter}}"
-                                                Height="150"
-                                                Stretch="UniformToFill">
-                                                </Image>
+                                                    Stretch="UniformToFill" />
                                             </Border>
                                         </DataTemplate>
                                     </dgView:TableViewTemplateColumn.CellTemplate>
@@ -197,18 +197,18 @@
                                         <DataTemplate>
                                             <StackPanel>
                                                 <Button
-                                                x:Name="SongTitle"
-                                                Background="Transparent"
-                                                Click="SongTitle_Click"
-                                                Content="{Binding Name}"
-                                                FontSize="19"
-                                                IsEnabled="{Binding IsOnPresentDevice}" />
+                                                    x:Name="SongTitle"
+                                                    Background="Transparent"
+                                                    Click="SongTitle_Click"
+                                                    Content="{Binding Name}"
+                                                    FontSize="19"
+                                                    IsEnabled="{Binding IsOnPresentDevice}" />
                                                 <TextBlock FontSize="15" Text="{Binding Album.Name}" />
                                                 <FontIcon
-                                                HorizontalAlignment="Left"
-                                                Foreground="SlateBlue"
-                                                Glyph="&#xE978;"
-                                                Visibility="{Binding IsOnPresentDevice, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                                    HorizontalAlignment="Left"
+                                                    Foreground="SlateBlue"
+                                                    Glyph="&#xE978;"
+                                                    Visibility="{Binding IsOnPresentDevice, Converter={StaticResource BoolToVisibilityConverter}}" />
                                             </StackPanel>
                                         </DataTemplate>
                                     </dgView:TableViewTemplateColumn.CellTemplate>
@@ -234,10 +234,10 @@
                                             <StackPanel>
                                                 <TextBlock FontSize="19" Text="{Binding Date, Converter={StaticResource EventDateToTimeAgoConverter}}" />
                                                 <TextBlock
-                                                FontSize="12"
-                                                FontStyle="Italic"
-                                                Foreground="Gray"
-                                                Text="{Binding Date}" />
+                                                    FontSize="12"
+                                                    FontStyle="Italic"
+                                                    Foreground="Gray"
+                                                    Text="{Binding Date}" />
 
                                             </StackPanel>
                                         </DataTemplate>
@@ -249,28 +249,24 @@
                                         <DataTemplate>
                                             <StackPanel Orientation="Horizontal" Spacing="10">
                                                 <Button
-                                                Click="LoveTrackButton_Click"
-                                                IsEnabled="{Binding IsOnPresentDevice}"
-                                                ToolTipService.ToolTip="Love Track">
-                                                    <FontIcon
-                                                    Foreground="Red"
-                                                    Glyph="&#xEB52;" />
+                                                    Click="LoveTrackButton_Click"
+                                                    IsEnabled="{Binding IsOnPresentDevice}"
+                                                    ToolTipService.ToolTip="Love Track">
+                                                    <FontIcon Foreground="Red" Glyph="&#xEB52;" />
                                                 </Button>
                                                 <Button
-                                                Click="BanTrackButton_Click"
-                                                IsEnabled="{Binding IsOnPresentDevice}"
-                                                ToolTipService.ToolTip="Ban Track">
-                                                    <FontIcon
-                                                    Foreground="Black"
-                                                    Glyph="&#xE8E0;" />
+                                                    Click="BanTrackButton_Click"
+                                                    IsEnabled="{Binding IsOnPresentDevice}"
+                                                    ToolTipService.ToolTip="Ban Track">
+                                                    <FontIcon Foreground="Black" Glyph="&#xE8E0;" />
                                                 </Button>
 
-                                                <Button x:Name="DeleteScrobble"
-                                                        Click="DeleteScrobble_Click"
-                                                        IsEnabled="{Binding IsOnPresentDevice}"
-                                                        ToolTipService.ToolTip="Delete Scrobble">
-                                                    <FontIcon Foreground="Black"
-                                                              Glyph="&#xE74D;" />
+                                                <Button
+                                                    x:Name="DeleteScrobble"
+                                                    Click="DeleteScrobble_Click"
+                                                    IsEnabled="{Binding IsOnPresentDevice}"
+                                                    ToolTipService.ToolTip="Delete Scrobble">
+                                                    <FontIcon Foreground="Black" Glyph="&#xE74D;" />
                                                 </Button>
                                             </StackPanel>
                                         </DataTemplate>
@@ -283,11 +279,11 @@
                     <!--  TOP TRACKS  -->
                     <PivotItem Header="Top Tracks">
                         <dgView:TableView
-                        x:Name="TopTracksList"
-                        Width="auto"
-                        AutoGenerateColumns="False"
-                        ItemsSource="{x:Bind MyViewModel.CollectionUserTopTracks, Mode=OneWay}"
-                        SelectionMode="None">
+                            x:Name="TopTracksList"
+                            Width="auto"
+                            AutoGenerateColumns="False"
+                            ItemsSource="{x:Bind MyLastFMViewModel.CollectionUserTopTracks, Mode=OneWay}"
+                            SelectionMode="None">
                             <dgView:TableView.Columns>
 
                                 <!--  Column for the Cover Art  -->
@@ -296,13 +292,11 @@
                                         <DataTemplate>
                                             <Border>
                                                 <Image
-                                                Width="150"
-                                                Height="150"
-                                                    Source="{Binding Images[3].Url, Mode=OneWay, Converter={StaticResource StringToImageConverter}}"
                                                     x:Name="Imgg"
-                                                Stretch="UniformToFill">
-                                                   
-                                                </Image>
+                                                    Width="150"
+                                                    Height="150"
+                                                    Source="{Binding Images[3].Url, Mode=OneWay, Converter={StaticResource StringToImageConverter}}"
+                                                    Stretch="UniformToFill" />
                                             </Border>
                                         </DataTemplate>
                                     </dgView:TableViewTemplateColumn.CellTemplate>
@@ -314,17 +308,17 @@
                                         <DataTemplate>
                                             <StackPanel>
                                                 <Button
-                                                Background="Transparent"
-                                                Click="SongTitle_Click"
-                                                Content="{Binding Name}"
-                                                FontSize="19"
-                                                IsEnabled="{Binding IsOnPresentDevice}" />
+                                                    Background="Transparent"
+                                                    Click="SongTitle_Click"
+                                                    Content="{Binding Name}"
+                                                    FontSize="19"
+                                                    IsEnabled="{Binding IsOnPresentDevice}" />
                                                 <TextBlock FontSize="15" Text="{Binding Album.Name}" />
                                                 <FontIcon
-                                                HorizontalAlignment="Left"
-                                                Foreground="SlateBlue"
-                                                Glyph="&#xE978;"
-                                                Visibility="{Binding IsOnPresentDevice, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                                    HorizontalAlignment="Left"
+                                                    Foreground="SlateBlue"
+                                                    Glyph="&#xE978;"
+                                                    Visibility="{Binding IsOnPresentDevice, Converter={StaticResource BoolToVisibilityConverter}}" />
                                             </StackPanel>
                                         </DataTemplate>
                                     </dgView:TableViewTemplateColumn.CellTemplate>
@@ -343,9 +337,9 @@
                                 </dgView:TableViewTemplateColumn>
 
                                 <dgView:TableViewTextColumn
-                                Width="*"
-                                Binding="{Binding Statistics.PlayCount}"
-                                Header="Times Played" />
+                                    Width="*"
+                                    Binding="{Binding Statistics.PlayCount}"
+                                    Header="Times Played" />
                             </dgView:TableView.Columns>
                         </dgView:TableView>
                     </PivotItem>
@@ -353,11 +347,11 @@
                     <!--  Albums  -->
                     <PivotItem Header="Top Album">
                         <dgView:TableView
-                        x:Name="TopAlbum"
-                        Width="auto"
-                        AutoGenerateColumns="False"
-                        ItemsSource="{x:Bind MyViewModel.CollectionUserTopAlbums, Mode=OneWay}"
-                        SelectionMode="None">
+                            x:Name="TopAlbum"
+                            Width="auto"
+                            AutoGenerateColumns="False"
+                            ItemsSource="{x:Bind MyLastFMViewModel.CollectionUserTopAlbums, Mode=OneWay}"
+                            SelectionMode="None">
                             <dgView:TableView.Columns>
 
                                 <!--  Column for the Cover Art  -->
@@ -366,13 +360,10 @@
                                         <DataTemplate>
                                             <Border>
                                                 <Image
-                                                Width="150"
-                                                Height="150"
+                                                    Width="150"
+                                                    Height="150"
                                                     Source="{Binding Images[3].Url, Mode=OneWay, Converter={StaticResource StringToImageConverter}}"
-                                                Stretch="UniformToFill">
-                                                   
-                                                    
-                                                </Image>
+                                                    Stretch="UniformToFill" />
                                             </Border>
                                         </DataTemplate>
                                     </dgView:TableViewTemplateColumn.CellTemplate>
@@ -384,17 +375,17 @@
                                         <DataTemplate>
                                             <StackPanel>
                                                 <Button
-                                                Background="Transparent"
-                                                Click="SongAlbum_Click"
-                                                Content="{Binding Name}"
-                                                FontSize="19"
-                                                IsEnabled="{Binding IsOnPresentDevice}" />
+                                                    Background="Transparent"
+                                                    Click="SongAlbum_Click"
+                                                    Content="{Binding Name}"
+                                                    FontSize="19"
+                                                    IsEnabled="{Binding IsOnPresentDevice}" />
                                                 <TextBlock FontSize="15" Text="{Binding Album.Name}" />
                                                 <FontIcon
-                                                HorizontalAlignment="Left"
-                                                Foreground="SlateBlue"
-                                                Glyph="&#xE978;"
-                                                Visibility="{Binding IsOnPresentDevice, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                                    HorizontalAlignment="Left"
+                                                    Foreground="SlateBlue"
+                                                    Glyph="&#xE978;"
+                                                    Visibility="{Binding IsOnPresentDevice, Converter={StaticResource BoolToVisibilityConverter}}" />
                                             </StackPanel>
                                         </DataTemplate>
                                     </dgView:TableViewTemplateColumn.CellTemplate>
@@ -430,11 +421,11 @@
                     <!--  Loved TRACKS  -->
                     <PivotItem Header="Loved">
                         <dgView:TableView
-                        x:Name="LovedTracksList"
-                        Width="auto"
-                        AutoGenerateColumns="False"
-                        ItemsSource="{x:Bind MyViewModel.ListOfUserLovedTracks, Mode=OneWay}"
-                        SelectionMode="None">
+                            x:Name="LovedTracksList"
+                            Width="auto"
+                            AutoGenerateColumns="False"
+                            ItemsSource="{x:Bind MyLastFMViewModel.CollectionOfUserLovedTracks, Mode=OneWay}"
+                            SelectionMode="None">
                             <dgView:TableView.Columns>
 
                                 <!--  Column for the Cover Art  -->
@@ -443,13 +434,10 @@
                                         <DataTemplate>
                                             <Border>
                                                 <Image
-                                                Width="150"
+                                                    Width="150"
+                                                    Height="150"
                                                     Source="{Binding Images[3].Url, Mode=OneWay, Converter={StaticResource StringToImageConverter}}"
-                                                Height="150"
-                                                Stretch="UniformToFill">
-                                                   
-                                                    
-                                                </Image>
+                                                    Stretch="UniformToFill" />
                                             </Border>
                                         </DataTemplate>
                                     </dgView:TableViewTemplateColumn.CellTemplate>
@@ -460,17 +448,18 @@
                                     <dgView:TableViewTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <StackPanel Margin="10" Spacing="5">
-                                                <Button Click="SongTitle_Click"
-                                                Content="{Binding Name}"
-                                                FontSize="19"
-                                                IsEnabled="{Binding IsOnPresentDevice}" />
+                                                <Button
+                                                    Click="SongTitle_Click"
+                                                    Content="{Binding Name}"
+                                                    FontSize="19"
+                                                    IsEnabled="{Binding IsOnPresentDevice}" />
                                                 <TextBlock FontSize="15" Text="{Binding Album.Name}" />
                                                 <Rectangle
-                                                Width="10"
-                                                Height="10"
-                                                Visibility="{Binding IsOnPresentDevice, Converter={StaticResource BoolToVisConverter}}" 
-                                                HorizontalAlignment="Left"
-                                                Fill="Green" />
+                                                    Width="10"
+                                                    Height="10"
+                                                    HorizontalAlignment="Left"
+                                                    Fill="Green"
+                                                    Visibility="{Binding IsOnPresentDevice, Converter={StaticResource BoolToVisConverter}}" />
 
                                             </StackPanel>
                                         </DataTemplate>
@@ -483,11 +472,11 @@
                                             <StackPanel>
                                                 <TextBlock FontSize="19" Text="{Binding Artist.Name}" />
                                                 <FontIcon
-                                                HorizontalAlignment="Left"
-                                                FontSize="15"
-                                                Foreground="Red"
-                                                Glyph="&#xEB52;"
-                                                Visibility="{Binding UserLoved, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                                    HorizontalAlignment="Left"
+                                                    FontSize="15"
+                                                    Foreground="Red"
+                                                    Glyph="&#xEB52;"
+                                                    Visibility="{Binding UserLoved, Converter={StaticResource BoolToVisibilityConverter}}" />
 
                                             </StackPanel>
                                         </DataTemplate>

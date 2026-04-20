@@ -41,6 +41,7 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
     public ObservableCollection<Track> TopTracks { get; } = new();
     public ObservableCollection<Track> LovedTracks { get; } = new();
 
+    public LastFMViewModel MyLastFMViewModel { get; private set; }
     public BaseViewModelWin MyViewModel { get; private set; }
 
     public LastFmPage()
@@ -55,6 +56,7 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
         base.OnNavigatedTo(e);
 
         // Resolve VM
+        MyLastFMViewModel = IPlatformApplication.Current!.Services.GetService<LastFMViewModel>()!;
         MyViewModel = IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
 
 
@@ -83,8 +85,8 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
     }
     private void LoginLastFM_Click(object sender, RoutedEventArgs e)
     {
-        BaseViewModel.LastFMName = LastFMUname.Text;
-        MyViewModel?.LoginToLastfmCommand.Execute(null);
+        //LastFMViewModel.LastFMName = LastFMUname.Text;
+        MyLastFMViewModel?.LoginToLastfmCommand.Execute(null);
     }
     private void LastFMUname_KeyUp(object sender, KeyRoutedEventArgs e)
     {
@@ -95,9 +97,9 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
         var isPressedKeyEnterOrReturn = e.Key == Windows.System.VirtualKey.Enter;
         if (isPressedKeyEnterOrReturn)
         {
-            BaseViewModel.LastFMName = LastFMUname.Text;
+ 
             //LoginLastFMBtn.IsEnabled = false;
-            MyViewModel?.LoginToLastfmCommand.Execute(null);
+            MyLastFMViewModel?.LoginToLastfmCommand.Execute(null);
 
         }
     }
@@ -108,12 +110,12 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
         // 1. Get Data from VM
         //user = MyViewModel.CurrentUserLocal?.LastFMAccountInfo; // Assuming this property exists on your VM parity
         
-        if (MyViewModel.LastFMService.IsAuthenticated)
+        if (MyLastFMViewModel.LastFMService.IsAuthenticated)
         {
             LastFMGridNonAuth.Visibility = WinUIVisibility.Collapsed;
             LastFMAuthedSection.Visibility = WinUIVisibility.Visible;
             // User Info
-            var userr = await MyViewModel.LastFMService.GetUserInfoAsync();
+            var userr = await MyLastFMViewModel.LastFMService.GetUserInfoAsync();
             if (userr is null)
             {
                 var usr = MyViewModel.CurrentUserLocal.LastFMAccountInfo;
@@ -146,7 +148,7 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
             }
 
             if (Connectivity.NetworkAccess != NetworkAccess.Internet) return;
-            await MyViewModel.LoadUserLastFMDataAsync(user);
+            await MyLastFMViewModel.LoadUserLastFMDataAsync(user);
 
         }
         else

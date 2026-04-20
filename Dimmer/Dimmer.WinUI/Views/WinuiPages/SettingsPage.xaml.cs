@@ -348,18 +348,6 @@ public sealed partial class SettingsPage : Page
         MyViewModel.BaseViewModelWin.NavigateToAnyPageOfGivenType(typeof(AllSongsListPage));
     }
 
-    private void AutoScrobbleToggle_Checked(object sender, RoutedEventArgs e)
-    {
-        MyViewModel.ToggleLastFMScrobbling(true);
-        AutoScrobbleToggle.Content = "Scrobble On Complete";
-    }
-
-    private void AutoScrobbleToggle_Unchecked(object sender, RoutedEventArgs e)
-    {
-
-        AutoScrobbleToggle.Content = "No Scrobble On Complete";
-        MyViewModel.ToggleLastFMScrobbling(false);
-    }
 
     private async void BackUpData_Click(object sender, RoutedEventArgs e)
     {
