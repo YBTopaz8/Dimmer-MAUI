@@ -652,48 +652,44 @@ Observable.FromEventPattern<PlaybackEventArgs>(
     private void ApplySearchResults(SearchResult? result)
     {
         IsTqlBusy = false;
-
-        if(result == null)
-            return;
-
-        if(!string.IsNullOrEmpty(result.ErrorMessage))
+        if (result == null) return;
+        if (!string.IsNullOrEmpty(result.ErrorMessage))
         {
             TQLUserSearchErrorMessage = result.ErrorMessage;
             return;
         }
 
-        if(result.SongsResult is not null)
-        {       SearchResultsHolder.Edit(
-                innerList =>
-                {
-                    Debug.WriteLine(innerList.Count);
-                    innerList.Clear();
-                    
-                    innerList.AddRange(result.SongsResult);
-                });
-        }
-        // Update Debuggers
-        if (result.Plan != null)
+        if (result.SongsResult is not null)
         {
+            // .Load() is highly optimized in DynamicData. 
+            // It calculates the diffs internally and only updates the UI with what actually changed!
+            SearchResultsHolder.Edit(innerCache =>
+            {
 
-            //HandleCommandAction(result.Plan.CommandNode);
-            // Update NLP Debug text if needed
+                innerCache.Load(result.SongsResult);
+            });
         }
     }
-    
-    private SearchResult PerformSearchBackground(string queryText)
+    private CancellationTokenSource? _searchCts;
+    private SearchResult? PerformSearchBackground(string queryText)
     {
+        _searchCts?.Cancel();
+        _searchCts = new CancellationTokenSource();
+        var ct = _searchCts.Token;
+
         using var realmm = RealmFactory.GetRealmInstance();
+
         // A. Fast Fail for Empty Query
-        if (string.IsNullOrWhiteSpace(queryText) )
+        if (string.IsNullOrWhiteSpace(queryText))
         {
             IsFirstBoot = false;
+            // Optimization: Only grab what we need, don't map everything instantly if we don't have to.
             var allSongs = realmm.All<SongModel>()
-             .OrderByDescending(s => s.DateCreated)
-             .AsEnumerable()
-             
-             .Select(x => x.ToSongModelView())
-             .ToList();
+                .OrderByDescending(s => s.DateCreated)
+                .ToList() // Fetch from Realm fast
+                .Select(x => x.ToSongModelView()!) // Map to UI models
+                .ToList();
+
             return new SearchResult { SongsResult = allSongs };
         }
 
@@ -706,11 +702,11 @@ Observable.FromEventPattern<PlaybackEventArgs>(
 
         try
         {
-           
             // C. Realm Filter (Zero-Copy, Fast)
             var query = realmm.All<SongModel>().Filter(plan.RqlFilter);
 
-            // D. Sorting
+            if (ct.IsCancellationRequested) return null;
+            // D. Realm Sorting (Do this in DB before pulling to RAM)
             if (plan.SortDescriptions.Count > 0)
             {
                 var orderByString = string.Join(", ", plan.SortDescriptions.Select(
@@ -718,22 +714,69 @@ Observable.FromEventPattern<PlaybackEventArgs>(
                 query = query.OrderBy(orderByString);
             }
 
-            // E. Materialization (The Heavy Part)
-            // Only materialize what passes the memory predicate to save RAM
-            IEnumerable<SongModel> intermediateList = query;
+            // --- WE LEAVE REALM SPACE HERE ---
+            // Grab the IDs or raw objects. ToList() evaluates the Realm query.
+            IEnumerable<SongModel> intermediateList = query.ToList();
 
+            if (ct.IsCancellationRequested) return null;
+            // E. In-Memory Predicate (Chance, Regex, etc)
             if (plan.InMemoryPredicate != null)
             {
-                // Note: We MUST AsEnumerable() before checking C# logic
-                intermediateList = intermediateList.AsEnumerable().Where(x => plan.InMemoryPredicate(x.ToSongModelView()!));
+                // Note: We temporarily map to view model JUST for the predicate check.
+                // A future optimization would be making AstEvaluator take SongModel directly.
+                intermediateList = intermediateList.Where(x => plan.InMemoryPredicate(x.ToSongModelView()!));
             }
 
-            // F. Final Projection
-            // Using ToList() here snapshots the data for the UI thread
+            // F. Apply Shuffle (NEW)
+            if (plan.Shuffle != null)
+            {
+                var random = new Random();
+                if (plan.Shuffle.IsBiased && plan.Shuffle.BiasField != null)
+                {
+                    // Biased shuffle (e.g., shuffle by rating desc)
+                    var propertyInfo = typeof(SongModel).GetProperty(plan.Shuffle.BiasField.PropertyName);
+                    if (propertyInfo != null)
+                    {
+                        var grouped = intermediateList
+                            .GroupBy(s => propertyInfo.GetValue(s) ?? "null")
+                            .SelectMany(g => g.OrderBy(_ => random.Next()));
+
+                        intermediateList = plan.Shuffle.BiasDirection == SortDirection.Descending
+                            ? grouped.Reverse() : grouped;
+                    }
+                }
+                else
+                {
+                    // Pure shuffle
+                    intermediateList = intermediateList.OrderBy(_ => random.Next());
+                }
+
+                // Shuffle nodes also act as limiters if a count was provided
+                if (plan.Shuffle.Count < int.MaxValue)
+                {
+                    intermediateList = intermediateList.Take(plan.Shuffle.Count);
+                }
+            }
+
+            // G. Apply Limiter (First 10, Last 5, etc) (NEW)
+            if (plan.Limiter != null)
+            {
+                if (plan.Limiter.Type == LimiterType.First)
+                {
+                    intermediateList = intermediateList.Take(plan.Limiter.Count);
+                }
+                else if (plan.Limiter.Type == LimiterType.Last)
+                {
+                    // TakeLast requires .NET 8+ or we do Reverse().Take().Reverse()
+                    intermediateList = intermediateList.TakeLast(plan.Limiter.Count);
+                }
+            }
+
+            if (ct.IsCancellationRequested) return null;
+            // H. Final Projection (The Heavy Part - ONLY done on the surviving items!)
             var finalViewList = intermediateList
                 .Select(x => x.ToSongModelView()!)
-             .ToList()
-                ;
+                .ToList();
 
             return new SearchResult { Plan = plan, SongsResult = finalViewList };
         }
@@ -1368,8 +1411,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
     public RuleBasedPlaybackManager PlaybackManager { get; }
 
     #region private fields
-    public SourceList<SongModelView> SearchResultsHolder = new SourceList<SongModelView>();
-
+    public SourceCache<SongModelView, string> SearchResultsHolder { get; } = new(x => x.Id.ToString());
     private readonly ReadOnlyObservableCollection<SongModelView> _searchResults;
     public ReadOnlyObservableCollection<SongModelView> SearchResults => _searchResults;
 
@@ -8009,7 +8051,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
         SearchResultsHolder.Edit(updater =>
         {
             updater.Clear();
-            updater.AddRange(PlaybackQueue);
+            updater.AddOrUpdate(PlaybackQueue);
         });
 
 

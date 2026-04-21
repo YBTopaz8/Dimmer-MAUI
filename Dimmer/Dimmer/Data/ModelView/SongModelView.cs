@@ -68,7 +68,7 @@ public partial class SongModelView : ObservableObject
         }
     }
     [ObservableProperty]
-    public partial int? ReleaseYear { get; set; }
+    public partial int ReleaseYear { get; set; }
     [ObservableProperty]
     public partial int? TrackNumber { get; set; }
     [ObservableProperty]
@@ -76,7 +76,7 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial long FileSize { get; set; }
     [ObservableProperty]
-    public partial int? BitRate { get; set; }
+    public partial int BitRate { get; set; }
     [ObservableProperty]
     public partial int Rating { get; set; } = 0;
     [ObservableProperty]
