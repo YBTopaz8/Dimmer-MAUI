@@ -1,3 +1,4 @@
+using DynamicData.Binding;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -12,9 +13,9 @@ using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
-using Visibility = Microsoft.UI.Xaml.Visibility;
 using Windows.UI.Composition;
 using Border = Microsoft.UI.Xaml.Controls.Border;
+using Visibility = Microsoft.UI.Xaml.Visibility;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -47,16 +48,56 @@ public sealed partial class AllArtistsPage : Page
 
     private void ArtistsItemsRepeater_Tapped(object sender, TappedRoutedEventArgs e)
     {
-        FrameworkElement? artistClicked = (FrameworkElement)e.OriginalSource;
+        
+    }
 
-        var artist = artistClicked.DataContext as ArtistModelView;
-   
-        if(artist != null)
+    private void ArtistImg_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        var propr = e.GetCurrentPoint((UIElement)sender).Properties;
+        if (propr != null)
         {
-             
-            MyViewModel.NavigateToArtistPageWithArtistId(artist.Id);
+            if (propr.IsLeftButtonPressed)
+            {
+                FrameworkElement? artistClicked = (FrameworkElement)e.OriginalSource;
+
+                var artist = artistClicked.DataContext as ArtistModelView;
+
+                if (artist != null)
+                {
+
+                    MyViewModel.NavigateToArtistPageWithArtistId(artist.Id);
+                }
+            }
+
         }
     }
 
-  
+    private void SortRadioBtns_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
+    {
+        if (sender is RadioButtons rb && MyViewModel != null)
+        {
+            int colorName = rb.SelectedIndex;
+            switch (colorName)
+            {
+                case 0: // Name Asc
+                    MyViewModel.ArtistSortSubject.OnNext(SortExpressionComparer<ArtistModelView>.Ascending(x => x.Name));
+                    break;
+                case 1: // Name Desc
+                    MyViewModel.ArtistSortSubject.OnNext(SortExpressionComparer<ArtistModelView>.Descending(x => x.Name));
+                    break;
+                case 2: // Total Play Count Asc
+                    MyViewModel.ArtistSortSubject.OnNext(SortExpressionComparer<ArtistModelView>.Ascending(x => x.TotalCompletedPlays));
+                    break;
+                case 3: // Total Play Count Desc
+                    MyViewModel.ArtistSortSubject.OnNext(SortExpressionComparer<ArtistModelView>.Descending(x => x.TotalCompletedPlays));
+                    break;
+                case 4: // Total Albums Asc
+                    MyViewModel.ArtistSortSubject.OnNext(SortExpressionComparer<ArtistModelView>.Ascending(x => x.TotalAlbumsByArtist));
+                    break;
+                case 5: // Total Albums Desc
+                    MyViewModel.ArtistSortSubject.OnNext(SortExpressionComparer<ArtistModelView>.Descending(x => x.TotalAlbumsByArtist));
+                    break;
+            }
+        }
+    }
 }

@@ -215,6 +215,8 @@ Observable.FromEventPattern<PlaybackEventArgs>(
     }
     private readonly BehaviorSubject<PageRequest> _pagingController = new(new PageRequest(0, 50));
 
+    public BehaviorSubject<IComparer<ArtistModelView>> ArtistSortSubject { get; } =
+        new BehaviorSubject<IComparer<ArtistModelView>>(SortExpressionComparer<ArtistModelView>.Ascending(x => x.Name));
     private void SetupArtistPipeline()
     {
         // Get Realm instance
@@ -224,7 +226,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
 
         // Build the reactive pipeline
         var pipeline = _realm.All<ArtistModel>()
-            .OrderBy(p => p.Name)
+
             .AsObservableChangeSet()
             .Transform(artistInDB =>
                 {
@@ -241,7 +243,9 @@ Observable.FromEventPattern<PlaybackEventArgs>(
              .AutoRefresh(artist => artist.ImagePath)
              .AutoRefresh(artist => artist.TotalCompletedPlays)
              .AutoRefresh(artist => artist.TotalSongsByArtist)
+        .AutoRefresh(artist => artist.TotalAlbumsByArtist)
              .AutoRefresh(artist => artist.Name)
+           .Sort(ArtistSortSubject)
             .ObserveOn(RxSchedulers.UI)
             .Bind(out _artistCollection)
             .DisposeMany()
@@ -7749,6 +7753,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
     [RelayCommand]
     public async Task OpenSongInOnlineSearch(string? service)
     {
+
         service ??= "google";
         if (SelectedSong is null && CurrentPlayingSongView is not null)
         {

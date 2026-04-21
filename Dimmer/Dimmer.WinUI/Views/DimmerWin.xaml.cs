@@ -1,5 +1,6 @@
 using Dimmer.WinUI.Views.WinuiPages.AlbumSection;
 using Dimmer.WinUI.Views.WinuiPages.Artist;
+using Dimmer.WinUI.Views.WinuiPages.LastFMSection;
 using Hqub.Lastfm.Entities;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Border = Microsoft.UI.Xaml.Controls.Border;
@@ -337,6 +338,9 @@ public sealed partial class DimmerWin : Window
                 pageType = typeof(AllAlbumsPage);
                 break;
             case 3:
+                pageType = typeof(LastFmPage);
+                break;
+            case 4:
                 pageType = typeof(SettingsPage);
                 break;
 
@@ -370,9 +374,13 @@ public sealed partial class DimmerWin : Window
         {
             DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[2];
         }
-        else if (navPageType == typeof(SettingsPage))
+        else if (navPageType == typeof(LastFmPage))
         {
             DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[3];
+        }
+        else if (navPageType == typeof(SettingsPage))
+        {
+            DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[4];
         }
     }
 }

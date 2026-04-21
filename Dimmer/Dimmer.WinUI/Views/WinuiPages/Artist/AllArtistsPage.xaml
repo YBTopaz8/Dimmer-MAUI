@@ -25,7 +25,7 @@
         <UniformGridLayout
             x:Key="UniformGridLayout2"
             MinColumnSpacing="12"
-            MinItemHeight="160"
+            MinItemHeight="180"
             MinItemWidth="180"
             MinRowSpacing="12" />
 
@@ -36,15 +36,22 @@
                     Padding="5"
                     Background="Transparent"
                     CornerRadius="12">
-                    <Image>
+                    <Image
+                        x:Name="ArtistImg"
+                        Width="120"
+                        Height="120"
+                        PointerPressed="ArtistImg_PointerPressed">
                         <Image.Source>
                             <BitmapImage
-                                DecodePixelHeight="200"
-                                DecodePixelWidth="200"
-                                UriSource="{Binding ArtistImagePath}" />
+                                DecodePixelHeight="120"
+                                DecodePixelWidth="120"
+                                UriSource="{Binding ImagePath}" />
                         </Image.Source>
                     </Image>
-                    <TextBlock HorizontalAlignment="Center" Text="{Binding Name}" />
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        FontSize="20"
+                        Text="{Binding Name}" />
 
                     <StackPanel
                         HorizontalAlignment="Center"
@@ -52,6 +59,7 @@
                         Spacing="5">
                         <ToolTipService.ToolTip>
                             <StackPanel Orientation="Horizontal" Spacing="2">
+
                                 <TextBlock FontWeight="Bold" Text="{Binding TotalSongsByArtist}" />
                                 <TextBlock Text="Songs" />
                                 <TextBlock Text="|" />
@@ -64,24 +72,30 @@
                             </StackPanel>
                         </ToolTipService.ToolTip>
 
-                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
-                            <TextBlock FontWeight="Bold" Text="{Binding TotalSongsByArtist}" />
-                            <SymbolIcon
-                                Width="20"
-                                Height="20"
-                                Symbol="Audio" />
+                        <Button Background="Transparent">
 
-                        </StackPanel>
-                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
-                            <TextBlock FontWeight="Bold" Text="{Binding TotalAlbumsByArtist}" />
-                            <FontIcon
-                                Width="20"
-                                Height="20"
-                                Glyph="&#xE93C;" />
+                            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                                <TextBlock FontWeight="Bold" Text="{Binding TotalSongsByArtist}" />
+                                <SymbolIcon
+                                    Width="20"
+                                    Height="20"
+                                    Symbol="Audio" />
 
-                        </StackPanel>
+                            </StackPanel>
+
+                        </Button>
+                        <Button Background="Transparent">
+                            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                                <TextBlock FontWeight="Bold" Text="{Binding TotalAlbumsByArtist}" />
+                                <FontIcon
+                                    Width="20"
+                                    Height="20"
+                                    Glyph="&#xE93C;" />
+
+                            </StackPanel>
 
 
+                        </Button>
 
                     </StackPanel>
                 </StackPanel>
@@ -91,15 +105,45 @@
 
     </Page.Resources>
 
-    <Grid Margin="5,2" CornerRadius="10">
-        <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <Grid
+        Margin="15,2"
+        CornerRadius="10"
+        RowSpacing="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" HorizontalAlignment="Center">
+
+            <Expander x:Name="SortExpander" ExpandDirection="Down">
+                <Expander.Header>
+
+                    <SymbolIcon Symbol="Sort" />
+
+                </Expander.Header>
+                <Expander.Content>
+
+                    <RadioButtons Header="Sort By:" SelectionChanged="SortRadioBtns_SelectionChanged" x:Name="SortRadioBtns">
+                        <RadioButton   Content="Name Asc" />
+                        <RadioButton  Content="Name Desc" />
+                        <RadioButton  Content="Total Play Count Asc" />
+                        <RadioButton  Content="Total Play Count Desc" />
+                        <RadioButton  Content="Total Albums Asc" />
+                        <RadioButton  Content="Total Albums Desc" />
+                    </RadioButtons>
+
+                </Expander.Content>
+            </Expander>
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
 
             <ItemsRepeater
                 x:Name="ArtistsItemsRepeater"
                 ItemTemplate="{StaticResource ArtistDT}"
                 ItemsSource="{x:Bind MyViewModel.ArtistsCollection, Mode=OneWay}"
-                Layout="{StaticResource UniformGridLayout2}"
-                Tapped="ArtistsItemsRepeater_Tapped" />
+                Layout="{StaticResource UniformGridLayout2}" />
         </ScrollViewer>
 
 

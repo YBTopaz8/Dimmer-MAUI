@@ -48,6 +48,10 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
     {
         this.InitializeComponent();
         _compositor = ElementCompositionPreview.GetElementVisual(this).Compositor;
+        MyViewModel = IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
+        MyLastFMViewModel = IPlatformApplication.Current!.Services.GetService<LastFMViewModel>()!;
+
+        MyLastFMViewModel.LoadBaseViewModel(MyViewModel);
     }
 
     private readonly Compositor _compositor;
@@ -56,9 +60,8 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
         base.OnNavigatedTo(e);
 
         // Resolve VM
-        MyLastFMViewModel = IPlatformApplication.Current!.Services.GetService<LastFMViewModel>()!;
-        MyViewModel = IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
 
+        
 
         await LoadUserData();
 
@@ -251,5 +254,13 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
     private void DeleteScrobble_Click(object sender, RoutedEventArgs e)
     {
         
+    }
+
+    private async void Button_Click(object sender, RoutedEventArgs e)
+    {
+        var btn = (sender as Button)!;
+        var comParam = btn.Content as string;
+        
+        await MyViewModel.OpenSongInOnlineSearch(comParam);
     }
 }
