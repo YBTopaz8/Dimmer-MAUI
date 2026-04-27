@@ -504,7 +504,7 @@ public sealed partial class AllSongsListPage : Page
 
     private void SearchAutoSuggestBox_TextChanged(object sender, Microsoft.UI.Xaml.Controls.TextChangedEventArgs e)
     {
-        //MyViewModel.SearchToTQL(SearchTextBox.Text);
+        MyViewModel.SearchToTQL(SearchTextBox.Text);
    
         //var text = SearchTextBox.Text.ToLower();
 

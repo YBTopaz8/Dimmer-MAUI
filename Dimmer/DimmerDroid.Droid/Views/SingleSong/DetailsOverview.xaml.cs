@@ -1,9 +1,12 @@
 using AndroidX.Lifecycle;
 using ATL;
+using CommunityToolkit.Maui.Alerts;
+using CommunityToolkit.Maui.Core;
 using DevExpress.Maui.Core;
 using Dimmer.Data.Models.LyricsModels;
 using DynamicData;
 using Java.Interop;
+using Font = Microsoft.Maui.Font;
 
 namespace Dimmer.Views.SingleSong;
 
@@ -117,8 +120,36 @@ public partial class DetailsOverview : ContentPage
             var songInCollection = MyViewModel.SearchResults.First(x=>x.Id == MyViewModel.SelectedSong.Id);
             MyViewModel.SearchResultsHolder.Edit(updater =>
             {
-                updater.Replace(songInCollection, MyViewModel.SelectedSong);
+                updater.AddOrUpdate(MyViewModel.SelectedSong, MyViewModel.SelectedSong.Id.ToString());
+
             });
+
+           
+
+            CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+
+            var snackbarOptions = new SnackbarOptions
+            {
+                BackgroundColor = Colors.Red,
+                TextColor = Colors.Green,
+                ActionButtonTextColor = Colors.Yellow,
+                CornerRadius = new CornerRadius(10),
+                Font = Font.SystemFontOfSize(14),
+                ActionButtonFont = Font.SystemFontOfSize(14),
+                CharacterSpacing = 0.5
+            };
+
+            string text = "Song Lyrics Updated";
+            string actionButtonText = "Dismiss";
+            TimeSpan duration = TimeSpan.FromSeconds(3);
+
+            var snackbar = Snackbar.Make(text, null, actionButtonText, duration, snackbarOptions);
+
+
+
+            await snackbar.Show(cancellationTokenSource.Token);
+
+
         }
     }
 

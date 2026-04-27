@@ -259,8 +259,9 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
     private async void Button_Click(object sender, RoutedEventArgs e)
     {
         var btn = (sender as Button)!;
+        var trackk = (btn.DataContext as Hqub.Lastfm.Entities.Track)!;
         var comParam = btn.Content as string;
         
-        await MyViewModel.OpenSongInOnlineSearch(comParam);
+        await MyViewModel.OpenSongInOnlineSearch(comParam, trackk.Name,trackk.Artist.Name);
     }
 }

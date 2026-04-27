@@ -109,35 +109,37 @@
         Margin="15,2"
         CornerRadius="10"
         RowSpacing="10">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
 
-        <StackPanel Grid.Row="0" HorizontalAlignment="Center">
+        <StackPanel Grid.Column="0" HorizontalAlignment="Center">
 
-            <Expander x:Name="SortExpander" ExpandDirection="Down">
+            <Expander x:Name="SortExpander" IsExpanded="True" ExpandDirection="Down">
                 <Expander.Header>
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="Sort by" />
 
-                    <SymbolIcon Symbol="Sort" />
-
+                        <SymbolIcon Symbol="Sort" />
+                    </StackPanel>
                 </Expander.Header>
                 <Expander.Content>
 
-                    <RadioButtons Header="Sort By:" SelectionChanged="SortRadioBtns_SelectionChanged" x:Name="SortRadioBtns">
-                        <RadioButton   Content="Name Asc" />
-                        <RadioButton  Content="Name Desc" />
-                        <RadioButton  Content="Total Play Count Asc" />
-                        <RadioButton  Content="Total Play Count Desc" />
-                        <RadioButton  Content="Total Albums Asc" />
-                        <RadioButton  Content="Total Albums Desc" />
+                    <RadioButtons x:Name="SortRadioBtns" SelectionChanged="SortRadioBtns_SelectionChanged">
+                        <RadioButton Content="Name Asc" />
+                        <RadioButton Content="Name Desc" />
+                        <RadioButton Content="Total Play Count Asc" />
+                        <RadioButton Content="Total Play Count Desc" />
+                        <RadioButton Content="Total Albums Asc" />
+                        <RadioButton Content="Total Albums Desc" />
                     </RadioButtons>
 
                 </Expander.Content>
             </Expander>
         </StackPanel>
 
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+        <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
 
             <ItemsRepeater
                 x:Name="ArtistsItemsRepeater"

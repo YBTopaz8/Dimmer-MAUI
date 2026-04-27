@@ -663,80 +663,11 @@ FontWeight="ExtraBold" />
                                 Loading="MySongAchievements_Loading" />
 
 
-                            <ListView
-                                x:Name="AllAchievementsIR"
-                                Grid.Column="0"
-                                Loaded="AllAchievementsIR_Loaded">
-
-                                <ListView.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border
-                                            x:Name="connectedPopUpElement"
-                                            Width="190"
-                                            Padding="10"
-                                            BorderBrush="DarkSlateBlue"
-                                            BorderThickness="2"
-                                            CornerRadius="20"
-                                            PointerPressed="connectedPopUpElement_PointerPressed">
-                                            <StackPanel>
-                                                <TextBlock Text="{Binding Name}" />
-                                                <TextBlock Text="{Binding Description}" />
-                                            </StackPanel>
-                                        </Border>
-                                    </DataTemplate>
-                                </ListView.ItemTemplate>
-                            </ListView>
-
-                        </StackPanel>
-
-
-
-                        <!--  SECTION 6: RELATED  -->
-                        <StackPanel
-                            x:Name="SectionRelated"
-                            MaxHeight="400"
-                            Spacing="10">
-                            <TextBlock
-                                FontSize="34"
-                                FontWeight="ExtraBold"
-                                Text="Related Section" />
-                            <StackPanel
-                                Padding="8"
-                                HorizontalAlignment="Left"
-                                BorderBrush="Gray"
-                                BorderThickness="1"
-                                CornerRadius="10"
-                                Orientation="Horizontal"
-                                Spacing="10">
-
-                                <TextBlock FontSize="24" Text="{Binding SelectedSongLastFMData.Statistics.Listeners}" />
-                                <TextBlock
-                                    FontSize="24"
-                                    Text="Listeners"
-                                    ToolTipService.ToolTip="Total LastFM Listeners" />
-                            </StackPanel>
-                            <StackPanel
-                                Padding="8"
-                                HorizontalAlignment="Left"
-                                BorderBrush="Gray"
-                                BorderThickness="1"
-                                CornerRadius="10"
-                                Orientation="Horizontal"
-                                Spacing="10">
-
-                                <TextBlock FontSize="24" Text="{Binding SelectedSongLastFMData.Statistics.PlayCount}" />
-                                <TextBlock
-                                    FontSize="24"
-                                    Text="Scrobbles"
-                                    ToolTipService.ToolTip="Total LastFM Scrobbles" />
-
-                            </StackPanel>
-                            <TextBlock Text="Last FM Stats..." />
-                            <TextBlock Text="{Binding SimilarTracks.Count}" />
-
                             
+
                         </StackPanel>
 
+                        
                     </StackPanel>
                 </ScrollViewer>
 

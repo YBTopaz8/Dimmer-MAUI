@@ -25,7 +25,7 @@
     mc:Ignorable="d">
 
 
-    <ScrollViewer >
+    <ScrollViewer>
 
         <Grid>
 
@@ -78,8 +78,8 @@
                             HorizontalAlignment="Left"
                             VerticalAlignment="Top"
                             FontSize="55"
-                            Loaded="ArtistNameInArtistPage_Loaded"
                             FontWeight="SemiBold"
+                            Loaded="ArtistNameInArtistPage_Loaded"
                             PointerReleased="ArtistNameInArtistPage_PointerReleased"
                             Text="{Binding SelectedArtist.Name}"
                             Visibility="Visible" />
@@ -177,14 +177,13 @@
 
                 <dgView:TableView
                     x:Name="ArtistDataTable"
-                    Grid.Row="4" 
-                    MaxHeight="850"
-                    Margin="15" 
+                    Grid.Row="4"
+                    Margin="15"
                     VerticalAlignment="Top"
                     AutoGenerateColumns="False"
                     BorderBrush="Transparent"
                     BorderThickness="0"
-                    ItemsSource="{Binding SearchResults}"
+                    ItemsSource="{x:Bind MyViewModel.SelectedArtist.SongsByArtist, Mode=OneWay}"
                     Loaded="ArtistDataTable_Loaded">
 
                     <dgView:TableView.Columns>
@@ -360,7 +359,7 @@
                     CornerRadius="10"
                     Orientation="Horizontal"
                     Spacing="5">
-                    <TextBlock HorizontalAlignment="Center" Text="{x:Bind MyViewModel.SelectedArtist.SongsByArtist.Count, Mode=OneWay}" />
+                    <TextBlock HorizontalAlignment="Center" Text="{x:Bind MyViewModel.SelectedArtist.TotalSongsByArtist, Mode=OneWay}" />
                     <TextBlock HorizontalAlignment="Center" Text="Songs" />
                 </StackPanel>
             </Grid>

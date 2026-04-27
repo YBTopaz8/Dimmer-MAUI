@@ -27,11 +27,7 @@ public static class MauiProgram
                 options.SetShouldSuppressExceptionsInConverters(true);
 
             })
-            .ConfigureMauiHandlers(handlers =>
-            {
-                handlers.AddHandler<CollectionView, CustomCollectionViewHandler>();
-             
-            });
+            ;
         builder.Services.AddDimmerCoreServices();
 
 
@@ -92,24 +88,6 @@ public static class MauiProgram
 
                     }
 
-
-
-
-
-                    // Check if this is the mini player window by checking its title or other identifying property
-                    if (window.Title == "MP")
-                    {
-
-                        //window.SetTitleBar()
-                        if (PlatUtils.OverLappedPres is OverlappedPresenter p)
-                        {
-
-                            p.IsResizable = true;
-                            p.SetBorderAndTitleBar(false, false); // Remove title bar and border
-                            p.IsAlwaysOnTop = true;
-                        }
-                        window.Activate();
-                    }
                 });
 
 

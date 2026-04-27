@@ -575,20 +575,20 @@ Observable.FromEventPattern<PlaybackEventArgs>(
            {
                Debug.WriteLine($"[ThreadPool] Task started for: {query}");
                var result = PerformSearchBackground(query); // NOT Task.Run!
-               Debug.WriteLine($"[ThreadPool] Task completed with {result?.SongsResult?.Count()} songs");
+
                return result;
            }, RxSchedulers.Background)
            .ObserveOn(RxSchedulers.UI) // FIX 2: ObserveOn HERE, inside the select
            .Do(result =>
            {
                // This now runs on UI thread!
-               Debug.WriteLine($"[UI Thread] Got result with {result?.SongsResult?.Count()} songs, thread: {Environment.CurrentManagedThreadId}");
+            
            });
        })
        .Switch() // Now switching between observables that already target UI
        .Subscribe(result =>
        {
-           Debug.WriteLine($"[Subscribe] UI thread executing ApplySearchResults with {result?.SongsResult?.Count()} songs");
+          
            ApplySearchResults(result);
        },
        ex =>
@@ -7792,18 +7792,15 @@ Observable.FromEventPattern<PlaybackEventArgs>(
         }
     }
 
-    [RelayCommand]
-    public async Task OpenSongInOnlineSearch(string? service)
+    
+
+
+    public async Task OpenSongInOnlineSearch(string? service, string songTitle, string songArtist)
     {
 
         service ??= "google";
-        if (SelectedSong is null && CurrentPlayingSongView is not null)
-        {
-            SelectedSong = CurrentPlayingSongView;
-        }
-        if (SelectedSong is null)
-            return;
-        string query = $"{SelectedSong.Title} {SelectedSong.ArtistName}";
+       
+        string query = $"{songTitle} {songArtist}";
         string url = service.ToLower() switch
         {
             "google" => $"https://www.google.com/search?q={Uri.EscapeDataString(query)}",
