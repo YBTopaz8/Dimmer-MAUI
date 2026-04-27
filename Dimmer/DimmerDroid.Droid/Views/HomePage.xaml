@@ -3,6 +3,7 @@
     x:Class="Dimmer.Views.HomePage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:TQlVM="clr-namespace:Dimmer.ViewModel.TQL;assembly=Dimmer"
     xmlns:dx="http://schemas.devexpress.com/maui"
     xmlns:local="clr-namespace:Dimmer.Views.CustomViews"
     xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
@@ -52,18 +53,51 @@
                 <dx:TextEdit
                     x:Name="SearchBarTextEdit"
                     CornerRadius="8,8,10,10"
+                    Focused="SearchBarTextEdit_Focused"
+                    FocusedBorderColor="DarkOrange"
+                    FocusedBorderThickness="2"
                     HorizontalOptions="Fill"
                     Loaded="SearchBar_Loaded"
                     PlaceholderColor="Gray"
                     PlaceholderText="Search with TQL..."
                     TextChanged="SearchBar_TextChanged"
+                    Unfocused="SearchBarTextEdit_Unfocused"
                     Unloaded="SearchBar_Unloaded" />
 
 
             </Grid>
 
+            <dx:DXExpander x:Name="TQLFilterExpander" IsExpanded="false">
+                <dx:DXExpander.Content>
+                    <Grid Margin="10,0" ColumnDefinitions="*,auto">
+                        <dx:DXStackLayout
+                            Grid.Column="0"
+                            HorizontalOptions="Center"
+                            ItemSpacing="15"
+                            Orientation="Horizontal">
+                            <dx:Chip x:Name="TQLMyFavChip" Text="My Fav" />
+                            <dx:Chip x:Name="TQLShuffleChip" Text="Shuffle" />
+                            <dx:Chip
+                                x:Name="TqlFilter"
+                                Padding="0"
+                                Icon="filtertwo.png"
+                                IconSize="30,30"
+                                IsIconVisible="True"
+                                TapCommand="{Binding Commands.Show, Source={Reference FilteringBtmSheet}}" />
 
-
+                        </dx:DXStackLayout>
+                        <dx:DXStackLayout Grid.Column="1">
+                            <dx:Chip
+                                x:Name="TQLInfoChip"
+                                Padding="0"
+                                BorderThickness="0"
+                                Icon="infosquare.png"
+                                IconSize="30,30"
+                                IsIconVisible="True" />
+                        </dx:DXStackLayout>
+                    </Grid>
+                </dx:DXExpander.Content>
+            </dx:DXExpander>
 
         </dx:DXStackLayout>
         <dx:DXCollectionView
@@ -95,7 +129,7 @@
                                 <TapGestureRecognizer
                                     x:Name="MiddleGridSection"
                                     NumberOfTapsRequired="1"
-                                    Tapped="MiddleGridSection_Tapped" />
+                                    Tapped="MiddleGridSection_TappedToPlaySong" />
                             </dx:DXStackLayout.GestureRecognizers>
 
                             <dx:Chip
@@ -192,18 +226,19 @@
             Margin="10,0"
             HorizontalOptions="End"
             VerticalOptions="End">
-            <dx:DXButton
+            <dx:Chip
+                x:Name="SearchIconBtn"
                 Padding="5"
                 BackgroundColor="{AppThemeBinding Dark=#1e1e1e,
                                                   Light=White}"
-                Command="{Binding Commands.Show, Source={Reference FilteringBtmSheet}}"
+                BorderThickness="0"
                 Icon="searchd.png"
                 IconColor="{AppThemeBinding Dark=White,
                                             Light=Black}"
-                IconHeight="50"
-                IconWidth="50"
-                ShowContent="False"
-                ShowIcon="True" />
+                IconSize="50,50"
+                IsIconVisible="True" DoubleTap="SearchIconBtn_DoubleTap"
+                LongPressCommand="{Binding Commands.Show, Source={Reference FilteringBtmSheet}}"
+                Tap="SearchIconBtn_Tapped" />
 
         </dx:DXStackLayout>
 
@@ -329,6 +364,7 @@
                         BorderThickness="0"
                         Command="{Binding PreviousTrackCommand}"
                         Icon="skipprevious.png"
+                        IconColor="DarkSlateBlue"
                         IconHeight="40"
                         IconWidth="40"
                         ShowIcon="True">
@@ -379,6 +415,7 @@
                         BorderThickness="0"
                         Command="{Binding NextTrackCommand}"
                         Icon="skipnext.png"
+                        IconColor="DarkSlateBlue"
                         IconHeight="40"
                         IconWidth="40"
                         ShowIcon="True">
@@ -563,21 +600,100 @@
             x:Name="FilteringBtmSheet"
             AllowDismiss="True"
             AllowedState="HalfExpanded"
-            HalfExpandedRatio="0.6">
+            HalfExpandedRatio="0.8">
             <dx:BottomSheet.Content>
-                <dx:DXStackLayout Margin="5">
-                    <Label
-                        FontAttributes="Bold"
-                        FontSize="25"
-                        HorizontalOptions="Center"
-                        Text="Filter" />
-                    <dx:FilterCheckItem
-                        AllowIndeterminateInput="True"
-                        Context="{Binding FilteringContext, Source={x:Reference SongsCV}}"
-                        FieldName="IsFavorite"
-                        Text="Is Favorite?" />
+                <Grid
+                    Margin="15"
+                    RowDefinitions="Auto, Auto, 20, Auto,Auto"
+                    RowSpacing="5">
 
-                </dx:DXStackLayout>
+                    <!--  1. THE LIVE TQL PREVIEW  -->
+                    <dx:DXStackLayout Grid.Row="0" Margin="0,0,0,15">
+                        <Label
+                            FontSize="12"
+                            Text="Generated TQL:"
+                            TextColor="Gray" />
+                        <dx:TextEdit
+                            FontAutoScalingEnabled="True"
+                            HelpText="This string updates automatically."
+                            IsReadOnly="True"
+                            Text="{Binding GeneratedTqlQuery}" />
+                    </dx:DXStackLayout>
+
+                    <!--  2. ACTIVE FILTER CHIPS  -->
+                    <Label
+                        Grid.Row="1"
+                        Margin="0,0,0,10"
+                        FontAttributes="Bold"
+                        Text="Active Rules (Tap icon to change Logic)" />
+
+                    <CollectionView
+                        Grid.Row="2"
+                        BackgroundColor="Red"
+                        ItemsSource="{Binding ActiveFilterRules}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="TQlVM:VisualFilterRule">
+                                <dx:DXStackLayout
+                                    Margin="0,5"
+                                    ItemSpacing="10"
+                                    Orientation="Horizontal"
+                                    VerticalOptions="Center">
+
+                                    <!--  Logic Toggler Button  -->
+                                    <dx:DXButton
+                                        BackgroundColor="{Binding ChipColor}"
+                                        Command="{Binding ToggleRuleLogicCommand, Source={RelativeSource AncestorType={x:Type vm:BaseViewModelAnd}}}"
+                                        CommandParameter="{Binding .}"
+                                        Content="{Binding LogicPrefix}"
+                                        TextColor="White"
+                                        WidthRequest="80" />
+
+                                    <!--  The Rule Info  -->
+                                    <Label
+                                        Text="{Binding DisplayField}"
+                                        TextColor="Gray"
+                                        VerticalOptions="Center" />
+                                    <Label Text=":" VerticalOptions="Center" />
+                                    <Label
+                                        FontAttributes="Bold"
+                                        Text="{Binding Value}"
+                                        VerticalOptions="Center" />
+
+                                    <!--  Delete Button  -->
+                                    <dx:DXButton
+                                        Command="{Binding RemoveRuleCommand, Source={RelativeSource AncestorType={x:Type vm:BaseViewModelAnd}}}"
+                                        CommandParameter="{Binding .}"
+                                        HorizontalOptions="End"
+                                        Icon="delete.png" />
+
+                                </dx:DXStackLayout>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+
+
+
+
+                    <dx:DXStackLayout
+                        Grid.Row="3"
+                        Margin="0,15,0,0"
+                        ItemSpacing="10"
+                        Orientation="Horizontal">
+
+
+                        <dx:DXToggleButton x:Name="ArtistToggleButton" Content="Artist"
+                                           CheckedChanged="ArtistToggleButton_CheckedChanged"/>
+
+                     
+
+                    </dx:DXStackLayout>
+
+                    <dx:DXStackLayout Grid.Row="4">
+
+                        <dx:DXButton Clicked="AddRule_Clicked" Content="Add Rule" />
+                    </dx:DXStackLayout>
+                </Grid>
             </dx:BottomSheet.Content>
         </dx:BottomSheet>
     </Grid>

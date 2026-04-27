@@ -82,9 +82,11 @@
                                             HorizontalOptions="Center"
                                             Text="{Binding ArtistToSong.Count, StringFormat='{0} Artists'}" />
 
-                                        <dx:DXCollectionView 
+                                        <dx:DXCollectionView
+                                            Grid.Row="1"
                                             ItemSpacing="10"
-                                            MaximumHeightRequest="300" Grid.Row="1" ItemsSource="{Binding ArtistToSong}">
+                                            ItemsSource="{Binding ArtistToSong}"
+                                            MaximumHeightRequest="300">
                                             <dx:DXCollectionView.ItemTemplate>
                                                 <DataTemplate x:DataType="models:ArtistModelView">
                                                     <Grid ColumnDefinitions="*,auto">
@@ -133,17 +135,23 @@
                                     VerticalOptions="End">
 
                                     <dx:Chip
+                                        x:Name="QuickCopyTitleNameToClipBoardChip"
                                         BorderThickness="0"
                                         HeightRequest="50"
                                         Icon="copy.png"
                                         IconSize="35,35"
-                                        IsIconVisible="True" />
+                                        IsIconVisible="True"
+                                        LongPressCommandParameter="copy"
+                                        TapCommandParameter="title" />
                                     <dx:Chip
+                                        x:Name="QuickPasteSongTitleToTextChip"
                                         BorderThickness="0"
                                         HeightRequest="55"
                                         Icon="clipboard.png"
                                         IconSize="35,35"
-                                        IsIconVisible="True" />
+                                        IsIconVisible="True"
+                                        LongPressCommandParameter="paste"
+                                        TapCommandParameter="title" />
 
                                 </dx:DXStackLayout>
                             </Grid>
@@ -159,25 +167,62 @@
                                     VerticalOptions="End">
 
                                     <dx:Chip
+                                        x:Name="QuickCopyArtistNameToClipBoardChip"
                                         BorderThickness="0"
                                         HeightRequest="50"
                                         Icon="copy.png"
                                         IconSize="35,35"
-                                        IsIconVisible="True" />
+                                        IsIconVisible="True"
+                                        LongPressCommandParameter="copy"
+                                        TapCommandParameter="artist" />
                                     <dx:Chip
+                                        x:Name="QuickPasteArtistNameToTextChip"
                                         BorderThickness="0"
                                         HeightRequest="55"
                                         Icon="clipboard.png"
                                         IconSize="35,35"
-                                        IsIconVisible="True" />
+                                        IsIconVisible="True"
+                                        LongPressCommandParameter="paste"
+                                        Tap="QuickPasteArtistNameToTextChip_Tap"
+                                        TapCommandParameter="artist" />
+
+                                </dx:DXStackLayout>
+                            </Grid>
+
+                            <Grid ColumnDefinitions="*,auto" ColumnSpacing="5">
+
+                                <dx:TextEdit LabelText="Track Name" Text="{Binding LyricsAlbumNameSearch}" />
+
+                                <dx:DXStackLayout
+                                    Grid.Column="1"
+                                    ItemSpacing="10"
+                                    Orientation="Horizontal"
+                                    VerticalOptions="End">
+
+                                    <dx:Chip
+                                        x:Name="QuickCopyAlbumNameToClipBoardChip"
+                                        BorderThickness="0"
+                                        HeightRequest="50"
+                                        Icon="copy.png"
+                                        IconSize="35,35"
+                                        IsIconVisible="True"
+                                        LongPressCommandParameter="copy"
+                                        TapCommandParameter="album" />
+                                    <dx:Chip
+                                        x:Name="QuickPasteAlbumNameToTextChip"
+                                        BorderThickness="0"
+                                        HeightRequest="55"
+                                        Icon="clipboard.png"
+                                        IconSize="35,35"
+                                        IsIconVisible="True"
+                                        LongPressCommandParameter="paste"
+                                        Tap="QuickPasteAlbumNameToTextChip_Tap"
+                                        TapCommandParameter="album" />
 
                                 </dx:DXStackLayout>
                             </Grid>
 
 
-                            <dx:DXStackLayout ItemSpacing="10">
-                                <dx:TextEdit LabelText="Album Name" Text="{Binding LyricsAlbumNameSearch}" />
-                            </dx:DXStackLayout>
                             <dx:DXButton
                                 x:Name="SearchLyricsBtn"
                                 Clicked="SearchLyricsBtn_Clicked"

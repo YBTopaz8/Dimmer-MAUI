@@ -48,7 +48,7 @@ public sealed partial class SongDetailPage : Page
             { SectionOverview, "Overview" },
             { SectionPlayback, "Playback" },
             { SectionLyricsStackPanel, "Lyrics" },
-            { SectionRelated, "Related" }
+            //{ SectionRelated, "Related" }
         };
 
         SetupRightClickMenu();
@@ -511,24 +511,24 @@ public sealed partial class SongDetailPage : Page
     AchievementRule _storedItem;
     private async void PopUpBackButton_Click(object sender, RoutedEventArgs e)
     {
-        ConnectedAnimation animation = ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("backwardsAnimation", destinationElement);
-        SmokeGrid.Children.Remove(destinationElement);
+        //ConnectedAnimation animation = ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("backwardsAnimation", destinationElement);
+        //SmokeGrid.Children.Remove(destinationElement);
 
-        // Collapse the smoke when the animation completes.
-        animation.Completed += Animation_Completed;
+        //// Collapse the smoke when the animation completes.
+        //animation.Completed += Animation_Completed;
 
-        // If the connected item appears outside the viewport, scroll it into view.
-       await AllAchievementsIR.SmoothScrollIntoViewWithItemAsync(_storedItem, (ScrollItemPlacement)ScrollIntoViewAlignment.Default);
-        AllAchievementsIR.UpdateLayout();
+       // // If the connected item appears outside the viewport, scroll it into view.
+       //await AllAchievementsIR.SmoothScrollIntoViewWithItemAsync(_storedItem, (ScrollItemPlacement)ScrollIntoViewAlignment.Default);
+       // AllAchievementsIR.UpdateLayout();
 
-        // Use the Direct configuration to go back (if the API is available).
-        if (ApiInformation.IsApiContractPresent("Windows.Foundation.UniversalApiContract", 7))
-        {
-            animation.Configuration = new DirectConnectedAnimationConfiguration();
-        }
+       // // Use the Direct configuration to go back (if the API is available).
+       // if (ApiInformation.IsApiContractPresent("Windows.Foundation.UniversalApiContract", 7))
+       // {
+       //     animation.Configuration = new DirectConnectedAnimationConfiguration();
+       // }
 
-        // Play the second connected animation.
-        await AllAchievementsIR.TryStartConnectedAnimationAsync(animation, _storedItem, "connectedPopUpElement");
+       // // Play the second connected animation.
+       // await AllAchievementsIR.TryStartConnectedAnimationAsync(animation, _storedItem, "connectedPopUpElement");
 
     }
     private void Animation_Completed(ConnectedAnimation sender, object args)
@@ -541,23 +541,23 @@ public sealed partial class SongDetailPage : Page
 
     private void connectedPopUpElement_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
-        ConnectedAnimation? animation = null;
-        Border send = (Border)sender;
-        var itemm = send.DataContext as AchievementRule;
-        _storedItem = itemm;
-        MyViewModel.SelectedAchievement = itemm;
-        // Prepare the connected animation.
-        // Notice that the stored item is passed in, as well as the name of the connected element.
-        // The animation will actually start on the Detailed info page.
-        animation = AllAchievementsIR.PrepareConnectedAnimation("forwardAnimation", itemm, "connectedPopUpElement");
+        //ConnectedAnimation? animation = null;
+        //Border send = (Border)sender;
+        //var itemm = send.DataContext as AchievementRule;
+        //_storedItem = itemm;
+        //MyViewModel.SelectedAchievement = itemm;
+        //// Prepare the connected animation.
+        //// Notice that the stored item is passed in, as well as the name of the connected element.
+        //// The animation will actually start on the Detailed info page.
+        //animation = AllAchievementsIR.PrepareConnectedAnimation("forwardAnimation", itemm, "connectedPopUpElement");
 
 
 
-        SmokeGrid.Visibility = WinUIVisibility.Visible;
-        if (animation != null)
-        {
-            animation.TryStart(destinationElement);
-        }
+        //SmokeGrid.Visibility = WinUIVisibility.Visible;
+        //if (animation != null)
+        //{
+        //    animation.TryStart(destinationElement);
+        //}
 
     }
 

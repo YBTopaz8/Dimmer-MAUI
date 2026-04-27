@@ -10,6 +10,7 @@ using Dimmer.UIUtils;
 using Dimmer.Utilities.Enums;
 using Dimmer.Utilities.TypeConverters;
 using Dimmer.Utils;
+using Dimmer.ViewModel.TQL;
 using DynamicData.Binding;
 using Hqub.Lastfm.Entities;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -5655,14 +5656,21 @@ Observable.FromEventPattern<PlaybackEventArgs>(
             return string.Empty;
 
         // 1. Process locally (don't set class properties)
-        LyricsTrackNameSearch ??= CleanSongTitle(SelectedSong.Title ?? string.Empty);
-        LyricsArtistNameSearch ??= GetPrimaryArtist(SelectedSong.ArtistName ?? string.Empty);
-
+        if(string.IsNullOrEmpty(LyricsTrackNameSearch ))
+        {
+            LyricsTrackNameSearch =CleanSongTitle(SelectedSong.Title ?? string.Empty);
+        }
+        if (string.IsNullOrEmpty(LyricsArtistNameSearch))
+        {
+            LyricsArtistNameSearch = GetPrimaryArtist(SelectedSong.ArtistName ?? string.Empty);
+        }
         // Album is often "noise" for lyric searches. Only include it if it's very specific.
         // Ideally, for lyrics, Artist + Title is usually the strongest query.
-        var album = SelectedSong.AlbumName ?? string.Empty;
-        LyricsAlbumNameSearch ??= !IsGenericAlbumName(album) ? album : string.Empty;
-
+        if (string.IsNullOrEmpty(LyricsAlbumNameSearch))
+        {
+            var album = SelectedSong.AlbumName ?? string.Empty;
+            LyricsAlbumNameSearch = !IsGenericAlbumName(album) ? album : string.Empty;
+        }
         // 2. Build the list, filtering out empties immediately
         var searchParts = new List<string>();
 
@@ -8071,6 +8079,40 @@ Observable.FromEventPattern<PlaybackEventArgs>(
         await _lyricsMgtFlow.GetLyrics(concernedSong);
     }
 
+    [ObservableProperty]
+    public partial ObservableCollection<VisualFilterRule> ActiveFilterRules { get; set; } = new();
+    [ObservableProperty]
+    public partial string GeneratedTqlQuery { get; set; } = string.Empty;
+
+    // Call this whenever the collection changes, or a chip is tapped
+    public void UpdateGeneratedTql()
+    {
+        // Joins all rules with a space
+        GeneratedTqlQuery = string.Join(" ", ActiveFilterRules.Select(r => r.ToTqlSnippet()));
+
+        // You can instantly pass this to your TQL Search Pipeline here!
+        // _searchQuerySubject.OnNext(GeneratedTqlQuery);
+    }
+    // In your ViewModel:
+[RelayCommand]
+public void ToggleRuleLogic(VisualFilterRule rule)
+{
+    if (rule == null) return;
+    
+    // Cycle 0 -> 1 -> 2 -> 0 (Include -> Add -> Exclude)
+    rule.LogicState = (rule.LogicState + 1) % 3;
+
+
+
+    UpdateGeneratedTql();
+}
+
+[RelayCommand]
+public void RemoveRule(VisualFilterRule rule)
+{
+    ActiveFilterRules.Remove(rule);
+    UpdateGeneratedTql();
+}
 }
 
 public enum CollectionViewMode

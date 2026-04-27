@@ -20,7 +20,6 @@ public partial class NowPlayingBottomSheet : BottomSheet
 
         PlayBackQueueExp.IsExpanded = false;
         NowPlayingExp.IsExpanded = false;
-        SingleSongLyricsViewExp.SetIsExpanded(true, true);
     }
 
   
@@ -97,34 +96,7 @@ public partial class NowPlayingBottomSheet : BottomSheet
 
     }
 
-    private void AllLyricsColView_SelectionChanged(object sender, DevExpress.Maui.CollectionView.CollectionViewSelectionChangedEventArgs e)
-    {
-
-
-        var currentList = e.AddedItems as IReadOnlyList<object>;
-        var current = currentList?.FirstOrDefault() as Dimmer.Data.ModelView.LyricPhraseModelView;
-        if (current != null)
-        {
-            var pastList = e.RemovedItems as IReadOnlyList<object>;
-            if (pastList.Count > 0 && pastList?[0] is Dimmer.Data.ModelView.LyricPhraseModelView past)
-            {
-                past?.NowPlayingLyricsFontSize = 25;
-                past?.HighlightColor = Microsoft.Maui.Graphics.Colors.White;
-                past?.IsHighlighted = false;
-            }
-            current?.NowPlayingLyricsFontSize = 40;
-            current?.IsHighlighted = true;
-            current?.HighlightColor = Microsoft.Maui.Graphics.Colors.SlateBlue;
-
-            var itemHandle = AllLyricsColView.FindItemHandle(current);
-            RxSchedulers.UI.ScheduleTo(() =>
-            {
-                AllLyricsColView.ScrollTo(itemHandle,   DevExpress.Maui.Core.DXScrollToPosition.Start);
-            });
-
-        }
-    }
-
+  
     private void DXCollectionView_Scrolled(object sender, DevExpress.Maui.CollectionView.DXCollectionViewScrolledEventArgs e)
     {
 
@@ -181,38 +153,18 @@ public partial class NowPlayingBottomSheet : BottomSheet
 
         PlayBackQueueExp.IsExpanded = false;
         NowPlayingExp.IsExpanded = false;
-        SingleSongLyricsViewExp.SetIsExpanded(true, true);
 
     }
 
-    private void CoverImgInNowPlayinggPage_Tapped(object sender, TappedEventArgs e)
-    {
-        NowPlayingExp.IsExpanded = true;
-        SingleSongLyricsViewExp.IsExpanded = false ;
-        PlayBackQueueExp.IsExpanded= false;
-        
-    }
 
     private void BackBtn_Tap(object sender, DXTapEventArgs e)
     {
         NowPlayingExp.IsExpanded = true;
-        SingleSongLyricsViewExp.IsExpanded = false;
         PlayBackQueueExp.IsExpanded = false;
 
     }
 
-    private void AllLyricsColView_Tap(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
-    {
 
-        LyricPhraseModelView? lyricTapped = e.Item as LyricPhraseModelView;
-        var lyricTappedHandle = e.ItemHandle;
-        if (lyricTapped is null)
-            return;
-        var timeInSec = TimeSpan.FromMilliseconds(lyricTapped.EndTimeMs).Seconds;
-        MyViewModel.SeekTrackPosition(timeInSec);
-        AllLyricsColView.ScrollTo(lyricTappedHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
-
-    }
 
     private void LyricsChip_Tap_1(object sender, HandledEventArgs e)
     {

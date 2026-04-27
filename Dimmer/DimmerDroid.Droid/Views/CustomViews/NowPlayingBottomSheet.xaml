@@ -349,10 +349,13 @@
                 <dx:DXStackLayout Margin="10,0" ItemSpacing="15">
                     <dx:DXButton
                         x:Name="BackBtn"
+                        Padding="0"
                         BackgroundColor="Transparent"
                         HorizontalOptions="Start"
                         Icon="backb.png"
                         IconColor="DarkSlateBlue"
+                        IconHeight="40"
+                        IconWidth="40"
                         ShowContent="False"
                         ShowIcon="True"
                         Tap="BackBtn_Tap" />
@@ -382,7 +385,7 @@
                         BackgroundColor="Transparent"
                         CornerRadius="10"
                         HeightRequest="100"
-                        IsVisible="{Binding IsDimmerPlaying}"
+                        IsVisible="True"
                         PressedBackgroundColor="{Binding CurrentPlaySongDominantColor}"
                         TapPressed="NowPlayingHighlightBtn_TapPressed">
 
@@ -571,67 +574,6 @@
             </Grid>
         </dx:DXExpander>
 
-        <dx:DXExpander
-            x:Name="SingleSongLyricsViewExp"
-            x:FieldModifier="Public"
-            IsExpanded="False">
-            <dx:DXStackLayout>
-                <Grid ColumnDefinitions="80,*">
-                    <dx:DXImage
-                        Grid.Column="0"
-                        Aspect="AspectFill"
-                        HeightRequest="70"
-                        Opacity="0.5"
-                        Source="{Binding CurrentPlayingSongView.CoverImagePath}"
-                        WidthRequest="70">
-                        <dx:DXImage.GestureRecognizers>
-                            <TapGestureRecognizer
-                                x:Name="CoverImgInNowPlayinggPage"
-                                NumberOfTapsRequired="1"
-                                Tapped="CoverImgInNowPlayinggPage_Tapped" />
-                        </dx:DXImage.GestureRecognizers>
-                    </dx:DXImage>
-
-                    <dx:DXStackLayout
-                        Grid.Column="1"
-                        Padding="5"
-                        ItemSpacing="10"
-                        VerticalOptions="Center">
-                        <Label FontSize="16" Text="{Binding CurrentPlayingSongView.Title}" />
-                        <Label FontSize="13" Text="{Binding CurrentPlayingSongView.ArtistName}" />
-                        <Label FontSize="10" Text="{Binding CurrentPlayingSongView.AlbumName}" />
-                    </dx:DXStackLayout>
-                </Grid>
-
-                <dx:DXCollectionView
-                    x:Name="AllLyricsColView"
-                    Grid.Row="1"
-                    ItemsSource="{Binding AllLines}"
-                    SelectedItem="{Binding CurrentLine}"
-                    SelectionChanged="AllLyricsColView_SelectionChanged"
-                    SelectionMode="Single"
-                    Tap="AllLyricsColView_Tap">
-                    <dx:DXCollectionView.ItemTemplate>
-                        <DataTemplate x:DataType="models:LyricPhraseModelView">
-                            <Grid>
-                                <Border
-                                    BackgroundColor="{AppThemeBinding Dark=#1e1e1e}"
-                                    IsVisible="{Binding IsHighlighted}"
-                                    Opacity="0.7"
-                                    Stroke="DarkSlateBlue" />
-
-                                <Label
-                                    FontSize="{Binding NowPlayingLyricsFontSize}"
-                                    HorizontalTextAlignment="Center"
-                                    Text="{Binding Text}"
-                                    TextColor="{Binding HighlightColor}" />
-                            </Grid>
-                        </DataTemplate>
-                    </dx:DXCollectionView.ItemTemplate>
-                </dx:DXCollectionView>
-
-            </dx:DXStackLayout>
-        </dx:DXExpander>
 
     </Grid>
 </dx:BottomSheet>

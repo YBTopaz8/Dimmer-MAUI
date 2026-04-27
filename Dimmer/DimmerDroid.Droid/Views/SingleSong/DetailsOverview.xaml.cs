@@ -23,18 +23,16 @@ public partial class DetailsOverview : ContentPage
     public BaseViewModelAnd MyViewModel { get; }
     public StatisticsViewModel StatsViewModel { get; }
     public LastFMViewModel LastFMViewModel { get; }
- 
+    public SongModelView ConcernedSong { get; private set; }
 
     protected async override void OnAppearing()
     {
         base.OnAppearing();
+        if (MyViewModel.SelectedSong is null) return;
         BindingContext = MyViewModel.SelectedSong;
         StatisticsStackLayout.BindingContext = StatsViewModel;
 
-        if(MyViewModel.IsSearchingLyrics)
-        {
-            SongTabView.SelectedItemIndex = 1;
-        }
+        ConcernedSong = MyViewModel.SelectedSong;
 
         _ = StatsViewModel.LoadSongStatsAsync(MyViewModel.SelectedSong);
         _ = LastFMViewModel.LoadSelectedSongLastFMData();
@@ -130,9 +128,9 @@ public partial class DetailsOverview : ContentPage
 
             var snackbarOptions = new SnackbarOptions
             {
-                BackgroundColor = Colors.Red,
-                TextColor = Colors.Green,
-                ActionButtonTextColor = Colors.Yellow,
+                BackgroundColor = Colors.Black,
+                TextColor = Colors.White,
+                ActionButtonTextColor = Colors.SlateBlue,
                 CornerRadius = new CornerRadius(10),
                 Font = Font.SystemFontOfSize(14),
                 ActionButtonFont = Font.SystemFontOfSize(14),
@@ -141,7 +139,7 @@ public partial class DetailsOverview : ContentPage
 
             string text = "Song Lyrics Updated";
             string actionButtonText = "Dismiss";
-            TimeSpan duration = TimeSpan.FromSeconds(3);
+            TimeSpan duration = TimeSpan.FromSeconds(2);
 
             var snackbar = Snackbar.Make(text, null, actionButtonText, duration, snackbarOptions);
 
@@ -178,4 +176,118 @@ public partial class DetailsOverview : ContentPage
         var chipY = chip.Y;
         await ArtistToSongPopup.ShowAsync(this);
     }
-}
+
+    private async void QuickPasteArtistNameToTextChip_Tap(object sender, HandledEventArgs e)
+    {
+Chip tappedChip = (Chip)sender;
+        var tapParam = tappedChip.TapCommandParameter as string;
+        var longPressParam = tappedChip.LongPressCommandParameter as string;
+        if (tapParam is null) return;
+        if (longPressParam is null) return;
+
+
+        CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+
+        var snackbarOptions = new SnackbarOptions
+        {
+            BackgroundColor = Colors.Black,
+            TextColor = Colors.White,
+            ActionButtonTextColor = Colors.SlateBlue,
+            CornerRadius = new CornerRadius(10),
+            Font = Font.SystemFontOfSize(14),
+            ActionButtonFont = Font.SystemFontOfSize(14),
+            CharacterSpacing = 0.5
+        };
+
+        string text = string.Empty;
+        string actionButtonText = "Dismiss";
+        TimeSpan duration = TimeSpan.FromSeconds(2);
+        
+        var snackbar = Snackbar.Make(text, null, actionButtonText, duration, snackbarOptions);
+
+
+
+        await snackbar.Show(cancellationTokenSource.Token);
+
+
+
+        var artistNames = ConcernedSong.OtherArtistsName;
+        var albumName = ConcernedSong.AlbumName;
+        var titleName = ConcernedSong.Title;
+            switch (longPressParam)
+            {
+                case "copy":
+                if (tapParam.Equals("artist"))
+                {
+                    MyViewModel.LyricsArtistNameSearch = artistNames;
+                    text = "Artist Copied to Search Box";
+
+                    await snackbar.Show(cancellationTokenSource.Token);
+                }
+                if (tapParam.Equals("album"))
+                {
+                    MyViewModel.LyricsAlbumNameSearch = albumName;
+                    text = "Album Copied to Search Box";
+
+                    await snackbar.Show(cancellationTokenSource.Token);
+                }
+                if (tapParam.Equals("title"))
+                {
+                    MyViewModel.LyricsTrackNameSearch = titleName;
+                    text = "Title Copied to Search Box";
+
+                    await snackbar.Show(cancellationTokenSource.Token);
+                }
+                    
+                break;
+
+                case "paste":
+                    var anyAvailText = await Clipboard.Default.GetTextAsync();
+                if (tapParam.Equals("artist"))
+                {
+                    if (string.IsNullOrEmpty(anyAvailText))
+                    {
+                        text = "No Text on Clipboard";
+                        await snackbar.Show(cancellationTokenSource.Token);
+                    }
+                    else
+                    {
+                        MyViewModel.LyricsArtistNameSearch = anyAvailText;
+                        text = "Copied to clipboard pasted to Artist Name Search Box";
+                        await snackbar.Show(cancellationTokenSource.Token);
+                    }
+                }
+                else if (tapParam.Equals("album"))
+                {
+                    if (string.IsNullOrEmpty(anyAvailText))
+                    {
+                        text = "No Text on Clipboard";
+                        await snackbar.Show(cancellationTokenSource.Token);
+                    }
+                    else
+                    {
+                        MyViewModel.LyricsAlbumNameSearch = anyAvailText;
+                        text = "Copied to clipboard pasted to Album Name Search Box";
+                        await snackbar.Show(cancellationTokenSource.Token);
+                    }
+                }
+                else if (tapParam.Equals("title"))
+                {
+                    if (string.IsNullOrEmpty(anyAvailText))
+                    {
+                        text = "No Text on Clipboard";
+                        await snackbar.Show(cancellationTokenSource.Token);
+                    }
+                    else
+                    {
+                        MyViewModel.LyricsTrackNameSearch = anyAvailText;
+                        text = "Copied to clipboard pasted to Title Name Search Box";
+                        await snackbar.Show(cancellationTokenSource.Token);
+                    }
+                }
+                    break;
+                default:
+                    break;
+            }
+        }
+    }

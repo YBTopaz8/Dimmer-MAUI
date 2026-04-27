@@ -45,7 +45,7 @@
         Title="LastFM"
         ContentTemplate="{DataTemplate lastFMPages:LastFMHomePage}"
         FlyoutIcon="lastfmsmoll.png"
-        Route="LastFM" />
+        Route="LastFMHomePage" />
 
     <ShellContent
         Title="Dimmer Cloud"

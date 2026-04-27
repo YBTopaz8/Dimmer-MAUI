@@ -43,12 +43,13 @@ internal class Bootstrapper
         services.AddSingleton<AlbumPage>();
         services.AddSingleton<ArtistPage>();
 
-        services.AddTransient<LastFMLogin>();
+        //services.AddTransient<LastFMLogin>();
         services.AddSingleton<AllArtistsPage>();
         services.AddSingleton<LastFMHomePage>();
         services.AddSingleton<AllStats>();
         services.AddSingleton<DimmerHomeCenter>();
         services.AddTransient<DimmerLiveLogin>();
+        services.AddSingleton<SyncLyricsPage>();
         
 
         // 4. Register Logic/Data Services

@@ -24,7 +24,7 @@
             </Style>
         </ResourceDictionary>
     </ContentPage.Resources>
-    <dx:DXScrollView Margin="5">
+    <dx:DXScrollView Margin="5" Loaded="DXScrollView_Loaded">
         <Grid RowDefinitions="auto,auto,*">
             <dx:DXStackLayout Grid.Row="0">
                 <dx:DXImage
@@ -152,6 +152,52 @@
                     </dx:TabViewItem.Content>
                 </dx:TabViewItem>
             </dx:TabView>
+
+            <dx:DXPopup x:Name="LoginPopUp">
+                <dx:DXPopup.Content>
+                    <dx:DXStackLayout Padding="10" ItemSpacing="10">
+                        <dx:DXStackLayout
+                            HorizontalOptions="Center"
+                            ItemSpacing="5"
+                            Orientation="Horizontal">
+
+                            <Label
+                                FontAttributes="Bold"
+                                FontSize="20"
+                                HorizontalOptions="Center"
+                                Text="Login To" />
+                            <dx:DXImage
+                                HeightRequest="30"
+                                Source="lastfm.png"
+                                TintColor="Red"
+                                WidthRequest="30" />
+                        </dx:DXStackLayout>
+                        <dx:TextEdit
+                            LabelText="Enter User Name"
+                            PlaceholderText="E.g. John Doe"
+                            Text="{Binding LastFMName}" />
+
+
+                        <dx:DXButton
+                            BackgroundColor="Red"
+                            Command="{Binding LoginToLastfmCommand}"
+                            Content="Login"
+                            FontSize="25"
+                            IconHeight="35"
+                            IconWidth="35"
+                            ShowIcon="False" />
+
+                        <dx:DXButton
+                            BackgroundColor="Red"
+                            Clicked="LoginToLastfm_Clicked"
+                            Content="Quick Login"
+                            FontSize="25"
+                            IconHeight="35"
+                            IconWidth="35"
+                            ShowIcon="False" />
+                    </dx:DXStackLayout>
+                </dx:DXPopup.Content>
+            </dx:DXPopup>
         </Grid>
     </dx:DXScrollView>
 </ContentPage>

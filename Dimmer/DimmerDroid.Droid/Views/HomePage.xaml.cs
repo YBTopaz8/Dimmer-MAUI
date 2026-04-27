@@ -2,6 +2,7 @@
 global using View = Microsoft.Maui.Controls.View;
 using Android.Views.InputMethods;
 using CommunityToolkit.Maui.Alerts;
+using DevExpress.Android.CollectionView;
 using DevExpress.Maui.CollectionView;
 using DevExpress.Maui.Controls.Internal;
 using DevExpress.Maui.Core;
@@ -9,8 +10,10 @@ using DevExpress.Office.Utils;
 using DevExpress.Utils;
 using Dimmer.DimmerSearch;
 using Dimmer.Utilities.ViewsUtils;
+using Dimmer.ViewModel.TQL;
 using Dimmer.Views.Settings;
 using DynamicData.Binding;
+
 
 namespace Dimmer.Views;
 
@@ -41,18 +44,34 @@ public partial class HomePage : ContentPage
 
     }
 
-    private async void MiddleGridSection_Tapped(object sender, TappedEventArgs e)
+    private async void MiddleGridSection_TappedToPlaySong(object sender, TappedEventArgs e)
     {
+        
         var send = (View)sender;
         var song = (SongModelView)send.BindingContext;
-        await MyViewModel.PlaySongAsync(song,CurrentPage.HomePage,MyViewModel.SearchResults);
+        //var songsInCV = SongsCV.ItemsSource;
+        var platView = SongsCV.Handler?.PlatformView;
+
+        Debug.WriteLine(SongsCV.VisibleItemCount);
+        Debug.WriteLine(SongsCV.ScrollItemCount);
+
+        List<SongModelView> songsInCV = new();
+        for (int i = 0; i < SongsCV.VisibleItemCount; i++)
+        {
+            var itemHandle = SongsCV.GetItemHandleByVisibleIndex(i);
+
+            if (SongsCV.GetItem(itemHandle) is not SongModelView songByItemHandle) continue;
+            songsInCV.Add(songByItemHandle);
+        }
+        //Debug.WriteLine(songsInCV?.GetType());
+
+
+        await MyViewModel.PlaySongAsync(song,CurrentPage.HomePage,songsInCV);
     }
 
     private async void TitleChip_Tap(object sender, HandledEventArgs e)
     {
-        var send = (View)sender;
-        var song = (SongModelView)send.BindingContext;
-        await MyViewModel.PlaySongAsync(song, CurrentPage.HomePage, MyViewModel.SearchResults);
+        MiddleGridSection_TappedToPlaySong(sender, new TappedEventArgs( e));
 
     }
 
@@ -219,8 +238,8 @@ public partial class HomePage : ContentPage
 
         var artChip = (DevExpress.Maui.Editors.Chip)sender;
         var art = artChip.LongPressCommandParameter as string;
-
-        MyViewModel.SearchToTQL(TQlStaticMethods.PresetQueries.ByArtist(art));
+        if (art is null) return;
+        SearchBarTextEdit.Text = SearchBarTextEdit.Text + TQlStaticMethods.PresetQueries.ByArtist(art);
     }
 
     private async void ViewArtistBtn_Tap(object sender, HandledEventArgs e)
@@ -346,7 +365,7 @@ public partial class HomePage : ContentPage
     {
         NPBtmSheet.NowPlayingExp.IsExpanded = true;
         NPBtmSheet.PlayBackQueueExp.IsExpanded = false;
-        NPBtmSheet.SingleSongLyricsViewExp.IsExpanded = false;
+
         NPBtmSheet.Show();
         NPBtmSheet.State = BottomSheetState.FullExpanded;
     }
@@ -432,5 +451,117 @@ public partial class HomePage : ContentPage
             string? fullStr = newCount.ToString();
             SearchBarTextEdit.Suffix = fullStr;
         }
+    }
+
+    private void SearchIconBtn_Tapped(object sender, HandledEventArgs e)
+    {
+        SearchBarTextEdit.Focus();
+    }
+
+    private void SearchBarTextEdit_Focused(object sender, FocusEventArgs e)
+    {
+
+        TQLFilterExpander.SetIsExpanded(true, true);
+        //InputMethodManager? imm = (InputMethodManager?)MainApplication.Context.GetSystemService(Activity.InputMethodService);
+        //var view = SearchBarTextEdit.Handler?.PlatformView as Android.Views.View;
+        //imm?.ShowSoftInput(view, ShowFlags.Implicit);
+
+    }
+
+    private void SearchBarTextEdit_Unfocused(object sender, FocusEventArgs e)
+    {
+        TQLFilterExpander.SetIsExpanded(false, true);
+
+    }
+
+    private void ArtistsPicker_Tap(object sender, HandledEventArgs e)
+    {
+        Debug.WriteLine(sender?.GetType());
+        //FilteredArtistsChoiceChip
+    }
+
+    private void ArtistsPicker_PropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+        //if(e.PropertyName == nameof(ArtistsPicker.SelectedItems))
+        //{
+
+        //    FilteredArtistsChoiceChip.ItemsSource = ArtistsPicker.SelectedItems;
+        //    // this should, 
+        //}
+    }
+
+    private void IncludeFavCheckEdit_CheckedChanged(object sender, EventArgs e)
+    {
+        //switch (IncludeFavCheckEdit.IsChecked)
+        //{
+        //    case null:
+
+        //        break;
+        //    case true:
+
+        //        break;
+        //    case false:
+
+        //        break;
+        //    default:
+        //        break;
+        //}
+    }
+
+    private void AddRule_Clicked(object sender, EventArgs e)
+    {
+        //string? selectedField = ArtistFieldPicker.SelectedItem?.ToString();
+        //if (string.IsNullOrEmpty(selectedField)) return;
+
+        //var newRule = new VisualFilterRule();
+
+        //switch (selectedField)
+        //{
+        //    case "Artist":
+        //        // Here, you would open your ArtistsPicker, get the result, and assign it
+        //        //string chosenArtist = await PickArtistAsync(); // Implement this UI flow
+        //        //newRule.FieldAlias = "ar";
+        //        //newRule.DisplayField = "Artist";
+        //        //newRule.Value = chosenArtist;
+        //        break;
+
+        //    case "Favorites":
+        //        newRule.FieldAlias = "fav";
+        //        newRule.DisplayField = "Favorites";
+        //        newRule.Value = "true";
+        //        break;
+
+        //        // Add cases for Genre, Year, Length, etc.
+        //}
+
+        //MyViewModel.ActiveFilterRules.Add(newRule);
+        MyViewModel.UpdateGeneratedTql();
+    }
+
+    private void ArtistFieldPicker_Tap(object sender, HandledEventArgs e)
+    {
+
+    }
+
+    private void ArtistToggleButton_CheckedChanged(object sender, ValueChangedEventArgs<bool> e)
+    {
+        switch (e.NewValue)
+        {
+            case true:
+                //ArtistFieldPicker.Commands.Show.Execute(null);
+                break;
+            case false:
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void SearchIconBtn_DoubleTap(object sender, HandledEventArgs e)
+    {
+        var nativeView = SearchBarTextEdit.Handler?.PlatformView as Android.Views.View;
+        if (nativeView is null) return;
+        
+        AppUtil.ShowKeyboardTo(MauiApplication.Context, nativeView);
     }
 }

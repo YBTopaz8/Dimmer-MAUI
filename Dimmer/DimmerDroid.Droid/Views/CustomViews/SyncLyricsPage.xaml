@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Dimmer.Views.CustomViews.SyncLyricsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+    xmlns:dx="http://schemas.devexpress.com/maui"
+    xmlns:localBehv="clr-namespace:Dimmer.Utils.Behaviors"
+    xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+    xmlns:vm="clr-namespace:Dimmer.ViewModels"
+    x:Name="NowPlayingBtmSheet"
+    Title="SyncLyricsPage"
+    x:DataType="vm:BaseViewModelAnd">
+    <Grid
+        x:Name="SingleSongLyricsViewExp"
+        x:FieldModifier="Public"
+        RowDefinitions="auto,*">
+
+        <Grid Grid.Row="0" ColumnDefinitions="80,*">
+            <dx:DXImage
+                Grid.Column="0"
+                Aspect="AspectFill"
+                HeightRequest="70"
+                Opacity="0.9"
+                Source="{Binding CurrentPlayingSongView.CoverImagePath}"
+                WidthRequest="70">
+                <dx:DXImage.GestureRecognizers>
+                    <TapGestureRecognizer
+                        x:Name="CoverImgInNowPlayinggPage"
+                        NumberOfTapsRequired="1"
+                        Tapped="CoverImgInNowPlayingPage_Tapped" />
+                </dx:DXImage.GestureRecognizers>
+            </dx:DXImage>
+
+            <dx:DXStackLayout
+                Grid.Column="1"
+                Padding="5"
+                ItemSpacing="10"
+                VerticalOptions="Center">
+                <Label FontSize="16" Text="{Binding CurrentPlayingSongView.Title}" />
+                <Label FontSize="13" Text="{Binding CurrentPlayingSongView.ArtistName}" />
+                <Label FontSize="10" Text="{Binding CurrentPlayingSongView.AlbumName}" />
+            </dx:DXStackLayout>
+        </Grid>
+
+        <dx:DXCollectionView
+            x:Name="AllLyricsColView"
+            Grid.Row="1"
+            ItemsSource="{Binding AllLines}"
+            SelectedItem="{Binding CurrentLine}"
+            SelectionChanged="AllLyricsColView_SelectionChanged"
+            SelectionMode="Single"
+            Tap="AllLyricsColView_Tap">
+            <dx:DXCollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:LyricPhraseModelView">
+                    <Grid>
+                        <Border
+                            BackgroundColor="{AppThemeBinding Dark=#1e1e1e}"
+                            IsVisible="{Binding IsHighlighted}"
+                            Opacity="0.7"
+                            Stroke="DarkSlateBlue" />
+
+                        <Label
+                            FontSize="{Binding NowPlayingLyricsFontSize}"
+                            HorizontalTextAlignment="Center"
+                            Text="{Binding Text}"
+                            TextColor="{Binding HighlightColor}" />
+                    </Grid>
+                </DataTemplate>
+            </dx:DXCollectionView.ItemTemplate>
+        </dx:DXCollectionView>
+
+    </Grid>
+</ContentPage>
