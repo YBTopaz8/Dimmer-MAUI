@@ -17,7 +17,6 @@ public partial class LastFMHomePage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        if(MyLastFMViewModel.IsLastfmAuthenticated)
             _ = MyLastFMViewModel.LoadLastFMSession();
         Debug.WriteLine("Appeared " + DateTime.Now);
     }
@@ -29,7 +28,6 @@ public partial class LastFMHomePage : ContentPage
 
     private async void myPage_Loaded(object sender, EventArgs e)
     {
-        await MyLastFMViewModel.LoadUserLastFMDataAsync(MyLastFMViewModel.CurrentUserLocal?.LastFMAccountInfo);
     }
 
 
@@ -50,7 +48,6 @@ public partial class LastFMHomePage : ContentPage
            {
                if (!isBg)
                {
-
                    await LoginPopUp.ShowAsync(this);
                    LoginPopUp.CloseOnScrimTap = false;
                }
@@ -58,8 +55,16 @@ public partial class LastFMHomePage : ContentPage
                {
 
                    LoginPopUp.Close();
+
+                   await MyLastFMViewModel.LoadUserLastFMDataAsync(MyLastFMViewModel.CurrentUserLocal?.LastFMAccountInfo);
                }
 
            });
+    }
+
+    private async void LoginToLastfm_Clicked(object sender, EventArgs e)
+    {
+        MyLastFMViewModel.LastFMName = "YBTopaz8";
+        await MyLastFMViewModel.LoginToLastfmAsync();
     }
 }

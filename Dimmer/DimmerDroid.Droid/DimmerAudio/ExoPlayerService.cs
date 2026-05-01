@@ -704,11 +704,8 @@ public partial class ExoPlayerService : MediaSessionService
         return Task.CompletedTask;
     }
 
-    internal static void UpdateFavoriteState(SongModelView song)
-    {
-        Toast.MakeText(Platform.AppContext, "Opening synced lyrics...", ToastLength.Short)?.Show();
+  
 
-    }
 
     public void UpdateMediaSessionLayout()
     {

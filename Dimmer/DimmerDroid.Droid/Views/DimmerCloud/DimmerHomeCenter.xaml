@@ -3,11 +3,38 @@
     x:Class="Dimmer.Views.DimmerCloud.DimmerHomeCenter"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    Title="DimmerHomeCenter">
-    <VerticalStackLayout>
-        <Label
-            HorizontalOptions="Center"
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" />
-    </VerticalStackLayout>
+    xmlns:dx="http://schemas.devexpress.com/maui"
+    xmlns:globalVM="clr-namespace:Dimmer.ViewModel;assembly=Dimmer"
+    xmlns:local="clr-namespace:Dimmer.Views.CustomViews"
+    xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+    xmlns:vm="clr-namespace:Dimmer.ViewModels"
+    Title="DimmerHomeCenter"
+    x:DataType="globalVM:LoginViewModel">
+
+    <Grid x:Name="MainGrid" Loaded="MainGrid_Loaded">
+
+
+        <dx:DXPopup x:Name="LoginPopup">
+            <dx:DXPopup.Content>
+
+                <dx:DXStackLayout Padding="10" ItemSpacing="10">
+                    <Label
+                        FontAttributes="Bold"
+                        FontSize="20"
+                        HorizontalOptions="Center"
+                        Text="Login To Dimmer" />
+                    <dx:TextEdit
+                        LabelText="Enter User Name"
+                        PlaceholderText="E.g. John Doe"
+                        Text="{Binding Username}" />
+                    <dx:PasswordEdit
+                        LabelText="Enter Password"
+                        PlaceholderText="E.g. ********"
+                        Text="{Binding Password}" />
+
+                    <dx:DXButton Command="{Binding LoginCommand}" Content="Login" />
+                </dx:DXStackLayout>
+            </dx:DXPopup.Content>
+        </dx:DXPopup>
+    </Grid>
 </ContentPage>

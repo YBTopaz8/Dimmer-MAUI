@@ -10,21 +10,5 @@
     xmlns:vm="clr-namespace:Dimmer.ViewModels"
     x:DataType="globalVM:LoginViewModel"
     Shell.NavBarIsVisible="False">
-    <dx:DXStackLayout Padding="10" ItemSpacing="10">
-        <Label
-            FontAttributes="Bold"
-            FontSize="20"
-            HorizontalOptions="Center"
-            Text="Login To Dimmer" />
-        <dx:TextEdit
-            LabelText="Enter User Name"
-            PlaceholderText="E.g. John Doe"
-            Text="{Binding Username}" />
-        <dx:PasswordEdit
-            LabelText="Enter Password"
-            PlaceholderText="E.g. ********"
-            Text="{Binding Password}" />
-
-        <dx:DXButton Command="{Binding LoginCommand}" Content="Login" />
-    </dx:DXStackLayout>
+   
 </ContentPage>

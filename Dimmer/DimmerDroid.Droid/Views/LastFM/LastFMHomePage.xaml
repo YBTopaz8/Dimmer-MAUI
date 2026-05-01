@@ -31,6 +31,8 @@
                     HeightRequest="50"
                     Source="lastfm.png"
                     TintColor="Red" />
+
+
             </dx:DXStackLayout>
             <Grid
                 Grid.Row="1"
@@ -153,7 +155,10 @@
                 </dx:TabViewItem>
             </dx:TabView>
 
-            <dx:DXPopup x:Name="LoginPopUp">
+            <dx:DXPopup
+                x:Name="LoginPopUp"
+                AllowScrim="False"
+                ScrimColor="DarkSlateBlue">
                 <dx:DXPopup.Content>
                     <dx:DXStackLayout Padding="10" ItemSpacing="10">
                         <dx:DXStackLayout
