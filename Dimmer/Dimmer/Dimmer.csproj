@@ -51,6 +51,7 @@
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 
 
+		<PackageReference Include="Syncfusion.Maui.Toolkit" Version="1.0.9" />
 		<PackageReference Include="System.Linq.Dynamic.Core" Version="1.7.2" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.6" />
 		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.6" />

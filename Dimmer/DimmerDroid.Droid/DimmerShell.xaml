@@ -49,9 +49,9 @@
 
     <ShellContent
         Title="Dimmer Cloud"
-        ContentTemplate="{DataTemplate dimmerCloudPages:DimmerLiveLogin}"
+        ContentTemplate="{DataTemplate dimmerCloudPages:DimmerHomeCenter}"
         FlyoutIcon="cloudbolt.png"
-        Route="DimmerLiveLoginRoute" />
+        Route="DimmerHomeCenter" />
 
     <ShellContent
         Title="Settings"

@@ -19,11 +19,11 @@ namespace Dimmer.Views;
 
 public partial class HomePage : ContentPage
 {
-	public HomePage(BaseViewModelAnd viewModelAnd, LastFMViewModel lastFMVM)
-	{
-		InitializeComponent();
-		BindingContext = viewModelAnd;
-		MyViewModel = viewModelAnd;
+    public HomePage(BaseViewModelAnd viewModelAnd, LastFMViewModel lastFMVM)
+    {
+        InitializeComponent();
+        BindingContext = viewModelAnd;
+        MyViewModel = viewModelAnd;
 
         lastFMVM.LoadBaseViewModel(viewModelAnd);
     }
@@ -34,8 +34,8 @@ public partial class HomePage : ContentPage
     {
         base.OnAppearing();
 
-		Debug.WriteLine("HomePage OnAppearing" + MyViewModel.AppTitle +" "+BaseViewModel.CurrentAppStage);
-		Debug.WriteLine("HomePage OnAppearing" + MyViewModel.SearchResults.Count);
+        Debug.WriteLine("HomePage OnAppearing" + MyViewModel.AppTitle +" "+BaseViewModel.CurrentAppStage);
+        Debug.WriteLine("HomePage OnAppearing" + MyViewModel.SearchResults.Count);
     }
 
 
@@ -266,8 +266,13 @@ public partial class HomePage : ContentPage
 
     private async void DeleteSongBtn_Tap(object sender, HandledEventArgs e)
 
-    { 
-        await MyViewModel.DeleteSongs(new List<SongModelView>(){MyViewModel.SelectedSong! });
+    {
+        var result = await Shell.Current.DisplayAlertAsync("Confirm Delete",
+            "Delete Song", "Yes", "No");
+        if (result)
+        {
+            await MyViewModel.DeleteSongs(new List<SongModelView>(){MyViewModel.SelectedSong! });
+        }
     }
 
     private void CurrentPlayingTitleChip_LongPress(object sender, HandledEventArgs e)
@@ -291,6 +296,7 @@ public partial class HomePage : ContentPage
 
 
         var snackMsg = $"Added {song.Title} by {MyViewModel.SelectedSong.ArtistName} to Next in Queue";
+
         CommunityToolkit.Maui.Alerts.Toast msgToast = new CommunityToolkit.Maui.Alerts.Toast() { Text = snackMsg, Duration= CommunityToolkit.Maui.Core.ToastDuration.Short };
 
         SingleSongBtmSheet.Close();
@@ -385,8 +391,10 @@ public partial class HomePage : ContentPage
         var song = send.BindingContext as SongModelView;
         MyViewModel.SelectedSong = song;
 
-        if (Shell.Current.CurrentPage.GetType() != typeof(DetailsOverview))
-            await Shell.Current.GoToAsync(nameof(DetailsOverview), true);
+        await SingleSongPopup.ShowAsync();
+        
+        //if (Shell.Current.CurrentPage.GetType() != typeof(DetailsOverview))
+        //    await Shell.Current.GoToAsync(nameof(DetailsOverview), true);
     }
 
     private void BtmBarCoverImageView_Loaded(object sender, EventArgs e)
@@ -399,21 +407,18 @@ public partial class HomePage : ContentPage
         platView.Click += (s, e) =>
         {
             var songHandle = SongsCV.FindItemHandle(MyViewModel.CurrentPlayingSongView);
-
+            HapticFeedback.Default.Perform(HapticFeedbackType.Click);
             SongsCV.ScrollTo(songHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
         };
 
-        platView.LongClickable = true;
-        platView.LongClick += async (s, e) =>
-        {
-            var send = (View)sender;
-            var song = MyViewModel.CurrentPlayingSongView;
-            MyViewModel.SelectedSong = song;
+        //platView.LongClickable = true;
+        //platView.LongClick += async (s, e) =>
+        //{
+        //    var send = (View)sender;
+        //    var song = MyViewModel.CurrentPlayingSongView;
+        //    MyViewModel.SelectedSong = song;
 
-            if (Shell.Current.CurrentPage.GetType() != typeof(DetailsOverview))
-                await  Shell.Current.GoToAsync(nameof(DetailsOverview), true);
-        
-        };
+        //};
     }
 
     private async void SelectedSongBtmSheetArtistNameChip_Tap(object sender, HandledEventArgs e)
@@ -559,9 +564,39 @@ public partial class HomePage : ContentPage
 
     private void SearchIconBtn_DoubleTap(object sender, HandledEventArgs e)
     {
-        var nativeView = SearchBarTextEdit.Handler?.PlatformView as Android.Views.View;
-        if (nativeView is null) return;
+
+
+        var songHandle = SongsCV.FindItemHandle(MyViewModel.CurrentPlayingSongView);
+
+        SongsCV.ScrollTo(songHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
+
+    }
+
+    private void TQLMyFavChip_Tap(object sender, HandledEventArgs e)
+    {
+        SearchBarTextEdit.Text = SearchBarTextEdit.Text + " my fav";
+
+
+    }
+
+    private void TQLShuffleChip_Tap(object sender, HandledEventArgs e)
+    {
+
+        SearchBarTextEdit.Text = SearchBarTextEdit.Text + " shuffle";
+    }
+
+    private void EditSongChip_Tap(object sender, HandledEventArgs e)
+    {
         
-        AppUtil.ShowKeyboardTo(MauiApplication.Context, nativeView);
+    }
+
+    private async void ViewSongChip_Tap(object sender, HandledEventArgs e)
+    {
+
+        if (Shell.Current.CurrentPage.GetType() != typeof(DetailsOverview))
+        {
+            SingleSongPopup.Close();
+            await Shell.Current.GoToAsync(nameof(DetailsOverview), true);
+        }
     }
 }

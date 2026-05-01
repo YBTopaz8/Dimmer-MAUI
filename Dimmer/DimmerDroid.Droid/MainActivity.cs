@@ -180,26 +180,50 @@ public partial class MainActivity : MauiAppCompatActivity
     [System.Runtime.Versioning.SupportedOSPlatform("android33.0")]
     private void SetupBackNavigationApi33()
     {
-       
-            // The dangerous code lives exclusively in here
-            _onBackInvokedCallback = new BackInvokedCallback(async () =>
-        {
-            if (MyViewModel.IsNowPlayingBtmSheetOpened)
-            {
-                return;
-            }
-            if (Shell.Current.CurrentPage.GetType() == typeof(HomePage))
 
+        // The dangerous code lives exclusively in here
+        _onBackInvokedCallback = new BackInvokedCallback(async () =>
+    {
+    if (MyViewModel.IsNowPlayingBtmSheetOpened)
+    {
+        return;
+    }
+    if (Shell.Current.CurrentPage.GetType() == typeof(HomePage))
+
+    {
+        new MaterialAlertDialogBuilder(this)?
+                                .SetTitle("Exit App")?
+                                .SetMessage("Close Application?")?
+                                .SetPositiveButton(
+            "Exit",
+            async (s, e) =>
             {
-                new MaterialAlertDialogBuilder(this)?
-                                    .SetTitle("Exit App")?
-                                    .SetMessage("Close Application?")?
-                                    .SetPositiveButton(
-                "Exit",
-                async (s, e) =>
+                await MyViewModel.OnAppClosingAsync();
+                FinishAffinity();
+            })
+            .SetNegativeButton(
+                "Cancel",
+                (s, e) =>
+                { /* Do nothing */
+                })
+            .Show();
+        return;
+    }
+    switch (Shell.Current.CurrentItem.Title)
+    {
+
+        case "Artists":
+        case "LastFM":
+
+            new MaterialAlertDialogBuilder(this)?
+                            .SetTitle("Confirm action")?
+                            .SetMessage("Return to Home Page?")?
+                            .SetPositiveButton(
+                "Confirm",
+                    async (s, e) =>
                 {
-                    await MyViewModel.OnAppClosingAsync();
-                    FinishAffinity();
+                    await Shell.Current.GoToAsync("//HomePage");
+
                 })
                 .SetNegativeButton(
                     "Cancel",
@@ -207,53 +231,30 @@ public partial class MainActivity : MauiAppCompatActivity
                     { /* Do nothing */
                     })
                 .Show();
-                return;
-            }
-            switch (Shell.Current.CurrentItem.Title)
-            {
+            break;
 
-                case "Artists":
-                case "LastFM":
+        case "Settings":
 
-                    new MaterialAlertDialogBuilder(this)?
-                                .SetTitle("Confirm action")?
-                                .SetMessage("Return to Home Page?")?
-                                .SetPositiveButton(
-                    "Confirm",
-                        async (s, e) =>
-                    {
-                                        await Shell.Current.GoToAsync("//HomePage");
-                        
-                    })
-                    .SetNegativeButton(
-                        "Cancel",
-                        (s, e) =>
-                        { /* Do nothing */
-                        })
-                    .Show();
-                    break;
+            new MaterialAlertDialogBuilder(this)?
+                        .SetTitle("Confirm action")?
+                        .SetMessage("Return to Home Page?")?
+                        .SetPositiveButton(
+            "Confirm",
+                async (s, e) =>
+                {
+                    await Shell.Current.GoToAsync("//HomePage");
 
-                case "Settings":
+                })
+            .SetNegativeButton(
+                "Cancel",
+                (s, e) =>
+                { /* Do nothing */
+                })
+            .Show();
+            break;
 
-                new MaterialAlertDialogBuilder(this)?
-                            .SetTitle("Confirm action")?
-                            .SetMessage("Return to Home Page?")?
-                            .SetPositiveButton(
-                "Confirm",
-                    async (s, e) =>
-                    {
-                                        await Shell.Current.GoToAsync("//HomePage");
-
-                    })
-                .SetNegativeButton(
-                    "Cancel",
-                    (s, e) =>
-                    { /* Do nothing */
-                    })
-                .Show();
-                break;
-
-                default:
+        default:
+            Debug.WriteLine(Shell.Current.Items.Count);
                     //await Shell.Current.Navigation.PopAsync(true);
                     await  Shell.Current.GoToAsync("..");
                     break;
