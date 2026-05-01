@@ -1,12 +1,10 @@
-using AndroidX.Lifecycle;
-using ATL;
-using CommunityToolkit.Maui.Alerts;
-using CommunityToolkit.Maui.Core;
-using DevExpress.Maui.Core;
-using Dimmer.Data.Models.LyricsModels;
-using DynamicData;
-using Java.Interop;
-using Font = Microsoft.Maui.Font;
+global using ATL;
+global using CommunityToolkit.Maui.Alerts;
+global using CommunityToolkit.Maui.Core;
+global using DevExpress.Maui.Core;
+global using Dimmer.Data.Models.LyricsModels;
+global using Font = Microsoft.Maui.Font;
+global using Toast = CommunityToolkit.Maui.Alerts.Toast;
 
 namespace Dimmer.Views.SingleSong;
 
@@ -31,14 +29,18 @@ public partial class DetailsOverview : ContentPage
         if (MyViewModel.SelectedSong is null) return;
         BindingContext = MyViewModel.SelectedSong;
         StatisticsStackLayout.BindingContext = StatsViewModel;
-
+        MyViewModel.AutoFillSearchFields();
         ConcernedSong = MyViewModel.SelectedSong;
 
         _ = StatsViewModel.LoadSongStatsAsync(MyViewModel.SelectedSong);
         _ = LastFMViewModel.LoadSelectedSongLastFMData();
     }
 
-
+    protected override void OnDisappearing()
+    {
+        MyViewModel.CleanLyricsSearchProps();
+        base.OnDisappearing();
+    }
           private void SongTitleLabel_SizeChanged(object sender, EventArgs e)
     {
         double startX = TitleLabel.Width;
@@ -177,7 +179,7 @@ public partial class DetailsOverview : ContentPage
         await ArtistToSongPopup.ShowAsync(this);
     }
 
-    private async void QuickPasteArtistNameToTextChip_Tap(object sender, HandledEventArgs e)
+    private async void QuickActionChip_Tap(object sender, HandledEventArgs e)
     {
 Chip tappedChip = (Chip)sender;
         var tapParam = tappedChip.TapCommandParameter as string;
@@ -188,27 +190,14 @@ Chip tappedChip = (Chip)sender;
 
         CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
-        var snackbarOptions = new SnackbarOptions
-        {
-            BackgroundColor = Colors.Black,
-            TextColor = Colors.White,
-            ActionButtonTextColor = Colors.SlateBlue,
-            CornerRadius = new CornerRadius(10),
-            Font = Font.SystemFontOfSize(14),
-            ActionButtonFont = Font.SystemFontOfSize(14),
-            CharacterSpacing = 0.5
-        };
+       
 
         string text = string.Empty;
-        string actionButtonText = "Dismiss";
+
+
         TimeSpan duration = TimeSpan.FromSeconds(2);
         
-        var snackbar = Snackbar.Make(text, null, actionButtonText, duration, snackbarOptions);
-
-
-
-        await snackbar.Show(cancellationTokenSource.Token);
-
+        
 
 
         var artistNames = ConcernedSong.OtherArtistsName;
@@ -221,22 +210,19 @@ Chip tappedChip = (Chip)sender;
                 {
                     MyViewModel.LyricsArtistNameSearch = artistNames;
                     text = "Artist Copied to Search Box";
-
-                    await snackbar.Show(cancellationTokenSource.Token);
+                    
                 }
                 if (tapParam.Equals("album"))
                 {
                     MyViewModel.LyricsAlbumNameSearch = albumName;
                     text = "Album Copied to Search Box";
 
-                    await snackbar.Show(cancellationTokenSource.Token);
                 }
                 if (tapParam.Equals("title"))
                 {
                     MyViewModel.LyricsTrackNameSearch = titleName;
                     text = "Title Copied to Search Box";
 
-                    await snackbar.Show(cancellationTokenSource.Token);
                 }
                     
                 break;
@@ -248,13 +234,11 @@ Chip tappedChip = (Chip)sender;
                     if (string.IsNullOrEmpty(anyAvailText))
                     {
                         text = "No Text on Clipboard";
-                        await snackbar.Show(cancellationTokenSource.Token);
                     }
                     else
                     {
                         MyViewModel.LyricsArtistNameSearch = anyAvailText;
                         text = "Copied to clipboard pasted to Artist Name Search Box";
-                        await snackbar.Show(cancellationTokenSource.Token);
                     }
                 }
                 else if (tapParam.Equals("album"))
@@ -262,13 +246,11 @@ Chip tappedChip = (Chip)sender;
                     if (string.IsNullOrEmpty(anyAvailText))
                     {
                         text = "No Text on Clipboard";
-                        await snackbar.Show(cancellationTokenSource.Token);
                     }
                     else
                     {
                         MyViewModel.LyricsAlbumNameSearch = anyAvailText;
                         text = "Copied to clipboard pasted to Album Name Search Box";
-                        await snackbar.Show(cancellationTokenSource.Token);
                     }
                 }
                 else if (tapParam.Equals("title"))
@@ -276,18 +258,20 @@ Chip tappedChip = (Chip)sender;
                     if (string.IsNullOrEmpty(anyAvailText))
                     {
                         text = "No Text on Clipboard";
-                        await snackbar.Show(cancellationTokenSource.Token);
                     }
                     else
                     {
                         MyViewModel.LyricsTrackNameSearch = anyAvailText;
                         text = "Copied to clipboard pasted to Title Name Search Box";
-                        await snackbar.Show(cancellationTokenSource.Token);
                     }
                 }
                     break;
                 default:
                     break;
             }
-        }
+
+
+        CommunityToolkit.Maui.Alerts.Toast msgToast = new CommunityToolkit.Maui.Alerts.Toast() { Text = text, Duration = CommunityToolkit.Maui.Core.ToastDuration.Short };
+
     }
+}

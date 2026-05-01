@@ -9,6 +9,7 @@
     xmlns:lyrModels="clr-namespace:Dimmer.Data.Models.LyricsModels;assembly=Dimmer"
     xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
     xmlns:vm="clr-namespace:Dimmer.ViewModels"
+    x:Name="myPage"
     x:DataType="models:SongModelView"
     Shell.NavBarIsVisible="False">
     <dx:DXScrollView Margin="5,0">
@@ -21,7 +22,7 @@
                 <dx:TabViewItem x:Name="OverViewTab" HeaderText="OverView">
 
                     <dx:DXScrollView>
-                        <dx:DXStackLayout ItemSpacing="5">
+                        <dx:DXStackLayout ItemSpacing="10">
 
                             <Grid ColumnDefinitions="150,*" ColumnSpacing="5">
                                 <dx:DXImage
@@ -41,21 +42,34 @@
                                         FontSize="23"
                                         HorizontalTextAlignment="Justify"
                                         LineBreakMode="WordWrap"
-                                        SizeChanged="SongTitleLabel_SizeChanged"
                                         Text="{Binding Title}" />
                                     <dx:Chip
                                         x:Name="ArtistNamesChip"
                                         FontSize="17"
                                         HorizontalOptions="Start"
-                                        Tap="ArtistNamesChip_Tap"
-                                        Text="{Binding OtherArtistsName}" />
+                                        Icon="artistt.png"
+                                        IsIconVisible="True"
+                                        Tap="ArtistNamesChip_Tap">
+                                        <dx:Chip.ContentTemplate>
+                                            <DataTemplate>
+                                                <Label Text="{Binding OtherArtistsName}" />
+                                            </DataTemplate>
+                                        </dx:Chip.ContentTemplate>
+                                    </dx:Chip>
                                     <dx:Chip
                                         x:Name="AlbumChip"
                                         FontSize="14"
                                         HorizontalOptions="Start"
+                                        Icon="musicalbum.png"
+                                        IsIconVisible="True"
                                         Tap="AlbumChip_Tap"
-                                        TapCommandParameter="{Binding Album}"
-                                        Text="{Binding AlbumName}" />
+                                        TapCommandParameter="{Binding Album}">
+                                        <dx:Chip.ContentTemplate>
+                                            <DataTemplate>
+                                                <Label Text="{Binding AlbumName}" />
+                                            </DataTemplate>
+                                        </dx:Chip.ContentTemplate>
+                                    </dx:Chip>
                                     <dx:Chip
                                         FontSize="12"
                                         HorizontalOptions="Start"
@@ -64,9 +78,76 @@
                                 </dx:DXStackLayout>
                             </Grid>
 
-
+                            <BoxView HeightRequest="1" Color="DarkSlateBlue" />
 
                             <dx:Chip Icon="heart.png" IsVisible="{Binding IsFavorite}" />
+                            <Grid ColumnDefinitions="*,auto">
+
+                                <Label
+                                    Grid.Column="0"
+                                    FontSize="26"
+                                    HorizontalOptions="Center"
+                                    Text="Info" />
+                                <dx:DXButton
+                                    Grid.Column="1"
+                                    Padding="4"
+                                    BackgroundColor="Transparent"
+                                    BorderThickness="0"
+                                    Command="{Binding Commands.Show, Source={Reference EditSongBtmSheet}}"
+                                    Icon="pen.png"
+                                    IconColor="DarkSlateBlue"
+                                    IconHeight="25"
+                                    IconWidth="25"
+                                    ShowContent="False"
+                                    ShowIcon="True" />
+                            </Grid>
+                            <dx:DXBorder
+                                Padding="5"
+                                BorderColor="Gray"
+                                BorderThickness="1"
+                                CornerRadius="10">
+
+                                <Grid ColumnDefinitions="*,*">
+                                    <Grid.Resources>
+                                        <ResourceDictionary>
+                                            <Style TargetType="Label">
+                                                <Setter Property="FontSize" Value="18" />
+                                                <Setter Property="TextColor" Value="{AppThemeBinding Dark=white, Light=black}" />
+                                            </Style>
+                                        </ResourceDictionary>
+                                    </Grid.Resources>
+                                    <dx:DXStackLayout Grid.Column="0" ItemSpacing="15">
+                                        <Label Text="Date Created" />
+                                        <Label Text="BitRate" />
+                                        <Label Text="Disc Number" />
+                                        <Label Text="Duration In Seconds" />
+                                        <Label Text="Release Year" />
+                                    </dx:DXStackLayout>
+
+
+                                    <dx:DXStackLayout
+                                        Grid.Column="1"
+                                        HorizontalOptions="End"
+                                        ItemSpacing="15">
+                                        <dx:DXStackLayout.Resources>
+                                            <ResourceDictionary>
+                                                <Style TargetType="Label">
+                                                    <Setter Property="FontFamily" Value="AleySans" />
+                                                    <Setter Property="FontSize" Value="18" />
+                                                    <Setter Property="TextColor" Value="{AppThemeBinding Dark=white, Light=black}" />
+                                                </Style>
+                                            </ResourceDictionary>
+                                        </dx:DXStackLayout.Resources>
+                                        <Label HorizontalTextAlignment="End" Text="{Binding DateCreated, StringFormat='{0:dd MMMM,yyyy hh:mm}'}" />
+                                        <Label HorizontalTextAlignment="End" Text="{Binding BitRate, StringFormat='{0} kbps'}" />
+                                        <Label HorizontalTextAlignment="End" Text="{Binding DiscNumber, StringFormat='{0}'}" />
+                                        <Label HorizontalTextAlignment="End" Text="{Binding DurationInSeconds, StringFormat='{0} seconds'}" />
+                                        <Label HorizontalTextAlignment="End" Text="{Binding ReleaseYear, StringFormat='{0}'}" />
+                                    </dx:DXStackLayout>
+                                </Grid>
+
+
+                            </dx:DXBorder>
                             <dx:DXScrollView>
                                 <Label Text="{Binding SyncLyrics}" />
                             </dx:DXScrollView>
@@ -142,6 +223,7 @@
                                         IconSize="35,35"
                                         IsIconVisible="True"
                                         LongPressCommandParameter="copy"
+                                        Tap="QuickActionChip_Tap"
                                         TapCommandParameter="title" />
                                     <dx:Chip
                                         x:Name="QuickPasteSongTitleToTextChip"
@@ -151,6 +233,7 @@
                                         IconSize="35,35"
                                         IsIconVisible="True"
                                         LongPressCommandParameter="paste"
+                                        Tap="QuickActionChip_Tap"
                                         TapCommandParameter="title" />
 
                                 </dx:DXStackLayout>
@@ -158,7 +241,7 @@
 
                             <Grid ColumnDefinitions="*,auto" ColumnSpacing="5">
 
-                                <dx:TextEdit LabelText="Track Name" Text="{Binding LyricsArtistNameSearch}" />
+                                <dx:TextEdit LabelText="Artist Name" Text="{Binding LyricsArtistNameSearch}" />
 
                                 <dx:DXStackLayout
                                     Grid.Column="1"
@@ -174,6 +257,7 @@
                                         IconSize="35,35"
                                         IsIconVisible="True"
                                         LongPressCommandParameter="copy"
+                                        Tap="QuickActionChip_Tap"
                                         TapCommandParameter="artist" />
                                     <dx:Chip
                                         x:Name="QuickPasteArtistNameToTextChip"
@@ -183,7 +267,7 @@
                                         IconSize="35,35"
                                         IsIconVisible="True"
                                         LongPressCommandParameter="paste"
-                                        Tap="QuickPasteArtistNameToTextChip_Tap"
+                                        Tap="QuickActionChip_Tap"
                                         TapCommandParameter="artist" />
 
                                 </dx:DXStackLayout>
@@ -191,7 +275,7 @@
 
                             <Grid ColumnDefinitions="*,auto" ColumnSpacing="5">
 
-                                <dx:TextEdit LabelText="Track Name" Text="{Binding LyricsAlbumNameSearch}" />
+                                <dx:TextEdit LabelText="Album Name" Text="{Binding LyricsAlbumNameSearch}" />
 
                                 <dx:DXStackLayout
                                     Grid.Column="1"
@@ -207,6 +291,7 @@
                                         IconSize="35,35"
                                         IsIconVisible="True"
                                         LongPressCommandParameter="copy"
+                                        Tap="QuickActionChip_Tap"
                                         TapCommandParameter="album" />
                                     <dx:Chip
                                         x:Name="QuickPasteAlbumNameToTextChip"
@@ -216,7 +301,7 @@
                                         IconSize="35,35"
                                         IsIconVisible="True"
                                         LongPressCommandParameter="paste"
-                                        Tap="QuickPasteAlbumNameToTextChip_Tap"
+                                        Tap="QuickActionChip_Tap"
                                         TapCommandParameter="album" />
 
                                 </dx:DXStackLayout>
@@ -273,25 +358,31 @@
                         Loaded="StatisticsStackLayout_Loaded">
 
 
-                        <dx:SlideView
-                            AllowAnimation="True"
-                            AllowLooping="True"
-                            AllowSwipe="True"
-                            Orientation="Vertical">
-                            <dx:SlideView.Items>
+                        <Label HorizontalOptions="Center" Text="{Binding SongStats.FilterUsed}" />
+                        <Label HorizontalOptions="Center" Text="{Binding SongStats.PowerHour.Name}" />
+                        <Label HorizontalOptions="Center" Text="{Binding SongStats.PowerHour.Count}" />
+                        <Label HorizontalOptions="Center" Text="{Binding SongStats.PowerHour.StatTitle}" />
+                        <Label HorizontalOptions="Center" Text="{Binding SongStats.PowerHour.Value}" />
 
-                                <dx:DXStackLayout>
-                                    <Label Text="ss" />
-                                </dx:DXStackLayout>
-                                <dx:DXStackLayout>
-                                    <Label Text="ss" />
-                                </dx:DXStackLayout>
-                                <dx:DXStackLayout>
-                                    <Label Text="ss" />
-                                </dx:DXStackLayout>
 
-                            </dx:SlideView.Items>
-                        </dx:SlideView>
+                        <dx:PieChartView HeightRequest="400">
+                            <dx:PieChartView.Series>
+                                <dx:PieSeries>
+                                    <dx:PieSeries.Data>
+                                        <dx:PieSeriesDataAdapter
+                                            DataSource="{Binding SongStats.PowerHour}"
+                                            LabelDataMember="Value"
+                                            ValueDataMember="Count" />
+                                    </dx:PieSeries.Data>
+                                </dx:PieSeries>
+                            </dx:PieChartView.Series>
+                        </dx:PieChartView>
+
+
+
+
+
+
                     </dx:DXStackLayout>
 
                 </dx:TabViewItem>
@@ -322,6 +413,49 @@
 
             </dx:TabView>
 
+
+            <dx:BottomSheet
+                x:Name="EditSongBtmSheet"
+                AllowedState="All"
+                ShowGrabber="False"
+                State="FullExpanded">
+                <dx:BottomSheet.Content>
+                    <dx:DXStackLayout Padding="10" ItemSpacing="10">
+                        <FlexLayout JustifyContent="SpaceBetween">
+                            <Label FontSize="20" Text="Edit Song Details" />
+                            <dx:DXButton
+                                Command="{Binding Commands.Close, Source={Reference EditSongBtmSheet}}"
+                                Content="X"
+                                ShowContent="True"
+                                ShowIcon="False" />
+                        </FlexLayout>
+
+                        <dx:TextEdit Text="{Binding Title}" />
+
+                        <dx:FormListPickerItem
+                            HorizontalOptions="Start"
+                            ItemsSource="{Binding ArtistToSong}"
+                            PickerShowMode="Popup"
+                            SelectedItem="{Binding Artist}"
+                            ShowSearchPanel="True"
+                            TextLineBreakMode="WordWrap">
+
+                            <dx:FormListPickerItem.InlineContentTemplate>
+                                <DataTemplate x:DataType="models:ArtistModelView">
+                                    <Label Text="{Binding Name}" />
+                                </DataTemplate>
+                            </dx:FormListPickerItem.InlineContentTemplate>
+
+                        </dx:FormListPickerItem>
+
+                        <dx:TextEdit Text="{Binding Title}" />
+
+                        <dx:TextEdit Text="{Binding Title}" />
+
+
+                    </dx:DXStackLayout>
+                </dx:BottomSheet.Content>
+            </dx:BottomSheet>
 
         </Grid>
     </dx:DXScrollView>

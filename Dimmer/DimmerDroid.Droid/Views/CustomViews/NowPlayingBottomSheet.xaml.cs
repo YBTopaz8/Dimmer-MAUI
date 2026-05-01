@@ -18,8 +18,10 @@ public partial class NowPlayingBottomSheet : BottomSheet
     private async void LyricsChip_Tap(object sender, HandledEventArgs e)
     {
 
-        PlayBackQueueExp.IsExpanded = false;
-        NowPlayingExp.IsExpanded = false;
+        if(songForLyrics is null)
+        {
+            songForLyrics = MyViewModel.CurrentPlayingSongView;
+        }
     }
 
   
@@ -49,12 +51,14 @@ public partial class NowPlayingBottomSheet : BottomSheet
         if(PlayBackQueueExp.IsExpanded)
         {
             PlayBackQueueExp.IsExpanded = false;
+            this.AllowDismiss = true;
             NowPlayingExp.IsExpanded = true;
             MainBgImg.Opacity = 0.5;
         }
         else
         {
             NowPlayingExp.IsExpanded = false;
+            this.AllowDismiss = false;
             PlayBackQueueExp.IsExpanded = true;
             MainBgImg.Opacity = 0.1;
         }
@@ -64,6 +68,7 @@ public partial class NowPlayingBottomSheet : BottomSheet
     public void ShowAndOpenPlaybackQueue()
     {
         this.Show();
+        this.AllowDismiss = false;
         PlayBackQueueExp.IsExpanded = true;
         NowPlayingExp.IsExpanded = false;
         MainBgImg.Opacity = 0.1;

@@ -136,7 +136,7 @@
                                         x:Name="LyricsChip"
                                         BorderThickness="0"
                                         IconSize="25,25"
-                                        IsVisible="{Binding CurrentPlayingSongView.IsFavorite}"
+                                        IsVisible="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
                                         Tap="LyricsChip_Tap"
                                         Text="🎙️" />
 
