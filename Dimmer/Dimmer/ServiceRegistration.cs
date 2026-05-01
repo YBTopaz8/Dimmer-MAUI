@@ -105,7 +105,6 @@ public static class ServiceRegistration
         services.AddSingleton(typeof(IQueueManager<>), typeof(QueueManager<>));
 
 
-
         services.AddSingleton<IAuthenticationService, ParseAuthenticationService>();
         services.AddTransient<LoginViewModel>();
         services.AddSingleton<SettingsViewModel>();

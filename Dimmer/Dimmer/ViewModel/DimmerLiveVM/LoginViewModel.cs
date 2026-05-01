@@ -20,13 +20,8 @@ public partial class LoginViewModel : ObservableObject
 
     [ObservableProperty]
     public partial bool RememberMe { get; set; }
-    public static bool IsAuthenticated
-    {
-        get
-        {
-            return !string.IsNullOrEmpty(ParseClient.Instance.CurrentUser?.SessionToken);
-        }
-    }
+    [ObservableProperty]
+    public partial bool IsAuthenticated { get; set; }
 
     [ObservableProperty]
     public partial bool IsLoginEnabled { get; set; } = true;
@@ -78,11 +73,12 @@ public partial class LoginViewModel : ObservableObject
 
         if (result.IsSuccess)
         {
+            IsAuthenticated= true;
             await InitializeAsync();
             SelectedIndex= 1;
 
             // Navigate to the main part of the app
-             await Shell.Current.GoToAsync("//DimmerHomeCenter");
+             //await Shell.Current.GoToAsync(nameof(DimmerHomeCenter));
         }
         else
         {

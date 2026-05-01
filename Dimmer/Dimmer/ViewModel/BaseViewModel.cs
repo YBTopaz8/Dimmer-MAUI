@@ -795,13 +795,13 @@ Observable.FromEventPattern<PlaybackEventArgs>(
         try
         {            
             // 1. Set up watchers immediately (this is now fast)
-            //await _folderMgtService.StartWatchingConfiguredFoldersAsync();
+            await _folderMgtService.StartWatchingConfiguredFoldersAsync();
 
             // 2. Perform the slow initial scan in the background
 
             if (folders is not null && folders.Any())
             {
-                //_ = await libScannerService.ScanLibrary(folders);
+                _ = await libScannerService.ScanLibrary(folders.ToList());
             }
             
             await PerformBackgroundInitializationAsync();
@@ -5656,7 +5656,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
             return string.Empty;
 
         // 1. Process locally (don't set class properties)
-        if(string.IsNullOrEmpty(LyricsTrackNameSearch ))
+        if(string.IsNullOrEmpty(LyricsTrackNameSearch))
         {
             LyricsTrackNameSearch =CleanSongTitle(SelectedSong.Title ?? string.Empty);
         }
@@ -5679,7 +5679,13 @@ Observable.FromEventPattern<PlaybackEventArgs>(
       
         return string.Join(" ", searchParts).Trim();
     }
-    [RelayCommand]
+    public void CleanLyricsSearchProps()
+    {
+        LyricsTrackNameSearch = string.Empty;
+        LyricsArtistNameSearch = string.Empty;
+        LyricsAlbumNameSearch = string.Empty;
+    }
+ 
     public void AutoFillSearchFields()
     {
         IsLyricsFound = false;

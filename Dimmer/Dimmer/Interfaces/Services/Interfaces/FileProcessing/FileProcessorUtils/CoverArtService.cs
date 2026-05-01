@@ -299,6 +299,8 @@ public class CoverArtService : ICoverArtService
 
     private async Task<byte[]?> GetImageDataAsync(string source)
     {
+       
+
         try
         {
             if (TaggingUtils.FileExists(source))

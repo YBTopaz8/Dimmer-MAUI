@@ -172,8 +172,10 @@ public class StatisticsService
             PowerHour = TopStats.GetPowerHour(allSongEvents.ToList()),
             DailyListeningRhythm = TopStats.GetDailyListeningRhythm(allSongEvents.ToList(),songDb),
             DropOffPoints = ChartSpecificStats.GetSongDropOffPoints(filteredEvents),
-            PlayHistoryOverTime = ChartSpecificStats.GetSongPlayHistoryOverTime(filteredEvents)
-            
+            PlayHistoryOverTime = ChartSpecificStats.GetSongPlayHistoryOverTime(filteredEvents),
+          
+
+
             
         };
         return bundle;
