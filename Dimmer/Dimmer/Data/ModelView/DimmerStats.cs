@@ -28,7 +28,9 @@ public partial class DimmerStats : ObservableObject
     [ObservableProperty]
     public partial double? TotalSecondsNumeric { get; set; }
     [ObservableProperty]
-    public partial double? Value { get; set; }
+    public partial double? DoubleValue { get; set; }
+    [ObservableProperty]
+    public partial int IntValue { get; set; }
     [ObservableProperty]
     public partial string? ValueStr { get; set; }
 

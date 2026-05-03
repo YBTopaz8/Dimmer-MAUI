@@ -221,11 +221,16 @@
                                 Clicked="BackupDeviceBtn_Clicked"
                                 Content="Backup Device" />
 
+                            <dx:DXStackLayout>
+                                <dx:DXButton
+                                    x:Name="RestoreBackupDeviceBtn"
+                                    Clicked="RestoreBackupDeviceBtn_Clicked"
+                                    Content="Restore Backup Device" />
+                                <Label Text="{Binding PickedUpBackup.Version, StringFormat='BackUp Version {0}'}" />
+                                <Label Text="{Binding PickedUpBackup.PlayEvents.Count, StringFormat='Events Count {0}'}" />
 
-                            <dx:DXButton
-                                x:Name="RestoreBackupDeviceBtn"
-                                Clicked="RestoreBackupDeviceBtn_Clicked"
-                                Content="Restore Backup Device" />
+                            </dx:DXStackLayout>
+
 
 
                             <dx:DXButton

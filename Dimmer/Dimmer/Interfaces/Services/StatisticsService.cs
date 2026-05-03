@@ -1,6 +1,7 @@
 ﻿using Dimmer.Utilities.StatsUtils.Albums;
 using Dimmer.Utilities.StatsUtils.Artists;
 
+
 namespace Dimmer.Interfaces.Services;
 
 // A filter enum for the UI. This is much cleaner than passing dates around.
@@ -8,7 +9,7 @@ public enum DateRangeFilter { Last7Days, Last30Days, Last90Days, Last365Days, Al
 
 
 // A container for all stats related to a single song.
-public class SongStatsBundle
+public partial class SongStatsBundle :ObservableObject
 {
     public SongStatTwo.SongSingleStatsSummary Summary { get; set; }
     public List<LabelValue> PlayTypeDistribution { get; set; }
@@ -22,12 +23,50 @@ public class SongStatsBundle
     public List<DimmerStats> PlayHistoryOverTime { get; set; }
     public DimmerStats PowerHour { get; set; }
     public List<DimmerStats> DailyListeningRhythm { get; set; }
+
+    // 1. Engagement Funnel (FunnelChart)
+    public List<LabelValue> EngagementFunnel { get; set; } = new();
+    // 2. Where Do They Skip? (ScatterSeries)
+    public List<DimmerStats> SkipHotspots { get; set; } = new();
+    // 3. Rewind & Replay Hotspots (ColumnSeries)
+    public List<LabelValue> RewindHotspots10sBins { get; set; } = new();
+    // 4. Time-of-Day Heatmap (HeatLandSeries/Matrix)
+    public List<DimmerStats> ListeningHeatmap { get; set; } = new();
+    // 5. Lyric Sentiment Timeline (LineSeries)
+    public List<DimmerStats> KeywordSentimentTimeline { get; set; } = new();
+    // 6. Device Ecosystem (PieSeries/Donut)
+    public List<LabelValue> DeviceEcosystem { get; set; } = new();
+    // 8. Action Radar (PolarLineSeries)
+    public List<LabelValue> ActionRadar { get; set; } = new();
+    // 10. Loop Segment Tracker (Gantt/RangeBarSeries)
+    public List<DimmerStats> LoopedSegments { get; set; } = new();
+    // 12. Audio Quality Profile (GaugeSeries)
+    public DimmerStats AudioQualityGauge { get; set; } = new();
+
+
+
 }
 // --- Single Artist stats ---
 public class ArtistStatsBundle : StatsBundleBase
 {
     public ArtistStats.ArtistSingleStatsSummary Summary { get; set; }
     public ArtistStats.ArtistPlottableData PlottableData { get; set; }
+    // 23. Era/Decade Distribution (Histogram/ColumnSeries)
+    public List<LabelValue> DecadeDistribution { get; set; } = new();
+    // 24. Most Obsessed-Over Songs Formula (HorizontalBarSeries)
+    public List<LabelValue> ObsessionRankedSongs { get; set; } = new();
+    // 25. Genre Blending (PieSeries / PolarSeries)
+    public List<LabelValue> GenreBlending { get; set; } = new();
+    // 27. Listening Footprint by Device (Treemap / Nested Pie)
+    public List<LabelValue> DeviceFootprint { get; set; } = new();
+    // 28. Discovery Velocity (LineSeries - Cumulative)
+    public List<DimmerStats> DiscoveryVelocity { get; set; } = new();
+    // 30. Collaborator Network (Bubble/Scatter - approximations)
+    public List<LabelValue> CollaboratorNetwork { get; set; } = new();
+    // 31. Vibe/BPM Spread (ScatterSeries)
+    public List<DimmerStats> BpmVersusEngagement { get; set; } = new();
+    // 32. Composer Spotlight (StackedColumnSeries)
+    public List<LabelValue> ComposerSpotlight { get; set; } = new();
 }
 
 // --- Single Album stats ---
@@ -35,6 +74,11 @@ public class AlbumStatsBundle : StatsBundleBase
 {
     public AlbumStats.AlbumSingleStatsSummary Summary { get; set; }
     public AlbumStats.AlbumPlottableData PlottableData { get; set; }
+    public int AlbumEddingtonNumber { get; internal set; }
+    public List<DimmerStats> TrackEventBreakdown { get; internal set; }
+    public List<LabelValue> LyricalDensityPerTrack { get; internal set; }
+    public List<LabelValue> AlbumDropOffCurve { get; internal set; }
+    public List<LabelValue> InstrumentalVsVocalPlays { get; internal set; }
 }
 
 // --- Comparison stats ---
@@ -102,6 +146,7 @@ public class StatisticsService
             Title = "Library Overview",
             Subtitle = $"Stats for: {filter.ToString().Replace("Last", "Last ")}",
             FilterUsed = filter,
+            
             CollectionSummary = CollectionStats.GetSummary(allSongs, filteredEvents),
 
            
@@ -173,10 +218,11 @@ public class StatisticsService
             DailyListeningRhythm = TopStats.GetDailyListeningRhythm(allSongEvents.ToList(),songDb),
             DropOffPoints = ChartSpecificStats.GetSongDropOffPoints(filteredEvents),
             PlayHistoryOverTime = ChartSpecificStats.GetSongPlayHistoryOverTime(filteredEvents),
-          
 
 
-            
+            EngagementFunnel = SongExtensiveStats.GetEngagementFunnel(songDb),
+             ActionRadar = SongExtensiveStats.GetActionRadar(songDb),
+
         };
         return bundle;
     }
@@ -200,6 +246,8 @@ public class StatisticsService
         };
 
         var allSongs =  _songRepo.GetAll();
+        var artistSongs = allSongs.Where(s => s.Artist?.Id == artistId).ToList();
+
         var filteredEvents =  _eventRepo.GetEventsInDateRangeAsync(startDate, endDate);
 
         var bundle = new ArtistStatsBundle
@@ -208,7 +256,21 @@ public class StatisticsService
             Subtitle = "Artist Overview",
             FilterUsed = filter,
             Summary = ArtistStats.GetSingleArtistStats(artist, allSongs, filteredEvents),
-            PlottableData = ArtistStats.GetSingleArtistPlottableData(artist, allSongs, filteredEvents)
+            PlottableData = ArtistStats.GetSingleArtistPlottableData(artist, allSongs, filteredEvents),
+
+            DecadeDistribution = ArtistExtensiveStats.GetDecadeDistribution(artistSongs),
+            ObsessionRankedSongs = ArtistExtensiveStats.GetObsessionRankings(artistSongs),
+            CollaboratorNetwork = ArtistExtensiveStats.GetCollaborators(artistSongs),
+            BpmVersusEngagement = ArtistExtensiveStats.GetBpmVsEngagement(artistSongs),
+
+            // Quick LINQ for genre blending
+            GenreBlending = artistSongs
+            .Where(s => !string.IsNullOrEmpty(s.GenreName))
+            .GroupBy(s => s.GenreName)
+            .Select(g => new LabelValue { Label = g.Key, Value = g.Sum(x => x.PlayCount) })
+            .ToList()
+
+
         };
         return bundle;
     }
@@ -233,6 +295,7 @@ public class StatisticsService
 
         var allSongs =  _songRepo.GetAllAsQueryable();
         var filteredEvents =  _eventRepo.GetEventsInDateRangeAsync(startDate, endDate);
+        var albumSongs = allSongs.Where(s => s.Album.Id == albumId).ToList();
 
         var bundle = new AlbumStatsBundle
         {
@@ -240,7 +303,20 @@ public class StatisticsService
             Subtitle = $"Album by {album.Artist?.Name}",
             FilterUsed = filter,
             Summary = AlbumStats.GetSingleAlbumStats(album, allSongs, filteredEvents),
-            PlottableData = AlbumStats.GetSingleAlbumPlottableData(album, allSongs, filteredEvents)
+            PlottableData = AlbumStats.GetSingleAlbumPlottableData(album, allSongs, filteredEvents),
+
+            // --- NEW Advanced Visualizations ---
+            AlbumDropOffCurve = AlbumExtensiveStats.GetDropOffCurve(albumSongs),
+            LyricalDensityPerTrack = AlbumExtensiveStats.GetLyricalDensity(albumSongs),
+            TrackEventBreakdown = AlbumExtensiveStats.GetTrackEventBreakdown(albumSongs),
+            AlbumEddingtonNumber = AlbumExtensiveStats.CalculateEddingtonNumber(albumSongs),
+
+            // Quick LINQ inline for simple ones
+            InstrumentalVsVocalPlays = new List<LabelValue>
+        {
+            new() { Label = "Instrumental", Value = albumSongs.Where(s => s.IsInstrumental == true).Sum(s => s.PlayCount) },
+            new() { Label = "Vocal", Value = albumSongs.Where(s => s.IsInstrumental == false || s.IsInstrumental == null).Sum(s => s.PlayCount) }
+        }
         };
         return bundle;
     }

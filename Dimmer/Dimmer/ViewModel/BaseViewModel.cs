@@ -1738,7 +1738,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
     [ObservableProperty]
     public partial string AppTitle { get; set; } = "Dimmer";
 
-    public static string CurrentAppVersion = "1.9.0";
+    public static string CurrentAppVersion = "1.9.1";
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]
@@ -2782,8 +2782,8 @@ Observable.FromEventPattern<PlaybackEventArgs>(
         TotalDimms = _reportGenerator.GetTotalScrobbles()?.Count ?? 0;
         TopArtist = _reportGenerator.GetTopArtists()?.FirstOrDefault()?.ArtistName ?? "-";
         TopAlbum = _reportGenerator.GetTopAlbums()?.FirstOrDefault()?.AlbumName ?? "-";
-        TopGenre = _reportGenerator.GetVariance()?.Value.ToString() ?? "-"; // placeholder, use tags later
-        TopPlayTime = $"{_reportGenerator.GetTotalListeningTime()?.Value:F1}h";
+        TopGenre = _reportGenerator.GetVariance()?.DoubleValue.ToString() ?? "-"; // placeholder, use tags later
+        TopPlayTime = $"{_reportGenerator.GetTotalListeningTime()?.DoubleValue:F1}h";
 
         // --- Collections ---
         TopTrackDashBoard = _reportGenerator.GetTopTracks()?.ToObservableCollection();

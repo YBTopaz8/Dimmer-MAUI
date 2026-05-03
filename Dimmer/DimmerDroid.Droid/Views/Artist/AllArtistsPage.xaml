@@ -13,12 +13,9 @@
     x:DataType="vm:BaseViewModelAnd"
     BackgroundColor="DarkGray"
     Shell.BackgroundColor="DarkGray"
+    Shell.ForegroundColor="DarkSlateBlue"
     Shell.NavBarIsVisible="True">
     <Grid Margin="10,0" RowDefinitions="auto,*">
-        <dx:DXStackLayout Grid.Row="0">
-            <Label Text="{Binding ArtistsCollection.Count}" />
-
-        </dx:DXStackLayout>
 
         <dx:DXCollectionView
             Grid.Row="1"

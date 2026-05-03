@@ -488,6 +488,7 @@
                                                 Icon="searchalta.png"
                                                 IconColor="DarkSlateBlue"
                                                 IconSize="30,30"
+                                               TapCommand="{Binding ,Source={Reference myPage}}"
                                                 IsIconVisible="True"
                                                 LongPressCommandParameter="{Binding Name}"
                                                 Tap="SearchArtistBtnTQL_Tap" />
@@ -749,6 +750,35 @@
 
                 </dx:DXStackLayout>
 
+            </dx:DXPopup.Content>
+        </dx:DXPopup>
+
+        <dx:DXPopup x:Name="ArtistSongsPopup">
+            <dx:DXPopup.Content>
+                <Grid>
+                    <dx:DXCollectionView x:Name="SelectedSongArtistSongCV" ItemsSource="{Binding SelectedArtist.SongsByArtist}">
+                        <dx:DXCollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:SongModelView">
+                                <Grid ColumnDefinitions="80,*,auto">
+                                    <dx:DXImage Grid.Column="0" Source="{Binding CoverImagePath}" />
+                                    <dx:DXStackLayout Grid.Column="1">
+                                        <Label Text="{Binding Title}" />
+                                        <Label Text="{Binding AlbumName}" />
+                                        <Label Text="{Binding OtherArtistsName}" />
+                                    </dx:DXStackLayout>
+
+                                    <dx:DXStackLayout Orientation="Horizontal">
+                                        <ImageButton Source="addplaylist.png" />
+                                        <dx:DXStackLayout>
+                                            <ImageButton Source="delete.png" />
+                                            <Label Text="Remove" />
+                                        </dx:DXStackLayout>
+                                    </dx:DXStackLayout>
+                                </Grid>
+                            </DataTemplate>
+                        </dx:DXCollectionView.ItemTemplate>
+                    </dx:DXCollectionView>
+                </Grid>
             </dx:DXPopup.Content>
         </dx:DXPopup>
     </Grid>

@@ -25,13 +25,26 @@
                         <dx:DXStackLayout ItemSpacing="10">
 
                             <Grid ColumnDefinitions="150,*" ColumnSpacing="5">
-                                <dx:DXImage
-                                    Grid.Column="0"
-                                    Aspect="AspectFit"
-                                    HorizontalOptions="Center"
-                                    MaximumHeightRequest="300"
-                                    MaximumWidthRequest="300"
-                                    Source="{Binding CoverImagePath}" />
+                                <dx:DXStackLayout Grid.Column="0">
+
+                                    <dx:DXImage
+                                        Aspect="AspectFit"
+                                        HorizontalOptions="Center"
+                                        MaximumHeightRequest="350"
+                                        MaximumWidthRequest="350"
+                                        Source="{Binding CoverImagePath}"
+                                        VerticalOptions="Start" />
+                                    <dx:DXButton
+                                        Padding="0"
+                                        BackgroundColor="Transparent"
+                                        Icon="heart.png"
+                                        IconColor="DarkSlateBlue"
+                                        IconHeight="40"
+                                        IconWidth="40"
+                                        IsVisible="{Binding IsFavorite}"
+                                        ShowIcon="True" />
+                                </dx:DXStackLayout>
+
 
                                 <dx:DXStackLayout
                                     Grid.Column="1"
@@ -42,7 +55,8 @@
                                         FontSize="23"
                                         HorizontalTextAlignment="Justify"
                                         LineBreakMode="WordWrap"
-                                        Text="{Binding Title}" />
+                                        Text="{Binding Title}"
+                                        VerticalOptions="Start" />
                                     <dx:Chip
                                         x:Name="ArtistNamesChip"
                                         FontSize="17"
@@ -80,7 +94,6 @@
 
                             <BoxView HeightRequest="1" Color="DarkSlateBlue" />
 
-                            <dx:Chip Icon="heart.png" IsVisible="{Binding IsFavorite}" />
                             <Grid ColumnDefinitions="*,auto">
 
                                 <Label
@@ -103,7 +116,7 @@
                             </Grid>
                             <dx:DXBorder
                                 Padding="5"
-                                BorderColor="Gray"
+                                BorderColor="DarkSlateBlue"
                                 BorderThickness="1"
                                 CornerRadius="10">
 
@@ -119,7 +132,7 @@
                                     <dx:DXStackLayout Grid.Column="0" ItemSpacing="15">
                                         <Label Text="Date Created" />
                                         <Label Text="BitRate" />
-                                        <Label Text="Disc Number" />
+                                        <Label Text="Track Number" />
                                         <Label Text="Duration In Seconds" />
                                         <Label Text="Release Year" />
                                     </dx:DXStackLayout>
@@ -140,15 +153,123 @@
                                         </dx:DXStackLayout.Resources>
                                         <Label HorizontalTextAlignment="End" Text="{Binding DateCreated, StringFormat='{0:dd MMMM,yyyy hh:mm}'}" />
                                         <Label HorizontalTextAlignment="End" Text="{Binding BitRate, StringFormat='{0} kbps'}" />
-                                        <Label HorizontalTextAlignment="End" Text="{Binding DiscNumber, StringFormat='{0}'}" />
+                                        <Label HorizontalTextAlignment="End" Text="{Binding TrackNumber, StringFormat='{0}'}" />
                                         <Label HorizontalTextAlignment="End" Text="{Binding DurationInSeconds, StringFormat='{0} seconds'}" />
                                         <Label HorizontalTextAlignment="End" Text="{Binding ReleaseYear, StringFormat='{0}'}" />
+
                                     </dx:DXStackLayout>
                                 </Grid>
 
 
                             </dx:DXBorder>
-                            <dx:DXScrollView>
+
+
+                            <Grid ColumnDefinitions="*,auto">
+
+                                <Label
+                                    Grid.Column="0"
+                                    FontSize="26"
+                                    HorizontalOptions="Center"
+                                    Text="Stats" />
+                                <dx:DXButton
+                                    Grid.Column="1"
+                                    Padding="4"
+                                    BackgroundColor="Transparent"
+                                    BorderThickness="0"
+                                    Icon="eye.png"
+                                    IconColor="DarkSlateBlue"
+                                    IconHeight="25"
+                                    IconWidth="25"
+                                    ShowContent="False"
+                                    ShowIcon="True" />
+                            </Grid>
+                            <dx:DXStackLayout
+                                x:Name="StatsSectionPreview"
+                                Padding="5"
+                                x:DataType="globalVM:StatisticsViewModel"
+                                BorderColor="DarkSlateBlue"
+                                BorderThickness="1"
+                                CornerRadius="10">
+                                <dx:DXStackLayout.Resources>
+                                    <ResourceDictionary>
+                                        <Style TargetType="Label">
+                                            <Setter Property="FontSize" Value="16" />
+                                            <Setter Property="TextColor" Value="{AppThemeBinding Light=black, Dark=white}" />
+
+                                        </Style>
+                                    </ResourceDictionary>
+                                </dx:DXStackLayout.Resources>
+                                <FlexLayout JustifyContent="SpaceBetween">
+                                    <Label Text="First Played" />
+                                    <Label Text="{Binding SongStats.Summary.FirstPlayedDate, StringFormat='{0:dd, MMMM yyyy : HH:mm}'}" />
+
+                                </FlexLayout>
+                                <FlexLayout JustifyContent="SpaceBetween">
+                                    <Label Text="Last Played" />
+                                    <Label Text="{Binding SongStats.Summary.LastPlayedDate, StringFormat='{0:dd, MMMM yyyy : HH:mm}'}" />
+
+                                </FlexLayout>
+                                <FlexLayout JustifyContent="SpaceBetween">
+                                    <Label Text="Most Frequently played hour" />
+                                    <Label Text="{Binding SongStats.Summary.MostFrequentPlayHour, StringFormat='{0}'}" />
+
+                                </FlexLayout>
+                                <FlexLayout JustifyContent="SpaceBetween">
+                                    <Label Text="Longest Listening Streak (in Days)" />
+                                    <Label Text="{Binding SongStats.Summary.LongestListeningStreakDays, StringFormat='{0}'}" />
+
+                                </FlexLayout>
+                                <FlexLayout JustifyContent="SpaceBetween">
+                                    <Label Text="Total Listening Time Seconds (in seconds)" />
+                                    <Label Text="{Binding SongStats.Summary.TotalListeningTimeSeconds, StringFormat='{0}s'}" />
+
+                                </FlexLayout>
+
+
+                            </dx:DXStackLayout>
+                            <Grid
+                                x:Name="StatsVisualGrid"
+                                Padding="5"
+                                x:DataType="globalVM:StatisticsViewModel"
+                                RowDefinitions="250,150">
+                                <dx:PieChartView
+                                    x:Name="ActionsRadarChart"
+                                    Grid.Row="0"
+                                    SelectionChanged="ActionsRadarChart_SelectionChanged">
+                                    <dx:PieChartView.Hint>
+                                        <dx:PieHint Enabled="True" />
+                                    </dx:PieChartView.Hint>
+                                    <dx:PieChartView.Series>
+
+                                        <dx:PieSeries>
+                                            <dx:PieSeries.Label>
+                                                <dx:PieSeriesLabel Position="TwoColumns" />
+                                            </dx:PieSeries.Label>
+                                            <dx:PieSeries.Data>
+                                                <dx:PieSeriesDataAdapter
+                                                    AllowLiveDataUpdates="True"
+                                                    DataSource="{Binding SongStats.ActionRadar}"
+                                                    LabelDataMember="Label"
+                                                    ValueDataMember="Value" />
+
+
+                                            </dx:PieSeries.Data>
+                                        </dx:PieSeries>
+                                    </dx:PieChartView.Series>
+                                </dx:PieChartView>
+                                <dx:DXCollectionView Grid.Row="1" ItemsSource="{Binding SongStats.ActionRadar}">
+                                    <dx:DXCollectionView.ItemTemplate>
+                                        <DataTemplate x:DataType="models:LabelValue">
+                                            <FlexLayout JustifyContent="SpaceBetween">
+                                                <Label Text="{Binding Label}" />
+                                                <Label Text="{Binding Value}" />
+                                            </FlexLayout>
+                                        </DataTemplate>
+                                    </dx:DXCollectionView.ItemTemplate>
+                                </dx:DXCollectionView>
+
+                            </Grid>
+                            <dx:DXScrollView AllowBounceEffect="True" MaximumHeightRequest="450">
                                 <Label Text="{Binding SyncLyrics}" />
                             </dx:DXScrollView>
 
@@ -334,16 +455,30 @@
                                                 Clicked="ApplyLyrics_Clicked"
                                                 CommandParameter="{Binding .}"
                                                 Content="Save Lyrics" />
-                                            <dx:DXScrollView MaximumHeightRequest="250">
 
-                                                <Label Text="{Binding SyncedLyrics}" />
 
-                                            </dx:DXScrollView>
+                                            <Label MaximumHeightRequest="250" Text="{Binding SyncedLyrics}">
+                                                <Label.GestureRecognizers>
+                                                    <TapGestureRecognizer
+                                                        x:Name="TapToViewSingleSongLyricsPopup"
+                                                        CommandParameter="{Binding SyncedLyrics}"
+                                                        Tapped="TapToViewSingleSongLyricsPopup_Tapped" />
+                                                </Label.GestureRecognizers>
+                                            </Label>
+
                                         </dx:DXStackLayout>
                                     </DataTemplate>
                                 </dx:DXCollectionView.ItemTemplate>
                             </dx:DXCollectionView>
 
+                            <dx:DXPopup x:Name="SingleSongSyncLyricsPopup">
+                                <dx:DXPopup.Content>
+                                    <ScrollView>
+                                        <Label x:Name="SelectedSynclyrics" />
+
+                                    </ScrollView>
+                                </dx:DXPopup.Content>
+                            </dx:DXPopup>
                         </dx:DXStackLayout>
 
                     </dx:DXScrollView>
@@ -351,6 +486,7 @@
 
 
                 <dx:TabViewItem HeaderText="Statistics">
+                    <dx:DXScrollView>
 
                     <dx:DXStackLayout
                         x:Name="StatisticsStackLayout"
@@ -358,33 +494,28 @@
                         Loaded="StatisticsStackLayout_Loaded">
 
 
-                        <Label HorizontalOptions="Center" Text="{Binding SongStats.FilterUsed}" />
-                        <Label HorizontalOptions="Center" Text="{Binding SongStats.PowerHour.Name}" />
-                        <Label HorizontalOptions="Center" Text="{Binding SongStats.PowerHour.Count}" />
-                        <Label HorizontalOptions="Center" Text="{Binding SongStats.PowerHour.StatTitle}" />
-                        <Label HorizontalOptions="Center" Text="{Binding SongStats.PowerHour.Value}" />
+                        <Label HorizontalOptions="Center" Text="{Binding SongActionRadarData.Count}" />
 
 
-                        <dx:PieChartView HeightRequest="400">
-                            <dx:PieChartView.Series>
-                                <dx:PieSeries>
-                                    <dx:PieSeries.Data>
-                                        <dx:PieSeriesDataAdapter
-                                            DataSource="{Binding SongStats.PowerHour}"
-                                            LabelDataMember="Value"
-                                            ValueDataMember="Count" />
-                                    </dx:PieSeries.Data>
-                                </dx:PieSeries>
-                            </dx:PieChartView.Series>
-                        </dx:PieChartView>
 
-
+                        <dx:ChartView  >
+                            <dx:ChartView.Series>
+                                <dx:LineSeries>
+                                    <dx:LineSeries.Data>
+                                        <dx:SeriesDataAdapter ArgumentDataMember="Label" DataSource="{Binding SongHourlyData}">
+                                            <dx:ValueDataMember Member="Value" Type="Value" />
+                                        </dx:SeriesDataAdapter>
+                                    </dx:LineSeries.Data>
+                                </dx:LineSeries>
+                            </dx:ChartView.Series>
+                        </dx:ChartView>
 
 
 
 
                     </dx:DXStackLayout>
 
+                    </dx:DXScrollView>
                 </dx:TabViewItem>
 
                 <dx:TabViewItem HeaderText="TimeLine">
@@ -430,16 +561,25 @@
                                 ShowIcon="False" />
                         </FlexLayout>
 
-                        <dx:TextEdit Text="{Binding Title}" />
+                        <dx:TextEdit LabelText="Song Title" Text="{Binding Title}" />
 
                         <dx:FormListPickerItem
                             HorizontalOptions="Start"
-                            ItemsSource="{Binding ArtistToSong}"
+                            IsMultipleSelectionEnabled="True"
+                            ItemsSource="{Binding MyViewModel.ArtistsCollection, Source={Reference myPage}}"
+                            PickerSelectedItemTextColor="{AppThemeBinding Light=darkslateblue}"
                             PickerShowMode="Popup"
                             SelectedItem="{Binding Artist}"
                             ShowSearchPanel="True"
+                            Text="Choose Artist"
                             TextLineBreakMode="WordWrap">
 
+
+                            <dx:FormListPickerItem.ItemTemplate>
+                                <DataTemplate x:DataType="models:ArtistModelView">
+                                    <Label Text="{Binding Name}" />
+                                </DataTemplate>
+                            </dx:FormListPickerItem.ItemTemplate>
                             <dx:FormListPickerItem.InlineContentTemplate>
                                 <DataTemplate x:DataType="models:ArtistModelView">
                                     <Label Text="{Binding Name}" />
@@ -448,9 +588,38 @@
 
                         </dx:FormListPickerItem>
 
-                        <dx:TextEdit Text="{Binding Title}" />
+                        <dx:FormListPickerItem
+                            HorizontalOptions="Start"
+                            IsMultipleSelectionEnabled="False"
+                            ItemsSource="{Binding MyViewModel.AlbumsCollection, Source={Reference myPage}}"
+                            PickerSelectedItemTextColor="{AppThemeBinding Light=darkslateblue}"
+                            PickerShowMode="Popup"
+                            SelectedItem="{Binding Album}"
+                            SeparatorThickness="0"
+                            ShowSearchPanel="True"
+                            Text="Choose Album"
+                            TextLineBreakMode="WordWrap">
 
-                        <dx:TextEdit Text="{Binding Title}" />
+
+                            <dx:FormListPickerItem.ItemTemplate>
+                                <DataTemplate x:DataType="models:ArtistModelView">
+                                    <Label Text="{Binding Name}" />
+                                </DataTemplate>
+                            </dx:FormListPickerItem.ItemTemplate>
+                            <dx:FormListPickerItem.InlineContentTemplate>
+                                <DataTemplate x:DataType="models:ArtistModelView">
+                                    <Label Text="{Binding Name}" />
+                                </DataTemplate>
+                            </dx:FormListPickerItem.InlineContentTemplate>
+
+                        </dx:FormListPickerItem>
+
+                        <dx:NumericEdit
+                            LabelText="Release Year"
+                            TextHorizontalAlignment="Start"
+                            Value="{Binding ReleaseYear}" />
+
+                        <dx:TextEdit LabelText="Track Number" Text="{Binding TrackNumber}" />
 
 
                     </dx:DXStackLayout>

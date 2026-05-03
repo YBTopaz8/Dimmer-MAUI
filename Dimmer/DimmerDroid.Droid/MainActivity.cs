@@ -209,10 +209,11 @@ public partial class MainActivity : MauiAppCompatActivity
             .Show();
         return;
     }
-    switch (Shell.Current.CurrentItem.Title)
+    switch (Shell.Current.CurrentPage.Title)
     {
 
-        case "Artists":
+        case "All Artists":
+        case "AllAlbumsPage":
         case "LastFM":
 
             new MaterialAlertDialogBuilder(this)?

@@ -88,14 +88,14 @@ public partial class WrappedViewModel : ObservableObject
 
         // --- POPULATE PAGE 3 (Summary) ---
         var timeStats = _generator.GetTotalListeningTime();
-        TotalMinutes = timeStats != null ? $"{timeStats.Value} Hours" : "0 Hours";
+        TotalMinutes = timeStats != null ? $"{timeStats.DoubleValue} Hours" : "0 Hours";
 
         var uniqueTracks = _generator.GetUniqueTracks();
         TotalSongs = uniqueTracks != null ? $"{uniqueTracks.Count}" : "0";
 
         // Calculate "Personality" based on Discovery Rate
         var discovery = _generator.GetDiscoveryRate();
-        MusicPersonality = (discovery?.Value ?? 0) > 30 ? "The Explorer" : "The Loyalist";
+        MusicPersonality = ((double?)discovery?.DoubleValue ?? 0) > 30 ? "The Explorer" : "The Loyalist";
 
         // Genre Pie Chart
         var genres = _generator.GetTopGenres()?.Take(4);

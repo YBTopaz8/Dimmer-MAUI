@@ -6,6 +6,7 @@ global using Dimmer.Data.Models.LyricsModels;
 global using Font = Microsoft.Maui.Font;
 global using Toast = CommunityToolkit.Maui.Alerts.Toast;
 
+
 namespace Dimmer.Views.SingleSong;
 
 public partial class DetailsOverview : ContentPage
@@ -16,7 +17,7 @@ public partial class DetailsOverview : ContentPage
 		MyViewModel = baseViewModel;
         StatsViewModel= statisticsService;
         LastFMViewModel = lastFMVM;
-		
+
 	}
     public BaseViewModelAnd MyViewModel { get; }
     public StatisticsViewModel StatsViewModel { get; }
@@ -29,6 +30,9 @@ public partial class DetailsOverview : ContentPage
         if (MyViewModel.SelectedSong is null) return;
         BindingContext = MyViewModel.SelectedSong;
         StatisticsStackLayout.BindingContext = StatsViewModel;
+        StatsSectionPreview.BindingContext = StatsViewModel;
+        StatsVisualGrid.BindingContext = StatsViewModel;
+
         MyViewModel.AutoFillSearchFields();
         ConcernedSong = MyViewModel.SelectedSong;
 
@@ -41,17 +45,7 @@ public partial class DetailsOverview : ContentPage
         MyViewModel.CleanLyricsSearchProps();
         base.OnDisappearing();
     }
-          private void SongTitleLabel_SizeChanged(object sender, EventArgs e)
-    {
-        double startX = TitleLabel.Width;
-        double endX = -TitleLabel.Width;
-
-        //now marquee the text
-        var animation = new Animation(v => TitleLabel.TranslationX = v, startX, endX);
-        animation.Commit(this, "MarqueeAnimation", 16, 10000, Easing.Linear, (v, c) => TitleLabel.TranslationX = startX, () => true);
-        
-    }
-
+      
     private void LyricsTabVSL_Loaded(object sender, EventArgs e)
     {
         LyricsTabVSL.BindingContext = MyViewModel;
@@ -145,7 +139,7 @@ public partial class DetailsOverview : ContentPage
 
             var snackbar = Snackbar.Make(text, null, actionButtonText, duration, snackbarOptions);
 
-
+            SongTabView.SelectedItemIndex =0;
 
             await snackbar.Show(cancellationTokenSource.Token);
 
@@ -273,5 +267,18 @@ Chip tappedChip = (Chip)sender;
 
         CommunityToolkit.Maui.Alerts.Toast msgToast = new CommunityToolkit.Maui.Alerts.Toast() { Text = text, Duration = CommunityToolkit.Maui.Core.ToastDuration.Short };
 
+    }
+
+    private void TapToViewSingleSongLyricsPopup_Tapped(object sender, TappedEventArgs e)
+    {
+        string? lyrics = e.Parameter as string;
+        if (lyrics is null) return;
+        SelectedSynclyrics.Text = lyrics;
+        SingleSongSyncLyricsPopup.Show();
+    }
+
+    private void ActionsRadarChart_SelectionChanged(object sender, DevExpress.Maui.Charts.SelectionChangedEventArgs e)
+    {
+        
     }
 }

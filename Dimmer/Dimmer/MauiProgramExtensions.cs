@@ -1,4 +1,7 @@
-﻿namespace Dimmer;
+﻿
+
+
+namespace Dimmer;
 
 public static class MauiProgramExtensions
 {
@@ -6,7 +9,6 @@ public static class MauiProgramExtensions
     {
         builder
             .UseMauiApp<App>()
-            //.UseSkiaSharp()
             .UseMauiCommunityToolkit(options =>
             {
                 options.SetShouldSuppressExceptionsInAnimations(true);
