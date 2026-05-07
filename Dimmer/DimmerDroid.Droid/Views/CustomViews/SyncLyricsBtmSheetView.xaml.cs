@@ -1,21 +1,16 @@
-using AndroidX.Lifecycle;
-
 namespace Dimmer.Views.CustomViews;
 
-public partial class SyncLyricsPage : ContentPage
+public partial class SyncLyricsBtmSheetView : BottomSheet
 {
-	public SyncLyricsPage(BaseViewModelAnd baseViewModel)
+	public SyncLyricsBtmSheetView()
 	{
 		InitializeComponent();
-        MyViewModel = baseViewModel;
-
-    }
-
+	}
     BaseViewModelAnd MyViewModel { get; }
     private async void CoverImgInNowPlayingPage_Tapped(object sender, TappedEventArgs e)
     {
 
-        await Shell.Current.GoToAsync("..");
+        await this.CloseAsync();
 
     }
 

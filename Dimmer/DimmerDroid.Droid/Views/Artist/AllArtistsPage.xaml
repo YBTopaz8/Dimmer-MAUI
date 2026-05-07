@@ -168,7 +168,6 @@
         </dx:BottomSheet>
 
 
-
-        <local:NowPlayingBottomSheet x:Name="NPBtmSheet" />
+        
     </Grid>
 </ContentPage>

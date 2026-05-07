@@ -39,7 +39,7 @@ internal class Bootstrapper
 
         services.AddSingleton<DetailsOverview>();
         services.AddSingleton<PlaybackQueueBtmSheet>();
-        services.AddSingleton<NowPlayingBottomSheet>();
+        services.AddSingleton<NowPlayingView>();
         services.AddSingleton<AlbumPage>();
         services.AddSingleton<ArtistPage>();
 
@@ -48,9 +48,10 @@ internal class Bootstrapper
         services.AddSingleton<LastFMHomePage>();
         services.AddSingleton<AllStats>();
         services.AddSingleton<DimmerHomeCenter>();
-        services.AddTransient<DimmerLiveLogin>();
-        services.AddSingleton<SyncLyricsPage>();
-        
+            services.AddTransient<DimmerLiveLogin>();
+
+            services.AddSingleton<SingleSongInCVPopup>();
+
 
         // 4. Register Logic/Data Services
         services.AddSingleton<IAppUtil, AppUtil>();

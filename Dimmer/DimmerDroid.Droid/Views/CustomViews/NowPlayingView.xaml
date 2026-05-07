@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<dx:BottomSheet
-    x:Class="Dimmer.Views.CustomViews.NowPlayingBottomSheet"
+<ContentView
+    x:Class="Dimmer.Views.CustomViews.NowPlayingView"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
@@ -10,32 +10,32 @@
     xmlns:vm="clr-namespace:Dimmer.ViewModels"
     x:Name="NowPlayingBtmSheet"
     x:DataType="vm:BaseViewModelAnd"
-    AllowedState="FullExpanded"
-    ShowGrabber="False"
-    StateChanged="NowPlayingBtmSheet_StateChanged"
     Unloaded="myPage_Unloaded">
-    <dx:BottomSheet.Resources>
-        <ResourceDictionary>
-            <Style TargetType="dx:DXButton">
-                <Setter Property="HeightRequest" Value="50" />
-            </Style>
-        </ResourceDictionary>
-    </dx:BottomSheet.Resources>
 
     <Grid RowDefinitions="*,auto">
-
+        <Grid.Resources>
+            <ResourceDictionary>
+                <Style TargetType="dx:DXButton">
+                    <Setter Property="HeightRequest" Value="50" />
+                </Style>
+            </ResourceDictionary>
+        </Grid.Resources>
         <dx:DXImage
             x:Name="MainBgImg"
             Grid.RowSpan="2"
             Aspect="AspectFill"
-            Opacity="0.4"
+            Opacity="0.6"
             Source="{Binding CurrentPlayingSongView.CoverImagePath}" />
+
+
+
         <dx:DXExpander
             x:Name="NowPlayingExp"
+            Grid.Row="0"
             x:FieldModifier="Public"
+            BackgroundColor="Transparent"
             IsExpanded="True"
             VerticalOptions="End">
-
             <Grid
                 Margin="10,0,0,80"
                 Padding="5,0"
@@ -81,7 +81,6 @@
                         FontSize="20"
                         HorizontalOptions="Center"
                         HorizontalTextAlignment="Justify"
-                        SizeChanged="SongTitleLabel_SizeChanged"
                         Text="{Binding CurrentPlayingSongView.Title}" />
 
                     <dx:Chip
@@ -336,8 +335,8 @@
 
                 </dx:DXStackLayout>
             </Grid>
-
         </dx:DXExpander>
+
 
         <dx:DXExpander
             x:Name="PlayBackQueueExp"
@@ -347,18 +346,8 @@
             <Grid>
 
                 <dx:DXStackLayout Margin="10,0" ItemSpacing="15">
-                    <dx:DXButton
-                        x:Name="BackBtn"
-                        Padding="0"
-                        BackgroundColor="Transparent"
-                        HorizontalOptions="Start"
-                        Icon="backb.png"
-                        IconColor="DarkSlateBlue"
-                        IconHeight="40"
-                        IconWidth="40"
-                        ShowContent="False"
-                        ShowIcon="True"
-                        Tap="BackBtn_Tap" />
+
+
                     <FlexLayout JustifyContent="SpaceBetween">
                         <dx:DXStackLayout>
                             <Label
@@ -575,5 +564,6 @@
         </dx:DXExpander>
 
 
+
     </Grid>
-</dx:BottomSheet>
+</ContentView>

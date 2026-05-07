@@ -4,9 +4,9 @@ using DevExpress.Maui.Core;
 
 namespace Dimmer.Views.CustomViews;
 
-public partial class NowPlayingBottomSheet : BottomSheet
+public partial class NowPlayingView : ContentView
 {
-	public NowPlayingBottomSheet()
+	public NowPlayingView()
 	{
 		InitializeComponent();
         MyViewModel = IPlatformApplication.Current!.Services.GetService<BaseViewModelAnd>()!;
@@ -26,15 +26,7 @@ public partial class NowPlayingBottomSheet : BottomSheet
 
   
 
-    private void SongTitleLabel_SizeChanged(object sender, EventArgs e)
-    {
-        double startX = SongTitleLabel.Width;
-        double endX = -SongTitleLabel.Width;
 
-        //now marquee the text
-        var animation = new Animation(v => SongTitleLabel.TranslationX = v, startX, endX);
-        animation.Commit(this, "MarqueeAnimation", 16, 10000, Easing.Linear, (v, c) => SongTitleLabel.TranslationX = startX, () => true);
-    }
 
     private void PlaybackChip_Tap(object sender, HandledEventArgs e)
     {
@@ -51,14 +43,14 @@ public partial class NowPlayingBottomSheet : BottomSheet
         if(PlayBackQueueExp.IsExpanded)
         {
             PlayBackQueueExp.IsExpanded = false;
-            this.AllowDismiss = true;
+            //this.AllowDismiss = true;
             NowPlayingExp.IsExpanded = true;
             MainBgImg.Opacity = 0.5;
         }
         else
         {
             NowPlayingExp.IsExpanded = false;
-            this.AllowDismiss = false;
+            //this.AllowDismiss = false;
             PlayBackQueueExp.IsExpanded = true;
             MainBgImg.Opacity = 0.1;
         }
@@ -67,8 +59,8 @@ public partial class NowPlayingBottomSheet : BottomSheet
 
     public void ShowAndOpenPlaybackQueue()
     {
-        this.Show();
-        this.AllowDismiss = false;
+        //this.Show();
+        //this.AllowDismiss = false;
         PlayBackQueueExp.IsExpanded = true;
         NowPlayingExp.IsExpanded = false;
         MainBgImg.Opacity = 0.1;
@@ -156,8 +148,7 @@ public partial class NowPlayingBottomSheet : BottomSheet
     private void CurrentLyricLineTapGestRec_Tapped(object sender, TappedEventArgs e)
     {
 
-        PlayBackQueueExp.IsExpanded = false;
-        NowPlayingExp.IsExpanded = false;
+
 
     }
 
@@ -220,6 +211,52 @@ public partial class NowPlayingBottomSheet : BottomSheet
         _debounceTimer?.Dispose();
     }
 
+    private async void CoverImgInNowPlayingPage_Tapped(object sender, TappedEventArgs e)
+    {
 
+        await Shell.Current.GoToAsync("..");
+
+    }
+
+    //private void AllLyricsColView_SelectionChanged(object sender, DevExpress.Maui.CollectionView.CollectionViewSelectionChangedEventArgs e)
+    //{
+
+
+    //    var currentList = e.AddedItems as IReadOnlyList<object>;
+    //    var current = currentList?.FirstOrDefault() as Dimmer.Data.ModelView.LyricPhraseModelView;
+    //    if (current != null)
+    //    {
+    //        var pastList = e.RemovedItems as IReadOnlyList<object>;
+    //        if (pastList.Count > 0 && pastList?[0] is Dimmer.Data.ModelView.LyricPhraseModelView past)
+    //        {
+    //            past?.NowPlayingLyricsFontSize = 25;
+    //            past?.HighlightColor = Microsoft.Maui.Graphics.Colors.White;
+    //            past?.IsHighlighted = false;
+    //        }
+    //        current?.NowPlayingLyricsFontSize = 40;
+    //        current?.IsHighlighted = true;
+    //        current?.HighlightColor = Microsoft.Maui.Graphics.Colors.SlateBlue;
+
+    //        var itemHandle = AllLyricsColView.FindItemHandle(current);
+    //        RxSchedulers.UI.ScheduleTo(() =>
+    //        {
+    //            AllLyricsColView.ScrollTo(itemHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
+    //        });
+
+    //    }
+    //}
+
+    //private void AllLyricsColView_Tap(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
+    //{
+
+    //    LyricPhraseModelView? lyricTapped = e.Item as LyricPhraseModelView;
+    //    var lyricTappedHandle = e.ItemHandle;
+    //    if (lyricTapped is null)
+    //        return;
+    //    var timeInSec = TimeSpan.FromMilliseconds(lyricTapped.EndTimeMs).Seconds;
+    //    MyViewModel.SeekTrackPosition(timeInSec);
+    //    AllLyricsColView.ScrollTo(lyricTappedHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
+
+    //}
 
 }

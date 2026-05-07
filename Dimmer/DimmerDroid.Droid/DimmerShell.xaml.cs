@@ -21,7 +21,6 @@ public partial class DimmerShell : Shell
         Routing.RegisterRoute(nameof(AlbumPage), typeof(AlbumPage));
         Routing.RegisterRoute(nameof(DimmerHomeCenter), typeof(DimmerHomeCenter));
         //Routing.RegisterRoute(nameof(LastFMLogin), typeof(LastFMLogin));
-        Routing.RegisterRoute(nameof(SyncLyricsPage), typeof(SyncLyricsPage));
 
 
     }

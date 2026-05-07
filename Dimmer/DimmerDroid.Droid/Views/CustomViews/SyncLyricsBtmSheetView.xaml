@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage
-    x:Class="Dimmer.Views.CustomViews.SyncLyricsPage"
+<dx:BottomSheet
+    x:Class="Dimmer.Views.CustomViews.SyncLyricsBtmSheetView"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+    xmlns:TQlVM="clr-namespace:Dimmer.ViewModel.TQL;assembly=Dimmer"
     xmlns:dx="http://schemas.devexpress.com/maui"
-    xmlns:localBehv="clr-namespace:Dimmer.Utils.Behaviors"
+    xmlns:local="clr-namespace:Dimmer.Views.CustomViews"
     xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:vm="clr-namespace:Dimmer.ViewModels"
-    x:Name="NowPlayingBtmSheet"
-    Title="SyncLyricsPage"
-    x:DataType="vm:BaseViewModelAnd">
+    x:Name="SongInCVPopup"
+    x:DataType="vm:BaseViewModelAnd"
+    AllowedState="FullExpanded">
     <Grid
         x:Name="SingleSongLyricsViewExp"
         x:FieldModifier="Public"
@@ -71,4 +72,4 @@
         </dx:DXCollectionView>
 
     </Grid>
-</ContentPage>
+</dx:BottomSheet>
