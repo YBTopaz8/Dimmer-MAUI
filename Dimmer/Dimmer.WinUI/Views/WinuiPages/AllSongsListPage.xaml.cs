@@ -761,7 +761,7 @@ public sealed partial class AllSongsListPage : Page
 
     private void ViewOtherBtn_Click(object sender, RoutedEventArgs e)
     {
-        
+
 
 
         var selectedSong = (SongModelView)((FrameworkElement)e.OriginalSource).DataContext;
@@ -861,40 +861,59 @@ public sealed partial class AllSongsListPage : Page
 
         FontIcon LocateArtist = new FontIcon();
         LocateArtist.Glyph = "\uE720";
-        var toArtistMFI = new MenuFlyoutItem()
-        {
-            Text = $"To Artist : {selectedSong.ArtistName}",
-            Icon = LocateArtist
-        };
-        toArtistMFI.Click += (s, e) =>
-        {
-            var supNavTransInfo = new SuppressNavigationTransitionInfo();
 
-            FrameNavigationOptions navigationOptions = new FrameNavigationOptions
+        if (selectedSong.ArtistToSong.Count == 1)
+        {
+            var toArtistMFI = new MenuFlyoutItem()
             {
-                TransitionInfoOverride = supNavTransInfo,
-                IsNavigationStackEnabled = true
+                Text = $"To Artist : {selectedSong.ArtistName}",
+                Icon = LocateArtist
+            };
+
+            toArtistMFI.Click += (s, e) =>
+            {
+                var supNavTransInfo = new SuppressNavigationTransitionInfo();
+
+                FrameNavigationOptions navigationOptions = new FrameNavigationOptions
+                {
+                    TransitionInfoOverride = supNavTransInfo,
+                    IsNavigationStackEnabled = true
+
+                };
+                AnimationHelper.PrepareFromChild(
+    s as DependencyObject,
+    "ArtistNameTxt",
+    AnimationHelper.Key_Forward
+    );
+                var navParams = new SongDetailNavArgs
+                {
+                    Song = _storedSong!,
+                    ExtraParam = MyViewModel,
+                    ViewModel = MyViewModel
+                };
+                Type pageType = typeof(ArtistPage);
+
+                Frame?.NavigateToType(pageType, navParams, navigationOptions);
 
             };
-            AnimationHelper.PrepareFromChild(
-s as DependencyObject,
-"ArtistNameTxt",
-AnimationHelper.Key_Forward
-);
-            var navParams = new SongDetailNavArgs
-            {
-                Song = _storedSong!,
-                ExtraParam = MyViewModel,
-                ViewModel = MyViewModel
-            };
-            Type pageType = typeof(ArtistPage);
 
-            Frame?.NavigateToType(pageType, navParams, navigationOptions);
+            menuFlyout.Items.Add(toArtistMFI);
+        }
+        else if (selectedSong.ArtistToSong.Count > 2)
+        {
+            var toArtistMFSI = new MenuFlyoutSubItem()
+            ;
 
-        };
+            ////foreach (var artistInCollection in selectedSong.ArtistToSong)
+            ////{
+            ////    var mFI = new MenuFlyoutItem();
+            ////    ;p.
+            ////    toArtistMFSI.Items.Add()
+            ////}
 
-        menuFlyout.Items.Add(toArtistMFI);
 
+            menuFlyout.Items.Add(toArtistMFSI);
+        }
         FontIcon musicAlbumIcon = new FontIcon();
         musicAlbumIcon.Glyph = "\uE93C";
 
@@ -1031,17 +1050,13 @@ AnimationHelper.Key_Forward
 
     private async void AlbumBtn_Click(object sender, RoutedEventArgs e)
     {
-        var song = ((Button)sender).DataContext as SongModelView;
+        var song = ((MenuFlyoutItem)sender).DataContext as SongModelView;
         
         if(song is null) return;
         var supNavTransInfo = new SuppressNavigationTransitionInfo();
 
-        FrameNavigationOptions navigationOptions = new FrameNavigationOptions
-        {
-            TransitionInfoOverride = supNavTransInfo,
-            IsNavigationStackEnabled = true
+     
 
-        };
         AnimationHelper.Prepare(
 
 AnimationHelper.Key_ToAlbumPage, sender as FrameworkElement,
@@ -1297,16 +1312,32 @@ AnimationHelper.ConnectedAnimationStyle.ScaleUp
 
     private void ShowFavSongs_Click(object sender, RoutedEventArgs e)
     {
-
-        var currentTQL = "my fav";
-           //SearchTextBox.Text = currentTQL;
+       
+            var currText = SearchTextBox.Text;
+            if (string.IsNullOrEmpty(currText))
+            {
+                SearchTextBox.Text = "my fav";
+            }
+            else
+            {
+                SearchTextBox.Text += " add my fav";
+            }
+       
     }
 
     private void ShowSongWithLyrics_Click(object sender, RoutedEventArgs e)
     {
 
-        var currentTQL = "has lyrics";
-        //SearchTextBox.Text = currentTQL;
+        var currentTQL = " has lyrics";
+        var currText = SearchTextBox.Text;
+        if (string.IsNullOrEmpty(currText))
+        {
+            SearchTextBox.Text = currentTQL.TrimStart();
+        }
+        else
+        {
+            SearchTextBox.Text += currentTQL;
+        }
     }
 
     private void ShowSongWithLyrics_RightTapped(object sender, RightTappedRoutedEventArgs e)
@@ -1324,7 +1355,11 @@ AnimationHelper.ConnectedAnimationStyle.ScaleUp
 
     private void ShuffleSongs_Click(object sender, RoutedEventArgs e)
     {
-        //SearchTextBox.Text = "random";
+        var currText = SearchTextBox.Text;
+        if (string.IsNullOrEmpty(currText))
+        {
+            SearchTextBox.Text = "random";
+        }
     }
 
     private void MiddlePointer_PointerReleased(object sender, PointerRoutedEventArgs e)

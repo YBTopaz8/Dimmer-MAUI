@@ -52,6 +52,8 @@ public partial class HomePage : ContentPage
         this.loginVM = LoginVM;
         this.sessionVM = sessVM;
         MyViewModel.DumpCommand.Execute(null);
+
+        MyLastFMViewModel.LoadBaseViewModel(vm);
     }
 
     protected override void OnDisappearing()

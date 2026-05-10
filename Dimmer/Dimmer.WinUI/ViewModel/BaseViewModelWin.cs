@@ -1265,12 +1265,13 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     [RelayCommand]
     public async Task RestoreCompleteDataAsync()
     {
-        RestoreResult res = new();
-        if(PickedUpBackup is not null)
-            IsRestoreDone= await BackupService.RestoreCompleteDataAsync(PickedUpBackup, res);
-
+        MyRestoredResult = new();
+        if (PickedUpBackup is not null)
+            MyRestoredResult = await BackupService.RestoreCompleteDataAsync(PickedUpBackup, MyRestoredResult);
+        IsRestoreDone = MyRestoredResult.Success;
+        PickedUpBackup = null;
         var redoStats = new StatsRecalculator(RealmFactory, _logger);
-        redoStats.RecalculateAllStatistics();
+        _ = redoStats.RecalculateAllStatisticsAsync();
     }
     [RelayCommand]
     public async Task PickFolderToRestoreAppDataAsync()

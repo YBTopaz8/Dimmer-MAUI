@@ -99,7 +99,7 @@ public static class MetaParser
     }
     private static RealmQueryPlan CreateErrorPlan(string message, string? suggestion = null)
     {
-        Func<SongModelView, bool> predicate = _ => false; // Predicate that always returns false
+        Func<SongModel, bool> predicate = _ => false; // Predicate that always returns false
         return new RealmQueryPlan("FALSEPREDICATE", predicate, [], null, null, null, message, suggestion);
     }
 

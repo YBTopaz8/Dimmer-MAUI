@@ -400,4 +400,15 @@ public sealed partial class NowPlayingPage : Page
         //PreviewTimeText.Text = TimeSpan.FromSeconds(ProgressSlider.Value).ToString(@"mm\:ss");
     }
 
+    private void SyncLyricsListView_ItemClick(object sender, ItemClickEventArgs e)
+    {
+        var lyricTapped = e.ClickedItem as LyricPhraseModelView;
+        //LyricPhraseModelView? lyricTapped = e.Item as LyricPhraseModelView;
+        if (lyricTapped is null)
+            return;
+        var timeInSec = TimeSpan.FromMilliseconds(lyricTapped.TimestampStart).Seconds;
+        MyViewModel.SeekTrackPosition(timeInSec);
+        SyncLyricsListView.SmoothScrollIntoViewWithItemAsync(lyricTapped, itemPlacement:ScrollItemPlacement.Top);
+
+    }
 }

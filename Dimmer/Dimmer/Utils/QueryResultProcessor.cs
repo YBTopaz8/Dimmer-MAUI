@@ -7,7 +7,7 @@
 public static class QueryResultProcessor
 {
 
-    public static List<SongModelView> ApplyDaypart(IList<SongModelView> songs, DaypartNode? daypartNode)
+    public static List<SongModel> ApplyDaypart(IList<SongModel> songs, DaypartNode? daypartNode)
     {
         if (daypartNode == null)
         {
@@ -90,9 +90,9 @@ public static class QueryResultProcessor
         // This provides the desired statistical chance for each item.
         return songs.Where(_ => _random.Next(100) < chanceNode.Percentage).ToList();
     }
-    public static List<SongModelView> ApplyShuffle(IList<SongModelView>? songs, ShuffleNode? shuffleNode)
+    public static List<SongModel> ApplyShuffle(IList<SongModel>? songs, ShuffleNode? shuffleNode)
     {
-        if (songs == null) return Enumerable.Empty<SongModelView>().ToList();
+        if (songs == null) return Enumerable.Empty<SongModel>().ToList();
         if (shuffleNode == null)
         {
             return songs.ToList(); // No shuffle directive was present
@@ -124,7 +124,7 @@ public static class QueryResultProcessor
                           .Take(shuffleNode.Count)
                           .ToList();
     }
-    private static double CalculateWeight(SongModelView song, FieldDefinition field, SortDirection direction)
+    private static double CalculateWeight(SongModel song, FieldDefinition field, SortDirection direction)
     {
         // Get the value of the property using our helper
         var propValue = SemanticQueryHelpers.GetComparableProp(song, field.PropertyName);

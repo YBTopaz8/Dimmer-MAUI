@@ -1,4 +1,5 @@
-﻿using Parse.LiveQuery;
+﻿using ATL.Logging;
+using Parse.LiveQuery;
 using System.IO.Compression;
 using System.Text.Json.Serialization;
 using System.Xml.Linq;
@@ -167,25 +168,47 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
             }
         });
     }
+    class LibraryUploadMapSongModel
+    {
+        public required string TitleAndDurationKey { get; set; }
+        public required string Title { get; set; }
+        public int Duration { get; set; }
+        public string ArtistName { get; set; } = string.Empty;
+        public string? AlbumName { get; set; }
+        public string? GenreName { get; set; }
+    }
     private async Task UploadLibraryMapAsync()
     {
-        //var realm = _vm.RealmFactory.GetRealmInstance();
-        //// We only care about the keys. This allows other devices to check if they have the file.
-        //var keys = realm.All<SongModel>().AsEnumerable().Select(s => s.TitleDurationKey).ToList();
+        var realm = _vm.RealmFactory.GetRealmInstance();
+        // We only care about the keys. This allows other devices to check if they have the file.
+        var keys = realm.All<SongModel>().AsEnumerable().Select(s =>
+        {
+            LibraryUploadMapSongModel newSong = new()
+            { 
+                TitleAndDurationKey = s.TitleDurationKey!,
+                Title = s.Title
+                };
+            newSong.ArtistName = s.OtherArtistsName;
+            newSong.AlbumName = s.AlbumName;
+            newSong.GenreName = s.GenreName;
+            return newSong;
+        }).ToList();
 
-        //var json = JsonSerializer.Serialize(keys);
-        //var file = new ParseFile($"lib_{MyDeviceId}.json", System.Text.Encoding.UTF8.GetBytes(json));
-        //await file.SaveAsync(ParseClient.Instance);
+        var json = JsonSerializer.Serialize(keys);
+        var file = new ParseFile($"lib_{MyDeviceId}.json", System.Text.Encoding.UTF8.GetBytes(json));
+        await file.SaveAsync(ParseClient.Instance);
 
-        // Update the session object with the link to this map
-        //var parameters = new Dictionary<string, object> { { "mapUrl", file.Url } };
-        //await ParseClient.Instance.CallCloudCodeFunctionAsync<string>("updateDeviceLibraryMap", parameters);
+        //Update the session object with the link to this map
+       var parameters = new Dictionary<string, object> { { "mapUrl", file.Url } };
+     var result =     await ParseClient.Instance.CallCloudCodeFunctionAsync<string>("updateDeviceLibraryMap", parameters);
+
+        Debug.WriteLine($"updateDeviceLibraryMap result {result}");
     }
 
     public async Task SyncDeviceStateAsync()
     {
 
-        return;
+
 
         if (ParseUser.CurrentUser == null) return;
 
@@ -195,7 +218,8 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
             var realm = _vm.RealmFactory.GetRealmInstance();
 
             // Extract ONLY what we need (to avoid Realm cross-thread exceptions)
-            var allSongKeys = realm.All<SongModel>().AsEnumerable().Select(x => x.TitleDurationKey).ToList();
+            var allSongKeys = realm.All<SongModel>().AsEnumerable().Select(x => x.TitleDurationKey).Distinct().ToList();
+            //var oldDogs = from d in realm.All<SongModel>() where d.TitleDurationKey != null select d.TitleDurationKey;
             var allPlayData = realm.All<DimmerPlayEvent>().AsEnumerable().Select(x =>
             {
                 return new DimmerEventsBackUpModel() 

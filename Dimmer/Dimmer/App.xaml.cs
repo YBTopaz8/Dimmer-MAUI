@@ -50,6 +50,7 @@ public partial class App : Application
     public BaseViewModel MyViewModel { get; }
 
     private static readonly Lock _logLock = new();
+
     private static void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
     {
         var ex = e.Exception;

@@ -419,7 +419,7 @@ public static class AlbumStats
             return new ArtistAlbumContributionStatsSummary { ArtistName = "Error: Artist or Album not provided" };
 
         // Get all songs by this artist that are ALSO on this album
-        var songsByArtistOnThisAlbum = allSongsInLibrary
+        var songsByArtistOnThisAlbum = allSongsInLibrary.AsEnumerable()
             .Where(s => s.Album != null && s.Album.Id == targetAlbum.Id &&
                         s.ArtistToSong.Any(a => a.Id == targetArtist.Id))
             .ToList();

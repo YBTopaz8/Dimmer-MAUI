@@ -587,7 +587,7 @@ IRepository<SongModel> songRepository, // Inject the repository
             var realm = RealmFactory?.GetRealmInstance();
             if (realm == null)
             { return false; }
-            var songModel = realm.Find<SongModel>(song.Id);
+            var songModel = await Task.Run(() => realm.Find<SongModel>(song.Id));
             if (songModel == null)
             {
                 _logger.LogWarning("Could not find song with ID {SongId} in database to save lyrics.", song.Id);

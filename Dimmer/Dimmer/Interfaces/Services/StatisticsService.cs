@@ -46,6 +46,21 @@ public partial class SongStatsBundle :ObservableObject
 
 
 }
+public class SongQuickStatsBundle
+{
+    public string Title { get; set; } = string.Empty;
+    public string ArtistName { get; set; } = string.Empty;
+    public int PlayCountLast7Days { get; set; }
+    public string TotalTimeLast7DaysFormatted { get; set; } = string.Empty;
+    public string QuickVerdict { get; set; } = string.Empty; // e.g. "On Fire 🔥", "Skipped lately 🧊"
+
+    // The 4 simple charts for the popup
+    public ObservableCollection<StringChartPoint> ActionRadarData { get; set; } = new();
+    public ObservableCollection<StringChartPoint> HourlyData { get; set; } = new();
+    public ObservableCollection<DateChartPoint> DailyPlayTrendData { get; set; } = new();
+    public ObservableCollection<StringChartPoint> CompletionData { get; set; } = new(); // Pie chart
+}
+
 // --- Single Artist stats ---
 public class ArtistStatsBundle : StatsBundleBase
 {
@@ -220,13 +235,83 @@ public class StatisticsService
             PlayHistoryOverTime = ChartSpecificStats.GetSongPlayHistoryOverTime(filteredEvents),
 
 
-            EngagementFunnel = SongExtensiveStats.GetEngagementFunnel(songDb),
-             ActionRadar = SongExtensiveStats.GetActionRadar(songDb),
+            EngagementFunnel = SongExtensiveStats.GetEngagementFunnel(songDb, filteredEvents),
+            ActionRadar = SongExtensiveStats.GetActionRadar(songDb, filteredEvents),
+
 
         };
         return bundle;
     }
+    /// <summary>
+    /// Ultra-fast method to generate 4 simple charts for a Last-7-Days Popup Summary.
+    /// </summary>
+    public SongQuickStatsBundle? GetSongQuickSummary(ObjectId songId)
+    {
+        var songDb = _songRepo.GetById(songId);
+        if (songDb == null) return null;
 
+        var sevenDaysAgo = DateTimeOffset.UtcNow.AddDays(-7);
+
+        // Only pull events from the last 7 days to keep this blazing fast
+        var recentEvents = _eventRepo.GetAllAsQueryable()
+            .Where(e => e.SongId == songId && e.EventDate >= sevenDaysAgo)
+            .ToList();
+
+        var bundle = new SongQuickStatsBundle
+        {
+            Title = songDb.Title,
+            ArtistName = songDb.ArtistName,
+            PlayCountLast7Days = recentEvents.Count(e => e.PlayType == 0),
+        };
+
+        double totalTimeSecs = recentEvents.Sum(e => e.PositionInSeconds);
+        bundle.TotalTimeLast7DaysFormatted = TimeSpan.FromSeconds(totalTimeSecs).ToString(@"mm\:ss");
+
+        // Simple algorithm for a fun subtitle
+        int skips = recentEvents.Count(e => e.PlayType == 5);
+        if (bundle.PlayCountLast7Days > 10 && skips <= 2) bundle.QuickVerdict = "On Heavy Rotation 🔥";
+        else if (skips > bundle.PlayCountLast7Days) bundle.QuickVerdict = "Getting Skipped Lately 🧊";
+        else if (bundle.PlayCountLast7Days > 0) bundle.QuickVerdict = "In the Mix 🎧";
+        else bundle.QuickVerdict = "Quiet Week 💤";
+
+        // 1. Action Radar (Last 7 Days)
+        bundle.ActionRadarData = new ObservableCollection<StringChartPoint>
+        {
+            new() { Label = "Plays", Value = bundle.PlayCountLast7Days },
+            new() { Label = "Skips", Value = skips },
+            new() { Label = "Pauses", Value = recentEvents.Count(e => e.PlayType == 1) },
+            new() { Label = "Repeats", Value = recentEvents.Count(e => e.PlayType == 6 || e.PlayType == 8) }
+        };
+
+        // 2. Hourly Data (Last 7 Days)
+        var hourlyPlays = new double[24];
+        foreach (var e in recentEvents.Where(e => e.PlayType == 0))
+            hourlyPlays[e.EventDate.ToLocalTime().Hour]++;
+
+        bundle.HourlyData = new ObservableCollection<StringChartPoint>(
+            Enumerable.Range(0, 24).Select(h => new StringChartPoint { Label = $"{h}:00", Value = hourlyPlays[h] })
+        );
+
+        // 3. Daily Play Trend (Last 7 Days Timeline)
+        var dailyPlays = new List<DateChartPoint>();
+        for (int i = 6; i >= 0; i--)
+        {
+            var day = DateTime.UtcNow.AddDays(-i).Date;
+            int count = recentEvents.Count(e => e.PlayType == 0 && e.EventDate.Date == day);
+            dailyPlays.Add(new DateChartPoint { Date = day, Value = count });
+        }
+        bundle.DailyPlayTrendData = new ObservableCollection<DateChartPoint>(dailyPlays);
+
+        // 4. Completion Status (Pie Chart)
+        int completes = recentEvents.Count(e => e.PlayType == 3 || e.WasPlayCompleted);
+        bundle.CompletionData = new ObservableCollection<StringChartPoint>
+        {
+            new() { Label = "Completed", Value = completes },
+            new() { Label = "Skipped/Paused", Value = recentEvents.Count - completes }
+        };
+
+        return bundle;
+    }
     public ArtistStatsBundle? GetArtistStatisticsAsync(ObjectId artistId, DateRangeFilter filter)
     {
         var artist =  _artistRepo.GetById(artistId);
@@ -246,8 +331,7 @@ public class StatisticsService
         };
 
         var allSongs =  _songRepo.GetAll();
-        var artistSongs = allSongs.Where(s => s.Artist?.Id == artistId).ToList();
-
+        var artistSongs = allSongs.Where(s => s.Artist?.Id == artistId || s.ArtistToSong.Any(a => a.Id == artistId)).ToList();
         var filteredEvents =  _eventRepo.GetEventsInDateRangeAsync(startDate, endDate);
 
         var bundle = new ArtistStatsBundle
@@ -258,8 +342,8 @@ public class StatisticsService
             Summary = ArtistStats.GetSingleArtistStats(artist, allSongs, filteredEvents),
             PlottableData = ArtistStats.GetSingleArtistPlottableData(artist, allSongs, filteredEvents),
 
-            DecadeDistribution = ArtistExtensiveStats.GetDecadeDistribution(artistSongs),
-            ObsessionRankedSongs = ArtistExtensiveStats.GetObsessionRankings(artistSongs),
+            DecadeDistribution = ArtistExtensiveStats.GetDecadeDistribution(artistSongs, filteredEvents),
+            ObsessionRankedSongs = ArtistExtensiveStats.GetObsessionRankings(artistSongs, filteredEvents),
             CollaboratorNetwork = ArtistExtensiveStats.GetCollaborators(artistSongs),
             BpmVersusEngagement = ArtistExtensiveStats.GetBpmVsEngagement(artistSongs),
 
@@ -306,10 +390,10 @@ public class StatisticsService
             PlottableData = AlbumStats.GetSingleAlbumPlottableData(album, allSongs, filteredEvents),
 
             // --- NEW Advanced Visualizations ---
-            AlbumDropOffCurve = AlbumExtensiveStats.GetDropOffCurve(albumSongs),
+            AlbumDropOffCurve = AlbumExtensiveStats.GetDropOffCurve(albumSongs, filteredEvents),
             LyricalDensityPerTrack = AlbumExtensiveStats.GetLyricalDensity(albumSongs),
-            TrackEventBreakdown = AlbumExtensiveStats.GetTrackEventBreakdown(albumSongs),
-            AlbumEddingtonNumber = AlbumExtensiveStats.CalculateEddingtonNumber(albumSongs),
+            TrackEventBreakdown = AlbumExtensiveStats.GetTrackEventBreakdown(albumSongs, filteredEvents),
+            AlbumEddingtonNumber = AlbumExtensiveStats.CalculateEddingtonNumber(albumSongs, filteredEvents),
 
             // Quick LINQ inline for simple ones
             InstrumentalVsVocalPlays = new List<LabelValue>

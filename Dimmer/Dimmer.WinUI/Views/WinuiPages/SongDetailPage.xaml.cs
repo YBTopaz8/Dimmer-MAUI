@@ -46,7 +46,7 @@ public sealed partial class SongDetailPage : Page
         _sectionNames = new()
         {
             { SectionOverview, "Overview" },
-            { SectionPlayback, "Playback" },
+
             { SectionLyricsStackPanel, "Lyrics" },
             //{ SectionRelated, "Related" }
         };
@@ -596,7 +596,7 @@ public sealed partial class SongDetailPage : Page
     {
         base.OnNavigatedFrom(e);
 
-        AnimationHelper.Prepare(AnimationHelper.Key_BackFromSongDetailPage, detailedImage, AnimationHelper.ConnectedAnimationStyle.ScaleDown, 250);
+     
     }
     private void EditSongAudioBtn_Click(object sender, RoutedEventArgs e)
     {
@@ -693,12 +693,7 @@ public sealed partial class SongDetailPage : Page
         await MyViewModel.DeletePlayEventAsync(evt);
     }
 
-    private void MySongAchievements_Loading(FrameworkElement sender, object args)
-    {
-        if(MyViewModel.SelectedSong is null)return;
-
-        MySongAchievements.FinishLoadAll(MyViewModel,MyViewModel.SelectedSong);
-    }
+   
 
     private void MySongAchievements_Loaded(object sender, RoutedEventArgs e)
     {

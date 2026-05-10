@@ -6,7 +6,8 @@
     xmlns:controls="using:WinUI.TableView"
     xmlns:converters="using:Dimmer.WinUI.Utils.Converters"
     xmlns:local="using:Dimmer.WinUI"
-    xmlns:maui="using:Microsoft.Maui">
+    xmlns:maui="using:Microsoft.Maui"
+    >
     <maui:MauiWinUIApplication.Resources>
 
         <ResourceDictionary>
@@ -55,11 +56,13 @@
             <converters:BoolToImageConverter
                 x:Key="PlayPauseConverter"
                 FalseValue="play.png"
-                TrueValue="pause.png" />
+                TrueValue="pause.png"
+                />
             <converters:BoolToImageConverter
                 x:Key="FavIconConverter"
                 FalseValue="heartbroken.png"
-                TrueValue="heartlock.png" />
+                TrueValue="heartlock.png"
+                />
 
             <Color x:Key="MyAccentColor">#483D8B</Color>
             <!--  DarkSlateBlue  -->
@@ -88,27 +91,33 @@
             <SolidColorBrush
                 x:Key="DataGridRowBackgroundBrush"
                 Opacity="0.6"
-                Color="{StaticResource ThemeBackgroundColor}" />
+                Color="{StaticResource ThemeBackgroundColor}"
+                />
             <SolidColorBrush
                 x:Key="DataGridRowBackgroundAlternateBrush"
                 Opacity="0.6"
-                Color="{StaticResource ThemeSubtleGrayColor}" />
+                Color="{StaticResource ThemeSubtleGrayColor}"
+                />
             <SolidColorBrush
                 x:Key="DataGridRowHoverBrush"
                 Opacity="0.1"
-                Color="White" />
+                Color="White"
+                />
             <SolidColorBrush
                 x:Key="DataGridRowSelectedBrush"
                 Opacity="0.4"
-                Color="{StaticResource MyAccentColor}" />
+                Color="{StaticResource MyAccentColor}"
+                />
             <SolidColorBrush
                 x:Key="DataGridRowSelectedHoverBrush"
                 Opacity="0.5"
-                Color="{StaticResource MyAccentColor}" />
+                Color="{StaticResource MyAccentColor}"
+                />
             <SolidColorBrush
                 x:Key="DataGridGridLinesBrush"
                 Opacity="0.1"
-                Color="White" />
+                Color="White"
+                />
 
             <!--  Style to apply these brushes to the CommunityToolkit DataGrid  -->
             <Style x:Key="AcrylicDataGridStyle" TargetType="controls:TableView">
@@ -149,7 +158,8 @@
             <Style
                 x:Key="PrimaryButtonStyle"
                 BasedOn="{StaticResource BaseButtonStyle}"
-                TargetType="Button">
+                TargetType="Button"
+                >
                 <Setter Property="Background" Value="{StaticResource MyAccentBrush}" />
                 <Setter Property="BorderBrush" Value="{StaticResource MyAccentBrushDark}" />
                 <Setter Property="Foreground" Value="White" />
@@ -161,7 +171,8 @@
             <Style
                 x:Key="SecondaryButtonStyle"
                 BasedOn="{StaticResource BaseButtonStyle}"
-                TargetType="Button">
+                TargetType="Button"
+                >
                 <Setter Property="Background" Value="Transparent" />
                 <Setter Property="BorderBrush" Value="{StaticResource MyAccentBrush}" />
                 <Setter Property="Foreground" Value="{StaticResource MyAccentBrushLight}" />
@@ -172,7 +183,8 @@
             <Style
                 x:Key="TertiaryButtonStyle"
                 BasedOn="{StaticResource BaseButtonStyle}"
-                TargetType="Button">
+                TargetType="Button"
+                >
                 <Setter Property="Background" Value="Transparent" />
                 <Setter Property="BorderBrush" Value="Transparent" />
                 <Setter Property="Foreground" Value="{StaticResource ThemeForegroundSubtleColor}" />
@@ -189,7 +201,8 @@
                 x:Key="CustomAcrylicPaneBackground"
                 FallbackColor="{StaticResource ThemeBackgroundColor}"
                 TintColor="{StaticResource ThemeBackgroundColor}"
-                TintOpacity="0.7" />
+                TintOpacity="0.7"
+                />
 
             <!--  B. Subtle Acrylic Border for Cards/Items  -->
             <!--  Use this on things like ListView items or Cards to make them gently pop.  -->
@@ -197,7 +210,8 @@
                 x:Key="CustomAcrylicCardStroke"
                 FallbackColor="{StaticResource ThemeSubtleGrayColor}"
                 TintColor="{StaticResource ThemeSubtleGrayColor}"
-                TintOpacity="0.5" />
+                TintOpacity="0.5"
+                />
 
             <!--  C. In-App Notification / InfoBar Style  -->
             <!--  InfoBar is perfect for showing temporary messages like "Song added to queue."  -->

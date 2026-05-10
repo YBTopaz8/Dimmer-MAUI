@@ -72,7 +72,6 @@ public partial class ExoPlayerService : MediaSessionService
                 .SetHandleAudioBecomingNoisy(true)!
                 .SetSkipSilenceEnabled(false)!
                 .SetWakeMode(C.WakeModeNetwork)!
-                //.SetSeekParameters(new SeekParameters(10,10))
                 .SetDeviceVolumeControlEnabled(true)!
                 .SetSuppressPlaybackOnUnsuitableOutput(false)!
                 .SetPauseAtEndOfMediaItems(true)!
@@ -99,26 +98,14 @@ public partial class ExoPlayerService : MediaSessionService
                 flags |= PendingIntentFlags.Immutable;
             }
             PendingIntent? pendingIntent = PendingIntent.GetActivity(Platform.AppContext, 0, nIntent, flags);
-            FavoriteSessionCommand.CommandCode = 88;
+         
 
-            var heartButton = new CommandButton.Builder(CommandButton.IconUndefined)
-                .SetDisplayName("Favorite")
-                .SetSessionCommand(FavoriteSessionCommand)
-                //.SetPlayerCommand(88)
-                //.SetSlots()
-
-                .SetCustomIconResId(Resource.Drawable.heart)
-                .SetEnabled(true)
-
-                .Build();
 
             mediaSession = new MediaSession.Builder(this, player)!
                 .SetSessionActivity(pendingIntent)!
                 .SetCallback(sessionCallback)!
                 .SetId("Dimmer_MediaSession_Main")!
-    //.SetCommandButtonsForMediaItems(commandButtons: new List<CommandButton> { heartButton })
-    //.SetMediaButtonPreferences(mediaButtonPreferences:new List<CommandButton> { heartButton })
-    .SetCustomLayout(customLayout: new List<CommandButton> { heartButton })
+
                 .Build();
 
 
@@ -148,11 +135,9 @@ public partial class ExoPlayerService : MediaSessionService
     private MediaSession? mediaSession;
     private IExoPlayer? player;
     private MediaPlaybackSessionCallback? sessionCallback; // Use concrete type
-    public static SessionCommand FavoriteSessionCommand = new SessionCommand(ActionFavorite, Bundle.Empty);
-    // --- Constants ---
+
     public const string ActionLyrics = "ACTION_LYRICS";
-    public const string CommandPreparePlay = "com.yvanbrunel.dimmer.action.PREPARE_PLAY";
-    public const string CommandSetFavorite = "com.yvanbrunel.dimmer.action.SET_FAVORITE";
+
     public const string KeyMediaPlayDataUrl = "KEY_URL";
     public const string KeyMediaPlayDataTitle = "KEY_TITLE";
     public const string KeyMediaPlayDataArtist = "KEY_ARTIST";
@@ -160,12 +145,7 @@ public partial class ExoPlayerService : MediaSessionService
     public const string KeyMediaPlayDataImagePath = "KEY_IMAGE_PATH";
     public const string KeyMediaPlayDataDuration = "KEY_DURATION";
     public const string KeyMediaPlayDataPosition = "KEY_POSITION";
-    public const string KeyMediaPlayDataIsFavorite = "KEY_IS_FAVORITE";
 
-
-    public const string ActionFavorite = "ACTION_FAVORITE";
-    public const string ActionShuffle = "ACTION_SHUFFLE";
-    public const string ActionRepeat = "ACTION_REPEAT";
     //private const string MetadataKeyDurationString = MetadataCompat.MetadataKeyDuration; // Use constant from support lib if available
 
     // --- Internal State ---
@@ -415,15 +395,7 @@ public partial class ExoPlayerService : MediaSessionService
         {
             switch (action)
             {
-                case ActionFavorite:
-                    HandleFavoriteAction();
-                    break;
-                case ActionShuffle:
-                    HandleShuffleAction();
-                    break;
-                case ActionRepeat:
-                    HandleRepeatAction();
-                    break;
+                
                 case ActionLyrics:
                     HandleLyricsAction();
                     break;
@@ -709,38 +681,7 @@ public partial class ExoPlayerService : MediaSessionService
 
     public void UpdateMediaSessionLayout()
     {
-        bool isFav = CurrentSongContext?.IsFavorite ?? false;
 
-        var heartBtn = new CommandButton.Builder(CommandButton.IconUndefined)
-            .SetDisplayName("Favorite")
-            .SetSessionCommand(new SessionCommand(ActionFavorite, Bundle.Empty))
-            .SetCustomIconResId(isFav ? Resource.Drawable.media3_icon_heart_filled : Resource.Drawable.heart)
-            .Build();
-
-        bool isShuffleOn = ShuffleStateInternal;
-        var shuffleBtn = new CommandButton.Builder(CommandButton.IconUndefined)
-            .SetDisplayName("Shuffle")
-            .SetSessionCommand(new SessionCommand(ActionShuffle, Bundle.Empty))
-            .SetCustomIconResId(isShuffleOn ? Resource.Drawable.media3_icon_shuffle_on : Resource.Drawable.media3_icon_shuffle_off)
-            .Build();
-
-        int repeatMode = RepeatModeInternal;
-        int repeatIcon = repeatMode switch
-        {
-            2 => Resource.Drawable.media3_icon_repeat_one,  // Repeat One
-            0 => Resource.Drawable.media3_icon_repeat_all,  // Repeat All
-            _ => Resource.Drawable.media3_icon_repeat_off   // Repeat Off
-        };
-        var repeatBtn = new CommandButton.Builder(CommandButton.IconUndefined)
-            .SetDisplayName("Repeat")
-            .SetSessionCommand(new SessionCommand(ActionRepeat, Bundle.Empty))
-            .SetCustomIconResId(repeatIcon)
-            .Build();
-
-        var layout = new List<CommandButton> { heartBtn, shuffleBtn, repeatBtn };
-        mediaSession?.SetCustomLayout((System.Collections.Generic.IList<CommandButton>)layout);
-
-        _notifMgr?.Invalidate();
     }
     // --- Player Event Listener ---
     sealed class PlayerEventListener : Object, IPlayerListener // Use specific IPlayer.Listener
@@ -994,9 +935,6 @@ public partial class ExoPlayerService : MediaSessionService
             //  .AddAllCommands()!
             //  .Build();
             var sessionCommands = MediaSession.ConnectionResult.DefaultSessionCommands.BuildUpon()
-           .Add(ExoPlayerService.FavoriteSessionCommand)
-           .Add(new SessionCommand(ExoPlayerService.ActionShuffle, Bundle.Empty))
-           .Add(new SessionCommand(ExoPlayerService.ActionRepeat, Bundle.Empty))
            .Build();
 
 
@@ -1085,98 +1023,8 @@ public partial class ExoPlayerService : MediaSessionService
         }
 
 
-        public SessionResult OnCustomCommand(MediaSession? session, MediaSession.ControllerInfo? controller, SessionCommand? command, Bundle? args)
-        {
-            if (command == null)
-            {
-                return (SessionResult)SessionResult.ResultErrorBadValue;
-            }
-            if (command.CustomAction is not null && command.CustomAction.Equals(ExoPlayerService.FavoriteSessionCommand.CustomAction))
-            {
+       
 
-                return (SessionResult)SessionResult.ResultSuccess;
-            }
-            switch (command.CustomAction)
-            {
-                
-                case ExoPlayerService.ActionFavorite:
-                    // Toggle favorite state
-                    var currentSong = ExoPlayerService.CurrentSongContext;
-                    if (currentSong != null)
-                    {
-                        var viewModel = MainApplication.ServiceProvider.GetService<BaseViewModel>();
-                        if (viewModel != null)
-                        {
-                            Task.Run(async () =>
-                            {
-                                try
-                                {
-                                    if (currentSong.IsFavorite)
-                                    {
-                                        await viewModel.RemoveSongFromFavoriteAsync(currentSong);
-                                    }
-                                    else
-                                    {
-                                        await viewModel.AddFavoriteRatingToSongAsync(currentSong);
-                                    }
-                                    
-                                    RxSchedulers.UI.ScheduleTo(() => service.UpdateMediaSessionLayout());
-                                }
-                                catch (Exception ex)
-                                {
-                                    Console.WriteLine($"[ExoPlayerService] Error toggling favorite: {ex.Message}");
-                                }
-                            });
-                        }
-                    }
-                    return (SessionResult)SessionResult.ResultSuccess;
-                    
-                case ExoPlayerService.ActionShuffle:
-                    // Toggle shuffle mode
-                    var vm = MainApplication.ServiceProvider.GetService<BaseViewModel>();
-                    if (vm != null)
-                    {
-                        RxSchedulers.UI.ScheduleTo(() =>
-                        {
-                            try
-                            {
-                                vm.ToggleShuffle();
-                                ExoPlayerService.ShuffleStateInternal = vm.IsShuffleActive;
-                                service.UpdateMediaSessionLayout();
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.WriteLine($"[ExoPlayerService] Error toggling shuffle: {ex.Message}");
-                            }
-                        });
-                    }
-                    return (SessionResult)SessionResult.ResultSuccess;
-                    
-                case ExoPlayerService.ActionRepeat:
-                    // Toggle repeat mode
-                    var vmRepeat = MainApplication.ServiceProvider.GetService<BaseViewModel>();
-                    if (vmRepeat != null)
-                    {
-                        RxSchedulers.UI.ScheduleTo(() =>
-                        {
-                            try
-                            {
-                                vmRepeat.ToggleRepeatMode();
-                                ExoPlayerService.RepeatModeInternal = (int)vmRepeat.CurrentRepeatMode;
-                                service.UpdateMediaSessionLayout();
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.WriteLine($"[ExoPlayerService] Error toggling repeat: {ex.Message}");
-                            }
-                        });
-                    }
-                    return (SessionResult)SessionResult.ResultSuccess;
-                    
-                default:
-                    return (SessionResult)SessionResult.ResultErrorUnknown;
-            }
-        }
         //IPlayer Player = service.player;
         // Decide whether to allow a specific PLAYER command requested by a controllerInfo
         public int OnPlayerCommandRequest(MediaSession? session, MediaSession.ControllerInfo? controller, int playerCommand)

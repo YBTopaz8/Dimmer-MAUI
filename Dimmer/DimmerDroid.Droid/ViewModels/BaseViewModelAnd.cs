@@ -172,8 +172,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         //await _loginViewModel.InitializeAsync();
     }
 
-    [ObservableProperty]
-    public partial Microsoft.Maui.Controls.View SelectedSongView { get; internal set; }
+
 
     [ObservableProperty]
     public partial bool IsInMultiSelectMode { get; internal set; }
@@ -351,15 +350,17 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     [RelayCommand]
     public async Task RestoreCompleteDataAsync()
     {
-        RestoreResult res = new();
+        MyRestoredResult = new();
         if (PickedUpBackup is not null)
-            IsRestoreDone = await BackupService.RestoreCompleteDataAsync(PickedUpBackup, res);
+            MyRestoredResult = await BackupService.RestoreCompleteDataAsync(PickedUpBackup, MyRestoredResult);
+        IsRestoreDone=MyRestoredResult.Success;
         PickedUpBackup = null;
         var redoStats = new StatsRecalculator(RealmFactory, _logger);
-        redoStats.RecalculateAllStatistics();
+       _= redoStats.RecalculateAllStatisticsAsync();
     }
 
-        [RelayCommand]
+
+    [RelayCommand]
     public async Task PickFolderToRestoreAppDataAsync()
     {
         var tcs = new TaskCompletionSource<(bool includeDefault, string customPath)>();
@@ -413,6 +414,9 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     [ObservableProperty]
     public partial string StatusLabelText { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsBackUpDone { get; set; }
     internal async Task BackUpAppDataAsync()
     {
         var picker = await FolderPicker.Default.PickAsync();
@@ -426,7 +430,9 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             string path = picker.Folder.Path;
             if(!string.IsNullOrEmpty(picker.Folder.Path))
             {
-                await BackupService.CreateCompleteBackupAsync(path);
+                BackUpCompletResult =  await BackupService.CreateCompleteBackupAsync(BaseViewModel.CurrentAppVersion,path);
+                
+                
             }
 
             //_ = BackupService.CreateCompleteBackupAsync(path);
@@ -438,6 +444,8 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     }
     [ObservableProperty]
     public partial bool IsNowPlayingBtmSheetOpened { get; set; }
+    [ObservableProperty]
+    public partial DimmerBackupService.BackUpCompleteResult BackUpCompletResult { get; set; }
     public override void UpdateIsSearchResultEmpty(bool isSearchResultEmpty)
     {
         if (SearchBarTextEdit is null) return;

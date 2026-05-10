@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Page
     x:Class="Dimmer.WinUI.Views.WinuiPages.SongDetailPage"
+    x:Name="MyPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:CustomViews="using:Dimmer.WinUI.Views.CustomViews.WinuiViews"
@@ -18,10 +19,10 @@
     xmlns:queryBuilder="queries"
     xmlns:tql="clr-namespace:Dimmer.DimmerSearch.TQL;assembly=Dimmer"
     xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
-    x:Name="MyPage"
-    Loaded="MyPage_Loaded"
     KeyDown="MyPage_KeyDown"
-    mc:Ignorable="d">
+    Loaded="MyPage_Loaded"
+    mc:Ignorable="d"
+    >
     <Page.Resources />
 
     <Grid>
@@ -30,7 +31,8 @@
             <Image
                 x:Name="BgImage"
                 Opacity="0.05"
-                Stretch="UniformToFill" />
+                Stretch="UniformToFill"
+                />
             <Grid x:Name="FgGrid">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto" />
@@ -45,17 +47,20 @@
                     VerticalAlignment="Top"
                     Background="#111"
                     CornerRadius="5"
-                    Visibility="Collapsed">
+                    Visibility="Collapsed"
+                    >
                     <StackPanel
                         Margin="12"
                         VerticalAlignment="Center"
                         Orientation="Horizontal"
-                        Visibility="Collapsed">
+                        Visibility="Collapsed"
+                        >
                         <TextBlock
                             x:Name="CurrentSectionLabel"
                             FontSize="18"
                             FontWeight="SemiBold"
-                            Text="Overview" />
+                            Text="Overview"
+                            />
                     </StackPanel>
                 </Border>
 
@@ -63,15 +68,17 @@
                     x:Name="Scroller"
                     Grid.Row="1"
                     Margin="0,0,0,0"
-                    PointerPressed="Scroller_PointerPressed"
                     Background="Transparent"
+                    PointerPressed="Scroller_PointerPressed"
                     VerticalScrollBarVisibility="Auto"
-                    ViewChanged="ScrollViewer_ViewChanged">
+                    ViewChanged="ScrollViewer_ViewChanged"
+                    >
                     <StackPanel
                         x:Name="SegmentStack"
                         Padding="12"
                         Orientation="Vertical"
-                        Spacing="20">
+                        Spacing="20"
+                        >
 
                         <!--  The elements involved in the animation  -->
                         <StackPanel Orientation="Horizontal" Spacing="15">
@@ -80,20 +87,18 @@
                                 x:Name="EditSongBtn"
                                 Click="EditSongBtn_Click"
                                 Content="Edit"
-                                FontSize="19" />
+                                FontSize="19"
+                                />
 
                             <Button
                                 x:Name="EditSongAudioBtn"
                                 Click="EditSongAudioBtn_Click"
                                 Content="Edit Audio"
-                                FontSize="19" />
+                                FontSize="19"
+                                />
                         </StackPanel>
-                        
-                        <Grid
-                            x:Name="SectionOverview"
-                            ColumnSpacing="10"
-                            
-                            >
+
+                        <Grid x:Name="SectionOverview" ColumnSpacing="10">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
@@ -102,83 +107,93 @@
 
                             <!--  The Image that will be the target of the connected animation  -->
 
-                            <StackPanel Grid.Column="0" Spacing="10"
-                                    x:Name="detailedImageStackPanel" >
+                            <StackPanel
+                                x:Name="detailedImageStackPanel"
+                                Grid.Column="0"
+                                Spacing="10"
+                                >
 
                                 <Image
                                     x:Name="detailedImage"
                                     MaxWidth="350"
                                     MaxHeight="350"
-                                    Loaded="detailedImage_Loaded" />
+                                    Loaded="detailedImage_Loaded"
+                                    />
                                 <Button
                                     x:Name="PlaySongBtn"
                                     HorizontalAlignment="Center"
                                     Click="PlaySongBtn_Click"
                                     Loaded="PlaySongBtn_Loaded"
-                                    Visibility="Collapsed">
+                                    Visibility="Collapsed"
+                                    >
                                     <FontIcon FontSize="45" Glyph="&#xF5B0;" />
                                 </Button>
                             </StackPanel>
                             <Border Grid.Column="1">
 
-                                <StackPanel
-                                    HorizontalAlignment="Left"
-                                    Spacing="5">
+                                <StackPanel HorizontalAlignment="Left" Spacing="5">
                                     <StackPanel
                                         x:Name="UtilitiesSection"
                                         Background="Transparent"
                                         Orientation="Vertical"
-                                        Spacing="10">
-                                        <TextBlock 
+                                        Spacing="10"
+                                        >
+                                        <TextBlock
                                             x:Name="TitleBlock"
                                             HorizontalAlignment="Left"
                                             VerticalAlignment="Top"
                                             FontSize="80"
                                             Style="{ThemeResource TitleTextBlockStyle}"
                                             Text="{x:Bind DetailedSong.Title}"
-                                            TextWrapping="Wrap" />
+                                            TextWrapping="Wrap"
+                                            />
 
                                         <StackPanel Orientation="Horizontal" Spacing="5">
-                                            <Grid 
-                                    x:Name="RootGrid"
-                                    Grid.Column="1"
-                                    VerticalAlignment="Top"
+                                            <Grid
+                                                x:Name="RootGrid"
+                                                Grid.Column="1"
+                                                VerticalAlignment="Top"
                                                 >
                                                 <StackPanel x:Name="ArtistListPanel" HorizontalAlignment="Left">
-                                                   
-                                                    
+
+
                                                     <ItemsRepeater
-                                            x:Name="ArtistToSong"
-                                            HorizontalAlignment="Center"
-                                            Loaded="ArtistToSong_Loaded">
+                                                        x:Name="ArtistToSong"
+                                                        HorizontalAlignment="Center"
+                                                        Loaded="ArtistToSong_Loaded"
+                                                        >
 
                                                         <ItemsRepeater.ItemTemplate>
 
                                                             <DataTemplate>
                                                                 <Button
-                                                        x:Name="ArtistNameBtn"
-                                                        Margin="0,10,0,0"
-                                                        BorderThickness="1"
-                                                        Loaded="ArtistNameBtn_Loaded"
-                                                        Click="Artist_Click"
-                                                        CornerRadius="15">
+                                                                    x:Name="ArtistNameBtn"
+                                                                    Margin="0,10,0,0"
+                                                                    BorderThickness="1"
+                                                                    Click="Artist_Click"
+                                                                    CornerRadius="15"
+                                                                    Loaded="ArtistNameBtn_Loaded"
+                                                                    >
                                                                     <StackPanel
-                                                            VerticalAlignment="Center"
-                                                            Background="Transparent"
-                                                            Orientation="Horizontal"
-                                                            Spacing="10">
+                                                                        VerticalAlignment="Center"
+                                                                        Background="Transparent"
+                                                                        Orientation="Horizontal"
+                                                                        Spacing="10"
+                                                                        >
                                                                         <TextBlock FontSize="26" Text="{Binding Name}" />
                                                                         <StackPanel
-                                                                VerticalAlignment="Center"
-                                                                Orientation="Horizontal"
-                                                                Spacing="0">
+                                                                            VerticalAlignment="Center"
+                                                                            Orientation="Horizontal"
+                                                                            Spacing="0"
+                                                                            >
                                                                             <TextBlock FontSize="16" Text="(" />
                                                                             <TextBlock FontSize="16" Text="{Binding TotalSongsByArtist}" />
                                                                             <TextBlock FontSize="16" Text=")" />
                                                                             <TextBlock
-                                                                    Margin="5,0,0,0"
-                                                                    FontSize="16"
-                                                                    Text="Songs" />
+                                                                                Margin="5,0,0,0"
+                                                                                FontSize="16"
+                                                                                Text="Songs"
+                                                                                />
 
                                                                         </StackPanel>
                                                                     </StackPanel>
@@ -190,133 +205,143 @@
                                                 </StackPanel>
 
                                                 <Border
-                                        x:Name="ArtistDetailBorder"
-                                        MaxHeight="350"
-                                                    MaxWidth="750"
+                                                    x:Name="ArtistDetailBorder"
                                                     MinWidth="350"
-                                        HorizontalAlignment="Center"
-                                        VerticalAlignment="Center" Padding="5"
-                                        Background="#1E1E1E"
-                                        BorderBrush="DarkSlateBlue"
-                                        BorderThickness="2"
-                                        Canvas.ZIndex="99"
-                                        CornerRadius="15"
-                                        Visibility="Collapsed">
+                                                    MaxWidth="750"
+                                                    MaxHeight="350"
+                                                    Padding="5"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    Background="#1E1E1E"
+                                                    BorderBrush="DarkSlateBlue"
+                                                    BorderThickness="2"
+                                                    Canvas.ZIndex="99"
+                                                    CornerRadius="15"
+                                                    Visibility="Collapsed"
+                                                    >
 
                                                     <Grid>
 
                                                         <Grid.RowDefinitions>
-                                                            <RowDefinition Height="auto"/>
-                                                            <RowDefinition Height="*"/>
+                                                            <RowDefinition Height="auto" />
+                                                            <RowDefinition Height="*" />
                                                         </Grid.RowDefinitions>
-                                                        <StackPanel  Grid.Row="0" >
+                                                        <StackPanel Grid.Row="0">
 
                                                             <StackPanel
-                                                    HorizontalAlignment="Center"
-                                                    VerticalAlignment="Top" 
-                                                    Orientation="Horizontal"
-                                                    Spacing="10">
+                                                                HorizontalAlignment="Center"
+                                                                VerticalAlignment="Top"
+                                                                Orientation="Horizontal"
+                                                                Spacing="10"
+                                                                >
 
                                                                 <Button
-                                                        x:Name="ArtistPreviewButton"
-                                                        Padding="10"
-                                                        
-                                                        HorizontalAlignment="Center"
-                                                        Background="Transparent"
-                                                        Click="CloseArtistDetail_Click"
-                                                        CornerRadius="12">
+                                                                    x:Name="ArtistPreviewButton"
+                                                                    Padding="10"
+                                                                    HorizontalAlignment="Center"
+                                                                    Background="Transparent"
+                                                                    Click="CloseArtistDetail_Click"
+                                                                    CornerRadius="12"
+                                                                    >
 
                                                                     <SymbolIcon Foreground="White" Symbol="Back" />
                                                                 </Button>
 
                                                                 <TextBlock
-                                                    Margin="0,0,0,0"
-                                                    HorizontalAlignment="Center"
-                                                    FontSize="28"
                                                                     x:Name="ArtistMiniName"
-                                                    FontWeight="Bold"
-                                                    Foreground="White"
-                                                    Text="{Binding Name}" />
+                                                                    Margin="0,0,0,0"
+                                                                    HorizontalAlignment="Center"
+                                                                    FontSize="28"
+                                                                    FontWeight="Bold"
+                                                                    Foreground="White"
+                                                                    Text="{Binding Name}"
+                                                                    />
 
 
                                                             </StackPanel>
 
-                                                            <Button HorizontalAlignment="Center"
-                                              
-Padding="8"
-Background="Transparent"
-BorderThickness="2"
-Click="ArtistNameBtn_Click"
-Content="View"
-CornerRadius="12"
-FontSize="15"
-FontWeight="ExtraBold" />
+                                                            <Button
+                                                                Padding="8"
+                                                                HorizontalAlignment="Center"
+                                                                Background="Transparent"
+                                                                BorderThickness="2"
+                                                                Click="ArtistNameBtn_Click"
+                                                                Content="View"
+                                                                CornerRadius="12"
+                                                                FontSize="15"
+                                                                FontWeight="ExtraBold"
+                                                                />
 
                                                         </StackPanel>
 
-                                                        <ScrollViewer 
-                                                Grid.Row="1" VerticalScrollBarVisibility="Visible"
-                                               >
+                                                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Visible">
 
-                                                            <ItemsRepeater x:Name="ArtistSongsPreviewIR"
-                                                               Loaded="ArtistSongsPreviewIR_Loaded">
+                                                            <ItemsRepeater x:Name="ArtistSongsPreviewIR" Loaded="ArtistSongsPreviewIR_Loaded">
                                                                 <ItemsRepeater.Layout>
-                                                                    <StackLayout Spacing="2"
-                      Orientation="Vertical" />
+                                                                    <StackLayout Orientation="Vertical" Spacing="2" />
                                                                 </ItemsRepeater.Layout>
                                                                 <ItemsRepeater.ItemTemplate>
                                                                     <DataTemplate>
-                                                                        <StackPanel
-                                                                Margin="11,0,11,0">
+                                                                        <StackPanel Margin="11,0,11,0">
 
 
                                                                             <Grid
-                                                                Padding="2" 
-                                                                BorderBrush="Gray"
-                                                                BorderThickness="0" ColumnSpacing="10"
-                                                                CornerRadius="5">
+                                                                                Padding="2"
+                                                                                BorderBrush="Gray"
+                                                                                BorderThickness="0"
+                                                                                ColumnSpacing="10"
+                                                                                CornerRadius="5"
+                                                                                >
                                                                                 <Grid.ColumnDefinitions>
-                                                                                    <ColumnDefinition Width="*"/>
-                                                                                    <ColumnDefinition Width="auto"/>
+                                                                                    <ColumnDefinition Width="*" />
+                                                                                    <ColumnDefinition Width="auto" />
                                                                                 </Grid.ColumnDefinitions>
-                                                                                <StackPanel 
-                                                                    Grid.Column="0"
-                                                                    Spacing="5">
+                                                                                <StackPanel Grid.Column="0" Spacing="5">
 
                                                                                     <TextBlock
-                                                                        FontSize="16" 
-                                                                        MaxLines="3" TextWrapping="Wrap"
-                                                                        Text="{Binding Title}" />
-                                                                                    
+                                                                                        FontSize="16"
+                                                                                        MaxLines="3"
+                                                                                        Text="{Binding Title}"
+                                                                                        TextWrapping="Wrap"
+                                                                                        />
+
                                                                                     <TextBlock
-                                                                        FontSize="9" 
-                                                                                FontStyle="Italic"        
-                                                                        MaxLines="3" TextWrapping="Wrap"
-                                                                        Text="{Binding AlbumName}" />
-                                                                                    
+                                                                                        FontSize="9"
+                                                                                        FontStyle="Italic"
+                                                                                        MaxLines="3"
+                                                                                        Text="{Binding AlbumName}"
+                                                                                        TextWrapping="Wrap"
+                                                                                        />
+
                                                                                 </StackPanel>
 
-                                                                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5">
-                                                                                    <Button 
-                                                                                x:Name="PlaySongNowFromArtistListOfSongs"
-                                                                                Click="PlaySongNowFromArtistListOfSongs_Click"
+                                                                                <StackPanel
+                                                                                    Grid.Column="1"
+                                                                                    Orientation="Horizontal"
+                                                                                    Spacing="5"
+                                                                                    >
+                                                                                    <Button
+                                                                                        x:Name="PlaySongNowFromArtistListOfSongs"
+                                                                                        Background="Transparent"
+                                                                                        Click="PlaySongNowFromArtistListOfSongs_Click"
+                                                                                        FontSize="10"
                                                                                         RightTapped="PlaySongNowFromArtistListOfSongs_RightTapped"
-                                                                                FontSize="10" Background="Transparent"
-                                                                                        
                                                                                         >
-                                                                                        <SymbolIcon Symbol="Play"/>
+                                                                                        <SymbolIcon Symbol="Play" />
                                                                                     </Button>
-                                                                                    <Button     
-                                                                                x:Name="AddNextInQueue"
-                                                                                Click="AddNextInQueue_Click"
-                                                                                FontSize="10" Background="Transparent">
+                                                                                    <Button
+                                                                                        x:Name="AddNextInQueue"
+                                                                                        Background="Transparent"
+                                                                                        Click="AddNextInQueue_Click"
+                                                                                        FontSize="10"
+                                                                                        >
 
-                                                                                        <SymbolIcon Symbol="List"/>
+                                                                                        <SymbolIcon Symbol="List" />
                                                                                     </Button>
                                                                                 </StackPanel>
 
                                                                             </Grid>
-                                                                            <Rectangle Height="1" Fill="DarkSlateBlue"/>
+                                                                            <Rectangle Height="1" Fill="DarkSlateBlue" />
                                                                         </StackPanel>
                                                                     </DataTemplate>
                                                                 </ItemsRepeater.ItemTemplate>
@@ -327,11 +352,12 @@ FontWeight="ExtraBold" />
                                                 </Border>
                                             </Grid>
                                         </StackPanel>
-                                        
+
                                         <StackPanel
                                             Margin="0,10,0,0"
                                             Orientation="Horizontal"
-                                            Spacing="10">
+                                            Spacing="10"
+                                            >
 
                                             <Button
                                                 x:Name="AlbumBtn"
@@ -339,13 +365,15 @@ FontWeight="ExtraBold" />
                                                 Background="Transparent"
                                                 BorderThickness="2"
                                                 Click="AlbumBtn_Click"
-                                                PointerPressed="AlbumBtn_PointerPressed"
                                                 Content="{x:Bind DetailedSong.AlbumName}"
-                                                FontSize="30" />
+                                                FontSize="30"
+                                                PointerPressed="AlbumBtn_PointerPressed"
+                                                />
                                             <TextBlock
                                                 VerticalAlignment="Center"
                                                 FontSize="30"
-                                                Text="{x:Bind DetailedSong.ReleaseYear}" />
+                                                Text="{x:Bind DetailedSong.ReleaseYear}"
+                                                />
 
                                         </StackPanel>
                                         <StackPanel Orientation="Horizontal" Spacing="8">
@@ -353,30 +381,34 @@ FontWeight="ExtraBold" />
                                             <Button
                                                 Background="Transparent"
                                                 BorderThickness="2"
-                                                Content="{x:Bind DetailedSong.FileFormat}" />
+                                                Content="{x:Bind DetailedSong.FileFormat}"
+                                                />
 
-                                       
 
-                                        <Button
-                                            x:Name="ViewInFolder"
-                                            Command="{x:Bind MyViewModel.OpenAndSelectFileInExplorerCommand}"
-                                            CommandParameter="{x:Bind DetailedSong}"
-                                            ToolTipService.ToolTip="{x:Bind DetailedSong.FilePath}">
-                                            <FontIcon Glyph="&#xE838;" />
-                                        </Button>
 
-                                        <Button x:Name="ViewCharts" Click="ViewCharts_Click">
-                                            <FontIcon Glyph="&#xEB05;" />
+                                            <Button
+                                                x:Name="ViewInFolder"
+                                                Command="{x:Bind MyViewModel.OpenAndSelectFileInExplorerCommand}"
+                                                CommandParameter="{x:Bind DetailedSong}"
+                                                ToolTipService.ToolTip="{x:Bind DetailedSong.FilePath}"
+                                                >
+                                                <FontIcon Glyph="&#xE838;" />
+                                            </Button>
+
+                                            <Button x:Name="ViewCharts" Click="ViewCharts_Click">
+                                                <FontIcon Glyph="&#xEB05;" />
                                             </Button>
                                         </StackPanel>
                                         <StackPanel Orientation="Horizontal" Spacing="10">
                                             <Button
+                                                x:Name="FavBtn"
                                                 VerticalAlignment="Bottom"
                                                 Background="Transparent"
                                                 BorderBrush="Transparent"
-                                                RightTapped="FavBtn_RightTapped" x:Name="FavBtn"
                                                 Click="FavBtn_Click"
-                                                Foreground="SlateBlue">
+                                                Foreground="SlateBlue"
+                                                RightTapped="FavBtn_RightTapped"
+                                                >
 
                                                 <FontIcon Glyph="&#xEB52;" />
                                             </Button>
@@ -386,19 +418,20 @@ FontWeight="ExtraBold" />
                                         <RichTextBlock
                                             x:Name="BioBlock"
                                             Loaded="BioBlock_Loaded"
-                                            TextWrapping="Wrap" />
+                                            TextWrapping="Wrap"
+                                            />
                                     </StackPanel>
                                 </StackPanel>
                             </Border>
                         </Grid>
 
-                        <StackPanel x:Name="SectionPlayback" Background="Transparent" />
-
-
+                    
+                        
                         <StackPanel
                             Padding="24"
                             Spacing="16"
-                            Visibility="{x:Bind MyViewModel.SelectedSong.PlayEvents.Count, Converter={StaticResource CollectionSizeToVisibility},Mode=OneWay}">
+                            Visibility="{x:Bind MyViewModel.SelectedSong.PlayEvents.Count, Converter={StaticResource CollectionSizeToVisibility}, Mode=OneWay}"
+                            >
                             <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Playback History" />
 
                             <StackPanel Orientation="Horizontal" Spacing="5">
@@ -442,12 +475,14 @@ FontWeight="ExtraBold" />
                                 BorderThickness="1"
                                 CornerRadius="20"
                                 Orientation="Horizontal"
-                                Spacing="5">
+                                Spacing="5"
+                                >
                                 <Button
                                     Background="Transparent"
                                     Click="FilterEventButton_Click"
                                     Content="All"
-                                    CornerRadius="10" />
+                                    CornerRadius="10"
+                                    />
 
                                 <StackPanel Orientation="Horizontal" Spacing="5">
 
@@ -456,25 +491,29 @@ FontWeight="ExtraBold" />
                                         Click="FilterEventButton_Click"
                                         CommandParameter="Started"
                                         Content="Started"
-                                        CornerRadius="10" />
+                                        CornerRadius="10"
+                                        />
                                     <Button
                                         Background="Transparent"
                                         Click="FilterEventButton_Click"
                                         CommandParameter="Completed"
                                         Content="Completed"
-                                        CornerRadius="10" />
+                                        CornerRadius="10"
+                                        />
                                     <Button
                                         Background="Transparent"
                                         Click="FilterEventButton_Click"
                                         CommandParameter="Pause"
                                         Content="Pause"
-                                        CornerRadius="10" />
+                                        CornerRadius="10"
+                                        />
                                     <Button
                                         Background="Transparent"
                                         Click="FilterEventButton_Click"
                                         CommandParameter="Skipped"
                                         Content="Skipped"
-                                        CornerRadius="10" />
+                                        CornerRadius="10"
+                                        />
 
                                 </StackPanel>
 
@@ -487,7 +526,8 @@ FontWeight="ExtraBold" />
                                 Background="#291B22"
                                 CornerRadius="5"
                                 Orientation="Horizontal"
-                                Spacing="2">
+                                Spacing="2"
+                                >
                                 <TextBlock x:Name="EventsCount" />
                                 <TextBlock Text="Events" />
                             </StackPanel>
@@ -498,7 +538,8 @@ FontWeight="ExtraBold" />
                                 AutoGenerateColumns="False"
                                 ItemsSource="{x:Bind MyViewModel.SelectedSong.PlayEvents, Mode=OneWay}"
                                 Loaded="SongPlayEvents_Loaded"
-                                SelectionMode="None">
+                                SelectionMode="None"
+                                >
                                 <dgView:TableView.Columns>
 
                                     <!--  Column for the Cover Art  -->
@@ -511,14 +552,16 @@ FontWeight="ExtraBold" />
                                                     HorizontalAlignment="Center"
                                                     BorderBrush="{Binding PlayType, Converter={StaticResource PlayTypeToBorderBrush}}"
                                                     BorderThickness="1.5"
-                                                    CornerRadius="20">
+                                                    CornerRadius="20"
+                                                    >
                                                     <TextBlock FontWeight="Bold" Text="{Binding PlayTypeStr}" />
                                                     <TextBlock
                                                         Grid.Column="2"
                                                         VerticalAlignment="Center"
                                                         FontSize="12"
                                                         Opacity="0.5"
-                                                        Text="{Binding DatePlayed, Converter={StaticResource EventDateOffsetToTimeAgo}}" />
+                                                        Text="{Binding DatePlayed, Converter={StaticResource EventDateOffsetToTimeAgo}}"
+                                                        />
 
                                                 </StackPanel>
                                             </DataTemplate>
@@ -534,14 +577,16 @@ FontWeight="ExtraBold" />
                                                         Grid.Column="2"
                                                         VerticalAlignment="Center"
                                                         FontSize="12"
-                                                        Text="{Binding DatePlayed, Converter={StaticResource EventDateOffsetToTimeAgo}}" />
+                                                        Text="{Binding DatePlayed, Converter={StaticResource EventDateOffsetToTimeAgo}}"
+                                                        />
 
                                                     <TextBlock
                                                         Grid.Column="2"
                                                         VerticalAlignment="Center"
                                                         FontSize="12"
                                                         Opacity="0.5"
-                                                        Text="{Binding DatePlayed}" />
+                                                        Text="{Binding DatePlayed}"
+                                                        />
 
                                                 </StackPanel>
                                             </DataTemplate>
@@ -552,7 +597,8 @@ FontWeight="ExtraBold" />
                                     <dgView:TableViewTemplateColumn
                                         Width="*"
                                         Header="Options"
-                                        Visibility="Collapsed">
+                                        Visibility="Collapsed"
+                                        >
                                         <dgView:TableViewTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <StackPanel Orientation="Horizontal">
@@ -562,7 +608,8 @@ FontWeight="ExtraBold" />
                                                         Background="Transparent"
                                                         BorderThickness="0"
                                                         Click="DeleteEventBtn_Click"
-                                                        Tag="{Binding}">
+                                                        Tag="{Binding}"
+                                                        >
                                                         <FontIcon FontSize="24" Glyph="&#xE74D;" />
                                                     </Button>
                                                 </StackPanel>
@@ -575,27 +622,15 @@ FontWeight="ExtraBold" />
 
                         </StackPanel>
 
-                        <StackPanel x:Name="StatsCardsPanel">
-                            <GridViewItem
-                                >
-                                <Grid Width="200" Height="150" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8">
-                                    <!-- Use a circular progress bar here -->
-                                   
-                                    
-                                    <TextBlock
-                                               Text="{x:Bind MyViewModel.SelectedSong.PlayCompletedCount, Mode=OneWay}"
-                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Completion Rate" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,15"/>
-                                </Grid>
-                            </GridViewItem>
+                   
+                        
 
-                        </StackPanel>
-                        
-                        
                         <!--  SECTION 3: LYRICS  -->
                         <StackPanel
-                            Visibility="{x:Bind MyViewModel.SelectedSong.HasLyrics, Converter={StaticResource BoolToVisibilityConverter}}"
-                            x:Name="SectionLyricsStackPanel" Background="Transparent">
+                            x:Name="SectionLyricsStackPanel"
+                            Background="Transparent"
+                           
+                            >
 
                             <StackPanel Orientation="Horizontal">
 
@@ -604,12 +639,14 @@ FontWeight="ExtraBold" />
                                     Background="Transparent"
                                     Content="Lyrics Section"
                                     FontSize="34"
-                                    FontWeight="ExtraBold" />
+                                    FontWeight="ExtraBold"
+                                    />
                                 <Button
                                     x:Name="EditIconBtn"
                                     Background="Transparent"
                                     BorderThickness="0"
-                                    Click="LyricsSection_Click">
+                                    Click="LyricsSection_Click"
+                                    >
                                     <FontIcon FontSize="24" Glyph="&#xE70F;" />
                                 </Button>
                             </StackPanel>
@@ -619,7 +656,7 @@ FontWeight="ExtraBold" />
                                     <ColumnDefinition Width="auto" />
                                 </Grid.ColumnDefinitions>
 
-                                <ScrollViewer MaxHeight="350" VerticalScrollBarVisibility="Auto" >
+                                <ScrollViewer MaxHeight="350" VerticalScrollBarVisibility="Auto">
                                     <ItemsRepeater ItemsSource="{x:Bind MyViewModel.SelectedSongLyricsObsCol, Mode=OneWay}">
                                         <ItemsRepeater.ItemTemplate>
                                             <DataTemplate>
@@ -627,7 +664,8 @@ FontWeight="ExtraBold" />
                                                     <StackPanel
                                                         Background="Transparent"
                                                         Orientation="Horizontal"
-                                                        Spacing="15">
+                                                        Spacing="15"
+                                                        >
 
                                                         <TextBlock FontSize="26" Text="{Binding Text}" />
 
@@ -639,35 +677,13 @@ FontWeight="ExtraBold" />
                                         </ItemsRepeater.ItemTemplate>
                                     </ItemsRepeater>
                                 </ScrollViewer>
-                              
+
                             </Grid>
                         </StackPanel>
 
 
-                        <StackPanel>
-
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock
-                                    x:Name="AchievementsTB"
-                                    FontSize="38"
-                                    FontWeight="Bold"
-                                    Text="Achievements" />
-                                <Button x:Name="ViewAllAchievementsBtn" ToolTipService.ToolTip="ViewAll">
-                                    <FontIcon Glyph="&#xF133;" />
-                                </Button>
-                            </StackPanel>
-                            <achievements:SongAchievementsControl
-                                x:Name="MySongAchievements"
-                                MaxHeight="450"
-                                Loaded="MySongAchievements_Loaded"
-                                Loading="MySongAchievements_Loading" />
-
-
-                            
-
-                        </StackPanel>
-
                         
+
                     </StackPanel>
                 </ScrollViewer>
 
@@ -678,7 +694,8 @@ FontWeight="ExtraBold" />
             x:Name="SmokeGrid"
             HorizontalAlignment="Stretch"
             VerticalAlignment="Stretch"
-            Visibility="Collapsed">
+            Visibility="Collapsed"
+            >
             <Grid.Background>
                 <SolidColorBrush Opacity="0.8" Color="{ThemeResource SystemChromeAltHighColor}" />
             </Grid.Background>
@@ -689,7 +706,8 @@ FontWeight="ExtraBold" />
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 BorderThickness="0"
-                CornerRadius="5,5,5,5">
+                CornerRadius="5,5,5,5"
+                >
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
@@ -699,13 +717,15 @@ FontWeight="ExtraBold" />
                     Height="120"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Stretch"
-                    Background="{ThemeResource SystemAccentColor}">
+                    Background="{ThemeResource SystemAccentColor}"
+                    >
                     <TextBlock
                         Margin="12"
                         VerticalAlignment="Center"
                         FontWeight="Bold"
                         Style="{ThemeResource HeaderTextBlockStyle}"
-                        Text="{Binding SelectedAchievement.Name}" />
+                        Text="{Binding SelectedAchievement.Name}"
+                        />
                     <Button
                         Width="40"
                         Height="40"
@@ -714,7 +734,8 @@ FontWeight="ExtraBold" />
                         VerticalAlignment="Top"
                         AutomationProperties.Name="Close"
                         Click="PopUpBackButton_Click"
-                        ToolTipService.ToolTip="Close">
+                        ToolTipService.ToolTip="Close"
+                        >
                         <Button.Content>
                             <SymbolIcon Symbol="Clear" />
                         </Button.Content>
@@ -724,7 +745,8 @@ FontWeight="ExtraBold" />
                     Grid.Row="1"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Stretch"
-                    Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}">
+                    Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}"
+                    >
                     <StackPanel>
 
                         <TextBlock Margin="12" Style="{ThemeResource BaseTextBlockStyle}" />
@@ -732,12 +754,14 @@ FontWeight="ExtraBold" />
                         <TextBlock
                             Margin="12"
                             Style="{ThemeResource BaseTextBlockStyle}"
-                            Text="{Binding SelectedAchievement.Description}" />
+                            Text="{Binding SelectedAchievement.Description}"
+                            />
 
                         <TextBlock
                             Margin="12"
                             Style="{ThemeResource BaseTextBlockStyle}"
-                            Text="{Binding SelectedAchievement.Tier}" />
+                            Text="{Binding SelectedAchievement.Tier}"
+                            />
                     </StackPanel>
 
                 </Grid>

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Page
     x:Class="Dimmer.WinUI.Views.WinuiPages.AllSongsListPage"
+    x:Name="MyPageGrid"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:animations="using:CommunityToolkit.WinUI.Animations"
@@ -19,10 +20,10 @@
     xmlns:queryBuilder="queries"
     xmlns:tql="clr-namespace:Dimmer.DimmerSearch.TQL;assembly=Dimmer"
     xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
-    x:Name="MyPageGrid"
     Loaded="MyPageGrid_Loaded"
     Unloaded="Page_Unloaded"
-    mc:Ignorable="d">
+    mc:Ignorable="d"
+    >
 
     <Page.Resources>
         <ResourceDictionary>
@@ -34,12 +35,14 @@
                         x:Key="CustomAcrylicInAppBrush"
                         FallbackColor="Green"
                         TintColor="Black"
-                        TintOpacity="0.8" />
+                        TintOpacity="0.8"
+                        />
                     <media:AcrylicBrush
                         x:Key="CustomAcrylicInAppLuminosity"
                         FallbackColor="SkyBlue"
                         TintColor="SkyBlue"
-                        TintOpacity="0.8" />
+                        TintOpacity="0.8"
+                        />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
 
@@ -49,7 +52,8 @@
                     <Rectangle
                         Width="20"
                         Height="20"
-                        Fill="{x:Bind}" />
+                        Fill="{x:Bind}"
+                        />
                     <TextBlock Margin="4,0,0,0" Text="{x:Bind Color}" />
                 </StackPanel>
             </DataTemplate>
@@ -59,7 +63,8 @@
         <Grid
             Margin="10"
             RowSpacing="10"
-            Visibility="Visible">
+            Visibility="Visible"
+            >
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto" />
                 <RowDefinition Height="*" />
@@ -76,7 +81,8 @@
                     BorderThickness="1"
                     CornerRadius="00"
                     PointerReleased="StackPanel_PointerReleased"
-                    Spacing="5">
+                    Spacing="5"
+                    >
 
 
 
@@ -85,11 +91,13 @@
                     <StackPanel
                         HorizontalAlignment="Left"
                         Orientation="Horizontal"
-                        Spacing="10">
+                        Spacing="10"
+                        >
                         <Button
                             x:Name="ViewQueueBtn"
                             Click="ViewQueue_Click"
-                            Content="View Queue" />
+                            Content="View Queue"
+                            />
 
                         <Button Command="{x:Bind MyViewModel.ScrollToRequestedSongCommand}">
                             <SymbolIcon Symbol="View" />
@@ -100,7 +108,8 @@
                             Click="ShowFavSongs_Click"
                             PointerReleased="MiddlePointer_PointerReleased"
                             RightTapped="ShowFavSongs_RightTapped"
-                            ToolTipService.ToolTip="Show Favorite Songs. TQL command: My Fav">
+                            ToolTipService.ToolTip="Show Favorite Songs. TQL command: My Fav"
+                            >
                             <FontIcon Glyph="&#xF6B8;" />
                         </Button>
 
@@ -109,7 +118,8 @@
                             Click="ShowSongWithLyrics_Click"
                             PointerReleased="MiddlePointer_PointerReleased"
                             RightTapped="ShowSongWithLyrics_RightTapped"
-                            ToolTipService.ToolTip="Show Songs with Lyrics. TQL command: Has Lyrics">
+                            ToolTipService.ToolTip="Show Songs with Lyrics. TQL command: Has Lyrics"
+                            >
                             <FontIcon Glyph="&#xE8BD;" />
                         </Button>
 
@@ -117,7 +127,8 @@
                             x:Name="ShuffleSongs"
                             Click="ShuffleSongs_Click"
                             Content="Shuffle"
-                            PointerReleased="MiddlePointer_PointerReleased" />
+                            PointerReleased="MiddlePointer_PointerReleased"
+                            />
 
                         <SplitButton
                             x:Name="SortByWithTQL"
@@ -125,41 +136,48 @@
                             Content="Sort By"
                             IsEnabled="True"
                             Loaded="SortByWithTQL_Loaded"
-                            Visibility="Visible">
+                            Visibility="Visible"
+                            >
                             <SplitButton.Flyout>
                                 <MenuFlyout>
                                     <RadioMenuFlyoutItem
                                         Click="SortClick"
                                         GroupName="SortGroup"
                                         Tag="title"
-                                        Text="Title" />
+                                        Text="Title"
+                                        />
                                     <RadioMenuFlyoutItem
                                         Click="SortClick"
                                         GroupName="SortGroup"
                                         Tag="artist"
-                                        Text="Artist" />
+                                        Text="Artist"
+                                        />
                                     <RadioMenuFlyoutItem
                                         Click="SortClick"
                                         GroupName="SortGroup"
                                         Tag="album"
-                                        Text="Album" />
+                                        Text="Album"
+                                        />
                                     <RadioMenuFlyoutItem
                                         Click="SortClick"
                                         GroupName="SortGroup"
                                         Tag="dims"
-                                        Text="Play Count" />
+                                        Text="Play Count"
+                                        />
                                     <RadioMenuFlyoutItem
                                         Click="SortClick"
                                         GroupName="SortGroup"
                                         Tag="added"
                                         Text="Added"
-                                        Visibility="Collapsed" />
+                                        Visibility="Collapsed"
+                                        />
 
                                     <!--<MenuFlyoutSeparator />-->
                                     <MenuFlyoutItem
                                         Click="OpenHelp"
                                         Text="More fields..."
-                                        Visibility="Collapsed" />
+                                        Visibility="Collapsed"
+                                        />
                                 </MenuFlyout>
                             </SplitButton.Flyout>
                         </SplitButton>
@@ -169,13 +187,15 @@
                         x:Name="SearchTextBoxPanel"
                         HorizontalAlignment="Left"
                         Orientation="Vertical"
-                        Spacing="10">
+                        Spacing="10"
+                        >
 
                         <TextBox
                             x:Name="SearchTextBox"
                             Width="400"
                             PlaceholderText="Search With TQL..."
-                            TextChanged="SearchAutoSuggestBox_TextChanged" />
+                            TextChanged="SearchAutoSuggestBox_TextChanged"
+                            />
 
 
                         <TextBlock VerticalAlignment="Center" Text="{x:Bind MyViewModel.SearchResults.Count, Mode=OneWay}" />
@@ -221,7 +241,8 @@
                     SelectionMode="Single"
                     Sorting="MySongsTableView_Sorting"
                     Style="{StaticResource AcrylicDataGridStyle}"
-                    Tapped="MySongsTableView_Tapped">
+                    Tapped="MySongsTableView_Tapped"
+                    >
 
                     <dgView:TableView.Columns>
 
@@ -241,11 +262,13 @@
                                         IsHitTestVisible="True"
                                         Loaded="CardBorder_Loaded"
                                         PointerEntered="CardBorder_PointerEntered"
-                                        PointerExited="CardBorder_PointerExited">
+                                        PointerExited="CardBorder_PointerExited"
+                                        >
                                         <Grid
                                             x:Name="CoverImageGrid"
                                             HorizontalAlignment="Left"
-                                            PointerReleased="CardBorder_PointerReleased">
+                                            PointerReleased="CardBorder_PointerReleased"
+                                            >
 
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="auto" />
@@ -260,28 +283,32 @@
                                                 HorizontalAlignment="Left"
                                                 VerticalAlignment="Bottom"
                                                 Orientation="Horizontal"
-                                                Spacing="5">
+                                                Spacing="5"
+                                                >
 
 
 
                                                 <SymbolIcon
                                                     Foreground="SlateBlue"
                                                     Symbol="Play"
-                                                    Visibility="{Binding IsCurrentPlayingHighlight, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                                    Visibility="{Binding IsCurrentPlayingHighlight, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                    />
 
                                                 <SymbolIcon
                                                     Width="20"
                                                     Height="20"
                                                     Foreground="SlateBlue"
                                                     Symbol="Microphone"
-                                                    Visibility="{Binding HasSyncedLyrics, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                                    Visibility="{Binding HasSyncedLyrics, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                    />
 
                                                 <FontIcon
                                                     Width="20"
                                                     Height="20"
                                                     Foreground="SlateBlue"
                                                     Glyph="&#xEB52;"
-                                                    Visibility="{Binding IsFavorite, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                                    Visibility="{Binding IsFavorite, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                    />
                                             </StackPanel>
                                             <Image
                                                 x:Name="coverArtImage"
@@ -293,7 +320,8 @@
                                                 PointerPressed="coverArtImage_PointerPressed"
                                                 RightTapped="coverArtImage_RightTapped"
                                                 Source="{Binding CoverImagePath}"
-                                                Stretch="UniformToFill" />
+                                                Stretch="UniformToFill"
+                                                />
 
                                             <StackPanel
                                                 x:Name="ExtraPanel"
@@ -305,7 +333,8 @@
                                                 Orientation="Horizontal"
                                                 RenderTransformOrigin="0.5,0.5"
                                                 Spacing="10"
-                                                Visibility="Visible">
+                                                Visibility="Visible"
+                                                >
                                                 <StackPanel.RenderTransform>
                                                     <TranslateTransform Y="150" />
                                                 </StackPanel.RenderTransform>
@@ -318,7 +347,8 @@
                                                     Content="View"
                                                     Opacity="0.8"
                                                     PointerEntered="ButtonHover_PointerEntered"
-                                                    PointerExited="ButtonHover_PointerExited" />
+                                                    PointerExited="ButtonHover_PointerExited"
+                                                    />
                                                 <Button
                                                     x:Name="ViewOtherBtn"
                                                     HorizontalAlignment="Center"
@@ -327,7 +357,8 @@
                                                     Content="Options"
                                                     Opacity="0.8"
                                                     PointerEntered="ButtonHover_PointerEntered"
-                                                    PointerExited="ButtonHover_PointerExited" />
+                                                    PointerExited="ButtonHover_PointerExited"
+                                                    />
                                             </StackPanel>
 
                                             <StackPanel Grid.Row="2" HorizontalAlignment="Left">
@@ -348,41 +379,51 @@
                             Header="Title"
                             IsReadOnly="True"
                             ToolTipService.Placement="Mouse"
-                            ToolTipService.ToolTip="{x:Bind MyViewModel.CurrentPlayingSongView.Title}" />
+                            ToolTipService.ToolTip="{x:Bind MyViewModel.CurrentPlayingSongView.Title}"
+                            />
 
 
 
                         <dgView:TableViewTextColumn
                             x:Name="ArtistsColumn"
+                            Width="*"
                             Binding="{Binding OtherArtistsName}"
                             Header="Artists"
-                            IsReadOnly="True" />
+                            IsReadOnly="True"
+                            />
 
                         <dgView:TableViewTextColumn
                             x:Name="AlbumColumn"
+                            Width="*"
                             Binding="{Binding AlbumName}"
                             Header="Album"
-                            IsReadOnly="True" />
+                            IsReadOnly="True"
+                            />
 
                         <dgView:TableViewTextColumn
                             x:Name="DurationFormatted"
                             Binding="{Binding DurationFormatted}"
                             Header="⌛"
-                            IsReadOnly="True" />
+                            IsReadOnly="True"
+                            />
 
 
 
                         <dgView:TableViewTextColumn
                             x:Name="PlayCompletedCount"
+                            Width="*"
                             Binding="{Binding PlayCompletedCount}"
                             Header="🎶"
-                            IsReadOnly="True" />
+                            IsReadOnly="True"
+                            />
 
                         <dgView:TableViewCheckBoxColumn
                             x:Name="IsFavorite"
+                            Width="120"
                             Binding="{Binding IsFavorite}"
                             Header="Favorite?"
-                            IsReadOnly="True" />
+                            IsReadOnly="True"
+                            />
 
 
 
@@ -399,7 +440,8 @@
                 <Button
                     HorizontalAlignment="Center"
                     Background="Transparent"
-                    BorderThickness="1">
+                    BorderThickness="1"
+                    >
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <TextBlock Text="{x:Bind MyViewModel.SearchResults.Count, Mode=OneWay}" />
                         <TextBlock Text="Songs" />
@@ -418,7 +460,8 @@
             x:Name="SingleSongPopup"
             DismissedRequested="SingleSongPopup_DismissedRequested"
             Loaded="SingleSongPopup_Loaded"
-            Visibility="Collapsed" />
+            Visibility="Collapsed"
+            />
     </Grid>
 </Page>
 

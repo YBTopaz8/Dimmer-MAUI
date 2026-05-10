@@ -70,20 +70,11 @@ public sealed partial class EditSongPage : Page
                 MyViewModel.CurrentWinUIPage = this;
                 _editViewModel = new EditSongViewModel(vm, vm.SelectedSong!);
                 MyViewModel.SelectedSong = DetailedSong;
-                //await MyViewModel.LoadSelectedSongLastFMData();
-                //LoadUiComponents();
-                SetupArtistBindings();
+              
             }
         }
     }
-    private void SetupArtistBindings()
-    {
-        // Bind AllArtistsIR to EditViewModel.AllArtists
-        AllArtistsIR.ItemsSource = _editViewModel.AllArtists;
-
-        // Bind selected artists
-        ArtistsToBeAdded.ItemsSource = _editViewModel.SelectedArtists;
-    }
+ 
     private EditSongViewModel _editViewModel;
     private void BackButton_Click(object sender, RoutedEventArgs e)
     {
@@ -297,23 +288,19 @@ public sealed partial class EditSongPage : Page
 
     }
 
-    IEnumerable<ArtistModelView?>? listOfArtistsModelView;
-    private void ArtistToSong_Loaded(object sender, RoutedEventArgs e)
+    IEnumerable<ArtistModel>? listOfArtistsModel;
+    private void ArtistToSongDataGrid_Loaded(object sender, RoutedEventArgs e)
     {
         if (MyViewModel.SelectedSong is null) return;
         var dbSong = MyViewModel.RealmFactory.GetRealmInstance()
-            .All<SongModel>()
-            .FirstOrDefault(s => s.Id == MyViewModel.SelectedSong.Id);
+            .Find<SongModel>(MyViewModel.SelectedSong.Id);
         if (dbSong is null) return;
         var artistToSong = dbSong.ArtistToSong;
-        listOfArtistsModelView = artistToSong.AsEnumerable().Select(x=>x.ToArtistModelView());
-        foreach (var art in listOfArtistsModelView)
-        {
-            var songs = artistToSong.FirstOrDefault(x => x.Id == art.Id)?
-                .Songs;
-            art.SongsByArtist = songs.AsEnumerable().Select(x=>x.ToSongModelView()).ToObservableCollection()!;
-        }
-        ArtistToSong.ItemsSource = listOfArtistsModelView;
+        listOfArtistsModel = artistToSong;
+        
+        ArtistToSongDataGrid.ItemsSource =listOfArtistsModel;
+        ArtistToSongDataGrid.SelectedItems.AddRange( listOfArtistsModel);
+        //ArtistToSongDataGrid.ItemsSource = listOfArtistsModel;
     }
 
     private void ArtistNameFromAllArtistsBtn_Click(object sender, RoutedEventArgs e)
@@ -321,88 +308,23 @@ public sealed partial class EditSongPage : Page
 
     }
 
-    private void AddArtist_Click(object sender, RoutedEventArgs e)
-    {
-        // Toggle visibility logic
-        if (AddArtistGrid.Visibility == Visibility.Visible)
-        {
-            AddArtistGrid.Visibility = Visibility.Collapsed;
-            (AddArtist.Content as FontIcon).Glyph = "\uE8FA";
-        }
-        else
-        {
-            AddArtistGrid.Visibility = Visibility.Visible;
-            (AddArtist.Content as FontIcon).Glyph = "\uE711";
-
-            // Load artists if needed
-            if (AllArtistsIR.ItemsSource == null)
-            {
-                AllArtistsIR.ItemsSource = _editViewModel.AllArtists;
-            }
-        }
-    }
-
-    private void LoadAddArtistSectionView()
-    {
-        var allArtistsInDb = MyViewModel.RealmFactory.GetRealmInstance()
-            .All<ArtistModel>().ToList();
-        var artistView = allArtistsInDb.ToList();
-
-        PageScrollviewer.ChangeView(0, 210, 1);
-        var OnlyArtName = allArtistsInDb
-                    .Where(x => !string.IsNullOrWhiteSpace(x.Name))
-                    .DistinctBy(x => x.Name)
-                    .OrderBy(c => c.Name)
-                   .Select(a => a.Name)
-                    .ToList();
-        AllArtistsIR.ItemsSource = OnlyArtName;
-
-        var listOfOnlyFirstLetterOfArtist = OnlyArtName.Select(x => x.First()).Distinct();
-        ListOfFirstLetters.ItemsSource = listOfOnlyFirstLetterOfArtist.ToList();
-    }
+ 
 
     private void ChooseImageFromOtherSongsInAlbum_Click(SplitButton sender, SplitButtonClickEventArgs args)
     {
-        ChooseImageFromOtherSongsInAlbum_Click(sender, args);
+        if (MyImagePickerBtn.Flyout is not null)
+        {
+            MyImagePickerBtn.Flyout.ShowAt(sender);
+        }
     }
-    private async void UniqueLetterToScrollTo_Click(object sender, RoutedEventArgs e)
-    {
-        var send = (Button)sender;
-        var letter = (char)send.DataContext;
+   
 
-        // Find the first artist starting with that letter
-        var artists = AllArtistsIR.ItemsSource as List<string>;
-        if (artists == null || artists.Count == 0) return;
+    
 
-        var firstArtist = artists.FirstOrDefault(a => a.First() == letter);
-        //var lastArtist = artists.LastOrDefault(a => !string.IsNullOrWhiteSpace(a));
-
-        if (firstArtist == null) return;
-        
-        await AllArtistsIR.SmoothScrollIntoViewWithItemAsync(firstArtist);
-    }
-
-
-    private void RemoveArtistFromSelection_Clicked(object sender, RoutedEventArgs e)
-    {
-        var artNameFontIcon = (Button)sender;
-        var artName = artNameFontIcon.DataContext as string;
-        if(artName == null) return;
-        selectedItems.Remove(artName);
-    }
 
     List<string>? selectedItems;
-    private void AllArtistsIR_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
-    {
-        var added = e.AddedItems.Cast<string>();
-        var removed = e.RemovedItems.Cast<string>();
+ 
 
-        foreach (var artist in added)
-            _editViewModel.AddArtist(artist);
-
-        foreach (var artist in removed)
-            _editViewModel.RemoveArtist(artist);
-    }
 
     private void ResetFieldsBtn_Click(object sender, RoutedEventArgs e)
     {
@@ -433,5 +355,184 @@ public sealed partial class EditSongPage : Page
             AnimationHelper.Key_ListToDetail, // Priority 2: Coming from List
             AnimationHelper.Key_ArtistToSong  // Priority 3: Coming from Artist
         );
+    }
+
+    
+    private void ArtistToSongDataGrid_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
+    {
+
+    }
+
+    private async void EditArtistsToSong_Click(object sender, RoutedEventArgs e)
+    {
+        var comParam = EditArtistsToSong.CommandParameter as string;
+        if (comParam is "Edit")
+        {
+
+       
+            ArtistToSongDataGrid.SelectedItems.Clear();
+        
+            ArtistToSongDataGrid.ItemsSource = MyViewModel.ArtistsCollection;
+
+            if (listOfArtistsModel is null) return;
+            ArtistToSongDataGrid.SelectedItems.AddRange(listOfArtistsModel);
+
+            EditArtistsToSong.CommandParameter = "Save";
+            FontIcon icon = new FontIcon();
+            icon.Glyph = "\uE74E";
+            EditArtistsToSong.Content = icon;
+        }
+        else
+        {
+            var contentDialog = new ContentDialog();
+            var allArtists = listOfArtistsModel?.Select(x=>x.Name).ToList();
+            var contentText = $"Save Artists {allArtists} to song?";
+            contentDialog.Content= contentText;
+            contentDialog.PrimaryButtonText= "OK";
+            contentDialog.CloseButtonText = "Cancel";
+
+            contentDialog.PrimaryButtonClick += SaveArtistsToSongClickConfirm;
+            await contentDialog.ShowAsync();
+        }
+    }
+
+    private void SaveArtistsToSongClickConfirm(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+    {
+        //
+    }
+
+    private void SongNameTB_TextChanged(object sender, Microsoft.UI.Xaml.Controls.TextChangedEventArgs e)
+    {
+        
+    }
+
+    bool isSearchingOnLastFM;
+    private async void SearchOnLastFM_Click(object sender, RoutedEventArgs e)
+    {
+        LastFMSearchStackPanel.Visibility = Visibility.Visible;
+        this.PartTwoSection.Visibility = Visibility.Collapsed;
+        MyViewModel.IsSearchingOnLastFM = true;
+
+        MyViewModel.InfoFromLastFM = await MyViewModel.LastfmService.GetTrackInfoAsync(SongArtistNameTB.Text,SongNameTB.Text);
+        MyViewModel.IsSearchingOnLastFM = false;
+
+        if (MyViewModel.InfoFromLastFM is null || MyViewModel.InfoFromLastFM.IsNull)
+        {
+            PartTwoSection.Visibility = Visibility.Visible;
+            LastFMSearchStackPanel.Visibility = Visibility.Collapsed;
+            return;
+        }
+        MyViewModel.InfoFromLastFM.Artist = await MyViewModel.LastfmService.GetArtistInfoAsync(MyViewModel.InfoFromLastFM.Artist.Name);
+        if (MyViewModel.InfoFromLastFM.Artist is not null)
+            MyViewModel.InfoFromLastFM.Album = await MyViewModel.LastfmService.GetAlbumInfoAsync(MyViewModel.InfoFromLastFM.Artist.Name, MyViewModel.SelectedSong?.AlbumName);
+
+
+
+    }
+
+    private async void SaveInfoFromLastFMToSongInDb_Click(object sender, RoutedEventArgs e)
+    {
+        if (MyViewModel.SelectedSong is null || MyViewModel.InfoFromLastFM is null) return;
+        MyViewModel.SelectedSong.Title = MyViewModel.InfoFromLastFM.Name;
+        MyViewModel.SelectedSong.IsFavorite = MyViewModel.InfoFromLastFM.UserLoved;
+
+        var artInVM = MyViewModel.ArtistsCollection.FirstOrDefault(x => x.Name == MyViewModel.InfoFromLastFM.Artist.Name);
+        var albInVM = MyViewModel.AlbumsCollection.FirstOrDefault(x => x.Name == MyViewModel.InfoFromLastFM.Album.Name);
+        if (artInVM is not null)
+        {
+            MyViewModel.SelectedSong.Artist = artInVM;
+        }
+        else
+        {
+            var realm = MyViewModel.RealmFactory.GetRealmInstance();
+            await realm.WriteAsync(() =>
+            {
+                ArtistModel newArtist = new ArtistModel();
+                newArtist.Name = MyViewModel.InfoFromLastFM.Artist.Name;
+
+                var ImgObj = MyViewModel.InfoFromLastFM.Artist.Images.LastOrDefault(x => string.IsNullOrEmpty(x.Size));
+                if (ImgObj is not null)
+                {
+                    newArtist.ImagePath = ImgObj.Url;
+                }
+                newArtist.Bio = MyViewModel.InfoFromLastFM.Artist.Biography.Summary;
+                newArtist.Url = MyViewModel.InfoFromLastFM.Url;
+                var dbObjArt = realm.Add(newArtist, true);
+                var songInDB = realm.Find<SongModel>(MyViewModel.SelectedSong.Id);
+
+                if (songInDB is not null)
+                {
+                    songInDB.Artist = newArtist;
+                    if (!songInDB.ArtistToSong.Contains(dbObjArt))
+                    {
+                        songInDB.ArtistToSong.Add(dbObjArt);
+                    }
+                }
+                RxSchedulers.UI.ScheduleTo(() =>
+                {
+                    MyViewModel.SelectedSong.Artist = dbObjArt.ToArtistModelView();
+
+                });
+            });
+        }
+        if (albInVM is not null)
+        {
+            MyViewModel.SelectedSong.Album = albInVM;
+
+        }
+
+        else
+        {
+            AlbumModel newAlbum = new AlbumModel();
+            var ImgObj = MyViewModel.InfoFromLastFM.Artist.Images.LastOrDefault(x => string.IsNullOrEmpty(x.Size));
+            if (ImgObj is not null)
+            {
+                newAlbum.ImagePath = ImgObj.Url;
+            }
+
+            newAlbum.Name = MyViewModel.InfoFromLastFM.Album.Name;
+            newAlbum.Url = MyViewModel.InfoFromLastFM.Album.Url;
+
+            var dbObjAlbm = MyViewModel.RealmFactory.GetRealmInstance().Add(newAlbum, true);
+            MyViewModel.SelectedSong.Album = dbObjAlbm.ToAlbumModelView();
+
+        }
+
+        var SongInBD = MyViewModel.RealmFactory.GetRealmInstance().Find<SongModel>(MyViewModel.SelectedSong.Id);
+        if (SongInBD is not null)
+        { 
+            await MyViewModel.RealmFactory.GetRealmInstance().WriteAsync(() =>
+            {
+                SongInBD.Title = MyViewModel.SelectedSong.Title;
+                SongInBD.Artist = MyViewModel.SelectedSong.Artist.ToArtistModel()!;
+                SongInBD.Album = MyViewModel.SelectedSong.Album.ToAlbumModel()!;
+                var ImgObj = MyViewModel.InfoFromLastFM.Images.LastOrDefault(x => string.IsNullOrEmpty(x.Size));
+                if (ImgObj is not null)
+                {
+                    SongInBD.CoverImagePath = ImgObj.Url;
+                }
+
+            });
+        }
+
+    }
+
+    private void ToggleButton_Checked(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void ToggleSearchSongLastFM_Checked(object sender, RoutedEventArgs e)
+    {
+
+        SearchSongLastFMExp.IsExpanded = true;
+        SearchSongLastFMExp.Visibility = Visibility.Visible;
+    }
+
+    private void ToggleSearchSongLastFM_Unchecked(object sender, RoutedEventArgs e)
+    {
+        SearchSongLastFMExp.IsExpanded = false;
+        SearchSongLastFMExp.Visibility = Visibility.Collapsed;
+        //SearchSongLastFMExp.
     }
 }

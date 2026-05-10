@@ -186,14 +186,20 @@ public partial class StatisticsViewModel : ObservableObject
     [ObservableProperty] public partial ObservableCollection<DateChartPoint>? SongBurnoutCurveData { get; set; }
     [ObservableProperty] public partial ObservableCollection<DateChartPoint>? SongStreakTimelineData { get; set; }
 
- 
+
 
     #endregion
 
     #region --- Data Builders ---
 
+    SongModelView? currentSong;
     private void BuildSingleSongCharts(SongModelView song)
     {
+        if (currentSong is not null && currentSong.TitleDurationKey == song.TitleDurationKey && SongActionRadarData is not null)
+        {
+            return;
+        }
+        currentSong = song;
         var events = song.PlayEvents.Where(e => e.EventDate.HasValue).OrderBy(e => e.EventDate).ToList();
 
         SongActionRadarData = new ObservableCollection<StringChartPoint>
@@ -310,6 +316,37 @@ public partial class StatisticsViewModel : ObservableObject
             }
         }
         SongStreakTimelineData = new ObservableCollection<DateChartPoint>(streaks);
+    }
+
+
+    [ObservableProperty]
+    public partial SongQuickStatsBundle? QuickStats { get; set; }
+
+
+    [RelayCommand]
+    public async Task LoadSongQuickStatsAsync(SongModelView? song)
+    {
+        if (song is null || IsBusy) return;
+        if (currentSong is not null && currentSong.TitleDurationKey == song.TitleDurationKey && QuickStats is not null)
+        {
+            return;
+        }
+            currentSong = song;
+        IsBusy = true;
+        try
+        {
+            // We don't call ClearAllStats() here because this is just a popup overlay!
+            // We run it on a background thread so the popup UI doesn't stutter while opening
+            QuickStats = await Task.Run(() => _statsService.GetSongQuickSummary(song.Id));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to load quick stats for {SongTitle}", song.Title);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     private void BuildAlbumAndArtistCharts()

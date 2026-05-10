@@ -360,6 +360,8 @@ public sealed partial class AlbumPage : Page
 
     private void ArtistsInAlbumIR_Loaded(object sender, RoutedEventArgs e)
     {
+        if (MyViewModel is null) return;
+        if (MyViewModel.SelectedAlbum is null) return;
         ArtistsInAlbumIR.ItemsSource = MyViewModel.RealmFactory.GetRealmInstance()
             .Find<AlbumModel>(MyViewModel.SelectedAlbum.Id)
             .Artists.DistinctBy(x => x.Name).ToObservableCollection();

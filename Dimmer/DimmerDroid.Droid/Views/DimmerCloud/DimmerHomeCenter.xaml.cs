@@ -1,15 +1,18 @@
+using AndroidX.Lifecycle;
+using DevExpress.Maui.Core.Internal;
+
 namespace Dimmer.Views.DimmerCloud;
 
 public partial class DimmerHomeCenter : ContentPage
 {
-	public DimmerHomeCenter(LoginViewModel loginViewModel)
+	public DimmerHomeCenter(LoginViewModel loginViewModel, SessionManagementViewModel sessVM)
 
     {
         LoginViewModel = loginViewModel;
         InitializeComponent();
         BindingContext = loginViewModel;
 
-
+        MyViewModel = sessVM;
 
     }
     LoginViewModel LoginViewModel { get; set; }
@@ -32,9 +35,16 @@ public partial class DimmerHomeCenter : ContentPage
               {
 
                   LoginPopup.Close();
-
+                  BindingContext = MyViewModel;
+                  await MyViewModel.RegisterCurrentDeviceAsync();
               }
 
           });
+    }
+    SessionManagementViewModel MyViewModel;
+    private async void CancelLoginChip_Tap(object sender, HandledEventArgs e)
+    {
+        await Shell.Current.GoToAsync("//HomePage");
+
     }
 }

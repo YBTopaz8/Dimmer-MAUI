@@ -62,6 +62,49 @@ public partial class MainActivity : MauiAppCompatActivity
         // Configure JsonSerializer for mobile
         ConfigureJsonOptions();
     }
+
+    private void CheckAndRequestPermissions()
+    {
+        if (!AndroidPermissionsService.HasAudioPermissions())
+        {
+            // Show UI explanation? Or just request
+            AndroidPermissionsService.RequestAudioPermissions(this, REQUEST_AUDIO_PERMS);
+        }
+        if (!AndroidPermissionsService.HasStoragePermissions())
+
+        {
+            AndroidPermissionsService.RequestStoragePermissions(this, REQUEST_STORAGE_PERMS);
+        }
+
+        // Permissions already granted, load music
+        InitializeAppLogic();
+
+    }
+
+    private void InitializeAppLogic()
+    {
+        Task.Run(async () =>
+        {
+            try
+            {
+                var startTime = Java.Lang.JavaSystem.CurrentTimeMillis();
+
+                MyViewModel.InitializeAllVMCoreComponents();
+
+                var duration = Java.Lang.JavaSystem.CurrentTimeMillis() - startTime;
+                Console.WriteLine($"InitializeAppLogic took {duration}ms");
+                if (duration > 2000)
+                    Android.Util.Log.Warn("ANR_WARNING", $"OnCreate took {duration}ms - ANR risk!");
+            }
+            catch (Exception ex)
+            {
+                await Shell.Current.DisplayAlertAsync("Fatal Error Init Logic", ex.Message, "ok");
+                Console.WriteLine($"VM INIT CRASH: {ex}");
+                Android.Util.Log.Error("DIMMER_INIT", ex.ToString());
+            }
+        });
+    }
+
     public static JsonSerializerOptions JsonOptions => _jsonOptions;
     private static JsonSerializerOptions _jsonOptions;
     private void ConfigureJsonOptions()
@@ -191,6 +234,11 @@ public partial class MainActivity : MauiAppCompatActivity
     if (Shell.Current.CurrentPage.GetType() == typeof(HomePage))
 
     {
+            if(MyViewModel.HomePageIndex != 0)
+            {
+                MyViewModel.HomePageIndex = 0;
+                return;
+            }
         new MaterialAlertDialogBuilder(this)?
                                 .SetTitle("Exit App")?
                                 .SetMessage("Close Application?")?
@@ -272,47 +320,6 @@ public partial class MainActivity : MauiAppCompatActivity
         );
 
 
-    }
-
-    private void CheckAndRequestPermissions()
-    {
-        if (!AndroidPermissionsService.HasAudioPermissions())
-        {
-            // Show UI explanation? Or just request
-            AndroidPermissionsService.RequestAudioPermissions(this, REQUEST_AUDIO_PERMS);
-        }
-        if (!AndroidPermissionsService.HasStoragePermissions())
-
-        {
-            AndroidPermissionsService.RequestStoragePermissions(this, REQUEST_STORAGE_PERMS);
-        }
-        
-            // Permissions already granted, load music
-            InitializeAppLogic();
-        
-    }
-
-    private void InitializeAppLogic()
-    {
-        Task.Run(() =>
-        {
-            try
-            {
-                var startTime = Java.Lang.JavaSystem.CurrentTimeMillis();
-
-                MyViewModel.InitializeAllVMCoreComponents();
-
-                var duration = Java.Lang.JavaSystem.CurrentTimeMillis() - startTime;
-                Console.WriteLine($"InitializeAppLogic took {duration}ms");
-                if (duration > 2000)
-                    Android.Util.Log.Warn("ANR_WARNING", $"OnCreate took {duration}ms - ANR risk!");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"VM INIT CRASH: {ex}");
-                Android.Util.Log.Error("DIMMER_INIT", ex.ToString());
-            }
-        });
     }
 
 

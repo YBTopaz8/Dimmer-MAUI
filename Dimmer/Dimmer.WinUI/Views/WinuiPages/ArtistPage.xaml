@@ -35,7 +35,7 @@
                 Grid.Row="0"
                 HorizontalAlignment="Center"
                 Opacity="0.12"
-                Source="{Binding SelectedArtist.ImagePath}"
+                Source="{x:Bind MyViewModel.SelectedArtist.ImagePath}"
                 Stretch="UniformToFill" />
 
             <Grid
@@ -70,7 +70,7 @@
                         HorizontalAlignment="Left"
                         VerticalAlignment="Top"
                         PointerReleased="ArtistImageInArtistPage_PointerReleased"
-                        Source="{Binding SelectedArtist.ImagePath}" />
+                        Source="{x:Bind MyViewModel.SelectedArtist.ImagePath}" />
                     <StackPanel Background="Transparent">
 
                         <TextBlock
@@ -81,7 +81,7 @@
                             FontWeight="SemiBold"
                             Loaded="ArtistNameInArtistPage_Loaded"
                             PointerReleased="ArtistNameInArtistPage_PointerReleased"
-                            Text="{Binding SelectedArtist.Name}"
+                            Text="{x:Bind MyViewModel.SelectedArtist.Name}"
                             Visibility="Visible" />
 
                         <TextBlock x:Name="ArtistSongCount" Text="{x:Bind MyViewModel.SelectedArtist.TotalSongsByArtist, Mode=OneWay}" />

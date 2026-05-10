@@ -50,7 +50,7 @@ internal class Bootstrapper
         services.AddSingleton<DimmerHomeCenter>();
             services.AddTransient<DimmerLiveLogin>();
 
-            services.AddSingleton<SingleSongInCVPopup>();
+            services.AddSingleton<SingleSongInCVBottomSheet>();
 
 
         // 4. Register Logic/Data Services

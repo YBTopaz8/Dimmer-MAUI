@@ -1,16 +1,27 @@
 namespace Dimmer.Views.CustomViews;
 
-public partial class SingleSongInCVPopup : DXPopup
+public partial class SingleSongInCVBottomSheet : BottomSheet
 {
-	public SingleSongInCVPopup()
+	public SingleSongInCVBottomSheet( StatisticsViewModel statsVM)
 	{
 		InitializeComponent();
-	}
+        StatsVM = statsVM;
+    }
 	SongModelView SelectedSong { get; set; }
-	private void SongInCVPopup_Opening(object sender, CancelEventArgs e)
-	{
+    public StatisticsViewModel StatsVM { get; }
 
-	}
+	//private async void SongInCVPopup_Opening(object sender, CancelEventArgs e)
+	//{
+	//	try
+	//	{
+
+	//		await StatsVM.LoadSongQuickStatsAsync(SelectedSong);
+	//	}
+	//	catch (Exception ex)
+	//	{
+	//		Debug.WriteLine(ex.Message);
+	//	}
+	//}
 
 	public void SetSelectedSongToShow(SongModelView selectedSong)
 
@@ -48,16 +59,18 @@ public partial class SingleSongInCVPopup : DXPopup
 		if (PopupSlideView.CurrentIndex == 0)
 		{
 			PrevChip.IsEnabled = false;
-		}
+            NextChip.IsEnabled = true;
+        }
 		else if (PopupSlideView.CurrentIndex == PopupSlideView.Items.Count - 1)
 		{
 			NextChip.IsEnabled = false;
-		}
+            PrevChip.IsEnabled = true;
+        }
 
 		else
 		{
 			PrevChip.IsEnabled = true;
-			NextChip.IsEnabled = true;
-		}
+            NextChip.IsEnabled = true;
+        }
     }
 }

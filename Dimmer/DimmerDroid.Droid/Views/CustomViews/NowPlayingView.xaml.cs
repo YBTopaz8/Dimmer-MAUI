@@ -22,6 +22,9 @@ public partial class NowPlayingView : ContentView
         {
             songForLyrics = MyViewModel.CurrentPlayingSongView;
         }
+        SongLyricsDownloadPopup popup = new SongLyricsDownloadPopup(MyViewModel, MyViewModel.CurrentPlayingSongView);
+
+        await popup.ShowAsync();
     }
 
   
@@ -40,39 +43,12 @@ public partial class NowPlayingView : ContentView
 
     private void NowPlayingHighlightBtn_TapPressed(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
     {
-        if(PlayBackQueueExp.IsExpanded)
-        {
-            PlayBackQueueExp.IsExpanded = false;
-            //this.AllowDismiss = true;
-            NowPlayingExp.IsExpanded = true;
-            MainBgImg.Opacity = 0.5;
-        }
-        else
-        {
-            NowPlayingExp.IsExpanded = false;
-            //this.AllowDismiss = false;
-            PlayBackQueueExp.IsExpanded = true;
-            MainBgImg.Opacity = 0.1;
-        }
-
+        SwitchToPlayBackQueue?.Invoke(sender, e);
     }
+    public event EventHandler? SwitchToPlayBackQueue;
+   
 
-    public void ShowAndOpenPlaybackQueue()
-    {
-        //this.Show();
-        //this.AllowDismiss = false;
-        PlayBackQueueExp.IsExpanded = true;
-        NowPlayingExp.IsExpanded = false;
-        MainBgImg.Opacity = 0.1;
-    }
-    private async void RemoveSongFromQueueBtn_TapPressed(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
-    { 
-        var send = (View)sender;
-        var song = (SongModelView)send.BindingContext;
-
-        await MyViewModel.RemoveFromQueue(song);
-    }
-
+   
     private async void PlaySongInQueue_TapPressed(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
     {
         var send = (View)sender;
@@ -121,30 +97,10 @@ public partial class NowPlayingView : ContentView
 
     }
 
-    private async void AddSongToFav_Tap(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
-    {
-        DXButton send = (DXButton)sender;
-        var song = send.CommandParameter as SongModelView;
-        if(song is null)
-            return;
-        await MyViewModel.AddFavoriteRatingToSongAsync(song);
-    }
 
-    private void ScrollToInPlayBackQueue_Tap(object sender, DXTapEventArgs e)
-    {
 
-        var songHandle = PlaybackQueueCV.FindItemHandle(MyViewModel.CurrentPlayingSongView);
-
-        PlaybackQueueCV.ScrollTo(songHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
-    }
 
     
-
-    private void NowPlayingBtmSheet_StateChanged(object sender, ValueChangedEventArgs<BottomSheetState> e)
-    {
-        MyViewModel.IsNowPlayingBtmSheetOpened = e.NewValue == BottomSheetState.FullExpanded;
-    }
-
     private void CurrentLyricLineTapGestRec_Tapped(object sender, TappedEventArgs e)
     {
 
@@ -155,8 +111,7 @@ public partial class NowPlayingView : ContentView
 
     private void BackBtn_Tap(object sender, DXTapEventArgs e)
     {
-        NowPlayingExp.IsExpanded = true;
-        PlayBackQueueExp.IsExpanded = false;
+       
 
     }
 
@@ -218,6 +173,8 @@ public partial class NowPlayingView : ContentView
 
     }
 
+
+
     //private void AllLyricsColView_SelectionChanged(object sender, DevExpress.Maui.CollectionView.CollectionViewSelectionChangedEventArgs e)
     //{
 
@@ -253,7 +210,7 @@ public partial class NowPlayingView : ContentView
     //    var lyricTappedHandle = e.ItemHandle;
     //    if (lyricTapped is null)
     //        return;
-    //    var timeInSec = TimeSpan.FromMilliseconds(lyricTapped.EndTimeMs).Seconds;
+    //    var timeInSec = TimeSpan.FromMilliseconds(lyricTapped.TimestampStart).Seconds;
     //    MyViewModel.SeekTrackPosition(timeInSec);
     //    AllLyricsColView.ScrollTo(lyricTappedHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
 

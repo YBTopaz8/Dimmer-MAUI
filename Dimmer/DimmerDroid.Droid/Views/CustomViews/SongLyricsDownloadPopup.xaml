@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<dx:DXPopup
+    x:Class="Dimmer.Views.CustomViews.SongLyricsDownloadPopup"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:TQlVM="clr-namespace:Dimmer.ViewModel.TQL;assembly=Dimmer"
+    xmlns:dx="http://schemas.devexpress.com/maui"
+    xmlns:local="clr-namespace:Dimmer.Views.CustomViews"
+    xmlns:lyrModels="clr-namespace:Dimmer.Data.Models.LyricsModels;assembly=Dimmer"
+    xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+    xmlns:statsVm="clr-namespace:Dimmer.ViewModel;assembly=Dimmer"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:vm="clr-namespace:Dimmer.ViewModels"
+    AllowScrim="True"
+    CloseOnScrimTap="True"
+    >
+    <dx:DXScrollView HeightRequest="500">
+
+        <dx:DXStackLayout
+            x:Name="LyricsTabVSL"
+            Padding="10"
+            x:DataType="vm:BaseViewModelAnd"
+            ItemSpacing="10"
+            Loaded="LyricsTabVSL_Loaded"
+            >
+            <Grid ColumnDefinitions="*,auto" ColumnSpacing="5">
+
+                <dx:TextEdit LabelText="Track Name" Text="{Binding LyricsTrackNameSearch}" />
+
+                <dx:DXStackLayout
+                    Grid.Column="1"
+                    ItemSpacing="10"
+                    Orientation="Horizontal"
+                    VerticalOptions="End"
+                    >
+
+                    <dx:Chip
+                        x:Name="QuickCopyTitleNameToClipBoardChip"
+                        BorderThickness="0"
+                        HeightRequest="50"
+                        Icon="copy.png"
+                        IconSize="35,35"
+                        IsIconVisible="True"
+                        LongPressCommandParameter="copy"
+                        Tap="QuickActionChip_Tap"
+                        TapCommandParameter="title"
+                        />
+                    <dx:Chip
+                        x:Name="QuickPasteSongTitleToTextChip"
+                        BorderThickness="0"
+                        HeightRequest="55"
+                        Icon="clipboard.png"
+                        IconSize="35,35"
+                        IsIconVisible="True"
+                        LongPressCommandParameter="paste"
+                        Tap="QuickActionChip_Tap"
+                        TapCommandParameter="title"
+                        />
+
+                </dx:DXStackLayout>
+            </Grid>
+
+            <Grid ColumnDefinitions="*,auto" ColumnSpacing="5">
+
+                <dx:TextEdit LabelText="Artist Name" Text="{Binding LyricsArtistNameSearch}" />
+
+                <dx:DXStackLayout
+                    Grid.Column="1"
+                    ItemSpacing="10"
+                    Orientation="Horizontal"
+                    VerticalOptions="End"
+                    >
+
+                    <dx:Chip
+                        x:Name="QuickCopyArtistNameToClipBoardChip"
+                        BorderThickness="0"
+                        HeightRequest="50"
+                        Icon="copy.png"
+                        IconSize="35,35"
+                        IsIconVisible="True"
+                        LongPressCommandParameter="copy"
+                        Tap="QuickActionChip_Tap"
+                        TapCommandParameter="artist"
+                        />
+                    <dx:Chip
+                        x:Name="QuickPasteArtistNameToTextChip"
+                        BorderThickness="0"
+                        HeightRequest="55"
+                        Icon="clipboard.png"
+                        IconSize="35,35"
+                        IsIconVisible="True"
+                        LongPressCommandParameter="paste"
+                        Tap="QuickActionChip_Tap"
+                        TapCommandParameter="artist"
+                        />
+
+                </dx:DXStackLayout>
+            </Grid>
+
+            <Grid ColumnDefinitions="*,auto" ColumnSpacing="5">
+
+                <dx:TextEdit LabelText="Album Name" Text="{Binding LyricsAlbumNameSearch}" />
+
+                <dx:DXStackLayout
+                    Grid.Column="1"
+                    ItemSpacing="10"
+                    Orientation="Horizontal"
+                    VerticalOptions="End"
+                    >
+
+                    <dx:Chip
+                        x:Name="QuickCopyAlbumNameToClipBoardChip"
+                        BorderThickness="0"
+                        HeightRequest="50"
+                        Icon="copy.png"
+                        IconSize="35,35"
+                        IsIconVisible="True"
+                        LongPressCommandParameter="copy"
+                        Tap="QuickActionChip_Tap"
+                        TapCommandParameter="album"
+                        />
+                    <dx:Chip
+                        x:Name="QuickPasteAlbumNameToTextChip"
+                        BorderThickness="0"
+                        HeightRequest="55"
+                        Icon="clipboard.png"
+                        IconSize="35,35"
+                        IsIconVisible="True"
+                        LongPressCommandParameter="paste"
+                        Tap="QuickActionChip_Tap"
+                        TapCommandParameter="album"
+                        />
+
+                </dx:DXStackLayout>
+            </Grid>
+
+
+            <dx:DXButton
+                x:Name="SearchLyricsBtn"
+                Clicked="SearchLyricsBtn_Clicked"
+                Content="Search Sync Lyrics Online"
+                />
+            <ActivityIndicator IsRunning="{Binding IsLyricsSearchBusy}" IsVisible="{Binding IsLyricsSearchBusy}" />
+            <dx:DXCollectionView ItemSpacing="10" ItemsSource="{Binding LyricsSearchResults}">
+
+                <dx:DXCollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="lyrModels:LrcLibLyrics">
+                        <dx:DXStackLayout
+                            Padding="10"
+                            BorderColor="DarkSlateBlue"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            ItemSpacing="5"
+                            >
+                            <Label FontAttributes="Bold" Text="{Binding TrackName, StringFormat='Title: {0}'}" />
+                            <Label FontAttributes="Bold" Text="{Binding DurationFormatted, StringFormat='Duration : {0}'}" />
+
+                            <Label Text="{Binding ArtistName, StringFormat='Artist : {0}'}" />
+                            <Label Text="{Binding AlbumName, StringFormat='Album : {0}'}" />
+                            <Label IsVisible="{Binding Instrumental}" Text="Is Instrumental" />
+                            <dx:DXButton
+                                x:Name="ApplyLyrics"
+                                Clicked="ApplyLyrics_Clicked"
+                                CommandParameter="{Binding .}"
+                                Content="Save Lyrics"
+                                />
+
+
+                            <Label MaximumHeightRequest="250" Text="{Binding SyncedLyrics}">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        x:Name="TapToViewSingleSongLyricsPopup"
+                                        CommandParameter="{Binding SyncedLyrics}"
+                                        Tapped="TapToViewSingleSongLyricsPopup_Tapped"
+                                        />
+                                </Label.GestureRecognizers>
+                            </Label>
+
+                        </dx:DXStackLayout>
+                    </DataTemplate>
+                </dx:DXCollectionView.ItemTemplate>
+            </dx:DXCollectionView>
+
+            <dx:DXPopup x:Name="SingleSongSyncLyricsPopup">
+                <dx:DXPopup.Content>
+                    <ScrollView>
+                        <Label x:Name="SelectedSynclyrics" />
+
+                    </ScrollView>
+                </dx:DXPopup.Content>
+            </dx:DXPopup>
+        </dx:DXStackLayout>
+
+    </dx:DXScrollView>
+</dx:DXPopup>

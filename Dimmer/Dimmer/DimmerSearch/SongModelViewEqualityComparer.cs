@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Dimmer.DimmerSearch;
 
-public partial class SongModelViewEqualityComparer : IEqualityComparer<SongModelView>
+public partial class SongModelEqualityComparer : IEqualityComparer<SongModel>
 {
-    public bool Equals(SongModelView? x, SongModelView? y)
+    public bool Equals(SongModel? x, SongModel? y)
     {
         if (ReferenceEquals(x, y)) return true;
         if (x is null || y is null) return false;
@@ -20,7 +20,7 @@ public partial class SongModelViewEqualityComparer : IEqualityComparer<SongModel
         return keyX == keyY;
     }
 
-    public int GetHashCode(SongModelView obj)
+    public int GetHashCode(SongModel obj)
     {
         if (obj.TitleDurationKey == null)
             return $"{obj.Title?.ToLowerInvariant()}|{obj.DurationInSeconds}".GetHashCode();

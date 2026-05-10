@@ -7,4 +7,5 @@ public class ParsingException : Exception
     {
         Position = position;
     }
+    public override string? StackTrace => string.Empty;
 }

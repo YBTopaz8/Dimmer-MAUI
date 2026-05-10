@@ -159,6 +159,7 @@ public partial class LoginViewModel : ObservableObject
         }
         if (ParseClient.Instance?.CurrentUser is not null)
         {
+            
             return true;
         }
         return false;

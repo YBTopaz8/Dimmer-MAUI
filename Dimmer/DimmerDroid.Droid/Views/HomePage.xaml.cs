@@ -1,28 +1,44 @@
 
 global using View = Microsoft.Maui.Controls.View;
 global using Dimmer.Views.CustomViews;
+using Dimmer.Utilities;
 
 
 namespace Dimmer.Views;
 
 public partial class HomePage : ContentPage
 {
-    public HomePage(BaseViewModelAnd viewModelAnd, LastFMViewModel lastFMVM, SingleSongInCVPopup singleSongPop)
+    public HomePage(BaseViewModelAnd viewModelAnd, StatisticsViewModel statisticsView, LastFMViewModel lastFMVM, LoginViewModel loginVM)
     {
         InitializeComponent();
         BindingContext = viewModelAnd;
         MyViewModel = viewModelAnd;
-        SingleSongPopup = singleSongPop;
-        lastFMVM.LoadBaseViewModel(viewModelAnd);
+        MyLastFMViewModel = lastFMVM;
+        MyLoginVM = loginVM;
+        StatsViewModel = statisticsView;
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.OpenMediaUIOnNotificationTap), v => (MyViewModel.OpenMediaUIOnNotificationTap))
+            .Subscribe(
+                e =>
+                {
+                    if(e)
+                    {
+                        this.MainPageTabView.SelectedItemIndex = 1;
+                    }
+
+                });
+        MyLastFMViewModel.LoadBaseViewModel(viewModelAnd);
+        _ = Task.Run(() => loginVM.InitializeAsync());
     }
-    SingleSongInCVPopup SingleSongPopup{ get; }
     BaseViewModelAnd MyViewModel { get; }
+    public LastFMViewModel MyLastFMViewModel { get; }
+    public LoginViewModel MyLoginVM { get; }
+    public StatisticsViewModel StatsViewModel { get; }
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
 
-        Debug.WriteLine("HomePage OnAppearing" + MyViewModel.AppTitle +" "+BaseViewModel.CurrentAppStage);
+        Debug.WriteLine("HomePage OnAppearing" + MyViewModel.AppTitle + " " + BaseViewModel.CurrentAppStage);
         Debug.WriteLine("HomePage OnAppearing" + MyViewModel.SearchResults.Count);
     }
 
@@ -42,7 +58,7 @@ public partial class HomePage : ContentPage
             if (SongsCV.GetItem(itemHandle) is not SongModelView songByItemHandle) continue;
             songsInCV.Add(songByItemHandle);
         }
-        
+
 
 
         await MyViewModel.PlaySongAsync(song, CurrentPage.HomePage, songsInCV);
@@ -55,7 +71,7 @@ public partial class HomePage : ContentPage
 
     private void NPMiddleGridSection_Tapped(object sender, TappedEventArgs e)
     {
-        
+
     }
 
     private void BtmBarCoverImageView_Loaded(object sender, EventArgs e)
@@ -74,7 +90,7 @@ public partial class HomePage : ContentPage
     }
     private void CurrentPlayingTitleChip_Tap(object sender, DXTapEventArgs e)
     {
-        MainPageTabView.SelectedItemIndex = 2;
+        MainPageTabView.SelectedItemIndex = 1;
     }
 
     private void SearchBtn_Clicked(object sender, EventArgs e)
@@ -84,18 +100,54 @@ public partial class HomePage : ContentPage
 
     private void SongInCVTapGR_Tapped(object sender, TappedEventArgs e)
     {
-        
+
     }
 
-    private void SongInCVImgTapGR_Tapped(object sender, TappedEventArgs e)
+
+    private void SearchText_TextChanged(object sender, EventArgs e)
     {
-        var song = e.Parameter as SongModelView;
-        if (song is null) return;
-        SingleSongPopup.SetSelectedSongToShow(song);
-
-        SingleSongPopup.Show();
+        string? txt = SearchText.Text;
+        if (txt is not null)
+        {
+            MyViewModel.SearchToTQL(txt);
+        }
     }
 
+    private void MoreBtn_Tap(object sender, DXTapEventArgs e)
+    {
+
+        var send = (View)sender;
+        var song = (SongModelView)send.BindingContext;
+        MyViewModel.SelectedSong = song;
+        SingleSongBtmSheet.Show();
+    }
+
+    private async void ImageOnCollectionViewTapped(object sender, TappedEventArgs e)
+    {
+
+        var send = (View)sender;
+        var song = (SongModelView)send.BindingContext;
+        MyViewModel.SelectedSong = song;
+        await SingleSongPopup.ShowAsync();
+    }
+
+    private void EditSongChip_Tap(object sender, HandledEventArgs e)
+    {
+
+    }
+
+    private void ViewSongChip_Tap(object sender, HandledEventArgs e)
+    {
+
+    }
+
+    private void MoreDXButton_Clicked(object sender, EventArgs e)
+    {
+        View currentBtnView= (View)sender;
+        
+        
+    
+    }
 
     //private void PlayButton_Clicked(object sender, EventArgs e)
     //{
@@ -316,22 +368,26 @@ public partial class HomePage : ContentPage
 
     //}
 
-    //private async void ToggleFavBtn_Tap(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
-    //{
-    //   await MyViewModel.AddFavoriteRatingToSongAsync(MyViewModel.SelectedSong!);
-    //}
+    private async void ToggleFavBtn_Tap(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
+    {
+        await MyViewModel.AddFavoriteRatingToSongAsync(MyViewModel.SelectedSong!);
+    }
 
 
-    //private async void DeleteSongBtn_Tap(object sender, HandledEventArgs e)
+    private async void DeleteSongBtn_Tap(object sender, HandledEventArgs e)
 
-    //{
-    //    var result = await Shell.Current.DisplayAlertAsync("Confirm Delete",
-    //        "Delete Song", "Yes", "No");
-    //    if (result)
-    //    {
-    //        await MyViewModel.DeleteSongs(new List<SongModelView>(){MyViewModel.SelectedSong! });
-    //    }
-    //}
+    {
+        var result = await Shell.Current.DisplayAlertAsync("Confirm Delete",
+            "Delete Song", "Yes", "No");
+        if (result)
+        {
+            await MyViewModel.DeleteSongs(new List<SongModelView>() { MyViewModel.SelectedSong! });
+        }
+    }
+
+
+
+  
 
     //private void CurrentPlayingTitleChip_LongPress(object sender, HandledEventArgs e)
     //{
@@ -345,21 +401,26 @@ public partial class HomePage : ContentPage
     //    ;
     //}
 
-    //private void PlayNextBtn_Clicked(object sender, EventArgs e)
-    //{
-    //    if(MyViewModel.SelectedSong is null)
-    //        return;
-    //    var song = MyViewModel.SelectedSong;
-    //    MyViewModel.AddToNext(new List<SongModelView>() { song });
+    private void PlayNextBtn_Clicked(object sender, EventArgs e)
+    {
+        if (MyViewModel.SelectedSong is null)
+            return;
+        var song = MyViewModel.SelectedSong;
+        MyViewModel.AddToNext(new List<SongModelView>() { song });
 
 
-    //    var snackMsg = $"Added {song.Title} by {MyViewModel.SelectedSong.ArtistName} to Next in Queue";
+        var snackMsg = $"Added {song.Title} by {MyViewModel.SelectedSong.ArtistName} to Next in Queue";
 
-    //    CommunityToolkit.Maui.Alerts.Toast msgToast = new CommunityToolkit.Maui.Alerts.Toast() { Text = snackMsg, Duration= CommunityToolkit.Maui.Core.ToastDuration.Short };
+        CommunityToolkit.Maui.Alerts.Toast msgToast = new CommunityToolkit.Maui.Alerts.Toast() { Text = snackMsg, Duration = CommunityToolkit.Maui.Core.ToastDuration.Short };
 
-    //    SingleSongBtmSheet.Close();
-    //    msgToast.Show();
-    //}
+        SingleSongBtmSheet.Close();
+        msgToast.Show();
+    }
+
+    private void SelectedSongBtmSheetAlbumNameChip_Tap(object sender, HandledEventArgs e)
+    {
+
+    }
 
     //private void AlbumChip_Tap(object sender, HandledEventArgs e)
     //{
@@ -434,26 +495,8 @@ public partial class HomePage : ContentPage
     //    NPBtmSheet.State = BottomSheetState.FullExpanded;
     //}
 
-    //private void MoreBtn_Tap(object sender, DXTapEventArgs e)
-    //{
 
-    //    var send = (View)sender;
-    //    var song = (SongModelView)send.BindingContext;
-    //    MyViewModel.SelectedSong = song;
-    //    SingleSongBtmSheet.Show();
-    //}
 
-    //private async void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
-    //{
-    //    var send = (View)sender;
-    //    var song = send.BindingContext as SongModelView;
-    //    MyViewModel.SelectedSong = song;
-
-    //    await SingleSongPopup.ShowAsync();
-
-    //    //if (Shell.Current.CurrentPage.GetType() != typeof(DetailsOverview))
-    //    //    await Shell.Current.GoToAsync(nameof(DetailsOverview), true);
-    //}
 
     //private void BtmBarCoverImageView_Loaded(object sender, EventArgs e)
     //{
@@ -479,18 +522,189 @@ public partial class HomePage : ContentPage
     //    //};
     //}
 
-    //private async void SelectedSongBtmSheetArtistNameChip_Tap(object sender, HandledEventArgs e)
-    //{
+    private async void SelectedSongBtmSheetArtistNameChip_Tap(object sender, HandledEventArgs e)
+    {
 
-    //    var send = (View)sender;
-    //    var song = MyViewModel.SelectedSong;
-    //    if(song is null)
-    //        return;
+        var send = (View)sender;
+        var song = MyViewModel.SelectedSong;
+        if (song is null)
+            return;
 
-    //    MyViewModel.SetSelectedArtist(song.Artist);
-    //    await SingleSongBtmSheet.CloseAsync();
-    //    await Shell.Current.GoToAsync(nameof(ArtistPage), true);
-    //}
+        MyViewModel.SetSelectedArtist(song.Artist);
+        await SingleSongBtmSheet.CloseAsync();
+        await Shell.Current.GoToAsync(nameof(ArtistPage), true);
+    }
+
+    private async void ViewSongBtn_Clicked(object sender, EventArgs e)
+    {
+        
+
+        SingleSongPopup.Close();
+
+        if (Shell.Current.CurrentPage.GetType() != typeof(DetailsOverview))
+            await Shell.Current.GoToAsync(nameof(DetailsOverview), true);
+    }
+
+    private void OtherArtistsNameToggleBtn_CheckedChanged(object sender, ValueChangedEventArgs<bool> e)
+    {
+        switch (e.NewValue)
+        {
+            case true:
+
+                AllArtistsExpander.IsExpanded = true;
+                break;
+            case false:
+
+                break;
+
+        }
+    }
+
+    private async void ArtistNameBtn_Clicked(object sender, EventArgs e)
+    {
+        var send = (DXButton)sender;
+        var artist = (ArtistModelView)send.CommandParameter as ArtistModelView;
+
+        MyViewModel.SetSelectedArtist(artist);
+        SingleSongPopup.Close();
+        await Shell.Current.GoToAsync(nameof(ArtistPage), true);
+
+    }
+
+    private async void AlbumBtn_Clicked(object sender, EventArgs e)
+    {
+        var send = (View)sender;
+        var song = MyViewModel.SelectedSong;
+        if (song is null)
+            return;
+        MyViewModel.SetSelectedAlbum(song.Album);
+        SingleSongPopup.Close();
+
+        await Shell.Current.GoToAsync(nameof(AlbumPage), true);
+    }
+
+    private async void SingleSongPopup_Loaded(object sender, EventArgs e)
+    {
+        await StatsViewModel.LoadSongQuickStatsAsync(MyViewModel.SelectedSong);
+    }
+
+  
+    private void ActionsRadarChart_SelectionChanged(object sender, DevExpress.Maui.Charts.SelectionChangedEventArgs e)
+    {
+
+    }
+
+    
+
+
+    private void SingleSongPopup_Closed(object sender, EventArgs e)
+    {
+
+        AllArtistsExpander.IsExpanded = false;
+        PopupTabView.SelectedItemIndex = 0;
+    }
+
+    private void DrawerHamburger_Clicked(object sender, EventArgs e)
+    {
+        Shell.Current.FlyoutIsPresented = true;
+
+    }
+
+    private void SearchText_Loaded(object sender, EventArgs e)
+    {
+        MyViewModel.SubscribeToPlayCount(SearchText);
+    }
+
+    private void DXButton_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private void PlaybackQueueGrid_Loaded(object sender, EventArgs e)
+    {
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.PlaybackQueue), v => MyViewModel.PlaybackQueue)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(pbQueue =>
+            {
+                if (pbQueue.Count < 1)
+                {
+                    PlaybackQueueGrid.IsVisible = false;
+                }
+                else
+                {
+                    PlaybackQueueGrid.IsVisible = true;
+                }
+            });
+
+    }
+
+    private void NowPlayingHighlightBtn_TapPressed(object sender, DXTapEventArgs e)
+    {
+        MainPageTabView.SelectedItemIndex = 1;
+    }
+
+    private void BtmBarGrid_Loaded(object sender, EventArgs e)
+    {
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentPlayingSongView), v => MyViewModel.CurrentPlayingSongView)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(song =>
+            {
+                if (string.IsNullOrEmpty(song.TitleDurationKey))
+                {
+                    BtmBarGrid.IsVisible = false;
+                }
+                else
+                {
+                    BtmBarGrid.IsVisible = true;
+                }
+            });
+
+    }
+
+    private void NowPlayingView_SwitchToPlayBackQueue(object sender, EventArgs e)
+    {
+        MainPageTabView.SelectedItemIndex = 2;
+    }
+
+    private void PlaybackQueueCV_Scrolled(object sender, DevExpress.Maui.CollectionView.DXCollectionViewScrolledEventArgs e)
+    {
+
+    }
+
+    private async void PlaySongInQueue_Tap(object sender, DXTapEventArgs e)
+    {
+        var send = (View)sender;
+        var song = (SongModelView)send.BindingContext;
+
+        await MyViewModel.PlaySongWithActionAsync(song, PlaybackAction.JumpInQueue);
+
+    }
+
+    private async void AddSongToFav_Tap(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
+    {
+        DXButton send = (DXButton)sender;
+        var song = send.CommandParameter as SongModelView;
+        if (song is null)
+            return;
+        await MyViewModel.AddFavoriteRatingToSongAsync(song);
+    }
+
+
+    private async void RemoveSongFromQueueBtn_TapPressed(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
+    {
+        var send = (View)sender;
+        var song = (SongModelView)send.BindingContext;
+
+        await MyViewModel.RemoveFromQueue(song);
+    }
+
+    private void ScrollToInPlayBackQueue_Tap(object sender, DXTapEventArgs e)
+    {
+        var curIndex = MyViewModel.PlaybackQueue.IndexOf(MyViewModel.CurrentPlayingSongView); 
+        var curHandle = PlaybackQueueCV.GetItemHandle(curIndex);
+        PlaybackQueueCV.ScrollTo(curHandle, DXScrollToPosition.Start);
+    }
+
 
     //private async void SelectedSongBtmSheetAlbumNameChip_Tap(object sender, HandledEventArgs e)
     //{

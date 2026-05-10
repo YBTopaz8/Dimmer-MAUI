@@ -1,6 +1,8 @@
 global using Chip = DevExpress.Maui.Editors.Chip;
 using DevExpress.Maui.Core;
 using Microsoft.Maui.Controls.PlatformConfiguration;
+using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 
 namespace Dimmer.Views.Settings;
 
@@ -12,13 +14,22 @@ public partial class SettingsPage : ContentPage
         InitializeComponent();
         BindingContext = viewModelAnd;
         MyViewModel = viewModelAnd;
-        MyLastFMViewModel = lastFMVM;   
-        var platView = this.Handler?.PlatformView as Fragment;
-        var platView2 = this.Handler?.PlatformView as View;
+        MyLastFMViewModel = lastFMVM;
+        pageDisposable = new();
+
     }
 
     BaseViewModelAnd MyViewModel { get; }
 
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        if (pageDisposable is null)
+        {
+            pageDisposable = new();
+
+        }
+    }
     private void RemoveFolderBtn_Clicked(object sender, HandledEventArgs e)
     {
         var chip = (Chip)sender;
@@ -33,11 +44,13 @@ public partial class SettingsPage : ContentPage
     private async void BackupDeviceBtn_Clicked(object sender, EventArgs e)
     {
         await MyViewModel.BackUpAppDataAsync();
+
     }
 
     private async void RestoreBackupDeviceBtn_Clicked(object sender, EventArgs e)
     {
-
+        FilePickedAndRestoreInProgressActIndic.IsVisible = true;
+        FilePickedAndRestoreInProgressActIndic.IsRunning = true;
         await  MyViewModel.PickFolderToRestoreAppDataAsync();
 
     }
@@ -59,7 +72,11 @@ public partial class SettingsPage : ContentPage
     LastFMViewModel MyLastFMViewModel;
     private async void ConfirmRestoreBtn_Clicked(object sender, EventArgs e)
     {
+        FilePickedAndRestoreInProgressActIndic.IsVisible = true;
+        FilePickedAndRestoreInProgressActIndic.IsRunning = true;
         await MyViewModel.RestoreCompleteDataAsync();
+
+
     }
 
     private async void GoBackBtn_Clicked(object sender, EventArgs e)
@@ -89,5 +106,46 @@ public partial class SettingsPage : ContentPage
         {
            await MyViewModel.ReScanMusicFolderByPassingToService(path);
         }
+    }
+    CompositeDisposable pageDisposable;
+
+    private void ConfirmRestoreBtn_Loaded(object sender, EventArgs e)
+    {
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.PickedUpBackup), v => (MyViewModel.PickedUpBackup))
+          .Subscribe(
+              e =>
+              {
+                  if (e is null || e.PlayEvents is null || e.PlayEvents.Count <1)
+                  {
+                      ConfirmRestoreBtn.IsVisible = false;
+                  }
+                  else if(e.PlayEvents.Count >0)
+                  {
+                      ConfirmRestoreBtn.IsVisible = true;
+
+                      FilePickedAndRestoreInProgressActIndic.IsVisible = false;
+                      FilePickedAndRestoreInProgressActIndic.IsRunning = false;
+                  }
+              })
+          .DisposeWith(pageDisposable);
+
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.IsRestoreDone), v => (MyViewModel.IsRestoreDone))
+          .Subscribe(
+              e =>
+              {
+                  if (e)
+                  {
+                      ConfirmRestoreBtn.IsVisible = false;
+                      FilePickedAndRestoreInProgressActIndic.IsVisible = false;
+                      FilePickedAndRestoreInProgressActIndic.IsRunning = false;
+                  }
+                  else
+                  {
+
+                  }
+              })
+          .DisposeWith(pageDisposable);
+
+
     }
 }

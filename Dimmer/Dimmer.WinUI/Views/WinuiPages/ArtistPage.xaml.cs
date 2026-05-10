@@ -66,7 +66,9 @@ public sealed partial class ArtistPage : Page
         MyViewModel.IsBackButtonVisible = WinUIVisibility.Visible;
         ArtistNameInArtistPage.Visibility = WinUIVisibility.Visible;
         ArtistImageInArtistPage.Visibility = WinUIVisibility.Visible;
-        this.DataContext = MyViewModel;
+
+
+        this.DataContext = MyViewModel.SelectedArtist;
         pressedCounter = 0;
        
 
