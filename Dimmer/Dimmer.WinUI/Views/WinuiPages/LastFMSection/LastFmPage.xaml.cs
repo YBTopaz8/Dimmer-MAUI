@@ -290,7 +290,9 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
 
             picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
 
-            picker.FileTypeChoices.Add("json", new List<string>() { ".json" });
+            var hwnd = PlatUtils.DimmerHandle;
+            InitializeWithWindow.Initialize(picker, hwnd);
+            picker.FileTypeChoices.Add("text", new List<string>() { ".txt" });
 
             // Show the picker dialog
             var result = await picker.PickSaveFileAsync();

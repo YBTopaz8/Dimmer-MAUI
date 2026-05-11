@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
     x:Class="Dimmer.Views.LastFM.LastFMHomePage"
+    x:Name="myPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:dx="http://schemas.devexpress.com/maui"
@@ -9,14 +10,14 @@
     xmlns:local="clr-namespace:Dimmer.Views.CustomViews"
     xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
     xmlns:vm="clr-namespace:Dimmer.ViewModels"
-    x:Name="myPage"
     Title="LastFMLogin"
     Padding="0,50,0,0"
     x:DataType="globalVM:LastFMViewModel"
     BackgroundColor="{AppThemeBinding Dark=#3E3E42,
                                       Light=#FFFFFF}"
     Loaded="myPage_Loaded"
-    Shell.NavBarIsVisible="False">
+    Shell.NavBarIsVisible="False"
+    >
     <ContentPage.Resources>
         <ResourceDictionary>
             <Style TargetType="Label">
@@ -30,19 +31,22 @@
                 <dx:DXImage
                     HeightRequest="50"
                     Source="lastfm.png"
-                    TintColor="Red" />
+                    TintColor="Red"
+                    />
 
 
             </dx:DXStackLayout>
             <Grid
                 Grid.Row="1"
                 ColumnDefinitions="*,100"
-                RowDefinitions="120">
+                RowDefinitions="120"
+                >
                 <dx:DXStackLayout Grid.Column="0">
                     <Label
                         FontAttributes="Bold"
                         FontSize="23"
-                        Text="{Binding CurrentUserLocal.LastFMAccountInfo.Name}" />
+                        Text="{Binding CurrentUserLocal.LastFMAccountInfo.Name}"
+                        />
                     <Label Text="{Binding CurrentUserLocal.LastFMAccountInfo.Playcount, StringFormat='{0} Scrobbles'}" />
 
                     <Label Text="{Binding CurrentUserLocal.LastFMAccountInfo.Country}" />
@@ -60,7 +64,8 @@
                         PressedTextColor="White"
                         ShowContent="False"
                         ShowIcon="True"
-                        WidthRequest="90" />
+                        WidthRequest="90"
+                        />
                 </dx:DXStackLayout>
                 <dx:DXBorder Grid.Column="1" CornerRadius="10">
 
@@ -75,16 +80,19 @@
                         <dx:DXStackLayout
                             Orientation="Horizontal"
                             VerticalOptions="Center"
-                            WidthRequest="100">
+                            WidthRequest="100"
+                            >
                             <dx:DXImage
                                 HeightRequest="25"
                                 Source="time.png"
-                                WidthRequest="25" />
+                                WidthRequest="25"
+                                />
                             <Label
                                 FontAttributes="Bold"
                                 FontSize="20"
                                 Text="Recents"
-                                VerticalOptions="Center" />
+                                VerticalOptions="Center"
+                                />
 
                         </dx:DXStackLayout>
                     </dx:TabViewItem.HeaderContent>
@@ -92,7 +100,8 @@
                         <dx:DXCollectionView
                             x:Name="ColOfLovedTracks"
                             ItemSpacing="5"
-                            ItemsSource="{Binding CollectionOfUserRecentTracks}">
+                            ItemsSource="{Binding CollectionOfUserRecentTracks}"
+                            >
                             <dx:DXCollectionView.ItemTemplate>
                                 <DataTemplate x:DataType="lastFMModels:Track">
                                     <Grid ColumnDefinitions="40,*,auto">
@@ -117,16 +126,19 @@
                         <dx:DXStackLayout
                             Orientation="Horizontal"
                             VerticalOptions="Center"
-                            WidthRequest="80">
+                            WidthRequest="80"
+                            >
                             <dx:DXImage
                                 HeightRequest="25"
                                 Source="heart.png"
-                                WidthRequest="25" />
+                                WidthRequest="25"
+                                />
                             <Label
                                 FontAttributes="Bold"
                                 FontSize="20"
                                 Text="Loved"
-                                VerticalOptions="Center" />
+                                VerticalOptions="Center"
+                                />
 
                         </dx:DXStackLayout>
                     </dx:TabViewItem.HeaderContent>
@@ -134,7 +146,8 @@
                         <dx:DXCollectionView
                             x:Name="ColOfRecentTracks"
                             ItemSpacing="5"
-                            ItemsSource="{Binding CollectionOfUserLovedTracks}">
+                            ItemsSource="{Binding CollectionOfUserLovedTracks}"
+                            >
                             <dx:DXCollectionView.ItemTemplate>
                                 <DataTemplate x:DataType="lastFMModels:Track">
                                     <Grid ColumnDefinitions="40,*,auto">
@@ -153,34 +166,45 @@
                         </dx:DXCollectionView>
                     </dx:TabViewItem.Content>
                 </dx:TabViewItem>
+
+                <dx:TabViewItem>
+                    <dx:TabViewItem.Content>
+                        <dx:DataGridView AutoGenerateColumnsMode="Add" ItemsSource="{Binding TopUserArtistsInLibrary}" />
+                    </dx:TabViewItem.Content>
+                </dx:TabViewItem>
             </dx:TabView>
 
             <dx:DXPopup
                 x:Name="LoginPopUp"
                 AllowScrim="False"
-                ScrimColor="DarkSlateBlue">
+                ScrimColor="DarkSlateBlue"
+                >
                 <dx:DXPopup.Content>
                     <dx:DXStackLayout Padding="10" ItemSpacing="10">
                         <dx:DXStackLayout
                             HorizontalOptions="Center"
                             ItemSpacing="5"
-                            Orientation="Horizontal">
+                            Orientation="Horizontal"
+                            >
 
                             <Label
                                 FontAttributes="Bold"
                                 FontSize="20"
                                 HorizontalOptions="Center"
-                                Text="Login To" />
+                                Text="Login To"
+                                />
                             <dx:DXImage
                                 HeightRequest="30"
                                 Source="lastfm.png"
                                 TintColor="Red"
-                                WidthRequest="30" />
+                                WidthRequest="30"
+                                />
                         </dx:DXStackLayout>
                         <dx:TextEdit
                             LabelText="Enter User Name"
                             PlaceholderText="E.g. John Doe"
-                            Text="{Binding LastFMName}" />
+                            Text="{Binding LastFMName}"
+                            />
 
 
                         <dx:DXButton
@@ -190,7 +214,8 @@
                             FontSize="25"
                             IconHeight="35"
                             IconWidth="35"
-                            ShowIcon="False" />
+                            ShowIcon="False"
+                            />
 
                         <dx:DXButton
                             BackgroundColor="Red"
@@ -199,7 +224,8 @@
                             FontSize="25"
                             IconHeight="35"
                             IconWidth="35"
-                            ShowIcon="False" />
+                            ShowIcon="False"
+                            />
                     </dx:DXStackLayout>
                 </dx:DXPopup.Content>
             </dx:DXPopup>
