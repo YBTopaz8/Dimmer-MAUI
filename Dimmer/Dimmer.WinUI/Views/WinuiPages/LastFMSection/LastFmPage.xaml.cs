@@ -264,4 +264,52 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
         
         await MyViewModel.OpenSongInOnlineSearch(comParam, trackk.Name,trackk.Artist.Name);
     }
+
+    private async void ExportAbsentSongsToTxtBtn_Click(object sender, RoutedEventArgs e)
+    {
+        var abSentSongs= MyLastFMViewModel.CollectionOfUserLovedTracks?.Where(x=>x.IsOnPresentDevice)?.ToList();
+        string LineText = string.Empty;
+        if (abSentSongs is null) return;
+        foreach (var song in abSentSongs)
+        {
+            LineText = LineText+ $"{song.Name} - {song.Artist.Name} - {song.Album.Name} {Environment.NewLine}";
+
+        }
+
+        if (sender is Button button)
+        {
+            button.IsEnabled = false;
+
+            var picker = new FileSavePicker();
+
+            picker.DefaultFileExtension = ".txt";
+
+            picker.SuggestedFileName = "LastFMFavoritesAbsentOnDevice";
+
+            picker.CommitButtonText = "Save File";
+
+            picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+
+            picker.FileTypeChoices.Add("json", new List<string>() { ".json" });
+
+            // Show the picker dialog
+            var result = await picker.PickSaveFileAsync();
+
+            if (result != null)
+            {
+                string savePath = result.Path;
+                await File.WriteAllTextAsync(savePath, LineText);
+
+            }
+            else
+            {
+
+            }
+
+            button.IsEnabled = true;
+
+        }
+
+
+    }
 }

@@ -55,12 +55,8 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
             .Subscribe()
             .DisposeWith(_disposables);
 
-        // Listen for incoming transfer requests from the service's observable
-        _sessionManager.IncomingTransferRequests
-            .ObserveOn(RxSchedulers.UI)
-            .Subscribe(HandleIncomingTransferRequest)
-            .DisposeWith(_disposables);
-        _ = LoadCloudDataAsync();
+
+       Task.Run(()=>LoadCloudDataAsync());
 
     }
     private async Task LoadCloudDataAsync()
@@ -128,6 +124,21 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
         ReferralStats = $"Used {uses} times ({remaining} remaining)";
     }
     [RelayCommand]
+    public async Task RemoteControl(string commandType)
+    {
+        if (RemoteDeviceState == null) return;
+
+        var p = new Dictionary<string, object>
+    {
+        { "targetDeviceId", RemoteDeviceState.DeviceId },
+        { "senderDeviceId", _sessionManager.ThisDeviceSession.DeviceId },
+        { "command", commandType },
+        { "payload", "" }
+    };
+
+        await ParseClient.Instance.CallCloudCodeFunctionAsync<object>("sendDeviceCommand", p);
+    }
+    [RelayCommand]
     public async Task RegisterCurrentDeviceAsync()
     {
         try
@@ -189,73 +200,9 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
         StatusMessage = "Transfer request sent.";
     }
 
-    [RelayCommand]
-    public async Task RemoteControl(string commandType)
-    {
-        // If screening a device, send a command to it
-        if (RemoteDeviceState == null) return;
+   
 
-        var cmd = new DeviceCommand
-        {
-            TargetDeviceId = RemoteDeviceState.DeviceId,
-            Command = commandType, // e.g., "PAUSE"
-            IsProcessed = false
-        };
-        await cmd.SaveAsync();
-    }
-    private async void HandleIncomingTransferRequest(DimmerSharedSong request)
-    {
-        // UI Prompt
-        bool accept = await Shell.Current.DisplayAlertAsync(
-            "Session Transfer",
-            $"Resume '{request.Title}' from {request.Uploader?.Username ?? "remote device"}?",
-            "Yes", "No"
-        );
-
-        if (!accept) return;
-
-        StatusMessage = "Syncing playback...";
-
-        try
-        {
-            // --- NEW LOGIC: Metadata Only ---
-
-            // 1. Try to find the song locally on THIS device
-            // You need a method in your MainViewModel or DataService to find a song by ID or Title
-            var localSong = _mainViewModel.RealmFactory.GetRealmInstance()
-      .Find<DimmerPlayEvent>(request.OriginalSongId).SongsLinkingToThisEvent.FirstOrDefault() // Assuming ID matches
-      ?? _mainViewModel.RealmFactory.GetRealmInstance()
-      .All<DimmerPlayEvent>()
-      .FirstOrDefault(s => s.SongName == request.Title && s.ArtistName == request.ArtistName).SongsLinkingToThisEvent.FirstOrDefault();
-            if (localSong != null)
-            {
-                StatusMessage = "Song found locally. Playing...";
-
-                // 2. Play the LOCAL file
-                await _mainViewModel.PlaySongAsync(localSong.ToSongModelView());
-
-                // 3. Seek to position
-                if (request.SharedPositionInSeconds.HasValue)
-                {
-                    _mainViewModel.SeekTrackPosition(request.SharedPositionInSeconds.Value);
-                }
-
-                // 4. Acknowledge
-                await _sessionManager.AcknowledgeTransferCompleteAsync(request);
-            }
-            else
-            {
-                // Fallback: If song not found locally, maybe search YouTube/Spotify?
-                StatusMessage = "Song file not found on this device.";
-                await Shell.Current.DisplayAlertAsync("Missing File", $"Could not find '{request.Title}' on this device.", "OK");
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Session transfer failed.");
-            StatusMessage = "Transfer failed.";
-        }
-    }
+  
     public void Dispose()
     {
         _disposables.Dispose();

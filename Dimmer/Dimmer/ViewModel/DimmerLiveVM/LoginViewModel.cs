@@ -145,8 +145,8 @@ public partial class LoginViewModel : ObservableObject
     public async Task<bool> InitializeAsync()
     {
         if(Connectivity.NetworkAccess == NetworkAccess.Internet)
-        {     
-
+        {
+            if (CurrentUserOnline is not null && CurrentUserOnline.IsAuthenticated) return true;
             await _authService.AutoLoginAsync();
             if(ParseClient.Instance?.CurrentUser is null)
             {
@@ -154,6 +154,7 @@ public partial class LoginViewModel : ObservableObject
             }
             CurrentUserOnline = new UserModelOnline(ParseClient.Instance.CurrentUser);
             CurrentUserOnline.IsAuthenticated = ParseClient.Instance.CurrentUser.SessionToken != null;
+            IsAuthenticated = CurrentUserOnline.IsAuthenticated;
             Debug.WriteLine(ParseClient.Instance.CurrentUser?.SessionToken+" SessTok");
             return CurrentUserOnline.IsAuthenticated;
         }

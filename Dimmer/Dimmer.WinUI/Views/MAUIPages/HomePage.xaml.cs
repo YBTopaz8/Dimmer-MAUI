@@ -1085,7 +1085,7 @@ public partial class HomePage : ContentPage
         if(loginVM.CurrentUserOnline is not null && !string.IsNullOrEmpty(loginVM.CurrentUserOnline.ProfileImagePath))
         {
             send.Source = loginVM.CurrentUserOnline.ProfileImagePath;
-            await sessionVM.RegisterCurrentDeviceAsync();
+            _= sessionVM.RegisterCurrentDeviceAsync();
         }
     }
 

@@ -765,7 +765,7 @@ public sealed partial class AllSongsListPage : Page
 
 
         var selectedSong = (SongModelView)((FrameworkElement)e.OriginalSource).DataContext;
-        MyViewModel.SelectedSong = selectedSong;
+        
         var menuFlyout = new MenuFlyout();
         var addNoteToSongMFItem = new MenuFlyoutItem { Text = "Add Note to Song" };
         addNoteToSongMFItem.Click += async (s, args) =>
@@ -804,40 +804,6 @@ public sealed partial class AllSongsListPage : Page
         viewSongInfo.Icon = icon;
         menuFlyout.Items.Add(viewSongInfo);
 
-        FontIcon heartIcon = new FontIcon();
-        heartIcon.Glyph = "\uEB51";
-
-        FontIcon unheartIcon = new FontIcon();
-        unheartIcon.Glyph = "\uEA92";
-        var toggleFavBtn = new ToggleMenuFlyoutItem
-        {
-            Icon = heartIcon,
-
-        };
-        if (!selectedSong.IsFavorite)
-        {
-            toggleFavBtn.Text = "Love";
-            toggleFavBtn.Click += (s, e) =>
-            {
-
-                _ = MyViewModel.AddFavoriteRatingToSongAsync(selectedSong);
-                toggleFavBtn.Text = "UnLove";
-            };
-
-        }
-        else
-        {
-            toggleFavBtn.Text = "UnLove";
-            toggleFavBtn.Icon = unheartIcon;
-
-            toggleFavBtn.Click += (s, e) =>
-            {
-                _ = MyViewModel.RemoveSongFromFavoriteAsync(selectedSong);
-                toggleFavBtn.Text = "Love";
-            };
-        }
-
-        menuFlyout.Items.Add(toggleFavBtn);
         FlyoutShowOptions flyoutShowOpt = new FlyoutShowOptions
         {
             Placement = FlyoutPlacementMode.Top,
@@ -872,28 +838,9 @@ public sealed partial class AllSongsListPage : Page
 
             toArtistMFI.Click += (s, e) =>
             {
-                var supNavTransInfo = new SuppressNavigationTransitionInfo();
 
-                FrameNavigationOptions navigationOptions = new FrameNavigationOptions
-                {
-                    TransitionInfoOverride = supNavTransInfo,
-                    IsNavigationStackEnabled = true
-
-                };
-                AnimationHelper.PrepareFromChild(
-    s as DependencyObject,
-    "ArtistNameTxt",
-    AnimationHelper.Key_Forward
-    );
-                var navParams = new SongDetailNavArgs
-                {
-                    Song = _storedSong!,
-                    ExtraParam = MyViewModel,
-                    ViewModel = MyViewModel
-                };
-                Type pageType = typeof(ArtistPage);
-
-                Frame?.NavigateToType(pageType, navParams, navigationOptions);
+                MyViewModel.SetSelectedArtist(selectedSong.Artist);
+                PrepareAndNavigateTo(selectedSong);
 
             };
 
@@ -904,12 +851,19 @@ public sealed partial class AllSongsListPage : Page
             var toArtistMFSI = new MenuFlyoutSubItem()
             ;
 
-            ////foreach (var artistInCollection in selectedSong.ArtistToSong)
-            ////{
-            ////    var mFI = new MenuFlyoutItem();
-            ////    ;p.
-            ////    toArtistMFSI.Items.Add()
-            ////}
+            foreach (var artistInCollection in selectedSong.ArtistToSong)
+            {
+                if (artistInCollection is null) continue;
+                var mFI = new MenuFlyoutItem();
+                ;
+                mFI.Text = artistInCollection.Name;
+                mFI.Click += (s, e) =>
+                {
+                    MyViewModel.SetSelectedArtist(artistInCollection);
+                    PrepareAndNavigateTo(selectedSong);
+                };
+                toArtistMFSI.Items.Add(mFI);
+            }
 
 
             menuFlyout.Items.Add(toArtistMFSI);
@@ -917,12 +871,7 @@ public sealed partial class AllSongsListPage : Page
         FontIcon musicAlbumIcon = new FontIcon();
         musicAlbumIcon.Glyph = "\uE93C";
 
-        var toAlbumMFI = new MenuFlyoutItem()
-        {
-            Text = $"To Album : {selectedSong.AlbumName}",
-            Icon = musicAlbumIcon,
-        };
-        toAlbumMFI.Click += AlbumBtn_Click;
+      
 
         var viewInfoPopup = new MenuFlyoutItem()
         {
@@ -946,12 +895,67 @@ public sealed partial class AllSongsListPage : Page
             );
         };
 
-        menuFlyout.Items.Add(toAlbumMFI);
 
         menuFlyout.Items.Add(viewInfoPopup);
 
+        FontIcon heartIcon = new FontIcon();
+        heartIcon.Glyph = "\uEB51";
+
+        FontIcon unheartIcon = new FontIcon();
+        unheartIcon.Glyph = "\uEA92";
+        var toggleFavBtn = new ToggleMenuFlyoutItem
+        {
+            Icon = heartIcon,
+
+        };
+        if (!selectedSong.IsFavorite)
+        {
+            toggleFavBtn.Text = "Love";
+            toggleFavBtn.Click += (s, e) =>
+            {
+
+                _ = MyViewModel.AddFavoriteRatingToSongAsync(selectedSong);
+                toggleFavBtn.Text = "UnLove";
+            };
+
+        }
+        else
+        {
+            toggleFavBtn.Text = "UnLove";
+            toggleFavBtn.Icon = unheartIcon;
+
+            toggleFavBtn.Click += (s, e) =>
+            {
+                _ = MyViewModel.RemoveSongFromFavoriteAsync(selectedSong);
+                toggleFavBtn.Text = "Love";
+            };
+        }
+
+        menuFlyout.Items.Add(toggleFavBtn);
         menuFlyout.ShowAt((UIElement)e.OriginalSource, flyoutShowOpt);
 
+    }
+
+    private void PrepareAndNavigateTo(SongModelView passedSong)
+    {
+        var supNavTransInfo = new SuppressNavigationTransitionInfo();
+
+        FrameNavigationOptions navigationOptions = new FrameNavigationOptions
+        {
+            TransitionInfoOverride = supNavTransInfo,
+            IsNavigationStackEnabled = true
+
+        };
+
+        var navParams = new SongDetailNavArgs
+        {
+            Song = passedSong!,
+            ExtraParam = MyViewModel,
+            ViewModel = MyViewModel
+        };
+        Type pageType = typeof(ArtistPage);
+
+        Frame?.NavigateToType(pageType, navParams, navigationOptions);
     }
 
     Image coverImageClicked;
@@ -1048,27 +1052,7 @@ public sealed partial class AllSongsListPage : Page
 
     }
 
-    private async void AlbumBtn_Click(object sender, RoutedEventArgs e)
-    {
-        var song = ((MenuFlyoutItem)sender).DataContext as SongModelView;
-        
-        if(song is null) return;
-        var supNavTransInfo = new SuppressNavigationTransitionInfo();
-
-     
-
-        AnimationHelper.Prepare(
-
-AnimationHelper.Key_ToAlbumPage, sender as FrameworkElement,
-AnimationHelper.ConnectedAnimationStyle.ScaleUp
-);
-        Type pageType = typeof(AlbumPage);
-
-        MyViewModel.SetSelectedAlbum(song?.Album);
-        MyViewModel.SelectedSong = song;
-        MyViewModel.NavigateToAnyPageOfGivenType(pageType);
-
-    }
+ 
 
     private void coverArtImage_PointerPressed(object sender, PointerRoutedEventArgs e)
     {

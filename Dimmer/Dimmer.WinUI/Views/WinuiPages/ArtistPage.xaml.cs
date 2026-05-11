@@ -202,8 +202,7 @@ public sealed partial class ArtistPage : Page
 
     private void ArtistNameInArtistPage_PointerReleased(object sender, PointerRoutedEventArgs e)
     {
-        MyViewModel.SearchToTQL(TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist.Name));
-
+      
     }
 
 
@@ -251,8 +250,7 @@ public sealed partial class ArtistPage : Page
 
     private void ArtistDataTable_Loaded(object sender, RoutedEventArgs e)
     {
-        MyViewModel.SearchToTQL(TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist?.Name));
-
+      
 
 
 

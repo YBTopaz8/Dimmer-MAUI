@@ -35,12 +35,12 @@
                 Grid.Row="0"
                 HorizontalAlignment="Center"
                 Opacity="0.12"
-                Source="{x:Bind MyViewModel.SelectedArtist.ImagePath}"
+                Source="{x:Bind MyViewModel.SelectedArtist.ImagePath, Mode=OneWay}"
                 Stretch="UniformToFill" />
 
             <Grid
                 Margin="5"
-                DataContext="{x:Bind MyViewModel}"
+                DataContext="{x:Bind MyViewModel, Mode=OneWay}"
                 PointerPressed="MyArtistPage_PointerPressed"
                 RowSpacing="10">
                 <Grid.RowDefinitions>
@@ -70,7 +70,7 @@
                         HorizontalAlignment="Left"
                         VerticalAlignment="Top"
                         PointerReleased="ArtistImageInArtistPage_PointerReleased"
-                        Source="{x:Bind MyViewModel.SelectedArtist.ImagePath}" />
+                        Source="{x:Bind MyViewModel.SelectedArtist.ImagePath, Mode=OneWay}" />
                     <StackPanel Background="Transparent">
 
                         <TextBlock
@@ -184,7 +184,7 @@
                     BorderBrush="Transparent"
                     BorderThickness="0"
                     ItemsSource="{x:Bind MyViewModel.SelectedArtist.SongsByArtist, Mode=OneWay}"
-                    Loaded="ArtistDataTable_Loaded">
+                   >
 
                     <dgView:TableView.Columns>
 

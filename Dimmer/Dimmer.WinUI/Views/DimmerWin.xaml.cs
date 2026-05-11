@@ -46,7 +46,7 @@ public sealed partial class DimmerWin : Window
     /// </summary>
     /// <param name="pageType"></param>
     /// <param name="OptionalParameter"></param>
-    public async void NavigateToPage(Type pageType, object? OptionalParameter = null)
+    public async void NavigateToPage(Type pageType, IDictionary<string, object>? OptionalParameter = null)
     {
         if (MyViewModel is not null && OptionalParameter is null)
         {
@@ -58,13 +58,19 @@ public sealed partial class DimmerWin : Window
                     ContentFrame.Navigate(pageType, MyViewModel);
 
             });
-            MyViewModel.DimmerMultiWindowCoordinator?.SnapAllToHomeAsync();
+            //MyViewModel.DimmerMultiWindowCoordinator?.SnapAllToHomeAsync();
 
         }
         if (OptionalParameter is not null)
         {
-            List<object> parameters = new();
-            parameters.Add(OptionalParameter);
+
+            await DispatcherQueue.EnqueueAsync(() =>
+            {
+                WinUIWindowsMgr?.BringToFront(this);
+                if (pageType != ContentFrame.CurrentSourcePageType)
+                    ContentFrame.Navigate(pageType, OptionalParameter);
+
+            });
         }
     }
     public BaseViewModelWin MyViewModel { get; internal set; }

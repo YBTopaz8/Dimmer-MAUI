@@ -15,11 +15,10 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
     private readonly Subject<DimmerSharedSong> _incomingTransfers = new();
 
     private string MyDeviceId => Preferences.Get("MyDeviceId", Guid.NewGuid().ToString());
-    private Subscription<RemotePlaybackCommand>? _commandSubscription;
     private Subscription<CloudScrobble>? _scrobbleSubscription;
 
-    public IObservable<RemotePlaybackCommand> OnRemoteCommandReceived => _remoteCommandSubject.AsObservable();
-    private readonly Subject<RemotePlaybackCommand> _remoteCommandSubject = new();
+    public IObservable<DeviceCommand> OnRemoteCommandReceived => _remoteCommandSubject.AsObservable();
+    private readonly Subject<DeviceCommand> _remoteCommandSubject = new();
 
     public IObservable<CloudScrobble> OnLiveScrobbleReceived => _liveScrobbleSubject.AsObservable();
     private readonly Subject<CloudScrobble> _liveScrobbleSubject = new();
@@ -97,13 +96,18 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
         _commandSub.On(Subscription.Event.Create, async cmd =>
         {
             _logger.LogInformation($"Remote Command Received: {cmd.Command}");
-
+            if (_vm.IsBackGrounded) return;
             RxSchedulers.UI.ScheduleTo(async () =>
             {
                 switch (cmd.Command)
                 {
                     case "PLAY_KEY":
-                        await HandleRemotePlay(cmd.Payload); // Payload is TitleDurationKey
+                        bool accept = await Shell.Current.DisplayAlertAsync("Session Transfer", "Resume playback from other device?", "Yes", "No");
+                        if (accept)
+                        {
+                            await HandleRemotePlay(cmd.Payload); // Plays the song
+                        }
+
                         break;
                     case "PAUSE":
                         _vm.PlayPauseToggleCommand.Execute(null);
@@ -132,8 +136,6 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
         };
         await cmd.SaveAsync();
 
-        // Also send the seek position as a secondary command
-        await SendPlaybackCommandAsync(targetDevice.DeviceId, "SEEK", currentSong.PositionInSeconds.ToString());
     }
     private async Task HandleRemotePlay(string titleDurationKey)
     {
@@ -150,24 +152,7 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
             // Optional: Trigger a YouTube search fallback here
         }
     }
-    private void StartHeartbeat()
-    {
-        _heartbeatCts = new CancellationTokenSource();
-        _heartbeatTimer = new PeriodicTimer(TimeSpan.FromSeconds(15));
-        Task.Run(async () =>
-        {
-            while (await _heartbeatTimer.WaitForNextTickAsync(_heartbeatCts.Token))
-            {
-                if (_myCurrentState == null) continue;
 
-                _myCurrentState.CurrentSongKey = _vm.CurrentPlayingSongView?.TitleDurationKey ?? "";
-                _myCurrentState.Position = _vm.CurrentTrackPositionSeconds;
-                _myCurrentState.IsPlaying = _vm.IsDimmerPlaying; 
-                _myCurrentState.LastSeen = DateTime.UtcNow;
-                await _myCurrentState.SaveAsync();
-            }
-        });
-    }
     class LibraryUploadMapSongModel
     {
         public required string TitleAndDurationKey { get; set; }
@@ -199,7 +184,8 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
         await file.SaveAsync(ParseClient.Instance);
 
         //Update the session object with the link to this map
-       var parameters = new Dictionary<string, object> { { "mapUrl", file.Url } };
+       var parameters = new Dictionary<string, object> { { "mapUrl", file.Url },
+           {"deviceId",MyDeviceId } };
      var result =     await ParseClient.Instance.CallCloudCodeFunctionAsync<string>("updateDeviceLibraryMap", parameters);
 
         Debug.WriteLine($"updateDeviceLibraryMap result {result}");
@@ -315,28 +301,7 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
             _logger.LogError(ex, "Failed to scrobble song.");
         }
     }
-    public async Task SendPlaybackCommandAsync(string targetDeviceId, string command, string payload = "")
-    {
-        if (ParseUser.CurrentUser == null) return;
-
-        try
-        {
-            var cmd = new RemotePlaybackCommand
-            {
-                TargetDeviceId = targetDeviceId,
-                SenderDeviceId = MyDeviceId,
-                CommandType = command,
-                Payload = payload,
-                Owner = ParseUser.CurrentUser,
-                ACL = new ParseACL(ParseUser.CurrentUser)
-            };
-            await cmd.SaveAsync();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to send remote command.");
-        }
-    }
+ 
 
     public void StartListeners()
     {
@@ -347,14 +312,8 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
             return;
         }
 
-        var messageQuery = new ParseQuery<ChatMessage>(ParseClient.Instance)
-            .WhereEqualTo("messageType", "SessionTransfer")
-            .WhereEqualTo("targetDeviceSessionId", _thisDeviceSession.ObjectId); // **Listen only for messages targeting this specific device**
+       
 
-        _messageSubscription = _liveQueryClient.Subscribe(messageQuery);
-        _messageSubscription.On(
-            Subscription.Event.Create,
-            OnSessionTransferMessageReceived);
 
         var updateQuery = new ParseQuery<AppUpdateModel>(ParseClient.Instance)
             ;
@@ -363,20 +322,8 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
         updateSubscription.On(Subscription.Event.Create,
         OnUpdatePushed);
 
-        // Listen for Remote Commands targeted at THIS device (or "ALL")
-        var commandQuery = new ParseQuery<RemotePlaybackCommand>(ParseClient.Instance)
-            .WhereEqualTo("owner", ParseUser.CurrentUser)
-            .WhereNotEqualTo("senderDeviceId", MyDeviceId); // Don't listen to our own commands
+      
 
-        _commandSubscription = _liveQueryClient.Subscribe(commandQuery);
-        _commandSubscription.On(Subscription.Event.Create, cmd =>
-        {
-            if (cmd.TargetDeviceId == MyDeviceId || cmd.TargetDeviceId == "ALL")
-            {
-                _logger.LogInformation($"Received command: {cmd.CommandType}");
-                _remoteCommandSubject.OnNext(cmd);
-            }
-        });
 
         // Listen for Scrobbles from OTHER devices
         var scrobbleQuery = new ParseQuery<CloudScrobble>(ParseClient.Instance)
@@ -393,7 +340,7 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
     public void StopListeners()
     {
         _messageSubscription?.UnsubscribeNow();
-        _commandSubscription?.UnsubscribeNow();
+
         _scrobbleSubscription?.UnsubscribeNow();
     }
    
@@ -440,35 +387,6 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
     private void OnUpdatePushed(AppUpdateModel AppUpdateModel)
     {
         //throw new NotImplementedException();
-    }
-
-    private async void OnSessionTransferMessageReceived(ChatMessage message)
-    {
-        _logger.LogInformation("Received targeted SessionTransfer message.");
-
-        // The message contains a Pointer to 'DimmerSharedSong'
-        var songPointer = message.Get<ParseObject>("sharedSong");
-
-        if (songPointer != null)
-        {
-            try
-            {
-                // Fetch the metadata object
-                // Since we stripped the audio file, this is a very small/fast fetch
-                var sharedSongObj = await songPointer.FetchAsync();
-
-                // Map ParseObject back to your DimmerSharedSong model or View Model
-                // Assuming you have a DimmerSharedSong subclass of ParseObject:
-                if (sharedSongObj is DimmerSharedSong sharedSong)
-                {
-                    _incomingTransfers.OnNext(sharedSong);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to fetch shared song metadata.");
-            }
-        }
     }
 
 

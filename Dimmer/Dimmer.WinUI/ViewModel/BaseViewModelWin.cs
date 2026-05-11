@@ -798,7 +798,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         MainWindow = winUIWindowMgrService.GetOrCreateUniqueWindow<DimmerWin>(this, () => new DimmerWin())!;
         if (MainWindow is null) return;
 
-        await DimmerMultiWindowCoordinator.SnapAllToHomeAsync();
+        //await DimmerMultiWindowCoordinator.SnapAllToHomeAsync();
 
 
     }
@@ -842,7 +842,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         MainWindow?.NavigateToPage(typeof(AllSongsListPage));
     }
 
-    public async void NavigateToAnyPageOfGivenType(Type pageType, object? OptionalParameter = null)
+    public async void NavigateToAnyPageOfGivenType(Type pageType, IDictionary<string, object>? OptionalParameter = null)
     {
 
         await OpenDimmerWindow();
@@ -1299,7 +1299,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
             InitializeWithWindow.Initialize(picker, hwnd);
             picker.FileTypeFilter.Add(".json");
             var file = await picker.PickSingleFileAsync();
-
+            
 
             if (file is null)
             {

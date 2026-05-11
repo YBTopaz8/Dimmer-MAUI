@@ -860,6 +860,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
             }
             
             await PerformBackgroundInitializationAsync();
+           await this.FindDuplicatesAsync();
         }
         catch (Exception ex )
         {
