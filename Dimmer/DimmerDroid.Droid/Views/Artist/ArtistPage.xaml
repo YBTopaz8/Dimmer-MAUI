@@ -219,28 +219,99 @@
                 </dx:DXStackLayout>
             </dx:TabViewItem>
 
-            <dx:TabViewItem x:Name="LastFMSection" HeaderText="Last FM" />
             <dx:TabViewItem x:Name="ChartsTab" HeaderText="Charts">
                 <dx:DXScrollView
                     x:Name="ChartsScrollView"
                     x:DataType="globalVM:StatisticsViewModel"
                     Loaded="ChartsScrollView_Loaded">
 
-                    <dx:DXStackLayout>
+                    <dx:DXStackLayout Padding="10">
+                        <Label Text="{Binding ArtistStats.FilterUsed}" />
+                        <Label Text="{Binding ArtistStats.PlottableData.SongDurationDistributionMinutes.Count}" />
+                        <Label Text="{Binding ArtistStats.PlottableData.PlaysPerDayOfWeek.Count}" />
+                        <Label Text="{Binding ArtistStats.PlottableData.PlaysPerHourOfDay.Count}" />
+                        <Label Text="{Binding ArtistStats.CollaboratorNetwork.Count}" />
+                        <Label Text="{Binding ArtistStats.ObsessionRankedSongs.Count}" />
 
-                        <dx:ChartView>
 
+                        <dx:ChartView HeightRequest="150">
                             <dx:ChartView.Series>
-                                <dx:PointSeries>
-                                    <dx:PointSeries.Data>
-                                        <dx:SeriesDataAdapter ArgumentDataMember="EventDate" DataSource="{Binding PlayEvents}">
-                                            <dx:ValueDataMember Member="Temperature" Type="Value" />
+                                <dx:LineSeries>
+                                    <dx:LineSeries.Data>
+                                        <dx:SeriesDataAdapter ArgumentDataMember="Label" DataSource="{Binding ArtistStats.PlottableData.SongDurationDistributionMinutes}">
+                                            <dx:ValueDataMember Member="Value" Type="Value" />
                                         </dx:SeriesDataAdapter>
-                                    </dx:PointSeries.Data>
-                                </dx:PointSeries>
+                                    </dx:LineSeries.Data>
+                                </dx:LineSeries>
                             </dx:ChartView.Series>
-
                         </dx:ChartView>
+                        <dx:PieChartView
+                            x:Name="ActionsRadarChart"
+                            Grid.Row="0"
+                            HeightRequest="350"
+                            WidthRequest="350">
+                            <dx:PieChartView.Hint>
+                                <dx:PieHint Enabled="True" />
+                            </dx:PieChartView.Hint>
+                            <dx:PieChartView.Series>
+
+                                <dx:PieSeries>
+                                    <dx:PieSeries.Label>
+                                        <dx:PieSeriesLabel Position="Inside" />
+                                    </dx:PieSeries.Label>
+                                    <dx:PieSeries.Data>
+                                        <dx:PieSeriesDataAdapter
+                                            AllowLiveDataUpdates="True"
+                                            DataSource="{Binding ArtistStats.ObsessionRankedSongs}"
+                                            LabelDataMember="Label"
+                                            ValueDataMember="Value" />
+
+
+                                    </dx:PieSeries.Data>
+                                </dx:PieSeries>
+                            </dx:PieChartView.Series>
+                        </dx:PieChartView>
+
+
+
+                        <dx:ChartView HeightRequest="150">
+                            <dx:ChartView.Series>
+                                <dx:LineSeries>
+                                    <dx:LineSeries.Data>
+                                        <dx:SeriesDataAdapter ArgumentDataMember="Label" DataSource="{Binding ArtistStats.PlottableData.PlaysPerHourOfDay}">
+                                            <dx:ValueDataMember Member="Value" Type="Value" />
+                                        </dx:SeriesDataAdapter>
+                                    </dx:LineSeries.Data>
+                                </dx:LineSeries>
+                            </dx:ChartView.Series>
+                        </dx:ChartView>
+
+                        <dx:ChartView HeightRequest="150">
+                            <dx:ChartView.Series>
+                                <dx:LineSeries>
+                                    <dx:LineSeries.Data>
+                                        <dx:SeriesDataAdapter ArgumentDataMember="Label" DataSource="{Binding ArtistStats.PlottableData.PlaysPerDayOfWeek}">
+                                            <dx:ValueDataMember Member="Value" Type="Value" />
+                                        </dx:SeriesDataAdapter>
+                                    </dx:LineSeries.Data>
+                                </dx:LineSeries>
+                            </dx:ChartView.Series>
+                        </dx:ChartView>
+
+                        <dx:ChartView HeightRequest="150">
+                            <dx:ChartView.Series>
+                                <dx:LineSeries>
+                                    <dx:LineSeries.Data>
+                                        <dx:SeriesDataAdapter ArgumentDataMember="Label" DataSource="{Binding ArtistStats.PlottableData.PlaysPerMonth}">
+                                            <dx:ValueDataMember Member="Value" Type="Value" />
+                                        </dx:SeriesDataAdapter>
+                                    </dx:LineSeries.Data>
+                                </dx:LineSeries>
+                            </dx:ChartView.Series>
+                        </dx:ChartView>
+
+
+
                     </dx:DXStackLayout>
 
                 </dx:DXScrollView>

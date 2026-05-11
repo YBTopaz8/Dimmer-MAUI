@@ -44,7 +44,7 @@
                         Grid.Column="0" HorizontalAlignment="Right"
                         MaxHeight="290" 
                         SelectionChanged="ListView_SelectionChanged"
-                        SelectionMode="Single"
+                        SelectionMode="Single" ItemClick="SyncLyricsListView_ItemClick"
                         Margin="0,0,50,0"
                         SelectedItem="{x:Bind MyViewModel.CurrentLine, Mode=OneWay}"
                         

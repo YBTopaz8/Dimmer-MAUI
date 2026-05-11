@@ -504,7 +504,7 @@ public sealed partial class AllSongsListPage : Page
 
     private void SearchAutoSuggestBox_TextChanged(object sender, Microsoft.UI.Xaml.Controls.TextChangedEventArgs e)
     {
-        //MyViewModel.SearchToTQL(SearchTextBox.Text);
+        MyViewModel.SearchToTQL(SearchTextBox.Text);
    
         //var text = SearchTextBox.Text.ToLower();
 
@@ -761,11 +761,11 @@ public sealed partial class AllSongsListPage : Page
 
     private void ViewOtherBtn_Click(object sender, RoutedEventArgs e)
     {
-        
+
 
 
         var selectedSong = (SongModelView)((FrameworkElement)e.OriginalSource).DataContext;
-        MyViewModel.SelectedSong = selectedSong;
+        
         var menuFlyout = new MenuFlyout();
         var addNoteToSongMFItem = new MenuFlyoutItem { Text = "Add Note to Song" };
         addNoteToSongMFItem.Click += async (s, args) =>
@@ -804,6 +804,100 @@ public sealed partial class AllSongsListPage : Page
         viewSongInfo.Icon = icon;
         menuFlyout.Items.Add(viewSongInfo);
 
+        FlyoutShowOptions flyoutShowOpt = new FlyoutShowOptions
+        {
+            Placement = FlyoutPlacementMode.Top,
+            ShowMode = FlyoutShowMode.Auto
+        };
+
+        FontIcon LocateIcon = new FontIcon();
+        LocateIcon.Glyph = "\uE890";
+
+        var locateSongInFolder = new MenuFlyoutItem()
+        {
+            Text = "Locate In Folder"
+        ,
+            Icon = LocateIcon
+        };
+        locateSongInFolder.Click += (s, e) =>
+        {
+            MyViewModel.OpenAndSelectFileInExplorer(selectedSong);
+        };
+        menuFlyout.Items.Add(locateSongInFolder);
+
+        FontIcon LocateArtist = new FontIcon();
+        LocateArtist.Glyph = "\uE720";
+
+        if (selectedSong.ArtistToSong.Count == 1)
+        {
+            var toArtistMFI = new MenuFlyoutItem()
+            {
+                Text = $"To Artist : {selectedSong.ArtistName}",
+                Icon = LocateArtist
+            };
+
+            toArtistMFI.Click += (s, e) =>
+            {
+
+                MyViewModel.SetSelectedArtist(selectedSong.Artist);
+                PrepareAndNavigateTo(selectedSong);
+
+            };
+
+            menuFlyout.Items.Add(toArtistMFI);
+        }
+        else if (selectedSong.ArtistToSong.Count > 2)
+        {
+            var toArtistMFSI = new MenuFlyoutSubItem()
+            ;
+
+            foreach (var artistInCollection in selectedSong.ArtistToSong)
+            {
+                if (artistInCollection is null) continue;
+                var mFI = new MenuFlyoutItem();
+                ;
+                mFI.Text = artistInCollection.Name;
+                mFI.Click += (s, e) =>
+                {
+                    MyViewModel.SetSelectedArtist(artistInCollection);
+                    PrepareAndNavigateTo(selectedSong);
+                };
+                toArtistMFSI.Items.Add(mFI);
+            }
+
+
+            menuFlyout.Items.Add(toArtistMFSI);
+        }
+        FontIcon musicAlbumIcon = new FontIcon();
+        musicAlbumIcon.Glyph = "\uE93C";
+
+      
+
+        var viewInfoPopup = new MenuFlyoutItem()
+        {
+            Text = "Info"
+            ,
+            Icon = new FontIcon() { Glyph = "\uE946" }
+        };
+        viewInfoPopup.Click += (s, e) =>
+        {
+           
+
+
+            AnimationHelper.Prepare(AnimationHelper.Key_ToViewSingleSongPopUp, coverImageClicked);
+
+            SingleSongPopup.Visibility = Visibility.Visible;
+
+            AnimationHelper.TryStart(
+                SingleSongPopup, // Destination: The Big View
+                null,               // Optional: Coordinated elements (like the text inside)
+                AnimationHelper.Key_ToViewSingleSongPopUp
+            );
+        };
+
+
+        menuFlyout.Items.Add(viewInfoPopup);
+
         FontIcon heartIcon = new FontIcon();
         heartIcon.Glyph = "\uEB51";
 
@@ -838,101 +932,30 @@ public sealed partial class AllSongsListPage : Page
         }
 
         menuFlyout.Items.Add(toggleFavBtn);
-        FlyoutShowOptions flyoutShowOpt = new FlyoutShowOptions
-        {
-            Placement = FlyoutPlacementMode.Top,
-            ShowMode = FlyoutShowMode.Auto
-        };
-
-        FontIcon LocateIcon = new FontIcon();
-        LocateIcon.Glyph = "\uE890";
-
-        var locateSongInFolder = new MenuFlyoutItem()
-        {
-            Text = "Locate In Folder"
-        ,
-            Icon = LocateIcon
-        };
-        locateSongInFolder.Click += (s, e) =>
-        {
-            MyViewModel.OpenAndSelectFileInExplorer(selectedSong);
-        };
-        menuFlyout.Items.Add(locateSongInFolder);
-
-        FontIcon LocateArtist = new FontIcon();
-        LocateArtist.Glyph = "\uE720";
-        var toArtistMFI = new MenuFlyoutItem()
-        {
-            Text = $"To Artist : {selectedSong.ArtistName}",
-            Icon = LocateArtist
-        };
-        toArtistMFI.Click += (s, e) =>
-        {
-            var supNavTransInfo = new SuppressNavigationTransitionInfo();
-
-            FrameNavigationOptions navigationOptions = new FrameNavigationOptions
-            {
-                TransitionInfoOverride = supNavTransInfo,
-                IsNavigationStackEnabled = true
-
-            };
-            AnimationHelper.PrepareFromChild(
-s as DependencyObject,
-"ArtistNameTxt",
-AnimationHelper.Key_Forward
-);
-            var navParams = new SongDetailNavArgs
-            {
-                Song = _storedSong!,
-                ExtraParam = MyViewModel,
-                ViewModel = MyViewModel
-            };
-            Type pageType = typeof(ArtistPage);
-
-            Frame?.NavigateToType(pageType, navParams, navigationOptions);
-
-        };
-
-        menuFlyout.Items.Add(toArtistMFI);
-
-        FontIcon musicAlbumIcon = new FontIcon();
-        musicAlbumIcon.Glyph = "\uE93C";
-
-        var toAlbumMFI = new MenuFlyoutItem()
-        {
-            Text = $"To Album : {selectedSong.AlbumName}",
-            Icon = musicAlbumIcon,
-        };
-        toAlbumMFI.Click += AlbumBtn_Click;
-
-        var viewInfoPopup = new MenuFlyoutItem()
-        {
-            Text = "Info"
-            ,
-            Icon = new FontIcon() { Glyph = "\uE946" }
-        };
-        viewInfoPopup.Click += (s, e) =>
-        {
-           
-
-
-            AnimationHelper.Prepare(AnimationHelper.Key_ToViewSingleSongPopUp, coverImageClicked);
-
-            SingleSongPopup.Visibility = Visibility.Visible;
-
-            AnimationHelper.TryStart(
-                SingleSongPopup, // Destination: The Big View
-                null,               // Optional: Coordinated elements (like the text inside)
-                AnimationHelper.Key_ToViewSingleSongPopUp
-            );
-        };
-
-        menuFlyout.Items.Add(toAlbumMFI);
-
-        menuFlyout.Items.Add(viewInfoPopup);
-
         menuFlyout.ShowAt((UIElement)e.OriginalSource, flyoutShowOpt);
 
+    }
+
+    private void PrepareAndNavigateTo(SongModelView passedSong)
+    {
+        var supNavTransInfo = new SuppressNavigationTransitionInfo();
+
+        FrameNavigationOptions navigationOptions = new FrameNavigationOptions
+        {
+            TransitionInfoOverride = supNavTransInfo,
+            IsNavigationStackEnabled = true
+
+        };
+
+        var navParams = new SongDetailNavArgs
+        {
+            Song = passedSong!,
+            ExtraParam = MyViewModel,
+            ViewModel = MyViewModel
+        };
+        Type pageType = typeof(ArtistPage);
+
+        Frame?.NavigateToType(pageType, navParams, navigationOptions);
     }
 
     Image coverImageClicked;
@@ -1029,31 +1052,7 @@ AnimationHelper.Key_Forward
 
     }
 
-    private async void AlbumBtn_Click(object sender, RoutedEventArgs e)
-    {
-        var song = ((Button)sender).DataContext as SongModelView;
-        
-        if(song is null) return;
-        var supNavTransInfo = new SuppressNavigationTransitionInfo();
-
-        FrameNavigationOptions navigationOptions = new FrameNavigationOptions
-        {
-            TransitionInfoOverride = supNavTransInfo,
-            IsNavigationStackEnabled = true
-
-        };
-        AnimationHelper.Prepare(
-
-AnimationHelper.Key_ToAlbumPage, sender as FrameworkElement,
-AnimationHelper.ConnectedAnimationStyle.ScaleUp
-);
-        Type pageType = typeof(AlbumPage);
-
-        MyViewModel.SetSelectedAlbum(song?.Album);
-        MyViewModel.SelectedSong = song;
-        MyViewModel.NavigateToAnyPageOfGivenType(pageType);
-
-    }
+ 
 
     private void coverArtImage_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
@@ -1297,16 +1296,32 @@ AnimationHelper.ConnectedAnimationStyle.ScaleUp
 
     private void ShowFavSongs_Click(object sender, RoutedEventArgs e)
     {
-
-        var currentTQL = "my fav";
-           //SearchTextBox.Text = currentTQL;
+       
+            var currText = SearchTextBox.Text;
+            if (string.IsNullOrEmpty(currText))
+            {
+                SearchTextBox.Text = "my fav";
+            }
+            else
+            {
+                SearchTextBox.Text += " add my fav";
+            }
+       
     }
 
     private void ShowSongWithLyrics_Click(object sender, RoutedEventArgs e)
     {
 
-        var currentTQL = "has lyrics";
-        //SearchTextBox.Text = currentTQL;
+        var currentTQL = " has lyrics";
+        var currText = SearchTextBox.Text;
+        if (string.IsNullOrEmpty(currText))
+        {
+            SearchTextBox.Text = currentTQL.TrimStart();
+        }
+        else
+        {
+            SearchTextBox.Text += currentTQL;
+        }
     }
 
     private void ShowSongWithLyrics_RightTapped(object sender, RightTappedRoutedEventArgs e)
@@ -1324,7 +1339,11 @@ AnimationHelper.ConnectedAnimationStyle.ScaleUp
 
     private void ShuffleSongs_Click(object sender, RoutedEventArgs e)
     {
-        //SearchTextBox.Text = "random";
+        var currText = SearchTextBox.Text;
+        if (string.IsNullOrEmpty(currText))
+        {
+            SearchTextBox.Text = "random";
+        }
     }
 
     private void MiddlePointer_PointerReleased(object sender, PointerRoutedEventArgs e)

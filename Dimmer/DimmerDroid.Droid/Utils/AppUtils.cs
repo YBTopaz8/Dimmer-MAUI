@@ -14,6 +14,12 @@ internal class AppUtil : IAppUtil
         InputMethodManager? imm = (InputMethodManager?)context.GetSystemService(Activity.InputMethodService);
         imm?.HideSoftInputFromWindow(view.WindowToken, 0);
     }
+   
+    public static void ShowKeyboardTo(Context context, Android.Views.View view)
+    {
+        InputMethodManager? imm = (InputMethodManager?)context.GetSystemService(Activity.InputMethodService);
+        imm?.ShowSoftInput(view, 0);
+    }
 
     public AppUtil(BaseViewModelAnd vm)
     {

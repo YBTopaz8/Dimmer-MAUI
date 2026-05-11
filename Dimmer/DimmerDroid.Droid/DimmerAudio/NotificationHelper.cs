@@ -9,7 +9,7 @@ public static class NotificationHelper
 {
     public const string ChannelId = "dimmer_media_playback_channel";
     public const int NotificationId = 10899;
-    public const int BubbleNotificationId = 1899;
+
 
 
     public static NotificationChannel? CreateChannel(Context ctx)
@@ -28,24 +28,7 @@ public static class NotificationHelper
         var existingChannel = notificationManager.GetNotificationChannel(ChannelId);
         if (existingChannel != null)
         {
-            if (Build.VERSION.SdkInt >= BuildVersionCodes.Q && !existingChannel.CanBubble())
-            {
-
-
-
-
-                Log.Info("NotifHelper", $"Channel '{ChannelId}' exists. CanBubble: {existingChannel.CanBubble()}");
-                if (!existingChannel.CanBubble())
-                {
-
-
-
-
-
-                    Log.Warn("NotifHelper", $"Channel '{ChannelId}' exists but does not allow bubbles. User might have disabled it. Attempting to re-apply settings.");
-
-                }
-            }
+            
 
 
         }
@@ -60,8 +43,6 @@ public static class NotificationHelper
             Description = channelDesc
         };
 
-
-        chan.SetAllowBubbles(true);
         chan.EnableLights(true);
         chan.LockscreenVisibility = NotificationVisibility.Public;
         chan.SetShowBadge(true);
@@ -72,8 +53,7 @@ public static class NotificationHelper
 
 
         notificationManager.CreateNotificationChannel(chan);
-        Log.Debug("NotifHelper", $"Channel '{ChannelId}' created/updated. SDK: {Build.VERSION.SdkInt}, Bubble support attempted: {Build.VERSION.SdkInt >= BuildVersionCodes.Q}");
-
+      
 
         return chan;
     }
@@ -175,13 +155,8 @@ public static class NotificationHelper
 
         public void OnNotificationCancelled(int notificationId, bool dismissedByUser)
         {
-            Log.Debug("NotifHelper", $"Notification cancelled: ID={notificationId}, DismissedByUser={dismissedByUser}");
-            if (notificationId == BubbleNotificationId)
-            {
-                Log.Info("NotifHelper", "Bubble carrier notification cancelled.");
+           
 
-                return;
-            }
 
             _svc.StopForeground(true);
 

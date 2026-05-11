@@ -100,13 +100,14 @@ public class DuplicateFinderService : IDuplicateFinderService
             // You can easily add, remove, or change the weights of these criteria.
 
             // 1. Bitrate: Higher is better. Give a significant boost for high quality.
-            if (song.BitRate.HasValue)
-            {
-                currentScore += song.BitRate.Value; // e.g., 320kbps adds 320 points
-            }
 
-            // 2. File Format: Prefer lossless formats.
-            var extension = Path.GetExtension(song.FilePath)?.ToLowerInvariant();
+
+            currentScore += song.BitRate; // e.g., 320kbps adds 320 points
+        
+
+
+        // 2. File Format: Prefer lossless formats.
+        var extension = Path.GetExtension(song.FilePath)?.ToLowerInvariant();
             if (extension == ".flac" || extension == ".wav" || extension == ".alac")
             {
                 currentScore += 500; // Major bonus for being lossless

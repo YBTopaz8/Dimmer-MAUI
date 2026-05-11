@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    x:Class="Dimmer.Views.SingleSong.SyncLyricsView"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:dx="http://schemas.devexpress.com/maui"
+    xmlns:local="clr-namespace:Dimmer.Views.CustomViews"
+    xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:vm="clr-namespace:Dimmer.ViewModels"
+    x:Name="myPage"
+    x:DataType="vm:BaseViewModelAnd"
+    Shell.NavBarIsVisible="False">
+    <Grid RowDefinitions="*,auto">
+        <dx:DXExpander x:Name="SyncView">
+            <dx:DXExpander.Content>
+                <Grid RowDefinitions="auto,*,auto">
+                    <dx:DXStackLayout Grid.Row="0">
+                        <dx:DXImage
+                            HeightRequest="180"
+                            Source="{Binding CurrentPlayingSongView.CoverImagePath}"
+                            WidthRequest="100" />
+                    </dx:DXStackLayout>
+                    <dx:DXCollectionView
+                        Grid.Row="1"
+                        ItemsSource="{Binding AllLines}"
+                        SelectedItem="{Binding CurrentLine}">
+                        <dx:DXCollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:LyricPhraseModelView">
+                                <Label Text="{Binding Text}" />
+                            </DataTemplate>
+                        </dx:DXCollectionView.ItemTemplate>
+                    </dx:DXCollectionView>
+                    <dx:DXStackLayout Grid.Row="1">
+                        <dx:Chip
+                            HorizontalOptions="End"
+                            Icon="shared.png"
+                            IsIconVisible="True" />
+                    </dx:DXStackLayout>
+                </Grid>
+            </dx:DXExpander.Content>
+        </dx:DXExpander>
+
+        <dx:DXExpander Grid.Row="1">
+            <dx:DXExpander.Content>
+                <dx:DXStackLayout>
+                    <dx:DXImage HeightRequest="300" Source="{Binding CurrentPlayingSongView.CoverImagePath}" />
+
+                </dx:DXStackLayout>
+            </dx:DXExpander.Content>
+        </dx:DXExpander>
+
+    </Grid>
+</ContentView>

@@ -277,7 +277,7 @@ public class LastfmService : ILastfmService
         var artistName = songV.ArtistName.Split("| ", StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
 
 
-        // CORRECTED: Use parameterless constructor and set properties.
+       
         var scrobble = new Scrobble
         {
             Artist = artistName,
@@ -598,12 +598,14 @@ public class LastfmService : ILastfmService
         }
     }
 
-    public async Task<ObservableCollection<Artist>?> GetUserLibArtistsAsync(string country)
+    public async Task<ObservableCollection<Artist>?> GetUserLibArtistsAsync(string? username=null)
     {
+
         if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         try
         {
-            var res = await _client.Library.GetArtistsAsync(_username, 250);
+            username ??= _username;
+            var res = await _client.Library.GetArtistsAsync(username, 250);
             return res.ToObservableCollection();
         }
         catch  (Exception ex)

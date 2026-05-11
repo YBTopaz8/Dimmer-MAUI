@@ -387,7 +387,6 @@ public static class ArtistStats
             .Select(g => new LabelValue($"{g.Key:D2}:00", g.Count()))
             .OrderBy(lv => lv.Label)];
        
-
         data.SongDurationDistributionMinutes = [.. songsByArtist
             .GroupBy(s => (int)(s.DurationInSeconds / 60)) // Bucket by minute
             .Select(g => new { BucketValue = g.Key, Count = g.Count() })

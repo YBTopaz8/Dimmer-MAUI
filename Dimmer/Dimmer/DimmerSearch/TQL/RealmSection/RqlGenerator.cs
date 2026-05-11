@@ -8,24 +8,35 @@ public static class RqlGenerator
     private const string MatchAllPredicate = "TRUEPREDICATE";
     public static string Generate(IQueryNode node) => node switch
     {
-        LogicalNode n => $"({Generate(n.Left)} {TranslateLogicalOperator(n.Operator)} {Generate(n.Right)})",
+        LogicalNode n => HandleLogical(n), // Use a helper to clean up predicates
         NotNode n => $"NOT ({Generate(n.NodeToNegate)})",
         ClauseNode n => GenerateClause(n),
         FuzzyDateNode n => GenerateFuzzyDateClause(n),
-        // DaypartNode and RandomChanceNode are not directly translatable to RQL.
-        // They must be handled in-memory after the main query result is fetched.
-        // We return TRUEPREDICATE so they don't block the rest of the RQL filter.
-        DaypartNode => MatchAllPredicate,
-        RandomChanceNode => MatchAllPredicate,
-        _ => MatchAllPredicate // Default to matching everything
+        _ => MatchAllPredicate
     };
 
-    private static string TranslateLogicalOperator(LogicalOperator op) => op switch
+    private static string HandleLogical(LogicalNode n)
     {
-        LogicalOperator.And => "AND",
-        LogicalOperator.Or => "OR",
-        _ => "AND"
-    };
+        string left = Generate(n.Left);
+        string right = Generate(n.Right);
+
+        // Optimization: If either side of an AND is TRUEPREDICATE, just use the other side.
+        if (n.Operator == LogicalOperator.And)
+        {
+            if (left == MatchAllPredicate) return right;
+            if (right == MatchAllPredicate) return left;
+            return $"({left} AND {right})";
+        }
+
+        // Optimization: If either side of an OR is TRUEPREDICATE, the whole thing is TRUEPREDICATE.
+        if (n.Operator == LogicalOperator.Or)
+        {
+            if (left == MatchAllPredicate || right == MatchAllPredicate) return MatchAllPredicate;
+            return $"({left} OR {right})";
+        }
+
+        return $"({left} AND {right})";
+    }
 
     private static string GenerateClause(ClauseNode node)
     {

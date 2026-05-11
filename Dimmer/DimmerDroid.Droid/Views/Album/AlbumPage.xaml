@@ -8,6 +8,7 @@
     xmlns:local="clr-namespace:Dimmer.Views.CustomViews"
     xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
     xmlns:vm="clr-namespace:Dimmer.ViewModels"
+    Title="Album"
     x:DataType="models:AlbumModelView"
     Shell.NavBarIsVisible="false">
     <Grid Padding="10" RowDefinitions="auto,*">
@@ -19,9 +20,7 @@
                     HorizontalOptions="Start"
                     Text="{Binding Artists[0].Name}" />
                 <Label Text="{Binding Artists.Count, StringFormat='{0} Artists'}" />
-                <Label 
-                    
-                    Text="{Binding SongsInAlbum.Count, StringFormat='{0} Artists'}" />
+                <Label Text="{Binding SongsInAlbum.Count, StringFormat='{0} Artists'}" />
             </dx:DXStackLayout>
 
             <dx:DXImage
@@ -32,10 +31,15 @@
 
         <dx:TabView Grid.Row="1">
             <dx:TabViewItem HeaderText="Songs">
-                <dx:DataGridView AutoGenerateColumnsMode="None" ItemsSource="{Binding SongsInAlbum}">
+                <dx:DataGridView
+                    AutoGenerateColumnsMode="None"
+                    ItemsSource="{Binding SongsInAlbum}"
+                    ShowAutoFilterRow="True"
+                    ShowFilterIcon="True">
                     <dx:DataGridView.Columns>
                         <dx:TextColumn FieldName="Title" />
                         <dx:TextColumn FieldName="OtherArtistsName" />
+                        <dx:CheckBoxColumn FieldName="IsFavorite" />
                     </dx:DataGridView.Columns>
                 </dx:DataGridView>
             </dx:TabViewItem>

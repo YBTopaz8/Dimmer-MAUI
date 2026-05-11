@@ -176,7 +176,7 @@ public static class TopStats
             .Select(e => new DimmerStats
             {
                 Date = e.EventDate,
-                Value = e.PositionInSeconds // X-Axis: Position in song
+                DoubleValue = e.PositionInSeconds // X-Axis: Position in song
             })
             .OrderBy(s => s.Date)
             .ToList();
@@ -229,7 +229,7 @@ public static class TopStats
     public static DimmerStats GetAverageListenThroughPercent(IList<DimmerPlayEvent> songEvents, double songDurationSeconds)
     {
         if (songDurationSeconds <= 0)
-            return new DimmerStats { Name = "Listen-Through %", Value = 0 };
+            return new DimmerStats { Name = "Listen-Through %", DoubleValue = 0 };
 
         var listenDurations = songEvents.AsEnumerable()
             .Where(e => e.PlayType is PlayType_Completed)
@@ -240,9 +240,9 @@ public static class TopStats
             });
 
         if (!listenDurations.Any())
-            return new DimmerStats { Name = "Listen-Through %", Value = 0 };
+            return new DimmerStats { Name = "Listen-Through %", DoubleValue = 0 };
 
-        return new DimmerStats { Name = "Listen-Through %", Value = listenDurations.Average() };
+        return new DimmerStats { Name = "Listen-Through %", DoubleValue = listenDurations.Average() };
     }
 
 
@@ -307,7 +307,7 @@ public static class TopStats
             .Select(x => new DimmerStats
             {
                 Song = songLookup[x!.SongId].ToSongModelView(),
-                Value = x.BurnoutRatio * 100 // As a percentage
+                DoubleValue = x.BurnoutRatio * 100 // As a percentage
             })
             .ToList();
     }
@@ -399,7 +399,7 @@ public static class TopStats
             .Select(x => new DimmerStats
             {
                 Song = songLookup[x.SongId].ToSongModelView(),
-                Value = x.Gap.Value.TotalDays, // Value represents the gap in days
+                DoubleValue = x.Gap.Value.TotalDays, // Value represents the gap in days
                 Date = x.Date.Value
             })
             .ToList();
@@ -435,7 +435,7 @@ public static class TopStats
             .Select(x => new DimmerStats
             {
                 Name = x.ArtistName,
-                Value = x.SkipRate * 100 // As a percentage
+                DoubleValue = x.SkipRate * 100 // As a percentage
             })
             .ToList();
     }
@@ -590,11 +590,11 @@ public static class TopStats
                 return new DimmerStats
                 {
                     Name = artist,
-                    Value = loyaltyRate,
+                    DoubleValue = loyaltyRate,
                     Count = followUps
                 };
             })
-            .OrderByDescending(s => s.Value)
+            .OrderByDescending(s => s.DoubleValue)
             .Take(count)
             .ToList();
     }
@@ -636,7 +636,7 @@ public static class TopStats
             {
                 Song = song.ToSongModelView(),
                 Name = song.Title,
-                Value = stat.Stickiness
+                DoubleValue = stat.Stickiness
             })
             .ToList();
     }
@@ -655,7 +655,7 @@ public static class TopStats
 
         if (powerHourStat == null)
         {
-            return new DimmerStats { Name = "Power Hour", Value = -1, StatTitle = "Not enough data" };
+            return new DimmerStats { Name = "Power Hour", IntValue = -1, StatTitle = "Not enough data" };
         }
 
         // Example: powerHourStat.Name is "09:00", we want to extract 9.
@@ -664,7 +664,7 @@ public static class TopStats
         return new DimmerStats
         {
             Name = "Power Hour",
-            Value = hour, // The 24-hour format hour
+            IntValue = hour, // The 24-hour format hour
             Count = powerHourStat.Count,
             StatTitle = $"Most often played during the {hour:00}:00 hour."
         };

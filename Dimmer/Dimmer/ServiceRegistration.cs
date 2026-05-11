@@ -105,7 +105,6 @@ public static class ServiceRegistration
         services.AddSingleton(typeof(IQueueManager<>), typeof(QueueManager<>));
 
 
-
         services.AddSingleton<IAuthenticationService, ParseAuthenticationService>();
         services.AddTransient<LoginViewModel>();
         services.AddSingleton<SettingsViewModel>();
@@ -169,6 +168,7 @@ public static class ServiceRegistration
         InitializeParseClient();
         ParseClient.Instance.RegisterSubclass(typeof(UserDeviceSession));
         ParseClient.Instance.RegisterSubclass(typeof(DeviceState));
+        ParseClient.Instance.RegisterSubclass(typeof(DeviceSyncState));
         ParseClient.Instance.RegisterSubclass(typeof(ChatConversation));
         ParseClient.Instance.RegisterSubclass(typeof(ChatMessage));
         ParseClient.Instance.RegisterSubclass(typeof(DimmerSharedSong));

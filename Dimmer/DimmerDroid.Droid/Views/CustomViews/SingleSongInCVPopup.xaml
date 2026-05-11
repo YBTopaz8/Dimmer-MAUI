@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<dx:BottomSheet
+    x:Class="Dimmer.Views.CustomViews.SingleSongInCVBottomSheet"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:TQlVM="clr-namespace:Dimmer.ViewModel.TQL;assembly=Dimmer"
+    xmlns:dx="http://schemas.devexpress.com/maui"
+    xmlns:local="clr-namespace:Dimmer.Views.CustomViews"
+    xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:vm="clr-namespace:Dimmer.ViewModels"
+    x:Name="SongInCVBottomSheet"
+    x:DataType="models:SongModelView">
+    <dx:DXStackLayout Padding="10" ItemSpacing="5">
+        <dx:SlideView
+            x:Name="PopupSlideView"
+            CurrentItemChanged="PopupSlideView_CurrentItemChanged"
+            HeightRequest="500">
+            <dx:SlideView.Items>
+                <dx:DXStackLayout>
+                    <dx:DXImage Source="{Binding CoverImagePath}" />
+                </dx:DXStackLayout>
+                <Grid x:Name="ChartGrid">
+                    <dx:ChartView HeightRequest="350">
+                        <dx:ChartView.Series>
+                            <dx:LineSeries>
+                                <dx:LineSeries.Data>
+                                    <dx:SeriesDataAdapter ArgumentDataMember="EventDate" DataSource="{Binding StatsVM.QuickStats.HourlyData, Source={Reference SongInCVPopup}}">
+                                        <dx:ValueDataMember Member="PlayTypeStr" Type="Value" />
+                                    </dx:SeriesDataAdapter>
+                                </dx:LineSeries.Data>
+                            </dx:LineSeries>
+                        </dx:ChartView.Series>
+                    </dx:ChartView>
+
+                </Grid>
+                <Grid>
+                    <dx:PieChartView
+                        x:Name="ActionsRadarChart"
+                        Grid.Row="0"
+                        HeightRequest="350"
+                        WidthRequest="350">
+                        <dx:PieChartView.Hint>
+                            <dx:PieHint Enabled="True" />
+                        </dx:PieChartView.Hint>
+                        <dx:PieChartView.Series>
+
+                            <dx:PieSeries>
+                                <dx:PieSeries.Label>
+                                    <dx:PieSeriesLabel Position="Inside" />
+                                </dx:PieSeries.Label>
+                                <dx:PieSeries.Data>
+                                    <dx:PieSeriesDataAdapter
+                                        AllowLiveDataUpdates="True"
+                                        DataSource="{Binding StatsVM.QuickStats.HourlyData, Source={Reference SongInCVPopup}}"
+                                        LabelDataMember="Label"
+                                        ValueDataMember="Value" />
+
+
+                                </dx:PieSeries.Data>
+                            </dx:PieSeries>
+                        </dx:PieChartView.Series>
+                    </dx:PieChartView>
+                </Grid>
+            </dx:SlideView.Items>
+
+        </dx:SlideView>
+        <FlexLayout JustifyContent="SpaceBetween">
+            <dx:Chip
+                x:Name="PrevChip"
+                Tap="NavChip_Tapped"
+                Text="Prev" />
+            <dx:Chip
+                x:Name="NextChip"
+                Tap="NavChip_Tapped"
+                Text="Next" />
+        </FlexLayout>
+    </dx:DXStackLayout>
+</dx:BottomSheet>

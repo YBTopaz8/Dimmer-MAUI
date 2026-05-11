@@ -48,6 +48,10 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
     {
         this.InitializeComponent();
         _compositor = ElementCompositionPreview.GetElementVisual(this).Compositor;
+        MyViewModel = IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
+        MyLastFMViewModel = IPlatformApplication.Current!.Services.GetService<LastFMViewModel>()!;
+
+        MyLastFMViewModel.LoadBaseViewModel(MyViewModel);
     }
 
     private readonly Compositor _compositor;
@@ -56,9 +60,8 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
         base.OnNavigatedTo(e);
 
         // Resolve VM
-        MyLastFMViewModel = IPlatformApplication.Current!.Services.GetService<LastFMViewModel>()!;
-        MyViewModel = IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
 
+        
 
         await LoadUserData();
 
@@ -251,5 +254,64 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
     private void DeleteScrobble_Click(object sender, RoutedEventArgs e)
     {
         
+    }
+
+    private async void Button_Click(object sender, RoutedEventArgs e)
+    {
+        var btn = (sender as Button)!;
+        var trackk = (btn.DataContext as Hqub.Lastfm.Entities.Track)!;
+        var comParam = btn.Content as string;
+        
+        await MyViewModel.OpenSongInOnlineSearch(comParam, trackk.Name,trackk.Artist.Name);
+    }
+
+    private async void ExportAbsentSongsToTxtBtn_Click(object sender, RoutedEventArgs e)
+    {
+        var abSentSongs= MyLastFMViewModel.CollectionOfUserLovedTracks?.Where(x=>x.IsOnPresentDevice)?.ToList();
+        string LineText = string.Empty;
+        if (abSentSongs is null) return;
+        foreach (var song in abSentSongs)
+        {
+            LineText = LineText+ $"{song.Name} - {song.Artist.Name} - {song.Album.Name} {Environment.NewLine}";
+
+        }
+
+        if (sender is Button button)
+        {
+            button.IsEnabled = false;
+
+            var picker = new FileSavePicker();
+
+            picker.DefaultFileExtension = ".txt";
+
+            picker.SuggestedFileName = "LastFMFavoritesAbsentOnDevice";
+
+            picker.CommitButtonText = "Save File";
+
+            picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+
+            var hwnd = PlatUtils.DimmerHandle;
+            InitializeWithWindow.Initialize(picker, hwnd);
+            picker.FileTypeChoices.Add("text", new List<string>() { ".txt" });
+
+            // Show the picker dialog
+            var result = await picker.PickSaveFileAsync();
+
+            if (result != null)
+            {
+                string savePath = result.Path;
+                await File.WriteAllTextAsync(savePath, LineText);
+
+            }
+            else
+            {
+
+            }
+
+            button.IsEnabled = true;
+
+        }
+
+
     }
 }

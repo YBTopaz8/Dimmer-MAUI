@@ -167,7 +167,7 @@ public class HoarderService : IHoarderService
             // Pattern: Root / Artist / [Year] Album / Track - Title.ext
             string safeArtist = SanitizeFileName(song.ArtistName ?? "Unknown Artist");
             string safeAlbum = SanitizeFileName(song.AlbumName ?? "Unknown Album");
-            string yearStr = song.ReleaseYear.HasValue ? $"[{song.ReleaseYear}] " : "";
+            string yearStr = song.ReleaseYear > 0 ? $"[{song.ReleaseYear}] " : "";
             string safeTitle = SanitizeFileName(song.Title ?? "Unknown Title");
             string trackStr = song.TrackNumber.HasValue ? $"{song.TrackNumber:D2} - " : "";
             string ext = Path.GetExtension(song.FilePath);
@@ -300,7 +300,7 @@ public class HoarderService : IHoarderService
                 string album = SanitizeFileName(song.AlbumName ?? "Unknown Album");
 
                 // Logic: "Album - Year" or just "Album" if year is missing
-                string albumFolder = song.ReleaseYear.HasValue
+                string albumFolder = song.ReleaseYear > 0
                     ? $"{album} - {song.ReleaseYear}"
                     : album;
 

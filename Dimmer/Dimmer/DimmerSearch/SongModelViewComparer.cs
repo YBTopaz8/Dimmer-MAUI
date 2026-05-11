@@ -26,11 +26,11 @@ public class SortDescription
     }
 }
 
-public class SongModelViewComparer : IComparer<SongModelView>
+public partial class SongModelComparer : IComparer<SongModel>
 {
     public IReadOnlyList<SortDescription> SortDescriptions { get; }
 
-    public SongModelViewComparer(List<SortDescription>? descriptions)
+    public SongModelComparer(List<SortDescription>? descriptions)
     {
         // This constructor intentionally ignores any 'Random' sort descriptions.
         // The responsibility for random sorting belongs to the ViewModel's data pipeline.
@@ -38,7 +38,7 @@ public class SongModelViewComparer : IComparer<SongModelView>
                            ?? new List<SortDescription>();
     }
 
-    public int Compare(SongModelView? x, SongModelView? y)
+    public int Compare(SongModel? x, SongModel? y)
     {
         if (x is null && y is null)
             return 0;
@@ -65,7 +65,7 @@ public class SongModelViewComparer : IComparer<SongModelView>
         return string.Compare(x.Title, y.Title, StringComparison.OrdinalIgnoreCase);
     }
 
-    public SongModelViewComparer Inverted()
+    public SongModelComparer Inverted()
     {
         var invertedDescriptions = SortDescriptions.Select(desc =>
         {
@@ -74,15 +74,15 @@ public class SongModelViewComparer : IComparer<SongModelView>
                 : SortDirection.Ascending;
             return new SortDescription(desc.Field, invertedDirection);
         }).ToList();
-        return new SongModelViewComparer(invertedDescriptions);
+        return new SongModelComparer(invertedDescriptions);
     }
 }
 
-public class RandomSongComparer : IComparer<SongModelView>
+public partial class RandomSongComparer : IComparer<SongModel>
 {
     private readonly Random _random = new();
 
-    public int Compare(SongModelView? x, SongModelView? y)
+    public int Compare(SongModel? x, SongModel? y)
     {
         if (x == null && y == null)
             return 0;

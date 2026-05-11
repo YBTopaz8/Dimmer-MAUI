@@ -10,6 +10,7 @@ using Dimmer.UIUtils;
 using Dimmer.Utilities.Enums;
 using Dimmer.Utilities.TypeConverters;
 using Dimmer.Utils;
+using Dimmer.ViewModel.TQL;
 using DynamicData.Binding;
 using Hqub.Lastfm.Entities;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -147,7 +148,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
         _searchQuerySubject = new BehaviorSubject<string>("");
         _limiterClause = new BehaviorSubject<LimiterClause?>(null);
 
-        PlaybackManager = new RuleBasedPlaybackManager(RealmFactory);
+    
 
 
 
@@ -215,6 +216,8 @@ Observable.FromEventPattern<PlaybackEventArgs>(
     }
     private readonly BehaviorSubject<PageRequest> _pagingController = new(new PageRequest(0, 50));
 
+    public BehaviorSubject<IComparer<ArtistModelView>> ArtistSortSubject { get; } =
+        new BehaviorSubject<IComparer<ArtistModelView>>(SortExpressionComparer<ArtistModelView>.Ascending(x => x.Name));
     private void SetupArtistPipeline()
     {
         // Get Realm instance
@@ -224,7 +227,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
 
         // Build the reactive pipeline
         var pipeline = _realm.All<ArtistModel>()
-            .OrderBy(p => p.Name)
+
             .AsObservableChangeSet()
             .Transform(artistInDB =>
                 {
@@ -241,7 +244,9 @@ Observable.FromEventPattern<PlaybackEventArgs>(
              .AutoRefresh(artist => artist.ImagePath)
              .AutoRefresh(artist => artist.TotalCompletedPlays)
              .AutoRefresh(artist => artist.TotalSongsByArtist)
+        .AutoRefresh(artist => artist.TotalAlbumsByArtist)
              .AutoRefresh(artist => artist.Name)
+           .Sort(ArtistSortSubject)
             .ObserveOn(RxSchedulers.UI)
             .Bind(out _artistCollection)
             .DisposeMany()
@@ -359,7 +364,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
     {
        
         public RealmQueryPlan? Plan { get; set; }
-        public IEnumerable<SongModelView>? SongsResult { get; set; }
+        public IReadOnlyList<ObjectId>? SongsResultIds { get; set; }
         public string? ErrorMessage { get; set; }
     }
 
@@ -448,6 +453,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
 
     public void InitializeAllVMCoreComponents()
     {
+        //return;
         IsFirstBoot = true;
 
         if (IsInitialized) return;
@@ -519,6 +525,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
 
                 await Task.Delay(15000);
                 await EnsureAllCoverArtCachedForSongsAsync(_backgroundCachingCts.Token);
+
             }
             catch (OperationCanceledException er)
             {
@@ -538,7 +545,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
             .Subscribe(
                 x =>
                 {
-                    OnPropertyChanged(nameof(PlaybackQueue)); // Manually notify that the collection has changed
+                    //OnPropertyChanged(nameof(PlaybackQueue)); // Manually notify that the collection has changed
                 })
 
             .DisposeWith(CompositeDisposables);
@@ -571,20 +578,20 @@ Observable.FromEventPattern<PlaybackEventArgs>(
            {
                Debug.WriteLine($"[ThreadPool] Task started for: {query}");
                var result = PerformSearchBackground(query); // NOT Task.Run!
-               Debug.WriteLine($"[ThreadPool] Task completed with {result?.SongsResult?.Count()} songs");
+
                return result;
            }, RxSchedulers.Background)
            .ObserveOn(RxSchedulers.UI) // FIX 2: ObserveOn HERE, inside the select
            .Do(result =>
            {
                // This now runs on UI thread!
-               Debug.WriteLine($"[UI Thread] Got result with {result?.SongsResult?.Count()} songs, thread: {Environment.CurrentManagedThreadId}");
+
            });
        })
        .Switch() // Now switching between observables that already target UI
        .Subscribe(result =>
        {
-           Debug.WriteLine($"[Subscribe] UI thread executing ApplySearchResults with {result?.SongsResult?.Count()} songs");
+
            ApplySearchResults(result);
        },
        ex =>
@@ -648,49 +655,102 @@ Observable.FromEventPattern<PlaybackEventArgs>(
     private void ApplySearchResults(SearchResult? result)
     {
         IsTqlBusy = false;
-
-        if(result == null)
-            return;
-
-        if(!string.IsNullOrEmpty(result.ErrorMessage))
+        if (result == null) return;
+        if (!string.IsNullOrEmpty(result.ErrorMessage))
         {
             TQLUserSearchErrorMessage = result.ErrorMessage;
             return;
         }
-
-        if(result.SongsResult is not null)
-        {       SearchResultsHolder.Edit(
-                innerList =>
-                {
-                    Debug.WriteLine(innerList.Count);
-                    innerList.Clear();
-                    
-                    innerList.AddRange(result.SongsResult);
-                });
-        }
-        // Update Debuggers
-        if (result.Plan != null)
+        if (result.SongsResultIds is not null)
         {
+            // Realize the list so we can check the count
+            var idList = result.SongsResultIds;
+            if (idList.Count == 0)
+            {
+                SearchResultsHolder.Edit(innerCache => innerCache.Clear());
+                return;
+            }
+            _ = Task.Run(() =>
+            {
+                using var uiRealm = RealmFactory.GetRealmInstance();
 
-            //HandleCommandAction(result.Plan.CommandNode);
-            // Update NLP Debug text if needed
+                var resultCount = result.SongsResultIds.Count;
+                var totalDbCount = uiRealm.All<SongModel>().Count(); // This is instant in Realm
+
+                List<SongModelView> viewModels;
+
+                if (resultCount > (totalDbCount * 0.3))
+                {
+                    Debug.WriteLine("Strategy: [Table Scan] (Approach 1: AsEnumerable)");
+
+                    // --- PHASE 1: DATABASE FETCH ---
+                    var idSet = result.SongsResultIds.ToHashSet();
+                    var idToSongMap = uiRealm.All<SongModel>()
+                        .AsEnumerable()
+                        .Where(s => idSet.Contains(s.Id))
+                        .ToDictionary(s => s.Id);
+
+
+                    viewModels = result.SongsResultIds
+                        .Where(id => idToSongMap.ContainsKey(id))
+                        .Select(id => idToSongMap[id].ToSongModelView()!)
+                        .ToList();
+
+                }
+                else
+                {
+                    Debug.WriteLine("Strategy: [Index Seek] (Approach 3: Native Find)");
+
+                    var nativeFoundSongs = new List<SongModel>(resultCount);
+                    foreach (var id in result.SongsResultIds)
+                    {
+                        var song = uiRealm.Find<SongModel>(id);
+                        if (song != null)
+                        {
+                            nativeFoundSongs.Add(song);
+                        }
+                    }
+
+
+
+                    viewModels = nativeFoundSongs.Select(s => s.ToSongModelView()!).ToList();
+
+                }
+
+
+                // Update the UI
+                if (viewModels is not null)
+                {
+                    RxSchedulers.UI.ScheduleTo(() =>
+                    {
+                        SearchResultsHolder.Edit(innerCache => innerCache.Load(viewModels));
+                    });
+                }
+            });
+
         }
     }
-    
-    private SearchResult PerformSearchBackground(string queryText)
+    private CancellationTokenSource? _searchCts;
+    private SearchResult? PerformSearchBackground(string queryText)
     {
+        _searchCts?.Cancel();
+        _searchCts = new CancellationTokenSource();
+        var ct = _searchCts.Token;
+
         using var realmm = RealmFactory.GetRealmInstance();
+
         // A. Fast Fail for Empty Query
-        if (string.IsNullOrWhiteSpace(queryText) )
+        if (string.IsNullOrWhiteSpace(queryText))
         {
             IsFirstBoot = false;
-            var allSongs = realmm.All<SongModel>()
-             .OrderByDescending(s => s.DateCreated)
-             .AsEnumerable()
-             
-             .Select(x => x.ToSongModelView())
-             .ToList();
-            return new SearchResult { SongsResult = allSongs };
+            // Optimization: Only grab what we need, don't map everything instantly if we don't have to.
+            var allSongsIds = realmm.All<SongModel>()
+                .OrderByDescending(s => s.DateCreated)
+                .ToList()
+                .Select(x => x.Id).ToList();// Fetch from Realm fast
+                
+
+            return new SearchResult { SongsResultIds = allSongsIds };
         }
 
         // B. Parse NLP (CPU Bound)
@@ -702,11 +762,11 @@ Observable.FromEventPattern<PlaybackEventArgs>(
 
         try
         {
-           
             // C. Realm Filter (Zero-Copy, Fast)
             var query = realmm.All<SongModel>().Filter(plan.RqlFilter);
 
-            // D. Sorting
+            if (ct.IsCancellationRequested) return null;
+            // D. Realm Sorting (Do this in DB before pulling to RAM)
             if (plan.SortDescriptions.Count > 0)
             {
                 var orderByString = string.Join(", ", plan.SortDescriptions.Select(
@@ -714,24 +774,67 @@ Observable.FromEventPattern<PlaybackEventArgs>(
                 query = query.OrderBy(orderByString);
             }
 
-            // E. Materialization (The Heavy Part)
-            // Only materialize what passes the memory predicate to save RAM
-            IEnumerable<SongModel> intermediateList = query;
+            // --- WE LEAVE REALM SPACE HERE ---
+            // Grab the IDs or raw objects. ToList() evaluates the Realm query.
+            IEnumerable<SongModel> intermediateList = query.ToList();
 
+            if (ct.IsCancellationRequested) return null;
+            // E. In-Memory Predicate (Chance, Regex, etc)
             if (plan.InMemoryPredicate != null)
             {
-                // Note: We MUST AsEnumerable() before checking C# logic
-                intermediateList = intermediateList.AsEnumerable().Where(x => plan.InMemoryPredicate(x.ToSongModelView()!));
+                // Note: We temporarily map to view model JUST for the predicate check.
+                // A future optimization would be making AstEvaluator take SongModel directly.
+                intermediateList = intermediateList.Where(x => plan.InMemoryPredicate(x));
             }
 
-            // F. Final Projection
-            // Using ToList() here snapshots the data for the UI thread
-            var finalViewList = intermediateList
-                .Select(x => x.ToSongModelView()!)
-             .ToList()
-                ;
+            // F. Apply Shuffle (NEW)
+            if (plan.Shuffle != null)
+            {
+                var random = new Random();
+                if (plan.Shuffle.IsBiased && plan.Shuffle.BiasField != null)
+                {
+                    // FIX: Removed Reflection (GetProperty/GetValue). 
+                    // Using your compiled Expression Trees for AOT safety and speed!
+                    var grouped = intermediateList
+                        .GroupBy(s => SemanticQueryHelpers.GetComparableProp(s, plan.Shuffle.BiasField.PropertyName) ?? "null")
+                        .SelectMany(g => g.OrderBy(_ => random.Next()));
 
-            return new SearchResult { Plan = plan, SongsResult = finalViewList };
+                    intermediateList = plan.Shuffle.BiasDirection == SortDirection.Descending
+                        ? grouped.Reverse() : grouped;
+                }
+                else
+                {
+                    // Pure shuffle
+                    intermediateList = intermediateList.OrderBy(_ => random.Next());
+                }
+
+                // Shuffle nodes also act as limiters if a count was provided
+                if (plan.Shuffle.Count < int.MaxValue)
+                {
+                    intermediateList = intermediateList.Take(plan.Shuffle.Count);
+                }
+            }
+
+            // G. Apply Limiter (First 10, Last 5, etc) (NEW)
+            if (plan.Limiter != null)
+            {
+                if (plan.Limiter.Type == LimiterType.First)
+                {
+                    intermediateList = intermediateList.Take(plan.Limiter.Count);
+                }
+                else if (plan.Limiter.Type == LimiterType.Last)
+                {
+                    // TakeLast requires .NET 8+ or we do Reverse().Take().Reverse()
+                    intermediateList = intermediateList.TakeLast(plan.Limiter.Count);
+                }
+            }
+
+            if (ct.IsCancellationRequested) return null;
+            // H. Final Projection (The Heavy Part - ONLY done on the surviving items!)
+            var finalViewListOfIds = intermediateList
+                .Select(x => x.Id).ToList();
+
+            return new SearchResult { Plan = plan, SongsResultIds = finalViewListOfIds };
         }
         catch (Exception ex)
         {
@@ -747,16 +850,17 @@ Observable.FromEventPattern<PlaybackEventArgs>(
         try
         {            
             // 1. Set up watchers immediately (this is now fast)
-            //await _folderMgtService.StartWatchingConfiguredFoldersAsync();
+            await _folderMgtService.StartWatchingConfiguredFoldersAsync();
 
             // 2. Perform the slow initial scan in the background
 
             if (folders is not null && folders.Any())
             {
-                //_ = await libScannerService.ScanLibrary(folders);
+                _ = await libScannerService.ScanLibrary(folders.ToList());
             }
             
             await PerformBackgroundInitializationAsync();
+           await this.FindDuplicatesAsync();
         }
         catch (Exception ex )
         {
@@ -812,7 +916,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
 
             
             var redoStats = new StatsRecalculator(RealmFactory, _logger);
-            redoStats.RecalculateAllStatistics();
+            await redoStats.RecalculateAllStatisticsAsync();
             
         
          
@@ -1361,11 +1465,10 @@ Observable.FromEventPattern<PlaybackEventArgs>(
 
     public ObservableCollection<PlaybackRule> Rules { get; } = new();
 
-    public RuleBasedPlaybackManager PlaybackManager { get; }
+    //public RuleBasedPlaybackManager PlaybackManager { get; }
 
     #region private fields
-    public SourceList<SongModelView> SearchResultsHolder = new SourceList<SongModelView>();
-
+    public SourceCache<SongModelView, string> SearchResultsHolder { get; } = new(x => x.Id.ToString());
     private readonly ReadOnlyObservableCollection<SongModelView> _searchResults;
     public ReadOnlyObservableCollection<SongModelView> SearchResults => _searchResults;
 
@@ -1691,7 +1794,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
     [ObservableProperty]
     public partial string AppTitle { get; set; } = "Dimmer";
 
-    public static string CurrentAppVersion = "1.9.0";
+    public static string CurrentAppVersion = "1.9.2";
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]
@@ -1770,6 +1873,12 @@ Observable.FromEventPattern<PlaybackEventArgs>(
 
     [ObservableProperty]
     public partial SongModelView? SelectedSong { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsSearchingOnLastFM { get; set; }
+
+    [ObservableProperty]
+    public partial Hqub.Lastfm.Entities.Track? InfoFromLastFM { get; set; }
 
     [ObservableProperty]
     public partial ObservableCollection<LyricPhraseModelView>? SelectedSongLyricsObsCol { get; set; }
@@ -2611,16 +2720,20 @@ Observable.FromEventPattern<PlaybackEventArgs>(
         OldSongValue = oldValue;
         
     }
-
+    [ObservableProperty]
+    public partial bool IsShowScanLoadingActivityIndicator { get; set; }
     private void OnFolderScanCompleted(PlaybackStateInfo stateInfo)
     {
         ReloadFolderPaths();
         _stateService.SetCurrentLogMsg("Folder scan completed. Refreshing UI.", Data.Models.DimmerLogLevel.Info );
         _logger.LogInformation("Folder scan completed. Refreshing UI.");
-        
+
         IsAppScanning = false;
-       
+        IsShowScanLoadingActivityIndicator = true;
         SearchToTQL("desc added");
+
+        IsShowScanLoadingActivityIndicator = false;
+        
         _ = EnsureAllCoverArtCachedForSongsAsync();
 
         
@@ -2735,8 +2848,8 @@ Observable.FromEventPattern<PlaybackEventArgs>(
         TotalDimms = _reportGenerator.GetTotalScrobbles()?.Count ?? 0;
         TopArtist = _reportGenerator.GetTopArtists()?.FirstOrDefault()?.ArtistName ?? "-";
         TopAlbum = _reportGenerator.GetTopAlbums()?.FirstOrDefault()?.AlbumName ?? "-";
-        TopGenre = _reportGenerator.GetVariance()?.Value.ToString() ?? "-"; // placeholder, use tags later
-        TopPlayTime = $"{_reportGenerator.GetTotalListeningTime()?.Value:F1}h";
+        TopGenre = _reportGenerator.GetVariance()?.DoubleValue.ToString() ?? "-"; // placeholder, use tags later
+        TopPlayTime = $"{_reportGenerator.GetTotalListeningTime()?.DoubleValue:F1}h";
 
         // --- Collections ---
         TopTrackDashBoard = _reportGenerator.GetTopTracks()?.ToObservableCollection();
@@ -3030,9 +3143,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
             // E. Initialize the audio service with the new track.
             await _audioService.InitializeAsync(songToPlay, startPosition);
 
-            // F. Update history and UI state *after* successful initialization.
-            PlaybackManager.AddSongToHistory(songToPlay);
-
+          
             nextIndexToAddIn = _currentPlayinSongIndexInPlaybackQueue + 1;
             return true; // Playback started successfully
         }
@@ -3237,7 +3348,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
         // Update context and clear history for the new session
         CurrentPlaybackQuery = contextQuery;
         SavePlaybackContext(CurrentPlaybackQuery);
-        PlaybackManager.ClearSessionHistory();
+      
 
         // Now, attempt to play the first song in the newly created queue.
         // We can safely read from the public _playbackQueue now, as it has been updated by the source.
@@ -5500,6 +5611,9 @@ Observable.FromEventPattern<PlaybackEventArgs>(
         }
     }
 
+    [ObservableProperty]
+    public partial RestoreResult MyRestoredResult { get; set; }
+
     #region Search Lyrics Online
     [ObservableProperty]
     public partial string LyricsAlbumNameSearch { get; set; }
@@ -5527,7 +5641,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
 
 
     [RelayCommand]
-    public async Task SearchLyricsAndLoadLyricsIfFoundAsync()
+    public async Task SearchLyricsAndLoadLyricsIfFoundAsync(bool LoadIfFound=true)
     {
         if (SelectedSong == null)
             return;
@@ -5583,7 +5697,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
                     "Found {Count} lyrics results for query: {Query}",
                     LyricsSearchResults.Count,
                     query);
-                if (SelectedSong.TitleDurationKey == CurrentPlayingSongView.TitleDurationKey)
+                if (LoadIfFound && SelectedSong.TitleDurationKey == CurrentPlayingSongView.TitleDurationKey)
                 {
                     _lyricsMgtFlow.LoadLyrics(LyricsSearchResults.First().SyncedLyrics);
                 }
@@ -5609,14 +5723,21 @@ Observable.FromEventPattern<PlaybackEventArgs>(
             return string.Empty;
 
         // 1. Process locally (don't set class properties)
-        LyricsTrackNameSearch ??= CleanSongTitle(SelectedSong.Title ?? string.Empty);
-        LyricsArtistNameSearch ??= GetPrimaryArtist(SelectedSong.ArtistName ?? string.Empty);
-
+        if(string.IsNullOrEmpty(LyricsTrackNameSearch))
+        {
+            LyricsTrackNameSearch =CleanSongTitle(SelectedSong.Title ?? string.Empty);
+        }
+        if (string.IsNullOrEmpty(LyricsArtistNameSearch))
+        {
+            LyricsArtistNameSearch = GetPrimaryArtist(SelectedSong.ArtistName ?? string.Empty);
+        }
         // Album is often "noise" for lyric searches. Only include it if it's very specific.
         // Ideally, for lyrics, Artist + Title is usually the strongest query.
-        var album = SelectedSong.AlbumName ?? string.Empty;
-        LyricsAlbumNameSearch ??= !IsGenericAlbumName(album) ? album : string.Empty;
-
+        if (string.IsNullOrEmpty(LyricsAlbumNameSearch))
+        {
+            var album = SelectedSong.AlbumName ?? string.Empty;
+            LyricsAlbumNameSearch = !IsGenericAlbumName(album) ? album : string.Empty;
+        }
         // 2. Build the list, filtering out empties immediately
         var searchParts = new List<string>();
 
@@ -5625,7 +5746,13 @@ Observable.FromEventPattern<PlaybackEventArgs>(
       
         return string.Join(" ", searchParts).Trim();
     }
-    [RelayCommand]
+    public void CleanLyricsSearchProps()
+    {
+        LyricsTrackNameSearch = string.Empty;
+        LyricsArtistNameSearch = string.Empty;
+        LyricsAlbumNameSearch = string.Empty;
+    }
+ 
     public void AutoFillSearchFields()
     {
         IsLyricsFound = false;
@@ -6781,6 +6908,9 @@ Observable.FromEventPattern<PlaybackEventArgs>(
     [ObservableProperty]
     public partial bool IsFirmSearchEnabled { get; set; }
 
+    [ObservableProperty]
+    public partial int HomePageIndex { get; set; }
+
     /// <summary>
     /// The main command for adding a new filter. This is the heart of the Lego system. It's smart and knows how to ask
     /// the user for input based on the field type.
@@ -7746,17 +7876,15 @@ Observable.FromEventPattern<PlaybackEventArgs>(
         }
     }
 
-    [RelayCommand]
-    public async Task OpenSongInOnlineSearch(string? service)
+    
+
+
+    public async Task OpenSongInOnlineSearch(string? service, string songTitle, string songArtist)
     {
+
         service ??= "google";
-        if (SelectedSong is null && CurrentPlayingSongView is not null)
-        {
-            SelectedSong = CurrentPlayingSongView;
-        }
-        if (SelectedSong is null)
-            return;
-        string query = $"{SelectedSong.Title} {SelectedSong.ArtistName}";
+       
+        string query = $"{songTitle} {songArtist}";
         string url = service.ToLower() switch
         {
             "google" => $"https://www.google.com/search?q={Uri.EscapeDataString(query)}",
@@ -8004,7 +8132,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
         SearchResultsHolder.Edit(updater =>
         {
             updater.Clear();
-            updater.AddRange(PlaybackQueue);
+            updater.AddOrUpdate(PlaybackQueue);
         });
 
 
@@ -8027,6 +8155,40 @@ Observable.FromEventPattern<PlaybackEventArgs>(
         await _lyricsMgtFlow.GetLyrics(concernedSong);
     }
 
+    [ObservableProperty]
+    public partial ObservableCollection<VisualFilterRule> ActiveFilterRules { get; set; } = new();
+    [ObservableProperty]
+    public partial string GeneratedTqlQuery { get; set; } = string.Empty;
+
+    // Call this whenever the collection changes, or a chip is tapped
+    public void UpdateGeneratedTql()
+    {
+        // Joins all rules with a space
+        GeneratedTqlQuery = string.Join(" ", ActiveFilterRules.Select(r => r.ToTqlSnippet()));
+
+        // You can instantly pass this to your TQL Search Pipeline here!
+        // _searchQuerySubject.OnNext(GeneratedTqlQuery);
+    }
+    // In your ViewModel:
+[RelayCommand]
+public void ToggleRuleLogic(VisualFilterRule rule)
+{
+    if (rule == null) return;
+    
+    // Cycle 0 -> 1 -> 2 -> 0 (Include -> Add -> Exclude)
+    rule.LogicState = (rule.LogicState + 1) % 3;
+
+
+
+    UpdateGeneratedTql();
+}
+
+[RelayCommand]
+public void RemoveRule(VisualFilterRule rule)
+{
+    ActiveFilterRules.Remove(rule);
+    UpdateGeneratedTql();
+}
 }
 
 public enum CollectionViewMode

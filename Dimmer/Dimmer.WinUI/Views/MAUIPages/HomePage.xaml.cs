@@ -52,6 +52,8 @@ public partial class HomePage : ContentPage
         this.loginVM = LoginVM;
         this.sessionVM = sessVM;
         MyViewModel.DumpCommand.Execute(null);
+
+        MyLastFMViewModel.LoadBaseViewModel(vm);
     }
 
     protected override void OnDisappearing()
@@ -1083,7 +1085,7 @@ public partial class HomePage : ContentPage
         if(loginVM.CurrentUserOnline is not null && !string.IsNullOrEmpty(loginVM.CurrentUserOnline.ProfileImagePath))
         {
             send.Source = loginVM.CurrentUserOnline.ProfileImagePath;
-            await sessionVM.RegisterCurrentDeviceAsync();
+            _= sessionVM.RegisterCurrentDeviceAsync();
         }
     }
 

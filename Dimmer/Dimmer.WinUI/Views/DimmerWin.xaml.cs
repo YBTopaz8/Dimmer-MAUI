@@ -1,5 +1,6 @@
 using Dimmer.WinUI.Views.WinuiPages.AlbumSection;
 using Dimmer.WinUI.Views.WinuiPages.Artist;
+using Dimmer.WinUI.Views.WinuiPages.LastFMSection;
 using Hqub.Lastfm.Entities;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Border = Microsoft.UI.Xaml.Controls.Border;
@@ -45,7 +46,7 @@ public sealed partial class DimmerWin : Window
     /// </summary>
     /// <param name="pageType"></param>
     /// <param name="OptionalParameter"></param>
-    public async void NavigateToPage(Type pageType, object? OptionalParameter = null)
+    public async void NavigateToPage(Type pageType, IDictionary<string, object>? OptionalParameter = null)
     {
         if (MyViewModel is not null && OptionalParameter is null)
         {
@@ -57,13 +58,19 @@ public sealed partial class DimmerWin : Window
                     ContentFrame.Navigate(pageType, MyViewModel);
 
             });
-            MyViewModel.DimmerMultiWindowCoordinator?.SnapAllToHomeAsync();
+            //MyViewModel.DimmerMultiWindowCoordinator?.SnapAllToHomeAsync();
 
         }
         if (OptionalParameter is not null)
         {
-            List<object> parameters = new();
-            parameters.Add(OptionalParameter);
+
+            await DispatcherQueue.EnqueueAsync(() =>
+            {
+                WinUIWindowsMgr?.BringToFront(this);
+                if (pageType != ContentFrame.CurrentSourcePageType)
+                    ContentFrame.Navigate(pageType, OptionalParameter);
+
+            });
         }
     }
     public BaseViewModelWin MyViewModel { get; internal set; }
@@ -337,6 +344,9 @@ public sealed partial class DimmerWin : Window
                 pageType = typeof(AllAlbumsPage);
                 break;
             case 3:
+                pageType = typeof(LastFmPage);
+                break;
+            case 4:
                 pageType = typeof(SettingsPage);
                 break;
 
@@ -370,9 +380,13 @@ public sealed partial class DimmerWin : Window
         {
             DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[2];
         }
-        else if (navPageType == typeof(SettingsPage))
+        else if (navPageType == typeof(LastFmPage))
         {
             DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[3];
+        }
+        else if (navPageType == typeof(SettingsPage))
+        {
+            DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[4];
         }
     }
 }

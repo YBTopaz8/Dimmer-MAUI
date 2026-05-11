@@ -73,7 +73,7 @@ namespace DimmerDroid.Droid
 
         private static readonly ExceptionFilterPolicy _filterPolicy = new ExceptionFilterPolicy();
 
-        private static void CurrentDomain_FirstChanceException(
+        private static async void CurrentDomain_FirstChanceException(
             object? sender,
             System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
         {
@@ -100,7 +100,7 @@ namespace DimmerDroid.Droid
 
                 // Print to Debug Console
                 Debug.WriteLine(errorDetails);
-
+                //await Shell.Current.DisplayAlertAsync("Fatal Error", e.Exception.Message, "OK");
                 // Log to file
                LogException(e.Exception);
             } catch(Exception ex)

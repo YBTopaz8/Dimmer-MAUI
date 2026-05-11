@@ -20,13 +20,8 @@ public partial class LoginViewModel : ObservableObject
 
     [ObservableProperty]
     public partial bool RememberMe { get; set; }
-    public static bool IsAuthenticated
-    {
-        get
-        {
-            return !string.IsNullOrEmpty(ParseClient.Instance.CurrentUser?.SessionToken);
-        }
-    }
+    [ObservableProperty]
+    public partial bool IsAuthenticated { get; set; }
 
     [ObservableProperty]
     public partial bool IsLoginEnabled { get; set; } = true;
@@ -78,11 +73,12 @@ public partial class LoginViewModel : ObservableObject
 
         if (result.IsSuccess)
         {
+            IsAuthenticated= true;
             await InitializeAsync();
             SelectedIndex= 1;
 
             // Navigate to the main part of the app
-             await Shell.Current.GoToAsync("//DimmerHomeCenter");
+             //await Shell.Current.GoToAsync(nameof(DimmerHomeCenter));
         }
         else
         {
@@ -149,8 +145,8 @@ public partial class LoginViewModel : ObservableObject
     public async Task<bool> InitializeAsync()
     {
         if(Connectivity.NetworkAccess == NetworkAccess.Internet)
-        {     
-
+        {
+            if (CurrentUserOnline is not null && CurrentUserOnline.IsAuthenticated) return true;
             await _authService.AutoLoginAsync();
             if(ParseClient.Instance?.CurrentUser is null)
             {
@@ -158,11 +154,13 @@ public partial class LoginViewModel : ObservableObject
             }
             CurrentUserOnline = new UserModelOnline(ParseClient.Instance.CurrentUser);
             CurrentUserOnline.IsAuthenticated = ParseClient.Instance.CurrentUser.SessionToken != null;
+            IsAuthenticated = CurrentUserOnline.IsAuthenticated;
             Debug.WriteLine(ParseClient.Instance.CurrentUser?.SessionToken+" SessTok");
             return CurrentUserOnline.IsAuthenticated;
         }
         if (ParseClient.Instance?.CurrentUser is not null)
         {
+            
             return true;
         }
         return false;

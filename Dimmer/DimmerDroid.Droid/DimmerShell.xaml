@@ -15,48 +15,56 @@
                                       Light=#FFFFFF}"
     FlyoutBackgroundColor="{AppThemeBinding Dark=#1C1C1C,
                                             Light=#FFFFFF}"
-    Shell.FlyoutBehavior="Flyout">
+    Shell.FlyoutBehavior="Flyout"
+    >
 
     <ShellContent
         Title="Home"
         ContentTemplate="{DataTemplate local:HomePage}"
         FlyoutIcon="house.png"
-        Route="HomePage" />
+        Route="HomePage"
+        />
 
     <ShellContent
         Title="Statistics"
         ContentTemplate="{DataTemplate dimmerStatsPages:AllStats}"
         FlyoutIcon="chartb.png"
-        Route="DimmerStats" />
+        Route="DimmerStats"
+        />
 
     <ShellContent
         Title="Artists"
         ContentTemplate="{DataTemplate artistPages:AllArtistsPage}"
         FlyoutIcon="artistt.png"
-        Route="AllArtistsPage" />
+        Route="AllArtistsPage"
+        />
 
     <ShellContent
         Title="Albums"
         ContentTemplate="{DataTemplate albumPages:AllAlbumsPage}"
         FlyoutIcon="musicalbum.png"
-        Route="AllAlbumsPage" />
+        Route="AllAlbumsPage"
+        />
 
     <ShellContent
         Title="LastFM"
         ContentTemplate="{DataTemplate lastFMPages:LastFMHomePage}"
         FlyoutIcon="lastfmsmoll.png"
-        Route="LastFM" />
+        Route="LastFMHomePage"
+        />
 
     <ShellContent
         Title="Dimmer Cloud"
-        ContentTemplate="{DataTemplate dimmerCloudPages:DimmerLiveLogin}"
+        ContentTemplate="{DataTemplate dimmerCloudPages:DimmerHomeCenter}"
         FlyoutIcon="cloudbolt.png"
-        Route="DimmerLiveLoginRoute" />
+        Route="DimmerHomeCenter"
+        />
 
     <ShellContent
         Title="Settings"
         ContentTemplate="{DataTemplate settingsPages:SettingsPage}"
         FlyoutIcon="settings.png"
-        Route="SettingsPage" />
+        Route="SettingsPage"
+        />
 
 </Shell>

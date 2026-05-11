@@ -12,7 +12,7 @@ public class StatsRecalculator
         _logger = logger;
     }
 
-    public void RecalculateAllStatistics()
+    public async Task RecalculateAllStatisticsAsync()
     {
         var sw = Stopwatch.StartNew();
         _logger.LogInformation($"{DateTime.Now} Starting recalculation of all statistics...");
@@ -26,7 +26,7 @@ public class StatsRecalculator
         //------------------------------------------
         foreach (var chunk in allSongs.Chunk(500))
         {
-            _realm.Write(() =>
+            _realm.WriteAsync(() =>
             {
                 foreach (var song in chunk)
                 {
@@ -133,7 +133,7 @@ public class StatsRecalculator
             //------------------------------------------
             // PHASE 2 — ALBUM-LEVEL STATISTICS
             //------------------------------------------
-            _realm.Write(() =>
+           await _realm.WriteAsync(() =>
             {
                 foreach (var album in allAlbums)
                 {

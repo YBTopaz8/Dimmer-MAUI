@@ -9,7 +9,7 @@
 		<UseMaui>true</UseMaui>
 		<Nullable>enable</Nullable>
 		<LangVersion>preview</LangVersion>
-		<Version>1.9.0</Version>
+		<Version>1.9.2</Version>
 
 
 
@@ -51,18 +51,19 @@
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 
 
+		<PackageReference Include="Syncfusion.Maui.Toolkit" Version="1.0.9" />
 		<PackageReference Include="System.Linq.Dynamic.Core" Version="1.7.2" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.6" />
 		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.6" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.51" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.6" />
 		<PackageReference Include="SkiaSharp" Version="3.119.2" />
+		
 		<PackageReference Include="System.Reactive" Version="6.1.0" />
 		<PackageReference Include="System.Reactive.Core" Version="6.1.0" />
 		<PackageReference Include="System.Reactive.Interfaces" Version="6.1.0" />
 		<PackageReference Include="System.Reactive.Linq" Version="6.1.0" />
 		<PackageReference Include="System.Reactive.PlatformServices" Version="6.1.0" />
-
 
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
 		<PackageReference Include="CommunityToolkit.Maui" Version="14.1.0" />

@@ -14,11 +14,7 @@ public sealed partial class AlbumPage : Page
     {
         InitializeComponent();
 
-        this.NavigationCacheMode = NavigationCacheMode.Enabled;
 
-        _compositor = ElementCompositionPreview.GetElementVisual(this).Compositor;
-
-        _rootVisual = ElementCompositionPreview.GetElementVisual(this);
     }
 
     private readonly Microsoft.UI.Composition.Visual _rootVisual;
@@ -35,38 +31,26 @@ public sealed partial class AlbumPage : Page
         base.OnNavigatedTo(e);
         //DetailedSong = DetailedSong is null ? MyViewModel.SelectedSong : DetailedSong;
 
-        if (e.Parameter is BaseViewModelWin args)
-        {
-            MyViewModel = args; 
-            DetailedSong = args.SelectedSong!;
-        }
-        this.DataContext = MyViewModel;
-        MyLastFMViewModel = IPlatformApplication.Current!.Services.GetService<LastFMViewModel>()!;
+        //if (e.Parameter is BaseViewModelWin args)
+        //{
+        //    MyViewModel = args; 
+        //    DetailedSong = args.SelectedSong!;
+        //}
+        //this.DataContext = MyViewModel;
+        //MyLastFMViewModel = IPlatformApplication.Current!.Services.GetService<LastFMViewModel>()!;
 
-        MyViewModel.IsBackButtonVisible = WinUIVisibility.Visible;
+        //MyViewModel.IsBackButtonVisible = WinUIVisibility.Visible;
 
 
-        var ss = MyViewModel.RealmFactory.GetRealmInstance().Find<SongModel>(DetailedSong.Id)!.Album ;
+        //var ss = MyViewModel.RealmFactory.GetRealmInstance().Find<SongModel>(DetailedSong.Id)!.Album ;
 
-        SelectedAlbum = MyViewModel.RealmFactory.GetRealmInstance().Find<SongModel>(DetailedSong.Id)!.Album.ToAlbumModelView(withArtist: true, withSongs: true)!; ;
+        //SelectedAlbum = MyViewModel.RealmFactory.GetRealmInstance().Find<SongModel>(DetailedSong.Id)!.Album.ToAlbumModelView(withArtist: true, withSongs: true)!; ;
 
-        MyViewModel.SetSelectedAlbum (SelectedAlbum);
-        MyViewModel.SelectedLastFMAlbum = await MyLastFMViewModel.LastFMService.GetAlbumInfoAsync(DetailedSong.ArtistName, SelectedAlbum!.Name);
-        AnimationHelper.TryStart(
-      DestinationElement,
-      null,
-      AnimationHelper.Key_Forward
-  );
+        //MyViewModel.SetSelectedAlbum (SelectedAlbum);
+        //MyViewModel.SelectedLastFMAlbum = await MyLastFMViewModel.LastFMService.GetAlbumInfoAsync(DetailedSong.ArtistName, SelectedAlbum!.Name);
+        
 
-        try
-        {
 
-            
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex.Message);
-        }
 
     }
 
@@ -90,16 +74,7 @@ public sealed partial class AlbumPage : Page
     private void Grid_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
         var prop = e.GetCurrentPoint((UIElement)sender).Properties;
-        if (prop != null && prop.IsXButton1Pressed)
-        {
-            
-            if (Frame.CanGoBack)
-            {
-                AnimationHelper.Prepare(AnimationHelper.Key_DetailToListFromAlbum,
-               DestinationElement, AnimationHelper.ConnectedAnimationStyle.ScaleDown);
-                Frame.GoBack();
-            }
-        }
+       
     }
 
     private void CoverImageAlbumPage_Loaded(object sender, RoutedEventArgs e)
@@ -107,7 +82,7 @@ public sealed partial class AlbumPage : Page
         var UriSource = DetailedSong?.Album?.ImagePath;
         if (!string.IsNullOrEmpty(UriSource))
         {
-            CoverImageAlbumPage.Source = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(UriSource));
+            //CoverImageAlbumPage.Source = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(UriSource));
         }
 
     }
@@ -115,30 +90,12 @@ public sealed partial class AlbumPage : Page
     private void Page_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
         var props = e.GetCurrentPoint((UIElement)sender).Properties;
-        if (props != null)
-        {
-            if (props.IsXButton1Pressed)
-            {
- 
-                if (Frame.CanGoBack)
-                {
-                    AnimationHelper.Prepare(AnimationHelper.Key_DetailToListFromAlbum,
-                DestinationElement, AnimationHelper.ConnectedAnimationStyle.ScaleDown);
-                    Frame.GoBack();
-                }
-            }
-        }
+       
     }
 
     private void Back_Click(object sender, RoutedEventArgs e)
     {
-        // Standard navigation back
-        if (Frame.CanGoBack)
-        {
-            AnimationHelper.Prepare(AnimationHelper.Key_DetailToListFromAlbum,
-               DestinationElement, AnimationHelper.ConnectedAnimationStyle.ScaleDown);
-            Frame.GoBack();
-        }
+       
     }
 
     private void MyPageGrid_Loaded(object sender, RoutedEventArgs e)
@@ -307,11 +264,11 @@ public sealed partial class AlbumPage : Page
         var songFrameworkElement = (FrameworkElement)sender;
         var selectedSong = songFrameworkElement.DataContext as SongModelView;
 
-        var row = ArtistDataTable.ContainerFromItem(selectedSong) as FrameworkElement;
-        var image = PlatUtils.FindVisualChild<Image>(row, "coverArtImage");
-        if (image == null) return;
+        //var row = ArtistDataTable.ContainerFromItem(selectedSong) as FrameworkElement;
+        //var image = PlatUtils.FindVisualChild<Image>(row, "coverArtImage");
+        //if (image == null) return;
 
-        ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("ArtistToSongDetailsAnim", image);
+        //ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("ArtistToSongDetailsAnim", image);
 
 
 
@@ -338,31 +295,33 @@ public sealed partial class AlbumPage : Page
             song = currentSong;
         }
 
-        var songs = ArtistDataTable.Items;
+        //var songs = ArtistDataTable.Items;
 
 
 
-        var SongsEnumerable = songs.OfType<SongModelView>();
+        //var SongsEnumerable = songs.OfType<SongModelView>();
 
-        if (song != null)
-        {
+        //if (song != null)
+        //{
 
-            Debug.WriteLine($"Double-tapped on song: {song.Title}");
-            await MyViewModel.PlaySongWithActionAsync(song,PlaybackAction.PlayNow, SongsEnumerable);
-        }
+        //    Debug.WriteLine($"Double-tapped on song: {song.Title}");
+        //    await MyViewModel.PlaySongWithActionAsync(song,PlaybackAction.PlayNow, SongsEnumerable);
+        //}
     }
 
     private void DestinationElement_Loaded(object sender, RoutedEventArgs e)
     {
 
-        AnimationHelper.TryStart(DestinationElement,null, AnimationHelper.Key_ToAlbumPage);
+        //AnimationHelper.TryStart(DestinationElement,null, AnimationHelper.Key_ToAlbumPage);
     }
 
     private void ArtistsInAlbumIR_Loaded(object sender, RoutedEventArgs e)
     {
-        ArtistsInAlbumIR.ItemsSource = MyViewModel.RealmFactory.GetRealmInstance()
-            .Find<AlbumModel>(MyViewModel.SelectedAlbum.Id)
-            .Artists.DistinctBy(x => x.Name).ToObservableCollection();
+        if (MyViewModel is null) return;
+        if (MyViewModel.SelectedAlbum is null) return;
+        //ArtistsInAlbumIR.ItemsSource = MyViewModel.RealmFactory.GetRealmInstance()
+        //    .Find<AlbumModel>(MyViewModel.SelectedAlbum.Id)
+        //    .Artists.DistinctBy(x => x.Name).ToObservableCollection();
     }
 
     private void ArtistBtn_Click(object sender, RoutedEventArgs e)

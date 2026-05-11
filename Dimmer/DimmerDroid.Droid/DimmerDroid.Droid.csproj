@@ -100,6 +100,10 @@
 	  <Compile Update="DimmerShell.xaml.cs">
 	    <DependentUpon>DimmerShell.xaml</DependentUpon>
 	  </Compile>
+	
+	  <Compile Update="Views\CustomViews\NowPlayingView.xaml.cs">
+	    <DependentUpon>NowPlayingView.xaml</DependentUpon>
+	  </Compile>
 	  
 	</ItemGroup>
 
@@ -122,10 +126,19 @@
 	  <MauiXaml Update="Views\Artist\ArtistPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\CustomViews\NowPlayingBottomSheet.xaml">
+	  <MauiXaml Update="Views\CustomViews\NowPlayingView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\CustomViews\PlaybackQueueBtmSheet.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\CustomViews\SingleSongInCVPopup.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\CustomViews\SongLyricsDownloadPopup.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\CustomViews\SyncLyricsBtmSheetView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\DimmerCloud\DimmerHomeCenter.xaml">
@@ -140,14 +153,14 @@
 	  <MauiXaml Update="Views\LastFM\LastFMHomePage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\LastFM\LastFMLogin.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
 	  <MauiXaml Update="Views\Settings\SettingsPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\SingleSong\DetailsOverview.xaml">
 	  
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\SingleSong\SyncLyricsView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>

@@ -88,7 +88,7 @@ public static class CollectionSortHelper
     {
         // Handle null ReleaseYear by sorting them to the beginning or end.
         // Here, nulls will typically sort before non-nulls in ascending.
-        return Sort(songs, song => song.ReleaseYear ?? int.MinValue, order); // Or int.MaxValue for descending to put them last
+        return Sort(songs, song => song.ReleaseYear > 0 ? song.ReleaseYear : int.MinValue, order); // Or int.MaxValue for descending to put them last
     }
 
     public static ObservableCollection<SongModelView> SortByDateAdded(ObservableCollection<SongModelView> songs, SortOrder order = SortOrder.Asc)

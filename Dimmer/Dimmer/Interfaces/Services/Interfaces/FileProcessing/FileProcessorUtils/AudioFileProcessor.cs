@@ -173,7 +173,7 @@ public class AudioFileProcessor : IAudioFileProcessor
                 BitRate = track.Bitrate,
                 FileFormat = Path.GetExtension(filePath).TrimStart('.').ToLowerInvariant(),
                 // Tag Info
-                ReleaseYear = track.Year,
+                ReleaseYear = track.Year is null ? 0 : (int)track.Year,
                 TrackNumber = track.TrackNumber,
                 DiscNumber = track.DiscNumber,
                 DiscTotal = track.DiscTotal,

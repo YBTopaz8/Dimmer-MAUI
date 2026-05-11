@@ -62,6 +62,49 @@ public partial class MainActivity : MauiAppCompatActivity
         // Configure JsonSerializer for mobile
         ConfigureJsonOptions();
     }
+
+    private void CheckAndRequestPermissions()
+    {
+        if (!AndroidPermissionsService.HasAudioPermissions())
+        {
+            // Show UI explanation? Or just request
+            AndroidPermissionsService.RequestAudioPermissions(this, REQUEST_AUDIO_PERMS);
+        }
+        if (!AndroidPermissionsService.HasStoragePermissions())
+
+        {
+            AndroidPermissionsService.RequestStoragePermissions(this, REQUEST_STORAGE_PERMS);
+        }
+
+        // Permissions already granted, load music
+        InitializeAppLogic();
+
+    }
+
+    private void InitializeAppLogic()
+    {
+        Task.Run(async () =>
+        {
+            try
+            {
+                var startTime = Java.Lang.JavaSystem.CurrentTimeMillis();
+
+                MyViewModel.InitializeAllVMCoreComponents();
+
+                var duration = Java.Lang.JavaSystem.CurrentTimeMillis() - startTime;
+                Console.WriteLine($"InitializeAppLogic took {duration}ms");
+                if (duration > 2000)
+                    Android.Util.Log.Warn("ANR_WARNING", $"OnCreate took {duration}ms - ANR risk!");
+            }
+            catch (Exception ex)
+            {
+                await Shell.Current.DisplayAlertAsync("Fatal Error Init Logic", ex.Message, "ok");
+                Console.WriteLine($"VM INIT CRASH: {ex}");
+                Android.Util.Log.Error("DIMMER_INIT", ex.ToString());
+            }
+        });
+    }
+
     public static JsonSerializerOptions JsonOptions => _jsonOptions;
     private static JsonSerializerOptions _jsonOptions;
     private void ConfigureJsonOptions()
@@ -180,26 +223,56 @@ public partial class MainActivity : MauiAppCompatActivity
     [System.Runtime.Versioning.SupportedOSPlatform("android33.0")]
     private void SetupBackNavigationApi33()
     {
-       
-            // The dangerous code lives exclusively in here
-            _onBackInvokedCallback = new BackInvokedCallback(async () =>
-        {
-            if (MyViewModel.IsNowPlayingBtmSheetOpened)
+
+        // The dangerous code lives exclusively in here
+        _onBackInvokedCallback = new BackInvokedCallback(async () =>
+    {
+    if (MyViewModel.IsNowPlayingBtmSheetOpened)
+    {
+        return;
+    }
+    if (Shell.Current.CurrentPage.GetType() == typeof(HomePage))
+
+    {
+            if(MyViewModel.HomePageIndex != 0)
             {
+                MyViewModel.HomePageIndex = 0;
                 return;
             }
-            if (Shell.Current.CurrentPage.GetType() == typeof(HomePage))
-
+        new MaterialAlertDialogBuilder(this)?
+                                .SetTitle("Exit App")?
+                                .SetMessage("Close Application?")?
+                                .SetPositiveButton(
+            "Exit",
+            async (s, e) =>
             {
-                new MaterialAlertDialogBuilder(this)?
-                                    .SetTitle("Exit App")?
-                                    .SetMessage("Close Application?")?
-                                    .SetPositiveButton(
-                "Exit",
-                async (s, e) =>
+                await MyViewModel.OnAppClosingAsync();
+                FinishAffinity();
+            })
+            .SetNegativeButton(
+                "Cancel",
+                (s, e) =>
+                { /* Do nothing */
+                })
+            .Show();
+        return;
+    }
+    switch (Shell.Current.CurrentPage.Title)
+    {
+
+        case "All Artists":
+        case "AllAlbumsPage":
+        case "LastFM":
+
+            new MaterialAlertDialogBuilder(this)?
+                            .SetTitle("Confirm action")?
+                            .SetMessage("Return to Home Page?")?
+                            .SetPositiveButton(
+                "Confirm",
+                    async (s, e) =>
                 {
-                    await MyViewModel.OnAppClosingAsync();
-                    FinishAffinity();
+                    await Shell.Current.GoToAsync("//HomePage");
+
                 })
                 .SetNegativeButton(
                     "Cancel",
@@ -207,53 +280,30 @@ public partial class MainActivity : MauiAppCompatActivity
                     { /* Do nothing */
                     })
                 .Show();
-                return;
-            }
-            switch (Shell.Current.CurrentItem.Title)
-            {
+            break;
 
-                case "Artists":
-                case "LastFM":
+        case "Settings":
 
-                    new MaterialAlertDialogBuilder(this)?
-                                .SetTitle("Confirm action")?
-                                .SetMessage("Return to Home Page?")?
-                                .SetPositiveButton(
-                    "Confirm",
-                        async (s, e) =>
-                    {
-                                        await Shell.Current.GoToAsync("//HomePage");
-                        
-                    })
-                    .SetNegativeButton(
-                        "Cancel",
-                        (s, e) =>
-                        { /* Do nothing */
-                        })
-                    .Show();
-                    break;
+            new MaterialAlertDialogBuilder(this)?
+                        .SetTitle("Confirm action")?
+                        .SetMessage("Return to Home Page?")?
+                        .SetPositiveButton(
+            "Confirm",
+                async (s, e) =>
+                {
+                    await Shell.Current.GoToAsync("//HomePage");
 
-                case "Settings":
+                })
+            .SetNegativeButton(
+                "Cancel",
+                (s, e) =>
+                { /* Do nothing */
+                })
+            .Show();
+            break;
 
-                new MaterialAlertDialogBuilder(this)?
-                            .SetTitle("Confirm action")?
-                            .SetMessage("Return to Home Page?")?
-                            .SetPositiveButton(
-                "Confirm",
-                    async (s, e) =>
-                    {
-                                        await Shell.Current.GoToAsync("//HomePage");
-
-                    })
-                .SetNegativeButton(
-                    "Cancel",
-                    (s, e) =>
-                    { /* Do nothing */
-                    })
-                .Show();
-                break;
-
-                default:
+        default:
+            Debug.WriteLine(Shell.Current.Items.Count);
                     //await Shell.Current.Navigation.PopAsync(true);
                     await  Shell.Current.GoToAsync("..");
                     break;
@@ -270,47 +320,6 @@ public partial class MainActivity : MauiAppCompatActivity
         );
 
 
-    }
-
-    private void CheckAndRequestPermissions()
-    {
-        if (!AndroidPermissionsService.HasAudioPermissions())
-        {
-            // Show UI explanation? Or just request
-            AndroidPermissionsService.RequestAudioPermissions(this, REQUEST_AUDIO_PERMS);
-        }
-        if (!AndroidPermissionsService.HasStoragePermissions())
-
-        {
-            AndroidPermissionsService.RequestStoragePermissions(this, REQUEST_STORAGE_PERMS);
-        }
-        
-            // Permissions already granted, load music
-            InitializeAppLogic();
-        
-    }
-
-    private void InitializeAppLogic()
-    {
-        Task.Run(() =>
-        {
-            try
-            {
-                var startTime = Java.Lang.JavaSystem.CurrentTimeMillis();
-
-                MyViewModel.InitializeAllVMCoreComponents();
-
-                var duration = Java.Lang.JavaSystem.CurrentTimeMillis() - startTime;
-                Console.WriteLine($"InitializeAppLogic took {duration}ms");
-                if (duration > 2000)
-                    Android.Util.Log.Warn("ANR_WARNING", $"OnCreate took {duration}ms - ANR risk!");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"VM INIT CRASH: {ex}");
-                Android.Util.Log.Error("DIMMER_INIT", ex.ToString());
-            }
-        });
     }
 
 

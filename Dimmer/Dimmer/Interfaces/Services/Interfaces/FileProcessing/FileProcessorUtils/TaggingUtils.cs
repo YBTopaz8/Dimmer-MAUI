@@ -322,7 +322,10 @@ public static class TaggingUtils
         }
 
         // Use standard System.IO logic for Windows/standard paths
-        try { return new FileInfo(path).Length; }
+        try 
+        { 
+            return new FileInfo(path).Length;
+        }
         catch { return 0; }
     }
     public static Task<List<string>> GetAllAudioFilesFromPathsAsync(

@@ -43,6 +43,11 @@
                         <FontIcon Glyph="&#xE93C;" />
                     </SelectorBarItem.Icon>
                 </SelectorBarItem>
+                <SelectorBarItem x:Name="SelectorBarItemLastFM" Text="Last FM">
+                    <SelectorBarItem.Icon>
+                        <FontIcon Glyph="&#xE93C;" />
+                    </SelectorBarItem.Icon>
+                </SelectorBarItem>
                 <SelectorBarItem x:Name="SelectorBarItemSettings" Text="Settings">
                     <SelectorBarItem.Icon>
                         <FontIcon Glyph="&#xE713;" />

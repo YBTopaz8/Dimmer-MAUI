@@ -60,7 +60,9 @@ public partial class LoginViewModelWin : LoginViewModel
             if (CurrentUserOnline is null) return;
             if (CurrentUserOnline.IsAuthenticated)
             {
-                BaseViewModel.NavigateToAnyPageOfGivenType(typeof(CloudDataPage));
+                Dictionary<string, object> param = new Dictionary<string, object>();
+                param.Add("loginVM", this);
+                BaseViewModel.NavigateToAnyPageOfGivenType(typeof(CloudDataPage),param);
             }
             else
             {

@@ -32,6 +32,13 @@ public class AstParser
     }
     private IQueryNode ParseAddRemove()
     {
+        if (Match(TokenType.Exclude, TokenType.Remove))
+        {
+            var right = ParseExpression();
+            // Implicitly put a "matchall" on the left
+            var implicitLeft = new ClauseNode("any", "matchall", "");
+            return new LogicalNode(implicitLeft, LogicalOperator.And, new NotNode(right));
+        }
         var left = ParseExpression(); // Parse the next level up
 
         while (Match(TokenType.Add, TokenType.Include, TokenType.Remove, TokenType.Exclude))

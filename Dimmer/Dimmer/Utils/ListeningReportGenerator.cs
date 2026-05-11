@@ -306,7 +306,7 @@ public class ListeningReportGenerator
         var daysListened = _scrobblesInPeriod.Select(p => p.EventDate.Value.Date).Distinct().Count();
         var totalDaysInPeriod = Math.Max(1, (_endDate.Date - _startDate.Date).Days);
         double consistency = (double)daysListened / totalDaysInPeriod * 100;
-        return new DimmerStats { StatTitle = "Consistency", Value = Math.Round(consistency, 1) };
+        return new DimmerStats { StatTitle = "Consistency", DoubleValue = Math.Round(consistency, 1) };
     }
 
     public DimmerStats? GetDiscoveryRate()
@@ -317,13 +317,13 @@ public class ListeningReportGenerator
 
         var artistsInPeriod = _songsInPeriod.Where(s => s.Artist != null).Select(s => s.Artist.Id).Distinct().ToHashSet();
         if (artistsInPeriod.Count == 0)
-            return new DimmerStats { StatTitle = "Discovery Rate", Value = 0 };
+            return new DimmerStats { StatTitle = "Discovery Rate", DoubleValue = 0 };
 
         var allPastArtistIds = _allSongs.Where(s => s.Artist != null && s.FirstPlayed < _startDate).Select(s => s.Artist.Id).ToHashSet();
         int newArtistsCount = artistsInPeriod.Count(id => !allPastArtistIds.Contains(id));
         double discoveryRate = (double)newArtistsCount / artistsInPeriod.Count * 100;
 
-        return new DimmerStats { StatTitle = "Discovery Rate", Value = Math.Round(discoveryRate, 1) };
+        return new DimmerStats { StatTitle = "Discovery Rate", DoubleValue = Math.Round(discoveryRate, 1) };
     }
 
     public DimmerStats? GetVariance()
@@ -333,7 +333,7 @@ public class ListeningReportGenerator
             return null;
 
         var uniqueTagsCount = _songsInPeriod.SelectMany(s => s.Tags).Select(t => t.Name).Distinct().Count();
-        return new DimmerStats { StatTitle = "Variance", Value = uniqueTagsCount };
+        return new DimmerStats { StatTitle = "Variance", DoubleValue = uniqueTagsCount };
     }
 
     public DimmerStats? GetConcentration()
@@ -348,11 +348,11 @@ public class ListeningReportGenerator
             .ToDictionary(g => g.Key, g => g.Sum(song => _songPlayCounts.GetValueOrDefault(song.Id, 0)));
 
         if (artistPlayCounts.Count == 0)
-            return new DimmerStats { StatTitle = "Concentration", Value = 0 };
+            return new DimmerStats { StatTitle = "Concentration", DoubleValue = 0 };
 
         double topArtistPlays = artistPlayCounts.Values.Max();
         double concentration = (topArtistPlays / _scrobblesInPeriod.Count()) * 100;
-        return new DimmerStats { StatTitle = "Concentration", Value = Math.Round(concentration, 1) };
+        return new DimmerStats { StatTitle = "Concentration", DoubleValue = Math.Round(concentration, 1) };
     }
 
     public DimmerStats? GetReplayRate()
@@ -362,7 +362,7 @@ public class ListeningReportGenerator
             return null;
 
         double replayRate = _scrobblesInPeriod.Count() > _songPlayCounts.Count ? (double)(_scrobblesInPeriod.Count() - _songPlayCounts.Count) / _scrobblesInPeriod.Count() * 100 : 0;
-        return new DimmerStats { StatTitle = "Replay Rate", Value = Math.Round(replayRate, 1) };
+        return new DimmerStats { StatTitle = "Replay Rate", DoubleValue = Math.Round(replayRate, 1) };
     }
 
     // --- QUICK FACTS ---
@@ -382,7 +382,7 @@ public class ListeningReportGenerator
         {
             StatTitle = "Total Listening Time",
             TimeSpanValue = TimeSpan.FromSeconds(totalSeconds),
-            Value = Math.Round(totalSeconds / 3600, 1) // in hours
+            DoubleValue = Math.Round(totalSeconds / 3600, 1) // in hours
         };
     }
 
@@ -394,7 +394,7 @@ public class ListeningReportGenerator
 
         var daysInPeriod = Math.Max(1, (_endDate - _startDate).TotalDays);
         double avgScrobbles = _scrobblesInPeriod.Count() / daysInPeriod;
-        return new DimmerStats { StatTitle = "Average Scrobbles/Day", Value = Math.Round(avgScrobbles, 1) };
+        return new DimmerStats { StatTitle = "Average Scrobbles/Day", DoubleValue = Math.Round(avgScrobbles, 1) };
     }
 
     public DimmerStats? GetMostActiveDay()
@@ -461,7 +461,7 @@ public class ListeningReportGenerator
             }
         }
 
-        return new DimmerStats { StatTitle = "Music Eddington Number", Value = eddingtonNumber };
+        return new DimmerStats { StatTitle = "Music Eddington Number", DoubleValue = eddingtonNumber };
     }
     public List<DimmerStats>? GetTopGenres()
     {
@@ -486,7 +486,7 @@ public class ListeningReportGenerator
             .Select(g => g.Max(e => e.PositionInSeconds))
             .DefaultIfEmpty(0)
             .Average();
-        return new DimmerStats { StatTitle = "Avg Session Length", Value = Math.Round(sessions / 60, 1) };
+        return new DimmerStats { StatTitle = "Avg Session Length", DoubleValue = Math.Round(sessions / 60, 1) };
     }
     public List<DimmerStats>? GetTopDevices() =>
     _scrobblesInPeriod

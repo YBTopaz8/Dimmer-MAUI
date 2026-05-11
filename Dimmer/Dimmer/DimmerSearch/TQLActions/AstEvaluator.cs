@@ -7,13 +7,13 @@ namespace Dimmer.DimmerSearch.TQLActions;
 public class AstEvaluator
 {
 
-    public Func<SongModelView, bool> CreatePredicate(IQueryNode rootNode)
+    public Func<SongModel, bool> CreatePredicate(IQueryNode rootNode)
     {
         return song => Evaluate(rootNode, song);
     }
 
     private readonly Random _random = new();
-    private bool Evaluate(IQueryNode node, SongModelView song) => node switch
+    private bool Evaluate(IQueryNode node, SongModel song) => node switch
     {
         LogicalNode n => EvaluateLogical(n, song),
         NotNode n => !Evaluate(n.NodeToNegate, song),
@@ -24,7 +24,7 @@ public class AstEvaluator
         _ => true
     };
 
-    private bool EvaluateLogical(LogicalNode node, SongModelView song)
+    private bool EvaluateLogical(LogicalNode node, SongModel song)
     {
         bool leftResult = Evaluate(node.Left, song);
         if (node.Operator == LogicalOperator.And && !leftResult)
@@ -34,7 +34,7 @@ public class AstEvaluator
         return Evaluate(node.Right, song);
     }
 
-    private bool EvaluateClause(ClauseNode node, SongModelView song)
+    private bool EvaluateClause(ClauseNode node, SongModel song)
     {
         if (node.Operator == "matchall")
             return true;
@@ -248,7 +248,7 @@ public class AstEvaluator
         }
     }
 
-    private bool EvaluateFuzzyDate(FuzzyDateNode node, SongModelView song)
+    private bool EvaluateFuzzyDate(FuzzyDateNode node, SongModel song)
     {
         // --- FIX: We must look up the real property name from the alias in the node.
         if (!FieldRegistry.FieldsByAlias.TryGetValue(node.DateField, out var fieldDef))
@@ -297,7 +297,7 @@ public class AstEvaluator
         return false;
     }
 
-    private bool EvaluateDaypart(DaypartNode node, SongModelView song)
+    private bool EvaluateDaypart(DaypartNode node, SongModel song)
     {
         // --- FIX: We must look up the real property name from the alias in the node.
         if (!FieldRegistry.FieldsByAlias.TryGetValue(node.DateField, out var fieldDef))

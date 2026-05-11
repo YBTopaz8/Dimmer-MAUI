@@ -7,18 +7,18 @@ public static class SemanticQueryHelpers
 {
     // This is a thread-safe dictionary that will act as our high-speed cache.
     // It stores the super-fast functions we are about to create.
-    // The key will be a string like "SongModelView.Title"
-    // The value will be a compiled delegate like Func<SongModelView, object>
+    // The key will be a string like "SongModel.Title"
+    // The value will be a compiled delegate like Func<SongModel, object>
     private static readonly ConcurrentDictionary<string, Delegate> _accessorCache = new();
 
     /// <summary>
     /// This is the core of our performance optimization.
-    /// It takes a type (like SongModelView) and a property name (like "Title" or "Genre.Name")
+    /// It takes a type (like SongModel) and a property name (like "Title" or "Genre.Name")
     /// and returns a pre-compiled, lightning-fast function to get that property's value.
     /// The slow work of finding the property is only done ONCE. After that, it's retrieved
     /// from the cache.
     /// </summary>
-    /// <typeparam name="T">The type of the object to get the property from (e.g., SongModelView).</typeparam>
+    /// <typeparam name="T">The type of the object to get the property from (e.g., SongModel).</typeparam>
     /// <typeparam name="TResult">The expected return type of the property (we use 'object' for flexibility).</typeparam>
     /// <param name="propertyName">The name of the property, supporting nesting like "Genre.Name".</param>
     /// <returns>A compiled function that gets the property value.</returns>
@@ -99,17 +99,10 @@ public static class SemanticQueryHelpers
         );
     }
 
-    public static string GetStringProp(SongModelView song, string name)
-    {
-        // Get the super-fast accessor for this property (e.g., "Title").
-        var accessor = GetAccessor<SongModelView, object>(name);
-        // Run the fast function and safely convert the result to a string.
-        return accessor(song) as string ?? "";
-    }
-    public static DateTimeOffset? GetDateProp(SongModelView song, string propertyName)
+    public static DateTimeOffset? GetDateProp(SongModel song, string propertyName)
     {
         // Get the super-fast accessor for this property.
-        var accessor = GetAccessor<SongModelView, object>(propertyName);
+        var accessor = GetAccessor<SongModel, object>(propertyName);
 
         // Run the fast function.
         var value = accessor(song);
@@ -122,24 +115,49 @@ public static class SemanticQueryHelpers
 
         return null;
     }
-    public static double GetNumericProp(SongModelView song, string name)
+    public static string GetStringProp(SongModel song, string name)
     {
-        var accessor = GetAccessor<SongModelView, object>(name);
-        // Run the fast function and safely convert to double. '0' is the default if null.
-        return Convert.ToDouble(accessor(song) ?? 0);
+        return name switch
+        {
+            nameof(SongModel.Title) => song.Title ?? "",
+            nameof(SongModel.OtherArtistsName) => song.OtherArtistsName ?? "",
+            nameof(SongModel.AlbumName) => song.AlbumName ?? "",
+            nameof(SongModel.GenreName) => song.GenreName ?? "",
+            nameof(SongModel.FilePath) => song.FilePath ?? "",
+            _ => GetAccessor<SongModel, object>(name)(song) as string ?? ""
+        };
     }
 
-    public static bool GetBoolProp(SongModelView song, string name)
+    public static double GetNumericProp(SongModel song, string name)
     {
-        var accessor = GetAccessor<SongModelView, object>(name);
-        // Run the fast function and safely convert to bool. 'false' is the default if null.
-        return Convert.ToBoolean(accessor(song) ?? false);
+        return name switch
+        {
+            nameof(SongModel.DurationInSeconds) => song.DurationInSeconds,
+            nameof(SongModel.ReleaseYear) => song.ReleaseYear is null ? 0:(double)song.ReleaseYear,
+            nameof(SongModel.PlayCount) => song.PlayCount,
+            nameof(SongModel.PlayCompletedCount) => song.PlayCompletedCount,
+            nameof(SongModel.SkipCount) => song.SkipCount,
+            nameof(SongModel.Rating) => song.Rating,
+            nameof(SongModel.BitRate) => song.BitRate is null ? 0 : (double)song.BitRate,
+            _ => Convert.ToDouble(GetAccessor<SongModel, object>(name)(song) ?? 0)
+        };
+    }
+
+    public static bool GetBoolProp(SongModel song, string name)
+    {
+        return name switch
+        {
+            nameof(SongModel.IsFavorite) => song.IsFavorite,
+            nameof(SongModel.HasLyrics) => song.HasLyrics,
+            nameof(SongModel.HasSyncedLyrics) => song.HasSyncedLyrics,
+            _ => Convert.ToBoolean(GetAccessor<SongModel, object>(name)(song) ?? false)
+        };
     }
 
     // This is used for sorting. It also benefits from the fast accessor.
-    public static IComparable? GetComparableProp(SongModelView song, string name)
+    public static IComparable? GetComparableProp(SongModel song, string name)
     {
-        var accessor = GetAccessor<SongModelView, object>(name);
+        var accessor = GetAccessor<SongModel, object>(name);
         var propValue = accessor(song);
 
         // If the property is null, return a default value to avoid crashes during sorting.

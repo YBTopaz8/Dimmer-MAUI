@@ -34,7 +34,7 @@ public class DimmerBackupService
     }
 
     // Save individual backup files (legacy support)
-    public void SaveBackUp(string logContent, string name, string fileExt, string? secondPath = null)
+    public bool SaveBackUp(string logContent, string name, string fileExt, string? secondPath = null)
     {
         try
         {
@@ -70,14 +70,24 @@ public class DimmerBackupService
             }
 
             Debug.WriteLine($"Backup saved: {fileName}");
+            return true;
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"Backup write failed: {ex}");
+            return false;
         }
     }
+    public class BackUpCompleteResult
+    {
+        public string AppVersion { get; set; } = string.Empty;
+        public int FavoriteBackedUp { get; set; }
+        public int PlayEventsBackedUp { get; set; }
+        public DateTimeOffset BackupDate { get; set; }
+        public bool IsBackUpComplete { get; set; }
+    }
     // New method: Create complete backup
-    public async Task<bool> CreateCompleteBackupAsync(string? secondPath =null)
+    public async Task<BackUpCompleteResult> CreateCompleteBackupAsync(string AppVersion,string? secondPath =null )
     {
         try
         {
@@ -107,23 +117,33 @@ public class DimmerBackupService
                 FavoriteSongs = favoriteSongs,
                 PlayEvents = playEvents,
                 BackupDate = DateTime.Now,
-                Version = "1.0"
+                Version = AppVersion 
             };
 
             // Serialize to JSON
             var json = Newtonsoft.Json.JsonConvert.SerializeObject(backupData, Newtonsoft.Json.Formatting.Indented);
 
             // Save as single file
-            SaveBackUp(json, "CompleteBackup", "json",secondPath);
+            if(  SaveBackUp(json, "CompleteBackup", "json",secondPath))
+            {
+                return new BackUpCompleteResult()
+                {
+                    AppVersion = AppVersion,
+                    BackupDate = backupData.BackupDate,
+                    FavoriteBackedUp = backupData.FavoriteSongs.Count,
+                    IsBackUpComplete = true,
+                    PlayEventsBackedUp = backupData.PlayEvents.Count
+                };
+            }
 
-        
+            return new BackUpCompleteResult();
 
-            return true;
+
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"Complete backup failed: {ex}");
-            return false;
+            return new BackUpCompleteResult();
         }
     }
 
@@ -326,7 +346,7 @@ public class DimmerBackupService
 
 
     // Restore complete data to Realm
-    public async Task<bool> RestoreCompleteDataAsync(CompleteBackupData data, RestoreResult result)
+    public async Task<RestoreResult> RestoreCompleteDataAsync(CompleteBackupData data, RestoreResult result)
     {
         var realm = RealmFactory.GetRealmInstance();
 
@@ -433,7 +453,7 @@ public class DimmerBackupService
             }
         });
 
-        return true;
+        return result;
     }
     
 

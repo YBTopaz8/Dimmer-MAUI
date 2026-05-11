@@ -97,9 +97,9 @@
 			<PackageReference Include="CommunityToolkit.WinUI.Extensions" Version="8.2.251219" />
 			<PackageReference Include="CommunityToolkit.WinUI.Helpers" Version="8.2.251219" />
 			<PackageReference Include="CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.1.2" />
-			<PackageReference Include="Syncfusion.Maui.Toolkit" Version="1.0.9" />
 			<PackageReference Include="WinUI.TableView" Version="1.4.0" />
 			<PackageReference Include="Xabe.FFmpeg" Version="6.0.2" />
+			
 			<PackageReference Include="Xabe.FFmpeg.Downloader" Version="6.0.2" />
 		</ItemGroup>
 		<ItemGroup>

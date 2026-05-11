@@ -1,70 +1,51 @@
-using AndroidX.Lifecycle;
-using ATL;
-using DevExpress.Maui.Core;
-using Dimmer.Data.Models.LyricsModels;
-using DynamicData;
-using Java.Interop;
+global using ATL;
+global using CommunityToolkit.Maui.Alerts;
+global using CommunityToolkit.Maui.Core;
+global using DevExpress.Maui.Core;
+global using Dimmer.Data.Models.LyricsModels;
+global using Font = Microsoft.Maui.Font;
+global using Toast = CommunityToolkit.Maui.Alerts.Toast;
+using Hqub.Lastfm.Entities;
+
 
 namespace Dimmer.Views.SingleSong;
 
 public partial class DetailsOverview : ContentPage
 {
-	public DetailsOverview(BaseViewModelAnd baseViewModel, StatisticsViewModel statisticsService, LastFMViewModel lastFMVM)
+
+
+    public DetailsOverview(BaseViewModelAnd baseViewModel, StatisticsViewModel statisticsService, LastFMViewModel lastFMVM)
 	{
 		InitializeComponent();
 		MyViewModel = baseViewModel;
         StatsViewModel= statisticsService;
         LastFMViewModel = lastFMVM;
-		
+
+
 	}
     public BaseViewModelAnd MyViewModel { get; }
     public StatisticsViewModel StatsViewModel { get; }
     public LastFMViewModel LastFMViewModel { get; }
- 
+    public SongModelView ConcernedSong { get; private set; }
 
     protected async override void OnAppearing()
     {
         base.OnAppearing();
+        if (MyViewModel.SelectedSong is null) return;
         BindingContext = MyViewModel.SelectedSong;
-        StatisticsStackLayout.BindingContext = StatsViewModel;
 
-        if(MyViewModel.IsSearchingLyrics)
-        {
-            SongTabView.SelectedItemIndex = 1;
-        }
+        StatsSectionPreview.BindingContext = StatsViewModel;
 
-        _ = StatsViewModel.LoadSongStatsAsync(MyViewModel.SelectedSong);
-        _ = LastFMViewModel.LoadSelectedSongLastFMData();
-    }
-
-
-          private void SongTitleLabel_SizeChanged(object sender, EventArgs e)
-    {
-        double startX = TitleLabel.Width;
-        double endX = -TitleLabel.Width;
-
-        //now marquee the text
-        var animation = new Animation(v => TitleLabel.TranslationX = v, startX, endX);
-        animation.Commit(this, "MarqueeAnimation", 16, 10000, Easing.Linear, (v, c) => TitleLabel.TranslationX = startX, () => true);
         
     }
 
-    private void LyricsTabVSL_Loaded(object sender, EventArgs e)
+    protected override void OnDisappearing()
     {
-        LyricsTabVSL.BindingContext = MyViewModel;
+        MyViewModel.CleanLyricsSearchProps();
+        base.OnDisappearing();
     }
-
-    private void SongTabView_PropertyChanging(object sender, Microsoft.Maui.Controls.PropertyChangingEventArgs e)
-    {
-        var propName = e.PropertyName;
-        if(propName == nameof(SongTabView.SelectedItemIndex))
-        {
-            if(SongTabView.SelectedItemIndex==0)
-            {
-                MyViewModel.ReadySearchViewAndProduceSearchText();
-            }
-        }
-    }
+      
+ 
 
    
 
@@ -80,48 +61,9 @@ public partial class DetailsOverview : ContentPage
 
     }
 
-    private async void SearchLyricsBtn_Clicked(object sender, EventArgs e)
-    {
-        await MyViewModel.SearchLyricsAndLoadLyricsIfFoundAsync();
-    }
+   
 
-    private async void ApplyLyrics_Clicked(object sender, EventArgs e)
-    {
-        var onlineResult = ((DXButton)sender).CommandParameter as LrcLibLyrics;
-        if(onlineResult == null)
-            return;
-        var newSyncLyricsInfo = new LyricsInfo();
-        var newUnSyncLyrics = new LyricsInfo();
-        string? fetchedLrcData = onlineResult.SyncedLyrics;
-        string? plainLyrics = onlineResult.PlainLyrics;
-        if (!string.IsNullOrWhiteSpace(fetchedLrcData))
-        {
-            newSyncLyricsInfo.Parse(fetchedLrcData);
-            newUnSyncLyrics.Parse(plainLyrics);
-        }
-        else
-        {
-            newUnSyncLyrics.UnsynchronizedLyrics = plainLyrics;
-        }
-
-        fetchedLrcData = onlineResult.SyncedLyrics;
-        plainLyrics = onlineResult.PlainLyrics;
-
-        // Save the new lyrics back to the file metadata
-        bool saved = await MyViewModel.LyricsMetadataService.SaveLyricsToDB(onlineResult.Instrumental, plainLyrics, MyViewModel.SelectedSong.ToSongModel()!, fetchedLrcData, newSyncLyricsInfo);
-        if(saved)
-        {
-            MyViewModel.SelectedSong!.SyncLyrics = onlineResult.SyncedLyrics;
-            MyViewModel.SelectedSong!.UnSyncLyrics = onlineResult.PlainLyrics;
-
-            var songInCollection = MyViewModel.SearchResults.First(x=>x.Id == MyViewModel.SelectedSong.Id);
-            MyViewModel.SearchResultsHolder.Edit(updater =>
-            {
-                updater.Replace(songInCollection, MyViewModel.SelectedSong);
-            });
-        }
-    }
-
+   
     private async void AlbumChip_Tap(object sender, HandledEventArgs e)
     {
         var chip = (Chip)sender;
@@ -145,6 +87,40 @@ public partial class DetailsOverview : ContentPage
         var chip = ((Chip)sender);
         var chipX = chip.X;
         var chipY = chip.Y;
+        if(this.ConcernedSong.ArtistToSong.Count==1)
+        {
+            MyViewModel.SetSelectedArtist(ConcernedSong.Artist);
+
+            await Shell.Current.GoToAsync(nameof(ArtistPage));
+            return;
+        }
         await ArtistToSongPopup.ShowAsync(this);
+    }
+
+    
+   
+
+    private void ActionsRadarChart_SelectionChanged(object sender, DevExpress.Maui.Charts.SelectionChangedEventArgs e)
+    {
+        
+    }
+
+    private void DetailPagesShimmerView_Loaded(object sender, EventArgs e)
+    {
+        ConcernedSong = MyViewModel.SelectedSong!;
+        _ = Task.Run(() =>
+        {
+
+            _ = StatsViewModel.LoadSongStatsAsync(MyViewModel.SelectedSong);
+            _ = LastFMViewModel.LoadSelectedSongLastFMData();
+        });
+    }
+
+    private async void EditLyrics_Clicked(object sender, EventArgs e)
+    {
+        SongLyricsDownloadPopup popup = new SongLyricsDownloadPopup(MyViewModel, MyViewModel.CurrentPlayingSongView);
+
+        await popup.ShowAsync();
+
     }
 }
