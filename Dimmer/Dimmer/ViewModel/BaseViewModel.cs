@@ -1794,7 +1794,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
     [ObservableProperty]
     public partial string AppTitle { get; set; } = "Dimmer";
 
-    public static string CurrentAppVersion = "1.9.2";
+    public static string CurrentAppVersion = "1.9.3";
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]

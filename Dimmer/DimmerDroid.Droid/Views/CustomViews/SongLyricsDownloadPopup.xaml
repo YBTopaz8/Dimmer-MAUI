@@ -13,8 +13,9 @@
     xmlns:vm="clr-namespace:Dimmer.ViewModels"
     AllowScrim="True"
     CloseOnScrimTap="True"
+    Opened="DXPopup_Opened"
     >
-    <dx:DXScrollView HeightRequest="500">
+    <dx:DXScrollView>
 
         <dx:DXStackLayout
             x:Name="LyricsTabVSL"

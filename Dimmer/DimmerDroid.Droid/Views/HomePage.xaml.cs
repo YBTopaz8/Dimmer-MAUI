@@ -1,6 +1,7 @@
 
-global using View = Microsoft.Maui.Controls.View;
 global using Dimmer.Views.CustomViews;
+global using View = Microsoft.Maui.Controls.View;
+using Android.Views.InputMethods;
 using Dimmer.Utilities;
 
 
@@ -95,7 +96,10 @@ public partial class HomePage : ContentPage
 
     private void SearchBtn_Clicked(object sender, EventArgs e)
     {
-        MainPageTabView.SelectedItemIndex = 0;
+        InputMethodManager? imm = (InputMethodManager?)MainApplication.Context.GetSystemService(Activity.InputMethodService);
+        var view = SearchText.Handler?.PlatformView as Android.Views.View;
+        imm?.ShowSoftInput(view, ShowFlags.Implicit);
+
     }
 
     private void SongInCVTapGR_Tapped(object sender, TappedEventArgs e)
