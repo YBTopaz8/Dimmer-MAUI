@@ -361,7 +361,7 @@ public class LastfmService : ILastfmService
                         newUsr.LastFMAccountInfo.Country=userInfo.Country;
                         newUsr.LastFMAccountInfo.Url=userInfo.Url;
                         newUsr.LastFMAccountInfo.Type=userInfo.Type;
-                        newUsr.LastFMAccountInfo.Registered=userInfo.Registered;
+                        newUsr.LastFMAccountInfo.Registered= new DateTimeOffset( userInfo.Registered);
                         newUsr.LastFMAccountInfo.Playlists = userInfo.Playlists;
                         realmm.Add(newUsr, update: true);   
                     }

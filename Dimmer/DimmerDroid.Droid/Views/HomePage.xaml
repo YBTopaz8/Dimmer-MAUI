@@ -888,8 +888,6 @@
                         x:Name="PlaybackQueueCV"
                         ItemSpacing="8"
                         ItemsSource="{Binding PlaybackQueue}"
-                        MaximumHeightRequest="450"
-                        Scrolled="PlaybackQueueCV_Scrolled"
                         >
                         <dx:DXCollectionView.ItemTemplate>
                             <DataTemplate x:DataType="models:SongModelView">

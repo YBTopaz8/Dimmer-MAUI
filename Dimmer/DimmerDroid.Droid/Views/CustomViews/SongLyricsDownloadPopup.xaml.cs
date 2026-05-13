@@ -8,8 +8,6 @@ public partial class SongLyricsDownloadPopup : DXPopup
         MyViewModel = myViewModel;
         ConcernedSong = concernedSong;
 
-        MyViewModel.CleanLyricsSearchProps();
-        MyViewModel.AutoFillSearchFields();
 
     }
     SongModelView ConcernedSong;
@@ -192,4 +190,16 @@ public partial class SongLyricsDownloadPopup : DXPopup
         }
     }
 
+    private void DXPopup_Loaded(object sender, EventArgs e)
+    {
+
+        
+    }
+
+    private void DXPopup_Opened(object sender, EventArgs e)
+    {
+        MyViewModel.CleanLyricsSearchProps();
+        MyViewModel.AutoFillSearchFields();
+
+    }
 }

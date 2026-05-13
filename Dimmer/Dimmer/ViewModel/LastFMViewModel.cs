@@ -39,26 +39,27 @@ public partial class LastFMViewModel : ObservableObject
 
                    IsLastfmAuthenticated = isAuthenticated;
                    LastFMName = lastfmService.AuthenticatedUser ?? "Not Logged In";
-                   if (isAuthenticated)
-                   {
-                       lastFMCOmpleteLoginBtnVisible = false;
-                       LastFMLoginBtnVisible = false;
+                   //if (isAuthenticated)
+                   //{
+                   //    lastFMCOmpleteLoginBtnVisible = false;
+                   //    LastFMLoginBtnVisible = false;
 
-                       var lastFMRealm = RealmFactory.GetRealmInstance();
-                       var currentUser = lastFMRealm
-                       .All<UserModel>().FirstOrDefaultNullSafe();
-                       await lastFMRealm.WriteAsync(() =>
-                       {
-                           if ((!string.IsNullOrEmpty(lastfmService.AuthenticatedUser)) && currentUser is not null)
-                           {
-                               currentUser.UserName ??= !string.IsNullOrEmpty(lastfmService.AuthenticatedUser) ?
-                      lastfmService.AuthenticatedUser : "NewUser_" + DateTimeOffset.UtcNow.ToString();
-                               currentUser.LastFMAccountInfo ??= LastFMUserInfo.ToLastFMUser()!;
+                   //    var lastFMRealm = RealmFactory.GetRealmInstance();
+                   //    var currentUser = lastFMRealm
+                   //    .All<UserModel>().FirstOrDefaultNullSafe();
+                   //    await lastFMRealm.WriteAsync(() =>
+                   //    {
+                   //        if ((!string.IsNullOrEmpty(lastfmService.AuthenticatedUser)) && currentUser is not null)
+                   //        {
+                   //            currentUser.UserName ??= !string.IsNullOrEmpty(lastfmService.AuthenticatedUser) ?
+                   //   lastfmService.AuthenticatedUser : "NewUser_" + DateTimeOffset.UtcNow.ToString();
+                   //            currentUser.LastFMAccountInfo ??= LastFMUserInfo.ToLastFMUser()!;
 
-                               CurrentUserLocal.Username ??= lastfmService.AuthenticatedUser;
-                           }
-                       });
-                   }
+                   //            CurrentUserLocal.Username ??= lastfmService.AuthenticatedUser;
+                   //        }
+                   //    });
+                   //}
+               
                })
            .DisposeWith(CompositeDisposables);
 
@@ -76,58 +77,66 @@ public partial class LastFMViewModel : ObservableObject
 
     public void LoadBaseViewModel(BaseViewModel baseVM)
     {
-        if (_baseViewModel is null)
+        try
         {
-            _baseViewModel = baseVM;
+            if (_baseViewModel is null)
+            {
+                _baseViewModel = baseVM;
 
-            lastfmService.Start();
-            _baseViewModel.WhenPropertyChange(
-         nameof(_baseViewModel.IsBackGrounded),
-         isBG => (_baseViewModel.IsBackGrounded))
-         .ObserveOn(RxSchedulers.UI)
-         .Subscribe(
-             async isBg =>
-             {
-                 if (!isBg)
+                lastfmService.Start();
+                _baseViewModel.WhenPropertyChange(
+             nameof(_baseViewModel.IsBackGrounded),
+             isBG => (_baseViewModel.IsBackGrounded))
+             .ObserveOn(RxSchedulers.UI)
+             .Subscribe(
+                 async isBg =>
                  {
-                     if (WindowActivationRequestTypeStatic == "Confirm LastFM")
+                     if (!isBg)
                      {
-                         await CompleteLastFMLoginAsync();
+                         if (WindowActivationRequestTypeStatic == "Confirm LastFM")
+                         {
+                             await CompleteLastFMLoginAsync();
+                         }
                      }
-                 }
 
-             });
-            _baseViewModel.WhenPropertyChange(
-         nameof(_baseViewModel.ScrobblePreviousSongToLastFM),
-         isBG => (_baseViewModel.ScrobblePreviousSongToLastFM))
-         .ObserveOn(RxSchedulers.UI)
-         .Subscribe(
-             async isBg =>
-             {
-                 if (isBg && IsLastfmAuthenticated && _baseViewModel.SongToScrobble is not null)
+                 });
+                _baseViewModel.WhenPropertyChange(
+             nameof(_baseViewModel.ScrobblePreviousSongToLastFM),
+             isBG => (_baseViewModel.ScrobblePreviousSongToLastFM))
+             .ObserveOn(RxSchedulers.UI)
+             .Subscribe(
+                 async isBg =>
                  {
+                     if (isBg && IsLastfmAuthenticated && _baseViewModel.SongToScrobble is not null)
+                     {
 
-                     await lastfmService.ScrobbleAsync(_baseViewModel!.SongToScrobble);
-                 }
+                         await lastfmService.ScrobbleAsync(_baseViewModel!.SongToScrobble);
+                     }
 
-             });
-            _baseViewModel.WhenPropertyChange(
-         nameof(_baseViewModel.ScrobbleNextSongToLastFM),
-         isBG => (_baseViewModel.ScrobbleNextSongToLastFM))
-         .ObserveOn(RxSchedulers.UI)
-         .Subscribe(
-             async scrobbleNextSongToLastFM =>
-             {
-                 if (scrobbleNextSongToLastFM && IsLastfmAuthenticated && _baseViewModel.SongToScrobble is not null)
+                 });
+                _baseViewModel.WhenPropertyChange(
+             nameof(_baseViewModel.ScrobbleNextSongToLastFM),
+             isBG => (_baseViewModel.ScrobbleNextSongToLastFM))
+             .ObserveOn(RxSchedulers.UI)
+             .Subscribe(
+                 async scrobbleNextSongToLastFM =>
                  {
+                     if (scrobbleNextSongToLastFM && IsLastfmAuthenticated && _baseViewModel.SongToScrobble is not null)
+                     {
 
-                     await lastfmService.ScrobbleAsync(_baseViewModel!.SongToScrobble);
-                 }
+                         await lastfmService.ScrobbleAsync(_baseViewModel!.SongToScrobble);
+                     }
 
-             });
+                 });
 
-             _= LoadLastFMSession();
-            CurrentUserLocal = _baseViewModel.CurrentUserLocal;
+                _ = LoadLastFMSession();
+                CurrentUserLocal = _baseViewModel.CurrentUserLocal;
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+            
         }
     }
     [ObservableProperty]
@@ -217,12 +226,21 @@ public partial class LastFMViewModel : ObservableObject
             CurrentUserLocal.LastFMAccountInfo.Playlists = usr.Playlists;
             CurrentUserLocal.LastFMAccountInfo.Registered = usr.Registered;
             CurrentUserLocal.LastFMAccountInfo.Gender = usr.Gender;
-            CurrentUserLocal.LastFMAccountInfo.Image ??= new LastImageView()
-            {
-                Url = usr.Images.LastOrDefault()?.Url
-            ,
-                Size = usr.Images.LastOrDefault()?.Size
-            };
+                CurrentUserLocal.LastFMAccountInfo.Image ??= new LastImageView()
+                ;
+                var lastUsrImgUrl = usr.Images.LastOrDefault()?.Url;
+                if ( !string.IsNullOrEmpty(lastUsrImgUrl))
+                {
+                    CurrentUserLocal.LastFMAccountInfo.Image.Url = lastUsrImgUrl;
+                }
+             
+                var lastUsrImgSize= usr.Images.LastOrDefault()?.Size;
+                if ( !string.IsNullOrEmpty(lastUsrImgSize))
+                {
+                    CurrentUserLocal.LastFMAccountInfo.Image.Size = lastUsrImgSize;
+                }
+             
+            
 
             var rlm = RealmFactory.GetRealmInstance();
             await rlm.WriteAsync(
