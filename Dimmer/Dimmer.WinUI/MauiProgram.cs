@@ -1,12 +1,13 @@
 ﻿
 
-using Dimmer.WinUI.NativeServices;
-using Dimmer.WinUI.ViewModel.DimmerLiveWin;
-using Dimmer.WinUI.Views.WinuiPages.Achievements;
-using Dimmer.WinUI.Views.WinuiPages.Artist;
-using Dimmer.WinUI.Views.WinuiPages.DimmerLive;
-using Dimmer.WinUI.Views.WinuiPages.LastFMSection;
-using Dimmer.WinUI.Views.WinuiPages.SingleSongPage;
+global using Dimmer.WinUI.NativeServices;
+global using Dimmer.WinUI.ViewModel.DimmerLiveWin;
+global using Dimmer.WinUI.Views.WinuiPages.Achievements;
+global using Dimmer.WinUI.Views.WinuiPages.Artist;
+global using Dimmer.WinUI.Views.WinuiPages.DimmerLive;
+global using Dimmer.WinUI.Views.WinuiPages.LastFMSection;
+global using Dimmer.WinUI.Views.WinuiPages.SingleSongPage;
+global using Dimmer.WinUI.Views.WinuiPages.Utilities;
 using Microsoft.Maui.Handlers;
 
 namespace Dimmer.WinUI;
@@ -106,6 +107,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<SocialViewModelWin>();
         builder.Services.AddSingleton<HomePage>();
         builder.Services.AddSingleton<AllSongsListPage>();
+        builder.Services.AddSingleton<DimmerToolKit>();
         builder.Services.AddSingleton<ArtistPage>();
         builder.Services.AddSingleton<DimmerMAUIWin>();
         builder.Services.AddSingleton<AlbumPage>();

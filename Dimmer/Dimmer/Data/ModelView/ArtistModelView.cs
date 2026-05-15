@@ -83,6 +83,6 @@ public partial class ArtistModelView : ObservableObject
 
     [ObservableProperty]
     public partial ObservableCollection<string> ListOfSimilarArtistsNames { get;  set; }
-    public ObservableCollection<SongModelView?> SongsByArtist { get;  set; }
+    public ObservableCollection<SongModelView?>? SongsByArtist { get;  set; }
     public ObservableCollection<Artist>? ListOfSimilarArtists { get; set; }
 }

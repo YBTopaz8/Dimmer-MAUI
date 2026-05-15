@@ -245,7 +245,7 @@ public sealed partial class SettingsPage : Page
         var path = button.DataContext as string;
         if (path is null) return;
         if (MyViewModel is null) return;
-        MyViewModel.BaseViewModelWin.ShowIndeterminateProgressBar();
+
         await MyViewModel.ReScanMusicFolderByPassingToService(path);
     }
 

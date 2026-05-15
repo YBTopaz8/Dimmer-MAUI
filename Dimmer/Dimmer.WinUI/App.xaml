@@ -35,6 +35,8 @@
             <converters:StringToImageSourceConverter x:Key="StringToImageConverter" />
             <converters:IsObjNullToVisInverseConverter x:Key="IsObjNullToVisInverseConverter" />
             <converters:BoolToHeartColorConverter x:Key="BoolToHeartColorConverter" />
+            <converters:EnumToIntConver x:Key="EnumToIntConver" />
+            <converters:EnumToStringConver x:Key="EnumToStringConver" />
 
             <converters:BoolToInverseConverter x:Key="BoolToInverseConverter" />
             <converters:IsObjNullToVisConverter x:Key="IsObjNullToVisConverter" />

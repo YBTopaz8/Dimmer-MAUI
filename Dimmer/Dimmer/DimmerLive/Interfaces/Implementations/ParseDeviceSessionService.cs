@@ -194,7 +194,7 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
     public async Task SyncDeviceStateAsync()
     {
 
-
+        return;
 
         if (ParseUser.CurrentUser == null) return;
 

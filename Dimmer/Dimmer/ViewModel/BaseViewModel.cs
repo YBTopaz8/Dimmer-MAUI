@@ -180,6 +180,12 @@ Observable.FromEventPattern<PlaybackEventArgs>(
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(OnSeekCompleted, ex => _logger.LogError(ex, "Error in SeekCompleted subscription"))
             .DisposeWith(_subsManager);
+
+        _duplicateSource
+        .Connect()
+        .Bind(out _duplicateSets)
+        .Subscribe();
+
     }
 
 
@@ -860,7 +866,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
             }
             
             await PerformBackgroundInitializationAsync();
-           await this.FindDuplicatesAsync();
+           //await this.FindDuplicatesAsync();
         }
         catch (Exception ex )
         {
@@ -1794,14 +1800,13 @@ Observable.FromEventPattern<PlaybackEventArgs>(
     [ObservableProperty]
     public partial string AppTitle { get; set; } = "Dimmer";
 
-    public static string CurrentAppVersion = "1.9.3";
+    public static string CurrentAppVersion = "1.9.4";
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]
     public partial SongModelView CurrentPlayingSongView { get; set; }
 
-    [ObservableProperty]
-    public partial SongModelView? PreviousSongInCarousel { get; set; }
+
 
     [ObservableProperty]
     public partial SongModelView? NextSongInCarousel { get; set; }
@@ -3512,7 +3517,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
            
 
         }
-        else if (IsDimmerPlaying && CurrentPlayingSongView != null && (CurrentTrackPositionPercentage >= 90 || !IsSkipYes))
+        else if (IsDimmerPlaying && CurrentPlayingSongView?.TitleDurationKey != null && (CurrentTrackPositionPercentage >= 90 || !IsSkipYes))
         {
             await BaseAppFlow.UpdateDatabaseWithPlayEvent(
                 
@@ -5276,7 +5281,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
     public partial bool IsFindingDuplicates { get; set; }
 
     [ObservableProperty]
-    public partial bool UseTitleCriteria { get; set; }
+    public partial bool UseTitleCriteria { get; set; } = true;
 
     [ObservableProperty]
     public partial bool UseArtistCriteria { get; set; }
@@ -5339,6 +5344,20 @@ Observable.FromEventPattern<PlaybackEventArgs>(
             IsBusy = false;
         }
     }
+
+    public void SaveUpdatedActionForDuplicate(DuplicateItemViewModel dItemVM)
+    {
+        _duplicateSource.Edit(innerList  =>
+        {
+            var dupSetVM= _duplicateSource.Items.FirstOrDefault(x=>x.Items.Contains(dItemVM));
+            var ind = dupSetVM?.Items.FirstOrDefault(item=>item.Id==dItemVM.Id);
+            
+                dupSetVM?.Items.Replace(ind, dItemVM);
+            innerList.Replace(dupSetVM, dupSetVM);
+                
+        });
+    }
+
     [RelayCommand]
     private async Task FindDuplicatesAsync()
     {
@@ -5362,7 +5381,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
             return;
         }
 
-        IsBusy = true;
+        IsFindingDuplicates = true;
         _findDuplicatesCts = new CancellationTokenSource();
         try
         {
@@ -5375,10 +5394,26 @@ Observable.FromEventPattern<PlaybackEventArgs>(
             // 2. Call the new flexible service method
             DuplicateSearchResult? result = await Task.Run(() => _duplicateFinderService.FindDuplicates(criteria, progress));
             //DuplicateSearchResult? result = _duplicateFinderService.FindDuplicates(criteria, progress);
+            if(result.DuplicateSets.Count>0)
+            {
+                IsDuplicateFound = true;
+            
+            _duplicateSource.Edit(innerList =>
+            {
+                innerList.Clear();
+                innerList.AddRange(result.DuplicateSets);
+            });
+            }
+            else
+            {
+                IsDuplicateFound = false;
+                _duplicateSource.Edit(innerList =>
+                {
+                    innerList.Clear();
 
-            // 3. Update the UI with the results
-            _duplicateSource.Clear();
-            _duplicateSource.AddRange(result.DuplicateSets);
+                });
+            }
+
         }
         catch (OperationCanceledException)
         {
@@ -5390,10 +5425,9 @@ Observable.FromEventPattern<PlaybackEventArgs>(
             // Optionally, display an error message to the user
             await Shell.Current.DisplayAlertAsync("Error", "An unexpected error occurred while searching for duplicates.", "OK");
         }
-        finally
-        {
-            IsBusy = false;
-        }
+       
+
+
     }
 
     [ObservableProperty]
@@ -8070,13 +8104,6 @@ Observable.FromEventPattern<PlaybackEventArgs>(
     public partial bool IsLoadingLyrics { get; set; }
     [ObservableProperty]
     public partial bool IsSearchingLyrics { get; set; }
-    
-    [ObservableProperty]
-    public partial bool DimmerProgressBarViewVisible { get; set; }
-    
-    [ObservableProperty]
-    public partial double DimmerProgressBarViewVisibleValue { get; set; }
-
     [RelayCommand]
     public void AppSetupPagePreviousBtnClick()
     {

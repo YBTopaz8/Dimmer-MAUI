@@ -267,12 +267,12 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
 
     private async void ExportAbsentSongsToTxtBtn_Click(object sender, RoutedEventArgs e)
     {
-        var abSentSongs= MyLastFMViewModel.CollectionOfUserLovedTracks?.Where(x=>x.IsOnPresentDevice)?.ToList();
+        var abSentSongs= MyLastFMViewModel.CollectionOfUserLovedTracks?.Where(x=>!x.IsOnPresentDevice)?.ToList();
         string LineText = string.Empty;
         if (abSentSongs is null) return;
         foreach (var song in abSentSongs)
         {
-            LineText = LineText+ $"{song.Name} - {song.Artist.Name} - {song.Album.Name} {Environment.NewLine}";
+            LineText = LineText+ $"{song.Name} - {song.Artist.Name} - {song.Album?.Name} {Environment.NewLine}";
 
         }
 
@@ -313,5 +313,10 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
         }
 
 
+    }
+
+    private void LastFMUname_TextChanged(object sender, Microsoft.UI.Xaml.Controls.TextChangedEventArgs e)
+    {
+        MyLastFMViewModel.LastFMName = LastFMUname.Text;
     }
 }

@@ -109,11 +109,7 @@ public static class AlbumModelViewExtensions
                 .Select(s => s.ToSongModelView())
                 .Where(s => s != null)
                 .ToList();
-
-            foreach (var songView in songViews)
-            {
-                art.SongsByArtist.Add(songView);
-            }
+            art.SongsByArtist.AddRange(songViews);
 
             // Refresh albums
             art.AlbumsByArtist ??= new ObservableCollection<AlbumModelView?>();

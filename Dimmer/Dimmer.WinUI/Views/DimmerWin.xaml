@@ -15,7 +15,8 @@
     Activated="Window_Activated"
     Closed="DimmerWindowClosed"
     SizeChanged="Window_SizeChanged"
-    mc:Ignorable="d">
+    mc:Ignorable="d"
+    >
 
 
 
@@ -26,16 +27,84 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0">
-            <SelectorBar x:Name="DimmerAppSelectorBar" SelectionChanged="DimmerAppSelectorBar_SelectionChanged">
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <StackPanel
+                Grid.Column="0"
+                Orientation="Horizontal"
+                Spacing="5"
+                >
+                <Image
+                    x:Name="CurrentSongImg"
+                    Width="120"
+                    Height="120"
+                    IsTapEnabled="True"
+                    Loaded="CurrentSongImg_Loaded"
+                    Tapped="CurrentSongImg_Tapped"
+                    />
+                <StackPanel x:Name="PlaybackSection">
+                    <TextBlock Text="{x:Bind MyViewModel.CurrentPlayingSongView.Title, Mode=OneWay}" />
+                    <TextBlock Text="{x:Bind MyViewModel.CurrentPlayingSongView.OtherArtistsName, Mode=OneWay}" />
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+
+                        <Button x:Name="PreviousBtn" Command="{x:Bind MyViewModel.PreviousTrackCommand}">
+                            <Button.CommandParameter>
+                                <x:Boolean>False</x:Boolean>
+                            </Button.CommandParameter>
+                            <Button.Content>
+                                <FontIcon Glyph="&#xE892;" />
+                            </Button.Content>
+                        </Button>
+                        <Button x:Name="PlayPauseBtn" Command="{x:Bind MyViewModel.PlayPauseToggleCommand}">
+
+
+                            <Button.Content>
+                                <StackPanel>
+                                    <FontIcon Glyph="&#xE769;" Visibility="{x:Bind MyViewModel.IsDimmerPlayingVisibility, Mode=OneWay}" />
+
+                                    <FontIcon Glyph="&#xF5B0;" Visibility="{x:Bind MyViewModel.IsDimmerPlayingVisibilityInv, Mode=OneWay}" />
+                                </StackPanel>
+                            </Button.Content>
+                        </Button>
+                        <Button x:Name="NextTrackBtn" Command="{x:Bind MyViewModel.NextTrackCommand}">
+                            <Button.CommandParameter>
+                                <x:Boolean>True</x:Boolean>
+                            </Button.CommandParameter>
+                            <Button.Content>
+                                <FontIcon Glyph="&#xE893;" />
+                            </Button.Content>
+                        </Button>
+
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="{x:Bind MyViewModel.CurrentPlayingSongView.AlbumName, Mode=OneWay}" />
+                        <TextBlock Text="{x:Bind MyViewModel.CurrentPlayingSongView.GenreName, Mode=OneWay}" />
+
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{x:Bind MyViewModel.CurrentPlayingSongView.ReleaseYear, Mode=OneWay}" />
+                    </StackPanel>
+                    <TextBlock Text="{x:Bind MyViewModel.CurrentPlayingSongView.PlayCompletedCount, Mode=OneWay}" />
+                </StackPanel>
+            </StackPanel>
+            <SelectorBar
+                x:Name="DimmerAppSelectorBar"
+                Grid.Column="1"
+                HorizontalAlignment="Right"
+                SelectionChanged="DimmerAppSelectorBar_SelectionChanged"
+                >
                 <SelectorBarItem x:Name="SelectorBarItemHome" Text="Home">
                     <SelectorBarItem.Icon>
-                        <SymbolIcon Symbol="MusicInfo" />
+                        <FontIcon Glyph="&#xE90B;" />
                     </SelectorBarItem.Icon>
                 </SelectorBarItem>
                 <SelectorBarItem x:Name="SelectorBarItemArtists" Text="Artists">
                     <SelectorBarItem.Icon>
-                        <SymbolIcon Symbol="Microphone" />
+                        <FontIcon Glyph="&#xE720;" />
                     </SelectorBarItem.Icon>
                 </SelectorBarItem>
                 <SelectorBarItem x:Name="SelectorBarItemAlbums" Text="Albums">
@@ -48,75 +117,42 @@
                         <FontIcon Glyph="&#xE93C;" />
                     </SelectorBarItem.Icon>
                 </SelectorBarItem>
+                <SelectorBarItem x:Name="SelectorBarItemToolBox" Text="Toolkit">
+                    <SelectorBarItem.Icon>
+                        <FontIcon Glyph="&#xEC7A;" />
+                    </SelectorBarItem.Icon>
+                </SelectorBarItem>
                 <SelectorBarItem x:Name="SelectorBarItemSettings" Text="Settings">
                     <SelectorBarItem.Icon>
                         <FontIcon Glyph="&#xE713;" />
                     </SelectorBarItem.Icon>
                 </SelectorBarItem>
             </SelectorBar>
-        </StackPanel>
+        </Grid>
 
 
         <Grid
             x:Name="MainGrid"
             Grid.Row="1"
             Background="Transparent"
-            KeyDown="MainGrid_KeyDown">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="auto" />
-                <RowDefinition Height="auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
+            KeyDown="MainGrid_KeyDown"
+            >
 
-            <Grid Grid.Row="0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="auto" />
-                </Grid.ColumnDefinitions>
-
-                <StackPanel
-                    x:Name="DimmerStatusPanel"
-                    Grid.Column="0"
-                    Margin="5"
-                    Loaded="DimmerStatusPanel_Loaded"
-                    Visibility="{x:Bind MyViewModel.DimmerProgressBarView.Visibility, Mode=OneWay}">
-
-
-                    <ProgressBar
-                        x:Name="DimmerProgressBar"
-                        Margin="10,5"
-                        IsIndeterminate="True"
-                        Loaded="DimmerProgressBar_Loaded"
-                        Visibility="{x:Bind MyViewModel.DimmerProgressBarView.Visibility, Mode=OneWay}"
-                        Value="30" />
-
-                    <TextBlock
-                        x:Name="DimmerStatusTextBlock"
-                        HorizontalAlignment="Center"
-                        Loaded="DimmerStatusTextBlock_Loaded"
-                        Text="{x:Bind MyViewModel.LatestAppLog.Message, Mode=OneWay}"
-                        Visibility="{x:Bind MyViewModel.DimmerProgressBarView.Visibility, Mode=OneWay}" />
-
-
-
-                </StackPanel>
-
-
-            </Grid>
 
 
             <Frame
                 x:Name="ContentFrame"
-                Grid.Row="2"
                 x:FieldModifier="Public"
-                Navigated="ContentFrame_Navigated" />
+                Navigated="ContentFrame_Navigated"
+                />
 
             <localViews:SmokeViewQueueGrid
                 x:Name="SmokeGrid"
                 Grid.RowSpan="3"
                 DismissRequested="SmokeGrid_DismissRequested"
                 Loaded="SmokeGrid_Loaded"
-                Visibility="Collapsed" />
+                Visibility="Collapsed"
+                />
 
         </Grid>
     </Grid>

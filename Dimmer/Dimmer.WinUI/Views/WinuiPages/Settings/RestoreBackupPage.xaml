@@ -13,13 +13,15 @@
     xmlns:modelsDb="clr-namespace:Dimmer.Data.Models;assembly=Dimmer"
     xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
     Padding="10"
-    mc:Ignorable="d">
+    mc:Ignorable="d"
+    >
 
     <ScrollViewer Background="#1e1e1e">
         <StackPanel
             Margin="10,0"
             HorizontalAlignment="Left"
-            Spacing="10">
+            Spacing="10"
+            >
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -29,17 +31,20 @@
                     Grid.Column="0"
                     HorizontalAlignment="Left"
                     Orientation="Horizontal"
-                    Spacing="10">
+                    Spacing="10"
+                    >
                     <TextBlock VerticalAlignment="Center" Text="{x:Bind MyViewModel.SelectedFile, Mode=OneWay}" />
                     <Button
                         x:Name="PickBackupFolder"
                         Click="PickBackupFolder_Click"
-                        Content="PickFolder" />
+                        Content="PickFolder"
+                        />
                 </StackPanel>
                 <Button
                     x:Name="ClosePopup"
                     Grid.Column="1"
-                    Click="ClosePopup_Click">
+                    Click="ClosePopup_Click"
+                    >
                     <SymbolIcon Symbol="Cancel" />
                 </Button>
             </Grid>
@@ -49,7 +54,8 @@
             <Button
                 x:Name="ConfirmRestore"
                 Click="ConfirmRestore_Click"
-                Content="Confirm Restore" />
+                Content="Confirm Restore"
+                />
 
 
             <Expander x:Name="PickedUpBackupExpander">
@@ -65,7 +71,8 @@
                         Height="500"
                         HorizontalAlignment="Center"
                         AutoGenerateColumns="False"
-                        ItemsSource="{x:Bind MyViewModel.PickedUpBackup.PlayEvents, Mode=OneWay}">
+                        ItemsSource="{x:Bind MyViewModel.PickedUpBackup.PlayEvents, Mode=OneWay}"
+                        >
 
                         <dgView:TableView.Columns>
 
@@ -73,7 +80,8 @@
                                 x:Name="CoverImg"
                                 Width="*"
                                 IsReadOnly="True"
-                                ToolTipService.Placement="Mouse">
+                                ToolTipService.Placement="Mouse"
+                                >
                                 <dgView:TableViewTemplateColumn.CellTemplate>
                                     <DataTemplate>
 
@@ -81,7 +89,8 @@
                                             <Image
                                                 Width="50"
                                                 Height="50"
-                                                Source="{Binding CoverImagePath}" />
+                                                Source="{Binding CoverImagePath}"
+                                                />
 
 
                                         </StackPanel>
@@ -98,7 +107,8 @@
                             <dgView:TableViewCheckBoxColumn
                                 Binding="{Binding WasPlayCompleted}"
                                 Header="Was Play Completed"
-                                IsReadOnly="True" />
+                                IsReadOnly="True"
+                                />
                             <dgView:TableViewTextColumn Binding="{Binding PositionInSeconds}" Header="Position (Seconds)" />
                             <dgView:TableViewDateColumn Binding="{Binding EventDate}" Header="Event Date" />
                         </dgView:TableView.Columns>

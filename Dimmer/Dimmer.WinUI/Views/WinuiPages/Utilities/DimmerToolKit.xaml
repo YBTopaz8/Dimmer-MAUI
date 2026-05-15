@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="Dimmer.WinUI.Views.WinuiPages.Utilities.DimmerToolKit"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:animations="using:CommunityToolkit.WinUI.Animations"
+    xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+    xmlns:convertersWinUI="using:Dimmer.WinUI.Utils.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:dgView="using:WinUI.TableView"
+    xmlns:dimmSearch="clr-namespace:Dimmer.Data.ModelView.DimmerSearch;assembly=Dimmer"
+    xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
+    xmlns:libSanity="using:Dimmer.Data.ModelView.LibSanityModels"
+    xmlns:local="using:Dimmer.WinUI.Views.WinuiPages.Utilities"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:media="using:Microsoft.UI.Xaml.Media"
+    xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+    xmlns:modelsDb="clr-namespace:Dimmer.Data.Models;assembly=Dimmer"
+    xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
+    xmlns:queryBuilder="queries"
+    xmlns:tql="clr-namespace:Dimmer.DimmerSearch.TQL;assembly=Dimmer"
+    xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
+    mc:Ignorable="d"
+    >
+
+    <Grid Padding="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" Padding="5">
+            <Button
+                x:Name="ScanDuplicates"
+                Command="{x:Bind MyViewModel.FindDuplicatesCommand}"
+                Content="Scan Duplicates"
+                />
+            <StackPanel
+                BorderBrush="DarkSlateBlue"
+                BorderThickness="1"
+                Visibility="{x:Bind MyViewModel.IsFindingDuplicates, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"
+                >
+                <TextBlock Text="{x:Bind MyViewModel.DuplicateSets.Count, Mode=OneWay}" />
+
+
+            </StackPanel>
+
+            <StackPanel
+                x:Name="DuplicateScannedActionPanel"
+                Orientation="Horizontal"
+                Visibility="{x:Bind MyViewModel.IsDuplicateFound, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"
+                >
+
+                <Button
+                    VerticalAlignment="Center"
+                    Command="{x:Bind MyViewModel.ApplyDuplicateActionsCommand}"
+                    Content="Apply Action"
+                    />
+
+            </StackPanel>
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1">
+            <ItemsRepeater ItemsSource="{x:Bind MyViewModel.DuplicateSets}">
+
+
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate>
+                        <Grid RowSpacing="6">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <StackPanel
+                                Grid.Row="0"
+                                Padding="5"
+                                BorderBrush="DarkSlateBlue"
+                                BorderThickness="1"
+                                Orientation="Horizontal"
+                                >
+
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Title}" />
+                                    <TextBlock Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" />
+                                    <CheckBox Content="Is Resolved" IsChecked="{Binding IsResolved}" />
+                                </StackPanel>
+                                <StackPanel>
+                                    <Image
+                                        Grid.RowSpan="2"
+                                        Width="150"
+                                        Height="150"
+                                        HorizontalAlignment="Center"
+                                        Opacity="0.6"
+                                        >
+                                        <Image.Source>
+                                            <BitmapImage UriSource="{Binding Items[0].Song.CoverImagePath}" />
+                                        </Image.Source>
+                                    </Image>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <dgView:TableView
+                                Grid.Row="1"
+                                AutoGenerateColumns="False"
+                                IsMultiSelectCheckBoxEnabled="True"
+                                ItemsSource="{Binding Items}"
+                                SelectionMode="None"
+                                >
+                                <dgView:TableView.Columns>
+                                    <dgView:TableViewTemplateColumn Width="*" Header="Song">
+                                        <dgView:TableViewTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <StackPanel>
+
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="Date Created" />
+                                                        <TextBlock Text="{Binding Song.DateCreated}" />
+                                                    </StackPanel>
+                                                    <TextBlock Text="{Binding Song.FilePath}" />
+
+
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </dgView:TableViewTemplateColumn.CellTemplate>
+                                    </dgView:TableViewTemplateColumn>
+
+                                    <dgView:TableViewTemplateColumn Header="Artist - Album">
+                                        <dgView:TableViewTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <StackPanel>
+
+                                                    <TextBlock Text="{Binding Song.ArtistName}" />
+                                                    <TextBlock Text="{Binding Song.AlbumName}" />
+
+
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </dgView:TableViewTemplateColumn.CellTemplate>
+                                    </dgView:TableViewTemplateColumn>
+
+                                    <dgView:TableViewTemplateColumn Header="File Size">
+                                        <dgView:TableViewTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <StackPanel>
+
+                                                    <TextBlock Text="{Binding Song.FileSize, Converter={StaticResource BytesToMegabytesConverter}}" />
+
+
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </dgView:TableViewTemplateColumn.CellTemplate>
+                                    </dgView:TableViewTemplateColumn>
+
+                                    <dgView:TableViewTemplateColumn Header="File Format">
+                                        <dgView:TableViewTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <StackPanel>
+
+                                                    <TextBlock Text="{Binding Song.FileFormat}" />
+
+
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </dgView:TableViewTemplateColumn.CellTemplate>
+                                    </dgView:TableViewTemplateColumn>
+
+                                    <dgView:TableViewTemplateColumn Header="Play Stats">
+                                        <dgView:TableViewTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <StackPanel>
+
+                                                    <TextBlock Text="{Binding Song.PlayCompletedCount}" />
+
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="Last Date Played" />
+                                                        <TextBlock Text="{Binding Song.LastPlayed}" />
+                                                    </StackPanel>
+
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </dgView:TableViewTemplateColumn.CellTemplate>
+                                    </dgView:TableViewTemplateColumn>
+
+                                    <dgView:TableViewTextColumn Binding="{Binding Status}" Header="Status" />
+                                    <dgView:TableViewTextColumn Binding="{Binding Reasons}" Header="Reason" />
+
+                                    <dgView:TableViewTemplateColumn Header="Action">
+                                        <dgView:TableViewTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <ComboBox
+                                                    Width="200"
+                                                    PlaceholderText="Pick Action"
+                                                    SelectedItem="{Binding Action, Converter={StaticResource EnumToStringConver}}"
+                                                    SelectionChanged="ActionComboBox_SelectionChanged"
+                                                    >
+                                                    <x:String>Keep</x:String>
+                                                    <x:String>Delete</x:String>
+                                                    <x:String>Do Nothing</x:String>
+
+                                                </ComboBox>
+
+
+                                            </DataTemplate>
+                                        </dgView:TableViewTemplateColumn.CellTemplate>
+                                    </dgView:TableViewTemplateColumn>
+
+                                </dgView:TableView.Columns>
+                            </dgView:TableView>
+                        </Grid>
+
+                    </DataTemplate>
+
+                </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
+
+
+
+        </ScrollViewer>
+    </Grid>
+</Page>
