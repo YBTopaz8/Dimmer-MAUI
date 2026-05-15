@@ -684,7 +684,7 @@ public class LastfmService : ILastfmService
         try
         {
             
-            var res = await _client.User.GetLovedTracksAsync(_username, limit:150)
+            var res = await _client.User.GetLovedTracksAsync(_username, limit:500)
                 ;
           
             return res.ToObservableCollection();

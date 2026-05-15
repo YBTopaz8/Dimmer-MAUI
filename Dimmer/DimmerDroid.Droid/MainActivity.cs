@@ -263,6 +263,7 @@ public partial class MainActivity : MauiAppCompatActivity
         case "All Artists":
         case "AllAlbumsPage":
         case "LastFM":
+            case "LastFMLogin":
 
             new MaterialAlertDialogBuilder(this)?
                             .SetTitle("Confirm action")?

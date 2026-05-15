@@ -16,20 +16,15 @@ public class DuplicateFinderService : IDuplicateFinderService
 
     public DuplicateSearchResult FindDuplicates(DuplicateCriteria criteria, IProgress<string>? progress = null)
     {
-        if (criteria == DuplicateCriteria.None)
-        {
-            return new DuplicateSearchResult(); // Nothing to do
-        }
+        if (criteria == DuplicateCriteria.None) return new DuplicateSearchResult();
 
         using var realm = _realmFactory.GetRealmInstance();
-        // It's better to work with IQueryable as long as possible
         var allSongsQuery = realm.All<SongModel>();
 
         _logger.LogInformation("Starting duplicate scan with criteria: {Criteria}", criteria);
         progress?.Report("Loading all songs from the database...");
 
-        // Materialize the list now that we need to process it
-        List<SongModelView>? allSongsList = allSongsQuery.AsEnumerable().Select(x=>x.ToSongModelView()).ToList();
+        var allSongsList = allSongsQuery.AsEnumerable().Select(x => x.ToSongModelView()).ToList();
 
         var result = new DuplicateSearchResult
         {
@@ -40,9 +35,8 @@ public class DuplicateFinderService : IDuplicateFinderService
 
         progress?.Report($"Grouping {allSongsList.Count} songs by selected criteria...");
 
-        // The magic happens here! We group by our dynamically generated key.
         var duplicateGroups = allSongsList
-            .AsParallel() // Use PLINQ for performance on large libraries
+            .AsParallel()
             .GroupBy(song => GenerateGroupingKey(song, criteria))
             .Where(group => group.Count() > 1)
             .ToList();
@@ -52,33 +46,57 @@ public class DuplicateFinderService : IDuplicateFinderService
 
         foreach (var group in duplicateGroups)
         {
-            if (!group.Any()) continue; // Safety check
+            if (!group.Any()) continue;
 
-            // --- REFACTORED LOGIC ---
-            // Instead of a fixed sort, we now determine the best song based on a score.
+            // 1. Get the best song
             var originalSong = DetermineBestSong(group);
 
-            var set = new DuplicateSetViewModel(
-                originalSong.Title,
-                originalSong.DurationInSeconds
-            );
+            var set = new DuplicateSetViewModel(originalSong.Title, originalSong.DurationInSeconds);
 
-            // Add our designated "Original" to the set
-            set.Items.Add(new DuplicateItemViewModel(originalSong, DuplicateStatus.Original));
+            // 2. Add Original (Reason is None)
+            set.Items.Add(new DuplicateItemViewModel(originalSong, DuplicateStatus.Original, DuplicateReason.None));
 
-            // Add all other songs from the group as "Duplicates"
-            foreach (var duplicateSongModel in group.Where(s => s.Id != originalSong.Id))
+            // 3. Add Duplicates and calculate reasons relative to the Original
+            foreach (var dupSong in group.Where(s => s.Id != originalSong.Id))
             {
-                set.Items.Add(new DuplicateItemViewModel(duplicateSongModel, DuplicateStatus.Duplicate));
+                DuplicateReason reason = DuplicateReason.None;
+
+                // Metadata comparisons
+                if (string.Equals(dupSong.Title, originalSong.Title, StringComparison.OrdinalIgnoreCase))
+                    reason |= DuplicateReason.SameTitle;
+                if (string.Equals(dupSong.ArtistName, originalSong.ArtistName, StringComparison.OrdinalIgnoreCase))
+                    reason |= DuplicateReason.SameArtist;
+                if (string.Equals(dupSong.AlbumName, originalSong.AlbumName, StringComparison.OrdinalIgnoreCase))
+                    reason |= DuplicateReason.SameAlbum;
+
+                // Audio property comparisons (Allow 2 seconds of wiggle room for duration)
+                if (Math.Abs(dupSong.DurationInSeconds - originalSong.DurationInSeconds) <= 2.0)
+                    reason |= DuplicateReason.SimilarDuration;
+                if (dupSong.FileSize == originalSong.FileSize)
+                    reason |= DuplicateReason.SameFileSize;
+
+                // Quality & Location differences
+                if (dupSong.BitRate < originalSong.BitRate)
+                    reason |= DuplicateReason.LowerBitrate;
+
+                var origExt = Path.GetExtension(originalSong.FilePath);
+                var dupExt = Path.GetExtension(dupSong.FilePath);
+                if (!string.Equals(origExt, dupExt, StringComparison.OrdinalIgnoreCase))
+                    reason |= DuplicateReason.DifferentFileFormat;
+
+                var origFolder = Path.GetDirectoryName(originalSong.FilePath);
+                var dupFolder = Path.GetDirectoryName(dupSong.FilePath);
+                if (!string.Equals(origFolder, dupFolder, StringComparison.OrdinalIgnoreCase))
+                    reason |= DuplicateReason.DifferentFolder;
+
+                // Add the duplicate item with calculated reasons
+                set.Items.Add(new DuplicateItemViewModel(dupSong, DuplicateStatus.Duplicate, reason));
             }
-            // --- END REFACTORED LOGIC ---
 
             result.DuplicateSets.Add(set);
         }
 
-        _logger.LogInformation("Finished duplicate scan. Found {Count} sets.", result.DuplicateSets.Count);
         progress?.Report("Scan complete!");
-
         return result;
     }
 
@@ -90,56 +108,92 @@ public class DuplicateFinderService : IDuplicateFinderService
     private SongModelView DetermineBestSong(IEnumerable<SongModelView> duplicateGroup)
     {
         SongModelView? bestSong = null;
-        int highestScore = -1;
+        double highestScore = double.MinValue; // Use double to support fine-grained calculation
 
         foreach (var song in duplicateGroup)
         {
-            int currentScore = 0;
+            double currentScore = 0;
 
-            // --- HEURISTICS & SCORING ---
-            // You can easily add, remove, or change the weights of these criteria.
-
-            // 1. Bitrate: Higher is better. Give a significant boost for high quality.
-
-
-            currentScore += song.BitRate; // e.g., 320kbps adds 320 points
-        
-
-
-        // 2. File Format: Prefer lossless formats.
-        var extension = Path.GetExtension(song.FilePath)?.ToLowerInvariant();
-            if (extension == ".flac" || extension == ".wav" || extension == ".alac")
+            // ==========================================
+            // 1. CRITICAL INTEGRITY (Dealbreakers)
+            // ==========================================
+            if (!song.IsFileExists)
             {
-                currentScore += 500; // Major bonus for being lossless
+                // Heavily penalize missing files so they are targeted for deletion
+                currentScore -= 50000;
             }
 
-            // 3. Metadata Completeness: Reward songs with more complete data.
-            if (song.HasLyrics) currentScore += 50;
-            if (song.IsFavorite) currentScore += 100;
-            if (song.Rating > 0) currentScore += song.Rating * 20; // A 5-star rating adds 100 points
-            if (!string.IsNullOrEmpty(song.CoverImagePath)) currentScore += 75;
+            // ==========================================
+            // 2. USER ENGAGEMENT & DATA PRESERVATION
+            // Extremely important: Deleting songs in playlists or with user notes ruins user data.
+            // ==========================================
+            currentScore += song.PlayCount * 50;
+            currentScore += song.PlayCompletedCount * 100; // Completed plays are higher value
 
-            // 4. File Path: Prefer files in a "canonical" or non-temporary location.
-            // This is subjective and should be configured based on your library structure.
-            if (song.FilePath.Contains(@"D:\Music\Library", StringComparison.OrdinalIgnoreCase))
+            if (song.IsFavorite) currentScore += 1000;
+            currentScore += song.Rating * 200; // 5 stars = +1000 pts
+
+            // Huge bonus if this specific file is attached to custom playlists or user notes
+            if (song.PlaylistsHavingSong?.Any() == true)
+                currentScore += song.PlaylistsHavingSong.Count * 2500;
+
+            if (song.UserNoteAggregatedCol?.Any() == true)
+                currentScore += song.UserNoteAggregatedCol.Count * 1500;
+
+            // ==========================================
+            // 3. AUDIO QUALITY
+            // ==========================================
+            // Bitrate: e.g., 320kbps adds 320 points. 
+            // If Bitrate is stored as raw bps (320000), divide by 1000. Adjust based on your DB values.
+            currentScore += song.BitRate > 1000 ? (song.BitRate / 1000.0) : song.BitRate;
+
+            // BitDepth: 24-bit adds 600 pts, 16-bit adds 400 pts
+            currentScore += song.BitDepth * 25;
+
+            // Preferred Lossless extensions
+            var extension = Path.GetExtension(song.FilePath)?.ToLowerInvariant();
+            if (extension is ".flac" or ".wav" or ".alac")
             {
-                currentScore += 200; // Bonus for being in a preferred folder
-            }
-            if (song.FilePath.Contains(@"Downloads", StringComparison.OrdinalIgnoreCase) || song.FilePath.Contains(@"\Temp\", StringComparison.OrdinalIgnoreCase))
-            {
-                currentScore -= 300; // Penalty for being in a temporary/download folder
+                currentScore += 2000;
             }
 
-            // 5. File Age: Older might mean it's the original import.
-            // This can be a good tie-breaker.
+            // ==========================================
+            // 4. METADATA COMPLETENESS
+            // ==========================================
+            // Synced lyrics are very valuable/hard to get
+            if (song.HasSyncedLyrics || song.EmbeddedSync?.Any() == true) currentScore += 1200;
+            else if (song.HasLyrics) currentScore += 400;
+
+            if (!string.IsNullOrEmpty(song.CoverImagePath)) currentScore += 500;
+            if (!string.IsNullOrEmpty(song.AlbumName)) currentScore += 100;
+            if (!string.IsNullOrEmpty(song.GenreName)) currentScore += 100;
+            if (song.ReleaseYear > 0) currentScore += 100;
+
+            // ==========================================
+            // 5. FILE PATH HEURISTICS
+            // ==========================================
+            if (!string.IsNullOrEmpty(song.FilePath))
+            {
+                // Penalize temporary/download directories
+                if (song.FilePath.Contains("Downloads", StringComparison.OrdinalIgnoreCase) ||
+                    song.FilePath.Contains("\\Temp\\", StringComparison.OrdinalIgnoreCase) ||
+                    song.FilePath.Contains("/temp/", StringComparison.OrdinalIgnoreCase))
+                {
+                    currentScore -= 3000;
+                }
+            }
+
+            // ==========================================
+            // 6. TIE-BREAKER: File Age
+            // ==========================================
             if (song.DateCreated.HasValue)
             {
-                // Give a small bonus for age to act as a tie-breaker
-                // The older the file, the smaller the number of days, the higher the score.
-                currentScore += (int)(DateTime.UtcNow - song.DateCreated.Value).TotalDays / 100;
+                // Older files get slightly higher points (presumed original import)
+                var daysOld = (DateTimeOffset.UtcNow - song.DateCreated.Value).TotalDays;
+                currentScore += Math.Min(daysOld / 10.0, 200); // Cap bonus at 200 pts max
             }
 
-            // Compare with the current best song
+            // Check if this song beats the current leader
             if (currentScore > highestScore)
             {
                 highestScore = currentScore;
@@ -147,10 +201,8 @@ public class DuplicateFinderService : IDuplicateFinderService
             }
         }
 
-        // Fallback to the first item if for some reason no best song was found (shouldn't happen)
         return bestSong ?? duplicateGroup.First();
     }
-
     public async Task<int> ResolveDuplicatesAsync(IEnumerable<DuplicateItemViewModel> itemsToDelete)
     {
         var songIdsToDelete = itemsToDelete.Select(i => i.Song.Id).ToList();
@@ -512,5 +564,5 @@ public class DuplicateSearchResult
     public DuplicateCriteria CriteriaUsed { get; set; }
     public List<DuplicateSetViewModel> DuplicateSets { get; set; } = new();
     public int TotalSongsScanned { get; set; }
-    public List<SongModelView>? ResultSongs { get; set; } = null;
+    public List<SongModelView?>? ResultSongs { get; set; } = null;
 }

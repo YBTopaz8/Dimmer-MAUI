@@ -60,40 +60,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
         windowManager = mauiWindowManagerService;
 
-        this.WhenPropertyChange(nameof(IsAppScanning), v => (IsAppScanning))
-            .ObserveOn(RxSchedulers.UI)
-            .Subscribe(x =>
-            {
-                if (x)
-                {
-                    ShowIndeterminateProgressBar();
-                }
-                else
-                {
-                    HideIndeterminateProgressBar();
-                }
-            });
-
-        this.WhenPropertyChange(nameof(DimmerProgressBarViewVisible), v => (DimmerProgressBarViewVisible))
-            .ObserveOn(RxSchedulers.UI)
-            .Subscribe(x =>
-            {
-                if (x)
-                {
-                    ShowIndeterminateProgressBar();
-                }
-                else
-                {
-                    HideIndeterminateProgressBar();
-                }
-            });
-
-        this.WhenPropertyChange(nameof(DimmerProgressBarViewVisibleValue), v => (DimmerProgressBarViewVisibleValue))
-            .ObserveOn(RxSchedulers.UI)
-            .Subscribe(x =>
-            {
-                ShowOrSetIndeterminateProgressBar(x);
-            });
+      
     }
 
     private void BaseViewModelWin_AddNextEvent(object? sender, EventArgs e)
@@ -1135,10 +1102,6 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     public partial Hqub.Lastfm.Entities.Track? SelectedTrack { get; internal set; }
     public Hqub.Lastfm.Entities.Album? SelectedLastFMAlbum { get; internal set; }
     public TextBlock DimmerStatusTextBlockView { get; internal set; }
-    public ProgressRing DimmerProgressRingView { get; internal set; }
-    [ObservableProperty]
-    public partial Microsoft.UI.Xaml.Controls.ProgressBar DimmerProgressBarView { get;  set; }
-    public StackPanel DimmerStatusPanel { get; internal set; }
 
     LastFMViewModel lastFMVM;
     public async Task<bool> CheckToCompleteActivation(string typee)
@@ -1458,27 +1421,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         }
     }
 
-    internal void ShowIndeterminateProgressBar()
-    {
-        DimmerProgressBarView.Visibility = Visibility.Visible;
-        DimmerProgressBarView.IsIndeterminate = true;
-        
-    }
-    
-    internal void HideIndeterminateProgressBar()
-    {
-        DimmerProgressBarView.Visibility = Visibility.Collapsed;
-        DimmerProgressBarView.IsIndeterminate = true;
-        
-    }
-
-    internal void ShowOrSetIndeterminateProgressBar(double newVal)
-    {
-        DimmerProgressBarView.IsIndeterminate = false;
-        DimmerProgressBarView.Value = newVal;
-        DimmerProgressBarView.Visibility = Visibility.Visible;
-
-    }
+  
     /// <summary>
     /// If can navigate back, do so, else, inform false so page can know where to go back to
     /// </summary>
@@ -1543,9 +1486,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     }
     public async Task ShowProgressSearchLyricsThenHideProgressAsync()
     {
-        ShowIndeterminateProgressBar();
         await SearchLyricsAndLoadLyricsIfFoundAsync();
-        HideIndeterminateProgressBar();
 
     }
 

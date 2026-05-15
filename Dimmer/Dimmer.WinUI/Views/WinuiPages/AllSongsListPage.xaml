@@ -375,6 +375,7 @@
                         <dgView:TableViewTextColumn
                             x:Name="Title"
                             Width="*"
+                            MinWidth="300"
                             Binding="{Binding Title}"
                             Header="Title"
                             IsReadOnly="True"

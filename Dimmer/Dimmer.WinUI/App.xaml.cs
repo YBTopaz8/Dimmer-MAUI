@@ -40,6 +40,7 @@ public partial class App : MauiWinUIApplication
 
             Process.GetCurrentProcess().Kill();
             return; // Essential to prevent further initialization of this instance
+
         }
         else
         {
@@ -57,8 +58,14 @@ public partial class App : MauiWinUIApplication
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
 
+        Microsoft.UI.Xaml.Application.Current.UnhandledException += App_UnhandledException;
     }
-
+    private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
+    {
+        e.Handled = true; // Try to prevent the app from closing immediately
+        System.Diagnostics.Debug.WriteLine($"[XAML CRASH] {e.Message}");
+        System.Diagnostics.Debug.WriteLine($"[XAML CRASH STACK] {e.Exception.StackTrace}");
+    }
     private void CurrentDomain_UnhandledException(object sender, System.UnhandledExceptionEventArgs e)
     {
         var ex = e.ExceptionObject as Exception;

@@ -18,7 +18,7 @@
             Padding="40"
             Background="Transparent"
             >
-            <StackPanel HorizontalAlignment="Center" Visibility="{Binding IsLastfmAuthenticated, Converter={StaticResource BoolToInverseVisibilityConverter}}">
+            <StackPanel HorizontalAlignment="Center" Visibility="{x:Bind MyLastFMViewModel.IsLastfmAuthenticated, Mode=OneWay, Converter={StaticResource BoolToInverseVisibilityConverter}}">
 
                 <TextBox
                     x:Name="LastFMUname"
@@ -26,6 +26,7 @@
                     Header="Enter your Last FM username:"
                     KeyUp="LastFMUname_KeyUp"
                     PlaceholderText="User Name"
+                    TextChanged="LastFMUname_TextChanged"
                     />
 
                 <Button
@@ -615,7 +616,7 @@
                 </PivotItem>
 
                 <PivotItem Header="Top Artists">
-                    <dgView:TableView AutoGenerateColumns="True" ItemsSource="{x:Bind MyLastFMViewModel.TopUserArtistsInLibrary}" />
+                    <dgView:TableView AutoGenerateColumns="True" ItemsSource="{x:Bind MyLastFMViewModel.TopUserArtistsInLibrary, Mode=OneWay}" />
                 </PivotItem>
 
             </Pivot>

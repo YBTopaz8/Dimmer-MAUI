@@ -1,6 +1,7 @@
 using Dimmer.WinUI.Views.WinuiPages.AlbumSection;
 using Dimmer.WinUI.Views.WinuiPages.Artist;
 using Dimmer.WinUI.Views.WinuiPages.LastFMSection;
+using Dimmer.WinUI.Views.WinuiPages.Utilities;
 using Hqub.Lastfm.Entities;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Border = Microsoft.UI.Xaml.Controls.Border;
@@ -128,29 +129,14 @@ public sealed partial class DimmerWin : Window
 
     SystemBackdropConfiguration m_configurationSource;
 
-    private void DimmerProgressBar_Loaded(object sender, RoutedEventArgs e)
-    {
-
-        DimmerProgressBar.Visibility = Visibility.Collapsed;
-        MyViewModel!.DimmerProgressBarView = (ProgressBar)sender;
-    }
+    
 
     private void DimmerStatusTextBlock_Loaded(object sender, RoutedEventArgs e)
     {
         MyViewModel!.DimmerStatusTextBlockView = (TextBlock)sender;
     }
 
-    private void ClearStatus_Click(object sender, RoutedEventArgs e)
-    {
-        DimmerStatusPanel.Visibility = Visibility.Collapsed;
-    }
-
-
-    private void DimmerStatusPanel_Loaded(object sender, RoutedEventArgs e)
-    {
-        MyViewModel.DimmerStatusPanel = DimmerStatusPanel;
-    }
-
+  
     private void MainGrid_KeyDown(object sender, KeyRoutedEventArgs e)
     {
         var pressedKey = e.Key;
@@ -347,6 +333,9 @@ public sealed partial class DimmerWin : Window
                 pageType = typeof(LastFmPage);
                 break;
             case 4:
+                pageType = typeof(DimmerToolKit);
+                break;
+            case 5:
                 pageType = typeof(SettingsPage);
                 break;
 
@@ -357,7 +346,7 @@ public sealed partial class DimmerWin : Window
             return;
         var slideNavigationTransitionEffect = currentSelectedIndex - previousSelectedIndex > 0 ? SlideNavigationTransitionEffect.FromRight : SlideNavigationTransitionEffect.FromLeft;
        
-        ContentFrame.Navigate(pageType, null, new SlideNavigationTransitionInfo() { Effect = slideNavigationTransitionEffect });
+        ContentFrame.Navigate(pageType, MyViewModel, new SlideNavigationTransitionInfo() { Effect = slideNavigationTransitionEffect });
 
         previousSelectedIndex = currentSelectedIndex;
 
@@ -384,9 +373,46 @@ public sealed partial class DimmerWin : Window
         {
             DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[3];
         }
-        else if (navPageType == typeof(SettingsPage))
+        else if (navPageType == typeof(DimmerToolKit))
         {
             DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[4];
         }
+        else if (navPageType == typeof(SettingsPage))
+        {
+            DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[5];
+        }
+    }
+
+    private void CurrentSongImg_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        MyViewModel.NavigateToAnyPageOfGivenType(typeof(NowPlayingPage));
+    }
+
+    private void CurrentSongImg_Loaded(object sender, RoutedEventArgs e)
+    {
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentPlayingSongView), v => MyViewModel.CurrentPlayingSongView)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(curSong =>
+            {
+                if (!string.IsNullOrEmpty(curSong.CoverImagePath))
+                {
+                    var imgSource = new BitmapImage(new Uri(curSong.CoverImagePath));
+                    CurrentSongImg.Source=imgSource;
+                    CurrentSongImg.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    CurrentSongImg.Visibility = Visibility.Collapsed;
+                    CurrentSongImg.Source = null;
+                }
+                if (string.IsNullOrEmpty(curSong.TitleDurationKey))
+                {
+                    PlaybackSection.Visibility = Visibility.Collapsed;
+                }
+                else
+                {
+                    PlaybackSection.Visibility =Visibility.Visible;
+                }
+            });
     }
 }

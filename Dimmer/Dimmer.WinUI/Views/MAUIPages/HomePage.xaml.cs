@@ -1246,22 +1246,7 @@ public partial class HomePage : ContentPage
         if(nativeElt is null)
             return;
 
-        nativeElt.RightTapped += async (s, e) =>
-        {
-            MyViewModel.NavigateToAnyPageOfGivenType(typeof(SingleSongLyrics));
-            MyViewModel.SelectedSong = CurrentPlayingSong;
-
-            await Task.Delay(450);
-            
-
-            if(MyViewModel.MainWindow.ContentFrame.CurrentSourcePageType?.Name == "SingleSongLyrics")
-            {
-                var typee= MyViewModel.MainWindow.ContentFrame.Content.GetType();
-
-                await MyViewModel.ShowProgressSearchLyricsThenHideProgressAsync();
-                
-            }
-        };
+    
     }
     private bool _isUserDragging = false;
     private double _pendingSeekValue;

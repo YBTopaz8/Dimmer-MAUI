@@ -40,24 +40,21 @@ public enum DuplicateReason
 
 public partial class DuplicateItemViewModel : ObservableObject
 {
-    // The actual song data
+    public ObjectId Id { get; set; } = ObjectId.GenerateNewId();
     public SongModelView Song { get; }
-
-    // Is this the original or a duplicate? (For UI styling)
     public DuplicateStatus Status { get; }
-    
-    public DuplicateReason Reasons { get; }
+    public string Reasons { get; } // Make sure this is set
 
-    // What does the user want to do with this item?
     [ObservableProperty]
     public partial DuplicateAction Action { get; set; }
 
-    public DuplicateItemViewModel(SongModelView song, DuplicateStatus status)
+    // Updated Constructor
+    public DuplicateItemViewModel(SongModelView song, DuplicateStatus status, DuplicateReason reasons = DuplicateReason.None)
     {
         Song = song;
         Status = status;
+        Reasons = reasons.ToString();
 
-        // Sensible defaults: Keep the original, mark duplicates for deletion.
         Action = status == DuplicateStatus.Original ? DuplicateAction.Keep : DuplicateAction.Delete;
     }
 }
