@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="Dimmer.WinUI.Views.WinuiPages.Settings.FoldersSettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:Dimmer.WinUI.Views.WinuiPages.Settings"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    >
+
+
+    <Grid
+        x:Name="MusicFoldersGrid"
+        Padding="40"
+        Background="#1C1C1C"
+        Loaded="MusicFoldersGrid_Loaded"
+        >
+        <StackPanel>
+
+            <Image Source="/Dimmer/Resources/Images/appicon.png" />
+
+
+            <TextBlock
+                Margin="0,0,0,10"
+                FontSize="35"
+                Foreground="White"
+                Text="Folders"
+                />
+
+
+            <StackPanel
+                Margin="0,0,0,10"
+                Orientation="Horizontal"
+                Spacing="10"
+                >
+                <TextBlock
+                    VerticalAlignment="Center"
+                    Foreground="White"
+                    Text="Total Folders:"
+                    />
+
+                <TextBlock
+                    VerticalAlignment="Center"
+                    Foreground="White"
+                    Text="{x:Bind MyViewModel.FolderPaths.Count, Mode=OneWay}"
+                    />
+
+            </StackPanel>
+
+
+            <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
+                <TextBlock
+                    VerticalAlignment="Center"
+                    Foreground="White"
+                    Text="Add your music folders to get started."
+                    />
+                <Button
+                    x:Name="AddFolder"
+                    Margin="10,0,0,0"
+                    Click="AddFolder_Click"
+                    Content="Add Folder"
+                    />
+                <TeachingTip
+                    x:Name="AddMusicFolderTip"
+                    Title="Add New Folder"
+                    Subtitle="Click to Add a New Folder"
+                    Target="{x:Bind AddFolder}"
+                    >
+                    <TeachingTip.IconSource>
+                        <FontIconSource Glyph="&#xE946;" />
+                    </TeachingTip.IconSource>
+                </TeachingTip>
+            </StackPanel>
+
+            <ItemsRepeater ItemsSource="{x:Bind MyViewModel.FolderPaths, Mode=OneWay}">
+                <ItemsRepeater.Layout>
+                    <StackLayout Orientation="Vertical" Spacing="10" />
+                </ItemsRepeater.Layout>
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock
+                                        Margin="0,5,0,5"
+                                        FontSize="20"
+                                        Foreground="White"
+                                        Text="{Binding}"
+                                        />
+                                </StackPanel>
+                                <StackPanel
+                                    Grid.Column="1"
+                                    Orientation="Horizontal"
+                                    Spacing="10"
+                                    >
+                                    <Button
+                                        x:Name="ReScanBtn"
+                                        Background="MidnightBlue"
+                                        BorderBrush="MidnightBlue"
+                                        Click="ReScanButton_Click"
+                                        Content="ReScan"
+                                        />
+                                    <Button
+                                        x:Name="UpdateFolder"
+                                        Background="DarkGreen"
+                                        Click="UpdateFolder_Click"
+                                        Content="Update"
+                                        />
+                                    <Button
+                                        Background="DarkRed"
+                                        BorderBrush="DarkRed"
+                                        Click="RemoveFolder_Click"
+                                        Content="Delete"
+                                        Tag="{Binding}"
+                                        />
+                                </StackPanel>
+
+                            </Grid>
+                        </StackPanel>
+                    </DataTemplate>
+
+                </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
+
+
+        </StackPanel>
+    </Grid>
+</Page>

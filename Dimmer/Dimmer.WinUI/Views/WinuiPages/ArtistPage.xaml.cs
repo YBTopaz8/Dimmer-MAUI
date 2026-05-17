@@ -40,6 +40,8 @@ public sealed partial class ArtistPage : Page
     BaseViewModelWin MyViewModel { get; set; }
 
     public SongModelView? DetailedSong { get; set; }
+    public StatisticsViewModel MyStatsViewModel { get; private set; }
+
     protected override async void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
@@ -63,6 +65,7 @@ public sealed partial class ArtistPage : Page
         }
 
         MyViewModel ??= IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
+        MyStatsViewModel ??= IPlatformApplication.Current!.Services.GetService<StatisticsViewModel>()!;
         MyViewModel.IsBackButtonVisible = WinUIVisibility.Visible;
         ArtistNameInArtistPage.Visibility = WinUIVisibility.Visible;
         ArtistImageInArtistPage.Visibility = WinUIVisibility.Visible;
@@ -250,7 +253,7 @@ public sealed partial class ArtistPage : Page
 
     private void ArtistDataTable_Loaded(object sender, RoutedEventArgs e)
     {
-      
+        ArtistDataTable.ItemsSource = MyViewModel.SelectedArtist!.SongsByArtist;
 
 
 
@@ -281,9 +284,12 @@ public sealed partial class ArtistPage : Page
 
         send.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Colors.DarkSlateBlue);
         send.BorderThickness = new Microsoft.UI.Xaml.Thickness(2);
-        
-        MyViewModel.SearchToTQL($"{TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist.Name)} and {TQlStaticMethods.PresetQueries.ExactlyByAlbum(album.Name)}");
 
+        if (album.SongsInAlbum is null || album.SongsInAlbum.Count < 1)
+        {
+            MyViewModel.SetSelectedAlbum(album);
+        }
+        ArtistDataTable.ItemsSource = album.SongsInAlbum;
         return;
       
 
@@ -488,5 +494,18 @@ public sealed partial class ArtistPage : Page
             //AnimationHelper.Key_AlbumToArtist,
             AnimationHelper.Key_SongDetailToArtist
             );
+    }
+    
+   
+
+
+    private void ArtistPagePivot_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
+    {
+        
+        if((MyStatsViewModel.ArtistStats is null || MyStatsViewModel.ArtistStats.Summary.ArtistId != MyViewModel.SelectedArtist?.Id) && ArtistPagePivot.SelectedIndex == 1)
+        {
+           _=  MyStatsViewModel.LoadArtistStatsAsync(MyViewModel.SelectedArtist);
+
+        }
     }
 }

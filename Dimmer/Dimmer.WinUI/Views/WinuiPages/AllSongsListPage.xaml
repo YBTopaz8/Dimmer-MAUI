@@ -100,7 +100,8 @@
                             />
 
                         <Button Command="{x:Bind MyViewModel.ScrollToRequestedSongCommand}">
-                            <SymbolIcon Symbol="View" />
+
+                            <FontIcon Glyph="&#xE890;" />
                         </Button>
 
                         <Button
@@ -287,18 +288,16 @@
                                                 >
 
 
-
-                                                <SymbolIcon
+                                                <FontIcon
                                                     Foreground="SlateBlue"
-                                                    Symbol="Play"
+                                                    Glyph="&#xE768;"
                                                     Visibility="{Binding IsCurrentPlayingHighlight, Converter={StaticResource BoolToVisibilityConverter}}"
                                                     />
 
-                                                <SymbolIcon
-                                                    Width="20"
+                                                <FontIcon Glyph="&#xE720;" 
+                                                Width="20"
                                                     Height="20"
                                                     Foreground="SlateBlue"
-                                                    Symbol="Microphone"
                                                     Visibility="{Binding HasSyncedLyrics, Converter={StaticResource BoolToVisibilityConverter}}"
                                                     />
 

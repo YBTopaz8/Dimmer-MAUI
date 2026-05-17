@@ -37,20 +37,23 @@ public class ParseAuthenticationService : IAuthenticationService
                     {
 
                         await ParseClient.Instance.BecomeAsync(Tokenn);
-                        var realm = _realmFactory.GetRealmInstance();
-                        if (realm != null)
+                        if (ParseClient.Instance.CurrentUser is not null)
                         {
-                            var curUsr = realm.All<UserModel>().FirstOrDefaultNullSafe();
-
-                            if (curUsr != null)
+                            var realm = _realmFactory.GetRealmInstance();
+                            if (realm != null)
                             {
-                                await realm.WriteAsync(() =>
-                                {
-                                    curUsr.UserIDOnline = ParseClient.Instance.CurrentUser.ObjectId;
-                                    curUsr.UsernameOnline = ParseClient.Instance.CurrentUser.Username;
-                                    curUsr.UserName ??= ParseClient.Instance.CurrentUser.Username;
+                                var curUsr = realm.All<UserModel>().FirstOrDefaultNullSafe();
 
-                                });
+                                if (curUsr != null)
+                                {
+                                    await realm.WriteAsync(() =>
+                                    {
+                                        curUsr.UserIDOnline = ParseClient.Instance.CurrentUser.ObjectId;
+                                        curUsr.UsernameOnline = ParseClient.Instance.CurrentUser.Username;
+                                        curUsr.UserName ??= ParseClient.Instance.CurrentUser.Username;
+
+                                    });
+                                }
                             }
                         }
                     }

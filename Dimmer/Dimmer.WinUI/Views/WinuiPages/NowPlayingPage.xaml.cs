@@ -4,6 +4,7 @@ using Microsoft.Maui.Platform;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
+using System.Windows.Media;
 using Point = Windows.Foundation.Point;
 namespace Dimmer.WinUI.Views.WinuiPages;
 
@@ -24,11 +25,14 @@ public sealed partial class NowPlayingPage : Page
     {
         MyViewModel?.OpenLyricsPopUpWindow(1);
     }
+    List<string> ArrayOfGoeyy;
     protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
     {
 
         MyViewModel = IPlatformApplication.Current?.Services.GetService<BaseViewModelWin>()!;
-       
+       ArrayOfGoeyy = new List<string>();
+        ArrayOfGoeyy.Add("Favorite");
+        ArrayOfGoeyy.Add("Note");
         MyViewModel.CurrentWinUIPage = this;
     }
     private void ViewSongDetailsButton_Click(object sender, RoutedEventArgs e)
@@ -409,6 +413,11 @@ public sealed partial class NowPlayingPage : Page
         var timeInSec = TimeSpan.FromMilliseconds(lyricTapped.TimestampStart).Seconds;
         MyViewModel.SeekTrackPosition(timeInSec);
         SyncLyricsListView.SmoothScrollIntoViewWithItemAsync(lyricTapped, itemPlacement:ScrollItemPlacement.Top);
+
+    }
+
+    private void Goeyy_Tapped(object sender, TappedRoutedEventArgs e)
+    {
 
     }
 }

@@ -7,6 +7,7 @@
     xmlns:artistPages="clr-namespace:Dimmer.Views.Artist"
     xmlns:dimmerCloudPages="clr-namespace:Dimmer.Views.DimmerCloud"
     xmlns:dimmerStatsPages="clr-namespace:Dimmer.Views.DimmerStats"
+    xmlns:dimtoolkit="clr-namespace:Dimmer.Views.Toolkit"
     xmlns:lastFMPages="clr-namespace:Dimmer.Views.LastFM"
     xmlns:local="clr-namespace:Dimmer.Views"
     xmlns:settingsPages="clr-namespace:Dimmer.Views.Settings"
@@ -58,6 +59,13 @@
         ContentTemplate="{DataTemplate dimmerCloudPages:DimmerHomeCenter}"
         FlyoutIcon="cloudbolt.png"
         Route="DimmerHomeCenter"
+        />
+
+    <ShellContent
+        Title="Dimmer Toolkit"
+        ContentTemplate="{DataTemplate dimtoolkit:DuplicateFinder}"
+        FlyoutIcon="display.png"
+        Route="DimmerToolkit"
         />
 
     <ShellContent

@@ -243,8 +243,7 @@
                                                                     Click="CloseArtistDetail_Click"
                                                                     CornerRadius="12"
                                                                     >
-
-                                                                    <SymbolIcon Foreground="White" Symbol="Back" />
+                                                                    <FontIcon Foreground="White" Glyph="&#xE72B;" />
                                                                 </Button>
 
                                                                 <TextBlock
@@ -327,7 +326,7 @@
                                                                                         FontSize="10"
                                                                                         RightTapped="PlaySongNowFromArtistListOfSongs_RightTapped"
                                                                                         >
-                                                                                        <SymbolIcon Symbol="Play" />
+                                                                                        <FontIcon Glyph="&#xE768;" />
                                                                                     </Button>
                                                                                     <Button
                                                                                         x:Name="AddNextInQueue"
@@ -335,8 +334,7 @@
                                                                                         Click="AddNextInQueue_Click"
                                                                                         FontSize="10"
                                                                                         >
-
-                                                                                        <SymbolIcon Symbol="List" />
+                                                                                        <FontIcon Glyph="&#xEA37;" />
                                                                                     </Button>
                                                                                 </StackPanel>
 
@@ -425,8 +423,8 @@
                             </Border>
                         </Grid>
 
-                    
-                        
+
+
                         <StackPanel
                             Padding="24"
                             Spacing="16"
@@ -622,15 +620,11 @@
 
                         </StackPanel>
 
-                   
-                        
+
+
 
                         <!--  SECTION 3: LYRICS  -->
-                        <StackPanel
-                            x:Name="SectionLyricsStackPanel"
-                            Background="Transparent"
-                           
-                            >
+                        <StackPanel x:Name="SectionLyricsStackPanel" Background="Transparent">
 
                             <StackPanel Orientation="Horizontal">
 
@@ -657,7 +651,7 @@
                                 </Grid.ColumnDefinitions>
 
                                 <ScrollViewer MaxHeight="350" VerticalScrollBarVisibility="Auto">
-                                    <ItemsRepeater ItemsSource="{x:Bind MyViewModel.SelectedSongLyricsObsCol, Mode=OneWay}">
+                                    <ItemsRepeater ItemsSource="{x:Bind MyViewModel.SelectedSong.SyncLyricsCol, Mode=OneWay}">
                                         <ItemsRepeater.ItemTemplate>
                                             <DataTemplate>
                                                 <Border>
@@ -682,7 +676,7 @@
                         </StackPanel>
 
 
-                        
+
 
                     </StackPanel>
                 </ScrollViewer>
@@ -737,7 +731,7 @@
                         ToolTipService.ToolTip="Close"
                         >
                         <Button.Content>
-                            <SymbolIcon Symbol="Clear" />
+                            <FontIcon Glyph="&#xE894;" />
                         </Button.Content>
                     </Button>
                 </Grid>

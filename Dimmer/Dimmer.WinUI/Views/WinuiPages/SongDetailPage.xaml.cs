@@ -133,19 +133,8 @@ public sealed partial class SongDetailPage : Page
                 this.DataContext = MyViewModel;
 
 
-                var allAchievementsForSong = MyViewModel.RealmFactory.GetRealmInstance()
-                    .All<SongModel>()
-                    .Where(x => x.Id == args.Song.Id)
-                    .FirstOrDefault()?.EarnedAchievementIds.ToArray();
-                Debug.WriteLine(allAchievementsForSong?.Length);
 
 
-                var allAchievementsForAll = MyViewModel.RealmFactory.GetRealmInstance()
-                    .All<SongModel>().ToList()
-                    .Where(x => x.EarnedAchievementIds.ToList() != null && 
-                    x.EarnedAchievementIds.Count > 0).ToArray();
-                Debug.WriteLine(allAchievementsForSong?.Length);
-                Debug.WriteLine(allAchievementsForAll.Length);
 
 
 

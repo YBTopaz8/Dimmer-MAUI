@@ -199,6 +199,16 @@
                                 </ResourceDictionary>
                             </dx:DXStackLayout.Resources>
                             <dx:DXButton
+                                IsVisible="{Binding MyLoginVM.IsAuthenticated, Source={x:Reference myPage}}"
+                                ShowContent="True"
+                                ShowIcon="False"
+                                >
+                                <dx:DXButton.Content>
+                                    <dx:DXImage Source="{Binding MyLoginVM.CurrentUserOnline.ProfileImagePath, Source={x:Reference myPage}}" />
+                                </dx:DXButton.Content>
+                            </dx:DXButton>
+
+                            <dx:DXButton
                                 Padding="5"
                                 Clicked="DXButton_Clicked"
                                 HorizontalOptions="End"
@@ -218,6 +228,7 @@
                                 ShowContent="False"
                                 ShowIcon="True"
                                 />
+                            <Label Text="{Binding MyLoginVM.IsAuthenticated, Source={x:Reference myPage}}" />
 
                         </dx:DXStackLayout>
 

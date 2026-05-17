@@ -96,9 +96,7 @@ public partial class HomePage : ContentPage
 
     private void SearchBtn_Clicked(object sender, EventArgs e)
     {
-        InputMethodManager? imm = (InputMethodManager?)MainApplication.Context.GetSystemService(Activity.InputMethodService);
-        var view = SearchText.Handler?.PlatformView as Android.Views.View;
-        imm?.ShowSoftInput(view, ShowFlags.Implicit);
+        SearchText.Focus();
 
     }
 

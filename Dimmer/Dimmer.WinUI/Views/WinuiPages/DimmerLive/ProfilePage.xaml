@@ -52,7 +52,7 @@
                                     Visibility="Collapsed"
                                     >
 
-                                    <SymbolIcon Symbol="Edit" />
+                                    <FontIcon Glyph="&#xE70F;" />
 
                                 </Button>
                                 <PersonPicture
@@ -152,7 +152,19 @@
                                         Opacity="0.6"
                                         Text="Joined"
                                         />
-                                    <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="{x:Bind ViewModel.CurrentUserOnline.CreatedAt, Mode=OneWay}" />
+                                    <ItemsRepeater ItemsSource="{x:Bind ViewModel.SessionMgtVM.OtherDevices}">
+                                        <ItemsRepeater.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel>
+
+                                                    <TextBlock Text="{Binding DeviceName}" />
+                                                    <TextBlock Text="{Binding DeviceIdiom}" />
+                                                    <TextBlock Text="{Binding IsActive}" />
+
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ItemsRepeater.ItemTemplate>
+                                    </ItemsRepeater>
                                 </StackPanel>
                             </Border>
                         </Grid>
@@ -188,6 +200,7 @@
 
                         <!--  Logout  -->
                         <Button Command="{x:Bind ViewModel.NavigateToCloudPageCommand}" Content="Cloud Space" />
+                        <Button Command="{x:Bind ViewModel.NavigateToSocialPageCommand}" Content="Social Space" />
                         <Button
                             HorizontalAlignment="Left"
                             Background="DarkRed"

@@ -793,7 +793,7 @@ public partial class HomePage : ContentPage
             _initialized = true;
             MyViewModel.InitializeAllVMCoreComponents();
 
-            MyViewModel.GetLibState();
+
             if (MyViewModel.IsLibraryEmpty)
             {
                 
@@ -1142,7 +1142,7 @@ public partial class HomePage : ContentPage
             {
                 var menFlyOut = new Microsoft.UI.Xaml.Controls.ToggleMenuFlyoutItem
                 {
-                    Text = $"Device Name : {x.Name}, Volume : {x.Volume} %",
+                    Text = $"Device Name : {x.Name}, Volume : {x.Volume:n2} %",
                     Command = MyViewModel.SetPreferredAudioDeviceCommand,
                     CommandParameter = x
                 };

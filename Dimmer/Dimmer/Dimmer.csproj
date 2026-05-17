@@ -53,10 +53,10 @@
 
 		<PackageReference Include="Syncfusion.Maui.Toolkit" Version="1.0.9" />
 		<PackageReference Include="System.Linq.Dynamic.Core" Version="1.7.2" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.6" />
-		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.6" />
-		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.51" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.6" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.8" />
+		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.8" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.60" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.8" />
 		<PackageReference Include="SkiaSharp" Version="3.119.2" />
 		
 		<PackageReference Include="System.Reactive" Version="6.1.0" />
@@ -66,7 +66,7 @@
 		<PackageReference Include="System.Reactive.PlatformServices" Version="6.1.0" />
 
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-		<PackageReference Include="CommunityToolkit.Maui" Version="14.1.0" />
+		<PackageReference Include="CommunityToolkit.Maui" Version="14.1.1" />
 		<PackageReference Include="Realm" Version="20.1.0" />
 		<PackageReference Include="Xabe.FFmpeg" Version="6.0.2" />
 	</ItemGroup>

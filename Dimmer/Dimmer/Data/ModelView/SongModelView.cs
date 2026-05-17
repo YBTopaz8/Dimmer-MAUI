@@ -126,6 +126,9 @@ public partial class SongModelView : ObservableObject
     public partial string Lyricist { get; set; } = string.Empty;
 
     [ObservableProperty]
+    public partial ObservableCollection<LyricPhraseModelView> SyncLyricsCol { get; set; }
+
+    [ObservableProperty]
     public partial float? BPM { get; set; }
     [ObservableProperty]
     public partial string Composer { get; set; } = string.Empty;

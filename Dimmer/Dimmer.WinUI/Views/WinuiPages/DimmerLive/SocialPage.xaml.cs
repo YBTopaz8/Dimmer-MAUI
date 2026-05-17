@@ -49,7 +49,7 @@ public sealed partial class SocialPage : Page
         ChatVM = IPlatformApplication.Current!.Services.GetService<ChatViewModel>()!;
         this.DataContext = ChatVM; // Set DataContext for binding within DataTemplates
         this.Name = "RootPage"; // Helper for ElementName binding
-        
+
     }
     // Auto-scroll to bottom when new messages arrive
     private async void MessagesList_Loaded(object sender, RoutedEventArgs e)
@@ -57,8 +57,17 @@ public sealed partial class SocialPage : Page
         var listView = sender as ListView;
         // Hook into collection changed event if needed, or just scroll on load
         if (listView.Items.Count > 0)
-           await listView.SmoothScrollIntoViewWithItemAsync(listView.Items[listView.Items.Count - 1]);
+            await listView.SmoothScrollIntoViewWithItemAsync(listView.Items[listView.Items.Count - 1]);
     }
+
+    private void TextBox_KeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        if (e.Key == Windows.System.VirtualKey.Enter)
+        {            
+            ChatVM.SendMessageCommand.ExecuteAsync(null);
+        } 
+    } 
+
 }
 
 public class ChatMessageTemplateSelector : DataTemplateSelector

@@ -20,6 +20,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reactive.Threading.Tasks;
 using System.Runtime.ConstrainedExecution;
 using System.Security.Cryptography;
 using System.Text.Json.Serialization;
@@ -439,22 +440,6 @@ Observable.FromEventPattern<PlaybackEventArgs>(
 
     }
 
-   public void GetLibState()
-    {
-        using (var checkRealm = RealmFactory.GetRealmInstance())
-        {
-            IsLibraryEmpty = !checkRealm.All<SongModel>().Any();
-            ShowWelcomeScreen = IsLibraryEmpty;
-
-            // Grab FolderPaths while we have this instance
-            var stateApp = checkRealm.All<AppStateModel>().FirstOrDefaultNullSafe();
-            if (stateApp is not null)
-            {
-                // Freeze allows this collection to survive outside the 'using' block
-                FolderPaths = stateApp.Freeze().UserMusicFolders.AsEnumerable().Select(x=>x.ReadableFolderPath).ToObservableCollection();
-            }
-        }
-    }
 
 
     public void InitializeAllVMCoreComponents()
@@ -579,15 +564,16 @@ Observable.FromEventPattern<PlaybackEventArgs>(
        {
            Debug.WriteLine($"[Background] Starting search for: {query}");
 
-           // FIX 1: Use Observable.Start + Ensure operator to keep observable alive
+           
            return Observable.Start(() =>
            {
                Debug.WriteLine($"[ThreadPool] Task started for: {query}");
-               var result = PerformSearchBackground(query); // NOT Task.Run!
+               var result = PerformSearchBackground(query); 
 
                return result;
            }, RxSchedulers.Background)
-           .ObserveOn(RxSchedulers.UI) // FIX 2: ObserveOn HERE, inside the select
+           .ObserveOn(RxSchedulers.UI) 
+
            .Do(result =>
            {
                // This now runs on UI thread!
@@ -2735,7 +2721,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
 
         IsAppScanning = false;
         IsShowScanLoadingActivityIndicator = true;
-        SearchToTQL("desc added");
+        SearchToTQL("asc added");
 
         IsShowScanLoadingActivityIndicator = false;
         
@@ -5352,8 +5338,8 @@ Observable.FromEventPattern<PlaybackEventArgs>(
             var dupSetVM= _duplicateSource.Items.FirstOrDefault(x=>x.Items.Contains(dItemVM));
             var ind = dupSetVM?.Items.FirstOrDefault(item=>item.Id==dItemVM.Id);
             
-                dupSetVM?.Items.Replace(ind, dItemVM);
-            innerList.Replace(dupSetVM, dupSetVM);
+                dupSetVM?.Items?.Replace(ind, dItemVM);
+            innerList?.Replace(dupSetVM, dupSetVM);
                 
         });
     }
@@ -6047,7 +6033,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
     }
     #endregion
 
-    public void SetSelectedAlbum(AlbumModelView? album=null)
+    public void SetSelectedAlbum(AlbumModelView? album)
     {
         if(album is not null)
         {
@@ -8179,7 +8165,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
 
     public async Task LoadLyricsFromOnlineOrDBIfNeededAsync(SongModelView concernedSong)
     {
-        await _lyricsMgtFlow.GetLyrics(concernedSong);
+        SelectedSong.SyncLyricsCol =  await _lyricsMgtFlow.GetLyrics(concernedSong);
     }
 
     [ObservableProperty]

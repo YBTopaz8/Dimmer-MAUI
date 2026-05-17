@@ -7,6 +7,7 @@ namespace Dimmer.ViewModel.DimmerLiveVM;
 public partial class ChatViewModel : ObservableObject, IDisposable
 {
     public IChatService ChatService => _chatService;
+
     public IAuthenticationService AuthenticationService => _authService;
     public readonly IChatService _chatService;
     private readonly IFriendshipService _friendshipService;
@@ -34,20 +35,29 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     public partial string NewMessageText{get;set;}
 
+
+
     [ObservableProperty]
     public partial string UserSearchTerm{get;set;}
+    private IDisposable? _currentMessagesSubscription;
+    [ObservableProperty]
+    public partial bool IsBusy {get;set; }
+    ILiveSessionManagerService _sessionManager;
+    private readonly ReadOnlyObservableCollection<UserDeviceSession> _connectedDevices;
+    public ReadOnlyObservableCollection<UserDeviceSession> ConnectedDevices => _connectedDevices;
 
     [ObservableProperty]
-    public partial bool IsBusy {get;set;}
-
+    public partial UserDeviceSession SelectedDevice { get; set; }
     public ChatViewModel(IChatService chatService, IFriendshipService 
         
         friendshipService,
+        ILiveSessionManagerService sessionMgr,
 
         LoginViewModel loginViewModel,
         IAuthenticationService authService
         , BaseViewModel mainViewModel)
     {
+        _sessionManager = sessionMgr;
         _chatService = chatService;
         _friendshipService = friendshipService;
         this.loginViewModel=loginViewModel;
@@ -61,23 +71,68 @@ public partial class ChatViewModel : ObservableObject, IDisposable
             .Bind(out _conversations)
             .Subscribe()
             .DisposeWith(_disposables);
-        _chatService.Messages.
-            ObserveOn(RxSchedulers.UI)
-            .Bind(out _messages)
-            .Subscribe( t =>
-            {
-                Debug.WriteLine(t.Adds);
-                Debug.WriteLine(t.Refreshes);
-                Debug.WriteLine(t.Moves);
-                Debug.WriteLine(t.Removes);
-                Debug.WriteLine(t.Capacity);
-                Debug.WriteLine(_messages.Count);
-            })
+
+
+        _sessionManager.OtherAvailableDevices
+            .ObserveOn(RxSchedulers.UI)
+            .Bind(out _connectedDevices)
+            .Subscribe()
             .DisposeWith(_disposables);
 
-      
         // StartAsync chat listeners automatically
         //_chatService.StartListeners();
+        LoadGeneralChatCommand.ExecuteAsync(null);
+    }
+    [RelayCommand]
+    private async Task LoadGeneralChat()
+    {
+        IsBusy = true;
+        var generalChat = await _chatService.GetGeneralChatAsync();
+        if (generalChat != null)
+        {
+            SelectedConversation = generalChat; // This triggers OnSelectedConversationChanged
+        }
+        IsBusy = false;
+    }
+    partial void OnSelectedConversationChanged(ChatConversation value)
+    {
+        if (value == null) return;
+
+        // Dispose previous message listener so UI doesn't show old messages
+        _currentMessagesSubscription?.Dispose();
+
+        // Bind the newly selected conversation's messages to the UI collection
+        _currentMessagesSubscription = _chatService.GetMessagesForConversation(value)
+            .ObserveOn(RxSchedulers.UI)
+            .Bind(out _messages) // Updates your ReadOnlyObservableCollection
+            .Subscribe(v=>
+            {
+                Debug.WriteLine($"Messages COunt {v.Count}");
+        })
+            .DisposeWith(_disposables);
+
+        RaisePropertyChanged(new PropertyChangedEventArgs(nameof(Messages)));
+    }
+    partial void OnSelectedDeviceChanged(UserDeviceSession value)
+    {
+        if (value == null) return;
+
+        // Generate a localized or Cloud-Code backed Conversation for this device pair
+        // E.g., GetOrCreateDeviceConversationAsync(value.DeviceId)
+        // For now, let's pretend we have it, which switches the Chat View to the Device Terminal!
+       _= CreateAndSwitchToDeviceTerminalAsync(value);
+    }
+    private async Task CreateAndSwitchToDeviceTerminalAsync(UserDeviceSession device)
+    {
+        // Call your chat service to get a special 1-on-1 chat for "My Phone <-> My PC"
+        // This keeps message history between devices!
+        var terminalConvo = await _chatService.GetOrCreateConversationWithUserAsync(_authService.CurrentUserValue); // Simplified
+        if (terminalConvo is not null)
+        {
+            terminalConvo.Name = $"Terminal: {device.DeviceName}";
+
+            SelectedConversation = terminalConvo;
+        }
     }
     [RelayCommand]
     private async Task StartNoteToSelf()
@@ -129,16 +184,16 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    private async Task SendMessage(SongModelView song)
+    private async Task SendMessage()
     {
         //if (_authService.CurrentUserValue is null)
         //{
 
         //    var res = await Shell.Current.DisplayAlertAsync("Not Logged In", "Please log in to send messages.", "Log In", "Cancel");
-           
+
 
         //}
-        await _chatService.SendTextMessageAsync( NewMessageText,_authService.CurrentUserValue?.ObjectId,song);
+        await _chatService.SendTextMessageAsync(SelectedConversation,NewMessageText, _authService.CurrentUserValue?.ObjectId);
         NewMessageText = string.Empty; // Clear the input box
     }
 

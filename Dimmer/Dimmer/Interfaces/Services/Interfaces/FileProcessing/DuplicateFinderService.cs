@@ -511,15 +511,15 @@ public class DuplicateFinderService : IDuplicateFinderService
         }
 
 
-        var duplicates = potentialDuplicatesQuery.AsEnumerable().Select(x=>x.ToSongModelView());
+        var duplicates = potentialDuplicatesQuery.AsEnumerable().Select(x=>x.ToSongModelView()!);
 
-        if (duplicates.Count() == 0)
+        if (!duplicates.Any())
         {
             return new DuplicateSearchResult(); // No duplicates found
         }
 
         // Since we found duplicates, we need to create a single DuplicateSet
-        var allItemsInSet = new List<SongModelView> { targetSong };
+        List<SongModelView> allItemsInSet = new List<SongModelView> { targetSong };
         allItemsInSet.AddRange(duplicates);
 
         // Use your existing logic to find the best one to keep

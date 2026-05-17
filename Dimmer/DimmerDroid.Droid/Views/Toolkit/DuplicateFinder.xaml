@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Dimmer.Views.Toolkit.DuplicateFinder"
+    x:Name="myPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:TQlVM="clr-namespace:Dimmer.ViewModel.TQL;assembly=Dimmer"
+    xmlns:dupModels="clr-namespace:Dimmer.Data.ModelView.LibSanityModels;assembly=Dimmer"
+    xmlns:dx="http://schemas.devexpress.com/maui"
+    xmlns:local="clr-namespace:Dimmer.Views.CustomViews"
+    xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+    xmlns:statsVm="clr-namespace:Dimmer.ViewModel;assembly=Dimmer"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:vm="clr-namespace:Dimmer.ViewModels"
+    Title="DupeFInder"
+    x:DataType="vm:BaseViewModelAnd"
+    Shell.NavBarIsVisible="False"
+    >
+
+    <Grid Padding="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <dx:DXStackLayout Grid.Row="0" Padding="5">
+            <dx:DXButton
+                x:Name="ScanDuplicates"
+                Command="{Binding FindDuplicatesCommand}"
+                Content="Scan Duplicates"
+                />
+            <dx:DXStackLayout
+                BorderColor="DarkSlateBlue"
+                BorderThickness="1"
+                IsVisible="{Binding IsFindingDuplicates}"
+                >
+                <Label Text="{Binding DuplicateSets.Count, Mode=OneWay}" />
+
+
+            </dx:DXStackLayout>
+
+            <dx:DXStackLayout x:Name="DuplicateScannedActionPanel" Orientation="Horizontal">
+
+                <dx:DXButton
+                    Command="{Binding ApplyDuplicateActionsCommand}"
+                    Content="Apply Action"
+                    VerticalOptions="Center"
+                    />
+
+            </dx:DXStackLayout>
+        </dx:DXStackLayout>
+
+
+        <dx:DXCollectionView ItemsSource="{Binding DuplicateSets}">
+
+
+            <dx:DXCollectionView.ItemTemplate>
+                <DataTemplate x:DataType="dupModels:DuplicateSetViewModel">
+                    <Grid RowSpacing="6">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <dx:DXStackLayout
+                            Grid.Row="0"
+                            Padding="5"
+                            BorderColor="DarkSlateBlue"
+                            BorderThickness="1"
+                            Orientation="Horizontal"
+                            >
+
+                            <dx:DXStackLayout>
+                                <Label Text="{Binding Title}" />
+                                <Label Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" />
+                                <dx:CheckEdit IsChecked="{Binding IsResolved}" Label="Is Resolved" />
+                            </dx:DXStackLayout>
+                            <dx:DXStackLayout>
+                                <Image
+                                    Grid.RowSpan="2"
+                                    HeightRequest="150"
+                                    HorizontalOptions="Center"
+                                    Opacity="0.6"
+                                    Source="{Binding Items[0].Song.CoverImagePath}"
+                                    WidthRequest="150"
+                                    />
+                            </dx:DXStackLayout>
+                        </dx:DXStackLayout>
+
+                        <dx:DataGridView
+                            Grid.Row="1"
+                            AutoGenerateColumnsMode="None"
+                            ItemsSource="{Binding Items}"
+                            SelectionMode="None"
+                            >
+                            <dx:DataGridView.Columns>
+                                <dx:TemplateColumn>
+                                    <dx:TemplateColumn.DisplayTemplate>
+                                        <DataTemplate x:DataType="dupModels:DuplicateItemViewModel">
+                                            <dx:DXStackLayout>
+
+                                                <dx:DXStackLayout Loaded="DXStackLayout_Loaded" Orientation="Horizontal">
+                                                    <Label Text="{Binding Song.DateCreated, StringFormat='Date Created {0} '}" />
+                                                </dx:DXStackLayout>
+                                                <Label Text="{Binding Song.FilePath}" />
+
+                                            </dx:DXStackLayout>
+                                        </DataTemplate>
+                                    </dx:TemplateColumn.DisplayTemplate>
+
+                                </dx:TemplateColumn>
+
+
+
+
+
+                                <dx:TemplateColumn Caption="Artist - Album">
+
+                                    <dx:TemplateColumn.DisplayTemplate>
+                                        <DataTemplate>
+                                            <dx:DXStackLayout Loaded="DXStackLayout_Loaded_1">
+
+                                                <Label Text="{Binding Item.Song.ArtistName}" />
+                                                <Label Text="{Binding Song.AlbumName}" />
+
+
+                                            </dx:DXStackLayout>
+                                        </DataTemplate>
+                                    </dx:TemplateColumn.DisplayTemplate>
+                                </dx:TemplateColumn>
+
+                                <dx:TemplateColumn Caption="File Size">
+                                    <dx:TemplateColumn.DisplayTemplate>
+                                        <DataTemplate>
+                                            <dx:DXStackLayout>
+
+                                                <Label Text="{Binding Song.FileSize}" />
+
+
+                                            </dx:DXStackLayout>
+                                        </DataTemplate>
+                                    </dx:TemplateColumn.DisplayTemplate>
+                                </dx:TemplateColumn>
+
+                                <dx:TextColumn Caption="File Format" FieldName="FileFormat" />
+
+
+
+
+                                <dx:TextColumn Caption="Status" FieldName="Status" />
+                                <dx:TextColumn Caption="Reason" FieldName="{Binding Reasons}" />
+
+                                <dx:TemplateColumn Caption="Action">
+                                    <dx:TemplateColumn.DisplayTemplate>
+
+                                        <DataTemplate>
+                                            <dx:ComboBoxEdit
+                                                PlaceholderText="Pick Action"
+                                                SelectedItem="{Binding Action, Converter={StaticResource EnumToStringConver}}"
+                                                SelectionChanged="ActionComboBox_SelectionChanged"
+                                                WidthRequest="200"
+                                                >
+                                                <dx:ComboBoxEdit.ItemsSource>
+                                                    <x:Array Type="{x:Type x:String}">
+
+                                                        <x:String>Keep</x:String>
+                                                        <x:String>Delete</x:String>
+                                                        <x:String>Do Nothing</x:String>
+                                                    </x:Array>
+                                                </dx:ComboBoxEdit.ItemsSource>
+                                            </dx:ComboBoxEdit>
+
+
+                                        </DataTemplate>
+
+                                    </dx:TemplateColumn.DisplayTemplate>
+                                </dx:TemplateColumn>
+
+                            </dx:DataGridView.Columns>
+                        </dx:DataGridView>
+                    </Grid>
+
+                </DataTemplate>
+
+            </dx:DXCollectionView.ItemTemplate>
+        </dx:DXCollectionView>
+    </Grid>
+</ContentPage>

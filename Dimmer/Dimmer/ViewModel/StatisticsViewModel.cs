@@ -481,7 +481,7 @@ public partial class StatisticsViewModel : ObservableObject
         {
             ClearAllStats();
             ArtistStats = _statsService.GetArtistStatisticsAsync(artist.Id, SelectedFilter);
-            BuildAlbumAndArtistCharts();
+            //BuildAlbumAndArtistCharts();
         }
         catch (Exception ex)
         {
@@ -505,7 +505,7 @@ public partial class StatisticsViewModel : ObservableObject
         {
             ClearAllStats();
             AlbumStats = _statsService.GetAlbumStatisticsAsync(album.Id, SelectedFilter);
-            BuildAlbumAndArtistCharts();
+            //BuildAlbumAndArtistCharts();
         }
         catch (Exception ex)
         {

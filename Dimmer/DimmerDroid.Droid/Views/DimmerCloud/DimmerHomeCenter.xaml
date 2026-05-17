@@ -58,7 +58,7 @@
         <dx:DXPopup
             x:Name="LoginPopup"
             AllowScrim="True"
-            BackgroundColor="DarkSlateBlue"
+            BackgroundColor="Black"
             CloseOnScrimTap="False"
             >
             <dx:DXPopup.Content>
@@ -73,7 +73,7 @@
                                 <Setter Property="TextColor" Value="White" />
                             </Style>
                             <Style TargetType="dx:TextEdit">
-                                <Setter Property="PlaceholderColor" Value="Grey" />
+                                <Setter Property="PlaceholderColor" Value="White" />
                                 <Setter Property="LabelColor" Value="White" />
                                 <Setter Property="TextColor" Value="White" />
                             </Style>

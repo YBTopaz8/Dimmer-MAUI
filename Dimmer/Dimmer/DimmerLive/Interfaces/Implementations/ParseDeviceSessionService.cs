@@ -82,9 +82,9 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
 
 
         StartCommandListener();
-        await UploadLibraryMapAsync(); // Upload the "What I have" list
+        //await UploadLibraryMapAsync(); // Upload the "What I have" list
         await FetchOtherDevicesAsync();
-    }
+      }
 
     private void StartCommandListener()
     {
@@ -121,6 +121,27 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
             cmd.IsProcessed = true;
             await cmd.SaveAsync();
         });
+    }
+
+    private async Task SendDeviceReplyAsync(string targetDeviceId, string text)
+    {
+        try
+        {
+            var message = new ChatMessage
+            {
+                Text = text,
+                MessageType = "System", // Or "TerminalResponse"
+            };
+            message["UserName"] = DeviceInfo.Name + " (Device)";
+            message["senderId"] = MyDeviceId;
+            message["UserSenderId"] = ParseUser.CurrentUser.ObjectId;
+
+            await message.SaveAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send device reply.");
+        }
     }
     public async Task InitiateSessionTransferAsync(UserDeviceSession targetDevice, DimmerPlayEventView currentSong)
     {

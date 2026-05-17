@@ -7,6 +7,7 @@ using Dimmer.Views.CustomViews;
 using Dimmer.Views.DimmerCloud;
 using Dimmer.Views.DimmerStats;
 using Dimmer.Views.LastFM;
+using Dimmer.Views.Toolkit;
 
 namespace Dimmer;
 
@@ -20,7 +21,8 @@ public partial class DimmerShell : Shell
         Routing.RegisterRoute(nameof(ArtistPage), typeof(ArtistPage));
         Routing.RegisterRoute(nameof(AlbumPage), typeof(AlbumPage));
         Routing.RegisterRoute(nameof(DimmerHomeCenter), typeof(DimmerHomeCenter));
-        //Routing.RegisterRoute(nameof(LastFMLogin), typeof(LastFMLogin));
+        Routing.RegisterRoute(nameof(DuplicateFinder), typeof(DuplicateFinder));
+                //Routing.RegisterRoute(nameof(LastFMLogin), typeof(LastFMLogin));
 
 
     }

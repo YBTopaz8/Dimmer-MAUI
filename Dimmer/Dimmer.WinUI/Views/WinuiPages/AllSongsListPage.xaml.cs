@@ -1002,14 +1002,6 @@ public sealed partial class AllSongsListPage : Page
         // Store the item for the return trip
         _storedSong = MyViewModel.SelectedSong;
 
-        var image = PlatUtils.FindVisualElementFromTableView(MySongsTableView, _storedSong!, "coverArtImage");
-
-
-        if (image == null) return;
-
-        AnimationHelper.Prepare(AnimationHelper.Key_ListToDetail, ViewQueueBtn, AnimationHelper.ConnectedAnimationStyle.ScaleUp,650);
-        
-
 
         // Suppress the default page transition to let ours take over.
         var supNavTransInfo = new SuppressNavigationTransitionInfo();

@@ -125,15 +125,17 @@ public class LyricsMgtFlow : IDisposable
         }
     }
 
-    public async Task<IEnumerable<LyricPhraseModelView>> GetLyrics(SongModelView songConcerned)
+    public async Task<ObservableCollection<LyricPhraseModelView>> GetLyrics(SongModelView songConcerned)
     {
         var res = await GetStoredLyricsContentAsync(songConcerned);
-        if (res is null)
+        if (res is not null)
         {
-            return Enumerable.Empty<LyricPhraseModelView>();
+
+
+            var _lyrics = GetListLyricsCol(res);
+
         }
-        var _lyrics = GetListLyricsCol(res);
-        if(_lyrics is null)
+        if(_lyrics is null || _lyrics.Count<1)
         {
             var OnlineLyrics = await GetLyricsAndSaveContentToDBAsync(songConcerned);
             var collectionfOfLyricModelViewsFromOnlineLyrics
@@ -146,12 +148,12 @@ public class LyricsMgtFlow : IDisposable
              
             }
 
-            return collectionfOfLyricModelViewsFromOnlineLyrics;
+            return collectionfOfLyricModelViewsFromOnlineLyrics.ToObservableCollection();
 
         }
         else
         {
-            return _lyrics;
+            return _lyrics.ToObservableCollection();
         }
     }
     public static List<LyricPhraseModelView> GetListLyricsCol(string? lrcContent)
@@ -273,7 +275,7 @@ public class LyricsMgtFlow : IDisposable
     private async Task<IEnumerable<LrcLibLyrics>?> GetLyricsAndSaveContentToDBAsync(SongModelView song,bool saveToDB=true)
     {
         CancellationTokenSource cts = new();
-        var instru = song.IsInstrumental is null || song.IsInstrumental is false && song.SyncLyrics?.Length < 1;
+        var instru =  song.IsInstrumental is true;
         if (instru)
         {
             return null;

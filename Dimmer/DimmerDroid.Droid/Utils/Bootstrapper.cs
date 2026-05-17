@@ -6,6 +6,7 @@ using Dimmer.Views.DimmerStats;
 using Dimmer.Views.LastFM;
 using Dimmer.Views.Settings;
 using Dimmer.Views.SingleSong;
+using Dimmer.Views.Toolkit;
 
 namespace Dimmer.Utils;
 
@@ -49,6 +50,7 @@ internal class Bootstrapper
         services.AddSingleton<AllStats>();
         services.AddSingleton<DimmerHomeCenter>();
             services.AddTransient<DimmerLiveLogin>();
+            services.AddTransient<DuplicateFinder>();
 
             services.AddSingleton<SingleSongInCVBottomSheet>();
 
