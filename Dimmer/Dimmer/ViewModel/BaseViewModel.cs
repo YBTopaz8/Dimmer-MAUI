@@ -453,23 +453,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
 
         // subscribe to realm's directChanges for certain models to keep in sync
 
-        using (Realm? checkRealm = RealmFactory.GetRealmInstance())
-        {
-            IsLibraryEmpty = !checkRealm.All<SongModel>().Any();
-            ShowWelcomeScreen = IsLibraryEmpty;
-
-            // Grab FolderPaths while we have this instance
-            var stateApp = checkRealm.All<AppStateModel>().FirstOrDefaultNullSafe();
-            if (stateApp is not null)
-            {
-                // Freeze allows this collection to survive outside the 'using' block
-                FolderPaths = stateApp.Freeze().UserMusicFolders.Select(x=>x.SystemFolderPath).ToObservableCollection();
-            }
-        }
-        if (!IsLibraryEmpty)
-        {
-            //ShowAllSongsWindowActivate();
-        }
+      
 
         _backgroundCachingCts = new();
 
@@ -514,7 +498,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
 
                 await HeavierBackGroundLoadings(FolderPaths);
 
-                await Task.Delay(15000);
+                //await Task.Delay(1500);
                 await EnsureAllCoverArtCachedForSongsAsync(_backgroundCachingCts.Token);
 
             }
@@ -550,7 +534,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
 
 
         var searchStream = _searchQuerySubject
-       .Throttle(TimeSpan.FromMilliseconds(350), RxSchedulers.Background)
+       .Throttle(TimeSpan.FromMilliseconds(250), RxSchedulers.Background)
        .DistinctUntilChanged()
        .Do(query =>
        {
@@ -602,8 +586,8 @@ Observable.FromEventPattern<PlaybackEventArgs>(
         MyDeviceId = LoadOrGenerateDeviceId();
 
 
-        SetupArtistPipeline();
-        SetupAlbumPipeline();
+        //SetupArtistPipeline();
+        //SetupAlbumPipeline();
         SubscribeToStateServiceEvents();
         SubscribeToAudioServiceEvents();
         SubscribeToLyricsFlow();
@@ -844,15 +828,17 @@ Observable.FromEventPattern<PlaybackEventArgs>(
             // 1. Set up watchers immediately (this is now fast)
             await _folderMgtService.StartWatchingConfiguredFoldersAsync();
 
-            // 2. Perform the slow initial scan in the background
+            var redoStats = new StatsRecalculator(RealmFactory, _logger);
+            await redoStats.RecalculateAllStatisticsAsync();
 
-            if (folders is not null && folders.Any())
-            {
-                _ = await libScannerService.ScanLibrary(folders.ToList());
-            }
-            
-            await PerformBackgroundInitializationAsync();
-           //await this.FindDuplicatesAsync();
+
+
+            _logger.LogInformation("Finished calculating SearchableText.");
+
+
+
+            LoadLastTenPlayedSongsFromDBToPlayBackQueue();
+            //await this.FindDuplicatesAsync();
         }
         catch (Exception ex )
         {
@@ -907,16 +893,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
             //}
 
             
-            var redoStats = new StatsRecalculator(RealmFactory, _logger);
-            await redoStats.RecalculateAllStatisticsAsync();
-            
-        
-         
-            _logger.LogInformation("Finished calculating SearchableText.");
-
-          
-
-            LoadLastTenPlayedSongsFromDBToPlayBackQueue();
+           
 
             
         }
@@ -1316,7 +1293,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
                     {
                         try
                         {
-                            var safeSongView = lastSong.ToSongModelView();
+                            SongModelView safeSongView = lastSong.ToSongModelView()!;
                             RxSchedulers.UI.ScheduleTo(() =>
                             {
 
@@ -1330,7 +1307,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
                             Debug.WriteLine(ex.Message);
                         }
 
-                        //RxSchedulers.UI.Schedule(()=> CurrentPlayingSongView = lastSong.ToModelView());
+
                     }
                     else
                     {
@@ -1338,7 +1315,6 @@ Observable.FromEventPattern<PlaybackEventArgs>(
                     RxSchedulers.UI.ScheduleTo(() =>
                     {
 
-                        //CurrentTrackPositionSeconds = lastAppEvent.PositionInSeconds;
                         IsDarkModeOn = Application.Current?.PlatformAppTheme == AppTheme.Dark;
 
                     });
@@ -8202,6 +8178,13 @@ public void RemoveRule(VisualFilterRule rule)
     ActiveFilterRules.Remove(rule);
     UpdateGeneratedTql();
 }
+
+    public void LoadSortTitles()
+    {
+        SortItems = new List<string>() { "Title Asc", "Title Desc", "Artist Name Asc", "Artist Name Desc", "Album Name Asc", "Album Name Desc", "Dims Count Asc", "Dims Count Desc", "Date Added Asc", "Date Added Desc", "Last Played Asc", "Last Played Desc" };
+    }
+    [ObservableProperty]
+    public partial List<string> SortItems { get; set; }
 }
 
 public enum CollectionViewMode

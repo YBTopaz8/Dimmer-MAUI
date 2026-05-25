@@ -28,13 +28,12 @@ public partial class ArtistPage : ContentPage
     {
         BindingContext = MyViewModel.SelectedArtist;
         base.OnAppearing();
-        _ =Task.Run(
-            async () =>
-            {
+        await Task.Delay(4000);
+        
+            
             await MylastFMViewModel.LoadArtistLastFMDataAsync(MyViewModel.SelectedArtist);
            await StatsVM.LoadArtistStatsAsync(MyViewModel.SelectedArtist);
 
-            });
     }
 
     private void ExportEvt_Tap(object sender, HandledEventArgs e)

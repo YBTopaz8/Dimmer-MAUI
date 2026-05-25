@@ -1,7 +1,7 @@
 ﻿namespace Dimmer.Utils;
 public class StatsRecalculator
 {
-    IRealmFactory realmFactory;
+    readonly IRealmFactory realmFactory;
     [ThreadStatic] private static Realm? _realm;
 
     private readonly ILogger _logger;
@@ -14,7 +14,7 @@ public class StatsRecalculator
 
     public async Task RecalculateAllStatisticsAsync()
     {
-        var sw = Stopwatch.StartNew();
+
         _logger.LogInformation($"{DateTime.Now} Starting recalculation of all statistics...");
         _realm ??= realmFactory.GetRealmInstance();
         var allSongs = _realm.All<SongModel>().ToList();
@@ -26,7 +26,7 @@ public class StatsRecalculator
         //------------------------------------------
         foreach (var chunk in allSongs.Chunk(500))
         {
-            _realm.WriteAsync(() =>
+          await  _realm.WriteAsync(() =>
             {
                 foreach (var song in chunk)
                 {
@@ -180,7 +180,7 @@ public class StatsRecalculator
             //------------------------------------------
             // PHASE 3 — ARTIST-LEVEL STATISTICS
             //------------------------------------------
-            _realm.Write(() =>
+         await   _realm.WriteAsync(() =>
             {
                 foreach (var artist in allArtists)
                 {
@@ -221,7 +221,7 @@ public class StatsRecalculator
             //------------------------------------------
             // PHASE 4 — GLOBAL RANKINGS
             //------------------------------------------
-            _realm.Write(() =>
+          await  _realm.WriteAsync(() =>
             {
                 // --- Global Song Ranking ---
                 int rank = 1;

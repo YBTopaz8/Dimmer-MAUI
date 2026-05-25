@@ -2,6 +2,7 @@
 global using Dimmer.Views.CustomViews;
 global using View = Microsoft.Maui.Controls.View;
 using Android.Views.InputMethods;
+using DevExpress.Maui.Editors;
 using Dimmer.Utilities;
 
 
@@ -29,11 +30,14 @@ public partial class HomePage : ContentPage
                 });
         MyLastFMViewModel.LoadBaseViewModel(viewModelAnd);
         _ = Task.Run(() => loginVM.InitializeAsync());
+        MyViewModel.LoadSortTitles();
+
     }
     BaseViewModelAnd MyViewModel { get; }
     public LastFMViewModel MyLastFMViewModel { get; }
     public LoginViewModel MyLoginVM { get; }
     public StatisticsViewModel StatsViewModel { get; }
+
 
     protected override void OnAppearing()
     {
@@ -41,6 +45,36 @@ public partial class HomePage : ContentPage
 
         Debug.WriteLine("HomePage OnAppearing" + MyViewModel.AppTitle + " " + BaseViewModel.CurrentAppStage);
         Debug.WriteLine("HomePage OnAppearing" + MyViewModel.SearchResults.Count);
+
+        if (!MyViewModel.IsInitialized)
+        {
+            InitializeAppLogic();
+        }
+    }
+
+
+    private void InitializeAppLogic()
+    {
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                var startTime = Java.Lang.JavaSystem.CurrentTimeMillis();
+
+                MyViewModel.InitializeAllVMCoreComponents();
+
+                var duration = Java.Lang.JavaSystem.CurrentTimeMillis() - startTime;
+                Console.WriteLine($"InitializeAppLogic took {duration}ms");
+                if (duration > 2000)
+                    Android.Util.Log.Warn("ANR_WARNING", $"OnCreate took {duration}ms - ANR risk!");
+            }
+            catch (Exception ex)
+            {
+                await Shell.Current.DisplayAlertAsync("Fatal Error Init Logic", ex.Message, "ok");
+                Console.WriteLine($"VM INIT CRASH: {ex}");
+                Android.Util.Log.Error("DIMMER_INIT", ex.ToString());
+            }
+        });
     }
 
     private async void TapToPlaySongGestRecog_Tapped(object sender, TappedEventArgs e)
@@ -707,6 +741,11 @@ public partial class HomePage : ContentPage
         PlaybackQueueCV.ScrollTo(curHandle, DXScrollToPosition.Start);
     }
 
+    List<string> SortItems = new List<string>();
+    private void FilterChipGroup_Loaded(object sender, EventArgs e)
+    {
+    }
+
 
     //private async void SelectedSongBtmSheetAlbumNameChip_Tap(object sender, HandledEventArgs e)
     //{
@@ -721,16 +760,39 @@ public partial class HomePage : ContentPage
     //    await Shell.Current.GoToAsync(nameof(AlbumPage), true);
     //}
 
-    //private void SongsCV_PropertyChanged(object sender, PropertyChangedEventArgs e)
-    //{
-    //    if(e.PropertyName == nameof(SongsCV.VisibleItemCount))
-    //    {
+    private void SongsCV_PropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(SongsCV.VisibleItemCount))
+        {
 
-    //        var newCount = (SongsCV.ItemsSource as ReadOnlyObservableCollection<SongModelView>)?.Count;
-    //        string? fullStr = newCount.ToString();
-    //        SearchBarTextEdit.Suffix = fullStr;
-    //    }
-    //}
+            var newCount = (SongsCV.ItemsSource as ReadOnlyObservableCollection<SongModelView>)?.Count;
+            string? fullStr = newCount.ToString();
+            SearchText.Suffix = fullStr;
+        }
+    }
+
+    private void SortByChipGroup_SelectionChanged(object sender, EventArgs e)
+    {
+        FilterChipGroup send = (FilterChipGroup)sender;
+        var indices = send.SelectedIndexes;
+    }
+
+    private void SortByListPicker_Loaded(object sender, EventArgs e)
+    {
+
+        FilterRadioListPickerItem send = (FilterRadioListPickerItem)sender;
+        send.ItemsSource = SortItems;
+    }
+
+    private void SortByListPicker_FilterChanged(object sender, FilterChangedEventArgs e)
+    {
+
+    }
+
+    private void SortByListPicker_PickerShowing(object sender, PickerShowingEventArgs e)
+    {
+
+    }
 
     //private void SearchIconBtn_Tapped(object sender, HandledEventArgs e)
     //{

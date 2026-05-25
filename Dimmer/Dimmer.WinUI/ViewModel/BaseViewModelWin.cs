@@ -1367,7 +1367,8 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
         if (lastFmArtist is null) return;
 
-        selectedArtist!.ImagePath = lastFmArtist.Images?.Where(x => x.Size == "mega").LastOrDefault()?.Url;
+        var lastFMImgUrl = lastFmArtist.Images?.Where(x => x.Size == "mega").First().Url;
+        selectedArtist!.ImagePath = !string.IsNullOrEmpty(lastFMImgUrl) ? lastFMImgUrl : string.Empty;
         if(lastFmArtist.Biography is not null)
             selectedArtist.Bio = lastFmArtist.Biography.Summary;
         selectedArtist.ListOfSimilarArtists = lastFmArtist.Similar?.ToObservableCollection();
@@ -1490,7 +1491,50 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     }
 
-    [ObservableProperty]
+    [RelayCommand]
+    public async Task  AddMusicFolderViaPickerAsync()
+    {
+        
+
+            var tcs = new TaskCompletionSource<(bool includeDefault, string customPath)>();
+
+
+            
+
+
+
+                var picker = new Windows.Storage.Pickers.FolderPicker();
+                // Get the HWND of the current window
+                var hwnd = PlatUtils.DimmerHandle;
+                // Initialize the picker with the window handle
+                InitializeWithWindow.Initialize(picker, hwnd);
+                var file = await picker.PickSingleFolderAsync();
+
+
+                if (file is null)
+                {
+                    tcs.SetResult((false, string.Empty));
+
+                    return;
+                }
+                tcs.SetResult((true, file.Path));
+            
+
+
+            // Wait for user's decision
+            var (includeDefaultLocation, secondaryPath) = await tcs.Task;
+
+
+        AddMusicFoldersByPassingToService(new List<string>() { $"{file.Path}" });
+        
+       
+
+
+
+            //BackupService.CleanupOldBackups(3);
+        }
+
+        [ObservableProperty]
     public partial SmokeViewQueueGrid NowPlayingView { get; set; }
 
     [ObservableProperty]

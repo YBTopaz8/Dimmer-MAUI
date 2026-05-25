@@ -45,6 +45,7 @@
                     x:Name="CurrentSongImg"
                     Width="120"
                     Height="120"
+                    VerticalAlignment="Top"
                     IsTapEnabled="True"
                     Loaded="CurrentSongImg_Loaded"
                     Tapped="CurrentSongImg_Tapped"
@@ -59,7 +60,8 @@
                         Background="Transparent"
                         BorderThickness="0"
                         Content="{x:Bind MyViewModel.CurrentPlayingSongView.OtherArtistsName, Mode=OneWay}"
-                        />
+                     x:Name="ArtistsBtn" Click="ArtistsBtn_Click"
+                        Loaded="ArtistsBtn_Loaded"/>
                     <StackPanel Orientation="Horizontal" Spacing="10">
 
                         <Button x:Name="PreviousBtn" Command="{x:Bind MyViewModel.PreviousTrackCommand}">

@@ -28,6 +28,7 @@
             <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
+        
         <StackPanel Grid.Row="0" Padding="5">
             <Button
                 x:Name="ScanDuplicates"

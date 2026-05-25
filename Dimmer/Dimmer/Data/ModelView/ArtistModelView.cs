@@ -15,7 +15,7 @@ public partial class ArtistModelView : ObservableObject
     [ObservableProperty]
     public partial string? Name { get; set; }
     [ObservableProperty]
-    public partial string? ImagePath { get; set; }
+    public partial string ImagePath { get; set; } = string.Empty;
     [ObservableProperty]
     public partial byte[]? ImageBytes { get; set; }
     [ObservableProperty]

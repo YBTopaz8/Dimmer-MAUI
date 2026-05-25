@@ -415,4 +415,49 @@ public sealed partial class DimmerWin : Window
                 }
             });
     }
+
+    private void ArtistsBtn_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrEmpty(MyViewModel.CurrentPlayingSongView.TitleDurationKey)) return;
+
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentPlayingSongView), v => MyViewModel.CurrentPlayingSongView)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(curSong =>
+            {
+
+                if (string.IsNullOrEmpty(MyViewModel.CurrentPlayingSongView.TitleDurationKey)) return;
+                if (MyViewModel.CurrentPlayingSongView.ArtistToSong.Count > 1)
+                {
+                    MenuFlyout mFlyout = new MenuFlyout();
+                    foreach (var art in MyViewModel.CurrentPlayingSongView.ArtistToSong)
+                    {
+                        if (art is null) continue;
+                        MenuFlyoutItem newItem = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem()
+                            ;
+                        newItem.Text = art.Name;
+                        newItem.Click += NewItem_Click;
+                        newItem.CommandParameter = art;
+                        mFlyout.Items.Add(newItem);
+                    }
+
+                    ArtistsBtn.ContextFlyout = mFlyout;
+
+                }
+            });
+      
+    }
+
+    private void NewItem_Click(object sender, RoutedEventArgs e)
+    {
+        var art = ((MenuFlyoutItem)sender).CommandParameter as ArtistModelView;
+        if (art is null) return;
+        MyViewModel.SetSelectedArtist(art);
+        MyViewModel.NavigateToArtistPageWithArtistId(art.Id);
+    }
+
+    private void ArtistsBtn_Click(object sender, RoutedEventArgs e)
+    {
+        
+        //if count is <2 nav directly, else show context menu
+    }
 }

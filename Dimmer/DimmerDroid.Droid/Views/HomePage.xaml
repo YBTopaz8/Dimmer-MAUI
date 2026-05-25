@@ -217,8 +217,10 @@
                                 ShowIcon="True"
                                 />
                             <dx:DXButton
+                                x:Name="FilterBtn"
                                 Padding="5"
                                 BackgroundColor="Transparent"
+                                Command="{Binding Commands.Show, Source={x:Reference FilterBottomSheet}}"
                                 HorizontalOptions="End"
                                 Icon="filtertwo.png"
                                 IconColor="{AppThemeBinding Dark=White,
@@ -240,15 +242,17 @@
                         TextChanged="SearchText_TextChanged"
                         />
                 </dx:DXStackLayout>
-                <dx:ShimmerView Grid.Row="1" IsLoading="{Binding IsShowScanLoadingActivityIndicator}">
-                    <dx:DXCollectionView
-                        x:Name="SongsCV"
-                        IsScrollBarVisible="False"
-                        ItemSpacing="5"
-                        ItemTemplate="{StaticResource LinearDataType}"
-                        ItemsSource="{Binding SearchResults}"
-                        />
-                </dx:ShimmerView>
+
+                <dx:DXCollectionView
+                    x:Name="SongsCV"
+                    Grid.Row="1"
+                    Margin="5,0"
+                    BackgroundColor="Transparent"
+                    ItemSpacing="5"
+                    ItemTemplate="{StaticResource LinearDataType}"
+                    ItemsSource="{Binding SearchResults}"
+                    PropertyChanged="SongsCV_PropertyChanged"
+                    />
                 <dx:DXStackLayout
                     Grid.Row="1"
                     Margin="20"
@@ -754,6 +758,22 @@
                     </dx:BottomSheet.Content>
                 </dx:BottomSheet>
 
+                <dx:BottomSheet x:Name="FilterBottomSheet">
+                    <dx:BottomSheet.Content>
+                        <dx:DXStackLayout>
+                            <dx:DXToggleButton x:Name="SortByBtn" Content="Sort By" />
+
+                            <dx:FilterRadioListPickerItem
+                                x:Name="SortByListPicker"
+                                ItemsSource="{Binding SortItems}"
+                                PickerShowMode="Popup"
+                                PickerTitle="Sort By"
+                                Text="Sort By"
+                                />
+
+                        </dx:DXStackLayout>
+                    </dx:BottomSheet.Content>
+                </dx:BottomSheet>
             </Grid>
         </dx:TabViewItem>
         <dx:TabViewItem HeaderText="Now Playing">

@@ -66,7 +66,9 @@ namespace Dimmer.WinUI.Views.WinuiPages.Settings
 
         private void AddFolder_Click(object sender, RoutedEventArgs e)
         {
-            //MyViewModel?.AddMusicFolderViaPickerAsync();
+
+            MyViewModel?.AddMusicFolderViaPickerAsync();
+
         }
     }
 }

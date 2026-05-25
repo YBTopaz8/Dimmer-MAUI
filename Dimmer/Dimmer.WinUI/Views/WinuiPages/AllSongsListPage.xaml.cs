@@ -998,10 +998,17 @@ public sealed partial class AllSongsListPage : Page
   
     private void ViewSongBtn_Click(object sender, RoutedEventArgs e)
     {
+        FrameworkElement send = (FrameworkElement)sender;
+        var dContext = send.DataContext as SongModelView;
+        if (dContext is null) return;
 
-        // Store the item for the return trip
-        _storedSong = MyViewModel.SelectedSong;
+        if (_storedSong is null || _storedSong.TitleDurationKey != dContext.TitleDurationKey)
+        {
+            MyViewModel.SelectedSong = dContext;
 
+            // Store the item for the return trip
+            _storedSong = MyViewModel.SelectedSong;
+        }
 
         // Suppress the default page transition to let ours take over.
         var supNavTransInfo = new SuppressNavigationTransitionInfo();

@@ -76,34 +76,11 @@ public partial class MainActivity : MauiAppCompatActivity
             AndroidPermissionsService.RequestStoragePermissions(this, REQUEST_STORAGE_PERMS);
         }
 
-        // Permissions already granted, load music
-        InitializeAppLogic();
+
 
     }
 
-    private void InitializeAppLogic()
-    {
-        Task.Run(async () =>
-        {
-            try
-            {
-                var startTime = Java.Lang.JavaSystem.CurrentTimeMillis();
-
-                MyViewModel.InitializeAllVMCoreComponents();
-
-                var duration = Java.Lang.JavaSystem.CurrentTimeMillis() - startTime;
-                Console.WriteLine($"InitializeAppLogic took {duration}ms");
-                if (duration > 2000)
-                    Android.Util.Log.Warn("ANR_WARNING", $"OnCreate took {duration}ms - ANR risk!");
-            }
-            catch (Exception ex)
-            {
-                await Shell.Current.DisplayAlertAsync("Fatal Error Init Logic", ex.Message, "ok");
-                Console.WriteLine($"VM INIT CRASH: {ex}");
-                Android.Util.Log.Error("DIMMER_INIT", ex.ToString());
-            }
-        });
-    }
+   
 
     public static JsonSerializerOptions JsonOptions => _jsonOptions;
     private static JsonSerializerOptions _jsonOptions;

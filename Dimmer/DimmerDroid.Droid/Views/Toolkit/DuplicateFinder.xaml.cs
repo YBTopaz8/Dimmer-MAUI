@@ -59,4 +59,9 @@ public partial class DuplicateFinder : ContentPage
     {
         Debugger.Break();
     }
+
+    private void ActionComboBox_SelectionChanged(object sender, EventArgs e)
+    {
+
+    }
 }
