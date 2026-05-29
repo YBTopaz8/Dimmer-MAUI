@@ -133,6 +133,9 @@
 	  <MauiXaml Update="Views\Artist\ArtistPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="Views\CustomViews\FilterSortPopup.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Views\CustomViews\NowPlayingView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

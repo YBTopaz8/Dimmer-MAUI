@@ -16,6 +16,7 @@ using Hqub.Lastfm.Entities;
 using Microsoft.Extensions.Logging.Abstractions;
 using Parse.LiveQuery;
 using Realms;
+using Syncfusion.Maui.Toolkit.Carousel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -4355,12 +4356,12 @@ Observable.FromEventPattern<PlaybackEventArgs>(
     }
 
     [RelayCommand]
-    protected async Task AddMusicFolderByPassingToService(string folderPath)
+    protected void AddMusicFolderByPassingToService(string folderPath)
     {
         _logger.LogInformation("User requested to add music folder.");
         _stateService.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderAdded, folderPath, null, null));
         IsAppScanning = true;
-        _ = Task.Run(async () => await _folderMgtService.AddFolderToWatchListAndScan(folderPath));
+        _ = Task.Run(() => _folderMgtService.AddFolderToWatchListAndScan(folderPath));
     }
 
     [ObservableProperty]
@@ -8183,6 +8184,34 @@ public void RemoveRule(VisualFilterRule rule)
     {
         SortItems = new List<string>() { "Title Asc", "Title Desc", "Artist Name Asc", "Artist Name Desc", "Album Name Asc", "Album Name Desc", "Dims Count Asc", "Dims Count Desc", "Date Added Asc", "Date Added Desc", "Last Played Asc", "Last Played Desc" };
     }
+    HashSet<ObjectId> hashSetOfCurrentSongsIdInOrder;
+    public void SwapMainSongsToArtistSongs(ArtistModelView artist)
+    {
+        hashSetOfCurrentSongsIdInOrder = SearchResults.Select(x => x.Id).ToHashSet();
+        if (artist.SongsByArtist is null) return;
+        SearchResultsHolder.Edit(innerCache => innerCache.Load(artist.SongsByArtist));
+        
+    }
+    [RelayCommand]
+    public void LoadMoreSongs()
+    {
+
+    }
+    public void SwapBackToMainSongs()
+    {
+        hashSetOfCurrentSongsIdInOrder = SearchResults.Select(x => x.Id).ToHashSet();
+
+
+        
+    }
+    public void SwapToPlayBackQueueToSongs()
+    {
+        hashSetOfCurrentSongsIdInOrder = SearchResults.Select(x => x.Id).ToHashSet();
+
+        SearchResultsHolder.Edit(innerCache => innerCache.Load(PlaybackQueue));
+        
+    }
+
     [ObservableProperty]
     public partial List<string> SortItems { get; set; }
 }

@@ -26,7 +26,7 @@ public partial class SettingsViewModel : BaseViewModel
 
                 if (!string.IsNullOrEmpty(selectedFolderPath))
                 {
-                    _ = Task.Run(async () => await AddMusicFolderByPassingToService(selectedFolderPath));
+                    _ = Task.Run(() => AddMusicFolderByPassingToService(selectedFolderPath));
                 }
 
             }

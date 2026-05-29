@@ -33,6 +33,7 @@ public partial class HomePage : ContentPage
         MyViewModel.LoadSortTitles();
 
     }
+    
     BaseViewModelAnd MyViewModel { get; }
     public LastFMViewModel MyLastFMViewModel { get; }
     public LoginViewModel MyLoginVM { get; }
@@ -50,6 +51,29 @@ public partial class HomePage : ContentPage
         {
             InitializeAppLogic();
         }
+
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.HomePageIndex), v => (MyViewModel.HomePageIndex))
+            .Subscribe(
+                e =>
+                {
+                    switch (e)
+                    {
+                        case 0:
+                            var songHandle = SongsCV.FindItemHandle(MyViewModel.CurrentPlayingSongView);
+                            HapticFeedback.Default.Perform(HapticFeedbackType.Click);
+                            SongsCV.ScrollTo(songHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
+                            break;
+
+                        case 2:
+                            var songHandlePBCV = PlaybackQueueCV.FindItemHandle(MyViewModel.CurrentPlayingSongView);
+                            HapticFeedback.Default.Perform(HapticFeedbackType.Click);
+                            PlaybackQueueCV.ScrollTo(songHandlePBCV, DevExpress.Maui.Core.DXScrollToPosition.Start);
+                            break;
+                        default:
+                            break;
+                    }
+
+                });
     }
 
 
@@ -792,6 +816,159 @@ public partial class HomePage : ContentPage
     private void SortByListPicker_PickerShowing(object sender, PickerShowingEventArgs e)
     {
 
+    }
+
+    private void AddToQueueButton_Clicked(object sender, EventArgs e)
+    {
+        
+    }
+
+    private async void ViewArtist_Clicked(object sender, EventArgs e)
+    {
+
+        var send = (DXButton)sender;
+        var artist = send.CommandParameter as ArtistModelView;
+
+        if (artist is null) return;
+      
+
+        MyViewModel.SetSelectedArtist(artist);
+        await ArtistsMgtBtmSheet.CloseAsync();
+        await Shell.Current.GoToAsync(nameof(ArtistPage), true);
+    }
+
+    private void PreviewArtistSongsBtn_CheckedChanged(object sender, ValueChangedEventArgs<bool> e)
+    {
+        var send = (DXToggleButton)sender;
+        var artist = send.CommandParameter as ArtistModelView;
+
+        if (artist is null) return;
+        if (e.NewValue)
+        {
+            MyViewModel.SwapMainSongsToArtistSongs(artist);
+        }
+        else
+        {
+            MyViewModel.SwapBackToMainSongs();
+        }
+    }
+
+    private void OtherArtistsName_CheckedChanged(object sender, ValueChangedEventArgs<bool> e)
+    {
+        var dxBtn = (DXButton)sender;
+        var song = dxBtn.CommandParameter as SongModelView;
+        if (song is null) return;
+        MyViewModel.SelectedSong = song;
+        var songHandle = SongsCV.FindItemHandle(song);
+
+        SongsCV.ScrollTo(songHandle, DXScrollToPosition.Start);
+        ArtistsMgtBtmSheet.Show(BottomSheetState.HalfExpanded);
+    }
+
+    private void AddNextToCurrentPlayingSong_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+ 
+    private void AddToEndOfQueue_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.AddListOfSongsToQueueEnd(MyViewModel.SelectedArtist.SongsByArtist);
+    }
+
+    private void AddPlaybackQueue_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.AddToNext(MyViewModel.SelectedArtist.SongsByArtist);
+    }
+
+    private void AddRemoveMyFavs_CheckedChanged(object sender, EventArgs e)
+    {
+        CheckEdit chBx = (CheckEdit)sender;
+        var isChecked = chBx.IsChecked;
+
+    }
+
+    private void SongsCV_Loaded(object sender, EventArgs e)
+    {
+        MyViewModel.SetCollectionView(SongsCV);
+    }
+
+    private void IsFavorite_CheckedChanged(object sender, EventArgs e)
+    {
+       
+    }
+
+    private void FilterCheckItem_Loaded(object sender, EventArgs e)
+    {
+        var send = (FilterCheckItem)sender;
+        send.Context = SongsCV.FilteringContext;
+        send.FieldName = "IsFavorite";
+    }
+
+    private void FilterCheckedListPickerItem_Loaded(object sender, EventArgs e)
+    {
+
+    }
+
+    private void ArtistFilterCheckedListPickerItem_Loaded(object sender, EventArgs e)
+    {
+        var artistFiltChck = (FilterCheckedListPickerItem)sender;
+
+        artistFiltChck.Context = SongsCV.FilteringContext;
+        artistFiltChck.FieldName = "OtherArtistsName";
+
+    }
+
+    private void AlbumFilterCheckedListPickerItem_Loaded(object sender, EventArgs e)
+    {
+        var albumFiltChck = (FilterCheckedListPickerItem)sender;
+
+        albumFiltChck.Context = SongsCV.FilteringContext;
+        albumFiltChck.FieldName = "AlbumName";
+
+    }
+
+    private void GenreFilterCheckedListPickerItem_Loaded(object sender, EventArgs e)
+    {
+        var albumFiltChck = (FilterCheckedListPickerItem)sender;
+        albumFiltChck.ItemsSource = MyViewModel.SearchResults.Select(x => x.Genre).ToList();
+        albumFiltChck.Context = SongsCV.FilteringContext;
+        albumFiltChck.FieldName = "GenreName";
+
+    }
+
+    private void LastDatePlayedFilterDateRange_Loaded(object sender, EventArgs e)
+    {
+        var dateFilterEdit = (FilterDateRangeItem)sender;
+        dateFilterEdit.Min = MyViewModel.SearchResults.Min(x => x.LastPlayed)?.DateTime;
+        dateFilterEdit.Max = MyViewModel.SearchResults.Max(x => x.LastPlayed)?.DateTime;
+        dateFilterEdit.Context = SongsCV.FilteringContext;
+        dateFilterEdit.FieldName = "LastPlayed";
+
+    }
+
+    private void DimsRangeSlider_Loaded(object sender, EventArgs e)
+    {
+        var dimsRangeSlider = (FilterNumericRangeSliderItem)sender;
+        dimsRangeSlider.Min = MyViewModel.SearchResults.Min(x => x.PlayCompletedCount);
+        dimsRangeSlider.Max = MyViewModel.SearchResults.Max(x => x.PlayCompletedCount);
+        dimsRangeSlider.Context = SongsCV.FilteringContext;
+        dimsRangeSlider.FieldName = "PlayCompletedCount";
+
+    }
+
+    private void SkipsRangeSlider_Loaded(object sender, EventArgs e)
+    {
+        var skipsRangeSlider = (FilterNumericRangeSliderItem)sender;
+        skipsRangeSlider.Min = MyViewModel.SearchResults.Min(x => x.SkipCount);
+        skipsRangeSlider.Max = MyViewModel.SearchResults.Max(x => x.SkipCount);
+        skipsRangeSlider.Context = SongsCV.FilteringContext;
+        skipsRangeSlider.FieldName = "SkipCount";
+    }
+
+    private void SortPopUp_Clicked(object sender, EventArgs e)
+    {
+        SortPopUp.IsOpen = true;
     }
 
     //private void SearchIconBtn_Tapped(object sender, HandledEventArgs e)

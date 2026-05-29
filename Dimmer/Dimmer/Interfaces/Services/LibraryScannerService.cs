@@ -70,7 +70,7 @@ public class LibraryScannerService : ILibraryScannerService
             _state.SetCurrentLogMsg("Starting music scan...", DimmerLogLevel.Info);
 
             MusicMetadataService currentScanMetadataService = new();
-
+            
             List<string> allFiles = await TaggingUtils.GetAllAudioFilesFromPathsAsync(folderPaths, _config.SupportedAudioExtensions);
 
             if (allFiles.Count == 0)

@@ -357,6 +357,17 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
             _logger.LogInformation($"Remote device playing: {scrobble.SongTitleDurationKey}");
             _liveScrobbleSubject.OnNext(scrobble);
         });
+        _scrobbleSubscription.On(Subscription.Event.Enter, scrobble =>
+        {
+            _logger.LogInformation($"Remote device playing: {scrobble.SongTitleDurationKey}");
+            _liveScrobbleSubject.OnNext(scrobble);
+        });
+        _scrobbleSubscription.On(Subscription.Event.Update, scrobble =>
+        {
+            _logger.LogInformation($"Remote device playing: {scrobble.SongTitleDurationKey}");
+            _liveScrobbleSubject.OnNext(scrobble);
+        });
+
     }
     public void StopListeners()
     {

@@ -19,9 +19,9 @@ public class SortDescription
     public FieldDefinition Field { get; }
     public SortDirection Direction { get; }
     public string PropertyName => Field.PropertyName;
-    public SortDescription(FieldDefinition field, SortDirection direction)
+    public SortDescription(FieldDefinition fieldDefinition, SortDirection direction)
     {
-        Field = field;
+        Field = fieldDefinition;
         Direction = direction;
     }
 }
