@@ -1,9 +1,11 @@
+using Dimmer.WinUI.Views.CustomViews.WinuiViews;
 using Dimmer.WinUI.Views.WinuiPages.AlbumSection;
 using Dimmer.WinUI.Views.WinuiPages.Artist;
 using Dimmer.WinUI.Views.WinuiPages.LastFMSection;
 using Dimmer.WinUI.Views.WinuiPages.Utilities;
 using Hqub.Lastfm.Entities;
 using Microsoft.UI.Composition.SystemBackdrops;
+using static Dimmer.DimmerSearch.TQlStaticMethods;
 using Border = Microsoft.UI.Xaml.Controls.Border;
 using ProgressBar = Microsoft.UI.Xaml.Controls.ProgressBar;
 using Visibility = Microsoft.UI.Xaml.Visibility;
@@ -77,6 +79,14 @@ public sealed partial class DimmerWin : Window
     public BaseViewModelWin MyViewModel { get; internal set; }
     private void DimmerWindowClosed(object sender, WindowEventArgs args)
     {
+        if (SortByWithTQL.Flyout is MenuFlyout fly)
+        {
+            foreach (var sub in fly.Items.OfType<MenuFlyoutSubItem>())
+            {
+                foreach (var item in sub.Items.OfType<MenuFlyoutItem>())
+                    item.RemoveClick();
+            }
+        }
         MyViewModel.MainWindow = null;
         WinUIWindowsMgr?.UntrackWindow(this);
         this.Closed -= DimmerWindowClosed;
@@ -191,14 +201,12 @@ public sealed partial class DimmerWin : Window
         {
             pageType = typeof(ArtistsOverViewPage);
         }
-        if((string)args.InvokedItemContainer.Name == "ViewQueueItem"!)
-        {
-            MyViewModel.ViewQueueFromAllSongsPageGivenPage();
-        }
+     
         if(pageType is not null)
             NavigateToPage(pageType, null);
     }
 
+    
     private void nvSample_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
     {
 
@@ -459,5 +467,169 @@ public sealed partial class DimmerWin : Window
     {
         
         //if count is <2 nav directly, else show context menu
+    }
+
+    private void ViewQueue_Click(object sender, RoutedEventArgs e)
+    {
+        if (MyViewModel.PlaybackQueue.Count < 1) return;
+
+
+        MyViewModel.ProcessNowPlayingQueueShowing();
+    }
+
+    private void ShowFavSongs_Click(object sender, RoutedEventArgs e)
+    {
+
+        var currText = SearchTextBox.Text;
+        if (string.IsNullOrEmpty(currText))
+        {
+            SearchTextBox.Text = "my fav";
+        }
+        else
+        {
+            SearchTextBox.Text += " add my fav";
+        }
+
+    }
+    private void MiddlePointer_PointerReleased(object sender, PointerRoutedEventArgs e)
+    {
+        var props = e.GetCurrentPoint((UIElement)sender).Properties;
+        if (props != null)
+        {
+            if (props.PointerUpdateKind == Microsoft.UI.Input.PointerUpdateKind.MiddleButtonReleased)
+            {
+                Debug.WriteLine("Show TQL pane");
+            }
+        }
+    }
+
+    FontIcon CaretSolidUp = new FontIcon() { Glyph = "\uEDD7" };
+    FontIcon CaretSolidDown = new FontIcon() { Glyph = "\uEDD8" };
+    string lastKey;
+    string lastSort;
+    private void SortClick(object sender, RoutedEventArgs e)
+    {
+
+        var send = sender as RadioMenuFlyoutItem;
+        if (send is null) return;
+        var key = send.Tag.ToString()?.ToLower();
+
+        if (string.IsNullOrEmpty(key) || send == null)
+            return;
+        lastKey = key;
+
+
+        //if is checked then its sorting Desc, now we maintain check and sort desc and updatetext
+
+        bool isSortAsc;
+        if (lastKey == key && lastSort == "asc")
+        {
+            isSortAsc = false;
+            lastSort = "desc";
+
+        }
+        else if (lastKey == key && lastSort == "desc")
+        {
+            isSortAsc = true;
+            lastSort = "asc";
+        }
+        else
+        {
+            isSortAsc = MyViewModel.CurrentTqlQueryUI.Contains("asc", StringComparison.CurrentCultureIgnoreCase);
+            lastSort = isSortAsc ? "asc" : "desc";
+        }
+
+
+        switch (key)
+        {
+            case "title":
+                if (isSortAsc)
+                    MyViewModel.SearchToTQL(PresetQueries.SortByTitleAsc());
+                else
+                    MyViewModel.SearchToTQL(PresetQueries.SortByTitleDesc());
+                break;
+            case "artist":
+                if (isSortAsc)
+                    MyViewModel.SearchToTQL(PresetQueries.SortByArtistAsc());
+                else
+                    MyViewModel.SearchToTQL(PresetQueries.SortByArtistDesc());
+                break;
+
+            case "album":
+                if (isSortAsc)
+                    MyViewModel.SearchToTQL(PresetQueries.SortByAlbumAsc());
+                else
+                    MyViewModel.SearchToTQL(PresetQueries.SortByAlbumDesc());
+                break;
+            case "dims":
+                if (isSortAsc)
+                    MyViewModel.SearchToTQL(PresetQueries.SortByDimsAsc());
+                else
+                    MyViewModel.SearchToTQL(PresetQueries.SortByDimsDesc());
+                break;
+
+            default:
+                break;
+        }
+
+        lastKey = key;
+
+
+
+    }
+
+
+    private void ShowSongWithLyrics_RightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+        var currentTQL = "has lyrics add " + MyViewModel.CurrentTqlQuery;
+        //SearchTextBox.Text = currentTQL;
+
+    }
+
+    private void ShowFavSongs_RightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+        var currentTQL = "my fav add " + MyViewModel.CurrentTqlQuery;
+        //SearchTextBox.Text = currentTQL;
+    }
+
+    private void ShowSongWithLyrics_Click(object sender, RoutedEventArgs e)
+    {
+
+        var currentTQL = " has lyrics";
+        var currText = SearchTextBox.Text;
+        if (string.IsNullOrEmpty(currText))
+        {
+            SearchTextBox.Text = currentTQL.TrimStart();
+        }
+        else
+        {
+            SearchTextBox.Text += currentTQL;
+        }
+    }
+    private void SearchAutoSuggestBox_TextChanged(object sender, Microsoft.UI.Xaml.Controls.TextChangedEventArgs e)
+    {
+        MyViewModel.SearchToTQL(SearchTextBox.Text);
+
+        
+    }
+
+    private void ShuffleSongs_Click(object sender, RoutedEventArgs e)
+    {
+        var currText = SearchTextBox.Text;
+        if (string.IsNullOrEmpty(currText))
+        {
+            SearchTextBox.Text = "random";
+        }
+    }
+    private void SortByWithTQL_Click(SplitButton sender, SplitButtonClickEventArgs args)
+    {
+        
+        SortByWithTQL.Flyout.ShowAt(sender);
+    }
+
+    private async void OpenHelp(object sender, RoutedEventArgs e)
+    {
+        var dlg = new SearchHelpDialog();
+        await dlg.ShowAsync();
     }
 }

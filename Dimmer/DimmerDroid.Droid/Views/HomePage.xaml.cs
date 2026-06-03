@@ -996,7 +996,7 @@ public partial class HomePage : ContentPage
 
     private void ConfirmSortAndClosePopupBtn_Clicked(object sender, EventArgs e)
     {
-
+        SortPopUp.Close();
         SongsCV.SortDescriptions.Clear();
         switch (currentSelectedSortIndex)
         {
@@ -1061,11 +1061,17 @@ public partial class HomePage : ContentPage
 
     private void SortDownBtn_Clicked(object sender, EventArgs e)
     {
+        var send = (DXButton)sender;
+        currentSelectedSortIndex = MyViewModel.SortByFieldNameCollection.IndexOf((send.BindingContext as string)!);
+        MyViewModel.CurrentSortDisplay = (send.BindingContext as string)!;
         MyViewModel.CurrentSortOrder = SortOrder.Desc;
     }
 
     private void SortUpBtn_Clicked(object sender, EventArgs e)
     {
+        var send = (DXButton)sender;
+        currentSelectedSortIndex = MyViewModel.SortByFieldNameCollection.IndexOf((send.BindingContext as string)!);
+        MyViewModel.CurrentSortDisplay = (send.BindingContext as string)!;
         MyViewModel.CurrentSortOrder = SortOrder.Asc;
 
     }

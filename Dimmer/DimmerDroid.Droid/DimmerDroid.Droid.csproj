@@ -182,5 +182,6 @@
 
 	<ItemGroup>
 	  <Folder Include="Utils\CustomHandlers\" />
+	  <Folder Include="Utils\Utils\Extensions\" />
 	</ItemGroup>
 </Project>

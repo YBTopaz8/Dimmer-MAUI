@@ -88,12 +88,9 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
         if (binder == null)
             throw new ArgumentNullException("binder is null");
 
-        if(_binder == binder)
-        {
-            return;
-        }
+        if (_binder != null && _binder.Service != null)
+            DisconnectEvents(); // Pass the old service explicitly!
 
-        DisconnectEvents();
         _binder = binder;
 
         if (Service != null)

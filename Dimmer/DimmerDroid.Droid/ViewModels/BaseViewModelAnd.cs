@@ -526,50 +526,8 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     public void SetCollectionView(DXCollectionView collectionView)
     {
         _collectionView = collectionView;
-
-        // Listen to collection view changes
-        _collectionView.SortDescriptions.CollectionChanged += (s, e) => UpdateSortDisplay();
-        //_collectionView.chan += (s, e) => UpdateFilterDisplay();
     }
-    private void UpdateSortDisplay()
-    {
-        if (_collectionView?.SortDescriptions?.Any() == true)
-        {
-            var sort = _collectionView.SortDescriptions.First();
-            CurrentSortDisplay = $"{GetDisplayName(sort.FieldName)} ({(sort.SortOrder == DataSortOrder.Ascending ? "A-Z" : "Z-A")})";
-        }
-        else
-        {
-            CurrentSortDisplay = "None";
-        }
-    }
-
-    private void UpdateFilterDisplay()
-    {
-        if (string.IsNullOrEmpty(_collectionView?.FilterString))
-        {
-            CurrentFilterDisplay = "None";
-        }
-        else
-        {
-            CurrentFilterDisplay = "Active";
-        }
-    }
-
-    private string GetDisplayName(string fieldName)
-    {
-        return fieldName switch
-        {
-            "Title" => "Title",
-            "ArtistName" => "Artist",
-            "AlbumName" => "Album",
-            "ReleaseYear" => "Year",
-            "DurationInSeconds" => "Duration",
-            "PlayCount" => "Plays",
-            "Rating" => "Rating",
-            _ => fieldName
-        };
-    }
+ 
 
     [RelayCommand]
     private async Task ShowFilterPopup()
@@ -581,94 +539,6 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         }
     }
 
-    [RelayCommand]
-    private async Task ShowSortOptions()
-    {
-        var action = await Shell.Current.DisplayActionSheetAsync(
-            "Sort By",
-            "Cancel",
-            null,
-            "Title (A-Z)",
-            "Title (Z-A)",
-            "Artist (A-Z)",
-            "Artist (Z-A)",
-            "Play Count (High-Low)",
-            "Play Count (Low-High)",
-            "Rating (High-Low)",
-            "Rating (Low-High)",
-            "Recently Added",
-            "Recently Played");
-
-        if (action != "Cancel" && _collectionView != null)
-        {
-            _collectionView.SortDescriptions.Clear();
-
-            switch (action)
-            {
-                case "Title (A-Z)":
-                    _collectionView.SortDescriptions.Add(new DXSortDescription() { FieldName = "Title", SortOrder = DataSortOrder.Ascending });
-                    break;
-                case "Title (Z-A)":
-                    _collectionView.SortDescriptions.Add(new DXSortDescription()
-                    {
-                        FieldName = "Title",
-                        SortOrder = DataSortOrder.Descending
-                    });
-                    break;
-                case "Artist (A-Z)":
-                    _collectionView.SortDescriptions.Add(new DXSortDescription() { FieldName = "ArtistName",
-                        SortOrder = DataSortOrder.Ascending});
-                    break;
-                case "Artist (Z-A)":
-                    _collectionView.SortDescriptions.Add(new DXSortDescription() { FieldName = "ArtistName",
-                        SortOrder = DataSortOrder.Descending});
-                    break;
-                case "Play Count (High-Low)":
-                    _collectionView.SortDescriptions.Add(new DXSortDescription() { FieldName = "PlayCount",
-                        SortOrder = DataSortOrder.Descending});
-                    break;
-                case "Play Count (Low-High)":
-                    _collectionView.SortDescriptions.Add(new DXSortDescription() { FieldName = "PlayCount",
-                        SortOrder = DataSortOrder.Ascending});
-                    break;
-                case "Rating (High-Low)":
-                    _collectionView.SortDescriptions.Add(new DXSortDescription() { FieldName = "Rating",
-                        SortOrder = DataSortOrder.Descending});
-                    break;
-                case "Rating (Low-High)":
-                    _collectionView.SortDescriptions.Add(new DXSortDescription() { FieldName = "Rating",
-                        SortOrder = DataSortOrder.Ascending});
-                    break;
-                case "Recently Added":
-                    _collectionView.SortDescriptions.Add(new DXSortDescription() { FieldName = "DateCreated",
-                        SortOrder = DataSortOrder.Descending});
-                    break;
-                case "Recently Played":
-                    _collectionView.SortDescriptions.Add(new DXSortDescription() { FieldName = "LastPlayed",
-                        SortOrder = DataSortOrder.Descending});
-                    break;
-            }
-        }
-    }
-
-    [RelayCommand]
-    private void ResetAllFilters()
-    {
-        if (_collectionView != null)
-        {
-            _collectionView.FilterString = string.Empty;
-            _collectionView.SortDescriptions.Clear();
-            _collectionView.SortDescriptions.Add(item: new DXSortDescription() { FieldName = "Title", SortOrder= DataSortOrder.Ascending });
-            _collectionView.GroupDescription=new();
-        }
-    }
-
-    private void LoadSongs()
-    {
-        // Your existing song loading logic
-        // Example:
-        // Songs = await _songService.GetAllSongsAsync();
-    }
 
 
 

@@ -65,150 +65,6 @@
             RowSpacing="10"
             Visibility="Visible"
             >
-            <Grid.RowDefinitions>
-                <RowDefinition Height="auto" />
-                <RowDefinition Height="*" />
-                <RowDefinition Height="auto" />
-            </Grid.RowDefinitions>
-
-            <Grid Grid.Row="0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-
-                <StackPanel
-                    BorderThickness="1"
-                    CornerRadius="00"
-                    PointerReleased="StackPanel_PointerReleased"
-                    Spacing="5"
-                    >
-
-
-
-
-
-                    <StackPanel
-                        HorizontalAlignment="Left"
-                        Orientation="Horizontal"
-                        Spacing="10"
-                        >
-                        <Button
-                            x:Name="ViewQueueBtn"
-                            Click="ViewQueue_Click"
-                            Content="View Queue"
-                            />
-
-                        <Button Command="{x:Bind MyViewModel.ScrollToRequestedSongCommand}">
-
-                            <FontIcon Glyph="&#xE890;" />
-                        </Button>
-
-                        <Button
-                            x:Name="ShowFavSongs"
-                            Click="ShowFavSongs_Click"
-                            PointerReleased="MiddlePointer_PointerReleased"
-                            RightTapped="ShowFavSongs_RightTapped"
-                            ToolTipService.ToolTip="Show Favorite Songs. TQL command: My Fav"
-                            >
-                            <FontIcon Glyph="&#xF6B8;" />
-                        </Button>
-
-                        <Button
-                            x:Name="ShowSongWithLyrics"
-                            Click="ShowSongWithLyrics_Click"
-                            PointerReleased="MiddlePointer_PointerReleased"
-                            RightTapped="ShowSongWithLyrics_RightTapped"
-                            ToolTipService.ToolTip="Show Songs with Lyrics. TQL command: Has Lyrics"
-                            >
-                            <FontIcon Glyph="&#xE8BD;" />
-                        </Button>
-
-                        <Button
-                            x:Name="ShuffleSongs"
-                            Click="ShuffleSongs_Click"
-                            Content="Shuffle"
-                            PointerReleased="MiddlePointer_PointerReleased"
-                            />
-
-                        <SplitButton
-                            x:Name="SortByWithTQL"
-                            Click="SortByWithTQL_Click"
-                            Content="Sort By"
-                            IsEnabled="True"
-                            Loaded="SortByWithTQL_Loaded"
-                            Visibility="Visible"
-                            >
-                            <SplitButton.Flyout>
-                                <MenuFlyout>
-                                    <RadioMenuFlyoutItem
-                                        Click="SortClick"
-                                        GroupName="SortGroup"
-                                        Tag="title"
-                                        Text="Title"
-                                        />
-                                    <RadioMenuFlyoutItem
-                                        Click="SortClick"
-                                        GroupName="SortGroup"
-                                        Tag="artist"
-                                        Text="Artist"
-                                        />
-                                    <RadioMenuFlyoutItem
-                                        Click="SortClick"
-                                        GroupName="SortGroup"
-                                        Tag="album"
-                                        Text="Album"
-                                        />
-                                    <RadioMenuFlyoutItem
-                                        Click="SortClick"
-                                        GroupName="SortGroup"
-                                        Tag="dims"
-                                        Text="Play Count"
-                                        />
-                                    <RadioMenuFlyoutItem
-                                        Click="SortClick"
-                                        GroupName="SortGroup"
-                                        Tag="added"
-                                        Text="Added"
-                                        Visibility="Collapsed"
-                                        />
-
-                                    <!--<MenuFlyoutSeparator />-->
-                                    <MenuFlyoutItem
-                                        Click="OpenHelp"
-                                        Text="More fields..."
-                                        Visibility="Collapsed"
-                                        />
-                                </MenuFlyout>
-                            </SplitButton.Flyout>
-                        </SplitButton>
-                    </StackPanel>
-
-                    <StackPanel
-                        x:Name="SearchTextBoxPanel"
-                        HorizontalAlignment="Left"
-                        Orientation="Vertical"
-                        Spacing="10"
-                        >
-
-                        <TextBox
-                            x:Name="SearchTextBox"
-                            Width="400"
-                            PlaceholderText="Search With TQL..."
-                            TextChanged="SearchAutoSuggestBox_TextChanged"
-                            />
-
-
-                        <TextBlock VerticalAlignment="Center" Text="{x:Bind MyViewModel.SearchResults.Count, Mode=OneWay}" />
-
-                    </StackPanel>
-
-                    <TextBlock Text="{x:Bind MyViewModel.CurrentTqlQueryUI, Mode=OneWay}" />
-
-
-                </StackPanel>
-
-            </Grid>
 
             <Grid Grid.Row="1" Visibility="Visible">
                 <dgView:TableView
@@ -294,10 +150,11 @@
                                                     Visibility="{Binding IsCurrentPlayingHighlight, Converter={StaticResource BoolToVisibilityConverter}}"
                                                     />
 
-                                                <FontIcon Glyph="&#xE720;" 
-                                                Width="20"
+                                                <FontIcon
+                                                    Width="20"
                                                     Height="20"
                                                     Foreground="SlateBlue"
+                                                    Glyph="&#xE720;"
                                                     Visibility="{Binding HasSyncedLyrics, Converter={StaticResource BoolToVisibilityConverter}}"
                                                     />
 

@@ -50,7 +50,7 @@ public partial class ExoPlayerService : MediaSessionService
 
     }
     //private IPlayer? notificationPlayer;
-    public async override void OnCreate()
+    public override void OnCreate()
     {
         base.OnCreate();
 
@@ -119,11 +119,6 @@ public partial class ExoPlayerService : MediaSessionService
 
 
 
-            _ = Task.Run(async () => {
-                var timeoutTask = Task.Delay(15000); // 5 second timeout
-                var initTask = InitializeMediaControllerAsync();
-                await Task.WhenAny(initTask, timeoutTask);
-            }).ConfigureAwait(false);
             StartPositionPolling();
 
         }
@@ -353,33 +348,33 @@ public partial class ExoPlayerService : MediaSessionService
 
     private Handler? positionHandler;
     private Runnable? positionRunnable;
-    private async Task InitializeMediaControllerAsync()
-    {
-        Console.WriteLine("DIMMERTRACE: ExoPlayerService.InitializeMediaControllerAsync START");
-        try
-        {
-            if (mediaSession?.Token == null)
-            {
-                Console.WriteLine("DIMMERTRACE: ExoPlayerService.InitializeMediaControllerAsync - MediaSession token is null, cannot build controller.");
-                return;
-            }
+    //private async Task InitializeMediaControllerAsync()
+    //{
+    //    Console.WriteLine("DIMMERTRACE: ExoPlayerService.InitializeMediaControllerAsync START");
+    //    try
+    //    {
+    //        if (mediaSession?.Token == null)
+    //        {
+    //            Console.WriteLine("DIMMERTRACE: ExoPlayerService.InitializeMediaControllerAsync - MediaSession token is null, cannot build controller.");
+    //            return;
+    //        }
 
-            var controllerFuture = new MediaController.Builder(this, mediaSession.Token).BuildAsync();
-            if(controllerFuture is not null)
-            {
+    //        var controllerFuture = new MediaController.Builder(this, mediaSession.Token).BuildAsync();
+    //        if(controllerFuture is not null)
+    //        {
 
-                var controllerObject = await controllerFuture.GetAsync(); // Await here on a background context
-                mediaController = (MediaController?)controllerObject;
-                Console.WriteLine("DIMMERTRACE: ExoPlayerService.InitializeMediaControllerAsync END - Controller built");
+    //            var controllerObject = await controllerFuture.GetAsync(); // Await here on a background context
+    //            mediaController = (MediaController?)controllerObject;
+    //            Console.WriteLine("DIMMERTRACE: ExoPlayerService.InitializeMediaControllerAsync END - Controller built");
 
-            }
-        }
-        catch (Java.Lang.Throwable ex)
-        {
-            HandleInitError("MEDIA CONTROLLER INIT (Async)", ex);
-            // Decide if you need to StopSelf() here or if the service can function without a controller initially
-        }
-    }
+    //        }
+    //    }
+    //    catch (Java.Lang.Throwable ex)
+    //    {
+    //        HandleInitError("MEDIA CONTROLLER INIT (Async)", ex);
+    //        // Decide if you need to StopSelf() here or if the service can function without a controller initially
+    //    }
+    //}
 
     public override StartCommandResult OnStartCommand(Intent? intent, StartCommandFlags flags, int startId)
     {

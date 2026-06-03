@@ -1453,32 +1453,15 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         }
 
     }
-    public void ViewQueueFromAllSongsPageGivenPage()
+
+    internal void ProcessNowPlayingQueueShowing()
     {
-        if(CurrentWinUIPage.GetType() == typeof(AllSongsListPage))
+
+        SearchResultsHolder.Edit(innerList =>
         {
-            var allSongsPage = CurrentWinUIPage as AllSongsListPage;    
-            if(allSongsPage is not null)
-            {
-                allSongsPage.ViewQueue_Click(this,new RoutedEventArgs());
-              
-            }
-        }
-    }
-    internal void ProcessNowPlayingQueueShowing(FrameworkElement viewQueueBtn)
-    {
-        NowPlayingQueueCallerObject = viewQueueBtn;
-        //    // 2. PREPARE the animation
-        //    // We "take a snapshot" of the button before the UI changes
-        AnimationHelper.Prepare(AnimationHelper.Key_ToViewQueue, NowPlayingQueueCallerObject);
-
-        NowPlayingView.Visibility = Visibility.Visible;
-
-        AnimationHelper.TryStart(
-            NowPlayingView, // Destination: The Big View
-            null,               // Optional: Coordinated elements (like the text inside)
-            AnimationHelper.Key_ToViewQueue
-        );
+            innerList.Clear();
+            innerList.AddOrUpdate(PlaybackQueue);
+        });
     }
 
     internal void SetCoreWindow(CoreWindow coreWindow)

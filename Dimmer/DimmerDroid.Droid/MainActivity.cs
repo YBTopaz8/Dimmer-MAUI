@@ -22,6 +22,7 @@ public partial class MainActivity : MauiAppCompatActivity
     BaseViewModelAnd MyViewModel { get; set; }
     public MainActivity()
     {
+        MyViewModel = IPlatformApplication.Current?.Services.GetService<BaseViewModelAnd>()!;
     }
 
     public ExoPlayerServiceBinder? Binder
@@ -37,6 +38,16 @@ public partial class MainActivity : MauiAppCompatActivity
 
     private object? _onBackInvokedCallback;
 
+    protected override void OnDestroy()
+    {
+        if (_serviceConnection != null)
+        {
+            UnbindService(_serviceConnection);
+            _serviceConnection = null;
+        }
+        base.OnDestroy();
+
+    }
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         base.OnCreate(savedInstanceState);

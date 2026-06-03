@@ -41,10 +41,19 @@
                 Orientation="Horizontal"
                 Spacing="5"
                 >
+                <Grid>
+                    <TextBlock
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Top"
+                        Rotation="45"
+                        Text="❤️"
+                        Visibility="{x:Bind MyViewModel.CurrentPlayingSongView.IsFavorite, Converter={StaticResource BoolToVisibilityConverter}}"
+                        />
+                </Grid>
                 <Image
                     x:Name="CurrentSongImg"
-                    Width="120"
-                    Height="120"
+                    Width="150"
+                    Height="150"
                     VerticalAlignment="Top"
                     IsTapEnabled="True"
                     Loaded="CurrentSongImg_Loaded"
@@ -106,48 +115,185 @@
                         <TextBlock Text="{x:Bind MyViewModel.CurrentPlayingSongView.ReleaseYear, Mode=OneWay}" />
 
                     </StackPanel>
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{x:Bind MyViewModel.CurrentPlayingSongView.PlayCompletedCount, Mode=OneWay}" />
-                    </StackPanel>
                 </StackPanel>
             </StackPanel>
-            <SelectorBar
-                x:Name="DimmerAppSelectorBar"
-                Grid.Column="1"
-                HorizontalAlignment="Right"
-                SelectionChanged="DimmerAppSelectorBar_SelectionChanged"
-                >
-                <SelectorBarItem x:Name="SelectorBarItemHome" Text="Home">
-                    <SelectorBarItem.Icon>
-                        <FontIcon Glyph="&#xE90B;" />
-                    </SelectorBarItem.Icon>
-                </SelectorBarItem>
-                <SelectorBarItem x:Name="SelectorBarItemArtists" Text="Artists">
-                    <SelectorBarItem.Icon>
-                        <FontIcon Glyph="&#xE720;" />
-                    </SelectorBarItem.Icon>
-                </SelectorBarItem>
-                <SelectorBarItem x:Name="SelectorBarItemAlbums" Text="Albums">
-                    <SelectorBarItem.Icon>
-                        <FontIcon Glyph="&#xE93C;" />
-                    </SelectorBarItem.Icon>
-                </SelectorBarItem>
-                <SelectorBarItem x:Name="SelectorBarItemLastFM" Text="Last FM">
-                    <SelectorBarItem.Icon>
-                        <FontIcon Glyph="&#xE93C;" />
-                    </SelectorBarItem.Icon>
-                </SelectorBarItem>
-                <SelectorBarItem x:Name="SelectorBarItemToolBox" Text="Toolkit">
-                    <SelectorBarItem.Icon>
-                        <FontIcon Glyph="&#xEC7A;" />
-                    </SelectorBarItem.Icon>
-                </SelectorBarItem>
-                <SelectorBarItem x:Name="SelectorBarItemSettings" Text="Settings">
-                    <SelectorBarItem.Icon>
-                        <FontIcon Glyph="&#xE713;" />
-                    </SelectorBarItem.Icon>
-                </SelectorBarItem>
-            </SelectorBar>
+            <StackPanel>
+
+                <SelectorBar
+                    x:Name="DimmerAppSelectorBar"
+                    Grid.Column="1"
+                    HorizontalAlignment="Right"
+                    SelectionChanged="DimmerAppSelectorBar_SelectionChanged"
+                    >
+                    <SelectorBarItem x:Name="SelectorBarItemHome" Text="Home">
+                        <SelectorBarItem.Icon>
+                            <FontIcon Glyph="&#xE90B;" />
+                        </SelectorBarItem.Icon>
+                    </SelectorBarItem>
+                    <SelectorBarItem x:Name="SelectorBarItemArtists" Text="Artists">
+                        <SelectorBarItem.Icon>
+                            <FontIcon Glyph="&#xE720;" />
+                        </SelectorBarItem.Icon>
+                    </SelectorBarItem>
+                    <SelectorBarItem x:Name="SelectorBarItemAlbums" Text="Albums">
+                        <SelectorBarItem.Icon>
+                            <FontIcon Glyph="&#xE93C;" />
+                        </SelectorBarItem.Icon>
+                    </SelectorBarItem>
+                    <SelectorBarItem x:Name="SelectorBarItemLastFM" Text="Last FM">
+                        <SelectorBarItem.Icon>
+                            <FontIcon Glyph="&#xE93C;" />
+                        </SelectorBarItem.Icon>
+                    </SelectorBarItem>
+                    <SelectorBarItem x:Name="SelectorBarItemToolBox" Text="Toolkit">
+                        <SelectorBarItem.Icon>
+                            <FontIcon Glyph="&#xEC7A;" />
+                        </SelectorBarItem.Icon>
+                    </SelectorBarItem>
+                    <SelectorBarItem x:Name="SelectorBarItemSettings" Text="Settings">
+                        <SelectorBarItem.Icon>
+                            <FontIcon Glyph="&#xE713;" />
+                        </SelectorBarItem.Icon>
+                    </SelectorBarItem>
+                </SelectorBar>
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel
+                        BorderThickness="1"
+                        CornerRadius="00"
+                        Spacing="5"
+                        >
+
+
+
+
+
+                        <StackPanel
+                            HorizontalAlignment="Left"
+                            Orientation="Horizontal"
+                            Spacing="10"
+                            >
+                            <Button
+                                x:Name="ViewQueueBtn"
+                                Click="ViewQueue_Click"
+                                Content="View Queue"
+                                />
+
+                            <Button Command="{x:Bind MyViewModel.ScrollToRequestedSongCommand}">
+
+                                <FontIcon Glyph="&#xE890;" />
+                            </Button>
+
+                            <Button
+                                x:Name="ShowFavSongs"
+                                Click="ShowFavSongs_Click"
+                                PointerReleased="MiddlePointer_PointerReleased"
+                                RightTapped="ShowFavSongs_RightTapped"
+                                ToolTipService.ToolTip="Show Favorite Songs. TQL command: My Fav"
+                                >
+                                <FontIcon Glyph="&#xF6B8;" />
+                            </Button>
+
+                            <Button
+                                x:Name="ShowSongWithLyrics"
+                                Click="ShowSongWithLyrics_Click"
+                                PointerReleased="MiddlePointer_PointerReleased"
+                                RightTapped="ShowSongWithLyrics_RightTapped"
+                                ToolTipService.ToolTip="Show Songs with Lyrics. TQL command: Has Lyrics"
+                                >
+                                <FontIcon Glyph="&#xE8BD;" />
+                            </Button>
+
+                            <Button
+                                x:Name="ShuffleSongs"
+                                Click="ShuffleSongs_Click"
+                                Content="Shuffle"
+                                PointerReleased="MiddlePointer_PointerReleased"
+                                />
+
+                            <SplitButton
+                                x:Name="SortByWithTQL"
+                                Click="SortByWithTQL_Click"
+                                Content="Sort By"
+                                IsEnabled="True"
+                                Visibility="Visible"
+                                >
+                                <SplitButton.Flyout>
+                                    <MenuFlyout>
+                                        <RadioMenuFlyoutItem
+                                            Click="SortClick"
+                                            GroupName="SortGroup"
+                                            Tag="title"
+                                            Text="Title"
+                                            />
+                                        <RadioMenuFlyoutItem
+                                            Click="SortClick"
+                                            GroupName="SortGroup"
+                                            Tag="artist"
+                                            Text="Artist"
+                                            />
+                                        <RadioMenuFlyoutItem
+                                            Click="SortClick"
+                                            GroupName="SortGroup"
+                                            Tag="album"
+                                            Text="Album"
+                                            />
+                                        <RadioMenuFlyoutItem
+                                            Click="SortClick"
+                                            GroupName="SortGroup"
+                                            Tag="dims"
+                                            Text="Play Count"
+                                            />
+                                        <RadioMenuFlyoutItem
+                                            Click="SortClick"
+                                            GroupName="SortGroup"
+                                            Tag="added"
+                                            Text="Added"
+                                            Visibility="Collapsed"
+                                            />
+
+                                        <!--<MenuFlyoutSeparator />-->
+                                        <MenuFlyoutItem
+                                            Click="OpenHelp"
+                                            Text="More fields..."
+                                            Visibility="Collapsed"
+                                            />
+                                    </MenuFlyout>
+                                </SplitButton.Flyout>
+                            </SplitButton>
+                        </StackPanel>
+
+                        <StackPanel
+                            x:Name="SearchTextBoxPanel"
+                            HorizontalAlignment="Left"
+                            Orientation="Vertical"
+                            Spacing="10"
+                            >
+
+                            <TextBox
+                                x:Name="SearchTextBox"
+                                Width="400"
+                                PlaceholderText="Search With TQL..."
+                                TextChanged="SearchAutoSuggestBox_TextChanged"
+                                />
+
+
+                            <TextBlock VerticalAlignment="Center" Text="{x:Bind MyViewModel.SearchResults.Count, Mode=OneWay}" />
+
+                        </StackPanel>
+
+                        <TextBlock Text="{x:Bind MyViewModel.CurrentTqlQueryUI, Mode=OneWay}" />
+
+
+                    </StackPanel>
+
+                </Grid>
+
+            </StackPanel>
         </Grid>
 
 

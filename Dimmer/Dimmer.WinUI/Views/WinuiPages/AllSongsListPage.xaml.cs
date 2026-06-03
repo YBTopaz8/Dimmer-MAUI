@@ -505,101 +505,6 @@ public sealed partial class AllSongsListPage : Page
         CurrentPageTQL = MyViewModel.CurrentTqlQuery;
     }
 
-    private void SearchAutoSuggestBox_TextChanged(object sender, Microsoft.UI.Xaml.Controls.TextChangedEventArgs e)
-    {
-        MyViewModel.SearchToTQL(SearchTextBox.Text);
-   
-        //var text = SearchTextBox.Text.ToLower();
-
-        //var matches = FieldRegistry.AllFields
-        //    .Where(f => f.PrimaryName.StartsWith(text) || f.Aliases.Any(a => a.StartsWith(text)))
-        //    .Select(f => $"{f.PrimaryName} ({string.Join(",", f.Aliases)})")
-        //    .Take(10)
-        //    .ToList();
-
-        //SuggestList.ItemsSource = matches;
-        //SuggestList.Visibility = matches.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-    }
-    FontIcon CaretSolidUp = new FontIcon() {Glyph = "\uEDD7" };
-    FontIcon CaretSolidDown = new FontIcon() {Glyph = "\uEDD8" };
-    string lastKey;
-    string lastSort;
-    private void SortClick(object sender, RoutedEventArgs e)
-    {
-
-        var send = sender as RadioMenuFlyoutItem;
-        if (send is null) return;
-        var key = send.Tag.ToString()?.ToLower();
-
-        if (string.IsNullOrEmpty(key) || send == null)
-            return;
-        lastKey = key;
-
-
-        //if is checked then its sorting Desc, now we maintain check and sort desc and updatetext
-
-        bool isSortAsc;
-        if (lastKey == key && lastSort == "asc")
-        {
-            isSortAsc = false;
-            lastSort = "desc";
-            
-        }
-        else if(lastKey == key && lastSort == "desc")
-        {
-            isSortAsc = true;
-            lastSort = "asc";
-        }
-        else
-        {
-            isSortAsc = MyViewModel.CurrentTqlQueryUI.Contains("asc", StringComparison.CurrentCultureIgnoreCase);
-            lastSort = isSortAsc ? "asc" : "desc";
-        }
-
-
-        switch (key)
-        {
-            case "title":
-                if(isSortAsc)
-                   MyViewModel.SearchToTQL(PresetQueries.SortByTitleAsc());
-                else
-                    MyViewModel.SearchToTQL(PresetQueries.SortByTitleDesc());
-                break;
-            case "artist":
-                if (isSortAsc)
-                    MyViewModel.SearchToTQL(PresetQueries.SortByArtistAsc());
-                else
-                    MyViewModel.SearchToTQL(PresetQueries.SortByArtistDesc());
-                break;
-
-            case "album":
-                if (isSortAsc)
-                    MyViewModel.SearchToTQL(PresetQueries.SortByAlbumAsc());
-                else
-                    MyViewModel.SearchToTQL(PresetQueries.SortByAlbumDesc());
-                break;
-            case "dims":
-                if (isSortAsc)
-                    MyViewModel.SearchToTQL(PresetQueries.SortByDimsAsc());
-                else
-                    MyViewModel.SearchToTQL(PresetQueries.SortByDimsDesc());
-                break;
-
-            default:
-                break;
-        }
-
-        lastKey = key;
-
-        
-
-    }
-
-    private async void OpenHelp(object sender, RoutedEventArgs e)
-    {
-        var dlg = new SearchHelpDialog();
-        await dlg.ShowAsync();
-    }
  
     private void MySongsTableView_ProcessKeyboardAccelerators(UIElement sender, ProcessKeyboardAcceleratorEventArgs args)
     {
@@ -711,18 +616,7 @@ public sealed partial class AllSongsListPage : Page
         }
     }
 
-    private void StackPanel_PointerReleased(object sender, PointerRoutedEventArgs e)
-    {
-        var prop = e.GetCurrentPoint((UIElement)sender).Properties;
-        if(prop != null)
-        {
-            if(prop.IsMiddleButtonPressed)
-            {
-                MyViewModel.ScrollToRequestedSongCommand.Execute(null);
-                
-            }
-        }
-    }
+
 
     private void CardBorder_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
     {
@@ -1031,23 +925,7 @@ public sealed partial class AllSongsListPage : Page
 
         Frame?.NavigateToType(songDetailType, navParams, navigationOptions);
     }
-    public async void ViewQueue_Click(object sender, RoutedEventArgs e)
-    {
-        if (MyViewModel.PlaybackQueue.Count < 1) return;
-      
-
-        FrameworkElement send = (FrameworkElement)ViewQueueBtn;
-        var itemm = send.DataContext as SongModelView;
-        _storedItem = itemm;
-
-        MyViewModel.SelectedSong = itemm;
-
-        MyViewModel.ProcessNowPlayingQueueShowing(ViewQueueBtn);
-
-       
-    }
-
-
+ 
 
     private void MySongsTableView_ItemClick(object sender, ItemClickEventArgs e)
     {
@@ -1296,74 +1174,12 @@ public sealed partial class AllSongsListPage : Page
         ViewSongBtn_Click(sender, e);
     }
 
-    private void ShowFavSongs_Click(object sender, RoutedEventArgs e)
-    {
-       
-            var currText = SearchTextBox.Text;
-            if (string.IsNullOrEmpty(currText))
-            {
-                SearchTextBox.Text = "my fav";
-            }
-            else
-            {
-                SearchTextBox.Text += " add my fav";
-            }
-       
-    }
 
-    private void ShowSongWithLyrics_Click(object sender, RoutedEventArgs e)
-    {
 
-        var currentTQL = " has lyrics";
-        var currText = SearchTextBox.Text;
-        if (string.IsNullOrEmpty(currText))
-        {
-            SearchTextBox.Text = currentTQL.TrimStart();
-        }
-        else
-        {
-            SearchTextBox.Text += currentTQL;
-        }
-    }
+ 
 
-    private void ShowSongWithLyrics_RightTapped(object sender, RightTappedRoutedEventArgs e)
-    {
-        var currentTQL = "has lyrics add " + MyViewModel.CurrentTqlQuery;
-        //SearchTextBox.Text = currentTQL;
+  
 
-    }
-
-    private void ShowFavSongs_RightTapped(object sender, RightTappedRoutedEventArgs e)
-    {
-        var currentTQL = "my fav add " +MyViewModel.CurrentTqlQuery ;
-           //SearchTextBox.Text = currentTQL;
-    }
-
-    private void ShuffleSongs_Click(object sender, RoutedEventArgs e)
-    {
-        var currText = SearchTextBox.Text;
-        if (string.IsNullOrEmpty(currText))
-        {
-            SearchTextBox.Text = "random";
-        }
-    }
-
-    private void MiddlePointer_PointerReleased(object sender, PointerRoutedEventArgs e)
-    {
-        var props = e.GetCurrentPoint((UIElement)sender).Properties;
-        if (props != null)
-        {
-            if(props.PointerUpdateKind == Microsoft.UI.Input.PointerUpdateKind.MiddleButtonReleased)
-            {
-                Debug.WriteLine("Show TQL pane");
-            }
-        }
-    }
-
-    private void SortByWithTQL_Loaded(object sender, RoutedEventArgs e)
-    {
-        //BuildSortMenu();
-    }
 
     private void FieldSort_Click(object sender, RoutedEventArgs e)
     {
@@ -1388,14 +1204,7 @@ public sealed partial class AllSongsListPage : Page
     }
     private void Page_Unloaded(object sender, RoutedEventArgs e)
     {
-        if (SortByWithTQL.Flyout is MenuFlyout fly)
-        {
-            foreach (var sub in fly.Items.OfType<MenuFlyoutSubItem>())
-            {
-                foreach (var item in sub.Items.OfType<MenuFlyoutItem>())
-                    item.RemoveClick();
-            }
-        }
+      
     }
 
   
@@ -1447,10 +1256,6 @@ public sealed partial class AllSongsListPage : Page
         ViewOtherBtn_Click(sender, e);
     }
 
-    private void SortByWithTQL_Click(SplitButton sender, SplitButtonClickEventArgs args)
-    {
-        SortByWithTQL.Flyout.ShowAt(sender);
-    }
 
     private async void MySongsTableView_CellDoubleTapped(object sender , TableViewCellDoubleTappedEventArgs e)
     {
