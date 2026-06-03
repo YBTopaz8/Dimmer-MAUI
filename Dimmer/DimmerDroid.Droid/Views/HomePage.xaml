@@ -978,7 +978,12 @@
                                 Loaded="FilterCheckItem_Loaded"
                                 Text="Is Favorite"
                                 />
-
+                            <dx:FilterCheckItem
+                                x:Name="HasSyncLyricsFilter"
+                                AllowIndeterminateInput="False"
+                                Loaded="HasSyncLyricsFilter_Loaded"
+                                Text="Has Sync Lyrics"
+                                />
 
                             <dx:FilterNumericRangeSliderItem
                                 x:Name="DimsRangeSlider"
@@ -988,13 +993,7 @@
                                 ValueStep="1"
                                 />
 
-                            <dx:FilterNumericRangeSliderItem
-                                x:Name="SkipsRangeSlider"
-                                Loaded="SkipsRangeSlider_Loaded"
-                                Text="Skips"
-                                TickmarkStep="1"
-                                ValueStep="1"
-                                />
+
 
 
                         </dx:DXStackLayout>

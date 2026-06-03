@@ -1,10 +1,9 @@
 ﻿namespace Dimmer.Utilities;
 public enum SortOrder
 {
-
+    None,
     Asc,
-    Desc,
-    None
+    Desc
 }
 
 public static class CollectionSortHelper

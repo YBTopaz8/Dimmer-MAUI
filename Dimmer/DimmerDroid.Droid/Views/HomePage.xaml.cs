@@ -1008,7 +1008,7 @@ public partial class HomePage : ContentPage
                 {
                     FieldName = "Title"
            ,
-                    SortOrder = DataSortOrder.Ascending
+                    SortOrder = (DataSortOrder)MyViewModel.CurrentSortOrderInt
                 });
 
                 break;
@@ -1017,7 +1017,7 @@ public partial class HomePage : ContentPage
                 {
                     FieldName = "ArtistName"
            ,
-                    SortOrder = DataSortOrder.Ascending
+                    SortOrder = (DataSortOrder)MyViewModel.CurrentSortOrderInt
                 });
 
                 break;
@@ -1026,7 +1026,7 @@ public partial class HomePage : ContentPage
                 {
                     FieldName = "AlbumName"
            ,
-                    SortOrder = DataSortOrder.Ascending
+                    SortOrder = (DataSortOrder)MyViewModel.CurrentSortOrderInt
                 });
 
                 break;
@@ -1035,7 +1035,7 @@ public partial class HomePage : ContentPage
                 {
                     FieldName = "Genre Name"
            ,
-                    SortOrder = DataSortOrder.Ascending
+                    SortOrder = (DataSortOrder)MyViewModel.CurrentSortOrderInt
                 });
                 break;
             case 5:
@@ -1043,7 +1043,7 @@ public partial class HomePage : ContentPage
                 {
                     FieldName = "DurationInSeconds"
            ,
-                    SortOrder = DataSortOrder.Ascending
+                    SortOrder = (DataSortOrder)MyViewModel.CurrentSortOrderInt
                 });
                 break;
             case 6:
@@ -1051,7 +1051,7 @@ public partial class HomePage : ContentPage
                 {
                     FieldName = "PlayCompletedCount"
            ,
-                    SortOrder = DataSortOrder.Ascending
+                    SortOrder = (DataSortOrder)MyViewModel.CurrentSortOrderInt
                 });
                 break;
             default:
@@ -1065,6 +1065,7 @@ public partial class HomePage : ContentPage
         currentSelectedSortIndex = MyViewModel.SortByFieldNameCollection.IndexOf((send.BindingContext as string)!);
         MyViewModel.CurrentSortDisplay = (send.BindingContext as string)!;
         MyViewModel.CurrentSortOrder = SortOrder.Desc;
+        MyViewModel.CurrentSortOrderInt = 2;
     }
 
     private void SortUpBtn_Clicked(object sender, EventArgs e)
@@ -1073,14 +1074,40 @@ public partial class HomePage : ContentPage
         currentSelectedSortIndex = MyViewModel.SortByFieldNameCollection.IndexOf((send.BindingContext as string)!);
         MyViewModel.CurrentSortDisplay = (send.BindingContext as string)!;
         MyViewModel.CurrentSortOrder = SortOrder.Asc;
+        MyViewModel.CurrentSortOrderInt = 1;
 
     }
 
     private void SortFieldBtn_Clicked(object sender, EventArgs e)
     {
         DXButton send = (DXButton)sender;
-        currentSelectedSortIndex = MyViewModel.SortByFieldNameCollection.IndexOf(send.BindingContext  as string);
+        var selectedField = send.BindingContext as string;
+        if (string.IsNullOrEmpty(selectedField)) return;
+        currentSelectedSortIndex = MyViewModel.SortByFieldNameCollection.IndexOf(selectedField);
+
+        if(currentSelectedSortIndex ==0)
+        {
+            MyViewModel.CurrentSortOrder = SortOrder.None;
+            MyViewModel.CurrentSortOrderInt = 0;
+            return;
+        }
+        if(MyViewModel.CurrentSortDisplay== selectedField)
+        {
+            MyViewModel.CurrentSortOrder = MyViewModel.CurrentSortOrder == SortOrder.Asc ? SortOrder.Desc : SortOrder.Asc;
+            MyViewModel.CurrentSortOrderInt = (int)MyViewModel.CurrentSortOrder;
+            
+        }
+
         MyViewModel.CurrentSortDisplay = (send.BindingContext as string)!;
+    }
+
+    private void HasSyncLyricsFilter_Loaded(object sender, EventArgs e)
+    {
+        var send = (FilterCheckItem)sender;
+        send.Context = SongsCV.FilteringContext;
+        send.FieldName = "HasSyncedLyrics";
+
+
     }
 
 

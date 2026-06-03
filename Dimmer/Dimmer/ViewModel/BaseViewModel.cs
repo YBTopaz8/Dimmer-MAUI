@@ -1698,7 +1698,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
 
     [ObservableProperty] public partial int? CurrentTotalSongsOnDisplay { get; set; }
 
-    [ObservableProperty] public partial int? CurrentSortOrderInt { get; set; }
+    [ObservableProperty] public partial int CurrentSortOrderInt { get; set; }
 
     [ObservableProperty] public partial string? CurrentSortProperty { get; set; } = "Title";
 
