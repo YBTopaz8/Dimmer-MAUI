@@ -322,7 +322,6 @@ public sealed partial class EditSongPage : Page
     
 
 
-    List<string>? selectedItems;
  
 
 
@@ -406,7 +405,7 @@ public sealed partial class EditSongPage : Page
         
     }
 
-    bool isSearchingOnLastFM;
+
     private async void SearchOnLastFM_Click(object sender, RoutedEventArgs e)
     {
         LastFMSearchStackPanel.Visibility = Visibility.Visible;

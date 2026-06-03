@@ -14,6 +14,8 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.UI.Composition;
+using Binding = Microsoft.UI.Xaml.Data.Binding;
+using BindingMode = Microsoft.UI.Xaml.Data.BindingMode;
 using Border = Microsoft.UI.Xaml.Controls.Border;
 using Visibility = Microsoft.UI.Xaml.Visibility;
 
@@ -32,19 +34,22 @@ public sealed partial class AllArtistsPage : Page
         InitializeComponent();
     }
 
-    protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
+    protected override async void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
 
         MyViewModel = IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
 
         DataContext = MyViewModel;
+
+        await Task.Delay(1000);
+        MyViewModel.SetupArtistPipeline();
     }
     public BaseViewModelWin MyViewModel { get; set; }
 
 
 
-    FrameworkElement? artistClicked;
+    //FrameworkElement? artistClicked;
 
     private void ArtistsItemsRepeater_Tapped(object sender, TappedRoutedEventArgs e)
     {
@@ -99,5 +104,12 @@ public sealed partial class AllArtistsPage : Page
                     break;
             }
         }
+    }
+
+    private void ArtistBtnView_Click(object sender, RoutedEventArgs e)
+    {
+        var send = (Button)sender;
+
+        var artist = send.DataContext as ArtistModelView;
     }
 }

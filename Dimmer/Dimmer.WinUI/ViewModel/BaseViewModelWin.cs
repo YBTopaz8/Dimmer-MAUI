@@ -369,7 +369,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         ScheduleVisibleCountUpdate();
     }
 
-    public event EventHandler? AllSongsWindowClosed;
+    //public event EventHandler? AllSongsWindowClosed;
     internal void OnAllSongsWindowClosed()
     {
         ActivateMainWindow();

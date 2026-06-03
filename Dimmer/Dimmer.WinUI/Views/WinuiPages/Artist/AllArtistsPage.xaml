@@ -19,7 +19,8 @@
     xmlns:queryBuilder="queries"
     xmlns:tql="clr-namespace:Dimmer.DimmerSearch.TQL;assembly=Dimmer"
     xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
-    mc:Ignorable="d">
+    mc:Ignorable="d"
+    >
 
     <Page.Resources>
         <UniformGridLayout
@@ -27,7 +28,8 @@
             MinColumnSpacing="12"
             MinItemHeight="180"
             MinItemWidth="180"
-            MinRowSpacing="12" />
+            MinRowSpacing="12"
+            />
 
         <DataTemplate x:Key="ArtistDT">
             <Grid>
@@ -35,28 +37,33 @@
                 <StackPanel
                     Padding="5"
                     Background="Transparent"
-                    CornerRadius="12">
+                    CornerRadius="12"
+                    >
                     <Image
                         x:Name="ArtistImg"
                         Width="120"
                         Height="120"
-                        PointerPressed="ArtistImg_PointerPressed">
+                        PointerPressed="ArtistImg_PointerPressed"
+                        >
                         <Image.Source>
                             <BitmapImage
                                 DecodePixelHeight="120"
                                 DecodePixelWidth="120"
-                                UriSource="{Binding ImagePath}" />
+                                UriSource="{Binding ImagePath}"
+                                />
                         </Image.Source>
                     </Image>
                     <TextBlock
                         HorizontalAlignment="Center"
                         FontSize="20"
-                        Text="{Binding Name}" />
+                        Text="{Binding Name}"
+                        />
 
                     <StackPanel
                         HorizontalAlignment="Center"
                         Orientation="Horizontal"
-                        Spacing="5">
+                        Spacing="5"
+                        >
                         <ToolTipService.ToolTip>
                             <StackPanel Orientation="Horizontal" Spacing="2">
 
@@ -79,7 +86,8 @@
                                 <SymbolIcon
                                     Width="20"
                                     Height="20"
-                                    Symbol="Audio" />
+                                    Symbol="Audio"
+                                    />
 
                             </StackPanel>
 
@@ -90,7 +98,8 @@
                                 <FontIcon
                                     Width="20"
                                     Height="20"
-                                    Glyph="&#xE93C;" />
+                                    Glyph="&#xE93C;"
+                                    />
 
                             </StackPanel>
 
@@ -108,46 +117,56 @@
     <Grid
         Margin="15,2"
         CornerRadius="10"
-        RowSpacing="10">
+        RowSpacing="10"
+        >
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="auto" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <StackPanel Grid.Column="0" HorizontalAlignment="Center">
 
-            <Expander x:Name="SortExpander" IsExpanded="True" ExpandDirection="Down">
-                <Expander.Header>
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <TextBlock Text="Sort by" />
 
-                        <SymbolIcon Symbol="Sort" />
-                    </StackPanel>
-                </Expander.Header>
-                <Expander.Content>
+        <Grid Grid.Column="1">
+            <ScrollViewer>
 
-                    <RadioButtons x:Name="SortRadioBtns" SelectionChanged="SortRadioBtns_SelectionChanged">
-                        <RadioButton Content="Name Asc" />
-                        <RadioButton Content="Name Desc" />
-                        <RadioButton Content="Total Play Count Asc" />
-                        <RadioButton Content="Total Play Count Desc" />
-                        <RadioButton Content="Total Albums Asc" />
-                        <RadioButton Content="Total Albums Desc" />
-                    </RadioButtons>
+                <ItemsRepeater x:Name="AllArtistsIR" ItemsSource="{x:Bind MyViewModel.ArtistsCollection, Mode=OneWay}">
+                    <ItemsRepeater.Layout>
+                        <UniformGridLayout MaximumRowsOrColumns="9" />
+                    </ItemsRepeater.Layout>
 
-                </Expander.Content>
-            </Expander>
-        </StackPanel>
+                    <ItemsRepeater.ItemTemplate>
+                        <DataTemplate>
+                            <Button
+                                x:Name="ArtistBtnView"
+                                Background="Transparent"
+                                Click="ArtistBtnView_Click"
+                                >
 
-        <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+                                <StackPanel>
 
-            <ItemsRepeater
-                x:Name="ArtistsItemsRepeater"
-                ItemTemplate="{StaticResource ArtistDT}"
-                ItemsSource="{x:Bind MyViewModel.ArtistsCollection, Mode=OneWay}"
-                Layout="{StaticResource UniformGridLayout2}" />
-        </ScrollViewer>
+                                    <Image
+                                        Width="80"
+                                        Height="80"
+                                        Source="{Binding ImagePath, FallbackValue=''}"
+                                        />
+                                    <TextBlock FontSize="21" Text="{Binding Name}" />
+                                    <StackPanel Orientation="Horizontal" Spacing="5">
+                                        <TextBlock Text="{Binding AlbumsByArtist}" />
+                                        <TextBlock Text="Albums" />
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Spacing="5">
+                                        <TextBlock Text="{Binding SongsByArtist}" />
+                                        <TextBlock Text="Songs" />
+                                    </StackPanel>
+                                </StackPanel>
 
+                            </Button>
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+
+            </ScrollViewer>
+        </Grid>
 
     </Grid>
 

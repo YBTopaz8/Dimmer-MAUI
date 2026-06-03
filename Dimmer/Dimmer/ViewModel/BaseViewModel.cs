@@ -226,8 +226,9 @@ Observable.FromEventPattern<PlaybackEventArgs>(
 
     public BehaviorSubject<IComparer<ArtistModelView>> ArtistSortSubject { get; } =
         new BehaviorSubject<IComparer<ArtistModelView>>(SortExpressionComparer<ArtistModelView>.Ascending(x => x.Name));
-    private void SetupArtistPipeline()
+    public void SetupArtistPipeline()
     {
+        if (IsArtistInitialized) return;
         // Get Realm instance
         var _realm = RealmFactory.GetRealmInstance();
 
@@ -240,12 +241,9 @@ Observable.FromEventPattern<PlaybackEventArgs>(
             .Transform(artistInDB =>
                 {
                     var artMV = artistInDB.ToArtistModelView()!;
-                    if(artMV.ImagePath is null)
-                    {
-                        artMV.ImagePath = artistInDB.Songs?
+                    artMV.ImagePath ??= artistInDB.Songs?
                                     .AsEnumerable().FirstOrDefault(x => !string.IsNullOrEmpty(x.CoverImagePath))?
-                                    .CoverImagePath;
-                    }
+                                    .CoverImagePath ?? string.Empty ;
                     return artMV;
                 }
             )
@@ -267,10 +265,12 @@ Observable.FromEventPattern<PlaybackEventArgs>(
             });
 
         pipeline.DisposeWith(CompositeDisposables);
+        IsArtistInitialized = true;
     }
 
-    private void SetupAlbumPipeline()
+    public void SetupAlbumPipeline()
     {
+        if (IsAlbumInitialized) return;
         // Get Realm instance
         var _realm = RealmFactory.GetRealmInstance();
 
@@ -296,10 +296,11 @@ Observable.FromEventPattern<PlaybackEventArgs>(
             {
                 IsLoading = false;
 
-                OnPropertyChanged(nameof(ArtistsCollection));
+                OnPropertyChanged(nameof(AlbumsCollection));
             });
 
         pipeline.DisposeWith(CompositeDisposables);
+        IsAlbumInitialized = true;
     }
 
     private void SetupHistoryPipeline()
@@ -534,50 +535,6 @@ Observable.FromEventPattern<PlaybackEventArgs>(
         Debug.WriteLine(DateTime.Now + "start query pipeline");
 
 
-        var searchStream = _searchQuerySubject
-       .Throttle(TimeSpan.FromMilliseconds(250), RxSchedulers.Background)
-       .DistinctUntilChanged()
-       .Do(query =>
-       {
-           RxSchedulers.UI.ScheduleTo(() =>
-           {
-               CurrentTqlQueryUI = query;
-               Debug.WriteLine($"[UI] Query updated: {query}");
-           });
-       })
-       .Select(query =>
-       {
-           Debug.WriteLine($"[Background] Starting search for: {query}");
-
-           
-           return Observable.Start(() =>
-           {
-               Debug.WriteLine($"[ThreadPool] Task started for: {query}");
-               var result = PerformSearchBackground(query); 
-
-               return result;
-           }, RxSchedulers.Background)
-           .ObserveOn(RxSchedulers.UI) 
-
-           .Do(result =>
-           {
-               // This now runs on UI thread!
-
-           });
-       })
-       .Switch() // Now switching between observables that already target UI
-       .Subscribe(result =>
-       {
-
-           ApplySearchResults(result);
-       },
-       ex =>
-       {
-           Debug.WriteLine($"[Error] {ex.Message}");
-           _logger.LogError(ex, "Search pipeline crashed");
-       })
-       .DisposeWith(CompositeDisposables);
-
 
         Debug.WriteLine($"{DateTime.Now}: Search query subscription set up.");
 
@@ -629,6 +586,56 @@ Observable.FromEventPattern<PlaybackEventArgs>(
         return;
     }
 
+    public void StartTQLPipeLine()
+    {
+       if( IsTQLInitialized )return;
+
+        IsFirstBoot = false;
+        var searchStream = _searchQuerySubject
+       .Throttle(TimeSpan.FromMilliseconds(250), RxSchedulers.Background)
+       .DistinctUntilChanged()
+       .Do(query =>
+       {
+           RxSchedulers.UI.ScheduleTo(() =>
+           {
+               CurrentTqlQueryUI = query;
+               Debug.WriteLine($"[UI] Query updated: {query}");
+           });
+       })
+       .Select(query =>
+       {
+           Debug.WriteLine($"[Background] Starting search for: {query}");
+
+
+           return Observable.Start(() =>
+           {
+               Debug.WriteLine($"[ThreadPool] Task started for: {query}");
+               var result = PerformSearchBackground(query);
+
+               return result;
+           }, RxSchedulers.Background)
+           .ObserveOn(RxSchedulers.UI)
+
+           .Do(result =>
+           {
+               // This now runs on UI thread!
+
+           });
+       })
+       .Switch() // Now switching between observables that already target UI
+       .Subscribe(result =>
+       {
+
+           ApplySearchResults(result);
+       },
+       ex =>
+       {
+           Debug.WriteLine($"[Error] {ex.Message}");
+           _logger.LogError(ex, "Search pipeline crashed");
+       })
+       .DisposeWith(CompositeDisposables);
+        IsTQLInitialized = true;
+    }
     private void ApplySearchResults(SearchResult? result)
     {
         IsTqlBusy = false;
@@ -719,7 +726,6 @@ Observable.FromEventPattern<PlaybackEventArgs>(
         // A. Fast Fail for Empty Query
         if (string.IsNullOrWhiteSpace(queryText))
         {
-            IsFirstBoot = false;
             // Optimization: Only grab what we need, don't map everything instantly if we don't have to.
             var allSongsIds = realmm.All<SongModel>()
                 .OrderByDescending(s => s.DateCreated)
@@ -863,6 +869,15 @@ Observable.FromEventPattern<PlaybackEventArgs>(
 
     [ObservableProperty]
     public partial bool IsInitialized { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsTQLInitialized { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsArtistInitialized { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsAlbumInitialized { get; set; }
 
     [ObservableProperty]
     public partial bool IsAchievementNotificationVisible { get; set; }
@@ -1750,6 +1765,9 @@ Observable.FromEventPattern<PlaybackEventArgs>(
     public partial double CurrentTrackPositionPercentage { get; set; }
 
     [ObservableProperty]
+    public partial double CurrentTrackPositionOverOne { get; set; }
+
+    [ObservableProperty]
     public partial double DeviceVolumeLevel { get; set; }
 
     partial void OnDeviceVolumeLevelChanged(double oldValue, double newValue)
@@ -1763,7 +1781,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
     [ObservableProperty]
     public partial string AppTitle { get; set; } = "Dimmer";
 
-    public static string CurrentAppVersion = "1.9.4";
+    public static string CurrentAppVersion = "1.9.5";
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]
@@ -2099,7 +2117,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
     [ObservableProperty]
     public partial string AchievementSecondMessage { get; set; }
     public BaseAppFlow BaseAppFlow;
-    private readonly IAuthenticationService authService;
+
 
 
 
@@ -2151,7 +2169,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
     public partial int MaxDeviceVolumeLevel { get; set; }
 
 
-    public IObservable<bool> AudioEngineIsPlayingObservable { get; }
+
 
     public IObservable<double> AudioEnginePositionObservable { get; }
 
@@ -2160,6 +2178,20 @@ Observable.FromEventPattern<PlaybackEventArgs>(
 
     [ObservableProperty]
     public partial ObservableCollection<ArtistModelView> AllAvailableArtists { get; set; }
+   
+    [ObservableProperty]
+    public partial ObservableCollection<string> SortByFieldNames { get; set; } = new() { "None","Title", "Artist Name", "Album Name", "Genre Name", "Duration", "Dims", };
+   
+    [ObservableProperty]
+    public partial ObservableCollection<string> SortByDirections { get; set; } = new() { "None", "Asc","Desc" };
+   
+
+
+    [ObservableProperty]
+    public partial ObservableCollection<ObservableCollection<string>> SortByFieldNameCollection { get; set; }
+
+    [ObservableProperty]
+    public partial ObservableCollection<ObservableCollection<string>> SortByDirectionCollection { get; set; }
 
     [ObservableProperty]
     public partial string CurrentCoverImagePath { get; set; }
@@ -2596,7 +2628,8 @@ Observable.FromEventPattern<PlaybackEventArgs>(
                 ? (positionSeconds / CurrentTrackDurationSeconds)
                 : 0) *
             100;
-        CurrentTrackPositionSecondsTxt = string.Format("{0:mm\\:ss}", TimeSpan.FromSeconds(CurrentTrackPositionSeconds));
+        CurrentTrackPositionOverOne = 1/(CurrentTrackPositionPercentage * 100);
+       CurrentTrackPositionSecondsTxt = string.Format("{0:mm\\:ss}", TimeSpan.FromSeconds(CurrentTrackPositionSeconds));
         IsProgrammaticSeek = false;
     }
 
@@ -2683,6 +2716,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
     public SongModelView? OldSongValue { get; internal set; }
     async partial void OnCurrentPlayingSongViewChanged(SongModelView oldValue, SongModelView newValue)
     {
+        if (newValue is null) return;
         if (oldValue is not null && oldValue.TitleDurationKey is null || newValue.TitleDurationKey is null)
             return;
         OldSongValue = oldValue;
@@ -6026,6 +6060,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
 
         }
     }
+
     #region lyrics editing region
     [RelayCommand]
     public void DuplicateAndTimestampLastLine()
@@ -6200,13 +6235,16 @@ Observable.FromEventPattern<PlaybackEventArgs>(
         string[] outro = { "outro", "finale", "conclusion" };
         string[] instrumental = { "instrumental", "interlude", "solo" };
 
-        if (intro.Any(n.Contains)) return "Intro";
-        if (verse.Any(n.Contains)) return "Verse";
-        if (prechorus.Any(n.Contains)) return "Pre-Chorus";
-        if (chorus.Any(n.Contains)) return "Chorus";
-        if (bridge.Any(n.Contains)) return "Bridge";
-        if (outro.Any(n.Contains)) return "Outro";
-        if (instrumental.Any(n.Contains)) return "Instrumental";
+        if (intro.Any(c => name.Contains(c, StringComparison.OrdinalIgnoreCase))) return "Intro";
+        if (verse.Any(c => name.Contains(c, StringComparison.OrdinalIgnoreCase))) return "Verse";
+        if (prechorus.Any(c => name.Contains(c, StringComparison.OrdinalIgnoreCase))) return "Pre-Chorus";
+
+        if (chorus.Any(c => name.Contains(c, StringComparison.OrdinalIgnoreCase))) return "Chorus";
+
+
+        if (bridge.Any(c => name.Contains(c, StringComparison.OrdinalIgnoreCase))) return "Bridge";
+        if (outro.Any(c => name.Contains(c, StringComparison.OrdinalIgnoreCase))) return "Outro";
+        if (instrumental.Any(c => name.Contains(c, StringComparison.OrdinalIgnoreCase))) return "Instrumental";
 
         return "Generic";
     }
@@ -6906,7 +6944,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
     public partial bool IsFirmSearchEnabled { get; set; }
 
     [ObservableProperty]
-    public partial int HomePageIndex { get; set; }
+    public partial int HomePageIndex { get; set; } = 1;
 
     /// <summary>
     /// The main command for adding a new filter. This is the heart of the Lego system. It's smart and knows how to ask

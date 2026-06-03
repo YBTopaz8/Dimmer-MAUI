@@ -114,7 +114,7 @@
                                 >
 
                                 <Image
-                                    x:Name="detailedImage"
+                                    x:Uid="detailedImage"
                                     MaxWidth="350"
                                     MaxHeight="350"
                                     Loaded="detailedImage_Loaded"

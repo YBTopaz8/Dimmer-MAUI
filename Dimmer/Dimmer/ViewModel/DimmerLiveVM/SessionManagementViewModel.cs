@@ -131,7 +131,7 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
         var p = new Dictionary<string, object>
     {
         { "targetDeviceId", RemoteDeviceState.DeviceId },
-        { "senderDeviceId", _sessionManager.ThisDeviceSession.DeviceId },
+        { "senderUserId", ParseUser.CurrentUser.ObjectId},
         { "command", commandType },
         { "payload", "" }
     };
@@ -362,11 +362,21 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
         using var reader = new StreamReader(decompressionStream);
         string json = await reader.ReadToEndAsync();
 
+        await LoadRemoteLibraryFromJSON(json);
         // Save to local cache
         string cachePath = Path.Combine(FileSystem.CacheDirectory, $"lib_{updatedSession.DeviceId}.json");
         await File.WriteAllTextAsync(cachePath, json);
 
-        await LoadRemoteLibraryFromCache(cachePath);
+    }
+
+    private async Task LoadRemoteLibraryFromJSON(string json)
+    {
+        var songs = JsonSerializer.Deserialize<List<SongModelView>>(json);
+
+        MainThread.BeginInvokeOnMainThread(() => {
+            RemoteLibrary.Clear();
+            foreach (var s in songs) RemoteLibrary.Add(s);
+        });
     }
 
     private async Task LoadRemoteLibraryFromCache(string path)

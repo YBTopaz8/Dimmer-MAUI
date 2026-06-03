@@ -18,7 +18,7 @@ public sealed partial class AlbumPage : Page
     }
 
     private readonly Microsoft.UI.Composition.Visual _rootVisual;
-    private readonly Microsoft.UI.Composition.Compositor _compositor;
+
 
     BaseViewModelWin MyViewModel { get; set; }
     public LastFMViewModel MyLastFMViewModel { get; internal set; }

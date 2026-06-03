@@ -2,7 +2,9 @@
 global using Dimmer.Views.CustomViews;
 global using View = Microsoft.Maui.Controls.View;
 using Android.Views.InputMethods;
+using DevExpress.Data.Extensions;
 using DevExpress.Maui.Editors;
+using DevExpress.Maui.Scheduler.Internal;
 using Dimmer.Utilities;
 
 
@@ -50,21 +52,27 @@ public partial class HomePage : ContentPage
         if (!MyViewModel.IsInitialized)
         {
             InitializeAppLogic();
+            MyViewModel.LoadSongsInitially();
         }
 
         MyViewModel.WhenPropertyChange(nameof(MyViewModel.HomePageIndex), v => (MyViewModel.HomePageIndex))
             .Subscribe(
-                e =>
+                async e =>
                 {
+
+                    await Task.Delay(2000);
                     switch (e)
                     {
                         case 0:
+                            MyViewModel.StartTQLPipeLine();
+                            break;
+                        case 1:
                             var songHandle = SongsCV.FindItemHandle(MyViewModel.CurrentPlayingSongView);
                             HapticFeedback.Default.Perform(HapticFeedbackType.Click);
                             SongsCV.ScrollTo(songHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
                             break;
 
-                        case 2:
+                        case 3:
                             var songHandlePBCV = PlaybackQueueCV.FindItemHandle(MyViewModel.CurrentPlayingSongView);
                             HapticFeedback.Default.Perform(HapticFeedbackType.Click);
                             PlaybackQueueCV.ScrollTo(songHandlePBCV, DevExpress.Maui.Core.DXScrollToPosition.Start);
@@ -800,12 +808,10 @@ public partial class HomePage : ContentPage
         FilterChipGroup send = (FilterChipGroup)sender;
         var indices = send.SelectedIndexes;
     }
-
+    
+                    
     private void SortByListPicker_Loaded(object sender, EventArgs e)
     {
-
-        FilterRadioListPickerItem send = (FilterRadioListPickerItem)sender;
-        send.ItemsSource = SortItems;
     }
 
     private void SortByListPicker_FilterChanged(object sender, FilterChangedEventArgs e)
@@ -965,11 +971,165 @@ public partial class HomePage : ContentPage
         skipsRangeSlider.Context = SongsCV.FilteringContext;
         skipsRangeSlider.FieldName = "SkipCount";
     }
-
+    int sortCount=0;
     private void SortPopUp_Clicked(object sender, EventArgs e)
     {
-        SortPopUp.IsOpen = true;
+        sortCount++;
+        SongsCV.SortDescriptions.Clear(); 
+        switch (sortCount)
+        {
+            case 1:
+                SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
+                {
+                    FieldName = "Title"
+           ,
+                    SortOrder = DataSortOrder.Ascending
+                });
+               
+                break;
+            case 2:
+                SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
+                {
+                    FieldName = "Title"
+           ,
+                    SortOrder = DataSortOrder.Descending
+                });
+               
+                break;
+            case 3:
+                SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
+                {
+                    FieldName = "PlayCompletedCount"
+           ,
+                    SortOrder = DataSortOrder.Ascending
+                });
+               
+                break;
+            case 4:
+                SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
+                {
+                    FieldName = "PlayCompletedCount"
+           ,
+                    SortOrder = DataSortOrder.Descending
+                });
+                sortCount=0;
+                break;
+            default:
+                break;
+        }
+       
     }
+
+    private void SortByListPicker_Loaded_1(object sender, EventArgs e)
+    {
+
+    }
+
+    private void DXButton_Clicked_1(object sender, EventArgs e)
+    {
+       
+    }
+
+    private void SortByChoiceChipGroup_SelectionChanged(object sender, EventArgs e)
+    {
+        SongsCV.SortDescriptions.Clear();
+        switch (SortByChoiceChipGroup.SelectedIndex)
+        {
+
+            case 0:
+
+                break;
+            case 1:
+                SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
+                {
+                    FieldName = "Title"
+           ,
+                    SortOrder = DataSortOrder.Ascending
+                });
+
+                break;
+            case 2:
+                SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
+                {
+                    FieldName = "ArtistName"
+           ,
+                    SortOrder = DataSortOrder.Ascending
+                });
+
+                break;
+            case 3:
+                SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
+                {
+                    FieldName = "AlbumName"
+           ,
+                    SortOrder = DataSortOrder.Ascending
+                });
+
+                break;
+            case 4:
+                SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
+                {
+                    FieldName = "GenreName"
+           ,
+                    SortOrder = DataSortOrder.Descending
+                });
+                sortCount = 0;
+                break;
+            case 5:
+                SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
+                {
+                    FieldName = "DurationInSeconds"
+           ,
+                    SortOrder = DataSortOrder.Ascending
+                });
+                sortCount = 0;
+                break;
+            case 6:
+                SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
+                {
+                    FieldName = "PlayCompletedCount"
+           ,
+                    SortOrder = DataSortOrder.Ascending
+                });
+                sortCount = 0;
+                break;
+            default:
+                break;
+        }
+    
+    }
+
+    private void ShowSortByExpander_CheckedChanged(object sender, ValueChangedEventArgs<bool> e)
+    {
+        SortByDXPopup.Show();
+
+    }
+
+    private void SortDirectionChip_Clicked(object sender, EventArgs e)
+    {
+
+        SortDirectionDXPopup.Show();
+    }
+
+    private void SortDirection_SelectionChanged(object sender, EventArgs e)
+    {
+        var currentIndex = SortDirectionChoiceChip.SelectedIndex;
+        
+        var currentSortCriteria = SongsCV.SortDescriptions[SortByChoiceChipGroup.SelectedIndex];
+        var critIndex = SongsCV.SortDescriptions.IndexOf(currentSortCriteria);
+        var critDirection = currentSortCriteria.SortOrder;
+        var critDirectionInt = (int)critDirection;
+        var newCritDirectionEnum = (DataSortOrder)currentIndex;
+        if(currentIndex==critDirectionInt)
+        {
+            return;
+        }
+
+        currentSortCriteria.SortOrder = newCritDirectionEnum;
+        SongsCV.SortDescriptions.RemoveAt(critIndex);
+        SongsCV.SortDescriptions.Insert(critIndex,currentSortCriteria);
+    }
+
 
     //private void SearchIconBtn_Tapped(object sender, HandledEventArgs e)
     //{

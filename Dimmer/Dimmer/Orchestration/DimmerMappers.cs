@@ -487,7 +487,7 @@ public static class DimmerMappers
             Id = src.Id,
             Url = src.Url,
             Name = src.Name,
-            ImagePath = src.ImagePath,
+            ImagePath = src.ImagePath is null? string.Empty:src.ImagePath,
             Bio = src.Bio,
             IsNew = src.IsNew,
             IsFavorite = src.IsFavorite,

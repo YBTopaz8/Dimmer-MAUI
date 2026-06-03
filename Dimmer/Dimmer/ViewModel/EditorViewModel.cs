@@ -114,7 +114,7 @@ public partial class EditorViewModel : BaseViewModel
 
         StatusMessage = $"Loaded: {song.Title}";
     }
-    IProgress<double> progress;
+    IProgress<double> progressReporter;
 
     public EditorViewModel(IDimmerStateService dimmerStateService, IDimmerAudioEditorService editorService, MusicDataService musicDataService, IAppInitializerService appInitializerService, IDimmerAudioService audioServ, ISettingsService settingsService, ILyricsMetadataService lyricsMetadataService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> songRepo, IDuplicateFinderService duplicateFinderService, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, IDialogueService dialogueService, IRepository<PlaylistModel> playlistRepo, IRealmFactory realmFact, IFolderMonitorService folderServ, ILibraryScannerService libScannerService, IRepository<DimmerPlayEvent> dimmerPlayEventRepo, BaseAppFlow baseAppClass, ILastfmService lastfmService, ILogger<BaseViewModel> logger) : base(dimmerStateService, musicDataService, appInitializerService, audioServ, settingsService, lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, songRepo, duplicateFinderService, artistRepo, albumModel, genreModel, dialogueService, playlistRepo, realmFact, folderServ, libScannerService, dimmerPlayEventRepo, baseAppClass, lastfmService, logger)
     {
@@ -134,7 +134,7 @@ public partial class EditorViewModel : BaseViewModel
 
         try
         {
-            var progressReporter = new Progress<double>(val => ProgressValue = val);
+             progressReporter = new Progress<double>(val => ProgressValue = val);
             IsBusy = true;
             StatusMessage = "Trimming audio...";
 

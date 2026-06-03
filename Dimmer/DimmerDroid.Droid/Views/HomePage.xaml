@@ -5,9 +5,11 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:TQlVM="clr-namespace:Dimmer.ViewModel.TQL;assembly=Dimmer"
+    xmlns:conv="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
     xmlns:dx="http://schemas.devexpress.com/maui"
     xmlns:extMethods="[extMethods ]clr-namespace:Dimmer.Utils.Utils.Extensions"
     xmlns:local="clr-namespace:Dimmer.Views.CustomViews"
+    xmlns:maui="using:Microsoft.Maui"
     xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
     xmlns:statsVm="clr-namespace:Dimmer.ViewModel;assembly=Dimmer"
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
@@ -21,6 +23,7 @@
     <ContentPage.Resources>
         <ResourceDictionary>
 
+            <conv:BoolToInverseConverter x:Key="BoolToInverseConverter" />
 
 
 
@@ -175,11 +178,55 @@
         ItemHeaderHeight="0"
         SelectedItemIndex="{Binding HomePageIndex}"
         >
+        <dx:TabViewItem>
+            <dx:DXStackLayout Margin="10,50,10,0">
 
+                <FlexLayout JustifyContent="SpaceBetween">
+                    <dx:DXStackLayout ItemSpacing="10" Orientation="Horizontal">
+                        <Label Text="Sort By" TextColor="{AppThemeBinding Dark=White, Light=Black}" />
+                        <dx:DXToggleButton x:Name="SortDirectionChip" Clicked="SortDirectionChip_Clicked" />
+                    </dx:DXStackLayout>
+                    <dx:DXToggleButton
+                        x:Name="ShowSortByExpander"
+                        Padding="0"
+                        CheckedChanged="ShowSortByExpander_CheckedChanged"
+                        Icon="addcircle.png"
+                        ShowContent="False"
+                        ShowIcon="True"
+                        />
+
+                </FlexLayout>
+
+                <Grid>
+                    <dx:DXPopup x:Name="SortDirectionDXPopup">
+                        <dx:DXPopup.Content>
+                            <dx:ChoiceChipGroup
+                                x:Name="SortDirectionChoiceChip"
+                                ItemsSource="{Binding SortByDirections}"
+                                SelectionChanged="SortDirection_SelectionChanged"
+                                />
+                        </dx:DXPopup.Content>
+                    </dx:DXPopup>
+
+                    <dx:DXPopup x:Name="SortByDXPopup">
+                        <dx:DXPopup.Content>
+                            <dx:ChoiceChipGroup
+                                x:Name="SortByChoiceChipGroup"
+                                IsMultiline="True"
+                                ItemsSource="{Binding SortByFieldNames}"
+                                SelectionChanged="SortByChoiceChipGroup_SelectionChanged"
+                                />
+                        </dx:DXPopup.Content>
+                    </dx:DXPopup>
+
+
+                </Grid>
+            </dx:DXStackLayout>
+        </dx:TabViewItem>
         <dx:TabViewItem HeaderText="Songs">
             <Grid
                 Padding="5"
-                RowDefinitions="auto,auto,*,auto"
+                RowDefinitions="auto,*,auto"
                 RowSpacing="10"
                 >
                 <dx:DXStackLayout Grid.Row="0" ItemSpacing="10">
@@ -241,7 +288,7 @@
                                 ShowContent="False"
                                 ShowIcon="True"
                                 />
-                            <Label Text="{Binding MyLoginVM.IsAuthenticated, Source={x:Reference myPage}}" />
+
                             <dx:DXPopup x:Name="SortPopUp">
                                 <dx:DXPopup.Content>
                                     <Label Text="Title Desc" />
@@ -278,20 +325,56 @@
                         <dx:SortDescription FieldName="Title" SortOrder="Ascending" />
                     </dx:DXCollectionView.SortDescriptions>
                 </dx:DXCollectionView>
-                <dx:DXStackLayout
+                <Grid
                     Grid.Row="1"
                     Margin="20"
-                    HorizontalOptions="End"
+                    ColumnDefinitions="*,auto"
                     VerticalOptions="End"
                     >
-                    <dx:DXButton
-                        x:Name="SearchBtn"
-                        Clicked="SearchBtn_Clicked"
-                        Icon="searchalta.png"
-                        ShowContent="False"
-                        ShowIcon="True"
-                        />
-                </dx:DXStackLayout>
+
+                    <dx:DXExpander Grid.Column="0" IsExpanded="{Binding IsChecked, Source={x:Reference NowPlayingBubble}}">
+                        <dx:DXExpander.Content>
+                            <dx:DXStackLayout
+                                Padding="5"
+                                BackgroundColor="DimGrey"
+                                CornerRadius="10"
+                                >
+                                <Label Text="{Binding CurrentPlayingSongView.Title}" />
+                                <Label Text="{Binding CurrentPlayingSongView.OtherArtistsName}" />
+                                <Label Text="{Binding CurrentPlayingSongView.AlbumName}" />
+                                <Label Text="{Binding CurrentPlayingSongView.GenreName}" />
+                                <FlexLayout JustifyContent="SpaceBetween">
+                                    <Label Text="{Binding CurrentLine}" />
+                                    <Label HorizontalOptions="End" Text="{Binding CurrentTrackPositionSecondsTxt}" />
+                                </FlexLayout>
+                            </dx:DXStackLayout>
+                        </dx:DXExpander.Content>
+                    </dx:DXExpander>
+                    <dx:DXToggleButton
+                        x:Name="NowPlayingBubble"
+                        Grid.Column="1"
+                        Padding="0,0,0,5"
+                        BackgroundColor="Transparent"
+                        HeightRequest="100"
+                        ShowIcon="False"
+                        >
+                        <dx:DXToggleButton.Content>
+                            <Grid>
+
+                                <dx:DXImage Aspect="AspectFit" Source="{Binding CurrentPlayingSongView.CoverImagePath}" />
+
+                                <dx:RadialProgressBar
+                                    Margin="5"
+                                    Padding="-3"
+                                    Thickness="5"
+                                    ValueIndicatorFill="DarkSlateBlue"
+                                    ValueIndicatorThickness="8"
+                                    Value="{Binding CurrentTrackPositionOverOne}"
+                                    />
+                            </Grid>
+                        </dx:DXToggleButton.Content>
+                    </dx:DXToggleButton>
+                </Grid>
 
                 <Grid
                     x:Name="BtmBarGrid"

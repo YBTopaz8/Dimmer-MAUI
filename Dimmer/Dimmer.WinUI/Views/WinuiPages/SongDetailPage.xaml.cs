@@ -126,7 +126,7 @@ public sealed partial class SongDetailPage : Page
 
                     BgImage.Source = new BitmapImage(new Uri(argSong.CoverImagePath));
                 }
-                detailedImage.Opacity = 0;
+
                 MyViewModel = vm;
                 MyViewModel.SelectedSong = argSong;
                 DetailedSong = args.Song;
@@ -138,8 +138,6 @@ public sealed partial class SongDetailPage : Page
 
 
 
-                Visual? visual = ElementCompositionPreview.GetElementVisual(detailedImage);
-                PlatUtils.ApplyEntranceEffect(visual, detailedImage, _userPrefAnim,_compositor);
 
                
             }
@@ -195,10 +193,8 @@ public sealed partial class SongDetailPage : Page
     {
         if (e.NavigationMode == Microsoft.UI.Xaml.Navigation.NavigationMode.Back)
         {
-            if (detailedImage != null && VisualTreeHelper.GetParent(detailedImage) != null)
-            {
-                AnimationHelper.Prepare(AnimationHelper.Key_DetailToListFromAlbum, detailedImage);
-            }
+          
+
         }
         base.OnNavigatingFrom(e);
 
@@ -329,20 +325,9 @@ public sealed partial class SongDetailPage : Page
         {
 
 
-            NavigateBackToPreviousPage();
         }
     }
 
-    private void NavigateBackToPreviousPage()
-    {
-        if (detailedImage != null && VisualTreeHelper.GetParent(detailedImage) != null)
-        {
-            AnimationHelper.Prepare(AnimationHelper.Key_DetailToListFromAlbum,
-                detailedImage,
-                AnimationHelper.ConnectedAnimationStyle.GravitySwing);
-        }
-
-    }
 
     private void BioBlock_Loaded(object sender, RoutedEventArgs e)
     {
@@ -377,10 +362,7 @@ public sealed partial class SongDetailPage : Page
     }
     private void EditSongBtn_Click(object sender, RoutedEventArgs e)
     {
-        // 1. Prepare the animation
-        ConnectedAnimationService.GetForCurrentView()
-            .PrepareToAnimate("SwingFromSongDetailToEdit", detailedImage);
-
+       
         // 2. Navigation Setup
         Type songDetailType = typeof(EditSongPage);
         var navParams = new SongDetailNavArgs
@@ -402,10 +384,8 @@ public sealed partial class SongDetailPage : Page
 
     private void AlbumBtn_Click(object sender, RoutedEventArgs e)
     {
-        AnimationHelper.Prepare(AnimationHelper.Key_ToAlbumPage,
-            (FrameworkElement)detailedImage, AnimationHelper.ConnectedAnimationStyle.ScaleUp);
-        //AnimationHelper.Prepare(AnimationHelper.Key_ToAlbumPage,
-        //    (FrameworkElement)sender, AnimationHelper.ConnectedAnimationStyle.ScaleUp);
+       
+
         MyViewModel.SetSelectedAlbum(MyViewModel.SelectedSong?.Album);
         MyViewModel.NavigateToAnyPageOfGivenType(typeof(AlbumPage));
     }
@@ -427,13 +407,7 @@ public sealed partial class SongDetailPage : Page
             IsNavigationStackEnabled = true
 
         };
-        var detailedImageVisual = ElementCompositionPreview.GetElementVisual(detailedImage);
-        if (detailedImageVisual != null)
-        {
-            ConnectedAnimationService.GetForCurrentView()
-                .PrepareToAnimate("MoveViewToLyricsPageFromSongDetailPage", SectionLyricsStackPanel);
-            
-        }
+      
       
 
         Frame?.NavigateToType(pageType, navParams, navigationOptions);
@@ -497,7 +471,7 @@ public sealed partial class SongDetailPage : Page
         
         //}
     }
-    AchievementRule _storedItem;
+
     private async void PopUpBackButton_Click(object sender, RoutedEventArgs e)
     {
         //ConnectedAnimation animation = ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("backwardsAnimation", destinationElement);
@@ -643,9 +617,10 @@ public sealed partial class SongDetailPage : Page
 
     private void detailedImage_Loaded(object sender, RoutedEventArgs e)
     {
+        Image send = (Image)sender;
         if (!string.IsNullOrEmpty(DetailedSong.CoverImagePath))
         {
-            detailedImage.Source = new BitmapImage(new Uri(DetailedSong.CoverImagePath));
+            send.Source = new BitmapImage(new Uri(DetailedSong.CoverImagePath));
         }
         else
         {
@@ -653,14 +628,7 @@ public sealed partial class SongDetailPage : Page
             //musicIcon.Glyph = "\uEC4F";
             
         }
-            AnimationHelper.TryStart(
-           detailedImage,
-           new List<UIElement> { TitleBlock }, // Coordinated 
-           AnimationHelper.Key_DetailToListFromAlbum,       // Check this key
-          AnimationHelper.Key_Backward,
-           AnimationHelper.Key_ListToDetail,AnimationHelper.Key_ToViewSingleSongPopUp,       // OR Check this key
-           AnimationHelper.Key_ArtistToSong        // OR Check this key
-       );
+            
     }
 
 
@@ -740,10 +708,7 @@ public sealed partial class SongDetailPage : Page
     private void MyPage_KeyDown(object sender, KeyRoutedEventArgs e)
     {
         var pressedKey = e.Key;
-        if(pressedKey == Windows.System.VirtualKey.Escape)
-        {
-            NavigateBackToPreviousPage();
-        }
+       
         
     }
 

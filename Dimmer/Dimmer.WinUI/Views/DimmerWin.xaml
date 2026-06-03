@@ -57,11 +57,13 @@
                         Content="{x:Bind MyViewModel.CurrentPlayingSongView.Title, Mode=OneWay}"
                         />
                     <Button
+                        x:Name="ArtistsBtn"
                         Background="Transparent"
                         BorderThickness="0"
+                        Click="ArtistsBtn_Click"
                         Content="{x:Bind MyViewModel.CurrentPlayingSongView.OtherArtistsName, Mode=OneWay}"
-                     x:Name="ArtistsBtn" Click="ArtistsBtn_Click"
-                        Loaded="ArtistsBtn_Loaded"/>
+                        Loaded="ArtistsBtn_Loaded"
+                        />
                     <StackPanel Orientation="Horizontal" Spacing="10">
 
                         <Button x:Name="PreviousBtn" Command="{x:Bind MyViewModel.PreviousTrackCommand}">

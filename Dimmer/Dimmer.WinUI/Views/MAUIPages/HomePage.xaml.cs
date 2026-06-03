@@ -800,6 +800,8 @@ public partial class HomePage : ContentPage
                 MyViewModel.NavigateToAnyPageOfGivenType(typeof(SettingsPage));
 
             }
+
+
         }
     }
 

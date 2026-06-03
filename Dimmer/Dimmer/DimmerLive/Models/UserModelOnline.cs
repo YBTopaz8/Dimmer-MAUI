@@ -1,6 +1,6 @@
 ﻿namespace Dimmer.DimmerLive.Models;
 [ParseClassName("_User")]
-public class UserModelOnline : ParseUser
+public partial class UserModelOnline : ParseUser
 {
     private static readonly HashSet<string> _immutableUserKeys = new HashSet<string>
     {
@@ -70,8 +70,8 @@ public class UserModelOnline : ParseUser
 
         if (!string.IsNullOrEmpty(plainUser.Username))
             this.Username = plainUser.Username;
-        if (!string.IsNullOrEmpty(plainUser.Email))
-            this.Email = plainUser.Email;
+        //if (!string.IsNullOrEmpty(plainUser.Email))
+        //    this.Email = plainUser.Email;
 
 
 
@@ -81,4 +81,14 @@ public class UserModelOnline : ParseUser
         }
     }
 
+    
+
+}
+
+public static class ParseExtensions
+{
+    public static UserModelOnline ToUserModelOnline(this ParseUser usr)
+    {
+        return new UserModelOnline(usr);
+    }
 }

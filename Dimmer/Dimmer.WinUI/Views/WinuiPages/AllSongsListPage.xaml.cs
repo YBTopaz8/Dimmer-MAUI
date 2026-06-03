@@ -458,7 +458,7 @@ public sealed partial class AllSongsListPage : Page
 
 
     string CurrentPageTQL = string.Empty;
-    protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
+    protected override async void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
         
@@ -488,6 +488,9 @@ public sealed partial class AllSongsListPage : Page
             
             // Now that the ViewModel is set, you can set the DataContext.
             this.DataContext = MyViewModel;
+
+            await Task.Delay(2000);
+            MyViewModel.StartTQLPipeLine();
         }
 
 
@@ -647,7 +650,7 @@ public sealed partial class AllSongsListPage : Page
     }
 
     private SongModelView? _storedItem;
-    private Button _storedSourceElement;
+
 
     private void CardBorder_Loaded(object sender, RoutedEventArgs e)
     {

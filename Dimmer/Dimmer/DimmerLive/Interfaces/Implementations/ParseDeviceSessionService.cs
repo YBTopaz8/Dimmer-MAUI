@@ -11,10 +11,10 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
     private readonly IAuthenticationService _authService;
     private readonly ParseLiveQueryClient _liveQueryClient;
     private Subscription<ChatMessage> _messageSubscription;
-    private UserDeviceSession _thisDeviceSession; 
+
     private readonly Subject<DimmerSharedSong> _incomingTransfers = new();
 
-    private string MyDeviceId => Preferences.Get("MyDeviceId", Guid.NewGuid().ToString());
+    private string MyDeviceId => ParseUser.CurrentUser.ObjectId +"|" + DeviceInfo.Current.DeviceType.ToString() + "|" + DeviceInfo.Current.Idiom;
     private Subscription<CloudScrobble>? _scrobbleSubscription;
 
     public IObservable<DeviceCommand> OnRemoteCommandReceived => _remoteCommandSubject.AsObservable();
@@ -23,7 +23,7 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
     public IObservable<CloudScrobble> OnLiveScrobbleReceived => _liveScrobbleSubject.AsObservable();
     private readonly Subject<CloudScrobble> _liveScrobbleSubject = new();
 
-    public UserDeviceSession ThisDeviceSession => _thisDeviceSession;
+
 
     public IObservable<IChangeSet<UserDeviceSession, string>> OtherAvailableDevices { get; }
     public IObservable<DimmerSharedSong> IncomingTransferRequests { get; }
@@ -33,7 +33,7 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
 
 
     private readonly BaseViewModel _vm;
-    private PeriodicTimer? _heartbeatTimer;
+
     private CancellationTokenSource? _heartbeatCts;
 
     private DeviceState? _myCurrentState;
@@ -67,24 +67,35 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
     {
         if (ParseUser.CurrentUser == null) return;
 
+        try
+        {
+            _logger.LogInformation("Registering current device session...");
+
+           
 
 
 
+            // 2. Also update DeviceState (If you are using this for playback state specifically)
+            var stateQuery = new ParseQuery<DeviceState>(ParseClient.Instance).WhereEqualTo("deviceId", MyDeviceId);
+            _myCurrentState = await stateQuery.FirstOrDefaultAsync() ?? new DeviceState { DeviceId = MyDeviceId };
 
-        // Create or Update Presence
-        var query = new ParseQuery<DeviceState>(ParseClient.Instance).WhereEqualTo("deviceId", MyDeviceId);
-        _myCurrentState = await query.FirstOrDefaultAsync() ?? new DeviceState { DeviceId = MyDeviceId };
+            _myCurrentState.DeviceName = DeviceInfo.Name;
+            _myCurrentState.Owner = ParseUser.CurrentUser;
+            _myCurrentState.ACL = new ParseACL(ParseUser.CurrentUser);
+            _myCurrentState.DeviceId = MyDeviceId;
+            await _myCurrentState.SaveAsync();
 
-        _myCurrentState.DeviceName = DeviceInfo.Name;
-        _myCurrentState.Owner = ParseUser.CurrentUser;
-        _myCurrentState.ACL = new ParseACL(ParseUser.CurrentUser);
-        await _myCurrentState.SaveAsync();
+            // 3. Start listeners and fetch other devices
+            StartCommandListener();
+            await FetchOtherDevicesAsync();
 
-
-        StartCommandListener();
-        //await UploadLibraryMapAsync(); // Upload the "What I have" list
-        await FetchOtherDevicesAsync();
-      }
+            _logger.LogInformation($"Device registered successfully: {DeviceInfo.Name} ({MyDeviceId})");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to register current device session.");
+        }
+    }
 
     private void StartCommandListener()
     {
@@ -327,11 +338,7 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
     public void StartListeners()
     {
         if (ParseUser.CurrentUser == null) return;
-        if (_thisDeviceSession == null)
-        {
-            _logger.LogWarning("Cannot start session listeners, current device session is not registered.");
-            return;
-        }
+       
 
        
 
@@ -383,6 +390,7 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
             return;
         try
         {
+            
             var otherDevices = await ParseClient.Instance.CallCloudCodeFunctionAsync<IList<UserDeviceSession>>("getMyDeviceSessions", new Dictionary<string, object>());
 
             otherDevices = otherDevices.DistinctBy(x => x.DeviceName).ToList();
@@ -401,8 +409,8 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
     }
     public async Task MarkCurrentDeviceInactiveAsync()
     {
-        if (_thisDeviceSession is null)
-            return;
+      
+
         try
         {
             var parameters = new Dictionary<string, object> { { "deviceName", DeviceInfo.Name } };

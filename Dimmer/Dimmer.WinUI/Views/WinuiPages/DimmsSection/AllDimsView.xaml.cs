@@ -194,8 +194,7 @@ public sealed partial class AllDimsView : Page
     }
    
    
-    private int _lastStartIndex = -1;
-    private int _lastVisibleCount = -1;
+
  
     private async void MyEventsTableView_Loaded(object sender, RoutedEventArgs e)
     {

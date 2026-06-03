@@ -59,7 +59,6 @@ public sealed partial class CloudDataPage : Page
 
     }
 
-    private CompositionSpriteShape _borderShape;
-    private ShapeVisual _shapeVisual;
+
 
 }

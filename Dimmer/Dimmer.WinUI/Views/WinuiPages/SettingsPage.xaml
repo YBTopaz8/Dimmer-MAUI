@@ -83,10 +83,10 @@
             <NavigationView
                 x:Name="settingsNavView"
                 Grid.Row="1"
-                IsBackButtonVisible="Auto"
+                IsBackButtonVisible="Collapsed"
                 IsTabStop="False"
                 Loaded="SettingsNavView_Loaded"
-                PaneDisplayMode="Left"
+                PaneDisplayMode="Top"
                 SelectionChanged="SettingsNavView_SelectionChanged"
                 >
                 <NavigationView.MenuItems>

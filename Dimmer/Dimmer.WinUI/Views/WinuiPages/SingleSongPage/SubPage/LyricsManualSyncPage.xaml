@@ -8,7 +8,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:Dimmer.Data.ModelView"
     xmlns:modelsLyrics="using:Dimmer.Data.ModelView"
-    mc:Ignorable="d">
+    mc:Ignorable="d"
+    >
 
     <Page.Resources>
         <!--  Converter to highlight the Current Line  -->
@@ -28,13 +29,15 @@
             <TextBlock
                 Opacity="0.6"
                 Style="{StaticResource CaptionTextBlockStyle}"
-                Text="Tap 'Sync' or press Spacebar when the line is sung." />
-            
+                Text="Tap 'Sync' or press Spacebar when the line is sung."
+                />
+
             <!--  Paste from Clipboard Button  -->
             <Button
                 Margin="0,10,0,0"
+                HorizontalAlignment="Left"
                 Command="{x:Bind MyViewModel.PasteLyricsFromClipboardCommand}"
-                HorizontalAlignment="Left">
+                >
                 <StackPanel Orientation="Horizontal" Spacing="10">
                     <FontIcon Glyph="&#xE77F;" />
                     <TextBlock Text="Paste Lyrics from Clipboard" />
@@ -56,7 +59,8 @@
                 Background="{ThemeResource LayerFillColorDefaultBrush}"
                 BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
                 BorderThickness="1"
-                CornerRadius="8">
+                CornerRadius="8"
+                >
 
                 <Grid>
                     <Grid.RowDefinitions>
@@ -70,19 +74,16 @@
                         Grid.Row="0"
                         Padding="10"
                         Background="{ThemeResource AccentFillColorDefaultBrush}"
-                        Visibility="Collapsed">
+                        Visibility="Collapsed"
+                        >
                         <StackPanel Orientation="Horizontal" Spacing="10">
-                            <Button
-                                x:Name="RepeatSelectedBtn"
-                                Click="RepeatSelectedBtn_Click">
+                            <Button x:Name="RepeatSelectedBtn" Click="RepeatSelectedBtn_Click">
                                 <StackPanel Orientation="Horizontal" Spacing="5">
                                     <FontIcon Glyph="&#xE8E9;" />
                                     <TextBlock Text="Repeat Selected" />
                                 </StackPanel>
                             </Button>
-                            <Button
-                                x:Name="DeleteSelectedBtn"
-                                Click="DeleteSelectedBtn_Click">
+                            <Button x:Name="DeleteSelectedBtn" Click="DeleteSelectedBtn_Click">
                                 <StackPanel Orientation="Horizontal" Spacing="5">
                                     <FontIcon Foreground="Red" Glyph="&#xE74D;" />
                                     <TextBlock Text="Delete Selected" />
@@ -91,7 +92,8 @@
                             <Button
                                 x:Name="ClearSelectionBtn"
                                 Click="ClearSelectionBtn_Click"
-                                Content="Clear Selection" />
+                                Content="Clear Selection"
+                                />
                         </StackPanel>
                     </Grid>
 
@@ -100,7 +102,8 @@
                         Grid.Row="1"
                         ItemsSource="{x:Bind MyViewModel.LyricsInEditor, Mode=OneWay}"
                         SelectionChanged="LyricsListView_SelectionChanged"
-                        SelectionMode="Multiple">
+                        SelectionMode="Multiple"
+                        >
                         <ListView.ItemTemplate>
                             <DataTemplate x:DataType="modelsLyrics:LyricEditingLineViewModel">
                                 <Grid Padding="10,5">
@@ -122,7 +125,8 @@
                                         VerticalAlignment="Center"
                                         FontFamily="Consolas"
                                         Opacity="{x:Bind IsTimed, Mode=OneWay, Converter={StaticResource BoolOpacityConverter}}"
-                                        Text="{x:Bind Timestamp, Mode=OneWay}" />
+                                        Text="{x:Bind Timestamp, Mode=OneWay}"
+                                        />
 
                                     <!--  Lyric Text (Editable)  -->
                                     <TextBox
@@ -131,7 +135,8 @@
                                         VerticalAlignment="Center"
                                         Background="Transparent"
                                         BorderThickness="0"
-                                        Text="{x:Bind Text, Mode=TwoWay}" />
+                                        Text="{x:Bind Text, Mode=TwoWay}"
+                                        />
 
                                     <!--  Repeat Button  -->
                                     <Button
@@ -141,11 +146,13 @@
                                         BorderThickness="0"
                                         Command="{Binding ElementName=LyricsListView, Path=DataContext.RepeatLineCommand}"
                                         CommandParameter="{x:Bind}"
-                                        ToolTipService.ToolTip="Repeat this line">
+                                        ToolTipService.ToolTip="Repeat this line"
+                                        >
                                         <FontIcon
                                             FontSize="12"
                                             Glyph="&#xE8E9;"
-                                            Opacity="0.5" />
+                                            Opacity="0.5"
+                                            />
                                     </Button>
 
                                     <!--  Delete Button  -->
@@ -155,12 +162,14 @@
                                         BorderThickness="0"
                                         Command="{Binding ElementName=LyricsListView, Path=DataContext.DeleteTimestampFromLineCommand}"
                                         CommandParameter="{x:Bind}"
-                                        ToolTipService.ToolTip="Delete this line">
+                                        ToolTipService.ToolTip="Delete this line"
+                                        >
                                         <FontIcon
                                             FontSize="12"
                                             Foreground="Red"
                                             Glyph="&#xE74D;"
-                                            Opacity="0.5" />
+                                            Opacity="0.5"
+                                            />
                                     </Button>
 
                                     <!--  Visual State Manager for Current Line Highlighting  -->
@@ -194,22 +203,26 @@
             <StackPanel
                 Grid.Column="1"
                 VerticalAlignment="Center"
-                Spacing="15">
+                Spacing="15"
+                >
 
                 <!--  Current Song Info  -->
                 <Image
                     Height="150"
                     Margin="0,0,0,10"
-                    Source="{x:Bind MyViewModel.SelectedSong.CoverImagePath, Mode=OneWay}" />
+                    Source="{x:Bind MyViewModel.SelectedSong.CoverImagePath, Mode=OneWay}"
+                    />
                 <TextBlock
                     FontWeight="Bold"
                     Text="{x:Bind MyViewModel.SelectedSong.Title, Mode=OneWay}"
                     TextAlignment="Center"
-                    TextWrapping="Wrap" />
+                    TextWrapping="Wrap"
+                    />
                 <TextBlock
                     Opacity="0.7"
                     Text="{x:Bind MyViewModel.SelectedSong.ArtistName, Mode=OneWay}"
-                    TextAlignment="Center" />
+                    TextAlignment="Center"
+                    />
 
                 <MenuFlyoutSeparator />
 
@@ -219,7 +232,8 @@
                     Height="60"
                     HorizontalAlignment="Stretch"
                     Click="SyncButton_Click"
-                    Style="{StaticResource AccentButtonStyle}">
+                    Style="{StaticResource AccentButtonStyle}"
+                    >
                     <StackPanel>
                         <FontIcon FontSize="24" Glyph="&#xE916;" />
                         <TextBlock FontWeight="Bold" Text="SYNC NEXT LINE (Space)" />
@@ -246,17 +260,20 @@
                     <Button
                         Grid.Column="0"
                         HorizontalAlignment="Stretch"
-                        Content="-5s" />
+                        Content="-5s"
+                        />
                     <Button
                         Grid.Column="1"
                         HorizontalAlignment="Stretch"
-                        Content="+5s" />
+                        Content="+5s"
+                        />
                 </Grid>
 
                 <Button
                     HorizontalAlignment="Stretch"
                     Command="{x:Bind MyViewModel.PlayPauseToggleCommand}"
-                    Visibility="{x:Bind MyViewModel.IsDimmerPlaying, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                    Visibility="{x:Bind MyViewModel.IsDimmerPlaying, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                    >
                     <FontIcon Glyph="&#xF5B0;" />
                 </Button>
 
@@ -264,7 +281,8 @@
                 <Button
                     HorizontalAlignment="Stretch"
                     Command="{x:Bind MyViewModel.PlayPauseToggleCommand}"
-                    Visibility="{x:Bind MyViewModel.IsDimmerPlaying, Mode=OneWay, Converter={StaticResource BoolToInverseVisibilityConverter}}">
+                    Visibility="{x:Bind MyViewModel.IsDimmerPlaying, Mode=OneWay, Converter={StaticResource BoolToInverseVisibilityConverter}}"
+                    >
                     <FontIcon Glyph="&#xF8AE;" />
                 </Button>
 
@@ -277,17 +295,20 @@
             Margin="0,10,0,0"
             HorizontalAlignment="Right"
             Orientation="Horizontal"
-            Spacing="10">
+            Spacing="10"
+            >
             <Button
                 Click="Cancel_Click"
                 Command="{x:Bind MyViewModel.CancelLyricsEditingSessionCommand}"
-                Content="Cancel Session" />
+                Content="Cancel Session"
+                />
 
             <Button
                 Command="{x:Bind MyViewModel.SaveTimestampedLyricsCommand}"
                 CommandParameter="{x:Bind MyViewModel.CurrentSongPlainLyricsEdit, Mode=OneWay}"
                 Content="Save to LRC"
-                Style="{StaticResource AccentButtonStyle}" />
+                Style="{StaticResource AccentButtonStyle}"
+                />
         </StackPanel>
     </Grid>
 </Page>

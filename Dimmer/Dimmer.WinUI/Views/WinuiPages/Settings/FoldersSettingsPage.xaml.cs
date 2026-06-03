@@ -29,6 +29,14 @@ namespace Dimmer.WinUI.Views.WinuiPages.Settings
         }
         BaseViewModelWin MyViewModel;
 
+        protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
+        {
+            base.OnNavigatedTo(e);
+
+            MyViewModel = e.Parameter as BaseViewModelWin;
+
+            this.DataContext = MyViewModel;
+        }
         private void RemoveFolder_Click(object sender, RoutedEventArgs e)
         {
 

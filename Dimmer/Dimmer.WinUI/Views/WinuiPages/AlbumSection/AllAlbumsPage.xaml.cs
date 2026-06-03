@@ -32,12 +32,13 @@ public sealed partial class AllAlbumsPage : Page
         MyViewModel = IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
 
         DataContext = MyViewModel;
+        MyViewModel.SetupAlbumPipeline();
     }
 
     public BaseViewModelWin MyViewModel { get; set; }
 
 
-    FrameworkElement? artistClicked;
+
 
     private void ArtistsItemsRepeater_Tapped(object sender, TappedRoutedEventArgs e)
     {

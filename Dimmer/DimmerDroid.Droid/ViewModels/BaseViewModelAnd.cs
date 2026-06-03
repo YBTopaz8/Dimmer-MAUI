@@ -702,4 +702,14 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     }
 
+    internal void LoadSongsInitially()
+    {
+        var songs = RealmFactory.GetRealmInstance().All<SongModel>().AsEnumerable().Select(x => x.ToSongModelView()!);
+        if (songs is null) return;
+        SearchResultsHolder.Edit(updater =>
+        {
+            updater.Clear();
+            updater.AddOrUpdate(songs);
+        });
+    }
 }

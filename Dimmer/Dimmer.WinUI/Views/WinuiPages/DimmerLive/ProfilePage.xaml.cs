@@ -181,6 +181,16 @@ public sealed partial class ProfilePage : Page
         if(props.IsLeftButtonPressed)
             await ViewModel.UploadProfilePictureToCloudAsync();
     }
+
+    private void NameViewDevice_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private async void BackUpDevice_Click(object sender, RoutedEventArgs e)
+    {
+        await ViewModel.SessionMgtVM.BackUpDataToCloud();
+    }
 }
 
 // --- HELPERS ---
