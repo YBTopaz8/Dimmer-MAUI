@@ -178,51 +178,7 @@
         ItemHeaderHeight="0"
         SelectedItemIndex="{Binding HomePageIndex}"
         >
-        <dx:TabViewItem>
-            <dx:DXStackLayout Margin="10,50,10,0">
 
-                <FlexLayout JustifyContent="SpaceBetween">
-                    <dx:DXStackLayout ItemSpacing="10" Orientation="Horizontal">
-                        <Label Text="Sort By" TextColor="{AppThemeBinding Dark=White, Light=Black}" />
-                        <dx:DXToggleButton x:Name="SortDirectionChip" Clicked="SortDirectionChip_Clicked" />
-                    </dx:DXStackLayout>
-                    <dx:DXToggleButton
-                        x:Name="ShowSortByExpander"
-                        Padding="0"
-                        CheckedChanged="ShowSortByExpander_CheckedChanged"
-                        Icon="addcircle.png"
-                        ShowContent="False"
-                        ShowIcon="True"
-                        />
-
-                </FlexLayout>
-
-                <Grid>
-                    <dx:DXPopup x:Name="SortDirectionDXPopup">
-                        <dx:DXPopup.Content>
-                            <dx:ChoiceChipGroup
-                                x:Name="SortDirectionChoiceChip"
-                                ItemsSource="{Binding SortByDirections}"
-                                SelectionChanged="SortDirection_SelectionChanged"
-                                />
-                        </dx:DXPopup.Content>
-                    </dx:DXPopup>
-
-                    <dx:DXPopup x:Name="SortByDXPopup">
-                        <dx:DXPopup.Content>
-                            <dx:ChoiceChipGroup
-                                x:Name="SortByChoiceChipGroup"
-                                IsMultiline="True"
-                                ItemsSource="{Binding SortByFieldNames}"
-                                SelectionChanged="SortByChoiceChipGroup_SelectionChanged"
-                                />
-                        </dx:DXPopup.Content>
-                    </dx:DXPopup>
-
-
-                </Grid>
-            </dx:DXStackLayout>
-        </dx:TabViewItem>
         <dx:TabViewItem HeaderText="Songs">
             <Grid
                 Padding="5"
@@ -289,9 +245,118 @@
                                 ShowIcon="True"
                                 />
 
-                            <dx:DXPopup x:Name="SortPopUp">
+                            <dx:DXPopup
+                                x:Name="SortPopUp"
+                                AllowScrim="True"
+                                CloseOnScrimTap="True"
+                                ScrimColor="{Binding CurrentPlaySongDominantColor}"
+                                >
                                 <dx:DXPopup.Content>
-                                    <Label Text="Title Desc" />
+                                    <Grid
+                                        Padding="5"
+                                        MaximumHeightRequest="400"
+                                        RowDefinitions="auto,*,auto"
+                                        >
+                                        <dx:DXStackLayout
+                                            Grid.Row="0"
+                                            HorizontalOptions="Center"
+                                            ItemSpacing="10"
+                                            Orientation="Horizontal"
+                                            >
+                                            <Label FontSize="21" Text="{Binding CurrentSortDisplay}" />
+                                            <Label FontSize="21" Text="{Binding CurrentSortOrder}" />
+                                        </dx:DXStackLayout>
+                                        <dx:DXCollectionView
+                                            x:Name="SortByFieldCV"
+                                            Grid.Row="1"
+                                            Margin="10"
+                                            ItemSeparatorThickness="1"
+                                            ItemsSource="{Binding SortByFieldNameCollection}"
+                                            SelectionMode="Single"
+                                            >
+                                            <dx:DXCollectionView.ItemTemplate>
+                                                <DataTemplate x:DataType="x:String">
+                                                    <dx:DXButton
+                                                        x:Name="SortFieldBtn"
+                                                        Padding="5"
+                                                        Clicked="SortFieldBtn_Clicked"
+                                                        CornerRadius="5"
+                                                        ShowContent="True"
+                                                        >
+                                                        <dx:DXButton.Content>
+                                                            <FlexLayout JustifyContent="SpaceBetween">
+                                                                <Label
+                                                                    x:Name="SortLabel"
+                                                                    HorizontalOptions="Start"
+                                                                    Text="{Binding .}"
+                                                                    />
+
+                                                                <dx:DXStackLayout ItemSpacing="5" Orientation="Horizontal">
+                                                                    <dx:DXStackLayout.Triggers>
+                                                                        <DataTrigger
+                                                                            Binding="{Binding Text, Source={x:Reference SortLabel}}"
+                                                                            TargetType="dx:DXStackLayout"
+                                                                            Value="None"
+                                                                            >
+                                                                            <Setter Property="IsVisible" Value="False" />
+                                                                        </DataTrigger>
+                                                                    </dx:DXStackLayout.Triggers>
+
+                                                                    <dx:DXButton
+                                                                        x:Name="SortUpBtn"
+                                                                        Padding="5"
+                                                                        Clicked="SortUpBtn_Clicked"
+                                                                        Icon="sortdown.png"
+                                                                        IconHeight="25"
+                                                                        IconWidth="25"
+                                                                        Rotation="0"
+                                                                        RotationX="180"
+                                                                        ShowContent="False"
+                                                                        />
+                                                                    <dx:DXButton
+                                                                        x:Name="SortDownBtn"
+                                                                        Padding="5"
+                                                                        Clicked="SortDownBtn_Clicked"
+                                                                        Icon="sortup.png"
+                                                                        IconHeight="25"
+                                                                        IconWidth="25"
+                                                                        Rotation="180"
+                                                                        ShowContent="False"
+                                                                        />
+                                                                </dx:DXStackLayout>
+                                                            </FlexLayout>
+                                                        </dx:DXButton.Content>
+                                                    </dx:DXButton>
+                                                </DataTemplate>
+                                            </dx:DXCollectionView.ItemTemplate>
+                                        </dx:DXCollectionView>
+
+                                        <dx:DXStackLayout
+                                            Grid.Row="2"
+                                            HorizontalOptions="End"
+                                            Orientation="Horizontal"
+                                            >
+                                            <dx:DXButton
+                                                x:Name="CloseSortPopupBtn"
+                                                Clicked="CloseSortPopupBtn_Clicked"
+                                                Content="Cancel"
+                                                FontSize="20"
+                                                ShowContent="True"
+                                                TextColor="{AppThemeBinding Dark=White,
+                                                                            Light=Black}"
+                                                />
+                                            <dx:DXButton
+                                                x:Name="ConfirmSortAndClosePopupBtn"
+                                                Clicked="ConfirmSortAndClosePopupBtn_Clicked"
+                                                Content="Confirm"
+                                                FontSize="20"
+                                                HorizontalOptions="End"
+                                                ShowContent="True"
+                                                TextColor="{AppThemeBinding Dark=White,
+                                                                            Light=Black}"
+                                                />
+                                        </dx:DXStackLayout>
+                                    </Grid>
                                 </dx:DXPopup.Content>
                             </dx:DXPopup>
                         </dx:DXStackLayout>
@@ -316,15 +381,9 @@
                     ItemSpacing="5"
                     ItemTemplate="{StaticResource LinearDataType}"
                     ItemsSource="{Binding SearchResults}"
-                    LoadMoreCommand="{Binding LoadMoreSongsCommand}"
                     Loaded="SongsCV_Loaded"
                     PropertyChanged="SongsCV_PropertyChanged"
-                    >
-
-                    <dx:DXCollectionView.SortDescriptions>
-                        <dx:SortDescription FieldName="Title" SortOrder="Ascending" />
-                    </dx:DXCollectionView.SortDescriptions>
-                </dx:DXCollectionView>
+                    />
                 <Grid
                     Grid.Row="1"
                     Margin="20"
@@ -356,6 +415,7 @@
                         Padding="0,0,0,5"
                         BackgroundColor="Transparent"
                         HeightRequest="100"
+                        IsVisible="{Binding IsDimmerPlaying}"
                         ShowIcon="False"
                         >
                         <dx:DXToggleButton.Content>
@@ -620,7 +680,7 @@
                         <dx:TabView
                             x:Name="PopupTabView"
                             HeaderPanelPosition="Bottom"
-                            HeightRequest="450"
+                            HeightRequest="550"
                             >
                             <dx:TabViewItem HeaderText="View">
 
@@ -664,7 +724,7 @@
                                     <dx:DXStackLayout
                                         Grid.Row="1"
                                         BackgroundColor="DarkSlateBlue"
-                                        CornerRadius="10,10,0,0"
+                                        CornerRadius="0,0,0,0"
                                         >
                                         <dx:DXStackLayout.Resources>
                                             <ResourceDictionary>

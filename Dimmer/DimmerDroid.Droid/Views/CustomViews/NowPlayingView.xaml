@@ -31,321 +31,342 @@
 
 
 
+        <dx:DXExpander x:Name="SyncLyricsView" IsExpanded="False">
+            <dx:DXCollectionView x:Name="AllLyricsCV" SelectionChanged="AllLyricsCV_SelectionChanged">
+                <dx:DXCollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:LyricPhraseModelView">
+                        <Label FontSize="19" Text="{Binding Text}" />
+                    </DataTemplate>
+                </dx:DXCollectionView.ItemTemplate>
+
+                <dx:DXCollectionView.SelectedItemTemplate>
+                    <DataTemplate x:DataType="models:LyricPhraseModelView">
+                        <dx:DXBorder BackgroundColor="{Binding HighlightColor}">
+                            <Label FontSize="21" Text="{Binding Text}" />
+                        </dx:DXBorder>
+                    </DataTemplate>
+                </dx:DXCollectionView.SelectedItemTemplate>
+            </dx:DXCollectionView>
+        </dx:DXExpander>
+
+        <dx:DXExpander x:Name="NowPlayingViewExpander" VerticalOptions="End">
+
+            <Grid
+                Grid.Row="0"
+                Margin="10,0,0,60"
+                Padding="5,0"
+                BackgroundColor="Transparent"
+                RowDefinitions="auto,auto"
+                RowSpacing="20"
+                >
+                <dx:DXButton
+                    x:Name="CurrentLyricLineBtn"
+                    Grid.Row="0"
+                    Padding="0"
+                    BackgroundColor="Transparent"
+                    Clicked="CurrentLyricLine_Clicked"
+                    PressedBackgroundColor="{Binding CurrentPlaySongDominantColor}"
+                    >
 
 
-
-        <Grid
-            Grid.Row="0"
-            Margin="10,0,0,80"
-            Padding="5,0"
-            BackgroundColor="Transparent"
-            RowDefinitions="auto,auto"
-            VerticalOptions="End"
-            >
-            <dx:DXStackLayout Grid.Row="0">
-                <dx:DXStackLayout.GestureRecognizers>
-
-                    <TapGestureRecognizer
-                        x:Name="CurrentLyricLineTapGestRec"
-                        NumberOfTapsRequired="1"
-                        Tapped="CurrentLyricLineTapGestRec_Tapped"
+                    <Label
+                        x:Name="CurrentLyricLine"
+                        FontAttributes="Bold"
+                        FontSize="28"
+                        HorizontalOptions="Center"
+                        HorizontalTextAlignment="Center"
+                        IsVisible="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
+                        LineBreakMode="WordWrap"
+                        Text="{Binding CurrentLine.Text}"
                         />
-                </dx:DXStackLayout.GestureRecognizers>
-                <Label
-                    x:Name="CurrentLyricLine"
-                    FontSize="26"
-                    HorizontalOptions="Center"
-                    HorizontalTextAlignment="Center"
-                    IsVisible="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
-                    LineBreakMode="WordWrap"
-                    Text="{Binding CurrentLine.Text}"
-                    />
 
-            </dx:DXStackLayout>
-            <dx:DXStackLayout Grid.Row="1" ItemSpacing="15">
-                <Label
-                    x:Name="SongTitleLabel"
-                    FontAttributes="Bold"
-                    FontSize="18"
-                    HorizontalOptions="Center"
-                    HorizontalTextAlignment="Justify"
-                    Text="{Binding CurrentPlayingSongView.Title}"
-                    />
+                </dx:DXButton>
 
-                <dx:Chip
-                    x:Name="ArtistChip"
-                    Grid.Column="0"
-                    BorderThickness="0"
-                    FontSize="14"
-                    HorizontalOptions="Center"
-                    Text="{Binding CurrentPlayingSongView.OtherArtistsName}"
-                    />
-
-
-                <Grid>
-                    <dx:DXBorder
-                        BackgroundColor="{Binding CurrentPlaySongDominantColor}"
-                        CornerRadius="20"
-                        Opacity="1"
+                <dx:DXStackLayout Grid.Row="1" ItemSpacing="10">
+                    <Label
+                        x:Name="SongTitleLabel"
+                        FontAttributes="Bold"
+                        FontSize="18"
+                        HorizontalOptions="Center"
+                        HorizontalTextAlignment="Justify"
+                        Text="{Binding CurrentPlayingSongView.Title}"
                         />
-                    <dx:DXStackLayout
-                        Padding="15"
-                        BorderColor="Transparent"
-                        BorderThickness="2"
-                        CornerRadius="20"
-                        ItemSpacing="15"
-                        >
-                        <FlexLayout JustifyContent="SpaceBetween">
-                            <dx:DXStackLayout Orientation="Horizontal">
+
+                    <dx:Chip
+                        x:Name="ArtistChip"
+                        Grid.Column="0"
+                        BorderThickness="0"
+                        FontSize="14"
+                        HorizontalOptions="Center"
+                        Text="{Binding CurrentPlayingSongView.OtherArtistsName}"
+                        />
+
+
+                    <Grid>
+                        <dx:DXBorder
+                            BackgroundColor="{Binding CurrentPlaySongDominantColor}"
+                            CornerRadius="20"
+                            Opacity="1"
+                            />
+                        <dx:DXStackLayout
+                            Padding="15"
+                            BorderColor="Transparent"
+                            BorderThickness="2"
+                            CornerRadius="20"
+                            ItemSpacing="15"
+                            >
+                            <FlexLayout JustifyContent="SpaceBetween">
+                                <dx:DXStackLayout Orientation="Horizontal">
+
+                                    <dx:Chip
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        HorizontalOptions="Center"
+                                        Icon="shuffle.png"
+                                        IconSize="40,40"
+                                        IsEnabled="{Binding IsTimestampingInProgress, Converter={converters:BoolToInverseConverter}}"
+                                        IsIconVisible="True"
+                                        TapCommand="{Binding ToggleShuffleCommand}"
+                                        ToolTipProperties.Text="{Binding IsShuffleActive, Converter={converters:BoolToYesNoConverter}, StringFormat='Is Shuffle Active? : {0}'}"
+                                        WidthRequest="60"
+                                        >
+
+                                        <dx:Chip.Triggers>
+                                            <DataTrigger
+                                                Binding="{Binding IsShuffleActive}"
+                                                TargetType="dx:Chip"
+                                                Value="True"
+                                                >
+                                                <Setter Property="BorderColor" Value="DarkSlateBlue" />
+                                                <Setter Property="BorderThickness" Value="2" />
+
+                                            </DataTrigger>
+                                        </dx:Chip.Triggers>
+
+                                    </dx:Chip>
+
+                                    <dx:Chip
+                                        x:Name="LyricsChip"
+                                        BorderThickness="0"
+                                        IconSize="25,25"
+                                        Tap="LyricsChip_Tap"
+                                        Text="🎙️"
+                                        />
+
+
+                                </dx:DXStackLayout>
+
+                                <dx:DXButton
+                                    x:Name="PlaybackChip"
+                                    Padding="5"
+                                    BackgroundColor="Transparent"
+                                    Icon="playlistminimalistic3.png"
+                                    IconColor="DarkSlateBlue"
+                                    IconHeight="40"
+                                    IconWidth="40"
+                                    TapPressed="PlaybackChip_TapPressed"
+                                    />
+
+                            </FlexLayout>
+
+                            <Slider
+                                x:Name="TrackProgressSlider"
+                                Grid.Column="1"
+                                DragCompleted="OnSliderDragCompleted"
+                                DragStarted="OnSliderDragStarted"
+                                Maximum="{Binding CurrentPlayingSongView.DurationInSeconds}"
+                                MaximumTrackColor="{AppThemeBinding Dark=White,
+                                                                    Light=Black}"
+                                Minimum="0"
+                                MinimumTrackColor="DarkSlateBlue"
+                                ThumbColor="{Binding CurrentPlaySongDominantColor}"
+                                Value="{Binding CurrentTrackPositionSeconds}"
+                                />
+
+                            <FlexLayout JustifyContent="SpaceBetween">
+                                <dx:Chip BorderThickness="0" Text="{Binding CurrentTrackPositionSecondsTxt}" />
 
                                 <dx:Chip
-                                    Background="Transparent"
                                     BorderThickness="0"
-                                    HorizontalOptions="Center"
-                                    Icon="shuffle.png"
-                                    IconSize="40,40"
-                                    IsEnabled="{Binding IsTimestampingInProgress, Converter={converters:BoolToInverseConverter}}"
-                                    IsIconVisible="True"
-                                    TapCommand="{Binding ToggleShuffleCommand}"
-                                    ToolTipProperties.Text="{Binding IsShuffleActive, Converter={converters:BoolToYesNoConverter}, StringFormat='Is Shuffle Active? : {0}'}"
-                                    WidthRequest="60"
-                                    >
+                                    IconSize="25,25"
+                                    Text="{Binding CurrentPlayingSongView.DurationFormatted}"
+                                    />
 
-                                    <dx:Chip.Triggers>
+                            </FlexLayout>
+
+                            <Grid ColumnDefinitions="*,*,*,*,*">
+
+                                <dx:DXButton
+                                    Grid.Column="0"
+                                    Padding="10"
+                                    Background="Transparent"
+                                    BackgroundColor="Transparent"
+                                    BorderThickness="0"
+                                    Command="{Binding ToggleRepeatModeCommand}"
+                                    HorizontalOptions="Center"
+                                    Icon="repeat.png"
+                                    IconColor="DarkSlateBlue"
+                                    IconHeight="40"
+                                    IconWidth="40"
+                                    ShowIcon="True"
+                                    ToolTipProperties.Text="{Binding CurrentRepeatMode, StringFormat='Current Repeat Mode : {0}'}"
+                                    >
+                                    <dx:DXButton.Triggers>
                                         <DataTrigger
-                                            Binding="{Binding IsShuffleActive}"
-                                            TargetType="dx:Chip"
-                                            Value="True"
+                                            Binding="{Binding CurrentRepeatMode}"
+                                            TargetType="dx:DXButton"
+                                            Value="0"
                                             >
                                             <Setter Property="BorderColor" Value="DarkSlateBlue" />
+                                            <Setter Property="BorderThickness" Value="1" />
+
+
+                                        </DataTrigger>
+                                        <DataTrigger
+                                            Binding="{Binding CurrentRepeatMode}"
+                                            TargetType="dx:DXButton"
+                                            Value="1"
+                                            >
+                                            <Setter Property="BorderColor" Value="LightBlue" />
                                             <Setter Property="BorderThickness" Value="2" />
 
                                         </DataTrigger>
-                                    </dx:Chip.Triggers>
+                                        <DataTrigger
+                                            Binding="{Binding CurrentRepeatMode}"
+                                            TargetType="dx:DXButton"
+                                            Value="2"
+                                            >
+                                            <Setter Property="BorderColor" Value="Orange" />
+                                            <Setter Property="BorderThickness" Value="2" />
 
-                                </dx:Chip>
+                                        </DataTrigger>
+                                        <DataTrigger
+                                            Binding="{Binding CurrentRepeatMode}"
+                                            TargetType="dx:DXButton"
+                                            Value="3"
+                                            >
+                                            <Setter Property="BorderColor" Value="Red" />
+                                            <Setter Property="BorderThickness" Value="2" />
 
-                                <dx:Chip
-                                    x:Name="LyricsChip"
+                                        </DataTrigger>
+                                    </dx:DXButton.Triggers>
+
+                                </dx:DXButton>
+
+
+
+                                <dx:DXButton
+                                    Grid.Column="1"
+                                    Padding="10"
+                                    BackgroundColor="Transparent"
                                     BorderThickness="0"
-                                    IconSize="25,25"
-                                    Tap="LyricsChip_Tap"
-                                    Text="🎙️"
-                                    />
+                                    Command="{Binding PreviousTrackCommand}"
+                                    HorizontalOptions="Center"
+                                    Icon="skipprevious.png"
+                                    IconColor="DarkSlateBlue"
+                                    IconHeight="40"
+                                    IconWidth="40"
+                                    ShowIcon="True"
+                                    >
+                                    <dx:DXButton.CommandParameter>
+                                        <x:Boolean>False</x:Boolean>
+                                    </dx:DXButton.CommandParameter>
+                                </dx:DXButton>
 
-
-                            </dx:DXStackLayout>
-
-                            <dx:DXButton
-                                x:Name="PlaybackChip"
-                                Padding="5"
-                                BackgroundColor="Transparent"
-                                Icon="playlistminimalistic3.png"
-                                IconColor="DarkSlateBlue"
-                                IconHeight="40"
-                                IconWidth="40"
-                                TapPressed="PlaybackChip_TapPressed"
-                                />
-
-                        </FlexLayout>
-
-                        <Slider
-                            x:Name="TrackProgressSlider"
-                            Grid.Column="1"
-                            DragCompleted="OnSliderDragCompleted"
-                            DragStarted="OnSliderDragStarted"
-                            Maximum="{Binding CurrentPlayingSongView.DurationInSeconds}"
-                            MaximumTrackColor="{AppThemeBinding Dark=White,
-                                                                Light=Black}"
-                            Minimum="0"
-                            MinimumTrackColor="DarkSlateBlue"
-                            ThumbColor="{Binding CurrentPlaySongDominantColor}"
-                            Value="{Binding CurrentTrackPositionSeconds}"
-                            />
-
-                        <FlexLayout JustifyContent="SpaceBetween">
-                            <dx:Chip BorderThickness="0" Text="{Binding CurrentTrackPositionSecondsTxt}" />
-
-                            <dx:Chip
-                                BorderThickness="0"
-                                IconSize="25,25"
-                                Text="{Binding CurrentPlayingSongView.DurationFormatted}"
-                                />
-
-                        </FlexLayout>
-
-                        <Grid ColumnDefinitions="*,*,*,*,*">
-
-                            <dx:DXButton
-                                Grid.Column="0"
-                                Padding="10"
-                                Background="Transparent"
-                                BackgroundColor="Transparent"
-                                BorderThickness="0"
-                                Command="{Binding ToggleRepeatModeCommand}"
-                                HorizontalOptions="Center"
-                                Icon="repeat.png"
-                                IconColor="DarkSlateBlue"
-                                IconHeight="40"
-                                IconWidth="40"
-                                ShowIcon="True"
-                                ToolTipProperties.Text="{Binding CurrentRepeatMode, StringFormat='Current Repeat Mode : {0}'}"
-                                >
-                                <dx:DXButton.Triggers>
-                                    <DataTrigger
-                                        Binding="{Binding CurrentRepeatMode}"
-                                        TargetType="dx:DXButton"
-                                        Value="0"
-                                        >
-                                        <Setter Property="BorderColor" Value="DarkSlateBlue" />
-                                        <Setter Property="BorderThickness" Value="1" />
-
-
-                                    </DataTrigger>
-                                    <DataTrigger
-                                        Binding="{Binding CurrentRepeatMode}"
-                                        TargetType="dx:DXButton"
-                                        Value="1"
-                                        >
-                                        <Setter Property="BorderColor" Value="LightBlue" />
-                                        <Setter Property="BorderThickness" Value="2" />
-
-                                    </DataTrigger>
-                                    <DataTrigger
-                                        Binding="{Binding CurrentRepeatMode}"
-                                        TargetType="dx:DXButton"
-                                        Value="2"
-                                        >
-                                        <Setter Property="BorderColor" Value="Orange" />
-                                        <Setter Property="BorderThickness" Value="2" />
-
-                                    </DataTrigger>
-                                    <DataTrigger
-                                        Binding="{Binding CurrentRepeatMode}"
-                                        TargetType="dx:DXButton"
-                                        Value="3"
-                                        >
-                                        <Setter Property="BorderColor" Value="Red" />
-                                        <Setter Property="BorderThickness" Value="2" />
-
-                                    </DataTrigger>
-                                </dx:DXButton.Triggers>
-
-                            </dx:DXButton>
+                                <dx:DXButton
+                                    x:Name="PlayPauseBtn"
+                                    Grid.Column="2"
+                                    Padding="10"
+                                    BackgroundColor="Transparent"
+                                    BorderColor="{Binding CurrentPlaySongDominantColor}"
+                                    BorderThickness="0"
+                                    Command="{Binding PlayPauseToggleCommand}"
+                                    HorizontalOptions="Center"
+                                    Icon="play.png"
+                                    IconColor="DarkSlateBlue"
+                                    IconHeight="40"
+                                    IconWidth="40"
+                                    ShowIcon="True"
+                                    >
 
 
 
-                            <dx:DXButton
-                                Grid.Column="1"
-                                Padding="10"
-                                BackgroundColor="Transparent"
-                                BorderThickness="0"
-                                Command="{Binding PreviousTrackCommand}"
-                                HorizontalOptions="Center"
-                                Icon="skipprevious.png"
-                                IconColor="DarkSlateBlue"
-                                IconHeight="40"
-                                IconWidth="40"
-                                ShowIcon="True"
-                                >
-                                <dx:DXButton.CommandParameter>
-                                    <x:Boolean>False</x:Boolean>
-                                </dx:DXButton.CommandParameter>
-                            </dx:DXButton>
+                                    <dx:DXButton.Triggers>
+                                        <DataTrigger
+                                            Binding="{Binding IsDimmerPlaying}"
+                                            TargetType="dx:DXButton"
+                                            Value="true"
+                                            >
+                                            <Setter Property="Icon" Value="pause.png" />
+                                        </DataTrigger>
 
-                            <dx:DXButton
-                                x:Name="PlayPauseBtn"
-                                Grid.Column="2"
-                                Padding="10"
-                                BackgroundColor="Transparent"
-                                BorderColor="{Binding CurrentPlaySongDominantColor}"
-                                BorderThickness="0"
-                                Command="{Binding PlayPauseToggleCommand}"
-                                HorizontalOptions="Center"
-                                Icon="play.png"
-                                IconColor="DarkSlateBlue"
-                                IconHeight="40"
-                                IconWidth="40"
-                                ShowIcon="True"
-                                >
+                                        <DataTrigger
+                                            Binding="{Binding IsDimmerPlaying}"
+                                            TargetType="dx:DXButton"
+                                            Value="false"
+                                            >
+                                            <Setter Property="Icon" Value="play.png" />
+                                        </DataTrigger>
+                                    </dx:DXButton.Triggers>
+                                </dx:DXButton>
 
+                                <dx:DXButton
+                                    Grid.Column="3"
+                                    Padding="10"
+                                    BackgroundColor="Transparent"
+                                    BorderThickness="0"
+                                    Command="{Binding NextTrackCommand}"
+                                    HorizontalOptions="Center"
+                                    Icon="skipnext.png"
+                                    IconColor="DarkSlateBlue"
+                                    IconHeight="40"
+                                    IconWidth="40"
+                                    ShowIcon="True"
+                                    >
+                                    <dx:DXButton.CommandParameter>
+                                        <x:Boolean>False</x:Boolean>
+                                    </dx:DXButton.CommandParameter>
+                                </dx:DXButton>
+                                <dx:DXButton
+                                    Grid.Column="4"
+                                    Padding="10"
+                                    BackgroundColor="Transparent"
+                                    BorderThickness="0"
+                                    Command="{Binding AddFavoriteRatingToSongCommand}"
+                                    CommandParameter="{Binding CurrentPlayingSongView}"
+                                    HorizontalOptions="Center"
+                                    Icon="heart.png"
+                                    IconColor="DarkSlateBlue"
+                                    IconHeight="40"
+                                    IconWidth="40"
+                                    ShowIcon="True"
+                                    >
+                                    <dx:DXButton.Triggers>
+                                        <DataTrigger
+                                            Binding="{Binding CurrentPlayingSongView.IsFavorite}"
+                                            TargetType="dx:DXButton"
+                                            Value="true"
+                                            >
+                                            <Setter Property="Icon" Value="heartlock.png" />
+                                        </DataTrigger>
+                                        <DataTrigger
+                                            Binding="{Binding CurrentPlayingSongView.IsFavorite}"
+                                            TargetType="dx:DXButton"
+                                            Value="false"
+                                            >
+                                            <Setter Property="Icon" Value="heart.png" />
+                                        </DataTrigger>
+                                    </dx:DXButton.Triggers>
+                                </dx:DXButton>
+                            </Grid>
+                        </dx:DXStackLayout>
 
-
-                                <dx:DXButton.Triggers>
-                                    <DataTrigger
-                                        Binding="{Binding IsDimmerPlaying}"
-                                        TargetType="dx:DXButton"
-                                        Value="true"
-                                        >
-                                        <Setter Property="Icon" Value="pause.png" />
-                                    </DataTrigger>
-
-                                    <DataTrigger
-                                        Binding="{Binding IsDimmerPlaying}"
-                                        TargetType="dx:DXButton"
-                                        Value="false"
-                                        >
-                                        <Setter Property="Icon" Value="play.png" />
-                                    </DataTrigger>
-                                </dx:DXButton.Triggers>
-                            </dx:DXButton>
-
-                            <dx:DXButton
-                                Grid.Column="3"
-                                Padding="10"
-                                BackgroundColor="Transparent"
-                                BorderThickness="0"
-                                Command="{Binding NextTrackCommand}"
-                                HorizontalOptions="Center"
-                                Icon="skipnext.png"
-                                IconColor="DarkSlateBlue"
-                                IconHeight="40"
-                                IconWidth="40"
-                                ShowIcon="True"
-                                >
-                                <dx:DXButton.CommandParameter>
-                                    <x:Boolean>False</x:Boolean>
-                                </dx:DXButton.CommandParameter>
-                            </dx:DXButton>
-                            <dx:DXButton
-                                Grid.Column="4"
-                                Padding="10"
-                                BackgroundColor="Transparent"
-                                BorderThickness="0"
-                                Command="{Binding AddFavoriteRatingToSongCommand}"
-                                CommandParameter="{Binding CurrentPlayingSongView}"
-                                HorizontalOptions="Center"
-                                Icon="heart.png"
-                                IconColor="DarkSlateBlue"
-                                IconHeight="40"
-                                IconWidth="40"
-                                ShowIcon="True"
-                                >
-                                <dx:DXButton.Triggers>
-                                    <DataTrigger
-                                        Binding="{Binding CurrentPlayingSongView.IsFavorite}"
-                                        TargetType="dx:DXButton"
-                                        Value="true"
-                                        >
-                                        <Setter Property="Icon" Value="heartlock.png" />
-                                    </DataTrigger>
-                                    <DataTrigger
-                                        Binding="{Binding CurrentPlayingSongView.IsFavorite}"
-                                        TargetType="dx:DXButton"
-                                        Value="false"
-                                        >
-                                        <Setter Property="Icon" Value="heart.png" />
-                                    </DataTrigger>
-                                </dx:DXButton.Triggers>
-                            </dx:DXButton>
-                        </Grid>
-                    </dx:DXStackLayout>
-
-                </Grid>
+                    </Grid>
 
 
-            </dx:DXStackLayout>
-        </Grid>
+                </dx:DXStackLayout>
+            </Grid>
+        </dx:DXExpander>
 
 
 

@@ -65,14 +65,14 @@ public partial class HomePage : ContentPage
                     {
                         case 0:
                             MyViewModel.StartTQLPipeLine();
-                            break;
-                        case 1:
+                           
+                        
                             var songHandle = SongsCV.FindItemHandle(MyViewModel.CurrentPlayingSongView);
                             HapticFeedback.Default.Perform(HapticFeedbackType.Click);
                             SongsCV.ScrollTo(songHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
                             break;
 
-                        case 3:
+                        case 2:
                             var songHandlePBCV = PlaybackQueueCV.FindItemHandle(MyViewModel.CurrentPlayingSongView);
                             HapticFeedback.Default.Perform(HapticFeedbackType.Click);
                             PlaybackQueueCV.ScrollTo(songHandlePBCV, DevExpress.Maui.Core.DXScrollToPosition.Start);
@@ -971,71 +971,35 @@ public partial class HomePage : ContentPage
         skipsRangeSlider.Context = SongsCV.FilteringContext;
         skipsRangeSlider.FieldName = "SkipCount";
     }
-    int sortCount=0;
+
     private void SortPopUp_Clicked(object sender, EventArgs e)
     {
-        sortCount++;
-        SongsCV.SortDescriptions.Clear(); 
-        switch (sortCount)
-        {
-            case 1:
-                SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
-                {
-                    FieldName = "Title"
-           ,
-                    SortOrder = DataSortOrder.Ascending
-                });
-               
-                break;
-            case 2:
-                SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
-                {
-                    FieldName = "Title"
-           ,
-                    SortOrder = DataSortOrder.Descending
-                });
-               
-                break;
-            case 3:
-                SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
-                {
-                    FieldName = "PlayCompletedCount"
-           ,
-                    SortOrder = DataSortOrder.Ascending
-                });
-               
-                break;
-            case 4:
-                SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
-                {
-                    FieldName = "PlayCompletedCount"
-           ,
-                    SortOrder = DataSortOrder.Descending
-                });
-                sortCount=0;
-                break;
-            default:
-                break;
-        }
+        SortPopUp.Show();
+        return;
+
+       
        
     }
 
-    private void SortByListPicker_Loaded_1(object sender, EventArgs e)
+    private void SortByFieldCV_SelectionChanged(object sender, DevExpress.Maui.CollectionView.CollectionViewSelectionChangedEventArgs e)
     {
-
+        
     }
 
-    private void DXButton_Clicked_1(object sender, EventArgs e)
-    {
-       
-    }
+ 
 
-    private void SortByChoiceChipGroup_SelectionChanged(object sender, EventArgs e)
+    private void CloseSortPopupBtn_Clicked(object sender, EventArgs e)
     {
+        SortPopUp.Close();
+    }
+    int currentSelectedSortIndex;
+
+    private void ConfirmSortAndClosePopupBtn_Clicked(object sender, EventArgs e)
+    {
+
         SongsCV.SortDescriptions.Clear();
-        switch (SortByChoiceChipGroup.SelectedIndex)
+        switch (currentSelectedSortIndex)
         {
-
             case 0:
 
                 break;
@@ -1069,11 +1033,10 @@ public partial class HomePage : ContentPage
             case 4:
                 SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
                 {
-                    FieldName = "GenreName"
+                    FieldName = "Genre Name"
            ,
-                    SortOrder = DataSortOrder.Descending
+                    SortOrder = DataSortOrder.Ascending
                 });
-                sortCount = 0;
                 break;
             case 5:
                 SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
@@ -1082,7 +1045,6 @@ public partial class HomePage : ContentPage
            ,
                     SortOrder = DataSortOrder.Ascending
                 });
-                sortCount = 0;
                 break;
             case 6:
                 SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
@@ -1091,44 +1053,35 @@ public partial class HomePage : ContentPage
            ,
                     SortOrder = DataSortOrder.Ascending
                 });
-                sortCount = 0;
                 break;
             default:
                 break;
         }
-    
     }
 
-    private void ShowSortByExpander_CheckedChanged(object sender, ValueChangedEventArgs<bool> e)
+    private void SortDownBtn_Clicked(object sender, EventArgs e)
     {
-        SortByDXPopup.Show();
-
+        MyViewModel.CurrentSortOrder = SortOrder.Desc;
     }
 
-    private void SortDirectionChip_Clicked(object sender, EventArgs e)
+    private void SortUpBtn_Clicked(object sender, EventArgs e)
     {
+        MyViewModel.CurrentSortOrder = SortOrder.Asc;
 
-        SortDirectionDXPopup.Show();
     }
 
-    private void SortDirection_SelectionChanged(object sender, EventArgs e)
+    private void SortFieldBtn_Clicked(object sender, EventArgs e)
     {
-        var currentIndex = SortDirectionChoiceChip.SelectedIndex;
-        
-        var currentSortCriteria = SongsCV.SortDescriptions[SortByChoiceChipGroup.SelectedIndex];
-        var critIndex = SongsCV.SortDescriptions.IndexOf(currentSortCriteria);
-        var critDirection = currentSortCriteria.SortOrder;
-        var critDirectionInt = (int)critDirection;
-        var newCritDirectionEnum = (DataSortOrder)currentIndex;
-        if(currentIndex==critDirectionInt)
-        {
-            return;
-        }
-
-        currentSortCriteria.SortOrder = newCritDirectionEnum;
-        SongsCV.SortDescriptions.RemoveAt(critIndex);
-        SongsCV.SortDescriptions.Insert(critIndex,currentSortCriteria);
+        DXButton send = (DXButton)sender;
+        currentSelectedSortIndex = MyViewModel.SortByFieldNameCollection.IndexOf(send.BindingContext  as string);
+        MyViewModel.CurrentSortDisplay = (send.BindingContext as string)!;
     }
+
+
+
+
+
+
 
 
     //private void SearchIconBtn_Tapped(object sender, HandledEventArgs e)

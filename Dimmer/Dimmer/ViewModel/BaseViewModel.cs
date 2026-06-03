@@ -1706,13 +1706,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
 
     [ObservableProperty] public partial ObservableCollection<AudioOutputDevice>? AudioDevices { get; set; }
 
-    [ObservableProperty]
-    public partial List<string>? SortingModes
-    {
-        get;
-        set;
-    } = new List<string> { "Title", "Artist", "Album", "Duration", "Year" };
-
+ 
     [ObservableProperty] public partial AudioOutputDevice? SelectedAudioDevice { get; set; }
 
     [ObservableProperty] public partial string? SelectedSortingMode { get; set; }
@@ -2176,22 +2170,15 @@ Observable.FromEventPattern<PlaybackEventArgs>(
     public IObservable<double> AudioEngineVolumeObservable { get; }
 
 
-    [ObservableProperty]
-    public partial ObservableCollection<ArtistModelView> AllAvailableArtists { get; set; }
+
    
     [ObservableProperty]
-    public partial ObservableCollection<string> SortByFieldNames { get; set; } = new() { "None","Title", "Artist Name", "Album Name", "Genre Name", "Duration", "Dims", };
+    public partial ObservableCollection<string> SortByFieldNameCollection { get; set; } = new() { "None","Title", "Artist Name", "Album Name", "Genre Name", "Duration", "Dims", };
    
     [ObservableProperty]
-    public partial ObservableCollection<string> SortByDirections { get; set; } = new() { "None", "Asc","Desc" };
+    public partial ObservableCollection<string> SortByDirectionCollection { get; set; } = new() { "None", "Asc","Desc" };
    
 
-
-    [ObservableProperty]
-    public partial ObservableCollection<ObservableCollection<string>> SortByFieldNameCollection { get; set; }
-
-    [ObservableProperty]
-    public partial ObservableCollection<ObservableCollection<string>> SortByDirectionCollection { get; set; }
 
     [ObservableProperty]
     public partial string CurrentCoverImagePath { get; set; }
@@ -5756,7 +5743,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
         // 1. Process locally (don't set class properties)
         if(string.IsNullOrEmpty(LyricsTrackNameSearch))
         {
-            LyricsTrackNameSearch =CleanSongTitle(SelectedSong.Title ?? string.Empty);
+            LyricsTrackNameSearch = CleanSongTitle(SelectedSong.Title ?? string.Empty);
         }
         if (string.IsNullOrEmpty(LyricsArtistNameSearch))
         {
@@ -6944,7 +6931,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
     public partial bool IsFirmSearchEnabled { get; set; }
 
     [ObservableProperty]
-    public partial int HomePageIndex { get; set; } = 1;
+    public partial int HomePageIndex { get; set; } = 0;
 
     /// <summary>
     /// The main command for adding a new filter. This is the heart of the Lego system. It's smart and knows how to ask

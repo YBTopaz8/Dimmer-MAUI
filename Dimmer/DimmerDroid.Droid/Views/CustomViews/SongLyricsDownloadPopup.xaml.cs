@@ -12,9 +12,10 @@ public partial class SongLyricsDownloadPopup : DXPopup
     }
     SongModelView ConcernedSong;
     BaseViewModelAnd MyViewModel;
-    private void LyricsTabVSL_Loaded(object sender, EventArgs e)
+    private async void LyricsTabVSL_Loaded(object sender, EventArgs e)
     {
-
+        await Task.Delay(2000);
+        MyViewModel.ReadySearchViewAndProduceSearchText();
     }
 
     private async void QuickActionChip_Tap(object sender, HandledEventArgs e)
@@ -184,7 +185,7 @@ public partial class SongLyricsDownloadPopup : DXPopup
             CommunityToolkit.Maui.Alerts.Toast msgToast = new CommunityToolkit.Maui.Alerts.Toast() { Text = text, Duration = CommunityToolkit.Maui.Core.ToastDuration.Short };
             msgToast?.Show(cancellationTokenSource.Token);
 
-
+            this.Close();
 
 
         }

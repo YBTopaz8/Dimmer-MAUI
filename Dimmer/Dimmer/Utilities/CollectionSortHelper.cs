@@ -3,7 +3,8 @@ public enum SortOrder
 {
 
     Asc,
-    Desc
+    Desc,
+    None
 }
 
 public static class CollectionSortHelper

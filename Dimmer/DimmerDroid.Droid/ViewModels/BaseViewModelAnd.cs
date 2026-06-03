@@ -519,7 +519,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     
     [ObservableProperty]
-    public partial string CurrentSortDisplay { get; set; } = "Title (A-Z)";
+    public partial string CurrentSortDisplay { get; set; } = "Title";
 
     [ObservableProperty]
     public partial string CurrentFilterDisplay { get; set; } = "None";

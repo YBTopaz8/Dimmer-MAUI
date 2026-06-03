@@ -173,6 +173,17 @@ public partial class NowPlayingView : ContentView
 
     }
 
+    private void AllLyricsCV_SelectionChanged(object sender, CollectionViewSelectionChangedEventArgs e)
+    {
+
+    }
+
+    private void CurrentLyricLine_Clicked(object sender, EventArgs e)
+    {
+        NowPlayingViewExpander.SetIsExpanded(false, true);
+        SyncLyricsView.SetIsExpanded(true, true);
+    }
+
 
 
     //private void AllLyricsColView_SelectionChanged(object sender, DevExpress.Maui.CollectionView.CollectionViewSelectionChangedEventArgs e)

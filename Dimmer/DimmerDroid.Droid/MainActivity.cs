@@ -40,12 +40,8 @@ public partial class MainActivity : MauiAppCompatActivity
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         base.OnCreate(savedInstanceState);
-        var curPlat = IPlatformApplication.Current;
-        var serv = curPlat?.Services;
-        if (serv != null)
-        {
-            MyViewModel = IPlatformApplication.Current!.Services.GetRequiredService<BaseViewModelAnd>();
-        }
+
+       
         Dimmer.Utils.UiThreads.InitializeMainHandler();
         ProcessIntent(Intent);
         SetupService();

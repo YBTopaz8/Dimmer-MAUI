@@ -120,7 +120,7 @@ public partial class ExoPlayerService : MediaSessionService
 
 
             _ = Task.Run(async () => {
-                var timeoutTask = Task.Delay(5000); // 5 second timeout
+                var timeoutTask = Task.Delay(15000); // 5 second timeout
                 var initTask = InitializeMediaControllerAsync();
                 await Task.WhenAny(initTask, timeoutTask);
             }).ConfigureAwait(false);
