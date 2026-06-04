@@ -19,11 +19,10 @@ public partial class MainActivity : MauiAppCompatActivity
     MediaPlayerServiceConnection? _serviceConnection;
     Intent? _serviceIntent;
     private ExoPlayerServiceBinder? _binder;
-    BaseViewModelAnd MyViewModel { get; set; }
+    BaseViewModelAnd? MyViewModel { get; set; }
     public MainActivity()
     {
-        MyViewModel = IPlatformApplication.Current?.Services.GetService<BaseViewModelAnd>()!;
-    }
+      }
 
     public ExoPlayerServiceBinder? Binder
     {
@@ -51,10 +50,18 @@ public partial class MainActivity : MauiAppCompatActivity
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         base.OnCreate(savedInstanceState);
-
        
+        
+
         Dimmer.Utils.UiThreads.InitializeMainHandler();
         ProcessIntent(Intent);
+
+       //RxSchedulers.Background.ScheduleTo(() =>
+       // {
+       //     MyViewModel = IPlatformApplication.Current!.Services.GetRequiredService<BaseViewModelAnd>();
+
+       // });
+
         SetupService();
 
         SetupBackNavigation();
@@ -66,6 +73,7 @@ public partial class MainActivity : MauiAppCompatActivity
         // Increase thread pool for background operations
         ThreadPool.SetMinThreads(4, 4);
 
+
         // Configure JsonSerializer for mobile
         ConfigureJsonOptions();
     }
@@ -74,7 +82,7 @@ public partial class MainActivity : MauiAppCompatActivity
     {
         if (!AndroidPermissionsService.HasAudioPermissions())
         {
-            // Show UI explanation? Or just request
+
             AndroidPermissionsService.RequestAudioPermissions(this, REQUEST_AUDIO_PERMS);
         }
         if (!AndroidPermissionsService.HasStoragePermissions())
@@ -83,7 +91,13 @@ public partial class MainActivity : MauiAppCompatActivity
             AndroidPermissionsService.RequestStoragePermissions(this, REQUEST_STORAGE_PERMS);
         }
 
-
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu) // API 33+
+        {
+            if (CheckSelfPermission(Android.Manifest.Permission.PostNotifications) != Permission.Granted)
+            {
+                RequestPermissions(new[] { Android.Manifest.Permission.PostNotifications }, 100);
+            }
+        }
 
     }
 
@@ -117,7 +131,6 @@ public partial class MainActivity : MauiAppCompatActivity
             StartService(_serviceIntent);
 
         BindService(_serviceIntent, _serviceConnection, Bind.AutoCreate);
-
     }
     private void ProcessIntent(Android.Content.Intent? intent)
     {
@@ -125,6 +138,7 @@ public partial class MainActivity : MauiAppCompatActivity
         {
             return;
         }
+        if (MyViewModel is null) return;
         if (intent.Action == "ShowMiniPlayer")
         {
             if (MyViewModel.OpenMediaUIOnNotificationTap)
@@ -207,6 +221,7 @@ public partial class MainActivity : MauiAppCompatActivity
     [System.Runtime.Versioning.SupportedOSPlatform("android33.0")]
     private void SetupBackNavigationApi33()
     {
+        if (MyViewModel is null) return;
 
         // The dangerous code lives exclusively in here
         _onBackInvokedCallback = new BackInvokedCallback(async () =>
@@ -319,12 +334,14 @@ public partial class MainActivity : MauiAppCompatActivity
     protected override void OnResume()
     {
         base.OnResume();
+        if (MyViewModel is null) return;
         MyViewModel.IsBackGrounded = false;
     }
     protected override void OnPause()
     {
         base.OnPause();
         Debug.WriteLine("paused");
+        if (MyViewModel is null) return;
         MyViewModel.IsBackGrounded = true;
     }
 

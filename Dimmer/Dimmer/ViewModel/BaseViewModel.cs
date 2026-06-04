@@ -97,41 +97,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         _duplicateFinderService = duplicateFinderService;
         libScannerService = LibScannerService;
-Observable.FromEventPattern<PlaybackEventArgs>(
-            h => audioServ.IsPlayingChanged += h,
-            h => audioServ.IsPlayingChanged -= h)
-            .Select(evt => evt.EventArgs.IsPlaying)
-            .StartWith(false)
-            .Subscribe(
-                async obs =>
-                {
-                    if(obs)
-                    {
-                        _= Task.Run(
-                            async () =>
-                            {
-                                var currentAudioServiceSong = await audioServ.CurrentSong.LastOrDefaultAsync();
-                                if(currentAudioServiceSong is null)
-                                {
-                                    return;
-                                }
-                                if(CurrentPlayingSongView.TitleDurationKey != currentAudioServiceSong.TitleDurationKey)
-                                {
-                                    CurrentPlayingSongView = currentAudioServiceSong;
-                                }
-                            });
-                    }
-                });
-            ;
-
-
-        AudioEnginePositionObservable = Observable.FromEventPattern<double>(
-            h => audioServ.PositionChanged += h,
-            h => audioServ.PositionChanged -= h)
-            .Select(evt => evt.EventArgs)
-            .StartWith(audioServ.CurrentPosition)
-            .Replay(1)
-            .RefCount();
 
         CurrentPlayingSongView = new();
         BaseAppFlow = BaseAppClass;
@@ -141,52 +106,12 @@ Observable.FromEventPattern<PlaybackEventArgs>(
         RealmFactory = RealmFact;
 
 
-        this.musicRelationshipService = new MusicRelationshipService(RealmFactory);
-        this.musicArtistryService = new(RealmFactory);
-
-        this.musicStatsService = new(RealmFactory);
-
+      
 
         _searchQuerySubject = new BehaviorSubject<string>("");
         _limiterClause = new BehaviorSubject<LimiterClause?>(null);
 
-    
 
-
-
-
-        SearchResultsHolder.Connect()
-            
-             .AutoRefresh(song => song.IsFavorite)
-        .AutoRefresh(song => song.IsCurrentPlayingHighlight)
-        .AutoRefresh(song => song.HasSyncedLyrics)
-        .AutoRefresh(song => song.CoverImagePath)
-        .AutoRefresh(song => song.PlayCompletedCount)
-            .ObserveOn(RxSchedulers.UI) // Important for UI updates
-            .Bind(out _searchResults)
-            .Subscribe(x =>
-            {
-                    IsSearchResultEmpty = SearchResults.Count == 0;
-                UpdateIsSearchResultEmpty(IsSearchResultEmpty);
-                Debug.WriteLine(x.Count);
-            })
-            .DisposeWith(CompositeDisposables);
-        
-
-        
-        // 4. Handle Logging. Remove the temporary `if (pos == 0)` check.
-        Observable.FromEventPattern<double>(
-            h => _audioService.SeekCompleted += h,
-            h => _audioService.SeekCompleted -= h)
-            .Select(evt => evt.EventArgs)
-            .ObserveOn(RxSchedulers.UI)
-            .Subscribe(OnSeekCompleted, ex => _logger.LogError(ex, "Error in SeekCompleted subscription"))
-            .DisposeWith(_subsManager);
-
-        _duplicateSource
-        .Connect()
-        .Bind(out _duplicateSets)
-        .Subscribe();
 
     }
 
@@ -514,6 +439,67 @@ Observable.FromEventPattern<PlaybackEventArgs>(
             }
         }, _backgroundCachingCts.Token);
 
+
+        Observable.FromEventPattern<PlaybackEventArgs>(
+            h => _audioService.IsPlayingChanged += h,
+            h => _audioService.IsPlayingChanged -= h)
+            .Select(evt => evt.EventArgs.IsPlaying)
+            .StartWith(false)
+            .Subscribe(
+                async obs =>
+                {
+                    if (obs)
+                    {
+                        _ = Task.Run(
+                            async () =>
+                            {
+                                var currentAudioServiceSong = await _audioService.CurrentSong.LastOrDefaultAsync();
+                                if (currentAudioServiceSong is null)
+                                {
+                                    return;
+                                }
+                                if (CurrentPlayingSongView.TitleDurationKey != currentAudioServiceSong.TitleDurationKey)
+                                {
+                                    CurrentPlayingSongView = currentAudioServiceSong;
+                                }
+                            });
+                    }
+                });
+        ;
+
+
+
+        SearchResultsHolder.Connect()
+             .AutoRefresh(song => song.IsFavorite)
+        .AutoRefresh(song => song.IsCurrentPlayingHighlight)
+        .AutoRefresh(song => song.HasSyncedLyrics)
+        .AutoRefresh(song => song.CoverImagePath)
+        .AutoRefresh(song => song.PlayCompletedCount)
+            .ObserveOn(RxSchedulers.UI) // Important for UI updates
+            .Bind(out _searchResults)
+            .Subscribe(x =>
+            {
+                IsSearchResultEmpty = SearchResults.Count == 0;
+                UpdateIsSearchResultEmpty(IsSearchResultEmpty);
+                Debug.WriteLine(x.Count);
+            })
+            .DisposeWith(CompositeDisposables);
+
+
+
+        // 4. Handle Logging. Remove the temporary `if (pos == 0)` check.
+        Observable.FromEventPattern<double>(
+            h => _audioService.SeekCompleted += h,
+            h => _audioService.SeekCompleted -= h)
+            .Select(evt => evt.EventArgs)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(OnSeekCompleted, ex => _logger.LogError(ex, "Error in SeekCompleted subscription"))
+            .DisposeWith(_subsManager);
+
+        _duplicateSource
+        .Connect()
+        .Bind(out _duplicateSets)
+        .Subscribe();
 
         Debug.WriteLine(DateTime.Now + "start connect pb source") ;
         PlaybackQueueSource.Connect()
@@ -1453,7 +1439,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
 
     #region private fields
     public SourceCache<SongModelView, string> SearchResultsHolder { get; } = new(x => x.Id.ToString());
-    private readonly ReadOnlyObservableCollection<SongModelView> _searchResults;
+    private  ReadOnlyObservableCollection<SongModelView> _searchResults;
     public ReadOnlyObservableCollection<SongModelView> SearchResults => _searchResults;
 
     private ReadOnlyObservableCollection<DimmerPlayEventView> _dimmerEventsCollection;
@@ -2165,10 +2151,7 @@ Observable.FromEventPattern<PlaybackEventArgs>(
 
 
 
-    public IObservable<double> AudioEnginePositionObservable { get; }
-
-    public IObservable<double> AudioEngineVolumeObservable { get; }
-
+  
 
 
    

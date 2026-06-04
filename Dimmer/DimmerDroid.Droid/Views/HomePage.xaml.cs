@@ -46,13 +46,13 @@ public partial class HomePage : ContentPage
     {
         base.OnAppearing();
 
-        Debug.WriteLine("HomePage OnAppearing" + MyViewModel.AppTitle + " " + BaseViewModel.CurrentAppStage);
-        Debug.WriteLine("HomePage OnAppearing" + MyViewModel.SearchResults.Count);
+      
+
 
         if (!MyViewModel.IsInitialized)
         {
             InitializeAppLogic();
-            MyViewModel.LoadSongsInitially();
+            //MyViewModel.LoadSongsInitially();
         }
 
         MyViewModel.WhenPropertyChange(nameof(MyViewModel.HomePageIndex), v => (MyViewModel.HomePageIndex))
@@ -87,8 +87,7 @@ public partial class HomePage : ContentPage
 
     private void InitializeAppLogic()
     {
-        _ = Task.Run(async () =>
-        {
+        
             try
             {
                 var startTime = Java.Lang.JavaSystem.CurrentTimeMillis();
@@ -102,11 +101,11 @@ public partial class HomePage : ContentPage
             }
             catch (Exception ex)
             {
-                await Shell.Current.DisplayAlertAsync("Fatal Error Init Logic", ex.Message, "ok");
+                 Shell.Current.DisplayAlertAsync("Fatal Error Init Logic", ex.Message, "ok");
                 Console.WriteLine($"VM INIT CRASH: {ex}");
                 Android.Util.Log.Error("DIMMER_INIT", ex.ToString());
             }
-        });
+        
     }
 
     private async void TapToPlaySongGestRecog_Tapped(object sender, TappedEventArgs e)
@@ -193,10 +192,7 @@ public partial class HomePage : ContentPage
     private async void ImageOnCollectionViewTapped(object sender, TappedEventArgs e)
     {
 
-        var send = (View)sender;
-        var song = (SongModelView)send.BindingContext;
-        MyViewModel.SelectedSong = song;
-        await SingleSongPopup.ShowAsync();
+
     }
 
     private void EditSongChip_Tap(object sender, HandledEventArgs e)
@@ -607,26 +603,12 @@ public partial class HomePage : ContentPage
     {
         
 
-        SingleSongPopup.Close();
 
         if (Shell.Current.CurrentPage.GetType() != typeof(DetailsOverview))
             await Shell.Current.GoToAsync(nameof(DetailsOverview), true);
     }
 
-    private void OtherArtistsNameToggleBtn_CheckedChanged(object sender, ValueChangedEventArgs<bool> e)
-    {
-        switch (e.NewValue)
-        {
-            case true:
 
-                AllArtistsExpander.IsExpanded = true;
-                break;
-            case false:
-
-                break;
-
-        }
-    }
 
     private async void ArtistNameBtn_Clicked(object sender, EventArgs e)
     {
@@ -634,7 +616,7 @@ public partial class HomePage : ContentPage
         var artist = (ArtistModelView)send.CommandParameter as ArtistModelView;
 
         MyViewModel.SetSelectedArtist(artist);
-        SingleSongPopup.Close();
+
         await Shell.Current.GoToAsync(nameof(ArtistPage), true);
 
     }
@@ -646,7 +628,7 @@ public partial class HomePage : ContentPage
         if (song is null)
             return;
         MyViewModel.SetSelectedAlbum(song.Album);
-        SingleSongPopup.Close();
+
 
         await Shell.Current.GoToAsync(nameof(AlbumPage), true);
     }
@@ -665,12 +647,7 @@ public partial class HomePage : ContentPage
     
 
 
-    private void SingleSongPopup_Closed(object sender, EventArgs e)
-    {
 
-        AllArtistsExpander.IsExpanded = false;
-        PopupTabView.SelectedItemIndex = 0;
-    }
 
     private void DrawerHamburger_Clicked(object sender, EventArgs e)
     {
@@ -1108,6 +1085,22 @@ public partial class HomePage : ContentPage
         send.FieldName = "HasSyncedLyrics";
 
 
+    }
+
+    private void SelectedSongArtistBtn_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private async void GoToSelectedSongAlbumPage_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.SetSelectedAlbum(MyViewModel.SelectedSong!.Album);
+        await Shell.Current.GoToAsync(nameof(AlbumPage));
+    }
+
+    private async void GoToSelectedSongOverViewPage_Clicked(object sender, EventArgs e)
+    {
+        await Shell.Current.GoToAsync(nameof(DetailsOverview));
     }
 
 
