@@ -10,7 +10,7 @@
     xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
     xmlns:vm="clr-namespace:Dimmer.ViewModels"
     Title="Dimmer Live"
-    x:DataType="globalVM:LoginViewModel"
+    x:DataType="globalVM:SessionManagementViewModel"
     Shell.ForegroundColor="DarkSlateBlue"
     >
 
@@ -23,15 +23,15 @@
 
         <FlexLayout Grid.Row="0" JustifyContent="SpaceBetween">
             <dx:DXStackLayout Grid.Row="0" ItemSpacing="10">
-                <Label FontSize="23" Text="{Binding CurrentUserOnline.Username}" />
-                <Label FontSize="13" Text="{Binding CurrentUserOnline.Email}" />
+                <Label FontSize="23" Text="{Binding CurrentUser.Username}" />
+                <Label FontSize="13" Text="{Binding CurrentUser.Email}" />
 
 
             </dx:DXStackLayout>
             <dx:DXImage
                 HeightRequest="180"
                 HorizontalOptions="Start"
-                Source="{Binding CurrentUserOnline.ProfileImagePath}"
+                Source="{Binding CurrentUser.ProfileImagePath}"
                 WidthRequest="180"
                 />
 
@@ -57,6 +57,7 @@
 
         <dx:DXPopup
             x:Name="LoginPopup"
+            x:DataType="globalVM:LoginViewModel"
             AllowScrim="True"
             BackgroundColor="Black"
             CloseOnScrimTap="False"

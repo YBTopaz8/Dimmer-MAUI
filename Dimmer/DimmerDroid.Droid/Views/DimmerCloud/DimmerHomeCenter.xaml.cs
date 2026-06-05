@@ -19,6 +19,7 @@ public partial class DimmerHomeCenter : ContentPage
 
     private void MainGrid_Loaded(object sender, EventArgs e)
     {
+
         LoginViewModel.WhenPropertyChange(
       nameof(LoginViewModel.IsAuthenticated),
       isBG => (LoginViewModel.IsAuthenticated))

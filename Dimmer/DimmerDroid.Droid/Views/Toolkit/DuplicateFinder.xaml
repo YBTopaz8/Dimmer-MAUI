@@ -87,20 +87,21 @@
 
                         <dx:DataGridView
                             Grid.Row="1"
+                            AllowVirtualHorizontalScrolling="True"
                             AutoGenerateColumnsMode="None"
                             ItemsSource="{Binding Items}"
                             SelectionMode="None"
                             >
                             <dx:DataGridView.Columns>
-                                <dx:TemplateColumn>
+                                <dx:TemplateColumn Width="*">
                                     <dx:TemplateColumn.DisplayTemplate>
                                         <DataTemplate x:DataType="dupModels:DuplicateItemViewModel">
                                             <dx:DXStackLayout>
 
                                                 <dx:DXStackLayout Loaded="DXStackLayout_Loaded" Orientation="Horizontal">
-                                                    <Label Text="{Binding Song.DateCreated, StringFormat='Date Created {0} '}" />
+                                                    <Label Text="{Binding Item.Song.DateCreated, StringFormat='Date Created {0} '}" />
                                                 </dx:DXStackLayout>
-                                                <Label Text="{Binding Song.FilePath}" />
+                                                <Label Text="{Binding Item.Song.FilePath}" />
 
                                             </dx:DXStackLayout>
                                         </DataTemplate>
@@ -112,14 +113,14 @@
 
 
 
-                                <dx:TemplateColumn Caption="Artist - Album">
+                                <dx:TemplateColumn Width="*" Caption="Artist - Album">
 
                                     <dx:TemplateColumn.DisplayTemplate>
-                                        <DataTemplate>
+                                        <DataTemplate x:DataType="dx:CellData">
                                             <dx:DXStackLayout Loaded="DXStackLayout_Loaded_1">
 
                                                 <Label Text="{Binding Item.Song.ArtistName}" />
-                                                <Label Text="{Binding Song.AlbumName}" />
+                                                <Label Text="{Binding Item.Song.AlbumName}" />
 
 
                                             </dx:DXStackLayout>
@@ -127,12 +128,12 @@
                                     </dx:TemplateColumn.DisplayTemplate>
                                 </dx:TemplateColumn>
 
-                                <dx:TemplateColumn Caption="File Size">
+                                <dx:TemplateColumn Width="*" Caption="File Size">
                                     <dx:TemplateColumn.DisplayTemplate>
                                         <DataTemplate>
                                             <dx:DXStackLayout>
 
-                                                <Label Text="{Binding Song.FileSize}" />
+                                                <Label Text="{Binding Item.Song.FileSize}" />
 
 
                                             </dx:DXStackLayout>
@@ -140,19 +141,32 @@
                                     </dx:TemplateColumn.DisplayTemplate>
                                 </dx:TemplateColumn>
 
-                                <dx:TextColumn Caption="File Format" FieldName="FileFormat" />
+                                <dx:TextColumn
+                                    Width="*"
+                                    Caption="File Format"
+                                    FieldName="FileFormat"
+                                    />
 
 
 
 
-                                <dx:TextColumn Caption="Status" FieldName="Status" />
-                                <dx:TextColumn Caption="Reason" FieldName="{Binding Reasons}" />
+                                <dx:TextColumn
+                                    Width="*"
+                                    Caption="Status"
+                                    FieldName="Status"
+                                    />
+                                <dx:TextColumn
+                                    Width="*"
+                                    Caption="Reason"
+                                    FieldName="{Binding Item.Reasons}"
+                                    />
 
-                                <dx:TemplateColumn Caption="Action">
+                                <dx:TemplateColumn Width="*" Caption="Action">
                                     <dx:TemplateColumn.DisplayTemplate>
 
                                         <DataTemplate>
                                             <dx:ComboBoxEdit
+                                                LabelText="Pick Action"
                                                 PlaceholderText="Pick Action"
                                                 SelectedItem="{Binding Action, Converter={StaticResource EnumToStringConver}}"
                                                 SelectionChanged="ActionComboBox_SelectionChanged"

@@ -3080,8 +3080,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     private async Task<bool> PlayInternalAsync(SongModelView? songToPlay)
     {
 
-        // A. Stop current playback and clear UI if the new song is null.
-        if (songToPlay == null)
+        try
+        {
+            // A. Stop current playback and clear UI if the new song is null.
+            if (songToPlay == null)
         {
             if (_audioService.IsPlaying)
                 _audioService.Stop();
@@ -3097,8 +3099,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             return false; // Playback failed
         }
 
-        try
-        {
             // C. Stop any currently playing audio.
             if (_audioService.IsPlaying)
             {
@@ -4085,6 +4085,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             .Subscribe(line =>
             {
                 if (line is null) return;
+                if (CurrentPlayingSongView is null) return;
                 CurrentPlayingSongView.HasSyncedLyrics = true;
                 Debug.WriteLine(line.Text);
                 CurrentLine = line;
@@ -8188,10 +8189,7 @@ public void RemoveRule(VisualFilterRule rule)
     UpdateGeneratedTql();
 }
 
-    public void LoadSortTitles()
-    {
-        SortItems = new List<string>() { "Title Asc", "Title Desc", "Artist Name Asc", "Artist Name Desc", "Album Name Asc", "Album Name Desc", "Dims Count Asc", "Dims Count Desc", "Date Added Asc", "Date Added Desc", "Last Played Asc", "Last Played Desc" };
-    }
+   
     HashSet<ObjectId> hashSetOfCurrentSongsIdInOrder;
     public void SwapMainSongsToArtistSongs(ArtistModelView artist)
     {
@@ -8220,8 +8218,6 @@ public void RemoveRule(VisualFilterRule rule)
         
     }
 
-    [ObservableProperty]
-    public partial List<string> SortItems { get; set; }
 }
 
 public enum CollectionViewMode

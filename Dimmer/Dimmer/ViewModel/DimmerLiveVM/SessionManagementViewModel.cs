@@ -20,8 +20,8 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
 
     private readonly ReadOnlyObservableCollection<UserDeviceSession> _otherDevices;
     public ReadOnlyObservableCollection<UserDeviceSession> OtherDevices => _otherDevices;
-
-    public UserModelOnline? CurrentUser => LoginViewModel.CurrentUserOnline;
+    [ObservableProperty]
+    public partial UserModelOnline? CurrentUser { get; set; }
 
     public ObservableCollection<CloudBackupModel> AvailableBackups { get; } = new();
     public bool IsBusy { get; private set; }
@@ -56,7 +56,14 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
             .DisposeWith(_disposables);
 
 
-       Task.Run(()=>LoadCloudDataAsync());
+        loginViewModel.WhenPropertyChange(nameof(LoginViewModel.CurrentUserOnline), v => loginViewModel.CurrentUserOnline)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(curUser =>
+            {
+                CurrentUser = curUser;
+            })
+            ;
+       //Task.Run(()=>LoadCloudDataAsync());
 
     }
     private async Task LoadCloudDataAsync()

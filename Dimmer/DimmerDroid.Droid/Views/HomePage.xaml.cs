@@ -32,7 +32,7 @@ public partial class HomePage : ContentPage
                 });
         MyLastFMViewModel.LoadBaseViewModel(viewModelAnd);
         _ = Task.Run(() => loginVM.InitializeAsync());
-        MyViewModel.LoadSortTitles();
+     
 
     }
     
@@ -432,10 +432,7 @@ public partial class HomePage : ContentPage
 
     //}
 
-    private async void ToggleFavBtn_Tap(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
-    {
-        await MyViewModel.AddFavoriteRatingToSongAsync(MyViewModel.SelectedSong!);
-    }
+    
 
 
     private async void DeleteSongBtn_Tap(object sender, HandledEventArgs e)
@@ -655,10 +652,6 @@ public partial class HomePage : ContentPage
 
     }
 
-    private void SearchText_Loaded(object sender, EventArgs e)
-    {
-        MyViewModel.SubscribeToPlayCount(SearchText);
-    }
 
     private void DXButton_Clicked(object sender, EventArgs e)
     {
@@ -1095,15 +1088,27 @@ public partial class HomePage : ContentPage
     private async void GoToSelectedSongAlbumPage_Clicked(object sender, EventArgs e)
     {
         MyViewModel.SetSelectedAlbum(MyViewModel.SelectedSong!.Album);
+        await SingleSongBtmSheet.CloseAsync();
         await Shell.Current.GoToAsync(nameof(AlbumPage));
     }
 
     private async void GoToSelectedSongOverViewPage_Clicked(object sender, EventArgs e)
     {
-        await Shell.Current.GoToAsync(nameof(DetailsOverview));
+        await SingleSongBtmSheet.CloseAsync();
+                await Shell.Current.GoToAsync(nameof(DetailsOverview));
     }
 
+    
 
+    private async void ToggleFavBtn_Tap(object sender, HandledEventArgs e)
+    {
+        await MyViewModel.AddFavoriteRatingToSongAsync(MyViewModel.SelectedSong!);
+    }
+
+    private async void ToggleFavBtn_LongPress(object sender, HandledEventArgs e)
+    {
+        await MyViewModel.RemoveSongFromFavoriteAsync(MyViewModel.SelectedSong!);
+    }
 
 
 

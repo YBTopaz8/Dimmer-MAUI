@@ -1,4 +1,6 @@
 using AndroidX.Lifecycle;
+using DevExpress.Maui.DataGrid;
+using Dimmer.Data.ModelView.LibSanityModels;
 using System.Diagnostics;
 using System.Reactive.Disposables;
 
@@ -52,12 +54,17 @@ public partial class DuplicateFinder : ContentPage
 
     private void DXStackLayout_Loaded(object sender, EventArgs e)
     {
-		Debugger.Break();
+		//Debugger.Break();
     }
 
     private void DXStackLayout_Loaded_1(object sender, EventArgs e)
     {
-        Debugger.Break();
+        var send = (DXStackLayout)sender;
+        var cellItemData = send.BindingContext as CellData;
+        if (cellItemData != null)
+        {
+            var item = cellItemData.Item as DuplicateItemViewModel;
+        }
     }
 
     private void ActionComboBox_SelectionChanged(object sender, EventArgs e)

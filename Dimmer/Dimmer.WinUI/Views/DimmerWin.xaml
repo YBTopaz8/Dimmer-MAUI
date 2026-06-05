@@ -21,288 +21,77 @@
 
 
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
 
-        <Grid
-            Grid.Row="0"
-            Padding="10"
-            BorderThickness="1"
-            >
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <StackPanel
-                Grid.Column="0"
-                Orientation="Horizontal"
-                Spacing="5"
+
+
+
+    <NavigationView x:Name="nvSample">
+        <NavigationView.MenuItems>
+            <NavigationViewItem
+                x:Name="SongsBtn"
+                Content="Songs"
+                Tag="SongsTag"
+                Tapped="SongsBtn_Tapped"
                 >
-                <Grid>
-                    <TextBlock
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Top"
-                        Rotation="45"
-                        Text="❤️"
-                        Visibility="{x:Bind MyViewModel.CurrentPlayingSongView.IsFavorite, Converter={StaticResource BoolToVisibilityConverter}}"
-                        />
-                </Grid>
-                <Image
-                    x:Name="CurrentSongImg"
-                    Width="150"
-                    Height="150"
-                    VerticalAlignment="Top"
-                    IsTapEnabled="True"
-                    Loaded="CurrentSongImg_Loaded"
-                    Tapped="CurrentSongImg_Tapped"
-                    />
-                <StackPanel x:Name="PlaybackSection">
-                    <Button
-                        Background="Transparent"
-                        BorderThickness="0"
-                        Content="{x:Bind MyViewModel.CurrentPlayingSongView.Title, Mode=OneWay}"
-                        />
-                    <Button
-                        x:Name="ArtistsBtn"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        Click="ArtistsBtn_Click"
-                        Content="{x:Bind MyViewModel.CurrentPlayingSongView.OtherArtistsName, Mode=OneWay}"
-                        Loaded="ArtistsBtn_Loaded"
-                        />
-                    <StackPanel Orientation="Horizontal" Spacing="10">
+                <NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xE8D6;" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItem
+                x:Name="ArtistsBtn"
+                Content="Artists"
+                Tag="ArtistsTag"
+                Tapped="ArtistsBtn_Tapped"
+                >
 
-                        <Button x:Name="PreviousBtn" Command="{x:Bind MyViewModel.PreviousTrackCommand}">
-                            <Button.CommandParameter>
-                                <x:Boolean>False</x:Boolean>
-                            </Button.CommandParameter>
-                            <Button.Content>
-                                <FontIcon Glyph="&#xE892;" />
-                            </Button.Content>
-                        </Button>
-                        <Button x:Name="PlayPauseBtn" Command="{x:Bind MyViewModel.PlayPauseToggleCommand}">
-
-
-                            <Button.Content>
-                                <StackPanel>
-                                    <FontIcon Glyph="&#xE769;" Visibility="{x:Bind MyViewModel.IsDimmerPlayingVisibility, Mode=OneWay}" />
-
-                                    <FontIcon Glyph="&#xF5B0;" Visibility="{x:Bind MyViewModel.IsDimmerPlayingVisibilityInv, Mode=OneWay}" />
-                                </StackPanel>
-                            </Button.Content>
-                        </Button>
-                        <Button x:Name="NextTrackBtn" Command="{x:Bind MyViewModel.NextTrackCommand}">
-                            <Button.CommandParameter>
-                                <x:Boolean>True</x:Boolean>
-                            </Button.CommandParameter>
-                            <Button.Content>
-                                <FontIcon Glyph="&#xE893;" />
-                            </Button.Content>
-                        </Button>
-
-                    </StackPanel>
-
-                    <Button
-                        Background="Transparent"
-                        BorderThickness="0"
-                        Content="{x:Bind MyViewModel.CurrentPlayingSongView.AlbumName, Mode=OneWay}"
-                        />
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <TextBlock Text="{x:Bind MyViewModel.CurrentPlayingSongView.GenreName, Mode=OneWay}" />
-                        <TextBlock Text="{x:Bind MyViewModel.CurrentPlayingSongView.ReleaseYear, Mode=OneWay}" />
-
-                    </StackPanel>
-                </StackPanel>
-            </StackPanel>
-            <StackPanel>
-
-                <SelectorBar
-                    x:Name="DimmerAppSelectorBar"
-                    Grid.Column="1"
-                    HorizontalAlignment="Right"
-                    SelectionChanged="DimmerAppSelectorBar_SelectionChanged"
-                    >
-                    <SelectorBarItem x:Name="SelectorBarItemHome" Text="Home">
-                        <SelectorBarItem.Icon>
-                            <FontIcon Glyph="&#xE90B;" />
-                        </SelectorBarItem.Icon>
-                    </SelectorBarItem>
-                    <SelectorBarItem x:Name="SelectorBarItemArtists" Text="Artists">
-                        <SelectorBarItem.Icon>
-                            <FontIcon Glyph="&#xE720;" />
-                        </SelectorBarItem.Icon>
-                    </SelectorBarItem>
-                    <SelectorBarItem x:Name="SelectorBarItemAlbums" Text="Albums">
-                        <SelectorBarItem.Icon>
-                            <FontIcon Glyph="&#xE93C;" />
-                        </SelectorBarItem.Icon>
-                    </SelectorBarItem>
-                    <SelectorBarItem x:Name="SelectorBarItemLastFM" Text="Last FM">
-                        <SelectorBarItem.Icon>
-                            <FontIcon Glyph="&#xE93C;" />
-                        </SelectorBarItem.Icon>
-                    </SelectorBarItem>
-                    <SelectorBarItem x:Name="SelectorBarItemToolBox" Text="Toolkit">
-                        <SelectorBarItem.Icon>
-                            <FontIcon Glyph="&#xEC7A;" />
-                        </SelectorBarItem.Icon>
-                    </SelectorBarItem>
-                    <SelectorBarItem x:Name="SelectorBarItemSettings" Text="Settings">
-                        <SelectorBarItem.Icon>
-                            <FontIcon Glyph="&#xE713;" />
-                        </SelectorBarItem.Icon>
-                    </SelectorBarItem>
-                </SelectorBar>
-                <Grid Grid.Row="0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-
-                    <StackPanel
-                        BorderThickness="1"
-                        CornerRadius="00"
-                        Spacing="5"
-                        >
+                <NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xE720;" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItem
+                x:Name="AlbumsBtn"
+                Content="Albums"
+                Tag="AlbumsTag"
+                Tapped="AlbumsBtn_Tapped"
+                >
+                <NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xE93C;" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
 
 
 
+            <NavigationViewItem
+                x:Name="DimsStatsBtn"
+                Content="Dimner Stats"
+                Tag="DimsStats"
+                Tapped="DimsStatsBtn_Tapped"
+                >
+                <NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xEB05;" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
 
 
-                        <StackPanel
-                            HorizontalAlignment="Left"
-                            Orientation="Horizontal"
-                            Spacing="10"
-                            >
-                            <Button
-                                x:Name="ViewQueueBtn"
-                                Click="ViewQueue_Click"
-                                Content="View Queue"
-                                />
+        </NavigationView.MenuItems>
 
-                            <Button Command="{x:Bind MyViewModel.ScrollToRequestedSongCommand}">
-
-                                <FontIcon Glyph="&#xE890;" />
-                            </Button>
-
-                            <Button
-                                x:Name="ShowFavSongs"
-                                Click="ShowFavSongs_Click"
-                                PointerReleased="MiddlePointer_PointerReleased"
-                                RightTapped="ShowFavSongs_RightTapped"
-                                ToolTipService.ToolTip="Show Favorite Songs. TQL command: My Fav"
-                                >
-                                <FontIcon Glyph="&#xF6B8;" />
-                            </Button>
-
-                            <Button
-                                x:Name="ShowSongWithLyrics"
-                                Click="ShowSongWithLyrics_Click"
-                                PointerReleased="MiddlePointer_PointerReleased"
-                                RightTapped="ShowSongWithLyrics_RightTapped"
-                                ToolTipService.ToolTip="Show Songs with Lyrics. TQL command: Has Lyrics"
-                                >
-                                <FontIcon Glyph="&#xE8BD;" />
-                            </Button>
-
-                            <Button
-                                x:Name="ShuffleSongs"
-                                Click="ShuffleSongs_Click"
-                                Content="Shuffle"
-                                PointerReleased="MiddlePointer_PointerReleased"
-                                />
-
-                            <SplitButton
-                                x:Name="SortByWithTQL"
-                                Click="SortByWithTQL_Click"
-                                Content="Sort By"
-                                IsEnabled="True"
-                                Visibility="Visible"
-                                >
-                                <SplitButton.Flyout>
-                                    <MenuFlyout>
-                                        <RadioMenuFlyoutItem
-                                            Click="SortClick"
-                                            GroupName="SortGroup"
-                                            Tag="title"
-                                            Text="Title"
-                                            />
-                                        <RadioMenuFlyoutItem
-                                            Click="SortClick"
-                                            GroupName="SortGroup"
-                                            Tag="artist"
-                                            Text="Artist"
-                                            />
-                                        <RadioMenuFlyoutItem
-                                            Click="SortClick"
-                                            GroupName="SortGroup"
-                                            Tag="album"
-                                            Text="Album"
-                                            />
-                                        <RadioMenuFlyoutItem
-                                            Click="SortClick"
-                                            GroupName="SortGroup"
-                                            Tag="dims"
-                                            Text="Play Count"
-                                            />
-                                        <RadioMenuFlyoutItem
-                                            Click="SortClick"
-                                            GroupName="SortGroup"
-                                            Tag="added"
-                                            Text="Added"
-                                            Visibility="Collapsed"
-                                            />
-
-                                        <!--<MenuFlyoutSeparator />-->
-                                        <MenuFlyoutItem
-                                            Click="OpenHelp"
-                                            Text="More fields..."
-                                            Visibility="Collapsed"
-                                            />
-                                    </MenuFlyout>
-                                </SplitButton.Flyout>
-                            </SplitButton>
-                        </StackPanel>
-
-                        <StackPanel
-                            x:Name="SearchTextBoxPanel"
-                            HorizontalAlignment="Left"
-                            Orientation="Vertical"
-                            Spacing="10"
-                            >
-
-                            <TextBox
-                                x:Name="SearchTextBox"
-                                Width="400"
-                                PlaceholderText="Search With TQL..."
-                                TextChanged="SearchAutoSuggestBox_TextChanged"
-                                />
-
-
-                            <TextBlock VerticalAlignment="Center" Text="{x:Bind MyViewModel.SearchResults.Count, Mode=OneWay}" />
-
-                        </StackPanel>
-
-                        <TextBlock Text="{x:Bind MyViewModel.CurrentTqlQueryUI, Mode=OneWay}" />
-
-
-                    </StackPanel>
-
-                </Grid>
-
-            </StackPanel>
-        </Grid>
-
-
-        <Grid
-            x:Name="MainGrid"
-            Grid.Row="1"
-            Background="Transparent"
-            KeyDown="MainGrid_KeyDown"
-            >
+        <NavigationView.PaneFooter>
+            <NavigationViewItem
+                x:Name="SettingsBtn"
+                Content="Settings"
+                Tag="SettingsTag"
+                Tapped="SettingsBtn_Tapped"
+                >
+                <NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xE713;" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+        </NavigationView.PaneFooter>
+        <Grid x:Name="MainGrid" Background="Transparent">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="auto" />
+            </Grid.RowDefinitions>
 
 
 
@@ -310,17 +99,27 @@
                 x:Name="ContentFrame"
                 x:FieldModifier="Public"
                 Navigated="ContentFrame_Navigated"
-                />
+                Grid.Row="0"/>
 
-            <localViews:SmokeViewQueueGrid
-                x:Name="SmokeGrid"
-                Grid.RowSpan="3"
-                DismissRequested="SmokeGrid_DismissRequested"
-                Loaded="SmokeGrid_Loaded"
-                Visibility="Collapsed"
-                />
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="150"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Grid>
+
+                    <Image x:Name="CurrentPlayingSongImage">
+                        <Image.Source>
+                            <BitmapImage UriSource="{x:Bind MyViewModel.SelectedSong.CoverImagePath}"/>
+                        </Image.Source>
+                    </Image>
+                </Grid>
+            </Grid>
+
 
         </Grid>
-    </Grid>
 
+    </NavigationView>
 </Window>

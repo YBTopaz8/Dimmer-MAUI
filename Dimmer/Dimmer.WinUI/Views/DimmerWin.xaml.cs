@@ -79,14 +79,14 @@ public sealed partial class DimmerWin : Window
     public BaseViewModelWin MyViewModel { get; internal set; }
     private void DimmerWindowClosed(object sender, WindowEventArgs args)
     {
-        if (SortByWithTQL.Flyout is MenuFlyout fly)
-        {
-            foreach (var sub in fly.Items.OfType<MenuFlyoutSubItem>())
-            {
-                foreach (var item in sub.Items.OfType<MenuFlyoutItem>())
-                    item.RemoveClick();
-            }
-        }
+        //if (SortByWithTQL.Flyout is MenuFlyout fly)
+        //{
+        //    foreach (var sub in fly.Items.OfType<MenuFlyoutSubItem>())
+        //    {
+        //        foreach (var item in sub.Items.OfType<MenuFlyoutItem>())
+        //            item.RemoveClick();
+        //    }
+        //}
         MyViewModel.MainWindow = null;
         WinUIWindowsMgr?.UntrackWindow(this);
         this.Closed -= DimmerWindowClosed;
@@ -160,27 +160,27 @@ public sealed partial class DimmerWin : Window
     }
 
 
-    private void SmokeGrid_Loaded(object sender, RoutedEventArgs e)
-    {
-        MyViewModel.NowPlayingView = SmokeGrid;
-        SmokeGrid.SetBaseViewModelWin(MyViewModel);
+    //private void SmokeGrid_Loaded(object sender, RoutedEventArgs e)
+    //{
+    //    MyViewModel.NowPlayingView = SmokeGrid;
+    //    SmokeGrid.SetBaseViewModelWin(MyViewModel);
 
-        AnimationHelper.TryStart(
-            SmokeGrid, null,
-            AnimationHelper.Key_ToViewQueue
-            );
+    //    AnimationHelper.TryStart(
+    //        SmokeGrid, null,
+    //        AnimationHelper.Key_ToViewQueue
+    //        );
 
-    }
-    private void SmokeGrid_DismissRequested(object sender, EventArgs e)
-    {
+    //}
+    //private void SmokeGrid_DismissRequested(object sender, EventArgs e)
+    //{
 
-        AnimationHelper.Prepare(AnimationHelper.Key_ToViewQueue, SmokeGrid);
+    //    AnimationHelper.Prepare(AnimationHelper.Key_ToViewQueue, SmokeGrid);
 
-        MyViewModel.ProcessNowPlayingQueueDismiss();
+    //    MyViewModel.ProcessNowPlayingQueueDismiss();
 
-        //    // 2. Hmyvide the Detail View
-        SmokeGrid.Visibility = Visibility.Collapsed;
-    }
+    //    //    // 2. Hmyvide the Detail View
+    //    SmokeGrid.Visibility = Visibility.Collapsed;
+    //}
 
 
 
@@ -365,30 +365,30 @@ public sealed partial class DimmerWin : Window
         var navPageType = e.SourcePageType;
         if(navPageType is null) return;
 
-        if(navPageType == typeof(AllSongsListPage))
-        {
-            DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[0];
-        }
-        else if (navPageType == typeof(AllArtistsPage))
-        {
-            DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[1];
-        }
-        else if (navPageType == typeof(AllAlbumsPage))
-        {
-            DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[2];
-        }
-        else if (navPageType == typeof(LastFmPage))
-        {
-            DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[3];
-        }
-        else if (navPageType == typeof(DimmerToolKit))
-        {
-            DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[4];
-        }
-        else if (navPageType == typeof(SettingsPage))
-        {
-            DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[5];
-        }
+        //if(navPageType == typeof(AllSongsListPage))
+        //{
+        //    DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[0];
+        //}
+        //else if (navPageType == typeof(AllArtistsPage))
+        //{
+        //    DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[1];
+        //}
+        //else if (navPageType == typeof(AllAlbumsPage))
+        //{
+        //    DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[2];
+        //}
+        //else if (navPageType == typeof(LastFmPage))
+        //{
+        //    DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[3];
+        //}
+        //else if (navPageType == typeof(DimmerToolKit))
+        //{
+        //    DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[4];
+        //}
+        //else if (navPageType == typeof(SettingsPage))
+        //{
+        //    DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[5];
+        //}
     }
 
     private void CurrentSongImg_Tapped(object sender, TappedRoutedEventArgs e)
@@ -398,60 +398,60 @@ public sealed partial class DimmerWin : Window
 
     private void CurrentSongImg_Loaded(object sender, RoutedEventArgs e)
     {
-        MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentPlayingSongView), v => MyViewModel.CurrentPlayingSongView)
-            .ObserveOn(RxSchedulers.UI)
-            .Subscribe(curSong =>
-            {
-                if (!string.IsNullOrEmpty(curSong.CoverImagePath))
-                {
-                    var imgSource = new BitmapImage(new Uri(curSong.CoverImagePath));
-                    CurrentSongImg.Source=imgSource;
-                    CurrentSongImg.Visibility = Visibility.Visible;
-                }
-                else
-                {
-                    CurrentSongImg.Visibility = Visibility.Collapsed;
-                    CurrentSongImg.Source = null;
-                }
-                if (string.IsNullOrEmpty(curSong.TitleDurationKey))
-                {
-                    PlaybackSection.Visibility = Visibility.Collapsed;
-                }
-                else
-                {
-                    PlaybackSection.Visibility =Visibility.Visible;
-                }
-            });
+        //MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentPlayingSongView), v => MyViewModel.CurrentPlayingSongView)
+        //    .ObserveOn(RxSchedulers.UI)
+        //    .Subscribe(curSong =>
+        //    {
+        //        if (!string.IsNullOrEmpty(curSong.CoverImagePath))
+        //        {
+        //            var imgSource = new BitmapImage(new Uri(curSong.CoverImagePath));
+        //            CurrentSongImg.Source=imgSource;
+        //            CurrentSongImg.Visibility = Visibility.Visible;
+        //        }
+        //        else
+        //        {
+        //            CurrentSongImg.Visibility = Visibility.Collapsed;
+        //            CurrentSongImg.Source = null;
+        //        }
+        //        if (string.IsNullOrEmpty(curSong.TitleDurationKey))
+        //        {
+        //            PlaybackSection.Visibility = Visibility.Collapsed;
+        //        }
+        //        else
+        //        {
+        //            PlaybackSection.Visibility =Visibility.Visible;
+        //        }
+        //    });
     }
 
     private void ArtistsBtn_Loaded(object sender, RoutedEventArgs e)
     {
-        if (string.IsNullOrEmpty(MyViewModel.CurrentPlayingSongView.TitleDurationKey)) return;
+        //if (string.IsNullOrEmpty(MyViewModel.CurrentPlayingSongView.TitleDurationKey)) return;
 
-        MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentPlayingSongView), v => MyViewModel.CurrentPlayingSongView)
-            .ObserveOn(RxSchedulers.UI)
-            .Subscribe(curSong =>
-            {
+        //MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentPlayingSongView), v => MyViewModel.CurrentPlayingSongView)
+        //    .ObserveOn(RxSchedulers.UI)
+        //    .Subscribe(curSong =>
+        //    {
 
-                if (string.IsNullOrEmpty(MyViewModel.CurrentPlayingSongView.TitleDurationKey)) return;
-                if (MyViewModel.CurrentPlayingSongView.ArtistToSong.Count > 1)
-                {
-                    MenuFlyout mFlyout = new MenuFlyout();
-                    foreach (var art in MyViewModel.CurrentPlayingSongView.ArtistToSong)
-                    {
-                        if (art is null) continue;
-                        MenuFlyoutItem newItem = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem()
-                            ;
-                        newItem.Text = art.Name;
-                        newItem.Click += NewItem_Click;
-                        newItem.CommandParameter = art;
-                        mFlyout.Items.Add(newItem);
-                    }
+        //        if (string.IsNullOrEmpty(MyViewModel.CurrentPlayingSongView.TitleDurationKey)) return;
+        //        if (MyViewModel.CurrentPlayingSongView.ArtistToSong.Count > 1)
+        //        {
+        //            MenuFlyout mFlyout = new MenuFlyout();
+        //            foreach (var art in MyViewModel.CurrentPlayingSongView.ArtistToSong)
+        //            {
+        //                if (art is null) continue;
+        //                MenuFlyoutItem newItem = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem()
+        //                    ;
+        //                newItem.Text = art.Name;
+        //                newItem.Click += NewItem_Click;
+        //                newItem.CommandParameter = art;
+        //                mFlyout.Items.Add(newItem);
+        //            }
 
-                    ArtistsBtn.ContextFlyout = mFlyout;
+        //            ArtistsBtn.ContextFlyout = mFlyout;
 
-                }
-            });
+        //        }
+        //    });
       
     }
 
@@ -480,15 +480,15 @@ public sealed partial class DimmerWin : Window
     private void ShowFavSongs_Click(object sender, RoutedEventArgs e)
     {
 
-        var currText = SearchTextBox.Text;
-        if (string.IsNullOrEmpty(currText))
-        {
-            SearchTextBox.Text = "my fav";
-        }
-        else
-        {
-            SearchTextBox.Text += " add my fav";
-        }
+        //var currText = SearchTextBox.Text;
+        //if (string.IsNullOrEmpty(currText))
+        //{
+        //    SearchTextBox.Text = "my fav";
+        //}
+        //else
+        //{
+        //    SearchTextBox.Text += " add my fav";
+        //}
 
     }
     private void MiddlePointer_PointerReleased(object sender, PointerRoutedEventArgs e)
@@ -595,41 +595,66 @@ public sealed partial class DimmerWin : Window
     private void ShowSongWithLyrics_Click(object sender, RoutedEventArgs e)
     {
 
-        var currentTQL = " has lyrics";
-        var currText = SearchTextBox.Text;
-        if (string.IsNullOrEmpty(currText))
-        {
-            SearchTextBox.Text = currentTQL.TrimStart();
-        }
-        else
-        {
-            SearchTextBox.Text += currentTQL;
-        }
+        //var currentTQL = " has lyrics";
+        //var currText = SearchTextBox.Text;
+        //if (string.IsNullOrEmpty(currText))
+        //{
+        //    SearchTextBox.Text = currentTQL.TrimStart();
+        //}
+        //else
+        //{
+        //    SearchTextBox.Text += currentTQL;
+        //}
     }
     private void SearchAutoSuggestBox_TextChanged(object sender, Microsoft.UI.Xaml.Controls.TextChangedEventArgs e)
     {
-        MyViewModel.SearchToTQL(SearchTextBox.Text);
+        //MyViewModel.SearchToTQL(SearchTextBox.Text);
 
         
     }
 
     private void ShuffleSongs_Click(object sender, RoutedEventArgs e)
     {
-        var currText = SearchTextBox.Text;
-        if (string.IsNullOrEmpty(currText))
-        {
-            SearchTextBox.Text = "random";
-        }
+        //var currText = SearchTextBox.Text;
+        //if (string.IsNullOrEmpty(currText))
+        //{
+        //    SearchTextBox.Text = "random";
+        //}
     }
     private void SortByWithTQL_Click(SplitButton sender, SplitButtonClickEventArgs args)
     {
         
-        SortByWithTQL.Flyout.ShowAt(sender);
+        //SortByWithTQL.Flyout.ShowAt(sender);
     }
 
     private async void OpenHelp(object sender, RoutedEventArgs e)
     {
         var dlg = new SearchHelpDialog();
         await dlg.ShowAsync();
+    }
+
+    private void ArtistsBtn_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+
+    }
+
+    private void SongsBtn_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+
+    }
+
+    private void AlbumsBtn_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+
+    }
+
+    private void DimsStatsBtn_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+
+    }
+
+    private void SettingsBtn_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+
     }
 }

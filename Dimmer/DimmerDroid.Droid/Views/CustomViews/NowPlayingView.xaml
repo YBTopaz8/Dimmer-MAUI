@@ -25,28 +25,151 @@
             x:Name="MainBgImg"
             Grid.RowSpan="2"
             Aspect="AspectFill"
-            Opacity="0.6"
+            Opacity="1"
             Source="{Binding CurrentPlayingSongView.CoverImagePath}"
             />
 
-
+        <dx:DXBorder
+            Grid.RowSpan="2"
+            BackgroundColor="Black"
+            Opacity="0.5"
+            />
 
         <dx:DXExpander x:Name="SyncLyricsView" IsExpanded="False">
-            <dx:DXCollectionView x:Name="AllLyricsCV" SelectionChanged="AllLyricsCV_SelectionChanged">
-                <dx:DXCollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="models:LyricPhraseModelView">
-                        <Label FontSize="19" Text="{Binding Text}" />
-                    </DataTemplate>
-                </dx:DXCollectionView.ItemTemplate>
+            <Grid RowDefinitions="auto,*">
+                <dx:DXStackLayout Grid.Row="0">
 
-                <dx:DXCollectionView.SelectedItemTemplate>
-                    <DataTemplate x:DataType="models:LyricPhraseModelView">
-                        <dx:DXBorder BackgroundColor="{Binding HighlightColor}">
-                            <Label FontSize="21" Text="{Binding Text}" />
-                        </dx:DXBorder>
-                    </DataTemplate>
-                </dx:DXCollectionView.SelectedItemTemplate>
-            </dx:DXCollectionView>
+                    <dx:DXButton
+                        x:Name="NowPlayingHighlightBtn"
+                        Padding="5"
+                        HorizontalContentAlignment="Fill"
+                        BackgroundColor="Transparent"
+                        CornerRadius="10"
+                        HeightRequest="100"
+                        IsVisible="True"
+                        PressedBackgroundColor="{Binding CurrentPlaySongDominantColor}"
+                        TapPressed="NowPlayingHighlightBtn_TapPressed"
+                        >
+
+                        <Grid
+                            Padding="0"
+                            BackgroundColor="Transparent"
+                            ColumnDefinitions="auto, *"
+                            RowDefinitions="90"
+                            >
+                            <dx:DXBorder
+                                Grid.ColumnSpan="2"
+                                BackgroundColor="{Binding CurrentPlaySongDominantColor}"
+                                CornerRadius="10"
+                                Opacity="0.8"
+                                />
+                            <dx:DXImage
+                                Grid.Column="0"
+                                Margin="5,0"
+                                Aspect="Center"
+                                MaximumHeightRequest="50"
+                                MaximumWidthRequest="50"
+                                Source="{Binding CurrentPlayingSongView.CoverImagePath}"
+                                VerticalOptions="Start"
+                                />
+
+                            <dx:DXStackLayout
+                                Grid.Column="1"
+                                Margin="0,5"
+                                BackgroundColor="Transparent"
+                                VerticalOptions="Start"
+                                >
+                                <dx:DXStackLayout.Resources>
+                                    <ResourceDictionary>
+                                        <Style TargetType="Label">
+                                            <Setter Property="TextColor" Value="{AppThemeBinding Light=White}" />
+                                        </Style>
+                                    </ResourceDictionary>
+                                </dx:DXStackLayout.Resources>
+                                <Label
+                                    FontAttributes="Bold"
+                                    FontSize="19"
+                                    Text="{Binding CurrentPlayingSongView.Title}"
+                                    />
+                                <Grid ColumnDefinitions="*,*" ColumnSpacing="5">
+                                    <Label
+                                        Grid.Column="0"
+                                        FontSize="16"
+                                        LineBreakMode="WordWrap"
+                                        Text="{Binding CurrentPlayingSongView.OtherArtistsName}"
+                                        />
+
+                                    <Label
+                                        Grid.Column="1"
+                                        FontSize="14"
+                                        LineBreakMode="WordWrap"
+                                        Text="{Binding CurrentPlayingSongView.AlbumName}"
+                                        />
+
+                                </Grid>
+                            </dx:DXStackLayout>
+
+
+
+                        </Grid>
+                    </dx:DXButton>
+                </dx:DXStackLayout>
+                <dx:DXCollectionView
+                    x:Name="AllLyricsCV"
+                    Grid.Row="1"
+                    Margin="5"
+                    ItemsSource="{Binding AllLines}"
+                    SelectedItem="{Binding CurrentLine}"
+                    SelectionChanged="AllLyricsCV_SelectionChanged"
+                    SelectionMode="Single"
+                    Tap="AllLyricsCV_Tap"
+                    >
+                    <dx:DXCollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:LyricPhraseModelView">
+                            <Label
+                                FontSize="19"
+                                Text="{Binding Text}"
+                                TextColor="{AppThemeBinding Dark=White,
+                                                            Light=White}"
+                                />
+                        </DataTemplate>
+                    </dx:DXCollectionView.ItemTemplate>
+
+                    <dx:DXCollectionView.SelectedItemTemplate>
+                        <DataTemplate x:DataType="models:LyricPhraseModelView">
+
+                            <dx:DXButton
+                                x:Name="CurrentLineBtn"
+                                Padding="2"
+                                HorizontalContentAlignment="Fill"
+                                BackgroundColor="Transparent"
+                                CornerRadius="10"
+                                IsVisible="True"
+                                TapPressed="NowPlayingHighlightBtn_TapPressed"
+                                >
+
+                                <Grid BackgroundColor="Transparent" ColumnDefinitions="*">
+                                    <dx:DXBorder
+                                        Margin="1"
+                                        BackgroundColor="Black"
+                                        CornerRadius="0"
+                                        Opacity="0.8"
+                                        />
+
+                                    <Label
+                                        Margin="1"
+                                        FontSize="28"
+                                        Text="{Binding Text}"
+                                        TextColor="DarkSlateBlue"
+                                        />
+
+                                </Grid>
+                            </dx:DXButton>
+
+                        </DataTemplate>
+                    </dx:DXCollectionView.SelectedItemTemplate>
+                </dx:DXCollectionView>
+            </Grid>
         </dx:DXExpander>
 
         <dx:DXExpander x:Name="NowPlayingViewExpander" VerticalOptions="End">
@@ -62,17 +185,21 @@
                 <dx:DXButton
                     x:Name="CurrentLyricLineBtn"
                     Grid.Row="0"
-                    Padding="0"
+                    Padding="5"
                     BackgroundColor="Transparent"
                     Clicked="CurrentLyricLine_Clicked"
+                    CornerRadius="0"
                     PressedBackgroundColor="{Binding CurrentPlaySongDominantColor}"
                     >
 
 
                     <Label
                         x:Name="CurrentLyricLine"
+                        Margin="5"
+                        BackgroundColor="Red"
                         FontAttributes="Bold"
                         FontSize="28"
+                        HeightRequest="400"
                         HorizontalOptions="Center"
                         HorizontalTextAlignment="Center"
                         IsVisible="{Binding CurrentPlayingSongView.HasSyncedLyrics}"

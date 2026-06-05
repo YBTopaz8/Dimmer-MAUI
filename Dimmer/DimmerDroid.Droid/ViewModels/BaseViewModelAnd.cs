@@ -486,35 +486,6 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         Connectivity.ConnectivityChanged += Connectivity_ConnectivityChanged;
     }
 
-    public void SubscribeToPlayCount(TextEdit searchBarTextEdit)
-    {
-        SearchBarTextEdit = searchBarTextEdit;
-        var newCount = SearchResults.Count;
-        if (!IsSearchResultEmpty)
-        {
-
-
-            string fullStr = newCount.ToString();
-            SearchBarTextEdit.Suffix = fullStr;
-            SearchBarTextEdit.Prefix = string.Empty;
-
-
-        }
-        else
-        {
-            //SearchBarTextEdit.Prefix = "🔍";
-            SearchBarTextEdit.StartIcon = new FontImageSource
-            {
-                FontFamily = "Segoe Fluent Icons",
-                Glyph = "\uE721",
-                Size = 16
-            };
-            SearchBarTextEdit.IsStartIconVisible = true;
-            SearchBarTextEdit.Suffix = string.Empty;
-
-
-        }
-    }
     private DXCollectionView _collectionView;
 
     
