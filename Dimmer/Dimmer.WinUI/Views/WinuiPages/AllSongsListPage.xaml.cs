@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 
 using CommunityToolkit.WinUI;
-
+using DevWinUI;
 using Dimmer.Utilities.Extensions;
 using Dimmer.WinUI.Views.CustomViews.WinuiViews;
 using DynamicData.Binding;
@@ -11,6 +13,7 @@ using Microsoft.Graphics.Canvas.Effects;
 using Microsoft.UI.Xaml.Controls.Primitives;
 
 using Windows.Foundation.Metadata;
+using Windows.UI;
 using Windows.UI.Text;
 
 using static Dimmer.DimmerSearch.TQlStaticMethods;
@@ -45,6 +48,7 @@ public sealed partial class AllSongsListPage : Page
         _compositor = ElementCompositionPreview.GetElementVisual(this).Compositor;
 
         _userPrefAnim = SongTransitionAnimation.Spring;
+        compositeDisposable = new();
     }
     BaseViewModelWin MyViewModel { get; set; }
 
@@ -370,7 +374,23 @@ public sealed partial class AllSongsListPage : Page
     {
 
         MyViewModel.MySongsTableView = MySongsTableView;
-
+        if (LoadingIndicator.IsLoaded)
+        {
+            MyViewModel.WhenPropertyChange(nameof(MyViewModel.IsTqlBusy), c => MyViewModel.IsTqlBusy)
+               .ObserveOn(RxSchedulers.UI)
+               .Subscribe(boolVal =>
+               {
+                   if (boolVal)
+                   {
+                       LoadingIndicator.Visibility = Visibility.Visible;
+                   }
+                   else
+                   {
+                       LoadingIndicator.Visibility = Visibility.Collapsed;
+                   }
+               })
+               .DisposeWith(compositeDisposable);
+        }
         if (_storedSong != null)
         {
 
@@ -391,7 +411,7 @@ public sealed partial class AllSongsListPage : Page
             //        }
         }
     }
-
+    CompositeDisposable compositeDisposable;
     private void MySongsTableView_ExportSelectedContent(object sender, TableViewExportContentEventArgs e)
     {
 
@@ -489,7 +509,7 @@ public sealed partial class AllSongsListPage : Page
             // Now that the ViewModel is set, you can set the DataContext.
             this.DataContext = MyViewModel;
 
-            await Task.Delay(2000);
+            await Task.Delay(500);
             MyViewModel.StartTQLPipeLine();
         }
 
@@ -634,7 +654,7 @@ public sealed partial class AllSongsListPage : Page
 
     private void HideBtmPart_Click(object sender, RoutedEventArgs e)
     {
-        BtmLogPanel.Visibility = Visibility.Collapsed;
+
     }
 
  
@@ -659,7 +679,18 @@ public sealed partial class AllSongsListPage : Page
     private void ViewOtherBtn_Click(object sender, RoutedEventArgs e)
     {
 
+        
+        MenuFlyoutSecondaryItems songMenuFlyout = new();
 
+        FontIcon ViewSongAppBarBtnIcon = new FontIcon();
+        ViewSongAppBarBtnIcon.Glyph = "\uE890";
+        AppBarButton ViewSongAppBarBtn = new();
+        ViewSongAppBarBtn.Icon = ViewSongAppBarBtnIcon;
+        ViewSongAppBarBtn.Label = "View";
+
+        songMenuFlyout.Items.Add(ViewSongAppBarBtn);
+
+        
 
         var selectedSong = (SongModelView)((FrameworkElement)e.OriginalSource).DataContext;
         
@@ -747,6 +778,8 @@ public sealed partial class AllSongsListPage : Page
         {
             var toArtistMFSI = new MenuFlyoutSubItem()
             ;
+            
+            toArtistMFSI.Text = "Artists";
 
             foreach (var artistInCollection in selectedSong.ArtistToSong)
             {
@@ -829,6 +862,11 @@ public sealed partial class AllSongsListPage : Page
         }
 
         menuFlyout.Items.Add(toggleFavBtn);
+
+
+        //MenuFlyoutAttach.SetSecondaryMenu(menuFlyout, songMenuFlyout);
+
+
         menuFlyout.ShowAt((UIElement)e.OriginalSource, flyoutShowOpt);
 
     }
@@ -1281,6 +1319,44 @@ public sealed partial class AllSongsListPage : Page
                     songs: MyViewModel.SearchResults);
 
         }
+    }
+
+    private async void GotoTop_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        await MySongsTableView.SmoothScrollIntoViewWithIndexAsync(0);
+    }
+
+    private void LoadingIndicator_Loaded(object sender, RoutedEventArgs e)
+    {
+
+
+        MySongsTableView.Items.VectorChanged += (s, e) =>
+        {
+            if(MySongsTableView.Items.Count >0)
+            {
+                LoadingIndicator.Visibility = Visibility.Collapsed;
+            }
+            Debug.WriteLine(MySongsTableView.Items.Count);
+            Debug.WriteLine(e.Index);
+            Debug.WriteLine(e.CollectionChange);
+
+        };
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.IsTqlBusy), c => MyViewModel.IsTqlBusy)
+     .ObserveOn(RxSchedulers.UI)
+     .Subscribe(boolVal =>
+     {
+         if (boolVal)
+         {
+             LoadingIndicator.Visibility = Visibility.Visible;
+         }
+         else if(!boolVal && MyViewModel.SearchResults.Count>0)
+         {
+             LoadingIndicator.Visibility = Visibility.Collapsed;
+         }
+
+     });
+
+
     }
 
 

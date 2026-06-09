@@ -8,6 +8,7 @@
     xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
     xmlns:convertersWinUI="using:Dimmer.WinUI.Utils.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:devWin="using:DevWinUI"
     xmlns:dgView="using:WinUI.TableView"
     xmlns:dimmSearch="clr-namespace:Dimmer.Data.ModelView.DimmerSearch;assembly=Dimmer"
     xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
@@ -268,7 +269,7 @@
 
                         <dgView:TableViewTextColumn
                             x:Name="PlayCompletedCount"
-                            Width="*"
+                            Width="80"
                             Binding="{Binding PlayCompletedCount}"
                             Header="🎶"
                             IsReadOnly="True"
@@ -276,7 +277,7 @@
 
                         <dgView:TableViewCheckBoxColumn
                             x:Name="IsFavorite"
-                            Width="120"
+                            Width="140"
                             Binding="{Binding IsFavorite}"
                             Header="Favorite?"
                             IsReadOnly="True"
@@ -289,27 +290,27 @@
                     </dgView:TableView.Columns>
                 </dgView:TableView>
 
+                <devWin:OrbitLoadingIndicator
+                    x:Name="LoadingIndicator"
+                    Width="150"
+                    Height="150"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    IsBusy="true"
+                    Loaded="LoadingIndicator_Loaded"
+                    />
+                <devWin:GotoTop
+                    Margin="0,0,20,20"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Animated="True"
+                    AutoHiding="True"
+                    Tapped="GotoTop_Tapped"
+                    Target="{Binding ElementName=MySongsTableView}"
+                    />
             </Grid>
 
 
-            <StackPanel x:Name="BtmLogPanel" Grid.Row="2">
-
-                <Button
-                    HorizontalAlignment="Center"
-                    Background="Transparent"
-                    BorderThickness="1"
-                    >
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <TextBlock Text="{x:Bind MyViewModel.SearchResults.Count, Mode=OneWay}" />
-                        <TextBlock Text="Songs" />
-                    </StackPanel>
-                </Button>
-                <StackPanel Orientation="Horizontal">
-
-
-                    <TextBlock VerticalAlignment="Center" Text="{Binding LatestAppLog.Message}" />
-                </StackPanel>
-            </StackPanel>
         </Grid>
 
 

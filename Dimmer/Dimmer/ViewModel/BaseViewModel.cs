@@ -3,35 +3,32 @@ global using CommunityToolkit.Diagnostics;
 global using Dimmer.DimmerLive.ParseStatics;
 global using Dimmer.DimmerSearch.TQL.RealmSection;
 global using Dimmer.Hoarder;
-using Dimmer.Interfaces;
-using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
-using Dimmer.Resources.Localization;
-using Dimmer.UIUtils;
-using Dimmer.Utilities.Enums;
-using Dimmer.Utilities.TypeConverters;
-using Dimmer.Utils;
-using Dimmer.ViewModel.TQL;
-using DynamicData.Binding;
-using Hqub.Lastfm.Entities;
-using Microsoft.Extensions.Logging.Abstractions;
-using Parse.LiveQuery;
-using Realms;
-using Syncfusion.Maui.Toolkit.Carousel;
-using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Reactive.Threading.Tasks;
-using System.Runtime.ConstrainedExecution;
-using System.Security.Cryptography;
-using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+global using Dimmer.Interfaces;
+global using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
+global using Dimmer.Resources.Localization;
+global using Dimmer.UIUtils;
+global using Dimmer.Utilities.Enums;
+global using Dimmer.Utilities.TypeConverters;
+global using Dimmer.Utils;
+global using Dimmer.ViewModel.TQL;
+global using DynamicData.Binding;
+global using Hqub.Lastfm.Entities;
+global using Microsoft.Extensions.Logging.Abstractions;
+global using Parse.LiveQuery;
+global using Realms;
+
+global using System.ComponentModel;
+global using System.IO;
+global using System.Linq;
+global using System.Net;
+global using System.Reactive.Threading.Tasks;
+global using System.Runtime.ConstrainedExecution;
+global using System.Security.Cryptography;
+global using System.Text.Json.Serialization;
+global using System.Text.RegularExpressions;
+global using System.Threading.Tasks;
 using static Dimmer.Data.ModelView.LastFMUserView;
 using static Microsoft.Maui.ApplicationModel.Permissions;
-//using MoreLinq;
-//using MoreLinq.Extensions;
-
 
 
 using EventHandler = System.EventHandler;
@@ -576,7 +573,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     {
        if( IsTQLInitialized )return;
 
-        IsFirstBoot = false;
+        IsFirstBoot = true;
         var searchStream = _searchQuerySubject
        .Throttle(TimeSpan.FromMilliseconds(250), RxSchedulers.Background)
        .DistinctUntilChanged()
@@ -584,6 +581,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
        {
            RxSchedulers.UI.ScheduleTo(() =>
            {
+               IsTqlBusy = true;
                CurrentTqlQueryUI = query;
                Debug.WriteLine($"[UI] Query updated: {query}");
            });
@@ -613,6 +611,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
        {
 
            ApplySearchResults(result);
+
+           IsTqlBusy = false;
        },
        ex =>
        {
@@ -624,7 +624,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
     private void ApplySearchResults(SearchResult? result)
     {
-        IsTqlBusy = false;
         if (result == null) return;
         if (!string.IsNullOrEmpty(result.ErrorMessage))
         {
@@ -1761,7 +1760,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial string AppTitle { get; set; } = "Dimmer";
 
-    public static string CurrentAppVersion = "1.9.5";
+    public static string CurrentAppVersion = "1.9.5a";
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]
@@ -2156,7 +2155,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
    
     [ObservableProperty]
-    public partial ObservableCollection<string> SortByFieldNameCollection { get; set; } = new() { "None","Title", "Artist Name", "Album Name", "Genre Name", "Duration", "Dims", };
+    public partial ObservableCollection<string> SortByFieldNameCollection { get; set; } = new() { "None","Title", "Artist Name", "Album Name", "Genre Name", "Duration", "Dims","Last Played","Last Added" };
    
     [ObservableProperty]
     public partial ObservableCollection<string> SortByDirectionCollection { get; set; } = new() { "None", "Asc","Desc" };
@@ -3092,7 +3091,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
 
         // B. Validate the song file path.
-        if (string.IsNullOrEmpty(songToPlay.FilePath) || !TaggingUtils.FileExists(songToPlay.FilePath))
+        if (string.IsNullOrEmpty(songToPlay.FilePath) || 
+                !TaggingUtils.FileExists(songToPlay.FilePath))
         {
             _logger.LogError("Song file not found for '{Title}'.", songToPlay.Title);
             await ValidateSongAsync(songToPlay);
@@ -3121,7 +3121,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to play song '{Title}'.", songToPlay.Title);
+            _logger.LogError(ex, "Failed to play song '{Title}'.", songToPlay?.Title);
             return false; // Playback failed
         }
     }
@@ -3328,7 +3328,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         if (!await PlayInternalAsync(songToPlay))
         {
-            await NextTrackAsync();
+            return;
+            //await NextTrackAsync();
         }
     }
 
@@ -5035,18 +5036,19 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     newPlaylistModel.QueryText = PlQuery;
                     newPlaylistModel.SongsIdsInPlaylist.AddRange(songsToAdd.Select(s => s.Id).Distinct());
                     
-                    //newPlaylistModel.SongsInPlaylist.AddRange(songsToAdd.Select(s => s.ToModel()).Distinct());
+
 
                     realm.Add(newPlaylistModel, true);
 
-                    foreach (var song in songsToAdd)
-                    {
-                        await SaveUserNoteToSong(song, playlistName);
-                        
-
-                    }
+                    
 
                 });
+            foreach (var song in songsToAdd)
+            {
+                await SaveUserNoteToSong(song, playlistName);
+
+
+            }
             return;
         }
 
@@ -5600,6 +5602,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             await songRepo.DeleteAsync(song.Id); // Assuming your repo has a DeleteAsync(id)
 
+            SearchResultsHolder.Remove(song);
          
             _searchQuerySubject.OnNext(CurrentTqlQuery);
         }

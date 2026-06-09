@@ -55,14 +55,14 @@
             </dx:TabViewItem>
         </dx:TabView>
 
-        <dx:DXPopup
-            x:Name="LoginPopup"
+        <dx:BottomSheet
+            x:Name="LoginBottomSheet"
             x:DataType="globalVM:LoginViewModel"
-            AllowScrim="True"
+            AllowedState="HalfExpanded"
             BackgroundColor="Black"
-            CloseOnScrimTap="False"
+            HalfExpandedRatio="0.8"
             >
-            <dx:DXPopup.Content>
+            <dx:BottomSheet.Content>
 
                 <dx:DXStackLayout Padding="20" ItemSpacing="10">
                     <dx:DXStackLayout.Resources>
@@ -109,7 +109,7 @@
                         Text="Cancel Login"
                         />
                 </dx:DXStackLayout>
-            </dx:DXPopup.Content>
-        </dx:DXPopup>
+            </dx:BottomSheet.Content>
+        </dx:BottomSheet>
     </Grid>
 </ContentPage>

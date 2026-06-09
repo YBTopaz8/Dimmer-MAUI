@@ -1,3 +1,4 @@
+using DevWinUI;
 using Dimmer.WinUI.Views.CustomViews.WinuiViews;
 using Dimmer.WinUI.Views.WinuiPages.AlbumSection;
 using Dimmer.WinUI.Views.WinuiPages.Artist;
@@ -8,6 +9,7 @@ using Microsoft.UI.Composition.SystemBackdrops;
 using static Dimmer.DimmerSearch.TQlStaticMethods;
 using Border = Microsoft.UI.Xaml.Controls.Border;
 using ProgressBar = Microsoft.UI.Xaml.Controls.ProgressBar;
+using TextBox = Microsoft.UI.Xaml.Controls.TextBox;
 using Visibility = Microsoft.UI.Xaml.Visibility;
 using Window = Microsoft.UI.Xaml.Window;
 
@@ -42,6 +44,15 @@ public sealed partial class DimmerWin : Window
 #elif RELEASE
         this.Title = $"{MyViewModel?.AppTitle} {BaseViewModel.CurrentAppVersion} {BaseViewModel.CurrentAppStage}";
 #endif
+
+        var icon = WindowHelper.GetWindowIcon(PlatUtils.DimmerHandle);
+        uint iconId = 123;
+        var trayIcon = new SystemTrayIcon(iconId, icon, "Open Dimmer");
+        trayIcon.LeftClick += TrayIcon_LeftClick;
+        trayIcon.RightClick += TrayIcon_RightClick;
+        trayIcon.IsVisible = true;
+
+
     }
 
     /// <summary>
@@ -126,7 +137,21 @@ public sealed partial class DimmerWin : Window
                 _isDialogActive = false;
             }
         }
+
+       
     }
+
+    private void TrayIcon_RightClick(SystemTrayIcon sender, SystemTrayIconEventArgs args)
+    {
+
+    }
+
+    private void TrayIcon_LeftClick(SystemTrayIcon sender, SystemTrayIconEventArgs args)
+    {
+        WindowHelper.ShowWindow(this);
+        //throw new NotImplementedException();
+    }
+
     private bool _isDialogActive = false;
     private readonly Microsoft.UI.Composition.Compositor _compositorMainGrid;
 
@@ -206,16 +231,10 @@ public sealed partial class DimmerWin : Window
             NavigateToPage(pageType, null);
     }
 
-    
-    private void nvSample_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
-    {
 
-    }
 
-    private void nvSample_Tapped(object sender, TappedRoutedEventArgs e)
-    {
 
-    }
+
 
     private void nvSample_BackRequested(NavigationView sender, NavigationViewBackRequestedEventArgs args)
     {
@@ -225,10 +244,7 @@ public sealed partial class DimmerWin : Window
         }
     }
 
-    private void nvSample_Tapped_1(object sender, TappedRoutedEventArgs e)
-    {
 
-    }
 
     //private void ArtistsItem_Loaded(object sender, RoutedEventArgs e)
     //{
@@ -365,10 +381,19 @@ public sealed partial class DimmerWin : Window
         var navPageType = e.SourcePageType;
         if(navPageType is null) return;
 
-        //if(navPageType == typeof(AllSongsListPage))
-        //{
-        //    DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[0];
-        //}
+        if (navPageType == typeof(AllSongsListPage))
+        {
+            
+            ScrollToCurrentSong.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            ScrollToCurrentSong.Visibility = Visibility.Collapsed;
+
+        }
+
+        Debug.WriteLine(e.Uri);
+        ContentDivider.Content = e.Uri;
         //else if (navPageType == typeof(AllArtistsPage))
         //{
         //    DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[1];
@@ -654,6 +679,87 @@ public sealed partial class DimmerWin : Window
     }
 
     private void SettingsBtn_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+
+    }
+
+    private void NvSample_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+    {
+
+    }
+
+    private void NvSample_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+
+    }
+
+   
+    
+
+    private void SearchBoxEdit_GotFocus(object sender, RoutedEventArgs e)
+    {
+
+        QuickTQLCommandsStackPanel.Visibility = Visibility.Visible;
+    }
+
+    private void SearchBoxEdit_LostFocus(object sender, RoutedEventArgs e)
+    {
+
+        QuickTQLCommandsStackPanel.Visibility = Visibility.Collapsed;
+    }
+
+    private void DimmerLiveBtn_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+
+    }
+
+    private void SearchBoxEdit_TextChanged(object sender, Microsoft.UI.Xaml.Controls.TextChangedEventArgs e)
+    {
+        MyViewModel.SearchToTQL(SearchBoxEdit.Text);
+    }
+
+    private void ScrollToCurrentSong_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        MyViewModel.MySongsTableView.ScrollIntoView(MyViewModel.CurrentPlayingSongView);
+    }
+
+    private async void SaveTQL_Click(object sender, RoutedEventArgs e)
+    {
+
+        StackPanel contStackPanel = new();
+        TextBlock tqlQuery = new();
+        tqlQuery.Text = $"Query: {SearchBoxEdit.Text}";
+        TextBlock nlpQuery = new();
+        nlpQuery.Text = $"{NaturalLanguageProcessor.Process}";
+
+        TextBox usrQueryName = new();
+        contStackPanel.Children.Add(tqlQuery);
+        contStackPanel.Children.Add(nlpQuery);
+        contStackPanel.Children.Add(usrQueryName);
+        WindowedContentDialog dialog = new()
+        {
+            Title = "Save Query",
+            Content = contStackPanel
+            
+        };
+        ContentDialogResult result = await dialog.ShowAsync(true);
+
+        switch (result)
+        {
+            case ContentDialogResult.None:
+                break;
+            case ContentDialogResult.Primary:
+                if (string.IsNullOrEmpty(usrQueryName.Text)) return;
+               await MyViewModel.AddToPlaylist(usrQueryName.Text, MyViewModel.SearchResults, SearchBoxEdit.Text);
+                break;
+            case ContentDialogResult.Secondary:
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void ContentDivider_Loaded(object sender, RoutedEventArgs e)
     {
 
     }

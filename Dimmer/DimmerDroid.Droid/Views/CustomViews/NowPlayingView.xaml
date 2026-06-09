@@ -25,7 +25,7 @@
             x:Name="MainBgImg"
             Grid.RowSpan="2"
             Aspect="AspectFill"
-            Opacity="1"
+            Opacity="0.6"
             Source="{Binding CurrentPlayingSongView.CoverImagePath}"
             />
 
@@ -55,7 +55,6 @@
                             Padding="0"
                             BackgroundColor="Transparent"
                             ColumnDefinitions="auto, *"
-                            RowDefinitions="90"
                             >
                             <dx:DXBorder
                                 Grid.ColumnSpan="2"
@@ -66,9 +65,9 @@
                             <dx:DXImage
                                 Grid.Column="0"
                                 Margin="5,0"
-                                Aspect="Center"
-                                MaximumHeightRequest="50"
-                                MaximumWidthRequest="50"
+                                Aspect="AspectFit"
+                                MaximumHeightRequest="60"
+                                MaximumWidthRequest="60"
                                 Source="{Binding CurrentPlayingSongView.CoverImagePath}"
                                 VerticalOptions="Start"
                                 />
@@ -88,20 +87,20 @@
                                 </dx:DXStackLayout.Resources>
                                 <Label
                                     FontAttributes="Bold"
-                                    FontSize="19"
+                                    FontSize="16"
                                     Text="{Binding CurrentPlayingSongView.Title}"
                                     />
                                 <Grid ColumnDefinitions="*,*" ColumnSpacing="5">
                                     <Label
                                         Grid.Column="0"
-                                        FontSize="16"
+                                        FontSize="13"
                                         LineBreakMode="WordWrap"
                                         Text="{Binding CurrentPlayingSongView.OtherArtistsName}"
                                         />
 
                                     <Label
                                         Grid.Column="1"
-                                        FontSize="14"
+                                        FontSize="13"
                                         LineBreakMode="WordWrap"
                                         Text="{Binding CurrentPlayingSongView.AlbumName}"
                                         />
@@ -129,8 +128,7 @@
                             <Label
                                 FontSize="19"
                                 Text="{Binding Text}"
-                                TextColor="{AppThemeBinding Dark=White,
-                                                            Light=White}"
+                                TextColor="White"
                                 />
                         </DataTemplate>
                     </dx:DXCollectionView.ItemTemplate>
@@ -189,6 +187,7 @@
                     BackgroundColor="Transparent"
                     Clicked="CurrentLyricLine_Clicked"
                     CornerRadius="0"
+                    IsVisible="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
                     PressedBackgroundColor="{Binding CurrentPlaySongDominantColor}"
                     >
 
@@ -196,15 +195,15 @@
                     <Label
                         x:Name="CurrentLyricLine"
                         Margin="5"
-                        BackgroundColor="Red"
+                        BackgroundColor="Transparent"
                         FontAttributes="Bold"
                         FontSize="28"
                         HeightRequest="400"
                         HorizontalOptions="Center"
                         HorizontalTextAlignment="Center"
-                        IsVisible="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
                         LineBreakMode="WordWrap"
                         Text="{Binding CurrentLine.Text}"
+                        TextColor="White"
                         />
 
                 </dx:DXButton>
@@ -213,20 +212,31 @@
                     <Label
                         x:Name="SongTitleLabel"
                         FontAttributes="Bold"
-                        FontSize="18"
+                        FontSize="24"
                         HorizontalOptions="Center"
                         HorizontalTextAlignment="Justify"
+                        LineBreakMode="WordWrap"
                         Text="{Binding CurrentPlayingSongView.Title}"
+                        TextColor="White"
                         />
 
                     <dx:Chip
                         x:Name="ArtistChip"
                         Grid.Column="0"
                         BorderThickness="0"
-                        FontSize="14"
-                        HorizontalOptions="Center"
-                        Text="{Binding CurrentPlayingSongView.OtherArtistsName}"
-                        />
+                        >
+                        <dx:Chip.ContentTemplate>
+                            <DataTemplate>
+                                <Label
+                                    FontSize="14" FontAttributes="Bold"
+                                    HorizontalOptions="Center"
+                                    LineBreakMode="WordWrap"
+                                    Text="{Binding CurrentPlayingSongView.OtherArtistsName}"
+                                    TextColor="DarkGray"
+                                    />
+                            </DataTemplate>
+                        </dx:Chip.ContentTemplate>
+                    </dx:Chip>
 
 
                     <Grid>
@@ -311,12 +321,17 @@
                                 />
 
                             <FlexLayout JustifyContent="SpaceBetween">
-                                <dx:Chip BorderThickness="0" Text="{Binding CurrentTrackPositionSecondsTxt}" />
+                                <dx:Chip
+                                    BorderThickness="0"
+                                    Text="{Binding CurrentTrackPositionSecondsTxt}"
+                                    TextColor="White"
+                                    />
 
                                 <dx:Chip
                                     BorderThickness="0"
                                     IconSize="25,25"
                                     Text="{Binding CurrentPlayingSongView.DurationFormatted}"
+                                    TextColor="White"
                                     />
 
                             </FlexLayout>

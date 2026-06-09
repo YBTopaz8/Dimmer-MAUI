@@ -1024,6 +1024,22 @@ public partial class HomePage : ContentPage
                     SortOrder = (DataSortOrder)MyViewModel.CurrentSortOrderInt
                 });
                 break;
+            case 7:
+                SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
+                {
+                    FieldName = "LastPlayed"
+           ,
+                    SortOrder = (DataSortOrder)MyViewModel.CurrentSortOrderInt
+                });
+                break;
+            case 8:
+                SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
+                {
+                    FieldName = "DateCreated"
+           ,
+                    SortOrder = (DataSortOrder)MyViewModel.CurrentSortOrderInt
+                });
+                break;
             default:
                 break;
         }
@@ -1108,6 +1124,19 @@ public partial class HomePage : ContentPage
     private async void ToggleFavBtn_LongPress(object sender, HandledEventArgs e)
     {
         await MyViewModel.RemoveSongFromFavoriteAsync(MyViewModel.SelectedSong!);
+    }
+
+    private  void OpenSortBtn_Clicked(object sender, EventArgs e)
+    {
+       FilterBottomSheet.Close();
+        SortPopUp.Show();
+    }
+
+    private void OpenFilterBtn_Clicked(object sender, EventArgs e)
+    {
+        SortPopUp.Close();
+        FilterBottomSheet.Show();
+        
     }
 
 

@@ -53,8 +53,29 @@ public partial class LoginViewModel : ObservableObject
         )
     {
         _authService = authService;
-        this.filePicker=_filePicker;
-        this.realmFactory=realmFactory;
+        this.filePicker= _filePicker;
+        this.realmFactory = realmFactory;
+
+        Observable.FromEventPattern<ConnectivityChangedEventArgs>(
+            h => Connectivity.Current.ConnectivityChanged += h,
+            h => Connectivity.Current.ConnectivityChanged -= h)
+            .Select(evt => evt.EventArgs)
+            .Subscribe(
+                async obs =>
+                {
+                    if (obs.NetworkAccess == NetworkAccess.Internet)
+                    {
+                        if(CurrentUserOnline is null)
+                        {
+                            await this.InitializeAsync();
+
+                            return;
+                        }
+                        await ParseClient.Instance.BecomeAsync(CurrentUserOnline.SessionToken);
+                    }        
+
+                });
+        ;
     }
 
     public bool CanLogin()

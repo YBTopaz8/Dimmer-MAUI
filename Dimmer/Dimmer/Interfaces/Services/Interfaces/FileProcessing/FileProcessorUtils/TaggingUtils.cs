@@ -285,7 +285,15 @@ public static class TaggingUtils
         }
 
         // 2. Standard System.IO Logic
-        return File.Exists(path);
+        if(File.Exists(path))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+
+        }
     }
 
     // 1. Define a delegate that takes a Path + Extensions and returns a list of files

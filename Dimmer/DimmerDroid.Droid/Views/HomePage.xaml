@@ -254,7 +254,7 @@
                                 <dx:DXPopup.Content>
                                     <Grid
                                         Padding="5"
-                                        MaximumHeightRequest="400"
+                                        MaximumHeightRequest="520"
                                         RowDefinitions="auto,*,auto"
                                         >
                                         <dx:DXStackLayout
@@ -333,25 +333,37 @@
 
                                         <dx:DXStackLayout
                                             Grid.Row="2"
+                                            Margin="15,0"
                                             HorizontalOptions="End"
+                                            ItemSpacing="15"
                                             Orientation="Horizontal"
                                             >
                                             <dx:DXButton
+                                                x:Name="OpenFilterBtn"
+                                                Padding="2"
+                                                Clicked="OpenFilterBtn_Clicked"
+                                                Icon="sortvertical.png"
+                                                IconColor="{Binding CurrentPlaySongDominantColor}"
+                                                ShowContent="False"
+                                                />
+
+                                            <dx:DXButton
                                                 x:Name="CloseSortPopupBtn"
+                                                Padding="2"
                                                 Clicked="CloseSortPopupBtn_Clicked"
-                                                Content="Cancel"
-                                                FontSize="20"
-                                                ShowContent="True"
-                                                TextColor="{AppThemeBinding Dark=White,
-                                                                            Light=Black}"
+                                                Icon="closecircle.png"
+                                                IconColor="Red"
+                                                ShowContent="False"
+                                                ShowIcon="True"
                                                 />
                                             <dx:DXButton
                                                 x:Name="ConfirmSortAndClosePopupBtn"
+                                                Padding="2"
                                                 Clicked="ConfirmSortAndClosePopupBtn_Clicked"
-                                                Content="Confirm"
-                                                FontSize="20"
                                                 HorizontalOptions="End"
-                                                ShowContent="True"
+                                                Icon="okcircle.png"
+                                                IconColor="DarkSlateBlue"
+                                                ShowContent="False"
                                                 TextColor="{AppThemeBinding Dark=White,
                                                                             Light=Black}"
                                                 />
@@ -630,9 +642,13 @@
                                     <Style TargetType="dx:DXButton">
                                         <Setter Property="BackgroundColor" Value="Transparent" />
                                         <Setter Property="IconColor" Value="DarkSlateBlue" />
+                                        <Setter Property="IconWidth" Value="25" />
+                                        <Setter Property="IconHeight" Value="25" />
                                         <Setter Property="IconPlacement" Value="Left" />
+                                        <Setter Property="CornerRadius" Value="10" />
                                         <Setter Property="FontSize" Value="19" />
-                                        <Setter Property="BackgroundColor" Value="Transparent" />
+                                        <Setter Property="BorderColor" Value="DarkSlateBlue" />
+                                        <Setter Property="BorderThickness" Value="1" />
                                         <Setter Property="TextColor" Value="{AppThemeBinding Light=Black, Dark=White}" />
                                     </Style>
                                 </ResourceDictionary>
@@ -662,6 +678,7 @@
                             <BoxView BackgroundColor="DarkSlateBlue" HeightRequest="1" />
                             <dx:DXButton
                                 x:Name="GoToSelectedSongOverViewPage"
+                                Padding="5"
                                 HorizontalContentAlignment="Start"
                                 Clicked="GoToSelectedSongOverViewPage_Clicked"
                                 Content="{Binding SelectedSong.Title}"
@@ -670,28 +687,28 @@
 
                             <dx:DXButton
                                 x:Name="SelectedSongArtistBtn"
+                                Padding="10"
                                 HorizontalContentAlignment="Start"
+                                BorderThickness="1"
                                 Clicked="SelectedSongArtistBtn_Clicked"
                                 Content="{Binding SelectedSong.OtherArtistsName}"
-                                Icon="musicnotess.png"
+                                CornerRadius="10"
+                                Icon="artistt.png"
                                 />
 
                             <dx:DXButton
                                 x:Name="GoToSelectedSongAlbumPage"
+                                Padding="5"
                                 HorizontalContentAlignment="Start"
                                 Clicked="GoToSelectedSongAlbumPage_Clicked"
                                 Content="{Binding SelectedSong.AlbumName}"
-                                Icon="musicnotess.png"
+                                Icon="musicalbum.png"
                                 />
 
                             <dx:DXButton
                                 x:Name="PlayNextBtn"
-                                BackgroundColor="Transparent"
-                                BorderColor="DarkSlateBlue"
-                                BorderThickness="1"
                                 Clicked="PlayNextBtn_Clicked"
                                 Content="Play Next"
-                                CornerRadius="10"
                                 FontSize="18"
                                 TextColor="{AppThemeBinding Dark=White,
                                                             Light=Black}"
@@ -699,10 +716,7 @@
 
                             <dx:Chip
                                 x:Name="ToggleFavBtn"
-                                BackgroundColor="Transparent"
-                                BorderColor="DarkSlateBlue"
-                                BorderThickness="1" LongPress="ToggleFavBtn_LongPress"
-                                CornerRadius="10"
+                                LongPress="ToggleFavBtn_LongPress"
                                 Tap="ToggleFavBtn_Tap"
                                 >
                                 <dx:Chip.ContentTemplate>
@@ -752,20 +766,24 @@
                     >
                     <dx:BottomSheet.Content>
                         <dx:DXStackLayout Margin="10">
+
                             <dx:DXButton
-                                x:Name="CloseBtn"
-                                Padding="10,0"
-                                HorizontalContentAlignment="End"
+                                x:Name="OpenSortBtn"
+                                Margin="8,0"
+                                Padding="0"
                                 BackgroundColor="Transparent"
-                                Command="{Binding FilterBottomSheet.Commands.Close, Source={x:Reference myPage}}"
-                                Content="X"
-                                FontSize="20"
+                                BorderColor="DarkSlateBlue"
+                                BorderThickness="1"
+                                Clicked="OpenSortBtn_Clicked"
+                                CornerRadius="12"
                                 HorizontalOptions="End"
-                                IsVisible="False"
-                                PressedBackgroundColor="DarkSlateBlue"
-                                TextColor="{AppThemeBinding Dark=White,
-                                                            Light=Black}"
+                                Icon="sortvertical.png"
+                                IconColor="DarkSlateBlue"
+                                IconHeight="40"
+                                IconWidth="40"
+                                ShowContent="False"
                                 />
+
                             <dx:FilterCheckedListPickerItem
                                 x:Name="ArtistFilterCheckedListPickerItem"
                                 ItemsSource="{Binding ArtistsCollection}"

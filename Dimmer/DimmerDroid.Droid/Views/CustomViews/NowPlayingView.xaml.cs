@@ -43,6 +43,7 @@ public partial class NowPlayingView : ContentView
 
     private void NowPlayingHighlightBtn_TapPressed(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
     {
+        
         NowPlayingViewExpander.SetIsExpanded(true, true);
         SyncLyricsView.SetIsExpanded(false, true);
     }

@@ -29,13 +29,13 @@ public partial class DimmerHomeCenter : ContentPage
           {
               if (!isBg)
               {
-                  await LoginPopup.ShowAsync();
-                  LoginPopup.CloseOnScrimTap = false;
+                  LoginBottomSheet.Show();
+                  
               }
               else
               {
 
-                  LoginPopup.Close();
+                  LoginBottomSheet.Close();
                   BindingContext = MyViewModel;
                   await MyViewModel.RegisterCurrentDeviceAsync();
               }

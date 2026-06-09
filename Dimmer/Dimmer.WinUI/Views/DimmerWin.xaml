@@ -7,9 +7,11 @@
     xmlns:converters="using:Dimmer.WinUI.Utils.Converters"
     xmlns:customViews="using:Dimmer.WinUI.Views.CustomViews.WinuiViews"
     xmlns:d="http://schemas.microsoft.com/expression/blBottom/2008"
+    xmlns:devWin="using:DevWinUI"
     xmlns:local="using:Dimmer.WinUI.Views"
     xmlns:localViews="using:Dimmer.WinUI.Views.CustomViews.WinuiViews"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
     xmlns:stateTriggers="using:Dimmer.WinUI.Utils.StateTriggers"
     Title="DimmerWin"
     Activated="Window_Activated"
@@ -25,7 +27,15 @@
 
 
 
-    <NavigationView x:Name="nvSample">
+    <NavigationView
+        x:Name="nvSample"
+        x:FieldModifier="Public"
+        IsBackButtonVisible="Collapsed"
+        IsSettingsVisible="False"
+        IsTapEnabled="True"
+        SelectionChanged="NvSample_SelectionChanged"
+        Tapped="NvSample_Tapped"
+        >
         <NavigationView.MenuItems>
             <NavigationViewItem
                 x:Name="SongsBtn"
@@ -34,7 +44,7 @@
                 Tapped="SongsBtn_Tapped"
                 >
                 <NavigationViewItem.Icon>
-                    <FontIcon Glyph="&#xE8D6;" />
+                    <FontIcon FontSize="30" Glyph="&#xE8D6;" />
                 </NavigationViewItem.Icon>
             </NavigationViewItem>
             <NavigationViewItem
@@ -45,7 +55,7 @@
                 >
 
                 <NavigationViewItem.Icon>
-                    <FontIcon Glyph="&#xE720;" />
+                    <FontIcon FontSize="30" Glyph="&#xE720;" />
                 </NavigationViewItem.Icon>
             </NavigationViewItem>
             <NavigationViewItem
@@ -55,7 +65,7 @@
                 Tapped="AlbumsBtn_Tapped"
                 >
                 <NavigationViewItem.Icon>
-                    <FontIcon Glyph="&#xE93C;" />
+                    <FontIcon FontSize="30" Glyph="&#xE93C;" />
                 </NavigationViewItem.Icon>
             </NavigationViewItem>
 
@@ -68,7 +78,7 @@
                 Tapped="DimsStatsBtn_Tapped"
                 >
                 <NavigationViewItem.Icon>
-                    <FontIcon Glyph="&#xEB05;" />
+                    <FontIcon FontSize="30" Glyph="&#xEB05;" />
                 </NavigationViewItem.Icon>
             </NavigationViewItem>
 
@@ -76,46 +86,189 @@
         </NavigationView.MenuItems>
 
         <NavigationView.PaneFooter>
-            <NavigationViewItem
-                x:Name="SettingsBtn"
-                Content="Settings"
-                Tag="SettingsTag"
-                Tapped="SettingsBtn_Tapped"
-                >
-                <NavigationViewItem.Icon>
-                    <FontIcon Glyph="&#xE713;" />
-                </NavigationViewItem.Icon>
-            </NavigationViewItem>
+            <StackPanel>
+
+                <StackPanel>
+                    <Grid Grid.Column="0">
+                        <TextBlock
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Top"
+                            Text="❤️"
+                            Visibility="{x:Bind MyViewModel.CurrentPlayingSongView.IsFavorite, Mode=OneWay}"
+                            />
+                        <Image x:Name="CurrentPlayingSongImage" VerticalAlignment="Top">
+                            <Image.Source>
+                                <BitmapImage UriSource="{x:Bind MyViewModel.CurrentPlayingSongView.CoverImagePath, Mode=OneWay}" />
+                            </Image.Source>
+                        </Image>
+                    </Grid>
+
+                    <StackPanel
+                        Grid.Column="1"
+                        Background="Transparent"
+                        Spacing="5"
+                        >
+
+                        <devWin:AutoScrollView Padding="11,0" IsPlaying="True">
+                            <TextBlock
+                                FontSize="20"
+                                Text="{x:Bind MyViewModel.CurrentPlayingSongView.Title, Mode=OneWay}"
+                                TextTrimming="CharacterEllipsis"
+                                />
+                        </devWin:AutoScrollView>
+
+                        <devWin:GooeyButton
+                            x:Name="ArtistsGooeyBtn"
+                            Width="350"
+                            Background="Transparent"
+                            CornerRadius="0" 
+                            ItemsSource="{x:Bind MyViewModel.CurrentPlayingSongView.ArtistToSong}"
+                            >
+                            <devWin:GooeyButton.Content>
+                                <devWin:AutoScrollView Padding="5,0" IsPlaying="True">
+                                    <TextBlock
+                                        Width="320"
+                                        FontSize="16"
+                                        Text="{x:Bind MyViewModel.CurrentPlayingSongView.OtherArtistsName, Mode=OneWay}"
+                                        TextTrimming="CharacterEllipsis"
+                                        />
+                                </devWin:AutoScrollView>
+                            </devWin:GooeyButton.Content>
+                            <devWin:GooeyButton.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Background="Transparent">
+                                        <devWin:AutoScrollView Padding="5,0" IsPlaying="True">
+                                            <TextBlock
+                                                Width="250"
+                                                FontSize="16"
+                                                Text="{Binding Name}"
+                                                TextTrimming="CharacterEllipsis"
+                                                />
+                                        </devWin:AutoScrollView>
+                                    </Button>
+                                </DataTemplate>
+                            </devWin:GooeyButton.ItemTemplate>
+                        </devWin:GooeyButton>
+
+
+                        <devWin:AutoScrollView Padding="11,0" IsPlaying="True">
+                            <TextBlock
+                                FontSize="14"
+                                Text="{x:Bind MyViewModel.CurrentPlayingSongView.AlbumName, Mode=OneWay}"
+                                TextTrimming="CharacterEllipsis"
+                                />
+                        </devWin:AutoScrollView>
+
+
+
+                    </StackPanel>
+                </StackPanel>
+
+
+                <NavigationViewItem
+                    x:Name="ScrollToCurrentSong"
+                    Content="ScrollToSong"
+                    Tag="ScrollToSong"
+                    Tapped="ScrollToCurrentSong_Tapped"
+                    >
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE890;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem
+                    x:Name="DimmerLiveBtn"
+                    Content="Dimmer Live"
+                    Tag="DimmerLiveTag"
+                    Tapped="DimmerLiveBtn_Tapped"
+                    >
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE93E;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem
+                    x:Name="SettingsBtn"
+                    Content="Settings"
+                    Tag="SettingsTag"
+                    Tapped="SettingsBtn_Tapped"
+                    >
+                    <NavigationViewItem.Icon>
+                        <FontIcon FontSize="30" Glyph="&#xE713;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+            </StackPanel>
         </NavigationView.PaneFooter>
         <Grid x:Name="MainGrid" Background="Transparent">
             <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
                 <RowDefinition Height="auto" />
+                <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
 
+            <devWin:Divider
+                x:Name="ContentDivider"
+                Grid.RowSpan="2"
+                VerticalAlignment="Center"
+                Content="Title"
+                Foreground="DarkSlateBlue"
+                LineStrokeThickness="2"
+                Loaded="ContentDivider_Loaded"
+                />
 
             <Frame
                 x:Name="ContentFrame"
+                Grid.Row="1"
                 x:FieldModifier="Public"
                 Navigated="ContentFrame_Navigated"
-                Grid.Row="0"/>
+                />
 
-            <Grid Grid.Row="1">
+            <Grid Grid.Row="0" ColumnSpacing="5">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="150"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="auto"/>
+
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="auto" />
                 </Grid.ColumnDefinitions>
 
-                <Grid>
 
-                    <Image x:Name="CurrentPlayingSongImage">
-                        <Image.Source>
-                            <BitmapImage UriSource="{x:Bind MyViewModel.SelectedSong.CoverImagePath}"/>
-                        </Image.Source>
-                    </Image>
-                </Grid>
+                <StackPanel
+                    Grid.Column="1"
+                    Margin="10"
+                    Spacing="5"
+                    >
+                    <devWin:TextBox
+                        x:Name="SearchBoxEdit"
+                        Header="Search With TQL..."
+                        PlaceholderText=""
+                        TextChanged="SearchBoxEdit_TextChanged"
+                        >
+                        <devWin:TextBox.Content>
+                            <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+                                <Button
+                                    x:Name="SaveTQL"
+                                    HorizontalAlignment="Left"
+                                    HorizontalContentAlignment="Left"
+                                    Click="SaveTQL_Click"
+                                    >
+                                    <FontIcon Glyph="&#xE74E;" />
+                                </Button>
+                            </StackPanel>
+                        </devWin:TextBox.Content>
+                    </devWin:TextBox>
+
+
+
+                    <StackPanel
+                        x:Name="QuickTQLCommandsStackPanel"
+                        Orientation="Horizontal"
+                        Spacing="8"
+                        >
+                        <Button Content="Fav Songs" />
+                        <Button Content="Shuffle" />
+                        <Button Content="Fav Songs" />
+                    </StackPanel>
+
+                </StackPanel>
             </Grid>
 
 
