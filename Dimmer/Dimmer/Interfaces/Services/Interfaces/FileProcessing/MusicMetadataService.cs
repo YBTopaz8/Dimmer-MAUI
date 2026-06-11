@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using LTrack = ATL.Track;
 
 namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 
@@ -56,7 +57,7 @@ public class MusicMetadataService : IMusicMetadataService
         _processedSongsInThisScan.AddRange(existingSongs);
     }
 
-    public ArtistModelView GetOrCreateArtist(Track track, string name)
+    public ArtistModelView GetOrCreateArtist(LTrack track, string name)
     {
         name = string.IsNullOrWhiteSpace(name) ? "Unknown Artist" : name.Trim();
 
@@ -78,7 +79,7 @@ public class MusicMetadataService : IMusicMetadataService
         return artist;
     }
 
-    public AlbumModelView GetOrCreateAlbum(Track track, string name, string? artistForContext = null)
+    public AlbumModelView GetOrCreateAlbum(LTrack track, string name, string? artistForContext = null)
     {
         name = string.IsNullOrWhiteSpace(name) ? "Unknown Album" : name.Trim();
         string artistName = (artistForContext ?? "Unknown").Trim();
@@ -96,7 +97,7 @@ public class MusicMetadataService : IMusicMetadataService
         });
     }
 
-    public GenreModelView GetOrCreateGenre(Track track, string name)
+    public GenreModelView GetOrCreateGenre(LTrack track, string name)
     {
         name = string.IsNullOrWhiteSpace(name) ? "Unknown Genre" : name.Trim();
 

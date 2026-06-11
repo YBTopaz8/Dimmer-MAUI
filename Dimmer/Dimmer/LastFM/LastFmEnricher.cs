@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 using Hqub.Lastfm.Entities;
 
-using Track = Hqub.Lastfm.Entities.Track;
+using LTrack = Hqub.Lastfm.Entities.Track;
 
 namespace Dimmer.LastFM;
 
@@ -45,7 +45,7 @@ public static class LastFmEnricher
     }
 
     // Overload for Tracks (Recent, Top, Loved)
-    public static IEnumerable<Track> EnrichWithLocalData(this IEnumerable<Track> tracks,
+    public static IEnumerable<LTrack> EnrichWithLocalData(this IEnumerable<LTrack> tracks,
         Dictionary<string, SongModelView> primaryLookup,
         IEnumerable<SongModelView> allSongsForFallback)
     {
@@ -171,7 +171,7 @@ public static class LastFmEnricher
             yield return lfmAlbum;
         }
     }
-    private static void ApplyLocalDataToTrack(Track track, SongModelView localSong)
+    private static void ApplyLocalDataToTrack(LTrack track, SongModelView localSong)
     {
         track.IsOnPresentDevice = true;
         track.OnDeviceObjectId = localSong.Id.ToString();

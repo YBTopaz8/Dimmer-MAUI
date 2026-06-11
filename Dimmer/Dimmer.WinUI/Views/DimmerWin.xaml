@@ -33,6 +33,8 @@
         IsBackButtonVisible="Collapsed"
         IsSettingsVisible="False"
         IsTapEnabled="True"
+        PaneClosing="NvSample_PaneClosing"
+        PaneOpening="NvSample_PaneOpening"
         SelectionChanged="NvSample_SelectionChanged"
         Tapped="NvSample_Tapped"
         >
@@ -86,7 +88,7 @@
         </NavigationView.MenuItems>
 
         <NavigationView.PaneFooter>
-            <StackPanel>
+            <StackPanel x:Name="BottomCurrentPlayingSongPanel" Margin="5">
 
                 <StackPanel>
                     <Grid Grid.Column="0">
@@ -96,7 +98,12 @@
                             Text="❤️"
                             Visibility="{x:Bind MyViewModel.CurrentPlayingSongView.IsFavorite, Mode=OneWay}"
                             />
-                        <Image x:Name="CurrentPlayingSongImage" VerticalAlignment="Top">
+                        <Image
+                            x:Name="CurrentPlayingSongImage"
+                            VerticalAlignment="Top"
+                            PointerPressed="CurrentPlayingSongImage_PointerPressed"
+                            Tapped="CurrentSongImg_Tapped"
+                            >
                             <Image.Source>
                                 <BitmapImage UriSource="{x:Bind MyViewModel.CurrentPlayingSongView.CoverImagePath, Mode=OneWay}" />
                             </Image.Source>
@@ -111,56 +118,59 @@
 
                         <devWin:AutoScrollView Padding="11,0" IsPlaying="True">
                             <TextBlock
-                                FontSize="20"
+                                FontSize="22"
                                 Text="{x:Bind MyViewModel.CurrentPlayingSongView.Title, Mode=OneWay}"
                                 TextTrimming="CharacterEllipsis"
                                 />
                         </devWin:AutoScrollView>
 
-                        <devWin:GooeyButton
-                            x:Name="ArtistsGooeyBtn"
-                            Width="350"
-                            Background="Transparent"
-                            CornerRadius="0" 
-                            ItemsSource="{x:Bind MyViewModel.CurrentPlayingSongView.ArtistToSong}"
-                            >
-                            <devWin:GooeyButton.Content>
-                                <devWin:AutoScrollView Padding="5,0" IsPlaying="True">
-                                    <TextBlock
-                                        Width="320"
-                                        FontSize="16"
-                                        Text="{x:Bind MyViewModel.CurrentPlayingSongView.OtherArtistsName, Mode=OneWay}"
-                                        TextTrimming="CharacterEllipsis"
-                                        />
-                                </devWin:AutoScrollView>
-                            </devWin:GooeyButton.Content>
-                            <devWin:GooeyButton.ItemTemplate>
-                                <DataTemplate>
-                                    <Button Background="Transparent">
-                                        <devWin:AutoScrollView Padding="5,0" IsPlaying="True">
-                                            <TextBlock
-                                                Width="250"
-                                                FontSize="16"
-                                                Text="{Binding Name}"
-                                                TextTrimming="CharacterEllipsis"
-                                                />
-                                        </devWin:AutoScrollView>
-                                    </Button>
-                                </DataTemplate>
-                            </devWin:GooeyButton.ItemTemplate>
-                        </devWin:GooeyButton>
 
 
                         <devWin:AutoScrollView Padding="11,0" IsPlaying="True">
                             <TextBlock
-                                FontSize="14"
+                                FontSize="18"
+                                Text="{x:Bind MyViewModel.CurrentPlayingSongView.OtherArtistsName, Mode=OneWay}"
+                                TextTrimming="CharacterEllipsis"
+                                />
+                        </devWin:AutoScrollView>
+
+                        <devWin:AutoScrollView Padding="11,0" IsPlaying="True">
+                            <TextBlock
+                                FontSize="16"
                                 Text="{x:Bind MyViewModel.CurrentPlayingSongView.AlbumName, Mode=OneWay}"
                                 TextTrimming="CharacterEllipsis"
                                 />
                         </devWin:AutoScrollView>
 
 
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
 
+                            <StackPanel Grid.Column="0">
+                                <ToggleButton
+                                    x:Name="PlayPauseToggleBtn"
+                                    Width="60"
+                                    Height="60"
+                                    Command="{x:Bind MyViewModel.PlayPauseToggleCommand}"
+                                    IsChecked="{x:Bind MyViewModel.IsDimmerPlaying, Mode=OneWay}"
+                                    Loaded="PlayPauseToggleBtn_Loaded"
+                                    />
+                                <Button
+                                    x:Name="IsSongFavoriteBtn"
+                                    Width="60"
+                                    Height="60"
+                                    Click="IsSongFavoriteBtn_Click"
+                                    Command="{x:Bind MyViewModel.PlayPauseToggleCommand}"
+                                    Loaded="IsSongFavoriteBtn_Loaded"
+                                    RightTapped="IsSongFavoriteBtn_RightTapped"
+                                    />
+                            </StackPanel>
+
+
+                        </Grid>
                     </StackPanel>
                 </StackPanel>
 
@@ -223,21 +233,22 @@
                 Navigated="ContentFrame_Navigated"
                 />
 
-            <Grid Grid.Row="0" ColumnSpacing="5">
+            <Grid
+                x:Name="TopRowGrid"
+                Grid.Row="0"
+                ColumnSpacing="5"
+                >
                 <Grid.ColumnDefinitions>
 
-                    <ColumnDefinition Width="*" />
+
                     <ColumnDefinition Width="auto" />
                 </Grid.ColumnDefinitions>
 
 
-                <StackPanel
-                    Grid.Column="1"
-                    Margin="10"
-                    Spacing="5"
-                    >
+                <StackPanel Margin="10" Spacing="5">
                     <devWin:TextBox
                         x:Name="SearchBoxEdit"
+                        MinWidth="350"
                         Header="Search With TQL..."
                         PlaceholderText=""
                         TextChanged="SearchBoxEdit_TextChanged"

@@ -1,9 +1,11 @@
-﻿namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing;
+﻿using LTrack = ATL.Track;
+
+namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 public interface IMusicMetadataService
 {
-    ArtistModelView GetOrCreateArtist(Track track, string name);
-    AlbumModelView GetOrCreateAlbum(Track track, string name, string? initialCoverPath = null);
-    GenreModelView GetOrCreateGenre(Track track, string name);
+    ArtistModelView GetOrCreateArtist(LTrack track, string name);
+    AlbumModelView GetOrCreateAlbum(LTrack track, string name, string? initialCoverPath = null);
+    GenreModelView GetOrCreateGenre(LTrack track, string name);
     void AddSong(SongModelView song); // For tracking processed songs, e.g., for duplicate checks
 
     IReadOnlyList<ArtistModelView> GetAllArtists();

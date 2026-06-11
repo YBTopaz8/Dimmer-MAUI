@@ -356,7 +356,6 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
  
 
 
-    // --- PRO LOGIC: COMPRESSION & STORAGE (The Snapshot) ---
     public async Task ProcessIncomingSnapshot(UserDeviceSession updatedSession)
     {
         if (updatedSession.FileData == null) return;

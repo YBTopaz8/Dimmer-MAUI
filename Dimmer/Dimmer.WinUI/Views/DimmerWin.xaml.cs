@@ -6,6 +6,9 @@ using Dimmer.WinUI.Views.WinuiPages.LastFMSection;
 using Dimmer.WinUI.Views.WinuiPages.Utilities;
 using Hqub.Lastfm.Entities;
 using Microsoft.UI.Composition.SystemBackdrops;
+using Newtonsoft.Json.Linq;
+using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using static Dimmer.DimmerSearch.TQlStaticMethods;
 using Border = Microsoft.UI.Xaml.Controls.Border;
 using ProgressBar = Microsoft.UI.Xaml.Controls.ProgressBar;
@@ -38,6 +41,7 @@ public sealed partial class DimmerWin : Window
 
 
         _compositorMainGrid = ElementCompositionPreview.GetElementVisual(MainGrid).Compositor;
+        compDisp = new();
 
 #if DEBUG
         this.Title = $"{MyViewModel?.AppTitle} Debug {BaseViewModel.CurrentAppVersion} {BaseViewModel.CurrentAppStage}";
@@ -383,13 +387,16 @@ public sealed partial class DimmerWin : Window
 
         if (navPageType == typeof(AllSongsListPage))
         {
-            
             ScrollToCurrentSong.Visibility = Visibility.Visible;
+            nvSample.IsPaneOpen = true;
+            TopRowGrid.Visibility = Visibility.Visible;
+            ContentFrame.BackStack.Clear();
         }
         else
         {
             ScrollToCurrentSong.Visibility = Visibility.Collapsed;
-
+            nvSample.IsPaneOpen = false;
+            TopRowGrid.Visibility = Visibility.Collapsed;
         }
 
         Debug.WriteLine(e.Uri);
@@ -419,6 +426,8 @@ public sealed partial class DimmerWin : Window
     private void CurrentSongImg_Tapped(object sender, TappedRoutedEventArgs e)
     {
         MyViewModel.NavigateToAnyPageOfGivenType(typeof(NowPlayingPage));
+        nvSample.IsPaneOpen = false;
+        TopRowGrid.Visibility = Visibility.Collapsed;   
     }
 
     private void CurrentSongImg_Loaded(object sender, RoutedEventArgs e)
@@ -661,16 +670,24 @@ public sealed partial class DimmerWin : Window
     private void ArtistsBtn_Tapped(object sender, TappedRoutedEventArgs e)
     {
 
+        ContentFrame.NavigateToType(typeof(AllAlbumsPage), MyViewModel, null);
+        ContentFrame.BackStack.Clear();
     }
 
     private void SongsBtn_Tapped(object sender, TappedRoutedEventArgs e)
     {
-
+        if(ContentFrame.CanGoBack)
+        {
+            ContentFrame.NavigateToType(typeof(AllSongsListPage), MyViewModel, null);
+            ContentFrame.BackStack.Clear();
+        }
     }
 
     private void AlbumsBtn_Tapped(object sender, TappedRoutedEventArgs e)
     {
 
+        ContentFrame.NavigateToType(typeof(AllAlbumsPage), MyViewModel, null);
+        ContentFrame.BackStack.Clear();
     }
 
     private void DimsStatsBtn_Tapped(object sender, TappedRoutedEventArgs e)
@@ -720,7 +737,7 @@ public sealed partial class DimmerWin : Window
 
     private void ScrollToCurrentSong_Tapped(object sender, TappedRoutedEventArgs e)
     {
-        MyViewModel.MySongsTableView.ScrollIntoView(MyViewModel.CurrentPlayingSongView);
+        MyViewModel.MySongsTableView.ScrollIntoView(MyViewModel.CurrentPlayingSongView,ScrollIntoViewAlignment.Leading);
     }
 
     private async void SaveTQL_Click(object sender, RoutedEventArgs e)
@@ -762,5 +779,114 @@ public sealed partial class DimmerWin : Window
     private void ContentDivider_Loaded(object sender, RoutedEventArgs e)
     {
 
+    }
+
+    private void CurrentPlayingSongImage_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+
+    }
+
+    private async void CurrentPlayingSongImage_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        var props = e.GetCurrentPoint((UIElement)sender).Properties;
+
+        if (props != null)
+        {
+            if(props.IsMiddleButtonPressed)
+            {
+                await MyViewModel.ScrollToRequestedSongAsync();
+            }
+        }    
+    }
+
+    private void NvSample_PaneClosing(NavigationView sender, NavigationViewPaneClosingEventArgs args)
+    {
+        BottomCurrentPlayingSongPanel.Visibility = Visibility.Collapsed;
+    }
+
+
+
+    private void PlayPauseToggleBtn_Loaded(object sender, RoutedEventArgs e)
+    {
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.IsDimmerPlaying), v => MyViewModel.IsDimmerPlaying)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(isDimmerPlaying =>
+            {
+
+
+                FontIcon pauseIcon = new FontIcon();
+                pauseIcon.Glyph = "\uE769";
+                pauseIcon.Height = 24; pauseIcon.Width = 24;
+                FontIcon PlayIcon = new FontIcon();
+                PlayIcon.Height = 24; PlayIcon.Width = 24;
+                PlayIcon.Glyph = "\uE768";
+
+                PlayPauseToggleBtn.Content = isDimmerPlaying ? pauseIcon : PlayIcon;
+            }).DisposeWith(compDisp) ;
+    }
+    CompositeDisposable compDisp;
+
+    private void NvSample_PaneOpening(NavigationView sender, object args)
+    {
+        
+        BottomCurrentPlayingSongPanel.Visibility = Visibility.Visible;
+    }
+
+    private async void IsSongFavoriteBtn_RightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+        await MyViewModel.RemoveSongFromFavoriteAsync(MyViewModel.CurrentPlayingSongView);
+    }
+
+    private void IsSongFavoriteBtn_Loaded(object sender, RoutedEventArgs e)
+    {
+
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentPlayingSongView.IsFavorite), v => MyViewModel.CurrentPlayingSongView.IsFavorite)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(isFav =>
+            {
+
+
+                FontIcon isNeutralFavicon = new FontIcon();
+                isNeutralFavicon.Glyph = "\uEB51";
+                isNeutralFavicon.Height = 24;
+                isNeutralFavicon.Width = 24;
+
+                FontIcon isNotFavicon = new FontIcon();
+                isNotFavicon.Glyph = "\uEA92";
+                isNotFavicon.Height = 24;
+                isNotFavicon.Width = 24;
+
+
+                FontIcon isFavicon = new FontIcon();
+                isFavicon.Glyph = "\uEB52";
+                isFavicon.Height = 24;
+                isFavicon.Width = 24;
+
+
+                FontIcon icon = new FontIcon();
+                icon.Glyph = "\uEB52";
+                FontIcon PlayIcon = new FontIcon();
+                PlayIcon.Height = 24; PlayIcon.Width = 24;
+                PlayIcon.Glyph = "\uE768";
+
+                if(MyViewModel.CurrentPlayingSongView.IsFavorite)
+                IsSongFavoriteBtn.Content = isFav;
+                else
+                {
+                    IsSongFavoriteBtn.Content = isNotFavicon;
+                }
+
+
+            }).DisposeWith(compDisp);
+    }
+
+    private async void IsSongFavoriteBtn_Click(object sender, RoutedEventArgs e)
+    {
+        await MyViewModel.AddFavoriteRatingToSongAsync(MyViewModel.CurrentPlayingSongView);
+    }
+
+    ~DimmerWin()
+    {
+        compDisp.Dispose();
     }
 }

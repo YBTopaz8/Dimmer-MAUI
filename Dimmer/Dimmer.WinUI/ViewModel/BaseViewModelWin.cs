@@ -583,7 +583,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     }
 
     [RelayCommand]
-    public async Task ScrollToRequestedSong(SongModelView? song=null)
+    public async Task ScrollToRequestedSongAsync(SongModelView? song=null)
     {
 
         if(song is null)

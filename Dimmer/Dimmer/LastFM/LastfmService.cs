@@ -6,7 +6,7 @@ using Hqub.Lastfm.Entities;
 
 using Microsoft.Extensions.Options;
 
-using Track = Hqub.Lastfm.Entities.Track;
+using LTrack = Hqub.Lastfm.Entities.Track;
 namespace Dimmer.LastFM;
 
 public class LastfmService : ILastfmService
@@ -567,7 +567,7 @@ public class LastfmService : ILastfmService
         }
     }
 
-    public async Task<ObservableCollection<Track>?> GetTopCountryTracksAsync(string country)
+    public async Task<ObservableCollection<LTrack>?> GetTopCountryTracksAsync(string country)
     {
         if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         try
@@ -579,7 +579,7 @@ public class LastfmService : ILastfmService
         {
             _logger.LogError(ex.Message, ex);
 
-            return Enumerable.Empty<Track>().ToObservableCollection();
+            return Enumerable.Empty<LTrack>().ToObservableCollection();
         }
     }
 
@@ -615,7 +615,7 @@ public class LastfmService : ILastfmService
         }
     }
 
-    public async Task<Track?> GetTrackInfoAsync(string artistName, string trackName)
+    public async Task<LTrack?> GetTrackInfoAsync(string artistName, string trackName)
     {
         if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         try
@@ -626,12 +626,12 @@ public class LastfmService : ILastfmService
         catch (Exception ex)
         {
             _logger.LogError(ex.Message, ex);
-            return new Track() { IsNull = true }; 
+            return new LTrack() { IsNull = true }; 
         }
     }
 
 
-    public async Task<Track?> GetCorrectionAsync(string artistName, string trackName)
+    public async Task<LTrack?> GetCorrectionAsync(string artistName, string trackName)
     {
         if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         try
@@ -642,11 +642,11 @@ public class LastfmService : ILastfmService
         catch  (Exception ex)
         {
             _logger.LogError(ex.Message, ex);
-            return new Track() { IsNull = true };
+            return new LTrack() { IsNull = true };
         }
     }
 
-    public async Task<ObservableCollection<Track>?> GetSimilarAsync(string artistName, string trackName)
+    public async Task<ObservableCollection<LTrack>?> GetSimilarAsync(string artistName, string trackName)
     {
         if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         try
@@ -658,7 +658,7 @@ public class LastfmService : ILastfmService
         catch  (Exception ex)
         {
             _logger.LogError(ex.Message, ex); 
-            return Enumerable.Empty<Track>().ToObservableCollection();
+            return Enumerable.Empty<LTrack>().ToObservableCollection();
         }
     }
 
@@ -678,7 +678,7 @@ public class LastfmService : ILastfmService
         }
     }
 
-    public async Task<ObservableCollection<Track>?> GetLovedTracksAsync()
+    public async Task<ObservableCollection<LTrack>?> GetLovedTracksAsync()
     {
         if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         try
@@ -692,7 +692,7 @@ public class LastfmService : ILastfmService
         catch  (Exception ex)
         {
             _logger.LogError(ex.Message, ex);
-            return Enumerable.Empty<Track>().ToObservableCollection();
+            return Enumerable.Empty<LTrack>().ToObservableCollection();
         }
     }
 
@@ -744,7 +744,7 @@ public class LastfmService : ILastfmService
         }
     }
 
-    public async Task<ObservableCollection<Track>?> GetUserTopTracksAsync( )
+    public async Task<ObservableCollection<LTrack>?> GetUserTopTracksAsync( )
     {
         if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         try
@@ -757,11 +757,11 @@ public class LastfmService : ILastfmService
         {
             _logger.LogError(ex.Message, ex);
             
-            return Enumerable.Empty<Track>().ToObservableCollection();
+            return Enumerable.Empty<LTrack>().ToObservableCollection();
         }
     }
 
-    public async Task<ObservableCollection<Track>?> GetUserWeeklyTrackChartAsync( )
+    public async Task<ObservableCollection<LTrack>?> GetUserWeeklyTrackChartAsync( )
     {
         if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         try
@@ -774,7 +774,7 @@ public class LastfmService : ILastfmService
         {
             _logger.LogError(ex.Message, ex);
 
-            return Enumerable.Empty<Track>().ToObservableCollection();
+            return Enumerable.Empty<LTrack>().ToObservableCollection();
         }
     }
 
@@ -796,19 +796,19 @@ public class LastfmService : ILastfmService
     }
 
     #endregion
-    public async Task<ObservableCollection<Track>?> GetUserRecentTracksAsync(string? username, int limit)
+    public async Task<ObservableCollection<LTrack>?> GetUserRecentTracksAsync(string? username, int limit)
     {
         if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         if (string.IsNullOrEmpty(username))
             
-            return Enumerable.Empty<Track>().ToObservableCollection();
+            return Enumerable.Empty<LTrack>().ToObservableCollection();
         try
         {
             var pagedResponse = await _client.User.GetRecentTracksAsync(username, page: 1, limit: limit);
             return pagedResponse.Items.ToObservableCollection();
         }
         catch (Exception ex) { _logger.LogWarning(ex, "Failed to get recent tracks for user {User}", username); 
-            return Enumerable.Empty<Track>().ToObservableCollection(); }
+            return Enumerable.Empty<LTrack>().ToObservableCollection(); }
     }
 
     public async Task<bool> LoveTrackAsync(SongModelView song)
@@ -915,7 +915,7 @@ public class LastfmService : ILastfmService
             return 0;
         _logger.LogInformation("Starting to pull Last.fm history since {Date}", since);
 
-        var recentTracks = new List<Track>();
+        var recentTracks = new List<LTrack>();
         try
         {
             // Fetch multiple pages if needed, but start with one.

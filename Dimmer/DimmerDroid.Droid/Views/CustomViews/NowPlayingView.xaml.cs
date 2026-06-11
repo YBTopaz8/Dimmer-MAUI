@@ -177,7 +177,8 @@ public partial class NowPlayingView : ContentView
 
     private void AllLyricsCV_SelectionChanged(object sender, CollectionViewSelectionChangedEventArgs e)
     {
-
+        var selItemHandle = AllLyricsCV.FindItemHandle(AllLyricsCV.SelectedItem);
+        AllLyricsCV.ScrollTo(selItemHandle,DXScrollToPosition.Start);
     }
 
     private void CurrentLyricLine_Clicked(object sender, EventArgs e)

@@ -420,4 +420,9 @@ public sealed partial class NowPlayingPage : Page
     {
 
     }
+
+    private void NowPlayingSpecViz_Loaded(object sender, RoutedEventArgs e)
+    {
+
+    }
 }

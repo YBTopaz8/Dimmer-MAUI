@@ -228,7 +228,7 @@ public sealed partial class AllSongsListPage : Page
         if (songToFind == null)
             return;
        
-        await MyViewModel.ScrollToRequestedSong( songToFind);
+        await MyViewModel.ScrollToRequestedSongAsync( songToFind);
     }
 
     public Microsoft.UI.Xaml.Data.ICollectionView? GetCurrentVisibleItems()
