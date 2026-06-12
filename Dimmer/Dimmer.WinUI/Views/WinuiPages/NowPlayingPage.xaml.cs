@@ -329,8 +329,8 @@ public sealed partial class NowPlayingPage : Page
 
     private void ListView_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
     {
-        SyncLyricsListView.ScrollIntoView(MyViewModel.CurrentLine);
-            }
+        SyncLyricsListView.ScrollIntoView(MyViewModel.CurrentLine,ScrollIntoViewAlignment.Leading);
+    }
 
     private bool _isDragging = false;
     private double _dragStartValue;

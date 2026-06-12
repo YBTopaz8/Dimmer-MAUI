@@ -87,7 +87,7 @@
                         MaxHeight="300"
                         HorizontalAlignment="Center"
                         Loaded="DetailedImage_Loaded"
-                        Source="{Binding SelectedSong.CoverImagePath}"
+                        Source="{x:Bind DetailedSong.CoverImagePath, Mode=OneWay}"
                         />
 
                     <SplitButton
@@ -167,7 +167,7 @@
                         Content="Search Online"
                         Unchecked="ToggleSearchSongLastFM_Unchecked"
                         />
-                    <Expander x:Name="SearchSongLastFMExp" IsExpanded="True">
+                    <Expander x:Name="SearchSongLastFMExp" IsExpanded="False">
                         <Expander.Content>
                             <StackPanel Width="300">
                                 <TextBlock Text="Title" />

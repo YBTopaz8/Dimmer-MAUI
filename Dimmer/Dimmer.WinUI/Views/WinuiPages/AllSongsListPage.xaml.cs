@@ -219,7 +219,7 @@ public sealed partial class AllSongsListPage : Page
             // Default behavior: Add to play next (non-interrupting)
             Debug.WriteLine($"Double-tapped on song: {song.Title}");
             await MyViewModel.PlaySongAsync(song,
-                    songs: MyViewModel.SearchResults);
+                    songs: SongsEnumerable);
          
         }
     }
@@ -1309,6 +1309,7 @@ public sealed partial class AllSongsListPage : Page
 
         var songs = MySongsTableView.Items;
 
+        var SongsEnumerable = songs.OfType<SongModelView>();
 
 
         if (song != null)
@@ -1316,7 +1317,7 @@ public sealed partial class AllSongsListPage : Page
             // Default behavior: Add to play next (non-interrupting)
             Debug.WriteLine($"Double-tapped on song: {song.Title}");
             await MyViewModel.PlaySongAsync(song,
-                    songs: MyViewModel.SearchResults);
+                    songs: SongsEnumerable);
 
         }
     }

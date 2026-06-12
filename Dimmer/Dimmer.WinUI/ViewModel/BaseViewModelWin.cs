@@ -11,6 +11,7 @@ using Dimmer.WinUI.Views.WinuiPages.Settings;
 using MongoDB.Bson;
 using System.Threading.Tasks;
 using System.Windows.Controls.Primitives;
+using Windows.Foundation.Collections;
 using Windows.UI.Core;
 using Brush = Microsoft.UI.Xaml.Media.Brush;
 using Color = System.Drawing.Color;
@@ -333,8 +334,6 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     [ObservableProperty]
     public partial int VisibleSongCount { get; set; } = 0;
 
-    [ObservableProperty]
-    public partial TableView? MyTableVIew { get; set; }
 
     [ObservableProperty]
     public partial bool? CanGoBack { get; set; }
@@ -353,13 +352,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     private void ScheduleVisibleCountUpdate()
     {
-        // Logic to update the VisibleSongCount based on current filters and sorts
-
-        if (MyTableVIew is not null)
-        {
-            //VisibleSongCount = MyTableVIew.Items.Count;
-        }
-
+        
 
     }
 
@@ -541,7 +534,28 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     [ObservableProperty]
     public partial TableView MySongsTableView { get; set; }
 
+    [ObservableProperty]
+    public partial int MySongsTableViewItemsCount { get; set; }
 
+  
+    partial void OnMySongsTableViewChanged(TableView oldValue, TableView newValue)
+    {
+        if (oldValue is null && newValue is not null)
+        {
+
+        newValue.Items.VectorChanged += MySongsTableItems_VectorChanged;
+        }
+        if(newValue is null)
+        {
+            newValue.Items.VectorChanged -= MySongsTableItems_VectorChanged;
+
+        }
+    }
+
+    private void MySongsTableItems_VectorChanged(IObservableVector<object> sender, IVectorChangedEventArgs @event)
+    {
+        MySongsTableViewItemsCount = MySongsTableView.Items.Count;
+    }
 
     internal void AddSongsByIdsToQueue(List<string> songIds)
     {

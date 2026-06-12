@@ -90,11 +90,18 @@
         <NavigationView.PaneFooter>
             <StackPanel x:Name="BottomCurrentPlayingSongPanel" Margin="5">
 
-                <StackPanel>
-                    <Grid Grid.Column="0">
+                <StackPanel Margin="5">
+                    <Grid
+                        Grid.Column="0"
+                        MaxWidth="100"
+                        MaxHeight="100"
+                        HorizontalAlignment="Left"
+                        >
                         <TextBlock
                             HorizontalAlignment="Right"
                             VerticalAlignment="Top"
+                            FontSize="30"
+                            Rotation="45"
                             Text="❤️"
                             Visibility="{x:Bind MyViewModel.CurrentPlayingSongView.IsFavorite, Mode=OneWay}"
                             />
@@ -116,7 +123,7 @@
                         Spacing="5"
                         >
 
-                        <devWin:AutoScrollView Padding="11,0" IsPlaying="True">
+                        <devWin:AutoScrollView IsPlaying="True">
                             <TextBlock
                                 FontSize="22"
                                 Text="{x:Bind MyViewModel.CurrentPlayingSongView.Title, Mode=OneWay}"
@@ -126,7 +133,7 @@
 
 
 
-                        <devWin:AutoScrollView Padding="11,0" IsPlaying="True">
+                        <devWin:AutoScrollView IsPlaying="True">
                             <TextBlock
                                 FontSize="18"
                                 Text="{x:Bind MyViewModel.CurrentPlayingSongView.OtherArtistsName, Mode=OneWay}"
@@ -134,7 +141,7 @@
                                 />
                         </devWin:AutoScrollView>
 
-                        <devWin:AutoScrollView Padding="11,0" IsPlaying="True">
+                        <devWin:AutoScrollView IsPlaying="True">
                             <TextBlock
                                 FontSize="16"
                                 Text="{x:Bind MyViewModel.CurrentPlayingSongView.AlbumName, Mode=OneWay}"
@@ -152,21 +159,12 @@
                             <StackPanel Grid.Column="0">
                                 <ToggleButton
                                     x:Name="PlayPauseToggleBtn"
-                                    Width="60"
-                                    Height="60"
+                                    Height="40"
                                     Command="{x:Bind MyViewModel.PlayPauseToggleCommand}"
                                     IsChecked="{x:Bind MyViewModel.IsDimmerPlaying, Mode=OneWay}"
                                     Loaded="PlayPauseToggleBtn_Loaded"
                                     />
-                                <Button
-                                    x:Name="IsSongFavoriteBtn"
-                                    Width="60"
-                                    Height="60"
-                                    Click="IsSongFavoriteBtn_Click"
-                                    Command="{x:Bind MyViewModel.PlayPauseToggleCommand}"
-                                    Loaded="IsSongFavoriteBtn_Loaded"
-                                    RightTapped="IsSongFavoriteBtn_RightTapped"
-                                    />
+
                             </StackPanel>
 
 
@@ -216,15 +214,8 @@
             </Grid.RowDefinitions>
 
 
-            <devWin:Divider
-                x:Name="ContentDivider"
-                Grid.RowSpan="2"
-                VerticalAlignment="Center"
-                Content="Title"
-                Foreground="DarkSlateBlue"
-                LineStrokeThickness="2"
-                Loaded="ContentDivider_Loaded"
-                />
+
+
 
             <Frame
                 x:Name="ContentFrame"
@@ -278,7 +269,12 @@
                         <Button Content="Shuffle" />
                         <Button Content="Fav Songs" />
                     </StackPanel>
-
+                    <devWin:FlipCards
+                        x:Name="SongsCountFlipCard"
+                        HorizontalAlignment="Left"
+                        Source="Value"
+                        Value="{x:Bind MyViewModel.MySongsTableViewItemsCount, Mode=OneWay}"
+                        />
                 </StackPanel>
             </Grid>
 

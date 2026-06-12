@@ -400,7 +400,7 @@ public sealed partial class DimmerWin : Window
         }
 
         Debug.WriteLine(e.Uri);
-        ContentDivider.Content = e.Uri;
+
         //else if (navPageType == typeof(AllArtistsPage))
         //{
         //    DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[1];
@@ -676,11 +676,10 @@ public sealed partial class DimmerWin : Window
 
     private void SongsBtn_Tapped(object sender, TappedRoutedEventArgs e)
     {
-        if(ContentFrame.CanGoBack)
-        {
+        
             ContentFrame.NavigateToType(typeof(AllSongsListPage), MyViewModel, null);
             ContentFrame.BackStack.Clear();
-        }
+       
     }
 
     private void AlbumsBtn_Tapped(object sender, TappedRoutedEventArgs e)
@@ -776,10 +775,6 @@ public sealed partial class DimmerWin : Window
         }
     }
 
-    private void ContentDivider_Loaded(object sender, RoutedEventArgs e)
-    {
-
-    }
 
     private void CurrentPlayingSongImage_Tapped(object sender, TappedRoutedEventArgs e)
     {
@@ -837,48 +832,7 @@ public sealed partial class DimmerWin : Window
         await MyViewModel.RemoveSongFromFavoriteAsync(MyViewModel.CurrentPlayingSongView);
     }
 
-    private void IsSongFavoriteBtn_Loaded(object sender, RoutedEventArgs e)
-    {
-
-        MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentPlayingSongView.IsFavorite), v => MyViewModel.CurrentPlayingSongView.IsFavorite)
-            .ObserveOn(RxSchedulers.UI)
-            .Subscribe(isFav =>
-            {
-
-
-                FontIcon isNeutralFavicon = new FontIcon();
-                isNeutralFavicon.Glyph = "\uEB51";
-                isNeutralFavicon.Height = 24;
-                isNeutralFavicon.Width = 24;
-
-                FontIcon isNotFavicon = new FontIcon();
-                isNotFavicon.Glyph = "\uEA92";
-                isNotFavicon.Height = 24;
-                isNotFavicon.Width = 24;
-
-
-                FontIcon isFavicon = new FontIcon();
-                isFavicon.Glyph = "\uEB52";
-                isFavicon.Height = 24;
-                isFavicon.Width = 24;
-
-
-                FontIcon icon = new FontIcon();
-                icon.Glyph = "\uEB52";
-                FontIcon PlayIcon = new FontIcon();
-                PlayIcon.Height = 24; PlayIcon.Width = 24;
-                PlayIcon.Glyph = "\uE768";
-
-                if(MyViewModel.CurrentPlayingSongView.IsFavorite)
-                IsSongFavoriteBtn.Content = isFav;
-                else
-                {
-                    IsSongFavoriteBtn.Content = isNotFavicon;
-                }
-
-
-            }).DisposeWith(compDisp);
-    }
+ 
 
     private async void IsSongFavoriteBtn_Click(object sender, RoutedEventArgs e)
     {
@@ -888,5 +842,9 @@ public sealed partial class DimmerWin : Window
     ~DimmerWin()
     {
         compDisp.Dispose();
+    }
+
+    private void SongsCount_Loaded(object sender, RoutedEventArgs e)
+    {
     }
 }
