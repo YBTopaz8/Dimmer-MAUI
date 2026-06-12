@@ -425,9 +425,8 @@ public sealed partial class DimmerWin : Window
 
     private void CurrentSongImg_Tapped(object sender, TappedRoutedEventArgs e)
     {
-        MyViewModel.NavigateToAnyPageOfGivenType(typeof(NowPlayingPage));
-        nvSample.IsPaneOpen = false;
-        TopRowGrid.Visibility = Visibility.Collapsed;   
+        
+       
     }
 
     private void CurrentSongImg_Loaded(object sender, RoutedEventArgs e)
@@ -790,6 +789,13 @@ public sealed partial class DimmerWin : Window
             if(props.IsMiddleButtonPressed)
             {
                 await MyViewModel.ScrollToRequestedSongAsync();
+                return;
+            }
+            if(props.IsLeftButtonPressed)
+            {
+                MyViewModel.NavigateToAnyPageOfGivenType(typeof(NowPlayingPage));
+                nvSample.IsPaneOpen = false;
+                TopRowGrid.Visibility = Visibility.Collapsed;
             }
         }    
     }
@@ -846,5 +852,22 @@ public sealed partial class DimmerWin : Window
 
     private void SongsCount_Loaded(object sender, RoutedEventArgs e)
     {
+    }
+
+    private void DimmerUtilities_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        ContentFrame.NavigateToType(typeof(DimmerToolKit), MyViewModel, null);
+        ContentFrame.BackStack.Clear();
+    }
+
+    private async void DimmerCloud_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+
+        LoginViewModelWin? loginVM = IPlatformApplication.Current?.Services.GetService<LoginViewModelWin>();
+        if(loginVM is not null)
+        {
+            await loginVM.NavigateToProfilePageAsync();
+
+        }
     }
 }

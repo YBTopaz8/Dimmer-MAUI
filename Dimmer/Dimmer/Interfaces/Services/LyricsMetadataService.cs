@@ -3,7 +3,6 @@
 using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json.Serialization;
 using System.Web; // Needed for HttpUtility
 
 using ATL;

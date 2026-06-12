@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-// Ensure your models/services namespaces are here (e.g., Dimmer.Data.ModelView, etc.)
+﻿// Ensure your models/services namespaces are here (e.g., Dimmer.Data.ModelView, etc.)
 
 namespace Dimmer.ViewModel;
 

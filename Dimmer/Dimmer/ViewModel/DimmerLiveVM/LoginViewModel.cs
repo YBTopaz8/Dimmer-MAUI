@@ -71,7 +71,6 @@ public partial class LoginViewModel : ObservableObject
 
                             return;
                         }
-                        await ParseClient.Instance.BecomeAsync(CurrentUserOnline.SessionToken);
                     }        
 
                 });

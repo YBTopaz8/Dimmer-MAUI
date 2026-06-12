@@ -1,6 +1,4 @@
-﻿using System.Text.RegularExpressions;
-
-namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
+﻿namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 
 public static class FilenameParser
 {

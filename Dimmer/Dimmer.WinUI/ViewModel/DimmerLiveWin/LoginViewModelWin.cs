@@ -22,7 +22,7 @@ public partial class LoginViewModelWin : LoginViewModel
     [ObservableProperty]
     public partial string LoginCurrentStatus { get; set; }
 
-     internal async Task NavigateToProfilePage()
+     internal async Task NavigateToProfilePageAsync()
     {
         if (Connectivity.Current.NetworkAccess == NetworkAccess.Internet)
         {

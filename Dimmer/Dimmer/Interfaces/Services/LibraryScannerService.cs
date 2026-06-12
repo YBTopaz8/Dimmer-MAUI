@@ -1,8 +1,4 @@
-﻿using Dimmer.Data.Models;
-using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
-
-
-namespace Dimmer.Interfaces.Services;
+﻿namespace Dimmer.Interfaces.Services;
 
 public class LibraryScannerService : ILibraryScannerService
 {

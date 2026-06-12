@@ -1,5 +1,4 @@
-﻿global using ATL;
-global using CommunityToolkit.Diagnostics;
+﻿global using CommunityToolkit.Diagnostics;
 global using Dimmer.DimmerLive.ParseStatics;
 global using Dimmer.DimmerSearch.TQL.RealmSection;
 global using Dimmer.Hoarder;
@@ -7,28 +6,19 @@ global using Dimmer.Interfaces;
 global using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 global using Dimmer.Resources.Localization;
 global using Dimmer.UIUtils;
-global using Dimmer.Utilities.Enums;
-global using Dimmer.Utilities.TypeConverters;
 global using Dimmer.Utils;
 global using Dimmer.ViewModel.TQL;
 global using DynamicData.Binding;
 global using Hqub.Lastfm.Entities;
 global using Microsoft.Extensions.Logging.Abstractions;
 global using Parse.LiveQuery;
-global using Realms;
 
 global using System.ComponentModel;
 global using System.IO;
 global using System.Linq;
-global using System.Net;
-global using System.Reactive.Threading.Tasks;
-global using System.Runtime.ConstrainedExecution;
 global using System.Security.Cryptography;
 global using System.Text.Json.Serialization;
 global using System.Text.RegularExpressions;
-global using System.Threading.Tasks;
-using static Dimmer.Data.ModelView.LastFMUserView;
-using static Microsoft.Maui.ApplicationModel.Permissions;
 
 
 using EventHandler = System.EventHandler;

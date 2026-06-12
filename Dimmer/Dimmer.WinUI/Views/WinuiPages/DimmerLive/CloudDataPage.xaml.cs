@@ -38,7 +38,8 @@ public sealed partial class CloudDataPage : Page
     {
         base.OnNavigatedTo(e);
         MyViewModel = IPlatformApplication.Current!.Services.GetService<SessionManagementViewModel>()!;
-        MyViewModel.OnPageNavigatedTo();
+      
+
         this.DataContext = MyViewModel; // Set DataContext for binding within DataTemplates
         this.Name = "RootPage"; // Helper for ElementName binding
        

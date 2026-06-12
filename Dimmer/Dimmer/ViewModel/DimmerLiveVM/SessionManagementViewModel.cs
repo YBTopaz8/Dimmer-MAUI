@@ -1,8 +1,4 @@
-﻿
-
-using Parse.LiveQuery;
-using SkiaSharp;
-using System.IO;
+﻿using SkiaSharp;
 using System.IO.Compression;
 
 namespace Dimmer.ViewModel;
@@ -52,7 +48,10 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
         _sessionManager.OtherAvailableDevices
             .ObserveOn(RxSchedulers.UI)
             .Bind(out _otherDevices)
-            .Subscribe()
+            .Subscribe(devs=>
+            {
+                Debug.WriteLine(devs.Count);
+            })
             .DisposeWith(_disposables);
 
 
@@ -130,21 +129,8 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
 
         ReferralStats = $"Used {uses} times ({remaining} remaining)";
     }
-    [RelayCommand]
-    public async Task RemoteControl(string commandType)
-    {
-        if (RemoteDeviceState == null) return;
+    
 
-        var p = new Dictionary<string, object>
-    {
-        { "targetDeviceId", RemoteDeviceState.DeviceId },
-        { "senderUserId", ParseUser.CurrentUser.ObjectId},
-        { "command", commandType },
-        { "payload", "" }
-    };
-
-        await ParseClient.Instance.CallCloudCodeFunctionAsync<object>("sendDeviceCommand", p);
-    }
     [RelayCommand]
     public async Task RegisterCurrentDeviceAsync()
     {
@@ -153,7 +139,7 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
             StatusMessage = "Registering device...";
             await _sessionManager.RegisterCurrentDeviceAsync();
             _sessionManager.StartListeners();
-            await _sessionManager.SyncDeviceStateAsync();
+            //await _sessionManager.SyncDeviceStateAsync();
         }
         catch (Exception ex)
         {
@@ -266,10 +252,7 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
         }
     }
 
-    public void OnPageNavigatedTo()
-    {
 
-    }
     public async Task UpdateProfilePicture(byte[]? resultByteArray)
     {
         if (resultByteArray == null) return;
@@ -343,8 +326,8 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     public partial bool IsScreeningActive { get; set; }
 
-    [ObservableProperty]
-    public partial DeviceState? RemoteDeviceState { get; set; } // The real-time playback state
+   
+
 
     // This is the "Virtual Library" of the device we are screening
     public ObservableCollection<SongModelView> RemoteLibrary { get; } = new();

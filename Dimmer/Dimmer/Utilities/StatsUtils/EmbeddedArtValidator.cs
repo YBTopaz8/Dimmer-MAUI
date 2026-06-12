@@ -1,6 +1,4 @@
-﻿using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
-
-namespace Dimmer.Utilities.StatsUtils;
+﻿namespace Dimmer.Utilities.StatsUtils;
 
 
 public static class EmbeddedArtValidator

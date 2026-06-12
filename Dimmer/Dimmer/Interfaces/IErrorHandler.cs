@@ -1,6 +1,4 @@
-﻿using Dimmer.Utils;
-
-namespace Dimmer.Interfaces;
+﻿namespace Dimmer.Interfaces;
 public interface IErrorHandler
 {
     void HandleError(Exception ex);

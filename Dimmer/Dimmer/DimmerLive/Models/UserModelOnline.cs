@@ -70,6 +70,8 @@ public partial class UserModelOnline : ParseUser
 
         if (!string.IsNullOrEmpty(plainUser.Username))
             this.Username = plainUser.Username;
+
+        
         //if (!string.IsNullOrEmpty(plainUser.Email))
         //    this.Email = plainUser.Email;
 

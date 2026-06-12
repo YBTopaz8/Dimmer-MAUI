@@ -1,10 +1,4 @@
-﻿
-
-
-
-using Dimmer.UIUtils;
-
-namespace Dimmer.Data.Models;
+﻿namespace Dimmer.Data.Models;
 
 [Dimmer.Utils.Preserve(AllMembers = true)]
 public partial class AppStateModel : RealmObject, IRealmObjectWithObjectId

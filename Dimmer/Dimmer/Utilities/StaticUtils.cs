@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Text.RegularExpressions;
 
 namespace Dimmer.Utilities;
 

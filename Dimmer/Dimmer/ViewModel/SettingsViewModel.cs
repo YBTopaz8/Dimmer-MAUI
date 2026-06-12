@@ -1,7 +1,4 @@
-﻿using Dimmer.Interfaces;
-using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
-
-namespace Dimmer.ViewModel;
+﻿namespace Dimmer.ViewModel;
 
 public partial class SettingsViewModel : BaseViewModel
 {

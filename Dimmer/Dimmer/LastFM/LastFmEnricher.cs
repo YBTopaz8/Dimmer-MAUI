@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Hqub.Lastfm.Entities;
-
-using LTrack = Hqub.Lastfm.Entities.Track;
+﻿using LTrack = Hqub.Lastfm.Entities.Track;
 
 namespace Dimmer.LastFM;
 

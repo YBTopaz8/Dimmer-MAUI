@@ -1,14 +1,4 @@
-﻿using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
-using DynamicData.Binding;
-using Microsoft.Extensions.Logging.Abstractions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Timers;
-using static Dimmer.Data.ModelView.LastFMUserView;
-using static System.Net.WebRequestMethods;
+﻿using static Dimmer.Data.ModelView.LastFMUserView;
 
 namespace Dimmer.ViewModel;
 

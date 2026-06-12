@@ -1,6 +1,4 @@
-﻿using System.Text.RegularExpressions;
-
-namespace Dimmer.DimmerSearch.TQL;
+﻿namespace Dimmer.DimmerSearch.TQL;
 
 public class AstParser
 {

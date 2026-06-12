@@ -1,8 +1,4 @@
-﻿using ATL.Logging;
-using Parse.LiveQuery;
-using System.IO.Compression;
-using System.Text.Json.Serialization;
-using System.Xml.Linq;
+﻿using System.IO.Compression;
 
 namespace Dimmer.DimmerLive.Interfaces.Implementations;
 public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
@@ -36,12 +32,10 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
 
     private CancellationTokenSource? _heartbeatCts;
 
-    private DeviceState? _myCurrentState;
+    private UserDeviceSession? _myCurrentSession;
     private Subscription<DeviceCommand>? _commandSub;
+    private Subscription<UserDeviceSession> _devSessionSubscription;
 
-
-
- 
     public ParseDeviceSessionService(ILogger<ParseDeviceSessionService> logger, IAuthenticationService authService, ParseLiveQueryClient liveQueryClient,BaseViewModel vm)
     {
         _logger = logger;
@@ -71,23 +65,26 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
         {
             _logger.LogInformation("Registering current device session...");
 
-           
+            _myCurrentSession = new UserDeviceSession
+            {
+                DeviceId = MyDeviceId,
+                DeviceName = DeviceInfo.Name,
+                UserOwner = ParseUser.CurrentUser,
+                ACL = new ParseACL(ParseUser.CurrentUser)
+            };
 
-
-
-            // 2. Also update DeviceState (If you are using this for playback state specifically)
-            var stateQuery = new ParseQuery<DeviceState>(ParseClient.Instance).WhereEqualTo("deviceId", MyDeviceId);
-            _myCurrentState = await stateQuery.FirstOrDefaultAsync() ?? new DeviceState { DeviceId = MyDeviceId };
-
-            _myCurrentState.DeviceName = DeviceInfo.Name;
-            _myCurrentState.Owner = ParseUser.CurrentUser;
-            _myCurrentState.ACL = new ParseACL(ParseUser.CurrentUser);
-            _myCurrentState.DeviceId = MyDeviceId;
-            await _myCurrentState.SaveAsync();
+            _myCurrentSession.DeviceId = MyDeviceId;
+            await _myCurrentSession.SaveAsync();
 
             // 3. Start listeners and fetch other devices
+
             StartCommandListener();
-            await FetchOtherDevicesAsync();
+
+            DeviceCommand initialPresenceCommand = new();
+            initialPresenceCommand["command"] = DimmerCommandsEnum.StatePresence.ToString(); ;
+            initialPresenceCommand["senderDeviceId"] = MyDeviceId;
+
+            await initialPresenceCommand.SaveAsync();
 
             _logger.LogInformation($"Device registered successfully: {DeviceInfo.Name} ({MyDeviceId})");
         }
@@ -96,14 +93,36 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
             _logger.LogError(ex, "Failed to register current device session.");
         }
     }
-
+    
     private void StartCommandListener()
     {
+        var devSessionsQuery = new ParseQuery<UserDeviceSession>(ParseClient.Instance)
+            .WhereEqualTo("userOwner.objectId", ParseClient.Instance.CurrentUser.ObjectId)
+            .Include("userOwner");
+
+        _devSessionSubscription = _liveQueryClient.Subscribe(devSessionsQuery);
+        
+        _devSessionSubscription.On(Subscription.Event.Enter, cmd =>
+        {
+            Debug.WriteLine(cmd.UserOwner?.ObjectId);
+        });
+        
+        _devSessionSubscription.On(Subscription.Event.Create, cmd =>
+        {
+            Debug.WriteLine(cmd.DeviceId);
+        });
+
+
         var cmdQuery = new ParseQuery<DeviceCommand>(ParseClient.Instance)
-            .WhereEqualTo("targetDeviceId", MyDeviceId)
+            .WhereEqualTo("senderDeviceId", MyDeviceId)
             .WhereEqualTo("isProcessed", false);
 
         _commandSub = _liveQueryClient.Subscribe(cmdQuery);
+        _commandSub.On(Subscription.Event.Enter, cmd =>
+        {
+            Debug.WriteLine(cmd.Command);
+        });
+
         _commandSub.On(Subscription.Event.Create, async cmd =>
         {
             _logger.LogInformation($"Remote Command Received: {cmd.Command}");
@@ -289,23 +308,23 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
             ParseFile stateFile = new ParseFile(fileName, compressedBytes, "application/gzip");
             await stateFile.SaveAsync(ParseClient.Instance);
 
-            // Check if we already have a SyncState for this Device ID
-            var query = new ParseQuery<DeviceSyncState>(ParseClient.Instance)
-                .WhereEqualTo("deviceId", MyDeviceId)
-                .WhereEqualTo("owner", ParseUser.CurrentUser);
+            //// Check if we already have a SyncState for this Device ID
+            //var query = new ParseQuery<DeviceSyncState>(ParseClient.Instance)
+            //    .WhereEqualTo("deviceId", MyDeviceId)
+            //    .WhereEqualTo("owner", ParseUser.CurrentUser);
 
-            var existingState = await query.FirstOrDefaultAsync();
+            //var existingState = await query.FirstOrDefaultAsync();
 
-            var syncObj = existingState ?? new DeviceSyncState();
-            syncObj.DeviceId = MyDeviceId;
-            syncObj.DeviceName = DeviceInfo.Name;
-            syncObj.Owner = ParseUser.CurrentUser;
-            syncObj.StateFile = stateFile;
+            //var syncObj = existingState ?? new DeviceSyncState();
+            //syncObj.DeviceId = MyDeviceId;
+            //syncObj.DeviceName = DeviceInfo.Name;
+            //syncObj.Owner = ParseUser.CurrentUser;
+            //syncObj.StateFile = stateFile;
 
             // ACL: ONLY the current user can read/write this file. Ultimate Security.
-            syncObj.ACL = new ParseACL(ParseUser.CurrentUser);
+            //syncObj.ACL = new ParseACL(ParseUser.CurrentUser);
 
-            await syncObj.SaveAsync();
+            //await syncObj.SaveAsync();
             _logger.LogInformation("Device state synced successfully.");
         }
         catch (Exception ex)
@@ -350,13 +369,12 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
         updateSubscription.On(Subscription.Event.Create,
         OnUpdatePushed);
 
-      
+
 
 
         // Listen for Scrobbles from OTHER devices
         var scrobbleQuery = new ParseQuery<CloudScrobble>(ParseClient.Instance)
-            .WhereEqualTo("owner", ParseUser.CurrentUser)
-            .WhereNotEqualTo("deviceId", MyDeviceId);
+            .WhereEqualTo("owner", ParseUser.CurrentUser);
 
         _scrobbleSubscription = _liveQueryClient.Subscribe(scrobbleQuery);
         _scrobbleSubscription.On(Subscription.Event.Create, scrobble =>
@@ -636,6 +654,7 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
         _incomingTransfers?.Dispose();
         _heartbeatCts?.Cancel();
         _commandSub?.UnsubscribeNow();
+        _devSessionSubscription?.UnsubscribeNow();
     }
 
     public async Task AcknowledgeTransferCompleteAsync(DimmerSharedSong transferredSong)
@@ -662,4 +681,16 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
 
         await message.SaveAsync();
     }
+}
+
+public enum DimmerCommandsEnum
+{
+    StatePresence,
+    Play,
+    Pause,
+    Stop,
+    RemovePresence,
+    GetNowPlayingQueue,
+    GetListOfSongs,
+    
 }

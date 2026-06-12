@@ -1,7 +1,4 @@
-﻿
-using System.Runtime.Serialization;
-
-namespace Dimmer.Data.ModelView;
+﻿namespace Dimmer.Data.ModelView;
 
 [Utils.Preserve(AllMembers = true)]
 public partial class UserModelView : ObservableObject

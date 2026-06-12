@@ -1,5 +1,4 @@
-﻿using CommunityToolkit.Diagnostics;
-namespace Dimmer.Utils;
+﻿namespace Dimmer.Utils;
 
 /// <summary>
 /// Generates advanced, user-facing statistics and reports based on listening history,

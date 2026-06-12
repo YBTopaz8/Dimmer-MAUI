@@ -1,13 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Dimmer.Interfaces;
-using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
-
-namespace Dimmer.ViewModel;
+﻿namespace Dimmer.ViewModel;
 
 public partial class EditorViewModel : BaseViewModel
 {

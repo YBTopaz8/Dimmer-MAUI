@@ -1,9 +1,4 @@
-﻿using DynamicData.Binding;
-
-
-using System.ComponentModel;
-
-namespace Dimmer.ViewModel.DimmerLiveVM;
+﻿namespace Dimmer.ViewModel.DimmerLiveVM;
 public partial class ChatViewModel : ObservableObject, IDisposable
 {
     public IChatService ChatService => _chatService;

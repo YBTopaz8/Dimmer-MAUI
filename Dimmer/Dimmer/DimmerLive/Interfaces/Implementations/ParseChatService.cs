@@ -1,6 +1,4 @@
-﻿using Parse.LiveQuery;
-
-namespace Dimmer.DimmerLive.Interfaces.Implementations;
+﻿namespace Dimmer.DimmerLive.Interfaces.Implementations;
 public partial class ParseChatService : ObservableObject, IChatService, IDisposable
 {
     private readonly BaseViewModel _baseVM;

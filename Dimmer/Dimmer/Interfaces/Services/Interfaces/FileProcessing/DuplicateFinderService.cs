@@ -1,7 +1,5 @@
 ﻿using System.Collections.Concurrent;
 
-using Dimmer.Utilities.TypeConverters;
-
 namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 public class DuplicateFinderService : IDuplicateFinderService
 {

@@ -1,5 +1,4 @@
 ﻿using Hqub.Lastfm;
-using Hqub.Lastfm.Entities;
 
 using LTrack = Hqub.Lastfm.Entities.Track;
 

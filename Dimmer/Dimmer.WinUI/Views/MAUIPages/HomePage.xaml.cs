@@ -1074,7 +1074,7 @@ public partial class HomePage : ContentPage
     {
         if(loginVM is not null)
         {
-          await  loginVM.NavigateToProfilePage();
+          await  loginVM.NavigateToProfilePageAsync();
             
         }
 

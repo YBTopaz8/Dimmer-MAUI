@@ -1,10 +1,5 @@
 ﻿// --- START OF FILE FolderMgtService.cs ---
-using System.Threading.Tasks;
 // Add other necessary using statements
-using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
-using DynamicData;
-using Microsoft.Extensions.Logging.Abstractions;
-
 namespace Dimmer.Interfaces.Services;
 
 public class FolderMgtService : IFolderMgtService

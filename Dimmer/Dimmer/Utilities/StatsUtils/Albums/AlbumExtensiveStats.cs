@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace Dimmer.Utilities.StatsUtils.Albums;
+﻿namespace Dimmer.Utilities.StatsUtils.Albums;
 
 public static class AlbumExtensiveStats
 {

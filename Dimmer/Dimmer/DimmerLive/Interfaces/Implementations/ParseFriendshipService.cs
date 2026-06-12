@@ -1,6 +1,4 @@
-﻿using Parse.LiveQuery;
-
-namespace Dimmer.DimmerLive.Interfaces.Implementations;
+﻿namespace Dimmer.DimmerLive.Interfaces.Implementations;
 public class ParseFriendshipService : IFriendshipService, IDisposable
 {
     private readonly IAuthenticationService _authService;

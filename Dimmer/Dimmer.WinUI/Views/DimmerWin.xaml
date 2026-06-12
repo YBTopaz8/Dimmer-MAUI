@@ -84,6 +84,28 @@
                 </NavigationViewItem.Icon>
             </NavigationViewItem>
 
+            <NavigationViewItem
+                x:Name="DimmerUtilities"
+                Content="Utilities"
+                Tag="UtilitiesTag"
+                Tapped="DimmerUtilities_Tapped"
+                >
+                <NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xEC7A;" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+
+            <NavigationViewItem
+                x:Name="DimmerCloud"
+                Content="Dimmer Cloud"
+                Tag="DimmerCloudTag"
+                Tapped="DimmerCloud_Tapped"
+                >
+                <NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xEA91;" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+
 
         </NavigationView.MenuItems>
 
@@ -95,7 +117,7 @@
                         Grid.Column="0"
                         MaxWidth="100"
                         MaxHeight="100"
-                        HorizontalAlignment="Left"
+                        HorizontalAlignment="Center"
                         >
                         <TextBlock
                             HorizontalAlignment="Right"
@@ -109,7 +131,6 @@
                             x:Name="CurrentPlayingSongImage"
                             VerticalAlignment="Top"
                             PointerPressed="CurrentPlayingSongImage_PointerPressed"
-                            Tapped="CurrentSongImg_Tapped"
                             >
                             <Image.Source>
                                 <BitmapImage UriSource="{x:Bind MyViewModel.CurrentPlayingSongView.CoverImagePath, Mode=OneWay}" />

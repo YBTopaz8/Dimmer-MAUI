@@ -2,7 +2,6 @@
 // using Dimmer.Platform; // For Window
 
 using System.Runtime.CompilerServices;
-using Realms;
 
 using DimmerLogLevel = Dimmer.Data.Models.DimmerLogLevel;
 namespace Dimmer.Interfaces.Services;

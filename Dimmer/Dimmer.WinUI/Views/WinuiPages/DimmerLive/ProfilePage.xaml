@@ -56,29 +56,14 @@
                                     <FontIcon Glyph="&#xE70F;" />
 
                                 </Button>
-                                <PersonPicture
-                                    x:Name="ProfilePic"
-                                    DisplayName="{x:Bind ViewModel.CurrentUserOnline.Username, Mode=OneWay}"
-                                    ProfilePicture="{x:Bind ViewModel.CurrentUserOnline.ProfileImagePath, Mode=OneWay, Converter={StaticResource StringToImageConverter}}"
-                                    />
+                                <PersonPicture x:Name="ProfilePic" ProfilePicture="{x:Bind ViewModel.CurrentUserOnline.ProfileImagePath, Mode=OneWay, Converter={StaticResource StringToImageConverter}}" />
 
                             </Grid>
                             <StackPanel
                                 Grid.Column="1"
                                 VerticalAlignment="Center"
                                 Spacing="4"
-                                >
-
-                                <TextBlock Opacity="0.6" Text="{x:Bind ViewModel.CurrentUserOnline.Email, Mode=OneWay}" />
-                                <TextBlock
-                                    Margin="0,8,0,0"
-                                    Text="{x:Bind ViewModel.CurrentUserOnline.Bio, Mode=OneWay, FallbackValue='No bio set'}"
-                                    TextWrapping="Wrap"
-                                    />
-
-                                <Button x:Name="BackUpDevice"
-                                        Click="BackUpDevice_Click"/>
-                            </StackPanel>
+                                />
 
                             <!--  Edit Button  -->
                             <Button

@@ -1,8 +1,4 @@
-﻿
-
-using Hqub.Lastfm.Entities;
-
-namespace Dimmer.Data.ModelView;
+﻿namespace Dimmer.Data.ModelView;
 
 [Utils.Preserve(AllMembers = true)]
 

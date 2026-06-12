@@ -1,8 +1,5 @@
-﻿using Dimmer.Interfaces;
-
-using Hqub.Lastfm;
+﻿using Hqub.Lastfm;
 using Hqub.Lastfm.Cache;
-using Hqub.Lastfm.Entities;
 
 using Microsoft.Extensions.Options;
 

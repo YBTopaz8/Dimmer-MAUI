@@ -1,9 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Dimmer.ViewModel.TQL;
+﻿namespace Dimmer.ViewModel.TQL;
 
 public partial class VisualFilterRule : ObservableObject
 {

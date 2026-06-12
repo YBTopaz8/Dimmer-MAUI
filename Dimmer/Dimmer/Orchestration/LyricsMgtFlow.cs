@@ -1,12 +1,4 @@
-﻿using System.Threading.Tasks;
-
-using Dimmer.Interfaces;
-
-using Microsoft.Extensions.Logging.Abstractions;
-
-
-
-namespace Dimmer.Orchestration;
+﻿namespace Dimmer.Orchestration;
 
 public class LyricsMgtFlow : IDisposable
 {

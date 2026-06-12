@@ -690,9 +690,12 @@ public sealed partial class AllSongsListPage : Page
 
         songMenuFlyout.Items.Add(ViewSongAppBarBtn);
 
-        
-
-        var selectedSong = (SongModelView)((FrameworkElement)e.OriginalSource).DataContext;
+        var send = (FrameworkElement)e.OriginalSource;
+        if(send.GetType() ==typeof(Microsoft.UI.Xaml.Controls.ContentPresenter))
+        {
+            return;
+        }
+        var selectedSong = (SongModelView)(send).DataContext;
         
         var menuFlyout = new MenuFlyout();
         var addNoteToSongMFItem = new MenuFlyoutItem { Text = "Add Note to Song" };
