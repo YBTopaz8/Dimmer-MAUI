@@ -3,10 +3,91 @@
     x:Class="Dimmer.WinUI.Views.WinuiPages.AlbumSection.AllAlbumsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+    xmlns:convertersWinUI="using:Dimmer.WinUI.Utils.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:local="using:Dimmer.WinUI.Views.WinuiPages.AlbumSection"
+    xmlns:dgView="using:WinUI.TableView"
+    xmlns:dimmSearch="clr-namespace:Dimmer.Data.ModelView.DimmerSearch;assembly=Dimmer"
+    xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
+    xmlns:local="using:Dimmer.WinUI.Views.CustomViews.WinuiViews"
+    xmlns:localArtist="using:Dimmer.WinUI.Views.WinuiPages.Artist"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d">
+    xmlns:media="using:Microsoft.UI.Xaml.Media"
+    xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+    xmlns:modelsDb="clr-namespace:Dimmer.Data.Models;assembly=Dimmer"
+    xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
+    xmlns:queryBuilder="queries"
+    xmlns:tql="clr-namespace:Dimmer.DimmerSearch.TQL;assembly=Dimmer"
+    xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
+    mc:Ignorable="d"
+    >
 
-    <Grid />
+    <Page.Resources>
+        <UniformGridLayout
+            x:Key="UniformGridLayout2"
+            MinColumnSpacing="12"
+            MinItemHeight="180"
+            MinItemWidth="180"
+            MinRowSpacing="12"
+            />
+
+        
+
+    </Page.Resources>
+
+    <Grid
+        Margin="15,2"
+        CornerRadius="10"
+        RowSpacing="10"
+        >
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+
+
+        <Grid Grid.Column="1">
+            <ScrollViewer>
+
+                <ItemsRepeater x:Name="AllAlbumsIR" ItemsSource="{x:Bind MyViewModel.AlbumsCollection, Mode=OneWay}">
+                    <ItemsRepeater.Layout>
+                        <UniformGridLayout MaximumRowsOrColumns="9" MinColumnSpacing="5" MinRowSpacing="5"/>
+                    </ItemsRepeater.Layout>
+
+                    <ItemsRepeater.ItemTemplate>
+                        <DataTemplate>
+                            <Button
+                                x:Name="AlbumBtnView"
+                                Background="Transparent"
+                                Click="AlbumBtnView_Click"
+                                >
+
+                                <StackPanel>
+
+                                    <Image
+                                        Width="80"
+                                        Height="80"
+                                        Source="{Binding ImagePath, FallbackValue=''}"
+                                        />
+                                    <TextBlock FontSize="21" Text="{Binding Name}" />
+                                    <StackPanel Orientation="Horizontal" Spacing="5">
+                                        <TextBlock Text="{Binding Artists.Capacity}" />
+                                        <TextBlock Text="Artists" />
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Spacing="5">
+                                        <TextBlock Text="{Binding SongsInAlbum.Count}" />
+                                        <TextBlock Text="Songs" />
+                                    </StackPanel>
+                                </StackPanel>
+
+                            </Button>
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+
+            </ScrollViewer>
+        </Grid>
+
+    </Grid>
 </Page>

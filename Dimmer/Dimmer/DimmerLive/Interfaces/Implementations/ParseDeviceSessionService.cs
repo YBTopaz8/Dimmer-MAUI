@@ -30,14 +30,14 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
 
     private readonly BaseViewModel _vm;
 
-    private CancellationTokenSource? _heartbeatCts;
 
     private UserDeviceSession? _myCurrentSession;
     private Subscription<DeviceCommand>? _commandSub;
-    private Subscription<UserDeviceSession> _devSessionSubscription;
+    public Subscription<UserDeviceSession> DevSessionSubscription { get; private set; }
 
     public ParseDeviceSessionService(ILogger<ParseDeviceSessionService> logger, IAuthenticationService authService, ParseLiveQueryClient liveQueryClient,BaseViewModel vm)
     {
+        
         _logger = logger;
         _authService = authService;
         _liveQueryClient = liveQueryClient;
@@ -65,94 +65,77 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
         {
             _logger.LogInformation("Registering current device session...");
 
-            _myCurrentSession = new UserDeviceSession
-            {
-                DeviceId = MyDeviceId,
-                DeviceName = DeviceInfo.Name,
-                UserOwner = ParseUser.CurrentUser,
-                ACL = new ParseACL(ParseUser.CurrentUser)
-            };
-
-            _myCurrentSession.DeviceId = MyDeviceId;
-            await _myCurrentSession.SaveAsync();
-
-            // 3. Start listeners and fetch other devices
-
             StartCommandListener();
 
-            DeviceCommand initialPresenceCommand = new();
-            initialPresenceCommand["command"] = DimmerCommandsEnum.StatePresence.ToString(); ;
-            initialPresenceCommand["senderDeviceId"] = MyDeviceId;
 
-            await initialPresenceCommand.SaveAsync();
 
-            _logger.LogInformation($"Device registered successfully: {DeviceInfo.Name} ({MyDeviceId})");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to register current device session.");
         }
     }
-    
+
     private void StartCommandListener()
     {
         var devSessionsQuery = new ParseQuery<UserDeviceSession>(ParseClient.Instance)
             .WhereEqualTo("userOwner.objectId", ParseClient.Instance.CurrentUser.ObjectId)
-            .Include("userOwner");
+           ;
 
-        _devSessionSubscription = _liveQueryClient.Subscribe(devSessionsQuery);
-        
-        _devSessionSubscription.On(Subscription.Event.Enter, cmd =>
+        DevSessionSubscription = _liveQueryClient.Subscribe(devSessionsQuery);
+        DevSessionSubscription.On(Subscription.Event.Create, cmd =>
+        {
+            _otherDevicesCache.Edit(innerList =>
+            {
+                var item = innerList.Items.FirstOrDefault(x => x.DeviceId == MyDeviceId);
+                if (item is null)
+                {
+                    innerList.AddOrUpdate(item: cmd);
+                }
+            });
+        });
+
+
+        DevSessionSubscription.Subscribes.Subscribe(async q =>
+        {
+
+
+            Debug.WriteLine("Successfully Subscribed! Now listening for data...");
+
+            // 1. Prepare parameters for the Cloud Function you already wrote
+            var parameters = new Dictionary<string, object>
+            {
+                { "deviceId", MyDeviceId },
+                { "deviceName", DeviceInfo.Name },
+                { "deviceIdiom", DeviceInfo.Idiom.ToString() },
+                { "deviceOSVersion", DeviceInfo.VersionString },
+                { "deviceManufacturer", DeviceInfo.Manufacturer },
+                { "devicePlatform", DeviceInfo.Platform.ToString() },
+                { "deviceModel", DeviceInfo.Model }
+            };
+
+            try
+            {
+                // 2. Call your Cloud Function instead of SaveAsync()
+                // This will securely create the object on the server AND set the ACL properly!
+                var result = await ParseClient.Instance.CallCloudCodeFunctionAsync<UserDeviceSession>(
+                    "registerDevicePresence",
+                    parameters
+                );
+
+                Debug.WriteLine($"Created Session via Cloud Code! ID: {result.ObjectId}");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to register device presence: {ex.Message}");
+            }
+        });
+        DevSessionSubscription.On(Subscription.Event.Enter, cmd =>
         {
             Debug.WriteLine(cmd.UserOwner?.ObjectId);
         });
-        
-        _devSessionSubscription.On(Subscription.Event.Create, cmd =>
-        {
-            Debug.WriteLine(cmd.DeviceId);
-        });
 
-
-        var cmdQuery = new ParseQuery<DeviceCommand>(ParseClient.Instance)
-            .WhereEqualTo("senderDeviceId", MyDeviceId)
-            .WhereEqualTo("isProcessed", false);
-
-        _commandSub = _liveQueryClient.Subscribe(cmdQuery);
-        _commandSub.On(Subscription.Event.Enter, cmd =>
-        {
-            Debug.WriteLine(cmd.Command);
-        });
-
-        _commandSub.On(Subscription.Event.Create, async cmd =>
-        {
-            _logger.LogInformation($"Remote Command Received: {cmd.Command}");
-            if (_vm.IsBackGrounded) return;
-            RxSchedulers.UI.ScheduleTo(async () =>
-            {
-                switch (cmd.Command)
-                {
-                    case "PLAY_KEY":
-                        bool accept = await Shell.Current.DisplayAlertAsync("Session Transfer", "Resume playback from other device?", "Yes", "No");
-                        if (accept)
-                        {
-                            await HandleRemotePlay(cmd.Payload); // Plays the song
-                        }
-
-                        break;
-                    case "PAUSE":
-                        _vm.PlayPauseToggleCommand.Execute(null);
-                        break;
-                    case "SEEK":
-                        _vm.SeekTrackPosition(double.Parse(cmd.Payload));
-                        break;
-                }
-            });
-
-            cmd.IsProcessed = true;
-            await cmd.SaveAsync();
-        });
     }
-
     private async Task SendDeviceReplyAsync(string targetDeviceId, string text)
     {
         try
@@ -652,9 +635,9 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
         StopListeners();
         _otherDevicesCache?.Dispose();
         _incomingTransfers?.Dispose();
-        _heartbeatCts?.Cancel();
+
         _commandSub?.UnsubscribeNow();
-        _devSessionSubscription?.UnsubscribeNow();
+        DevSessionSubscription?.UnsubscribeNow();
     }
 
     public async Task AcknowledgeTransferCompleteAsync(DimmerSharedSong transferredSong)

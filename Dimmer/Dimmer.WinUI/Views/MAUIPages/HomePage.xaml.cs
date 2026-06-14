@@ -1089,6 +1089,16 @@ public partial class HomePage : ContentPage
             send.Source = loginVM.CurrentUserOnline.ProfileImagePath;
             _= sessionVM.RegisterCurrentDeviceAsync();
         }
+
+        
+        loginVM.CurrentUserOnline?.WhenPropertyChange(nameof(loginVM.CurrentUserOnline.SessionToken), v=>loginVM.CurrentUserOnline)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(x =>
+            {
+                if (string.IsNullOrEmpty(x.SessionToken)) return;
+                send.Source = loginVM.CurrentUserOnline.ProfileImagePath;
+
+            });            
     }
 
     private void ViewFullStatsClicked(object sender, EventArgs e)

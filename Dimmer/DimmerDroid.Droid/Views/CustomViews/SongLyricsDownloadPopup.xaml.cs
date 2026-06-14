@@ -6,6 +6,7 @@ public partial class SongLyricsDownloadPopup : DXPopup
 	{
 		InitializeComponent();
         MyViewModel = myViewModel;
+        MyViewModel.SelectedSong = concernedSong;
         ConcernedSong = concernedSong;
 
 

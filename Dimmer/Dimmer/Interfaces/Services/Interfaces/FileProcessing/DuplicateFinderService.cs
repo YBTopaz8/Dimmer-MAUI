@@ -267,6 +267,7 @@ public class DuplicateFinderService : IDuplicateFinderService
 
         await Parallel.ForEachAsync(allSongs, (song, cancellationToken) =>
         {
+            
             if (string.IsNullOrEmpty(song.FilePath) || !File.Exists(song.FilePath))
             {
                 missingSongs.Add(song);

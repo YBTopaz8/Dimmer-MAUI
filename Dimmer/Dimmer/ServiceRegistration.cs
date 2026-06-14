@@ -164,6 +164,7 @@ public static class ServiceRegistration
         ParseClient.Instance.RegisterSubclass(typeof(ChatMessage));
         ParseClient.Instance.RegisterSubclass(typeof(DimmerSharedSong));
         ParseClient.Instance.RegisterSubclass(typeof(UserModelOnline));
+        ParseClient.Instance.RegisterSubclass(typeof(DeviceCommand));
 
         ParseClient.Instance.RegisterSubclass(typeof(UserModelOnline));
         ParseClient.Instance.RegisterSubclass(typeof(FriendRequest));

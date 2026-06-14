@@ -31,86 +31,7 @@
             MinRowSpacing="12"
             />
 
-        <DataTemplate x:Key="ArtistDT">
-            <Grid>
 
-                <StackPanel
-                    Padding="5"
-                    Background="Transparent"
-                    CornerRadius="12"
-                    >
-                    <Image
-                        x:Name="ArtistImg"
-                        Width="120"
-                        Height="120"
-                        PointerPressed="ArtistImg_PointerPressed"
-                        >
-                        <Image.Source>
-                            <BitmapImage
-                                DecodePixelHeight="120"
-                                DecodePixelWidth="120"
-                                UriSource="{Binding ImagePath}"
-                                />
-                        </Image.Source>
-                    </Image>
-                    <TextBlock
-                        HorizontalAlignment="Center"
-                        FontSize="20"
-                        Text="{Binding Name}"
-                        />
-
-                    <StackPanel
-                        HorizontalAlignment="Center"
-                        Orientation="Horizontal"
-                        Spacing="5"
-                        >
-                        <ToolTipService.ToolTip>
-                            <StackPanel Orientation="Horizontal" Spacing="2">
-
-                                <TextBlock FontWeight="Bold" Text="{Binding TotalSongsByArtist}" />
-                                <TextBlock Text="Songs" />
-                                <TextBlock Text="|" />
-                                <TextBlock FontWeight="Bold" Text="{Binding TotalAlbumsByArtist}" />
-                                <TextBlock Text="Albums" />
-
-
-
-
-                            </StackPanel>
-                        </ToolTipService.ToolTip>
-
-                        <Button Background="Transparent">
-
-                            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
-                                <TextBlock FontWeight="Bold" Text="{Binding TotalSongsByArtist}" />
-                                <SymbolIcon
-                                    Width="20"
-                                    Height="20"
-                                    Symbol="Audio"
-                                    />
-
-                            </StackPanel>
-
-                        </Button>
-                        <Button Background="Transparent">
-                            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
-                                <TextBlock FontWeight="Bold" Text="{Binding TotalAlbumsByArtist}" />
-                                <FontIcon
-                                    Width="20"
-                                    Height="20"
-                                    Glyph="&#xE93C;"
-                                    />
-
-                            </StackPanel>
-
-
-                        </Button>
-
-                    </StackPanel>
-                </StackPanel>
-
-            </Grid>
-        </DataTemplate>
 
     </Page.Resources>
 
@@ -127,45 +48,29 @@
 
 
         <Grid Grid.Column="1">
-            <ScrollViewer>
 
-                <ItemsRepeater x:Name="AllArtistsIR" ItemsSource="{x:Bind MyViewModel.ArtistsCollection, Mode=OneWay}">
-                    <ItemsRepeater.Layout>
-                        <UniformGridLayout MaximumRowsOrColumns="9" />
-                    </ItemsRepeater.Layout>
+            <dgView:TableView AutoGenerateColumns="False" ItemsSource="{x:Bind MyViewModel.ArtistsCollection, Mode=OneWay}">
+                <dgView:TableView.Columns>
+                    <dgView:TableViewTemplateColumn Width="150" Header="Image">
+                        <dgView:TableViewTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Image>
+                                    <Image.Source>
+                                        <BitmapImage UriSource="{Binding ImagePath}" />
+                                    </Image.Source>
+                                </Image>
+                            </DataTemplate>
+                        </dgView:TableViewTemplateColumn.CellTemplate>
+                    </dgView:TableViewTemplateColumn>
 
-                    <ItemsRepeater.ItemTemplate>
-                        <DataTemplate>
-                            <Button
-                                x:Name="ArtistBtnView"
-                                Background="Transparent"
-                                Click="ArtistBtnView_Click"
-                                >
-
-                                <StackPanel>
-
-                                    <Image
-                                        Width="80"
-                                        Height="80"
-                                        Source="{Binding ImagePath, FallbackValue=''}"
-                                        />
-                                    <TextBlock FontSize="21" Text="{Binding Name}" />
-                                    <StackPanel Orientation="Horizontal" Spacing="5">
-                                        <TextBlock Text="{Binding AlbumsByArtist}" />
-                                        <TextBlock Text="Albums" />
-                                    </StackPanel>
-                                    <StackPanel Orientation="Horizontal" Spacing="5">
-                                        <TextBlock Text="{Binding SongsByArtist}" />
-                                        <TextBlock Text="Songs" />
-                                    </StackPanel>
-                                </StackPanel>
-
-                            </Button>
-                        </DataTemplate>
-                    </ItemsRepeater.ItemTemplate>
-                </ItemsRepeater>
-
-            </ScrollViewer>
+                    <dgView:TableViewTextColumn Binding="{Binding Name}" Header="Name" />
+                    <dgView:TableViewNumberColumn Binding="{Binding TotalAlbumsByArtist}" Header="Total Albums By Artist" />
+                    <dgView:TableViewNumberColumn Binding="{Binding TotalSongsByArtist}" Header="Total Songs By Artist" />
+                    <dgView:TableViewNumberColumn Binding="{Binding TotalCompletedPlays}" Header="Total Completed Plays" />
+                    <dgView:TableViewNumberColumn Binding="{Binding AverageSongListenThroughRate}" Header="Average Song Listen ThroughRate" />
+                    <dgView:TableViewNumberColumn Binding="{Binding OverallRank}" Header="Overall Rank" />
+                </dgView:TableView.Columns>
+            </dgView:TableView>
         </Grid>
 
     </Grid>

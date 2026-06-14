@@ -5404,7 +5404,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public void ClearDuplicateResults() { _duplicateSource.Clear(); }
 
     [RelayCommand]
-    private async Task ApplyDuplicateActionsAsync()
+    public async Task ApplyDuplicateActionsAsync()
     {
         var setsWithDeletions = DuplicateSets
        .Where(set => set.Items.Any(item => item.Action == DuplicateAction.Delete))
@@ -5446,7 +5446,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial bool IsCheckingFilePresence { get; set; }
 
-
+    [ObservableProperty]
+    public partial LibraryValidationResult? ValidationResult { get; set; }
     [RelayCommand]
     private async Task ValidateLibraryAsync()
     {
@@ -5461,11 +5462,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             // --- MODIFIED: Query fresh data directly from the repository ---
             var allSongsFromDb = await songRepo.GetAllAsync();
-            var validationResult = await Task.Run(
+            ValidationResult= await Task.Run(
                 () => _duplicateFinderService.ValidateMultipleFilesPresenceAsync(
-                    allSongsFromDb.AsEnumerable().Select(x => x.ToSongModelView())));
+                    allSongsFromDb.AsEnumerable().Select(x => x.ToSongModelView()!)!));
 
-            if (validationResult.MissingCount == 0)
+            if (ValidationResult.MissingCount == 0)
             {
                 _logger.LogInformation("Library validation complete. No missing files found.");
                 return;
@@ -5473,16 +5474,16 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             _logger.LogInformation(
                 "Found {Count} songs with missing files. Removing from database.",
-                validationResult.MissingCount);
+                ValidationResult.MissingCount);
 
-            var missingIds = validationResult.MissingSongs.Select(s => s.Id).ToHashSet();
+            var missingIds = ValidationResult.MissingSongs.Select(s => s.Id).ToHashSet();
             await songRepo.DeleteManyAsync(missingIds); // Assuming your repo has a DeleteManyAsync
 
             var allSongs = await songRepo.GetAllAsync();
             Debug.WriteLine(allSongs.Count);
             // --- REPLACED: Refresh the UI by re-running the current search ---
             _searchQuerySubject.OnNext(CurrentTqlQuery);
-            await ShowNotification($"{validationResult.MissingCount} missing songs removed from library.");
+            await ShowNotification($"{ValidationResult.MissingCount} missing songs removed from library.");
         }
         catch (Exception ex)
         {

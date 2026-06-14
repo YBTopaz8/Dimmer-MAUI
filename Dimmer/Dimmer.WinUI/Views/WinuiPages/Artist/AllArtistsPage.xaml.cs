@@ -42,7 +42,7 @@ public sealed partial class AllArtistsPage : Page
 
         DataContext = MyViewModel;
 
-        await Task.Delay(1000);
+        await Task.Delay(250);
         MyViewModel.SetupArtistPipeline();
     }
     public BaseViewModelWin MyViewModel { get; set; }

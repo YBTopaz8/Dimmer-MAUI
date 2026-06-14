@@ -165,7 +165,7 @@ public partial class ParseChatService : ObservableObject, IChatService, IDisposa
                 .Include($"{nameof(ChatMessage.SharedSong)}.uploader"); // Include nested pointers
 
 
-            var messageSubscription = _liveQueryClient.Subscribe(messageQuery);
+            var messageSubscription =  _liveQueryClient.Subscribe(messageQuery);
             IsConnectedToMessagesLQ= messageSubscription.IsConnected;
 
 

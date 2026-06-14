@@ -1139,6 +1139,17 @@ public partial class HomePage : ContentPage
         
     }
 
+    private void ScrollToFirstSongs_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+
+    private void ScrollToLastSongs_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
 
 
 

@@ -126,6 +126,7 @@
                                                             <Button
                                                                 x:Name="NameViewDevice"
                                                                 Click="NameViewDevice_Click"
+                                                                CommandParameter="{Binding MyDeviceId}"
                                                                 Content="View"
                                                                 />
                                                         </StackPanel>

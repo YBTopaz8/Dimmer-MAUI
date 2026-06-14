@@ -17,7 +17,13 @@ public partial class NowPlayingView : ContentView
     SongModelView? songForLyrics;
     private async void LyricsChip_Tap(object sender, HandledEventArgs e)
     {
+        if(MyViewModel.CurrentPlayingSongView.HasSyncedLyrics)
+        {
 
+            NowPlayingViewExpander.SetIsExpanded(false, true);
+            SyncLyricsView.SetIsExpanded(true, true);
+            return;
+        }
         if(songForLyrics is null)
         {
             songForLyrics = MyViewModel.CurrentPlayingSongView;
@@ -193,6 +199,13 @@ public partial class NowPlayingView : ContentView
         var lineHandle = e.ItemHandle;
 
         AllLyricsCV.ScrollTo(lineHandle,DXScrollToPosition.Start);
+    }
+
+    private async void LyricsChip_LongPress(object sender, HandledEventArgs e)
+    {
+        SongLyricsDownloadPopup popup = new SongLyricsDownloadPopup(MyViewModel, MyViewModel.CurrentPlayingSongView);
+
+        await popup.ShowAsync();
     }
 
 

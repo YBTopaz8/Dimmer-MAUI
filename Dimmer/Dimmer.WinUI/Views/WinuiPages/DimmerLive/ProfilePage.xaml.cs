@@ -184,7 +184,19 @@ public sealed partial class ProfilePage : Page
 
     private void NameViewDevice_Click(object sender, RoutedEventArgs e)
     {
+        Button btn = (Button)sender;
+        var dev = btn.DataContext as  Dimmer.DimmerLive.Models.UserDeviceSession
+        ;
 
+        if (dev is null) return;
+
+        ViewModel.SessionMgtVM.SelectedDevice = dev;
+        var param = new Dictionary<string, object>()
+            ;
+        param.Add("ViewModel", ViewModel);
+        param.Add("deviceID", dev.DeviceId);
+
+        ViewModel.BaseViewModel.NavigateToAnyPageOfGivenType(typeof(RemoteControlPage), param);
     }
 
     private async void BackUpDevice_Click(object sender, RoutedEventArgs e)

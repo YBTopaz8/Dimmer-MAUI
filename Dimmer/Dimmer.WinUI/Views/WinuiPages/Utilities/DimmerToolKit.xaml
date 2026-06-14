@@ -24,6 +24,10 @@
     mc:Ignorable="d"
     >
 
+    <Pivot x:Name="MainPivotView" >
+        <PivotItem Header="Duplicate Section">
+            
+
     <Grid Padding="10" RowSpacing="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
@@ -231,4 +235,16 @@
 
         </ScrollViewer>
     </Grid>
+
+
+        </PivotItem>
+
+        <PivotItem Header="File Presence Section">
+            <StackPanel>
+                <Button Content="Check File Presence" Command="{x:Bind MyViewModel.ValidateLibraryCommand}"/>
+
+            </StackPanel>
+        </PivotItem>
+    </Pivot>
+
 </Page>

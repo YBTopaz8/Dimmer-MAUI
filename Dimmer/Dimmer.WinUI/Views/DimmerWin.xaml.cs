@@ -669,7 +669,7 @@ public sealed partial class DimmerWin : Window
     private void ArtistsBtn_Tapped(object sender, TappedRoutedEventArgs e)
     {
 
-        ContentFrame.NavigateToType(typeof(AllAlbumsPage), MyViewModel, null);
+        ContentFrame.NavigateToType(typeof(AllArtistsPage), MyViewModel, null);
         ContentFrame.BackStack.Clear();
     }
 

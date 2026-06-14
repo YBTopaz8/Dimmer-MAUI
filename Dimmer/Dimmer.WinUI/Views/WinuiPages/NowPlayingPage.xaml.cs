@@ -4,6 +4,8 @@ using Microsoft.Maui.Platform;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
+using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Windows.Media;
 using Point = Windows.Foundation.Point;
 namespace Dimmer.WinUI.Views.WinuiPages;
@@ -34,6 +36,14 @@ public sealed partial class NowPlayingPage : Page
         ArrayOfGoeyy.Add("Favorite");
         ArrayOfGoeyy.Add("Note");
         MyViewModel.CurrentWinUIPage = this;
+        compDisp = new();
+
+    }
+    protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
+    {
+        compDisp.Dispose();
+        base.OnNavigatingFrom(e);
+
     }
     private void ViewSongDetailsButton_Click(object sender, RoutedEventArgs e)
     {
@@ -291,41 +301,47 @@ public sealed partial class NowPlayingPage : Page
     private async void CurrentPlayingSongImg_Loaded(object sender, RoutedEventArgs e)
     {
 
-        AnimationHelper.TryStart(CurrentPlayingSongImg,
-            new List<UIElement> { SongInfoStackPanel },
-            AnimationHelper.Key_NowPlayingPage,AnimationHelper.Key_DetailToListFromAlbum,AnimationHelper.Key_ListToDetail);
         
+
     }
 
 
     private async void CurrentPlayingSongImg_Loading(FrameworkElement sender, object args)
     {
         if (MyViewModel.CurrentPlayingSongView is null) return;
-        if (!string.IsNullOrEmpty(MyViewModel.CurrentPlayingSongView.CoverImagePath))
-        {
-            CurrentPlayingSongImg.Source = new BitmapImage(new Uri(MyViewModel.CurrentPlayingSongView.CoverImagePath));
-
-            var imgBytes = await ImageFilterUtils.ApplyFilter(MyViewModel.CurrentPlayingSongView.CoverImagePath, FilterType.DarkAcrylic);
-            if (imgBytes is null) return;
-
-            CurrentPlayingSongImgBG.Source = null;
-
-            using var stream = new MemoryStream(imgBytes);
-            var bitmap = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage();
-            await bitmap.SetSourceAsync(stream.AsRandomAccessStream());
-            DispatcherQueue.TryEnqueue(() =>
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentPlayingSongView), v => MyViewModel.CurrentPlayingSongView)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(async song =>
             {
-                CurrentPlayingSongImgBG.Source = bitmap;
+                if (!string.IsNullOrEmpty(song.CoverImagePath))
+                {
+                    CurrentPlayingSongImg.Source = new BitmapImage(new Uri(song.CoverImagePath));
 
-            });
+                    var imgBytes = await ImageFilterUtils.ApplyFilter(song.CoverImagePath, FilterType.DarkAcrylic);
+                    if (imgBytes is null) return;
 
-        }
-        else
-        {
+                    CurrentPlayingSongImgBG.Source = null;
 
-        }
-      
+                    using var stream = new MemoryStream(imgBytes);
+                    var bitmap = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage();
+                    await bitmap.SetSourceAsync(stream.AsRandomAccessStream());
+                    DispatcherQueue.TryEnqueue(() =>
+                    {
+                        CurrentPlayingSongImgBG.Source = bitmap;
+
+                    });
+
+                }
+                else
+                {
+
+                }
+
+
+            }).DisposeWith(compDisp);
+        
     }
+    CompositeDisposable compDisp;
 
     private void ListView_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
     {

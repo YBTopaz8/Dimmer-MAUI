@@ -71,4 +71,17 @@ public partial class DuplicateFinder : ContentPage
     {
 
     }
+
+    private void TestBtn_Clicked(object sender, EventArgs e)
+    {
+        DevExpress.Maui.DataGrid.CellData data = (DevExpress.Maui.DataGrid.CellData)sender;
+        var item = data.Item as DuplicateItemViewModel;
+
+    }
+
+
+    private async void ApplyAction_Clicked(object sender, EventArgs e)
+    {
+        await MyViewModel.ApplyDuplicateActionsAsync();
+    }
 }
