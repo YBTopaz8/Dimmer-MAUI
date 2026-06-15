@@ -112,4 +112,26 @@ public sealed partial class AllArtistsPage : Page
 
         var artist = send.DataContext as ArtistModelView;
     }
+
+    private async void AllArtistsTableView_CellDoubleTapped(object sender, TableViewCellDoubleTappedEventArgs e)
+    {
+        FrameworkElement element = (e.Cell as FrameworkElement)!;
+        ArtistModelView? artist = null;
+        if (element == null)
+            return;
+
+        if (e.Item is ArtistModelView currentArtist)
+        {
+            artist = currentArtist;
+        }
+        if (artist == null)
+            return;
+
+
+
+        MyViewModel.NavigateToArtistPageWithArtistId(artist.Id);
+    }
+
+ 
+
 }

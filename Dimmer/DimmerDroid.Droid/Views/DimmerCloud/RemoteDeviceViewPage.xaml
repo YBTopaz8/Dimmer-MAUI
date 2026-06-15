@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Dimmer.Views.DimmerCloud.RemoteDeviceViewPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:dx="http://schemas.devexpress.com/maui"
+    xmlns:globalVM="clr-namespace:Dimmer.ViewModel;assembly=Dimmer"
+    xmlns:local="clr-namespace:Dimmer.Views.CustomViews"
+    xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+    xmlns:vm="clr-namespace:Dimmer.ViewModels"
+    Title="Remote Device View Page"
+    x:DataType="globalVM:SessionManagementViewModel"
+    Shell.ForegroundColor="DarkSlateBlue"
+    >
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <dx:DXStackLayout Grid.Row="0">
+            <dx:DXStackLayout Orientation="Horizontal">
+                <dx:DXButton
+                    x:Name="GetAllSongs"
+                    Clicked="GetAllSongs_Click"
+                    Content="Get All Songs"
+                    />
+                <dx:DXButton
+                    x:Name="GetPlayBackQueue"
+                    Clicked="GetPlayBackQueue_Click"
+                    Content="Get Current Queue"
+                    />
+                <dx:DXButton
+                    x:Name="GetFavs"
+                    AutomationId="GetFavs"
+                    Clicked="GetFavs_Click"
+                    Content="Get Favorites"
+                    />
+
+            </dx:DXStackLayout>
+        </dx:DXStackLayout>
+
+        <dx:DataGridView
+            Grid.Row="1"
+            AutoGenerateColumnsMode="Auto"
+            ItemsSource="{Binding FavSongs}"
+            />
+    </Grid>
+</ContentPage>

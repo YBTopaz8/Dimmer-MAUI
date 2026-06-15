@@ -49,7 +49,13 @@
 
         <Grid Grid.Column="1">
 
-            <dgView:TableView AutoGenerateColumns="False" ItemsSource="{x:Bind MyViewModel.ArtistsCollection, Mode=OneWay}">
+            <dgView:TableView
+                x:Name="AllArtistsTableView"
+                AutoGenerateColumns="False"
+                CellDoubleTapped="AllArtistsTableView_CellDoubleTapped"
+                IsReadOnly="True"
+                ItemsSource="{x:Bind MyViewModel.ArtistsCollection, Mode=OneWay}"
+                >
                 <dgView:TableView.Columns>
                     <dgView:TableViewTemplateColumn Width="150" Header="Image">
                         <dgView:TableViewTemplateColumn.CellTemplate>

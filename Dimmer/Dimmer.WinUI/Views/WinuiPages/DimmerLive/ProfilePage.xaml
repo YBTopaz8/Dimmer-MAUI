@@ -119,14 +119,14 @@
                                             <dgView:TableViewTextColumn Binding="{Binding DeviceName}" Header="Device Name" />
                                             <dgView:TableViewTextColumn Binding="{Binding DeviceIdiom}" Header="Device Type" />
                                             <dgView:TableViewTextColumn Binding="{Binding IsActive}" Header="Is Current Device?" />
-                                            <dgView:TableViewTemplateColumn>
+                                            <dgView:TableViewTemplateColumn Header="Action">
                                                 <dgView:TableViewTemplateColumn.CellTemplate>
                                                     <DataTemplate>
                                                         <StackPanel>
                                                             <Button
                                                                 x:Name="NameViewDevice"
                                                                 Click="NameViewDevice_Click"
-                                                                CommandParameter="{Binding MyDeviceId}"
+                                                                CommandParameter="{Binding DeviceId}"
                                                                 Content="View"
                                                                 />
                                                         </StackPanel>

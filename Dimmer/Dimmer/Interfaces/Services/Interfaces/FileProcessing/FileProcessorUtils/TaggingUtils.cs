@@ -62,16 +62,47 @@ public static class TaggingUtils
     {
         if (string.IsNullOrWhiteSpace(input)) return new List<string>();
 
-        // The Regex: 
-        // Split by: ; OR / OR & OR " x " OR " feat " 
-        // OR Split by , (COMMA) ONLY IF it is NOT followed by a suffix (II, III, Jr)
-        string suffixPattern = string.Join("|", Suffixes);
-        string pattern = $@"\s*(?:;|/|&|\bx\b|\b(?:feat|ft|featuring|with|vs)\b\.?)\s*|,(?!\s*(?i:{suffixPattern})\b)";
+        // 1. Split by common strict separators (except commas)
+        string pattern = @"\s*(?:;|/|&|\bx\b|\b(?:feat|ft|featuring|with|vs)\b\.?)\s*";
+        var initialParts = Regex.Split(input, pattern, RegexOptions.IgnoreCase)
+                                .Where(x => !string.IsNullOrWhiteSpace(x))
+                                .ToList();
 
-        return Regex.Split(input, pattern, RegexOptions.IgnoreCase)
-                    .Select(x => x.Trim())
-                    .Where(x => !string.IsNullOrWhiteSpace(x))
-                    .ToList();
+        var finalParts = new List<string>();
+
+        foreach (var part in initialParts)
+        {
+            // 2. Split this segment by commas
+            var commaParts = part.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                 .Select(x => x.Trim())
+                                 .ToList();
+
+            if (commaParts.Count <= 1)
+            {
+                finalParts.AddRange(commaParts);
+                continue;
+            }
+
+            // 3. Loop and merge suffixes (e.g., "Jr", "II") back to the preceding artist
+            var mergedParts = new List<string>();
+            for (int i = 0; i < commaParts.Count; i++)
+            {
+                string current = commaParts[i];
+
+                if (i > 0 && Suffixes.Any(suffix => string.Equals(current, suffix, StringComparison.OrdinalIgnoreCase)))
+                {
+                    // Append suffix to previous artist element
+                    mergedParts[mergedParts.Count - 1] = $"{mergedParts[mergedParts.Count - 1]}, {current}";
+                }
+                else
+                {
+                    mergedParts.Add(current);
+                }
+            }
+            finalParts.AddRange(mergedParts);
+        }
+
+        return finalParts.Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
     }
 
     /// <summary>

@@ -765,7 +765,7 @@ public sealed partial class DimmerWin : Window
                 break;
             case ContentDialogResult.Primary:
                 if (string.IsNullOrEmpty(usrQueryName.Text)) return;
-               await MyViewModel.AddToPlaylist(usrQueryName.Text, MyViewModel.SearchResults, SearchBoxEdit.Text);
+               await MyViewModel.AddToPlaylistAsync(usrQueryName.Text, MyViewModel.SearchResults, SearchBoxEdit.Text);
                 break;
             case ContentDialogResult.Secondary:
                 break;

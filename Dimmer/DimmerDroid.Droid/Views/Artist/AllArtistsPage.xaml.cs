@@ -12,11 +12,12 @@ public partial class AllArtistsPage : ContentPage
 	}
     public BaseViewModelAnd MyViewModel { get; }
 
-    protected override void OnAppearing()
+    protected async override void OnAppearing()
     {
         base.OnAppearing();
 
-	
+        await Task.Delay(250);
+        MyViewModel.SetupArtistPipeline();
     }
 
 

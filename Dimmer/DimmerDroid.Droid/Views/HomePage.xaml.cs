@@ -6,6 +6,8 @@ using DevExpress.Data.Extensions;
 using DevExpress.Maui.Editors;
 using DevExpress.Maui.Scheduler.Internal;
 using Dimmer.Utilities;
+using Google.Android.Material.Dialog;
+using Microsoft.Maui.Controls.PlatformConfiguration;
 
 
 namespace Dimmer.Views;
@@ -33,7 +35,6 @@ public partial class HomePage : ContentPage
         MyLastFMViewModel.LoadBaseViewModel(viewModelAnd);
         _ = Task.Run(() => loginVM.InitializeAsync());
      
-
     }
     
     BaseViewModelAnd MyViewModel { get; }
@@ -829,17 +830,7 @@ public partial class HomePage : ContentPage
         }
     }
 
-    private void OtherArtistsName_CheckedChanged(object sender, ValueChangedEventArgs<bool> e)
-    {
-        var dxBtn = (DXButton)sender;
-        var song = dxBtn.CommandParameter as SongModelView;
-        if (song is null) return;
-        MyViewModel.SelectedSong = song;
-        var songHandle = SongsCV.FindItemHandle(song);
-
-        SongsCV.ScrollTo(songHandle, DXScrollToPosition.Start);
-        ArtistsMgtBtmSheet.Show(BottomSheetState.HalfExpanded);
-    }
+ 
 
     private void AddNextToCurrentPlayingSong_Clicked(object sender, EventArgs e)
     {
@@ -1141,13 +1132,48 @@ public partial class HomePage : ContentPage
 
     private void ScrollToFirstSongs_Clicked(object sender, EventArgs e)
     {
-
+        
+        var songHandle = SongsCV.GetItemHandleByVisibleIndex(0);
+        SongsCV.ScrollTo(songHandle, DXScrollToPosition.Start);
+        SortPopUp.Close();
     }
 
 
     private void ScrollToLastSongs_Clicked(object sender, EventArgs e)
     {
 
+        var songHandle = SongsCV.GetItemHandleByVisibleIndex(SongsCV.VisibleItemCount-1);
+        SongsCV.ScrollTo(songHandle, DXScrollToPosition.Start);
+        SortPopUp.Close();
+    }
+
+    private void OtherArtistsName_Clicked(object sender, EventArgs e)
+    {
+        var dxBtn = (DXButton)sender;
+        var song = dxBtn.CommandParameter as SongModelView;
+        if (song is null) return;
+        MyViewModel.SelectedSong = song;
+        var songHandle = SongsCV.FindItemHandle(song);
+
+        SongsCV.ScrollTo(songHandle, DXScrollToPosition.Start);
+        ArtistsMgtBtmSheet.Show(BottomSheetState.HalfExpanded);
+    }
+
+    private async void SavePlayBackQueue_Clicked(object sender, EventArgs e)
+    {
+        var res = await Shell.Current.DisplayPromptAsync("Save Playlist", "Enter Playlist Name",
+            keyboard: Keyboard.Text, placeholder: "ex; happy few ");
+        if (string.IsNullOrEmpty(res)) return;
+
+        List<SongModelView> songsInCV = new();
+        for (int i = 0; i < PlaybackQueueCV.VisibleItemCount; i++)
+        {
+            var itemHandle = PlaybackQueueCV.GetItemHandleByVisibleIndex(i);
+
+            if (PlaybackQueueCV.GetItem(itemHandle) is not SongModelView songByItemHandle) continue;
+            songsInCV.Add(songByItemHandle);
+        }
+      await  MyViewModel.AddToPlaylistAsync("testPlayList", songsInCV, "testPL");
     }
 
 

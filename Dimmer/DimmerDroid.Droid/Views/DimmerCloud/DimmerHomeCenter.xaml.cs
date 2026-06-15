@@ -48,4 +48,18 @@ public partial class DimmerHomeCenter : ContentPage
         await Shell.Current.GoToAsync("//HomePage");
 
     }
+
+    private void NameViewDevice_Clicked(object sender, EventArgs e)
+    {
+        DXButton btn = (DXButton)sender;
+        var dev = btn.BindingContext as Dimmer.DimmerLive.Models.UserDeviceSession
+        ;
+
+        if (dev is null) return;
+
+        MyViewModel.SelectedDevice = dev;
+        
+
+
+    }
 }

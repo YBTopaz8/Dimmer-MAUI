@@ -9,7 +9,6 @@ public class MusicMetadataService : IMusicMetadataService
     private readonly ConcurrentDictionary<string, AlbumModelView> _albumsByName = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, GenreModelView> _genresByName = new(StringComparer.OrdinalIgnoreCase);
 
-    // Use ConcurrentBag for thread-safe additions during parallel processing
     public ConcurrentBag<ArtistModelView> NewArtists { get; } = new();
     public ConcurrentBag<AlbumModelView> NewAlbums { get; } = new();
     public ConcurrentBag<GenreModelView> NewGenres { get; } = new();
@@ -17,6 +16,20 @@ public class MusicMetadataService : IMusicMetadataService
     private readonly HashSet<string> _existingFilePaths = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> _existingSongKeys = new();
     private readonly List<SongModelView> _processedSongsInThisScan = new();
+
+    // CENTRALIZED PATH NORMALIZER
+    public static string NormalizePath(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return string.Empty;
+        try
+        {
+            return Path.GetFullPath(path).Trim().ToLowerInvariant().Replace('/', '\\');
+        }
+        catch
+        {
+            return path.Trim().ToLowerInvariant().Replace('/', '\\');
+        }
+    }
 
     public void LoadExistingData(
         IEnumerable<ArtistModelView> existingArtists,
@@ -34,8 +47,6 @@ public class MusicMetadataService : IMusicMetadataService
         {
             if (!string.IsNullOrEmpty(album.Name))
             {
-                // FIX: Key must match the logic in GetOrCreateAlbum
-                // Since we don't always know the artist here, we use a helper or the first associated artist
                 var artistName = album.Artists?.FirstOrDefault()?.Name ?? "Unknown";
                 string albumKey = $"{album.Name.Trim()}|{artistName.Trim()}";
                 _albumsByName.TryAdd(albumKey, album);
@@ -52,7 +63,7 @@ public class MusicMetadataService : IMusicMetadataService
         {
             _existingSongKeys.Add(song.TitleDurationKey);
             if (!string.IsNullOrWhiteSpace(song.FilePath))
-                _existingFilePaths.Add(song.FilePath);
+                _existingFilePaths.Add(NormalizePath(song.FilePath)); // Normalize path!
         }
         _processedSongsInThisScan.AddRange(existingSongs);
     }
@@ -112,22 +123,20 @@ public class MusicMetadataService : IMusicMetadataService
         });
     }
 
-
-
     public void AddSong(SongModelView song)
     {
         _processedSongsInThisScan.Add(song);
     }
 
-
-    // Add a way to track updates
     private readonly HashSet<ObjectId> _updatedEntityIds = new();
+
     public bool DoesSongExist(string title, double durationInSeconds)
     {
-        // We now check against the set of keys from songs that existed BEFORE the scan started.
-        string keyToCheck = $"{title.ToLowerInvariant().Trim()}|{durationInSeconds}";
+        // FIX: Cast durationInSeconds to (int) to match TitleDurationKey rules!
+        string keyToCheck = $"{title.ToLowerInvariant().Trim()}|{(int)durationInSeconds}";
         return _existingSongKeys.Contains(keyToCheck);
     }
+
     public bool DoesSongExist(string title, int durationInSeconds, out SongModelView? existingSong)
     {
         string keyToCheck = $"{title.ToLowerInvariant().Trim()}|{durationInSeconds}";
@@ -135,55 +144,36 @@ public class MusicMetadataService : IMusicMetadataService
         return existingSong != null;
     }
 
-    // Method to mark an entity as updated
     public void MarkAsUpdated(SongModelView song)
     {
         _updatedEntityIds.Add(song.Id);
     }
 
+    public IReadOnlyList<ArtistModelView> GetAllArtists() => [.. _artistsByName.Values];
+    public IReadOnlyList<AlbumModelView> GetAllAlbums() => [.. _albumsByName.Values];
+    public IReadOnlyList<GenreModelView> GetAllGenres() => [.. _genresByName.Values];
+    public IReadOnlyList<SongModelView> GetProcessedSongs() => [.. _processedSongsInThisScan];
 
-    public IReadOnlyList<ArtistModelView> GetAllArtists()
-    {
-        return [.. _artistsByName.Values];
-    }
-
-    public IReadOnlyList<AlbumModelView> GetAllAlbums()
-    {
-        return [.. _albumsByName.Values];
-    }
-
-    public IReadOnlyList<GenreModelView> GetAllGenres()
-    {
-        return [.. _genresByName.Values];
-    }
-
-    public IReadOnlyList<SongModelView> GetProcessedSongs()
-    {
-        return [.. _processedSongsInThisScan];
-    }
     public bool HasFileBeenProcessed(string filePath)
     {
-        return _existingFilePaths.Contains(filePath);
+        // Normalize search path
+        return _existingFilePaths.Contains(NormalizePath(filePath));
     }
 
     public void ClearAll()
     {
-       
-            // Clear all dictionaries and lists to free up memory
-            _artistsByName.Clear();
-            _albumsByName.Clear();
-            _genresByName.Clear();
-            _existingFilePaths.Clear();
-            NewArtists.Clear();
-            NewAlbums.Clear();
-            NewGenres.Clear();
-            _processedSongsInThisScan.Clear();
-            _existingSongKeys.Clear();
-            _updatedEntityIds.Clear();
+        _artistsByName.Clear();
+        _albumsByName.Clear();
+        _genresByName.Clear();
+        _existingFilePaths.Clear();
+        NewArtists.Clear();
+        NewAlbums.Clear();
+        NewGenres.Clear();
+        _processedSongsInThisScan.Clear();
+        _existingSongKeys.Clear();
+        _updatedEntityIds.Clear();
         while (NewArtists.TryTake(out _)) ;
         while (NewAlbums.TryTake(out _)) ;
         while (NewGenres.TryTake(out _)) ;
-
     }
-
-    }
+}

@@ -132,8 +132,11 @@ progress,processedResults.Count);
             var newArtists = currentScanMetadataService.NewArtists.DistinctBy(x=>x.Name).ToList();
             var newAlbums = currentScanMetadataService.NewAlbums.DistinctBy(x => x.Name).ToList();
             var newGenres = currentScanMetadataService.NewGenres.DistinctBy(x => x.Name).ToList();
-            List<SongModelView> newSongs = processedResults.Where(r => r.Success && r.ProcessedSong != null).Select(r => r.ProcessedSong).ToList()!;
-
+            List<SongModelView> newSongs = processedResults
+     .Where(r => r.Success && r.ProcessedSong != null)
+     .Select(r => r.ProcessedSong)
+     .DistinctBy(s => s.TitleDurationKey) 
+     .ToList()!;
             if (newSongs.Count!=0)
             {
                 _logger.LogInformation("Found {SongCount} new songs, {ArtistCount} artists, {AlbumCount} albums, {GenreCount} genres to persist.",
@@ -252,6 +255,14 @@ progress,processedResults.Count);
                                 if (songModel is not null)
                                 {
 
+                                    var duplicateInDB = realmInserts.All<SongModel>()
+                            .FirstOrDefault(x => x.TitleDurationKey == songModel.TitleDurationKey);
+
+                                    if (duplicateInDB is not null)
+                                    {
+                                        _logger.LogInformation($"Skipped duplicate song insertion: {songModel.Title}");
+                                        continue; // Skip inserting this duplicate!
+                                    }
 
                                     //AlbumModel? albIfAny = null;
                                     var songView = newSongs.Find(x => x.Id == songModel.Id);

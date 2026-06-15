@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
     x:Class="Dimmer.Views.Album.AlbumPage"
+    x:Name="myPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:conv="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
     xmlns:dx="http://schemas.devexpress.com/maui"
     xmlns:globalVM="clr-namespace:Dimmer.ViewModel;assembly=Dimmer"
     xmlns:local="clr-namespace:Dimmer.Views.CustomViews"
@@ -10,7 +12,159 @@
     xmlns:vm="clr-namespace:Dimmer.ViewModels"
     Title="Album"
     x:DataType="models:AlbumModelView"
-    Shell.NavBarIsVisible="false">
+    Shell.NavBarIsVisible="false"
+    >
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+
+            <conv:BoolToInverseConverter x:Key="BoolToInverseConverter" />
+
+
+
+            <DataTemplate x:Key="LinearDataType" x:DataType="models:SongModelView">
+                <Grid
+                    ColumnDefinitions="80,*,auto"
+                    ColumnSpacing="3"
+                    RowDefinitions="60"
+                    >
+
+                    <Grid Grid.Column="0" Padding="10">
+
+                        <dx:DXImage
+                            Grid.Column="0"
+                            Aspect="AspectFill"
+                            BackgroundColor="Transparent"
+                            HeightRequest="60"
+                            Source="{Binding CoverImagePath}"
+                            WidthRequest="70"
+                            ZIndex="0"
+                            >
+                            <dx:DXImage.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    x:Name="SongInCVImgTapGR"
+                                    CommandParameter="{Binding .}"
+                                    Tapped="ImageOnCollectionViewTapped"
+                                    />
+                            </dx:DXImage.GestureRecognizers>
+                            <dx:DXImage.Triggers>
+                                <DataTrigger
+                                    Binding="{Binding IsFavorite}"
+                                    TargetType="dx:DXImage"
+                                    Value="True"
+                                    >
+                                    <Setter Property="Opacity" Value="0.8" />
+                                </DataTrigger>
+                                <DataTrigger
+                                    Binding="{Binding IsFavorite}"
+                                    TargetType="dx:DXImage"
+                                    Value="False"
+                                    >
+                                    <Setter Property="Opacity" Value="1" />
+                                </DataTrigger>
+                            </dx:DXImage.Triggers>
+                        </dx:DXImage>
+                        <Label
+                            Margin="0,-10,-10,0"
+                            HorizontalOptions="End"
+                            Rotation="45"
+                            Text="❤️"
+                            VerticalOptions="Start"
+                            ZIndex="1"
+                            >
+                            <Label.Triggers>
+                                <DataTrigger
+                                    Binding="{Binding IsFavorite}"
+                                    TargetType="Label"
+                                    Value="True"
+                                    >
+                                    <Setter Property="IsVisible" Value="True" />
+                                </DataTrigger>
+                                <DataTrigger
+                                    Binding="{Binding IsFavorite}"
+                                    TargetType="Label"
+                                    Value="False"
+                                    >
+                                    <Setter Property="IsVisible" Value="False" />
+                                </DataTrigger>
+                            </Label.Triggers>
+                        </Label>
+                    </Grid>
+
+                    <dx:DXStackLayout Grid.Column="1" Orientation="Vertical">
+                        <dx:DXStackLayout.GestureRecognizers>
+                            <TapGestureRecognizer x:Name="TapToPlaySongGestRecog" Tapped="TapToPlaySongGestRecog_Tapped" />
+                        </dx:DXStackLayout.GestureRecognizers>
+                        <Label
+                            FontAttributes="Bold"
+                            FontSize="19"
+                            Text="{Binding Title}"
+                            />
+                        <dx:DXButton
+                            x:Name="OtherArtistsName"
+                            Padding="0"
+                            BackgroundColor="Transparent"
+                            BorderThickness="0"
+                            Clicked="OtherArtistsName_Clicked"
+                            CommandParameter="{Binding .}"
+                            Content="{Binding OtherArtistsName}"
+                            FontAttributes="Italic"
+                            FontSize="13"
+                            HorizontalOptions="Start"
+                            TextColor="{AppThemeBinding Dark=gray,
+                                                        Light=black}"
+                            />
+                    </dx:DXStackLayout>
+
+                    <dx:DXButton
+                        x:Name="MoreBtn"
+                        Grid.Column="2"
+                        Padding="2"
+                        BackgroundColor="Transparent"
+                        BorderThickness="0"
+                        Icon="more1.png"
+                        IconColor="{AppThemeBinding Light=#1e1e1e}"
+                        IconHeight="25"
+                        IconPlacement="Top"
+                        IconWidth="30"
+                        PressedBackgroundColor="{Binding CurrentPlaySongDominantColor}"
+                        ShowIcon="True"
+                        Tap="MoreBtn_Tap"
+                        >
+
+
+                        <dx:DXStackLayout Orientation="Vertical">
+
+                            <Label
+                                Margin="5,0"
+                                FontSize="10"
+                                HorizontalOptions="End"
+                                Text="{Binding DurationFormatted}"
+                                VerticalOptions="Center"
+                                />
+
+                            <dx:DXStackLayout HorizontalOptions="Center" Orientation="Horizontal">
+                                <Label IsVisible="{Binding HasSyncedLyrics}" Text="🎙️" />
+                                <Label
+                                    Margin="5,0"
+                                    FontSize="9"
+                                    HorizontalOptions="Center"
+                                    Text="{Binding PlayCompletedCount}"
+                                    VerticalOptions="Center"
+                                    />
+
+                            </dx:DXStackLayout>
+
+
+                        </dx:DXStackLayout>
+
+                    </dx:DXButton>
+
+                </Grid>
+            </DataTemplate>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
     <Grid Padding="10" RowDefinitions="auto,*">
         <Grid ColumnDefinitions="*,auto">
             <dx:DXStackLayout Grid.Column="0" ItemSpacing="10">
@@ -18,7 +172,8 @@
                 <dx:Chip
                     FontSize="23"
                     HorizontalOptions="Start"
-                    Text="{Binding Artists[0].Name}" />
+                    Text="{Binding Artists[0].Name}"
+                    />
                 <Label Text="{Binding Artists.Count, StringFormat='{0} Artists'}" />
                 <Label Text="{Binding SongsInAlbum.Count, StringFormat='{0} Artists'}" />
             </dx:DXStackLayout>
@@ -26,23 +181,85 @@
             <dx:DXImage
                 Grid.Column="1"
                 MaximumWidthRequest="50"
-                Source="{Binding ImagePath}" />
+                Source="{Binding ImagePath}"
+                />
         </Grid>
 
         <dx:TabView Grid.Row="1">
             <dx:TabViewItem HeaderText="Songs">
-                <dx:DataGridView
-                    AutoGenerateColumnsMode="None"
-                    ItemsSource="{Binding SongsInAlbum}"
-                    ShowAutoFilterRow="True"
-                    ShowFilterIcon="True">
-                    <dx:DataGridView.Columns>
-                        <dx:TextColumn FieldName="Title" />
-                        <dx:TextColumn FieldName="OtherArtistsName" />
-                        <dx:CheckBoxColumn FieldName="IsFavorite" />
-                    </dx:DataGridView.Columns>
-                </dx:DataGridView>
+
+                <dx:DXCollectionView
+                    x:Name="SongsCV"
+                    Grid.Row="1"
+                    Margin="0,0"
+                    x:FieldModifier="Public"
+                    BackgroundColor="Transparent"
+                    ItemSpacing="5"
+                    ItemTemplate="{StaticResource LinearDataType}"
+                    ItemsSource="{Binding MyViewModel.SearchResults, Source={x:Reference myPage}}"
+                    Loaded="SongsCV_Loaded"
+                    PropertyChanged="SongsCV_PropertyChanged"
+                    />
             </dx:TabViewItem>
         </dx:TabView>
+
+        <dx:BottomSheet x:Name="ArtistsMgtBtmSheet">
+            <dx:BottomSheet.Content>
+                <dx:DXStackLayout>
+                    <dx:DXCollectionView ItemSpacing="5" ItemsSource="{Binding MyViewModel.SelectedSong, Source={x:Reference myPage}}">
+                        <dx:DXCollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:ArtistModelView">
+                                <Grid Padding="10,0" ColumnDefinitions="auto,*,auto">
+
+                                    <dx:DXImage Grid.Column="0" Source="{Binding ImagePath}" />
+                                    <dx:DXStackLayout Grid.Column="1">
+                                        <Label Text="{Binding Name}" />
+
+                                    </dx:DXStackLayout>
+                                    <dx:DXStackLayout Grid.Column="2">
+                                        <Grid ColumnDefinitions="*,*">
+                                            <dx:DXToggleButton
+                                                x:Name="PreviewArtistSongsBtn"
+                                                Grid.ColumnSpan="2"
+                                                Padding="5"
+                                                CheckedChanged="PreviewArtistSongsBtn_CheckedChanged"
+                                                CheckedIconColor="DarkSlateBlue"
+                                                Icon="eye.png"
+                                                IconColor="Gray"
+                                                ShowContent="False"
+                                                ShowIcon="True"
+                                                />
+                                            <dx:DXButton
+                                                x:Name="AddToQueueButton"
+                                                Grid.Column="0"
+                                                Padding="5"
+                                                Clicked="AddToQueueButton_Clicked"
+                                                Icon="add_list.png"
+                                                IconColor="White"
+                                                ShowContent="False"
+                                                ToolTipProperties.Text="Add To Queue"
+                                                />
+
+                                            <dx:DXButton
+                                                x:Name="ViewArtist"
+                                                Grid.Column="1"
+                                                Padding="5"
+                                                Clicked="ViewArtist_Clicked"
+                                                CommandParameter="{Binding .}"
+                                                Icon="viewpage.png"
+                                                IconColor="White"
+                                                ShowContent="False"
+                                                ToolTipProperties.Text="View Artist"
+                                                />
+
+                                        </Grid>
+                                    </dx:DXStackLayout>
+                                </Grid>
+                            </DataTemplate>
+                        </dx:DXCollectionView.ItemTemplate>
+                    </dx:DXCollectionView>
+                </dx:DXStackLayout>
+            </dx:BottomSheet.Content>
+        </dx:BottomSheet>
     </Grid>
 </ContentPage>

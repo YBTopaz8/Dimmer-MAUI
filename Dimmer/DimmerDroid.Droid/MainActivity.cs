@@ -2,6 +2,7 @@ using Android.App;
 using Android.Content.PM;
 using Android.OS;
 using Dimmer.NativeServices;
+using Dimmer.Views.LastFM;
 using Google.Android.Material.Dialog;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -56,11 +57,10 @@ public partial class MainActivity : MauiAppCompatActivity
         Dimmer.Utils.UiThreads.InitializeMainHandler();
         ProcessIntent(Intent);
 
-       //RxSchedulers.Background.ScheduleTo(() =>
-       // {
-       //     MyViewModel = IPlatformApplication.Current!.Services.GetRequiredService<BaseViewModelAnd>();
+        //RxSchedulers.Background.ScheduleTo(() =>
+        // {
 
-       // });
+        // });
 
         SetupService();
 
@@ -221,17 +221,22 @@ public partial class MainActivity : MauiAppCompatActivity
     [System.Runtime.Versioning.SupportedOSPlatform("android33.0")]
     private void SetupBackNavigationApi33()
     {
-        if (MyViewModel is null) return;
 
         // The dangerous code lives exclusively in here
         _onBackInvokedCallback = new BackInvokedCallback(async () =>
     {
-    if (MyViewModel.IsNowPlayingBtmSheetOpened)
+        if (MyViewModel is null)
+        {
+            MyViewModel = IPlatformApplication.Current!.Services.GetRequiredService<BaseViewModelAnd>();
+
+        }
+        if (MyViewModel.IsNowPlayingBtmSheetOpened)
     {
         return;
     }
-    if (Shell.Current.CurrentPage.GetType() == typeof(HomePage))
+        Type typeOfCurrentPage = Shell.Current.CurrentPage.GetType();
 
+    if (typeOfCurrentPage == typeof(HomePage))
     {
             if(MyViewModel.HomePageIndex != 0)
             {
@@ -239,7 +244,7 @@ public partial class MainActivity : MauiAppCompatActivity
                 return;
             }
         new MaterialAlertDialogBuilder(this)?
-                                .SetTitle("Exit App")?
+                                .SetTitle("Exit Dimmer")?
                                 .SetMessage("Close Application?")?
                                 .SetPositiveButton(
             "Exit",
@@ -256,61 +261,37 @@ public partial class MainActivity : MauiAppCompatActivity
             .Show();
         return;
     }
-    switch (Shell.Current.CurrentPage.Title)
-    {
-
-        case "All Artists":
-        case "AllAlbumsPage":
-        case "LastFM":
-        case "LastFMLogin":
-        case "DupeFInder":
-
+        if (
+            typeOfCurrentPage == typeof(AllArtistsPage) ||
+            typeOfCurrentPage == typeof(AllAlbumsPage) ||
+            typeOfCurrentPage == typeof(LastFMHomePage)||
+            typeOfCurrentPage == typeof(SettingsPage))
+        {
             new MaterialAlertDialogBuilder(this)?
-                            .SetTitle("Confirm action")?
-                            .SetMessage("Return to Home Page?")?
-                            .SetPositiveButton(
-                "Confirm",
-                    async (s, e) =>
-                {
-                    await Shell.Current.GoToAsync("//HomePage");
-
-                })
-                .SetNegativeButton(
-                    "Cancel",
-                    (s, e) =>
-                    { /* Do nothing */
-                    })
-                .Show();
-            break;
-
-        case "Settings":
-
-            new MaterialAlertDialogBuilder(this)?
-                        .SetTitle("Confirm action")?
+                        .SetTitle("Confirm Action")?
                         .SetMessage("Return to Home Page?")?
                         .SetPositiveButton(
             "Confirm",
                 async (s, e) =>
-                {
-                    await Shell.Current.GoToAsync("//HomePage");
+            {
+                await Shell.Current.GoToAsync("//HomePage");
 
-                })
+            })
             .SetNegativeButton(
                 "Cancel",
                 (s, e) =>
                 { /* Do nothing */
                 })
             .Show();
-            break;
+        }
 
-        default:
-            Debug.WriteLine(Shell.Current.Items.Count);
-                    //await Shell.Current.Navigation.PopAsync(true);
-                    await  Shell.Current.GoToAsync("..");
-                    break;
-            }
+
+    Debug.WriteLine(Shell.Current.Items.Count);
+            //await Shell.Current.Navigation.PopAsync(true);
+            await  Shell.Current.GoToAsync("..");
+     
            
-        });
+});
 
         // Note: Ensure _onBackInvokedCallback is defined as 'object' or inside this scope 
         // to avoid field-level verification issues on older phones.

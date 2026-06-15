@@ -39,35 +39,36 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     [ObservableProperty]
     public partial int NowPlayingQueueItemSpan { get; set; }
 
+    [ObservableProperty]
+    public partial int HomePageIndex { get; set; } = 0;
+
+    
+
 
 
     [ObservableProperty]
-    public partial int NowPlayingTabIndex { get; set; }
+    public partial bool IsNowPlayingUIVisible { get; set; }
 
-    [ObservableProperty]
-    public partial bool NowPlayingUI { get; set; }
-
-    partial void OnNowPlayingTabIndexChanged(int oldValue, int newValue)
+    partial void OnHomePageIndexChanged(int oldValue, int newValue)
     {
 
         switch (newValue)
         {
             case 0:
-                IsNowPlayingQueue = false;
-                IsNowAllSongsQueue = true;
-                NowPlayingUI = false;
+            case 2:
+                IsNowPlayingQueueVisible = false;
+                IsNowAllSongsQueueVisible = true;
+                IsNowPlayingUIVisible = false;
 
                 break;
             case 1:
 
 
-                IsNowPlayingQueue = false;
+                IsNowPlayingQueueVisible = false;
 
-                IsNowAllSongsQueue = false;
-                NowPlayingUI = true;
+                IsNowAllSongsQueueVisible = false;
+                IsNowPlayingUIVisible = true;
 
-                break;
-            case 2:
                 break;
             default:
                 break;
@@ -76,9 +77,9 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
 
     [ObservableProperty]
-    public partial bool IsNowPlayingQueue { get; set; }
+    public partial bool IsNowPlayingQueueVisible { get; set; }
     [ObservableProperty]
-    public partial bool IsNowAllSongsQueue { get; set; } = true;
+    public partial bool IsNowAllSongsQueueVisible { get; set; } = true;
 
 
 

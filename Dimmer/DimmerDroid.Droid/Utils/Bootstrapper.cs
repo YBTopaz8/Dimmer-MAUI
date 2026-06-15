@@ -37,6 +37,7 @@ internal class Bootstrapper
         services.AddSingleton<SettingsPage>();
         services.AddSingleton<AllAlbumsPage>();
         services.AddSingleton<DimmerLiveLogin>();
+        services.AddSingleton<RemoteDeviceViewPage>();
 
         services.AddSingleton<DetailsOverview>();
         services.AddSingleton<PlaybackQueueBtmSheet>();

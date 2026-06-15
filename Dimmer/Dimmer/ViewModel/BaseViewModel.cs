@@ -141,6 +141,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public void SetupArtistPipeline()
     {
         if (IsArtistInitialized) return;
+        IsLoading = true;
         // Get Realm instance
         var _realm = RealmFactory.GetRealmInstance();
 
@@ -410,6 +411,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
                 await OnAppOpeningAsync();
 
+                LoadLastTenPlayedSongsFromDBToPlayBackQueue();
                 await HeavierBackGroundLoadings(FolderPaths);
 
                 //await Task.Delay(1500);
@@ -801,8 +803,219 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
     [ObservableProperty] public partial bool CanSkipPage { get; set; } 
-    [ObservableProperty] public partial bool IsFirstBoot { get; set; } 
- 
+    [ObservableProperty] public partial bool IsFirstBoot { get; set; }
+    public async Task CleanDatabaseOnBootAsync()
+    {
+        _logger.LogInformation("Database Self-Healing: Starting integrity check...");
+        using var realm = RealmFactory.GetRealmInstance();
+
+        // We fetch duplicate groupings first to see if we even need to open a write transaction.
+        var duplicateGenres = realm.All<GenreModel>().ToList()
+            .GroupBy(g => g.Name?.Trim(), StringComparer.OrdinalIgnoreCase)
+            .Where(g => g.Count() > 1 && !string.IsNullOrEmpty(g.Key)).ToList();
+
+        var duplicateArtists = realm.All<ArtistModel>().ToList()
+            .GroupBy(a => a.Name?.Trim(), StringComparer.OrdinalIgnoreCase)
+            .Where(g => g.Count() > 1 && !string.IsNullOrEmpty(g.Key)).ToList();
+
+        var duplicateAlbums = realm.All<AlbumModel>().ToList()
+            .GroupBy(a => $"{(a.Name ?? "").Trim()}|{(a.Artist?.Name ?? "").Trim()}", StringComparer.OrdinalIgnoreCase)
+            .Where(g => g.Count() > 1).ToList();
+
+        var duplicateSongs = realm.All<SongModel>().ToList()
+            .GroupBy(s => s.TitleDurationKey?.Trim(), StringComparer.OrdinalIgnoreCase)
+            .Where(g => g.Count() > 1 && !string.IsNullOrEmpty(g.Key)).ToList();
+
+        bool needsClean = duplicateGenres.Any() || duplicateArtists.Any() || duplicateAlbums.Any() || duplicateSongs.Any();
+
+        if (!needsClean)
+        {
+            _logger.LogInformation("Database Self-Healing: Integrity check passed. No duplicates found.");
+            return;
+        }
+
+        _logger.LogWarning("Database Self-Healing: Discovered integrity anomalies. Commencing write repair...");
+
+        await realm.WriteAsync(() =>
+        {
+            // ==========================================
+            // PHASE 1: DEDUPLICATE GENRES
+            // ==========================================
+            foreach (var group in duplicateGenres)
+            {
+                var bestGenre = group.First(); // Keep the oldest/first
+                var duplicates = group.Where(g => g.Id != bestGenre.Id).ToList();
+
+                foreach (var duplicate in duplicates)
+                {
+                    var songsToUpdate = duplicate.Songs.ToList(); // Materialize
+                    foreach (var song in songsToUpdate)
+                    {
+                        song.Genre = bestGenre;
+                    }
+                    realm.Remove(duplicate);
+                }
+            }
+
+            // ==========================================
+            // PHASE 2: DEDUPLICATE ARTISTS
+            // ==========================================
+            foreach (var group in duplicateArtists)
+            {
+                var bestArtist = group
+                    .OrderByDescending(a => !string.IsNullOrWhiteSpace(a.Bio))
+                    .ThenByDescending(a => !string.IsNullOrWhiteSpace(a.ImagePath))
+                    .ThenByDescending(a => a.TotalCompletedPlays)
+                    .ThenBy(a => a.DateCreated ?? DateTimeOffset.MaxValue).First();
+
+                var duplicates = group.Where(a => a.Id != bestArtist.Id).ToList();
+
+                foreach (var duplicate in duplicates)
+                {
+                    var songsToUpdate = duplicate.Songs.ToList();
+                    foreach (var song in songsToUpdate)
+                    {
+                        if (song.Artist != null && song.Artist.Id == duplicate.Id)
+                            song.Artist = bestArtist;
+
+                        if (song.ArtistToSong.Contains(duplicate))
+                            song.ArtistToSong.Remove(duplicate);
+                        if (!song.ArtistToSong.Contains(bestArtist))
+                            song.ArtistToSong.Add(bestArtist);
+                    }
+
+                    var albumsToUpdate = duplicate.Albums.ToList();
+                    foreach (var album in albumsToUpdate)
+                    {
+                        if (album.Artist != null && album.Artist.Id == duplicate.Id)
+                            album.Artist = bestArtist;
+
+                        if (album.Artists.Contains(duplicate))
+                            album.Artists.Remove(duplicate);
+                        if (!album.Artists.Contains(bestArtist))
+                            album.Artists.Add(bestArtist);
+                    }
+
+                    bestArtist.TotalCompletedPlays += duplicate.TotalCompletedPlays;
+                    bestArtist.TotalSkipCount += duplicate.TotalSkipCount;
+                    realm.Remove(duplicate);
+                }
+                bestArtist.TotalSongsByArtist = bestArtist.Songs.Count();
+                bestArtist.TotalAlbumsByArtist = bestArtist.Albums.Count();
+            }
+
+            // ==========================================
+            // PHASE 3: DEDUPLICATE ALBUMS
+            // ==========================================
+            foreach (var group in duplicateAlbums)
+            {
+                var bestAlbum = group
+                    .OrderByDescending(a => !string.IsNullOrWhiteSpace(a.ImagePath) && a.ImagePath != "musicalbum.png")
+                    .ThenByDescending(a => a.TotalCompletedPlays)
+                    .ThenBy(a => a.SongsInAlbum?.Count() ?? 0).First();
+
+                var duplicates = group.Where(a => a.Id != bestAlbum.Id).ToList();
+
+                foreach (var duplicate in duplicates)
+                {
+                    if (duplicate.SongsInAlbum != null)
+                    {
+                        var songsInAlbum = duplicate.SongsInAlbum.ToList();
+                        foreach (var song in songsInAlbum)
+                        {
+                            song.Album = bestAlbum;
+                        }
+                    }
+
+                    bestAlbum.TotalCompletedPlays += duplicate.TotalCompletedPlays;
+                    bestAlbum.TotalSkipCount += duplicate.TotalSkipCount;
+                    bestAlbum.TotalPlayDurationSeconds += duplicate.TotalPlayDurationSeconds;
+
+                    realm.Remove(duplicate);
+                }
+            }
+
+            // ==========================================
+            // PHASE 4: DEDUPLICATE SONGS (The Leaves)
+            // ==========================================
+            foreach (var group in duplicateSongs)
+            {
+                // Choose the best file (usually the one with actual sync lyrics, higher play counts, or largest file size)
+                var bestSong = group
+                    .OrderByDescending(s => s.HasSyncedLyrics)
+                    .ThenByDescending(s => s.HasLyrics)
+                    .ThenByDescending(s => s.PlayCount)
+                    .ThenByDescending(s => s.FileSize).First();
+
+                var duplicates = group.Where(s => s.Id != bestSong.Id).ToList();
+
+                foreach (var duplicate in duplicates)
+                {
+                    // 1. Merge Lyrics if best song didn't have any
+                    if (string.IsNullOrWhiteSpace(bestSong.UnSyncLyrics) && !string.IsNullOrWhiteSpace(duplicate.UnSyncLyrics))
+                    {
+                        bestSong.UnSyncLyrics = duplicate.UnSyncLyrics;
+                        bestSong.HasLyrics = true;
+                    }
+                    if (!bestSong.EmbeddedSync.Any() && duplicate.EmbeddedSync.Any())
+                    {
+                        foreach (var line in duplicate.EmbeddedSync)
+                        {
+                            bestSong.EmbeddedSync.Add(new SyncLyrics(line.TimestampMs, line.Text));
+                        }
+                        bestSong.HasSyncedLyrics = true;
+                    }
+
+                    // 2. Merge User Notes
+                    foreach (var note in duplicate.UserNotes)
+                    {
+                        bestSong.UserNotes.Add(note);
+                    }
+
+                    // 3. Merge PlayHistory events
+                    foreach (var history in duplicate.PlayHistory)
+                    {
+                        bestSong.PlayHistory.Add(history);
+                    }
+
+                    // 4. Merge Playlist allocations
+                    //var playlistsToUpdate = duplicate.PlaylistsHavingSong.ToList();
+                    //foreach (var playlist in playlistsToUpdate)
+                    //{
+                    //    if (playlist.SongsInPlaylist.Contains(duplicate))
+                    //    {
+                    //        playlist.SongsInPlaylist.Remove(duplicate);
+                    //    }
+                    //    if (!playlist.SongsInPlaylist.Contains(bestSong))
+                    //    {
+                    //        playlist.SongsInPlaylist.Add(bestSong);
+                    //    }
+                    //}
+
+                    // 5. Consolidate play metrics
+                    bestSong.PlayCount += duplicate.PlayCount;
+                    bestSong.PlayCompletedCount += duplicate.PlayCompletedCount;
+                    bestSong.SkipCount += duplicate.SkipCount;
+                    bestSong.PauseCount += duplicate.PauseCount;
+                    bestSong.ResumeCount += duplicate.ResumeCount;
+                    bestSong.SeekCount += duplicate.SeekCount;
+                    bestSong.RepeatCount += duplicate.RepeatCount;
+                    bestSong.TotalPlayDurationSeconds += duplicate.TotalPlayDurationSeconds;
+
+                    // Sync play history boundaries
+                    if (duplicate.LastPlayed > bestSong.LastPlayed)
+                        bestSong.LastPlayed = duplicate.LastPlayed;
+                    if (duplicate.FirstPlayed < bestSong.FirstPlayed && duplicate.FirstPlayed != default)
+                        bestSong.FirstPlayed = duplicate.FirstPlayed;
+
+                    // 6. Delete the duplicate song
+                    realm.Remove(duplicate);
+                }
+            }
+        });
+
+        _logger.LogInformation("Database Self-Healing: Completed successfully. Database is now in a 100% unique state.");
+    }
     private async Task HeavierBackGroundLoadings(IEnumerable<string>? folders)
     {
         try
@@ -811,6 +1024,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             await _folderMgtService.StartWatchingConfiguredFoldersAsync();
 
             var redoStats = new StatsRecalculator(RealmFactory, _logger);
+
+            await CleanDatabaseOnBootAsync();
             await redoStats.RecalculateAllStatisticsAsync();
 
 
@@ -819,7 +1034,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
 
 
-            LoadLastTenPlayedSongsFromDBToPlayBackQueue();
             //await this.FindDuplicatesAsync();
         }
         catch (Exception ex )
@@ -958,7 +1172,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             case SavePlaylistAction spa:
                 // Your actual implementation here
                 Debug.WriteLine($"Action: Save playlist '{spa.Name}' with {spa.Songs.Count} songs.");
-                await AddToPlaylist(spa.Name, spa.Songs.ToList(), CurrentTqlQuery);
+                await AddToPlaylistAsync(spa.Name, spa.Songs.ToList(), CurrentTqlQuery);
                 ShowNotification($"Playlist '{spa.Name}' saved.")
                     .FireAndForget(
                         ex =>
@@ -2753,7 +2967,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 var song = evt.SongsLinkingToThisEvent.ToList().FirstOrDefault();
                 if (song is null) continue;
 
-                var songView = song.ToSongModelView();
+                SongModelView songView = song.ToSongModelView()!;
                 RxSchedulers.UI.ScheduleTo(() =>
                 {
                     PlaybackQueueSource.Add(songView);
@@ -4990,13 +5204,19 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
     }
 
-    
 
-    public async Task AddToPlaylist(string playlistName, IEnumerable<SongModelView> songsToAdd, string PlQuery)
+    /// <summary>
+    /// Creates a Playlist with given name and songs to it
+    /// </summary>
+    /// <param name="playlistName"></param>
+    /// <param name="songsToAdd"></param>
+    /// <param name="PlQuery"></param>
+    /// <returns></returns>
+    public async Task AddToPlaylistAsync(string playlistName, IEnumerable<SongModelView> songsToAdd, string PlQuery)
     {
         if (string.IsNullOrEmpty(playlistName) || songsToAdd == null || !songsToAdd.Any())
         {
-            _logger.LogWarning("AddToPlaylist called with invalid parameters.");
+            _logger.LogWarning("AddToPlaylistAsync called with invalid parameters.");
             return;
         }
 
@@ -6908,8 +7128,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial bool IsFirmSearchEnabled { get; set; }
 
-    [ObservableProperty]
-    public partial int HomePageIndex { get; set; } = 0;
 
     /// <summary>
     /// The main command for adding a new filter. This is the heart of the Lego system. It's smart and knows how to ask

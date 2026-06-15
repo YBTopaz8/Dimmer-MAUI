@@ -39,9 +39,30 @@
 
         <dx:TabView Grid.Row="1">
             <dx:TabViewItem HeaderText="Live Section">
-                <dx:DXStackLayout>
-                    <Label Text="Current Device" />
-                </dx:DXStackLayout>
+
+                <Grid>
+                    <dx:DataGridView AutoGenerateColumnsMode="None" ItemsSource="{Binding OtherDevices}">
+                        <dx:DataGridView.Columns>
+                            <dx:TextColumn Caption="Device Name" FieldName="DeviceName" />
+                            <dx:TextColumn Caption="Device Idiom" FieldName="DeviceIdiom" />
+                            <dx:TextColumn Caption="Is Active" FieldName="IsActive" />
+                            <dx:TemplateColumn Caption="Action">
+                                <dx:TemplateColumn.DisplayTemplate>
+                                    <DataTemplate>
+                                        <dx:DXStackLayout>
+                                            <dx:DXButton
+                                                x:Name="NameViewDevice"
+                                                Clicked="NameViewDevice_Clicked"
+                                                CommandParameter="{Binding DeviceId}"
+                                                Content="View"
+                                                />
+                                        </dx:DXStackLayout>
+                                    </DataTemplate>
+                                </dx:TemplateColumn.DisplayTemplate>
+                            </dx:TemplateColumn>
+                        </dx:DataGridView.Columns>
+                    </dx:DataGridView>
+                </Grid>
             </dx:TabViewItem>
             <dx:TabViewItem HeaderText="BackUp Section">
                 <dx:DXStackLayout>
@@ -97,7 +118,11 @@
                         Text="{Binding Password}"
                         />
 
-                    <dx:DXStackLayout ItemSpacing="10" Orientation="Horizontal">
+                    <dx:DXStackLayout
+                        HorizontalOptions="Center"
+                        ItemSpacing="10"
+                        Orientation="Horizontal"
+                        >
 
                         <dx:DXButton Command="{Binding LoginCommand}" Content="Login" />
                         <dx:DXButton Command="{Binding RegisterCommand}" Content="Register" />

@@ -18,7 +18,6 @@
     xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
     xmlns:modelsDb="clr-namespace:Dimmer.Data.Models;assembly=Dimmer"
     xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
-    
     xmlns:tql="clr-namespace:Dimmer.DimmerSearch.TQL;assembly=Dimmer"
     xmlns:ui="using:CommunityToolkit.WinUI"
     xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
@@ -27,57 +26,79 @@
     >
 
 
-    <ScrollViewer>
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="auto" />
-                <RowDefinition MaxHeight="180" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <GridView Grid.Row="0" ItemsSource="{x:Bind MyViewModel.SelectedArtist.AlbumsByArtist, Mode=OneWay}">
+            <GridView.Header>
+                <devWin:ShyHeader
+                    Title="{x:Bind MyViewModel.SelectedArtist.Name, Mode=OneWay}"
+                    BackgroundImage="{x:Bind MyViewModel.SelectedArtist.ImagePath, Mode=OneWay}"
+                    Description="{x:Bind MyViewModel.SelectedArtist.Bio, Mode=OneWay}"
+                    >
+                    <devWin:ShyHeader.Profile>
+                        <PersonPicture
+                            Width="150"
+                            Height="150"
+                            ProfilePicture="{x:Bind MyViewModel.SelectedArtist.ImagePath, Mode=OneWay}"
+                            />
+                    </devWin:ShyHeader.Profile>
+                    <devWin:ShyHeader.Footer>
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="Footer Button" />
+                            <Button Content="Footer Button" />
+                            <Button Content="Footer Button" />
+                        </StackPanel>
+                    </devWin:ShyHeader.Footer>
+                </devWin:ShyHeader>
+            </GridView.Header>
+            <GridView.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel>
 
-            <Grid Grid.Row="0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="auto" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0">
-                    <devWin:ImageEx
-                        MaxWidth="180"
-                        MaxHeight="180"
-                        Source="{x:Bind MyViewModel.SelectedArtist.ImagePath, Mode=OneWay}"
-                        />
-                    <devWin:BubbleButton>
-                        <devWin:BubbleButton.Content>
-                            <TextBlock Text="Heart" />
-                        </devWin:BubbleButton.Content>
-                    </devWin:BubbleButton>
-                </StackPanel>
-                <StackPanel Grid.Column="1">
-                    <TextBlock FontSize="29" Text="{x:Bind MyViewModel.SelectedArtist.Name, Mode=OneWay}" />
-                </StackPanel>
-            </Grid>
+                        <Image
+                            Width="80"
+                            Height="80"
+                            Margin="4"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Source="{Binding ImagePath}"
+                            Stretch="Fill"
+                            />
+                        <devWin:AutoScrollView>
+                            <TextBlock Text="{Binding Name}" />
+                        </devWin:AutoScrollView>
+                    </StackPanel>
+                </DataTemplate>
+            </GridView.ItemTemplate>
+        </GridView>
 
-            <Grid Grid.Row="1">
-                <ItemsRepeater ItemsSource="{x:Bind MyViewModel.SelectedArtist.AlbumsByArtist, Mode=OneWay}">
-                    <ItemsRepeater.Layout>
-                        <UniformGridLayout Orientation="Horizontal" />
-                    </ItemsRepeater.Layout>
-                    <ItemsRepeater.ItemTemplate>
+        <dgView:TableView
+            Grid.Row="1"
+            AutoGenerateColumns="False"
+            ItemsSource="{x:Bind MyViewModel.SelectedArtist.SongsByArtist}"
+            >
+            <dgView:TableView.Columns>
+                <dgView:TableViewTemplateColumn>
+                    <dgView:TableViewTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <StackPanel>
-                                <devWin:ImageEx
-                                    MaxWidth="80"
-                                    MaxHeight="80"
-                                    Source="{Binding ImagePath}"
-                                    />
-                                <TextBlock Text="{Binding Name}" />
-                                <TextBlock Text="{Binding TrackTotal}" />
-                            </StackPanel>
+                            <Image Width="80" Height="80">
+                                <Image.Source>
+                                    <BitmapImage UriSource="{Binding CoverImagePath}" />
+                                </Image.Source>
+                            </Image>
                         </DataTemplate>
-                    </ItemsRepeater.ItemTemplate>
-                </ItemsRepeater>
-            </Grid>
+                    </dgView:TableViewTemplateColumn.CellTemplate>
+                </dgView:TableViewTemplateColumn>
 
-        </Grid>
-    </ScrollViewer>
+                <dgView:TableViewTextColumn Binding="{Binding OtherArtistsName}" />
+                <dgView:TableViewTextColumn Binding="{Binding AlbumName}" />
+                <dgView:TableViewTextColumn Binding="{Binding GenreName}" />
+            </dgView:TableView.Columns>
+        </dgView:TableView>
+
+    </Grid>
+
 </Page>

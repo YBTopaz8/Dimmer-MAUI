@@ -116,7 +116,7 @@
                 <dx:DXCollectionView
                     x:Name="AllLyricsCV"
                     Grid.Row="1"
-                    Margin="5" 
+                    Margin="5"
                     ItemsSource="{Binding AllLines}"
                     SelectedItem="{Binding CurrentLine}"
                     SelectionChanged="AllLyricsCV_SelectionChanged"
@@ -136,7 +136,7 @@
                     <dx:DXCollectionView.SelectedItemTemplate>
                         <DataTemplate x:DataType="models:LyricPhraseModelView">
 
-                            <dx:DXButton 
+                            <dx:DXButton
                                 x:Name="CurrentLineBtn"
                                 Padding="2"
                                 HorizontalContentAlignment="Fill"
@@ -228,7 +228,8 @@
                         <dx:Chip.ContentTemplate>
                             <DataTemplate>
                                 <Label
-                                    FontSize="14" FontAttributes="Bold"
+                                    FontAttributes="Bold"
+                                    FontSize="14"
                                     HorizontalOptions="Center"
                                     LineBreakMode="WordWrap"
                                     Text="{Binding CurrentPlayingSongView.OtherArtistsName}"
@@ -286,8 +287,8 @@
                                         x:Name="LyricsChip"
                                         BorderThickness="0"
                                         IconSize="25,25"
-                                        Tap="LyricsChip_Tap"
                                         LongPress="LyricsChip_LongPress"
+                                        Tap="LyricsChip_Tap"
                                         Text="🎙️"
                                         />
 
