@@ -666,6 +666,7 @@ public partial class LastFMViewModel : ObservableObject
 
         //await UpdateSongArtistInDbWithLastFMData();
         //await UpdateSongAlbumInDbWithLastFMData();
+        alb = albInDb.ToAlbumModelView();
     }
 
 

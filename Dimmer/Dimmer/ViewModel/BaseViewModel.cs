@@ -747,14 +747,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 intermediateList = intermediateList.Where(x => plan.InMemoryPredicate(x));
             }
 
-            // F. Apply Shuffle (NEW)
             if (plan.Shuffle != null)
             {
                 var random = new Random();
                 if (plan.Shuffle.IsBiased && plan.Shuffle.BiasField != null)
                 {
-                    // FIX: Removed Reflection (GetProperty/GetValue). 
-                    // Using your compiled Expression Trees for AOT safety and speed!
+                  
                     var grouped = intermediateList
                         .GroupBy(s => SemanticQueryHelpers.GetComparableProp(s, plan.Shuffle.BiasField.PropertyName) ?? "null")
                         .SelectMany(g => g.OrderBy(_ => random.Next()));
@@ -790,7 +788,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             }
 
             if (ct.IsCancellationRequested) return null;
-            // H. Final Projection (The Heavy Part - ONLY done on the surviving items!)
+       
             var finalViewListOfIds = intermediateList
                 .Select(x => x.Id).ToList();
 
@@ -8275,7 +8273,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
 
     [ObservableProperty]
-    public partial bool IsLibraryEmpty { get; set; }
+    public partial bool IsLibraryEmpty { get; set; } = true;
 
     [ObservableProperty]
     public partial string PickFilesOutputText { get; set; }

@@ -180,11 +180,6 @@ public sealed partial class AllSongsListPage : Page
 
     }
 
-    private void TableView_ExportSelectedContent(object sender, global::WinUI.TableView.TableViewExportContentEventArgs e)
-    {
-
-    }
-
     private async void TableView_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
     {
 
@@ -243,7 +238,9 @@ public sealed partial class AllSongsListPage : Page
         Debug.WriteLine(e.Column?.Order);
         // later, log it in vm
 
+
         
+
 
         Debug.WriteLine($"SORT: {e.Column?.Header} → {e.Column?.Order}");
     }
@@ -968,10 +965,6 @@ public sealed partial class AllSongsListPage : Page
     }
  
 
-    private void MySongsTableView_ItemClick(object sender, ItemClickEventArgs e)
-    {
-
-    }
 
  
 
@@ -1363,5 +1356,5 @@ public sealed partial class AllSongsListPage : Page
 
     }
 
-
+   
 }

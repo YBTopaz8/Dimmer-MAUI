@@ -22,18 +22,8 @@
     mc:Ignorable="d"
     >
 
-    <Page.Resources>
-        <UniformGridLayout
-            x:Key="UniformGridLayout2"
-            MinColumnSpacing="12"
-            MinItemHeight="180"
-            MinItemWidth="180"
-            MinRowSpacing="12"
-            />
 
 
-
-    </Page.Resources>
 
     <Grid
         Margin="15,2"
@@ -45,9 +35,12 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
+        <StackPanel Grid.Row="0">
+            <TextBlock Text="tes" />
+        </StackPanel>
 
 
-        <Grid Grid.Column="1">
+        <Grid Grid.Row="1">
 
             <dgView:TableView
                 x:Name="AllArtistsTableView"
@@ -56,6 +49,7 @@
                 IsReadOnly="True"
                 ItemsSource="{x:Bind MyViewModel.ArtistsCollection, Mode=OneWay}"
                 >
+
                 <dgView:TableView.Columns>
                     <dgView:TableViewTemplateColumn Width="150" Header="Image">
                         <dgView:TableViewTemplateColumn.CellTemplate>
@@ -69,12 +63,36 @@
                         </dgView:TableViewTemplateColumn.CellTemplate>
                     </dgView:TableViewTemplateColumn>
 
-                    <dgView:TableViewTextColumn Binding="{Binding Name}" Header="Name" />
-                    <dgView:TableViewNumberColumn Binding="{Binding TotalAlbumsByArtist}" Header="Total Albums By Artist" />
-                    <dgView:TableViewNumberColumn Binding="{Binding TotalSongsByArtist}" Header="Total Songs By Artist" />
-                    <dgView:TableViewNumberColumn Binding="{Binding TotalCompletedPlays}" Header="Total Completed Plays" />
-                    <dgView:TableViewNumberColumn Binding="{Binding AverageSongListenThroughRate}" Header="Average Song Listen ThroughRate" />
-                    <dgView:TableViewNumberColumn Binding="{Binding OverallRank}" Header="Overall Rank" />
+                    <dgView:TableViewTextColumn
+                        Width="*"
+                        Binding="{Binding Name}"
+                        Header="Name"
+                        />
+                    <dgView:TableViewNumberColumn
+                        Width="*"
+                        Binding="{Binding TotalAlbumsByArtist}"
+                        Header="Total Albums By Artist"
+                        />
+                    <dgView:TableViewNumberColumn
+                        Width="*"
+                        Binding="{Binding TotalSongsByArtist}"
+                        Header="Total Songs By Artist"
+                        />
+                    <dgView:TableViewNumberColumn
+                        Width="*"
+                        Binding="{Binding TotalCompletedPlays}"
+                        Header="Total Completed Plays"
+                        />
+                    <dgView:TableViewNumberColumn
+                        Width="*"
+                        Binding="{Binding AverageSongListenThroughRate}"
+                        Header="Average Song Listen ThroughRate"
+                        />
+                    <dgView:TableViewNumberColumn
+                        Width="*"
+                        Binding="{Binding OverallRank}"
+                        Header="Overall Rank"
+                        />
                 </dgView:TableView.Columns>
             </dgView:TableView>
         </Grid>

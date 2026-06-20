@@ -125,4 +125,8 @@ public partial class AlbumPage : ContentPage
         await Shell.Current.GoToAsync(nameof(ArtistPage), true);
     }
 
+    private void MoreBtn_Tap(object sender, DXTapEventArgs e)
+    {
+
+    }
 }

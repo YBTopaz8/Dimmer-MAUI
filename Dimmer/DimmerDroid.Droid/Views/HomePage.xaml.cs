@@ -1176,6 +1176,11 @@ public partial class HomePage : ContentPage
       await  MyViewModel.AddToPlaylistAsync("testPlayList", songsInCV, "testPL");
     }
 
+    private async void AddFolderInSettings_Clicked(object sender, EventArgs e)
+    {
+        await Shell.Current.GoToAsync(nameof(SettingsPage));
+    }
+
 
 
 

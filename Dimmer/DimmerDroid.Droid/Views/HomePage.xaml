@@ -249,6 +249,8 @@
             <dx:TabViewItem HeaderText="Songs">
                 <Grid RowDefinitions="auto,*,auto" RowSpacing="10">
 
+
+
                     <dx:DXCollectionView
                         x:Name="SongsCV"
                         Grid.Row="1"
@@ -829,10 +831,13 @@
                                         </Style>
                                     </ResourceDictionary>
                                 </dx:DXStackLayout.Resources>
-                                <dx:DXButton Icon="savea.png" x:Name="SavePlayBackQueue"
-                                             Clicked="SavePlayBackQueue_Clicked"/>
-                       
-                                
+                                <dx:DXButton
+                                    x:Name="SavePlayBackQueue"
+                                    Clicked="SavePlayBackQueue_Clicked"
+                                    Icon="savea.png"
+                                    />
+
+
                             </dx:DXStackLayout>
                         </FlexLayout>
 
