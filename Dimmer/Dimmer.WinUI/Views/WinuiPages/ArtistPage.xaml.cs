@@ -1,16 +1,6 @@
-using System.DirectoryServices;
-using System.Globalization;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-
-using CommunityToolkit.Maui.Core.Extensions;
-using DevWinUI;
-using Hqub.Lastfm.Entities;
 
 using Microsoft.UI.Xaml.Documents;
-using Microsoft.UI.Xaml.Media.Imaging;
-
-using Color = System.Drawing.Color;
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
@@ -51,7 +41,7 @@ public sealed partial class ArtistPage : Page
         if (e.Parameter is BaseViewModelWin args)
         {
             MyViewModel = args;       // reference, not copy
-            MyViewModel.CurrentWinUIPage = this;
+            MyViewModel.CurrentPageEnum = CurrentPage.SingleArtistPage;
             DetailedSong = args.CurrentPlayingSongView;
         }
 
@@ -61,7 +51,7 @@ public sealed partial class ArtistPage : Page
             //    ExtraParam = MyViewModel,
             //    ViewModel = MyViewModel
             MyViewModel = (songDetailNavArgs.ExtraParam as BaseViewModelWin)!;       // reference, not copy
-            MyViewModel.CurrentWinUIPage = this;
+            MyViewModel.CurrentPageEnum = CurrentPage.SingleArtistPage;
             DetailedSong = songDetailNavArgs.Song;
         }
 

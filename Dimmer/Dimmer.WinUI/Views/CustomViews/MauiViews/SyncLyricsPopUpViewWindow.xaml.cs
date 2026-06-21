@@ -1,5 +1,3 @@
-using Dimmer.Utilities.Extensions;
-
 using Windows.Graphics;
 
 using Application = Microsoft.Maui.Controls.Application;

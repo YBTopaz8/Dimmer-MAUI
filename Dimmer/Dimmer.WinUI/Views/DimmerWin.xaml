@@ -110,7 +110,11 @@
         </NavigationView.MenuItems>
 
         <NavigationView.PaneFooter>
-            <StackPanel x:Name="BottomCurrentPlayingSongPanel" Margin="5">
+            <StackPanel
+                x:Name="BottomCurrentPlayingSongPanel"
+                Margin="5"
+                Visibility="{x:Bind MyViewModel.BottomCurrentPlayingSongPanelVisibility, Mode=OneWay}"
+                >
 
                 <StackPanel Margin="5">
                     <Grid
@@ -119,14 +123,7 @@
                         MaxHeight="100"
                         HorizontalAlignment="Center"
                         >
-                        <TextBlock
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Top"
-                            FontSize="30"
-                            Rotation="45"
-                            Text="❤️"
-                            Visibility="{x:Bind MyViewModel.CurrentPlayingSongView.IsFavorite, Mode=OneWay}"
-                            />
+
                         <Image
                             x:Name="CurrentPlayingSongImage"
                             VerticalAlignment="Top"
@@ -177,7 +174,7 @@
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
 
-                            <StackPanel Grid.Column="0">
+                            <StackPanel Grid.Column="0" Orientation="Horizontal">
                                 <ToggleButton
                                     x:Name="PlayPauseToggleBtn"
                                     Height="40"
@@ -185,7 +182,15 @@
                                     IsChecked="{x:Bind MyViewModel.IsDimmerPlaying, Mode=OneWay}"
                                     Loaded="PlayPauseToggleBtn_Loaded"
                                     />
-
+                                <devWin:BubbleButton
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Top"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Content="❤️" 
+                                    FontSize="40"
+                                    Visibility="{x:Bind MyViewModel.CurrentPlayingSongView.IsFavorite, Mode=OneWay}"
+                                    />
                             </StackPanel>
 
 

@@ -31,7 +31,7 @@
             MinRowSpacing="12"
             />
 
-        
+
 
     </Page.Resources>
 
@@ -48,45 +48,7 @@
 
 
         <Grid Grid.Column="1">
-            <ScrollViewer>
-
-                <ItemsRepeater x:Name="AllAlbumsIR" ItemsSource="{x:Bind MyViewModel.AlbumsCollection, Mode=OneWay}">
-                    <ItemsRepeater.Layout>
-                        <UniformGridLayout MaximumRowsOrColumns="9" MinColumnSpacing="5" MinRowSpacing="5"/>
-                    </ItemsRepeater.Layout>
-
-                    <ItemsRepeater.ItemTemplate>
-                        <DataTemplate>
-                            <Button
-                                x:Name="AlbumBtnView"
-                                Background="Transparent"
-                                Click="AlbumBtnView_Click"
-                                >
-
-                                <StackPanel>
-
-                                    <Image
-                                        Width="80"
-                                        Height="80"
-                                        Source="{Binding ImagePath, FallbackValue=''}"
-                                        />
-                                    <TextBlock FontSize="21" Text="{Binding Name}" />
-                                    <StackPanel Orientation="Horizontal" Spacing="5">
-                                        <TextBlock Text="{Binding Artists.Capacity}" />
-                                        <TextBlock Text="Artists" />
-                                    </StackPanel>
-                                    <StackPanel Orientation="Horizontal" Spacing="5">
-                                        <TextBlock Text="{Binding SongsInAlbum.Count}" />
-                                        <TextBlock Text="Songs" />
-                                    </StackPanel>
-                                </StackPanel>
-
-                            </Button>
-                        </DataTemplate>
-                    </ItemsRepeater.ItemTemplate>
-                </ItemsRepeater>
-
-            </ScrollViewer>
+            <dgView:TableView AutoGenerateColumns="True" ItemsSource="{x:Bind MyViewModel.AlbumsCollection, Mode=OneWay}" />
         </Grid>
 
     </Grid>

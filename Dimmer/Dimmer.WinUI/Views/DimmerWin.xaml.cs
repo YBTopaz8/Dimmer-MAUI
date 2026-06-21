@@ -1,17 +1,11 @@
 using DevWinUI;
 using Dimmer.WinUI.Views.CustomViews.WinuiViews;
 using Dimmer.WinUI.Views.WinuiPages.AlbumSection;
-using Dimmer.WinUI.Views.WinuiPages.Artist;
-using Dimmer.WinUI.Views.WinuiPages.LastFMSection;
-using Dimmer.WinUI.Views.WinuiPages.Utilities;
-using Hqub.Lastfm.Entities;
 using Microsoft.UI.Composition.SystemBackdrops;
-using Newtonsoft.Json.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using static Dimmer.DimmerSearch.TQlStaticMethods;
 using Border = Microsoft.UI.Xaml.Controls.Border;
-using ProgressBar = Microsoft.UI.Xaml.Controls.ProgressBar;
 using TextBox = Microsoft.UI.Xaml.Controls.TextBox;
 using Visibility = Microsoft.UI.Xaml.Visibility;
 using Window = Microsoft.UI.Xaml.Window;
@@ -49,13 +43,7 @@ public sealed partial class DimmerWin : Window
         this.Title = $"{MyViewModel?.AppTitle} {BaseViewModel.CurrentAppVersion} {BaseViewModel.CurrentAppStage}";
 #endif
 
-        var icon = WindowHelper.GetWindowIcon(PlatUtils.DimmerHandle);
-        uint iconId = 123;
-        var trayIcon = new SystemTrayIcon(iconId, icon, "Open Dimmer");
-        trayIcon.LeftClick += TrayIcon_LeftClick;
-        trayIcon.RightClick += TrayIcon_RightClick;
-        trayIcon.IsVisible = true;
-
+   
 
     }
 
@@ -77,7 +65,7 @@ public sealed partial class DimmerWin : Window
 
             });
             //MyViewModel.DimmerMultiWindowCoordinator?.SnapAllToHomeAsync();
-
+            return;
         }
         if (OptionalParameter is not null)
         {
@@ -145,16 +133,8 @@ public sealed partial class DimmerWin : Window
        
     }
 
-    private void TrayIcon_RightClick(SystemTrayIcon sender, SystemTrayIconEventArgs args)
-    {
 
-    }
 
-    private void TrayIcon_LeftClick(SystemTrayIcon sender, SystemTrayIconEventArgs args)
-    {
-        WindowHelper.ShowWindow(this);
-        //throw new NotImplementedException();
-    }
 
     private bool _isDialogActive = false;
     private readonly Microsoft.UI.Composition.Compositor _compositorMainGrid;
@@ -695,7 +675,7 @@ public sealed partial class DimmerWin : Window
 
     private void SettingsBtn_Tapped(object sender, TappedRoutedEventArgs e)
     {
-
+        MyViewModel.NavigateToAnyPageOfGivenType(typeof(SettingsPage));
     }
 
     private void NvSample_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
@@ -802,7 +782,7 @@ public sealed partial class DimmerWin : Window
 
     private void NvSample_PaneClosing(NavigationView sender, NavigationViewPaneClosingEventArgs args)
     {
-        BottomCurrentPlayingSongPanel.Visibility = Visibility.Collapsed;
+        MyViewModel.IsNavPanelOpened = false;
     }
 
 
@@ -829,8 +809,7 @@ public sealed partial class DimmerWin : Window
 
     private void NvSample_PaneOpening(NavigationView sender, object args)
     {
-        
-        BottomCurrentPlayingSongPanel.Visibility = Visibility.Visible;
+        MyViewModel.IsNavPanelOpened = true;
     }
 
     private async void IsSongFavoriteBtn_RightTapped(object sender, RightTappedRoutedEventArgs e)

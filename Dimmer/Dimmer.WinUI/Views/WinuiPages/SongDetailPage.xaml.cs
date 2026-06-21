@@ -1,25 +1,8 @@
-using CommunityToolkit.Maui.Core.Extensions;
 using Dimmer.Charts;
-using Dimmer.Interfaces.Services;
-using Dimmer.Utilities.Extensions;
-using Dimmer.WinUI.Views.WinuiPages.SingleSongPage;
-using Dimmer.WinUI.Views.WinuiPages.SingleSongPage.SubPage;
-using LiveChartsCore.Generators;
 using Microsoft.UI.Xaml.Documents;
-using Microsoft.UI.Xaml.Media.Imaging;
-using System.Drawing;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using Windows.Foundation.Metadata;
-using WinRT;
-using Border = Microsoft.UI.Xaml.Controls.Border;
-using ListView = Microsoft.UI.Xaml.Controls.ListView;
-using ListViewSelectionMode = Microsoft.UI.Xaml.Controls.ListViewSelectionMode;
 using NavigationEventArgs = Microsoft.UI.Xaml.Navigation.NavigationEventArgs;
-using RadioButton = Microsoft.UI.Xaml.Controls.RadioButton;
-using ToolTip = Microsoft.UI.Xaml.Controls.ToolTip;
 using Visibility = Microsoft.UI.Xaml.Visibility;
-using Visual = Microsoft.UI.Composition.Visual;
 
 
 // To learn more about WinUI, the WinUI project structure,
@@ -107,7 +90,7 @@ public sealed partial class SongDetailPage : Page
             DetailedSong = MyViewModel.SelectedSong!;
 
 
-            MyViewModel.CurrentWinUIPage = this;
+            MyViewModel.CurrentPageEnum = CurrentPage.SingleSongPage;
         }
         if (e.Parameter is SongDetailNavArgs args)
         {
@@ -148,7 +131,7 @@ public sealed partial class SongDetailPage : Page
         EventsCount.Text = MyViewModel.SelectedSong.PlayEvents.Count.ToString();
 
 
-        MyViewModel.CurrentWinUIPage = this;
+        MyViewModel.CurrentPageEnum = CurrentPage.SingleSongPage;
         await MyViewModel.LoadLyricsFromOnlineOrDBIfNeededAsync(MyViewModel.SelectedSong!);
         await MyLastFMViewModel.LoadSelectedSongLastFMData();
         LoadUiComponents();

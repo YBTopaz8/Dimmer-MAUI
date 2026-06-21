@@ -30,10 +30,10 @@
         CornerRadius="10"
         RowSpacing="10"
         >
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="auto" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0">
             <TextBlock Text="tes" />

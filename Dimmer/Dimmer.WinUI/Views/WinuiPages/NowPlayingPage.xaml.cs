@@ -1,12 +1,6 @@
-﻿using Dimmer.Data.ModelView;
-using Dimmer.WinUI.Views.WinuiPages.SingleSongPage;
-using Microsoft.Maui.Platform;
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
+﻿using Microsoft.UI.Xaml.Controls.Primitives;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
-using System.Windows.Media;
 using Point = Windows.Foundation.Point;
 namespace Dimmer.WinUI.Views.WinuiPages;
 
@@ -35,7 +29,7 @@ public sealed partial class NowPlayingPage : Page
        ArrayOfGoeyy = new List<string>();
         ArrayOfGoeyy.Add("Favorite");
         ArrayOfGoeyy.Add("Note");
-        MyViewModel.CurrentWinUIPage = this;
+        MyViewModel.CurrentPageEnum = CurrentPage.NowPlayingPage;
         compDisp = new();
 
     }

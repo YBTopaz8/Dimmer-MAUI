@@ -1,31 +1,11 @@
-﻿using System;
-using System.Reactive.Disposables;
+﻿using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Runtime.InteropServices.WindowsRuntime;
-using System.Threading.Tasks;
-
-using CommunityToolkit.WinUI;
 using DevWinUI;
-using Dimmer.Utilities.Extensions;
-using Dimmer.WinUI.Views.CustomViews.WinuiViews;
-using DynamicData.Binding;
-using Microsoft.Graphics.Canvas.Effects;
 using Microsoft.UI.Xaml.Controls.Primitives;
 
-using Windows.Foundation.Metadata;
-using Windows.UI;
-using Windows.UI.Text;
-
 using static Dimmer.DimmerSearch.TQlStaticMethods;
-
-using AnimationStopBehavior = Microsoft.UI.Composition.AnimationStopBehavior;
 using Border = Microsoft.UI.Xaml.Controls.Border;
-using CheckBox = Microsoft.UI.Xaml.Controls.CheckBox;
-using DragStartingEventArgs = Microsoft.UI.Xaml.DragStartingEventArgs;
-using Grid = Microsoft.UI.Xaml.Controls.Grid;
-using Panel = Microsoft.UI.Xaml.Controls.Panel;
-using ScalarKeyFrameAnimation = Microsoft.UI.Composition.ScalarKeyFrameAnimation;
-using SelectionChangedEventArgs = Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs;
 using Visibility = Microsoft.UI.Xaml.Visibility;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -499,19 +479,19 @@ public sealed partial class AllSongsListPage : Page
             MyViewModel.IsBackButtonVisible = WinUIVisibility.Collapsed;
 
 
-            MyViewModel.CurrentWinUIPage = this;
+            MyViewModel.CurrentPageEnum = CurrentPage.AllSongsListPage;
             MyViewModel.MySongsTableView = MySongsTableView;
           
             
             // Now that the ViewModel is set, you can set the DataContext.
             this.DataContext = MyViewModel;
-
             await Task.Delay(500);
             MyViewModel.StartTQLPipeLine();
+
         }
 
 
-        MyViewModel.CurrentWinUIPage = this;
+        MyViewModel.CurrentPageEnum = CurrentPage.AllSongsListPage  ;
     }
 
     protected override void OnNavigatedFrom(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
@@ -571,7 +551,6 @@ public sealed partial class AllSongsListPage : Page
         ViewSongBtn_Click(sender, e);
     }
 
-    private SongModelView? _storedItem;
 
 
     private void CardBorder_Loaded(object sender, RoutedEventArgs e)

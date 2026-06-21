@@ -33,17 +33,9 @@
         </Grid.RowDefinitions>
         <GridView Grid.Row="0" ItemsSource="{x:Bind MyViewModel.SelectedArtist.AlbumsByArtist, Mode=OneWay}">
             <GridView.Header>
-                <devWin:ShyHeader
-                    Title="{x:Bind MyViewModel.SelectedArtist.Name, Mode=OneWay}"
-                    BackgroundImage="{x:Bind MyViewModel.SelectedArtist.ImagePath, Mode=OneWay}"
-                    Description="{x:Bind MyViewModel.SelectedArtist.Bio, Mode=OneWay}"
-                    >
+                <devWin:ShyHeader Title="{x:Bind MyViewModel.SelectedArtist.Name, Mode=OneWay}" Description="{x:Bind MyViewModel.SelectedArtist.Bio, Mode=OneWay}">
                     <devWin:ShyHeader.Profile>
-                        <PersonPicture
-                            Width="150"
-                            Height="150"
-                            ProfilePicture="{x:Bind MyViewModel.SelectedArtist.ImagePath, Mode=OneWay}"
-                            />
+                        <PersonPicture Width="150" Height="150" />
                     </devWin:ShyHeader.Profile>
                     <devWin:ShyHeader.Footer>
                         <StackPanel Orientation="Horizontal">
@@ -93,9 +85,26 @@
                     </dgView:TableViewTemplateColumn.CellTemplate>
                 </dgView:TableViewTemplateColumn>
 
-                <dgView:TableViewTextColumn Binding="{Binding OtherArtistsName}" />
-                <dgView:TableViewTextColumn Binding="{Binding AlbumName}" />
-                <dgView:TableViewTextColumn Binding="{Binding GenreName}" />
+                <dgView:TableViewTextColumn
+                    Width="*"
+                    Binding="{Binding Title}"
+                    Header="Title"
+                    />
+                <dgView:TableViewTextColumn
+                    Width="*"
+                    Binding="{Binding OtherArtistsName}"
+                    Header="Other Artists"
+                    />
+                <dgView:TableViewTextColumn
+                    Width="*"
+                    Binding="{Binding AlbumName}"
+                    Header="Album"
+                    />
+                <dgView:TableViewTextColumn
+                    Width="*"
+                    Binding="{Binding GenreName}"
+                    Header="Genre"
+                    />
             </dgView:TableView.Columns>
         </dgView:TableView>
 

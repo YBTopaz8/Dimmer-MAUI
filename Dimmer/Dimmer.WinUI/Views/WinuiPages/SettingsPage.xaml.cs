@@ -1,10 +1,5 @@
-using CommunityToolkit.WinUI;
-using Dimmer.DimmerLive.ParseStatics;
 using Dimmer.WinUI.Views.WinuiPages.Settings;
-using Dimmer.WinUI.Views.WinuiPages.SingleSongPage.SubPage;
 using Microsoft.UI.Xaml.Controls.Primitives;
-
-using Grid = Microsoft.UI.Xaml.Controls.Grid;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -34,11 +29,16 @@ public sealed partial class SettingsPage : Page
         // Cast it to your ViewModel type and set your properties.
         if (MyViewModel != null)
         {
-            //MyViewModel.CurrentWinUIPage = this;
+            MyViewModel.CurrentPageEnum = CurrentPage.SettingsPage;
             // Now that the ViewModel is set, you can set the DataContext.
             this.DataContext = BaseViewModel;
         }
 
+    }
+    protected override void OnNavigatedFrom(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
+    {
+        base.OnNavigatedFrom(e);
+        
     }
 
     private void WizardFlipView_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
@@ -48,25 +48,7 @@ public sealed partial class SettingsPage : Page
         FrameworkElement addedGrid = (FrameworkElement)addedItems[0];
         FrameworkElement? removedGrid = removedItems.Count > 0 ? (FrameworkElement)removedItems[0]:null;
         string addedName = addedGrid.Name;
-        //string? removedName = removedGrid?.Name;
-        switch (addedName)
-        {
-            case "MusicFoldersBtn":
-                MusicFoldersBtn.Background = new SolidColorBrush(Colors.DarkSlateBlue);
-                
-                break;
-            case "LastFMBtn":
-                MusicFoldersBtn.Background = new SolidColorBrush(Colors.Gray);
-                
-                break;
-            case "UtilsBtn":
-                MusicFoldersBtn.Background = new SolidColorBrush(Colors.Gray);
-                
-                break;
-            default:
-                break;
-        }
-
+       
     }
 
  
