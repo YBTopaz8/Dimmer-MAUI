@@ -27,7 +27,6 @@ public class LyricsProcessingProgress
 public static class SongDataProcessor
 {
     public static async Task ProcessLyricsAsync(BaseViewModel vm,
-        IDimmerStateService stateService,
         IRealmFactory RealmFactory,
         ILyricsMetadataService lyricsService,
         IProgress<LyricsProcessingProgress>? progress,
@@ -150,8 +149,8 @@ public static class SongDataProcessor
         // --- CONFIGURATION ---
         new ExecutionDataflowBlockOptions
         {
-            // This is the magic. Run up to 4 tasks in parallel. Perfect for network I/O.
-            MaxDegreeOfParallelism = 2,
+            // This is the magic. Run up to 3 tasks in parallel. Perfect for network I/O.
+            MaxDegreeOfParallelism = 3,
             CancellationToken = cancellationToken
         });
 

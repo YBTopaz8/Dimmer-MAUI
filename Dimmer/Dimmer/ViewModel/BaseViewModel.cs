@@ -412,11 +412,23 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 await OnAppOpeningAsync();
 
                 LoadLastTenPlayedSongsFromDBToPlayBackQueue();
+                if (string.IsNullOrEmpty(CurrentPlayingSongView.CoverImagePath))
+                {
+                    var songInDb = RealmFactory.GetRealmInstance().Find<SongModel>(CurrentPlayingSongView.Id);
+                    if (songInDb is null) return;
+                    if (!string.IsNullOrEmpty(songInDb.Album.ImagePath))
+                    {
+                        CurrentPlayingSongView.CoverImagePath = songInDb.Album.ImagePath;
+                        return;
+                    }
+
+                    CurrentPlayingSongView.CoverImagePath = songInDb.Album.SongsInAlbum?.FirstOrDefault(c => !string.IsNullOrEmpty(c.CoverImagePath))?.CoverImagePath;
+                }
                 await HeavierBackGroundLoadings(FolderPaths);
 
                 //await Task.Delay(1500);
                 await EnsureAllCoverArtCachedForSongsAsync(_backgroundCachingCts.Token);
-
+                await this.LoadAllSongsLyricsFromOnlineAsync(_backgroundCachingCts);
             }
             catch (OperationCanceledException er)
             {
@@ -631,8 +643,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 SearchResultsHolder.Edit(innerCache => innerCache.Clear());
                 return;
             }
-            _ = Task.Run(() =>
-            {
+            
                 using var uiRealm = RealmFactory.GetRealmInstance();
 
                 var resultCount = result.SongsResultIds.Count;
@@ -687,8 +698,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                         SearchResultsHolder.Edit(innerCache => innerCache.Load(viewModels));
                     });
                 }
-            });
-
+          
         }
     }
     private CancellationTokenSource? _searchCts;
@@ -708,8 +718,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 .OrderByDescending(s => s.DateCreated)
                 .ToList()
                 .Select(x => x.Id).ToList();// Fetch from Realm fast
-                
 
+            IsLibraryEmpty = allSongsIds.Count > 0 ? true : false;
             return new SearchResult { SongsResultIds = allSongsIds };
         }
 
@@ -1450,16 +1460,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     CurrentPlayingSongView = new();
                 }
 
-                if (lastAppEvent is not null)
-                {
-                    var songsLinked = lastAppEvent.SongsLinkingToThisEvent.AsEnumerable().Select(x => x.ToSongModelView());
-                    PlaybackQueueSource.Edit(
-                        updater =>
-                        {
-                            updater.Clear();
-                            updater?.Add(songsLinked);
-                        });
-                }
+              
+
             }
             else
             {
@@ -2026,7 +2028,17 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial bool IsMainViewVisible { get; set; } = true;
 
     [ObservableProperty]
-    public partial CurrentPage CurrentPageContext { get; set; }
+    public partial CurrentPage CurrentPageEnum { get; set; }
+
+    partial void OnCurrentPageEnumChanged(CurrentPage oldValue, CurrentPage newValue)
+    {
+        OnCurrentPageChanged();
+    }
+
+    public virtual void OnCurrentPageChanged()
+    {
+
+    }
 
     [ObservableProperty]
     public partial Page? CurrentMAUIPage { get; set; }
@@ -2539,93 +2551,101 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [RelayCommand]
     public async Task EnsureAllCoverArtCachedForSongsAsync(CancellationToken cancellationToken = default)
     {
-        RxSchedulers.UI.ScheduleTo(() =>
+
+        try
         {
+            RxSchedulers.UI.ScheduleTo(() =>
+           {
 
-        IsAppLoadingCovers = true;
-        });
-        // 1. Get the TOTAL count safely using a short-lived Realm instance
-        int totalCount = 0;
-        List<ObjectId> songsToProcessIds = new();
+               IsAppLoadingCovers = true;
+           });
+            // 1. Get the TOTAL count safely using a short-lived Realm instance
+            int totalCount = 0;
+            List<ObjectId> songsToProcessIds = new();
 
-        using (var realm = RealmFactory.GetRealmInstance())
-        {
-            var query = realm.All<SongModel>()
-                             .Where(s => string.IsNullOrEmpty(s.CoverImagePath));
-            
-            songsToProcessIds = query.AsEnumerable().Select(s => s.Id).ToList();
-            totalCount = songsToProcessIds.Count;
-        }
-
-        if (totalCount == 0) return;
-
-        int processedCount = 0;
-
-        // Use lower parallelism on Android to reduce memory pressure
-        var maxParallelism = 2;
-        
-        var parallelOptions = new ParallelOptions
-        {
-            MaxDegreeOfParallelism = maxParallelism,
-            CancellationToken = cancellationToken
-        };
-        var batches = songsToProcessIds.Chunk(20);
-
-        await Parallel.ForEachAsync(batches, parallelOptions, async (batchOfIds, ct) =>
-        {
-            List<SongModelView> songsInBatch = new();
-            using (var batchRealm = RealmFactory.GetRealmInstance())
+            using (var realm = RealmFactory.GetRealmInstance())
             {
-                foreach (var songId in batchOfIds)
+                var query = realm.All<SongModel>()
+                                 .Where(s => string.IsNullOrEmpty(s.CoverImagePath));
+
+                songsToProcessIds = query.AsEnumerable().Select(s => s.Id).ToList();
+                totalCount = songsToProcessIds.Count;
+            }
+
+            if (totalCount == 0) return;
+
+            int processedCount = 0;
+
+            // Use lower parallelism on Android to reduce memory pressure
+            var maxParallelism = 2;
+
+            var parallelOptions = new ParallelOptions
+            {
+                MaxDegreeOfParallelism = maxParallelism,
+                CancellationToken = cancellationToken
+            };
+            var batches = songsToProcessIds.Chunk(20);
+
+            await Parallel.ForEachAsync(batches, parallelOptions, async (batchOfIds, ct) =>
+            {
+                List<SongModelView> songsInBatch = new();
+                using (var batchRealm = RealmFactory.GetRealmInstance())
                 {
-                    var songModel = batchRealm.Find<SongModel>(songId);
-                    if (songModel != null)
+                    foreach (var songId in batchOfIds)
                     {
-                        songsInBatch.Add(songModel.ToSongModelView()!);
+                        var songModel = batchRealm.Find<SongModel>(songId);
+                        if (songModel != null)
+                        {
+                            songsInBatch.Add(songModel.ToSongModelView()!);
+                        }
                     }
                 }
-            }
-            foreach (var songView in songsInBatch)
-            {
-                // Check cancellation before processing each song
-                ct.ThrowIfCancellationRequested();
-                
-                bool needsProcessing = string.IsNullOrEmpty(songView.CoverImagePath)
-                                       || !TaggingUtils.FileExists(songView.CoverImagePath);
+                foreach (var songView in songsInBatch)
+                {
+                    // Check cancellation before processing each song
+                    ct.ThrowIfCancellationRequested();
 
-                if (needsProcessing)
+                    bool needsProcessing = string.IsNullOrEmpty(songView.CoverImagePath)
+                                           || !TaggingUtils.FileExists(songView.CoverImagePath);
+
+                    if (needsProcessing)
                     {
-                    
-                    var coverImagePath= await LoadAndCacheCoverArtAsync(songView);
-                    RxSchedulers.UI.ScheduleTo(() =>
-                    {
-                        var songInRes = SearchResults.FirstOrDefault(x => x.Id == songView.Id);
-                        songInRes?.CoverImagePath = coverImagePath;
-                    });
-                    int current = Interlocked.Increment(ref processedCount);
+
+                        var coverImagePath = await LoadAndCacheCoverArtAsync(songView);
+                        RxSchedulers.UI.ScheduleTo(() =>
+                        {
+                            var songInRes = SearchResults.FirstOrDefault(x => x.Id == songView.Id);
+                            songInRes?.CoverImagePath = coverImagePath;
+                        });
+                        int current = Interlocked.Increment(ref processedCount);
 
                         if (current % 10 == 0 || current == totalCount)
                         {
-                           
+
                             _stateService.SetCurrentLogMsg(
-                                $"Caching covers: [{current}/{totalCount}] - {songView.Title}", DimmerLogLevel.Info
-                            );
-                            
+                            $"Caching covers: [{current}/{totalCount}] - {songView.Title}", DimmerLogLevel.Info
+                        );
+
                         }
                     }
-                
-            }
-        });
 
-        songsToProcessIds.Clear();
+                }
+            });
 
-        _stateService.SetCurrentLogMsg("Cover art check complete.", Data.Models.DimmerLogLevel.Info);
+            songsToProcessIds.Clear();
 
-        RxSchedulers.UI.ScheduleTo(() =>
+            _stateService.SetCurrentLogMsg("Cover art check complete.", Data.Models.DimmerLogLevel.Info);
+
+            RxSchedulers.UI.ScheduleTo(() =>
+            {
+
+                IsAppLoadingCovers = false;
+            });
+        }
+        catch (Exception ex)
         {
-
-            IsAppLoadingCovers = false;
-        });
+            Debug.WriteLine(ex.Message);
+        }
     }
 
     #region Playback Event Handlers
@@ -2954,11 +2974,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             // Last 10 events that have at least one linked song
             var lastTenEvents = realm.All<DimmerPlayEvent>()
-                //.Where(e => e.PlayType == 3 && e.SongsLinkingToThisEvent.Any())
+                .Where(e => e.PlayType == 3 && e.SongsLinkingToThisEvent.Any())
                 .OrderByDescending(e => e.EventDate)
                 .ToList()
                 .DistinctBy(x => x.SongId)
-                .Take(25).ToList();
+                .Take(50).ToList();
 
             foreach (var evt in lastTenEvents)
             {
@@ -3338,12 +3358,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             return;
 
         // We pass the full search results as the source for the new queue.
-        await PlaySongAsync(songToPlay, Utilities.Enums.CurrentPage.AllSongs, _searchResults);
+        await PlaySongAsync(songToPlay, Utilities.Enums.CurrentPage.AllSongsListPage, _searchResults);
     }
 
     public async Task PlaySongAsync(
         SongModelView? songToPlay,
-        CurrentPage curPage = CurrentPage.AllSongs,
+        CurrentPage curPage = CurrentPage.AllSongsListPage,
         IEnumerable<SongModelView>? songs = null)
     {
         try
@@ -3362,7 +3382,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             switch (curPage)
             {
-                case Utilities.Enums.CurrentPage.AllSongs:
+                case Utilities.Enums.CurrentPage.AllSongsListPage:
                     {
                         var songSource = (songs ?? _searchResults).ToList();
                         startIndex = songSource.FindIndex(s => s.Id == songToPlay.Id);
@@ -4092,7 +4112,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     break;
 
                 case PlaybackAction.ReplaceQueue:
-                    await PlaySongAsync(songToPlay, CurrentPage.AllSongs, context);
+                    await PlaySongAsync(songToPlay, CurrentPage.AllSongsListPage, context);
                     break;
             }
         }
@@ -4132,7 +4152,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         if (!_audioService.IsPlaying || _playbackQueue.Count == 0)
         {
             // Nothing playing, start playback normally with this song's context
-            await PlaySongAsync(songToPlay, CurrentPage.AllSongs, new List<SongModelView> { songToPlay });
+            await PlaySongAsync(songToPlay, CurrentPage.AllSongsListPage, new List<SongModelView> { songToPlay });
             return;
         }
 
@@ -5442,7 +5462,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         });
         LyricsProgress = lp;
         await SongDataProcessor.ProcessLyricsAsync(
-            this,_stateService,
+            this,
             RealmFactory,
             _lyricsMetadataService,
             LyricsProgress,
@@ -5491,7 +5511,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             if (result.DuplicateSets.Count == 0)
             {
-                if (CurrentPageContext == CurrentPage.SingleSongPage)
+                if (CurrentPageEnum == CurrentPage.SingleSongPage)
                 {
                     _stateService.SetCurrentLogMsg(
                          $"No duplicates found for '{song.Title}'.",DimmerLogLevel.Info);
