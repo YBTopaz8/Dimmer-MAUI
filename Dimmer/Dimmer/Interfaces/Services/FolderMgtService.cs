@@ -1,5 +1,7 @@
 ﻿// --- START OF FILE FolderMgtService.cs ---
 // Add other necessary using statements
+using System.Reactive;
+
 namespace Dimmer.Interfaces.Services;
 
 public class FolderMgtService : IFolderMgtService
@@ -16,6 +18,11 @@ public class FolderMgtService : IFolderMgtService
     private bool _disposed;
     private bool _isCurrentlyWatching;
 
+    private readonly CompositeDisposable _coreSubscriptions = new();
+    private readonly CompositeDisposable _watcherSubscriptions = new();
+
+    private readonly Subject<string> _incrementalScanPathsSubject = new();
+    private readonly Subject<Unit> _fullScanRequestedSubject = new();
 
     public FolderMgtService(
         IRealmFactory _realmFact,
@@ -35,94 +42,124 @@ public class FolderMgtService : IFolderMgtService
 
 
 
+        SetupReactivePipelines();
     }
+
 
     public IObservable<IReadOnlyList<FolderModel>> AllWatchedFolders => _allFoldersBehaviorSubject.AsObservable();
 
+    private void SetupReactivePipelines()
+    {
+        // 1. INCREMENTAL SCANS: Batches multiple file events into a single scan execution
+        var batchIncrementalScans = _incrementalScanPathsSubject
+            // This is the magic: wait for a 1.5-second pause in events before emitting the accumulated paths
+            .Buffer(_incrementalScanPathsSubject.Throttle(TimeSpan.FromSeconds(1.5)))
+            .Where(paths => paths.Any())
+            .Select(paths => paths.Distinct().Where(p => !string.IsNullOrEmpty(p)).ToList())
+            // Concat guarantees that if another batch arrives while scanning, it waits its turn (no concurrency issues)
+            .Select(distinctPaths => Observable.FromAsync(async () =>
+            {
+                _logger.LogInformation("Batched execution: Scanning {Count} modified directories incrementally.", distinctPaths.Count);
+                await _libraryScanner.ScanSpecificPaths(distinctPaths, isIncremental: true);
+            }))
+            .Concat()
+            .Subscribe(
+                _ => { },
+                ex => _logger.LogError(ex, "Error in incremental scan pipeline")
+            );
+
+        // 2. FULL SCANS: Debounces massive deletes into a single full library refresh
+        var batchFullScans = _fullScanRequestedSubject
+            .Throttle(TimeSpan.FromSeconds(2))
+            .Select(_ => Observable.FromAsync(async () =>
+            {
+                _logger.LogInformation("Batched execution: Triggering full library refresh.");
+                var realm = realmFactory.GetRealmInstance();
+                var appModel = realm.All<AppStateModel>().FirstOrDefault();
+                var currentFolders = appModel?.UserMusicFolders.Select(x => x.SystemFolderPath).ToList() ?? new List<string>();
+                await _libraryScanner.ScanLibrary(currentFolders);
+            }))
+            .Concat()
+            .Subscribe(
+                _ => { },
+                ex => _logger.LogError(ex, "Error in full scan pipeline")
+            );
+
+        _coreSubscriptions.Add(batchIncrementalScans);
+        _coreSubscriptions.Add(batchFullScans);
+    }
     public async Task StartWatchingConfiguredFoldersAsync(List<string>? paths = null)
     {
-        
         try
         {
             if (_isCurrentlyWatching)
-        {
-            StopWatching();
-        }
-        var realm = realmFactory.GetRealmInstance();
-        var appModel = realm.All<AppStateModel>().FirstOrDefaultNullSafe();
-            var foldersToWatchPaths = appModel?.UserMusicFolders.Freeze().AsEnumerable().Select(x => x.SystemFolderPath).ToList() ?? new List<string>();
-            if (foldersToWatchPaths.Count <= 0)
-                foldersToWatchPaths = paths;
-        if (foldersToWatchPaths?.Count==0)
-        {
-            _logger.LogInformation("No folders configured to watch.");
-            _allFoldersBehaviorSubject.OnNext(Array.Empty<FolderModel>());
-            return;
-        }
-            if (foldersToWatchPaths is null || foldersToWatchPaths.Count < 1) return;
-        _logger.LogInformation("Starting to watch folders: {Folders}", string.Join(", ", foldersToWatchPaths));
-
-        // check if some paths are actually just subfolders of others and remove them, leaving topmost only
-
-        var SanitizedPaths = new List<string>();
-        foreach (var path in foldersToWatchPaths)
-        {
-            if (!SanitizedPaths.Any(existing => path.StartsWith(existing, StringComparison.OrdinalIgnoreCase)))
             {
-                // Remove any existing paths that are subfolders of the new path
-                SanitizedPaths.RemoveAll(existing => existing.StartsWith(path, StringComparison.OrdinalIgnoreCase));
-                SanitizedPaths.Add(path);
+                StopWatching();
             }
-        }
 
-        await realm.WriteAsync(() =>
-        {
-            appModel?.UserMusicFolders.Clear();
-            foreach (var p in SanitizedPaths)
-                appModel?.UserMusicFolders.Add(new() { SystemFolderPath=p,ReadableFolderPath=p});
-        });
+            var realm = realmFactory.GetRealmInstance();
+            var appModel = realm.All<AppStateModel>().FirstOrDefaultNullSafe();
+            var foldersToWatchPaths = appModel?.UserMusicFolders.Freeze().AsEnumerable().Select(x => x.SystemFolderPath).ToList() ?? new List<string>();
 
-        var folderModels = foldersToWatchPaths.Select(p => new FolderModel { Path = p }).ToList();
-        _allFoldersBehaviorSubject.OnNext(folderModels.AsReadOnly());
+            if (foldersToWatchPaths.Count <= 0)
+                foldersToWatchPaths = paths ?? new List<string>();
 
+            if (foldersToWatchPaths.Count == 0)
+            {
+                _logger.LogInformation("No folders configured to watch.");
+                _allFoldersBehaviorSubject.OnNext(Array.Empty<FolderModel>());
+                return;
+            }
 
-        _monitorSubscriptions.Clear();
+            _logger.LogInformation("Starting to watch folders: {Folders}", string.Join(", ", foldersToWatchPaths));
 
+            var sanitizedPaths = new List<string>();
+            foreach (var path in foldersToWatchPaths)
+            {
+                if (!sanitizedPaths.Any(existing => path.StartsWith(existing, StringComparison.OrdinalIgnoreCase)))
+                {
+                    sanitizedPaths.RemoveAll(existing => existing.StartsWith(path, StringComparison.OrdinalIgnoreCase));
+                    sanitizedPaths.Add(path);
+                }
+            }
 
-        _folderMonitor.OnCreated += HandleFileOrFolderCreated;
-        _folderMonitor.OnRenamed += HandleFileOrFolderRenamed;
-        _folderMonitor.OnDeleted += HandleFileOrFolderDeleted;
-        _folderMonitor.OnChanged += HandleFileOrFolderChanged;
+            await realm.WriteAsync(() =>
+            {
+                appModel?.UserMusicFolders.Clear();
+                foreach (var p in sanitizedPaths)
+                    appModel?.UserMusicFolders.Add(new() { SystemFolderPath = p, ReadableFolderPath = p });
+            });
 
+            var folderModels = sanitizedPaths.Select(p => new FolderModel { Path = p }).ToList();
+            _allFoldersBehaviorSubject.OnNext(folderModels.AsReadOnly());
 
-        await _folderMonitor.StartAsync(foldersToWatchPaths);
-        _isCurrentlyWatching = true;
-        _state.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderWatchStarted, null, null, null));
-        
+            _watcherSubscriptions.Clear();
 
+            // Hook up Rx Subscriptions
+            _watcherSubscriptions.Add(_folderMonitor.FileCreated.Subscribe(HandleFileOrFolderCreated));
+            _watcherSubscriptions.Add(_folderMonitor.FileChanged.Subscribe(HandleFileOrFolderChanged));
+            _watcherSubscriptions.Add(_folderMonitor.FileRenamed.Subscribe(HandleFileOrFolderRenamed));
+            _watcherSubscriptions.Add(_folderMonitor.FileDeleted.Subscribe(HandleFileOrFolderDeleted));
+
+            await _folderMonitor.StartAsync(sanitizedPaths);
+
+            _isCurrentlyWatching = true;
+            _state.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderWatchStarted, null, null, null));
         }
         catch (Exception ex)
         {
-
-            Debug.WriteLine(ex.Message);
+            System.Diagnostics.Debug.WriteLine(ex.Message);
         }
     }
 
-
     public void StopWatching()
     {
-        if (!_isCurrentlyWatching)
-            return;
+        if (!_isCurrentlyWatching) return;
 
         _logger.LogInformation("Stopping folder watching.");
         _folderMonitor.Stop();
 
-        _folderMonitor.OnCreated -= HandleFileOrFolderCreated;
-        _folderMonitor.OnDeleted -= HandleFileOrFolderDeleted;
-        _folderMonitor.OnChanged -= HandleFileOrFolderChanged;
-        _folderMonitor.OnRenamed -= HandleFileOrFolderRenamed;
-
-        _monitorSubscriptions.Clear();
+        _watcherSubscriptions.Clear(); // Cleanly disposes the monitor Rx hooks
         _isCurrentlyWatching = false;
     }
 
@@ -276,94 +313,64 @@ public class FolderMgtService : IFolderMgtService
     }
 
 
-    private async void HandleFileOrFolderCreated(FileSystemEventArgs e)
+    private void HandleFileOrFolderCreated(FileSystemEventArgs e)
     {
-        try
+        if (IsRelevantAudioFile(e.FullPath))
         {
-
-            _logger.LogDebug("FS Event: Created - {FullPath}", e.FullPath);
-            if (IsRelevantAudioFile(e.FullPath))
-            {
-                _logger.LogInformation("Relevant audio file created: {FilePath}. Triggering incremental scan of parent directory.", e.FullPath);
-                // It's often better to scan the directory in case multiple files were added in quick succession
-                // or if metadata relies on folder structure.
-                await _libraryScanner.ScanSpecificPaths(new List<string> { Path.GetDirectoryName(e.FullPath)! }, isIncremental: true);
-            }
-            else if (Directory.Exists(e.FullPath) && IsPathWithinWatchedFolders(e.FullPath))
-            {
-                _logger.LogInformation("New directory created within watched scope: {FolderPath}. Triggering incremental scan.", e.FullPath);
-                await _libraryScanner.ScanSpecificPaths(new List<string> { e.FullPath }, isIncremental: true);
-            }
+            // Push the directory up to be batched
+            var dir = Path.GetDirectoryName(e.FullPath);
+            if (dir != null) _incrementalScanPathsSubject.OnNext(dir);
         }
-        catch (Exception ex)
+        else if (Directory.Exists(e.FullPath) && IsPathWithinWatchedFolders(e.FullPath))
         {
-            Debug.WriteLine(ex.Message);
+            _incrementalScanPathsSubject.OnNext(e.FullPath);
         }
     }
 
-    private async void HandleFileOrFolderDeleted(FileSystemEventArgs e)
+    private void HandleFileOrFolderChanged(FileSystemEventArgs e)
     {
-        _logger.LogDebug("FS Event: Deleted - {FullPath}", e.FullPath);
-        if (IsRelevantAudioFile(e.Name) || WasPathPreviouslyKnownAudio(e.FullPath))
+        if (IsRelevantAudioFile(e.FullPath))
         {
-            _logger.LogInformation("Relevant audio file or known audio path deleted: {FilePath}. Triggering library refresh of parent.", e.FullPath);
-            // Re-scan parent directory to update library (remove song, potentially update album/artist if they become empty)
-            await Task.Run(() => _libraryScanner.ScanSpecificPaths(new List<string> { Path.GetDirectoryName(e.FullPath)! }, isIncremental: true));
-        }
-        else if (WasPathPreviouslyWatchedSubfolder(e.FullPath))
-        {
-            _logger.LogInformation("Watched sub-directory deleted: {FolderPath}. Triggering full library refresh.", e.FullPath);
-            var realm = realmFactory.GetRealmInstance();
-            var appModel = realm.All<AppStateModel>().FirstOrDefault();
-            var currentFolders = appModel?.UserMusicFolders;
-            if (currentFolders != null)
-            {
-                await _libraryScanner.ScanLibrary(currentFolders.AsEnumerable().Select(x => x.SystemFolderPath).ToList());
-            }
-        }
-    }
-
-    private void HandleFileOrFolderChanged(string fullPath)
-    {
-        _logger.LogDebug("FS Event: Changed - {FullPath}", fullPath);
-        if (IsRelevantAudioFile(fullPath))
-        {
-            _logger.LogInformation("Relevant audio file changed: {FilePath}. Triggering incremental scan of parent directory.", fullPath);
-            _libraryScanner.ScanSpecificPaths(new List<string> { Path.GetDirectoryName(fullPath)! }, isIncremental: true);
-
-
+            var dir = Path.GetDirectoryName(e.FullPath);
+            if (dir != null) _incrementalScanPathsSubject.OnNext(dir);
         }
     }
 
     private void HandleFileOrFolderRenamed(RenamedEventArgs e)
     {
-        _logger.LogDebug("FS Event: Renamed - {OldFullPath} to {NewFullPath}", e.OldFullPath, e.FullPath);
         bool oldIsAudio = IsRelevantAudioFile(e.OldName) || WasPathPreviouslyKnownAudio(e.OldFullPath);
         bool newIsAudio = IsRelevantAudioFile(e.Name);
 
         if (oldIsAudio || newIsAudio)
         {
-            _logger.LogInformation("Relevant audio file/folder renamed: {OldPath} -> {NewPath}. Triggering scan of relevant directories.", e.OldFullPath, e.FullPath);
-            var pathsToScan = new List<string>();
-            if (Path.GetDirectoryName(e.OldFullPath) != null)
-                pathsToScan.Add(Path.GetDirectoryName(e.OldFullPath)!);
-            if (Path.GetDirectoryName(e.FullPath) != null)
-                pathsToScan.Add(Path.GetDirectoryName(e.FullPath)!);
+            var oldDir = Path.GetDirectoryName(e.OldFullPath);
+            var newDir = Path.GetDirectoryName(e.FullPath);
 
-            _libraryScanner.ScanSpecificPaths([.. pathsToScan.Distinct()], isIncremental: true);
+            if (oldDir != null) _incrementalScanPathsSubject.OnNext(oldDir);
+            if (newDir != null) _incrementalScanPathsSubject.OnNext(newDir);
         }
-        else if (Directory.Exists(e.FullPath) && IsPathWithinWatchedFolders(e.FullPath) || WasPathPreviouslyWatchedSubfolder(e.OldFullPath))
+        else if ((Directory.Exists(e.FullPath) && IsPathWithinWatchedFolders(e.FullPath)) || WasPathPreviouslyWatchedSubfolder(e.OldFullPath))
         {
-            _logger.LogInformation("Directory renamed within watched scope. Old: {OldPath}, New: {NewPath}. Triggering scan.", e.OldFullPath, e.FullPath);
-            var pathsToScan = new List<string>();
-            if (Path.GetDirectoryName(e.OldFullPath) != null)
-                pathsToScan.Add(Path.GetDirectoryName(e.OldFullPath)!);
-            pathsToScan.Add(e.FullPath);
-            if (Path.GetDirectoryName(e.FullPath) != null && Path.GetDirectoryName(e.FullPath) != e.FullPath)
-                pathsToScan.Add(Path.GetDirectoryName(e.FullPath)!);
+            var oldDir = Path.GetDirectoryName(e.OldFullPath);
+            var newDir = Path.GetDirectoryName(e.FullPath);
 
+            if (oldDir != null) _incrementalScanPathsSubject.OnNext(oldDir);
+            _incrementalScanPathsSubject.OnNext(e.FullPath);
+            if (newDir != null && newDir != e.FullPath) _incrementalScanPathsSubject.OnNext(newDir);
+        }
+    }
 
-            _libraryScanner.ScanSpecificPaths([.. pathsToScan.Distinct()], isIncremental: true);
+    private void HandleFileOrFolderDeleted(FileSystemEventArgs e)
+    {
+        if (IsRelevantAudioFile(e.Name) || WasPathPreviouslyKnownAudio(e.FullPath))
+        {
+            var dir = Path.GetDirectoryName(e.FullPath);
+            if (dir != null) _incrementalScanPathsSubject.OnNext(dir);
+        }
+        else if (WasPathPreviouslyWatchedSubfolder(e.FullPath))
+        {
+            // Pushing to this subject debounces and triggers ScanLibrary() once
+            _fullScanRequestedSubject.OnNext(Unit.Default);
         }
     }
 
@@ -399,15 +406,18 @@ public class FolderMgtService : IFolderMgtService
 
     protected virtual void Dispose(bool disposing)
     {
-        if (_disposed)
-            return;
+        if (_disposed) return;
+
         if (disposing)
         {
             _logger.LogInformation("Disposing FolderManagementService.");
             StopWatching();
-            _monitorSubscriptions.Dispose();
-            _allFoldersBehaviorSubject.Dispose();
 
+            _coreSubscriptions.Dispose();
+            _watcherSubscriptions.Dispose();
+            _incrementalScanPathsSubject.Dispose();
+            _fullScanRequestedSubject.Dispose();
+            _allFoldersBehaviorSubject.Dispose();
 
             (_folderMonitor as IDisposable)?.Dispose();
         }

@@ -366,56 +366,60 @@ public static class TaggingUtils
         }
         catch { return 0; }
     }
-    public static Task<List<string>> GetAllAudioFilesFromPathsAsync(
-    IEnumerable<string> pathsToScan,
-    IReadOnlySet<string> supportedExtensions)
+
+    public static Task<List<string>> GetAllAudioFilesFromPathsAsync(IEnumerable<string> pathsToScan, IReadOnlySet<string> supportedExtensions)
     {
-      return Task.Run(() => 
-    {  var filesBag = new ConcurrentBag<string>();
+        return Task.Run(() =>
+        {
+            var filesBag = new ConcurrentBag<string>();
 
-        Parallel.ForEach(
-            pathsToScan.Where(p => !string.IsNullOrWhiteSpace(p))
-                       .Distinct(StringComparer.OrdinalIgnoreCase),
-            new ParallelOptions { MaxDegreeOfParallelism = 2 },
-            path =>
+            // High-performance enumeration options
+            var enumOptions = new EnumerationOptions
             {
-                try
+                IgnoreInaccessible = true,
+                RecurseSubdirectories = true
+            };
+
+            Parallel.ForEach(
+                pathsToScan.Where(p => !string.IsNullOrWhiteSpace(p)).Distinct(StringComparer.OrdinalIgnoreCase),
+                path =>
                 {
-                    if (path.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
+                    try
                     {
-                        if (PlatformSpecificScanner != null)
+                        if (path.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
                         {
-                            foreach (var f in PlatformSpecificScanner(path, supportedExtensions))
-                                filesBag.Add(f);
+                            if (PlatformSpecificScanner != null)
+                            {
+                                foreach (var f in PlatformSpecificScanner(path, supportedExtensions)) filesBag.Add(f);
+                            }
+                            return;
                         }
-                        return;
-                    }
 
-                    if (File.Exists(path))
-                    {
-                        var ext = Path.GetExtension(path);
-                        if (!string.IsNullOrEmpty(ext) && supportedExtensions.Contains(ext))
+                        if (File.Exists(path) && supportedExtensions.Contains(Path.GetExtension(path)))
+                        {
                             filesBag.Add(path);
-                        return;
-                    }
+                            return;
+                        }
 
-                    if (Directory.Exists(path))
-                    {
-                        foreach (var file in Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories))
+                        if (Directory.Exists(path))
                         {
-                            var ext = Path.GetExtension(file);
-                            if (!string.IsNullOrEmpty(ext) && supportedExtensions.Contains(ext))
-                                filesBag.Add(file);
+                            // Safely traverse directories
+                            var files = Directory.EnumerateFiles(path, "*.*", enumOptions);
+                            foreach (var file in files)
+                            {
+                                if (supportedExtensions.Contains(Path.GetExtension(file)))
+                                {
+                                    filesBag.Add(file);
+                                }
+                            }
                         }
                     }
-                }
-                catch { /* ignored */ }
-            });
+                    catch { /* ignored to prevent breaking parallel loop */ }
+                });
 
-        return filesBag.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+            return filesBag.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
         });
     }
-    
     public static Task<List<string>> GetAllFilesFromPathsAsync(
     IEnumerable<string> pathsToScan,
     IReadOnlySet<string> supportedExtensions)
