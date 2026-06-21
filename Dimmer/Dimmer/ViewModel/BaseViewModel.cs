@@ -2917,17 +2917,17 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial bool IsShowScanLoadingActivityIndicator { get; set; }
     private void OnFolderScanCompleted(PlaybackStateInfo stateInfo)
     {
-        ReloadFolderPaths();
+        //ReloadFolderPaths();
         _stateService.SetCurrentLogMsg("Folder scan completed. Refreshing UI.", Data.Models.DimmerLogLevel.Info );
         _logger.LogInformation("Folder scan completed. Refreshing UI.");
 
         IsAppScanning = false;
-        IsShowScanLoadingActivityIndicator = true;
-        SearchToTQL("asc added");
+        //IsShowScanLoadingActivityIndicator = true;
+        //SearchToTQL("asc added");
 
-        IsShowScanLoadingActivityIndicator = false;
+        //IsShowScanLoadingActivityIndicator = false;
         
-        _ = EnsureAllCoverArtCachedForSongsAsync();
+        //_ = EnsureAllCoverArtCachedForSongsAsync();
 
         
         _logger.LogInformation("Scan completed, but no new songs were passed to the UI.");

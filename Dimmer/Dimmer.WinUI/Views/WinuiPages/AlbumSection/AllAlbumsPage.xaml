@@ -48,7 +48,113 @@
 
 
         <Grid Grid.Column="1">
-            <dgView:TableView AutoGenerateColumns="True" ItemsSource="{x:Bind MyViewModel.AlbumsCollection, Mode=OneWay}" />
+            <dgView:TableView AutoGenerateColumns="False" ItemsSource="{x:Bind MyViewModel.<dgView:TableView
+    x:Name="AllArtistsTableView"
+    AutoGenerateColumns="False"
+    CellDoubleTapped="AllArtistsTableView_CellDoubleTapped"
+    IsReadOnly="True"
+    ItemsSource="{x:Bind MyViewModel.ArtistsCollection, Mode=OneWay}"
+    >
+
+                <dgView:TableView.Columns>
+                    <dgView:TableViewTemplateColumn Width="150" Header="Image">
+                        <dgView:TableViewTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Image>
+                                    <Image.Source>
+                                        <BitmapImage UriSource="{Binding ImagePath}" />
+                                    </Image.Source>
+                                </Image>
+                            </DataTemplate>
+                        </dgView:TableViewTemplateColumn.CellTemplate>
+                    </dgView:TableViewTemplateColumn>
+
+                    <dgView:TableViewTextColumn
+            Width="*"
+            Binding="{Binding Name}"
+            Header="Name"
+            />
+                    <dgView:TableViewNumberColumn
+            Width="*"
+            Binding="{Binding TotalAlbumsByArtist}"
+            Header="Total Albums By Artist"
+            />
+                    <dgView:TableViewNumberColumn
+            Width="*"
+            Binding="{Binding TotalSongsByArtist}"
+            Header="Total Songs By Artist"
+            />
+                    <dgView:TableViewNumberColumn
+            Width="*"
+            Binding="{Binding TotalCompletedPlays}"
+            Header="Total Completed Plays"
+            />
+                    <dgView:TableViewNumberColumn
+            Width="*"
+            Binding="{Binding AverageSongListenThroughRate}"
+            Header="Average Song Listen ThroughRate"
+            />
+                    <dgView:TableViewNumberColumn
+            Width="*"
+            Binding="{Binding OverallRank}"
+            Header="Overall Rank"
+            />
+                </dgView:TableView.Columns>
+            </dgView:TableView> , Mode=OneWay}" />
+
+            <dgView:TableView
+                x:Name="AllArtistsTableView"
+                AutoGenerateColumns="False"
+                CellDoubleTapped="AllArtistsTableView_CellDoubleTapped"
+                IsReadOnly="True"
+                ItemsSource="{x:Bind MyViewModel.ArtistsCollection, Mode=OneWay}"
+                >
+
+                <dgView:TableView.Columns>
+                    <dgView:TableViewTemplateColumn Width="150" Header="Image">
+                        <dgView:TableViewTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Image>
+                                    <Image.Source>
+                                        <BitmapImage UriSource="{Binding ImagePath}" />
+                                    </Image.Source>
+                                </Image>
+                            </DataTemplate>
+                        </dgView:TableViewTemplateColumn.CellTemplate>
+                    </dgView:TableViewTemplateColumn>
+
+                    <dgView:TableViewTextColumn
+                        Width="*"
+                        Binding="{Binding Name}"
+                        Header="Name"
+                        />
+                    <dgView:TableViewNumberColumn
+                        Width="*"
+                        Binding="{Binding TotalAlbumsByArtist}"
+                        Header="Total Albums By Artist"
+                        />
+                    <dgView:TableViewNumberColumn
+                        Width="*"
+                        Binding="{Binding TotalSongsByArtist}"
+                        Header="Total Songs By Artist"
+                        />
+                    <dgView:TableViewNumberColumn
+                        Width="*"
+                        Binding="{Binding TotalCompletedPlays}"
+                        Header="Total Completed Plays"
+                        />
+                    <dgView:TableViewNumberColumn
+                        Width="*"
+                        Binding="{Binding AverageSongListenThroughRate}"
+                        Header="Average Song Listen ThroughRate"
+                        />
+                    <dgView:TableViewNumberColumn
+                        Width="*"
+                        Binding="{Binding OverallRank}"
+                        Header="Overall Rank"
+                        />
+                </dgView:TableView.Columns>
+            </dgView:TableView>
         </Grid>
 
     </Grid>
