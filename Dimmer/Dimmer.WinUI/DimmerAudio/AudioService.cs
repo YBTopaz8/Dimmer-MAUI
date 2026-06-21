@@ -1,13 +1,10 @@
 ﻿using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Subjects;
-using System.Threading.Tasks;
 
 using AudioSwitcher.AudioApi;
 //using NAudio.CoreAudioApi;
 using AudioSwitcher.AudioApi.CoreAudio;
-
-using Device = AudioSwitcher.AudioApi.Device;
 using DeviceType = AudioSwitcher.AudioApi.DeviceType;
 namespace Dimmer.WinUI.DimmerAudio;
 

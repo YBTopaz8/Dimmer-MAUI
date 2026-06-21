@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-namespace Dimmer.WinUI.ViewModel.SingleSongVMSection;
+﻿namespace Dimmer.WinUI.ViewModel.SingleSongVMSection;
 
 
 public partial class EditSongViewModel : ObservableObject
@@ -785,7 +782,7 @@ public partial class EditSongViewModel : ObservableObject
             .Where(c => c.IsAccepted)
             .ToList();
 
-        if (!acceptedChanges.Any())
+        if (acceptedChanges.Count == 0)
             return;
 
         // Apply changes to original song

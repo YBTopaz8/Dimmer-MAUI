@@ -1,19 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Dimmer.Data.RealmStaticFilters;
-using Dimmer.Utilities.Extensions;
+﻿using Dimmer.Data.RealmStaticFilters;
 
 using LiveChartsCore;
 using LiveChartsCore.Kernel.Sketches;
 using LiveChartsCore.SkiaSharpView;
-using LiveChartsCore.SkiaSharpView.Painting;
-
-using SkiaSharp;
-
-using LinearGradientPaint = LiveChartsCore.SkiaSharpView.Painting.LinearGradientPaint;
 
 namespace Dimmer.WinUI.ViewModel;
 

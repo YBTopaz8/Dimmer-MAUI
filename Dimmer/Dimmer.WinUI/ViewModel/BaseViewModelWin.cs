@@ -3,18 +3,13 @@
 
 
 
-using CommunityToolkit.Maui.Alerts;
 using CommunityToolkit.Maui.Core.Extensions;
 using Dimmer.Utils;
 using Dimmer.WinUI.Views.CustomViews.WinuiViews;
-using Dimmer.WinUI.Views.WinuiPages.Settings;
 using MongoDB.Bson;
-using System.Threading.Tasks;
-using System.Windows.Controls.Primitives;
 using Windows.Foundation.Collections;
 using Windows.UI.Core;
 using Brush = Microsoft.UI.Xaml.Media.Brush;
-using Color = System.Drawing.Color;
 using FolderPicker = CommunityToolkit.Maui.Storage.FolderPicker;
 using Visibility = Microsoft.UI.Xaml.Visibility;
 
@@ -240,21 +235,48 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     [ObservableProperty]
     public partial List<string> DraggedAudioFiles { get; set; }
+    
     [ObservableProperty]
-    public partial Page CurrentWinUIPage { get; internal set; }
+    public partial bool IsNavPanelOpened { get;  set; }
+    [ObservableProperty]
+    public partial Visibility BottomCurrentPlayingSongPanelVisibility { get;  set; }
 
-    partial void OnCurrentWinUIPageChanged(Page oldValue, Page newValue)
+    public override void OnCurrentPageChanged()
     {
-        if (CoverImageSong is not null)
+        
+        if (CurrentPageEnum == CurrentPage.AllSongsListPage)
         {
-            if (newValue.GetType() == typeof(AllSongsListPage))
+            BottomCurrentPlayingSongPanelVisibility = Visibility.Visible;
+            if (CoverImageSong is not null)
             {
                 CoverImageSong.Visibility = Visibility.Visible;
-                return;
             }
-            CoverImageSong.Visibility = Visibility.Collapsed;
+            IsNavPanelOpened = true;
+
+            return;
         }
+        IsNavPanelOpened = false;
+        BottomCurrentPlayingSongPanelVisibility = Visibility.Collapsed;
     }
+
+    //partial void OnCurrentPageEnumChanged(CurrentPage oldValue, CurrentPage newValue)
+    //{
+
+    //    if (newValue == CurrentPage.AllSongsListPage)
+    //    {
+    //        BottomCurrentPlayingSongPanelVisibility = Visibility.Visible;
+    //        if (CoverImageSong is not null)
+    //        {
+    //            CoverImageSong.Visibility = Visibility.Visible;
+    //        }
+    //        IsNavPanelOpened = true;
+
+    //        return;
+    //    }
+    //    IsNavPanelOpened = false;
+    //    BottomCurrentPlayingSongPanelVisibility = Visibility.Collapsed;
+
+    //}
 
     [RelayCommand]
     public void SwapMediaBarPosition()
@@ -545,11 +567,9 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
         newValue.Items.VectorChanged += MySongsTableItems_VectorChanged;
         }
-        if(newValue is null)
-        {
-            newValue.Items.VectorChanged -= MySongsTableItems_VectorChanged;
+        
 
-        }
+
     }
 
     private void MySongsTableItems_VectorChanged(IObservableVector<object> sender, IVectorChangedEventArgs @event)

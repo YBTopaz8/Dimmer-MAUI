@@ -1,14 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
+﻿using System.Text.Json;
 
 using Dimmer.DimmerLive;
 using Dimmer.DimmerLive.Models;
-
-using Hqub.Lastfm.Services;
 
 namespace Dimmer.WinUI.NativeServices;
 
