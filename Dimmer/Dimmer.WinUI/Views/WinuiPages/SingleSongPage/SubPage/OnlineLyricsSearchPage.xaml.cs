@@ -1,19 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
 using NavigationEventArgs = Microsoft.UI.Xaml.Navigation.NavigationEventArgs;
-using ScrollBarVisibility = Microsoft.UI.Xaml.Controls.ScrollBarVisibility;
 using Dimmer.Data.Models.LyricsModels;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -86,7 +71,7 @@ public sealed partial class OnlineLyricsSearchPage : Page
                     });
                 };
                 MyViewModel.AutoFillSearchFields();
-                MyViewModel.CurrentWinUIPage = this;
+                MyViewModel.CurrentPageEnum = CurrentPage.OnlineLyricsSearchPage;
             }
         }
     }
