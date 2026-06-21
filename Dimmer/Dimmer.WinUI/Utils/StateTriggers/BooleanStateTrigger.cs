@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using StateTriggerBase = Microsoft.UI.Xaml.StateTriggerBase;
+﻿using StateTriggerBase = Microsoft.UI.Xaml.StateTriggerBase;
 
 namespace Dimmer.WinUI.Utils.StateTriggers;
 

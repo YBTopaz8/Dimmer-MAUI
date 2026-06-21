@@ -1,5 +1,4 @@
 ﻿using ListView = Microsoft.UI.Xaml.Controls.ListView;
-using ListViewSelectionMode = Microsoft.UI.Xaml.Controls.ListViewSelectionMode;
 using Point = Windows.Foundation.Point;
 
 namespace Dimmer.WinUI.Utils.StaticUtils;

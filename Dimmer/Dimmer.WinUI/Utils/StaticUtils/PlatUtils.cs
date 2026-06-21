@@ -1,7 +1,4 @@
-﻿
-using System.Drawing.Imaging;
-
-using Microsoft.Windows.AppNotifications;
+﻿using Microsoft.Windows.AppNotifications;
 using Microsoft.Windows.AppNotifications.Builder;
 
 using Windows.Graphics;

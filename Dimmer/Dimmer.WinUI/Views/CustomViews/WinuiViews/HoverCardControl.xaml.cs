@@ -1,7 +1,3 @@
-using Microsoft.UI.Composition;
-using Microsoft.UI.Dispatching;
-using System.Diagnostics;
-
 namespace Dimmer.WinUI.Views.CustomViews.WinuiViews;
 
 public sealed partial class HoverCardControl : UserControl, IDisposable

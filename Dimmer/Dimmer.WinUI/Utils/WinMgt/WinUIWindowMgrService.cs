@@ -1,7 +1,4 @@
-﻿using Dimmer.WinUI.Views;
-
-using UiThreads = Dimmer.WinUI.Utils.StaticUtils.UiThreads;
-using Window = Microsoft.UI.Xaml.Window;
+﻿using Window = Microsoft.UI.Xaml.Window;
 namespace Dimmer.WinUI.Utils.WinMgt;
 
 public partial class WinUIWindowMgrService : IWinUIWindowMgrService

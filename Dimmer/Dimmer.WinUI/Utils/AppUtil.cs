@@ -1,7 +1,5 @@
 ﻿using Windows.Graphics;
 
-using UiThreads = Dimmer.WinUI.Utils.StaticUtils.UiThreads;
-
 namespace Dimmer.WinUI.Utils;
 public class AppUtil : IAppUtil
 {
