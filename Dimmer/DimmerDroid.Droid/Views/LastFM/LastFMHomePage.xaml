@@ -174,12 +174,10 @@
                 </dx:TabViewItem>
             </dx:TabView>
 
-            <dx:DXPopup
-                x:Name="LoginPopUp"
-                AllowScrim="False"
-                ScrimColor="DarkSlateBlue"
+            <dx:BottomSheet
+                x:Name="LoginBtmSheet"
                 >
-                <dx:DXPopup.Content>
+                <dx:BottomSheet.Content>
                     <dx:DXStackLayout Padding="10" ItemSpacing="10">
                         <dx:DXStackLayout
                             HorizontalOptions="Center"
@@ -227,8 +225,8 @@
                             ShowIcon="False"
                             />
                     </dx:DXStackLayout>
-                </dx:DXPopup.Content>
-            </dx:DXPopup>
+                </dx:BottomSheet.Content>
+            </dx:BottomSheet>
         </Grid>
     </dx:DXScrollView>
 </ContentPage>

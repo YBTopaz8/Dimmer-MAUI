@@ -28,7 +28,7 @@ public partial class HomePage : ContentPage
                 {
                     if(e)
                     {
-                        this.MainPageTabView.SelectedItemIndex = 1;
+                        //this.MainPageTabView.SelectedItemIndex = 1;
                     }
 
                 });
@@ -61,22 +61,18 @@ public partial class HomePage : ContentPage
                 async e =>
                 {
 
-                    await Task.Delay(2000);
+                  
                     switch (e)
                     {
                         case 0:
                             MyViewModel.StartTQLPipeLine();
                            
                         
-                            var songHandle = SongsCV.FindItemHandle(MyViewModel.CurrentPlayingSongView);
-                            HapticFeedback.Default.Perform(HapticFeedbackType.Click);
-                            SongsCV.ScrollTo(songHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
+                         
                             break;
 
                         case 2:
-                            var songHandlePBCV = PlaybackQueueCV.FindItemHandle(MyViewModel.CurrentPlayingSongView);
-                            HapticFeedback.Default.Perform(HapticFeedbackType.Click);
-                            PlaybackQueueCV.ScrollTo(songHandlePBCV, DevExpress.Maui.Core.DXScrollToPosition.Start);
+
                             break;
                         default:
                             break;
