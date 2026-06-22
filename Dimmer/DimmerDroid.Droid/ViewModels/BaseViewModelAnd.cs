@@ -56,9 +56,8 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         {
             case 0:
             case 2:
-                IsNowPlayingQueueVisible = false;
+                IsNowPlayingQueueVisible = true;
                 IsNowAllSongsQueueVisible = true;
-                IsNowPlayingUIVisible = false;
 
                 break;
             case 1:

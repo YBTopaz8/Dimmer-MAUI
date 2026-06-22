@@ -12,6 +12,7 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
     public ILiveSessionManagerService SessionManager => _sessionManager;
     public LoginViewModel LoginViewModel;
     private BaseViewModel _mainViewModel; // To get current song state
+    public BaseViewModel BaseVM => _mainViewModel;
     private readonly ILogger<SessionManagementViewModel> _logger;
     private readonly CompositeDisposable _disposables = new();
 
@@ -23,8 +24,8 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     public partial ObservableCollection<FavSongsTransferClass> FavSongs { get; set; } 
 
-    public ObservableCollection<CloudBackupModel> AvailableBackups { get; } = new();
-    public bool IsBusy { get; private set; }
+    public ObservableCollection<BackupMetadata> AvailableBackups { get; } = new();
+    
     [ObservableProperty]
     public partial string CurrentReferralCode { get; set; }
 
@@ -35,6 +36,20 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
 
     [ObservableProperty]
     public partial bool IsTransferInProgress { get; set; }
+    [ObservableProperty]
+    public partial bool IsBusy { get; set; }
+
+    [ObservableProperty]
+    public partial bool HasOnlineBackup { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsBusyLoadingOnlineBackUp { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsBusyConnectingToLiveQueries { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsBusyLoadingDevices { get; set; }
 
 
     public SessionManagementViewModel(LoginViewModel loginViewModel,
@@ -89,12 +104,13 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
         IsBusy = true;
         try
         {
-            var rawBackups = await _sessionManager.GetAvailableBackupsAsync();
+            List<BackupMetadata>? rawBackups = await _sessionManager.GetAvailableBackupsAsync();
             if (rawBackups is null) return;
             AvailableBackups.Clear();
+            HasOnlineBackup = AvailableBackups.Count > 0;
             foreach (var item in rawBackups)
             {
-                //AvailableBackups.Add(new CloudBackupModel(item));
+                AvailableBackups.Add(item);
             }
         }
         finally 
@@ -615,5 +631,10 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
         var acl = new ParseACL(ParseClient.Instance.CurrentUser);
         newCmd.ACL = acl;
         await newCmd.SaveAsync();
+    }
+
+    public async Task UpdateDeviceNameAsync(UserDeviceSession dev)
+    {
+        await dev.SaveAsync();
     }
 }
