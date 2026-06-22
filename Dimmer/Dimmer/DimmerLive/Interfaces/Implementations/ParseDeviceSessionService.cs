@@ -1,8 +1,4 @@
-﻿using ATL.Logging;
-using Parse.LiveQuery;
-using System.IO.Compression;
-using System.Text.Json.Serialization;
-using System.Xml.Linq;
+﻿using System.IO.Compression;
 
 namespace Dimmer.DimmerLive.Interfaces.Implementations;
 public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
@@ -11,10 +7,10 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
     private readonly IAuthenticationService _authService;
     private readonly ParseLiveQueryClient _liveQueryClient;
     private Subscription<ChatMessage> _messageSubscription;
-    private UserDeviceSession _thisDeviceSession; 
+
     private readonly Subject<DimmerSharedSong> _incomingTransfers = new();
 
-    private string MyDeviceId => Preferences.Get("MyDeviceId", Guid.NewGuid().ToString());
+    private string MyDeviceId => ParseUser.CurrentUser.ObjectId +"|" + Environment.MachineName + "|" + Environment.OSVersion.Platform + "|" + Environment.OSVersion.VersionString;
     private Subscription<CloudScrobble>? _scrobbleSubscription;
 
     public IObservable<DeviceCommand> OnRemoteCommandReceived => _remoteCommandSubject.AsObservable();
@@ -23,7 +19,7 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
     public IObservable<CloudScrobble> OnLiveScrobbleReceived => _liveScrobbleSubject.AsObservable();
     private readonly Subject<CloudScrobble> _liveScrobbleSubject = new();
 
-    public UserDeviceSession ThisDeviceSession => _thisDeviceSession;
+
 
     public IObservable<IChangeSet<UserDeviceSession, string>> OtherAvailableDevices { get; }
     public IObservable<DimmerSharedSong> IncomingTransferRequests { get; }
@@ -33,17 +29,15 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
 
 
     private readonly BaseViewModel _vm;
-    private PeriodicTimer? _heartbeatTimer;
-    private CancellationTokenSource? _heartbeatCts;
 
-    private DeviceState? _myCurrentState;
+
+    private UserDeviceSession? _myCurrentSession;
     private Subscription<DeviceCommand>? _commandSub;
+    public Subscription<UserDeviceSession> DevSessionSubscription { get; private set; }
 
-
-
- 
     public ParseDeviceSessionService(ILogger<ParseDeviceSessionService> logger, IAuthenticationService authService, ParseLiveQueryClient liveQueryClient,BaseViewModel vm)
     {
+        
         _logger = logger;
         _authService = authService;
         _liveQueryClient = liveQueryClient;
@@ -67,60 +61,114 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
     {
         if (ParseUser.CurrentUser == null) return;
 
+        try
+        {
+            _logger.LogInformation("Registering current device session...");
+
+            StartCommandListener();
 
 
 
-
-        // Create or Update Presence
-        var query = new ParseQuery<DeviceState>(ParseClient.Instance).WhereEqualTo("deviceId", MyDeviceId);
-        _myCurrentState = await query.FirstOrDefaultAsync() ?? new DeviceState { DeviceId = MyDeviceId };
-
-        _myCurrentState.DeviceName = DeviceInfo.Name;
-        _myCurrentState.Owner = ParseUser.CurrentUser;
-        _myCurrentState.ACL = new ParseACL(ParseUser.CurrentUser);
-        await _myCurrentState.SaveAsync();
-
-
-        StartCommandListener();
-        await UploadLibraryMapAsync(); // Upload the "What I have" list
-        await FetchOtherDevicesAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to register current device session.");
+        }
     }
 
     private void StartCommandListener()
     {
-        var cmdQuery = new ParseQuery<DeviceCommand>(ParseClient.Instance)
-            .WhereEqualTo("targetDeviceId", MyDeviceId)
-            .WhereEqualTo("isProcessed", false);
+        var devSessionsQuery = new ParseQuery<UserDeviceSession>(ParseClient.Instance)
+            .WhereEqualTo("userOwner.objectId", ParseClient.Instance.CurrentUser.ObjectId)
+           ;
 
-        _commandSub = _liveQueryClient.Subscribe(cmdQuery);
-        _commandSub.On(Subscription.Event.Create, async cmd =>
+        DevSessionSubscription = _liveQueryClient.Subscribe(devSessionsQuery);
+        DevSessionSubscription.On(Subscription.Event.Create, cmd =>
         {
-            _logger.LogInformation($"Remote Command Received: {cmd.Command}");
-            if (_vm.IsBackGrounded) return;
-            RxSchedulers.UI.ScheduleTo(async () =>
+            if(cmd.DeviceId == MyDeviceId)
             {
-                switch (cmd.Command)
-                {
-                    case "PLAY_KEY":
-                        bool accept = await Shell.Current.DisplayAlertAsync("Session Transfer", "Resume playback from other device?", "Yes", "No");
-                        if (accept)
-                        {
-                            await HandleRemotePlay(cmd.Payload); // Plays the song
-                        }
+                _myCurrentSession = cmd;
+                _logger.LogInformation("My device session created: {SessionId}", cmd.ObjectId);
+            }
+            else
+            {
+                _otherDevicesCache.AddOrUpdate(cmd);
+                _logger.LogInformation("Other device session created: {SessionId}", cmd.ObjectId);
+            }
+            
 
-                        break;
-                    case "PAUSE":
-                        _vm.PlayPauseToggleCommand.Execute(null);
-                        break;
-                    case "SEEK":
-                        _vm.SeekTrackPosition(double.Parse(cmd.Payload));
-                        break;
-                }
-            });
-
-            cmd.IsProcessed = true;
-            await cmd.SaveAsync();
         });
+        DevSessionSubscription.On(Subscription.Event.Update, cmd =>
+        {
+            if(cmd.DeviceId == MyDeviceId)
+            {
+                _myCurrentSession = cmd;
+                _logger.LogInformation("My device session created: {SessionId}", cmd.ObjectId);
+            }
+                _otherDevicesCache.AddOrUpdate(cmd);
+                _logger.LogInformation("Other device session created: {SessionId}", cmd.ObjectId);
+            
+            
+
+        });
+
+
+        DevSessionSubscription.Subscribes.Subscribe(async q =>
+        {
+
+
+            Debug.WriteLine("Successfully Subscribed! Now listening for data...");
+
+            // 1. Prepare parameters for the Cloud Function you already wrote
+            var parameters = new Dictionary<string, object>
+            {
+                { "deviceId", MyDeviceId },
+                { "deviceName", DeviceInfo.Name },
+                { "deviceIdiom", DeviceInfo.Idiom.ToString() },
+                { "deviceOSVersion", DeviceInfo.VersionString },
+                { "deviceManufacturer", System.Environment.MachineName },
+                { "deviceModel", DeviceInfo.Model }
+            };
+
+            try
+            {
+                // 2. Call your Cloud Function instead of SaveAsync()
+                // This will securely create the object on the server AND set the ACL properly!
+                var result = await ParseClient.Instance.CallCloudCodeFunctionAsync<UserDeviceSession>(
+                    "registerDevicePresence",
+                    parameters
+                );
+
+                Debug.WriteLine($"Created Session via Cloud Code! ID: {result.ObjectId}");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to register device presence: {ex.Message}");
+            }
+        });
+      
+
+
+    }
+    private async Task SendDeviceReplyAsync(string targetDeviceId, string text)
+    {
+        try
+        {
+            var message = new ChatMessage
+            {
+                Text = text,
+                MessageType = "System", // Or "TerminalResponse"
+            };
+            message["UserName"] = DeviceInfo.Name + " (Device)";
+            message["senderId"] = MyDeviceId;
+            message["UserSenderId"] = ParseUser.CurrentUser.ObjectId;
+
+            await message.SaveAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send device reply.");
+        }
     }
     public async Task InitiateSessionTransferAsync(UserDeviceSession targetDevice, DimmerPlayEventView currentSong)
     {
@@ -162,124 +210,14 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
         public string? AlbumName { get; set; }
         public string? GenreName { get; set; }
     }
-    private async Task UploadLibraryMapAsync()
-    {
-        var realm = _vm.RealmFactory.GetRealmInstance();
-        // We only care about the keys. This allows other devices to check if they have the file.
-        var keys = realm.All<SongModel>().AsEnumerable().Select(s =>
-        {
-            LibraryUploadMapSongModel newSong = new()
-            { 
-                TitleAndDurationKey = s.TitleDurationKey!,
-                Title = s.Title
-                };
-            newSong.ArtistName = s.OtherArtistsName;
-            newSong.AlbumName = s.AlbumName;
-            newSong.GenreName = s.GenreName;
-            return newSong;
-        }).ToList();
-
-        var json = JsonSerializer.Serialize(keys);
-        var file = new ParseFile($"lib_{MyDeviceId}.json", System.Text.Encoding.UTF8.GetBytes(json));
-        await file.SaveAsync(ParseClient.Instance);
-
-        //Update the session object with the link to this map
-       var parameters = new Dictionary<string, object> { { "mapUrl", file.Url },
-           {"deviceId",MyDeviceId } };
-     var result =     await ParseClient.Instance.CallCloudCodeFunctionAsync<string>("updateDeviceLibraryMap", parameters);
-
-        Debug.WriteLine($"updateDeviceLibraryMap result {result}");
-    }
+   
 
     public async Task SyncDeviceStateAsync()
     {
 
         return;
 
-        if (ParseUser.CurrentUser == null) return;
 
-        try
-        {
-            _logger.LogInformation("Zipping and syncing device state to Cloud...");
-            var realm = _vm.RealmFactory.GetRealmInstance();
-
-            // Extract ONLY what we need (to avoid Realm cross-thread exceptions)
-            var allSongKeys = realm.All<SongModel>().AsEnumerable().Select(x => x.TitleDurationKey).Distinct().ToList();
-            //var oldDogs = from d in realm.All<SongModel>() where d.TitleDurationKey != null select d.TitleDurationKey;
-            var allPlayData = realm.All<DimmerPlayEvent>().AsEnumerable().Select(x =>
-            {
-                return new DimmerEventsBackUpModel() 
-                {
-                    SongId = x.SongId!,
-                    SongName = x.SongName,
-                    
-                    PlayEventStr = x.PlayTypeStr,
-                    PositionInSeconds = x.PositionInSeconds,
-                    AudioOutputDeviceName = x.AudioOutputDevice?.Name,
-                    EventDate = x.EventDate,
-                    Id = x.Id,
-                };
-            }).ToList();
-           
-            var currentQueue = _vm.PlaybackQueue?.Select(x => x.TitleDurationKey).ToList();
-
-            var stateData = new
-            {
-                Songs = allSongKeys,
-                //Events = allPlayEvents,
-                Queue = currentQueue,
-                CurrentSong = _vm.CurrentPlayingSongView?.TitleDurationKey
-                ,
-                Events = allPlayData,
-            };
-
-            // Serialize & Compress
-
-            var options = new JsonSerializerOptions
-            {
-                ReferenceHandler = ReferenceHandler.Preserve, // This handles cycles!
-                MaxDepth = 64 // Increase if needed
-            };
-            string jsonString = JsonSerializer.Serialize(stateData, options);
-            byte[] jsonBytes = System.Text.Encoding.UTF8.GetBytes(jsonString);
-
-            byte[] compressedBytes;
-            using (var outStream = new MemoryStream())
-            {
-                using (var archive = new GZipStream(outStream, CompressionLevel.Optimal))
-                {
-                    archive.Write(jsonBytes, 0, jsonBytes.Length);
-                }
-                compressedBytes = outStream.ToArray();
-            }
-
-            string fileName = $"state_{MyDeviceId}.json.gz";
-            ParseFile stateFile = new ParseFile(fileName, compressedBytes, "application/gzip");
-            await stateFile.SaveAsync(ParseClient.Instance);
-
-            // Check if we already have a SyncState for this Device ID
-            var query = new ParseQuery<DeviceSyncState>(ParseClient.Instance)
-                .WhereEqualTo("deviceId", MyDeviceId)
-                .WhereEqualTo("owner", ParseUser.CurrentUser);
-
-            var existingState = await query.FirstOrDefaultAsync();
-
-            var syncObj = existingState ?? new DeviceSyncState();
-            syncObj.DeviceId = MyDeviceId;
-            syncObj.DeviceName = DeviceInfo.Name;
-            syncObj.Owner = ParseUser.CurrentUser;
-            syncObj.StateFile = stateFile;
-
-            // ACL: ONLY the current user can read/write this file. Ultimate Security.
-            syncObj.ACL = new ParseACL(ParseUser.CurrentUser);
-
-            await syncObj.SaveAsync();
-            _logger.LogInformation("Device state synced successfully.");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to sync device state.");
-        }
     }
     public async Task ScrobbleCurrentSongAsync(SongModelView song)
     {
@@ -306,11 +244,7 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
     public void StartListeners()
     {
         if (ParseUser.CurrentUser == null) return;
-        if (_thisDeviceSession == null)
-        {
-            _logger.LogWarning("Cannot start session listeners, current device session is not registered.");
-            return;
-        }
+       
 
        
 
@@ -322,13 +256,12 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
         updateSubscription.On(Subscription.Event.Create,
         OnUpdatePushed);
 
-      
+
 
 
         // Listen for Scrobbles from OTHER devices
         var scrobbleQuery = new ParseQuery<CloudScrobble>(ParseClient.Instance)
-            .WhereEqualTo("owner", ParseUser.CurrentUser)
-            .WhereNotEqualTo("deviceId", MyDeviceId);
+            .WhereEqualTo("owner", ParseUser.CurrentUser);
 
         _scrobbleSubscription = _liveQueryClient.Subscribe(scrobbleQuery);
         _scrobbleSubscription.On(Subscription.Event.Create, scrobble =>
@@ -336,6 +269,17 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
             _logger.LogInformation($"Remote device playing: {scrobble.SongTitleDurationKey}");
             _liveScrobbleSubject.OnNext(scrobble);
         });
+        _scrobbleSubscription.On(Subscription.Event.Enter, scrobble =>
+        {
+            _logger.LogInformation($"Remote device playing: {scrobble.SongTitleDurationKey}");
+            _liveScrobbleSubject.OnNext(scrobble);
+        });
+        _scrobbleSubscription.On(Subscription.Event.Update, scrobble =>
+        {
+            _logger.LogInformation($"Remote device playing: {scrobble.SongTitleDurationKey}");
+            _liveScrobbleSubject.OnNext(scrobble);
+        });
+
     }
     public void StopListeners()
     {
@@ -345,32 +289,10 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
     }
    
 
-    private async Task FetchOtherDevicesAsync()
-    {
-        if (_authService.CurrentUserValue == null)
-            return;
-        try
-        {
-            var otherDevices = await ParseClient.Instance.CallCloudCodeFunctionAsync<IList<UserDeviceSession>>("getMyDeviceSessions", new Dictionary<string, object>());
-
-            otherDevices = otherDevices.DistinctBy(x => x.DeviceName).ToList();
-            // The cloud function getMyDeviceSessions should already exclude the current device if we modify it.
-            // Or we can filter client-side.
-            _otherDevicesCache.Edit(update => {
-                update.Clear();
-                update.AddOrUpdate(otherDevices);
-            });
-            _logger.LogInformation("Fetched {Count} other device sessions.", otherDevices.Count);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to fetch other device sessions.");
-        }
-    }
     public async Task MarkCurrentDeviceInactiveAsync()
     {
-        if (_thisDeviceSession is null)
-            return;
+      
+
         try
         {
             var parameters = new Dictionary<string, object> { { "deviceName", DeviceInfo.Name } };
@@ -594,8 +516,9 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
         StopListeners();
         _otherDevicesCache?.Dispose();
         _incomingTransfers?.Dispose();
-        _heartbeatCts?.Cancel();
+
         _commandSub?.UnsubscribeNow();
+        DevSessionSubscription?.UnsubscribeNow();
     }
 
     public async Task AcknowledgeTransferCompleteAsync(DimmerSharedSong transferredSong)
@@ -622,4 +545,16 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
 
         await message.SaveAsync();
     }
+}
+
+public enum DimmerCommandsEnum
+{
+    StatePresence,
+    Play,
+    Pause,
+    Stop,
+    RemovePresence,
+    GetNowPlayingQueue,
+    GetListOfSongs,
+    
 }

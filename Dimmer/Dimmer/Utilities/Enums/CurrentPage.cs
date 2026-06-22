@@ -4,17 +4,21 @@ public enum CurrentPage
 {
     SetupPage,
     SingleSongPage,
-    AllSongs,
     SettingsPage,
+    FolderSettingsPage,
     NowPlayingPage,
     PlaylistsPage,
     FullStatsPage,
     AllArtistsPage,
+    SingleArtistPage,
     AllAlbumsPage,
     SpecificAlbumPage,
     OnlineChatPage,
     HomePage,
-    RecentPage
+    RecentPage,
+    AllSongsListPage,
+    OnlineLyricsSearchPage,
+    EditSongPage
 }
 
 public enum CollectionToUpdate

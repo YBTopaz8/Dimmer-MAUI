@@ -1,10 +1,4 @@
-﻿using Microsoft.UI.Composition;
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Hosting;
-using Microsoft.UI.Xaml.Media.Animation;
-using System.Numerics;
-using System.Runtime.CompilerServices; // Required for ConditionalWeakTable
-using Visibility = Microsoft.UI.Xaml.Visibility;
+﻿using Visibility = Microsoft.UI.Xaml.Visibility;
 using VisualStateManager = Microsoft.UI.Xaml.VisualStateManager;
 
 namespace Dimmer.WinUI.Utils;

@@ -48,13 +48,12 @@ public partial class LastFMHomePage : ContentPage
            {
                if (!isBg)
                {
-                   await LoginPopUp.ShowAsync(this);
-                   LoginPopUp.CloseOnScrimTap = false;
+                   LoginBtmSheet.Show();
                }
                else
                {
 
-                   LoginPopUp.Close();
+                   LoginBtmSheet.Close();
 
                    await MyLastFMViewModel.LoadUserLastFMDataAsync(MyLastFMViewModel.CurrentUserLocal?.LastFMAccountInfo);
                }

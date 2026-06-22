@@ -5,10 +5,12 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="using:Dimmer.WinUI.Utils.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:devWin="using:DevWinUI"
     xmlns:local="using:Dimmer.WinUI.Views.WinuiPages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:winuiviews="using:Dimmer.WinUI.Views.CustomViews.WinuiViews"
-    mc:Ignorable="d">
+    mc:Ignorable="d"
+    >
     <Page.Resources>
         <ResourceDictionary>
             <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
@@ -19,41 +21,48 @@
     </Page.Resources>
 
     <Grid>
-        <Image  Grid.Column="0"
-       Stretch="UniformToFill"
-    x:Name="CurrentPlayingSongImgBG" 
-    
-    />
-        <ScrollViewer PointerPressed="MainView_PointerPressed" x:Name="mainView">
+
+        <Image
+            x:Name="CurrentPlayingSongImgBG"
+            Grid.Column="0"
+            Stretch="UniformToFill"
+            />
+        <ScrollViewer x:Name="mainView" PointerPressed="MainView_PointerPressed">
             <StackPanel Padding="40" Spacing="8">
                 <!--  Carousel Section  -->
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*" />
 
                     </Grid.ColumnDefinitions>
-                    <Image MaxWidth="350" Grid.Column="0"
-                           MaxHeight="350" Stretch="UniformToFill"
-                        x:Name="CurrentPlayingSongImg" Canvas.ZIndex="1"
-                        Loading="CurrentPlayingSongImg_Loading" Loaded="CurrentPlayingSongImg_Loaded"
+                    <Image
+                        x:Name="CurrentPlayingSongImg"
+                        Grid.Column="0"
+                        MaxWidth="350"
+                        MaxHeight="350"
+                        Canvas.ZIndex="1"
+                        Loaded="CurrentPlayingSongImg_Loaded"
+                        Loading="CurrentPlayingSongImg_Loading"
+                        Stretch="UniformToFill"
                         />
 
-                    <ListView 
+                    <ListView
                         x:Name="SyncLyricsListView"
-                        ScrollViewer.VerticalScrollBarVisibility="Hidden"
-                        Grid.Column="0" HorizontalAlignment="Right"
-                        MaxHeight="290" 
-                        SelectionChanged="ListView_SelectionChanged"
-                        SelectionMode="Single" ItemClick="SyncLyricsListView_ItemClick"
+                        Grid.Column="0"
+                        MaxHeight="290"
                         Margin="0,0,50,0"
-                        SelectedItem="{x:Bind MyViewModel.CurrentLine, Mode=OneWay}"
-                        
+                        HorizontalAlignment="Right"
+                        ItemClick="SyncLyricsListView_ItemClick"
                         ItemsSource="{x:Bind MyViewModel.AllLines}"
-                                   >
+                        ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                        SelectedItem="{x:Bind MyViewModel.CurrentLine, Mode=OneWay}"
+                        SelectionChanged="ListView_SelectionChanged"
+                        SelectionMode="Single"
+                        >
                         <ListView.ItemTemplate>
-                            <DataTemplate >
+                            <DataTemplate>
                                 <Border>
-                                    <TextBlock Text="{Binding Text}"/>
+                                    <TextBlock Text="{Binding Text}" />
                                 </Border>
                             </DataTemplate>
                         </ListView.ItemTemplate>
@@ -64,55 +73,65 @@
                 <StackPanel
                     x:Name="SongInfoStackPanel"
                     HorizontalAlignment="Center"
-                    Spacing="8">
-                    <Button Background="Transparent"
-                            
+                    Spacing="8"
+                    >
+                    <Button
                         HorizontalAlignment="Center"
-                        FontSize="28"
-                        FontWeight="SemiBold" CornerRadius="12"
+                        HorizontalContentAlignment="Center"
+                        Background="Transparent"
                         Content="{x:Bind MyViewModel.CurrentPlayingSongView.Title, Mode=OneWay}"
-                        HorizontalContentAlignment="Center"
+                        CornerRadius="12"
+                        FontSize="28"
+                        FontWeight="SemiBold"
                         />
-                    <Button Background="Transparent"
-
+                    <Button
+                        x:Name="CurrentArtistBtn"
                         HorizontalAlignment="Center"
-                        FontSize="18"
-                            Click="CurrentArtistBtn_Click" x:Name="CurrentArtistBtn"
-                        Opacity="0.8" CornerRadius="12"
+                        HorizontalContentAlignment="Center"
+                        Background="Transparent"
+                        Click="CurrentArtistBtn_Click"
                         Content="{x:Bind MyViewModel.CurrentPlayingSongView.OtherArtistsName, Mode=OneWay}"
-                        HorizontalContentAlignment="Center"
+                        CornerRadius="12"
+                        FontSize="18"
+                        Opacity="0.8"
                         />
-                    <Button Background="Transparent"
-x:Name="ArtistBtn" Click="ArtistBtn_Click"
+                    <Button
+                        x:Name="ArtistBtn"
                         HorizontalAlignment="Center"
-                        FontSize="16" CornerRadius="12"
-                        Opacity="0.6"
-                        Content="{x:Bind MyViewModel.CurrentPlayingSongView.AlbumName, Mode=OneWay}"
                         HorizontalContentAlignment="Center"
+                        Background="Transparent"
+                        Click="ArtistBtn_Click"
+                        Content="{x:Bind MyViewModel.CurrentPlayingSongView.AlbumName, Mode=OneWay}"
+                        CornerRadius="12"
+                        FontSize="16"
+                        Opacity="0.6"
                         />
                 </StackPanel>
 
                 <!--  Progress Section  -->
                 <StackPanel Spacing="5">
                     <Slider
-                                Minimum="0"
-                        x:Name="ProgressSlider" IsThumbToolTipEnabled="True"
+                        x:Name="ProgressSlider"
                         Foreground="DarkSlateBlue"
-                        PointerPressed="OnSliderPointerPressed"
-                        
-        PointerReleased="OnSliderPointerReleased"
-        PointerMoved="OnSliderPointerMoved"
+                        IsThumbToolTipEnabled="True"
                         Maximum="{x:Bind MyViewModel.CurrentTrackDurationSeconds, Mode=OneWay}"
-                        Value="{x:Bind MyViewModel.CurrentTrackPositionSeconds, Mode=OneWay}" />
+                        Minimum="0"
+                        PointerMoved="OnSliderPointerMoved"
+                        PointerPressed="OnSliderPointerPressed"
+                        PointerReleased="OnSliderPointerReleased"
+                        Value="{x:Bind MyViewModel.CurrentTrackPositionSeconds, Mode=OneWay}"
+                        />
                     <Grid>
                         <TextBlock
                             HorizontalAlignment="Left"
                             FontSize="12"
-                            Text="{x:Bind MyViewModel.CurrentTrackPositionSeconds, Converter={StaticResource DurationConverterFromSecondsToTS}, Mode=OneWay}" />
+                            Text="{x:Bind MyViewModel.CurrentTrackPositionSeconds, Converter={StaticResource DurationConverterFromSecondsToTS}, Mode=OneWay}"
+                            />
                         <TextBlock
                             HorizontalAlignment="Right"
                             FontSize="12"
-                            Text="{x:Bind MyViewModel.CurrentTrackDurationSeconds, Converter={StaticResource DurationConverterFromSecondsToTS}, Mode=OneWay}" />
+                            Text="{x:Bind MyViewModel.CurrentTrackDurationSeconds, Converter={StaticResource DurationConverterFromSecondsToTS}, Mode=OneWay}"
+                            />
                     </Grid>
                 </StackPanel>
 
@@ -120,21 +139,25 @@ x:Name="ArtistBtn" Click="ArtistBtn_Click"
                 <StackPanel
                     HorizontalAlignment="Center"
                     Orientation="Horizontal"
-                    Spacing="16">
+                    Spacing="16"
+                    >
                     <ToggleButton
                         Width="48"
                         Height="48"
                         Command="{x:Bind MyViewModel.ToggleShuffleCommand}"
-                        IsChecked="{x:Bind MyViewModel.IsShuffleActive, Mode=OneWay}">
-                        <SymbolIcon Symbol="Shuffle" />
+                        IsChecked="{x:Bind MyViewModel.IsShuffleActive, Mode=OneWay}"
+                        >
+                        <FontIcon Glyph="&#xE8B1;" />
                     </ToggleButton>
                     <Button
                         Width="56"
                         Height="56"
-                        Command="{x:Bind MyViewModel.PreviousTrackCommand}">
-                        <FontIcon
-                            FontSize="20"
-                            Glyph="&#xE892;" />
+                        Command="{x:Bind MyViewModel.PreviousTrackCommand}"
+                        >
+                        <Button.CommandParameter>
+                            <x:Boolean>False</x:Boolean>
+                        </Button.CommandParameter>
+                        <FontIcon FontSize="20" Glyph="&#xE892;" />
                     </Button>
                     <ToggleButton
                         Width="72"
@@ -142,35 +165,38 @@ x:Name="ArtistBtn" Click="ArtistBtn_Click"
                         Command="{x:Bind MyViewModel.PlayPauseToggleCommand}"
                         Content="{x:Bind MyViewModel.IsDimmerPlaying, Converter={StaticResource BoolToPlayingPauseConverter}, Mode=OneWay}"
                         IsChecked="{x:Bind MyViewModel.IsDimmerPlaying, Mode=OneWay}"
-                         />
+                        />
                     <Button
                         Width="56"
                         Height="56"
-                        Command="{x:Bind MyViewModel.NextTrackCommand}">
-                        <SymbolIcon Symbol="Next" />
+                        Command="{x:Bind MyViewModel.NextTrackCommand}"
+                        >
+                        <Button.CommandParameter>
+                            <x:Boolean>True</x:Boolean>
+                        </Button.CommandParameter>
+                        <FontIcon Glyph="&#xE893;" />
                     </Button>
                     <Button
                         Width="48"
                         Height="48"
                         Command="{x:Bind MyViewModel.ToggleRepeatModeCommand}"
-                        Content="{x:Bind MyViewModel.CurrentRepeatMode, Converter={StaticResource RepeatModeConverter}, Mode=OneWay}" />
+                        Content="{x:Bind MyViewModel.CurrentRepeatMode, Converter={StaticResource RepeatModeConverter}, Mode=OneWay}"
+                        />
                 </StackPanel>
 
                 <!--  Additional Actions  -->
                 <StackPanel
                     HorizontalAlignment="Center"
                     Orientation="Horizontal"
-                    Spacing="12">
+                    Spacing="12"
+                    >
                     <Button
-                        Content="All Songs"
                         x:Name="ViewAllSongs"
                         Click="ViewAllSongs_Click"
-                        Style="{StaticResource SecondaryButtonStyle}">
-                        
-                    </Button>
-                    <Button
-                        Content="Queue"
-                        Style="{StaticResource SecondaryButtonStyle}">
+                        Content="All Songs"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        />
+                    <Button Content="Queue" Style="{StaticResource SecondaryButtonStyle}">
                         <Button.Flyout>
                             <Flyout>
                                 <TextBlock Text="Queue functionality" />
@@ -181,11 +207,15 @@ x:Name="ArtistBtn" Click="ArtistBtn_Click"
                         Click="ViewLyricsButton_Click"
                         Content="Lyrics"
                         Style="{StaticResource SecondaryButtonStyle}"
-                        Visibility="{x:Bind MyViewModel.CurrentPlayingSongView.HasSyncedLyrics, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}" />
+                        Visibility="{x:Bind MyViewModel.CurrentPlayingSongView.HasSyncedLyrics, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"
+                        />
                     <Button
                         Click="ViewSongDetailsButton_Click"
                         Content="Details"
-                        Style="{StaticResource SecondaryButtonStyle}" />
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        />
+
+
                 </StackPanel>
             </StackPanel>
         </ScrollViewer>

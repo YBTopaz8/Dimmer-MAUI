@@ -1,11 +1,12 @@
+using DevWinUI;
+using Dimmer.WinUI.Views.CustomViews.WinuiViews;
 using Dimmer.WinUI.Views.WinuiPages.AlbumSection;
-using Dimmer.WinUI.Views.WinuiPages.Artist;
-using Dimmer.WinUI.Views.WinuiPages.LastFMSection;
-using Dimmer.WinUI.Views.WinuiPages.Utilities;
-using Hqub.Lastfm.Entities;
 using Microsoft.UI.Composition.SystemBackdrops;
+using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
+using static Dimmer.DimmerSearch.TQlStaticMethods;
 using Border = Microsoft.UI.Xaml.Controls.Border;
-using ProgressBar = Microsoft.UI.Xaml.Controls.ProgressBar;
+using TextBox = Microsoft.UI.Xaml.Controls.TextBox;
 using Visibility = Microsoft.UI.Xaml.Visibility;
 using Window = Microsoft.UI.Xaml.Window;
 
@@ -34,12 +35,16 @@ public sealed partial class DimmerWin : Window
 
 
         _compositorMainGrid = ElementCompositionPreview.GetElementVisual(MainGrid).Compositor;
+        compDisp = new();
 
 #if DEBUG
         this.Title = $"{MyViewModel?.AppTitle} Debug {BaseViewModel.CurrentAppVersion} {BaseViewModel.CurrentAppStage}";
 #elif RELEASE
         this.Title = $"{MyViewModel?.AppTitle} {BaseViewModel.CurrentAppVersion} {BaseViewModel.CurrentAppStage}";
 #endif
+
+   
+
     }
 
     /// <summary>
@@ -60,7 +65,7 @@ public sealed partial class DimmerWin : Window
 
             });
             //MyViewModel.DimmerMultiWindowCoordinator?.SnapAllToHomeAsync();
-
+            return;
         }
         if (OptionalParameter is not null)
         {
@@ -77,6 +82,14 @@ public sealed partial class DimmerWin : Window
     public BaseViewModelWin MyViewModel { get; internal set; }
     private void DimmerWindowClosed(object sender, WindowEventArgs args)
     {
+        //if (SortByWithTQL.Flyout is MenuFlyout fly)
+        //{
+        //    foreach (var sub in fly.Items.OfType<MenuFlyoutSubItem>())
+        //    {
+        //        foreach (var item in sub.Items.OfType<MenuFlyoutItem>())
+        //            item.RemoveClick();
+        //    }
+        //}
         MyViewModel.MainWindow = null;
         WinUIWindowsMgr?.UntrackWindow(this);
         this.Closed -= DimmerWindowClosed;
@@ -116,7 +129,13 @@ public sealed partial class DimmerWin : Window
                 _isDialogActive = false;
             }
         }
+
+       
     }
+
+
+
+
     private bool _isDialogActive = false;
     private readonly Microsoft.UI.Composition.Compositor _compositorMainGrid;
 
@@ -150,27 +169,27 @@ public sealed partial class DimmerWin : Window
     }
 
 
-    private void SmokeGrid_Loaded(object sender, RoutedEventArgs e)
-    {
-        MyViewModel.NowPlayingView = SmokeGrid;
-        SmokeGrid.SetBaseViewModelWin(MyViewModel);
+    //private void SmokeGrid_Loaded(object sender, RoutedEventArgs e)
+    //{
+    //    MyViewModel.NowPlayingView = SmokeGrid;
+    //    SmokeGrid.SetBaseViewModelWin(MyViewModel);
 
-        AnimationHelper.TryStart(
-            SmokeGrid, null,
-            AnimationHelper.Key_ToViewQueue
-            );
+    //    AnimationHelper.TryStart(
+    //        SmokeGrid, null,
+    //        AnimationHelper.Key_ToViewQueue
+    //        );
 
-    }
-    private void SmokeGrid_DismissRequested(object sender, EventArgs e)
-    {
+    //}
+    //private void SmokeGrid_DismissRequested(object sender, EventArgs e)
+    //{
 
-        AnimationHelper.Prepare(AnimationHelper.Key_ToViewQueue, SmokeGrid);
+    //    AnimationHelper.Prepare(AnimationHelper.Key_ToViewQueue, SmokeGrid);
 
-        MyViewModel.ProcessNowPlayingQueueDismiss();
+    //    MyViewModel.ProcessNowPlayingQueueDismiss();
 
-        //    // 2. Hmyvide the Detail View
-        SmokeGrid.Visibility = Visibility.Collapsed;
-    }
+    //    //    // 2. Hmyvide the Detail View
+    //    SmokeGrid.Visibility = Visibility.Collapsed;
+    //}
 
 
 
@@ -191,23 +210,15 @@ public sealed partial class DimmerWin : Window
         {
             pageType = typeof(ArtistsOverViewPage);
         }
-        if((string)args.InvokedItemContainer.Name == "ViewQueueItem"!)
-        {
-            MyViewModel.ViewQueueFromAllSongsPageGivenPage();
-        }
+     
         if(pageType is not null)
             NavigateToPage(pageType, null);
     }
 
-    private void nvSample_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
-    {
 
-    }
 
-    private void nvSample_Tapped(object sender, TappedRoutedEventArgs e)
-    {
 
-    }
+
 
     private void nvSample_BackRequested(NavigationView sender, NavigationViewBackRequestedEventArgs args)
     {
@@ -217,10 +228,7 @@ public sealed partial class DimmerWin : Window
         }
     }
 
-    private void nvSample_Tapped_1(object sender, TappedRoutedEventArgs e)
-    {
 
-    }
 
     //private void ArtistsItem_Loaded(object sender, RoutedEventArgs e)
     //{
@@ -357,62 +365,488 @@ public sealed partial class DimmerWin : Window
         var navPageType = e.SourcePageType;
         if(navPageType is null) return;
 
-        if(navPageType == typeof(AllSongsListPage))
+        if (navPageType == typeof(AllSongsListPage))
         {
-            DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[0];
+            ScrollToCurrentSong.Visibility = Visibility.Visible;
+            nvSample.IsPaneOpen = true;
+            TopRowGrid.Visibility = Visibility.Visible;
+            ContentFrame.BackStack.Clear();
         }
-        else if (navPageType == typeof(AllArtistsPage))
+        else
         {
-            DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[1];
+            ScrollToCurrentSong.Visibility = Visibility.Collapsed;
+            nvSample.IsPaneOpen = false;
+            TopRowGrid.Visibility = Visibility.Collapsed;
         }
-        else if (navPageType == typeof(AllAlbumsPage))
-        {
-            DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[2];
-        }
-        else if (navPageType == typeof(LastFmPage))
-        {
-            DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[3];
-        }
-        else if (navPageType == typeof(DimmerToolKit))
-        {
-            DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[4];
-        }
-        else if (navPageType == typeof(SettingsPage))
-        {
-            DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[5];
-        }
+
+        Debug.WriteLine(e.Uri);
+
+        //else if (navPageType == typeof(AllArtistsPage))
+        //{
+        //    DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[1];
+        //}
+        //else if (navPageType == typeof(AllAlbumsPage))
+        //{
+        //    DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[2];
+        //}
+        //else if (navPageType == typeof(LastFmPage))
+        //{
+        //    DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[3];
+        //}
+        //else if (navPageType == typeof(DimmerToolKit))
+        //{
+        //    DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[4];
+        //}
+        //else if (navPageType == typeof(SettingsPage))
+        //{
+        //    DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[5];
+        //}
     }
 
     private void CurrentSongImg_Tapped(object sender, TappedRoutedEventArgs e)
     {
-        MyViewModel.NavigateToAnyPageOfGivenType(typeof(NowPlayingPage));
+        
+       
     }
 
     private void CurrentSongImg_Loaded(object sender, RoutedEventArgs e)
     {
-        MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentPlayingSongView), v => MyViewModel.CurrentPlayingSongView)
-            .ObserveOn(RxSchedulers.UI)
-            .Subscribe(curSong =>
+        //MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentPlayingSongView), v => MyViewModel.CurrentPlayingSongView)
+        //    .ObserveOn(RxSchedulers.UI)
+        //    .Subscribe(curSong =>
+        //    {
+        //        if (!string.IsNullOrEmpty(curSong.CoverImagePath))
+        //        {
+        //            var imgSource = new BitmapImage(new Uri(curSong.CoverImagePath));
+        //            CurrentSongImg.Source=imgSource;
+        //            CurrentSongImg.Visibility = Visibility.Visible;
+        //        }
+        //        else
+        //        {
+        //            CurrentSongImg.Visibility = Visibility.Collapsed;
+        //            CurrentSongImg.Source = null;
+        //        }
+        //        if (string.IsNullOrEmpty(curSong.TitleDurationKey))
+        //        {
+        //            PlaybackSection.Visibility = Visibility.Collapsed;
+        //        }
+        //        else
+        //        {
+        //            PlaybackSection.Visibility =Visibility.Visible;
+        //        }
+        //    });
+    }
+
+    private void ArtistsBtn_Loaded(object sender, RoutedEventArgs e)
+    {
+        //if (string.IsNullOrEmpty(MyViewModel.CurrentPlayingSongView.TitleDurationKey)) return;
+
+        //MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentPlayingSongView), v => MyViewModel.CurrentPlayingSongView)
+        //    .ObserveOn(RxSchedulers.UI)
+        //    .Subscribe(curSong =>
+        //    {
+
+        //        if (string.IsNullOrEmpty(MyViewModel.CurrentPlayingSongView.TitleDurationKey)) return;
+        //        if (MyViewModel.CurrentPlayingSongView.ArtistToSong.Count > 1)
+        //        {
+        //            MenuFlyout mFlyout = new MenuFlyout();
+        //            foreach (var art in MyViewModel.CurrentPlayingSongView.ArtistToSong)
+        //            {
+        //                if (art is null) continue;
+        //                MenuFlyoutItem newItem = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem()
+        //                    ;
+        //                newItem.Text = art.Name;
+        //                newItem.Click += NewItem_Click;
+        //                newItem.CommandParameter = art;
+        //                mFlyout.Items.Add(newItem);
+        //            }
+
+        //            ArtistsBtn.ContextFlyout = mFlyout;
+
+        //        }
+        //    });
+      
+    }
+
+    private void NewItem_Click(object sender, RoutedEventArgs e)
+    {
+        var art = ((MenuFlyoutItem)sender).CommandParameter as ArtistModelView;
+        if (art is null) return;
+        MyViewModel.SetSelectedArtist(art);
+        MyViewModel.NavigateToArtistPageWithArtistId(art.Id);
+    }
+
+    private void ArtistsBtn_Click(object sender, RoutedEventArgs e)
+    {
+        
+        //if count is <2 nav directly, else show context menu
+    }
+
+    private void ViewQueue_Click(object sender, RoutedEventArgs e)
+    {
+        if (MyViewModel.PlaybackQueue.Count < 1) return;
+
+
+        MyViewModel.ProcessNowPlayingQueueShowing();
+    }
+
+    private void ShowFavSongs_Click(object sender, RoutedEventArgs e)
+    {
+
+        //var currText = SearchTextBox.Text;
+        //if (string.IsNullOrEmpty(currText))
+        //{
+        //    SearchTextBox.Text = "my fav";
+        //}
+        //else
+        //{
+        //    SearchTextBox.Text += " add my fav";
+        //}
+
+    }
+    private void MiddlePointer_PointerReleased(object sender, PointerRoutedEventArgs e)
+    {
+        var props = e.GetCurrentPoint((UIElement)sender).Properties;
+        if (props != null)
+        {
+            if (props.PointerUpdateKind == Microsoft.UI.Input.PointerUpdateKind.MiddleButtonReleased)
             {
-                if (!string.IsNullOrEmpty(curSong.CoverImagePath))
-                {
-                    var imgSource = new BitmapImage(new Uri(curSong.CoverImagePath));
-                    CurrentSongImg.Source=imgSource;
-                    CurrentSongImg.Visibility = Visibility.Visible;
-                }
+                Debug.WriteLine("Show TQL pane");
+            }
+        }
+    }
+
+    FontIcon CaretSolidUp = new FontIcon() { Glyph = "\uEDD7" };
+    FontIcon CaretSolidDown = new FontIcon() { Glyph = "\uEDD8" };
+    string lastKey;
+    string lastSort;
+    private void SortClick(object sender, RoutedEventArgs e)
+    {
+
+        var send = sender as RadioMenuFlyoutItem;
+        if (send is null) return;
+        var key = send.Tag.ToString()?.ToLower();
+
+        if (string.IsNullOrEmpty(key) || send == null)
+            return;
+        lastKey = key;
+
+
+        //if is checked then its sorting Desc, now we maintain check and sort desc and updatetext
+
+        bool isSortAsc;
+        if (lastKey == key && lastSort == "asc")
+        {
+            isSortAsc = false;
+            lastSort = "desc";
+
+        }
+        else if (lastKey == key && lastSort == "desc")
+        {
+            isSortAsc = true;
+            lastSort = "asc";
+        }
+        else
+        {
+            isSortAsc = MyViewModel.CurrentTqlQueryUI.Contains("asc", StringComparison.CurrentCultureIgnoreCase);
+            lastSort = isSortAsc ? "asc" : "desc";
+        }
+
+
+        switch (key)
+        {
+            case "title":
+                if (isSortAsc)
+                    MyViewModel.SearchToTQL(PresetQueries.SortByTitleAsc());
                 else
-                {
-                    CurrentSongImg.Visibility = Visibility.Collapsed;
-                    CurrentSongImg.Source = null;
-                }
-                if (string.IsNullOrEmpty(curSong.TitleDurationKey))
-                {
-                    PlaybackSection.Visibility = Visibility.Collapsed;
-                }
+                    MyViewModel.SearchToTQL(PresetQueries.SortByTitleDesc());
+                break;
+            case "artist":
+                if (isSortAsc)
+                    MyViewModel.SearchToTQL(PresetQueries.SortByArtistAsc());
                 else
-                {
-                    PlaybackSection.Visibility =Visibility.Visible;
-                }
-            });
+                    MyViewModel.SearchToTQL(PresetQueries.SortByArtistDesc());
+                break;
+
+            case "album":
+                if (isSortAsc)
+                    MyViewModel.SearchToTQL(PresetQueries.SortByAlbumAsc());
+                else
+                    MyViewModel.SearchToTQL(PresetQueries.SortByAlbumDesc());
+                break;
+            case "dims":
+                if (isSortAsc)
+                    MyViewModel.SearchToTQL(PresetQueries.SortByDimsAsc());
+                else
+                    MyViewModel.SearchToTQL(PresetQueries.SortByDimsDesc());
+                break;
+
+            default:
+                break;
+        }
+
+        lastKey = key;
+
+
+
+    }
+
+
+    private void ShowSongWithLyrics_RightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+        var currentTQL = "has lyrics add " + MyViewModel.CurrentTqlQuery;
+        //SearchTextBox.Text = currentTQL;
+
+    }
+
+    private void ShowFavSongs_RightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+        var currentTQL = "my fav add " + MyViewModel.CurrentTqlQuery;
+        //SearchTextBox.Text = currentTQL;
+    }
+
+    private void ShowSongWithLyrics_Click(object sender, RoutedEventArgs e)
+    {
+
+        //var currentTQL = " has lyrics";
+        //var currText = SearchTextBox.Text;
+        //if (string.IsNullOrEmpty(currText))
+        //{
+        //    SearchTextBox.Text = currentTQL.TrimStart();
+        //}
+        //else
+        //{
+        //    SearchTextBox.Text += currentTQL;
+        //}
+    }
+    private void SearchAutoSuggestBox_TextChanged(object sender, Microsoft.UI.Xaml.Controls.TextChangedEventArgs e)
+    {
+        //MyViewModel.SearchToTQL(SearchTextBox.Text);
+
+        
+    }
+
+    private void ShuffleSongs_Click(object sender, RoutedEventArgs e)
+    {
+        //var currText = SearchTextBox.Text;
+        //if (string.IsNullOrEmpty(currText))
+        //{
+        //    SearchTextBox.Text = "random";
+        //}
+    }
+    private void SortByWithTQL_Click(SplitButton sender, SplitButtonClickEventArgs args)
+    {
+        
+        //SortByWithTQL.Flyout.ShowAt(sender);
+    }
+
+    private async void OpenHelp(object sender, RoutedEventArgs e)
+    {
+        var dlg = new SearchHelpDialog();
+        await dlg.ShowAsync();
+    }
+
+    private void ArtistsBtn_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+
+        ContentFrame.NavigateToType(typeof(AllArtistsPage), MyViewModel, null);
+        ContentFrame.BackStack.Clear();
+    }
+
+    private void SongsBtn_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        
+            ContentFrame.NavigateToType(typeof(AllSongsListPage), MyViewModel, null);
+            ContentFrame.BackStack.Clear();
+       
+    }
+
+    private void AlbumsBtn_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+
+        ContentFrame.NavigateToType(typeof(AllAlbumsPage), MyViewModel, null);
+        ContentFrame.BackStack.Clear();
+    }
+
+    private void DimsStatsBtn_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+
+    }
+
+    private void SettingsBtn_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        MyViewModel.NavigateToAnyPageOfGivenType(typeof(SettingsPage));
+    }
+
+    private void NvSample_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+    {
+
+    }
+
+    private void NvSample_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+
+    }
+
+   
+    
+
+    private void SearchBoxEdit_GotFocus(object sender, RoutedEventArgs e)
+    {
+
+        QuickTQLCommandsStackPanel.Visibility = Visibility.Visible;
+    }
+
+    private void SearchBoxEdit_LostFocus(object sender, RoutedEventArgs e)
+    {
+
+        QuickTQLCommandsStackPanel.Visibility = Visibility.Collapsed;
+    }
+
+    private void DimmerLiveBtn_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+
+    }
+
+    private void SearchBoxEdit_TextChanged(object sender, Microsoft.UI.Xaml.Controls.TextChangedEventArgs e)
+    {
+        MyViewModel.SearchToTQL(SearchBoxEdit.Text);
+    }
+
+    private void ScrollToCurrentSong_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        MyViewModel.MySongsTableView.ScrollIntoView(MyViewModel.CurrentPlayingSongView,ScrollIntoViewAlignment.Leading);
+    }
+
+    private async void SaveTQL_Click(object sender, RoutedEventArgs e)
+    {
+
+        StackPanel contStackPanel = new();
+        TextBlock tqlQuery = new();
+        tqlQuery.Text = $"Query: {SearchBoxEdit.Text}";
+        TextBlock nlpQuery = new();
+        nlpQuery.Text = $"{NaturalLanguageProcessor.Process}";
+
+        TextBox usrQueryName = new();
+        contStackPanel.Children.Add(tqlQuery);
+        contStackPanel.Children.Add(nlpQuery);
+        contStackPanel.Children.Add(usrQueryName);
+        WindowedContentDialog dialog = new()
+        {
+            Title = "Save Query",
+            Content = contStackPanel
+            
+        };
+        ContentDialogResult result = await dialog.ShowAsync(true);
+
+        switch (result)
+        {
+            case ContentDialogResult.None:
+                break;
+            case ContentDialogResult.Primary:
+                if (string.IsNullOrEmpty(usrQueryName.Text)) return;
+               await MyViewModel.AddToPlaylistAsync(usrQueryName.Text, MyViewModel.SearchResults, SearchBoxEdit.Text);
+                break;
+            case ContentDialogResult.Secondary:
+                break;
+            default:
+                break;
+        }
+    }
+
+
+    private void CurrentPlayingSongImage_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+
+    }
+
+    private async void CurrentPlayingSongImage_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        var props = e.GetCurrentPoint((UIElement)sender).Properties;
+
+        if (props != null)
+        {
+            if(props.IsMiddleButtonPressed)
+            {
+                await MyViewModel.ScrollToRequestedSongAsync();
+                return;
+            }
+            if(props.IsLeftButtonPressed)
+            {
+                MyViewModel.NavigateToAnyPageOfGivenType(typeof(NowPlayingPage));
+                nvSample.IsPaneOpen = false;
+                TopRowGrid.Visibility = Visibility.Collapsed;
+            }
+        }    
+    }
+
+    private void NvSample_PaneClosing(NavigationView sender, NavigationViewPaneClosingEventArgs args)
+    {
+        MyViewModel.IsNavPanelOpened = false;
+    }
+
+
+
+    private void PlayPauseToggleBtn_Loaded(object sender, RoutedEventArgs e)
+    {
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.IsDimmerPlaying), v => MyViewModel.IsDimmerPlaying)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(isDimmerPlaying =>
+            {
+
+
+                FontIcon pauseIcon = new FontIcon();
+                pauseIcon.Glyph = "\uE769";
+                pauseIcon.Height = 24; pauseIcon.Width = 24;
+                FontIcon PlayIcon = new FontIcon();
+                PlayIcon.Height = 24; PlayIcon.Width = 24;
+                PlayIcon.Glyph = "\uE768";
+
+                PlayPauseToggleBtn.Content = isDimmerPlaying ? pauseIcon : PlayIcon;
+            }).DisposeWith(compDisp) ;
+    }
+    CompositeDisposable compDisp;
+
+    private void NvSample_PaneOpening(NavigationView sender, object args)
+    {
+        MyViewModel.IsNavPanelOpened = true;
+    }
+
+    private async void IsSongFavoriteBtn_RightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+        await MyViewModel.RemoveSongFromFavoriteAsync(MyViewModel.CurrentPlayingSongView);
+    }
+
+ 
+
+    private async void IsSongFavoriteBtn_Click(object sender, RoutedEventArgs e)
+    {
+        await MyViewModel.AddFavoriteRatingToSongAsync(MyViewModel.CurrentPlayingSongView);
+    }
+
+    ~DimmerWin()
+    {
+        compDisp.Dispose();
+    }
+
+    private void SongsCount_Loaded(object sender, RoutedEventArgs e)
+    {
+    }
+
+    private void DimmerUtilities_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        ContentFrame.NavigateToType(typeof(DimmerToolKit), MyViewModel, null);
+        ContentFrame.BackStack.Clear();
+    }
+
+    private async void DimmerCloud_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+
+        LoginViewModelWin? loginVM = IPlatformApplication.Current?.Services.GetService<LoginViewModelWin>();
+        if(loginVM is not null)
+        {
+            await loginVM.NavigateToProfilePageAsync();
+
+        }
     }
 }

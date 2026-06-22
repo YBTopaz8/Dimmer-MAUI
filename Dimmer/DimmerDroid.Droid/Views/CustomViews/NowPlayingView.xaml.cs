@@ -17,7 +17,13 @@ public partial class NowPlayingView : ContentView
     SongModelView? songForLyrics;
     private async void LyricsChip_Tap(object sender, HandledEventArgs e)
     {
+        if(MyViewModel.CurrentPlayingSongView.HasSyncedLyrics)
+        {
 
+            NowPlayingViewExpander.SetIsExpanded(false, true);
+            SyncLyricsView.SetIsExpanded(true, true);
+            return;
+        }
         if(songForLyrics is null)
         {
             songForLyrics = MyViewModel.CurrentPlayingSongView;
@@ -43,7 +49,9 @@ public partial class NowPlayingView : ContentView
 
     private void NowPlayingHighlightBtn_TapPressed(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
     {
-        SwitchToPlayBackQueue?.Invoke(sender, e);
+        
+        NowPlayingViewExpander.SetIsExpanded(true, true);
+        SyncLyricsView.SetIsExpanded(false, true);
     }
     public event EventHandler? SwitchToPlayBackQueue;
    
@@ -171,6 +179,33 @@ public partial class NowPlayingView : ContentView
 
         await Shell.Current.GoToAsync("..");
 
+    }
+
+    private void AllLyricsCV_SelectionChanged(object sender, CollectionViewSelectionChangedEventArgs e)
+    {
+        var selItemHandle = AllLyricsCV.FindItemHandle(AllLyricsCV.SelectedItem);
+        AllLyricsCV.ScrollTo(selItemHandle,DXScrollToPosition.Start);
+    }
+
+    private void CurrentLyricLine_Clicked(object sender, EventArgs e)
+    {
+        NowPlayingViewExpander.SetIsExpanded(false, true);
+        SyncLyricsView.SetIsExpanded(true, true);
+    }
+
+    private void AllLyricsCV_Tap(object sender, CollectionViewGestureEventArgs e)
+    {
+        var lineObj = e.Item as LyricPhraseModelView;
+        var lineHandle = e.ItemHandle;
+
+        AllLyricsCV.ScrollTo(lineHandle,DXScrollToPosition.Start);
+    }
+
+    private async void LyricsChip_LongPress(object sender, HandledEventArgs e)
+    {
+        SongLyricsDownloadPopup popup = new SongLyricsDownloadPopup(MyViewModel, MyViewModel.CurrentPlayingSongView);
+
+        await popup.ShowAsync();
     }
 
 

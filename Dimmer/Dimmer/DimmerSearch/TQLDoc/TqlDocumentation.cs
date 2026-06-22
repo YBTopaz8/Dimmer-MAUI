@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dimmer.DimmerSearch.TQLDoc;
+﻿namespace Dimmer.DimmerSearch.TQLDoc;
 
 public enum TqlCategory { Basics, Dates, numeric, Logic, Commands, Fun }
 

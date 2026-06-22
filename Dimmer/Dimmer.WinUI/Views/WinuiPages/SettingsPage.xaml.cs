@@ -1,10 +1,5 @@
-using CommunityToolkit.WinUI;
-using Dimmer.DimmerLive.ParseStatics;
 using Dimmer.WinUI.Views.WinuiPages.Settings;
-using Dimmer.WinUI.Views.WinuiPages.SingleSongPage.SubPage;
 using Microsoft.UI.Xaml.Controls.Primitives;
-
-using Grid = Microsoft.UI.Xaml.Controls.Grid;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -34,46 +29,16 @@ public sealed partial class SettingsPage : Page
         // Cast it to your ViewModel type and set your properties.
         if (MyViewModel != null)
         {
-            //MyViewModel.CurrentWinUIPage = this;
+            MyViewModel.CurrentPageEnum = CurrentPage.SettingsPage;
             // Now that the ViewModel is set, you can set the DataContext.
             this.DataContext = BaseViewModel;
         }
 
     }
-
-    private void NextButton_Click(object sender, RoutedEventArgs e)
+    protected override void OnNavigatedFrom(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
     {
-        if (WizardFlipView.SelectedIndex < WizardFlipView.Items.Count - 1)
-        {
-            WizardFlipView.SelectedIndex += 1;
-        }
-    }
-
-    private void BackButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (WizardFlipView.SelectedIndex > 0)
-        {
-            WizardFlipView.SelectedIndex -= 1;
-        }
-    }
-
-
-    private void MusicFoldersView_Click(object sender, RoutedEventArgs e)
-    {
-        WizardFlipView.SelectedIndex = 0;
-    }
-
-    private void LastFMView_Click(object sender, RoutedEventArgs e)
-    {
-        WizardFlipView.SelectedIndex = 1;
-        var send = (Button)sender;
-
-    }
-
-
-    private void UtilsView_Click(object sender, RoutedEventArgs e)
-    {
-        WizardFlipView.SelectedIndex = 2;
+        base.OnNavigatedFrom(e);
+        
     }
 
     private void WizardFlipView_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
@@ -83,31 +48,10 @@ public sealed partial class SettingsPage : Page
         FrameworkElement addedGrid = (FrameworkElement)addedItems[0];
         FrameworkElement? removedGrid = removedItems.Count > 0 ? (FrameworkElement)removedItems[0]:null;
         string addedName = addedGrid.Name;
-        //string? removedName = removedGrid?.Name;
-        switch (addedName)
-        {
-            case "MusicFoldersBtn":
-                MusicFoldersBtn.Background = new SolidColorBrush(Colors.DarkSlateBlue);
-                
-                break;
-            case "LastFMBtn":
-                MusicFoldersBtn.Background = new SolidColorBrush(Colors.Gray);
-                
-                break;
-            case "UtilsBtn":
-                MusicFoldersBtn.Background = new SolidColorBrush(Colors.Gray);
-                
-                break;
-            default:
-                break;
-        }
-
+       
     }
 
-    private void AddFolder_Click(object sender, RoutedEventArgs e)
-    {
-        MyViewModel?.AddMusicFolderViaPickerAsync();
-    }
+ 
 
   
   
@@ -123,17 +67,12 @@ public sealed partial class SettingsPage : Page
         
     }
 
-    private void BackNavM4_Click(object sender, RoutedEventArgs e)
-    {
-
-        MyViewModel?.AllowBackNavigationWithMouseFour(BackNavM4.IsChecked);
-    }
 
     private void EnableMiniLyricsView_Checked(object sender, RoutedEventArgs e)
     {
         Microsoft.UI.Xaml.Controls.CheckBox send = (Microsoft.UI.Xaml.Controls.CheckBox)sender;
 
-        MiniLyricsExpander.IsExpanded = !MiniLyricsExpander.IsExpanded;
+
         MyViewModel?.ToggleIsMiniLyricsViewEnableCommand.Execute(send.IsChecked);
     }
 
@@ -144,7 +83,6 @@ public sealed partial class SettingsPage : Page
         if (!string.IsNullOrEmpty(position))
         {
             MyViewModel?.SetPreferredMiniLyricsViewPosition(position);
-            PreferredPosition.Content = send.Text;
         }
     }
 
@@ -156,27 +94,27 @@ public sealed partial class SettingsPage : Page
 
     private void EnableLyricsBtn_Checked(object sender, RoutedEventArgs e)
     {
-        LyricsExpander.IsExpanded = EnableLyricsBtn.IsChecked ?? false;
+        //LyricsExpander.IsExpanded = EnableLyricsBtn.IsChecked ?? false;
         
     }
 
     private void LrcLibSource_Click(object sender, RoutedEventArgs e)
     {
         MyViewModel?.SetPreferredLyricsSource("LrcLib");
-        PreferredLyricsSource.Content= "LrcLib";
+        //PreferredLyricsSource.Content= "LrcLib";
     }
 
     private void SongFileOnly_Click(object sender, RoutedEventArgs e)
     {
         MyViewModel?.SetPreferredLyricsSource("SongFileOnly");
-        PreferredLyricsSource.Content = "SongFileOnly";
+        //PreferredLyricsSource.Content = "SongFileOnly";
 
     }
 
     private void AllFormats_Click(object sender, RoutedEventArgs e)
     {
         MyViewModel?.SetPreferredLyricsSource("AllFormats");
-        PreferredLyricsSource.Content = "AllFormats";
+        //PreferredLyricsSource.Content = "AllFormats";
     }
 
     private void AllowLyricsContribution_Click(object sender, RoutedEventArgs e)
@@ -184,7 +122,7 @@ public sealed partial class SettingsPage : Page
         RadioMenuFlyoutItem send = (RadioMenuFlyoutItem)sender;
         var allow = send.Text;
         MyViewModel?.SetAllowLyricsContribution(allow);
-        AllLyricsContribute.Content = send.Text;
+
     }
 
     private void PlainFormat_Click(object sender, RoutedEventArgs e)
@@ -192,7 +130,7 @@ public sealed partial class SettingsPage : Page
         RadioMenuFlyoutItem send = (RadioMenuFlyoutItem)sender;
         var allow = send.Text;
         MyViewModel?.SetPreferredLyricsFormat(allow);
-        PreferredLyricsFormat.Content = send.Text;
+
     }
 
     private void SynchronizedFormat_Click(object sender, RoutedEventArgs e)
@@ -200,53 +138,13 @@ public sealed partial class SettingsPage : Page
         RadioMenuFlyoutItem send = (RadioMenuFlyoutItem)sender;
         var allow = send.Text;
         MyViewModel?.SetPreferredLyricsFormat(allow);
-        PreferredLyricsFormat.Content = send.Text;
+
     }
 
     private void WizardFlipView_PointerReleased(object sender, PointerRoutedEventArgs e)
     {
-        var pointerProps = e.GetCurrentPoint(WizardFlipView).Properties;
-        if(pointerProps.IsXButton1Pressed)
-        {
-            if (WizardFlipView.SelectedIndex > 0)
-            {
-                WizardFlipView.SelectedIndex -= 1;
-            }
-        }
-        else if (pointerProps.IsXButton2Pressed)
-        {
-            if (WizardFlipView.SelectedIndex < WizardFlipView.Items.Count - 1)
-            {
-                WizardFlipView.SelectedIndex += 1;
-            }
-        }
-    }
+        
 
-    private void RemoveFolder_Click(object sender, RoutedEventArgs e)
-    {
-
-        var button = (Button)sender;
-        var path = button.DataContext as string;
-        MyViewModel.DeleteFolderPath(path);
-    }
-
-    private async void UpdateFolder_Click(object sender, RoutedEventArgs e)
-    {
-
-        var button = (Button)sender;
-        var path = button.DataContext as string;
-        //await MyViewModel.UpdateFolderPath(path);
-    }
-
-
-    private async void ReScanButton_Click(object sender, RoutedEventArgs e)
-    {
-        var button = (Button)sender;
-        var path = button.DataContext as string;
-        if (path is null) return;
-        if (MyViewModel is null) return;
-
-        await MyViewModel.ReScanMusicFolderByPassingToService(path);
     }
 
     private async void DimmerSection_Click(object sender, RoutedEventArgs e)
@@ -271,40 +169,9 @@ public sealed partial class SettingsPage : Page
         }
     }
 
-    private void AppPreferences_Click(object sender, RoutedEventArgs e)
-    {
-        WizardFlipView.SelectedIndex = 1;   
-    }
+    
 
-    private void MusicFoldersGrid_Loaded(object sender, RoutedEventArgs e)
-    {
-        BaseViewModel.GetLibState();
-        if(BaseViewModel.IsLibraryEmpty)
-        {
-            AddMusicFolderTip.IsOpen = true;
-        }
-        BaseViewModel.WhenPropertyChange(nameof(BaseViewModel.FolderPaths), x => BaseViewModel.FolderPaths)
-            .ObserveOn(RxSchedulers.UI)
-            .Subscribe(obsCol =>
-            {
-                if (obsCol.Count >= 1)
-                {
-                    if (AddMusicFolderTip.IsOpen)
-                    {
-                        AddMusicFolderTip.IsOpen = false;
-                    }
-                    if (BaseViewModel.SearchResults.Count < 1)
-                    {
-                        AddMusicFolderTip.Subtitle = AddMusicFolderTip.Subtitle + " Or Rescan existing one";
-                        AddMusicFolderTip.IsOpen = true;
-                    }
-                }
-                else
-                {
 
-                }
-            });
-    }
 
     private void OptionLogBtn_Loaded(object sender, RoutedEventArgs e)
     {
@@ -372,40 +239,7 @@ public sealed partial class SettingsPage : Page
       await MyViewModel.BaseViewModelWin.LoadAlbumAndArtistDetailsFromLastFM();
     }
 
-    private async void CheckUpdates_Click(object sender, RoutedEventArgs e)
-    {
-        UpdateCheckProgress.Visibility = WinUIVisibility.Visible;
-        UpdatesListView.ItemsSource = null;
 
-        try
-        {
-            // Fetch the last 10 updates
-            var updates = await ParseStatics.GetAllAppUpdatesAsync(10);
-
-            if (updates != null && updates.Any())
-            {
-                UpdatesListView.ItemsSource = updates;
-                UpdatesExpander.IsExpanded = true;
-            }
-            else
-            {
-                // You can use your existing AppLog system here
-                MyViewModel.LatestAppLog = new AppLogEntryView
-                {
-                    Message = "No updates found."
-                };
-            }
-        }
-        finally
-        {
-            UpdateCheckProgress.Visibility = WinUIVisibility.Collapsed;
-        }
-    }
-    private async Task FetchUpdateHistorySilently()
-    {
-        var updates = await ParseStatics.GetAllAppUpdatesAsync(5);
-        UpdatesListView.ItemsSource = updates;
-    }
     private async void DownloadUpdate_Click(object sender, RoutedEventArgs e)
     {
         if (sender is Button btn && btn.Tag is string url)
@@ -418,10 +252,7 @@ public sealed partial class SettingsPage : Page
         }
     }
 
-    private void UtilitiesGrid_Loaded(object sender, RoutedEventArgs e)
-    {
-        _ = FetchUpdateHistorySilently();
-    }
+  
 
     private Type pageType;
     private int previousSelectedIndex;
@@ -456,36 +287,52 @@ public sealed partial class SettingsPage : Page
             new SlideNavigationTransitionInfo { Effect = sliderNavigationTransitionEffect });
     }
 
-    private void BackUpRestoreGrid_Loaded(object sender, RoutedEventArgs e)
+
+    private void SettingsNavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
     {
-        RestoreBackupPage.IsPopupDismissedRequested += (s,e)=>
+        var SelectedNavViewItem = args.SelectedItem; 
+        var SelectedNavViewItemKnown = args.SelectedItem as NavigationViewItem;
+        if(SelectedNavViewItemKnown is null)return;
+        var selContainer = args.SelectedItemContainer;
+        switch(SelectedNavViewItemKnown.Tag?.ToString()?.ToLower())
         {
-            AnimationHelper.Prepare(AnimationHelper.Key_Backward, BackUpRestoreGrid);
-            AnimationHelper.TryStart(RestoreData, null, AnimationHelper.Key_Backward);
+            case "folderspage":
+                if(contentFrameSettings.CurrentSourcePageType != typeof(FoldersSettingsPage))
+                    contentFrameSettings.Navigate(typeof(FoldersSettingsPage), MyViewModel);
 
-            BackUpRestoreGrid.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed; 
-            MainGrid.Opacity = 1;
-            MainGrid.IsHitTestVisible = true;
-        };
+                break;
+            case "backuppage":
+                if (contentFrameSettings.CurrentSourcePageType != typeof(RestoreBackupPage))
+                    contentFrameSettings.Navigate(typeof(RestoreBackupPage), MyViewModel);
+
+                break;
+            default:
+                break;
+        }
     }
 
-    private void RestoreData_Loaded(object sender, RoutedEventArgs e)
+    private void AppPreferences_Click(object sender, RoutedEventArgs e)
     {
-        AnimationHelper.Prepare(AnimationHelper.Key_Backward, RestoreData);
 
-    }
-    private async void RestoreData_Click(object sender, RoutedEventArgs e)
-    {
-        AnimationHelper.Prepare(AnimationHelper.Key_Forward, RestoreData);
-        BackUpRestoreGrid.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
-        AnimationHelper.TryStart(BackUpRestoreGrid, null, AnimationHelper.Key_Forward);
-        MainGrid.Opacity = 0.2;
-        MainGrid.IsHitTestVisible = false;
     }
 
     private void BackupRestoreSection_Click(object sender, RoutedEventArgs e)
     {
 
-        WizardFlipView.SelectedIndex = 2;
+    }
+
+    private void BackUpRestoreGrid_Loaded(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void MusicFoldersView_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void SettingsNavView_Loaded(object sender, RoutedEventArgs e)
+    {
+        contentFrameSettings.Navigate(typeof(FoldersSettingsPage), MyViewModel);
     }
 }

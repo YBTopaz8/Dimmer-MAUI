@@ -1,8 +1,4 @@
-﻿using Dimmer.Data.Models;
-using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
-
-
-namespace Dimmer.Interfaces.Services;
+﻿namespace Dimmer.Interfaces.Services;
 
 public class LibraryScannerService : ILibraryScannerService
 {
@@ -41,393 +37,178 @@ public class LibraryScannerService : ILibraryScannerService
 
     }
 
-    public async Task<LoadSongsResult> ScanLibrary(List<string>? folderPaths)
+    public async Task<LoadSongsResult> ScanLibrary(List<string>? folderPaths, bool isIncremental = false)
     {
         try
         {
-            using var realm = _realmFactory.GetRealmInstance();
-            if (folderPaths == null || folderPaths.Count == 0)
+            // --- REALM BLOCK 1: GET FOLDERS ---
+            // Open, read, and close Realm entirely before we do any async work.
+            using (var realm = _realmFactory.GetRealmInstance())
             {
-                _logger.LogWarning("ScanLibrary called with no folder paths.");
-                _state.SetCurrentLogMsg("No folders selected for scanning." ,DimmerLogLevel.Info);
-
-                var existingState = realm.All<AppStateModel>().FirstOrDefault();
-                if (existingState is not null)
+                if (folderPaths == null || folderPaths.Count == 0)
                 {
-                    folderPaths = [.. existingState.UserMusicFolders.Select(x=>x.SystemFolderPath)];
+                    var existingState = realm.All<AppStateModel>().FirstOrDefault();
+                    folderPaths = existingState?.UserMusicFolders.Select(x => x.SystemFolderPath).ToList() ?? new List<string>();
                 }
             }
 
-            if (folderPaths == null || folderPaths.Count == 0)
-            {
-                _logger.LogWarning("No folder paths found to scan.");
-                return new LoadSongsResult { NewSongsAddedCount = 0 };
+            if (folderPaths == null || folderPaths.Count == 0) return new LoadSongsResult { NewSongsAddedCount = 0 };
 
-            }
-
-            _logger.LogInformation("Starting library scan for paths: {Paths}", string.Join(", ", folderPaths));
             _state.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderScanStarted, string.Join(";", folderPaths), null, null));
             _state.SetCurrentLogMsg("Starting music scan...", DimmerLogLevel.Info);
 
-            MusicMetadataService currentScanMetadataService = new();
+            // --- ASYNC WORK: NO REALM ALLOWED HERE ---
+            List<string> allDiskFiles = await TaggingUtils.GetAllAudioFilesFromPathsAsync(folderPaths, _config.SupportedAudioExtensions).ConfigureAwait(false);
 
-            List<string> allFiles = await TaggingUtils.GetAllAudioFilesFromPathsAsync(folderPaths, _config.SupportedAudioExtensions);
+            HashSet<string> existingPaths = new(StringComparer.OrdinalIgnoreCase);
+            HashSet<string> existingKeys = new(StringComparer.OrdinalIgnoreCase);
 
-            if (allFiles.Count == 0)
+            // --- REALM BLOCK 2: CACHE DB STATE & HANDLE DELETIONS ---
+            using (var realm = _realmFactory.GetRealmInstance())
             {
-                _state.SetCurrentLogMsg("No audio files found in the selected paths." ,DimmerLogLevel.Info);
-                _state.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderScanCompleted, "No audio files found.", null, null));
-                return new LoadSongsResult { NewSongsAddedCount = 0 };
-
-
-            }
-            using (var realmm = _realmFactory.GetRealmInstance())
-            {
-                _logger.LogDebug("Loading existing metadata from database and detaching for processing...");
-                var existingArtists = realmm.All<ArtistModel>().ToList().Select(x =>
+                // Iterating through Realm is fast. We extract ONLY the strings we need and detach them from Realm.
+                // This prevents out-of-memory errors and thread issues.
+                foreach (var s in realm.All<SongModel>())
                 {
-                    return x.Freeze().ToArtistModelView();
-                }).ToList();
-                List<AlbumModelView?> existingAlbums = realmm.All<AlbumModel>().ToList().Select(x => x.Freeze().ToAlbumModelView()).ToList();
-                List<GenreModelView?> existingGenres = realmm.All<GenreModel>().ToList().Select(x => x.Freeze().ToGenreModelView()).ToList();
-                List<SongModelView?> existingSongs = realmm.All<SongModel>().ToList().Select(x => x.Freeze().ToSongModelView()).ToList();
-
-
-
-                _logger.LogDebug("Loaded {ArtistCount} artists, {AlbumCount} albums, {GenreCount} genres, {SongCount} songs.",
-                    existingArtists.Count, existingAlbums.Count, existingGenres.Count, existingSongs.Count);
-
-                currentScanMetadataService.LoadExistingData(existingArtists, existingAlbums, existingGenres, existingSongs);
-            }
-            var newFilesToProcess = allFiles.Where(file => !currentScanMetadataService.HasFileBeenProcessed(file)).ToList();
-
-            int totalFilesToProcess = newFilesToProcess.Count;
-            if (totalFilesToProcess == 0)
-            {
-                _logger.LogInformation("Scan complete. No new music found.");
-                _state.SetCurrentLogMsg("Your library is up-to-date.", DimmerLogLevel.Info);
-                _state.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderScanCompleted, "No new files.", null, null));
-                return new LoadSongsResult { NewSongsAddedCount = 0 };
-
-            }
-
-            _logger.LogInformation("Found {TotalFiles} new audio files to process.", totalFilesToProcess);
-            _state.SetCurrentLogMsg($"Found {totalFilesToProcess} new songs. Starting import...", DimmerLogLevel.Info);
-
-            // --- 4. Process ONLY the new files ---
-            var audioFileProcessor = new AudioFileProcessor( currentScanMetadataService, _config);
-            int progress = 0;
-            var processedResults =  await audioFileProcessor.ProcessFilesInParallelForEachAsync(newFilesToProcess);
-
-
-            foreach (var result in processedResults)
-            {
-                progress++;
-                if (progress % 50 == 0 || progress == processedResults.Count)
-                {
-                    _state.LogProgress($"Processed {progress}/{processedResults.Count}...",
-progress,processedResults.Count);
+                    if (!string.IsNullOrEmpty(s.FilePath)) existingPaths.Add(s.FilePath);
+                    if (!string.IsNullOrEmpty(s.TitleDurationKey)) existingKeys.Add(s.TitleDurationKey);
                 }
-            }
 
-
-            _logger.LogInformation("File processing complete. Consolidating metadata changes.");
-
-            var newArtists = currentScanMetadataService.NewArtists.DistinctBy(x=>x.Name).ToList();
-            var newAlbums = currentScanMetadataService.NewAlbums.DistinctBy(x => x.Name).ToList();
-            var newGenres = currentScanMetadataService.NewGenres.DistinctBy(x => x.Name).ToList();
-            List<SongModelView> newSongs = processedResults.Where(r => r.Success && r.ProcessedSong != null).Select(r => r.ProcessedSong).ToList()!;
-
-            if (newSongs.Count!=0)
-            {
-                _logger.LogInformation("Found {SongCount} new songs, {ArtistCount} artists, {AlbumCount} albums, {GenreCount} genres to persist.",
-                    newSongs.Count, newArtists.Count, newAlbums.Count, newGenres.Count);
-                _logger.LogInformation("Persisting metadata changes to database...");
-
-
-                IEnumerable<ArtistModel> artistModelsToUpsert = newArtists.Select(x =>
+                if (isIncremental)
                 {
-                    var toModel = x.ToArtistModel();
-                     
-                    return toModel;
-                })!;
-                IEnumerable<AlbumModel> albumModelsToUpsert = newAlbums.Select(x => x.ToAlbumModel()!)!;
-                IEnumerable<GenreModel> genreModelsToUpsert = newGenres.Select(x => x.ToGenreModel()!)!;
-                IEnumerable<SongModel> songModelsToUpsert = newSongs.Select(x => x.ToSongModel()!)!;
-
-
-                var songModelDict = songModelsToUpsert.ToDictionary(s => s.Id);
-
-                using (Realm realmInserts = _realmFactory.GetRealmInstance())
-                {
-                    if (realmInserts is not null)
+                    // Find songs in DB that belong to the scanned folders, but are NO LONGER on the disk
+                    var filesToDelete = new List<SongModel>();
+                    foreach (var dbSong in realm.All<SongModel>())
                     {
-                        await realmInserts.WriteAsync(() =>
+                        if (string.IsNullOrEmpty(dbSong.FilePath)) continue;
+
+                        bool inScannedFolder = folderPaths.Any(fp => dbSong.FilePath.StartsWith(fp, StringComparison.OrdinalIgnoreCase));
+                        bool missingFromDisk = !allDiskFiles.Contains(dbSong.FilePath, StringComparer.OrdinalIgnoreCase);
+
+                        if (inScannedFolder && missingFromDisk)
                         {
-                            // --- Step 1: Managed Artist Lookup ---
-                            var managedArtists = new Dictionary<ObjectId, ArtistModel>();
-                            
-                            foreach (ArtistModel artView in artistModelsToUpsert)
+                            filesToDelete.Add(dbSong);
+                        }
+                    }
+
+                    if (filesToDelete.Any())
+                    {
+                        _logger.LogInformation("Detected {Count} deleted files. Removing from database...", filesToDelete.Count);
+                        realm.Write(() => // Synchronous Write guarantees we stay on the safe thread
+                        {
+                            foreach (var songToDelete in filesToDelete)
                             {
-                                
-                                ArtistModel? managed = realmInserts.Add(artView, update: true);
-                                if (managed is not null)
-                                {                                    
-                                    managedArtists[artView.Id] = managed;
-                                }                                    
-                              
-                            }
-                        
-
-                            // --- Step 2: Managed Genre Lookup ---
-                            var managedGenres = new Dictionary<ObjectId, GenreModel>();
-                            foreach (var gnrView in genreModelsToUpsert)
-                            {
-                               
-                                var managed = realmInserts.Add(gnrView, update: true);
-                                if (managed is not null)
-                                {
-                                    managedGenres[gnrView.Id] = managed;
-                                } 
-                                
-                                
-                            }
-
-                            // --- Step 3: Upsert Albums and link to Managed Artists ---
-                            var managedAlbums = new Dictionary<ObjectId, AlbumModel>();
-
-                            foreach (var albumModel in albumModelsToUpsert)
-                            {
-
-                                AlbumModelView albView = newAlbums.Find(x => x.Id == albumModel.Id)!;
-                                if (albView.Artists != null)
-                                {
-                                    foreach (var artView in albView.Artists)
-                                    {
-                                        
-                                        if (managedArtists.TryGetValue(artView.Id, out var managedArt))
-                                        {
-                                            if (!albumModel.Artists.Contains(managedArt))
-                                            {
-                                                albumModel.Artists.Add(managedArt);
-                                            } 
-                                        }
-                                        else
-                                        {
-                                            var artistFromDB = realmInserts.All<ArtistModel>().FirstOrDefaultNullSafe(x => x.Name == artView.Name);
-                                            if (artistFromDB is not null)
-                                            {
-                                                albumModel.Artists.Add(artistFromDB);
-                                            }
-                                            
-                                        }
-                                    }
-                                }
-                                else
-                                {
-
-                                }
-                                albumModel.Artist = albumModel.Artists.FirstOrDefault();
-                                if(albumModel.Artists.Count<1)
-                                {
-
-                                }
-                                var managedAlbum = realmInserts.Add(albumModel, update: true);
-                                managedAlbums[albView.Id] = managedAlbum; 
-
-                            }
-                            var albumLookup = new Dictionary<(string AlbumName, string ArtistName), AlbumModel>();
-                            foreach (var managedAlbum in managedAlbums.Values)
-                            {
-                                string albName = managedAlbum.Name ?? "";
-
-                                string artName = managedAlbum.Artist?.Name ?? managedAlbum.Artists.FirstOrDefault()?.Name ?? "";
-                                if(artName =="")
-                                {
-
-                                }
-                                albumLookup[(albName, artName)] = managedAlbum;
-                            }
-                            // --- Step 4: Upsert Songs and link everything ---
-                            foreach (var songModel in songModelsToUpsert)
-                            {
-
-
-                                if (songModel is not null)
-                                {
-
-
-                                    //AlbumModel? albIfAny = null;
-                                    var songView = newSongs.Find(x => x.Id == songModel.Id);
-                                    if (songView is not null)
-                                    {
-                                        var lookupKey = (songView.AlbumName ?? "", songView.ArtistName ?? "");
-
-                                        if (albumLookup.TryGetValue(lookupKey, out var foundAlbum))
-                                        {
-                                            songModel.Album = foundAlbum;
-                                        }
-                                        else
-                                        {
-                                           
-                                            var alb = managedAlbums.Values.Where(a => a.Name == songView.AlbumName).FirstOrDefault();
-                                            if(alb is not null)
-                                            {                                                
-                                                songModel.Album = alb;                                              
-                                            }
-                                        }
-                                        if(songModel.Album is null)
-                                        {
-
-                                        }
-                                        var gnrIfAny = realmInserts.All<GenreModel>().FirstOrDefaultNullSafe(x => x.Name == songView.GenreName);
-                                        if (gnrIfAny is not null)
-                                        {
-                                            songModel.Genre = gnrIfAny;
-                                        }
-                                    
-                                        if (songView.ArtistToSong != null)
-                                        {
-                                            foreach (var artView in songView.ArtistToSong)
-                                            {
-                                                if (artView is not null)
-                                                {
-                                                    var artIfAny = realmInserts.All<ArtistModel>().FirstOrDefaultNullSafe(x => x.Name == artView.Name);
-                                                    if (artIfAny is not null)
-                                                    {
-                                                        songModel.ArtistToSong.Add(artIfAny);
-                                                    }
-                                                }
-                                            }
-
-                                            if (songModel.ArtistToSong.Count > 0)
-                                            {
-                                                songModel.Artist = songModel.ArtistToSong[0];
-
-                                                songModel.ArtistName = songModel.Artist?.Name ?? "Unknown Artist";
-
-                                            }
-                                        }
-
-                                    }
-                                    songModel.IsNew = false;
-
-                                   
-                                    if (songModel.Genre is null)
-                                    {
-
-                                    }
-                                    if (songModel.Artist is null)
-                                    {
-
-                                    }
-
-                                
-                                    if (songModel!.ArtistToSong.Count < 1)
-                                    {
-
-                                    }
-                                    if(songModel.Album is null)
-                                    {
-
-                                    }
-                                    else
-                                    {
-
-                                        if (songModel.Album.Artists.Count < 1)
-                                        {
-                                            songModel.Album.Artists.AddRange(songModel.ArtistToSong);
-                                        }
-                                    }
-                                    if (songModel!.Album!.Artists.Count < 1)
-                                    {
-                                        
-                                    }
-                                
-                                realmInserts.Add(songModel, update: true);
-                                    artistModelsToUpsert = Enumerable.Empty<ArtistModel>();
-                                    albumModelsToUpsert = Enumerable.Empty<AlbumModel>();
-                                    genreModelsToUpsert = Enumerable.Empty<GenreModel>();
-                                    songModelsToUpsert = Enumerable.Empty<SongModel>();
-                                }
+                                realm.Remove(songToDelete);
                             }
                         });
                     }
                 }
-
-                _logger.LogInformation("Metadata changes persisted.");
-            }
-            else
-            {
-                _logger.LogInformation("No new music data changes to persist after scan.");
             }
 
+            // --- ASYNC WORK 2: METADATA PARSING (NO REALM ALLOWED HERE) ---
+            var newFilesToProcess = allDiskFiles.Where(file => !existingPaths.Contains(file)).ToList();
 
-            using (var realmAppState = _realmFactory.GetRealmInstance())
+            if (newFilesToProcess.Count == 0)
             {
-                await realmAppState.WriteAsync(() =>
+                _state.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderScanCompleted, "No new files.", null, null));
+                return new LoadSongsResult { NewSongsAddedCount = 0 };
+            }
+
+            MusicMetadataService currentScanMetadataService = new();
+            var audioFileProcessor = new AudioFileProcessor(currentScanMetadataService, _config);
+
+            var processedResults = await audioFileProcessor.ProcessFilesInParallelForEachAsync(newFilesToProcess).ConfigureAwait(false);
+
+            var newSongs = processedResults
+                .Where(r => r.Success && r.ProcessedSong != null)
+                .Select(r => r.ProcessedSong!)
+                .DistinctBy(s => s.TitleDurationKey)
+                .Where(s => !existingKeys.Contains(s.TitleDurationKey)) // Double check against DB
+                .ToList();
+
+            // --- REALM BLOCK 3: INSERT NEW SONGS ---
+            if (newSongs.Count > 0)
+            {
+                using (var realm = _realmFactory.GetRealmInstance())
                 {
-                    var appState = realmAppState.All<AppStateModel>().FirstOrDefault();
-                    if (appState != null)
+                    realm.Write(() =>
                     {
-                        var distinctFolders = appState.UserMusicFolders.AsEnumerable().Select(x=>x.SystemFolderPath).Union(folderPaths).Distinct().ToList();
-                        appState.UserMusicFolders.Clear();
-                        foreach (var folder in distinctFolders)
+                        // Cache DB lookups into Dictionaries to prevent thousands of slow DB queries inside the loop
+                        var genreCache = realm.All<GenreModel>().ToDictionary(g => g.Name, StringComparer.OrdinalIgnoreCase);
+                        var artistCache = realm.All<ArtistModel>().ToDictionary(a => a.Name, StringComparer.OrdinalIgnoreCase);
+                        var albumCache = realm.All<AlbumModel>().ToDictionary(a => a.Name, StringComparer.OrdinalIgnoreCase);
+
+                        foreach (var songView in newSongs)
                         {
-                            appState.UserMusicFolders.Add(new() { SystemFolderPath = folder, ReadableFolderPath = folder });
+                            var songModel = songView.ToSongModel();
+
+                            // Link Genre
+                            if (!string.IsNullOrEmpty(songView.GenreName))
+                            {
+                                if (!genreCache.TryGetValue(songView.GenreName, out var genre))
+                                {
+                                    genre = realm.Add(new GenreModel { Id = ObjectId.GenerateNewId(), Name = songView.GenreName });
+                                    genreCache[songView.GenreName] = genre;
+                                }
+                                songModel.Genre = genre;
+                            }
+
+                            // Link Artist
+                            if (!string.IsNullOrEmpty(songView.ArtistName))
+                            {
+                                if (!artistCache.TryGetValue(songView.ArtistName, out var artist))
+                                {
+                                    artist = realm.Add(new ArtistModel { Id = ObjectId.GenerateNewId(), Name = songView.ArtistName });
+                                    artistCache[songView.ArtistName] = artist;
+                                }
+                                songModel.Artist = artist;
+                                songModel.ArtistToSong.Add(artist);
+                            }
+
+                            // Link Album
+                            if (!string.IsNullOrEmpty(songView.AlbumName))
+                            {
+                                if (!albumCache.TryGetValue(songView.AlbumName, out var album))
+                                {
+                                    album = realm.Add(new AlbumModel { Id = ObjectId.GenerateNewId(), Name = songView.AlbumName });
+                                    albumCache[songView.AlbumName] = album;
+                                }
+
+                                if (songModel.Artist != null && !album.Artists.Contains(songModel.Artist))
+                                    album.Artists.Add(songModel.Artist);
+
+                                songModel.Album = album;
+                            }
+
+                            songModel.IsNew = false;
+                            realm.Add(songModel, update: true);
                         }
-                    }
-                });
+                    });
+                }
             }
 
-            _state.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderScanCompleted, extParam: newSongs,null, null));
-
-
-            // clear up and clean memory 
+            // Cleanup & Return
             currentScanMetadataService.ClearAll();
-            
-            
-            _state.SetCurrentLogMsg("Music scan complete.", DimmerLogLevel.Info);
-            _logger.LogInformation("Library scan completed successfully.");
-            newSongs.Clear();
-            newArtists.Clear();
-            newAlbums.Clear();
-            newGenres.Clear();
-            allFiles.Clear();
-            newFilesToProcess.Clear();
-           
-            allFiles.Clear();
-            processedResults.Clear();
-
+            _state.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderScanCompleted, extParam: newSongs, null, null));
 
             return new LoadSongsResult
             {
-                
                 NewSongsAddedCount = newSongs.Count,
-                AlbumsCount = newAlbums.Count,
-                ArtistsCount = newArtists.Count,
-                GenresCount = newGenres.Count,
                 ProcessingResults = processedResults
             };
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"An unhandled exception occurred during ScanLibrary.{ex.Message}");
-            return new LoadSongsResult
-            {
-                IsError = true,
-                ErrorMessage = ex.Message,
-                NewSongsAddedCount = 0
-            };
+            _logger.LogError(ex, "ScanLibrary Exception: {Message}", ex.Message);
+            return new LoadSongsResult { IsError = true, ErrorMessage = ex.Message };
         }
     }
-  
 
     public async Task ScanSpecificPaths(List<string> pathsToScan, bool isIncremental = true)
     {
         _logger.LogInformation("Starting specific path scan (currently full scan of paths): {Paths}", string.Join(", ", pathsToScan));
 
-        await ScanLibrary(pathsToScan);
+        await ScanLibrary(pathsToScan,isIncremental);
     }
     public void RemoveDupesFromDB()
     {

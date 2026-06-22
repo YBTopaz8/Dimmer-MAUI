@@ -7,64 +7,91 @@
     xmlns:artistPages="clr-namespace:Dimmer.Views.Artist"
     xmlns:dimmerCloudPages="clr-namespace:Dimmer.Views.DimmerCloud"
     xmlns:dimmerStatsPages="clr-namespace:Dimmer.Views.DimmerStats"
+    xmlns:dimtoolkit="clr-namespace:Dimmer.Views.Toolkit"
     xmlns:lastFMPages="clr-namespace:Dimmer.Views.LastFM"
     xmlns:local="clr-namespace:Dimmer.Views"
     xmlns:settingsPages="clr-namespace:Dimmer.Views.Settings"
-    Title="DimmerDroid"
+    Title="DimmerDroid" Shell.TabBarBackgroundColor="{AppThemeBinding Light=#F2ECF1,Dark=Black}"
+    Shell.TabBarTitleColor="{AppThemeBinding Light=Darkslateblue,Dark=White}"
     BackgroundColor="{AppThemeBinding Dark=#1C1C1C,
                                       Light=#FFFFFF}"
     FlyoutBackgroundColor="{AppThemeBinding Dark=#1C1C1C,
                                             Light=#FFFFFF}"
-    Shell.FlyoutBehavior="Flyout"
+    Shell.FlyoutBehavior="Disabled"
     >
 
-    <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:HomePage}"
-        FlyoutIcon="house.png"
-        Route="HomePage"
-        />
 
-    <ShellContent
-        Title="Statistics"
-        ContentTemplate="{DataTemplate dimmerStatsPages:AllStats}"
-        FlyoutIcon="chartb.png"
-        Route="DimmerStats"
-        />
 
-    <ShellContent
-        Title="Artists"
-        ContentTemplate="{DataTemplate artistPages:AllArtistsPage}"
-        FlyoutIcon="artistt.png"
-        Route="AllArtistsPage"
-        />
 
-    <ShellContent
-        Title="Albums"
-        ContentTemplate="{DataTemplate albumPages:AllAlbumsPage}"
-        FlyoutIcon="musicalbum.png"
-        Route="AllAlbumsPage"
-        />
+    <TabBar IsVisible="True" >
+        <Tab Title="Home" Icon="house.png">
+            <ShellContent
+                ContentTemplate="{DataTemplate local:HomePage}"
+                FlyoutIcon="house.png"
+                Route="HomePage"
+                />
+        </Tab>
+        <Tab Title="Artists/Albums" Icon="musicalbum.png">
+            <ShellContent
+                Title="Artists"
+                ContentTemplate="{DataTemplate artistPages:AllArtistsPage}"
+                FlyoutIcon="artistt.png"
+                Route="AllArtistsPage"
+                />
+            <ShellContent
+                Title="Albums"
+                ContentTemplate="{DataTemplate albumPages:AllAlbumsPage}"
+                FlyoutIcon="musicalbum.png"
+                Route="AllAlbumsPage"
+                />
 
-    <ShellContent
-        Title="LastFM"
-        ContentTemplate="{DataTemplate lastFMPages:LastFMHomePage}"
-        FlyoutIcon="lastfmsmoll.png"
-        Route="LastFMHomePage"
-        />
+        </Tab>
 
-    <ShellContent
-        Title="Dimmer Cloud"
-        ContentTemplate="{DataTemplate dimmerCloudPages:DimmerHomeCenter}"
-        FlyoutIcon="cloudbolt.png"
-        Route="DimmerHomeCenter"
-        />
 
-    <ShellContent
-        Title="Settings"
-        ContentTemplate="{DataTemplate settingsPages:SettingsPage}"
-        FlyoutIcon="settings.png"
-        Route="SettingsPage"
-        />
+
+        <Tab Title="Hub" Icon="cloudbolt.png">
+            <ShellContent
+                Title="Dimmer Cloud"
+                ContentTemplate="{DataTemplate dimmerCloudPages:DimmerHomeCenter}"
+                Route="DimmerHomeCenter"
+                />
+
+
+            <ShellContent
+                Title="LastFM"
+                ContentTemplate="{DataTemplate lastFMPages:LastFMHomePage}"
+                Icon="lastfmsmoll.png"
+                Route="LastFMHomePage"
+                />
+
+            <ShellContent
+                Title="Dimmer Toolkit"
+                ContentTemplate="{DataTemplate dimtoolkit:DuplicateFinder}"
+                Icon="display.png"
+                Route="DimmerToolkit"
+                />
+            <ShellContent
+                Title="Statistics"
+                ContentTemplate="{DataTemplate dimmerStatsPages:AllStats}"
+                Icon="chartb.png"
+                Route="DimmerStats"
+                />
+
+        </Tab>
+        <Tab Title="Settings" Icon="settings.png">
+
+
+            <ShellContent
+                ContentTemplate="{DataTemplate settingsPages:SettingsPage}"
+                FlyoutIcon="settings.png"
+                Route="SettingsPage"
+                />
+        </Tab>
+    </TabBar>
+
+
+
+
+
 
 </Shell>

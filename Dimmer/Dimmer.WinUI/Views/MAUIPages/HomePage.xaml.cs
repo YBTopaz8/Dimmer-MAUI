@@ -1,9 +1,5 @@
-﻿using System.Threading.Tasks;
-using CommunityToolkit.Maui.Behaviors;
-
-using Dimmer.WinUI.ViewModel.DimmerLiveWin;
+﻿using CommunityToolkit.Maui.Behaviors;
 using Dimmer.WinUI.Views.WinuiPages.DimmsSection;
-using Dimmer.WinUI.Views.WinuiPages.LastFMSection;
 
 
 
@@ -20,13 +16,9 @@ using Border = Microsoft.Maui.Controls.Border;
 using ButtonM = Microsoft.Maui.Controls.Button;
 using ColorsM = Microsoft.Maui.Graphics.Colors;
 //using Microsoft.UI.Xaml.Controls;
-using Slider = Microsoft.Maui.Controls.Slider;
-
 using ToolTip = Microsoft.UI.Xaml.Controls.ToolTip;
 using View = Microsoft.Maui.Controls.View;
 using MButton = Microsoft.Maui.Controls.Button;
-using Dimmer.WinUI.Views.WinuiPages.SingleSongPage.SubPage;
-using Dimmer.WinUI.Views.WinuiPages.SingleSongPage;
 
 
 namespace Dimmer.WinUI.Views.MAUIPages;
@@ -79,9 +71,8 @@ public partial class HomePage : ContentPage
         MyViewModel.DumpCommand.Execute(null);
         try
         {
-            MyViewModel.CurrentPageContext = CurrentPage.HomePage;
+            MyViewModel.CurrentPageEnum = CurrentPage.HomePage;
             MyViewModel.CurrentMAUIPage = this;
-            
 
             if (MyViewModel.ShowWelcomeScreen)
             {
@@ -793,13 +784,6 @@ public partial class HomePage : ContentPage
             _initialized = true;
             MyViewModel.InitializeAllVMCoreComponents();
 
-            MyViewModel.GetLibState();
-            if (MyViewModel.IsLibraryEmpty)
-            {
-                
-                MyViewModel.NavigateToAnyPageOfGivenType(typeof(SettingsPage));
-
-            }
         }
     }
 
@@ -1072,7 +1056,7 @@ public partial class HomePage : ContentPage
     {
         if(loginVM is not null)
         {
-          await  loginVM.NavigateToProfilePage();
+          await  loginVM.NavigateToProfilePageAsync();
             
         }
 
@@ -1087,6 +1071,16 @@ public partial class HomePage : ContentPage
             send.Source = loginVM.CurrentUserOnline.ProfileImagePath;
             _= sessionVM.RegisterCurrentDeviceAsync();
         }
+
+        
+        loginVM.CurrentUserOnline?.WhenPropertyChange(nameof(loginVM.CurrentUserOnline.SessionToken), v=>loginVM.CurrentUserOnline)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(x =>
+            {
+                if (string.IsNullOrEmpty(x.SessionToken)) return;
+                send.Source = loginVM.CurrentUserOnline.ProfileImagePath;
+
+            });            
     }
 
     private void ViewFullStatsClicked(object sender, EventArgs e)
@@ -1114,13 +1108,8 @@ public partial class HomePage : ContentPage
 
     private void ViewAllSongs_Clicked(object sender, EventArgs e)
     {
-        if(MyViewModel.IsLibraryEmpty)
-        {
-            MyViewModel.ShowWelcomeScreen = true;
+       
 
-            MyViewModel.NavigateToAnyPageOfGivenType(typeof(SettingsPage));
-            return;
-        }
         MyViewModel.NavigateToAnyPageOfGivenType(typeof(AllSongsListPage));
         
         //MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.DescAdded());
@@ -1142,7 +1131,7 @@ public partial class HomePage : ContentPage
             {
                 var menFlyOut = new Microsoft.UI.Xaml.Controls.ToggleMenuFlyoutItem
                 {
-                    Text = $"Device Name : {x.Name}, Volume : {x.Volume} %",
+                    Text = $"Device Name : {x.Name}, Volume : {x.Volume:n2} %",
                     Command = MyViewModel.SetPreferredAudioDeviceCommand,
                     CommandParameter = x
                 };

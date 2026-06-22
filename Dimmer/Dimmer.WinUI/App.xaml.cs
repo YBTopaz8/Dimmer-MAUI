@@ -1,7 +1,5 @@
 ﻿using System.Collections.Concurrent;
 using System.Reactive.Concurrency;
-
-using Dimmer.Utilities.Extensions;
 using Dimmer.Utils;
 
 using Microsoft.Windows.AppLifecycle;

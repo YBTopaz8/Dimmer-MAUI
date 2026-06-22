@@ -3,6 +3,12 @@
 [ParseClassName("UserDeviceSession")]
 public class UserDeviceSession : ParseObject
 {
+    [ParseFieldName("deviceAlias")]
+    public string DeviceAlias
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
     [ParseFieldName("sessionId")]
     public string SessionId
     {
@@ -11,9 +17,9 @@ public class UserDeviceSession : ParseObject
     }
 
     [ParseFieldName("userOwner")] // Changed from "userId" to be more descriptive of the pointer
-    public UserModelOnline? UserOwner // Storing as a Pointer to _User class
+    public ParseUser? UserOwner // Storing as a Pointer to _User class
     {
-        get => GetProperty<UserModelOnline?>();
+        get => GetProperty<ParseUser?>();
         set => SetProperty(value);
     }
     [ParseFieldName("libraryTag")]

@@ -10,9 +10,14 @@
     xmlns:vm="clr-namespace:Dimmer.ViewModels"
     Title="{Binding Name}"
     x:DataType="models:ArtistModelView"
-    Shell.NavBarIsVisible="True">
-    <Grid RowDefinitions="auto,*">
-        <Grid Grid.Row="0" ColumnDefinitions="*,*">
+    Shell.NavBarIsVisible="True"
+    >
+    <Grid RowDefinitions="auto,*" Margin="5">
+        <Grid
+            Grid.Row="0"
+            ColumnDefinitions="*,*"
+            ColumnSpacing="5"
+            >
 
             <dx:DXImage Grid.Column="0" Source="{Binding ImagePath}" />
 
@@ -28,7 +33,8 @@
                     IconHeight="30"
                     IconWidth="30"
                     ShowContent="False"
-                    ShowIcon="True" />
+                    ShowIcon="True"
+                    />
 
             </dx:DXStackLayout>
         </Grid>
@@ -37,7 +43,8 @@
             x:Name="ArtistDetailsTableView"
             Grid.Row="1"
             Margin="0,10,0,0"
-            BackgroundColor="Transparent">
+            BackgroundColor="Transparent"
+            >
             <dx:TabViewItem x:Name="SongsByArtistTab" HeaderText="Songs">
 
 
@@ -50,7 +57,8 @@
                                         <DataTrigger
                                             Binding="{Binding HasSyncedLyrics}"
                                             TargetType="dx:DXStackLayout"
-                                            Value="True">
+                                            Value="True"
+                                            >
                                             <Setter Property="BorderThickness" Value="1" />
                                             <Setter Property="BorderColor" Value="DarkSlateBlue" />
 
@@ -59,7 +67,8 @@
                                         <DataTrigger
                                             Binding="{Binding HasSyncedLyrics}"
                                             TargetType="dx:DXStackLayout"
-                                            Value="False">
+                                            Value="False"
+                                            >
                                             <Setter Property="BorderThickness" Value="0" />
 
                                         </DataTrigger>
@@ -77,7 +86,8 @@
                                         <TapGestureRecognizer
                                             x:Name="MiddleGridSection"
                                             NumberOfTapsRequired="1"
-                                            Tapped="MiddleGridSection_Tapped" />
+                                            Tapped="MiddleGridSection_Tapped"
+                                            />
                                     </dx:DXStackLayout.GestureRecognizers>
                                     <dx:Chip
                                         x:Name="TitleChip"
@@ -85,7 +95,8 @@
                                         FontAttributes="Bold"
                                         HorizontalOptions="Start"
                                         Tap="TitleChip_Tap"
-                                        Text="{Binding Title}" />
+                                        Text="{Binding Title}"
+                                        />
                                     <dx:Chip
                                         x:Name="ArtistChip"
                                         BorderThickness="0"
@@ -93,7 +104,8 @@
                                         HorizontalOptions="Start"
                                         LongPress="ArtistChip_LongPress"
                                         Tap="ArtistChip_Tap"
-                                        Text="{Binding ArtistName}" />
+                                        Text="{Binding ArtistName}"
+                                        />
                                 </dx:DXStackLayout>
 
                                 <dx:DXStackLayout Grid.Column="2" Orientation="Vertical">
@@ -104,19 +116,22 @@
                                         HeightRequest="30"
                                         Icon="more1.png"
                                         IsIconVisible="True"
-                                        WidthRequest="30" />
+                                        WidthRequest="30"
+                                        />
                                     <Label
                                         Margin="5,0"
                                         FontSize="8"
                                         HorizontalOptions="End"
                                         Text="{Binding DurationFormatted}"
-                                        VerticalOptions="Center" />
+                                        VerticalOptions="Center"
+                                        />
                                     <Label
                                         Margin="5,0"
                                         FontSize="8"
                                         HorizontalOptions="End"
-                                        Text="{Binding TrackNumber}"
-                                        VerticalOptions="Center" />
+                                        Text="{Binding PlayCompletedCount}"
+                                        VerticalOptions="Center"
+                                        />
                                 </dx:DXStackLayout>
 
                             </Grid>
@@ -146,13 +161,15 @@
                                             BorderThickness="0"
                                             FontAttributes="Bold"
                                             HorizontalOptions="Start"
-                                            Text="{Binding Name}" />
+                                            Text="{Binding Name}"
+                                            />
                                         <dx:Chip
                                             x:Name="SongsInAlbumCount"
                                             BorderThickness="0"
                                             FontSize="13"
                                             HorizontalOptions="Start"
-                                            Text="{Binding SongsInAlbum.Count}" />
+                                            Text="{Binding SongsInAlbum.Count}"
+                                            />
                                     </dx:DXStackLayout>
 
                                     <dx:DXStackLayout Grid.Column="2" Orientation="Vertical">
@@ -163,13 +180,15 @@
                                             HeightRequest="30"
                                             Icon="more1.png"
                                             IsIconVisible="True"
-                                            WidthRequest="30" />
+                                            WidthRequest="30"
+                                            />
                                         <Label
                                             Margin="5,0"
                                             FontSize="8"
                                             HorizontalOptions="End"
                                             Text="{Binding TotalDuration, StringFormat='{0:mm\\:ss}'}"
-                                            VerticalOptions="Center" />
+                                            VerticalOptions="Center"
+                                            />
                                     </dx:DXStackLayout>
 
                                 </Grid>
@@ -186,34 +205,41 @@
                     <dx:DataGridView
                         x:Name="PlayEventDG"
                         AutoGenerateColumnsMode="None"
-                        ItemsSource="{Binding PlayEvents}">
+                        ItemsSource="{Binding PlayEvents}"
+                        >
                         <dx:DataGridView.Columns>
 
 
                             <dx:ImageColumn
                                 Width="100"
                                 Caption="Image"
-                                FieldName="CoverImagePath" />
+                                FieldName="CoverImagePath"
+                                />
                             <dx:TextColumn
                                 Width="150"
                                 Caption="Title"
-                                FieldName="SongTitle" />
+                                FieldName="SongTitle"
+                                />
                             <dx:TextColumn
                                 Width="150"
                                 Caption="Album Name"
-                                FieldName="SongAlbumName" />
+                                FieldName="SongAlbumName"
+                                />
                             <dx:TextColumn
                                 Width="110"
                                 Caption="Play Type"
-                                FieldName="PlayTypeStr" />
+                                FieldName="PlayTypeStr"
+                                />
                             <dx:DateColumn
                                 Width="110"
                                 Caption="Event Date"
-                                FieldName="EventDate" />
+                                FieldName="EventDate"
+                                />
                             <dx:TextColumn
                                 Width="80"
                                 Caption="Position"
-                                FieldName="PositionInSeconds" />
+                                FieldName="PositionInSeconds"
+                                />
                         </dx:DataGridView.Columns>
                     </dx:DataGridView>
                 </dx:DXStackLayout>
@@ -223,7 +249,8 @@
                 <dx:DXScrollView
                     x:Name="ChartsScrollView"
                     x:DataType="globalVM:StatisticsViewModel"
-                    Loaded="ChartsScrollView_Loaded">
+                    Loaded="ChartsScrollView_Loaded"
+                    >
 
                     <dx:DXStackLayout Padding="10">
                         <Label Text="{Binding ArtistStats.FilterUsed}" />
@@ -249,7 +276,8 @@
                             x:Name="ActionsRadarChart"
                             Grid.Row="0"
                             HeightRequest="350"
-                            WidthRequest="350">
+                            WidthRequest="350"
+                            >
                             <dx:PieChartView.Hint>
                                 <dx:PieHint Enabled="True" />
                             </dx:PieChartView.Hint>
@@ -264,7 +292,8 @@
                                             AllowLiveDataUpdates="True"
                                             DataSource="{Binding ArtistStats.ObsessionRankedSongs}"
                                             LabelDataMember="Label"
-                                            ValueDataMember="Value" />
+                                            ValueDataMember="Value"
+                                            />
 
 
                                     </dx:PieSeries.Data>

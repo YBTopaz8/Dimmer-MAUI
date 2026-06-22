@@ -1,15 +1,9 @@
 ﻿using System.Reflection;
-
-using Dimmer.DimmerLive.Orchestration;
-using Dimmer.Interfaces;
-using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.Interfaces.Services.Lyrics;
 using Dimmer.Interfaces.Services.Lyrics.Orchestrator;
 using Dimmer.ViewModel.DimmerLiveVM;
 
 using Microsoft.Extensions.Configuration;
-
-using Parse.LiveQuery;
 
 using static Dimmer.DimmerLive.Orchestration.ParseSetup;
 
@@ -105,8 +99,7 @@ public static class ServiceRegistration
         services.AddSingleton(typeof(IQueueManager<>), typeof(QueueManager<>));
 
 
-        services.AddSingleton<IAuthenticationService, ParseAuthenticationService>();
-        services.AddTransient<LoginViewModel>();
+        services.AddSingleton<LoginViewModel>();
         services.AddSingleton<SettingsViewModel>();
         services.AddSingleton<SessionManagementViewModel>();
         services.AddSingleton<DimmerBackupService>();
@@ -167,13 +160,12 @@ public static class ServiceRegistration
     {
         InitializeParseClient();
         ParseClient.Instance.RegisterSubclass(typeof(UserDeviceSession));
-        ParseClient.Instance.RegisterSubclass(typeof(DeviceState));
-        ParseClient.Instance.RegisterSubclass(typeof(DeviceSyncState));
         ParseClient.Instance.RegisterSubclass(typeof(ChatConversation));
         ParseClient.Instance.RegisterSubclass(typeof(ChatMessage));
         ParseClient.Instance.RegisterSubclass(typeof(DimmerSharedSong));
         ParseClient.Instance.RegisterSubclass(typeof(UserModelOnline));
-        ParseClient.Instance.RegisterSubclass(typeof(DeviceState));
+        ParseClient.Instance.RegisterSubclass(typeof(DeviceCommand));
+
         ParseClient.Instance.RegisterSubclass(typeof(UserModelOnline));
         ParseClient.Instance.RegisterSubclass(typeof(FriendRequest));
         ParseClient.Instance.RegisterSubclass(typeof(AppUpdateModel));

@@ -1,8 +1,6 @@
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
-using CommunityToolkit.Maui.Core.Extensions;
-
 namespace Dimmer.WinUI.Views.WinuiPages;
 
 /// <summary>
@@ -18,7 +16,7 @@ public sealed partial class AlbumPage : Page
     }
 
     private readonly Microsoft.UI.Composition.Visual _rootVisual;
-    private readonly Microsoft.UI.Composition.Compositor _compositor;
+
 
     BaseViewModelWin MyViewModel { get; set; }
     public LastFMViewModel MyLastFMViewModel { get; internal set; }

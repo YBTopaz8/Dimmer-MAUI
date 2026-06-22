@@ -1,34 +1,11 @@
-
-using CommunityToolkit.Maui.Core.Extensions;
-using CommunityToolkit.WinUI;
-using Dimmer.Utilities.Extensions;
 using Dimmer.WinUI.ViewModel.SingleSongVMSection;
-using Dimmer.WinUI.Views.CustomViews.WinuiViews;
 using Dimmer.WinUI.Views.CustomViews.WinuiViews.SingleSongSection;
 using DynamicData;
-using Microsoft.UI.Xaml.Documents;
-using Microsoft.Windows.AppNotifications;
-using Microsoft.Windows.AppNotifications.Builder;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.Windows;
-using Windows.ApplicationModel.DataTransfer;
-using WinRT;
-using WinRT.Dimmer_WinUIVtableClasses;
-using Clipboard = Windows.ApplicationModel.DataTransfer.Clipboard;
-using DataPackage = Windows.ApplicationModel.DataTransfer.DataPackage;
-using DataTemplate = Microsoft.UI.Xaml.DataTemplate;
-using FrameworkElement = Microsoft.UI.Xaml.FrameworkElement;
-using ListView = Microsoft.UI.Xaml.Controls.ListView;
-using ListViewSelectionMode = Microsoft.UI.Xaml.Controls.ListViewSelectionMode;
 using NavigationEventArgs = Microsoft.UI.Xaml.Navigation.NavigationEventArgs;
-using PropertyPath = Microsoft.UI.Xaml.PropertyPath;
 using RoutedEventArgs = Microsoft.UI.Xaml.RoutedEventArgs;
 using TextWrapping = Microsoft.UI.Xaml.TextWrapping;
 using Visibility = Microsoft.UI.Xaml.Visibility;
-using ToolTip = Microsoft.UI.Xaml.Controls.ToolTip;
 using UIElement = Microsoft.UI.Xaml.UIElement;
-using Visual = Microsoft.UI.Composition.Visual;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -67,7 +44,7 @@ public sealed partial class EditSongPage : Page
                 MyViewModel = vm;
                 DetailedSong = args.Song;
 
-                MyViewModel.CurrentWinUIPage = this;
+                MyViewModel.CurrentPageEnum = CurrentPage.EditSongPage;
                 _editViewModel = new EditSongViewModel(vm, vm.SelectedSong!);
                 MyViewModel.SelectedSong = DetailedSong;
               
@@ -322,7 +299,6 @@ public sealed partial class EditSongPage : Page
     
 
 
-    List<string>? selectedItems;
  
 
 
@@ -406,7 +382,7 @@ public sealed partial class EditSongPage : Page
         
     }
 
-    bool isSearchingOnLastFM;
+
     private async void SearchOnLastFM_Click(object sender, RoutedEventArgs e)
     {
         LastFMSearchStackPanel.Visibility = Visibility.Visible;

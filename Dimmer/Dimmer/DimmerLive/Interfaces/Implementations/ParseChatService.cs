@@ -1,6 +1,4 @@
-﻿using Parse.LiveQuery;
-
-namespace Dimmer.DimmerLive.Interfaces.Implementations;
+﻿namespace Dimmer.DimmerLive.Interfaces.Implementations;
 public partial class ParseChatService : ObservableObject, IChatService, IDisposable
 {
     private readonly BaseViewModel _baseVM;
@@ -55,16 +53,14 @@ public partial class ParseChatService : ObservableObject, IChatService, IDisposa
 
 
 
-            var query = ParseClient.Instance.GetQuery<ChatMessage>()
-                .Include(nameof(ChatMessage.UserSenderId));
-            var _messageSub = _liveQueryClient.Subscribe(query);
+
 
 
             _liveQueryClient.OnConnectionStateChanged
           .ObserveOn(RxSchedulers.UI) // Best practice: ensure UI updates are on the main thread
           .Subscribe(state =>
           {
-              Debug.WriteLine($"[LiveQuery Status]: Connection state is now {state}");
+              Debug.WriteLine($"[LiveQuery Status]: Connection state is now {state.ToString()}");
               IsConnectedToMessagesLQ = state == LiveQueryConnectionState.Connected;
           });
 
@@ -77,9 +73,9 @@ public partial class ParseChatService : ObservableObject, IChatService, IDisposa
 
 
             _liveQueryClient.OnDisconnected
-                .Do(async info =>
+                .Do( info =>
                 {
-                    await _liveQueryClient.ReconnectAsync();
+
                     IsConnectedToMessagesLQ=false;
                     Debug.WriteLine($"Server disconnected.{info.Reason}");
                 })
@@ -90,22 +86,13 @@ public partial class ParseChatService : ObservableObject, IChatService, IDisposa
                 .ObserveOn(RxSchedulers.Background)
                 .Do(async e =>
                 {
-                    await SendTextMessageAsync("Hello 😄" + Username + "!");
+                  
                     Debug.WriteLine("Subscribed to: " + e.requestId);
                 })
                 .Subscribe();
 
-            _messageSub.On(Subscription.Event.Enter, convo =>
-            {
-                _msgCache.AddOrUpdate(convo);
-            });
-            _messageSub.On(Subscription.Event.Create, convo =>
-            {
-                _msgCache.AddOrUpdate(convo);
-            });
-            _messageSub.On(Subscription.Event.Update, convo => _msgCache.AddOrUpdate(convo));
-            //_messageSub.On(Subscription.Event.Leave, convo => _msgCache.Remove(convo));
-            _messageSub.On(Subscription.Event.Delete, convo => _msgCache.Remove(convo));
+          
+
 
             _disposables.Add(Disposable.Create(() => _conversationSubscription?.UnsubscribeNow()));
             _logger.LogInformation("ChatService listeners started.");
@@ -143,7 +130,7 @@ public partial class ParseChatService : ObservableObject, IChatService, IDisposa
         try
         {
             var messageQuery = new ParseQuery<ChatMessage>(ParseClient.Instance)
-                .WhereEqualTo("conversation.objectId", conversation.ObjectId)
+                .WhereEqualTo("conversation", conversation)
                 ;
             var initialMessages = await messageQuery.FindAsync();
             cache.Edit(updater => updater.AddOrUpdate(initialMessages));
@@ -174,11 +161,11 @@ public partial class ParseChatService : ObservableObject, IChatService, IDisposa
             // Create a new cache and subscription for this conversation's messages
 
             var messageQuery = new ParseQuery<ChatMessage>(ParseClient.Instance)
-                .WhereEqualTo("conversationId", conversation.ObjectId)
+                .WhereEqualTo("conversation", conversation)
                 .Include($"{nameof(ChatMessage.SharedSong)}.uploader"); // Include nested pointers
 
 
-            var messageSubscription = _liveQueryClient.Subscribe(messageQuery);
+            var messageSubscription =  _liveQueryClient.Subscribe(messageQuery);
             IsConnectedToMessagesLQ= messageSubscription.IsConnected;
 
 
@@ -214,11 +201,11 @@ public partial class ParseChatService : ObservableObject, IChatService, IDisposa
     public string Username
     { get; set; }
       
-    public async Task SendTextMessageAsync(string text, string? receverObjectId = null,SongModelView? song=null)
+    public async Task SendTextMessageAsync(ChatConversation conversation, string text, string? receverObjectId = null,SongModelView? song=null)
     {
         if (string.IsNullOrWhiteSpace(text))
             return;
-      Username=  DeviceInfo.Current.Platform +" "+ DeviceInfo.VersionString +" "+  DeviceInfo.Manufacturer;
+        Username=  DeviceInfo.Current.Platform +" "+ DeviceInfo.VersionString +" "+  DeviceInfo.Manufacturer;
 
         receverObjectId = receverObjectId ?? Username;
         try
@@ -237,7 +224,7 @@ public partial class ParseChatService : ObservableObject, IChatService, IDisposa
             {
 Username = "Unknown User "+Guid.NewGuid();
             }
-            message["UserName"]=Username;
+            message["conversation"] = ParseClient.Instance.CreateObjectWithoutData<ChatConversation>( conversation.ObjectId);
             message["Username"]=Username;
             message["senderId"] = receverObjectId; // For Cloud Code use
             
@@ -248,6 +235,7 @@ Username = "Unknown User "+Guid.NewGuid();
            
 
             }
+            Debug.WriteLine($"Saving message {text}");
             // ACLs are best handled by a beforeSave trigger in Cloud Code
             await message.SaveAsync();
         }

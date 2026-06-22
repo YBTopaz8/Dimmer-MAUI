@@ -1,6 +1,4 @@
 ﻿// Models/QrCodePayload.cs
-using System.Text.Json.Serialization; // For System.Text.Json attributes
-
 namespace Dimmer.DimmerLive.Models;
 public class QrCodeData
 {

@@ -14,8 +14,6 @@ global using System.Globalization;
 
 global using Dimmer.Data.Models.LyricsModels;
 global using ATL;
-
-global using CommunityToolkit.Maui.Alerts;
 global using CommunityToolkit.Mvvm.Input;
 global using System.Linq.Dynamic.Core;
 global using Dimmer.Data.ModelView.DimmerSearch;

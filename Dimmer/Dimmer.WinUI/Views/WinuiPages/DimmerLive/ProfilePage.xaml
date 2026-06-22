@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:dgView="using:WinUI.TableView"
     xmlns:local="using:Dimmer.WinUI.Views.WinuiPages.DimmerLive"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:Dimmer.DimmerLive.Models"
@@ -52,57 +53,17 @@
                                     Visibility="Collapsed"
                                     >
 
-                                    <SymbolIcon Symbol="Edit" />
+                                    <FontIcon Glyph="&#xE70F;" />
 
                                 </Button>
-                                <PersonPicture
-                                    x:Name="ProfilePic"
-                                    DisplayName="{x:Bind ViewModel.CurrentUserOnline.Username, Mode=OneWay}"
-                                    ProfilePicture="{x:Bind ViewModel.CurrentUserOnline.ProfileImagePath, Mode=OneWay, Converter={StaticResource StringToImageConverter}}"
-                                    />
+                                <PersonPicture x:Name="ProfilePic" ProfilePicture="{x:Bind ViewModel.CurrentUserOnline.ProfileImagePath, Mode=OneWay, Converter={StaticResource StringToImageConverter}}" />
 
                             </Grid>
                             <StackPanel
                                 Grid.Column="1"
                                 VerticalAlignment="Center"
                                 Spacing="4"
-                                >
-
-                                <Button Click="ShareProfile" Style="{StaticResource AccentButtonStyle}">
-                                    <!--  Changed from Command binding  -->
-                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <FontIcon FontSize="14" Glyph="&#xE72D;" />
-                                        <TextBlock Text="Invite / Share" />
-                                    </StackPanel>
-                                </Button>
-
-
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="{x:Bind ViewModel.CurrentUserOnline.Username, Mode=OneWay}" />
-                                    <!--  Premium Badge  -->
-                                    <Border
-                                        Padding="6,2"
-                                        VerticalAlignment="Center"
-                                        Background="Gold"
-                                        CornerRadius="4"
-                                        Visibility="{x:Bind ViewModel.CurrentUserOnline.IsPremium, Mode=OneWay, Converter={StaticResource BoolToVis}}"
-                                        >
-                                        <TextBlock
-                                            FontSize="10"
-                                            FontWeight="Bold"
-                                            Foreground="Black"
-                                            Text="PREMIUM"
-                                            />
-                                    </Border>
-                                </StackPanel>
-
-                                <TextBlock Opacity="0.6" Text="{x:Bind ViewModel.CurrentUserOnline.Email, Mode=OneWay}" />
-                                <TextBlock
-                                    Margin="0,8,0,0"
-                                    Text="{x:Bind ViewModel.CurrentUserOnline.Bio, Mode=OneWay, FallbackValue='No bio set'}"
-                                    TextWrapping="Wrap"
-                                    />
-                            </StackPanel>
+                                />
 
                             <!--  Edit Button  -->
                             <Button
@@ -152,9 +113,32 @@
                                         Opacity="0.6"
                                         Text="Joined"
                                         />
-                                    <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="{x:Bind ViewModel.CurrentUserOnline.CreatedAt, Mode=OneWay}" />
+                                    <dgView:TableView AutoGenerateColumns="False" ItemsSource="{x:Bind ViewModel.SessionMgtVM.OtherDevices}">
+                                        <dgView:TableView.Columns>
+
+                                            <dgView:TableViewTextColumn Binding="{Binding DeviceName}" Header="Device Name" />
+                                            <dgView:TableViewTextColumn Binding="{Binding DeviceIdiom}" Header="Device Type" />
+                                            <dgView:TableViewTextColumn Binding="{Binding IsActive}" Header="Is Current Device?" />
+                                            <dgView:TableViewTemplateColumn Header="Action">
+                                                <dgView:TableViewTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <StackPanel>
+                                                            <Button
+                                                                x:Name="NameViewDevice"
+                                                                Click="NameViewDevice_Click"
+                                                                CommandParameter="{Binding DeviceId}"
+                                                                Content="View"
+                                                                />
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </dgView:TableViewTemplateColumn.CellTemplate>
+                                            </dgView:TableViewTemplateColumn>
+                                        </dgView:TableView.Columns>
+                                    </dgView:TableView>
                                 </StackPanel>
                             </Border>
+
+
                         </Grid>
 
                         <!--  Device Info  -->
@@ -188,6 +172,7 @@
 
                         <!--  Logout  -->
                         <Button Command="{x:Bind ViewModel.NavigateToCloudPageCommand}" Content="Cloud Space" />
+                        <Button Command="{x:Bind ViewModel.NavigateToSocialPageCommand}" Content="Social Space" />
                         <Button
                             HorizontalAlignment="Left"
                             Background="DarkRed"

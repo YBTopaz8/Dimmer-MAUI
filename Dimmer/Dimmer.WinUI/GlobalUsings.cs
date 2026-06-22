@@ -32,10 +32,8 @@ global using Microsoft.UI.Xaml.Media.Animation;
 global using Microsoft.UI.Xaml.Navigation;
 
 global using Page = Microsoft.UI.Xaml.Controls.Page;
-global using System.Windows.Media.Imaging;
 
 global using CommunityToolkit.Mvvm.ComponentModel;
-global using CommunityToolkit.Maui.Storage;
 global using CommunityToolkit.Mvvm.Input;
 global using Dimmer.Data.Models;
 global using Dimmer.Data.ModelView.DimmerSearch;
@@ -82,7 +80,6 @@ global using System.Drawing;
 global using Dimmer.DimmerLive.Interfaces;
 
 global using Dimmer.Interfaces.Services;
-global using Dimmer.WinUI.Utils.CustomHandlers.CollectionView;
 global using Dimmer.WinUI.Utils.WinMgt;
 global using Windows.ApplicationModel.DataTransfer;
 global using Windows.Storage.Pickers;
@@ -96,8 +93,6 @@ global using Image = Microsoft.UI.Xaml.Controls.Image;
 global using MenuFlyout = Microsoft.UI.Xaml.Controls.MenuFlyout;
 global using MenuFlyoutItem = Microsoft.UI.Xaml.Controls.MenuFlyoutItem;
 global using SolidColorBrush = Microsoft.UI.Xaml.Media.SolidColorBrush;
-
-global using CommunityToolkit.Maui.Extensions;
 global using CommunityToolkit.WinUI;
 
 global using Dimmer.Utilities.Extensions;

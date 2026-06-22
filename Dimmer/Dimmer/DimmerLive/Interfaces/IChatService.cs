@@ -19,6 +19,6 @@ public interface IChatService
     //void StartListeners();
     void StopListeners();
     IObservable<IChangeSet<ChatMessage, string>> GetMessagesForConversation(ChatConversation conversation);
-    Task SendTextMessageAsync(string text, string? receverObjectId = null, SongModelView? song = null);
+    Task SendTextMessageAsync(ChatConversation conversation, string text, string? receverObjectId = null, SongModelView? song = null);
     void StartListeners(UserModelOnline? currentUser = null);
 }

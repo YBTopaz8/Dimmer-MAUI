@@ -67,13 +67,13 @@ public static class ArtistStats
         // Top Song Stats
         public string? MostPlayedSongTitle { get; set; }
         public int MostPlayedSongPlayCount { get; set; }
-        public SongModel? MostPlayedSong { get; set; }
+        public SongModelView? MostPlayedSong { get; set; }
         public string? MostSkippedSongTitle { get; set; }
         public int MostSkippedSongSkipCount { get; set; }
-        public SongModel? MostSkippedSong { get; set; }
+        public SongModelView? MostSkippedSong { get; set; }
         public string? MostCompletedSongTitle { get; set; }
         public int MostCompletedSongCompletions { get; set; }
-        public SongModel? MostCompletedSong { get; set; }
+        public SongModelView? MostCompletedSong { get; set; }
 
         // Averages & Distributions
         public double AveragePlaysPerPlayedSong { get; set; }
@@ -158,7 +158,7 @@ public static class ArtistStats
         {
             summary.MostPlayedSongTitle = mostPlayedSong.Title;
             summary.MostPlayedSongPlayCount = SongStats.GetPlayCount(mostPlayedSong, allEvents);
-            summary.MostPlayedSong = mostPlayedSong;
+            summary.MostPlayedSong = mostPlayedSong.ToSongForDimmerEventModelView();
         }
 
         var mostSkippedSong = songsByArtist.OrderByDescending(s => SongStats.GetSkipCount(s, allEvents)).FirstOrDefault();
@@ -166,7 +166,7 @@ public static class ArtistStats
         {
             summary.MostSkippedSongTitle = mostSkippedSong.Title;
             summary.MostSkippedSongSkipCount = SongStats.GetSkipCount(mostSkippedSong, allEvents);
-            summary.MostSkippedSong = mostSkippedSong;
+            summary.MostSkippedSong = mostSkippedSong.ToSongForDimmerEventModelView();
         }
 
         var mostCompletedSongData = songsByArtist
@@ -183,7 +183,7 @@ public static class ArtistStats
         {
             summary.MostCompletedSongTitle = mostCompletedSongData.Song.Title;
             summary.MostCompletedSongCompletions = mostCompletedSongData.Completions;
-            summary.MostCompletedSong = mostCompletedSongData.Song;
+            summary.MostCompletedSong = mostCompletedSongData.Song.ToSongForDimmerEventModelView();
         }
 
         summary.AveragePlaysPerPlayedSong = summary.UniqueSongsPlayed > 0 ? (double)summary.TotalPlaysAcrossAllSongs / summary.UniqueSongsPlayed : 0;

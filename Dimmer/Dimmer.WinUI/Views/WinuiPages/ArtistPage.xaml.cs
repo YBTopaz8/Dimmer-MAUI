@@ -1,16 +1,6 @@
-using System.DirectoryServices;
-using System.Globalization;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-
-using CommunityToolkit.Maui.Core.Extensions;
-
-using Hqub.Lastfm.Entities;
 
 using Microsoft.UI.Xaml.Documents;
-using Microsoft.UI.Xaml.Media.Imaging;
-
-using Color = System.Drawing.Color;
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
@@ -40,6 +30,9 @@ public sealed partial class ArtistPage : Page
     BaseViewModelWin MyViewModel { get; set; }
 
     public SongModelView? DetailedSong { get; set; }
+    public ArtistModelView? SelectedArtist { get; set; }
+    public StatisticsViewModel MyStatsViewModel { get; private set; }
+
     protected override async void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
@@ -48,7 +41,7 @@ public sealed partial class ArtistPage : Page
         if (e.Parameter is BaseViewModelWin args)
         {
             MyViewModel = args;       // reference, not copy
-            MyViewModel.CurrentWinUIPage = this;
+            MyViewModel.CurrentPageEnum = CurrentPage.SingleArtistPage;
             DetailedSong = args.CurrentPlayingSongView;
         }
 
@@ -58,14 +51,13 @@ public sealed partial class ArtistPage : Page
             //    ExtraParam = MyViewModel,
             //    ViewModel = MyViewModel
             MyViewModel = (songDetailNavArgs.ExtraParam as BaseViewModelWin)!;       // reference, not copy
-            MyViewModel.CurrentWinUIPage = this;
+            MyViewModel.CurrentPageEnum = CurrentPage.SingleArtistPage;
             DetailedSong = songDetailNavArgs.Song;
         }
 
         MyViewModel ??= IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
+        MyStatsViewModel ??= IPlatformApplication.Current!.Services.GetService<StatisticsViewModel>()!;
         MyViewModel.IsBackButtonVisible = WinUIVisibility.Visible;
-        ArtistNameInArtistPage.Visibility = WinUIVisibility.Visible;
-        ArtistImageInArtistPage.Visibility = WinUIVisibility.Visible;
 
 
         this.DataContext = MyViewModel.SelectedArtist;
@@ -80,8 +72,7 @@ public sealed partial class ArtistPage : Page
         if (MyViewModel.SelectedArtist is null ) return;
         if (MyViewModel.SelectedArtist.Bio is null ) return;
         var html = MyViewModel.SelectedArtist.Bio;
-        BioBlock.Blocks.Clear();
-
+     
         Paragraph p = new Paragraph();
 
         var parts = html.Split(new[] { "<a", "</a>" }, StringSplitOptions.None);
@@ -102,50 +93,9 @@ public sealed partial class ArtistPage : Page
             p.Inlines.Add(h);
         }
 
-        BioBlock.Blocks.Add(p);
+        //BioBlock.Blocks.Add(p);
     }
-    private void ApplyEntranceEffect(Visual visual, SongTransitionAnimation defAnim = SongTransitionAnimation.Spring)
-    {
 
-        switch (defAnim)
-        {
-            case SongTransitionAnimation.Fade:
-                visual.Opacity = 0f;
-                var fade = _compositor.CreateScalarKeyFrameAnimation();
-                fade.InsertKeyFrame(1f, 1f);
-                fade.Duration = TimeSpan.FromMilliseconds(350);
-                visual.StartAnimation("Opacity", fade);
-                break;
-
-            case SongTransitionAnimation.Scale:
-                visual.CenterPoint = new Vector3((float)ArtistImageInArtistPage.ActualWidth / 2,
-                                                 (float)ArtistImageInArtistPage.ActualHeight / 2, 0);
-                visual.Scale = new Vector3(0.8f);
-                var scale = _compositor.CreateVector3KeyFrameAnimation();
-                scale.InsertKeyFrame(1f, Vector3.One);
-                scale.Duration = TimeSpan.FromMilliseconds(350);
-                visual.StartAnimation("Scale", scale);
-                break;
-
-            case SongTransitionAnimation.Slide:
-                visual.Offset = new Vector3(80f, 0, 0);
-                var slide = _compositor.CreateVector3KeyFrameAnimation();
-                slide.InsertKeyFrame(1f, Vector3.Zero);
-                slide.Duration = TimeSpan.FromMilliseconds(350);
-                visual.StartAnimation("Offset", slide);
-                break;
-
-            case SongTransitionAnimation.Spring:
-            default:
-                var spring = _compositor.CreateSpringVector3Animation();
-                spring.FinalValue = new Vector3(0, 0, 0);
-                spring.DampingRatio = 0.5f;
-                spring.Period = TimeSpan.FromMilliseconds(350);
-                visual.Offset = new Vector3(0, 40, 0);//c matching
-                visual.StartAnimation("Offset", spring);
-                break;
-        }
-    }
     protected override async void OnNavigatingFrom(NavigatingCancelEventArgs e)
     {
         base.OnNavigatingFrom(e);
@@ -153,18 +103,8 @@ public sealed partial class ArtistPage : Page
 
         if (e.NavigationMode == Microsoft.UI.Xaml.Navigation.NavigationMode.Back)
         {
-            //if (CoordinatedPanel != null && VisualTreeHelper.GetParent(ArtistNameInArtistPage) != null)
-            //{
-            //    ConnectedAnimationService.GetForCurrentView()
-            //        .PrepareToAnimate("BackConnectedAnimation", ArtistNameInArtistPage);
-            //}
-            ArtistNameInArtistPage.Visibility = WinUIVisibility.Collapsed;
-            ArtistImageInArtistPage.Visibility = WinUIVisibility.Collapsed;
-            if (ArtistImageInArtistPage != null && VisualTreeHelper.GetParent(ArtistImageInArtistPage) != null)
-            {
-                ConnectedAnimationService.GetForCurrentView()
-                    .PrepareToAnimate("BackConnectedAnimationFromArtistPage", ArtistImageInArtistPage);
-            }
+           
+
         }
     }
 
@@ -248,25 +188,26 @@ public sealed partial class ArtistPage : Page
         btn.Content = favStackPanel; _isTogglingFavorite = false;
     }
 
-    private void ArtistDataTable_Loaded(object sender, RoutedEventArgs e)
-    {
-      
+    //private void ArtistDataTable_Loaded(object sender, RoutedEventArgs e)
+    //{
+    //    ArtistDataTable.ItemsSource = MyViewModel.SelectedArtist!.SongsByArtist;
 
 
 
-    }
+    //}
 
-    private void AlbumsIR_Loaded(object sender, RoutedEventArgs e)
-    {
-        if (MyViewModel.SelectedArtist?.AlbumsByArtist is null) return;
-        
+    //private void AlbumsIR_Loaded(object sender, RoutedEventArgs e)
+    //{
+    //    if (MyViewModel.SelectedArtist?.AlbumsByArtist is null) return;
 
-        AlbumsIR.ItemsSource = MyViewModel.SelectedArtist.AlbumsByArtist;
-    }
+
+    //    AlbumsIR.ItemsSource = MyViewModel.SelectedArtist.AlbumsByArtist;
+    //}
 
     Button prevAlbBtn;
     private async void Album_Click(object sender, RoutedEventArgs e)
     {
+
         var send = (Button)sender;
                 var album = (AlbumModelView)send.DataContext;
 
@@ -281,9 +222,12 @@ public sealed partial class ArtistPage : Page
 
         send.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Colors.DarkSlateBlue);
         send.BorderThickness = new Microsoft.UI.Xaml.Thickness(2);
-        
-        MyViewModel.SearchToTQL($"{TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedArtist.Name)} and {TQlStaticMethods.PresetQueries.ExactlyByAlbum(album.Name)}");
 
+        if (album.SongsInAlbum is null || album.SongsInAlbum.Count < 1)
+        {
+            MyViewModel.SetSelectedAlbum(album);
+        }
+        //ArtistDataTable.ItemsSource = album.SongsInAlbum;
         return;
       
 
@@ -353,36 +297,36 @@ public sealed partial class ArtistPage : Page
         
     }
 
-    private async void PlayBtn_Click(object sender, RoutedEventArgs e)
-    {
-        // e.OriginalSource is the specific UI element that received the tap 
-        // (e.g., a TextBlock, an Image, a Grid, etc.).
-        var element = e.OriginalSource as FrameworkElement;
-        SongModelView? song = null;
-        if (element == null)
-            return;
+    //private async void PlayBtn_Click(object sender, RoutedEventArgs e)
+    //{
+    //    // e.OriginalSource is the specific UI element that received the tap 
+    //    // (e.g., a TextBlock, an Image, a Grid, etc.).
+    //    var element = e.OriginalSource as FrameworkElement;
+    //    SongModelView? song = null;
+    //    if (element == null)
+    //        return;
 
 
 
         
-        if (element.DataContext is SongModelView currentSong)
-        {
-            song = currentSong;
-        }
+    //    if (element.DataContext is SongModelView currentSong)
+    //    {
+    //        song = currentSong;
+    //    }
         
-        var songs = ArtistDataTable.Items;
+    //    var songs = ArtistDataTable.Items;
 
 
 
-        var SongsEnumerable = songs.OfType<SongModelView>();
+    //    var SongsEnumerable = songs.OfType<SongModelView>();
 
-        if (song != null)
-        {
-            // You found the song! Now you can call your ViewModel command.
-            Debug.WriteLine($"Double-tapped on song: {song.Title}");
-            await MyViewModel.PlaySongAsync(song, curPage: CurrentPage.AllArtistsPage, songs: SongsEnumerable);
-        }
-    }
+    //    if (song != null)
+    //    {
+    //        // You found the song! Now you can call your ViewModel command.
+    //        Debug.WriteLine($"Double-tapped on song: {song.Title}");
+    //        await MyViewModel.PlaySongAsync(song, curPage: CurrentPage.AllArtistsPage, songs: SongsEnumerable);
+    //    }
+    //}
 
     private async void ArtistImageInArtistPage_PointerReleased(object sender, PointerRoutedEventArgs e)
     {
@@ -421,37 +365,37 @@ public sealed partial class ArtistPage : Page
 
         // 6. Assign to the Image Control
         img.Source = bitmap;
-        ArtistImage.Source = bitmap;
+        //ArtistImage.Source = bitmap;
         await MyViewModel.AssignImageToArtist(MyViewModel.SelectedArtist);
         // TODO: Update your ViewModel or Database with 'file.Path' to persist the change
         // ViewModel.SelectedArtist.ImagePath = file.Path;
     }
 
-    private void ArtistSongTitle_Click(object sender, RoutedEventArgs e)
-    {
-        var songFrameworkElement = (FrameworkElement)sender;
-        var selectedSong = songFrameworkElement.DataContext as SongModelView;
+    //private void ArtistSongTitle_Click(object sender, RoutedEventArgs e)
+    //{
+    //    var songFrameworkElement = (FrameworkElement)sender;
+    //    var selectedSong = songFrameworkElement.DataContext as SongModelView;
 
-        var row = ArtistDataTable.ContainerFromItem(selectedSong) as FrameworkElement;
-        var image = PlatUtils.FindVisualChild<Image>(row, "coverArtImage");
-        if (image == null) return;
+    //    var row = ArtistDataTable.ContainerFromItem(selectedSong) as FrameworkElement;
+    //    var image = PlatUtils.FindVisualChild<Image>(row, "coverArtImage");
+    //    if (image == null) return;
 
-        ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("ArtistToSongDetailsAnim", image);
-        ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("ArtistToSongDetailsAnim", songFrameworkElement);
-
-
-
-        MyViewModel.SelectedSong = selectedSong;
-        var dimmerWindow = MyViewModel.winUIWindowMgrService.GetWindow<DimmerWin>();
-        dimmerWindow ??= MyViewModel.winUIWindowMgrService.CreateWindow<DimmerWin>();
+    //    ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("ArtistToSongDetailsAnim", image);
+    //    ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("ArtistToSongDetailsAnim", songFrameworkElement);
 
 
 
-        //MyViewModel.DimmerMultiWindowCoordinator.BringToFront()
-        if (dimmerWindow != null)
-            dimmerWindow.NavigateToPage(typeof(SongDetailPage));
+    //    MyViewModel.SelectedSong = selectedSong;
+    //    var dimmerWindow = MyViewModel.winUIWindowMgrService.GetWindow<DimmerWin>();
+    //    dimmerWindow ??= MyViewModel.winUIWindowMgrService.CreateWindow<DimmerWin>();
 
-    }
+
+
+    //    //MyViewModel.DimmerMultiWindowCoordinator.BringToFront()
+    //    if (dimmerWindow != null)
+    //        dimmerWindow.NavigateToPage(typeof(SongDetailPage));
+
+    //}
 
     private async void BioBlock_Loaded(object sender, RoutedEventArgs e)
     {
@@ -480,13 +424,32 @@ public sealed partial class ArtistPage : Page
         }
     }
 
-    private void ArtistNameInArtistPage_Loaded(object sender, RoutedEventArgs e)
+    private void MostPlayedSongs_Loaded(object sender, RoutedEventArgs e)
     {
-        AnimationHelper.TryStart(ArtistNameInArtistPage,
-            null,
-            AnimationHelper.Key_AlbumPageToArtistPage,
-            //AnimationHelper.Key_AlbumToArtist,
-            AnimationHelper.Key_SongDetailToArtist
-            );
+       
+
+        
     }
+
+
+
+
+
+
+
+    //private void ArtistPagePivot_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
+    //{
+
+    //    if((MyStatsViewModel.ArtistStats is null || MyStatsViewModel.ArtistStats.Summary.ArtistId != MyViewModel.SelectedArtist?.Id) && ArtistPagePivot.SelectedIndex == 1)
+    //    {
+    //      Task.Run(()=> _=  MyStatsViewModel.LoadArtistStatsAsync(MyViewModel.SelectedArtist));
+
+    //    }
+    //}
+
+    //private void AlbumsHeaderCarousel_Loaded(object sender, RoutedEventArgs e)
+    //{
+
+
+    //}
 }

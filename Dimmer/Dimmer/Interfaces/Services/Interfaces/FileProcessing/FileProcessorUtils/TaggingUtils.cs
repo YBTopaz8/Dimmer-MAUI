@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Text.RegularExpressions;
 
 namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 
@@ -63,16 +62,47 @@ public static class TaggingUtils
     {
         if (string.IsNullOrWhiteSpace(input)) return new List<string>();
 
-        // The Regex: 
-        // Split by: ; OR / OR & OR " x " OR " feat " 
-        // OR Split by , (COMMA) ONLY IF it is NOT followed by a suffix (II, III, Jr)
-        string suffixPattern = string.Join("|", Suffixes);
-        string pattern = $@"\s*(?:;|/|&|\bx\b|\b(?:feat|ft|featuring|with|vs)\b\.?)\s*|,(?!\s*(?i:{suffixPattern})\b)";
+        // 1. Split by common strict separators (except commas)
+        string pattern = @"\s*(?:;|/|&|\bx\b|\b(?:feat|ft|featuring|with|vs)\b\.?)\s*";
+        var initialParts = Regex.Split(input, pattern, RegexOptions.IgnoreCase)
+                                .Where(x => !string.IsNullOrWhiteSpace(x))
+                                .ToList();
 
-        return Regex.Split(input, pattern, RegexOptions.IgnoreCase)
-                    .Select(x => x.Trim())
-                    .Where(x => !string.IsNullOrWhiteSpace(x))
-                    .ToList();
+        var finalParts = new List<string>();
+
+        foreach (var part in initialParts)
+        {
+            // 2. Split this segment by commas
+            var commaParts = part.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                 .Select(x => x.Trim())
+                                 .ToList();
+
+            if (commaParts.Count <= 1)
+            {
+                finalParts.AddRange(commaParts);
+                continue;
+            }
+
+            // 3. Loop and merge suffixes (e.g., "Jr", "II") back to the preceding artist
+            var mergedParts = new List<string>();
+            for (int i = 0; i < commaParts.Count; i++)
+            {
+                string current = commaParts[i];
+
+                if (i > 0 && Suffixes.Any(suffix => string.Equals(current, suffix, StringComparison.OrdinalIgnoreCase)))
+                {
+                    // Append suffix to previous artist element
+                    mergedParts[mergedParts.Count - 1] = $"{mergedParts[mergedParts.Count - 1]}, {current}";
+                }
+                else
+                {
+                    mergedParts.Add(current);
+                }
+            }
+            finalParts.AddRange(mergedParts);
+        }
+
+        return finalParts.Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
     }
 
     /// <summary>
@@ -285,7 +315,15 @@ public static class TaggingUtils
         }
 
         // 2. Standard System.IO Logic
-        return File.Exists(path);
+        if(File.Exists(path))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+
+        }
     }
 
     // 1. Define a delegate that takes a Path + Extensions and returns a list of files
@@ -328,56 +366,60 @@ public static class TaggingUtils
         }
         catch { return 0; }
     }
-    public static Task<List<string>> GetAllAudioFilesFromPathsAsync(
-    IEnumerable<string> pathsToScan,
-    IReadOnlySet<string> supportedExtensions)
+
+    public static Task<List<string>> GetAllAudioFilesFromPathsAsync(IEnumerable<string> pathsToScan, IReadOnlySet<string> supportedExtensions)
     {
-      return Task.Run(() => 
-    {  var filesBag = new ConcurrentBag<string>();
+        return Task.Run(() =>
+        {
+            var filesBag = new ConcurrentBag<string>();
 
-        Parallel.ForEach(
-            pathsToScan.Where(p => !string.IsNullOrWhiteSpace(p))
-                       .Distinct(StringComparer.OrdinalIgnoreCase),
-            new ParallelOptions { MaxDegreeOfParallelism = 2 },
-            path =>
+            // High-performance enumeration options
+            var enumOptions = new EnumerationOptions
             {
-                try
+                IgnoreInaccessible = true,
+                RecurseSubdirectories = true
+            };
+
+            Parallel.ForEach(
+                pathsToScan.Where(p => !string.IsNullOrWhiteSpace(p)).Distinct(StringComparer.OrdinalIgnoreCase),
+                path =>
                 {
-                    if (path.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
+                    try
                     {
-                        if (PlatformSpecificScanner != null)
+                        if (path.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
                         {
-                            foreach (var f in PlatformSpecificScanner(path, supportedExtensions))
-                                filesBag.Add(f);
+                            if (PlatformSpecificScanner != null)
+                            {
+                                foreach (var f in PlatformSpecificScanner(path, supportedExtensions)) filesBag.Add(f);
+                            }
+                            return;
                         }
-                        return;
-                    }
 
-                    if (File.Exists(path))
-                    {
-                        var ext = Path.GetExtension(path);
-                        if (!string.IsNullOrEmpty(ext) && supportedExtensions.Contains(ext))
+                        if (File.Exists(path) && supportedExtensions.Contains(Path.GetExtension(path)))
+                        {
                             filesBag.Add(path);
-                        return;
-                    }
+                            return;
+                        }
 
-                    if (Directory.Exists(path))
-                    {
-                        foreach (var file in Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories))
+                        if (Directory.Exists(path))
                         {
-                            var ext = Path.GetExtension(file);
-                            if (!string.IsNullOrEmpty(ext) && supportedExtensions.Contains(ext))
-                                filesBag.Add(file);
+                            // Safely traverse directories
+                            var files = Directory.EnumerateFiles(path, "*.*", enumOptions);
+                            foreach (var file in files)
+                            {
+                                if (supportedExtensions.Contains(Path.GetExtension(file)))
+                                {
+                                    filesBag.Add(file);
+                                }
+                            }
                         }
                     }
-                }
-                catch { /* ignored */ }
-            });
+                    catch { /* ignored to prevent breaking parallel loop */ }
+                });
 
-        return filesBag.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+            return filesBag.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
         });
     }
-    
     public static Task<List<string>> GetAllFilesFromPathsAsync(
     IEnumerable<string> pathsToScan,
     IReadOnlySet<string> supportedExtensions)

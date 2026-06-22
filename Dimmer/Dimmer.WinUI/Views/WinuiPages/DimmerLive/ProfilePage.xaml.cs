@@ -1,22 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Threading.Tasks;
-using Dimmer.WinUI.ViewModel.DimmerLiveWin;
-
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
-
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-
 using NavigationEventArgs = Microsoft.UI.Xaml.Navigation.NavigationEventArgs;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -180,6 +161,28 @@ public sealed partial class ProfilePage : Page
         var props = e.GetCurrentPoint((UIElement)sender).Properties;
         if(props.IsLeftButtonPressed)
             await ViewModel.UploadProfilePictureToCloudAsync();
+    }
+
+    private void NameViewDevice_Click(object sender, RoutedEventArgs e)
+    {
+        Button btn = (Button)sender;
+        var dev = btn.DataContext as  Dimmer.DimmerLive.Models.UserDeviceSession
+        ;
+
+        if (dev is null) return;
+
+        ViewModel.SessionMgtVM.SelectedDevice = dev;
+        var param = new Dictionary<string, object>()
+            ;
+        param.Add("ViewModel", ViewModel);
+        param.Add("deviceID", dev.DeviceId);
+
+        ViewModel.BaseViewModel.NavigateToAnyPageOfGivenType(typeof(RemoteControlPage), param);
+    }
+
+    private async void BackUpDevice_Click(object sender, RoutedEventArgs e)
+    {
+        await ViewModel.SessionMgtVM.BackUpDataToCloud();
     }
 }
 

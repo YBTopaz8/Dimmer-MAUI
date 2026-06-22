@@ -3,17 +3,13 @@
 
 
 
-using CommunityToolkit.Maui.Alerts;
 using CommunityToolkit.Maui.Core.Extensions;
 using Dimmer.Utils;
 using Dimmer.WinUI.Views.CustomViews.WinuiViews;
-using Dimmer.WinUI.Views.WinuiPages.Settings;
 using MongoDB.Bson;
-using System.Threading.Tasks;
-using System.Windows.Controls.Primitives;
+using Windows.Foundation.Collections;
 using Windows.UI.Core;
 using Brush = Microsoft.UI.Xaml.Media.Brush;
-using Color = System.Drawing.Color;
 using FolderPicker = CommunityToolkit.Maui.Storage.FolderPicker;
 using Visibility = Microsoft.UI.Xaml.Visibility;
 
@@ -239,21 +235,48 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     [ObservableProperty]
     public partial List<string> DraggedAudioFiles { get; set; }
+    
     [ObservableProperty]
-    public partial Page CurrentWinUIPage { get; internal set; }
+    public partial bool IsNavPanelOpened { get;  set; }
+    [ObservableProperty]
+    public partial Visibility BottomCurrentPlayingSongPanelVisibility { get;  set; }
 
-    partial void OnCurrentWinUIPageChanged(Page oldValue, Page newValue)
+    public override void OnCurrentPageChanged()
     {
-        if (CoverImageSong is not null)
+        
+        if (CurrentPageEnum == CurrentPage.AllSongsListPage)
         {
-            if (newValue.GetType() == typeof(AllSongsListPage))
+            BottomCurrentPlayingSongPanelVisibility = Visibility.Visible;
+            if (CoverImageSong is not null)
             {
                 CoverImageSong.Visibility = Visibility.Visible;
-                return;
             }
-            CoverImageSong.Visibility = Visibility.Collapsed;
+            IsNavPanelOpened = true;
+
+            return;
         }
+        IsNavPanelOpened = false;
+        BottomCurrentPlayingSongPanelVisibility = Visibility.Collapsed;
     }
+
+    //partial void OnCurrentPageEnumChanged(CurrentPage oldValue, CurrentPage newValue)
+    //{
+
+    //    if (newValue == CurrentPage.AllSongsListPage)
+    //    {
+    //        BottomCurrentPlayingSongPanelVisibility = Visibility.Visible;
+    //        if (CoverImageSong is not null)
+    //        {
+    //            CoverImageSong.Visibility = Visibility.Visible;
+    //        }
+    //        IsNavPanelOpened = true;
+
+    //        return;
+    //    }
+    //    IsNavPanelOpened = false;
+    //    BottomCurrentPlayingSongPanelVisibility = Visibility.Collapsed;
+
+    //}
 
     [RelayCommand]
     public void SwapMediaBarPosition()
@@ -333,8 +356,6 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     [ObservableProperty]
     public partial int VisibleSongCount { get; set; } = 0;
 
-    [ObservableProperty]
-    public partial TableView? MyTableVIew { get; set; }
 
     [ObservableProperty]
     public partial bool? CanGoBack { get; set; }
@@ -353,13 +374,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     private void ScheduleVisibleCountUpdate()
     {
-        // Logic to update the VisibleSongCount based on current filters and sorts
-
-        if (MyTableVIew is not null)
-        {
-            //VisibleSongCount = MyTableVIew.Items.Count;
-        }
-
+        
 
     }
 
@@ -369,7 +384,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         ScheduleVisibleCountUpdate();
     }
 
-    public event EventHandler? AllSongsWindowClosed;
+    //public event EventHandler? AllSongsWindowClosed;
     internal void OnAllSongsWindowClosed()
     {
         ActivateMainWindow();
@@ -541,7 +556,26 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     [ObservableProperty]
     public partial TableView MySongsTableView { get; set; }
 
+    [ObservableProperty]
+    public partial int MySongsTableViewItemsCount { get; set; }
 
+  
+    partial void OnMySongsTableViewChanged(TableView oldValue, TableView newValue)
+    {
+        if (oldValue is null && newValue is not null)
+        {
+
+        newValue.Items.VectorChanged += MySongsTableItems_VectorChanged;
+        }
+        
+
+
+    }
+
+    private void MySongsTableItems_VectorChanged(IObservableVector<object> sender, IVectorChangedEventArgs @event)
+    {
+        MySongsTableViewItemsCount = MySongsTableView.Items.Count;
+    }
 
     internal void AddSongsByIdsToQueue(List<string> songIds)
     {
@@ -583,7 +617,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     }
 
     [RelayCommand]
-    public async Task ScrollToRequestedSong(SongModelView? song=null)
+    public async Task ScrollToRequestedSongAsync(SongModelView? song=null)
     {
 
         if(song is null)
@@ -1367,7 +1401,8 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
         if (lastFmArtist is null) return;
 
-        selectedArtist!.ImagePath = lastFmArtist.Images?.Where(x => x.Size == "mega").LastOrDefault()?.Url;
+        var lastFMImgUrl = lastFmArtist.Images?.Where(x => x.Size == "mega").First().Url;
+        selectedArtist!.ImagePath = !string.IsNullOrEmpty(lastFMImgUrl) ? lastFMImgUrl : string.Empty;
         if(lastFmArtist.Biography is not null)
             selectedArtist.Bio = lastFmArtist.Biography.Summary;
         selectedArtist.ListOfSimilarArtists = lastFmArtist.Similar?.ToObservableCollection();
@@ -1452,32 +1487,15 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         }
 
     }
-    public void ViewQueueFromAllSongsPageGivenPage()
+
+    internal void ProcessNowPlayingQueueShowing()
     {
-        if(CurrentWinUIPage.GetType() == typeof(AllSongsListPage))
+
+        SearchResultsHolder.Edit(innerList =>
         {
-            var allSongsPage = CurrentWinUIPage as AllSongsListPage;    
-            if(allSongsPage is not null)
-            {
-                allSongsPage.ViewQueue_Click(this,new RoutedEventArgs());
-              
-            }
-        }
-    }
-    internal void ProcessNowPlayingQueueShowing(FrameworkElement viewQueueBtn)
-    {
-        NowPlayingQueueCallerObject = viewQueueBtn;
-        //    // 2. PREPARE the animation
-        //    // We "take a snapshot" of the button before the UI changes
-        AnimationHelper.Prepare(AnimationHelper.Key_ToViewQueue, NowPlayingQueueCallerObject);
-
-        NowPlayingView.Visibility = Visibility.Visible;
-
-        AnimationHelper.TryStart(
-            NowPlayingView, // Destination: The Big View
-            null,               // Optional: Coordinated elements (like the text inside)
-            AnimationHelper.Key_ToViewQueue
-        );
+            innerList.Clear();
+            innerList.AddOrUpdate(PlaybackQueue);
+        });
     }
 
     internal void SetCoreWindow(CoreWindow coreWindow)
@@ -1490,7 +1508,50 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     }
 
-    [ObservableProperty]
+    [RelayCommand]
+    public async Task  AddMusicFolderViaPickerAsync()
+    {
+        
+
+            var tcs = new TaskCompletionSource<(bool includeDefault, string customPath)>();
+
+
+            
+
+
+
+                var picker = new Windows.Storage.Pickers.FolderPicker();
+                // Get the HWND of the current window
+                var hwnd = PlatUtils.DimmerHandle;
+                // Initialize the picker with the window handle
+                InitializeWithWindow.Initialize(picker, hwnd);
+                var file = await picker.PickSingleFolderAsync();
+
+
+                if (file is null)
+                {
+                    tcs.SetResult((false, string.Empty));
+
+                    return;
+                }
+                tcs.SetResult((true, file.Path));
+            
+
+
+            // Wait for user's decision
+            var (includeDefaultLocation, secondaryPath) = await tcs.Task;
+
+
+        AddMusicFoldersByPassingToService(new List<string>() { $"{file.Path}" });
+        
+       
+
+
+
+            //BackupService.CleanupOldBackups(3);
+        }
+
+        [ObservableProperty]
     public partial SmokeViewQueueGrid NowPlayingView { get; set; }
 
     [ObservableProperty]

@@ -1,6 +1,4 @@
-﻿using CommunityToolkit.WinUI;
-
-using Border = Microsoft.UI.Xaml.Controls.Border;
+﻿using Border = Microsoft.UI.Xaml.Controls.Border;
 
 namespace Dimmer.WinUI.Animations.UiComponentAnims;
 

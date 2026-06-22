@@ -1,4 +1,6 @@
-﻿namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
+﻿global using Track = ATL.Track;
+
+namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 
 /// <summary>
 /// DEPRECATED: This class contains redundant logic that is now centralized

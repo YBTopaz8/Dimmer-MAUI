@@ -39,8 +39,8 @@ namespace Dimmer.DimmerAudio; // Make sure this namespace is correct
 [Service(Name = "com.yvanbrunel.dimmer.ExoPlayerService", // Ensure this matches AndroidManifest.xml if needed
          Enabled = true, Exported = true,
          ForegroundServiceType = ForegroundService.TypeMediaPlayback)]
-
-
+[IntentFilter(new[] { "androidx.media3.session.MediaSessionService" })] // REQUIRED FOR MEDIA3 NOTIFICATION
+[IntentFilter(new[] { "android.media.browse.MediaBrowserService" })]
 public partial class ExoPlayerService : MediaSessionService
 {
 
@@ -50,7 +50,7 @@ public partial class ExoPlayerService : MediaSessionService
 
     }
     //private IPlayer? notificationPlayer;
-    public async override void OnCreate()
+    public override void OnCreate()
     {
         base.OnCreate();
 
@@ -107,7 +107,10 @@ public partial class ExoPlayerService : MediaSessionService
                 .SetId("Dimmer_MediaSession_Main")!
 
                 .Build();
+            var notificationProvider = new DefaultMediaNotificationProvider.Builder(this)
+    .Build();
 
+            this.SetMediaNotificationProvider(notificationProvider);
 
             _binder = new ExoPlayerServiceBinder(this);
 
@@ -117,18 +120,45 @@ public partial class ExoPlayerService : MediaSessionService
 
             _notifMgr.SetPlayer(player);
 
+            //_ = Task.Run(async () => {
+            //    var timeoutTask = Task.Delay(15000); // 5 second timeout
+            //    var initTask = InitializeMediaControllerAsync();
+            //    await Task.WhenAny(initTask, timeoutTask);
+            //}).ConfigureAwait(false);
 
 
-            _ = Task.Run(async () => {
-                var timeoutTask = Task.Delay(5000); // 5 second timeout
-                var initTask = InitializeMediaControllerAsync();
-                await Task.WhenAny(initTask, timeoutTask);
-            }).ConfigureAwait(false);
             StartPositionPolling();
 
         }
         catch (Java.Lang.Throwable ex) { HandleInitError("JAVA INITIALIZATION", ex); StopSelf(); }
 
+    }
+    private async Task InitializeMediaControllerAsync()
+    {
+        Console.WriteLine("DIMMERTRACE: ExoPlayerService.InitializeMediaControllerAsync START");
+        try
+        {
+            if (mediaSession?.Token == null)
+            {
+                Console.WriteLine("DIMMERTRACE: ExoPlayerService.InitializeMediaControllerAsync - MediaSession token is null, cannot build controller.");
+                return;
+            }
+
+            var controllerFuture = new MediaController.Builder(this, mediaSession.Token).BuildAsync();
+            if (controllerFuture is not null)
+            {
+
+                var controllerObject = await controllerFuture.GetAsync(); // Await here on a background context
+                mediaController = (MediaController?)controllerObject;
+                Console.WriteLine("DIMMERTRACE: ExoPlayerService.InitializeMediaControllerAsync END - Controller built");
+
+            }
+        }
+        catch (Java.Lang.Throwable ex)
+        {
+            HandleInitError("MEDIA CONTROLLER INIT (Async)", ex);
+            // Decide if you need to StopSelf() here or if the service can function without a controller initially
+        }
     }
 
     // --- Components ---
@@ -353,33 +383,33 @@ public partial class ExoPlayerService : MediaSessionService
 
     private Handler? positionHandler;
     private Runnable? positionRunnable;
-    private async Task InitializeMediaControllerAsync()
-    {
-        Console.WriteLine("DIMMERTRACE: ExoPlayerService.InitializeMediaControllerAsync START");
-        try
-        {
-            if (mediaSession?.Token == null)
-            {
-                Console.WriteLine("DIMMERTRACE: ExoPlayerService.InitializeMediaControllerAsync - MediaSession token is null, cannot build controller.");
-                return;
-            }
+    //private async Task InitializeMediaControllerAsync()
+    //{
+    //    Console.WriteLine("DIMMERTRACE: ExoPlayerService.InitializeMediaControllerAsync START");
+    //    try
+    //    {
+    //        if (mediaSession?.Token == null)
+    //        {
+    //            Console.WriteLine("DIMMERTRACE: ExoPlayerService.InitializeMediaControllerAsync - MediaSession token is null, cannot build controller.");
+    //            return;
+    //        }
 
-            var controllerFuture = new MediaController.Builder(this, mediaSession.Token).BuildAsync();
-            if(controllerFuture is not null)
-            {
+    //        var controllerFuture = new MediaController.Builder(this, mediaSession.Token).BuildAsync();
+    //        if(controllerFuture is not null)
+    //        {
 
-                var controllerObject = await controllerFuture.GetAsync(); // Await here on a background context
-                mediaController = (MediaController?)controllerObject;
-                Console.WriteLine("DIMMERTRACE: ExoPlayerService.InitializeMediaControllerAsync END - Controller built");
+    //            var controllerObject = await controllerFuture.GetAsync(); // Await here on a background context
+    //            mediaController = (MediaController?)controllerObject;
+    //            Console.WriteLine("DIMMERTRACE: ExoPlayerService.InitializeMediaControllerAsync END - Controller built");
 
-            }
-        }
-        catch (Java.Lang.Throwable ex)
-        {
-            HandleInitError("MEDIA CONTROLLER INIT (Async)", ex);
-            // Decide if you need to StopSelf() here or if the service can function without a controller initially
-        }
-    }
+    //        }
+    //    }
+    //    catch (Java.Lang.Throwable ex)
+    //    {
+    //        HandleInitError("MEDIA CONTROLLER INIT (Async)", ex);
+    //        // Decide if you need to StopSelf() here or if the service can function without a controller initially
+    //    }
+    //}
 
     public override StartCommandResult OnStartCommand(Intent? intent, StartCommandFlags flags, int startId)
     {
@@ -663,7 +693,7 @@ public partial class ExoPlayerService : MediaSessionService
             player.Prepare();
 
             player.Play();
-
+            
             Console.WriteLine(player.AvailableCommands?.GetType());
                 return Task.CompletedTask;
             

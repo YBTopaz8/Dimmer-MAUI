@@ -198,7 +198,6 @@
                     Grid.Row="1"
                     Padding="5"
                     BackgroundColor="Transparent"
-                    IsVisible="{Binding IsLibraryEmpty, Converter={converters:BoolToInverseConverter}}"
                     RowDefinitions="auto,*"
                     >
                     <Border

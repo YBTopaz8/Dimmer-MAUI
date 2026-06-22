@@ -2,6 +2,7 @@ using Android.App;
 using Android.Content.PM;
 using Android.OS;
 using Dimmer.NativeServices;
+using Dimmer.Views.LastFM;
 using Google.Android.Material.Dialog;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -19,10 +20,10 @@ public partial class MainActivity : MauiAppCompatActivity
     MediaPlayerServiceConnection? _serviceConnection;
     Intent? _serviceIntent;
     private ExoPlayerServiceBinder? _binder;
-    BaseViewModelAnd MyViewModel { get; set; }
+    BaseViewModelAnd? MyViewModel { get; set; }
     public MainActivity()
     {
-    }
+      }
 
     public ExoPlayerServiceBinder? Binder
     {
@@ -37,17 +38,30 @@ public partial class MainActivity : MauiAppCompatActivity
 
     private object? _onBackInvokedCallback;
 
+    protected override void OnDestroy()
+    {
+        if (_serviceConnection != null)
+        {
+            UnbindService(_serviceConnection);
+            _serviceConnection = null;
+        }
+        base.OnDestroy();
+
+    }
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         base.OnCreate(savedInstanceState);
-        var curPlat = IPlatformApplication.Current;
-        var serv = curPlat?.Services;
-        if (serv != null)
-        {
-            MyViewModel = IPlatformApplication.Current!.Services.GetRequiredService<BaseViewModelAnd>();
-        }
+       
+        
+
         Dimmer.Utils.UiThreads.InitializeMainHandler();
         ProcessIntent(Intent);
+
+        //RxSchedulers.Background.ScheduleTo(() =>
+        // {
+
+        // });
+
         SetupService();
 
         SetupBackNavigation();
@@ -59,6 +73,7 @@ public partial class MainActivity : MauiAppCompatActivity
         // Increase thread pool for background operations
         ThreadPool.SetMinThreads(4, 4);
 
+
         // Configure JsonSerializer for mobile
         ConfigureJsonOptions();
     }
@@ -67,7 +82,7 @@ public partial class MainActivity : MauiAppCompatActivity
     {
         if (!AndroidPermissionsService.HasAudioPermissions())
         {
-            // Show UI explanation? Or just request
+
             AndroidPermissionsService.RequestAudioPermissions(this, REQUEST_AUDIO_PERMS);
         }
         if (!AndroidPermissionsService.HasStoragePermissions())
@@ -76,34 +91,17 @@ public partial class MainActivity : MauiAppCompatActivity
             AndroidPermissionsService.RequestStoragePermissions(this, REQUEST_STORAGE_PERMS);
         }
 
-        // Permissions already granted, load music
-        InitializeAppLogic();
-
-    }
-
-    private void InitializeAppLogic()
-    {
-        Task.Run(async () =>
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu) // API 33+
         {
-            try
+            if (CheckSelfPermission(Android.Manifest.Permission.PostNotifications) != Permission.Granted)
             {
-                var startTime = Java.Lang.JavaSystem.CurrentTimeMillis();
-
-                MyViewModel.InitializeAllVMCoreComponents();
-
-                var duration = Java.Lang.JavaSystem.CurrentTimeMillis() - startTime;
-                Console.WriteLine($"InitializeAppLogic took {duration}ms");
-                if (duration > 2000)
-                    Android.Util.Log.Warn("ANR_WARNING", $"OnCreate took {duration}ms - ANR risk!");
+                RequestPermissions(new[] { Android.Manifest.Permission.PostNotifications }, 100);
             }
-            catch (Exception ex)
-            {
-                await Shell.Current.DisplayAlertAsync("Fatal Error Init Logic", ex.Message, "ok");
-                Console.WriteLine($"VM INIT CRASH: {ex}");
-                Android.Util.Log.Error("DIMMER_INIT", ex.ToString());
-            }
-        });
+        }
+
     }
+
+   
 
     public static JsonSerializerOptions JsonOptions => _jsonOptions;
     private static JsonSerializerOptions _jsonOptions;
@@ -133,7 +131,6 @@ public partial class MainActivity : MauiAppCompatActivity
             StartService(_serviceIntent);
 
         BindService(_serviceIntent, _serviceConnection, Bind.AutoCreate);
-
     }
     private void ProcessIntent(Android.Content.Intent? intent)
     {
@@ -141,6 +138,7 @@ public partial class MainActivity : MauiAppCompatActivity
         {
             return;
         }
+        if (MyViewModel is null) return;
         if (intent.Action == "ShowMiniPlayer")
         {
             if (MyViewModel.OpenMediaUIOnNotificationTap)
@@ -227,12 +225,18 @@ public partial class MainActivity : MauiAppCompatActivity
         // The dangerous code lives exclusively in here
         _onBackInvokedCallback = new BackInvokedCallback(async () =>
     {
-    if (MyViewModel.IsNowPlayingBtmSheetOpened)
+        if (MyViewModel is null)
+        {
+            MyViewModel = IPlatformApplication.Current!.Services.GetRequiredService<BaseViewModelAnd>();
+
+        }
+        if (MyViewModel.IsNowPlayingBtmSheetOpened)
     {
         return;
     }
-    if (Shell.Current.CurrentPage.GetType() == typeof(HomePage))
+        Type typeOfCurrentPage = Shell.Current.CurrentPage.GetType();
 
+    if (typeOfCurrentPage == typeof(HomePage))
     {
             if(MyViewModel.HomePageIndex != 0)
             {
@@ -240,7 +244,7 @@ public partial class MainActivity : MauiAppCompatActivity
                 return;
             }
         new MaterialAlertDialogBuilder(this)?
-                                .SetTitle("Exit App")?
+                                .SetTitle("Exit Dimmer")?
                                 .SetMessage("Close Application?")?
                                 .SetPositiveButton(
             "Exit",
@@ -257,60 +261,37 @@ public partial class MainActivity : MauiAppCompatActivity
             .Show();
         return;
     }
-    switch (Shell.Current.CurrentPage.Title)
-    {
-
-        case "All Artists":
-        case "AllAlbumsPage":
-        case "LastFM":
-            case "LastFMLogin":
-
+        if (
+            typeOfCurrentPage == typeof(AllArtistsPage) ||
+            typeOfCurrentPage == typeof(AllAlbumsPage) ||
+            typeOfCurrentPage == typeof(LastFMHomePage)||
+            typeOfCurrentPage == typeof(SettingsPage))
+        {
             new MaterialAlertDialogBuilder(this)?
-                            .SetTitle("Confirm action")?
-                            .SetMessage("Return to Home Page?")?
-                            .SetPositiveButton(
-                "Confirm",
-                    async (s, e) =>
-                {
-                    await Shell.Current.GoToAsync("//HomePage");
-
-                })
-                .SetNegativeButton(
-                    "Cancel",
-                    (s, e) =>
-                    { /* Do nothing */
-                    })
-                .Show();
-            break;
-
-        case "Settings":
-
-            new MaterialAlertDialogBuilder(this)?
-                        .SetTitle("Confirm action")?
+                        .SetTitle("Confirm Action")?
                         .SetMessage("Return to Home Page?")?
                         .SetPositiveButton(
             "Confirm",
                 async (s, e) =>
-                {
-                    await Shell.Current.GoToAsync("//HomePage");
+            {
+                await Shell.Current.GoToAsync("//HomePage");
 
-                })
+            })
             .SetNegativeButton(
                 "Cancel",
                 (s, e) =>
                 { /* Do nothing */
                 })
             .Show();
-            break;
+        }
 
-        default:
-            Debug.WriteLine(Shell.Current.Items.Count);
-                    //await Shell.Current.Navigation.PopAsync(true);
-                    await  Shell.Current.GoToAsync("..");
-                    break;
-            }
+
+    Debug.WriteLine(Shell.Current.Items.Count);
+            //await Shell.Current.Navigation.PopAsync(true);
+            await  Shell.Current.GoToAsync("..");
+     
            
-        });
+});
 
         // Note: Ensure _onBackInvokedCallback is defined as 'object' or inside this scope 
         // to avoid field-level verification issues on older phones.
@@ -334,12 +315,14 @@ public partial class MainActivity : MauiAppCompatActivity
     protected override void OnResume()
     {
         base.OnResume();
+        if (MyViewModel is null) return;
         MyViewModel.IsBackGrounded = false;
     }
     protected override void OnPause()
     {
         base.OnPause();
         Debug.WriteLine("paused");
+        if (MyViewModel is null) return;
         MyViewModel.IsBackGrounded = true;
     }
 

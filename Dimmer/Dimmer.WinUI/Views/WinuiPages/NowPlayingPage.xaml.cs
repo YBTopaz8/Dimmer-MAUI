@@ -1,9 +1,6 @@
-﻿using Dimmer.Data.ModelView;
-using Dimmer.WinUI.Views.WinuiPages.SingleSongPage;
-using Microsoft.Maui.Platform;
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
+﻿using Microsoft.UI.Xaml.Controls.Primitives;
+using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using Point = Windows.Foundation.Point;
 namespace Dimmer.WinUI.Views.WinuiPages;
 
@@ -24,12 +21,23 @@ public sealed partial class NowPlayingPage : Page
     {
         MyViewModel?.OpenLyricsPopUpWindow(1);
     }
+    List<string> ArrayOfGoeyy;
     protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
     {
 
         MyViewModel = IPlatformApplication.Current?.Services.GetService<BaseViewModelWin>()!;
-       
-        MyViewModel.CurrentWinUIPage = this;
+       ArrayOfGoeyy = new List<string>();
+        ArrayOfGoeyy.Add("Favorite");
+        ArrayOfGoeyy.Add("Note");
+        MyViewModel.CurrentPageEnum = CurrentPage.NowPlayingPage;
+        compDisp = new();
+
+    }
+    protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
+    {
+        compDisp.Dispose();
+        base.OnNavigatingFrom(e);
+
     }
     private void ViewSongDetailsButton_Click(object sender, RoutedEventArgs e)
     {
@@ -287,46 +295,52 @@ public sealed partial class NowPlayingPage : Page
     private async void CurrentPlayingSongImg_Loaded(object sender, RoutedEventArgs e)
     {
 
-        AnimationHelper.TryStart(CurrentPlayingSongImg,
-            new List<UIElement> { SongInfoStackPanel },
-            AnimationHelper.Key_NowPlayingPage,AnimationHelper.Key_DetailToListFromAlbum,AnimationHelper.Key_ListToDetail);
         
+
     }
 
 
     private async void CurrentPlayingSongImg_Loading(FrameworkElement sender, object args)
     {
         if (MyViewModel.CurrentPlayingSongView is null) return;
-        if (!string.IsNullOrEmpty(MyViewModel.CurrentPlayingSongView.CoverImagePath))
-        {
-            CurrentPlayingSongImg.Source = new BitmapImage(new Uri(MyViewModel.CurrentPlayingSongView.CoverImagePath));
-
-            var imgBytes = await ImageFilterUtils.ApplyFilter(MyViewModel.CurrentPlayingSongView.CoverImagePath, FilterType.DarkAcrylic);
-            if (imgBytes is null) return;
-
-            CurrentPlayingSongImgBG.Source = null;
-
-            using var stream = new MemoryStream(imgBytes);
-            var bitmap = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage();
-            await bitmap.SetSourceAsync(stream.AsRandomAccessStream());
-            DispatcherQueue.TryEnqueue(() =>
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentPlayingSongView), v => MyViewModel.CurrentPlayingSongView)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(async song =>
             {
-                CurrentPlayingSongImgBG.Source = bitmap;
+                if (!string.IsNullOrEmpty(song.CoverImagePath))
+                {
+                    CurrentPlayingSongImg.Source = new BitmapImage(new Uri(song.CoverImagePath));
 
-            });
+                    var imgBytes = await ImageFilterUtils.ApplyFilter(song.CoverImagePath, FilterType.DarkAcrylic);
+                    if (imgBytes is null) return;
 
-        }
-        else
-        {
+                    CurrentPlayingSongImgBG.Source = null;
 
-        }
-      
+                    using var stream = new MemoryStream(imgBytes);
+                    var bitmap = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage();
+                    await bitmap.SetSourceAsync(stream.AsRandomAccessStream());
+                    DispatcherQueue.TryEnqueue(() =>
+                    {
+                        CurrentPlayingSongImgBG.Source = bitmap;
+
+                    });
+
+                }
+                else
+                {
+
+                }
+
+
+            }).DisposeWith(compDisp);
+        
     }
+    CompositeDisposable compDisp;
 
     private void ListView_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
     {
-        SyncLyricsListView.ScrollIntoView(MyViewModel.CurrentLine);
-            }
+        SyncLyricsListView.ScrollIntoView(MyViewModel.CurrentLine,ScrollIntoViewAlignment.Leading);
+    }
 
     private bool _isDragging = false;
     private double _dragStartValue;
@@ -409,6 +423,16 @@ public sealed partial class NowPlayingPage : Page
         var timeInSec = TimeSpan.FromMilliseconds(lyricTapped.TimestampStart).Seconds;
         MyViewModel.SeekTrackPosition(timeInSec);
         SyncLyricsListView.SmoothScrollIntoViewWithItemAsync(lyricTapped, itemPlacement:ScrollItemPlacement.Top);
+
+    }
+
+    private void Goeyy_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+
+    }
+
+    private void NowPlayingSpecViz_Loaded(object sender, RoutedEventArgs e)
+    {
 
     }
 }

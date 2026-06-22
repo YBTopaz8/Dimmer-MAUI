@@ -1,6 +1,4 @@
-﻿using CommunityToolkit.WinUI;
-
-using Microsoft.Maui.Controls.Handlers.Items;
+﻿using Microsoft.Maui.Controls.Handlers.Items;
 
 using Windows.Foundation;
 

@@ -2,7 +2,12 @@
 global using Dimmer.Views.CustomViews;
 global using View = Microsoft.Maui.Controls.View;
 using Android.Views.InputMethods;
+using DevExpress.Data.Extensions;
+using DevExpress.Maui.Editors;
+using DevExpress.Maui.Scheduler.Internal;
 using Dimmer.Utilities;
+using Google.Android.Material.Dialog;
+using Microsoft.Maui.Controls.PlatformConfiguration;
 
 
 namespace Dimmer.Views;
@@ -23,24 +28,81 @@ public partial class HomePage : ContentPage
                 {
                     if(e)
                     {
-                        this.MainPageTabView.SelectedItemIndex = 1;
+                        //this.MainPageTabView.SelectedItemIndex = 1;
                     }
 
                 });
         MyLastFMViewModel.LoadBaseViewModel(viewModelAnd);
         _ = Task.Run(() => loginVM.InitializeAsync());
+     
     }
+    
     BaseViewModelAnd MyViewModel { get; }
     public LastFMViewModel MyLastFMViewModel { get; }
     public LoginViewModel MyLoginVM { get; }
     public StatisticsViewModel StatsViewModel { get; }
 
+
     protected override void OnAppearing()
     {
         base.OnAppearing();
 
-        Debug.WriteLine("HomePage OnAppearing" + MyViewModel.AppTitle + " " + BaseViewModel.CurrentAppStage);
-        Debug.WriteLine("HomePage OnAppearing" + MyViewModel.SearchResults.Count);
+      
+
+
+        if (!MyViewModel.IsInitialized)
+        {
+            InitializeAppLogic();
+            //MyViewModel.LoadSongsInitially();
+        }
+
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.HomePageIndex), v => (MyViewModel.HomePageIndex))
+            .Subscribe(
+                async e =>
+                {
+
+                  
+                    switch (e)
+                    {
+                        case 0:
+                            MyViewModel.StartTQLPipeLine();
+                           
+                        
+                         
+                            break;
+
+                        case 2:
+
+                            break;
+                        default:
+                            break;
+                    }
+
+                });
+    }
+
+
+    private void InitializeAppLogic()
+    {
+        
+            try
+            {
+                var startTime = Java.Lang.JavaSystem.CurrentTimeMillis();
+
+                MyViewModel.InitializeAllVMCoreComponents();
+
+                var duration = Java.Lang.JavaSystem.CurrentTimeMillis() - startTime;
+                Console.WriteLine($"InitializeAppLogic took {duration}ms");
+                if (duration > 2000)
+                    Android.Util.Log.Warn("ANR_WARNING", $"OnCreate took {duration}ms - ANR risk!");
+            }
+            catch (Exception ex)
+            {
+                 Shell.Current.DisplayAlertAsync("Fatal Error Init Logic", ex.Message, "ok");
+                Console.WriteLine($"VM INIT CRASH: {ex}");
+                Android.Util.Log.Error("DIMMER_INIT", ex.ToString());
+            }
+        
     }
 
     private async void TapToPlaySongGestRecog_Tapped(object sender, TappedEventArgs e)
@@ -96,9 +158,7 @@ public partial class HomePage : ContentPage
 
     private void SearchBtn_Clicked(object sender, EventArgs e)
     {
-        InputMethodManager? imm = (InputMethodManager?)MainApplication.Context.GetSystemService(Activity.InputMethodService);
-        var view = SearchText.Handler?.PlatformView as Android.Views.View;
-        imm?.ShowSoftInput(view, ShowFlags.Implicit);
+        SearchText.Focus();
 
     }
 
@@ -129,10 +189,7 @@ public partial class HomePage : ContentPage
     private async void ImageOnCollectionViewTapped(object sender, TappedEventArgs e)
     {
 
-        var send = (View)sender;
-        var song = (SongModelView)send.BindingContext;
-        MyViewModel.SelectedSong = song;
-        await SingleSongPopup.ShowAsync();
+
     }
 
     private void EditSongChip_Tap(object sender, HandledEventArgs e)
@@ -372,10 +429,7 @@ public partial class HomePage : ContentPage
 
     //}
 
-    private async void ToggleFavBtn_Tap(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
-    {
-        await MyViewModel.AddFavoriteRatingToSongAsync(MyViewModel.SelectedSong!);
-    }
+    
 
 
     private async void DeleteSongBtn_Tap(object sender, HandledEventArgs e)
@@ -543,26 +597,12 @@ public partial class HomePage : ContentPage
     {
         
 
-        SingleSongPopup.Close();
 
         if (Shell.Current.CurrentPage.GetType() != typeof(DetailsOverview))
             await Shell.Current.GoToAsync(nameof(DetailsOverview), true);
     }
 
-    private void OtherArtistsNameToggleBtn_CheckedChanged(object sender, ValueChangedEventArgs<bool> e)
-    {
-        switch (e.NewValue)
-        {
-            case true:
 
-                AllArtistsExpander.IsExpanded = true;
-                break;
-            case false:
-
-                break;
-
-        }
-    }
 
     private async void ArtistNameBtn_Clicked(object sender, EventArgs e)
     {
@@ -570,7 +610,7 @@ public partial class HomePage : ContentPage
         var artist = (ArtistModelView)send.CommandParameter as ArtistModelView;
 
         MyViewModel.SetSelectedArtist(artist);
-        SingleSongPopup.Close();
+
         await Shell.Current.GoToAsync(nameof(ArtistPage), true);
 
     }
@@ -582,7 +622,7 @@ public partial class HomePage : ContentPage
         if (song is null)
             return;
         MyViewModel.SetSelectedAlbum(song.Album);
-        SingleSongPopup.Close();
+
 
         await Shell.Current.GoToAsync(nameof(AlbumPage), true);
     }
@@ -601,12 +641,7 @@ public partial class HomePage : ContentPage
     
 
 
-    private void SingleSongPopup_Closed(object sender, EventArgs e)
-    {
 
-        AllArtistsExpander.IsExpanded = false;
-        PopupTabView.SelectedItemIndex = 0;
-    }
 
     private void DrawerHamburger_Clicked(object sender, EventArgs e)
     {
@@ -614,10 +649,6 @@ public partial class HomePage : ContentPage
 
     }
 
-    private void SearchText_Loaded(object sender, EventArgs e)
-    {
-        MyViewModel.SubscribeToPlayCount(SearchText);
-    }
 
     private void DXButton_Clicked(object sender, EventArgs e)
     {
@@ -709,6 +740,11 @@ public partial class HomePage : ContentPage
         PlaybackQueueCV.ScrollTo(curHandle, DXScrollToPosition.Start);
     }
 
+    List<string> SortItems = new List<string>();
+    private void FilterChipGroup_Loaded(object sender, EventArgs e)
+    {
+    }
+
 
     //private async void SelectedSongBtmSheetAlbumNameChip_Tap(object sender, HandledEventArgs e)
     //{
@@ -723,16 +759,428 @@ public partial class HomePage : ContentPage
     //    await Shell.Current.GoToAsync(nameof(AlbumPage), true);
     //}
 
-    //private void SongsCV_PropertyChanged(object sender, PropertyChangedEventArgs e)
-    //{
-    //    if(e.PropertyName == nameof(SongsCV.VisibleItemCount))
-    //    {
+    private void SongsCV_PropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(SongsCV.VisibleItemCount))
+        {
 
-    //        var newCount = (SongsCV.ItemsSource as ReadOnlyObservableCollection<SongModelView>)?.Count;
-    //        string? fullStr = newCount.ToString();
-    //        SearchBarTextEdit.Suffix = fullStr;
-    //    }
-    //}
+            var newCount = (SongsCV.ItemsSource as ReadOnlyObservableCollection<SongModelView>)?.Count;
+            string? fullStr = newCount.ToString();
+            SearchText.Suffix = fullStr;
+        }
+    }
+
+    private void SortByChipGroup_SelectionChanged(object sender, EventArgs e)
+    {
+        FilterChipGroup send = (FilterChipGroup)sender;
+        var indices = send.SelectedIndexes;
+    }
+    
+                    
+    private void SortByListPicker_Loaded(object sender, EventArgs e)
+    {
+    }
+
+    private void SortByListPicker_FilterChanged(object sender, FilterChangedEventArgs e)
+    {
+
+    }
+
+    private void SortByListPicker_PickerShowing(object sender, PickerShowingEventArgs e)
+    {
+
+    }
+
+    private void AddToQueueButton_Clicked(object sender, EventArgs e)
+    {
+        
+    }
+
+    private async void ViewArtist_Clicked(object sender, EventArgs e)
+    {
+
+        var send = (DXButton)sender;
+        var artist = send.CommandParameter as ArtistModelView;
+
+        if (artist is null) return;
+      
+
+        MyViewModel.SetSelectedArtist(artist);
+        await ArtistsMgtBtmSheet.CloseAsync();
+        await Shell.Current.GoToAsync(nameof(ArtistPage), true);
+    }
+
+    private void PreviewArtistSongsBtn_CheckedChanged(object sender, ValueChangedEventArgs<bool> e)
+    {
+        var send = (DXToggleButton)sender;
+        var artist = send.CommandParameter as ArtistModelView;
+
+        if (artist is null) return;
+        if (e.NewValue)
+        {
+            MyViewModel.SwapMainSongsToArtistSongs(artist);
+        }
+        else
+        {
+            MyViewModel.SwapBackToMainSongs();
+        }
+    }
+
+ 
+
+    private void AddNextToCurrentPlayingSong_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+ 
+    private void AddToEndOfQueue_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.AddListOfSongsToQueueEnd(MyViewModel.SelectedArtist.SongsByArtist);
+    }
+
+    private void AddPlaybackQueue_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.AddToNext(MyViewModel.SelectedArtist.SongsByArtist);
+    }
+
+    private void AddRemoveMyFavs_CheckedChanged(object sender, EventArgs e)
+    {
+        CheckEdit chBx = (CheckEdit)sender;
+        var isChecked = chBx.IsChecked;
+
+    }
+
+    private void SongsCV_Loaded(object sender, EventArgs e)
+    {
+        MyViewModel.SetCollectionView(SongsCV);
+    }
+
+    private void IsFavorite_CheckedChanged(object sender, EventArgs e)
+    {
+       
+    }
+
+    private void FilterCheckItem_Loaded(object sender, EventArgs e)
+    {
+        var send = (FilterCheckItem)sender;
+        send.Context = SongsCV.FilteringContext;
+        send.FieldName = "IsFavorite";
+    }
+
+    private void FilterCheckedListPickerItem_Loaded(object sender, EventArgs e)
+    {
+
+    }
+
+    private void ArtistFilterCheckedListPickerItem_Loaded(object sender, EventArgs e)
+    {
+        var artistFiltChck = (FilterCheckedListPickerItem)sender;
+
+        artistFiltChck.Context = SongsCV.FilteringContext;
+        artistFiltChck.FieldName = "OtherArtistsName";
+
+    }
+
+    private void AlbumFilterCheckedListPickerItem_Loaded(object sender, EventArgs e)
+    {
+        var albumFiltChck = (FilterCheckedListPickerItem)sender;
+
+        albumFiltChck.Context = SongsCV.FilteringContext;
+        albumFiltChck.FieldName = "AlbumName";
+
+    }
+
+    private void GenreFilterCheckedListPickerItem_Loaded(object sender, EventArgs e)
+    {
+        var albumFiltChck = (FilterCheckedListPickerItem)sender;
+        albumFiltChck.ItemsSource = MyViewModel.SearchResults.Select(x => x.Genre).ToList();
+        albumFiltChck.Context = SongsCV.FilteringContext;
+        albumFiltChck.FieldName = "GenreName";
+
+    }
+
+    private void LastDatePlayedFilterDateRange_Loaded(object sender, EventArgs e)
+    {
+        var dateFilterEdit = (FilterDateRangeItem)sender;
+        dateFilterEdit.Min = MyViewModel.SearchResults.Min(x => x.LastPlayed)?.DateTime;
+        dateFilterEdit.Max = MyViewModel.SearchResults.Max(x => x.LastPlayed)?.DateTime;
+        dateFilterEdit.Context = SongsCV.FilteringContext;
+        dateFilterEdit.FieldName = "LastPlayed";
+
+    }
+
+    private void DimsRangeSlider_Loaded(object sender, EventArgs e)
+    {
+        var dimsRangeSlider = (FilterNumericRangeSliderItem)sender;
+        dimsRangeSlider.Min = MyViewModel.SearchResults.Min(x => x.PlayCompletedCount);
+        dimsRangeSlider.Max = MyViewModel.SearchResults.Max(x => x.PlayCompletedCount);
+        dimsRangeSlider.Context = SongsCV.FilteringContext;
+        dimsRangeSlider.FieldName = "PlayCompletedCount";
+
+    }
+
+    private void SkipsRangeSlider_Loaded(object sender, EventArgs e)
+    {
+        var skipsRangeSlider = (FilterNumericRangeSliderItem)sender;
+        skipsRangeSlider.Min = MyViewModel.SearchResults.Min(x => x.SkipCount);
+        skipsRangeSlider.Max = MyViewModel.SearchResults.Max(x => x.SkipCount);
+        skipsRangeSlider.Context = SongsCV.FilteringContext;
+        skipsRangeSlider.FieldName = "SkipCount";
+    }
+
+    private void SortPopUp_Clicked(object sender, EventArgs e)
+    {
+        SortPopUp.Show();
+        return;
+
+       
+       
+    }
+
+    private void SortByFieldCV_SelectionChanged(object sender, DevExpress.Maui.CollectionView.CollectionViewSelectionChangedEventArgs e)
+    {
+        
+    }
+
+ 
+
+    private void CloseSortPopupBtn_Clicked(object sender, EventArgs e)
+    {
+        SortPopUp.Close();
+    }
+    int currentSelectedSortIndex;
+
+    private void ConfirmSortAndClosePopupBtn_Clicked(object sender, EventArgs e)
+    {
+        SortPopUp.Close();
+        SongsCV.SortDescriptions.Clear();
+        switch (currentSelectedSortIndex)
+        {
+            case 0:
+
+                break;
+            case 1:
+                SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
+                {
+                    FieldName = "Title"
+           ,
+                    SortOrder = (DataSortOrder)MyViewModel.CurrentSortOrderInt
+                });
+
+                break;
+            case 2:
+                SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
+                {
+                    FieldName = "ArtistName"
+           ,
+                    SortOrder = (DataSortOrder)MyViewModel.CurrentSortOrderInt
+                });
+
+                break;
+            case 3:
+                SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
+                {
+                    FieldName = "AlbumName"
+           ,
+                    SortOrder = (DataSortOrder)MyViewModel.CurrentSortOrderInt
+                });
+
+                break;
+            case 4:
+                SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
+                {
+                    FieldName = "Genre Name"
+           ,
+                    SortOrder = (DataSortOrder)MyViewModel.CurrentSortOrderInt
+                });
+                break;
+            case 5:
+                SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
+                {
+                    FieldName = "DurationInSeconds"
+           ,
+                    SortOrder = (DataSortOrder)MyViewModel.CurrentSortOrderInt
+                });
+                break;
+            case 6:
+                SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
+                {
+                    FieldName = "PlayCompletedCount"
+           ,
+                    SortOrder = (DataSortOrder)MyViewModel.CurrentSortOrderInt
+                });
+                break;
+            case 7:
+                SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
+                {
+                    FieldName = "LastPlayed"
+           ,
+                    SortOrder = (DataSortOrder)MyViewModel.CurrentSortOrderInt
+                });
+                break;
+            case 8:
+                SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
+                {
+                    FieldName = "DateCreated"
+           ,
+                    SortOrder = (DataSortOrder)MyViewModel.CurrentSortOrderInt
+                });
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void SortDownBtn_Clicked(object sender, EventArgs e)
+    {
+        var send = (DXButton)sender;
+        currentSelectedSortIndex = MyViewModel.SortByFieldNameCollection.IndexOf((send.BindingContext as string)!);
+        MyViewModel.CurrentSortDisplay = (send.BindingContext as string)!;
+        MyViewModel.CurrentSortOrder = SortOrder.Desc;
+        MyViewModel.CurrentSortOrderInt = 2;
+    }
+
+    private void SortUpBtn_Clicked(object sender, EventArgs e)
+    {
+        var send = (DXButton)sender;
+        currentSelectedSortIndex = MyViewModel.SortByFieldNameCollection.IndexOf((send.BindingContext as string)!);
+        MyViewModel.CurrentSortDisplay = (send.BindingContext as string)!;
+        MyViewModel.CurrentSortOrder = SortOrder.Asc;
+        MyViewModel.CurrentSortOrderInt = 1;
+
+    }
+
+    private void SortFieldBtn_Clicked(object sender, EventArgs e)
+    {
+        DXButton send = (DXButton)sender;
+        var selectedField = send.BindingContext as string;
+        if (string.IsNullOrEmpty(selectedField)) return;
+        currentSelectedSortIndex = MyViewModel.SortByFieldNameCollection.IndexOf(selectedField);
+
+        if(currentSelectedSortIndex ==0)
+        {
+            MyViewModel.CurrentSortOrder = SortOrder.None;
+            MyViewModel.CurrentSortOrderInt = 0;
+            return;
+        }
+        if(MyViewModel.CurrentSortDisplay== selectedField)
+        {
+            MyViewModel.CurrentSortOrder = MyViewModel.CurrentSortOrder == SortOrder.Asc ? SortOrder.Desc : SortOrder.Asc;
+            MyViewModel.CurrentSortOrderInt = (int)MyViewModel.CurrentSortOrder;
+            
+        }
+
+        MyViewModel.CurrentSortDisplay = (send.BindingContext as string)!;
+    }
+
+    private void HasSyncLyricsFilter_Loaded(object sender, EventArgs e)
+    {
+        var send = (FilterCheckItem)sender;
+        send.Context = SongsCV.FilteringContext;
+        send.FieldName = "HasSyncedLyrics";
+
+
+    }
+
+    private void SelectedSongArtistBtn_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private async void GoToSelectedSongAlbumPage_Clicked(object sender, EventArgs e)
+    {
+        MyViewModel.SetSelectedAlbum(MyViewModel.SelectedSong!.Album);
+        await SingleSongBtmSheet.CloseAsync();
+        await Shell.Current.GoToAsync(nameof(AlbumPage));
+    }
+
+    private async void GoToSelectedSongOverViewPage_Clicked(object sender, EventArgs e)
+    {
+        await SingleSongBtmSheet.CloseAsync();
+                await Shell.Current.GoToAsync(nameof(DetailsOverview));
+    }
+
+    
+
+    private async void ToggleFavBtn_Tap(object sender, HandledEventArgs e)
+    {
+        await MyViewModel.AddFavoriteRatingToSongAsync(MyViewModel.SelectedSong!);
+    }
+
+    private async void ToggleFavBtn_LongPress(object sender, HandledEventArgs e)
+    {
+        await MyViewModel.RemoveSongFromFavoriteAsync(MyViewModel.SelectedSong!);
+    }
+
+    private  void OpenSortBtn_Clicked(object sender, EventArgs e)
+    {
+       FilterBottomSheet.Close();
+        SortPopUp.Show();
+    }
+
+    private void OpenFilterBtn_Clicked(object sender, EventArgs e)
+    {
+        SortPopUp.Close();
+        FilterBottomSheet.Show();
+        
+    }
+
+    private void ScrollToFirstSongs_Clicked(object sender, EventArgs e)
+    {
+        
+        var songHandle = SongsCV.GetItemHandleByVisibleIndex(0);
+        SongsCV.ScrollTo(songHandle, DXScrollToPosition.Start);
+        SortPopUp.Close();
+    }
+
+
+    private void ScrollToLastSongs_Clicked(object sender, EventArgs e)
+    {
+
+        var songHandle = SongsCV.GetItemHandleByVisibleIndex(SongsCV.VisibleItemCount-1);
+        SongsCV.ScrollTo(songHandle, DXScrollToPosition.Start);
+        SortPopUp.Close();
+    }
+
+    private void OtherArtistsName_Clicked(object sender, EventArgs e)
+    {
+        var dxBtn = (DXButton)sender;
+        var song = dxBtn.CommandParameter as SongModelView;
+        if (song is null) return;
+        MyViewModel.SelectedSong = song;
+        var songHandle = SongsCV.FindItemHandle(song);
+
+        SongsCV.ScrollTo(songHandle, DXScrollToPosition.Start);
+        ArtistsMgtBtmSheet.Show(BottomSheetState.HalfExpanded);
+    }
+
+    private async void SavePlayBackQueue_Clicked(object sender, EventArgs e)
+    {
+        var res = await Shell.Current.DisplayPromptAsync("Save Playlist", "Enter Playlist Name",
+            keyboard: Keyboard.Text, placeholder: "ex; happy few ");
+        if (string.IsNullOrEmpty(res)) return;
+
+        List<SongModelView> songsInCV = new();
+        for (int i = 0; i < PlaybackQueueCV.VisibleItemCount; i++)
+        {
+            var itemHandle = PlaybackQueueCV.GetItemHandleByVisibleIndex(i);
+
+            if (PlaybackQueueCV.GetItem(itemHandle) is not SongModelView songByItemHandle) continue;
+            songsInCV.Add(songByItemHandle);
+        }
+      await  MyViewModel.AddToPlaylistAsync("testPlayList", songsInCV, "testPL");
+    }
+
+    private async void AddFolderInSettings_Clicked(object sender, EventArgs e)
+    {
+        await Shell.Current.GoToAsync(nameof(SettingsPage));
+    }
+
+
+
+
+
 
     //private void SearchIconBtn_Tapped(object sender, HandledEventArgs e)
     //{

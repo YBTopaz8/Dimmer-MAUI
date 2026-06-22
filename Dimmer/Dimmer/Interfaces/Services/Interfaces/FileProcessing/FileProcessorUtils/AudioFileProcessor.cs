@@ -17,18 +17,18 @@ public class AudioFileProcessor : IAudioFileProcessor
     public async Task<List<FileProcessingResult>> ProcessFilesInParallelForEachAsync(IEnumerable<string> filePaths)
     {
         var results = new ConcurrentBag<FileProcessingResult>();
-
+        int optimalParallelism = Math.Max(2, Environment.ProcessorCount - 1);
         await Parallel.ForEachAsync(
             filePaths,
             new ParallelOptions
             {
-                MaxDegreeOfParallelism = 2 
+                MaxDegreeOfParallelism = optimalParallelism
             },
             async (file, ct) =>
             {
                 try
                 {
-                    var result = ProcessFile(file);
+                    var result = await Task.Run(() => ProcessFile(file), ct);
                     results.Add(result);
                 }
                 catch (Exception ex)

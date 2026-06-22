@@ -1,13 +1,10 @@
 ﻿using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Subjects;
-using System.Threading.Tasks;
 
 using AudioSwitcher.AudioApi;
 //using NAudio.CoreAudioApi;
 using AudioSwitcher.AudioApi.CoreAudio;
-
-using Device = AudioSwitcher.AudioApi.Device;
 using DeviceType = AudioSwitcher.AudioApi.DeviceType;
 namespace Dimmer.WinUI.DimmerAudio;
 
@@ -544,7 +541,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
             try
             {
-                mediaPlaybackItem = await CreateMediaPlaybackItemAsync(songModel, null).ConfigureAwait(false);
+                mediaPlaybackItem = await CreateMediaPlaybackItemAsync(songModel).ConfigureAwait(false);
 
                 if (mediaPlaybackItem != null)
                 {
@@ -740,7 +737,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
 
     #region Media Item Creation
 
-    private static async Task<MediaPlaybackItem?> CreateMediaPlaybackItemAsync(SongModelView media, byte[]? ImageBytes = null, CancellationToken token = default)
+    private static async Task<MediaPlaybackItem?> CreateMediaPlaybackItemAsync(SongModelView media, CancellationToken token = default)
     {
 
 
@@ -782,6 +779,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             MediaSource? mediaSource;
             if (storageFile != null)
             {
+                
                 mediaSource = MediaSource.CreateFromStorageFile(storageFile);
                 Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: Created MediaSource from StorageFile for '{media.Title}'. ContentType: {storageFile.ContentType}");
             }
@@ -803,14 +801,16 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             props.Type = MediaPlaybackType.Music;
 
             props.MusicProperties.Title = media.Title ?? Path.GetFileNameWithoutExtension(media.FilePath) ?? "Unknown Title";
-            props.MusicProperties.Artist = media.Id.ToString();
+            props.MusicProperties.Artist = media.OtherArtistsName.ToString();
             props.MusicProperties.AlbumTitle = media.AlbumName ?? string.Empty;
-            props.MusicProperties.AlbumArtist = media.ArtistName;
+            props.MusicProperties.AlbumArtist = media.Id.ToString();
             if (!string.IsNullOrEmpty(media.CoverImagePath) && File.Exists(media.CoverImagePath))
             {
                 try
                 {
+
                     var coverFile = await StorageFile.GetFileFromPathAsync(media.CoverImagePath);
+                    
                     props.Thumbnail = RandomAccessStreamReference.CreateFromFile(coverFile);
                     Debug.WriteLine($"[AudioService] Successfully created thumbnail reference for '{media.Title}'.");
                 }

@@ -1,21 +1,4 @@
 using DynamicData.Binding;
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.UI.Composition;
-using Border = Microsoft.UI.Xaml.Controls.Border;
-using Visibility = Microsoft.UI.Xaml.Visibility;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -32,19 +15,22 @@ public sealed partial class AllArtistsPage : Page
         InitializeComponent();
     }
 
-    protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
+    protected override async void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
 
         MyViewModel = IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
 
         DataContext = MyViewModel;
+
+        await Task.Delay(250);
+        MyViewModel.SetupArtistPipeline();
     }
     public BaseViewModelWin MyViewModel { get; set; }
 
 
 
-    FrameworkElement? artistClicked;
+    //FrameworkElement? artistClicked;
 
     private void ArtistsItemsRepeater_Tapped(object sender, TappedRoutedEventArgs e)
     {
@@ -100,4 +86,33 @@ public sealed partial class AllArtistsPage : Page
             }
         }
     }
+
+    private void ArtistBtnView_Click(object sender, RoutedEventArgs e)
+    {
+        var send = (Button)sender;
+
+        var artist = send.DataContext as ArtistModelView;
+    }
+
+    private async void AllArtistsTableView_CellDoubleTapped(object sender, TableViewCellDoubleTappedEventArgs e)
+    {
+        FrameworkElement element = (e.Cell as FrameworkElement)!;
+        ArtistModelView? artist = null;
+        if (element == null)
+            return;
+
+        if (e.Item is ArtistModelView currentArtist)
+        {
+            artist = currentArtist;
+        }
+        if (artist == null)
+            return;
+
+
+
+        MyViewModel.NavigateToArtistPageWithArtistId(artist.Id);
+    }
+
+ 
+
 }

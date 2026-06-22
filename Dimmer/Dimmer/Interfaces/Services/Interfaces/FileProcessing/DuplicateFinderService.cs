@@ -1,7 +1,5 @@
 ﻿using System.Collections.Concurrent;
 
-using Dimmer.Utilities.TypeConverters;
-
 namespace Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 public class DuplicateFinderService : IDuplicateFinderService
 {
@@ -269,6 +267,7 @@ public class DuplicateFinderService : IDuplicateFinderService
 
         await Parallel.ForEachAsync(allSongs, (song, cancellationToken) =>
         {
+            
             if (string.IsNullOrEmpty(song.FilePath) || !File.Exists(song.FilePath))
             {
                 missingSongs.Add(song);
@@ -511,15 +510,15 @@ public class DuplicateFinderService : IDuplicateFinderService
         }
 
 
-        var duplicates = potentialDuplicatesQuery.AsEnumerable().Select(x=>x.ToSongModelView());
+        var duplicates = potentialDuplicatesQuery.AsEnumerable().Select(x=>x.ToSongModelView()!);
 
-        if (duplicates.Count() == 0)
+        if (!duplicates.Any())
         {
             return new DuplicateSearchResult(); // No duplicates found
         }
 
         // Since we found duplicates, we need to create a single DuplicateSet
-        var allItemsInSet = new List<SongModelView> { targetSong };
+        List<SongModelView> allItemsInSet = new List<SongModelView> { targetSong };
         allItemsInSet.AddRange(duplicates);
 
         // Use your existing logic to find the best one to keep

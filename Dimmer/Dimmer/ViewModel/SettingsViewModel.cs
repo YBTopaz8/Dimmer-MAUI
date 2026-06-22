@@ -1,7 +1,4 @@
-﻿using Dimmer.Interfaces;
-using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
-
-namespace Dimmer.ViewModel;
+﻿namespace Dimmer.ViewModel;
 
 public partial class SettingsViewModel : BaseViewModel
 {
@@ -26,7 +23,7 @@ public partial class SettingsViewModel : BaseViewModel
 
                 if (!string.IsNullOrEmpty(selectedFolderPath))
                 {
-                    _ = Task.Run(async () => await AddMusicFolderByPassingToService(selectedFolderPath));
+                    _ = Task.Run(() => AddMusicFolderByPassingToService(selectedFolderPath));
                 }
 
             }

@@ -3,7 +3,9 @@
     x:Class="Dimmer.App"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:Dimmer">
+    xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters"
+    xmlns:local="clr-namespace:Dimmer"
+    >
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -11,6 +13,10 @@
                 <ResourceDictionary x:Name="appStyles" Source="Resources/Styles/Styles.xaml" />
 
             </ResourceDictionary.MergedDictionaries>
+            <converters:BoolToYesNoConverter x:Key="BoolToYesNoConverter" />
+            <converters:BoolToInverseConverter x:Key="BoolToInverseConverter" />
+            <converters:IsNotNullConverter x:Key="IsNotNullConverter" />
+            <converters:OtherArtistNamesToListOfStringsConverter x:Key="OtherArtistNamesToListOfStringsConverter" />
 
         </ResourceDictionary>
     </Application.Resources>

@@ -1,6 +1,3 @@
-using Dimmer.Utilities.CustomAnimations;
-using Dimmer.Utilities.Extensions;
-
 using Windows.Graphics;
 
 using Application = Microsoft.Maui.Controls.Application;
@@ -54,7 +51,7 @@ public partial class SyncLyricsPopUpViewWindow : Window
 
     private async void OpenLyricsViewOnly_Clicked(object sender, EventArgs e)
     {
-        await this.myPage.FadeOut(easing: Easing.SpringOut, duration: 500);
+     
         Application.Current?.CloseWindow(this);
 
         MyViewModel.ActivateMainWindow();
@@ -146,8 +143,7 @@ public partial class SyncLyricsPopUpViewWindow : Window
 
             if (PositionPicker.IsVisible)
             {
-                await Task.WhenAll(PositionPicker.AnimateHeight(0, 300, Easing.BounceOut),
-                BtmVSL.AnimateHeight(0, 300, Easing.BounceOut));
+                
 
                 PositionPicker.IsVisible = false;
                 BtmVSL.IsVisible = false;
@@ -156,7 +152,7 @@ public partial class SyncLyricsPopUpViewWindow : Window
             {
                 PositionPicker.IsVisible = true;
                 BtmVSL.IsVisible = true;
-                await Task.WhenAll(PositionPicker.AnimateHeight(105, 350, Easing.SpringOut), BtmVSL.AnimateHeight(30, 350, Easing.SpringOut));
+             
 
             }
         }

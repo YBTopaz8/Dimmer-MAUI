@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Color = Windows.UI.Color;
+﻿using Color = Windows.UI.Color;
 
 namespace Dimmer.WinUI.Utils.Converters;
 

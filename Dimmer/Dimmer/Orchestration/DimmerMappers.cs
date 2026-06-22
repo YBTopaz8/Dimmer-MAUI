@@ -1,12 +1,5 @@
-﻿using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static Dimmer.Data.Models.LastFMUser;
+﻿using static Dimmer.Data.Models.LastFMUser;
 using static Dimmer.Data.ModelView.LastFMUserView;
-using static Microsoft.Maui.ApplicationModel.Permissions;
 
 namespace Dimmer.Orchestration;
 
@@ -487,7 +480,7 @@ public static class DimmerMappers
             Id = src.Id,
             Url = src.Url,
             Name = src.Name,
-            ImagePath = src.ImagePath,
+            ImagePath = src.ImagePath is null? string.Empty:src.ImagePath,
             Bio = src.Bio,
             IsNew = src.IsNew,
             IsFavorite = src.IsFavorite,

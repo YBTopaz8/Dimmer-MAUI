@@ -2,7 +2,6 @@
 // using Dimmer.Platform; // For Window
 
 using System.Runtime.CompilerServices;
-using Realms;
 
 using DimmerLogLevel = Dimmer.Data.Models.DimmerLogLevel;
 namespace Dimmer.Interfaces.Services;
@@ -24,7 +23,7 @@ public partial class DimmerStateService : IDimmerStateService
     private readonly BehaviorSubject<IReadOnlyList<DimmerPlayEvent>> _allEventsInLibrary = new(Array.Empty<DimmerPlayEvent>());
     private readonly BehaviorSubject<UserModelView?> _currentUser = new(null);
     private readonly BehaviorSubject<AppStateModelView?> _applicationSettingsState = new(null);
-    private readonly BehaviorSubject<CurrentPage> _currentPage = new(Utilities.Enums.CurrentPage.AllSongs);
+    private readonly BehaviorSubject<CurrentPage> _currentPage = new(Utilities.Enums.CurrentPage.AllSongsListPage);
     private readonly BehaviorSubject<IReadOnlyList<Window>> _currentlyOpenWindows = new(Array.Empty<Window>());
 
     private readonly BehaviorSubject<AppLogEntryView> _latestDeviceLog; // Initialized in constructor

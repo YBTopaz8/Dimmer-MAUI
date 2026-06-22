@@ -11,8 +11,10 @@
     xmlns:statsVm="clr-namespace:Dimmer.ViewModel;assembly=Dimmer"
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:vm="clr-namespace:Dimmer.ViewModels"
+    Margin="10"
     AllowScrim="True"
     CloseOnScrimTap="True"
+    MaximumHeightRequest="600"
     Opened="DXPopup_Opened"
     >
     <dx:DXScrollView>
@@ -182,14 +184,8 @@
                 </dx:DXCollectionView.ItemTemplate>
             </dx:DXCollectionView>
 
-            <dx:DXPopup x:Name="SingleSongSyncLyricsPopup">
-                <dx:DXPopup.Content>
-                    <ScrollView>
-                        <Label x:Name="SelectedSynclyrics" />
 
-                    </ScrollView>
-                </dx:DXPopup.Content>
-            </dx:DXPopup>
+
         </dx:DXStackLayout>
 
     </dx:DXScrollView>

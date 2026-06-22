@@ -4,64 +4,137 @@
     x:Name="MyPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:conv="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+    xmlns:dimmerLiveModels="clr-namespace:Dimmer.DimmerLive.Models;assembly=Dimmer"
     xmlns:dx="http://schemas.devexpress.com/maui"
     xmlns:globalVM="clr-namespace:Dimmer.ViewModel;assembly=Dimmer"
     xmlns:local="clr-namespace:Dimmer.Views.CustomViews"
     xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
     xmlns:vm="clr-namespace:Dimmer.ViewModels"
     Title="Dimmer Live"
-    x:DataType="globalVM:LoginViewModel"
+    x:DataType="globalVM:SessionManagementViewModel"
     Shell.ForegroundColor="DarkSlateBlue"
     >
 
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+
+            <conv:BoolToInverseConverter x:Key="BoolToInverseConverter" />
+
+        </ResourceDictionary>
+    </ContentPage.Resources>
     <Grid
         x:Name="MainGrid"
         Padding="5"
         Loaded="MainGrid_Loaded"
         RowDefinitions="auto,*"
+        RowSpacing="10"
         >
 
         <FlexLayout Grid.Row="0" JustifyContent="SpaceBetween">
             <dx:DXStackLayout Grid.Row="0" ItemSpacing="10">
-                <Label FontSize="23" Text="{Binding CurrentUserOnline.Username}" />
-                <Label FontSize="13" Text="{Binding CurrentUserOnline.Email}" />
+                <Label FontSize="23" Text="{Binding CurrentUser.Username}" />
+                <Label FontSize="13" Text="{Binding BaseVM.CurrentPlayingSongView.Title}" />
 
 
             </dx:DXStackLayout>
             <dx:DXImage
+                Aspect="Fill"
                 HeightRequest="180"
                 HorizontalOptions="Start"
-                Source="{Binding CurrentUserOnline.ProfileImagePath}"
+                Source="{Binding CurrentUser.ProfileImagePath}"
                 WidthRequest="180"
                 />
 
         </FlexLayout>
 
-        <dx:TabView Grid.Row="1">
-            <dx:TabViewItem HeaderText="Live Section">
-                <dx:DXStackLayout>
-                    <Label Text="Current Device" />
-                </dx:DXStackLayout>
-            </dx:TabViewItem>
-            <dx:TabViewItem HeaderText="BackUp Section">
-                <dx:DXStackLayout>
-                    <Label Text="Live Section" />
-                </dx:DXStackLayout>
-            </dx:TabViewItem>
-            <dx:TabViewItem HeaderText="Live Section">
-                <dx:DXStackLayout>
-                    <Label Text="Live Section" />
-                </dx:DXStackLayout>
-            </dx:TabViewItem>
-        </dx:TabView>
 
-        <dx:DXPopup
-            x:Name="LoginPopup"
-            AllowScrim="True"
-            BackgroundColor="DarkSlateBlue"
-            CloseOnScrimTap="False"
+
+        <dx:DXStackLayout Grid.Row="1" ItemSpacing="15">
+
+            <dx:DXStackLayout
+                Padding="10"
+                BorderColor="Gray"
+                BorderThickness="1"
+                CornerRadius="15"
+                VerticalOptions="Start"
+                >
+                <dx:DXStackLayout x:Name="HasBackUpSectionOnline" IsVisible="{Binding HasOnlineBackup}">
+                    <FlexLayout JustifyContent="SpaceBetween" />
+                </dx:DXStackLayout>
+
+                <dx:DXStackLayout
+                    x:Name="HasNoBackUpSectionOnline"
+                    HorizontalOptions="Center"
+                    IsVisible="{Binding HasOnlineBackup, Converter={conv:BoolToInverseConverter}}"
+                    ItemSpacing="10"
+                    >
+                    <Label Text="Backup Account" />
+                    <Button
+                        x:Name="PerformOnlineBackup"
+                        Clicked="PerformOnlineBackup_Clicked"
+                        Text="Backup"
+                        />
+                </dx:DXStackLayout>
+
+
+
+
+            </dx:DXStackLayout>
+
+            <Grid RowDefinitions="auto,*">
+
+                <dx:DXCollectionView
+                    x:Name="AllDevicesCollectionView"
+                    Grid.Row="1"
+                    Header="{Binding OtherDevices.Count, StringFormat='My Devices ({0})'}"
+                    ItemSeparatorThickness="1"
+                    ItemsSource="{Binding OtherDevices}"
+                    >
+
+                    <dx:DXCollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="dimmerLiveModels:UserDeviceSession">
+                            <dx:DXStackLayout
+                                Padding="10"
+                                BorderColor="Gray"
+                                BorderThickness="1"
+                                CornerRadius="15"
+                                ItemSpacing="10"
+                                >
+                                <Label Text="{Binding DeviceName, StringFormat='Device Name : {0}'}" />
+                                <Label Text="{Binding DeviceIdiom, StringFormat='Device Type : {0}'}" />
+                                <Label Text="{Binding DeviceOSVersion, StringFormat='Device OS Version : {0}'}" />
+                                <Label Text="{Binding CreatedAt, StringFormat='Created At : {0}'}" />
+                                <dx:DXButton
+                                    x:Name="EditDeviceName"
+                                    BackgroundColor="Transparent"
+                                    BorderColor="DarkSlateBlue"
+                                    BorderThickness="1"
+                                    Clicked="EditDevice_Clicked"
+                                    CommandParameter="{Binding .}"
+                                    HorizontalOptions="Center"
+                                    Icon="pena.png"
+                                    IconColor="DarkSlateBlue"
+                                    ShowContent="False"
+                                    ShowIcon="True"
+                                    />
+
+                            </dx:DXStackLayout>
+                        </DataTemplate>
+                    </dx:DXCollectionView.ItemTemplate>
+                </dx:DXCollectionView>
+                <dx:DXStackLayout Grid.Row="0" />
+            </Grid>
+        </dx:DXStackLayout>
+        <dx:BottomSheet
+            x:Name="LoginBottomSheet"
+            x:DataType="globalVM:LoginViewModel"
+            AllowedState="HalfExpanded"
+            BackgroundColor="Black"
+            HalfExpandedRatio="0.8"
             >
-            <dx:DXPopup.Content>
+            <dx:BottomSheet.Content>
 
                 <dx:DXStackLayout Padding="20" ItemSpacing="10">
                     <dx:DXStackLayout.Resources>
@@ -73,7 +146,7 @@
                                 <Setter Property="TextColor" Value="White" />
                             </Style>
                             <Style TargetType="dx:TextEdit">
-                                <Setter Property="PlaceholderColor" Value="Grey" />
+                                <Setter Property="PlaceholderColor" Value="White" />
                                 <Setter Property="LabelColor" Value="White" />
                                 <Setter Property="TextColor" Value="White" />
                             </Style>
@@ -96,7 +169,11 @@
                         Text="{Binding Password}"
                         />
 
-                    <dx:DXStackLayout ItemSpacing="10" Orientation="Horizontal">
+                    <dx:DXStackLayout
+                        HorizontalOptions="Center"
+                        ItemSpacing="10"
+                        Orientation="Horizontal"
+                        >
 
                         <dx:DXButton Command="{Binding LoginCommand}" Content="Login" />
                         <dx:DXButton Command="{Binding RegisterCommand}" Content="Register" />
@@ -108,7 +185,7 @@
                         Text="Cancel Login"
                         />
                 </dx:DXStackLayout>
-            </dx:DXPopup.Content>
-        </dx:DXPopup>
+            </dx:BottomSheet.Content>
+        </dx:BottomSheet>
     </Grid>
 </ContentPage>

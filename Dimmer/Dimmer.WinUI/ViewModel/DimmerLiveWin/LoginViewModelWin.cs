@@ -1,26 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Dimmer.WinUI.Views.WinuiPages.DimmerLive;
-using Parse;
+﻿using Parse;
 
 namespace Dimmer.WinUI.ViewModel.DimmerLiveWin;
 
 public partial class LoginViewModelWin : LoginViewModel
 {
-    public LoginViewModelWin(IAuthenticationService authService, IFilePicker _filePicker, IRealmFactory realmFactory,BaseViewModelWin baseViewModel) : base(authService, _filePicker, realmFactory)
+    public LoginViewModelWin(IAuthenticationService authService, IFilePicker _filePicker, IRealmFactory realmFactory,BaseViewModelWin baseViewModel, SessionManagementViewModel sessVM) : base(authService, _filePicker, realmFactory)
     {
         BaseViewModel = baseViewModel;
+        SessionMgtVM = sessVM;
     }
 
     public BaseViewModelWin BaseViewModel { get; }
+    public SessionManagementViewModel SessionMgtVM { get; }
     [ObservableProperty]
     public partial string LoginCurrentStatus { get; set; }
 
-     internal async Task NavigateToProfilePage()
+     internal async Task NavigateToProfilePageAsync()
     {
         if (Connectivity.Current.NetworkAccess == NetworkAccess.Internet)
         {
@@ -63,6 +58,25 @@ public partial class LoginViewModelWin : LoginViewModel
                 Dictionary<string, object> param = new Dictionary<string, object>();
                 param.Add("loginVM", this);
                 BaseViewModel.NavigateToAnyPageOfGivenType(typeof(CloudDataPage),param);
+            }
+            else
+            {
+            }
+        }
+    }
+    
+    [RelayCommand]
+     internal void NavigateToSocialPage()
+    {
+        if (Connectivity.Current.NetworkAccess == NetworkAccess.Internet)
+        {
+
+            if (CurrentUserOnline is null) return;
+            if (CurrentUserOnline.IsAuthenticated)
+            {
+               
+
+                BaseViewModel.NavigateToAnyPageOfGivenType(typeof(SocialPage));
             }
             else
             {

@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace Dimmer.Utilities.StatsUtils.Artists;
+﻿namespace Dimmer.Utilities.StatsUtils.Artists;
 
 public static class ArtistExtensiveStats
 {

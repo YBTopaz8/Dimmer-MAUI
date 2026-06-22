@@ -6,7 +6,7 @@ public interface ILiveSessionManagerService
 {
     IObservable<IChangeSet<UserDeviceSession, string>> OtherAvailableDevices { get; }
     IObservable<DimmerSharedSong> IncomingTransferRequests { get; }
-    UserDeviceSession ThisDeviceSession { get; }
+    Subscription<UserDeviceSession> DevSessionSubscription { get; }
 
     Task RegisterCurrentDeviceAsync();
     Task MarkCurrentDeviceInactiveAsync();

@@ -388,8 +388,11 @@ namespace ATL
         public void GuessFormat()
         {
             if (Format != LyricsFormat.OTHER) return;
-            if (UnsynchronizedLyrics.Length > 0 && SynchronizedLyrics.Count == 0) Format = LyricsFormat.UNSYNCHRONIZED;
-            else if (SynchronizedLyrics.Count > 0)
+            if (UnsynchronizedLyrics is not null)
+            {
+                if (UnsynchronizedLyrics.Length > 0 && SynchronizedLyrics.Count == 0) Format = LyricsFormat.UNSYNCHRONIZED;
+            }
+            if (SynchronizedLyrics.Count > 0)
             {
                 if (SynchronizedLyrics.Any(sl => sl.Beats != null && sl.Beats.Count > 0)) Format = LyricsFormat.LRC_A2;
                 else if (Metadata.Count > 0) Format = LyricsFormat.LRC;

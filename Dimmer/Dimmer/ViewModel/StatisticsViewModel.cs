@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-// Ensure your models/services namespaces are here (e.g., Dimmer.Data.ModelView, etc.)
+﻿// Ensure your models/services namespaces are here (e.g., Dimmer.Data.ModelView, etc.)
 
 namespace Dimmer.ViewModel;
 
@@ -481,7 +473,7 @@ public partial class StatisticsViewModel : ObservableObject
         {
             ClearAllStats();
             ArtistStats = _statsService.GetArtistStatisticsAsync(artist.Id, SelectedFilter);
-            BuildAlbumAndArtistCharts();
+            //BuildAlbumAndArtistCharts();
         }
         catch (Exception ex)
         {
@@ -504,8 +496,8 @@ public partial class StatisticsViewModel : ObservableObject
         try
         {
             ClearAllStats();
-            AlbumStats = _statsService.GetAlbumStatisticsAsync(album.Id, SelectedFilter);
-            BuildAlbumAndArtistCharts();
+            //AlbumStats = _statsService.GetAlbumStatisticsAsync(album.Id, SelectedFilter);
+            //BuildAlbumAndArtistCharts();
         }
         catch (Exception ex)
         {
@@ -529,8 +521,8 @@ public partial class StatisticsViewModel : ObservableObject
             await LoadSongStatsAsync(new SongModelView { Id = new ObjectId(SongStats.Summary.SongTitle) }); // Assumes you parse original ID back
         else if (ArtistStats is not null)
             await LoadArtistStatsAsync(new ArtistModelView { Id = ArtistStats.Summary.ArtistId });
-        else if (AlbumStats is not null)
-            await LoadAlbumStatsAsync(new AlbumModelView { Id = AlbumStats.Summary.AlbumId });
+        //else if (AlbumStats is not null)
+        //    await LoadAlbumStatsAsync(new AlbumModelView { Id = AlbumStats.Summary.AlbumId });
     }
 
     private void ClearAllStats()

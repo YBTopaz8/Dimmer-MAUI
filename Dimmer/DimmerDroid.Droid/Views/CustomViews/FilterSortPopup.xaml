@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<dx:DXPopup
+    x:Class="Dimmer.Views.CustomViews.FilterSortPopup"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:dx="http://schemas.devexpress.com/maui"
+    >
+
+
+    <dx:DXScrollView >
+        <dx:DXStackLayout Padding="20" ItemSpacing="15">
+
+            <!--  Search Section  -->
+            <Label
+                FontAttributes="Bold"
+                FontSize="16"
+                Text="Sort &amp; Filter Songs"
+                />
+            <Label
+                FontAttributes="Bold"
+                FontSize="16"
+                Text="Search"
+                />
+            <dx:TextEdit
+                PlaceholderText="Search songs, artists, albums..."
+                ReturnCommand="{Binding ApplyFiltersCommand}"
+                Text="{Binding SearchText, Mode=TwoWay}"
+                />
+
+            <BoxView HeightRequest="1" Color="{StaticResource Gray200}" />
+
+            <!--  Sort Section  -->
+            <Label
+                FontAttributes="Bold"
+                FontSize="16"
+                Text="Sort By"
+                />
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                <dx:ComboBoxEdit
+                    Grid.Column="0"
+                    DisplayMember="DisplayName"
+                    ItemsSource="{Binding SortFields}"
+                    SelectedItem="{Binding SelectedSortField, Mode=TwoWay}"
+                    SelectionChangedCommand="{Binding ApplySortCommand}"
+                    />
+
+                <dx:ComboBoxEdit
+                    Grid.Column="1"
+                    DisplayMember="DisplayName"
+                    ItemsSource="{Binding SortOrders}"
+                    SelectedItem="{Binding SelectedSortOrder, Mode=TwoWay}"
+                    SelectionChangedCommand="{Binding ApplySortCommand}"
+                    />
+            </Grid>
+
+            <BoxView HeightRequest="1" Color="{StaticResource Gray200}" />
+
+            <!--  Group Section  -->
+            <Label
+                FontAttributes="Bold"
+                FontSize="16"
+                Text="Group By"
+                />
+            <dx:ComboBoxEdit
+                DisplayMember="DisplayName"
+                ItemsSource="{Binding GroupFields}"
+                SelectedItem="{Binding SelectedGroupField, Mode=TwoWay}"
+                SelectionChangedCommand="{Binding ApplyGroupingCommand}"
+                />
+
+            <BoxView HeightRequest="1" Color="{StaticResource Gray200}" />
+
+            <!--  Genre Filter  -->
+            <Label
+                FontAttributes="Bold"
+                FontSize="16"
+                Text="Genres"
+                />
+            <dx:FilterCheckedListPickerItem
+                Context="{Binding Source={Reference MainCollectionView}, Path=FilteringContext}"
+                FieldName="GenreName"
+                ItemsSource="{Binding AvailableGenres}"
+                />
+
+            <!--  Artist Filter  -->
+            <Label
+                FontAttributes="Bold"
+                FontSize="16"
+                Text="Artists"
+                />
+            <dx:FilterCheckedListPickerItem
+                Context="{Binding Source={Reference MainCollectionView}, Path=FilteringContext}"
+                FieldName="ArtistName"
+                ItemsSource="{Binding AvailableArtists}"
+                />
+
+            <!--  Rating Filter  -->
+            <Label
+                FontAttributes="Bold"
+                FontSize="16"
+                Text="Rating"
+                />
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <Label
+                    Grid.Column="0"
+                    Text="⭐"
+                    VerticalOptions="Center"
+                    />
+                <dx:FilterNumericRangeSliderItem
+                    Grid.Column="1"
+                    Max="{Binding MaxRating}"
+                    Min="{Binding MinRating}"
+                    />
+                <Label
+                    Grid.Column="2"
+                    Text="{Binding MinRating, StringFormat='{0} - {1}', Source={Binding MaxRating}}"
+                    VerticalOptions="Center"
+                    />
+            </Grid>
+
+            <!--  Duration Filter  -->
+            <Label
+                FontAttributes="Bold"
+                FontSize="16"
+                Text="Duration (seconds)"
+                />
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <Label
+                    Grid.Column="0"
+                    Text="⏱️"
+                    VerticalOptions="Center"
+                    />
+                <dx:FilterNumericRangeSliderItem
+                    Grid.Column="1"
+                    Max="{Binding MaxDurationSeconds}"
+                    Min="{Binding MinDurationSeconds}"
+                    />
+                <Label
+                    Grid.Column="2"
+                    Text="{Binding MinDurationSeconds, StringFormat='{0}s - {1}s', Source={Binding MaxDurationSeconds}}"
+                    VerticalOptions="Center"
+                    />
+            </Grid>
+
+            <!--  Year Filter  -->
+            <Label
+                FontAttributes="Bold"
+                FontSize="16"
+                Text="Release Year"
+                />
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <Label
+                    Grid.Column="0"
+                    Text="📅"
+                    VerticalOptions="Center"
+                    />
+                <dx:FilterNumericRangeSliderItem
+                    Grid.Column="1"
+                    Max="{Binding MaxReleaseYear}"
+                    Min="{Binding MinReleaseYear}"
+                    />
+                <Label
+                    Grid.Column="2"
+                    Text="{Binding MinReleaseYear, StringFormat='{0} - {1}', Source={Binding MaxReleaseYear}}"
+                    VerticalOptions="Center"
+                    />
+            </Grid>
+
+            <!--  Boolean Filters  -->
+            <Label
+                FontAttributes="Bold"
+                FontSize="16"
+                Text="Additional Filters"
+                />
+            <StackLayout>
+                <dx:FilterCheckItem
+                    Context="{Binding Source={Reference MainCollectionView}, Path=FilteringContext}"
+                    FieldName="IsInstrumental"
+                    Text="Instrumental Only"
+                    />
+
+                <dx:FilterCheckItem
+                    Context="{Binding Source={Reference MainCollectionView}, Path=FilteringContext}"
+                    FieldName="HasLyrics"
+                    Text="Has Lyrics Only"
+                    />
+            </StackLayout>
+
+            <!--  Action Buttons  -->
+            <Grid
+                Margin="0,20,0,0"
+                ColumnDefinitions="*,*"
+                ColumnSpacing="10"
+                >
+                <Button
+                    Grid.Column="0"
+                    BackgroundColor="{StaticResource Gray500}"
+                    Command="{Binding ResetAllFiltersCommand}"
+                    Text="Reset All"
+                    TextColor="White"
+                    />
+
+                <Button
+                    Grid.Column="1"
+                    BackgroundColor="{StaticResource AccentColor}"
+                    Clicked="OnApplyAndCloseClicked"
+                    Text="Apply &amp; Close"
+                    TextColor="White"
+                    />
+            </Grid>
+        </dx:DXStackLayout>
+    </dx:DXScrollView>
+</dx:DXPopup>

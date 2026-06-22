@@ -11,7 +11,7 @@
     xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
     xmlns:vm="clr-namespace:Dimmer.ViewModels"
     x:DataType="models:SongModelView"
-    Shell.NavBarIsVisible="False"
+    Shell.NavBarIsVisible="False" Padding="5"
     >
 
 

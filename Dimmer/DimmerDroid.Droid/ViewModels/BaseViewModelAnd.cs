@@ -1,14 +1,17 @@
 ﻿using CommunityToolkit.Maui.Core.Primitives;
 using CommunityToolkit.Maui.Storage;
+using DevExpress.Maui.CollectionView;
 using DevExpress.Maui.Controls;
 using DevExpress.Maui.Editors;
 using Dimmer.Data;
+using FieldType =  Dimmer.DimmerSearch.TQL.FieldType;
 using Dimmer.Interfaces;
 using Dimmer.Interfaces.IDatabase;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.LastFM;
 using Dimmer.Utilities.StatsUtils;
+using DynamicData;
 using Google.Android.Material.Dialog;
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific;
@@ -36,35 +39,35 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     [ObservableProperty]
     public partial int NowPlayingQueueItemSpan { get; set; }
 
+    [ObservableProperty]
+    public partial int HomePageIndex { get; set; } = 0;
+
+    
+
 
 
     [ObservableProperty]
-    public partial int NowPlayingTabIndex { get; set; }
+    public partial bool IsNowPlayingUIVisible { get; set; }
 
-    [ObservableProperty]
-    public partial bool NowPlayingUI { get; set; }
-
-    partial void OnNowPlayingTabIndexChanged(int oldValue, int newValue)
+    partial void OnHomePageIndexChanged(int oldValue, int newValue)
     {
 
         switch (newValue)
         {
             case 0:
-                IsNowPlayingQueue = false;
-                IsNowAllSongsQueue = true;
-                NowPlayingUI = false;
+            case 2:
+                IsNowPlayingQueueVisible = true;
+                IsNowAllSongsQueueVisible = true;
 
                 break;
             case 1:
 
 
-                IsNowPlayingQueue = false;
+                IsNowPlayingQueueVisible = false;
 
-                IsNowAllSongsQueue = false;
-                NowPlayingUI = true;
+                IsNowAllSongsQueueVisible = false;
+                IsNowPlayingUIVisible = true;
 
-                break;
-            case 2:
                 break;
             default:
                 break;
@@ -73,9 +76,9 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
 
     [ObservableProperty]
-    public partial bool IsNowPlayingQueue { get; set; }
+    public partial bool IsNowPlayingQueueVisible { get; set; }
     [ObservableProperty]
-    public partial bool IsNowAllSongsQueue { get; set; } = true;
+    public partial bool IsNowAllSongsQueueVisible { get; set; } = true;
 
 
 
@@ -136,7 +139,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
                 var folderPath = pickerResult.Folder?.Path ?? string.Empty;
 
                 // Pass to your logic
-                await AddMusicFolderByPassingToService(folderPath);
+                AddMusicFolderByPassingToService(folderPath);
             }
             else
             {
@@ -483,35 +486,33 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         Connectivity.ConnectivityChanged += Connectivity_ConnectivityChanged;
     }
 
-    public void SubscribeToPlayCount(TextEdit searchBarTextEdit)
+    private DXCollectionView _collectionView;
+
+    
+    [ObservableProperty]
+    public partial string CurrentSortDisplay { get; set; } = "Title";
+
+    [ObservableProperty]
+    public partial string CurrentFilterDisplay { get; set; } = "None";
+    public void SetCollectionView(DXCollectionView collectionView)
     {
-        SearchBarTextEdit = searchBarTextEdit;
-        var newCount = SearchResults.Count;
-        if (!IsSearchResultEmpty)
+        _collectionView = collectionView;
+    }
+ 
+
+    [RelayCommand]
+    private async Task ShowFilterPopup()
+    {
+        if (_collectionView != null)
         {
-
-
-            string fullStr = newCount.ToString();
-            SearchBarTextEdit.Suffix = fullStr;
-            SearchBarTextEdit.Prefix = string.Empty;
-
-
-        }
-        else
-        {
-            //SearchBarTextEdit.Prefix = "🔍";
-            SearchBarTextEdit.StartIcon = new FontImageSource
-            {
-                FontFamily = "Segoe Fluent Icons",
-                Glyph = "\uE721",
-                Size = 16
-            };
-            SearchBarTextEdit.IsStartIconVisible = true;
-            SearchBarTextEdit.Suffix = string.Empty;
-
-
+            var popup = new FilterSortPopup(_collectionView, this);
+            await popup.ShowAsync();
         }
     }
+
+
+
+
     public void ClearSubscriptionToSearchBar()
     {
         SearchBarTextEdit = null;
@@ -540,5 +541,16 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     void UserChangedTrackPosition(double position)
     {
 
+    }
+
+    internal void LoadSongsInitially()
+    {
+        var songs = RealmFactory.GetRealmInstance().All<SongModel>().AsEnumerable().Select(x => x.ToSongModelView()!);
+        if (songs is null) return;
+        SearchResultsHolder.Edit(updater =>
+        {
+            updater.Clear();
+            updater.AddOrUpdate(songs);
+        });
     }
 }

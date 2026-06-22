@@ -13,11 +13,11 @@ public  partial class ChatViewModelWin : ChatViewModel
     public SessionManagementViewModel SessionTransferViewModel => sessionTransferViewModel;
     public BaseViewModel BaseViewModel => baseViewModel;
 
-    public ChatViewModelWin(IChatService chatService, IFriendshipService friendshipService, LoginViewModel _loginViewModel, IAuthenticationService auth
+    public ChatViewModelWin(IChatService chatService, IFriendshipService friendshipService, LoginViewModel _loginViewModel, IAuthenticationService auth,ILiveSessionManagerService sessMgr
        , BaseViewModel baseViewModel, SessionManagementViewModel sessionTransferViewModel) :
-       base(chatService, friendshipService, _loginViewModel, auth, baseViewModel)
+       base(chatService, friendshipService, sessMgr,_loginViewModel, auth, baseViewModel)
     {
-        InitializeGeneralChat();
+       
         this.chatService=chatService;
         this.friendshipService=friendshipService;
         this.auth=auth;

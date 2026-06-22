@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Dimmer.Views.Toolkit.DuplicateFinder"
+    x:Name="myPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:TQlVM="clr-namespace:Dimmer.ViewModel.TQL;assembly=Dimmer"
+    xmlns:dupModels="clr-namespace:Dimmer.Data.ModelView.LibSanityModels;assembly=Dimmer"
+    xmlns:dx="http://schemas.devexpress.com/maui"
+    xmlns:local="clr-namespace:Dimmer.Views.CustomViews"
+    xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+    xmlns:statsVm="clr-namespace:Dimmer.ViewModel;assembly=Dimmer"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:vm="clr-namespace:Dimmer.ViewModels"
+    Title="DupeFInder"
+    x:DataType="vm:BaseViewModelAnd"
+    Shell.NavBarIsVisible="False"
+    >
+
+    <Grid Padding="5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <dx:DXStackLayout
+            Grid.Row="0"
+            Padding="5"
+            ItemSpacing="5"
+            >
+            <dx:DXButton
+                x:Name="ScanDuplicates"
+                Command="{Binding FindDuplicatesCommand}"
+                Content="Scan Duplicates"
+                />
+            <dx:DXStackLayout
+                x:Name="DuplicateCounts"
+                BorderColor="DarkSlateBlue"
+                BorderThickness="1"
+                IsVisible="{Binding IsFindingDuplicates}"
+                >
+                <Label Text="{Binding DuplicateSets.Count, Mode=OneWay}" />
+
+
+            </dx:DXStackLayout>
+
+            <dx:DXStackLayout x:Name="DuplicateScannedActionPanel" Orientation="Horizontal">
+
+                <dx:DXButton
+                    x:Name="ApplyAction"
+                    Clicked="ApplyAction_Clicked"
+                    Content="Apply Action"
+                    VerticalOptions="Center"
+                    />
+
+            </dx:DXStackLayout>
+        </dx:DXStackLayout>
+
+        <dx:RadialProgressBar
+            Grid.Row="1"
+            Fill="DarkSlateBlue"
+            IsIndeterminate="True"
+            IsVisible="{Binding IsVisible, Source={x:Reference DuplicateCounts}, Converter={toolkit:InvertedBoolConverter}}"
+            />
+        <dx:DXCollectionView
+            Grid.Row="1"
+            ItemSpacing="5"
+            ItemsSource="{Binding DuplicateSets}"
+            >
+
+
+            <dx:DXCollectionView.ItemTemplate>
+                <DataTemplate x:DataType="dupModels:DuplicateSetViewModel">
+                    <dx:DXStackLayout
+                        Padding="5"
+                        BorderColor="{AppThemeBinding Dark=White,
+                                                      Light=black}"
+                        BorderThickness="1"
+                        CornerRadius="10"
+                        >
+
+                        <Grid
+                            ColumnDefinitions="80,*"
+                            ColumnSpacing="5"
+                            RowDefinitions="*,auto,auto"
+                            RowSpacing="5"
+                            >
+                            <dx:DXImage
+                                Grid.Row="0"
+                                Grid.Column="0"
+                                Source="{Binding Items[0].Song.CoverImagePath}"
+                                />
+
+                            <Grid Grid.Column="1" ColumnDefinitions="*,auto">
+                                <dx:DXStackLayout
+                                    Grid.Column="0"
+                                    Padding="5"
+                                    CornerRadius="8"
+                                    >
+                                    <Label FontSize="17" Text="{Binding Title}" />
+                                    <Label
+                                        FontAttributes="Italic"
+                                        FontSize="13"
+                                        Text="{Binding Items[0].Song.OtherArtistsName}"
+                                        />
+                                    <Label
+                                        FontAttributes="Italic"
+                                        FontSize="12"
+                                        Text="{Binding Items[0].Song.AlbumName}"
+                                        />
+                                </dx:DXStackLayout>
+
+                                <dx:DXButton
+                                    Grid.Column="1"
+                                    Padding="10"
+                                    BackgroundColor="Transparent"
+                                    BorderColor="{AppThemeBinding Light=Black,
+                                                                  Dark=White}"
+                                    BorderThickness="1"
+                                    Content="Apply Action"
+                                    CornerRadius="10"
+                                    TextColor="{AppThemeBinding Light=Black,
+                                                                Dark=White}"
+                                    VerticalOptions="Center"
+                                    />
+                            </Grid>
+
+                            <dx:DXToggleButton
+                                x:Name="ViewHideDuplicateExpander"
+                                Grid.Row="1"
+                                Grid.ColumnSpan="2"
+                                BackgroundColor="Transparent"
+                                BorderColor="{AppThemeBinding Dark=White,
+                                                              Light=black}"
+                                BorderThickness="1"
+                                CheckedBackgroundColor="DarkSlateBlue"
+                                Content="{Binding Items.Count, StringFormat='View {0} duplicates'}"
+                                TextColor="{AppThemeBinding Dark=White,
+                                                            Light=black}"
+                                />
+
+                            <dx:DXExpander
+                                Grid.Row="2"
+                                Grid.ColumnSpan="2"
+                                IsExpanded="{Binding IsChecked, Source={x:Reference ViewHideDuplicateExpander}}"
+                                MaximumHeightRequest="150"
+                                >
+                                <dx:DXExpander.Content>
+                                    <dx:DataGridView
+                                        AllowVirtualHorizontalScrolling="True"
+                                        AutoGenerateColumnsMode="None"
+                                        ItemsSource="{Binding Items}"
+                                        >
+
+                                        <dx:DataGridView.Columns>
+                                            <dx:TemplateColumn Caption="SongId">
+                                                <dx:TemplateColumn.DisplayTemplate>
+                                                    <DataTemplate x:DataType="dx:CellData">
+                                                        <Label x:Name="TestBtn" Text="{Binding Item.Song.Id}" />
+
+                                                    </DataTemplate>
+                                                </dx:TemplateColumn.DisplayTemplate>
+                                            </dx:TemplateColumn>
+                                            <dx:TextColumn Width="*" FieldName="Status" />
+                                            <dx:TextColumn Width="*" FieldName="Reasons" />
+                                            <dx:TextColumn Width="*" FieldName="Action" />
+                                        </dx:DataGridView.Columns>
+                                    </dx:DataGridView>
+                                </dx:DXExpander.Content>
+                            </dx:DXExpander>
+                        </Grid>
+
+                    </dx:DXStackLayout>
+                </DataTemplate>
+
+            </dx:DXCollectionView.ItemTemplate>
+        </dx:DXCollectionView>
+    </Grid>
+</ContentPage>

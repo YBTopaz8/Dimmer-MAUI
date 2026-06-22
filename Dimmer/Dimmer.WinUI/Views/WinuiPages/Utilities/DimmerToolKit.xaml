@@ -7,6 +7,7 @@
     xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
     xmlns:convertersWinUI="using:Dimmer.WinUI.Utils.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:dev="using:DevWinUI"
     xmlns:dgView="using:WinUI.TableView"
     xmlns:dimmSearch="clr-namespace:Dimmer.Data.ModelView.DimmerSearch;assembly=Dimmer"
     xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
@@ -23,12 +24,21 @@
     mc:Ignorable="d"
     >
 
-    <Grid Padding="10">
+    <Pivot x:Name="MainPivotView" >
+        <PivotItem Header="Duplicate Section">
+            
+
+    <Grid Padding="10" RowSpacing="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <StackPanel Grid.Row="0" Padding="5">
+
+        <StackPanel
+            Grid.Row="0"
+            Padding="5"
+            Spacing="10"
+            >
             <Button
                 x:Name="ScanDuplicates"
                 Command="{x:Bind MyViewModel.FindDuplicatesCommand}"
@@ -58,6 +68,9 @@
 
             </StackPanel>
         </StackPanel>
+        <Grid Grid.Row="1" Visibility="{x:Bind MyViewModel.IsDuplicateFound, Converter={StaticResource InvBoolToVis}, Mode=OneWay}">
+            <dev:ProgressRing IsActive="True" />
+        </Grid>
 
         <ScrollViewer Grid.Row="1">
             <ItemsRepeater ItemsSource="{x:Bind MyViewModel.DuplicateSets}">
@@ -76,13 +89,8 @@
                                 BorderBrush="DarkSlateBlue"
                                 BorderThickness="1"
                                 Orientation="Horizontal"
+                                Spacing="10"
                                 >
-
-                                <StackPanel>
-                                    <TextBlock Text="{Binding Title}" />
-                                    <TextBlock Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" />
-                                    <CheckBox Content="Is Resolved" IsChecked="{Binding IsResolved}" />
-                                </StackPanel>
                                 <StackPanel>
                                     <Image
                                         Grid.RowSpan="2"
@@ -96,16 +104,46 @@
                                         </Image.Source>
                                     </Image>
                                 </StackPanel>
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Title}" />
+                                    <TextBlock Text="{Binding DurationInSeconds, Converter={StaticResource DurationConverter}}" />
+
+                                </StackPanel>
+
                             </StackPanel>
 
                             <dgView:TableView
                                 Grid.Row="1"
+                                MaxHeight="250"
                                 AutoGenerateColumns="False"
                                 IsMultiSelectCheckBoxEnabled="True"
                                 ItemsSource="{Binding Items}"
                                 SelectionMode="None"
                                 >
                                 <dgView:TableView.Columns>
+
+                                    <dgView:TableViewTemplateColumn Header="Action">
+                                        <dgView:TableViewTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <ComboBox
+                                                    Width="200"
+                                                    Margin="10"
+                                                    PlaceholderText="Pick Action"
+                                                    SelectedItem="{Binding Action, Converter={StaticResource EnumToStringConver}}"
+                                                    SelectionChanged="ActionComboBox_SelectionChanged"
+                                                    >
+                                                    <x:String>Keep</x:String>
+                                                    <x:String>Delete</x:String>
+                                                    <x:String>Do Nothing</x:String>
+
+                                                </ComboBox>
+
+
+                                            </DataTemplate>
+                                        </dgView:TableViewTemplateColumn.CellTemplate>
+                                    </dgView:TableViewTemplateColumn>
+
+
                                     <dgView:TableViewTemplateColumn Width="*" Header="Song">
                                         <dgView:TableViewTemplateColumn.CellTemplate>
                                             <DataTemplate>
@@ -126,7 +164,7 @@
                                     <dgView:TableViewTemplateColumn Header="Artist - Album">
                                         <dgView:TableViewTemplateColumn.CellTemplate>
                                             <DataTemplate>
-                                                <StackPanel>
+                                                <StackPanel Margin="5" Spacing="5">
 
                                                     <TextBlock Text="{Binding Song.ArtistName}" />
                                                     <TextBlock Text="{Binding Song.AlbumName}" />
@@ -183,25 +221,6 @@
                                     <dgView:TableViewTextColumn Binding="{Binding Status}" Header="Status" />
                                     <dgView:TableViewTextColumn Binding="{Binding Reasons}" Header="Reason" />
 
-                                    <dgView:TableViewTemplateColumn Header="Action">
-                                        <dgView:TableViewTemplateColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <ComboBox
-                                                    Width="200"
-                                                    PlaceholderText="Pick Action"
-                                                    SelectedItem="{Binding Action, Converter={StaticResource EnumToStringConver}}"
-                                                    SelectionChanged="ActionComboBox_SelectionChanged"
-                                                    >
-                                                    <x:String>Keep</x:String>
-                                                    <x:String>Delete</x:String>
-                                                    <x:String>Do Nothing</x:String>
-
-                                                </ComboBox>
-
-
-                                            </DataTemplate>
-                                        </dgView:TableViewTemplateColumn.CellTemplate>
-                                    </dgView:TableViewTemplateColumn>
 
                                 </dgView:TableView.Columns>
                             </dgView:TableView>
@@ -216,4 +235,16 @@
 
         </ScrollViewer>
     </Grid>
+
+
+        </PivotItem>
+
+        <PivotItem Header="File Presence Section">
+            <StackPanel>
+                <Button Content="Check File Presence" Command="{x:Bind MyViewModel.ValidateLibraryCommand}"/>
+
+            </StackPanel>
+        </PivotItem>
+    </Pivot>
+
 </Page>

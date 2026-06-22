@@ -8,6 +8,7 @@
     xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
     xmlns:convertersWinUI="using:Dimmer.WinUI.Utils.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:devWin="using:DevWinUI"
     xmlns:dgView="using:WinUI.TableView"
     xmlns:dimmSearch="clr-namespace:Dimmer.Data.ModelView.DimmerSearch;assembly=Dimmer"
     xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
@@ -65,149 +66,6 @@
             RowSpacing="10"
             Visibility="Visible"
             >
-            <Grid.RowDefinitions>
-                <RowDefinition Height="auto" />
-                <RowDefinition Height="*" />
-                <RowDefinition Height="auto" />
-            </Grid.RowDefinitions>
-
-            <Grid Grid.Row="0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-
-                <StackPanel
-                    BorderThickness="1"
-                    CornerRadius="00"
-                    PointerReleased="StackPanel_PointerReleased"
-                    Spacing="5"
-                    >
-
-
-
-
-
-                    <StackPanel
-                        HorizontalAlignment="Left"
-                        Orientation="Horizontal"
-                        Spacing="10"
-                        >
-                        <Button
-                            x:Name="ViewQueueBtn"
-                            Click="ViewQueue_Click"
-                            Content="View Queue"
-                            />
-
-                        <Button Command="{x:Bind MyViewModel.ScrollToRequestedSongCommand}">
-                            <SymbolIcon Symbol="View" />
-                        </Button>
-
-                        <Button
-                            x:Name="ShowFavSongs"
-                            Click="ShowFavSongs_Click"
-                            PointerReleased="MiddlePointer_PointerReleased"
-                            RightTapped="ShowFavSongs_RightTapped"
-                            ToolTipService.ToolTip="Show Favorite Songs. TQL command: My Fav"
-                            >
-                            <FontIcon Glyph="&#xF6B8;" />
-                        </Button>
-
-                        <Button
-                            x:Name="ShowSongWithLyrics"
-                            Click="ShowSongWithLyrics_Click"
-                            PointerReleased="MiddlePointer_PointerReleased"
-                            RightTapped="ShowSongWithLyrics_RightTapped"
-                            ToolTipService.ToolTip="Show Songs with Lyrics. TQL command: Has Lyrics"
-                            >
-                            <FontIcon Glyph="&#xE8BD;" />
-                        </Button>
-
-                        <Button
-                            x:Name="ShuffleSongs"
-                            Click="ShuffleSongs_Click"
-                            Content="Shuffle"
-                            PointerReleased="MiddlePointer_PointerReleased"
-                            />
-
-                        <SplitButton
-                            x:Name="SortByWithTQL"
-                            Click="SortByWithTQL_Click"
-                            Content="Sort By"
-                            IsEnabled="True"
-                            Loaded="SortByWithTQL_Loaded"
-                            Visibility="Visible"
-                            >
-                            <SplitButton.Flyout>
-                                <MenuFlyout>
-                                    <RadioMenuFlyoutItem
-                                        Click="SortClick"
-                                        GroupName="SortGroup"
-                                        Tag="title"
-                                        Text="Title"
-                                        />
-                                    <RadioMenuFlyoutItem
-                                        Click="SortClick"
-                                        GroupName="SortGroup"
-                                        Tag="artist"
-                                        Text="Artist"
-                                        />
-                                    <RadioMenuFlyoutItem
-                                        Click="SortClick"
-                                        GroupName="SortGroup"
-                                        Tag="album"
-                                        Text="Album"
-                                        />
-                                    <RadioMenuFlyoutItem
-                                        Click="SortClick"
-                                        GroupName="SortGroup"
-                                        Tag="dims"
-                                        Text="Play Count"
-                                        />
-                                    <RadioMenuFlyoutItem
-                                        Click="SortClick"
-                                        GroupName="SortGroup"
-                                        Tag="added"
-                                        Text="Added"
-                                        Visibility="Collapsed"
-                                        />
-
-                                    <!--<MenuFlyoutSeparator />-->
-                                    <MenuFlyoutItem
-                                        Click="OpenHelp"
-                                        Text="More fields..."
-                                        Visibility="Collapsed"
-                                        />
-                                </MenuFlyout>
-                            </SplitButton.Flyout>
-                        </SplitButton>
-                    </StackPanel>
-
-                    <StackPanel
-                        x:Name="SearchTextBoxPanel"
-                        HorizontalAlignment="Left"
-                        Orientation="Vertical"
-                        Spacing="10"
-                        >
-
-                        <TextBox
-                            x:Name="SearchTextBox"
-                            Width="400"
-                            PlaceholderText="Search With TQL..."
-                            TextChanged="SearchAutoSuggestBox_TextChanged"
-                            />
-
-
-                        <TextBlock VerticalAlignment="Center" Text="{x:Bind MyViewModel.SearchResults.Count, Mode=OneWay}" />
-
-                    </StackPanel>
-
-                    <TextBlock Text="{x:Bind MyViewModel.CurrentTqlQueryUI, Mode=OneWay}" />
-
-
-                </StackPanel>
-
-            </Grid>
 
             <Grid Grid.Row="1" Visibility="Visible">
                 <dgView:TableView
@@ -218,24 +76,14 @@
                     AllowFocusWhenDisabled="False"
                     AutoGenerateColumns="False"
                     CanDragItems="True"
-                    CellContextFlyoutOpening="MySongsTableView_CellContextFlyoutOpening"
                     CellDoubleTapped="MySongsTableView_CellDoubleTapped"
                     DoubleTapped="TableView_DoubleTapped"
-                    DragItemsCompleted="MySongsTableView_DragItemsCompleted"
-                    DragItemsStarting="MySongsTableView_DragItemsStarting"
-                    DragStarting="MySongsTableView_DragStarting"
-                    ExportSelectedContent="TableView_ExportSelectedContent"
                     IsItemClickEnabled="True"
                     IsMultiSelectCheckBoxEnabled="True"
                     IsRightTapEnabled="True"
                     IsSwipeEnabled="False"
-                    ItemClick="MySongsTableView_ItemClick"
                     ItemsSource="{x:Bind MyViewModel.SearchResults}"
                     Loaded="MySongsTableView_Loaded"
-                    PointerEntered="MySongsTableView_PointerEntered"
-                    PointerExited="MySongsTableView_PointerExited"
-                    PointerPressed="TableView_PointerPressed"
-                    PointerReleased="MySongsTableView_PointerReleased"
                     RightTapped="MySongsTableView_RightTapped"
                     SelectionChanged="MySongsTableView_SelectionChanged"
                     SelectionMode="Single"
@@ -287,18 +135,17 @@
                                                 >
 
 
-
-                                                <SymbolIcon
+                                                <FontIcon
                                                     Foreground="SlateBlue"
-                                                    Symbol="Play"
+                                                    Glyph="&#xE768;"
                                                     Visibility="{Binding IsCurrentPlayingHighlight, Converter={StaticResource BoolToVisibilityConverter}}"
                                                     />
 
-                                                <SymbolIcon
+                                                <FontIcon
                                                     Width="20"
                                                     Height="20"
                                                     Foreground="SlateBlue"
-                                                    Symbol="Microphone"
+                                                    Glyph="&#xE720;"
                                                     Visibility="{Binding HasSyncedLyrics, Converter={StaticResource BoolToVisibilityConverter}}"
                                                     />
 
@@ -412,7 +259,7 @@
 
                         <dgView:TableViewTextColumn
                             x:Name="PlayCompletedCount"
-                            Width="*"
+                            Width="80"
                             Binding="{Binding PlayCompletedCount}"
                             Header="🎶"
                             IsReadOnly="True"
@@ -420,7 +267,7 @@
 
                         <dgView:TableViewCheckBoxColumn
                             x:Name="IsFavorite"
-                            Width="120"
+                            Width="140"
                             Binding="{Binding IsFavorite}"
                             Header="Favorite?"
                             IsReadOnly="True"
@@ -433,27 +280,27 @@
                     </dgView:TableView.Columns>
                 </dgView:TableView>
 
+                <devWin:OrbitLoadingIndicator
+                    x:Name="LoadingIndicator"
+                    Width="150"
+                    Height="150"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    IsBusy="true"
+                    Loaded="LoadingIndicator_Loaded"
+                    />
+                <devWin:GotoTop
+                    Margin="0,0,20,20"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Animated="True"
+                    AutoHiding="True"
+                    Tapped="GotoTop_Tapped"
+                    Target="{Binding ElementName=MySongsTableView}"
+                    />
             </Grid>
 
 
-            <StackPanel x:Name="BtmLogPanel" Grid.Row="2">
-
-                <Button
-                    HorizontalAlignment="Center"
-                    Background="Transparent"
-                    BorderThickness="1"
-                    >
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <TextBlock Text="{x:Bind MyViewModel.SearchResults.Count, Mode=OneWay}" />
-                        <TextBlock Text="Songs" />
-                    </StackPanel>
-                </Button>
-                <StackPanel Orientation="Horizontal">
-
-
-                    <TextBlock VerticalAlignment="Center" Text="{Binding LatestAppLog.Message}" />
-                </StackPanel>
-            </StackPanel>
         </Grid>
 
 
