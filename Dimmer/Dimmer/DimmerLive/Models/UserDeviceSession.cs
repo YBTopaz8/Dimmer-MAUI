@@ -3,6 +3,12 @@
 [ParseClassName("UserDeviceSession")]
 public class UserDeviceSession : ParseObject
 {
+    [ParseFieldName("deviceAlias")]
+    public string DeviceAlias
+    {
+        get => GetProperty<string>();
+        set => SetProperty(value);
+    }
     [ParseFieldName("sessionId")]
     public string SessionId
     {
