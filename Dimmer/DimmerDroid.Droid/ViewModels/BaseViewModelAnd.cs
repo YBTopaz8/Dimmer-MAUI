@@ -47,7 +47,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
 
     [ObservableProperty]
-    public partial bool IsNowPlayingUIVisible { get; set; }
+    public partial bool IsTopBarVisible { get; set; }
 
     partial void OnHomePageIndexChanged(int oldValue, int newValue)
     {
@@ -55,30 +55,16 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         switch (newValue)
         {
             case 0:
-            case 2:
-                IsNowPlayingQueueVisible = true;
-                IsNowAllSongsQueueVisible = true;
-
-                break;
+                IsTopBarVisible = true;
+            break;
             case 1:
-
-
-                IsNowPlayingQueueVisible = false;
-
-                IsNowAllSongsQueueVisible = false;
-                IsNowPlayingUIVisible = true;
-
+            case 2:
+                IsTopBarVisible = false;
                 break;
             default:
                 break;
         }
     }
-
-
-    [ObservableProperty]
-    public partial bool IsNowPlayingQueueVisible { get; set; }
-    [ObservableProperty]
-    public partial bool IsNowAllSongsQueueVisible { get; set; } = true;
 
 
 

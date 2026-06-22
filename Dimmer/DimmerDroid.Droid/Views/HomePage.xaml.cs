@@ -1177,6 +1177,11 @@ public partial class HomePage : ContentPage
         await Shell.Current.GoToAsync(nameof(SettingsPage));
     }
 
+    private void ApplyShuffleOnSongs_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
 
 
 

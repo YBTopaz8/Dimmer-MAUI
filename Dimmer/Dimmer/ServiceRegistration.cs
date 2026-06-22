@@ -148,6 +148,7 @@ public static class ServiceRegistration
         // Transients for ViewModels
         services.AddSingleton<SocialViewModel>();
 
+        services.AddSingleton<AutocompleteEngine>();
         services.AddSingleton<AchievementsViewModel>();
         services.AddSingleton<SongAchievementsViewModel>();
 

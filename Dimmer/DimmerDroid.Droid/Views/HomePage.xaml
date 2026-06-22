@@ -175,7 +175,8 @@
         RowDefinitions="auto,*"
         RowSpacing="5"
         >
-        <dx:DXExpander Grid.Row="0" IsExpanded="{Binding IsNowPlayingUIVisible, Converter={conv:BoolToInverseConverter}}">
+        <dx:DXExpander Grid.Row="0" IsExpanded="{Binding IsTopBarVisible}">
+
             <dx:DXExpander.Content>
 
                 <dx:DXStackLayout>
@@ -230,7 +231,8 @@
                         Suffix="{Binding VisibleItemCount, Source={x:Reference SongsCV}}"
                         TextChanged="SearchText_TextChanged"
                         />
-
+                   
+                    
 
                 </dx:DXStackLayout>
             </dx:DXExpander.Content>
@@ -1191,6 +1193,13 @@
                         ItemSpacing="15"
                         Orientation="Horizontal"
                         >
+                        <dx:DXButton
+                            x:Name="ApplyShuffleOnSongs"
+                            Clicked="ApplyShuffleOnSongs_Clicked"
+                            Icon="shuffle.png"
+                            ShowContent="False"
+                            ShowIcon="True"
+                            />
                         <dx:DXButton
                             x:Name="ScrollToFirstSongs"
                             Padding="2"

@@ -100,14 +100,16 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
         });
         DevSessionSubscription.On(Subscription.Event.Update, cmd =>
         {
-            if(cmd.DeviceId == MyDeviceId)
+            if (cmd.DeviceId == MyDeviceId)
             {
                 _myCurrentSession = cmd;
                 _logger.LogInformation("My device session created: {SessionId}", cmd.ObjectId);
             }
+            if (_otherDevicesCache.Items.FirstOrDefault(x => x.ObjectId == cmd.ObjectId) != null)
+            {  
                 _otherDevicesCache.AddOrUpdate(cmd);
                 _logger.LogInformation("Other device session created: {SessionId}", cmd.ObjectId);
-            
+            }
             
 
         });
