@@ -149,8 +149,19 @@ public class AstParser
         }
 
         if (!IsValueToken(nextToken.Type))
-            throw new ParsingException($"Expected a value for field '{field}' but found '{nextToken.Text}'.", nextToken.Position);
-
+        {
+            FieldRegistry.FieldsByAlias.TryGetValue(field, out var fieldDeff);
+            string example = fieldDeff?.Type switch
+            {
+                FieldType.Numeric => "5",
+                FieldType.Boolean => "true",
+                FieldType.Date => "today",
+                FieldType.Duration => "3:30",
+                _ => "\"value\""
+            };
+            throw new ParsingException($"Expected a value for '{field}'. Example: {field}:{example}", nextToken.Position);
+        }
+    
         var valueToken = Consume(nextToken.Type);
 
         if (Match(TokenType.Minus))
@@ -216,10 +227,29 @@ public class AstParser
                 return new FuzzyDateNode(field, FuzzyDateNode.Qualifier.Never, op);
             case "ago":
                 Consume(TokenType.LeftParen, "Expected '(' after 'ago'.");
-                var agoVal = Consume(TokenType.StringLiteral, "Expected a time string like \"30d\" or \"1y\".");
+                string val = "";
+
+                // Support both "30d" (StringLiteral) AND 30d (Number + Identifier)
+                if (Peek().Type == TokenType.StringLiteral)
+                {
+                    val = Consume(TokenType.StringLiteral).Text;
+                }
+                else if (Peek().Type == TokenType.Number)
+                {
+                    val = Consume(TokenType.Number).Text;
+                    if (Peek().Type == TokenType.Identifier)
+                    {
+                        val += Consume(TokenType.Identifier).Text; // Append 'd', 'w', etc.
+                    }
+                }
+                else
+                {
+                    throw new ParsingException("Expected a time span (e.g. \"30d\" or 30d).");
+                }
+
                 Consume(TokenType.RightParen, "Expected ')' after time string.");
-                // --- ADD: Pass the operator to the node ---
-                return new FuzzyDateNode(field, FuzzyDateNode.Qualifier.Ago, op, ParseTimeSpan(agoVal.Text));
+                return new FuzzyDateNode(field, FuzzyDateNode.Qualifier.Ago, op, ParseTimeSpan(val));
+
             case "between":
                 Consume(TokenType.LeftParen, "Expected '(' after 'between'.");
                 var olderValToken = Consume(TokenType.StringLiteral, "Expected the 'older' time string.");

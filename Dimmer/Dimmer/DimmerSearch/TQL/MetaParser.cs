@@ -79,18 +79,41 @@ public static class MetaParser
     // New helper to replace the complex and flawed segmentation system.
     private static (List<Token> filterTokens, List<Token> directiveTokens) SeparateFilterAndDirectives(List<Token> allTokens)
     {
-        // Directives are only valid at the very end of a query.
-        // We find the first directive token and split the list there.
-        int firstDirectiveIndex = allTokens.FindIndex(t => _directiveKeywords.Contains(t.Type));
+        var filterTokens = new List<Token>();
+        var directiveTokens = new List<Token>();
 
-        if (firstDirectiveIndex == -1)
+        for (int i = 0; i < allTokens.Count; i++)
         {
-            // No directives found, all tokens are for filtering.
-            return (allTokens, new List<Token>());
-        }
+            var token = allTokens[i];
+            if (token.Type is TokenType.Asc or TokenType.Desc)
+            {
+                directiveTokens.Add(token);
+                if (i + 1 < allTokens.Count && allTokens[i + 1].Type == TokenType.Identifier)
+                    directiveTokens.Add(allTokens[++i]);
+            }
+            else if (token.Type is TokenType.First or TokenType.Last or TokenType.Random or TokenType.Shuffle)
+            {
+                directiveTokens.Add(token);
+                if (i + 1 < allTokens.Count && allTokens[i + 1].Type == TokenType.Number)
+                    directiveTokens.Add(allTokens[++i]);
 
-        var filterTokens = allTokens.Take(firstDirectiveIndex).ToList();
-        var directiveTokens = allTokens.Skip(firstDirectiveIndex).ToList();
+                // Safely capture bias: shuffle by rating desc
+                if (i + 1 < allTokens.Count && allTokens[i + 1].Type == TokenType.Identifier && allTokens[i + 1].Text.Equals("by", StringComparison.OrdinalIgnoreCase))
+                {
+                    directiveTokens.Add(allTokens[++i]); // 'by'
+                    if (i + 1 < allTokens.Count && allTokens[i + 1].Type == TokenType.Identifier)
+                    {
+                        directiveTokens.Add(allTokens[++i]); // field
+                        if (i + 1 < allTokens.Count && allTokens[i + 1].Type is TokenType.Asc or TokenType.Desc)
+                            directiveTokens.Add(allTokens[++i]); // desc/asc
+                    }
+                }
+            }
+            else
+            {
+                filterTokens.Add(token); // Safely keep all non-directives (like "add my fav")
+            }
+        }
 
         return (filterTokens, directiveTokens);
     }

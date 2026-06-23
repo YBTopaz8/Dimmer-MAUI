@@ -77,10 +77,10 @@ public static class AstSplitter
 
     private static bool IsDatabaseNode(IQueryNode node) => node switch
 {
-    ClauseNode => true,
-    FuzzyDateNode => true,
-   
 
+    ClauseNode c when FieldRegistry.FieldsByAlias.TryGetValue(c.Field, out var def) && def.Type == FieldType.Date => false,
+    ClauseNode => true,
+    FuzzyDateNode => false,
     // For logical/container nodes, this isn't a leaf, so we traverse deeper.
     // Returning true here ensures we don't prematurely replace them.
     _ => false
