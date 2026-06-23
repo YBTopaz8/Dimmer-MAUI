@@ -1381,6 +1381,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
     [ObservableProperty]
+    public partial AppStateModel CurrentAppState { get;  set; }
+
+    [ObservableProperty]
     public partial bool OpenMediaUIOnNotificationTap { get;  set; }
     public async Task OnAppOpeningAsync()
     {
@@ -1388,18 +1391,18 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             var realm = RealmFactory.GetRealmInstance();
             // Use FirstOrDefault() to be safer and slightly more efficient than .ToList()
-            var appModel = realm.All<AppStateModel>().FirstOrDefaultNullSafe();
+            var CurrentAppState = realm.All<AppStateModel>().FirstOrDefaultNullSafe();
 
             // get last dimmerevent
 
             //await LoadLastPlaybackSession();
             var lastAppEvent = realm.All<DimmerPlayEvent>().LastOrDefaultNullSafe();
-            if (appModel != null && appModel.Id != ObjectId.Empty)
+            if (CurrentAppState != null && CurrentAppState.Id != ObjectId.Empty)
             {
 
-                if (appModel.LastKnownPlaybackQuery is not null)
+                if (CurrentAppState.LastKnownPlaybackQuery is not null)
                 {
-                    var removeCOmmandFromLastSaved = appModel.LastKnownPlaybackQuery.Replace(">>addnext!", "");
+                    var removeCOmmandFromLastSaved = CurrentAppState.LastKnownPlaybackQuery.Replace(">>addnext!", "");
 
                     removeCOmmandFromLastSaved = Regex.Replace(
                         removeCOmmandFromLastSaved,
@@ -1420,18 +1423,18 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     CurrentPlaybackQuery = removeCOmmandFromLastSaved;
                 }
 
-                _currentPlayinSongIndexInPlaybackQueue = appModel.LastKnownPlaybackQueueIndex;
-                IsShuffleActive = appModel.ShuffleStatePreference;
-                CurrentRepeatMode = (RepeatMode)appModel.LastKnownRepeatState;
-                OpenMediaUIOnNotificationTap = appModel.OpenMediaUIOnNotificationTap;
-                CurrentTrackPositionSeconds = appModel.LastKnownPosition;
-                DeviceVolumeLevel = appModel.VolumeLevelPreference;
-                IsDarkModeOn = appModel.IsDarkModePreference;
+                _currentPlayinSongIndexInPlaybackQueue = CurrentAppState.LastKnownPlaybackQueueIndex;
+                IsShuffleActive = CurrentAppState.ShuffleStatePreference;
+                CurrentRepeatMode = (RepeatMode)CurrentAppState.LastKnownRepeatState;
+                OpenMediaUIOnNotificationTap = CurrentAppState.OpenMediaUIOnNotificationTap;
+                CurrentTrackPositionSeconds = CurrentAppState.LastKnownPosition;
+                DeviceVolumeLevel = CurrentAppState.VolumeLevelPreference;
+                IsDarkModeOn = CurrentAppState.IsDarkModePreference;
                 //ScrobbleToLastFM = appModel.ScrobbleToLastFM;
-                KeepScreenOnDuringLyrics = appModel.KeepScreenOnDuringLyrics;
+                KeepScreenOnDuringLyrics = CurrentAppState.KeepScreenOnDuringLyrics;
                 // --- REPLACED: Logic to load the last played song ---
-                if (!string.IsNullOrEmpty(appModel.CurrentSongId) &&
-                    ObjectId.TryParse(appModel.CurrentSongId, out var songId))
+                if (!string.IsNullOrEmpty(CurrentAppState.CurrentSongId) &&
+                    ObjectId.TryParse(CurrentAppState.CurrentSongId, out var songId))
                 {
                     SongModel? songModel=new();
                     if (songId == ObjectId.Empty)

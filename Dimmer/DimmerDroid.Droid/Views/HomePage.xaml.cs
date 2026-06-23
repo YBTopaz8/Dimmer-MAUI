@@ -1179,6 +1179,17 @@ public partial class HomePage : ContentPage
 
     private void ApplyShuffleOnSongs_Clicked(object sender, EventArgs e)
     {
+        if (string.IsNullOrEmpty(MyViewModel.CurrentTqlQueryUI))
+        {
+            MyViewModel.SearchToTQL("shuffle");
+
+            return;
+
+        }
+
+        MyViewModel.SearchToTQL(MyViewModel.CurrentTqlQueryUI + " shuffle");    
+
+
 
     }
 

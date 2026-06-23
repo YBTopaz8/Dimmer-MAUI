@@ -231,8 +231,8 @@
                         Suffix="{Binding VisibleItemCount, Source={x:Reference SongsCV}}"
                         TextChanged="SearchText_TextChanged"
                         />
-                   
-                    
+
+
 
                 </dx:DXStackLayout>
             </dx:DXExpander.Content>
@@ -1197,6 +1197,7 @@
                             x:Name="ApplyShuffleOnSongs"
                             Clicked="ApplyShuffleOnSongs_Clicked"
                             Icon="shuffle.png"
+                            IconColor="DarkSlateBlue"
                             ShowContent="False"
                             ShowIcon="True"
                             />

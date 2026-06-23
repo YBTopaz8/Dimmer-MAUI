@@ -42,12 +42,8 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     [ObservableProperty]
     public partial int HomePageIndex { get; set; } = 0;
 
-    
-
-
-
     [ObservableProperty]
-    public partial bool IsTopBarVisible { get; set; }
+    public partial bool IsTopBarVisible { get; set; } = true;
 
     partial void OnHomePageIndexChanged(int oldValue, int newValue)
     {

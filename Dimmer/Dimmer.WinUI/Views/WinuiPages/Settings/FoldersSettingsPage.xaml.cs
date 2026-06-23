@@ -24,7 +24,7 @@ public sealed partial class FoldersSettingsPage : Page
         }
         
         MyViewModel = vm;
-
+        MyViewModel.FolderPaths = MyViewModel.OnAppOpeningAsync
         MyViewModel.CurrentPageEnum = CurrentPage.HomePage;
 
         this.DataContext = MyViewModel;
