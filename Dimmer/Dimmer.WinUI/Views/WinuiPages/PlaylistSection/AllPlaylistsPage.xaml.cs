@@ -49,8 +49,10 @@ public sealed partial class AllPlaylistsPage : Page
 
     private void PlaylistsListView_Tapped(object sender, TappedRoutedEventArgs e)
     {
-        var pl = (e.OriginalSource as  Microsoft.UI.Xaml.Controls.Primitives.ListViewItemPresenter).DataContext as PlaylistModelView
+        var pl = (e.OriginalSource as  Microsoft.UI.Xaml.Controls.Primitives.ListViewItemPresenter)?.DataContext as PlaylistModelView
         ;
+
+        if (pl is not null) return;
         MyViewModel.SelectedPlaylist = pl;
 
         MyViewModel.NavigateToAnyPageOfGivenType(typeof(SinglePlaylistPage));
