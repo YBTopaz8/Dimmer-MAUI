@@ -59,6 +59,7 @@ public static class NaturalLanguageProcessor
                 processedQuery = pattern.Replace(processedQuery, replacement, 1);
             }
         }
+        processedQuery = Regex.Replace(processedQuery, @"\s+(?!and|or|not|add|include|exclude|remove|asc|desc|shuffle|random|first|last|by|[a-zA-Z0-9_]+:)(\w+)", " any:$1", RegexOptions.IgnoreCase);
 
         return processedQuery.Trim();
     }

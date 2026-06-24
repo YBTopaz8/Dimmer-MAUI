@@ -28,7 +28,7 @@ public sealed partial class AllSongsListPage : Page
         _compositor = ElementCompositionPreview.GetElementVisual(this).Compositor;
 
         _userPrefAnim = SongTransitionAnimation.Spring;
-        compositeDisposable = new();
+       
     }
     BaseViewModelWin MyViewModel { get; set; }
 
@@ -458,7 +458,7 @@ public sealed partial class AllSongsListPage : Page
     protected override async void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
-        
+        compositeDisposable = new();
         var vm = e.Parameter as BaseViewModelWin;
         // The parameter passed from Frame.Navigate is in e.Parameter.
         // Cast it to your ViewModel type and set your properties.
@@ -500,6 +500,7 @@ public sealed partial class AllSongsListPage : Page
 
 
         CurrentPageTQL = MyViewModel.CurrentTqlQuery;
+        compositeDisposable.Dispose();
     }
 
  
@@ -1312,9 +1313,13 @@ public sealed partial class AllSongsListPage : Page
             {
                 LoadingIndicator.Visibility = Visibility.Collapsed;
             }
-            Debug.WriteLine(MySongsTableView.Items.Count);
-            Debug.WriteLine(e.Index);
-            Debug.WriteLine(e.CollectionChange);
+            else
+            {
+                if(!MyViewModel.IsTqlBusy)
+                {
+                    LoadingIndicator.Visibility = Visibility.Collapsed;
+                }
+            }
 
         };
         MyViewModel.WhenPropertyChange(nameof(MyViewModel.IsTqlBusy), c => MyViewModel.IsTqlBusy)
@@ -1330,10 +1335,11 @@ public sealed partial class AllSongsListPage : Page
              LoadingIndicator.Visibility = Visibility.Collapsed;
          }
 
-     });
+     }).DisposeWith(compositeDisposable);
 
 
     }
+
 
    
 }

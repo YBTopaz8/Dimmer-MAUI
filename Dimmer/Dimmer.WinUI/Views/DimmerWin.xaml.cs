@@ -1,6 +1,7 @@
 using DevWinUI;
 using Dimmer.WinUI.Views.CustomViews.WinuiViews;
 using Dimmer.WinUI.Views.WinuiPages.AlbumSection;
+using Dimmer.WinUI.Views.WinuiPages.PlaylistSection;
 using Microsoft.UI.Composition.SystemBackdrops;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
@@ -660,7 +661,12 @@ public sealed partial class DimmerWin : Window
             ContentFrame.BackStack.Clear();
        
     }
+    private void PlaylistsBtn_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        ContentFrame.NavigateToType(typeof(AllPlaylistsPage), MyViewModel, null);
+        ContentFrame.BackStack.Clear();
 
+    }
     private void AlbumsBtn_Tapped(object sender, TappedRoutedEventArgs e)
     {
 
@@ -848,5 +854,77 @@ public sealed partial class DimmerWin : Window
             await loginVM.NavigateToProfilePageAsync();
 
         }
+    }
+
+    private void ShowNowPlayingQueue_Click(object sender, RoutedEventArgs e)
+    {
+        
+    }
+
+    private async void SaveQueueToPlaylist_Click(object sender, RoutedEventArgs e)
+    {
+        var res = await Shell.Current.DisplayPromptAsync("Add Playlist Title",
+     "Enter Playlist Name", "OK", "Cancel", "Summer Vibe", -1, Keyboard.Text);
+        if (string.IsNullOrEmpty(res)) return;
+
+        await MyViewModel.AddToPlaylistAsync(res, MyViewModel.SearchResults, MyViewModel.CurrentTqlQueryUI);
+    }
+
+    private void ApplyShuffleToTql_Click(object sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrEmpty(MyViewModel.CurrentTqlQueryUI))
+        {
+            MyViewModel.CurrentTqlQueryUI = "shuffle";
+        }
+        else
+        {
+            if (MyViewModel.CurrentTqlQueryUI.Contains("shuffle"))
+            {
+                MyViewModel.CurrentTqlQueryUI = MyViewModel.CurrentTqlQueryUI.Replace("shuffle", string.Empty);
+            }
+            MyViewModel.CurrentTqlQueryUI = $"{MyViewModel.CurrentTqlQueryUI} shuffle";
+        }
+
+    }
+
+    private void ShowNowPlayingQueue_Checked(object sender, RoutedEventArgs e)
+    {
+        MyViewModel.CopyAllSongsInNowPlayingQueueToMainSearchResult();
+        ShowNowPlayingQueue.Content = "Show My List";
+    }
+
+    private async void ShowNowPlayingQueue_Unchecked(object sender, RoutedEventArgs e)
+    {
+        await MyViewModel.RevertBackToNowPlayingSongsAsync();
+        ShowNowPlayingQueue.Content = "Show Now Playing Queue";
+    }
+
+    private void SearchResultErrorText_Loaded(object sender, RoutedEventArgs e)
+    {
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.TQLUserSearchErrorMessage), v=>MyViewModel.TQLUserSearchErrorMessage)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(msg =>
+            {
+                SearchResultErrorText.Text = msg;
+            }).DisposeWith(compDisp);
+    }
+
+    private void CurrentPlayingSongImage_Loaded(object sender, RoutedEventArgs e)
+    {
+        MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentPlayingSongView), v=>MyViewModel.CurrentPlayingSongView)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(curSong =>
+            {
+               if(string.IsNullOrEmpty(curSong.CoverImagePath))
+                {
+                    CurrentPlayingSongImage.Source = new BitmapImage(new Uri(curSong.CoverImagePath));
+                    CurrentPlayingSongImage.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    CurrentPlayingSongImage.Source = null;
+                    CurrentPlayingSongImage.Visibility = Visibility.Collapsed;
+                }
+            }).DisposeWith(compDisp);
     }
 }

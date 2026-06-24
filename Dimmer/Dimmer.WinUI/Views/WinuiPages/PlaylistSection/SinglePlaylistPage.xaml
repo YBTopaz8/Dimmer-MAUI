@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="Dimmer.WinUI.Views.WinuiPages.PlaylistSection.SinglePlaylistPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:animatedvisuals="using:Microsoft.UI.Xaml.Controls.AnimatedVisuals"
+    xmlns:converters="using:Dimmer.WinUI.Utils.Converters"
+    xmlns:customViews="using:Dimmer.WinUI.Views.CustomViews.WinuiViews"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:devWin="using:DevWinUI"
+    xmlns:local="using:Dimmer.WinUI.Views.WinuiPages.PlaylistSection"
+    xmlns:localViews="using:Dimmer.WinUI.Views.CustomViews.WinuiViews"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+    xmlns:stateTriggers="using:Dimmer.WinUI.Utils.StateTriggers"
+    mc:Ignorable="d"
+    >
+
+    <Grid>
+        <GridView ItemsSource="{x:Bind MyViewModel.SelectedPlaylist.SongInPlaylist, Mode=OneWay}">
+            <GridView.Header>
+                <devWin:ShyHeader
+                    Title="Lorem Ipsum"
+                    BackgroundImage="{x:Bind MyViewModel.SelectedPlaylist.CoverImagePath}"
+                    Description="{x:Bind MyViewModel.SelectedPlaylist.Description}"
+                    >
+                    <devWin:ShyHeader.Profile>
+                        <PersonPicture
+                            Width="150"
+                            Height="150"
+                            ProfilePicture="{x:Bind MyViewModel.SelectedPlaylist.SongInPlaylist[0].CoverImagePath}"
+                            />
+                    </devWin:ShyHeader.Profile>
+                    <devWin:ShyHeader.Footer>
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="{x:Bind MyViewModel.SelectedPlaylist.SongsIdsInPlaylist.Count, Mode=OneWay}" />
+                            <TextBlock Text="Songs" />
+                        </StackPanel>
+                    </devWin:ShyHeader.Footer>
+                </devWin:ShyHeader>
+            </GridView.Header>
+            <GridView.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel>
+
+                        <Image
+                            Width="200"
+                            Height="200"
+                            Margin="4"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Source="{Binding CoverImagePath}"
+                            Stretch="UniformToFill"
+                            />
+                        <devWin:WrapPanel>
+
+                            <TextBlock Text="{Binding Title}" />
+                            <TextBlock Text="{Binding ArtistName}" />
+                            <TextBlock Text="{Binding AlbumName}" />
+                            <TextBlock Text="{Binding PlayCompletedCount}" />
+
+                        </devWin:WrapPanel>
+                    </StackPanel>
+                </DataTemplate>
+            </GridView.ItemTemplate>
+        </GridView>
+    </Grid>
+</Page>

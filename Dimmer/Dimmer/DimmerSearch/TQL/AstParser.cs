@@ -318,5 +318,10 @@ public class AstParser
     }
 
     private static bool IsOperator(TokenType type) => type is TokenType.GreaterThan or TokenType.LessThan or TokenType.GreaterThanOrEqual or TokenType.LessThanOrEqual or TokenType.Equals or TokenType.Tilde or TokenType.Caret or TokenType.Dollar;
-    private static bool IsValueToken(TokenType type) => type is TokenType.Identifier or TokenType.Number or TokenType.StringLiteral;
+    private static bool IsValueToken(TokenType type) =>
+    type is TokenType.Identifier or TokenType.Number or TokenType.StringLiteral
+
+    or TokenType.First or TokenType.Last or TokenType.Random or TokenType.Shuffle
+    or TokenType.Asc or TokenType.Desc or TokenType.And or TokenType.Or or TokenType.Not
+    or TokenType.Add or TokenType.Include or TokenType.Remove or TokenType.Exclude;
 }

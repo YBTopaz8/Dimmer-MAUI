@@ -71,6 +71,17 @@
                 </NavigationViewItem.Icon>
             </NavigationViewItem>
 
+            <NavigationViewItem
+                x:Name="PlaylistsBtn"
+                Content="Playlists"
+                Tag="PlaylistsTag"
+                Tapped="PlaylistsBtn_Tapped"
+                >
+                <NavigationViewItem.Icon>
+                    <FontIcon FontSize="30" Glyph="&#xE93C;" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+
 
 
             <NavigationViewItem
@@ -126,12 +137,10 @@
 
                         <Image
                             x:Name="CurrentPlayingSongImage"
-                            VerticalAlignment="Top"
+                            VerticalAlignment="Top" Loaded="CurrentPlayingSongImage_Loaded"
                             PointerPressed="CurrentPlayingSongImage_PointerPressed"
                             >
-                            <Image.Source>
-                                <BitmapImage UriSource="{x:Bind MyViewModel.CurrentPlayingSongView.CoverImagePath, Mode=OneWay}" />
-                            </Image.Source>
+                           
                         </Image>
                     </Grid>
 
@@ -187,7 +196,7 @@
                                     VerticalAlignment="Top"
                                     Background="Transparent"
                                     BorderThickness="0"
-                                    Content="❤️" 
+                                    Content="❤️"
                                     FontSize="40"
                                     Visibility="{x:Bind MyViewModel.CurrentPlayingSongView.IsFavorite, Mode=OneWay}"
                                     />
@@ -263,27 +272,37 @@
 
 
                 <StackPanel Margin="10" Spacing="5">
-                    <devWin:TextBox
-                        x:Name="SearchBoxEdit"
-                        MinWidth="350"
-                        Header="Search With TQL..."
-                        PlaceholderText=""
-                        TextChanged="SearchBoxEdit_TextChanged"
+                    <StackPanel
+                        Margin="10"
+                        Orientation="Horizontal"
+                        Spacing="5"
                         >
-                        <devWin:TextBox.Content>
-                            <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
-                                <Button
-                                    x:Name="SaveTQL"
-                                    HorizontalAlignment="Left"
-                                    HorizontalContentAlignment="Left"
-                                    Click="SaveTQL_Click"
-                                    >
-                                    <FontIcon Glyph="&#xE74E;" />
-                                </Button>
-                            </StackPanel>
-                        </devWin:TextBox.Content>
-                    </devWin:TextBox>
-
+                        <devWin:TextBox
+                            x:Name="SearchBoxEdit"
+                            MinWidth="350"
+                            Header="Search With TQL."
+                            PlaceholderText=""
+                            TextChanged="SearchBoxEdit_TextChanged"
+                            >
+                            <devWin:TextBox.Content>
+                                <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+                                    <Button
+                                        x:Name="SaveTQL"
+                                        HorizontalAlignment="Left"
+                                        HorizontalContentAlignment="Left"
+                                        Click="SaveTQL_Click"
+                                        >
+                                        <FontIcon Glyph="&#xE74E;" />
+                                    </Button>
+                                </StackPanel>
+                            </devWin:TextBox.Content>
+                        </devWin:TextBox>
+                        <TextBlock
+                            x:Name="SearchResultErrorText"
+                            FontSize="16"
+                           Loaded="SearchResultErrorText_Loaded"
+                            />
+                    </StackPanel>
 
 
                     <StackPanel
@@ -291,9 +310,24 @@
                         Orientation="Horizontal"
                         Spacing="8"
                         >
-                        <Button Content="Fav Songs" />
-                        <Button Content="Shuffle" />
-                        <Button Content="Fav Songs" />
+                        <ToggleButton
+                            x:Name="ShowNowPlayingQueue"
+                            Checked="ShowNowPlayingQueue_Checked"
+                            Content="Now Playing Queue"
+                            Unchecked="ShowNowPlayingQueue_Unchecked"
+                            />
+                        <Button
+                            x:Name="ApplyShuffleToTql"
+                            Click="ApplyShuffleToTql_Click"
+                            Content="Shuffle"
+                            />
+                        <Button
+                            x:Name="SaveQueueToPlaylist"
+                            Click="SaveQueueToPlaylist_Click"
+                            ToolTipService.ToolTip="Save To Playlist"
+                            >
+                            <FontIcon Glyph="&#xE74E;" />
+                        </Button>
                     </StackPanel>
                     <devWin:FlipCards
                         x:Name="SongsCountFlipCard"

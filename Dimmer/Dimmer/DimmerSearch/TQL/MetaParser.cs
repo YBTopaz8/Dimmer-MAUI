@@ -85,33 +85,53 @@ public static class MetaParser
         for (int i = 0; i < allTokens.Count; i++)
         {
             var token = allTokens[i];
+
+            // 1. Sort Directives
             if (token.Type is TokenType.Asc or TokenType.Desc)
             {
                 directiveTokens.Add(token);
+
+                // Steal the next token ONLY if it is an Identifier AND NOT followed by a Colon!
                 if (i + 1 < allTokens.Count && allTokens[i + 1].Type == TokenType.Identifier)
-                    directiveTokens.Add(allTokens[++i]);
+                {
+                    if (i + 2 >= allTokens.Count || allTokens[i + 2].Type != TokenType.Colon)
+                    {
+                        directiveTokens.Add(allTokens[++i]);
+                    }
+                }
             }
+            // 2. Limit / Shuffle Directives
             else if (token.Type is TokenType.First or TokenType.Last or TokenType.Random or TokenType.Shuffle)
             {
                 directiveTokens.Add(token);
-                if (i + 1 < allTokens.Count && allTokens[i + 1].Type == TokenType.Number)
-                    directiveTokens.Add(allTokens[++i]);
 
-                // Safely capture bias: shuffle by rating desc
+                // Grab number (e.g., shuffle 10)
+                if (i + 1 < allTokens.Count && allTokens[i + 1].Type == TokenType.Number)
+                {
+                    directiveTokens.Add(allTokens[++i]);
+                }
+
+                // Grab bias (e.g., shuffle by rating desc)
                 if (i + 1 < allTokens.Count && allTokens[i + 1].Type == TokenType.Identifier && allTokens[i + 1].Text.Equals("by", StringComparison.OrdinalIgnoreCase))
                 {
-                    directiveTokens.Add(allTokens[++i]); // 'by'
-                    if (i + 1 < allTokens.Count && allTokens[i + 1].Type == TokenType.Identifier)
+                    // Ensure 'by' isn't accidentally part of a filter like "by:artist"
+                    if (i + 2 >= allTokens.Count || allTokens[i + 2].Type != TokenType.Colon)
                     {
-                        directiveTokens.Add(allTokens[++i]); // field
-                        if (i + 1 < allTokens.Count && allTokens[i + 1].Type is TokenType.Asc or TokenType.Desc)
-                            directiveTokens.Add(allTokens[++i]); // desc/asc
+                        directiveTokens.Add(allTokens[++i]); // Add 'by'
+                        if (i + 1 < allTokens.Count && allTokens[i + 1].Type == TokenType.Identifier)
+                        {
+                            directiveTokens.Add(allTokens[++i]); // Add the field
+                            if (i + 1 < allTokens.Count && allTokens[i + 1].Type is TokenType.Asc or TokenType.Desc)
+                            {
+                                directiveTokens.Add(allTokens[++i]); // Add asc/desc
+                            }
+                        }
                     }
                 }
             }
             else
             {
-                filterTokens.Add(token); // Safely keep all non-directives (like "add my fav")
+                filterTokens.Add(token);
             }
         }
 
