@@ -5307,13 +5307,17 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     newPlaylistModel.DateCreated = DateTimeOffset.UtcNow;
                     newPlaylistModel.LastPlayedDate = DateTimeOffset.UtcNow;
                     newPlaylistModel.QueryText = PlQuery;
-                    newPlaylistModel.SongsIdsInPlaylist.AddRange(songsToAdd.Select(s => s.Id).Distinct());
-                    
-
-
-                    realm.Add(newPlaylistModel, true);
+                    var songIds = songsToAdd.Select(s => s.Id).Distinct();
+                    newPlaylistModel.SongsIdsInPlaylist.AddRange(songIds);
 
                     
+                   var pl= realm.Add(newPlaylistModel, true);
+
+                    foreach (var id in songIds)
+                    {
+                        var songInDb = realm.Find<SongModel>(id);
+                        songInDb.PlaylistsHavingSong.Add(pl);
+                    }
 
                 });
             foreach (var song in songsToAdd)
@@ -5338,7 +5342,18 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         var songIdsToAdd = songsToAdd.Select(s => s.Id).ToHashSet();
 
-        _playlistRepo.Update(
+        var _realm = RealmFactory.GetRealmInstance();
+       await _realm.WriteAsync( ()=>
+       {
+
+               foreach (var id in songIdsToAdd)
+               {
+                   var songInDb = _realm.Find<SongModel>(id);
+                   songInDb.PlaylistsHavingSong.Add(targetPlaylist);
+               }
+           
+       });
+       var pl= _playlistRepo.Update(
             targetPlaylist.Id,
             livePlaylist =>
             {
@@ -5350,6 +5365,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                         livePlaylist.SongsIdsInPlaylist.Add(songId);
                         songsAddedCount++;
                     }
+
                 }
                 _logger.LogInformation(
                     "Successfully added {Count} new songs to manual playlist '{PlaylistName}'.",

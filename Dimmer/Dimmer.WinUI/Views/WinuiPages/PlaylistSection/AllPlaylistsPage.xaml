@@ -29,8 +29,8 @@
         <Grid Grid.Row="1">
             <ListView
                 x:Name="PlaylistsListView"
-                ItemClick="PlaylistsListView_ItemClick"
                 ItemsSource="{x:Bind MyViewModel.PlaylistsCollection, Mode=OneWay}"
+                Tapped="PlaylistsListView_Tapped"
                 >
                 <ListView.ItemTemplate>
                     <DataTemplate>
@@ -40,16 +40,16 @@
                             CornerRadius="20"
                             >
                             <Image
-                                Width="100"
-                                Height="100"
+                                MaxWidth="100"
+                                MaxHeight="100"
                                 Source="{Binding CoverImagePath}"
                                 Stretch="UniformToFill"
                                 />
                             <TextBlock Text="{Binding PlaylistName}" />
-                            <devWin:WrapPanel>
+                            <devWin:WrapPanel HorizontalSpacing="5" VerticalSpacing="5">
 
                                 <TextBlock Text="{Binding PlaylistType}" />
-                                <StackPanel Orientation="Horizontal">
+                                <StackPanel Orientation="Horizontal" Spacing="2">
                                     <TextBlock Text="{Binding SongsIdsInPlaylist.Count}" />
                                     <TextBlock Text="Songs" />
 
