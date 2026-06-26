@@ -8,6 +8,7 @@
     xmlns:customViews="using:Dimmer.WinUI.Views.CustomViews.WinuiViews"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:devWin="using:DevWinUI"
+    xmlns:dgView="using:WinUI.TableView"
     xmlns:local="using:Dimmer.WinUI.Views.WinuiPages.PlaylistSection"
     xmlns:localViews="using:Dimmer.WinUI.Views.CustomViews.WinuiViews"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -26,41 +27,26 @@
             <TextBlock Text="Playlists" />
         </StackPanel>
 
-        <Grid Grid.Row="1">
-            <ListView
-                x:Name="PlaylistsListView"
-                ItemsSource="{x:Bind MyViewModel.PlaylistsCollection, Mode=OneWay}"
-                Tapped="PlaylistsListView_Tapped"
-                >
-                <ListView.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel
-                            BorderBrush="DarkSlateBlue"
-                            BorderThickness="1"
-                            CornerRadius="20"
-                            >
-                            <Image
-                                MaxWidth="100"
-                                MaxHeight="100"
-                                Source="{Binding CoverImagePath}"
-                                Stretch="UniformToFill"
-                                />
-                            <TextBlock Text="{Binding PlaylistName}" />
-                            <devWin:WrapPanel HorizontalSpacing="5" VerticalSpacing="5">
 
-                                <TextBlock Text="{Binding PlaylistType}" />
-                                <StackPanel Orientation="Horizontal" Spacing="2">
-                                    <TextBlock Text="{Binding SongsIdsInPlaylist.Count}" />
-                                    <TextBlock Text="Songs" />
-
-                                </StackPanel>
-                            </devWin:WrapPanel>
-
-
-                        </StackPanel>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
-        </Grid>
+        <dgView:TableView
+            x:Name="PlaylistsListTableView"
+            Grid.Row="1" IsReadOnly="True"
+            AutoGenerateColumns="False"
+            ItemClick="PlaylistsListTableView_ItemClick"
+            ItemsSource="{x:Bind MyViewModel.PlaylistsCollection, Mode=OneWay}"
+            Tapped="PlaylistsListTableView_Tapped"
+            CellDoubleTapped="PlaylistsListTableView_CellDoubleTapped"
+            RowDoubleTapped="PlaylistsListTableView_RowDoubleTapped"
+            DoubleTapped="PlaylistsListTableView_DoubleTapped">
+            <dgView:TableView.Columns>
+                <dgView:TableViewTextColumn Binding="{Binding PlaylistName}"
+                                            Header="Name"/>
+                
+                <dgView:TableViewTextColumn Binding="{Binding QueryText}"
+                                            Header="TQL Query"/>
+                
+            </dgView:TableView.Columns>
+            
+        </dgView:TableView>
     </Grid>
 </Page>

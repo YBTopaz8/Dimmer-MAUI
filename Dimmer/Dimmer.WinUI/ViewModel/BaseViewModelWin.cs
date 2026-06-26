@@ -1541,8 +1541,8 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
             // Wait for user's decision
             var (includeDefaultLocation, secondaryPath) = await tcs.Task;
 
-
-        AddMusicFoldersByPassingToService(new List<string>() { $"{file.Path}" });
+        if(file is not null)
+            AddMusicFoldersByPassingToService(new List<string>() { $"{file.Path}" });
         
        
 

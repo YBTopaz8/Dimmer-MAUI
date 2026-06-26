@@ -788,7 +788,7 @@ public sealed partial class DimmerWin : Window
 
     private void NvSample_PaneClosing(NavigationView sender, NavigationViewPaneClosingEventArgs args)
     {
-        MyViewModel.IsNavPanelOpened = false;
+        BottomCurrentPlayingSongPanel.Visibility=Visibility.Collapsed;
     }
 
 
@@ -915,7 +915,8 @@ public sealed partial class DimmerWin : Window
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(curSong =>
             {
-               if(string.IsNullOrEmpty(curSong.CoverImagePath))
+                //if (!MyViewModel.IsDimmerPlaying) return;
+               if(!string.IsNullOrEmpty(curSong.CoverImagePath))
                 {
                     CurrentPlayingSongImage.Source = new BitmapImage(new Uri(curSong.CoverImagePath));
                     CurrentPlayingSongImage.Visibility = Visibility.Visible;

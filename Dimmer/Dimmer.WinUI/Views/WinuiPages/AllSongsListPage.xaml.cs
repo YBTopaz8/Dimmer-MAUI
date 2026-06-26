@@ -686,6 +686,19 @@ public sealed partial class AllSongsListPage : Page
         addNoteToSongMFItem.Icon = iconNote;
         menuFlyout.Items.Add(addNoteToSongMFItem);
 
+        var playNextMFItem = new MenuFlyoutItem { Text = "Add Note to Song" };
+        playNextMFItem.Click += async (s, args) =>
+        {
+             MyViewModel.AddToNext(new List<SongModelView>() { selectedSong});
+        };
+        FontIcon playNextIcon = new FontIcon();
+        playNextIcon.Glyph = "\uECC8";
+
+        playNextMFItem.Icon = iconNote;
+        menuFlyout.Items.Add(playNextMFItem);
+
+
+
 
         var deleteSongFromLibraryMFItem = new MenuFlyoutItem { Text = "Delete Song from Device" };
         deleteSongFromLibraryMFItem.Click += async (s, args) =>
@@ -733,6 +746,8 @@ public sealed partial class AllSongsListPage : Page
         };
         menuFlyout.Items.Add(locateSongInFolder);
 
+
+
         FontIcon LocateArtist = new FontIcon();
         LocateArtist.Glyph = "\uE720";
 
@@ -754,13 +769,15 @@ public sealed partial class AllSongsListPage : Page
 
             menuFlyout.Items.Add(toArtistMFI);
         }
-        else if (selectedSong.ArtistToSong.Count > 2)
+        else if (selectedSong.ArtistToSong.Count > 1)
         {
             var toArtistMFSI = new MenuFlyoutSubItem()
             ;
             
             toArtistMFSI.Text = "Artists";
-
+            FontIcon toArtistMFSIicon = new FontIcon();
+            toArtistMFSIicon.Glyph = "\uE77B";
+            toArtistMFSI.Icon = toArtistMFSIicon;
             foreach (var artistInCollection in selectedSong.ArtistToSong)
             {
                 if (artistInCollection is null) continue;

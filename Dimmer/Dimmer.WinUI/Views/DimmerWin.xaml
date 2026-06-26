@@ -137,11 +137,10 @@
 
                         <Image
                             x:Name="CurrentPlayingSongImage"
-                            VerticalAlignment="Top" Loaded="CurrentPlayingSongImage_Loaded"
+                            VerticalAlignment="Top"
+                            Loaded="CurrentPlayingSongImage_Loaded"
                             PointerPressed="CurrentPlayingSongImage_PointerPressed"
-                            >
-                           
-                        </Image>
+                            />
                     </Grid>
 
                     <StackPanel
@@ -300,7 +299,7 @@
                         <TextBlock
                             x:Name="SearchResultErrorText"
                             FontSize="16"
-                           Loaded="SearchResultErrorText_Loaded"
+                            Loaded="SearchResultErrorText_Loaded"
                             />
                     </StackPanel>
 

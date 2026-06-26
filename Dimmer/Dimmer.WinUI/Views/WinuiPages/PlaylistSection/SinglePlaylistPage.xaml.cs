@@ -34,8 +34,9 @@ public sealed partial class SinglePlaylistPage : Page
     protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
+        MyViewModel = (BaseViewModelWin)e.Parameter;
         compDisposable = new();
-        DataContext = MyViewModel.SelectedPlaylist;
+        DataContext = MyViewModel;
 
     }
     protected override void OnNavigatedFrom(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)

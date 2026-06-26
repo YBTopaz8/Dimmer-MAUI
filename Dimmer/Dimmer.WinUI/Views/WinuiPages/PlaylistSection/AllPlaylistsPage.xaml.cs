@@ -36,7 +36,7 @@ public sealed partial class AllPlaylistsPage : Page
         MyViewModel = IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
 
         DataContext = MyViewModel;
-
+        MyViewModel.CurrentPageEnum = CurrentPage.PlaylistsPage;
         await Task.Delay(1000);
 
         MyViewModel.SetupPlaylistPipeline();
@@ -49,13 +49,41 @@ public sealed partial class AllPlaylistsPage : Page
 
     private void PlaylistsListView_Tapped(object sender, TappedRoutedEventArgs e)
     {
-        var pl = (e.OriginalSource as  Microsoft.UI.Xaml.Controls.Primitives.ListViewItemPresenter)?.DataContext as PlaylistModelView
+        var pl = (e.OriginalSource as  TextBlock)?.DataContext as PlaylistModelView
         ;
-
-        if (pl is not null) return;
+        if(pl is null)
+        {
+            pl = (e.OriginalSource as ListViewItemPresenter).DataContext as PlaylistModelView;
+        }
+        if (pl is null) return;
         MyViewModel.SelectedPlaylist = pl;
 
         MyViewModel.NavigateToAnyPageOfGivenType(typeof(SinglePlaylistPage));
+
+    }
+
+    private void PlaylistsListTableView_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+
+    }
+
+    private void PlaylistsListTableView_ItemClick(object sender, ItemClickEventArgs e)
+    {
+
+    }
+
+    private void PlaylistsListTableView_CellDoubleTapped(object sender, TableViewCellDoubleTappedEventArgs e)
+    {
+
+    }
+
+    private void PlaylistsListTableView_RowDoubleTapped(object sender, TableViewRowDoubleTappedEventArgs e)
+    {
+
+    }
+
+    private void PlaylistsListTableView_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
+    {
 
     }
 }

@@ -2005,7 +2005,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial string AppTitle { get; set; } = "Dimmer";
 
-    public static string CurrentAppVersion = "1.9.6";
+    public static string CurrentAppVersion = "1.9.7";
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]
@@ -2946,6 +2946,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             newValue.CoverImagePath = string.Empty;
         }
+        OnPropertyChanged(nameof(CurrentPlayingSongView));
         await ProcessSongChangeAsync(newValue);
         CurrentPlaySongDominantColor = await ImageFilterUtils.GetDominantMauiColorAsync(newValue.CoverImagePath);
     }

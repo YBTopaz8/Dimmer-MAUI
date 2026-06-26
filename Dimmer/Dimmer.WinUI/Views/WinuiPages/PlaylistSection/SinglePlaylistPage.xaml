@@ -20,15 +20,15 @@
         <GridView ItemsSource="{x:Bind MyViewModel.SelectedPlaylist.SongInPlaylist, Mode=OneWay}">
             <GridView.Header>
                 <devWin:ShyHeader
-                    Title="Lorem Ipsum"
-                    BackgroundImage="{x:Bind MyViewModel.SelectedPlaylist.CoverImagePath}"
-                    Description="{x:Bind MyViewModel.SelectedPlaylist.Description}"
+                    Title="{x:Bind MyViewModel.SelectedPlaylist.PlaylistName, Mode=OneWay}"
+                    BackgroundImage="{x:Bind MyViewModel.SelectedPlaylist.CoverImagePath, Mode=OneWay}"
+                    Description="{x:Bind MyViewModel.SelectedPlaylist.Description, Mode=OneWay}"
                     >
                     <devWin:ShyHeader.Profile>
                         <PersonPicture
                             Width="150"
                             Height="150"
-                            ProfilePicture="{x:Bind MyViewModel.SelectedPlaylist.SongInPlaylist[0].CoverImagePath}"
+                            ProfilePicture="{x:Bind MyViewModel.SelectedPlaylist.SongInPlaylist[0].CoverImagePath, Mode=OneWay}"
                             />
                     </devWin:ShyHeader.Profile>
                     <devWin:ShyHeader.Footer>

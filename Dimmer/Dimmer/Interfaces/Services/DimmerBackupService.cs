@@ -187,6 +187,7 @@ public class DimmerBackupService
         string filePath,
         IProgress<string>? progress = null)
     {
+        if (string.IsNullOrEmpty(filePath)) return null;
         try
         {
             Stream? stream = null;
