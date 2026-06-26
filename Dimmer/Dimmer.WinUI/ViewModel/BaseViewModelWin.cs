@@ -4,6 +4,7 @@
 
 
 using CommunityToolkit.Maui.Core.Extensions;
+using DevWinUI;
 using Dimmer.Utils;
 using Dimmer.WinUI.Views.CustomViews.WinuiViews;
 using MongoDB.Bson;
@@ -11,6 +12,7 @@ using Windows.Foundation.Collections;
 using Windows.UI.Core;
 using Brush = Microsoft.UI.Xaml.Media.Brush;
 using FolderPicker = CommunityToolkit.Maui.Storage.FolderPicker;
+using TextBox = Microsoft.UI.Xaml.Controls.TextBox;
 using Visibility = Microsoft.UI.Xaml.Visibility;
 
 //using TableView = WinUI.TableView.TableView;
@@ -56,8 +58,41 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
         windowManager = mauiWindowManagerService;
 
-      
+        //_lyricsMgtFlow.AllSyncLyrics
+        //    .ObserveOn(RxSchedulers.UI)
+        //    .Subscribe(lines =>
+        //    {
+        //        AllLines?.Clear();
+
+        //        if (lines.Count >= 1)
+        //        {
+        //            AllLines = lines.ToObservableCollection();
+
+        //            // Map to DevWinUI format for Windows
+        //            var devLines = lines.Select(line => new DevWinUI.LyricLine
+        //            {
+        //                PrimaryText = line.Text,
+        //                StartMs = line.TimestampStart,
+        //                EndMs = line.EndTimeMs, 
+        //                IsPrimaryHasRealSyllableInfo = false 
+        //            }).ToList();
+
+        //            DevWinUILyrics = new DevWinUI.LyricData(devLines);
+
+        //            return;
+        //        }
+        //        else
+        //        {
+        //            AllLines = new ObservableCollection<LyricPhraseModelView>();
+
+        //            DevWinUILyrics = null; // Clear lyrics on UI
+        //        }
+        //    });
     }
+
+    //[ObservableProperty]
+    //public partial LyricData? DevWinUILyrics { get; set; }
+
 
     private void BaseViewModelWin_AddNextEvent(object? sender, EventArgs e)
     {

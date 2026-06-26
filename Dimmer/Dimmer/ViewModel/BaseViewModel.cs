@@ -28,6 +28,8 @@ namespace Dimmer.ViewModel;
 
 public partial class BaseViewModel : ObservableObject,  IDisposable
 {
+    [ObservableProperty]
+    public partial TimeSpan CurrentTrackPosition { get; set; }
     private IDuplicateFinderService _duplicateFinderService;
 
     public readonly Guid InstanceId = Guid.NewGuid();
@@ -516,14 +518,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
 
         // 4. Handle Logging. Remove the temporary `if (pos == 0)` check.
-        Observable.FromEventPattern<double>(
-            h => _audioService.SeekCompleted += h,
-            h => _audioService.SeekCompleted -= h)
-            .Select(evt => evt.EventArgs)
-            .ObserveOn(RxSchedulers.UI)
-            .Subscribe(OnSeekCompleted, ex => _logger.LogError(ex, "Error in SeekCompleted subscription"))
-            .DisposeWith(_subsManager);
-
+        _subsMgr.Add(Observable.FromEventPattern<double>(
+             h => _audioService.SeekCompleted += h,
+             h => _audioService.SeekCompleted -= h)
+             .Select(evt => evt.EventArgs)
+             .ObserveOn(RxSchedulers.UI)
+             .Subscribe(OnSeekCompleted, ex => _logger.LogError(ex, "Error in SeekCompleted subscription")));
         _duplicateSource
         .Connect()
         .Bind(out _duplicateSets)
@@ -1711,6 +1711,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     private IHoarderService _hoarderService;
     public IDimmerStateService StateService => _stateService;
     protected IDimmerStateService _stateService;
+    public SubscriptionManager SubsManager => _subsMgr;
     protected SubscriptionManager _subsMgr;
     protected IFolderMgtService _folderMgtService;
     private IRepository<SongModel> songRepo;
@@ -1732,9 +1733,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     // Cancellation token for background cover art caching to prevent memory issues on Android
     private CancellationTokenSource? _backgroundCachingCts;
 
-    public CompositeDisposable SubsManager => _subsManager;
-    private readonly CompositeDisposable _subsManager = new CompositeDisposable();
-
+   
 
     #endregion
 
@@ -4447,7 +4446,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     async x => await HandlePlaybackStateChange(x),
                     ex => _logger.LogError(ex, "Error in PlaybackStateChanged subscription")));
 
-        _subsManager.Add(Observable.FromEventPattern<PlaybackEventArgs>(
+        _subsMgr.Add(Observable.FromEventPattern<PlaybackEventArgs>(
             h => _audioService.ErrorOccurred += h,
             h => _audioService.ErrorOccurred -= h)
                 .Select(evt => evt.EventArgs)
@@ -4473,15 +4472,20 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     },
                     ex => _logger.LogError(ex, "Error in IsPlayingChanged subscription")));
 
-        var ss = Observable.FromEventPattern<double>(
+        _subsMgr.Add(Observable.FromEventPattern<double>(
                 h => _audioService.PositionChanged += h,
                 h => _audioService.PositionChanged -= h)
                 .Select(evt => evt.EventArgs)
                 .ObserveOn(RxSchedulers.UI)
-                .Subscribe(OnPositionChanged, ex => _logger.LogError(ex, "Error in PositionChanged subscription"))
-                ;
-        _subsMgr.Add(ss
-            );
+                .Subscribe(posInSec =>
+                {
+                    // Keep your existing method call
+                    OnPositionChanged(posInSec);
+
+                    // Feed the UI
+                    CurrentTrackPosition = TimeSpan.FromSeconds(posInSec);
+                },
+                ex => _logger.LogError(ex, "Error in PositionChanged subscription")));
 
         //_subsMgr.Add(Observable.FromEventPattern<double>(
         //        h => _audioService.SeekCompleted += h,
@@ -5395,7 +5399,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             _playEventSource.Dispose();
 
-            _subsManager.Dispose();
+            _subsMgr.Dispose();
             CompositeDisposables.Dispose();
             
         }

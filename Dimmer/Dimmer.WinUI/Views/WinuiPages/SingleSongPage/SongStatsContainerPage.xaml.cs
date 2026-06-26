@@ -43,7 +43,7 @@ public sealed partial class SongStatsContainerPage : Page
                     StatsContentFrame.Navigate(typeof(SongOverviewStatsPage), _currentSong);
                     break;
                 case "Album":
-                    StatsContentFrame.Navigate(typeof(SongAlbumStatsPage), _currentSong);
+                    //StatsContentFrame.Navigate(typeof(SongAlbumStatsPage), _currentSong);
                     break;
                 case "Artist":
                     StatsContentFrame.Navigate(typeof(SongArtistStatsPage), _currentSong);

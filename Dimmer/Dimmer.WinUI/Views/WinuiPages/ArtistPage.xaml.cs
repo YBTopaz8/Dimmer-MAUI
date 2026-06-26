@@ -428,9 +428,9 @@ public sealed partial class ArtistPage : Page
         
     }
 
-    private void LastFM_Click(object sender, RoutedEventArgs e)
+    private async void LastFM_Click(object sender, RoutedEventArgs e)
     {
-        MyViewModel.LoadLastFMArtist(MyViewModel.SelectedArtist);
+       await MyViewModel.LoadLastFMArtist(MyViewModel.SelectedArtist);
     }
 
 

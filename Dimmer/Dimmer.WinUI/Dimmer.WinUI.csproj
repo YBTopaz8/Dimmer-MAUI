@@ -71,7 +71,6 @@
 		  <None Remove="Views\WinuiPages\SingleSongPage\SubPage\LyricsManualSyncPage.xaml" />
 		  <None Remove="Views\WinuiPages\SingleSongPage\SubPage\LyricsOverViewPage.xaml" />
 		  <None Remove="Views\WinuiPages\SingleSongPage\SubPage\OnlineLyricsSearchPage.xaml" />
-		  <None Remove="Views\WinuiPages\SingleSongPage\SubPage\Stats\SongAlbumStatsPage.xaml" />
 		  <None Remove="Views\WinuiPages\SingleSongPage\SubPage\Stats\SongArtistStatsPage.xaml" />
 		  <None Remove="Views\WinuiPages\SingleSongPage\SubPage\Stats\SongJourneyPage.xaml" />
 		  <None Remove="Views\WinuiPages\SongDetailPage.xaml" />
@@ -324,11 +323,6 @@
 		</ItemGroup>
 		<ItemGroup>
 		  <Page Update="Views\WinuiPages\SingleSongPage\SubPage\Stats\SongArtistStatsPage.xaml">
-			<Generator>MSBuild:Compile</Generator>
-		  </Page>
-		</ItemGroup>
-		<ItemGroup>
-		  <Page Update="Views\WinuiPages\SingleSongPage\SubPage\Stats\SongAlbumStatsPage.xaml">
 			<Generator>MSBuild:Compile</Generator>
 		  </Page>
 		</ItemGroup>
