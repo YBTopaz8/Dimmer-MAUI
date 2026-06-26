@@ -8417,9 +8417,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public void CopyAllSongsInNowPlayingQueueToMainSearchResult()
     {
 
-        var currentSongIndexInQueue = PlaybackQueue.IndexOf(CurrentPlayingSongView);
-        int totalMatches = PlaybackQueue.Count;
-
         tempListOfSongs = new();
         tempListOfSongs.AddRange(SearchResults);
         SearchResultsHolder.Edit(updater =>

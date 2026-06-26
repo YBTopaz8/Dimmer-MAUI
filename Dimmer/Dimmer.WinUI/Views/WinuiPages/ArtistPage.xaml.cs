@@ -62,7 +62,7 @@ public sealed partial class ArtistPage : Page
 
         this.DataContext = MyViewModel.SelectedArtist;
         pressedCounter = 0;
-       
+      await  LoadWikiOfArtist();
 
     }
     private async Task LoadWikiOfArtist()
@@ -397,10 +397,7 @@ public sealed partial class ArtistPage : Page
 
     //}
 
-    private async void BioBlock_Loaded(object sender, RoutedEventArgs e)
-    {
-      await  LoadWikiOfArtist();
-    }
+   
 
     private void ArtistFav_Loaded(object sender, RoutedEventArgs e)
     {
@@ -429,6 +426,11 @@ public sealed partial class ArtistPage : Page
        
 
         
+    }
+
+    private void LastFM_Click(object sender, RoutedEventArgs e)
+    {
+        MyViewModel.LoadLastFMArtist(MyViewModel.SelectedArtist);
     }
 
 
