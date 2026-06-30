@@ -129,6 +129,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial bool IsBackGrounded { get; set; }
 
+    async partial void OnIsSearchResultEmptyChanging(bool oldValue, bool newValue)
+    {
+
+    }
     async partial void OnIsBackGroundedChanging(bool oldValue, bool newValue)
     {
         if(newValue)
@@ -509,9 +513,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             .Bind(out _searchResults)
             .Subscribe(x =>
             {
-                IsSearchResultEmpty = SearchResults.Count == 0;
-                UpdateIsSearchResultEmpty(IsSearchResultEmpty);
-                Debug.WriteLine(x.Count);
+                
             })
             .DisposeWith(CompositeDisposables);
 
@@ -580,7 +582,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _backgroundCachingCts = new CancellationTokenSource();
 
 
-        this.WhenPropertyChange(
+        this.WhenPropertyChanged(
           nameof(this.IsBackGrounded),
           isBG => (this.IsBackGrounded))
           .ObserveOn(RxSchedulers.UI)
@@ -715,6 +717,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     RxSchedulers.UI.ScheduleTo(() =>
                     {
                         SearchResultsHolder.Edit(innerCache => innerCache.Load(viewModels));
+                        IsSearchResultEmpty = SearchResults.Count == 0;
+                        //OnPropertyChanging(nameof(IsSearchResultEmpty));
+                        OnPropertyChanged(nameof(IsSearchResultEmpty));
+                        UpdateIsSearchResultEmpty(IsSearchResultEmpty);
+                        //Debug.WriteLine(x.Count);
                     });
                 }
           
@@ -4598,7 +4605,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             return;
         };
         SelectedArtist = artist;
-       SelectedArtist.RefreshAlbumAndSongsFromDB(RealmFactory);
+        if(artist.SongsByArtist?.Count<1)
+            SelectedArtist.RefreshAlbumAndSongsFromDB(RealmFactory);
     }
     public async Task<bool> SelectedArtistAndNavtoPage(SongModelView? song)
     {
@@ -4611,7 +4619,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         var allArts = song.OtherArtistsName.Split(", ");
 
         _logger.LogTrace("SelectedArtistAndNavtoPage called with song: {SongTitle}", song.Title);
-        var result = await Shell.Current.DisplayActionSheet("Select Action", "Cancel", null, allArts);
+        var result = await Shell.Current.DisplayActionSheetAsync("Select Action", "Cancel", null, allArts);
         if (result == "Cancel" || string.IsNullOrEmpty(result))
             return false;
 

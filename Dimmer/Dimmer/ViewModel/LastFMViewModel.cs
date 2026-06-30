@@ -74,7 +74,7 @@ public partial class LastFMViewModel : ObservableObject
                 _baseViewModel = baseVM;
 
                 lastfmService.Start();
-                _baseViewModel.WhenPropertyChange(
+                _baseViewModel.WhenPropertyChanged(
              nameof(_baseViewModel.IsBackGrounded),
              isBG => (_baseViewModel.IsBackGrounded))
              .ObserveOn(RxSchedulers.UI)
@@ -90,7 +90,7 @@ public partial class LastFMViewModel : ObservableObject
                      }
 
                  });
-                _baseViewModel.WhenPropertyChange(
+                _baseViewModel.WhenPropertyChanged(
              nameof(_baseViewModel.ScrobblePreviousSongToLastFM),
              isBG => (_baseViewModel.ScrobblePreviousSongToLastFM))
              .ObserveOn(RxSchedulers.UI)
@@ -104,7 +104,7 @@ public partial class LastFMViewModel : ObservableObject
                      }
 
                  });
-                _baseViewModel.WhenPropertyChange(
+                _baseViewModel.WhenPropertyChanged(
              nameof(_baseViewModel.ScrobbleNextSongToLastFM),
              isBG => (_baseViewModel.ScrobbleNextSongToLastFM))
              .ObserveOn(RxSchedulers.UI)

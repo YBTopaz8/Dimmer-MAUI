@@ -76,7 +76,7 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
 
 
         lQDisposables = new();
-        LoginViewModel.WhenPropertyChange(nameof(LoginViewModel.CurrentUserOnline), v => LoginViewModel.CurrentUserOnline)
+        LoginViewModel.WhenPropertyChanged(nameof(LoginViewModel.CurrentUserOnline), v => LoginViewModel.CurrentUserOnline)
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(curUser =>
             {
