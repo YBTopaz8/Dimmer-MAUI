@@ -96,10 +96,10 @@
 			<PackageReference Include="DevWinUI.ContextMenu" Version="9.9.1" />
 			<PackageReference Include="DevWinUI.Controls" Version="9.9.4" />
 			<PackageReference Include="DevWinUI.SourceGenerator" Version="9.9.0" />
-			<PackageReference Include="LiveChartsCore.SkiaSharpView.WinUI" Version="2.0.4" />
+			<PackageReference Include="LiveChartsCore.SkiaSharpView.WinUI" Version="2.0.5" />
 
-			<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.60" />
-			<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.8" />
+			<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.80" />
+			<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.9" />
 
 
 			<PackageReference Include="CommunityToolkit.WinUI.Animations" Version="8.2.251219" />

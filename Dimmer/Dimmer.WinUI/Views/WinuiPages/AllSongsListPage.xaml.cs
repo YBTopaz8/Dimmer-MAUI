@@ -52,108 +52,21 @@ public sealed partial class AllSongsListPage : Page
      UIControlsAnims.AnimateBtnPointerExited((Button)sender, _compositor);
      
     }
-    private void CardBorder_PointerEntered(object sender, PointerRoutedEventArgs e)
-    {
-        cardBorder = (sender as Border)!;
-        cardBorder.CornerRadius = new Microsoft.UI.Xaml.CornerRadius(15);
-        StartHoverDelay();
-    }
-
-    private void CardBorder_PointerExited(object sender, PointerRoutedEventArgs e)
-    {
-        if (cardBorder is null) return;
-        cardBorder.CornerRadius = new Microsoft.UI.Xaml.CornerRadius(12);
-
-        CancelHover();
-    }
-
-    Border cardBorder;
-
-    private void StartHoverDelay()
-    {
-
-        AnimateExpand(cardBorder);
-
-    }
+   
 
 
 
-    private void CancelHover()
-    {
-        AnimateCollapse();
-    }
-
-    private async void AnimateExpand(Border card)
-    {
-        try
-        {
-            await card.DispatcherQueue.EnqueueAsync(() => { });
-            var compositor = ElementCompositionPreview.GetElementVisual(card).Compositor;
-            var rootVisual = ElementCompositionPreview.GetElementVisual(card);
-
-            var scale = compositor.CreateVector3KeyFrameAnimation();
-            scale.InsertKeyFrame(1f, new Vector3(1.05f));
-            scale.Duration = TimeSpan.FromMilliseconds(250);
-            rootVisual.CenterPoint = new Vector3((float)card.ActualWidth / 2, (float)card.ActualHeight / 2, 0);
-            rootVisual.StartAnimation("Scale", scale);
-
-            var extraPanel = card.FindName("ExtraPanel") as StackPanel
-                        ?? PlatUtils.FindChildOfType<StackPanel>(card);
-
-            if (extraPanel == null)
-            {
-                Debug.WriteLine("ExtraPanel not found yet – skipping animation");
-                return;
-            }
-
-
-            var extraPanelVisual = ElementCompositionPreview.GetElementVisual(extraPanel);
-            extraPanelVisual.Opacity = 0f;
 
 
 
-            extraPanelVisual.StopAnimation("Opacity");
-            extraPanelVisual.StopAnimation("Offset");
 
-            var fade = compositor.CreateScalarKeyFrameAnimation();
-            fade.InsertKeyFrame(1f, 1f);
-            fade.Duration = TimeSpan.FromMilliseconds(200);
-
-            var slide = compositor.CreateVector3KeyFrameAnimation();
-            slide.InsertKeyFrame(0f, new Vector3(0, 20, 0));
-            slide.InsertKeyFrame(1f, Vector3.Zero);
-            slide.Duration = TimeSpan.FromMilliseconds(200);
-
-            extraPanelVisual.StartAnimation("Opacity", fade);
-            extraPanelVisual.StartAnimation("Offset", slide);
-
-            await Task.Delay(250);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"AnimateExpand Exception: {ex.Message}");
-        }
-    }
 
     private void TableView_RightTapped(object sender, RightTappedRoutedEventArgs e)
     {
         
     }
-    private void TableView_PointerPressed(object sender, PointerRoutedEventArgs e)
-    {
-        var senderFrmWkElt = (FrameworkElement)sender;
+    
 
-        var senderUIElt = (UIElement)sender;
-        var OriginalSourceFWElt = e.OriginalSource as FrameworkElement;
-        var OriginalSourceUIElt = e.OriginalSource as UIElement;
-        var prop = e.GetCurrentPoint(senderUIElt).Properties;
-        if(prop.IsMiddleButtonPressed)
-        {
-            MyViewModel.SelectedSong = (OriginalSourceFWElt?.DataContext as SongModelView)!;
-            ViewSongBtn_Click(sender, e); 
-            return;
-        }
-    }
 
     private void TableView_CellContextFlyoutOpening(object sender, global::WinUI.TableView.TableViewCellContextFlyoutEventArgs e)
     {
@@ -353,7 +266,7 @@ public sealed partial class AllSongsListPage : Page
         MyViewModel.MySongsTableView = MySongsTableView;
         if (LoadingIndicator.IsLoaded)
         {
-            MyViewModel.WhenPropertyChange(nameof(MyViewModel.IsTqlBusy), c => MyViewModel.IsTqlBusy)
+            MyViewModel.WhenPropertyChanged(nameof(MyViewModel.IsTqlBusy), c => MyViewModel.IsTqlBusy)
                .ObserveOn(RxSchedulers.UI)
                .Subscribe(boolVal =>
                {
@@ -541,11 +454,8 @@ public sealed partial class AllSongsListPage : Page
         ////MyViewModel?.UpdateQueryWithClause(tqlClause, isExclusion, isAdditive);
     }
 
-    private void ExtraPanel_Loaded(object sender, RoutedEventArgs e)
-    {
-        _ = ElementCompositionPreview.GetElementVisual((UIElement)sender);
+    
 
-    }
 
     private void viewSongINfo(object sender, RoutedEventArgs e)
     {
@@ -585,34 +495,6 @@ public sealed partial class AllSongsListPage : Page
         });
     }
 
-    private void AnimateCollapse()
-    {
-        try
-        {
-
-            // collapse animation (optional)
-            var compositor = ElementCompositionPreview.GetElementVisual(cardBorder).Compositor;
-            var rootVisual = ElementCompositionPreview.GetElementVisual(cardBorder);
-            var scaleBack = compositor.CreateVector3KeyFrameAnimation();
-            scaleBack.InsertKeyFrame(1f, new Vector3(1f));
-            scaleBack.Duration = TimeSpan.FromMilliseconds(200);
-            rootVisual.StartAnimation("Scale", scaleBack);
-
-            var extraPanel = (StackPanel)cardBorder.FindName("ExtraPanel");
-            var visual = ElementCompositionPreview.GetElementVisual(extraPanel);
-            var fade = compositor.CreateScalarKeyFrameAnimation();
-            fade.InsertKeyFrame(1f, 0f);
-            fade.Duration = TimeSpan.FromMilliseconds(200);
-            visual.StartAnimation("Opacity", fade);
-
-        }
-        catch (Exception ex)
-        {
-
-            Debug.WriteLine($"AnimateCollapse Exception: {ex.Message}");
-        }
-    }
-
 
 
     private void CardBorder_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
@@ -627,6 +509,10 @@ public sealed partial class AllSongsListPage : Page
     
     private void coverArtImage_RightTapped(object sender, RightTappedRoutedEventArgs e)
     {
+
+        var item = ((Image)(e.OriginalSource)).DataContext as SongModelView;
+        _storedSong = item;
+        ViewSongBtn_Click(sender,e);
     }
 
     private void HideBtmPart_Click(object sender, RoutedEventArgs e)
@@ -655,217 +541,224 @@ public sealed partial class AllSongsListPage : Page
 
     private void ViewOtherBtn_Click(object sender, RoutedEventArgs e)
     {
-
-        
-        MenuFlyoutSecondaryItems songMenuFlyout = new();
-
-        FontIcon ViewSongAppBarBtnIcon = new FontIcon();
-        ViewSongAppBarBtnIcon.Glyph = "\uE890";
-        AppBarButton ViewSongAppBarBtn = new();
-        ViewSongAppBarBtn.Icon = ViewSongAppBarBtnIcon;
-        ViewSongAppBarBtn.Label = "View";
-
-        songMenuFlyout.Items.Add(ViewSongAppBarBtn);
-
-        var send = (FrameworkElement)e.OriginalSource;
-        if(send.GetType() ==typeof(Microsoft.UI.Xaml.Controls.ContentPresenter))
+        try
         {
-            return;
-        }
-        var selectedSong = (SongModelView)(send).DataContext;
-        
-        var menuFlyout = new MenuFlyout();
-        var addNoteToSongMFItem = new MenuFlyoutItem { Text = "Add Note to Song" };
-        addNoteToSongMFItem.Click += async (s, args) =>
-        {
-            await MyViewModel.AddNoteToSongAsync();
-        };
-
-        FontIcon iconNote = new FontIcon();
-        iconNote.Glyph = "\uF7BB";
-        addNoteToSongMFItem.Icon = iconNote;
-        menuFlyout.Items.Add(addNoteToSongMFItem);
-
-        var playNextMFItem = new MenuFlyoutItem { Text = "Add Note to Song" };
-        playNextMFItem.Click += async (s, args) =>
-        {
-             MyViewModel.AddToNext(new List<SongModelView>() { selectedSong});
-        };
-        FontIcon playNextIcon = new FontIcon();
-        playNextIcon.Glyph = "\uECC8";
-
-        playNextMFItem.Icon = iconNote;
-        menuFlyout.Items.Add(playNextMFItem);
 
 
+            MenuFlyoutSecondaryItems songMenuFlyout = new();
 
+            FontIcon ViewSongAppBarBtnIcon = new FontIcon();
+            ViewSongAppBarBtnIcon.Glyph = "\uE890";
+            AppBarButton ViewSongAppBarBtn = new();
+            ViewSongAppBarBtn.Icon = ViewSongAppBarBtnIcon;
+            ViewSongAppBarBtn.Label = "View";
 
-        var deleteSongFromLibraryMFItem = new MenuFlyoutItem { Text = "Delete Song from Device" };
-        deleteSongFromLibraryMFItem.Click += async (s, args) =>
-        {
-            await MyViewModel.DeleteSongs(new List<SongModelView>() { selectedSong });
-        };
-        var menuSeparator = new MenuFlyoutSeparator();
-        menuFlyout.Items.Add(menuSeparator);
+            songMenuFlyout.Items.Add(ViewSongAppBarBtn);
 
-        FontIcon iconDelete = new FontIcon();
-        iconDelete.Glyph = "\uE74D";
-        deleteSongFromLibraryMFItem.Icon = iconDelete;
-        menuFlyout.Items.Add(deleteSongFromLibraryMFItem);
-
-
-
-        var viewSongInfo = new MenuFlyoutItem
-        {
-            Text = "View Song Details",
-        };
-        viewSongInfo.Click += viewSongINfo;
-        FontIcon icon = new FontIcon();
-        icon.Glyph = "\uE90B";
-        viewSongInfo.Icon = icon;
-        menuFlyout.Items.Add(viewSongInfo);
-
-        FlyoutShowOptions flyoutShowOpt = new FlyoutShowOptions
-        {
-            Placement = FlyoutPlacementMode.Top,
-            ShowMode = FlyoutShowMode.Auto
-        };
-
-        FontIcon LocateIcon = new FontIcon();
-        LocateIcon.Glyph = "\uE890";
-
-        var locateSongInFolder = new MenuFlyoutItem()
-        {
-            Text = "Locate In Folder"
-        ,
-            Icon = LocateIcon
-        };
-        locateSongInFolder.Click += (s, e) =>
-        {
-            MyViewModel.OpenAndSelectFileInExplorer(selectedSong);
-        };
-        menuFlyout.Items.Add(locateSongInFolder);
-
-
-
-        FontIcon LocateArtist = new FontIcon();
-        LocateArtist.Glyph = "\uE720";
-
-        if (selectedSong.ArtistToSong.Count == 1)
-        {
-            var toArtistMFI = new MenuFlyoutItem()
+            var send = (FrameworkElement)e.OriginalSource;
+            if (send.GetType() == typeof(Microsoft.UI.Xaml.Controls.ContentPresenter))
             {
-                Text = $"To Artist : {selectedSong.ArtistName}",
-                Icon = LocateArtist
+                return;
+            }
+            var selectedSong = (SongModelView)(send).DataContext;
+
+            var menuFlyout = new MenuFlyout();
+            var addNoteToSongMFItem = new MenuFlyoutItem { Text = "Add Note to Song" };
+            addNoteToSongMFItem.Click += async (s, args) =>
+            {
+                await MyViewModel.AddNoteToSongAsync();
             };
 
-            toArtistMFI.Click += (s, e) =>
+            FontIcon iconNote = new FontIcon();
+            iconNote.Glyph = "\uF7BB";
+            addNoteToSongMFItem.Icon = iconNote;
+            menuFlyout.Items.Add(addNoteToSongMFItem);
+
+            var playNextMFItem = new MenuFlyoutItem { Text = "Add Note to Song" };
+            playNextMFItem.Click += async (s, args) =>
             {
+                MyViewModel.AddToNext(new List<SongModelView>() { selectedSong });
+            };
+            FontIcon playNextIcon = new FontIcon();
+            playNextIcon.Glyph = "\uECC8";
 
-                MyViewModel.SetSelectedArtist(selectedSong.Artist);
-                PrepareAndNavigateTo(selectedSong);
+            playNextMFItem.Icon = iconNote;
+            menuFlyout.Items.Add(playNextMFItem);
 
+
+
+
+            var deleteSongFromLibraryMFItem = new MenuFlyoutItem { Text = "Delete Song from Device" };
+            deleteSongFromLibraryMFItem.Click += async (s, args) =>
+            {
+                await MyViewModel.DeleteSongs(new List<SongModelView>() { selectedSong });
+            };
+            var menuSeparator = new MenuFlyoutSeparator();
+            menuFlyout.Items.Add(menuSeparator);
+
+            FontIcon iconDelete = new FontIcon();
+            iconDelete.Glyph = "\uE74D";
+            deleteSongFromLibraryMFItem.Icon = iconDelete;
+            menuFlyout.Items.Add(deleteSongFromLibraryMFItem);
+
+
+
+            var viewSongInfo = new MenuFlyoutItem
+            {
+                Text = "View Song Details",
+            };
+            viewSongInfo.Click += viewSongINfo;
+            FontIcon icon = new FontIcon();
+            icon.Glyph = "\uE90B";
+            viewSongInfo.Icon = icon;
+            menuFlyout.Items.Add(viewSongInfo);
+
+            FlyoutShowOptions flyoutShowOpt = new FlyoutShowOptions
+            {
+                Placement = FlyoutPlacementMode.Top,
+                ShowMode = FlyoutShowMode.Auto
             };
 
-            menuFlyout.Items.Add(toArtistMFI);
-        }
-        else if (selectedSong.ArtistToSong.Count > 1)
-        {
-            var toArtistMFSI = new MenuFlyoutSubItem()
-            ;
-            
-            toArtistMFSI.Text = "Artists";
-            FontIcon toArtistMFSIicon = new FontIcon();
-            toArtistMFSIicon.Glyph = "\uE77B";
-            toArtistMFSI.Icon = toArtistMFSIicon;
-            foreach (var artistInCollection in selectedSong.ArtistToSong)
+            FontIcon LocateIcon = new FontIcon();
+            LocateIcon.Glyph = "\uE890";
+
+            var locateSongInFolder = new MenuFlyoutItem()
             {
-                if (artistInCollection is null) continue;
-                var mFI = new MenuFlyoutItem();
-                ;
-                mFI.Text = artistInCollection.Name;
-                mFI.Click += (s, e) =>
+                Text = "Locate In Folder"
+            ,
+                Icon = LocateIcon
+            };
+            locateSongInFolder.Click += (s, e) =>
+            {
+                MyViewModel.OpenAndSelectFileInExplorer(selectedSong);
+            };
+            menuFlyout.Items.Add(locateSongInFolder);
+
+
+
+            FontIcon LocateArtist = new FontIcon();
+            LocateArtist.Glyph = "\uE720";
+
+            if (selectedSong.ArtistToSong.Count == 1)
+            {
+                var toArtistMFI = new MenuFlyoutItem()
                 {
-                    MyViewModel.SetSelectedArtist(artistInCollection);
-                    PrepareAndNavigateTo(selectedSong);
+                    Text = $"To Artist : {selectedSong.ArtistName}",
+                    Icon = LocateArtist
                 };
-                toArtistMFSI.Items.Add(mFI);
+
+                toArtistMFI.Click += (s, e) =>
+                {
+
+                    MyViewModel.SetSelectedArtist(selectedSong.Artist);
+                    PrepareAndNavigateTo(selectedSong);
+
+                };
+
+                menuFlyout.Items.Add(toArtistMFI);
+            }
+            else if (selectedSong.ArtistToSong.Count > 1)
+            {
+                var toArtistMFSI = new MenuFlyoutSubItem()
+                ;
+
+                toArtistMFSI.Text = "Artists";
+                FontIcon toArtistMFSIicon = new FontIcon();
+                toArtistMFSIicon.Glyph = "\uE77B";
+                toArtistMFSI.Icon = toArtistMFSIicon;
+                foreach (var artistInCollection in selectedSong.ArtistToSong)
+                {
+                    if (artistInCollection is null) continue;
+                    var mFI = new MenuFlyoutItem();
+                    ;
+                    mFI.Text = artistInCollection.Name;
+                    mFI.Click += (s, e) =>
+                    {
+                        MyViewModel.SetSelectedArtist(artistInCollection);
+                        PrepareAndNavigateTo(selectedSong);
+                    };
+                    toArtistMFSI.Items.Add(mFI);
+                }
+
+
+                menuFlyout.Items.Add(toArtistMFSI);
+            }
+            FontIcon musicAlbumIcon = new FontIcon();
+            musicAlbumIcon.Glyph = "\uE93C";
+
+
+
+            var viewInfoPopup = new MenuFlyoutItem()
+            {
+                Text = "Info"
+                ,
+                Icon = new FontIcon() { Glyph = "\uE946" }
+            };
+            viewInfoPopup.Click += (s, e) =>
+            {
+
+
+
+                AnimationHelper.Prepare(AnimationHelper.Key_ToViewSingleSongPopUp, coverImageClicked);
+
+                SingleSongPopup.Visibility = Visibility.Visible;
+
+                AnimationHelper.TryStart(
+                    SingleSongPopup, // Destination: The Big View
+                    null,               // Optional: Coordinated elements (like the text inside)
+                    AnimationHelper.Key_ToViewSingleSongPopUp
+                );
+            };
+
+
+            menuFlyout.Items.Add(viewInfoPopup);
+
+            FontIcon heartIcon = new FontIcon();
+            heartIcon.Glyph = "\uEB51";
+
+            FontIcon unheartIcon = new FontIcon();
+            unheartIcon.Glyph = "\uEA92";
+            var toggleFavBtn = new ToggleMenuFlyoutItem
+            {
+                Icon = heartIcon,
+
+            };
+            if (!selectedSong.IsFavorite)
+            {
+                toggleFavBtn.Text = "Love";
+                toggleFavBtn.Click += (s, e) =>
+                {
+
+                    _ = MyViewModel.AddFavoriteRatingToSongAsync(selectedSong);
+                    toggleFavBtn.Text = "UnLove";
+                };
+
+            }
+            else
+            {
+                toggleFavBtn.Text = "UnLove";
+                toggleFavBtn.Icon = unheartIcon;
+
+                toggleFavBtn.Click += (s, e) =>
+                {
+                    _ = MyViewModel.RemoveSongFromFavoriteAsync(selectedSong);
+                    toggleFavBtn.Text = "Love";
+                };
             }
 
-
-            menuFlyout.Items.Add(toArtistMFSI);
-        }
-        FontIcon musicAlbumIcon = new FontIcon();
-        musicAlbumIcon.Glyph = "\uE93C";
-
-      
-
-        var viewInfoPopup = new MenuFlyoutItem()
-        {
-            Text = "Info"
-            ,
-            Icon = new FontIcon() { Glyph = "\uE946" }
-        };
-        viewInfoPopup.Click += (s, e) =>
-        {
-           
+            menuFlyout.Items.Add(toggleFavBtn);
 
 
-            AnimationHelper.Prepare(AnimationHelper.Key_ToViewSingleSongPopUp, coverImageClicked);
-
-            SingleSongPopup.Visibility = Visibility.Visible;
-
-            AnimationHelper.TryStart(
-                SingleSongPopup, // Destination: The Big View
-                null,               // Optional: Coordinated elements (like the text inside)
-                AnimationHelper.Key_ToViewSingleSongPopUp
-            );
-        };
+            //MenuFlyoutAttach.SetSecondaryMenu(menuFlyout, songMenuFlyout);
 
 
-        menuFlyout.Items.Add(viewInfoPopup);
-
-        FontIcon heartIcon = new FontIcon();
-        heartIcon.Glyph = "\uEB51";
-
-        FontIcon unheartIcon = new FontIcon();
-        unheartIcon.Glyph = "\uEA92";
-        var toggleFavBtn = new ToggleMenuFlyoutItem
-        {
-            Icon = heartIcon,
-
-        };
-        if (!selectedSong.IsFavorite)
-        {
-            toggleFavBtn.Text = "Love";
-            toggleFavBtn.Click += (s, e) =>
-            {
-
-                _ = MyViewModel.AddFavoriteRatingToSongAsync(selectedSong);
-                toggleFavBtn.Text = "UnLove";
-            };
+            menuFlyout.ShowAt((UIElement)e.OriginalSource, flyoutShowOpt);
 
         }
-        else
+        catch (Exception ex)
         {
-            toggleFavBtn.Text = "UnLove";
-            toggleFavBtn.Icon = unheartIcon;
-
-            toggleFavBtn.Click += (s, e) =>
-            {
-                _ = MyViewModel.RemoveSongFromFavoriteAsync(selectedSong);
-                toggleFavBtn.Text = "Love";
-            };
+            Debug.WriteLine(ex.Message);
         }
-
-        menuFlyout.Items.Add(toggleFavBtn);
-
-
-        //MenuFlyoutAttach.SetSecondaryMenu(menuFlyout, songMenuFlyout);
-
-
-        menuFlyout.ShowAt((UIElement)e.OriginalSource, flyoutShowOpt);
-
     }
 
     private void PrepareAndNavigateTo(SongModelView passedSong)
@@ -1192,18 +1085,7 @@ public sealed partial class AllSongsListPage : Page
         }
     }
 
-    private void SongTitle_Click(object sender, RoutedEventArgs e)
-    {
-        var send = ((FrameworkElement)sender).DataContext as SongModelView;
-        MyViewModel.SelectedSong = send;
-        _storedSong = MyViewModel.SelectedSong;
-        ViewSongBtn_Click(sender, e);
-    }
 
-    private void SelectedSongImg_PointerPressed(object sender, PointerRoutedEventArgs e)
-    {
-        ViewSongBtn_Click(sender, e);
-    }
 
 
 
@@ -1284,7 +1166,7 @@ public sealed partial class AllSongsListPage : Page
 
     private void MySongsTableView_RightTapped(object sender, RightTappedRoutedEventArgs e)
     {
-        ViewOtherBtn_Click(sender, e);
+
     }
 
 
@@ -1339,7 +1221,7 @@ public sealed partial class AllSongsListPage : Page
             }
 
         };
-        MyViewModel.WhenPropertyChange(nameof(MyViewModel.IsTqlBusy), c => MyViewModel.IsTqlBusy)
+        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.IsTqlBusy), c => MyViewModel.IsTqlBusy)
      .ObserveOn(RxSchedulers.UI)
      .Subscribe(boolVal =>
      {
@@ -1357,6 +1239,8 @@ public sealed partial class AllSongsListPage : Page
 
     }
 
-
-   
+    private void ViewMore_Click(object sender, RoutedEventArgs e)
+    {
+        ViewOtherBtn_Click(sender, e);
+    }
 }

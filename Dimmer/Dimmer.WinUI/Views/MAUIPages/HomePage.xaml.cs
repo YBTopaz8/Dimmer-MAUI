@@ -1073,7 +1073,7 @@ public partial class HomePage : ContentPage
         }
 
         
-        loginVM.CurrentUserOnline?.WhenPropertyChange(nameof(loginVM.CurrentUserOnline.SessionToken), v=>loginVM.CurrentUserOnline)
+        loginVM.CurrentUserOnline?.WhenPropertyChanged(nameof(loginVM.CurrentUserOnline.SessionToken), v=>loginVM.CurrentUserOnline)
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(x =>
             {

@@ -795,7 +795,7 @@ public sealed partial class DimmerWin : Window
 
     private void PlayPauseToggleBtn_Loaded(object sender, RoutedEventArgs e)
     {
-        MyViewModel.WhenPropertyChange(nameof(MyViewModel.IsDimmerPlaying), v => MyViewModel.IsDimmerPlaying)
+        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.IsDimmerPlaying), v => MyViewModel.IsDimmerPlaying)
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(isDimmerPlaying =>
             {
@@ -901,7 +901,7 @@ public sealed partial class DimmerWin : Window
 
     private void SearchResultErrorText_Loaded(object sender, RoutedEventArgs e)
     {
-        MyViewModel.WhenPropertyChange(nameof(MyViewModel.TQLUserSearchErrorMessage), v=>MyViewModel.TQLUserSearchErrorMessage)
+        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.TQLUserSearchErrorMessage), v=>MyViewModel.TQLUserSearchErrorMessage)
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(msg =>
             {
@@ -911,7 +911,7 @@ public sealed partial class DimmerWin : Window
 
     private void CurrentPlayingSongImage_Loaded(object sender, RoutedEventArgs e)
     {
-        MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentPlayingSongView), v=>MyViewModel.CurrentPlayingSongView)
+        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.CurrentPlayingSongView), v=>MyViewModel.CurrentPlayingSongView)
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(curSong =>
             {

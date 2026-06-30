@@ -23,16 +23,12 @@ public partial class RepeatModeConverter : IValueConverter
             {
                 case RepeatMode.All:
                     return repeatAllIcon;
-                    break;
                 case RepeatMode.Off:
                     return repeateOffIcon;
-                    break;
                 case RepeatMode.One:
                     return repeateOneIcon;
-                    break;
                 case RepeatMode.Custom:
                     return repeatCust;
-                    break;
                 default:
                     break;
             }

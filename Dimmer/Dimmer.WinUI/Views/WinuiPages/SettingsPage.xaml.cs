@@ -175,7 +175,7 @@ public sealed partial class SettingsPage : Page
 
     private void OptionLogBtn_Loaded(object sender, RoutedEventArgs e)
     {
-        MyViewModel.WhenPropertyChange(nameof(MyViewModel.IsAppLoadingCovers), v => MyViewModel.IsAppLoadingCovers)
+        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.IsAppLoadingCovers), v => MyViewModel.IsAppLoadingCovers)
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(isLoadingCovers =>
             {
@@ -191,7 +191,7 @@ public sealed partial class SettingsPage : Page
                     OptionLogBtn.Click -= OptionLogBtn_Click;
                 }
             });
-        MyViewModel.WhenPropertyChange(nameof(MyViewModel.IsAppScanning), v => MyViewModel.IsAppScanning)
+        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.IsAppScanning), v => MyViewModel.IsAppScanning)
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(IsAppScanning =>
             {
