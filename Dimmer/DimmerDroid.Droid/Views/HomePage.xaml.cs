@@ -7,7 +7,10 @@ using DevExpress.Maui.Editors;
 using DevExpress.Maui.Scheduler.Internal;
 using Dimmer.Utilities;
 using Google.Android.Material.Dialog;
+using Hqub.Lastfm.Entities;
 using Microsoft.Maui.Controls.PlatformConfiguration;
+using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 
 
 namespace Dimmer.Views;
@@ -22,7 +25,7 @@ public partial class HomePage : ContentPage
         MyLastFMViewModel = lastFMVM;
         MyLoginVM = loginVM;
         StatsViewModel = statisticsView;
-        MyViewModel.WhenPropertyChange(nameof(MyViewModel.OpenMediaUIOnNotificationTap), v => (MyViewModel.OpenMediaUIOnNotificationTap))
+        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.OpenMediaUIOnNotificationTap), v => (MyViewModel.OpenMediaUIOnNotificationTap))
             .Subscribe(
                 e =>
                 {
@@ -43,50 +46,71 @@ public partial class HomePage : ContentPage
     public StatisticsViewModel StatsViewModel { get; }
 
 
+    protected override void OnDisappearing()
+    {
+        compDisp.Dispose();
+        base.OnDisappearing();
+    }
+
     protected override void OnAppearing()
     {
         base.OnAppearing();
-
+        compDisp = new();
       
+
+
+
+        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.HomePageIndex), v => (MyViewModel.HomePageIndex))
+            .Subscribe(async e =>
+            {
+                switch (e)
+                {
+                    case 0:
+                    MyViewModel.StartTQLPipeLine();
+                           
+                        
+                         
+                    break;
+
+                    case 2: 
+
+                    break;
+                    default:
+                    break;
+                }
+
+            }).DisposeWith(compDisp);
+
+        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.IsSearchResultEmpty), v => (MyViewModel.SearchResults))
+        .Subscribe(async col =>
+        {
+
+           if(!isTQLBtmSheetOpened)
+           {
+                SongsCV.ItemsSource = new List<SongModelView>(col);
+           }
+           else
+           {
+
+           }
+
+        }).DisposeWith(compDisp);
 
 
         if (!MyViewModel.IsInitialized)
         {
-            InitializeAppLogic();
+           _= InitializeAppLogic();
             //MyViewModel.LoadSongsInitially();
         }
-
-        MyViewModel.WhenPropertyChange(nameof(MyViewModel.HomePageIndex), v => (MyViewModel.HomePageIndex))
-            .Subscribe(
-                async e =>
-                {
-
-                  
-                    switch (e)
-                    {
-                        case 0:
-                            MyViewModel.StartTQLPipeLine();
-                           
-                        
-                         
-                            break;
-
-                        case 2:
-
-                            break;
-                        default:
-                            break;
-                    }
-
-                });
     }
+    CompositeDisposable compDisp;
 
-
-    private void InitializeAppLogic()
+    private async Task InitializeAppLogic()
     {
         
             try
             {
+            await Task.Delay(2500);
                 var startTime = Java.Lang.JavaSystem.CurrentTimeMillis();
 
                 MyViewModel.InitializeAllVMCoreComponents();
@@ -657,7 +681,7 @@ public partial class HomePage : ContentPage
 
     private void PlaybackQueueGrid_Loaded(object sender, EventArgs e)
     {
-        MyViewModel.WhenPropertyChange(nameof(MyViewModel.PlaybackQueue), v => MyViewModel.PlaybackQueue)
+        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.PlaybackQueue), v => MyViewModel.PlaybackQueue)
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(pbQueue =>
             {
@@ -680,7 +704,7 @@ public partial class HomePage : ContentPage
 
     private void BtmBarGrid_Loaded(object sender, EventArgs e)
     {
-        MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentPlayingSongView), v => MyViewModel.CurrentPlayingSongView)
+        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.CurrentPlayingSongView), v => MyViewModel.CurrentPlayingSongView)
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(song =>
             {
@@ -950,6 +974,7 @@ public partial class HomePage : ContentPage
         SortPopUp.Close();
     }
     int currentSelectedSortIndex;
+    private bool isTQLBtmSheetOpened;
 
     private void ConfirmSortAndClosePopupBtn_Clicked(object sender, EventArgs e)
     {
@@ -1191,6 +1216,87 @@ public partial class HomePage : ContentPage
 
 
 
+    }
+
+    private void ShowTQLShortBTMSheet_Clicked(object sender, EventArgs e)
+    {
+        TQLSearchBottomSheet.Show(BottomSheetState.FullExpanded);
+    }
+
+    private void TQLSearchBottomSheet_StateChanged(object sender, ValueChangedEventArgs<BottomSheetState> e)
+    {
+        switch (e.NewValue)
+        {
+            case BottomSheetState.FullExpanded:
+                isTQLBtmSheetOpened = true;
+                break;
+            case BottomSheetState.HalfExpanded:
+                break;
+            case BottomSheetState.Hidden:
+                isTQLBtmSheetOpened = false;
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void DXButton_Clicked_1(object sender, EventArgs e)
+    {
+
+    }
+
+    private void CloseTQLBtmSheet_Clicked(object sender, EventArgs e)
+    {
+        TQLSearchBottomSheet.Close();
+    }
+
+    private async void ViewArtistPage_Clicked(object sender, EventArgs e)
+    {
+        ArtistsMgtBtmSheet.Close();
+        var art = ((DXButton)sender).CommandParameter as ArtistModelView;
+        MyViewModel.SetSelectedArtist(art);
+
+        await Shell.Current.GoToAsync(nameof(ArtistPage), true);
+    }
+
+    private void ViewArtistSongs_Clicked(object sender, EventArgs e)
+    {
+        var send = ((DXToggleButton)sender);
+        var art = send.CommandParameter as ArtistModelView;
+        switch (send.IsChecked)
+        {
+            case true:
+                MyViewModel.SetSelectedArtist(art);
+                break;
+                
+            case false:
+
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    private async void SearchResultDG_DoubleTap(object sender, DevExpress.Maui.DataGrid.DataGridGestureEventArgs e)
+    {
+        var send = (View)sender;
+        var song = (SongModelView)send.BindingContext;
+        //var songsInCV = SongsCV.ItemsSource;
+
+
+        List<SongModelView> songsInCV = new();
+        for (int i = 0; i < SearchResultDG.VisibleRowCount; i++)
+        {
+            var itemHandle = SearchResultDG.GetRowHandleByVisibleIndex(i);
+
+            if (SearchResultDG.GetRowItem(itemHandle) is not SongModelView songByItemHandle) continue;
+            songsInCV.Add(songByItemHandle);
+        }
+
+
+
+        await MyViewModel.PlaySongAsync(song, CurrentPage.HomePage, songsInCV);
     }
 
 

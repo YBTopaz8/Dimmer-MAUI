@@ -236,7 +236,6 @@ public partial class ExoPlayerService : MediaSessionService
     }
 
     PlayerNotificationManager? _notifMgr;
-    private Runnable? _positionRunnable;
     private MediaController? mediaController;
 
     public ExoPlayerServiceBinder? Binder { get => _binder; set => _binder = value; }
@@ -382,7 +381,6 @@ public partial class ExoPlayerService : MediaSessionService
     }
 
     private Handler? positionHandler;
-    private Runnable? positionRunnable;
     //private async Task InitializeMediaControllerAsync()
     //{
     //    Console.WriteLine("DIMMERTRACE: ExoPlayerService.InitializeMediaControllerAsync START");

@@ -36,7 +36,13 @@ public partial class DetailsOverview : ContentPage
 
         StatsSectionPreview.BindingContext = StatsViewModel;
 
-        
+        ConcernedSong = MyViewModel.SelectedSong!;
+        _ = Task.Run(() =>
+        {
+
+            _ = StatsViewModel.LoadSongStatsAsync(MyViewModel.SelectedSong);
+            _ = LastFMViewModel.LoadSelectedSongLastFMData();
+        });
     }
 
     protected override void OnDisappearing()
@@ -107,13 +113,7 @@ public partial class DetailsOverview : ContentPage
 
     private void DetailPagesShimmerView_Loaded(object sender, EventArgs e)
     {
-        ConcernedSong = MyViewModel.SelectedSong!;
-        _ = Task.Run(() =>
-        {
-
-            _ = StatsViewModel.LoadSongStatsAsync(MyViewModel.SelectedSong);
-            _ = LastFMViewModel.LoadSelectedSongLastFMData();
-        });
+        
     }
 
     private async void EditLyrics_Clicked(object sender, EventArgs e)

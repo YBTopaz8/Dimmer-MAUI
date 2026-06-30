@@ -22,7 +22,7 @@ public partial class DimmerHomeCenter : ContentPage
     private void MainGrid_Loaded(object sender, EventArgs e)
     {
 
-        LoginViewModel.WhenPropertyChange(
+        LoginViewModel.WhenPropertyChanged(
       nameof(LoginViewModel.IsAuthenticated),
       isBG => (LoginViewModel.IsAuthenticated))
       .ObserveOn(RxSchedulers.UI)

@@ -168,6 +168,82 @@
 
                 </Grid>
             </DataTemplate>
+            <DataTemplate x:Key="SearchTemplate" x:DataType="models:SongModelView">
+                <Grid
+                    ColumnDefinitions="*,auto"
+                    ColumnSpacing="3"
+                    RowDefinitions="60"
+                    >
+
+
+                    <dx:DXStackLayout Grid.Column="0" Orientation="Vertical">
+                        <dx:DXStackLayout.GestureRecognizers>
+                            <TapGestureRecognizer x:Name="TapToPlaySongGestRecog" Tapped="TapToPlaySongGestRecog_Tapped" />
+                        </dx:DXStackLayout.GestureRecognizers>
+                        <Label
+                            FontAttributes="Bold"
+                            FontSize="19"
+                            Text="{Binding Title}"
+                            />
+                        <Label
+                            x:Name="OtherArtistsName"
+                            Padding="0"
+                            BackgroundColor="Transparent"
+                            FontAttributes="Italic"
+                            FontSize="13"
+                            HorizontalOptions="Start"
+                            Text="{Binding OtherArtistsName}"
+                            TextColor="{AppThemeBinding Dark=gray,
+                                                        Light=black}"
+                            />
+                    </dx:DXStackLayout>
+
+                    <dx:DXButton
+                        x:Name="MoreBtn"
+                        Grid.Column="1"
+                        Padding="2"
+                        BackgroundColor="Transparent"
+                        BorderThickness="0"
+                        Icon="more1.png"
+                        IconColor="{AppThemeBinding Light=#1e1e1e}"
+                        IconHeight="25"
+                        IconPlacement="Top"
+                        IconWidth="30"
+                        PressedBackgroundColor="{Binding CurrentPlaySongDominantColor}"
+                        ShowIcon="True"
+                        Tap="MoreBtn_Tap"
+                        >
+
+
+                        <dx:DXStackLayout Orientation="Vertical">
+
+                            <Label
+                                Margin="5,0"
+                                FontSize="10"
+                                HorizontalOptions="End"
+                                Text="{Binding DurationFormatted}"
+                                VerticalOptions="Center"
+                                />
+
+                            <dx:DXStackLayout HorizontalOptions="Center" Orientation="Horizontal">
+                                <Label IsVisible="{Binding HasSyncedLyrics}" Text="🎙️" />
+                                <Label
+                                    Margin="5,0"
+                                    FontSize="9"
+                                    HorizontalOptions="Center"
+                                    Text="{Binding PlayCompletedCount}"
+                                    VerticalOptions="Center"
+                                    />
+
+                            </dx:DXStackLayout>
+
+
+                        </dx:DXStackLayout>
+
+                    </dx:DXButton>
+
+                </Grid>
+            </DataTemplate>
         </ResourceDictionary>
     </ContentPage.Resources>
     <Grid
@@ -180,57 +256,60 @@
             <dx:DXExpander.Content>
 
                 <dx:DXStackLayout>
-
-                    <dx:DXStackLayout
-                        HorizontalOptions="End"
-                        ItemSpacing="10"
-                        Orientation="Horizontal"
-                        >
-                        <dx:DXStackLayout.Resources>
-                            <ResourceDictionary>
-                                <Style TargetType="dx:DXButton">
-                                    <Setter Property="ShowIcon" Value="True" />
-                                    <Setter Property="ShowContent" Value="False" />
-                                    <Setter Property="BackgroundColor" Value="Transparent" />
-                                    <Setter Property="IconColor" Value="{AppThemeBinding Dark=White, Light=Black}" />
-                                    <Setter Property="IconHeight" Value="40" />
-                                    <Setter Property="IconWidth" Value="40" />
-                                </Style>
-                            </ResourceDictionary>
-                        </dx:DXStackLayout.Resources>
-
-
-                        <dx:DXButton
-                            Padding="5"
-                            Clicked="SortPopUp_Clicked"
-                            HorizontalOptions="End"
-                            Icon="sortvertical.png"
-                            ShowContent="False"
-                            ShowIcon="True"
-                            />
-                        <dx:DXButton
-                            x:Name="FilterBtn"
-                            Padding="5"
-                            BackgroundColor="Transparent"
-                            Command="{Binding Commands.Show, Source={x:Reference FilterBottomSheet}}"
-                            HorizontalOptions="End"
-                            Icon="filtertwo.png"
-                            IconColor="{AppThemeBinding Dark=White,
-                                                        Light=Black}"
-                            IconHeight="40"
-                            IconWidth="40"
-                            ShowContent="False"
-                            ShowIcon="True"
+                    <Grid ColumnDefinitions="*,auto">
+                        <dx:Chip
+                            x:Name="CurrentTQLUI"
+                            Grid.Column="0"
+                            IsVisible="{Binding CurrentTqlQueryUI, Converter={toolkit:IsStringNotNullOrEmptyConverter}}"
+                            Text="{Binding CurrentTqlQueryUI}"
                             />
 
-                    </dx:DXStackLayout>
+                        <dx:DXStackLayout
+                            Grid.Column="1"
+                            HorizontalOptions="End"
+                            ItemSpacing="10"
+                            Orientation="Horizontal"
+                            >
+                            <dx:DXStackLayout.Resources>
+                                <ResourceDictionary>
+                                    <Style TargetType="dx:DXButton">
+                                        <Setter Property="ShowIcon" Value="True" />
+                                        <Setter Property="ShowContent" Value="False" />
+                                        <Setter Property="BackgroundColor" Value="Transparent" />
+                                        <Setter Property="IconColor" Value="{AppThemeBinding Dark=White, Light=Black}" />
+                                        <Setter Property="IconHeight" Value="40" />
+                                        <Setter Property="IconWidth" Value="40" />
+                                    </Style>
+                                </ResourceDictionary>
+                            </dx:DXStackLayout.Resources>
 
-                    <dx:TextEdit
-                        x:Name="SearchText"
-                        PlaceholderText="Search Via TQL"
-                        Suffix="{Binding VisibleItemCount, Source={x:Reference SongsCV}}"
-                        TextChanged="SearchText_TextChanged"
-                        />
+
+                            <dx:DXButton
+                                Padding="5"
+                                Clicked="SortPopUp_Clicked"
+                                HorizontalOptions="End"
+                                Icon="sortvertical.png"
+                                ShowContent="False"
+                                ShowIcon="True"
+                                />
+                            <dx:DXButton
+                                x:Name="FilterBtn"
+                                Padding="5"
+                                BackgroundColor="Transparent"
+                                Command="{Binding Commands.Show, Source={x:Reference FilterBottomSheet}}"
+                                HorizontalOptions="End"
+                                Icon="filtertwo.png"
+                                IconColor="{AppThemeBinding Dark=White,
+                                                            Light=Black}"
+                                IconHeight="40"
+                                IconWidth="40"
+                                ShowContent="False"
+                                ShowIcon="True"
+                                />
+
+                        </dx:DXStackLayout>
+                    </Grid>
+
 
 
 
@@ -260,11 +339,28 @@
                         BackgroundColor="Transparent"
                         ItemSpacing="5"
                         ItemTemplate="{StaticResource LinearDataType}"
-                        ItemsSource="{Binding SearchResults}"
                         Loaded="SongsCV_Loaded"
                         PropertyChanged="SongsCV_PropertyChanged"
+                        ZIndex="0"
                         />
 
+                    <dx:DXButton
+                        x:Name="ShowTQLShortBTMSheet"
+                        Grid.Row="1"
+                        Margin="10,40"
+                        BackgroundColor="Transparent"
+                        Clicked="ShowTQLShortBTMSheet_Clicked"
+                        HorizontalOptions="End"
+                        Icon="searchd.png"
+                        IconColor="DarkSlateBlue"
+                        IconHeight="40"
+                        IconWidth="40"
+                        PressedBackgroundColor="{Binding CurrentPlaySongDominantColor}"
+                        ShowContent="False"
+                        ShowIcon="True"
+                        VerticalOptions="End"
+                        ZIndex="1"
+                        />
 
                     <Grid
                         x:Name="BtmBarGrid"
@@ -703,60 +799,54 @@
 
                     <dx:BottomSheet x:Name="ArtistsMgtBtmSheet">
                         <dx:BottomSheet.Content>
-                            <dx:DXStackLayout>
-                                <dx:DXCollectionView ItemSpacing="5" ItemsSource="{Binding SelectedSong.ArtistToSong}">
+
+                            <Grid Margin="5" RowDefinitions="auto,*">
+                                <dx:DXStackLayout Grid.Row="0">
+                                    <Label Text="Artists Count: " />
+                                    <Label Text="{Binding SelectedSong.ArtistToSong.Count}" />
+
+                                </dx:DXStackLayout>
+                                <dx:DXCollectionView
+                                    Grid.Row="1"
+                                    ItemSpacing="5"
+                                    ItemsSource="{Binding SelectedSong.ArtistToSong}"
+                                    >
                                     <dx:DXCollectionView.ItemTemplate>
                                         <DataTemplate x:DataType="models:ArtistModelView">
-                                            <Grid Padding="10,0" ColumnDefinitions="auto,*,auto">
+                                            <Grid Padding="0,0" RowDefinitions="auto,auto">
 
-                                                <dx:DXImage Grid.Column="0" Source="{Binding ImagePath}" />
-                                                <dx:DXStackLayout Grid.Column="1">
+                                                <Grid Grid.Row="0" ColumnDefinitions="*,auto">
                                                     <Label Text="{Binding Name}" />
 
-                                                </dx:DXStackLayout>
-                                                <dx:DXStackLayout Grid.Column="2">
-                                                    <Grid ColumnDefinitions="*,*">
+                                                    <dx:DXStackLayout Grid.Column="1" Orientation="Horizontal">
                                                         <dx:DXToggleButton
-                                                            x:Name="PreviewArtistSongsBtn"
-                                                            Grid.ColumnSpan="2"
-                                                            Padding="5"
-                                                            CheckedChanged="PreviewArtistSongsBtn_CheckedChanged"
-                                                            CheckedIconColor="DarkSlateBlue"
-                                                            Icon="eye.png"
-                                                            IconColor="Gray"
-                                                            ShowContent="False"
-                                                            ShowIcon="True"
-                                                            />
-                                                        <dx:DXButton
-                                                            x:Name="AddToQueueButton"
-                                                            Grid.Column="0"
-                                                            Padding="5"
-                                                            Clicked="AddToQueueButton_Clicked"
-                                                            Icon="add_list.png"
-                                                            IconColor="White"
-                                                            ShowContent="False"
-                                                            ToolTipProperties.Text="Add To Queue"
-                                                            />
-
-                                                        <dx:DXButton
-                                                            x:Name="ViewArtist"
-                                                            Grid.Column="1"
-                                                            Padding="5"
-                                                            Clicked="ViewArtist_Clicked"
+                                                            x:Name="ViewArtistSongs"
+                                                            Clicked="ViewArtistSongs_Clicked"
+                                                            Command="{Binding Commands.ToggleExpandState, Source={x:Reference ArtistQuickSongsExp}}"
                                                             CommandParameter="{Binding .}"
-                                                            Icon="viewpage.png"
-                                                            IconColor="White"
-                                                            ShowContent="False"
-                                                            ToolTipProperties.Text="View Artist"
+                                                            Icon="song.png"
                                                             />
+                                                        <dx:DXButton
+                                                            x:Name="ViewArtistPage"
+                                                            Clicked="ViewArtistPage_Clicked"
+                                                            CommandParameter="{Binding .}"
+                                                            Icon="eye.png"
+                                                            />
+                                                    </dx:DXStackLayout>
+                                                </Grid>
 
-                                                    </Grid>
-                                                </dx:DXStackLayout>
+                                                <dx:DXExpander x:Name="ArtistQuickSongsExp" Grid.Row="1">
+                                                    <dx:DXCollectionView
+                                                        x:Name="ArtistQuickSongsColView"
+                                                        ItemTemplate="{StaticResource SearchTemplate}"
+                                                        ItemsSource="{Binding SongsByArtist}"
+                                                        />
+                                                </dx:DXExpander>
                                             </Grid>
                                         </DataTemplate>
                                     </dx:DXCollectionView.ItemTemplate>
                                 </dx:DXCollectionView>
-                            </dx:DXStackLayout>
+                            </Grid>
                         </dx:BottomSheet.Content>
                     </dx:BottomSheet>
                     <dx:DXPopup x:Name="AddToPopup">
@@ -783,6 +873,106 @@
                             </dx:DXStackLayout>
                         </dx:DXPopup.Content>
                     </dx:DXPopup>
+
+                    <dx:BottomSheet
+                        x:Name="TQLSearchBottomSheet"
+                        AllowDismiss="False"
+                        AllowedState="FullExpanded"
+                        CornerRadius="5"
+                        HalfExpandedRatio="1"
+                        ShowGrabber="False"
+                        StateChanged="TQLSearchBottomSheet_StateChanged"
+                        >
+                        <dx:BottomSheet.Content>
+                            <Grid Margin="5,0" RowDefinitions="auto,*">
+                                <Grid
+                                    Grid.Row="0"
+                                    ColumnDefinitions="*,auto"
+                                    ColumnSpacing="5"
+                                    >
+                                    <dx:TextEdit
+                                        x:Name="SearchText"
+                                        Grid.Row="0"
+                                        IsVisible="True"
+                                        PlaceholderText="Search Via TQL"
+                                        ReturnCommand="{Binding ApplyTQLSearchCommand}"
+                                        ReturnCommandParameter="{Binding Text, Source={x:Reference SearchText}}"
+                                        ReturnType="Send"
+                                        />
+
+
+                                    <dx:DXButton
+                                        Grid.Column="1"
+                                        Padding="5"
+                                        BackgroundColor="Transparent"
+                                        BorderColor="DarkSlateBlue"
+                                        BorderThickness="0"
+                                        Clicked="CloseTQLBtmSheet_Clicked"
+                                        Content="X"
+                                        FontSize="30"
+                                        TextColor="DarkSlateBlue"
+                                        WidthRequest="45"
+                                        />
+                                </Grid>
+
+                                <dx:DataGridView
+                                    x:Name="SearchResultDG"
+                                    Grid.Row="1"
+                                    DoubleTap="SearchResultDG_DoubleTap"
+                                    AutoGenerateColumnsMode="None"
+                                    ItemsSource="{Binding SearchResults, Mode=OneWay}"
+                                    RowHeight="80"
+                                    >
+                                    <dx:DataGridView.Columns>
+                                        <dx:TextColumn
+                                            Width="*"
+                                            Caption="Title"
+                                            FieldName="Title"
+                                            />
+
+                                        <dx:TextColumn
+                                            Width="*"
+                                            Caption="Artists"
+                                            FieldName="OtherArtistsName"
+                                            />
+
+                                        <dx:TextColumn
+                                            Width="*"
+                                            Caption="Artists"
+                                            FieldName="AlbumName"
+                                            />
+
+                                        <dx:TextColumn
+                                            Width="80"
+                                            Caption="Duration"
+                                            FieldName="DurationFormatted"
+                                            />
+
+                                        <dx:NumberColumn
+                                            Width="68"
+                                            HorizontalContentAlignment="Center"
+                                            Caption="Dims"
+                                            FieldName="PlayCompletedCount"
+                                            />
+                                        <dx:TemplateColumn Width="65" Caption="More">
+                                            <dx:TemplateColumn.DisplayTemplate>
+                                                <DataTemplate x:DataType="models:SongModelView">
+                                                    <dx:DXStackLayout VerticalOptions="Center">
+                                                        <dx:DXButton
+                                                            BackgroundColor="Transparent"
+                                                            Icon="more1.png"
+                                                            IconColor="DarkSlateBlue"
+                                                            />
+                                                        <Label IsVisible="{Binding IsFavorite}" Text="❤️" />
+                                                    </dx:DXStackLayout>
+                                                </DataTemplate>
+                                            </dx:TemplateColumn.DisplayTemplate>
+                                        </dx:TemplateColumn>
+                                    </dx:DataGridView.Columns>
+                                </dx:DataGridView>
+                            </Grid>
+                        </dx:BottomSheet.Content>
+                    </dx:BottomSheet>
                 </Grid>
             </dx:TabViewItem>
             <dx:TabViewItem HeaderText="Now Playing">

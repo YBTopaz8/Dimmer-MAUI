@@ -31,7 +31,7 @@ public partial class DuplicateFinder : ContentPage
         _composite = new();
 
 
-        MyViewModel.WhenPropertyChange(
+        MyViewModel.WhenPropertyChanged(
             nameof(MyViewModel.IsDuplicateFound),
             isBG => (MyViewModel.IsDuplicateFound))
             .ObserveOn(RxSchedulers.UI)
