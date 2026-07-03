@@ -1165,6 +1165,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     {
 
     }
+    [ObservableProperty]
+    public partial CompleteBackupData? PickedUpBackup { get; set; }
 
     [RelayCommand]
     public void SearchToTQL(string? searchText)
@@ -4605,7 +4607,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             return;
         };
         SelectedArtist = artist;
-        if(artist.SongsByArtist?.Count<1)
+        if(artist.SongsByArtist is null || artist.SongsByArtist?.Count<1)
             SelectedArtist.RefreshAlbumAndSongsFromDB(RealmFactory);
     }
     public async Task<bool> SelectedArtistAndNavtoPage(SongModelView? song)
@@ -8536,7 +8538,34 @@ public void RemoveRule(VisualFilterRule rule)
 
     public void LoadFolderPaths()
     {
-        FolderPaths = RealmFactory.GetRealmInstance().All<AppStateModel>().FirstOrDefaultNullSafe().UserMusicFolders.Select(x=>x.SystemFolderPath).ToObservableCollection();  
+        FolderPaths = RealmFactory.GetRealmInstance().All<AppStateModel>().FirstOrDefaultNullSafe()?.UserMusicFolders.Select(x=>x.SystemFolderPath).ToObservableCollection();  
+    }
+
+    public async Task<AlbumModelView?> LoadAndSaveAlbumImageFromLastFMAsync(ArtistModelView? art, AlbumModelView? alb)
+    {
+        if (art is null || alb is null)
+        {
+            return null;
+        }
+
+        var lastFMAlb = await LastfmService.GetAlbumInfoAsync(art.Name, alb.Name);
+
+        if (lastFMAlb is null) return null;
+
+        var imgUrl = lastFMAlb.Images?.Where(x => !string.IsNullOrEmpty(x.Url))
+            .LastOrDefault()?.Url;
+        if (!string.IsNullOrEmpty(imgUrl))
+        {
+            alb.ImagePath = imgUrl;
+            var realm = RealmFactory.GetRealmInstance();
+            await realm.WriteAsync(() =>
+            {
+                var albInDb = realm.Find<AlbumModel>(alb.Id);
+                alb.Url = lastFMAlb.Url;
+                alb.ImagePath = imgUrl;
+            });
+        }
+        return alb;
     }
 }
 

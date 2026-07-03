@@ -74,6 +74,7 @@
 
 
 	<ItemGroup>
+	  <Folder Include="Data\ModelView\NewFolder\" />
 	  <Folder Include="Interfaces\Services\Lyrics\Models\" />
 	  <Folder Include="UIUtils\CustomPopups\" />
 	  <Folder Include="UIUtils\NewFolder\" />
