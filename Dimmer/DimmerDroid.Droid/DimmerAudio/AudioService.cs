@@ -1,11 +1,4 @@
-﻿
-
-
-
-
-using Android.Views.InputMethods;
-
-namespace Dimmer.DimmerAudio;
+﻿namespace Dimmer.DimmerAudio;
 
 public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged, IAsyncDisposable
 {

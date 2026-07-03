@@ -1,7 +1,4 @@
-using AndroidX.Lifecycle;
-using DevExpress.Maui.Core.Internal;
 using Dimmer.DimmerLive.Models;
-using Google.Android.Material.Dialog;
 
 namespace Dimmer.Views.DimmerCloud;
 

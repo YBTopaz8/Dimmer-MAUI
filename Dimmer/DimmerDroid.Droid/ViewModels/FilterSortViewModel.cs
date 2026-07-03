@@ -1,8 +1,5 @@
 ﻿using DevExpress.Data.Filtering;
 using DevExpress.Maui.CollectionView;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Dimmer.ViewModels;
 

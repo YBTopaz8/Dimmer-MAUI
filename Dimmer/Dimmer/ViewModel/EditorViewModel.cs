@@ -40,7 +40,7 @@ public partial class EditorViewModel : BaseViewModel
     
 
     [ObservableProperty]
-    public partial bool IsBusy { get; set; }
+    public new partial bool IsBusy { get; set; }
 
     [ObservableProperty]
     public partial Interfaces.AudioFormat OutputFormat { get; set; } = Interfaces.AudioFormat.Aac;

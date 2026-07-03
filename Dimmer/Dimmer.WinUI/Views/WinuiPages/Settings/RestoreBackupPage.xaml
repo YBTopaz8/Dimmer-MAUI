@@ -16,107 +16,53 @@
     mc:Ignorable="d"
     >
 
-    <ScrollViewer Background="#1e1e1e">
-        <StackPanel
-            Margin="10,0"
-            HorizontalAlignment="Left"
-            Spacing="10"
-            >
-            <Grid>
+    <ScrollViewer Background="#1e1e1e" VerticalScrollBarVisibility="Auto">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <StackPanel
-                    Grid.Column="0"
-                    HorizontalAlignment="Left"
-                    Orientation="Horizontal"
-                    Spacing="10"
-                    >
-                    <TextBlock VerticalAlignment="Center" Text="{x:Bind MyViewModel.SelectedFile, Mode=OneWay}" />
-                    <Button
-                        x:Name="PickBackupFolder"
-                        Click="PickBackupFolder_Click"
-                        Content="PickFolder"
-                        />
+
+                <StackPanel Grid.Column="0" Spacing="10">
+                    <TextBlock Text="Total Number of Songs" />
+                    <TextBlock Text="Total Number of Artists" />
+                    <TextBlock Text="Total Number of Albums" />
+                    <TextBlock Text="Total Number of Genres" />
+                    <TextBlock Text="Total Number of Playlists" />
+                    <TextBlock Text="Total Number of Favorite Songs" />
+                    <TextBlock Text="Total Number of Dimmer Events" />
                 </StackPanel>
-                <Button
-                    x:Name="ClosePopup"
-                    Grid.Column="1"
-                    Click="ClosePopup_Click"
-                    >
-                    <SymbolIcon Symbol="Cancel" />
-                </Button>
+                <StackPanel Grid.Column="1" Spacing="10">
+                    <TextBlock Text="{x:Bind MyViewModel.TotalNumberOfSongs}" />
+                    <TextBlock Text="{x:Bind MyViewModel.TotalNumberOfArtists}" />
+                    <TextBlock Text="{x:Bind MyViewModel.TotalNumberOfAlbums}" />
+                    <TextBlock Text="{x:Bind MyViewModel.TotalNumberOfGenres}" />
+                    <TextBlock Text="{x:Bind MyViewModel.TotalNumberOfPlaylists}" />
+                    <TextBlock Text="{x:Bind MyViewModel.TotalNumberOfFavoriteSongs}" />
+                    <TextBlock Text="{x:Bind MyViewModel.TotalNumberOfDimmerEvents}" />
+                </StackPanel>
             </Grid>
-            <TextBlock Text="{x:Bind MyViewModel.PickedUpBackup.BackupDate, Mode=OneWay}" />
-            <TextBlock Text="{x:Bind MyViewModel.PickedUpBackup.Version, Mode=OneWay}" />
+            <StackPanel Grid.Row="1" >
+                <Button
+                    x:Name="BackUpDataBtn"
+                    Click="BackUpDataBtn_Click"
+                    Content="Backup AppData"
+                    />
 
-            <Button
-                x:Name="ConfirmRestore"
-                Click="ConfirmRestore_Click"
-                Content="Confirm Restore"
-                />
-
-
-            <Expander x:Name="PickedUpBackupExpander">
-                <Expander.Header>
-                    <StackPanel Orientation="Horizontal" Spacing="5">
-                        <TextBlock Text="Play Events: " />
-                        <TextBlock Text="{x:Bind MyViewModel.PickedUpBackup.PlayEvents.Count, Mode=OneWay}" />
-                    </StackPanel>
-                </Expander.Header>
-                <Expander.Content>
-
-                    <dgView:TableView
-                        Height="500"
-                        HorizontalAlignment="Center"
-                        AutoGenerateColumns="False"
-                        ItemsSource="{x:Bind MyViewModel.PickedUpBackup.PlayEvents, Mode=OneWay}"
-                        >
-
-                        <dgView:TableView.Columns>
-
-                            <dgView:TableViewTemplateColumn
-                                x:Name="CoverImg"
-                                Width="*"
-                                IsReadOnly="True"
-                                ToolTipService.Placement="Mouse"
-                                >
-                                <dgView:TableViewTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-
-                                        <StackPanel x:Name="TitleColumn" Background="Transparent">
-                                            <Image
-                                                Width="50"
-                                                Height="50"
-                                                Source="{Binding CoverImagePath}"
-                                                />
-
-
-                                        </StackPanel>
-
-                                    </DataTemplate>
-
-                                </dgView:TableViewTemplateColumn.CellTemplate>
-
-                            </dgView:TableViewTemplateColumn>
-                            <dgView:TableViewTextColumn Binding="{Binding PlayTypeStr}" Header="Play Type" />
-
-                            <dgView:TableViewTextColumn Binding="{Binding SongName}" Header="Song" />
-                            <dgView:TableViewTextColumn Binding="{Binding ArtistName}" Header="Artist" />
-                            <dgView:TableViewCheckBoxColumn
-                                Binding="{Binding WasPlayCompleted}"
-                                Header="Was Play Completed"
-                                IsReadOnly="True"
-                                />
-                            <dgView:TableViewTextColumn Binding="{Binding PositionInSeconds}" Header="Position (Seconds)" />
-                            <dgView:TableViewDateColumn Binding="{Binding EventDate}" Header="Event Date" />
-                        </dgView:TableView.Columns>
-                    </dgView:TableView>
-
-
-                </Expander.Content>
-            </Expander>
-        </StackPanel>
+                <InfoBar
+                    x:Name="StatusInfoBar"
+                    Title="Success!"
+                    Content="Backup Successful!"
+                    Tapped="StatusInfoBar_Tapped"
+                    Visibility="Collapsed"
+                    />
+            </StackPanel>
+        </Grid>
     </ScrollViewer>
 </Page>

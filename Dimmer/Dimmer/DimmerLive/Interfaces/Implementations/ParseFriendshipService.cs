@@ -26,11 +26,12 @@ public class ParseFriendshipService : IFriendshipService, IDisposable
         if (currentUser == null)
             return;
 
+        var requestQuery = new ParseQuery<FriendRequest>(ParseClient.Instance)
+            .WhereEqualTo(x=>x.Recipient, currentUser)
+            .WhereEqualTo(x=>x.Status, "pending")
+            .Include(x=>x.Sender);
         // Listen for incoming friend requests
-        var requestQuery = new  ParseQuery<FriendRequest>(ParseClient.Instance)
-            .WhereEqualTo("recipient", currentUser)
-            .WhereEqualTo("status", "pending")
-            .Include("sender");
+
 
         _requestSubscription = _liveQueryClient.Subscribe(requestQuery);
         _requestSubscription.On(Subscription.Event.Create, req => _requestsCache.AddOrUpdate(req));
@@ -83,9 +84,10 @@ public class ParseFriendshipService : IFriendshipService, IDisposable
 
     public async Task<IEnumerable<UserModelOnline>> FindUsersAsync(string searchTerm)
     {
+
         return await new ParseQuery<UserModelOnline>(ParseClient.Instance)
-            .WhereStartsWith("username", searchTerm)
-            .WhereNotEqualTo("objectId", _authService.CurrentUserValue?.ObjectId)
+            .WhereStartsWith(x=>x.Username, searchTerm)
+            .WhereNotEqualTo(x=>x.ObjectId, _authService.CurrentUserValue?.ObjectId)
             .Limit(10)
             .FindAsync();
     }

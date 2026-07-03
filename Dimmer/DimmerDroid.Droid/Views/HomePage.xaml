@@ -918,8 +918,8 @@
                                 <dx:DataGridView
                                     x:Name="SearchResultDG"
                                     Grid.Row="1"
-                                    DoubleTap="SearchResultDG_DoubleTap"
                                     AutoGenerateColumnsMode="None"
+                                    DoubleTap="SearchResultDG_DoubleTap"
                                     ItemsSource="{Binding SearchResults, Mode=OneWay}"
                                     RowHeight="80"
                                     >

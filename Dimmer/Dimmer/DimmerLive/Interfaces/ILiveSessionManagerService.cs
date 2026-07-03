@@ -19,6 +19,6 @@ public interface ILiveSessionManagerService
     Task<ParseObject?> GetMyReferralCodeAsync();
     Task<ParseObject?> GenerateReferralCodeAsync();
     Task<string> CreateFullBackupAsync();
-    Task<List<BackupMetadata>> GetAvailableBackupsAsync();
+    Task<List<BackupMetadata>?> GetAvailableBackupsAsync();
     Task SyncDeviceStateAsync();
 }

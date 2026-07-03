@@ -47,16 +47,16 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
         IncomingTransferRequests = _incomingTransfers.AsObservable();
     }
 
-    class DimmerEventsBackUpModel
-    {
-        public required ObjectId? SongId { get; set; }
-        public required string? SongName { get; set; }
-        public required string? PlayEventStr { get; set; }
-        public required ObjectId Id { get; set; }
-        public required DateTimeOffset EventDate { get; set; }
-        public required string? AudioOutputDeviceName { get; set; }
-        public required double PositionInSeconds { get; set; }
-    }
+    //class DimmerEventsBackUpModel
+    //{
+    //    public required ObjectId? SongId { get; set; }
+    //    public required string? SongName { get; set; }
+    //    public required string? PlayEventStr { get; set; }
+    //    public required ObjectId Id { get; set; }
+    //    public required DateTimeOffset EventDate { get; set; }
+    //    public required string? AudioOutputDeviceName { get; set; }
+    //    public required double PositionInSeconds { get; set; }
+    //}
     public async Task RegisterCurrentDeviceAsync()
     {
         if (ParseUser.CurrentUser == null) return;
@@ -79,43 +79,20 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
     private void StartCommandListener()
     {
         var devSessionsQuery = new ParseQuery<UserDeviceSession>(ParseClient.Instance)
-            .WhereEqualTo("userOwner.objectId", ParseClient.Instance.CurrentUser.ObjectId)
+            .WhereEqualTo(x=>x.UserOwner.ObjectId, ParseClient.Instance.CurrentUser.ObjectId)
            ;
 
         DevSessionSubscription = _liveQueryClient.Subscribe(devSessionsQuery);
-        DevSessionSubscription.On(Subscription.Event.Create, cmd =>
+        DevSessionSubscription.On(Subscription.Event.Create, cmd => HandleDeviceSessionEvent(cmd));
+        DevSessionSubscription.On(Subscription.Event.Update, cmd => HandleDeviceSessionEvent(cmd));
+        DevSessionSubscription.On(Subscription.Event.Delete, cmd =>
         {
-            if(cmd.DeviceId == MyDeviceId)
-            {
-                _myCurrentSession = cmd;
-                _logger.LogInformation("My device session created: {SessionId}", cmd.ObjectId);
-            }
-            else
-            {
-                _otherDevicesCache.AddOrUpdate(cmd);
-                _logger.LogInformation("Other device session created: {SessionId}", cmd.ObjectId);
-            }
-            
-
-        });
-        DevSessionSubscription.On(Subscription.Event.Update, cmd =>
-        {
-            if (cmd.DeviceId == MyDeviceId)
-            {
-                _myCurrentSession = cmd;
-                _logger.LogInformation("My device session created: {SessionId}", cmd.ObjectId);
-            }
-            if (_otherDevicesCache.Items.FirstOrDefault(x => x.ObjectId == cmd.ObjectId) != null)
-            {  
-                _otherDevicesCache.AddOrUpdate(cmd);
-                _logger.LogInformation("Other device session created: {SessionId}", cmd.ObjectId);
-            }
-            
-
+            if (cmd.DeviceId != MyDeviceId) _otherDevicesCache.Remove(cmd);
         });
 
 
-        DevSessionSubscription.Subscribes.Subscribe(async q =>
+
+    DevSessionSubscription.Subscribes.Subscribe(async q =>
         {
 
 
@@ -151,6 +128,29 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
       
 
 
+    }
+    // A single, clean routing method
+    private void HandleDeviceSessionEvent(UserDeviceSession cmd)
+    {
+        if (cmd.DeviceId == MyDeviceId)
+        {
+            _myCurrentSession = cmd;
+            _logger.LogInformation("My device session updated: {SessionId}", cmd.ObjectId);
+        }
+        else
+        {
+            // If it's active, add/update it in the UI. If it went inactive, remove it from the UI.
+            if (cmd.IsActive)
+            {
+                _otherDevicesCache.AddOrUpdate(cmd);
+                _logger.LogInformation("Other device became active: {DeviceName}", cmd.Get<string>("deviceName"));
+            }
+            else
+            {
+                _otherDevicesCache.Remove(cmd);
+                _logger.LogInformation("Other device went inactive: {DeviceName}", cmd.Get<string>("deviceName"));
+            }
+        }
     }
     private async Task SendDeviceReplyAsync(string targetDeviceId, string text)
     {
@@ -229,7 +229,7 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
         {
             var scrobble = new CloudScrobble
             {
-                SongTitleDurationKey = song.TitleDurationKey,
+                SongTitleDurationKey = song.TitleDurationKey!,
                 DeviceId = MyDeviceId,
                 Owner = ParseUser.CurrentUser,
                 ACL = new ParseACL(ParseUser.CurrentUser) // Private to user
@@ -387,7 +387,7 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
         }
     }
 
-    public async Task<List<BackupMetadata>> GetAvailableBackupsAsync()
+    public async Task<List<BackupMetadata>?> GetAvailableBackupsAsync()
     {
         try
         {

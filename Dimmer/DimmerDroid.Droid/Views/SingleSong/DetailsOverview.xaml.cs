@@ -1,11 +1,8 @@
 global using ATL;
-global using CommunityToolkit.Maui.Alerts;
 global using CommunityToolkit.Maui.Core;
 global using DevExpress.Maui.Core;
 global using Dimmer.Data.Models.LyricsModels;
 global using Font = Microsoft.Maui.Font;
-global using Toast = CommunityToolkit.Maui.Alerts.Toast;
-using Hqub.Lastfm.Entities;
 
 
 namespace Dimmer.Views.SingleSong;

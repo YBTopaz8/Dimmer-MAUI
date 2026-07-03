@@ -1,8 +1,4 @@
-﻿using System.Security.Cryptography;
-using Android.Views.InputMethods;
-using Dimmer.Interfaces;
-using Application = Android.App.Application;
-using Path = System.IO.Path;
+﻿using Android.Views.InputMethods;
 using Window = Microsoft.Maui.Controls.Window;
 
 namespace Dimmer.Utils;

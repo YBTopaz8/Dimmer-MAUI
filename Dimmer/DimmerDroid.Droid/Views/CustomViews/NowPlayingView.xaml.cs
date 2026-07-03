@@ -1,6 +1,4 @@
-global using Animation = Microsoft.Maui.Controls.Animation;
 using DevExpress.Maui.CollectionView;
-using DevExpress.Maui.Core;
 
 namespace Dimmer.Views.CustomViews;
 

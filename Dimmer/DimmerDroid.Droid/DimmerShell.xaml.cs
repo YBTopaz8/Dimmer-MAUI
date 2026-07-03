@@ -3,12 +3,7 @@ global using Dimmer.Views.Album;
 global using Dimmer.Views.Artist;
 global using Dimmer.Views.Settings;
 global using Dimmer.Views.SingleSong;
-using AndroidX.Lifecycle;
-using DevExpress.Maui.Core.Internal;
-using Dimmer.Views.CustomViews;
 using Dimmer.Views.DimmerCloud;
-using Dimmer.Views.DimmerStats;
-using Dimmer.Views.LastFM;
 using Dimmer.Views.Toolkit;
 
 namespace Dimmer;

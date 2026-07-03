@@ -455,7 +455,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                         return;
                     }
 
-                    CurrentPlayingSongView.CoverImagePath = songInDb.Album.SongsInAlbum?.FirstOrDefault(c => !string.IsNullOrEmpty(c.CoverImagePath))?.CoverImagePath;
+                    CurrentPlayingSongView.CoverImagePath = songInDb.Album.SongsInAlbum?.FirstOrDefault(c => !string.IsNullOrEmpty(c.CoverImagePath))?.CoverImagePath ?? string.Empty;
                 }
                 await HeavierBackGroundLoadings(FolderPaths);
 
@@ -670,7 +670,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 var resultCount = result.SongsResultIds.Count;
                 var totalDbCount = uiRealm.All<SongModel>().Count(); // This is instant in Realm
 
-                List<SongModelView> viewModels;
+            List<SongModelView> viewModels = new() ;
 
                 if (resultCount > (totalDbCount * 0.3))
                 {
@@ -717,7 +717,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     RxSchedulers.UI.ScheduleTo(() =>
                     {
                         SearchResultsHolder.Edit(innerCache => innerCache.Load(viewModels));
-                        IsSearchResultEmpty = SearchResults.Count == 0;
+                        IsSearchResultEmpty = viewModels.Count == 0;
                         //OnPropertyChanging(nameof(IsSearchResultEmpty));
                         OnPropertyChanged(nameof(IsSearchResultEmpty));
                         UpdateIsSearchResultEmpty(IsSearchResultEmpty);
@@ -7625,8 +7625,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial bool IsRestoreDone { get; set; }
 
-    [ObservableProperty]
-    public partial CompleteBackupData? PickedUpBackup { get; set; }
 
     [RelayCommand]
     private void ToggleEditMode()
@@ -8536,6 +8534,10 @@ public void RemoveRule(VisualFilterRule rule)
         
     }
 
+    public void LoadFolderPaths()
+    {
+        FolderPaths = RealmFactory.GetRealmInstance().All<AppStateModel>().FirstOrDefaultNullSafe().UserMusicFolders.Select(x=>x.SystemFolderPath).ToObservableCollection();  
+    }
 }
 
 public enum CollectionViewMode

@@ -1,7 +1,5 @@
-using AndroidX.Lifecycle;
 using DevExpress.Maui.DataGrid;
 using Dimmer.Data.ModelView.LibSanityModels;
-using System.Diagnostics;
 using System.Reactive.Disposables;
 
 namespace Dimmer.Views.Toolkit;

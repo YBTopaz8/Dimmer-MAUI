@@ -311,8 +311,8 @@ public partial class LoginViewModel : ObservableObject
         try
         {
             // Parse allows the currently logged-in user to simply set the password
-            CurrentUserOnline.Password = newPassword;
-            await CurrentUserOnline.SaveAsync();
+            CurrentUserOnline?.Password = newPassword;
+            await CurrentUserOnline?.SaveAsync();
         }
         catch (Exception ex)
         {

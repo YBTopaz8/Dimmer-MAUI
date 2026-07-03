@@ -1,6 +1,4 @@
 global using Chip = DevExpress.Maui.Editors.Chip;
-using DevExpress.Maui.Core;
-using Microsoft.Maui.Controls.PlatformConfiguration;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 

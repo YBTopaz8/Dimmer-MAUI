@@ -1,7 +1,5 @@
-﻿using CommunityToolkit.Maui.Storage;
-using DevExpress.Maui;
+﻿using DevExpress.Maui;
 using Dimmer;
-using Dimmer.Utils;
 
 namespace DimmerDroid.Droid;
 

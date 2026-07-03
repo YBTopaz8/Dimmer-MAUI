@@ -1,6 +1,8 @@
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
+using DevWinUI;
+
 namespace Dimmer.WinUI.Views.WinuiPages.Settings;
 
 /// <summary>
@@ -12,30 +14,50 @@ public sealed partial class RestoreBackupPage : Page
     {
         InitializeComponent();
 
-     MyViewModel=   IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
+     MyViewModel=   IPlatformApplication.Current!.Services.GetService<SettingsViewModelWin>()!;
     }
-    BaseViewModelWin MyViewModel { get; set; }
+    SettingsViewModelWin MyViewModel { get; set; }
 
-
-
-    private async void PickBackupFolder_Click(object sender, RoutedEventArgs e)
+    protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
     {
-        PickedUpBackupExpander.IsExpanded = true;
-        await MyViewModel.PickFolderToRestoreAppDataAsync();
-    }
+        base.OnNavigatedTo(e);
 
-    public static event EventHandler? IsPopupDismissedRequested;
-    private async void ConfirmRestore_Click(object sender, RoutedEventArgs e)
-    {
-       await MyViewModel.RestoreCompleteDataAsync();
-        if(MyViewModel.IsRestoreDone)
-        {
-            ClosePopup_Click(sender, e);
-        }
+        this.DataContext = MyViewModel;
+        MyViewModel.LoadApplicationDataForBackUpPage();
     }
 
-    private void ClosePopup_Click(object sender, RoutedEventArgs e)
+    private async void BackUpDataBtn_Click(object sender, RoutedEventArgs e)
     {
-        IsPopupDismissedRequested?.Invoke(this, EventArgs.Empty);
+       
+        await MyViewModel.BackUpAppDataAsync();
+        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.MyBackupResult),v=>MyViewModel.MyBackupResult)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe (async res =>
+            {
+                if (res is not null)
+                {
+                    if (res.IsBackUpComplete)
+                    {
+                        StatusInfoBar.Visibility= Microsoft.UI.Xaml.Visibility.Visible;
+                        await Task.Delay(3000);
+
+                        StatusInfoBar.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+                    }
+                    else
+                    {
+                        StatusInfoBar.Content = "BackUp Failed. Please check the logs for more information.";
+                        StatusInfoBar.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+                        await Task.Delay(3000);
+                        StatusInfoBar.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+
+                    }
+                    res = null;
+                }
+            });
+    }
+
+    private void StatusInfoBar_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+
     }
 }

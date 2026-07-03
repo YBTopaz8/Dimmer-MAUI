@@ -1,14 +1,8 @@
 
 global using Dimmer.Views.CustomViews;
 global using View = Microsoft.Maui.Controls.View;
-using Android.Views.InputMethods;
-using DevExpress.Data.Extensions;
 using DevExpress.Maui.Editors;
-using DevExpress.Maui.Scheduler.Internal;
 using Dimmer.Utilities;
-using Google.Android.Material.Dialog;
-using Hqub.Lastfm.Entities;
-using Microsoft.Maui.Controls.PlatformConfiguration;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 

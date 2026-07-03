@@ -1,23 +1,13 @@
-﻿using CommunityToolkit.Maui.Core.Primitives;
-using CommunityToolkit.Maui.Storage;
+﻿using CommunityToolkit.Maui.Storage;
 using DevExpress.Maui.CollectionView;
-using DevExpress.Maui.Controls;
-using DevExpress.Maui.Editors;
 using Dimmer.Data;
-using Dimmer.Interfaces;
 using Dimmer.Interfaces.IDatabase;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.LastFM;
 using Dimmer.Utilities.StatsUtils;
-using DynamicData;
-using Google.Android.Material.Dialog;
 using Microsoft.Extensions.Logging;
-using Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific;
 using System.Text.RegularExpressions;
-using static Dimmer.Interfaces.Services.DimmerBackupService;
-using FieldType =  Dimmer.DimmerSearch.TQL.FieldType;
-using Label = Microsoft.Maui.Controls.Label;
 using TextEdit = DevExpress.Maui.Editors.TextEdit;
 namespace Dimmer.ViewModels;
 

@@ -1,6 +1,3 @@
-using Android.App;
-using Android.Content.PM;
-using Android.OS;
 using Dimmer.NativeServices;
 using Dimmer.Views.LastFM;
 using Google.Android.Material.Dialog;

@@ -173,8 +173,8 @@
                                                     <ColumnDefinition Width="*" />
                                                 </Grid.ColumnDefinitions>
                                                 <TextBlock Grid.Column="0" Text="{Binding FileFormat}" />
-                                              
-                                                
+
+
                                             </Grid>
                                         </Grid>
 

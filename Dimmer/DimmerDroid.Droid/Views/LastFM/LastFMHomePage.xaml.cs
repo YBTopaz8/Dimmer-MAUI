@@ -1,5 +1,3 @@
-using static Realms.ThreadSafeReference;
-
 namespace Dimmer.Views.LastFM;
 
 public partial class LastFMHomePage : ContentPage
