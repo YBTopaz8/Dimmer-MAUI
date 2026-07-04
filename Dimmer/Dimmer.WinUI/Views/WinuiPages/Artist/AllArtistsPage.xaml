@@ -47,14 +47,17 @@
                 AutoGenerateColumns="False"
                 CellDoubleTapped="AllArtistsTableView_CellDoubleTapped"
                 IsReadOnly="True"
+                ItemClick="AllArtistsTableView_ItemClick"
                 ItemsSource="{x:Bind MyViewModel.ArtistsCollection, Mode=OneWay}"
+                RowHeight="80"
+                Tapped="AllArtistsTableView_Tapped"
                 >
 
                 <dgView:TableView.Columns>
-                    <dgView:TableViewTemplateColumn Width="150" Header="Image">
+                    <dgView:TableViewTemplateColumn Header="Image">
                         <dgView:TableViewTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <Image>
+                                <Image Width="80">
                                     <Image.Source>
                                         <BitmapImage UriSource="{Binding ImagePath}" />
                                     </Image.Source>
@@ -83,8 +86,8 @@
                         Binding="{Binding TotalCompletedPlays}"
                         Header="Total Completed Plays"
                         />
-                  
-                    
+
+
                     <dgView:TableViewNumberColumn
                         Width="*"
                         Binding="{Binding OverallRank}"

@@ -26,104 +26,71 @@
     >
 
 
-    <Grid>
+    <Grid Padding="5" Background="#222222">
 
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <GridView Grid.Row="0" ItemsSource="{x:Bind MyViewModel.SelectedArtist.AlbumsByArtist, Mode=OneWay}">
-            <GridView.Header>
-                <devWin:ShyHeader Title="{x:Bind MyViewModel.SelectedArtist.Name, Mode=OneWay}" Description="{x:Bind MyViewModel.SelectedArtist.Bio, Mode=OneWay}">
-                    <devWin:ShyHeader.Profile>
-                        <PersonPicture Width="150" Height="150" />
-                    </devWin:ShyHeader.Profile>
-                    <devWin:ShyHeader.Footer>
-                        <StackPanel Orientation="Horizontal">
 
-                            <Button>
-                                <StackPanel Orientation="Horizontal">
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="130" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0">
+                <Image Width="130" Source="{x:Bind MyViewModel.SelectedArtist.ImagePath, Mode=OneWay}" />
+            </StackPanel>
+            <StackPanel Grid.Column="1">
+                <TextBlock Text="{x:Bind SelectedArtist.Name, Mode=OneWay}" />
+                <TextBlock Text="{x:Bind SelectedArtist.Bio, Mode=OneWay}" />
 
-                                    <TextBlock Text="#" />
-                                    <TextBlock Text="{x:Bind MyViewModel.SelectedArtist.OverallRank, Mode=OneWay}" />
+                <ItemsControl x:Name="loopingList" ItemsSource="{x:Bind MyViewModel.SelectedArtist.AlbumsByArtist, Mode=OneWay}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <devWin:LoopPanel
+                                Background="Transparent"
+                                BringChildrenIntoView="False"
+                                IsInertiaEnabled="True"
+                                Orientation="Horizontal"
+                                Spacing="5"
+                                />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
 
-                                </StackPanel>
-                            </Button>
-
-                            <Button
-                                x:Name="LastFM"
-                                Click="LastFM_Click"
-                                Foreground="DarkRed"
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="models:AlbumModelView">
+                            <Border
+                                Margin="10,10,0,0"
+                                Padding="5"
+                                Background="Transparent"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1"
                                 >
-                                <StackPanel>
-                                    <Image Source="/Dimmer/Resources/Images/lastfmsmoll.svg" />
-                                </StackPanel>
-                            </Button>
-                        </StackPanel>
-                    </devWin:ShyHeader.Footer>
-                </devWin:ShyHeader>
-            </GridView.Header>
-            <GridView.ItemTemplate>
-                <DataTemplate>
-                    <StackPanel>
-
-                        <Image
-                            Width="80"
-                            Height="80"
-                            Margin="4"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            Source="{Binding ImagePath}"
-                            Stretch="Fill"
-                            />
-                        <devWin:AutoScrollView>
-                            <TextBlock Text="{Binding Name}" />
-                        </devWin:AutoScrollView>
-                    </StackPanel>
-                </DataTemplate>
-            </GridView.ItemTemplate>
-        </GridView>
-
-        <dgView:TableView
-            Grid.Row="1"
-            AutoGenerateColumns="False"
-            ItemsSource="{x:Bind MyViewModel.SelectedArtist.SongsByArtist}"
-            >
-            <dgView:TableView.Columns>
-                <dgView:TableViewTemplateColumn>
-                    <dgView:TableViewTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <Image Width="80" Height="80">
-                                <Image.Source>
-                                    <BitmapImage UriSource="{Binding CoverImagePath}" />
-                                </Image.Source>
-                            </Image>
+                                <Image Source="{x:Bind ImagePath}" Stretch="Uniform" />
+                            </Border>
                         </DataTemplate>
-                    </dgView:TableViewTemplateColumn.CellTemplate>
-                </dgView:TableViewTemplateColumn>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
 
-                <dgView:TableViewTextColumn
-                    Width="*"
-                    Binding="{Binding Title}"
-                    Header="Title"
-                    />
-                <dgView:TableViewTextColumn
-                    Width="*"
-                    Binding="{Binding OtherArtistsName}"
-                    Header="Other Artists"
-                    />
-                <dgView:TableViewTextColumn
-                    Width="*"
-                    Binding="{Binding AlbumName}"
-                    Header="Album"
-                    />
-                <dgView:TableViewTextColumn
-                    Width="*"
-                    Binding="{Binding GenreName}"
-                    Header="Genre"
-                    />
-            </dgView:TableView.Columns>
-        </dgView:TableView>
+            </StackPanel>
+        </Grid>
+
+        <Grid
+            x:Name="StatisticsSection"
+            Grid.Row="1"
+            Loaded="StatisticsSection_Loaded"
+            >
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+
+
+
+
+        </Grid>
 
     </Grid>
 

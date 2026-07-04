@@ -1243,4 +1243,6 @@ public sealed partial class AllSongsListPage : Page
     {
         ViewOtherBtn_Click(sender, e);
     }
+
+    
 }

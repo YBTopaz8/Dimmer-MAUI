@@ -75,6 +75,7 @@
                     AllowFocusOnInteraction="False"
                     AllowFocusWhenDisabled="False"
                     AutoGenerateColumns="False"
+                    
                     CanDragItems="True"
                     CellDoubleTapped="MySongsTableView_CellDoubleTapped"
                     DoubleTapped="TableView_DoubleTapped"

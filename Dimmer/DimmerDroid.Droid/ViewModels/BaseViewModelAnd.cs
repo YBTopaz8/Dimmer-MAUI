@@ -469,6 +469,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     [ObservableProperty]
     public partial string CurrentFilterDisplay { get; set; } = "None";
+ 
     public void SetCollectionView(DXCollectionView collectionView)
     {
         _collectionView = collectionView;

@@ -112,7 +112,15 @@ public sealed partial class AllArtistsPage : Page
 
         MyViewModel.NavigateToArtistPageWithArtistId(artist.Id);
     }
+    
 
- 
+    private void AllArtistsTableView_Tapped(object sender, TappedRoutedEventArgs e)
+    {
 
+    }
+
+    private void AllArtistsTableView_ItemClick(object sender, ItemClickEventArgs e)
+    {
+
+    }
 }

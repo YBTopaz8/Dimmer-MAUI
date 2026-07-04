@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 
 using Microsoft.UI.Xaml.Documents;
+using Grid = Microsoft.UI.Xaml.Controls.Grid;
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
@@ -61,8 +62,14 @@ public sealed partial class ArtistPage : Page
 
 
         this.DataContext = MyViewModel.SelectedArtist;
+        SelectedArtist = MyViewModel.SelectedArtist;
         pressedCounter = 0;
-      await  LoadWikiOfArtist();
+        await  LoadWikiOfArtist();
+
+        _ = Task.Run(async () =>
+        {
+            //await MyStatsViewModel.LoadArtistStatsAsync(SelectedArtist);
+        });
 
     }
     private async Task LoadWikiOfArtist()
@@ -297,161 +304,48 @@ public sealed partial class ArtistPage : Page
         
     }
 
-    //private async void PlayBtn_Click(object sender, RoutedEventArgs e)
-    //{
-    //    // e.OriginalSource is the specific UI element that received the tap 
-    //    // (e.g., a TextBlock, an Image, a Grid, etc.).
-    //    var element = e.OriginalSource as FrameworkElement;
-    //    SongModelView? song = null;
-    //    if (element == null)
-    //        return;
-
-
-
-        
-    //    if (element.DataContext is SongModelView currentSong)
-    //    {
-    //        song = currentSong;
-    //    }
-        
-    //    var songs = ArtistDataTable.Items;
-
-
-
-    //    var SongsEnumerable = songs.OfType<SongModelView>();
-
-    //    if (song != null)
-    //    {
-    //        // You found the song! Now you can call your ViewModel command.
-    //        Debug.WriteLine($"Double-tapped on song: {song.Title}");
-    //        await MyViewModel.PlaySongAsync(song, curPage: CurrentPage.AllArtistsPage, songs: SongsEnumerable);
-    //    }
-    //}
-
-    private async void ArtistImageInArtistPage_PointerReleased(object sender, PointerRoutedEventArgs e)
-    {
-        var img = (Image)sender;
-        var element = e.OriginalSource as FrameworkElement;
-        if (element == null)
-            return;
-
-        var picker = new FileOpenPicker();
-        picker.FileTypeFilter.Add(".jpg");
-        picker.FileTypeFilter.Add(".png");
-        picker.CommitButtonText = "Select as Artist Image";
-        picker.SuggestedStartLocation = PickerLocationId.Downloads;
-        picker.ViewMode = PickerViewMode.Thumbnail;
-
-        var window = MyViewModel.MainWindow;
-        if (window != null)
-        {
-            var hWnd = WindowNative.GetWindowHandle(window);
-            InitializeWithWindow.Initialize(picker, hWnd);
-        }
-
-        // 3. Pick the file
-        var file = await picker.PickSingleFileAsync();
-
-        if (file == null) return; // User cancelled
-
-        // 4. Create the BitmapImage
-        var bitmap = new  BitmapImage();
-
-        // 5. Open the stream and assign it to the bitmap
-        using (var stream = await file.OpenAsync(FileAccessMode.Read))
-        {
-            await bitmap.SetSourceAsync(stream);
-        }
-
-        // 6. Assign to the Image Control
-        img.Source = bitmap;
-        //ArtistImage.Source = bitmap;
-        await MyViewModel.AssignImageToArtist(MyViewModel.SelectedArtist);
-        // TODO: Update your ViewModel or Database with 'file.Path' to persist the change
-        // ViewModel.SelectedArtist.ImagePath = file.Path;
-    }
-
-    //private void ArtistSongTitle_Click(object sender, RoutedEventArgs e)
-    //{
-    //    var songFrameworkElement = (FrameworkElement)sender;
-    //    var selectedSong = songFrameworkElement.DataContext as SongModelView;
-
-    //    var row = ArtistDataTable.ContainerFromItem(selectedSong) as FrameworkElement;
-    //    var image = PlatUtils.FindVisualChild<Image>(row, "coverArtImage");
-    //    if (image == null) return;
-
-    //    ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("ArtistToSongDetailsAnim", image);
-    //    ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("ArtistToSongDetailsAnim", songFrameworkElement);
-
-
-
-    //    MyViewModel.SelectedSong = selectedSong;
-    //    var dimmerWindow = MyViewModel.winUIWindowMgrService.GetWindow<DimmerWin>();
-    //    dimmerWindow ??= MyViewModel.winUIWindowMgrService.CreateWindow<DimmerWin>();
-
-
-
-    //    //MyViewModel.DimmerMultiWindowCoordinator.BringToFront()
-    //    if (dimmerWindow != null)
-    //        dimmerWindow.NavigateToPage(typeof(SongDetailPage));
-
-    //}
-
-   
-
-    private void ArtistFav_Loaded(object sender, RoutedEventArgs e)
-    {
-        var send = (Button)sender;
-        if(send != null && MyViewModel.SelectedArtist is not null)
-        {
-            if(MyViewModel.SelectedArtist.IsFavorite)
-            {
-                FontIcon FavedIcon= new FontIcon();
-                FavedIcon.Glyph = "\uEB52";
-                FavedIcon.Foreground = new SolidColorBrush(Colors.DarkSlateBlue);
-                send.Content = FavedIcon;
-            }
-            else
-            {
-                FontIcon UnFavedIcon = new FontIcon();
-                UnFavedIcon.Glyph = "\uEB51";
-                send.Content = UnFavedIcon;
-
-            }
-        }
-    }
-
-    private void MostPlayedSongs_Loaded(object sender, RoutedEventArgs e)
-    {
-       
-
-        
-    }
 
     private async void LastFM_Click(object sender, RoutedEventArgs e)
     {
        await MyViewModel.LoadLastFMArtist(MyViewModel.SelectedArtist);
     }
 
+    private void CollectionOfArtistTopSongs_Loaded(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private async void AlbumsByArtistGridView_Loaded(object sender, RoutedEventArgs e)
+    {
+        var selArtistAlbums = MyViewModel.SelectedArtist?.AlbumsByArtist;
+        if (selArtistAlbums is null) return;
+        for (int i = 0; i < selArtistAlbums.Count; i++)
+        {
+            
+            var alb = selArtistAlbums.ElementAtOrDefault(i);
+        
+
+            if(string.IsNullOrEmpty(alb?.ImagePath))
+            {
+               alb= await MyViewModel.LoadAndSaveAlbumImageFromLastFMAsync(SelectedArtist, alb);
+                
+            }
+        }
+
+        MyViewModel.SelectedArtist?.AlbumsByArtist = selArtistAlbums;
+    }
+
+    private void StatisticsSection_Loaded(object sender, RoutedEventArgs e)
+    {
+        Grid send = (Grid)sender;
+        send.DataContext = MyStatsViewModel;
+        
+    }
 
 
 
 
 
 
-    //private void ArtistPagePivot_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
-    //{
 
-    //    if((MyStatsViewModel.ArtistStats is null || MyStatsViewModel.ArtistStats.Summary.ArtistId != MyViewModel.SelectedArtist?.Id) && ArtistPagePivot.SelectedIndex == 1)
-    //    {
-    //      Task.Run(()=> _=  MyStatsViewModel.LoadArtistStatsAsync(MyViewModel.SelectedArtist));
-
-    //    }
-    //}
-
-    //private void AlbumsHeaderCarousel_Loaded(object sender, RoutedEventArgs e)
-    //{
-
-
-    //}
 }
