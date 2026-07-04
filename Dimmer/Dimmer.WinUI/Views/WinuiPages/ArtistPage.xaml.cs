@@ -1,5 +1,5 @@
 using System.Text.RegularExpressions;
-
+using Dimmer.ViewModel.StatsVMs;
 using Microsoft.UI.Xaml.Documents;
 using Grid = Microsoft.UI.Xaml.Controls.Grid;
 // To learn more about WinUI, the WinUI project structure,
@@ -32,7 +32,7 @@ public sealed partial class ArtistPage : Page
 
     public SongModelView? DetailedSong { get; set; }
     public ArtistModelView? SelectedArtist { get; set; }
-    public StatisticsViewModel MyStatsViewModel { get; private set; }
+    public ArtistStatsViewModel MyArtistStatsViewModel { get; private set; }
 
     protected override async void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
     {
@@ -57,13 +57,14 @@ public sealed partial class ArtistPage : Page
         }
 
         MyViewModel ??= IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
-        MyStatsViewModel ??= IPlatformApplication.Current!.Services.GetService<StatisticsViewModel>()!;
+        MyArtistStatsViewModel ??= IPlatformApplication.Current!.Services.GetService<ArtistStatsViewModel>()!;
         MyViewModel.IsBackButtonVisible = WinUIVisibility.Visible;
 
 
         this.DataContext = MyViewModel.SelectedArtist;
         SelectedArtist = MyViewModel.SelectedArtist;
         pressedCounter = 0;
+        MyArtistStatsViewModel.LoadArtist(SelectedArtist.Id);
         await  LoadWikiOfArtist();
 
         _ = Task.Run(async () =>
@@ -338,14 +339,76 @@ public sealed partial class ArtistPage : Page
     private void StatisticsSection_Loaded(object sender, RoutedEventArgs e)
     {
         Grid send = (Grid)sender;
-        send.DataContext = MyStatsViewModel;
+        send.DataContext = MyArtistStatsViewModel;
         
     }
 
+    private void ArtistImg_Loaded(object sender, RoutedEventArgs e)
+    {
+        var artImg = (Image)sender;
+        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.SelectedArtist), art => MyViewModel.SelectedArtist)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(selArt =>
+            {
+                if (selArt is null) return;
+                if(!string.IsNullOrEmpty(selArt.ImagePath))
+                {
+                    artImg.Source = new BitmapImage(new Uri(selArt.ImagePath));
+                }
+            });
+    }
 
 
+    private void SongStats_Loaded(object sender, RoutedEventArgs e)
+    {
+        StackPanel send = (StackPanel)sender;
+        if (MyArtistStatsViewModel is null) return;
+        send.DataContext = MyArtistStatsViewModel;
 
+    }
 
+    private void ListInsights_Loaded(object sender, RoutedEventArgs e)
+    {
+        MyArtistStatsViewModel?.WhenPropertyChanged(nameof(MyArtistStatsViewModel.ListInsights), v => MyArtistStatsViewModel?.ListInsights)
+            .Subscribe(insight =>
+            {
+                ListInsights.ItemsSource = insight;
+            });
+    }
 
+    private void ListTopSongs_Loaded(object sender, RoutedEventArgs e)
+    {
+        MyArtistStatsViewModel?.WhenPropertyChanged(nameof(MyArtistStatsViewModel.ListTopSongs), v => MyArtistStatsViewModel?.ListTopSongs)
+            .Subscribe(insight =>
+            {
+                ListTopSongs.ItemsSource = insight;
+            });
+    }
 
+    private void ListDeepCuts_Loaded(object sender, RoutedEventArgs e)
+    {
+        MyArtistStatsViewModel?.WhenPropertyChanged(nameof(MyArtistStatsViewModel.ListDeepCuts), v => MyArtistStatsViewModel?.ListDeepCuts)
+            .Subscribe(insight =>
+            {
+                ListDeepCuts.ItemsSource = insight;
+            });
+    }
+
+    private void ListMonthlyTrend_Loaded(object sender, RoutedEventArgs e)
+    {
+        MyArtistStatsViewModel?.WhenPropertyChanged(nameof(MyArtistStatsViewModel.ListMonthlyTrend), v => MyArtistStatsViewModel?.ListMonthlyTrend)
+            .Subscribe(insight =>
+            {
+                ListMonthlyTrend.ItemsSource = insight;
+            });
+    }
+
+    private void ListTopAlbums_Loaded(object sender, RoutedEventArgs e)
+    {
+        MyArtistStatsViewModel?.WhenPropertyChanged(nameof(MyArtistStatsViewModel.ListTopAlbums), v => MyArtistStatsViewModel?.ListTopAlbums)
+            .Subscribe(insight =>
+            {
+                ListTopAlbums.ItemsSource = insight;
+            });
+    }
 }

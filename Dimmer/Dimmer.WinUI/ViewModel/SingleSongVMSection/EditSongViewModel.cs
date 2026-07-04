@@ -840,7 +840,7 @@ public partial class EditSongViewModel : ObservableObject
         EditingSong = OriginalSong.ShallowCopy();
 
         // Reset artists
-        SelectedArtists = new ObservableCollection<string>(_originalArtistNames);
+        SelectedArtists = new ObservableCollection<string?>(_originalArtistNames);
 
         // Clear changes
         PendingChanges.Clear();

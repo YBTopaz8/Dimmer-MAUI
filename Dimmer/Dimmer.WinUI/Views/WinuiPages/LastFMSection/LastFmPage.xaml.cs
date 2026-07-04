@@ -67,7 +67,7 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
     private void LoginLastFM_Click(object sender, RoutedEventArgs e)
     {
         //LastFMViewModel.LastFMName = LastFMUname.Text;
-        MyLastFMViewModel?.LoginToLastfmCommand.Execute(null);
+        MyLastFMViewModel?.LoginToLastfmAsync();
     }
     private void LastFMUname_KeyUp(object sender, KeyRoutedEventArgs e)
     {
@@ -80,7 +80,7 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
         {
  
             //LoginLastFMBtn.IsEnabled = false;
-            MyLastFMViewModel?.LoginToLastfmCommand.Execute(null);
+            MyLastFMViewModel?.LoginToLastfmAsync();
 
         }
     }

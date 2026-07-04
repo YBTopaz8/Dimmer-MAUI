@@ -78,10 +78,13 @@ public sealed partial class SongDetailPage : Page
 
     BaseViewModelWin MyViewModel { get; set; }
     public LastFMViewModel MyLastFMViewModel { get; internal set; }
+    public SongStatsViewModel? MySongStatsViewModel { get; private set; }
+
     protected override async void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
         MyLastFMViewModel = IPlatformApplication.Current!.Services.GetService<LastFMViewModel>()!;
+        MySongStatsViewModel = IPlatformApplication.Current.Services.GetService<SongStatsViewModel>();
         //DetailedSong = DetailedSong is null ? MyViewModel.SelectedSong : DetailedSong;
         if (e.Parameter is BaseViewModelWin myVm)
         {
@@ -128,8 +131,7 @@ public sealed partial class SongDetailPage : Page
 
         MyViewModel.SelectedSong = DetailedSong;
 
-        EventsCount.Text = MyViewModel.SelectedSong.PlayEvents.Count.ToString();
-
+        MySongStatsViewModel?.LoadSong(MyViewModel.SelectedSong.Id);
 
         MyViewModel.CurrentPageEnum = CurrentPage.SingleSongPage;
         await MyViewModel.LoadLyricsFromOnlineOrDBIfNeededAsync(MyViewModel.SelectedSong!);
@@ -617,12 +619,6 @@ public sealed partial class SongDetailPage : Page
 
     private void SongPlayEvents_Loaded(object sender, RoutedEventArgs e)
     {
-        var allEvents = MyViewModel.RealmFactory.GetRealmInstance()
-            .Find<SongModel>(MyViewModel.SelectedSong?.Id)?
-            .PlayHistory.OrderByDescending(ev => ev.EventDate)
-            .Select(evt=>evt.ToDimmerPlayEventView());
-        if (allEvents is null) return;
-        SongPlayEvents.ItemsSource = allEvents.ToList();
     }
 
     private async void DeleteEventBtn_Click(object sender, RoutedEventArgs e)
@@ -642,44 +638,7 @@ public sealed partial class SongDetailPage : Page
 
     private void FilterEventButton_Click(object sender, RoutedEventArgs e)
     {
-        var send = (Button)sender;
-
-        if (send.Content is null) return;
-        var btnContetnt = send.Content as string;
-        if (btnContetnt == null) return;
-
-        if (btnContetnt == "All")
-        {
-            var defList = MyViewModel.SelectedSong.PlayEvents.OrderByDescending(ev => ev.EventDate)
-                .ToList();
-            SongPlayEvents.ItemsSource = defList;
-            EventsCount.Text = defList.Count.ToString();
-            return;
-        }
-
-        else
-        {
-            int eventType=0; 
-            if (btnContetnt == "Started")
-            {
-                eventType = (int)PlayEventType.Play;
-            }
-            else
-            {
-
-                if (Enum.TryParse<PlayEventType>(btnContetnt, ignoreCase: true, out var parsedType))
-                {
-                    eventType = (int)parsedType;
-                }
-            }
-            var filteredEvents = MyViewModel.RealmFactory.GetRealmInstance()
-            .Find<SongModel>(MyViewModel.SelectedSong?.Id)?
-            .PlayHistory.Where(ev => ev.PlayType == eventType)
-            .OrderByDescending(ev => ev.EventDate)
-            .Select(evt => evt.ToDimmerPlayEventView());
-            SongPlayEvents.ItemsSource = filteredEvents.ToList();
-            EventsCount.Text = filteredEvents.Count().ToString();
-        }
+       
 
     }
 
@@ -853,6 +812,59 @@ public sealed partial class SongDetailPage : Page
     {
         var prop = e.GetCurrentPoint((UIElement)sender).Properties;
 
+    }
+
+    private void SongStats_Loaded(object sender, RoutedEventArgs e)
+    {
+        StackPanel send = (StackPanel)sender;
+        if (MySongStatsViewModel is null) return;
+        send.DataContext = MySongStatsViewModel;
+
+    }
+
+    private void ListInsights_Loaded(object sender, RoutedEventArgs e)
+    {
+        MySongStatsViewModel?.WhenPropertyChanged(nameof(MySongStatsViewModel.ListInsights), v => MySongStatsViewModel?.ListInsights)
+            .Subscribe(insight =>
+            {
+                ListInsights.ItemsSource = insight;
+            });
+    }
+
+    private void ListWalkthrough_Loaded(object sender, RoutedEventArgs e)
+    {
+        MySongStatsViewModel?.WhenPropertyChanged(nameof(MySongStatsViewModel.ListWalkthrough), v => MySongStatsViewModel?.ListWalkthrough)
+            .Subscribe(insight =>
+            {
+                ListWalkthrough.ItemsSource = insight;
+            });
+    }
+
+    private void ListPerfectPairings_Loaded(object sender, RoutedEventArgs e)
+    {
+        MySongStatsViewModel?.WhenPropertyChanged(nameof(MySongStatsViewModel.ListPerfectPairings), v => MySongStatsViewModel?.ListPerfectPairings)
+            .Subscribe(insight =>
+            {
+                ListPerfectPairings.ItemsSource = insight;
+            });
+    }
+
+    private void ListMonthlyTrend_Loaded(object sender, RoutedEventArgs e)
+    {
+        MySongStatsViewModel?.WhenPropertyChanged(nameof(MySongStatsViewModel.ListMonthlyTrend), v => MySongStatsViewModel?.ListMonthlyTrend)
+            .Subscribe(insight =>
+            {
+                ListMonthlyTrend.ItemsSource = insight;
+            });
+    }
+
+    private void ListWeeklyTrend_Loaded(object sender, RoutedEventArgs e)
+    {
+        MySongStatsViewModel?.WhenPropertyChanged(nameof(MySongStatsViewModel.ListWeeklyTrend), v => MySongStatsViewModel?.ListWeeklyTrend)
+            .Subscribe(insight =>
+            {
+                ListWeeklyTrend.ItemsSource = insight;
+            });
     }
 }
 

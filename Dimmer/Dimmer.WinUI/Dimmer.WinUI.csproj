@@ -59,7 +59,6 @@
 		  <None Remove="Views\WinuiPages\DimmsSection\AllDimsView.xaml" />
 		  <None Remove="Views\WinuiPages\GraphAndNodes.xaml" />
 		  <None Remove="Views\WinuiPages\LastFMSection\LastFmPage.xaml" />
-		  <None Remove="Views\WinuiPages\LibraryStatsPage.xaml" />
 		  <None Remove="Views\WinuiPages\PlaylistSection\AllPlaylistsPage.xaml" />
 		  <None Remove="Views\WinuiPages\PlaylistSection\SinglePlaylistPage.xaml" />
 		  <None Remove="Views\WinuiPages\SettingsPage.xaml" />
@@ -308,11 +307,6 @@
 		</ItemGroup>
 		<ItemGroup>
 		  <Page Update="Views\WinuiPages\GraphAndNodes.xaml">
-			<Generator>MSBuild:Compile</Generator>
-		  </Page>
-		</ItemGroup>
-		<ItemGroup>
-		  <Page Update="Views\WinuiPages\LibraryStatsPage.xaml">
 			<Generator>MSBuild:Compile</Generator>
 		  </Page>
 		</ItemGroup>

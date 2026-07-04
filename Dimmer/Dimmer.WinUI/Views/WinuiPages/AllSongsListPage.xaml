@@ -75,7 +75,6 @@
                     AllowFocusOnInteraction="False"
                     AllowFocusWhenDisabled="False"
                     AutoGenerateColumns="False"
-                    
                     CanDragItems="True"
                     CellDoubleTapped="MySongsTableView_CellDoubleTapped"
                     DoubleTapped="TableView_DoubleTapped"
@@ -236,6 +235,14 @@
                             Width="140"
                             Binding="{Binding IsFavorite}"
                             Header="Favorite?"
+                            IsReadOnly="True"
+                            />
+
+                        <dgView:TableViewDateColumn
+                            x:Name="DateCreated"
+                            Width="140"
+                            Binding="{Binding DateCreated}"
+                            Header="Date Created"
                             IsReadOnly="True"
                             />
 

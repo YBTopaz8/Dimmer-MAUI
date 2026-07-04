@@ -8,6 +8,7 @@
     xmlns:achievements="using:Dimmer.WinUI.Views.WinuiPages.Achievements"
     xmlns:converters="using:Dimmer.WinUI.Utils.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:devWin="using:DevWinUI"
     xmlns:dgView="using:WinUI.TableView"
     xmlns:dimmSearch="clr-namespace:Dimmer.Data.ModelView.DimmerSearch;assembly=Dimmer"
     xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
@@ -425,8 +426,293 @@
 
 
 
+                        <StackPanel
+                            x:Name="SongStats"
+                            Loaded="SongStats_Loaded"
+                            Orientation="Horizontal"
+                            >
+                            <StackPanel
+                                Padding="10"
+                                BorderThickness="1"
+                                CornerRadius="20"
+                                >
+
+                                <TextBlock FontSize="20" Text="{x:Bind MySongStatsViewModel.TextPredictability.Title, Mode=OneWay}" />
+                                <TextBlock FontSize="16" Text="{x:Bind MySongStatsViewModel.TextPredictability.Subtitle, Mode=OneWay}" />
+                                <devWin:Divider />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Grid.Column="0" Text="{x:Bind MySongStatsViewModel.TextPredictability.Value, Mode=OneWay}" />
+                                </Grid>
+                            </StackPanel>
+
+                            <devWin:Divider />
+                            <StackPanel
+                                Padding="10"
+                                BorderThickness="1"
+                                CornerRadius="20"
+                                >
+
+                                <TextBlock FontSize="20" Text="{x:Bind MySongStatsViewModel.TextAvgListenDuration.Title, Mode=OneWay}" />
+                                <TextBlock FontSize="16" Text="{x:Bind MySongStatsViewModel.TextAvgListenDuration.Subtitle, Mode=OneWay}" />
+                                <devWin:Divider />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Grid.Column="0" Text="{x:Bind MySongStatsViewModel.TextAvgListenDuration.Value, Mode=OneWay}" />
+                                </Grid>
+                            </StackPanel>
+
+                            <devWin:Divider />
+                            <StackPanel
+                                Padding="10"
+                                BorderThickness="1"
+                                CornerRadius="20"
+                                >
+
+                                <TextBlock FontSize="20" Text="{x:Bind MySongStatsViewModel.TextBingeFactor.Title, Mode=OneWay}" />
+                                <TextBlock FontSize="16" Text="{x:Bind MySongStatsViewModel.TextBingeFactor.Subtitle, Mode=OneWay}" />
+                                <devWin:Divider />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Grid.Column="0" Text="{x:Bind MySongStatsViewModel.TextBingeFactor.Value, Mode=OneWay}" />
+                                </Grid>
+                            </StackPanel>
+
+                            <devWin:Divider />
 
 
+
+
+
+                        </StackPanel>
+
+                        <Grid Height="450">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+
+                            </Grid.ColumnDefinitions>
+                            <Grid.Resources>
+                                <ResourceDictionary>
+                                    <Style TargetType="ItemsRepeater">
+                                        <Setter Property="Height" Value="400" />
+                                    </Style>
+                                </ResourceDictionary>
+                            </Grid.Resources>
+                            <ItemsRepeater
+                                x:Name="ListInsights"
+                                Grid.Column="0"
+                                Loaded="ListInsights_Loaded"
+                                >
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel
+                                            Padding="10"
+                                            BorderBrush="{Binding ColorHex}"
+                                            BorderThickness="1"
+                                            CornerRadius="20"
+                                            >
+                                            <TextBlock Text="{Binding Title}" />
+                                            <TextBlock Text="{Binding Description}" />
+                                            <TextBlock Text="{Binding Icon}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
+
+
+
+
+
+                            <ItemsRepeater
+                                x:Name="ListWalkthrough"
+                                Grid.Column="1"
+                                Loaded="ListWalkthrough_Loaded"
+                                >
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel BorderThickness="1" CornerRadius="20">
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+
+                                                <TextBlock Text="Session Summary" />
+                                                <TextBlock Text="{Binding SessionSummary}" />
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+
+                                                <TextBlock Text="StartTime" />
+                                                <TextBlock Text="{Binding StartTime}" />
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+
+                                                <TextBlock Text="EventCount" />
+                                                <TextBlock Text="{Binding EventCount}" />
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+
+                                                <TextBlock Text="Total Listening Time Seconds" />
+                                                <TextBlock Text="{Binding TotalListeningTimeSeconds}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
+
+                            <ItemsRepeater
+                                x:Name="ListMonthlyTrend"
+                                Grid.Column="2"
+                                Loaded="ListMonthlyTrend_Loaded"
+                                >
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel
+                                            Padding="10"
+                                            BorderBrush="Gray"
+                                            BorderThickness="1"
+                                            CornerRadius="10"
+                                            >
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+
+                                                <TextBlock Text="Period" />
+                                                <TextBlock Text="{Binding Period}" />
+                                                <StackPanel Orientation="Horizontal" Spacing="5">
+
+                                                    <TextBlock Text="(" />
+                                                    <TextBlock Text="{Binding PlayCount}" />
+                                                    <TextBlock Text=" dims)" />
+                                                </StackPanel>
+                                            </StackPanel>
+
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+
+                                                <TextBlock Text="ChangeVsPrevious" />
+                                                <TextBlock Text="{Binding ChangeVsPrevious}" />
+                                            </StackPanel>
+
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
+
+                            <ItemsRepeater
+                                x:Name="ListWeeklyTrend"
+                                Grid.Column="3"
+                                Loaded="ListWeeklyTrend_Loaded"
+                                >
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel
+                                            Padding="10"
+                                            BorderBrush="Gray"
+                                            BorderThickness="1"
+                                            CornerRadius="10"
+                                            >
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+
+                                                <TextBlock Text="Period" />
+                                                <TextBlock Text="{Binding Period}" />
+
+                                                <StackPanel Orientation="Horizontal" Spacing="5">
+
+                                                    <TextBlock Text="(" />
+                                                    <TextBlock Text="{Binding PlayCount}" />
+                                                    <TextBlock Text=" dims)" />
+                                                </StackPanel>
+                                            </StackPanel>
+
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+
+                                                <TextBlock Text="Change Vs Previous" />
+                                                <TextBlock
+                                                    FontWeight="Bold"
+                                                    Foreground="Orange"
+                                                    Text="{Binding ChangeVsPrevious}"
+                                                    />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
+
+                            <ItemsRepeater
+                                x:Name="ListPerfectPairings"
+                                Grid.Column="4"
+                                Loaded="ListPerfectPairings_Loaded"
+                                >
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel
+                                            Padding="10"
+                                            BorderBrush="Gray"
+                                            BorderThickness="1"
+                                            CornerRadius="10"
+                                            >
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+
+                                                <TextBlock Text="Paired Song Title" />
+                                                <TextBlock Text="{Binding PairedSongTitle}" />
+                                            </StackPanel>
+
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+
+                                                <TextBlock Text="Times Played Together" />
+                                                <TextBlock Text="{Binding TimesPlayedTogether}" />
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+
+                                                <TextBlock Text="Context" />
+                                                <TextBlock Text="{Binding Context}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
+
+                            <ItemsRepeater Grid.Column="5" Loaded="ListInsights_Loaded">
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel
+                                            Padding="10"
+                                            BorderBrush="Gray"
+                                            BorderThickness="1"
+                                            CornerRadius="10"
+                                            >
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+
+                                                <TextBlock Text="Period" />
+                                                <TextBlock Text="{Binding Period}" />
+                                            </StackPanel>
+
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+
+                                                <TextBlock Text="Play Count" />
+                                                <TextBlock Text="{Binding PlayCount}" />
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+
+                                                <TextBlock Text="ChangeVsPrevious" />
+                                                <TextBlock Text="{Binding ChangeVsPrevious}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
+
+
+
+                        </Grid>
 
 
 

@@ -1085,7 +1085,6 @@ public partial class HomePage : ContentPage
 
     private void ViewFullStatsClicked(object sender, EventArgs e)
     {
-        MyViewModel.NavigateToAnyPageOfGivenType(typeof(LibraryStatsPage));
     }
 
     private void ViewDimmerSection_Clicked(object sender, EventArgs e)

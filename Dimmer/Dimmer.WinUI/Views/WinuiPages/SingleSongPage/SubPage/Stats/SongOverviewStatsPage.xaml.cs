@@ -18,13 +18,13 @@ public sealed partial class SongOverviewStatsPage : Page
 
         base.OnNavigatedTo(e);
 
-        var statsVM = IPlatformApplication.Current!.Services.GetService<StatsViewModelWin>();
-        this.DataContext = statsVM;
-        var param = e.Parameter as SongModelView;
+        //var statsVM = IPlatformApplication.Current!.Services.GetService<StatsViewModelWin>();
+        //this.DataContext = statsVM;
+        //var param = e.Parameter as SongModelView;
 
-        if (param != null)
-        {
-           await  statsVM!.LoadSongStatsAsync(param);
-        }
+        //if (param != null)
+        //{
+        //   await  statsVM!.LoadSongStatsAsync(param);
+        //}
     }
 }
