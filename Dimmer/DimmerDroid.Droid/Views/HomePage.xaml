@@ -977,7 +977,7 @@
             </dx:TabViewItem>
             <dx:TabViewItem HeaderText="Now Playing">
 
-                <local:NowPlayingView SwitchToPlayBackQueue="NowPlayingView_SwitchToPlayBackQueue" />
+                <local:NowPlayingView x:Name="NowPlaying" SwitchToPlayBackQueue="NowPlayingView_SwitchToPlayBackQueue" />
 
             </dx:TabViewItem>
 

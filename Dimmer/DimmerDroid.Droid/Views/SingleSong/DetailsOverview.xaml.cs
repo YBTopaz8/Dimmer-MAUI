@@ -137,14 +137,7 @@ public partial class DetailsOverview : ContentPage
             });
     }
 
-    private void ListWalkthrough_Loaded(object sender, EventArgs e)
-    {
-        StatsViewModel?.WhenPropertyChanged(nameof(StatsViewModel.ListWalkthrough), v => StatsViewModel?.ListWalkthrough)
-            .Subscribe(insight =>
-            {
-                ListWalkthrough.ItemsSource = insight;
-            });
-    }
+   
 
     private void ListPerfectPairings_Loaded(object sender, EventArgs e)
     {
@@ -173,8 +166,14 @@ public partial class DetailsOverview : ContentPage
             });
     }
 
-    private void AddLyrics_Clicked(object sender, EventArgs e)
+    private async void AddLyrics_Clicked(object sender, EventArgs e)
     {
+        var localLyrics = await MyViewModel.LyricsMetadataService.GetLocalLyricsAsync(MyViewModel.SelectedSong!);
+        if(string.IsNullOrEmpty(localLyrics))
+        {
+            SongLyricsDownloadPopup popup = new SongLyricsDownloadPopup(MyViewModel, MyViewModel.SelectedSong!);
 
+            await popup.ShowAsync();
+        }
     }
 }

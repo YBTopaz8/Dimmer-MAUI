@@ -201,120 +201,122 @@
 
             <Grid ColumnDefinitions="*,auto">
 
-                <Label
+                <dx:DXButton
+                    x:Name="StatsExpToggler"
                     Grid.Column="0"
+                    BackgroundColor="Transparent"
+                    Command="{Binding Commands.ToggleExpandState, Source={x:Reference StatsExpander}}"
+                    Content="Stats"
                     FontSize="26"
                     HorizontalOptions="Center"
-                    Text="Stats"
                     />
+                <dx:DXExpander x:Name="StatsExpander" IsExpanded="False">
 
-
-            </Grid>
-            <Grid
-                x:Name="StatsSectionPreview"
-                Padding="5"
-                x:DataType="statsVM:SongStatsViewModel"
-                Loaded="StatsSectionPreview_Loaded"
-                MaximumHeightRequest="400"
-                >
-                <dx:SlideView
-                    x:Name="StatsSlideView"
-                    Padding="5,0"
-                    BorderColor="Gray"
-                    BorderThickness="1"
-                    CornerRadius="15"
-                    >
-                    <dx:SlideView.Resources>
-                        <Style TargetType="dx:DXCollectionView">
-                            <Setter Property="ItemSpacing" Value="5" />
-                        </Style>
-                    </dx:SlideView.Resources>
-                    <dx:SlideView.Items>
-
-                        <dx:DXCollectionView
-                            ItemSeparatorColor="DarkSlateBlue"
-                            ItemSeparatorThickness="1"
-                            ItemSpacing="5"
-                            ItemsSource="{Binding MyViewModel.SelectedSong.PlayEvents, Source={x:Reference myPage}}"
+                    <Grid
+                        x:Name="StatsSectionPreview"
+                        Padding="5"
+                        Loaded="StatsSectionPreview_Loaded"
+                        RowDefinitions="400,auto"
+                        >
+                        <dx:SlideView
+                            x:Name="StatsSlideView"
+                            Padding="5,0"
+                            BorderColor="Gray"
+                            BorderThickness="1"
+                            CornerRadius="15"
                             >
-                            <dx:DXCollectionView.SortDescriptions>
-                                <dx:SortDescription FieldName="EventDate" SortOrder="Descending" />
-                            </dx:DXCollectionView.SortDescriptions>
-
-                            <dx:DXCollectionView.Header>
-                                <dx:DXStackLayout
-                                    Padding="5,0"
-                                    HorizontalOptions="Center"
-                                    ItemSpacing="5"
-                                    Orientation="Horizontal"
-                                    >
-                                    <Label Text="{Binding MyViewModel.SelectedSong.PlayEvents.Count, Source={x:Reference myPage}}" />
-                                    <Label Text="Events" />
-                                </dx:DXStackLayout>
-                            </dx:DXCollectionView.Header>
-                            <dx:DXCollectionView.ItemTemplate>
-                                <DataTemplate x:DataType="models:DimmerPlayEventView">
-                                    <dx:DXStackLayout>
-                                        <Label
-                                            FontAttributes="Bold"
-                                            FontSize="21"
-                                            Text="{Binding PlayTypeStr}"
-                                            />
-                                        <Label FontSize="16" Text="{Binding EventDate, Converter={conv:DatetTimeOffsetToHowLongAgoConverter}}" />
-                                    </dx:DXStackLayout>
-                                </DataTemplate>
-                            </dx:DXCollectionView.ItemTemplate>
-                        </dx:DXCollectionView>
-
-                        <dx:DXCollectionView
-                            x:Name="ListWalkthrough"
-                            Grid.Column="1"
-                            Header="Walkthrough"
-                            ItemSpacing="5"
-                            Loaded="ListWalkthrough_Loaded"
-                            >
-                            <dx:DXCollectionView.ItemTemplate>
-                                <DataTemplate x:DataType="statsModels:PlaySession">
-                                    <dx:DXStackLayout
-                                        Padding="5"
-                                        BorderThickness="1"
-                                        CornerRadius="10"
-                                        >
-                                        <dx:DXStackLayout ItemSpacing="5" Orientation="Horizontal">
-
-                                            <Label Text="Session Summary" />
-                                            <Label Text="{Binding SessionSummary}" />
-                                        </dx:DXStackLayout>
-                                        <dx:DXStackLayout ItemSpacing="5" Orientation="Horizontal">
-
-                                            <Label Text="StartTime" />
-                                            <Label Text="{Binding StartTime}" />
-                                        </dx:DXStackLayout>
-                                        <dx:DXStackLayout ItemSpacing="5" Orientation="Horizontal">
-
-                                            <Label Text="EventCount" />
-                                            <Label Text="{Binding EventCount}" />
-                                        </dx:DXStackLayout>
-                                        <dx:DXStackLayout ItemSpacing="5" Orientation="Horizontal">
-
-                                            <Label Text="Total Listening Time Seconds" />
-                                            <Label Text="{Binding TotalListeningTimeSeconds}" />
-                                        </dx:DXStackLayout>
-                                    </dx:DXStackLayout>
-                                </DataTemplate>
-                            </dx:DXCollectionView.ItemTemplate>
-                        </dx:DXCollectionView>
+                            <dx:SlideView.Resources>
+                                <Style TargetType="dx:DXCollectionView">
+                                    <Setter Property="ItemSpacing" Value="5" />
+                                </Style>
+                            </dx:SlideView.Resources>
+                            <dx:SlideView.Items>
 
 
-                        <dx:TabView>
-                            <dx:TabViewItem HeaderText="List">
 
+
+
+                                <dx:TabView>
+                                    <dx:TabViewItem HeaderText="List">
+
+
+                                        <dx:DXCollectionView
+                                            x:Name="ListWeeklyTrend"
+                                            Grid.Column="3"
+                                            Header="Weekly Trend"
+                                            Loaded="ListWeeklyTrend_Loaded"
+                                            >
+                                            <dx:DXCollectionView.ItemTemplate>
+                                                <DataTemplate x:DataType="statsModels:TrendStat">
+                                                    <dx:DXStackLayout
+                                                        Padding="10"
+                                                        BorderColor="Gray"
+                                                        BorderThickness="1"
+                                                        CornerRadius="10"
+                                                        >
+                                                        <dx:DXStackLayout ItemSpacing="5" Orientation="Horizontal">
+
+                                                            <Label Text="Period" />
+                                                            <Label Text="{Binding Period}" />
+
+                                                            <dx:DXStackLayout ItemSpacing="5" Orientation="Horizontal">
+
+                                                                <Label Text="(" />
+                                                                <Label Text="{Binding PlayCount}" />
+                                                                <Label Text=" dims)" />
+                                                            </dx:DXStackLayout>
+                                                        </dx:DXStackLayout>
+
+                                                        <dx:DXStackLayout ItemSpacing="5" Orientation="Horizontal">
+
+                                                            <Label Text="Change Vs Previous" />
+                                                            <Label
+                                                                FontAttributes="Bold"
+                                                                Text="{Binding ChangeVsPrevious}"
+                                                                TextColor="Orange"
+                                                                />
+                                                        </dx:DXStackLayout>
+                                                    </dx:DXStackLayout>
+                                                </DataTemplate>
+                                            </dx:DXCollectionView.ItemTemplate>
+                                        </dx:DXCollectionView>
+
+                                    </dx:TabViewItem>
+                                    <dx:TabViewItem HeaderText="Chart">
+                                        <!--  public record TrendStat(string Period, int PlayCount, int ChangeVsPrevious);  -->
+                                        <dx:ChartView
+                                            HeightRequest="150"
+                                            SelectionKind="Point"
+                                            SelectionMode="Single"
+                                            >
+                                            <dx:ChartView.Series>
+                                                <dx:LineSeries>
+                                                    <dx:LineSeries.Data>
+                                                        <dx:SeriesDataAdapter ArgumentDataMember="Period" DataSource="{Binding ListWeeklyTrend}">
+                                                            <dx:ValueDataMember Member="PlayCount" Type="Value" />
+
+                                                        </dx:SeriesDataAdapter>
+                                                    </dx:LineSeries.Data>
+                                                </dx:LineSeries>
+                                                <dx:LineSeries>
+                                                    <dx:LineSeries.Data>
+                                                        <dx:SeriesDataAdapter ArgumentDataMember="Period" DataSource="{Binding ListWeeklyTrend}">
+                                                            <dx:ValueDataMember Member="ChangeVsPrevious" Type="Value" />
+
+                                                        </dx:SeriesDataAdapter>
+                                                    </dx:LineSeries.Data>
+                                                </dx:LineSeries>
+                                            </dx:ChartView.Series>
+                                        </dx:ChartView>
+                                    </dx:TabViewItem>
+
+                                </dx:TabView>
 
                                 <dx:DXCollectionView
-                                    x:Name="ListWeeklyTrend"
-                                    Grid.Column="3"
-                                    Header="Weekly Trend"
-                                    Loaded="ListWeeklyTrend_Loaded"
+                                    x:Name="ListMonthlyTrend"
+                                    Grid.Column="2"
+                                    Header="MonthlyTrend"
+                                    Loaded="ListMonthlyTrend_Loaded"
                                     >
                                     <dx:DXCollectionView.ItemTemplate>
                                         <DataTemplate x:DataType="statsModels:TrendStat">
@@ -328,7 +330,6 @@
 
                                                     <Label Text="Period" />
                                                     <Label Text="{Binding Period}" />
-
                                                     <dx:DXStackLayout ItemSpacing="5" Orientation="Horizontal">
 
                                                         <Label Text="(" />
@@ -340,106 +341,41 @@
                                                 <dx:DXStackLayout ItemSpacing="5" Orientation="Horizontal">
 
                                                     <Label Text="Change Vs Previous" />
-                                                    <Label
-                                                        FontAttributes="Bold"
-                                                        Text="{Binding ChangeVsPrevious}"
-                                                        TextColor="Orange"
-                                                        />
+                                                    <Label Text="{Binding ChangeVsPrevious}" TextColor="Orange" />
                                                 </dx:DXStackLayout>
+
                                             </dx:DXStackLayout>
                                         </DataTemplate>
                                     </dx:DXCollectionView.ItemTemplate>
                                 </dx:DXCollectionView>
 
-                            </dx:TabViewItem>
-                            <dx:TabViewItem HeaderText="Chart">
-                                <!--  public record TrendStat(string Period, int PlayCount, int ChangeVsPrevious);  -->
-                                <dx:ChartView
-                                    HeightRequest="150"
-                                    SelectionKind="Point"
-                                    SelectionMode="Single"
-                                    >
-                                    <dx:ChartView.Series>
-                                        <dx:LineSeries >
-                                            <dx:LineSeries.Data>
-                                                <dx:SeriesDataAdapter  ArgumentDataMember="Period" DataSource="{Binding ListWeeklyTrend}">
-                                                    <dx:ValueDataMember  Member="PlayCount" Type="Value" />
-
-                                                </dx:SeriesDataAdapter>
-                                            </dx:LineSeries.Data>
-                                        </dx:LineSeries>
-                                        <dx:LineSeries>
-                                            <dx:LineSeries.Data>
-                                                <dx:SeriesDataAdapter ArgumentDataMember="Period" DataSource="{Binding ListWeeklyTrend}">
-                                                    <dx:ValueDataMember Member="ChangeVsPrevious" Type="Value" />
-
-                                                </dx:SeriesDataAdapter>
-                                            </dx:LineSeries.Data>
-                                        </dx:LineSeries>
-                                    </dx:ChartView.Series>
-                                </dx:ChartView>
-                            </dx:TabViewItem>
-
-                        </dx:TabView>
-
-                        <dx:DXCollectionView
-                            x:Name="ListMonthlyTrend"
-                            Grid.Column="2"
-                            Header="MonthlyTrend"
-                            Loaded="ListMonthlyTrend_Loaded"
-                            >
-                            <dx:DXCollectionView.ItemTemplate>
-                                <DataTemplate x:DataType="statsModels:TrendStat">
-                                    <dx:DXStackLayout
-                                        Padding="10"
-                                        BorderColor="Gray"
-                                        BorderThickness="1"
-                                        CornerRadius="10"
-                                        >
-                                        <dx:DXStackLayout ItemSpacing="5" Orientation="Horizontal">
-
-                                            <Label Text="Period" />
-                                            <Label Text="{Binding Period}" />
-                                            <dx:DXStackLayout ItemSpacing="5" Orientation="Horizontal">
-
-                                                <Label Text="(" />
-                                                <Label Text="{Binding PlayCount}" />
-                                                <Label Text=" dims)" />
-                                            </dx:DXStackLayout>
-                                        </dx:DXStackLayout>
-
-                                        <dx:DXStackLayout ItemSpacing="5" Orientation="Horizontal">
-
-                                            <Label Text="Change Vs Previous" />
-                                            <Label Text="{Binding ChangeVsPrevious}" TextColor="Orange" />
-                                        </dx:DXStackLayout>
-
-                                    </dx:DXStackLayout>
-                                </DataTemplate>
-                            </dx:DXCollectionView.ItemTemplate>
-                        </dx:DXCollectionView>
 
 
 
+                            </dx:SlideView.Items>
+                        </dx:SlideView>
 
-                    </dx:SlideView.Items>
-                </dx:SlideView>
+                        <Grid ColumnDefinitions="*,*">
+                            <dx:DXButton
+                                Grid.Column="0"
+                                BorderColor="DarkSlateBlue"
+                                BorderThickness="1"
+                                Command="{Binding Commands.ShowPrevious, Source={Reference StatsSlideView}}"
+                                Icon="skipprevious.png"
+                                ShowContent="False"
+                                VerticalOptions="End"
+                                />
+                            <dx:DXButton
+                                Grid.Column="1"
+                                Command="{Binding Commands.ShowNext, Source={Reference StatsSlideView}}"
+                                Icon="skipnext.png"
+                                VerticalOptions="End"
+                                />
 
-                <FlexLayout JustifyContent="SpaceBetween">
-                    <dx:DXButton
-                        BorderColor="DarkSlateBlue"
-                        BorderThickness="1"
-                        Command="{Binding Commands.ShowPrevious, Source={Reference StatsSlideView}}"
-                        Icon="skipprevious.png"
-                        ShowContent="False"
-                        VerticalOptions="End"
-                        />
-                    <dx:DXButton
-                        Command="{Binding Commands.ShowNext, Source={Reference StatsSlideView}}"
-                        Icon="skipnext.png"
-                        VerticalOptions="End"
-                        />
-                </FlexLayout>
+                        </Grid>
+                    </Grid>
+                </dx:DXExpander>
+
             </Grid>
 
             <Grid RowDefinitions="auto,95" RowSpacing="5">

@@ -27,7 +27,24 @@ public partial class HomePage : ContentPage
                         //this.MainPageTabView.SelectedItemIndex = 1;
                     }
 
-                });
+                }).DisposeWith(compDisp);
+        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.HomePageIndex), v => (MyViewModel.HomePageIndex))
+            .Subscribe(
+                e =>
+                {
+                    NowPlaying.FrequentlyPlayedExpander.IsExpanded = false;
+                    switch (e)
+                    {
+                        case 1:
+
+                            break;
+                        default:
+
+                            break;
+
+                    }
+
+                }).DisposeWith(compDisp);
         MyLastFMViewModel.LoadBaseViewModel(viewModelAnd);
         _ = Task.Run(() => loginVM.InitializeAsync());
      

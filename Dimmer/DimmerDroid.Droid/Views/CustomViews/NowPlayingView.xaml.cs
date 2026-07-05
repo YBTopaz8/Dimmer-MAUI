@@ -228,6 +228,11 @@ public partial class NowPlayingView : ContentView
         if (e.NewValue)
         {
             StatsViewModel.LoadSong(MyViewModel.CurrentPlayingSongView.Id);
+            return;
+        }
+        if (FrequentlyPlayedExpander.IsExpanded)
+        {
+            StatsViewModel.LoadSong(MyViewModel.CurrentPlayingSongView.Id);
         }
     }
     private void ListPerfectPairings_Loaded(object sender, EventArgs e)
@@ -254,7 +259,7 @@ public partial class NowPlayingView : ContentView
             MyViewModel.AddToNext(new List<SongModelView>() { song});
             await MyViewModel.NextTrackAsync();
             FrequentlyPlayedExpander.SetIsExpanded(false);
-            await Task.Delay(250);
+            await Task.Delay(1250);
             FrequentlyPlayedExpander.SetIsExpanded(true);
         }
         else
