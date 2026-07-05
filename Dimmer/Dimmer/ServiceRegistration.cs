@@ -161,7 +161,7 @@ public static class ServiceRegistration
         services.AddSingleton<GeneralStatsService>();
         services.AddSingleton<PlaylistStatsService>();
         services.AddSingleton<SongStatsService>();
-        services.AddSingleton<SongStatsViewModel>
+        services.AddSingleton<SongStatsViewModel>();
         services.AddTransient<ArtistStatsViewModel>();
         return services;
     }

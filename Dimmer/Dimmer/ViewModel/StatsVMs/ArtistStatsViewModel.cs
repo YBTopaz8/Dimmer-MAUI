@@ -1,8 +1,5 @@
 ﻿using Dimmer.Charts;
 using Dimmer.Charts.Services;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Dimmer.ViewModel.StatsVMs;
 
@@ -13,28 +10,33 @@ public partial class ArtistStatsViewModel : ObservableObject, IDisposable
     private readonly CompositeDisposable _disposables = new();
 
     // The UI will bind to these!
-    [ObservableProperty] public partial TextStat TotalTime { get; set; }
-    [ObservableProperty] public partial TextStat ObsessionScore { get; set; }
-    [ObservableProperty] public partial TextStat EddingtonNumber { get; set; }
+    [ObservableProperty] public partial TextStat TextBingeScore { get; set; }
+    [ObservableProperty] public partial TextStat TextLoyaltyIndex { get; set; }
+    [ObservableProperty] public partial TextStat TextDiscoveryComparison { get; set; }
 
-    [ObservableProperty] public partial IReadOnlyList<ChartPoint> HourlyPreferenceChart { get; set; }
-    [ObservableProperty] public partial IReadOnlyList<ChartPoint> DeviceFootprintChart { get; set; }
 
-    [ObservableProperty] public partial IReadOnlyList<LeaderboardItem> TopSongs { get; set; }
+    [ObservableProperty] public partial IReadOnlyList<LeaderboardItem> ListDeepCuts { get; set; }
+
+    [ObservableProperty] public partial IReadOnlyList<LeaderboardItem> ListTopAlbums { get; set; }
+    [ObservableProperty] public partial IReadOnlyList<LeaderboardItem> ListTopSongs { get; set; }
+    [ObservableProperty] public partial IReadOnlyList<TrendStat> ListMonthlyTrend { get; set; }
+    [ObservableProperty] public partial IReadOnlyList<InsightStat> ListInsights { get; set; }
 
     public ArtistStatsViewModel(ArtistStatsService artistService)
     {
         _artistService = artistService;
 
-        // Wire up the pipelines to the properties!
-        _artistService.TotalListeningTime.Subscribe(v => TotalTime = v).DisposeWith(_disposables);
-        _artistService.ObsessionScore.Subscribe(v => ObsessionScore = v).DisposeWith(_disposables);
-        _artistService.ArtistEddington.Subscribe(v => EddingtonNumber = v).DisposeWith(_disposables);
+        _artistService.ListTopSongs.Subscribe(v => ListTopSongs = v).DisposeWith(_disposables);
+        _artistService.ListDeepCuts.Subscribe(v => ListDeepCuts = v).DisposeWith(_disposables);
 
-        _artistService.HourlyPreference.Subscribe(v => HourlyPreferenceChart = v).DisposeWith(_disposables);
-        _artistService.DeviceFootprint.Subscribe(v => DeviceFootprintChart = v).DisposeWith(_disposables);
+        _artistService.TextLoyaltyIndex.Subscribe(v => TextLoyaltyIndex = v).DisposeWith(_disposables);
+        _artistService.TextDiscoveryComparison.Subscribe(v => TextDiscoveryComparison = v).DisposeWith(_disposables);
+        _artistService.TextBingeScore.Subscribe(v => TextBingeScore = v).DisposeWith(_disposables);
+      
+        _artistService.ListTopAlbums.Subscribe(v => ListTopAlbums = v).DisposeWith(_disposables);
 
-        _artistService.TopSongs.Subscribe(v => TopSongs = v).DisposeWith(_disposables);
+        _artistService.ListMonthlyTrend.Subscribe(v => ListMonthlyTrend = v).DisposeWith(_disposables);
+        _artistService.ListInsights.Subscribe(v => ListInsights = v).DisposeWith(_disposables);
     }
 
     // Call this when the Page Navigates to an Artist!

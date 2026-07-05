@@ -17,7 +17,19 @@ public class DimmerPlayEventView
                                            /// Indicates the type of play action performed.
                                            /// Possible VALID values for <see cref="PlayType" />:
                                            /// <list type="bullet"><item>
-                                           /// <term>0</term><description>Play</description></item><item><term>1</term><description>Pause</description></item><item><term>2</term><description>Resume</description></item><item><term>3</term><description>Completed</description></item><item><term>4</term><description>Seeked</description></item><item><term>5</term><description>Skipped</description></item><item><term>6</term><description>Restarted</description></item><item><term>7</term><description>SeekRestarted</description></item><item><term>8</term><description>CustomRepeat</description></item><item><term>9</term><description>Previous</description></item></list>
+                                           /// <term>0</term><description>Play</description>
+                                           /// </item><item>
+                                           /// <term>1</term><description>Pause</description
+                                           /// ></item><item>
+                                           /// <term>2</term><description>Resume</description></item>
+                                           /// <item><term>3</term><description>Completed</description>
+                                           /// </item><item><term>4</term><description>Seeked</description>
+                                           /// </item><item><term>5</term><description>Skipped</description>
+                                           /// </item><item><term>6</term><description>Restarted</description>
+                                           /// </item><item><term>7</term><description>SeekRestarted</description>
+                                           /// </item><item><term>8</term><description>CustomRepeat</description>
+                                           /// </item><item><term>9</term><description>Previous</description>
+                                           /// </item></list>
                                            /// </summary>
                                            /// <value>
                                            /// The type of the play.
@@ -92,4 +104,18 @@ public class CompleteBackupData
     public List<DimmerPlayEventBackup>? PlayEvents { get; set; }
     public DateTime BackupDate { get; set; }
     public string Version { get; set; } = BaseViewModel.CurrentAppVersion + BaseViewModel.CurrentAppStage;
+}
+
+public enum PlayEventType
+{
+    Play = 0,
+    Pause = 1,
+    Resume = 2,
+    Completed = 3,
+    Seeked = 4,
+    Skipped = 5,
+    Restarted = 6,
+    SeekRestarted = 7,
+    CustomRepeat = 8,
+    Previous = 9,
 }

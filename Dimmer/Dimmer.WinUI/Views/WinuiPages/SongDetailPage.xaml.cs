@@ -705,15 +705,8 @@ public sealed partial class SongDetailPage : Page
     {
        
 
-        AnimationHelper.TryStart(
-            //detailedImage,
-            UtilitiesSection,
-            null,
-            
-            "OpenArtistSongsCatalog",      // Priority 1: Coming from Edit Page
-            AnimationHelper.Key_ListToDetail, // Priority 2: Coming from List
-            AnimationHelper.Key_ArtistToSong  // Priority 3: Coming from Artist
-        );
+      
+
     }
 
     private void Artist_Click(object sender, RoutedEventArgs e)

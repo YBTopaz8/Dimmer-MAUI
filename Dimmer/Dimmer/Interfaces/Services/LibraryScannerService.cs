@@ -91,7 +91,7 @@ public class LibraryScannerService : ILibraryScannerService
                         }
                     }
 
-                    if (filesToDelete.Any())
+                    if (filesToDelete.Count != 0)
                     {
                         _logger.LogInformation("Detected {Count} deleted files. Removing from database...", filesToDelete.Count);
                         realm.Write(() => // Synchronous Write guarantees we stay on the safe thread

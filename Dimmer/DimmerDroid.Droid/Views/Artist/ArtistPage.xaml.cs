@@ -1,10 +1,12 @@
 
 
+using Dimmer.ViewModel.StatsVMs;
+
 namespace Dimmer.Views.Artist;
 
 public partial class ArtistPage : ContentPage
 {
-	public ArtistPage(BaseViewModelAnd baseViewModel , StatisticsViewModel statsVM,
+	public ArtistPage(BaseViewModelAnd baseViewModel , ArtistStatsViewModel statsVM,
     LastFMViewModel lastFMVM)
 
     {
@@ -17,7 +19,7 @@ public partial class ArtistPage : ContentPage
     public BaseViewModelAnd MyViewModel { get; }
     
     LastFMViewModel MylastFMViewModel { get; }
-    public StatisticsViewModel StatsVM { get; }
+    public ArtistStatsViewModel StatsVM { get; }
 
     private async void LoadLastFMInfo_Clicked(object sender, EventArgs e)
     {
@@ -28,11 +30,14 @@ public partial class ArtistPage : ContentPage
     {
         BindingContext = MyViewModel.SelectedArtist;
         base.OnAppearing();
-        await Task.Delay(4000);
         
             
-            await MylastFMViewModel.LoadArtistLastFMDataAsync(MyViewModel.SelectedArtist);
-           await StatsVM.LoadArtistStatsAsync(MyViewModel.SelectedArtist);
+        _=  Task.Run(async () =>
+          {
+              await Task.Delay(4000);
+              await MylastFMViewModel.LoadArtistLastFMDataAsync(MyViewModel.SelectedArtist);
+          });
+           //await StatsVM.LoadArtistStatsAsync(MyViewModel.SelectedArtist);
 
     }
 

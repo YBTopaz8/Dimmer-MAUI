@@ -11,14 +11,13 @@ namespace Dimmer.Views;
 
 public partial class HomePage : ContentPage
 {
-    public HomePage(BaseViewModelAnd viewModelAnd, StatisticsViewModel statisticsView, LastFMViewModel lastFMVM, LoginViewModel loginVM)
+    public HomePage(BaseViewModelAnd viewModelAnd,  LastFMViewModel lastFMVM, LoginViewModel loginVM)
     {
         InitializeComponent();
         BindingContext = viewModelAnd;
         MyViewModel = viewModelAnd;
         MyLastFMViewModel = lastFMVM;
         MyLoginVM = loginVM;
-        StatsViewModel = statisticsView;
         MyViewModel.WhenPropertyChanged(nameof(MyViewModel.OpenMediaUIOnNotificationTap), v => (MyViewModel.OpenMediaUIOnNotificationTap))
             .Subscribe(
                 e =>
@@ -37,7 +36,6 @@ public partial class HomePage : ContentPage
     BaseViewModelAnd MyViewModel { get; }
     public LastFMViewModel MyLastFMViewModel { get; }
     public LoginViewModel MyLoginVM { get; }
-    public StatisticsViewModel StatsViewModel { get; }
 
 
     protected override void OnDisappearing()
@@ -50,30 +48,12 @@ public partial class HomePage : ContentPage
     {
         base.OnAppearing();
         compDisp = new();
+
+
+
+        MyViewModel.StartTQLPipeLine();
+
       
-
-
-
-        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.HomePageIndex), v => (MyViewModel.HomePageIndex))
-            .Subscribe(async e =>
-            {
-                switch (e)
-                {
-                    case 0:
-                    MyViewModel.StartTQLPipeLine();
-                           
-                        
-                         
-                    break;
-
-                    case 2: 
-
-                    break;
-                    default:
-                    break;
-                }
-
-            }).DisposeWith(compDisp);
 
         MyViewModel.WhenPropertyChanged(nameof(MyViewModel.IsSearchResultEmpty), v => (MyViewModel.SearchResults))
         .Subscribe(async col =>
@@ -81,7 +61,10 @@ public partial class HomePage : ContentPage
 
            if(!isTQLBtmSheetOpened)
            {
-                SongsCV.ItemsSource = new List<SongModelView>(col);
+                if (SongsCV.IsLoaded)
+                {
+                    SongsCV.ItemsSource = new List<SongModelView>(col);
+                }
            }
            else
            {
@@ -116,7 +99,7 @@ public partial class HomePage : ContentPage
             }
             catch (Exception ex)
             {
-                 Shell.Current.DisplayAlertAsync("Fatal Error Init Logic", ex.Message, "ok");
+                await Shell.Current.DisplayAlertAsync("Fatal Error Init Logic", ex.Message, "ok");
                 Console.WriteLine($"VM INIT CRASH: {ex}");
                 Android.Util.Log.Error("DIMMER_INIT", ex.ToString());
             }
@@ -647,7 +630,6 @@ public partial class HomePage : ContentPage
 
     private async void SingleSongPopup_Loaded(object sender, EventArgs e)
     {
-        await StatsViewModel.LoadSongQuickStatsAsync(MyViewModel.SelectedSong);
     }
 
   

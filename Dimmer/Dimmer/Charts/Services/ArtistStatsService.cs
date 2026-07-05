@@ -6,127 +6,100 @@ using System.Text;
 namespace Dimmer.Charts.Services;
 
 
+
+
 public class ArtistStatsService
 {
+    private readonly IRealmFactory _realmF;
+    private readonly Realm _mainThreadRealm;
     private readonly BehaviorSubject<ObjectId?> _currentArtistId = new(null);
-
-    // --- TEXT STATS ---
-    public IObservable<TextStat> TotalListeningTime { get; }
-    public IObservable<TextStat> ObsessionScore { get; }
-    public IObservable<TextStat> CatalogCompletion { get; }
-    public IObservable<TextStat> ArtistEddington { get; }
-
-    // --- CHARTS ---
-    public IObservable<IReadOnlyList<ChartPoint>> PlaysPerMonth { get; }
-    public IObservable<IReadOnlyList<ChartPoint>> HourlyPreference { get; }
-    public IObservable<IReadOnlyList<ChartPoint>> GenreBlending { get; }
-    public IObservable<IReadOnlyList<ChartPoint>> DeviceFootprint { get; }
-
-    // --- COLLECTIONS ---
-    public IObservable<IReadOnlyList<LeaderboardItem>> TopSongs { get; }
-    public IObservable<IReadOnlyList<LeaderboardItem>> Collaborators { get; }
-
-    public ArtistStatsService(IRealmFactory realmf)
-    {
-        // 1. THE MASTER PIPELINE
-        // When the ID changes, switch to a new stream observing that artist's events
-        var artistSnapshotStream = _currentArtistId
-            .Where(id => id.HasValue).Select(id => id.Value)
-            .Select(artistId =>
-            {
-                var realm = realmf.GetRealmInstance(); // Thread-local Realm
-
-                // Get songs for this artist (in memory for fast lookup)
-                var artistSongs = realm.All<SongModel>()
-                    .Where(s => s.Artist.Id == artistId || s.ArtistToSong.Any(a => a.Id == artistId))
-                    .ToList();
-
-                var songIds = artistSongs.Select(s => (QueryArgument)s.Id).ToHashSet().ToArray();
-
-                // Watch events for these songs
-                return realm.All<DimmerPlayEvent>()
-                    .Filter("SongId IN $0", songIds) // Realm fast filtering
-                    .AsObservableChangeSet()
-                    .Throttle(TimeSpan.FromMilliseconds(250)) // Prevent UI stuttering
-                    .ToCollection()
-                    .Select(events => CalculateArtistSnapshot(artistSongs, events));
-            })
-            .Switch() // If ID changes, cancel old subscription, start new one
-            .Publish() // Share this single calculation with all 10+ outputs below
-            .RefCount();
-
-        // 2. BIND TEXT STATS (O(1) lookups from the snapshot)
-        TotalListeningTime = artistSnapshotStream.Select(s => s.TotalTime)
-            .ObserveOn(RxSchedulers.UI);
-        ObsessionScore = artistSnapshotStream.Select(s => s.Obsession).ObserveOn(RxSchedulers.UI);
-        CatalogCompletion = artistSnapshotStream.Select(s => s.Completion).ObserveOn(RxSchedulers.UI);
-        ArtistEddington = artistSnapshotStream.Select(s => s.Eddington).ObserveOn(RxSchedulers.UI);
-
-        // 3. BIND CHARTS
-        PlaysPerMonth = artistSnapshotStream.Select(s => s.PlaysPerMonth).ObserveOn(RxSchedulers.UI);
-        HourlyPreference = artistSnapshotStream.Select(s => s.HourlyPreference).ObserveOn(RxSchedulers.UI);
-        GenreBlending = artistSnapshotStream.Select(s => s.GenreBlending).ObserveOn(RxSchedulers.UI);
-        DeviceFootprint = artistSnapshotStream.Select(s => s.DeviceFootprint).ObserveOn(RxSchedulers.UI);
-
-        // 4. BIND COLLECTIONS
-        TopSongs = artistSnapshotStream.Select(s => s.TopSongs).ObserveOn(RxSchedulers.UI);
-        Collaborators = artistSnapshotStream.Select(s => s.Collaborators).ObserveOn(RxSchedulers.UI);
-    }
-
-    // Set this from the ViewModel when navigating to an Artist page
     public void SetArtistId(ObjectId id) => _currentArtistId.OnNext(id);
 
-    // --- THE HEAVY LIFTING HAPPENS EXACTLY ONCE PER THROTTLE WINDOW ---
-    private ArtistSnapshot CalculateArtistSnapshot(List<SongModel> songs, IReadOnlyCollection<DimmerPlayEvent> events)
+    // --- OUTPUTS ---
+    public IObservable<TextStat> TextLoyaltyIndex { get; }
+    public IObservable<TextStat> TextBingeScore { get; }
+    public IObservable<TextStat> TextDiscoveryComparison { get; }
+
+    public IObservable<IReadOnlyList<TrendStat>> ListMonthlyTrend { get; }
+    public IObservable<IReadOnlyList<LeaderboardItem>> ListDeepCuts { get; }
+    public IObservable<IReadOnlyList<LeaderboardItem>> ListTopSongs { get; }
+    public IObservable<IReadOnlyList<LeaderboardItem>> ListTopAlbums { get; }
+    public IObservable<IReadOnlyList<InsightStat>> ListInsights { get; }
+
+    public ArtistStatsService(IRealmFactory realmF)
     {
-        // TEXT MATH
-        double totalSeconds = events.Sum(e => Math.Max(0, e.PositionInSeconds));
-        var ts = TimeSpan.FromSeconds(totalSeconds);
-        var timeStr = ts.TotalDays > 1 ? $"{(int)ts.TotalDays}d {ts.Hours}h" : $"{ts.Hours}h {ts.Minutes}m";
+        _realmF = realmF;
+        _mainThreadRealm = _realmF.GetRealmInstance();
 
-        int uniqueSongsPlayed = events.Select(e => e.SongId).Distinct().Count();
-        double completionPct = songs.Count > 0 ? ((double)uniqueSongsPlayed / songs.Count) * 100 : 0;
+        var snapshotStream = _currentArtistId.Where(id => id.HasValue).Select(id => id.Value)
+           .Select(artId => _mainThreadRealm.All<DimmerPlayEvent>().AsObservableChangeSet().Throttle(TimeSpan.FromMilliseconds(250)).Select(_ => artId)
+               .Select(id => Observable.FromAsync(() => Task.Run(() => {
+                   using var bgRealm = _realmF.GetRealmInstance();
+                   var bgArtist = bgRealm.Find<ArtistModel>(id);
+                   var artistSongs = bgArtist?.Songs.ToList();
+                   var songIds = artistSongs.Select(s => s.Id).ToHashSet();
+                   var artEvents = bgRealm.All<DimmerPlayEvent>().ToList().Where(e => e.SongId.HasValue && songIds.Contains(e.SongId.Value)).OrderBy(e => e.DatePlayed).ToList();
+                   int totPlays = bgRealm.All<DimmerPlayEvent>().Count();
+                   return CalculateArtistSnapshot(bgArtist, artistSongs, artEvents, totPlays);
+               }))).Switch()).Switch().Publish().RefCount();
 
-        var playCounts = songs.Select(s => events.Count(e => e.SongId == s.Id && e.PlayType == 0)).OrderByDescending(c => c).ToList();
-        int eddington = 0;
-        for (int i = 0; i < playCounts.Count; i++) { if (playCounts[i] >= i + 1) eddington = i + 1; else break; }
-
-        int obsession = events.Count(e => e.PlayType == 6 || e.PlayType == 8) * 3 + events.Count(e => e.PlayType == 3);
-
-        // CHART MATH
-        var hourly = events.Where(e => e.PlayType == 0)
-            .GroupBy(e => e.EventDate.ToLocalTime().Hour)
-            .Select(g => new ChartPoint($"{g.Key}:00", g.Count())).ToList();
-
-        var deviceFootprint = events.Where(e => !string.IsNullOrEmpty(e.DeviceName))
-            .GroupBy(e => e.DeviceName)
-            .Select(g => new ChartPoint(g.Key, g.Count())).ToList();
-
-        // COLLECTION MATH
-        var topSongs = songs
-            .Select(s => new { Song = s, Plays = events.Count(e => e.SongId == s.Id && e.PlayType == 0) })
-            .OrderByDescending(x => x.Plays).Take(10)
-            .Select((x, i) => new LeaderboardItem($"#{i + 1}", x.Song.Title, $"{x.Plays} plays", x.Song.CoverImagePath))
-            .ToList();
-
-        // Return the immutable snapshot
-        return new ArtistSnapshot(
-            new TextStat("Time Listened", timeStr),
-            new TextStat("Obsession Score", obsession.ToString(), "Repeats & Completions"),
-            new TextStat("Catalog Played", $"{completionPct:F1}%", $"{uniqueSongsPlayed}/{songs.Count} songs"),
-            new TextStat("Eddington Number", $"E-{eddington}", $"Played {eddington} songs {eddington}+ times"),
-            new List<ChartPoint>(), // Plays per month logic...
-            hourly,
-            new List<ChartPoint>(), // Genre blending logic...
-            deviceFootprint,
-            topSongs,
-            new List<LeaderboardItem>() // Collabs logic...
-        );
+        TextLoyaltyIndex = snapshotStream.Select(s => s.Loyalty).ObserveOn(RxSchedulers.UI);
+        TextBingeScore = snapshotStream.Select(s => s.Binge).ObserveOn(RxSchedulers.UI);
+        TextDiscoveryComparison = snapshotStream.Select(s => s.Disco).ObserveOn(RxSchedulers.UI);
+        ListMonthlyTrend = snapshotStream.Select(s => s.MTrend).ObserveOn(RxSchedulers.UI);
+        ListDeepCuts = snapshotStream.Select(s => s.DeepCuts).ObserveOn(RxSchedulers.UI);
+        ListTopSongs = snapshotStream.Select(s => s.TopSongs).ObserveOn(RxSchedulers.UI);
+        ListTopAlbums = snapshotStream.Select(s => s.TopAlbums).ObserveOn(RxSchedulers.UI);
+        ListInsights = snapshotStream.Select(s => s.Insights).ObserveOn(RxSchedulers.UI);
     }
 
-    private record ArtistSnapshot(
-        TextStat TotalTime, TextStat Obsession, TextStat Completion, TextStat Eddington,
-        IReadOnlyList<ChartPoint> PlaysPerMonth, IReadOnlyList<ChartPoint> HourlyPreference,
-        IReadOnlyList<ChartPoint> GenreBlending, IReadOnlyList<ChartPoint> DeviceFootprint,
-        IReadOnlyList<LeaderboardItem> TopSongs, IReadOnlyList<LeaderboardItem> Collaborators);
+    private ArtistSnapshot CalculateArtistSnapshot(ArtistModel? artist, List<SongModel> songs, List<DimmerPlayEvent> events, int totEvts)
+    {
+        if (artist == null || events.Count == 0) return ArtistSnapshot.Empty();
+
+        int plays = events.Count(e => e.PlayType == 3);
+        var loyalty = new TextStat("Loyalty Index", totEvts > 0 ? $"{((double)plays / totEvts) * 100:F1}%" : "0%", "Share of total library plays");
+
+        var bingeDay = events.Where(e => e.PlayType == 3).GroupBy(e => e.DatePlayed.Date).OrderByDescending(g => g.Count()).FirstOrDefault();
+        var binge = new TextStat("Binge Record", bingeDay != null ? $"{bingeDay.Count()} plays" : "0", bingeDay != null ? bingeDay.Key.ToString("MMM d, yyyy") : "");
+
+        var tYearStart = new DateTimeOffset(DateTime.UtcNow.Year, 1, 1, 0, 0, 0, TimeSpan.Zero);
+        int playsThisYear = events.Count(e => e.DatePlayed >= tYearStart);
+        int playsLastYear = events.Count(e => e.DatePlayed >= tYearStart.AddYears(-1) && e.DatePlayed < tYearStart);
+        var disco = new TextStat("YoY Growth", $"{playsThisYear} vs {playsLastYear}", "Plays this year vs last year");
+
+        var mTrend = new List<TrendStat>();
+        for (int i = 0; i < 12; i++)
+        {
+            var start = DateTimeOffset.UtcNow.AddMonths(-(i + 1));
+            var end = start.AddMonths(1);
+            int cur = events.Count(e => e.DatePlayed > start && e.DatePlayed <= end);
+            int prev = events.Count(e => e.DatePlayed > start.AddMonths(-1) && e.DatePlayed <= start);
+            mTrend.Add(new TrendStat($"{start:MMM yyyy}", cur, cur - prev));
+        }
+
+        var topSongs = songs.Select(s => new { S = s, P = events.Count(e => e.SongId == s.Id && e.PlayType == 3) }).OrderByDescending(x => x.P).Take(10).Select((x, i) => new LeaderboardItem(Rank: $"#{i + 1}", Name: x.S.Title, SubValue: $"{x.P} plays", ImagePath: x.S.CoverImagePath)).ToList();
+        var deepCuts = songs.Select(s => new { S = s, P = events.Count(e => e.SongId == s.Id && e.PlayType == 3) }).Where(x => x.P > 0).OrderBy(x => x.P).Take(10).Select((x, i) => new LeaderboardItem($"#{i + 1}", x.S.Title, $"{x.P} plays", x.S.CoverImagePath)).ToList();
+        var topAlbums = events.Where(e => e.PlayType == 3   ).GroupBy(e => songs.FirstOrDefault(s => s.Id == e.SongId)?.Album).Where(g => g.Key != null).OrderByDescending(g => g.Count()).Take(10).Select((g, i) => new LeaderboardItem($"#{i + 1}", g.Key!.Name, $"{g.Count()} plays", g.Key.ImagePath)).ToList();
+
+        var insights = new List<InsightStat>();
+        var topSongGrp = events.GroupBy(e => e.SongId).OrderByDescending(g => g.Count()).FirstOrDefault();
+        if (topSongGrp != null && plays > 10 && ((double)topSongGrp.Count() / plays) > 0.8)
+        {
+            insights.Add(new InsightStat("One-Hit Wonder", $"'{songs.FirstOrDefault(s => s.Id == topSongGrp.Key)?.Title}' accounts for over 80% of your plays for this artist.", "⭐"));
+        }
+        if (plays < 5 && (DateTimeOffset.UtcNow - events.Min(e => e.DatePlayed)).TotalDays > 90)
+        {
+            insights.Add(new InsightStat("Abandoned", "Discovered over 3 months ago but rarely played.", "👻"));
+        }
+
+        return new ArtistSnapshot(loyalty, binge, disco, mTrend, deepCuts, topSongs, topAlbums, insights);
+    }
+    private record ArtistSnapshot(TextStat Loyalty, TextStat Binge, TextStat Disco, IReadOnlyList<TrendStat> MTrend, IReadOnlyList<LeaderboardItem> DeepCuts, IReadOnlyList<LeaderboardItem> TopSongs, IReadOnlyList<LeaderboardItem> TopAlbums, IReadOnlyList<InsightStat> Insights) 
+    {
+        public static ArtistSnapshot Empty()
+        {
+            return new(new("", ""), new("", ""), new("", ""), new List<TrendStat>(), new List<LeaderboardItem>(), new List<LeaderboardItem>(), new List<LeaderboardItem>(), new List<InsightStat>());
+        }
+    }
 }

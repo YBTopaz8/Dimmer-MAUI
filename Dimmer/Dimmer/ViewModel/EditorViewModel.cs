@@ -54,7 +54,7 @@ public partial class EditorViewModel : BaseViewModel
     public partial bool CanViewOneHourFolder { get; set; }
 
     [ObservableProperty]
-    public partial string StatusMessage { get; set; } = "Ready";
+    public new partial string StatusMessage { get; set; } = "Ready";
 
     [ObservableProperty]
     public partial double PlaybackSpeed { get; set; } = 1.0;

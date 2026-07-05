@@ -6,124 +6,128 @@ namespace Dimmer.Charts.Services;
 
 public class SongStatsService
 {
-    private readonly Realm _realm;
-
-    // INPUT TRIGGER from ViewModel
+    private readonly IRealmFactory _realmF;
+    private readonly Realm _mainThreadRealm;
     private readonly BehaviorSubject<ObjectId?> _currentSongId = new(null);
     public void SetSongId(ObjectId id) => _currentSongId.OnNext(id);
 
-    // OUTPUTS
-    public IObservable<TextStat> SkipRate { get; }
-    public IObservable<IReadOnlyList<ChartPoint>> ActionRadarChart { get; }
-    public IObservable<IReadOnlyList<InsightStat>> SongInsights { get; }
+    // --- OUTPUTS ---
+    public IObservable<TextStat> TextCompletionRate { get; }
+    public IObservable<TextStat> TextAvgListenDuration { get; }
+    public IObservable<TextStat> TextBingeFactor { get; }
+    public IObservable<TextStat> TextPredictability { get; }
+
+    public IObservable<IReadOnlyList<ChartPoint>> ListActionRadar { get; }
+    public IObservable<IReadOnlyList<ChartPoint>> ListDropOffHeatmap { get; }
+    public IObservable<IReadOnlyList<TrendStat>> ListWeeklyTrend { get; }
+    public IObservable<IReadOnlyList<TrendStat>> ListMonthlyTrend { get; }
+
+    public IObservable<IReadOnlyList<SongPairing>> ListPerfectPairings { get; }
+    public IObservable<IReadOnlyList<PlaySession>> ListWalkthrough { get; }
+    public IObservable<IReadOnlyList<InsightStat>> ListInsights { get; }
 
     public SongStatsService(IRealmFactory realmF)
     {
-        _realm = realmF.GetRealmInstance();
+        _realmF = realmF;
+        _mainThreadRealm = _realmF.GetRealmInstance();
 
-        var songSnapshotStream = _currentSongId
-           .Where(id => id.HasValue).Select(id => id.Value)
-           .Select(songId =>
-           {
-               // Get the song for metadata (duration, title, etc)
-               var song = _realm.Find<SongModel>(songId);
+        var snapshotStream = _currentSongId.Where(id => id.HasValue).Select(id => id.Value)
+           .Select(songId => _mainThreadRealm.All<DimmerPlayEvent>().Where(e => e.SongId == songId).AsObservableChangeSet()
+               .Throttle(TimeSpan.FromMilliseconds(250)).Select(_ => songId)
+               .Select(id => Observable.FromAsync(() => Task.Run(() => {
+                   using var bgRealm = _realmF.GetRealmInstance();
+                   var bgSong = bgRealm.Find<SongModel>(id);
+                   var songEvents = bgRealm.All<DimmerPlayEvent>().Filter("SongId == $0",(QueryArgument)id).OrderBy(e => e.DatePlayed).ToList();
+                   var allEvents = bgRealm.All<DimmerPlayEvent>().OrderBy(e => e.DatePlayed).ToList();
+                   return CalculateSongSnapshot(bgSong, songEvents, allEvents, bgRealm);
+               }))).Switch()).Switch().Publish().RefCount();
 
-               return _realm.All<DimmerPlayEvent>()
-                   .Where(e => e.SongId == songId)
-                   .AsObservableChangeSet()
-                   .Throttle(TimeSpan.FromMilliseconds(250))
-                   .ToCollection()
-                   // OFFLOAD TO BACKGROUND THREAD
-                   .Select(events => Observable.FromAsync(() => Task.Run(() =>
-                       CalculateSongSnapshot(song, events)
-                   )))
-                   .Switch();
-           })
-           .Switch()
-           .Publish()
-           .RefCount();
+        TextCompletionRate = snapshotStream.Select(s => s.CompRate).ObserveOn(RxSchedulers.UI);
+        TextAvgListenDuration = snapshotStream.Select(s => s.AvgDuration).ObserveOn(RxSchedulers.UI);
+        TextBingeFactor = snapshotStream.Select(s => s.Binge).ObserveOn(RxSchedulers.UI);
+        TextPredictability = snapshotStream.Select(s => s.Predict).ObserveOn(RxSchedulers.UI);
 
-        SkipRate = songSnapshotStream.Select(s => s.SkipRate).ObserveOn(RxSchedulers.UI);
-        ActionRadarChart = songSnapshotStream.Select(s => s.ActionRadar).ObserveOn(RxSchedulers.UI);
-        SongInsights = songSnapshotStream.Select(s => s.Insights).ObserveOn(RxSchedulers.UI);
+        ListActionRadar = snapshotStream.Select(s => s.Radar).ObserveOn(RxSchedulers.UI);
+        ListDropOffHeatmap = snapshotStream.Select(s => s.DropOff).ObserveOn(RxSchedulers.UI);
+        ListWeeklyTrend = snapshotStream.Select(s => s.WTrend).ObserveOn(RxSchedulers.UI);
+        ListMonthlyTrend = snapshotStream.Select(s => s.MTrend).ObserveOn(RxSchedulers.UI);
+
+        ListPerfectPairings = snapshotStream.Select(s => s.Pairings).ObserveOn(RxSchedulers.UI);
+        ListWalkthrough = snapshotStream.Select(s => s.Walkthrough).ObserveOn(RxSchedulers.UI);
+        ListInsights = snapshotStream.Select(s => s.Insights).ObserveOn(RxSchedulers.UI);
     }
 
-    private SongSnapshot CalculateSongSnapshot(SongModel song, IReadOnlyCollection<DimmerPlayEvent> events)
+    private SongSnapshot CalculateSongSnapshot(SongModel? song, List<DimmerPlayEvent> events, List<DimmerPlayEvent> allEvents, Realm bgRealm)
     {
-        var insights = new List<InsightStat>();
+        if (song == null || events.Count == 0) return SongSnapshot.Empty();
 
         int plays = events.Count(e => e.PlayType == 0);
         int skips = events.Count(e => e.PlayType == 5);
+        int completes = events.Count(e => e.WasPlayCompleted || e.PlayType == 3);
 
-        // Basic Text Stat
-        double rate = plays > 0 ? ((double)skips / plays) * 100 : 0;
-        var skipRateStat = new TextStat("Skip Rate", $"{rate:F1}%");
+        var compRate = new TextStat("Completion Rate", plays > 3 ? $"{((double)completes / plays) * 100:F1}%" : "0%");
+        var avgDur = new TextStat("Avg Listen", TimeSpan.FromSeconds(events.Where(e => e.PlayType == 5 || e.PlayType == 3).Select(e => e.PositionInSeconds).DefaultIfEmpty(0).Average()).ToString(@"mm\:ss"));
 
-        // Action Radar
-        var radar = new List<ChartPoint>
+        var bingeGroup = events.Where(e => e.PlayType == 3).GroupBy(e => e.DatePlayed.Date).OrderByDescending(g => g.Count()).FirstOrDefault();
+        var binge = new TextStat("Binge Factor", bingeGroup != null ? $"{bingeGroup.Count()} plays in 1 day" : "N/A");
+
+        var radar = new List<ChartPoint> { new("Plays", plays), new("Skips", skips), new("Completions", completes), new("Repeats", events.Count(e => e.PlayType == 6 || e.PlayType == 8)) };
+
+        var dropOff = events.Where(e => e.PlayType == (int)PlayEventType.Skipped && e.PositionInSeconds > 0).GroupBy(e => Math.Floor(e.PositionInSeconds / 10) * 10).Select(g => new ChartPoint($"{g.Key}s", g.Count(), g.Key)).OrderBy(c => c.XValue).ToList();
+
+        var wTrend = new List<TrendStat>();
+        for (int i = 0; i < 12; i++)
         {
-            new("Plays", plays),
-            new("Skips", skips),
-            new("Pauses", events.Count(e => e.PlayType == 1)),
-            new("Repeats", events.Count(e => e.PlayType == 6))
-        };
+            var start = DateTimeOffset.UtcNow.AddDays(-7 * (i + 1));
+            var end = start.AddDays(7);
+            int cur = events.Count(e => e.DatePlayed > start && e.DatePlayed <= end);
+            int prev = events.Count(e => e.DatePlayed > start.AddDays(-7) && e.DatePlayed <= start);
+            wTrend.Add(new TrendStat(Period: $"{start:MMM d}", PlayCount: cur, ChangeVsPrevious: cur - prev));
+        }
 
-        // Insight A: Drop-off Point Analysis (Answers Q5)
-        // Logic: Cluster the skip positions. If 50%+ of skips happen within a 15-second window, it's a trend.
-        var skipEvents = events.Where(e => e.PlayType == 5 && e.PositionInSeconds > 0).ToList();
-        if (skipEvents.Count > 3)
+        var mTrend = new List<TrendStat>();
+        for (int i = 0; i < 6; i++)
         {
-            // Group skips into 15-second "buckets"
-            var dropOffBucket = skipEvents
-                .GroupBy(e => Math.Floor(e.PositionInSeconds / 15) * 15)
-                .OrderByDescending(g => g.Count())
-                .FirstOrDefault();
+            var start = DateTimeOffset.UtcNow.AddMonths(-(i + 1));
+            var end = start.AddMonths(1);
+            int cur = events.Count(e => e.DatePlayed > start && e.DatePlayed <= end);
+            int prev = events.Count(e => e.DatePlayed > start.AddMonths(-1) && e.DatePlayed <= start);
+            mTrend.Add(new TrendStat($"{start:MMM yyyy}", cur, cur - prev));
+        }
 
-            if (dropOffBucket != null && (double)dropOffBucket.Count() / skipEvents.Count > 0.4) // 40% of skips in this bucket
+        var pairingsDict = new Dictionary<ObjectId, int>();
+        int totalFollowUps = 0;
+        for (int i = 0; i < allEvents.Count - 1; i++)
+        {
+            if (allEvents[i].SongId == song.Id && allEvents[i + 1].SongId.HasValue && allEvents[i + 1].SongId != song.Id && (allEvents[i + 1].DatePlayed - allEvents[i].DatePlayed).TotalMinutes < 15)
             {
-                TimeSpan start = TimeSpan.FromSeconds(dropOffBucket.Key);
-                TimeSpan end = TimeSpan.FromSeconds(dropOffBucket.Key + 15);
-                insights.Add(new InsightStat("Common Skip Point",
-                    $"When you skip this song, you usually do it between {start:m\\:ss} and {end:m\\:ss}.", "⏭️"));
+                pairingsDict[allEvents[i + 1].SongId.Value] = pairingsDict.GetValueOrDefault(allEvents[i + 1].SongId.Value) + 1;
+                totalFollowUps++;
             }
         }
+        var pairings = pairingsDict.OrderByDescending(kvp => kvp.Value).Take(10).Select(kvp => new SongPairing(PairedSongTitle: bgRealm.Find<SongModel>(kvp.Key)?.Title ?? "Unknown", TimesPlayedTogether: kvp.Value, Context: "Played next")).ToList();
 
-        // Insight B: Time of Day Signature (Answers Q4)
-        // Logic: Group play events by Morning, Afternoon, Evening, Night
-        if (plays > 4)
+        var predict = new TextStat("Predictability", totalFollowUps > 0 && pairings.Count != 0 ? $"{((double)pairings.First().TimesPlayedTogether / totalFollowUps) * 100:F0}%" : "N/A", "Chance of playing top pair next");
+
+        var walkthrough = new List<PlaySession>();
+        var curStart = events[0].DatePlayed; int evCnt = 0; double dur = 0;
+        foreach (var ev in events)
         {
-            var timeOfDay = events.Where(e => e.PlayType == 0)
-                .GroupBy(e => e.EventDate.ToLocalTime().Hour switch
-                {
-                    >= 5 and < 12 => "Morning",
-                    >= 12 and < 17 => "Afternoon",
-                    >= 17 and < 22 => "Evening",
-                    _ => "Late Night"
-                })
-                .OrderByDescending(g => g.Count())
-                .FirstOrDefault();
-
-            if (timeOfDay != null && (double)timeOfDay.Count() / plays > 0.5) // 50% of plays in one block
+            if ((ev.DatePlayed - curStart).TotalHours > 2 && evCnt > 0)
             {
-                insights.Add(new InsightStat("Time of Day",
-                    $"This is definitively a {timeOfDay.Key} track for you.", "🕰️"));
+                walkthrough.Add(new PlaySession(curStart, evCnt, dur, $"Session"));
+                curStart = ev.DatePlayed; evCnt = 0; dur = 0;
             }
+            evCnt++; dur += ev.PositionInSeconds;
         }
+        if (evCnt > 0) walkthrough.Add(new PlaySession(curStart, evCnt, dur, $"Latest"));
 
-        // Insight C: The Binge Factor
-        var bingeCount = events.Count(e => e.PlayType == 6 || e.PlayType == 8);
-        if (bingeCount > plays * 0.3 && plays > 5) // If 30% of interactions are rewinds/repeats
-        {
-            insights.Add(new InsightStat("Highly Addictive",
-                "You tend to put this song on repeat or rewind it frequently.", "🔁"));
-        }
+        var insights = new List<InsightStat>();
+        if (skips < plays * 0.1) insights.Add(new InsightStat("Personal Anthem", "High rating and extremely low skip rate. A true favorite.", "🏆"));
+        if (song.Title.Replace(" ", "").ToLower() == new string(song.Title.Replace(" ", "").ToLower().Reverse().ToArray())) insights.Add(new InsightStat("Palindrome", "This song's title is a palindrome!", "🔁"));
 
-        return new SongSnapshot(skipRateStat, radar, insights);
+        return new SongSnapshot(compRate, avgDur, binge, predict, radar, dropOff, wTrend, mTrend, pairings, walkthrough, insights);
     }
 
-    private record SongSnapshot(
-        TextStat SkipRate,
-        IReadOnlyList<ChartPoint> ActionRadar,
-        IReadOnlyList<InsightStat> Insights);
-
+    private record SongSnapshot(TextStat CompRate, TextStat AvgDuration, TextStat Binge, TextStat Predict, IReadOnlyList<ChartPoint> Radar, IReadOnlyList<ChartPoint> DropOff, IReadOnlyList<TrendStat> WTrend, IReadOnlyList<TrendStat> MTrend, IReadOnlyList<SongPairing> Pairings, IReadOnlyList<PlaySession> Walkthrough, IReadOnlyList<InsightStat> Insights) { public static SongSnapshot Empty() => new(new("", ""), new("", ""), new("", ""), new("", ""), new List<ChartPoint>(), new List<ChartPoint>(), new List<TrendStat>(), new List<TrendStat>(), new List<SongPairing>(), new List<PlaySession>(), new List<InsightStat>()); }
 }

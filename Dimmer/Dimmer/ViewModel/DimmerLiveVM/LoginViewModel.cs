@@ -173,7 +173,6 @@ public partial class LoginViewModel : ObservableObject
                 return false;
             }
             CurrentUserOnline = new UserModelOnline(ParseClient.Instance.CurrentUser);
-            CurrentUserOnline.IsAuthenticated = ParseClient.Instance.CurrentUser.SessionToken != null;
             IsAuthenticated = CurrentUserOnline.IsAuthenticated;
             Debug.WriteLine(ParseClient.Instance.CurrentUser?.SessionToken+" SessTok");
             return CurrentUserOnline.IsAuthenticated;

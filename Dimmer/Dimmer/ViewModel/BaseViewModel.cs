@@ -879,7 +879,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             .GroupBy(s => s.TitleDurationKey?.Trim(), StringComparer.OrdinalIgnoreCase)
             .Where(g => g.Count() > 1 && !string.IsNullOrEmpty(g.Key)).ToList();
 
-        bool needsClean = duplicateGenres.Any() || duplicateArtists.Any() || duplicateAlbums.Any() || duplicateSongs.Any();
+        bool needsClean = duplicateGenres.Count != 0 || duplicateArtists.Count != 0 || duplicateAlbums.Count != 0 || duplicateSongs.Count != 0;
 
         if (!needsClean)
         {
@@ -4918,20 +4918,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial ObservableCollection<DimmerStats>? SongWeekdayVsWeekend { get; set; }
 
 
-    /// <summary>
-    /// Loads ALL global, library-wide statistics. Call this once when the page loads.
-    /// </summary>
-    public void GetStatsGeneral()
-    {
-        var allSongs = songRepo.GetAll();
-        int topCount = 10;
-
-
-        var endDate = DateTimeOffset.UtcNow;
-        var monthStartDate = endDate.AddMonths(-1);
-        var yearStartDate = endDate.AddYears(-1);
-    }
-
+  
     [RelayCommand]
     public async Task LoadStatsForSpecificSong(SongModelView? song)
     {

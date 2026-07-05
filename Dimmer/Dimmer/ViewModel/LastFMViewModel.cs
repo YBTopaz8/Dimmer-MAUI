@@ -779,89 +779,13 @@ public partial class LastFMViewModel : ObservableObject
         //IEnumerable<LrcLibSearchResult>? s = await LyricsMetadataService.SearchOnlineManualParamsAsync(SelectedSong.Title, SelectedSong.ArtistName, SelectedSong.AlbumName);
         //AllLyricsResultsLrcLib = s.ToObservableCollection();
     }
-    public void BuildLastFMCharts()
-    {
-        // ---------------------------------------------------------
-        // 1. LISTENING VELOCITY (Plays Per Day from Recent Tracks)
-        // ---------------------------------------------------------
-        if (CollectionOfUserRecentTracks != null && CollectionOfUserRecentTracks.Any())
-        {
-           
-
-            // 2. ARTIST SHARE (Top 6 artists dominating your recent list)
-            var artistShare = CollectionOfUserRecentTracks
-                .Where(t => t.Artist != null && !string.IsNullOrEmpty(t.Artist.Name))
-                .GroupBy(t => t.Artist.Name)
-                .Select(g => new StringChartPoint { Label = g.Key, Value = g.Count() })
-                .OrderByDescending(x => x.Value)
-                .Take(6)
-                .ToList();
-            LastFmArtistShare = new ObservableCollection<StringChartPoint>(artistShare);
-
-
-
-            // 4. LOVED VS REGULAR RATIO (Compare recent tracks to loved tracks)
-            if (CollectionOfUserLovedTracks != null)
-            {
-                var lovedNames = CollectionOfUserLovedTracks.Select(t => t.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
-                int lovedCount = CollectionOfUserRecentTracks.Count(t => lovedNames.Contains(t.Name));
-                int regularCount = CollectionOfUserRecentTracks.Count - lovedCount;
-
-                LastFmLovedRatio = new ObservableCollection<StringChartPoint>
-                {
-                    new() { Label = "Loved Tracks", Value = lovedCount },
-                    new() { Label = "Regular Tracks", Value = regularCount }
-                };
-            }
-        }
-
-       
-
-
-        // ---------------------------------------------------------
-        // 6. MILESTONE PROGRESS (Next 10K Plays milestone)
-        // ---------------------------------------------------------
-        if (LastFMUserInfo != null)
-        {
-            double currentPlaycount = LastFMUserInfo.Playcount;
-            // Calculate next milestone (nearest multiple of 10,000)
-            double nextMilestone = Math.Ceiling(currentPlaycount / 10000.0) * 10000.0;
-            if (nextMilestone == currentPlaycount) nextMilestone += 10000;
-
-            LastFmMilestoneProgress = (currentPlaycount / nextMilestone) * 100; // Percentage for Gauge
-            LastFmMilestoneText = $"{currentPlaycount:N0} / {nextMilestone:N0} plays";
-        }
-    }
 
     [ObservableProperty]
     public partial ObservableCollection<Hqub.Lastfm.Entities.Track>? SimilarTracks { get; set; }
     #endregion
     #region --- Last.fm Advanced Visualizations ---
 
-    // 1. Listening Velocity (Plays per day over your recent history)
-    // Chart: Syncfusion SplineAreaSeries (with DateTimeXAxis)
-    // XBindingPath="Date" YBindingPath="Value"
-    [ObservableProperty] public partial ObservableCollection<DateChartPoint>? LastFmListeningVelocity { get; set; }
-
-    // 2. Artist Share (Which artists dominate your recent tracks)
-    // Chart: Syncfusion DoughnutSeries / PieSeries
-    // XBindingPath="Label" YBindingPath="Value"
-    [ObservableProperty] public partial ObservableCollection<StringChartPoint>? LastFmArtistShare { get; set; }
-
-    // 3. Hourly Listening Habits (When do you listen to music?)
-    // Chart: Syncfusion ColumnSeries (Categorical X-axis)
-    // XBindingPath="Label" YBindingPath="Value"
-    [ObservableProperty] public partial ObservableCollection<StringChartPoint>? LastFmHourlyHabits { get; set; }
-
-    // 4. Loved vs. Regular Ratio
-    // Chart: Syncfusion PieSeries (Donut)
-    // XBindingPath="Label" YBindingPath="Value"
-    [ObservableProperty] public partial ObservableCollection<StringChartPoint>? LastFmLovedRatio { get; set; }
-
-    // 5. Album Playcount Comparison
-    // Chart: Syncfusion BarSeries (Horizontal)
-    // XBindingPath="Label" YBindingPath="Value"
-    [ObservableProperty] public partial ObservableCollection<StringChartPoint>? LastFmTopAlbumsChart { get; set; }
+   
 
     // 6. Milestone Progress (Distance to next 10,000 plays milestone)
     // Chart: Syncfusion CircularGauge / Radial Bar

@@ -117,8 +117,6 @@ public partial class SettingsViewModel : BaseViewModel
         }
     }
 
-    [ObservableProperty]
-    public partial CompleteBackupData? PickedUpBackup { get; set; }
     public async Task LoadUserInfoForBackUp()
     {
         //var usrInfo = 

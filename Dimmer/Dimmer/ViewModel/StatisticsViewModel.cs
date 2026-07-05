@@ -9,7 +9,8 @@ namespace Dimmer.ViewModel;
 
 public partial class StatisticsViewModel : ObservableObject
 {
-
+    public BaseViewModel BaseVM => baseVM;
+    private readonly BaseViewModel baseVM;
     private readonly GeneralStatsService _generalStats;
     private readonly SongStatsService _songStats;
     private readonly CompositeDisposable _disposables = new();
@@ -18,13 +19,13 @@ public partial class StatisticsViewModel : ObservableObject
     [ObservableProperty] public partial TextStat LibraryTime { get; set; }
     [ObservableProperty] public partial TextStat SongSkipRate {get;set;}
     [ObservableProperty] public partial IReadOnlyList<ChartPoint> SongRadarData {get;set;}
+    [ObservableProperty] public partial IReadOnlyList<InsightStat> SongInsights { get;set;}
+    [ObservableProperty] public partial IReadOnlyList<LeaderboardItem> TopSongs { get;set;}
 
-    // DynamicData Collection for UI ListView
-    private readonly ReadOnlyObservableCollection<SongModelView> _topSongs;
-    public ReadOnlyObservableCollection<SongModelView> TopSongs => _topSongs;
 
-    public StatisticsViewModel(GeneralStatsService generalStats, SongStatsService songStats)
+    public StatisticsViewModel(BaseViewModel vm, GeneralStatsService generalStats, SongStatsService songStats)
     {
+        baseVM = vm;
         _generalStats = generalStats;
         _songStats = songStats;
 
@@ -33,18 +34,19 @@ public partial class StatisticsViewModel : ObservableObject
             .Subscribe(stat => LibraryTime = stat)
             .DisposeWith(_disposables);
 
-        // 2. Bind Leaderboard (DynamicData)
-        _generalStats.TopSongsLeaderboard
-            .Bind(out _topSongs) // Automatically populates the ObservableCollection!
-            .Subscribe()
+
+        _generalStats.TopSongs
+            .Subscribe(stat => TopSongs = stat)
             .DisposeWith(_disposables);
 
         // 3. Bind Song Specific Stats
-        _songStats.SkipRate
-            .Subscribe(stat => SongSkipRate = stat)
+        _songStats.ListInsights 
+            .Subscribe(stat => SongInsights = stat)
             .DisposeWith(_disposables);
 
-        _songStats.ActionRadarChart
+  
+
+        _songStats.ListActionRadar
             .Subscribe(chartData => SongRadarData = chartData)
             .DisposeWith(_disposables);
     }
