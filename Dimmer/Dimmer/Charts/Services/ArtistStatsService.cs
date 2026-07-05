@@ -13,6 +13,7 @@ public class ArtistStatsService
     private readonly IRealmFactory _realmF;
     private readonly Realm _mainThreadRealm;
     private readonly BehaviorSubject<ObjectId?> _currentArtistId = new(null);
+    private readonly BehaviorSubject<bool> _isLoading = new(false);
     public void SetArtistId(ObjectId id) => _currentArtistId.OnNext(id);
 
     // --- OUTPUTS ---
@@ -21,6 +22,7 @@ public class ArtistStatsService
     public IObservable<TextStat> TextDiscoveryComparison { get; }
 
     public IObservable<IReadOnlyList<TrendStat>> ListMonthlyTrend { get; }
+    public IObservable<bool> IsLoading => _isLoading.AsObservable();
     public IObservable<IReadOnlyList<LeaderboardItem>> ListDeepCuts { get; }
     public IObservable<IReadOnlyList<LeaderboardItem>> ListTopSongs { get; }
     public IObservable<IReadOnlyList<LeaderboardItem>> ListTopAlbums { get; }
@@ -33,15 +35,24 @@ public class ArtistStatsService
 
         var snapshotStream = _currentArtistId.Where(id => id.HasValue).Select(id => id.Value)
            .Select(artId => _mainThreadRealm.All<DimmerPlayEvent>().AsObservableChangeSet().Throttle(TimeSpan.FromMilliseconds(250)).Select(_ => artId)
-               .Select(id => Observable.FromAsync(() => Task.Run(() => {
-                   using var bgRealm = _realmF.GetRealmInstance();
-                   var bgArtist = bgRealm.Find<ArtistModel>(id);
-                   var artistSongs = bgArtist?.Songs.ToList();
-                   var songIds = artistSongs.Select(s => s.Id).ToHashSet();
-                   var artEvents = bgRealm.All<DimmerPlayEvent>().ToList().Where(e => e.SongId.HasValue && songIds.Contains(e.SongId.Value)).OrderBy(e => e.DatePlayed).ToList();
-                   int totPlays = bgRealm.All<DimmerPlayEvent>().Count();
-                   return CalculateArtistSnapshot(bgArtist, artistSongs, artEvents, totPlays);
-               }))).Switch()).Switch().Publish().RefCount();
+               .Select(id => Observable.FromAsync(() =>
+               {
+                   _isLoading.OnNext(true);
+                   return Task.Run(() =>
+                                  {
+                                      using var bgRealm = _realmF.GetRealmInstance();
+                                      var bgArtist = bgRealm.Find<ArtistModel>(id);
+                                      var artistSongs = bgArtist?.Songs.ToList();
+                                      var songIds = artistSongs.Select(s => s.Id).ToHashSet();
+                                      var artEvents = bgRealm.All<DimmerPlayEvent>().ToList().Where(e => e.SongId.HasValue && songIds.Contains(e.SongId.Value)).OrderBy(e => e.DatePlayed).ToList();
+                                      int totPlays = bgRealm.All<DimmerPlayEvent>().Count();
+                                      var res  = CalculateArtistSnapshot(bgArtist, artistSongs, artEvents, totPlays);
+
+                                      return res;
+                                  });
+               })).Switch()).Switch().Do(s => {
+                   _isLoading.OnNext(false);
+               }).Publish().RefCount();
 
         TextLoyaltyIndex = snapshotStream.Select(s => s.Loyalty).ObserveOn(RxSchedulers.UI);
         TextBingeScore = snapshotStream.Select(s => s.Binge).ObserveOn(RxSchedulers.UI);

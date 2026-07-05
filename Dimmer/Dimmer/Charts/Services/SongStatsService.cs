@@ -15,10 +15,13 @@ public class SongStatsService
     }
 
     // --- OUTPUTS ---
+    private readonly BehaviorSubject<bool> _isLoading = new(false);
     public IObservable<TextStat> TextCompletionRate { get; }
     public IObservable<TextStat> TextAvgListenDuration { get; }
     public IObservable<TextStat> TextBingeFactor { get; }
     public IObservable<TextStat> TextPredictability { get; }
+    public IObservable<bool> IsLoading => _isLoading.AsObservable();
+
 
     public IObservable<IReadOnlyList<ChartPoint>> ListActionRadar { get; }
     public IObservable<IReadOnlyList<ChartPoint>> ListDropOffHeatmap { get; }
@@ -26,7 +29,6 @@ public class SongStatsService
     public IObservable<IReadOnlyList<TrendStat>> ListMonthlyTrend { get; }
 
     public IObservable<IReadOnlyList<SongPairing>> ListPerfectPairings { get; }
-    public IObservable<IReadOnlyList<PlaySession>> ListWalkthrough { get; }
     public IObservable<IReadOnlyList<InsightStat>> ListInsights { get; }
 
     public SongStatsService(IRealmFactory realmF)
@@ -45,6 +47,7 @@ public class SongStatsService
                .Throttle(TimeSpan.FromMilliseconds(250)).Select(_ => songId)
                .Select(id => Observable.FromAsync(() =>
                {
+                   _isLoading.OnNext(true);
                    return Task.Run(() =>
                                   {
                                       using var bgRealm = _realmF.GetRealmInstance();
@@ -60,7 +63,10 @@ public class SongStatsService
 
                                       return res;
                                   });
-               })).Switch()).Switch().Publish().RefCount();
+               })).Switch()).Switch().Do(d=>
+               {
+                   _isLoading.OnNext(false);    
+               }).Publish().RefCount();
 
         TextCompletionRate = snapshotStream.Select(s => s.CompRate).ObserveOn(RxSchedulers.UI);
         TextAvgListenDuration = snapshotStream.Select(s => s.AvgDuration).ObserveOn(RxSchedulers.UI);
@@ -73,7 +79,6 @@ public class SongStatsService
         ListMonthlyTrend = snapshotStream.Select(s => s.MTrend).ObserveOn(RxSchedulers.UI);
 
         ListPerfectPairings = snapshotStream.Select(s => s.Pairings).ObserveOn(RxSchedulers.UI);
-        ListWalkthrough = snapshotStream.Select(s => s.Walkthrough).ObserveOn(RxSchedulers.UI);
         ListInsights = snapshotStream.Select(s => s.Insights).ObserveOn(RxSchedulers.UI);
     }
 
@@ -181,25 +186,14 @@ public class SongStatsService
 
         var predict = new TextStat("Predictability", totalFollowUps > 0 && pairings.Count != 0 ? $"{((double)pairings.First().TimesPlayedTogether / totalFollowUps) * 100:F0}%" : "N/A", "Chance of playing top pair next");
 
-        var walkthrough = new List<PlaySession>();
         var curStart = events[0].DatePlayed; int evCnt = 0; double dur = 0;
-        foreach (var ev in events)
-        {
-            if ((ev.DatePlayed - curStart).TotalHours > 2 && evCnt > 0)
-            {
-                walkthrough.Add(new PlaySession(curStart, evCnt, dur, $"Session"));
-                curStart = ev.DatePlayed; evCnt = 0; dur = 0;
-            }
-            evCnt++; dur += ev.PositionInSeconds;
-        }
-        if (evCnt > 0) walkthrough.Add(new PlaySession(curStart, evCnt, dur, $"Latest"));
-
+       
         var insights = new List<InsightStat>();
         if (skips < plays * 0.1) insights.Add(new InsightStat("Personal Anthem", "High rating and extremely low skip rate. A true favorite.", "🏆"));
         if (song.Title.Replace(" ", "").ToLower() == new string(song.Title.Replace(" ", "").ToLower().Reverse().ToArray())) insights.Add(new InsightStat("Palindrome", "This song's title is a palindrome!", "🔁"));
 
-        return new SongSnapshot(compRate, avgDur, binge, predict, radar, dropOff, wTrend, mTrend, pairings, walkthrough, insights);
+        return new SongSnapshot(compRate, avgDur, binge, predict, radar, dropOff, wTrend, mTrend, pairings, insights);
     }
 
-    private record SongSnapshot(TextStat CompRate, TextStat AvgDuration, TextStat Binge, TextStat Predict, IReadOnlyList<ChartPoint> Radar, IReadOnlyList<ChartPoint> DropOff, IReadOnlyList<TrendStat> WTrend, IReadOnlyList<TrendStat> MTrend, IReadOnlyList<SongPairing> Pairings, IReadOnlyList<PlaySession> Walkthrough, IReadOnlyList<InsightStat> Insights) { public static SongSnapshot Empty() => new(new("", ""), new("", ""), new("", ""), new("", ""), new List<ChartPoint>(), new List<ChartPoint>(), new List<TrendStat>(), new List<TrendStat>(), new List<SongPairing>(), new List<PlaySession>(), new List<InsightStat>()); }
+    private record SongSnapshot(TextStat CompRate, TextStat AvgDuration, TextStat Binge, TextStat Predict, IReadOnlyList<ChartPoint> Radar, IReadOnlyList<ChartPoint> DropOff, IReadOnlyList<TrendStat> WTrend, IReadOnlyList<TrendStat> MTrend, IReadOnlyList<SongPairing> Pairings, IReadOnlyList<InsightStat> Insights) { public static SongSnapshot Empty() => new(new("", ""), new("", ""), new("", ""), new("", ""), new List<ChartPoint>(), new List<ChartPoint>(), new List<TrendStat>(), new List<TrendStat>(), new List<SongPairing>(), new List<InsightStat>()); }
 }

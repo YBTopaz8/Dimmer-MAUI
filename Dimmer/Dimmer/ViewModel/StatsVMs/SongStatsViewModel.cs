@@ -23,7 +23,6 @@ public partial class SongStatsViewModel : ObservableObject, IDisposable
     [ObservableProperty] public partial IReadOnlyList<TrendStat> ListMonthlyTrend { get;set;}
 
     [ObservableProperty] public partial IReadOnlyList<SongPairing> ListPerfectPairings { get;set;}
-    [ObservableProperty] public partial IReadOnlyList<PlaySession> ListWalkthrough { get;set;}
     [ObservableProperty] public partial IReadOnlyList<InsightStat> ListInsights { get;set;}
     [ObservableProperty] public partial bool IsLoading {get;set;}
 
@@ -54,17 +53,16 @@ public partial class SongStatsViewModel : ObservableObject, IDisposable
             .DisposeWith(_disposables);
 
         _statsService.ListDropOffHeatmap
-            .Subscribe(data => { ListDropOffHeatmap = data; IsLoading = false; }    )
+            .Subscribe(data => { ListDropOffHeatmap = data;  }    )
             .DisposeWith(_disposables);
 
         _statsService.ListWeeklyTrend
-            .Subscribe(data => { ListWeeklyTrend = data; IsLoading = false; })
+            .Subscribe(data => { ListWeeklyTrend = data;  })
             .DisposeWith(_disposables);
 
         _statsService.ListMonthlyTrend
             .Subscribe(data => {
                 ListMonthlyTrend = data;
-        IsLoading = false;
     })
             .DisposeWith(_disposables);
 
@@ -72,32 +70,29 @@ public partial class SongStatsViewModel : ObservableObject, IDisposable
             .Subscribe(data => 
             {
                 ListPerfectPairings = data;
-                IsLoading = false; 
             })
             .DisposeWith(_disposables);
 
-        _statsService.ListWalkthrough
-            .Subscribe(data => 
-            {
-                ListWalkthrough = data;
-                IsLoading = false;
-            })
-            .DisposeWith(_disposables);
+        
 
         _statsService.ListInsights
             .Subscribe(insights =>
             {
                 ListInsights = insights;
-                IsLoading = false; 
             })
             .DisposeWith(_disposables);
+
+        _statsService.IsLoading.Subscribe(isL =>
+        {
+            IsLoading = isL;
+        }).DisposeWith(_disposables);
     }
 
     // --- THE TRIGGER ---
     // Call this when the page opens!
     public void LoadSong(ObjectId songId)
     {
-        IsLoading = true;
+
         _statsService.SetSongId(songId); // Tells the service to start calculating!
     }
 

@@ -13,6 +13,7 @@ public partial class ArtistStatsViewModel : ObservableObject, IDisposable
     [ObservableProperty] public partial TextStat TextBingeScore { get; set; }
     [ObservableProperty] public partial TextStat TextLoyaltyIndex { get; set; }
     [ObservableProperty] public partial TextStat TextDiscoveryComparison { get; set; }
+    [ObservableProperty] public partial bool IsLoading { get; internal set; }
 
 
     [ObservableProperty] public partial IReadOnlyList<LeaderboardItem> ListDeepCuts { get; set; }
@@ -37,6 +38,9 @@ public partial class ArtistStatsViewModel : ObservableObject, IDisposable
 
         _artistService.ListMonthlyTrend.Subscribe(v => ListMonthlyTrend = v).DisposeWith(_disposables);
         _artistService.ListInsights.Subscribe(v => ListInsights = v).DisposeWith(_disposables);
+        _artistService.IsLoading.Subscribe(v => IsLoading  = v).DisposeWith(_disposables);
+
+
     }
 
     // Call this when the Page Navigates to an Artist!

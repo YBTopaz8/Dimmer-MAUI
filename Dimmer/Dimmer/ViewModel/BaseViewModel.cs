@@ -171,6 +171,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
              .AutoRefresh(artist => artist.TotalSongsByArtist)
         .AutoRefresh(artist => artist.TotalAlbumsByArtist)
              .AutoRefresh(artist => artist.Name)
+             
            .Sort(ArtistSortSubject)
             .ObserveOn(RxSchedulers.UI)
             .Bind(out _artistCollection)
@@ -214,6 +215,14 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         IsPlaylistInitialized = true;
     }
 
+
+    // Filter and Sort subjects (exposed for UI to update)
+    private readonly BehaviorSubject<Func<AlbumModelView, bool>> _albumFilterSubject
+        = new(album => true); // Default: no filter
+
+    private readonly BehaviorSubject<IComparer<AlbumModelView>> _albumSortSubject
+        = new(SortExpressionComparer<AlbumModelView>.Ascending(a => a.Name)); // Default sort
+
     public void SetupAlbumPipeline()
     {
         if (IsAlbumInitialized) return;
@@ -234,21 +243,59 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     .CoverImagePath;
                 return albumMV;
             })
+            .Filter(_albumFilterSubject)
+            //.Sort(comparer: _albumSortSubject.Value)
+
             .ObserveOn(RxSchedulers.UI)
             .Bind(out _albumsCollection)
             .DisposeMany()
-           
-            .Subscribe(changes =>
-            {
-                IsLoading = false;
-
-                OnPropertyChanged(nameof(AlbumsCollection));
-            });
+           .Do(_ =>
+           {
+               IsLoading = false;
+           }) // Set false when first batch arrives
+            .Subscribe(
+                onNext: _ => { },
+                onError: ex =>
+                {
+                    _logger.LogError(ex, "Album pipeline failed");
+                })
+            .DisposeWith(CompositeDisposables);
 
         pipeline.DisposeWith(CompositeDisposables);
         IsAlbumInitialized = true;
     }
 
+    /// <summary>
+    /// Update the album filter. Call from UI (e.g., search text changed).
+    /// </summary>
+    public void UpdateAlbumFilter(string? searchText)
+    {
+        var query = (searchText ?? string.Empty).Trim();
+        _albumFilterSubject.OnNext(album =>
+            string.IsNullOrEmpty(query) ||
+            (album.Name?.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0));
+    }
+
+    /// <summary>
+    /// Update the album sort order. Call from UI (e.g., sort radio buttons).
+    /// </summary>
+    public void UpdateAlbumSort(AlbumSortBy sortBy)
+    {
+        var comparer = sortBy switch
+        {
+            AlbumSortBy.NameAscending =>
+                SortExpressionComparer<AlbumModelView>.Ascending(a => a.Name),
+            AlbumSortBy.NameDescending =>
+                SortExpressionComparer<AlbumModelView>.Descending(a => a.Name),
+            AlbumSortBy.YearAscending =>
+                SortExpressionComparer<AlbumModelView>.Ascending(a => a.ReleaseYear),
+            AlbumSortBy.YearDescending =>
+                SortExpressionComparer<AlbumModelView>.Descending(a => a.ReleaseYear),
+            _ => SortExpressionComparer<AlbumModelView>.Ascending(a => a.Name)
+        };
+
+        _albumSortSubject.OnNext(comparer);
+    }
     private void SetupHistoryPipeline()
     {
         // Get Realm instance
@@ -600,6 +647,17 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         IsInitialized = true;
 
         return;
+    }
+
+    public void UpdateAlbumSearch(string text)
+    {
+
+        var q = (text ?? string.Empty).Trim();
+        // Debounce caller side (UI) or ensure caller throttles updates.
+        _albumFilterSubject.OnNext(a =>
+            string.IsNullOrEmpty(q) ||
+            (a.Name?.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0));
+
     }
 
     public void StartTQLPipeLine()
