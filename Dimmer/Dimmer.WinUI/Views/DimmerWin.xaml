@@ -78,7 +78,7 @@
                 Tapped="PlaylistsBtn_Tapped"
                 >
                 <NavigationViewItem.Icon>
-                    <FontIcon FontSize="30" Glyph="&#xE93C;" />
+                    <FontIcon Glyph="&#xEA65;" />
                 </NavigationViewItem.Icon>
             </NavigationViewItem>
 

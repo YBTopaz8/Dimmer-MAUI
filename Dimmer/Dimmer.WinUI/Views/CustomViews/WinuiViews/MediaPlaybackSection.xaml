@@ -8,9 +8,10 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:Dimmer.WinUI.Views.CustomViews.WinuiViews"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d"
+    Loaded="UserControl_Loaded"
     Loading="UserControl_Loading"
-    Loaded="UserControl_Loaded">
+    mc:Ignorable="d"
+    >
     <Grid>
         <Grid.Resources>
             <ResourceDictionary>
@@ -29,7 +30,7 @@
 
             <StackPanel x:Name="TopPanel" Background="Transparent">
 
-               
+
 
 
                 <Grid Padding="10">
@@ -39,26 +40,30 @@
                     </Grid.ColumnDefinitions>
 
 
-                    <StackPanel Grid.Column="1" Spacing="5">    
+                    <StackPanel Grid.Column="1" Spacing="5">
                         <StackPanel
                             VerticalAlignment="Center"
                             Orientation="Horizontal"
-                            Spacing="5">
+                            Spacing="5"
+                            >
 
 
                             <TextBlock
                                 VerticalAlignment="Center"
                                 FontSize="22"
-                                Text="{x:Bind MyViewModel.CurrentTrackPositionSeconds, Converter={StaticResource DurationConverter}, Mode=OneWay}" />
+                                Text="{x:Bind MyViewModel.CurrentTrackPositionSeconds, Converter={StaticResource DurationConverter}, Mode=OneWay}"
+                                />
                             <TextBlock
                                 VerticalAlignment="Center"
                                 FontSize="22"
-                                Text="/" />
+                                Text="/"
+                                />
 
                             <TextBlock
                                 VerticalAlignment="Center"
                                 FontSize="22"
-                                Text="{x:Bind MyViewModel.CurrentTrackDurationSeconds, Converter={StaticResource DurationConverter}, Mode=OneWay}" />
+                                Text="{x:Bind MyViewModel.CurrentTrackDurationSeconds, Converter={StaticResource DurationConverter}, Mode=OneWay}"
+                                />
 
 
                             <StackPanel
@@ -66,14 +71,16 @@
                                 Margin="0,0,0,0"
                                 HorizontalAlignment="Left"
                                 Orientation="Horizontal"
-                                Spacing="10">
+                                Spacing="10"
+                                >
                                 <ToggleButton Command="{x:Bind MyViewModel.ToggleShuffleCommand}" IsChecked="{x:Bind MyViewModel.IsShuffleActive, Mode=OneWay}">
                                     <SymbolIcon Symbol="Shuffle" />
                                 </ToggleButton>
                                 <Button
                                     x:Name="PrevBtn"
                                     AccessKey="B"
-                                    Command="{x:Bind MyViewModel.PreviousTrackCommand}">
+                                    Command="{x:Bind MyViewModel.PreviousTrackCommand}"
+                                    >
                                     <FontIcon Glyph="&#xE892;" />
                                 </Button>
                                 <ToggleButton
@@ -81,13 +88,15 @@
                                     AccessKey="P"
                                     Command="{x:Bind MyViewModel.PlayPauseToggleCommand}"
                                     Content="{x:Bind MyViewModel.IsDimmerPlaying, Converter={StaticResource BoolToPlayingPauseConverter}, Mode=OneWay}"
-                                    IsChecked="{x:Bind MyViewModel.IsDimmerPlaying, Mode=OneWay}" />
+                                    IsChecked="{x:Bind MyViewModel.IsDimmerPlaying, Mode=OneWay}"
+                                    />
                                 <Button
                                     x:Name="NextBtn"
                                     AccessKey="N"
                                     AccessKeyDisplayRequested="NextBtn_AccessKeyDisplayRequested"
                                     AccessKeyInvoked="NextBtn_AccessKeyInvoked"
-                                    Command="{x:Bind MyViewModel.NextTrackCommand}">
+                                    Command="{x:Bind MyViewModel.NextTrackCommand}"
+                                    >
                                     <SymbolIcon Symbol="Next" />
                                 </Button>
 
@@ -98,7 +107,8 @@
                                     BorderThickness="0"
                                     Click="HomeBtn_Click"
                                     CornerRadius="10"
-                                    Visibility="Visible">
+                                    Visibility="Visible"
+                                    >
                                     <FontIcon FontSize="25" Glyph="&#xE80F;" />
                                 </Button>
 
@@ -106,8 +116,8 @@
 
                             </StackPanel>
                         </StackPanel>
-         
-                        
+
+
 
                     </StackPanel>
                 </Grid>
@@ -115,7 +125,7 @@
 
             </StackPanel>
         </Grid>
-     
-        
+
+
     </Grid>
 </UserControl>

@@ -11,6 +11,7 @@
     xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
     xmlns:local="using:Dimmer.WinUI.Views.CustomViews.WinuiViews"
     xmlns:localArtist="using:Dimmer.WinUI.Views.WinuiPages.Artist"
+    xmlns:devWin="using:DevWinUI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:media="using:Microsoft.UI.Xaml.Media"
     xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
@@ -40,23 +41,29 @@
         CornerRadius="10"
         RowSpacing="10"
         >
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="auto" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
+        <Grid Grid.Row="0">
+            <StackPanel >
+                <devWin:TextBox x:Name="SearchAlbumTxtBox" TextChanged="SearchAlbumTxtBox_TextChanged"
+                                SelectionChanged="SearchAlbumTxtBox_SelectionChanged"/>
+            </StackPanel>
+        </Grid>
 
-
-        <Grid Grid.Column="1">
+        <Grid Grid.Row="1">
 
             <dgView:TableView
                 x:Name="AllArtistsTableView"
                 AutoGenerateColumns="False"
                 IsReadOnly="True"
-                ItemsSource="{x:Bind MyViewModel.ArtistsCollection, Mode=OneWay}"
+                Loaded="AllArtistsTableView_Loaded"
                 >
 
                 <dgView:TableView.Columns>
+
                     <dgView:TableViewTemplateColumn Width="150" Header="Image">
                         <dgView:TableViewTemplateColumn.CellTemplate>
                             <DataTemplate>
@@ -74,16 +81,18 @@
                         Binding="{Binding Name}"
                         Header="Name"
                         />
-                    <dgView:TableViewNumberColumn
-                        Width="*"
-                        Binding="{Binding TotalAlbumsByArtist}"
-                        Header="Total Albums By Artist"
-                        />
-                    <dgView:TableViewNumberColumn
-                        Width="*"
-                        Binding="{Binding TotalSongsByArtist}"
-                        Header="Total Songs By Artist"
-                        />
+               
+                    
+
+                    <dgView:TableViewTemplateColumn Width="*" Header="Total Songs In Album">
+                        <dgView:TableViewTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding SongsInAlbum.Count}" />
+
+                            </DataTemplate>
+                        </dgView:TableViewTemplateColumn.CellTemplate>
+                    </dgView:TableViewTemplateColumn>
+
                     <dgView:TableViewNumberColumn
                         Width="*"
                         Binding="{Binding TotalCompletedPlays}"
@@ -93,6 +102,11 @@
                         Width="*"
                         Binding="{Binding AverageSongListenThroughRate}"
                         Header="Average Song Listen ThroughRate"
+                        />
+                    <dgView:TableViewNumberColumn
+                        Width="*"
+                        Binding="{Binding CompletionPercentage}"
+                        Header="Completion Percentage"
                         />
                     <dgView:TableViewNumberColumn
                         Width="*"

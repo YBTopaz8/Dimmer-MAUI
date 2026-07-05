@@ -1,4 +1,8 @@
+using DevWinUI;
 using DynamicData.Binding;
+using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
+using TextBox = DevWinUI.TextBox;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -15,8 +19,8 @@ public sealed partial class AllAlbumsPage : Page
     protected override async void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
-
-        MyViewModel = IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
+        compDis = new();
+                MyViewModel = IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
 
         DataContext = MyViewModel;
 
@@ -25,7 +29,11 @@ public sealed partial class AllAlbumsPage : Page
     }
     public BaseViewModelWin MyViewModel { get; set; }
 
-
+    protected override void OnNavigatedFrom(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
+    {
+        base.OnNavigatedFrom(e);
+        compDis.Dispose();
+    }
 
     //FrameworkElement? artistClicked;
 
@@ -94,5 +102,29 @@ public sealed partial class AllAlbumsPage : Page
     private void AlbumBtnView_Click(object sender, RoutedEventArgs e)
     {
 
+    }
+
+    private void SearchAlbumTxtBox_TextChanged(object sender, Microsoft.UI.Xaml.Controls.TextChangedEventArgs e)
+    {
+        var text = SearchAlbumTxtBox.Text;
+        MyViewModel.UpdateAlbumSearch(text);
+    }
+
+    
+
+    private void SearchAlbumTxtBox_SelectionChanged(object sender, RoutedEventArgs e)
+    {
+
+    }
+    CompositeDisposable compDis;
+    private void AllArtistsTableView_Loaded(object sender, RoutedEventArgs e)
+    {
+        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.IsLoading), artCol => MyViewModel.IsLoading)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(isLoading =>
+            {
+                if(!isLoading)
+                    AllArtistsTableView.ItemsSource = MyViewModel.AlbumsCollection;
+            }).DisposeWith(compDis);
     }
 }

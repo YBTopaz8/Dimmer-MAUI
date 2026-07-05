@@ -8,6 +8,7 @@ using DevWinUI;
 using Dimmer.Utils;
 using Dimmer.WinUI.Views.CustomViews.WinuiViews;
 using MongoDB.Bson;
+using System.Reactive.Subjects;
 using Windows.Foundation.Collections;
 using Windows.UI.Core;
 using Brush = Microsoft.UI.Xaml.Media.Brush;
@@ -1469,7 +1470,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
             //BackupService.CleanupOldBackups(3);
         }
 
- 
+
     [ObservableProperty]
     public partial SmokeViewQueueGrid NowPlayingView { get; set; }
 

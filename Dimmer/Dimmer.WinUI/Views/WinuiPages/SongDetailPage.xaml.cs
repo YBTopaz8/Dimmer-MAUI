@@ -827,11 +827,7 @@ public sealed partial class SongDetailPage : Page
 
     private void ListWalkthrough_Loaded(object sender, RoutedEventArgs e)
     {
-        MySongStatsViewModel?.WhenPropertyChanged(nameof(MySongStatsViewModel.ListWalkthrough), v => MySongStatsViewModel?.ListWalkthrough)
-            .Subscribe(insight =>
-            {
-                ListWalkthrough.ItemsSource = insight;
-            });
+        
     }
 
     private void ListPerfectPairings_Loaded(object sender, RoutedEventArgs e)

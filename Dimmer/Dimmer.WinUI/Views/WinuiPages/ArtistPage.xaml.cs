@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using DevWinUI;
 using Dimmer.ViewModel.StatsVMs;
 using Microsoft.UI.Xaml.Documents;
 using Grid = Microsoft.UI.Xaml.Controls.Grid;
@@ -378,11 +379,7 @@ public sealed partial class ArtistPage : Page
 
     private void ListTopSongs_Loaded(object sender, RoutedEventArgs e)
     {
-        MyArtistStatsViewModel?.WhenPropertyChanged(nameof(MyArtistStatsViewModel.ListTopSongs), v => MyArtistStatsViewModel?.ListTopSongs)
-            .Subscribe(insight =>
-            {
-                ListTopSongs.ItemsSource = insight;
-            });
+        
     }
 
     private void ListDeepCuts_Loaded(object sender, RoutedEventArgs e)
@@ -411,4 +408,30 @@ public sealed partial class ArtistPage : Page
                 ListTopAlbums.ItemsSource = insight;
             });
     }
+
+    private void ArtistSongsDG_Loaded(object sender, RoutedEventArgs e)
+    {
+        ArtistSongsDG.ItemsSource = MyViewModel.SelectedArtist.SongsByArtist;
+    }
+
+    private void StoreCarouselTopSongs_Loaded(object sender, RoutedEventArgs e)
+    {
+        MyArtistStatsViewModel?.WhenPropertyChanged(nameof(MyArtistStatsViewModel.ListTopSongs), v => MyArtistStatsViewModel?.ListTopSongs)
+            .Subscribe(insight =>
+            {
+                StoreCarouselTopSongs.ItemsSource = insight?.Where(x =>File.Exists(x.ImagePath)).ToList();
+            });
+    }
+
+    private void StoreCarouselTopSongs_ItemClick(object sender, StoreCarouselEventArgs e)
+    {
+
+    }
+
+    private void ArtistSongsDG_CellDoubleTapped(object sender,TableViewCellDoubleTappedEventArgs e)
+    {
+
+    }
+
+  
 }
