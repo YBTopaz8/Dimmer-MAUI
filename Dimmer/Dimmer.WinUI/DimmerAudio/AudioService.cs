@@ -803,7 +803,8 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             props.MusicProperties.Title = media.Title ?? Path.GetFileNameWithoutExtension(media.FilePath) ?? "Unknown Title";
             props.MusicProperties.Artist = media.OtherArtistsName.ToString();
             props.MusicProperties.AlbumTitle = media.AlbumName ?? string.Empty;
-            props.MusicProperties.AlbumArtist = media.Id.ToString();
+            props.MusicProperties.AlbumArtist = media.OtherArtistsName.ToString();
+            
             if (!string.IsNullOrEmpty(media.CoverImagePath) && File.Exists(media.CoverImagePath))
             {
                 try

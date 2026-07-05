@@ -1,22 +1,13 @@
-﻿using CommunityToolkit.Maui.Core.Primitives;
-using CommunityToolkit.Maui.Storage;
+﻿using CommunityToolkit.Maui.Storage;
 using DevExpress.Maui.CollectionView;
-using DevExpress.Maui.Controls;
-using DevExpress.Maui.Editors;
 using Dimmer.Data;
-using FieldType =  Dimmer.DimmerSearch.TQL.FieldType;
-using Dimmer.Interfaces;
 using Dimmer.Interfaces.IDatabase;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.LastFM;
 using Dimmer.Utilities.StatsUtils;
-using DynamicData;
-using Google.Android.Material.Dialog;
 using Microsoft.Extensions.Logging;
-using Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific;
 using System.Text.RegularExpressions;
-using Label = Microsoft.Maui.Controls.Label;
 using TextEdit = DevExpress.Maui.Editors.TextEdit;
 namespace Dimmer.ViewModels;
 
@@ -42,12 +33,8 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     [ObservableProperty]
     public partial int HomePageIndex { get; set; } = 0;
 
-    
-
-
-
     [ObservableProperty]
-    public partial bool IsNowPlayingUIVisible { get; set; }
+    public partial bool IsTopBarVisible { get; set; } = true;
 
     partial void OnHomePageIndexChanged(int oldValue, int newValue)
     {
@@ -55,30 +42,16 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         switch (newValue)
         {
             case 0:
-            case 2:
-                IsNowPlayingQueueVisible = true;
-                IsNowAllSongsQueueVisible = true;
-
-                break;
+                IsTopBarVisible = true;
+            break;
             case 1:
-
-
-                IsNowPlayingQueueVisible = false;
-
-                IsNowAllSongsQueueVisible = false;
-                IsNowPlayingUIVisible = true;
-
+            case 2:
+                IsTopBarVisible = false;
                 break;
             default:
                 break;
         }
     }
-
-
-    [ObservableProperty]
-    public partial bool IsNowPlayingQueueVisible { get; set; }
-    [ObservableProperty]
-    public partial bool IsNowAllSongsQueueVisible { get; set; } = true;
 
 
 
@@ -433,8 +406,14 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             string path = picker.Folder.Path;
             if(!string.IsNullOrEmpty(picker.Folder.Path))
             {
-                BackUpCompletResult =  await BackupService.CreateCompleteBackupAsync(BaseViewModel.CurrentAppVersion,path);
-                
+                _= Task.Run(async () =>
+                {
+                    var res= await BackupService.CreateCompleteBackupAsync(BaseViewModel.CurrentAppVersion, path);
+                    if(res is not null)
+                    {
+                        BackUpCompletResult = res;
+                    }
+                });
                 
             }
 
@@ -494,6 +473,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     [ObservableProperty]
     public partial string CurrentFilterDisplay { get; set; } = "None";
+ 
     public void SetCollectionView(DXCollectionView collectionView)
     {
         _collectionView = collectionView;
@@ -511,7 +491,11 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     }
 
 
-
+    [RelayCommand]
+    private void ApplyTQLSearch(string parameter)
+    {
+        base.SearchToTQL(parameter);
+    }
 
     public void ClearSubscriptionToSearchBar()
     {

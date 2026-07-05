@@ -6,13 +6,10 @@ using Uri = Android.Net.Uri;
 
 // AndroidX Core & Media
 
-using AndroidX.Media3.Common;
 using AndroidX.Media3.ExoPlayer;
 using AndroidX.Media3.Session;
 
 // Java Interop
-using Java.Lang;
-
 using Object = Java.Lang.Object;
 
 // AndroidX Concurrent Futures - For CallbackToFutureAdapter
@@ -32,7 +29,6 @@ using Java.Util.Concurrent;
 using Android.Media;
 
 using MediaController = AndroidX.Media3.Session.MediaController;
-using Exception = System.Exception;
 
 namespace Dimmer.DimmerAudio; // Make sure this namespace is correct
 
@@ -236,7 +232,6 @@ public partial class ExoPlayerService : MediaSessionService
     }
 
     PlayerNotificationManager? _notifMgr;
-    private Runnable? _positionRunnable;
     private MediaController? mediaController;
 
     public ExoPlayerServiceBinder? Binder { get => _binder; set => _binder = value; }
@@ -382,7 +377,6 @@ public partial class ExoPlayerService : MediaSessionService
     }
 
     private Handler? positionHandler;
-    private Runnable? positionRunnable;
     //private async Task InitializeMediaControllerAsync()
     //{
     //    Console.WriteLine("DIMMERTRACE: ExoPlayerService.InitializeMediaControllerAsync START");
@@ -420,105 +414,11 @@ public partial class ExoPlayerService : MediaSessionService
 
         //StartForeground(NotificationHelper.NotificationId, notification);
 
-        string? action = intent?.Action;
-        if (action is not null)
-        {
-            switch (action)
-            {
-                
-                case ActionLyrics:
-                    HandleLyricsAction();
-                    break;
-            }
-        }
-
+       
         return StartCommandResult.Sticky;
     }
     
-    private void HandleFavoriteAction()
-    {
-        if (CurrentSongContext != null)
-        {
-            // Get the ViewModel and toggle favorite state
-            var viewModel = MainApplication.ServiceProvider.GetService<BaseViewModel>();
-            if (viewModel != null)
-            {
-                Task.Run(async () =>
-                {
-                    try
-                    {
-                        if (CurrentSongContext.IsFavorite)
-                        {
-                            await viewModel.RemoveSongFromFavoriteAsync(CurrentSongContext);
-                        }
-                        else
-                        {
-                            await viewModel.AddFavoriteRatingToSongAsync(CurrentSongContext);
-                        }
-                        
-                        RxSchedulers.UI.ScheduleTo(() => RefreshNotification());
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"[ExoPlayerService] Error toggling favorite: {ex.Message}");
-                    }
-                });
-            }
-        }
-    }
     
-    private void HandleShuffleAction()
-    {
-        var viewModel = MainApplication.ServiceProvider.GetService<BaseViewModel>();
-        if (viewModel != null)
-        {
-            RxSchedulers.UI.ScheduleTo(() =>
-            {
-                try
-                {
-                    viewModel.ToggleShuffle();
-                    ShuffleStateInternal = viewModel.IsShuffleActive;
-                    RefreshNotification();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[ExoPlayerService] Error toggling shuffle: {ex.Message}");
-                }
-            });
-        }
-    }
-    
-    private void HandleRepeatAction()
-    {
-        var viewModel = MainApplication.ServiceProvider.GetService<BaseViewModel>();
-        if (viewModel != null)
-        {
-            RxSchedulers.UI.ScheduleTo(() =>
-            {
-                try
-                {
-                    viewModel.ToggleRepeatMode();
-                    RepeatModeInternal = (int)viewModel.CurrentRepeatMode;
-                    RefreshNotification();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[ExoPlayerService] Error toggling repeat: {ex.Message}");
-                }
-            });
-        }
-    }
-    
-    private void HandleLyricsAction()
-    {
-        // Open the app to the lyrics view
-        var intent = new Intent(this, typeof(MainActivity));
-        intent.SetAction(Intent.ActionMain);
-        intent.AddCategory(Intent.CategoryLauncher);
-        intent.AddFlags(ActivityFlags.NewTask);
-        intent.PutExtra("ShowLyrics", true);
-        StartActivity(intent);
-    }
 
     public override IBinder? OnBind(Intent? intent)
     {
@@ -809,7 +709,7 @@ public partial class ExoPlayerService : MediaSessionService
 
         public void OnIsPlayingChanged(bool isPlaying)
         {
-            service.RaiseIsPlayingChanged(isPlaying);
+
             if (isPlaying)
             {
 

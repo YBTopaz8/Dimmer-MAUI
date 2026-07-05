@@ -91,7 +91,7 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial bool? IsInstrumental { get; set; }
     [ObservableProperty]
-    public partial string? CoverImagePath { get; set; }
+    public partial string CoverImagePath { get; set; } = string.Empty;
     [ObservableProperty]
     public partial string? UnSyncLyrics { get; set; } = string.Empty;
     //[ObservableProperty]
@@ -327,6 +327,22 @@ public partial class SongModelView : ObservableObject
     {
         // MemberwiseClone creates a new object reference with the same values
         return (SongModelView)this.MemberwiseClone();
+    }
+
+    public int CompareTo(SongModelView? other)
+    {
+       
+        // Ensure keys are generated
+        if (this.TitleDurationKey is null) SetTitleAndDuration(Title, DurationInSeconds);
+        if (other.TitleDurationKey is null) other.SetTitleAndDuration(other.Title, other.DurationInSeconds);
+
+        if(this.TitleDurationKey == other.TitleDurationKey)
+        {
+            return this.GetHashCode();
+        }
+
+      
+        return 0;
     }
 }
 

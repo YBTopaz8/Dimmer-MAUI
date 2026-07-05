@@ -31,7 +31,7 @@ public sealed partial class DimmerToolKit : Page
         _composite = new();
 
 
-        MyViewModel.WhenPropertyChange(
+        MyViewModel.WhenPropertyChanged(
             nameof(MyViewModel.IsDuplicateFound),
             isBG => (MyViewModel.IsDuplicateFound))
             .ObserveOn(RxSchedulers.UI)

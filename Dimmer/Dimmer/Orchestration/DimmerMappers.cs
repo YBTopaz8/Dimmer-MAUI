@@ -611,8 +611,9 @@ public static class DimmerMappers
             User = src.User?.ToUserModelView(),
 
             // Collections
-            SongsIdsInPlaylist = src.ManualSongIds != null ? new ObservableCollection<MongoDB.Bson.ObjectId>(src.ManualSongIds) : new(),
-
+            SongsIdsInPlaylist = src.SongsIdsInPlaylist != null ? new ObservableCollection<MongoDB.Bson.ObjectId>(src.SongsIdsInPlaylist) : new(),
+            SongInPlaylist = src.SongsInPlaylist.AsEnumerable().Select(x => x.ToSongModelView()).ToObservableCollection()
+            ,
             // Ignores: CurrentSong, Color, PlaylistType, DeviceName (Source doesn't have it mapped explicitly in old config)
         };
     }

@@ -1,6 +1,4 @@
 global using Chip = DevExpress.Maui.Editors.Chip;
-using DevExpress.Maui.Core;
-using Microsoft.Maui.Controls.PlatformConfiguration;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 
@@ -43,7 +41,7 @@ public partial class SettingsPage : ContentPage
     }
     private async void BackupDeviceBtn_Clicked(object sender, EventArgs e)
     {
-        await MyViewModel.BackUpAppDataAsync();
+      _=  MyViewModel.BackUpAppDataAsync();
 
     }
 
@@ -111,7 +109,7 @@ public partial class SettingsPage : ContentPage
 
     private void ConfirmRestoreBtn_Loaded(object sender, EventArgs e)
     {
-        MyViewModel.WhenPropertyChange(nameof(MyViewModel.PickedUpBackup), v => (MyViewModel.PickedUpBackup))
+        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.PickedUpBackup), v => (MyViewModel.PickedUpBackup))
           .Subscribe(
               e =>
               {
@@ -129,7 +127,7 @@ public partial class SettingsPage : ContentPage
               })
           .DisposeWith(pageDisposable);
 
-        MyViewModel.WhenPropertyChange(nameof(MyViewModel.IsRestoreDone), v => (MyViewModel.IsRestoreDone))
+        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.IsRestoreDone), v => (MyViewModel.IsRestoreDone))
           .Subscribe(
               e =>
               {

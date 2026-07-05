@@ -1,11 +1,8 @@
 ﻿using Dimmer.DimmerLive;
 using Dimmer.NativeServices;
-using Dimmer.Views.CustomViews;
 using Dimmer.Views.DimmerCloud;
 using Dimmer.Views.DimmerStats;
 using Dimmer.Views.LastFM;
-using Dimmer.Views.Settings;
-using Dimmer.Views.SingleSong;
 using Dimmer.Views.Toolkit;
 
 namespace Dimmer.Utils;

@@ -4,13 +4,16 @@
 
 
 using CommunityToolkit.Maui.Core.Extensions;
+using DevWinUI;
 using Dimmer.Utils;
 using Dimmer.WinUI.Views.CustomViews.WinuiViews;
 using MongoDB.Bson;
+using System.Reactive.Subjects;
 using Windows.Foundation.Collections;
 using Windows.UI.Core;
 using Brush = Microsoft.UI.Xaml.Media.Brush;
 using FolderPicker = CommunityToolkit.Maui.Storage.FolderPicker;
+using TextBox = Microsoft.UI.Xaml.Controls.TextBox;
 using Visibility = Microsoft.UI.Xaml.Visibility;
 
 //using TableView = WinUI.TableView.TableView;
@@ -30,11 +33,9 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     public DimmerMultiWindowCoordinator DimmerMultiWindowCoordinator;
 
-    DimmerBackupService BackupService;
 
     public BaseViewModelWin(
     LastFMViewModel lastFMViewModel,
-    DimmerBackupService backupService,
         LoginViewModel _loginViewModel,
         DimmerMultiWindowCoordinator dimmerMultiWindowCoordinator,
         IMauiWindowManagerService mauiWindowManagerService,
@@ -43,7 +44,6 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         IDimmerStateService dimmerStateService, MusicDataService musicDataService, IAppInitializerService appInitializerService, IDimmerAudioService audioServ, ISettingsService settingsService, ILyricsMetadataService lyricsMetadataService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> songRepo, IDuplicateFinderService duplicateFinderService, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, IDialogueService dialogueService, IRepository<PlaylistModel> playlistRepo, IRealmFactory realmFact, IFolderMonitorService folderServ, ILibraryScannerService libScannerService, IRepository<DimmerPlayEvent> dimmerPlayEventRepo, BaseAppFlow baseAppClass, ILastfmService lastfmService, ILogger<BaseViewModel> logger) : base(dimmerStateService, musicDataService, appInitializerService, audioServ, settingsService, lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, songRepo, duplicateFinderService, artistRepo, albumModel, genreModel, dialogueService, playlistRepo, realmFact, folderServ, libScannerService, dimmerPlayEventRepo, baseAppClass, lastfmService, logger)
     {
         lastFMVM = lastFMViewModel;
-        BackupService = backupService;
         this.winUIWindowMgrService = winUIWinMgrService;
         this.loginViewModel = _loginViewModel;
         SessionMgtVM = sessionManagementViewModel;
@@ -56,8 +56,41 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
         windowManager = mauiWindowManagerService;
 
-      
+        //_lyricsMgtFlow.AllSyncLyrics
+        //    .ObserveOn(RxSchedulers.UI)
+        //    .Subscribe(lines =>
+        //    {
+        //        AllLines?.Clear();
+
+        //        if (lines.Count >= 1)
+        //        {
+        //            AllLines = lines.ToObservableCollection();
+
+        //            // Map to DevWinUI format for Windows
+        //            var devLines = lines.Select(line => new DevWinUI.LyricLine
+        //            {
+        //                PrimaryText = line.Text,
+        //                StartMs = line.TimestampStart,
+        //                EndMs = line.EndTimeMs, 
+        //                IsPrimaryHasRealSyllableInfo = false 
+        //            }).ToList();
+
+        //            DevWinUILyrics = new DevWinUI.LyricData(devLines);
+
+        //            return;
+        //        }
+        //        else
+        //        {
+        //            AllLines = new ObservableCollection<LyricPhraseModelView>();
+
+        //            DevWinUILyrics = null; // Clear lyrics on UI
+        //        }
+        //    });
     }
+
+    //[ObservableProperty]
+    //public partial LyricData? DevWinUILyrics { get; set; }
+
 
     private void BaseViewModelWin_AddNextEvent(object? sender, EventArgs e)
     {
@@ -1259,118 +1292,6 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     }
 
-    [RelayCommand]
-    public async Task RestoreCompleteDataAsync()
-    {
-        MyRestoredResult = new();
-        if (PickedUpBackup is not null)
-            MyRestoredResult = await BackupService.RestoreCompleteDataAsync(PickedUpBackup, MyRestoredResult);
-        IsRestoreDone = MyRestoredResult.Success;
-        PickedUpBackup = null;
-        var redoStats = new StatsRecalculator(RealmFactory, _logger);
-        _ = redoStats.RecalculateAllStatisticsAsync();
-    }
-    [RelayCommand]
-    public async Task PickFolderToRestoreAppDataAsync()
-    {
-        var tcs = new TaskCompletionSource<(bool includeDefault, string customPath)>();
-
-       
-    ContentDialog restoreFolderPickerContentDialog = new ContentDialog
-    {
-        Title = "Restore Backup",
-        Content = "Do you want to select a folder to restore backup from? If no, it will look for backups in default location.",
-        PrimaryButtonText = "Yes",
-        CloseButtonText = "No",
-        XamlRoot = MainWindow?.ContentFrame.XamlRoot
-
-    };
-
-        restoreFolderPickerContentDialog.PrimaryButtonClick += async (s, e) =>
-        {
-
-            var picker = new FileOpenPicker();
-            // Get the HWND of the current window
-            var hwnd = PlatUtils.DimmerHandle;
-            // Initialize the picker with the window handle
-            InitializeWithWindow.Initialize(picker, hwnd);
-            picker.FileTypeFilter.Add(".json");
-            var file = await picker.PickSingleFileAsync();
-            
-
-            if (file is null)
-            {
-                tcs.SetResult((false, string.Empty));
-
-                return;
-            }
-            tcs.SetResult((true, file.Path));
-        };
-        restoreFolderPickerContentDialog.CloseButtonClick += (s, e) =>
-        {
-            tcs.SetResult((false, string.Empty));
-        };
-          
-        await restoreFolderPickerContentDialog.ShowAsync();
-
-        // Wait for user's decision
-        var (includeDefaultLocation, secondaryPath) = await tcs.Task;
-
-         SelectedFile = secondaryPath;
-        PickedUpBackup = await BackupService.PickFolderTeRestoreFromBackupAsync(SelectedFile);
-
-           
-
-
-        //BackupService.CleanupOldBackups(3);
-    }
-
-    internal async Task BackUpAppDataAsync()
-    {
-        var tcs = new TaskCompletionSource<bool>();
-
-
-        ContentDialog restoreFolderPickerContentDialog = new ContentDialog
-        {
-            Title = "Backup Data",
-            Content = "Do you want to select a folder for backup? If no, backup will be saved in default location.",
-            PrimaryButtonText = "Yes",
-            CloseButtonText = "No",
-            XamlRoot = MainWindow?.ContentFrame.XamlRoot
-
-        };
-
-        restoreFolderPickerContentDialog.PrimaryButtonClick += async (s, e) =>
-        {
-
-            var picker = await FolderPicker.Default.PickAsync();
-
-            if (picker != null)
-            {
-
-
-
-                if (!picker.IsSuccessful)
-                {
-                    tcs.SetResult(false);
-
-                    return;
-                }
-                string path = picker.Folder.Path;
-                if (!string.IsNullOrEmpty(picker.Folder.Path))
-                {
-                    await BackupService.CreateCompleteBackupAsync(path);
-                }
-            }
-            tcs.SetResult((true));
-        };
-        restoreFolderPickerContentDialog.CloseButtonClick += (s, e) =>
-        {
-            tcs.SetResult((false));
-        };
-
-        await restoreFolderPickerContentDialog.ShowAsync();
-    }
     internal async Task ToggleFavoriteRatingToArtist(ArtistModelView artist)
     {
         var realm = RealmFactory.GetRealmInstance();
@@ -1541,17 +1462,16 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
             // Wait for user's decision
             var (includeDefaultLocation, secondaryPath) = await tcs.Task;
 
-
-        AddMusicFoldersByPassingToService(new List<string>() { $"{file.Path}" });
-        
-       
+        if(file is not null)
+            AddMusicFoldersByPassingToService(new List<string>() { $"{file.Path}" });
 
 
 
             //BackupService.CleanupOldBackups(3);
         }
 
-        [ObservableProperty]
+
+    [ObservableProperty]
     public partial SmokeViewQueueGrid NowPlayingView { get; set; }
 
     [ObservableProperty]

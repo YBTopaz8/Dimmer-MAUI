@@ -17,10 +17,19 @@
     MaximumHeightRequest="600"
     Opened="DXPopup_Opened"
     >
-    <dx:DXScrollView>
-
+    <Grid RowDefinitions="auto,*">
+        <HorizontalStackLayout Grid.Row="0" HorizontalOptions="End">
+            <dx:DXButton
+                BackgroundColor="Transparent"
+                Clicked="ClosePopUp_Clicked"
+                Content="X"
+                FontSize="25"
+                TextColor="DarkSlateBlue"
+                />
+        </HorizontalStackLayout>
         <dx:DXStackLayout
             x:Name="LyricsTabVSL"
+            Grid.Row="1"
             Padding="10"
             x:DataType="vm:BaseViewModelAnd"
             ItemSpacing="10"
@@ -137,6 +146,11 @@
                 </dx:DXStackLayout>
             </Grid>
 
+            <dx:DXStackLayout Orientation="Horizontal">
+                <Label Text="Duration: " />
+                <Label Text="{Binding SelectedSong.DurationFormatted}" />
+
+            </dx:DXStackLayout>
 
             <dx:DXButton
                 x:Name="SearchLyricsBtn"
@@ -188,5 +202,5 @@
 
         </dx:DXStackLayout>
 
-    </dx:DXScrollView>
+    </Grid>
 </dx:DXPopup>

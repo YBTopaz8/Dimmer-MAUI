@@ -112,7 +112,7 @@ public class ParseAuthenticationService : IAuthenticationService
         try
         {
             // 1. Check if Parse thinks we are already logged in
-            if (ParseUser.CurrentUser != null && await ParseUser.CurrentUser.IsAuthenticatedAsync())
+            if (ParseUser.CurrentUser != null &&  ParseUser.CurrentUser.IsAuthenticated)
             {
                 _currentUserSubject.OnNext(new UserModelOnline(ParseUser.CurrentUser));
                 return true;

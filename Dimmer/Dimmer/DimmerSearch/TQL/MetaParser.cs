@@ -79,18 +79,61 @@ public static class MetaParser
     // New helper to replace the complex and flawed segmentation system.
     private static (List<Token> filterTokens, List<Token> directiveTokens) SeparateFilterAndDirectives(List<Token> allTokens)
     {
-        // Directives are only valid at the very end of a query.
-        // We find the first directive token and split the list there.
-        int firstDirectiveIndex = allTokens.FindIndex(t => _directiveKeywords.Contains(t.Type));
+        var filterTokens = new List<Token>();
+        var directiveTokens = new List<Token>();
 
-        if (firstDirectiveIndex == -1)
+        for (int i = 0; i < allTokens.Count; i++)
         {
-            // No directives found, all tokens are for filtering.
-            return (allTokens, new List<Token>());
-        }
+            var token = allTokens[i];
 
-        var filterTokens = allTokens.Take(firstDirectiveIndex).ToList();
-        var directiveTokens = allTokens.Skip(firstDirectiveIndex).ToList();
+            // 1. Sort Directives
+            if (token.Type is TokenType.Asc or TokenType.Desc)
+            {
+                directiveTokens.Add(token);
+
+                // Steal the next token ONLY if it is an Identifier AND NOT followed by a Colon!
+                if (i + 1 < allTokens.Count && allTokens[i + 1].Type == TokenType.Identifier)
+                {
+                    if (i + 2 >= allTokens.Count || allTokens[i + 2].Type != TokenType.Colon)
+                    {
+                        directiveTokens.Add(allTokens[++i]);
+                    }
+                }
+            }
+            // 2. Limit / Shuffle Directives
+            else if (token.Type is TokenType.First or TokenType.Last or TokenType.Random or TokenType.Shuffle)
+            {
+                directiveTokens.Add(token);
+
+                // Grab number (e.g., shuffle 10)
+                if (i + 1 < allTokens.Count && allTokens[i + 1].Type == TokenType.Number)
+                {
+                    directiveTokens.Add(allTokens[++i]);
+                }
+
+                // Grab bias (e.g., shuffle by rating desc)
+                if (i + 1 < allTokens.Count && allTokens[i + 1].Type == TokenType.Identifier && allTokens[i + 1].Text.Equals("by", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Ensure 'by' isn't accidentally part of a filter like "by:artist"
+                    if (i + 2 >= allTokens.Count || allTokens[i + 2].Type != TokenType.Colon)
+                    {
+                        directiveTokens.Add(allTokens[++i]); // Add 'by'
+                        if (i + 1 < allTokens.Count && allTokens[i + 1].Type == TokenType.Identifier)
+                        {
+                            directiveTokens.Add(allTokens[++i]); // Add the field
+                            if (i + 1 < allTokens.Count && allTokens[i + 1].Type is TokenType.Asc or TokenType.Desc)
+                            {
+                                directiveTokens.Add(allTokens[++i]); // Add asc/desc
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                filterTokens.Add(token);
+            }
+        }
 
         return (filterTokens, directiveTokens);
     }

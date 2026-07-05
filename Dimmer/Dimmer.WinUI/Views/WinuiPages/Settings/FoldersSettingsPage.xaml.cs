@@ -25,9 +25,11 @@ public sealed partial class FoldersSettingsPage : Page
         
         MyViewModel = vm;
 
-        MyViewModel.CurrentPageEnum = CurrentPage.HomePage;
-
+        MyViewModel.CurrentPageEnum = CurrentPage.FolderSettingsPage;
+        
         this.DataContext = MyViewModel;
+
+        MyViewModel.LoadFolderPaths();
     }
     private void RemoveFolder_Click(object sender, RoutedEventArgs e)
     {
@@ -64,10 +66,10 @@ public sealed partial class FoldersSettingsPage : Page
 
     }
 
-    private void AddFolder_Click(object sender, RoutedEventArgs e)
+    private async void AddFolder_Click(object sender, RoutedEventArgs e)
     {
-
-        MyViewModel?.AddMusicFolderViaPickerAsync();
-
+        AddFolder.IsEnabled = false;
+       await MyViewModel?.AddMusicFolderViaPickerAsync();
+        AddFolder.IsEnabled = true;
     }
 }

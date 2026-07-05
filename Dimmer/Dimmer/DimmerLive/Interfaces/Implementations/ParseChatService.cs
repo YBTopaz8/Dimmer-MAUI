@@ -299,7 +299,7 @@ Username = "Unknown User "+Guid.NewGuid();
         };
 
         newSong.AudioFile = songFile;
-        newSong.Uploader = _authService.CurrentUserValue;
+        newSong.Uploader = _authService.CurrentUserValue!;
         newSong.AudioFileUrl =songFile.Url; // For Cloud Code use
         newSong.AudioFileName =songFile.Name; // For Cloud Code use
         newSong.AudioFileMimeType =songFile.MimeType; // For Cloud Code use

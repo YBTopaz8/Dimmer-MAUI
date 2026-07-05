@@ -532,9 +532,11 @@ public class LastfmService : ILastfmService
         }
     }
 
-    public async Task<Artist?> GetArtistInfoAsync(string artistName)
+    public async Task<Artist?> GetArtistInfoAsync(string? artistName)
     {
         if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
+        if (string.IsNullOrEmpty(artistName)) return null;
+
         try
         { 
             return await _client.Artist.GetInfoAsync(artistName);

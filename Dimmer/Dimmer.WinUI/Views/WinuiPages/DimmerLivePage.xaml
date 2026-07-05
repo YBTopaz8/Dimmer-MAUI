@@ -7,7 +7,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:Dimmer.WinUI.Views.WinuiPages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d">
+    mc:Ignorable="d"
+    >
     <Page.Resources>
         <ResourceDictionary>
             <convertersWinUI:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
@@ -23,7 +24,8 @@
             BorderBrush="DarkSlateBlue"
             Click="BackBtn_Click"
             Content="Back"
-            CornerRadius="0,5,5,0" />
+            CornerRadius="0,5,5,0"
+            />
 
         <Grid x:Name="GridOfAll" Margin="10">
             <Grid x:Name="GridOfAuth" Visibility="Visible">
@@ -35,28 +37,33 @@
                     BorderBrush="DarkSlateBlue"
                     BorderThickness="2"
                     CornerRadius="20"
-                    Spacing="10">
+                    Spacing="10"
+                    >
                     <TextBlock
                         HorizontalAlignment="Center"
                         FontSize="39"
-                        Text="Dimmer Login" />
+                        Text="Dimmer Login"
+                        />
 
                     <TextBox
                         x:Name="DimmerUserName"
                         FontSize="19"
                         PlaceholderText="Dimmer User Name"
-                        Text="{Binding LoginViewModel.Username}" />
+                        Text="{Binding LoginViewModel.Username}"
+                        />
                     <TextBox
                         x:Name="DimmerPassword"
                         FontSize="19"
                         PlaceholderText="Dimmer Password"
-                        Text="{Binding LoginViewModel.Password}" />
+                        Text="{Binding LoginViewModel.Password}"
+                        />
                     <Button
                         x:Name="ForgottenPassword"
                         HorizontalAlignment="Center"
                         BorderThickness="0"
                         Click="ForgottenPassword_Click"
-                        Content="Forgotten Password" />
+                        Content="Forgotten Password"
+                        />
 
 
                     <Button
@@ -64,23 +71,27 @@
                         Background="Transparent"
                         Click="LoginButton_Click"
                         Content="Login"
-                        FontSize="26" />
+                        FontSize="26"
+                        />
 
                     <TextBlock
                         HorizontalAlignment="Center"
                         FontSize="18"
                         Foreground="Red"
-                        Text="{Binding LoginViewModel.ErrorMessage}" />
+                        Text="{Binding LoginViewModel.ErrorMessage}"
+                        />
 
                     <StackPanel
                         HorizontalAlignment="Center"
                         Orientation="Horizontal"
-                        Spacing="5">
+                        Spacing="5"
+                        >
                         <TextBlock VerticalAlignment="Center" Text="Don't have an Account?" />
                         <Button
                             x:Name="SwitchToSignUpBtn"
                             BorderThickness="0"
-                            Click="SwitchToSignUpBtn_Click">
+                            Click="SwitchToSignUpBtn_Click"
+                            >
                             <TextBlock Text="Sign Up" />
                         </Button>
 
@@ -90,32 +101,38 @@
                 <StackPanel
                     x:Name="SignUpPanel"
                     Spacing="10"
-                    Visibility="Collapsed">
+                    Visibility="Collapsed"
+                    >
                     <TextBlock
                         HorizontalAlignment="Center"
                         FontSize="39"
-                        Text="Dimmer Login" />
+                        Text="Dimmer Login"
+                        />
 
                     <TextBox
                         x:Name="DimmerUserNameSignUp"
                         FontSize="19"
                         PlaceholderText="Dimmer User Name"
-                        Text="{Binding LoginViewModel.Username}" />
+                        Text="{Binding LoginViewModel.Username}"
+                        />
 
                     <TextBox
                         x:Name="DimmerEmailSignUp"
                         FontSize="19"
                         PlaceholderText="Your Email"
-                        Text="{Binding LoginViewModel.Username}" />
+                        Text="{Binding LoginViewModel.Username}"
+                        />
                     <PasswordBox
                         x:Name="DimmerPasswordSignUp"
                         FontSize="19"
-                        PlaceholderText="Dimmer Password" />
+                        PlaceholderText="Dimmer Password"
+                        />
                     <PasswordBox
                         x:Name="DimmerPasswordSignUpConfirm"
                         FontSize="19"
                         PasswordChanged="DimmerPasswordSignUpConfirm_PasswordChanged"
-                        PlaceholderText="Confirm Password" />
+                        PlaceholderText="Confirm Password"
+                        />
 
 
 
@@ -123,7 +140,8 @@
                         x:Name="NotSamePasswordTxtBlock"
                         HorizontalAlignment="Center"
                         FontSize="18"
-                        Foreground="Red" />
+                        Foreground="Red"
+                        />
                     <Button
                         x:Name="SignupBtn"
                         HorizontalAlignment="Center"
@@ -131,23 +149,27 @@
                         Click="SignupBtn_Click"
                         Content="Signup"
                         FontSize="26"
-                        IsEnabled="False" />
+                        IsEnabled="False"
+                        />
 
                     <TextBlock
                         HorizontalAlignment="Center"
                         FontSize="18"
                         Foreground="Red"
-                        Text="{Binding LoginViewModel.ErrorMessage}" />
+                        Text="{Binding LoginViewModel.ErrorMessage}"
+                        />
 
                     <StackPanel
                         HorizontalAlignment="Center"
                         Orientation="Horizontal"
-                        Spacing="5">
+                        Spacing="5"
+                        >
                         <TextBlock VerticalAlignment="Center" Text="Already have an Account?" />
                         <Button
                             x:Name="SwitchToLogInBtn"
                             BorderThickness="0"
-                            Click="SwitchToLoginBtn_Click">
+                            Click="SwitchToLoginBtn_Click"
+                            >
                             <TextBlock Text="Log In" />
                         </Button>
 
@@ -161,7 +183,8 @@
                         MaxWidth="200"
                         MaxHeight="200"
                         HorizontalAlignment="Right"
-                        Source="/Dimmer/Resources/Images/usercircle.svg" />
+                        Source="/Dimmer/Resources/Images/usercircle.svg"
+                        />
 
                     <StackPanel HorizontalAlignment="Center">
                         <TextBlock FontSize="26" Text="{Binding CurrentUser.Username}" />
@@ -179,7 +202,8 @@
                                         BorderBrush="DarkSlateBlue"
                                         BorderThickness="1"
                                         CornerRadius="20"
-                                        Spacing="15">
+                                        Spacing="15"
+                                        >
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto" />
@@ -207,7 +231,8 @@
                                             x:Name="BackUpDeviceBtn"
                                             HorizontalAlignment="Center"
                                             Click="BackUpDeviceBtn_Click"
-                                            Visibility="Collapsed">
+                                            Visibility="Collapsed"
+                                            >
                                             <StackPanel Orientation="Horizontal">
                                                 <Image Source="/Dimmer/Resources/Images/cloudfile.svg" />
                                                 <TextBlock FontSize="16" Text="BackUp Device" />
@@ -224,7 +249,8 @@
                         <StackPanel
                             HorizontalAlignment="Center"
                             Orientation="Horizontal"
-                            Spacing="15">
+                            Spacing="15"
+                            >
 
                             <TextBlock FontSize="27" Text="Total Devices" />
                             <TextBlock FontSize="27" Text="{Binding OtherDevices.Count}" />

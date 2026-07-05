@@ -1,6 +1,8 @@
 using System.Text.RegularExpressions;
-
+using DevWinUI;
+using Dimmer.ViewModel.StatsVMs;
 using Microsoft.UI.Xaml.Documents;
+using Grid = Microsoft.UI.Xaml.Controls.Grid;
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
@@ -31,7 +33,7 @@ public sealed partial class ArtistPage : Page
 
     public SongModelView? DetailedSong { get; set; }
     public ArtistModelView? SelectedArtist { get; set; }
-    public StatisticsViewModel MyStatsViewModel { get; private set; }
+    public ArtistStatsViewModel MyArtistStatsViewModel { get; private set; }
 
     protected override async void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
     {
@@ -56,13 +58,20 @@ public sealed partial class ArtistPage : Page
         }
 
         MyViewModel ??= IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
-        MyStatsViewModel ??= IPlatformApplication.Current!.Services.GetService<StatisticsViewModel>()!;
+        MyArtistStatsViewModel ??= IPlatformApplication.Current!.Services.GetService<ArtistStatsViewModel>()!;
         MyViewModel.IsBackButtonVisible = WinUIVisibility.Visible;
 
 
         this.DataContext = MyViewModel.SelectedArtist;
+        SelectedArtist = MyViewModel.SelectedArtist;
         pressedCounter = 0;
-       
+        MyArtistStatsViewModel.LoadArtist(SelectedArtist.Id);
+        await  LoadWikiOfArtist();
+
+        _ = Task.Run(async () =>
+        {
+            //await MyStatsViewModel.LoadArtistStatsAsync(SelectedArtist);
+        });
 
     }
     private async Task LoadWikiOfArtist()
@@ -297,159 +306,132 @@ public sealed partial class ArtistPage : Page
         
     }
 
-    //private async void PlayBtn_Click(object sender, RoutedEventArgs e)
-    //{
-    //    // e.OriginalSource is the specific UI element that received the tap 
-    //    // (e.g., a TextBlock, an Image, a Grid, etc.).
-    //    var element = e.OriginalSource as FrameworkElement;
-    //    SongModelView? song = null;
-    //    if (element == null)
-    //        return;
 
-
-
-        
-    //    if (element.DataContext is SongModelView currentSong)
-    //    {
-    //        song = currentSong;
-    //    }
-        
-    //    var songs = ArtistDataTable.Items;
-
-
-
-    //    var SongsEnumerable = songs.OfType<SongModelView>();
-
-    //    if (song != null)
-    //    {
-    //        // You found the song! Now you can call your ViewModel command.
-    //        Debug.WriteLine($"Double-tapped on song: {song.Title}");
-    //        await MyViewModel.PlaySongAsync(song, curPage: CurrentPage.AllArtistsPage, songs: SongsEnumerable);
-    //    }
-    //}
-
-    private async void ArtistImageInArtistPage_PointerReleased(object sender, PointerRoutedEventArgs e)
+    private async void LastFM_Click(object sender, RoutedEventArgs e)
     {
-        var img = (Image)sender;
-        var element = e.OriginalSource as FrameworkElement;
-        if (element == null)
-            return;
-
-        var picker = new FileOpenPicker();
-        picker.FileTypeFilter.Add(".jpg");
-        picker.FileTypeFilter.Add(".png");
-        picker.CommitButtonText = "Select as Artist Image";
-        picker.SuggestedStartLocation = PickerLocationId.Downloads;
-        picker.ViewMode = PickerViewMode.Thumbnail;
-
-        var window = MyViewModel.MainWindow;
-        if (window != null)
-        {
-            var hWnd = WindowNative.GetWindowHandle(window);
-            InitializeWithWindow.Initialize(picker, hWnd);
-        }
-
-        // 3. Pick the file
-        var file = await picker.PickSingleFileAsync();
-
-        if (file == null) return; // User cancelled
-
-        // 4. Create the BitmapImage
-        var bitmap = new  BitmapImage();
-
-        // 5. Open the stream and assign it to the bitmap
-        using (var stream = await file.OpenAsync(FileAccessMode.Read))
-        {
-            await bitmap.SetSourceAsync(stream);
-        }
-
-        // 6. Assign to the Image Control
-        img.Source = bitmap;
-        //ArtistImage.Source = bitmap;
-        await MyViewModel.AssignImageToArtist(MyViewModel.SelectedArtist);
-        // TODO: Update your ViewModel or Database with 'file.Path' to persist the change
-        // ViewModel.SelectedArtist.ImagePath = file.Path;
+       await MyViewModel.LoadLastFMArtist(MyViewModel.SelectedArtist);
     }
 
-    //private void ArtistSongTitle_Click(object sender, RoutedEventArgs e)
-    //{
-    //    var songFrameworkElement = (FrameworkElement)sender;
-    //    var selectedSong = songFrameworkElement.DataContext as SongModelView;
-
-    //    var row = ArtistDataTable.ContainerFromItem(selectedSong) as FrameworkElement;
-    //    var image = PlatUtils.FindVisualChild<Image>(row, "coverArtImage");
-    //    if (image == null) return;
-
-    //    ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("ArtistToSongDetailsAnim", image);
-    //    ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("ArtistToSongDetailsAnim", songFrameworkElement);
-
-
-
-    //    MyViewModel.SelectedSong = selectedSong;
-    //    var dimmerWindow = MyViewModel.winUIWindowMgrService.GetWindow<DimmerWin>();
-    //    dimmerWindow ??= MyViewModel.winUIWindowMgrService.CreateWindow<DimmerWin>();
-
-
-
-    //    //MyViewModel.DimmerMultiWindowCoordinator.BringToFront()
-    //    if (dimmerWindow != null)
-    //        dimmerWindow.NavigateToPage(typeof(SongDetailPage));
-
-    //}
-
-    private async void BioBlock_Loaded(object sender, RoutedEventArgs e)
+    private void CollectionOfArtistTopSongs_Loaded(object sender, RoutedEventArgs e)
     {
-      await  LoadWikiOfArtist();
+
     }
 
-    private void ArtistFav_Loaded(object sender, RoutedEventArgs e)
+    private async void AlbumsByArtistGridView_Loaded(object sender, RoutedEventArgs e)
     {
-        var send = (Button)sender;
-        if(send != null && MyViewModel.SelectedArtist is not null)
+        var selArtistAlbums = MyViewModel.SelectedArtist?.AlbumsByArtist;
+        if (selArtistAlbums is null) return;
+        for (int i = 0; i < selArtistAlbums.Count; i++)
         {
-            if(MyViewModel.SelectedArtist.IsFavorite)
-            {
-                FontIcon FavedIcon= new FontIcon();
-                FavedIcon.Glyph = "\uEB52";
-                FavedIcon.Foreground = new SolidColorBrush(Colors.DarkSlateBlue);
-                send.Content = FavedIcon;
-            }
-            else
-            {
-                FontIcon UnFavedIcon = new FontIcon();
-                UnFavedIcon.Glyph = "\uEB51";
-                send.Content = UnFavedIcon;
+            
+            var alb = selArtistAlbums.ElementAtOrDefault(i);
+        
 
+            if(string.IsNullOrEmpty(alb?.ImagePath))
+            {
+               alb= await MyViewModel.LoadAndSaveAlbumImageFromLastFMAsync(SelectedArtist, alb);
+                
             }
         }
+
+        MyViewModel.SelectedArtist?.AlbumsByArtist = selArtistAlbums;
     }
 
-    private void MostPlayedSongs_Loaded(object sender, RoutedEventArgs e)
+    private void StatisticsSection_Loaded(object sender, RoutedEventArgs e)
     {
-       
-
+        Grid send = (Grid)sender;
+        send.DataContext = MyArtistStatsViewModel;
         
     }
 
+    private void ArtistImg_Loaded(object sender, RoutedEventArgs e)
+    {
+        var artImg = (Image)sender;
+        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.SelectedArtist), art => MyViewModel.SelectedArtist)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(selArt =>
+            {
+                if (selArt is null) return;
+                if(!string.IsNullOrEmpty(selArt.ImagePath))
+                {
+                    artImg.Source = new BitmapImage(new Uri(selArt.ImagePath));
+                }
+            });
+    }
 
 
+    private void SongStats_Loaded(object sender, RoutedEventArgs e)
+    {
+        StackPanel send = (StackPanel)sender;
+        if (MyArtistStatsViewModel is null) return;
+        send.DataContext = MyArtistStatsViewModel;
 
+    }
 
+    private void ListInsights_Loaded(object sender, RoutedEventArgs e)
+    {
+        MyArtistStatsViewModel?.WhenPropertyChanged(nameof(MyArtistStatsViewModel.ListInsights), v => MyArtistStatsViewModel?.ListInsights)
+            .Subscribe(insight =>
+            {
+                ListInsights.ItemsSource = insight;
+            });
+    }
 
+    private void ListTopSongs_Loaded(object sender, RoutedEventArgs e)
+    {
+        
+    }
 
-    //private void ArtistPagePivot_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
-    //{
+    private void ListDeepCuts_Loaded(object sender, RoutedEventArgs e)
+    {
+        MyArtistStatsViewModel?.WhenPropertyChanged(nameof(MyArtistStatsViewModel.ListDeepCuts), v => MyArtistStatsViewModel?.ListDeepCuts)
+            .Subscribe(insight =>
+            {
+                ListDeepCuts.ItemsSource = insight;
+            });
+    }
 
-    //    if((MyStatsViewModel.ArtistStats is null || MyStatsViewModel.ArtistStats.Summary.ArtistId != MyViewModel.SelectedArtist?.Id) && ArtistPagePivot.SelectedIndex == 1)
-    //    {
-    //      Task.Run(()=> _=  MyStatsViewModel.LoadArtistStatsAsync(MyViewModel.SelectedArtist));
+    private void ListMonthlyTrend_Loaded(object sender, RoutedEventArgs e)
+    {
+        MyArtistStatsViewModel?.WhenPropertyChanged(nameof(MyArtistStatsViewModel.ListMonthlyTrend), v => MyArtistStatsViewModel?.ListMonthlyTrend)
+            .Subscribe(insight =>
+            {
+                ListMonthlyTrend.ItemsSource = insight;
+            });
+    }
 
-    //    }
-    //}
+    private void ListTopAlbums_Loaded(object sender, RoutedEventArgs e)
+    {
+        MyArtistStatsViewModel?.WhenPropertyChanged(nameof(MyArtistStatsViewModel.ListTopAlbums), v => MyArtistStatsViewModel?.ListTopAlbums)
+            .Subscribe(insight =>
+            {
+                ListTopAlbums.ItemsSource = insight;
+            });
+    }
 
-    //private void AlbumsHeaderCarousel_Loaded(object sender, RoutedEventArgs e)
-    //{
+    private void ArtistSongsDG_Loaded(object sender, RoutedEventArgs e)
+    {
+        ArtistSongsDG.ItemsSource = MyViewModel.SelectedArtist.SongsByArtist;
+    }
 
+    private void StoreCarouselTopSongs_Loaded(object sender, RoutedEventArgs e)
+    {
+        MyArtistStatsViewModel?.WhenPropertyChanged(nameof(MyArtistStatsViewModel.ListTopSongs), v => MyArtistStatsViewModel?.ListTopSongs)
+            .Subscribe(insight =>
+            {
+                StoreCarouselTopSongs.ItemsSource = insight?.Where(x =>File.Exists(x.ImagePath)).ToList();
+            });
+    }
 
-    //}
+    private void StoreCarouselTopSongs_ItemClick(object sender, StoreCarouselEventArgs e)
+    {
+
+    }
+
+    private void ArtistSongsDG_CellDoubleTapped(object sender,TableViewCellDoubleTappedEventArgs e)
+    {
+
+    }
+
+  
 }

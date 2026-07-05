@@ -45,7 +45,11 @@ public static class AlbumModelViewExtensions
                 alb.TotalCompletedPlays = songsInAlbum.Sum(s => s.PlayCompletedCount);
                 alb.TotalDuration = songsInAlbum.Sum(s => s.DurationInSeconds).ToString();
                 alb.TotalSkipCount = songsInAlbum.Sum(x => x.SkipCount);
-
+                if(string.IsNullOrEmpty(alb.ImagePath) || alb.ImagePath== "musicalbum.png")
+                {
+                    alb.ImagePath = songsInAlbum.First(x => !string.IsNullOrEmpty(x.CoverImagePath)).CoverImagePath;
+                   realm.Add(alb,update:true);
+                }
                 // Ensure artist-album relationship exists exactly once
                 if (!alb.Artists.AsEnumerable().Contains(artInDb))
                 {

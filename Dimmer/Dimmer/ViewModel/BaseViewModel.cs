@@ -28,6 +28,8 @@ namespace Dimmer.ViewModel;
 
 public partial class BaseViewModel : ObservableObject,  IDisposable
 {
+    [ObservableProperty]
+    public partial TimeSpan CurrentTrackPosition { get; set; }
     private IDuplicateFinderService _duplicateFinderService;
 
     public readonly Guid InstanceId = Guid.NewGuid();
@@ -78,7 +80,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _lyricsMgtFlow = lyricsMgtFlow;
         _logger = logger ?? NullLogger<BaseViewModel>.Instance;
         this._audioService = audioServ;
-        //UserLocal = new UserModelView();
+
         dimmerPlayEventRepo ??= DimmerPlayEventRepo;
         _playlistRepo = PlaylistRepo;
 
@@ -87,21 +89,21 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         CurrentPlayingSongView = new();
         BaseAppFlow = BaseAppClass;
-        //this.authService = _authService;
 
-        //folderMonitorService = FolderServ;
         RealmFactory = RealmFact;
 
 
       
 
         _searchQuerySubject = new BehaviorSubject<string>("");
-        _limiterClause = new BehaviorSubject<LimiterClause?>(null);
+
 
 
 
     }
 
+
+    public BehaviorSubject<string> _searchQuerySubject;
 
     public virtual void UpdateIsSearchResultEmpty(bool isSearchResultEmpty)
     {
@@ -127,6 +129,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial bool IsBackGrounded { get; set; }
 
+    async partial void OnIsSearchResultEmptyChanging(bool oldValue, bool newValue)
+    {
+
+    }
     async partial void OnIsBackGroundedChanging(bool oldValue, bool newValue)
     {
         if(newValue)
@@ -165,6 +171,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
              .AutoRefresh(artist => artist.TotalSongsByArtist)
         .AutoRefresh(artist => artist.TotalAlbumsByArtist)
              .AutoRefresh(artist => artist.Name)
+             
            .Sort(ArtistSortSubject)
             .ObserveOn(RxSchedulers.UI)
             .Bind(out _artistCollection)
@@ -180,6 +187,41 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         pipeline.DisposeWith(CompositeDisposables);
         IsArtistInitialized = true;
     }
+    [ObservableProperty]
+    public partial bool IsPlaylistInitialized { get; set; }
+    public void SetupPlaylistPipeline()
+    {
+        if (IsPlaylistInitialized) return;
+        var _realm = RealmFactory.GetRealmInstance();
+        var totalItems = _realm.All<PlaylistModel>().Count();
+
+        var pipeline = _realm.All<PlaylistModel>()
+            .OrderBy(p => p.DateCreated)
+            .AsObservableChangeSet()
+            .Transform(pl =>
+            {
+                return pl.ToPlaylistModelView()!;
+            })
+            .ObserveOn(RxSchedulers.UI)
+            .Bind(out _playlistsCollection)
+            .DisposeMany()
+            .Subscribe(changes =>
+            {
+                IsLoading = false;
+
+                OnPropertyChanged(nameof(PlaylistsCollection));
+            }).DisposeWith(CompositeDisposables);
+
+        IsPlaylistInitialized = true;
+    }
+
+
+    // Filter and Sort subjects (exposed for UI to update)
+    private readonly BehaviorSubject<Func<AlbumModelView, bool>> _albumFilterSubject
+        = new(album => true); // Default: no filter
+
+    private readonly BehaviorSubject<IComparer<AlbumModelView>> _albumSortSubject
+        = new(SortExpressionComparer<AlbumModelView>.Ascending(a => a.Name)); // Default sort
 
     public void SetupAlbumPipeline()
     {
@@ -201,21 +243,59 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     .CoverImagePath;
                 return albumMV;
             })
+            .Filter(_albumFilterSubject)
+            //.Sort(comparer: _albumSortSubject.Value)
+
             .ObserveOn(RxSchedulers.UI)
             .Bind(out _albumsCollection)
             .DisposeMany()
-           
-            .Subscribe(changes =>
-            {
-                IsLoading = false;
-
-                OnPropertyChanged(nameof(AlbumsCollection));
-            });
+           .Do(_ =>
+           {
+               IsLoading = false;
+           }) // Set false when first batch arrives
+            .Subscribe(
+                onNext: _ => { },
+                onError: ex =>
+                {
+                    _logger.LogError(ex, "Album pipeline failed");
+                })
+            .DisposeWith(CompositeDisposables);
 
         pipeline.DisposeWith(CompositeDisposables);
         IsAlbumInitialized = true;
     }
 
+    /// <summary>
+    /// Update the album filter. Call from UI (e.g., search text changed).
+    /// </summary>
+    public void UpdateAlbumFilter(string? searchText)
+    {
+        var query = (searchText ?? string.Empty).Trim();
+        _albumFilterSubject.OnNext(album =>
+            string.IsNullOrEmpty(query) ||
+            (album.Name?.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0));
+    }
+
+    /// <summary>
+    /// Update the album sort order. Call from UI (e.g., sort radio buttons).
+    /// </summary>
+    public void UpdateAlbumSort(AlbumSortBy sortBy)
+    {
+        var comparer = sortBy switch
+        {
+            AlbumSortBy.NameAscending =>
+                SortExpressionComparer<AlbumModelView>.Ascending(a => a.Name),
+            AlbumSortBy.NameDescending =>
+                SortExpressionComparer<AlbumModelView>.Descending(a => a.Name),
+            AlbumSortBy.YearAscending =>
+                SortExpressionComparer<AlbumModelView>.Ascending(a => a.ReleaseYear),
+            AlbumSortBy.YearDescending =>
+                SortExpressionComparer<AlbumModelView>.Descending(a => a.ReleaseYear),
+            _ => SortExpressionComparer<AlbumModelView>.Ascending(a => a.Name)
+        };
+
+        _albumSortSubject.OnNext(comparer);
+    }
     private void SetupHistoryPipeline()
     {
         // Get Realm instance
@@ -422,13 +502,13 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                         return;
                     }
 
-                    CurrentPlayingSongView.CoverImagePath = songInDb.Album.SongsInAlbum?.FirstOrDefault(c => !string.IsNullOrEmpty(c.CoverImagePath))?.CoverImagePath;
+                    CurrentPlayingSongView.CoverImagePath = songInDb.Album.SongsInAlbum?.FirstOrDefault(c => !string.IsNullOrEmpty(c.CoverImagePath))?.CoverImagePath ?? string.Empty;
                 }
                 await HeavierBackGroundLoadings(FolderPaths);
 
                 //await Task.Delay(1500);
                 await EnsureAllCoverArtCachedForSongsAsync(_backgroundCachingCts.Token);
-                await this.LoadAllSongsLyricsFromOnlineAsync(_backgroundCachingCts);
+                //await this.LoadAllSongsLyricsFromOnlineAsync(_backgroundCachingCts);
             }
             catch (OperationCanceledException er)
             {
@@ -480,23 +560,19 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             .Bind(out _searchResults)
             .Subscribe(x =>
             {
-                IsSearchResultEmpty = SearchResults.Count == 0;
-                UpdateIsSearchResultEmpty(IsSearchResultEmpty);
-                Debug.WriteLine(x.Count);
+                
             })
             .DisposeWith(CompositeDisposables);
 
 
 
         // 4. Handle Logging. Remove the temporary `if (pos == 0)` check.
-        Observable.FromEventPattern<double>(
-            h => _audioService.SeekCompleted += h,
-            h => _audioService.SeekCompleted -= h)
-            .Select(evt => evt.EventArgs)
-            .ObserveOn(RxSchedulers.UI)
-            .Subscribe(OnSeekCompleted, ex => _logger.LogError(ex, "Error in SeekCompleted subscription"))
-            .DisposeWith(_subsManager);
-
+        _subsMgr.Add(Observable.FromEventPattern<double>(
+             h => _audioService.SeekCompleted += h,
+             h => _audioService.SeekCompleted -= h)
+             .Select(evt => evt.EventArgs)
+             .ObserveOn(RxSchedulers.UI)
+             .Subscribe(OnSeekCompleted, ex => _logger.LogError(ex, "Error in SeekCompleted subscription")));
         _duplicateSource
         .Connect()
         .Bind(out _duplicateSets)
@@ -553,7 +629,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _backgroundCachingCts = new CancellationTokenSource();
 
 
-        this.WhenPropertyChange(
+        this.WhenPropertyChanged(
           nameof(this.IsBackGrounded),
           isBG => (this.IsBackGrounded))
           .ObserveOn(RxSchedulers.UI)
@@ -573,6 +649,17 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         return;
     }
 
+    public void UpdateAlbumSearch(string text)
+    {
+
+        var q = (text ?? string.Empty).Trim();
+        // Debounce caller side (UI) or ensure caller throttles updates.
+        _albumFilterSubject.OnNext(a =>
+            string.IsNullOrEmpty(q) ||
+            (a.Name?.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0));
+
+    }
+
     public void StartTQLPipeLine()
     {
        if( IsTQLInitialized )return;
@@ -581,35 +668,20 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         var searchStream = _searchQuerySubject
        .Throttle(TimeSpan.FromMilliseconds(250), RxSchedulers.Background)
        .DistinctUntilChanged()
+        .ObserveOn(RxSchedulers.UI)
+
        .Do(query =>
        {
            RxSchedulers.UI.ScheduleTo(() =>
            {
                IsTqlBusy = true;
                CurrentTqlQueryUI = query;
+               TQLUserSearchErrorMessage = string.Empty; // Clear old errors!
                Debug.WriteLine($"[UI] Query updated: {query}");
            });
        })
-       .Select(query =>
-       {
-           Debug.WriteLine($"[Background] Starting search for: {query}");
-
-
-           return Observable.Start(() =>
-           {
-               Debug.WriteLine($"[ThreadPool] Task started for: {query}");
-               var result = PerformSearchBackground(query);
-
-               return result;
-           }, RxSchedulers.Background)
-           .ObserveOn(RxSchedulers.UI)
-
-           .Do(result =>
-           {
-               // This now runs on UI thread!
-
-           });
-       })
+       .Select(query =>  Observable.FromAsync(ct => Task.Run(() => PerformSearchBackground(query, ct), ct)))
+       
        .Switch() // Now switching between observables that already target UI
        .Subscribe(result =>
        {
@@ -621,19 +693,26 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
        ex =>
        {
            Debug.WriteLine($"[Error] {ex.Message}");
-           _logger.LogError(ex, "Search pipeline crashed");
+           _logger.LogError(ex, "Search pipeline crashed"); 
+           TQLUserSearchErrorMessage = "Engine Error: " + ex.Message;
+           IsTqlBusy = false;
        })
        .DisposeWith(CompositeDisposables);
         IsTQLInitialized = true;
     }
+
+
+
     private void ApplySearchResults(SearchResult? result)
     {
         if (result == null) return;
         if (!string.IsNullOrEmpty(result.ErrorMessage))
         {
             TQLUserSearchErrorMessage = result.ErrorMessage;
+            SearchResultsHolder.Edit(innerCache => innerCache.Clear()); // CLEAR THE LIST!
             return;
         }
+        TQLUserSearchErrorMessage = string.Empty;
         if (result.SongsResultIds is not null)
         {
             // Realize the list so we can check the count
@@ -649,7 +728,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 var resultCount = result.SongsResultIds.Count;
                 var totalDbCount = uiRealm.All<SongModel>().Count(); // This is instant in Realm
 
-                List<SongModelView> viewModels;
+            List<SongModelView> viewModels = new() ;
 
                 if (resultCount > (totalDbCount * 0.3))
                 {
@@ -696,17 +775,19 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     RxSchedulers.UI.ScheduleTo(() =>
                     {
                         SearchResultsHolder.Edit(innerCache => innerCache.Load(viewModels));
+                        IsSearchResultEmpty = viewModels.Count == 0;
+                        //OnPropertyChanging(nameof(IsSearchResultEmpty));
+                        OnPropertyChanged(nameof(IsSearchResultEmpty));
+                        UpdateIsSearchResultEmpty(IsSearchResultEmpty);
+                        //Debug.WriteLine(x.Count);
                     });
                 }
           
         }
     }
-    private CancellationTokenSource? _searchCts;
-    private SearchResult? PerformSearchBackground(string queryText)
+    private SearchResult? PerformSearchBackground(string queryText,CancellationToken ct)
     {
-        _searchCts?.Cancel();
-        _searchCts = new CancellationTokenSource();
-        var ct = _searchCts.Token;
+
 
         using var realmm = RealmFactory.GetRealmInstance();
 
@@ -749,6 +830,28 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             IEnumerable<SongModel> intermediateList = query.ToList();
 
             if (ct.IsCancellationRequested) return null;
+
+            if (plan.SortDescriptions.Count > 0)
+            {
+                var firstSort = plan.SortDescriptions[0];
+
+                // Sort Ascending (Lowest to Highest, 0 -> X) or Descending (X -> 0)
+                var orderedList = firstSort.Direction == SortDirection.Ascending
+                    ? intermediateList.OrderBy(x => SemanticQueryHelpers.GetComparableProp(x, firstSort.PropertyName))
+                    : intermediateList.OrderByDescending(x => SemanticQueryHelpers.GetComparableProp(x, firstSort.PropertyName));
+
+                // Handle multiple sort directives (e.g., asc year desc rating)
+                for (int i = 1; i < plan.SortDescriptions.Count; i++)
+                {
+                    var sort = plan.SortDescriptions[i];
+                    orderedList = sort.Direction == SortDirection.Ascending
+                        ? orderedList.ThenBy(x => SemanticQueryHelpers.GetComparableProp(x, sort.PropertyName))
+                        : orderedList.ThenByDescending(x => SemanticQueryHelpers.GetComparableProp(x, sort.PropertyName));
+                }
+
+                intermediateList = orderedList; // Realize the accurate sort
+            }
+
             // E. In-Memory Predicate (Chance, Regex, etc)
             if (plan.InMemoryPredicate != null)
             {
@@ -834,7 +937,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             .GroupBy(s => s.TitleDurationKey?.Trim(), StringComparer.OrdinalIgnoreCase)
             .Where(g => g.Count() > 1 && !string.IsNullOrEmpty(g.Key)).ToList();
 
-        bool needsClean = duplicateGenres.Any() || duplicateArtists.Any() || duplicateAlbums.Any() || duplicateSongs.Any();
+        bool needsClean = duplicateGenres.Count != 0 || duplicateArtists.Count != 0 || duplicateAlbums.Count != 0 || duplicateSongs.Count != 0;
 
         if (!needsClean)
         {
@@ -1120,6 +1223,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     {
 
     }
+    [ObservableProperty]
+    public partial CompleteBackupData? PickedUpBackup { get; set; }
 
     [RelayCommand]
     public void SearchToTQL(string? searchText)
@@ -1161,8 +1266,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     }
 
-    public BehaviorSubject<string> _searchQuerySubject;
-    private BehaviorSubject<LimiterClause?> _limiterClause;
 
     public event EventHandler? AddNextEvent;
 
@@ -1381,6 +1484,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
     [ObservableProperty]
+    public partial AppStateModel CurrentAppState { get;  set; }
+
+    [ObservableProperty]
     public partial bool OpenMediaUIOnNotificationTap { get;  set; }
     public async Task OnAppOpeningAsync()
     {
@@ -1388,18 +1494,18 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             var realm = RealmFactory.GetRealmInstance();
             // Use FirstOrDefault() to be safer and slightly more efficient than .ToList()
-            var appModel = realm.All<AppStateModel>().FirstOrDefaultNullSafe();
+            var CurrentAppState = realm.All<AppStateModel>().FirstOrDefaultNullSafe();
 
             // get last dimmerevent
 
             //await LoadLastPlaybackSession();
             var lastAppEvent = realm.All<DimmerPlayEvent>().LastOrDefaultNullSafe();
-            if (appModel != null && appModel.Id != ObjectId.Empty)
+            if (CurrentAppState != null && CurrentAppState.Id != ObjectId.Empty)
             {
 
-                if (appModel.LastKnownPlaybackQuery is not null)
+                if (CurrentAppState.LastKnownPlaybackQuery is not null)
                 {
-                    var removeCOmmandFromLastSaved = appModel.LastKnownPlaybackQuery.Replace(">>addnext!", "");
+                    var removeCOmmandFromLastSaved = CurrentAppState.LastKnownPlaybackQuery.Replace(">>addnext!", "");
 
                     removeCOmmandFromLastSaved = Regex.Replace(
                         removeCOmmandFromLastSaved,
@@ -1420,18 +1526,18 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     CurrentPlaybackQuery = removeCOmmandFromLastSaved;
                 }
 
-                _currentPlayinSongIndexInPlaybackQueue = appModel.LastKnownPlaybackQueueIndex;
-                IsShuffleActive = appModel.ShuffleStatePreference;
-                CurrentRepeatMode = (RepeatMode)appModel.LastKnownRepeatState;
-                OpenMediaUIOnNotificationTap = appModel.OpenMediaUIOnNotificationTap;
-                CurrentTrackPositionSeconds = appModel.LastKnownPosition;
-                DeviceVolumeLevel = appModel.VolumeLevelPreference;
-                IsDarkModeOn = appModel.IsDarkModePreference;
+                _currentPlayinSongIndexInPlaybackQueue = CurrentAppState.LastKnownPlaybackQueueIndex;
+                IsShuffleActive = CurrentAppState.ShuffleStatePreference;
+                CurrentRepeatMode = (RepeatMode)CurrentAppState.LastKnownRepeatState;
+                OpenMediaUIOnNotificationTap = CurrentAppState.OpenMediaUIOnNotificationTap;
+                CurrentTrackPositionSeconds = CurrentAppState.LastKnownPosition;
+                DeviceVolumeLevel = CurrentAppState.VolumeLevelPreference;
+                IsDarkModeOn = CurrentAppState.IsDarkModePreference;
                 //ScrobbleToLastFM = appModel.ScrobbleToLastFM;
-                KeepScreenOnDuringLyrics = appModel.KeepScreenOnDuringLyrics;
+                KeepScreenOnDuringLyrics = CurrentAppState.KeepScreenOnDuringLyrics;
                 // --- REPLACED: Logic to load the last played song ---
-                if (!string.IsNullOrEmpty(appModel.CurrentSongId) &&
-                    ObjectId.TryParse(appModel.CurrentSongId, out var songId))
+                if (!string.IsNullOrEmpty(CurrentAppState.CurrentSongId) &&
+                    ObjectId.TryParse(CurrentAppState.CurrentSongId, out var songId))
                 {
                     SongModel? songModel=new();
                     if (songId == ObjectId.Empty)
@@ -1654,6 +1760,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         
         private ReadOnlyObservableCollection<AlbumModelView> _albumsCollection;
 
+    public ReadOnlyObservableCollection<PlaylistModelView> PlaylistsCollection => _playlistsCollection;
+        
+        private ReadOnlyObservableCollection<PlaylistModelView> _playlistsCollection;
+
     public ReadOnlyObservableCollection<AlbumModelView> AlbumsCollection => _albumsCollection;
     private readonly CommandEvaluator commandEvaluator = new();
     #endregion
@@ -1668,6 +1778,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     private IHoarderService _hoarderService;
     public IDimmerStateService StateService => _stateService;
     protected IDimmerStateService _stateService;
+    public SubscriptionManager SubsManager => _subsMgr;
     protected SubscriptionManager _subsMgr;
     protected IFolderMgtService _folderMgtService;
     private IRepository<SongModel> songRepo;
@@ -1689,9 +1800,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     // Cancellation token for background cover art caching to prevent memory issues on Android
     private CancellationTokenSource? _backgroundCachingCts;
 
-    public CompositeDisposable SubsManager => _subsManager;
-    private readonly CompositeDisposable _subsManager = new CompositeDisposable();
-
+   
 
     #endregion
 
@@ -1826,8 +1935,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     public ObservableCollection<IQueryComponentViewModel> UIQueryComponents { get; } = new();
 
-
-    //private BehaviorSubject<LimiterClause?> _limiterClause;
 
     [RelayCommand]
     public void SmolHold() { SearchToTQL("Len:<=2:00"); }
@@ -1964,7 +2071,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial string AppTitle { get; set; } = "Dimmer";
 
-    public static string CurrentAppVersion = "1.9.6";
+    public static string CurrentAppVersion = "1.9.7";
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]
@@ -2901,6 +3008,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             oldValue.IsCurrentPlayingHighlight = false;
         if (newValue is null) return;
         if (oldValue?.TitleDurationKey == newValue.TitleDurationKey) return;
+        if(string.IsNullOrWhiteSpace(newValue.CoverImagePath))
+        {
+            newValue.CoverImagePath = string.Empty;
+        }
+        OnPropertyChanged(nameof(CurrentPlayingSongView));
         await ProcessSongChangeAsync(newValue);
         CurrentPlaySongDominantColor = await ImageFilterUtils.GetDominantMauiColorAsync(newValue.CoverImagePath);
     }
@@ -3697,7 +3809,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [RelayCommand]
     public async Task NextTrackAsync(bool IsSkipYes=true)
     {
-        if (IsDimmerPlaying && CurrentPlayingSongView != null && (CurrentTrackPositionPercentage < 90 || IsSkipYes))
+        if (
+            CurrentPlayingSongView != null && (CurrentTrackPositionPercentage < 90 || IsSkipYes))
         {
             await BaseAppFlow.UpdateDatabaseWithPlayEvent(
                 
@@ -3707,7 +3820,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
            
 
         }
-        else if (IsDimmerPlaying && CurrentPlayingSongView?.TitleDurationKey != null && (CurrentTrackPositionPercentage >= 90 || !IsSkipYes))
+        else if (CurrentPlayingSongView?.TitleDurationKey != null && (CurrentTrackPositionPercentage >= 90 || !IsSkipYes))
         {
             await BaseAppFlow.UpdateDatabaseWithPlayEvent(
                 
@@ -4401,7 +4514,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     async x => await HandlePlaybackStateChange(x),
                     ex => _logger.LogError(ex, "Error in PlaybackStateChanged subscription")));
 
-        _subsManager.Add(Observable.FromEventPattern<PlaybackEventArgs>(
+        _subsMgr.Add(Observable.FromEventPattern<PlaybackEventArgs>(
             h => _audioService.ErrorOccurred += h,
             h => _audioService.ErrorOccurred -= h)
                 .Select(evt => evt.EventArgs)
@@ -4427,15 +4540,20 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     },
                     ex => _logger.LogError(ex, "Error in IsPlayingChanged subscription")));
 
-        var ss = Observable.FromEventPattern<double>(
+        _subsMgr.Add(Observable.FromEventPattern<double>(
                 h => _audioService.PositionChanged += h,
                 h => _audioService.PositionChanged -= h)
                 .Select(evt => evt.EventArgs)
                 .ObserveOn(RxSchedulers.UI)
-                .Subscribe(OnPositionChanged, ex => _logger.LogError(ex, "Error in PositionChanged subscription"))
-                ;
-        _subsMgr.Add(ss
-            );
+                .Subscribe(posInSec =>
+                {
+                    // Keep your existing method call
+                    OnPositionChanged(posInSec);
+
+                    // Feed the UI
+                    CurrentTrackPosition = TimeSpan.FromSeconds(posInSec);
+                },
+                ex => _logger.LogError(ex, "Error in PositionChanged subscription")));
 
         //_subsMgr.Add(Observable.FromEventPattern<double>(
         //        h => _audioService.SeekCompleted += h,
@@ -4548,7 +4666,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             return;
         };
         SelectedArtist = artist;
-       SelectedArtist.RefreshAlbumAndSongsFromDB(RealmFactory);
+        if(artist.SongsByArtist is null || artist.SongsByArtist?.Count<1)
+            SelectedArtist.RefreshAlbumAndSongsFromDB(RealmFactory);
     }
     public async Task<bool> SelectedArtistAndNavtoPage(SongModelView? song)
     {
@@ -4561,7 +4680,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         var allArts = song.OtherArtistsName.Split(", ");
 
         _logger.LogTrace("SelectedArtistAndNavtoPage called with song: {SongTitle}", song.Title);
-        var result = await Shell.Current.DisplayActionSheet("Select Action", "Cancel", null, allArts);
+        var result = await Shell.Current.DisplayActionSheetAsync("Select Action", "Cancel", null, allArts);
         if (result == "Cancel" || string.IsNullOrEmpty(result))
             return false;
 
@@ -4858,20 +4977,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial ObservableCollection<DimmerStats>? SongWeekdayVsWeekend { get; set; }
 
 
-    /// <summary>
-    /// Loads ALL global, library-wide statistics. Call this once when the page loads.
-    /// </summary>
-    public void GetStatsGeneral()
-    {
-        var allSongs = songRepo.GetAll();
-        int topCount = 10;
-
-
-        var endDate = DateTimeOffset.UtcNow;
-        var monthStartDate = endDate.AddMonths(-1);
-        var yearStartDate = endDate.AddYears(-1);
-    }
-
+  
     [RelayCommand]
     public async Task LoadStatsForSpecificSong(SongModelView? song)
     {
@@ -5262,13 +5368,17 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     newPlaylistModel.DateCreated = DateTimeOffset.UtcNow;
                     newPlaylistModel.LastPlayedDate = DateTimeOffset.UtcNow;
                     newPlaylistModel.QueryText = PlQuery;
-                    newPlaylistModel.SongsIdsInPlaylist.AddRange(songsToAdd.Select(s => s.Id).Distinct());
-                    
-
-
-                    realm.Add(newPlaylistModel, true);
+                    var songIds = songsToAdd.Select(s => s.Id).Distinct();
+                    newPlaylistModel.SongsIdsInPlaylist.AddRange(songIds);
 
                     
+                   var pl= realm.Add(newPlaylistModel, true);
+
+                    foreach (var id in songIds)
+                    {
+                        var songInDb = realm.Find<SongModel>(id);
+                        songInDb.PlaylistsHavingSong.Add(pl);
+                    }
 
                 });
             foreach (var song in songsToAdd)
@@ -5293,7 +5403,18 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         var songIdsToAdd = songsToAdd.Select(s => s.Id).ToHashSet();
 
-        _playlistRepo.Update(
+        var _realm = RealmFactory.GetRealmInstance();
+       await _realm.WriteAsync( ()=>
+       {
+
+               foreach (var id in songIdsToAdd)
+               {
+                   var songInDb = _realm.Find<SongModel>(id);
+                   songInDb.PlaylistsHavingSong.Add(targetPlaylist);
+               }
+           
+       });
+       var pl= _playlistRepo.Update(
             targetPlaylist.Id,
             livePlaylist =>
             {
@@ -5305,6 +5426,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                         livePlaylist.SongsIdsInPlaylist.Add(songId);
                         songsAddedCount++;
                     }
+
                 }
                 _logger.LogInformation(
                     "Successfully added {Count} new songs to manual playlist '{PlaylistName}'.",
@@ -5333,7 +5455,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             _playEventSource.Dispose();
 
-            _subsManager.Dispose();
+            _subsMgr.Dispose();
             CompositeDisposables.Dispose();
             
         }
@@ -7551,8 +7673,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial bool IsRestoreDone { get; set; }
 
-    [ObservableProperty]
-    public partial CompleteBackupData? PickedUpBackup { get; set; }
 
     [RelayCommand]
     private void ToggleEditMode()
@@ -8355,9 +8475,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public void CopyAllSongsInNowPlayingQueueToMainSearchResult()
     {
 
-        var currentSongIndexInQueue = PlaybackQueue.IndexOf(CurrentPlayingSongView);
-        int totalMatches = PlaybackQueue.Count;
-
+        tempListOfSongs = new();
+        tempListOfSongs.AddRange(SearchResults);
         SearchResultsHolder.Edit(updater =>
         {
             updater.Clear();
@@ -8367,6 +8486,21 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
 
     }
+    public async Task RevertBackToNowPlayingSongsAsync()
+    {
+        if(tempListOfSongs is null)
+        {
+            await Shell.Current.DisplayAlertAsync("List Empty", "The Temp list is null", "Ok");
+            return;
+        }
+        SearchResultsHolder.Edit(upd =>
+        {
+            upd.Clear();
+            upd.AddOrUpdate(tempListOfSongs);
+        });
+        tempListOfSongs.Clear();
+    }
+    List<SongModelView>? tempListOfSongs;
 
     public PlaylistModelView? GetLastPlaylist()
     {
@@ -8448,6 +8582,37 @@ public void RemoveRule(VisualFilterRule rule)
         
     }
 
+    public void LoadFolderPaths()
+    {
+        FolderPaths = RealmFactory.GetRealmInstance().All<AppStateModel>().FirstOrDefaultNullSafe()?.UserMusicFolders.Select(x=>x.SystemFolderPath).ToObservableCollection();  
+    }
+
+    public async Task<AlbumModelView?> LoadAndSaveAlbumImageFromLastFMAsync(ArtistModelView? art, AlbumModelView? alb)
+    {
+        if (art is null || alb is null)
+        {
+            return null;
+        }
+
+        var lastFMAlb = await LastfmService.GetAlbumInfoAsync(art.Name, alb.Name);
+
+        if (lastFMAlb is null) return null;
+
+        var imgUrl = lastFMAlb.Images?.Where(x => !string.IsNullOrEmpty(x.Url))
+            .LastOrDefault()?.Url;
+        if (!string.IsNullOrEmpty(imgUrl))
+        {
+            alb.ImagePath = imgUrl;
+            var realm = RealmFactory.GetRealmInstance();
+            await realm.WriteAsync(() =>
+            {
+                var albInDb = realm.Find<AlbumModel>(alb.Id);
+                alb.Url = lastFMAlb.Url;
+                alb.ImagePath = imgUrl;
+            });
+        }
+        return alb;
+    }
 }
 
 public enum CollectionViewMode

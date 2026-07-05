@@ -18,7 +18,6 @@ global using CommunityToolkit.Mvvm.Input;
 global using System.Linq.Dynamic.Core;
 global using Dimmer.Data.ModelView.DimmerSearch;
 global using Dimmer.Data.ModelView.LibSanityModels;
-global using Dimmer.Data.ModelView.NewFolder;
 global using Dimmer.Data.RealmStaticFilters;
 global using Dimmer.DimmerSearch;
 global using Dimmer.DimmerSearch.Exceptions;

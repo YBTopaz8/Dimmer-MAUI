@@ -1,5 +1,3 @@
-using DevExpress.Maui.Core;
-
 namespace Dimmer.Views.Artist;
 
 public partial class AllArtistsPage : ContentPage

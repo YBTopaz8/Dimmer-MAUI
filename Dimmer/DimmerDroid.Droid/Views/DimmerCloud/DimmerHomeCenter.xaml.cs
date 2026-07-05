@@ -1,7 +1,4 @@
-using AndroidX.Lifecycle;
-using DevExpress.Maui.Core.Internal;
 using Dimmer.DimmerLive.Models;
-using Google.Android.Material.Dialog;
 
 namespace Dimmer.Views.DimmerCloud;
 
@@ -22,7 +19,7 @@ public partial class DimmerHomeCenter : ContentPage
     private void MainGrid_Loaded(object sender, EventArgs e)
     {
 
-        LoginViewModel.WhenPropertyChange(
+        LoginViewModel.WhenPropertyChanged(
       nameof(LoginViewModel.IsAuthenticated),
       isBG => (LoginViewModel.IsAuthenticated))
       .ObserveOn(RxSchedulers.UI)

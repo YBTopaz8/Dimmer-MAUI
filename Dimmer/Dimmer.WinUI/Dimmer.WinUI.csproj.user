@@ -103,16 +103,10 @@
     <Page Update="Views\WinuiPages\GraphAndNodes.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Views\WinuiPages\LibraryStatsPage.xaml">
-      <SubType>Designer</SubType>
-    </Page>
     <Page Update="Views\WinuiPages\SingleSongPage\SubPage\Stats\SongJourneyPage.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\WinuiPages\SingleSongPage\SubPage\Stats\SongArtistStatsPage.xaml">
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Update="Views\WinuiPages\SingleSongPage\SubPage\Stats\SongAlbumStatsPage.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\WinuiPages\SingleSongPage\SubPage\Stats\SongOverviewStatsPage.xaml">

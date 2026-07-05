@@ -59,7 +59,8 @@
 		  <None Remove="Views\WinuiPages\DimmsSection\AllDimsView.xaml" />
 		  <None Remove="Views\WinuiPages\GraphAndNodes.xaml" />
 		  <None Remove="Views\WinuiPages\LastFMSection\LastFmPage.xaml" />
-		  <None Remove="Views\WinuiPages\LibraryStatsPage.xaml" />
+		  <None Remove="Views\WinuiPages\PlaylistSection\AllPlaylistsPage.xaml" />
+		  <None Remove="Views\WinuiPages\PlaylistSection\SinglePlaylistPage.xaml" />
 		  <None Remove="Views\WinuiPages\SettingsPage.xaml" />
 		  <None Remove="Views\WinuiPages\Settings\FoldersSettingsPage.xaml" />
 		  <None Remove="Views\WinuiPages\Settings\RestoreBackupPage.xaml" />
@@ -69,7 +70,6 @@
 		  <None Remove="Views\WinuiPages\SingleSongPage\SubPage\LyricsManualSyncPage.xaml" />
 		  <None Remove="Views\WinuiPages\SingleSongPage\SubPage\LyricsOverViewPage.xaml" />
 		  <None Remove="Views\WinuiPages\SingleSongPage\SubPage\OnlineLyricsSearchPage.xaml" />
-		  <None Remove="Views\WinuiPages\SingleSongPage\SubPage\Stats\SongAlbumStatsPage.xaml" />
 		  <None Remove="Views\WinuiPages\SingleSongPage\SubPage\Stats\SongArtistStatsPage.xaml" />
 		  <None Remove="Views\WinuiPages\SingleSongPage\SubPage\Stats\SongJourneyPage.xaml" />
 		  <None Remove="Views\WinuiPages\SongDetailPage.xaml" />
@@ -95,10 +95,10 @@
 			<PackageReference Include="DevWinUI.ContextMenu" Version="9.9.1" />
 			<PackageReference Include="DevWinUI.Controls" Version="9.9.4" />
 			<PackageReference Include="DevWinUI.SourceGenerator" Version="9.9.0" />
-			<PackageReference Include="LiveChartsCore.SkiaSharpView.WinUI" Version="2.0.4" />
+			<PackageReference Include="LiveChartsCore.SkiaSharpView.WinUI" Version="2.0.5" />
 
-			<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.60" />
-			<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.8" />
+			<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.80" />
+			<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.9" />
 
 
 			<PackageReference Include="CommunityToolkit.WinUI.Animations" Version="8.2.251219" />
@@ -149,6 +149,16 @@
 		  <MauiXaml Include="Views\MAUIPages\HomePage.xaml">
 			<Generator>MSBuild:Compile</Generator>
 		  </MauiXaml>
+		</ItemGroup>
+		<ItemGroup>
+		  <Page Update="Views\WinuiPages\PlaylistSection\SinglePlaylistPage.xaml">
+		    <Generator>MSBuild:Compile</Generator>
+		  </Page>
+		</ItemGroup>
+		<ItemGroup>
+		  <Page Update="Views\WinuiPages\PlaylistSection\AllPlaylistsPage.xaml">
+		    <Generator>MSBuild:Compile</Generator>
+		  </Page>
 		</ItemGroup>
 		<ItemGroup>
 		  <Page Update="Views\WinuiPages\DimmerLive\RemoteControlPage.xaml">
@@ -301,22 +311,12 @@
 		  </Page>
 		</ItemGroup>
 		<ItemGroup>
-		  <Page Update="Views\WinuiPages\LibraryStatsPage.xaml">
-			<Generator>MSBuild:Compile</Generator>
-		  </Page>
-		</ItemGroup>
-		<ItemGroup>
 		  <Page Update="Views\WinuiPages\SingleSongPage\SubPage\Stats\SongJourneyPage.xaml">
 			<Generator>MSBuild:Compile</Generator>
 		  </Page>
 		</ItemGroup>
 		<ItemGroup>
 		  <Page Update="Views\WinuiPages\SingleSongPage\SubPage\Stats\SongArtistStatsPage.xaml">
-			<Generator>MSBuild:Compile</Generator>
-		  </Page>
-		</ItemGroup>
-		<ItemGroup>
-		  <Page Update="Views\WinuiPages\SingleSongPage\SubPage\Stats\SongAlbumStatsPage.xaml">
 			<Generator>MSBuild:Compile</Generator>
 		  </Page>
 		</ItemGroup>

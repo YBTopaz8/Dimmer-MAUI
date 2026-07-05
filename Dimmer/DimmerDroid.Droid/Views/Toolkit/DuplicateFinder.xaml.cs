@@ -1,7 +1,5 @@
-using AndroidX.Lifecycle;
 using DevExpress.Maui.DataGrid;
 using Dimmer.Data.ModelView.LibSanityModels;
-using System.Diagnostics;
 using System.Reactive.Disposables;
 
 namespace Dimmer.Views.Toolkit;
@@ -31,7 +29,7 @@ public partial class DuplicateFinder : ContentPage
         _composite = new();
 
 
-        MyViewModel.WhenPropertyChange(
+        MyViewModel.WhenPropertyChanged(
             nameof(MyViewModel.IsDuplicateFound),
             isBG => (MyViewModel.IsDuplicateFound))
             .ObserveOn(RxSchedulers.UI)

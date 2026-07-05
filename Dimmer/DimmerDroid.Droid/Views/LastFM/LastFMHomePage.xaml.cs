@@ -1,5 +1,3 @@
-using static Realms.ThreadSafeReference;
-
 namespace Dimmer.Views.LastFM;
 
 public partial class LastFMHomePage : ContentPage
@@ -39,7 +37,7 @@ public partial class LastFMHomePage : ContentPage
 
     private void DXScrollView_Loaded(object sender, EventArgs e)
     {
-        MyLastFMViewModel.WhenPropertyChange(
+        MyLastFMViewModel.WhenPropertyChanged(
        nameof(MyLastFMViewModel.IsLastfmAuthenticated),
        isBG => (MyLastFMViewModel.IsLastfmAuthenticated))
        .ObserveOn(RxSchedulers.UI)

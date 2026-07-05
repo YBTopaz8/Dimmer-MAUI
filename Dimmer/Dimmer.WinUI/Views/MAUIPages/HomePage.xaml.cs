@@ -1073,7 +1073,7 @@ public partial class HomePage : ContentPage
         }
 
         
-        loginVM.CurrentUserOnline?.WhenPropertyChange(nameof(loginVM.CurrentUserOnline.SessionToken), v=>loginVM.CurrentUserOnline)
+        loginVM.CurrentUserOnline?.WhenPropertyChanged(nameof(loginVM.CurrentUserOnline.SessionToken), v=>loginVM.CurrentUserOnline)
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(x =>
             {
@@ -1085,7 +1085,6 @@ public partial class HomePage : ContentPage
 
     private void ViewFullStatsClicked(object sender, EventArgs e)
     {
-        MyViewModel.NavigateToAnyPageOfGivenType(typeof(LibraryStatsPage));
     }
 
     private void ViewDimmerSection_Clicked(object sender, EventArgs e)

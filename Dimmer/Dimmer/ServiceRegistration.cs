@@ -1,8 +1,9 @@
 ﻿using System.Reflection;
+using Dimmer.Charts.Services;
 using Dimmer.Interfaces.Services.Lyrics;
 using Dimmer.Interfaces.Services.Lyrics.Orchestrator;
 using Dimmer.ViewModel.DimmerLiveVM;
-
+using Dimmer.ViewModel.StatsVMs;
 using Microsoft.Extensions.Configuration;
 
 using static Dimmer.DimmerLive.Orchestration.ParseSetup;
@@ -122,7 +123,7 @@ public static class ServiceRegistration
 
         services.AddSingleton<IDuplicateFinderService, DuplicateFinderService>();
 
-        services.AddSingleton<StatisticsService>();
+
         services.AddSingleton<StatisticsViewModel>();
 
 
@@ -148,11 +149,20 @@ public static class ServiceRegistration
         // Transients for ViewModels
         services.AddSingleton<SocialViewModel>();
 
+        services.AddSingleton<AutocompleteEngine>();
         services.AddSingleton<AchievementsViewModel>();
         services.AddSingleton<SongAchievementsViewModel>();
 
-        services.AddSingleton<ChatViewModel>(); // You'll create this next
+        services.AddSingleton<ChatViewModel>(); 
 
+        // stats
+
+        services.AddSingleton<ArtistStatsService>();
+        services.AddSingleton<GeneralStatsService>();
+        services.AddSingleton<PlaylistStatsService>();
+        services.AddSingleton<SongStatsService>();
+        services.AddSingleton<SongStatsViewModel>();
+        services.AddTransient<ArtistStatsViewModel>();
         return services;
     }
 

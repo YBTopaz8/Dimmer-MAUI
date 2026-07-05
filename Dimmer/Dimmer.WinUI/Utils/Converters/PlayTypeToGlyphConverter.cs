@@ -1,4 +1,4 @@
-﻿using Dimmer.Charts;
+﻿using Dimmer.Utilities.StatsUtils;
 
 namespace Dimmer.WinUI.Utils.Converters;
 

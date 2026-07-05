@@ -24,7 +24,6 @@ public partial class UserModelOnline : ParseUser
         set => SetProperty(value);
     }
 
-    public bool IsAuthenticated { get; set; }
     private const string UserDeviceSessionsKey = "userDeviceSessions"; // Define key as a constant
 
     [ParseFieldName(UserDeviceSessionsKey)] // Conventionally plural for relations

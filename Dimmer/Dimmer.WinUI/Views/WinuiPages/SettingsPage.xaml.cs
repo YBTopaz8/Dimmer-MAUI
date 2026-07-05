@@ -17,21 +17,19 @@ public sealed partial class SettingsPage : Page
     }
 
     SettingsViewModelWin MyViewModel { get; set; }
-    BaseViewModelWin BaseViewModel { get; set; }
 
     string CurrentPageTQL = string.Empty;
     protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
         MyViewModel ??= IPlatformApplication.Current?.Services.GetService<SettingsViewModelWin>()!;
-        BaseViewModel = IPlatformApplication.Current?.Services.GetService<BaseViewModelWin>()!;
         // The parameter passed from Frame.Navigate is in e.Parameter.
         // Cast it to your ViewModel type and set your properties.
         if (MyViewModel != null)
         {
             MyViewModel.CurrentPageEnum = CurrentPage.SettingsPage;
             // Now that the ViewModel is set, you can set the DataContext.
-            this.DataContext = BaseViewModel;
+            this.DataContext = MyViewModel;
         }
 
     }
@@ -175,7 +173,7 @@ public sealed partial class SettingsPage : Page
 
     private void OptionLogBtn_Loaded(object sender, RoutedEventArgs e)
     {
-        MyViewModel.WhenPropertyChange(nameof(MyViewModel.IsAppLoadingCovers), v => MyViewModel.IsAppLoadingCovers)
+        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.IsAppLoadingCovers), v => MyViewModel.IsAppLoadingCovers)
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(isLoadingCovers =>
             {
@@ -191,7 +189,7 @@ public sealed partial class SettingsPage : Page
                     OptionLogBtn.Click -= OptionLogBtn_Click;
                 }
             });
-        MyViewModel.WhenPropertyChange(nameof(MyViewModel.IsAppScanning), v => MyViewModel.IsAppScanning)
+        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.IsAppScanning), v => MyViewModel.IsAppScanning)
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(IsAppScanning =>
             {
@@ -212,14 +210,14 @@ public sealed partial class SettingsPage : Page
     private void OptionLogBtn_Click(object sender, RoutedEventArgs e)
     {
         MyViewModel.SearchToTQL(TQlStaticMethods.PresetQueries.DescAdded());
-        MyViewModel.BaseViewModelWin.NavigateToAnyPageOfGivenType(typeof(AllSongsListPage));
+        MyViewModel.WinBaseVM.NavigateToAnyPageOfGivenType(typeof(AllSongsListPage));
     }
 
 
     private async void BackUpData_Click(object sender, RoutedEventArgs e)
     {
 
-        await MyViewModel.BaseViewModelWin.BackUpAppDataAsync();   
+        await MyViewModel.BackUpAppDataAsync();   
     }
 
 
@@ -236,7 +234,7 @@ public sealed partial class SettingsPage : Page
 
     private async void LoadAlbumAndArtistInfoFromLastFM_Click(object sender, RoutedEventArgs e)
     {
-      await MyViewModel.BaseViewModelWin.LoadAlbumAndArtistDetailsFromLastFM();
+      await MyViewModel.WinBaseVM.LoadAlbumAndArtistDetailsFromLastFM();
     }
 
 

@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System.IO.Compression;
 using JsonReader = Newtonsoft.Json.JsonReader;
 using JsonToken = Newtonsoft.Json.JsonToken;
 
@@ -6,8 +7,7 @@ namespace Dimmer.Interfaces.Services;
 public class DimmerBackupService
 {
     private readonly JsonSerializerSettings _jsonSettings;
-    private readonly object _logLock = new();
-    private readonly string _backupDirectory;
+    public static string? BackupDirectory { get; internal set; }
     IRealmFactory RealmFactory;
     public DimmerBackupService(IRealmFactory factory)
     {
@@ -20,48 +20,58 @@ public class DimmerBackupService
         // Add converter
         _jsonSettings.Converters.Add(new ObjectIdNullableConverter());
 
-        _backupDirectory = Path.Combine(
+        BackupDirectory = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
             "DimmerBackUp");
     }
 
-    // Save individual backup files (legacy support)
-    public bool SaveBackUp(string logContent, string name, string fileExt, string? secondPath = null)
+
+    public async Task<bool> SaveBackUpAsync(string logContent, string name, string fileExt, string? secondPath = null)
     {
         try
         {
+
+            // 2. Serialize to JSON
+
+            byte[] jsonBytes = System.Text.Encoding.UTF8.GetBytes(logContent);
+
+            // 3. Compress (GZip)
+            byte[] compressedBytes;
+            using (var outStream = new MemoryStream())
+            {
+                using (var archive = new GZipStream(outStream, CompressionLevel.Optimal))
+                {
+                    archive.Write(jsonBytes, 0, jsonBytes.Length);
+                }
+                compressedBytes = outStream.ToArray();
+            }
             // Use your FileExists method to check if we can write to the backup directory
-            if (!Directory.Exists(_backupDirectory))
-                Directory.CreateDirectory(_backupDirectory);
+            if (!Directory.Exists(BackupDirectory))
+                Directory.CreateDirectory(BackupDirectory);
 
             string fileName = $"DimmerBackUp_{DateTime.Now:yyyy-MM-dd_HHmmss}_{name}.{fileExt}";
-            string filePath = Path.Combine(_backupDirectory, fileName);
+            string filePath = Path.Combine(BackupDirectory, fileName);
 
-            lock (_logLock)
-            {
-                // For the primary path (assuming it's a regular path)
-               File.WriteAllText(filePath, logContent);
-            }
+            
+                await File.WriteAllBytesAsync(filePath, compressedBytes);
+            
 
             if (!string.IsNullOrEmpty(secondPath))
             {
-                lock (_logLock)
+               
+                if (secondPath.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
                 {
-                    if (secondPath.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
-                    {
-                        // FIX: Don't construct URI with string concatenation!
-                        // Use the platform hook that accepts folder URI + filename
-                        TaggingUtils.PlatformSpecificFileCreator?.Invoke(secondPath, fileName, logContent);
-                    }
-                    else
-                    {
-                        string secondFilePath = Path.Combine(secondPath, fileName);
-                        File.WriteAllText(secondFilePath, logContent);
-                    }
+                    TaggingUtils.PlatformSpecificFileCreator?.Invoke(secondPath, fileName, logContent);
                 }
+                else
+                {
+                    string secondFilePath = Path.Combine(secondPath, fileName);
+                    await File.WriteAllBytesAsync(secondFilePath, compressedBytes);
+                }
+                
             }
 
-            Debug.WriteLine($"Backup saved: {fileName}");
+            Debug.WriteLine($"Backup saved: {fileName} at {filePath}");
             return true;
         }
         catch (Exception ex)
@@ -79,67 +89,58 @@ public class DimmerBackupService
         public bool IsBackUpComplete { get; set; }
     }
     // New method: Create complete backup
-    public async Task<BackUpCompleteResult> CreateCompleteBackupAsync(string AppVersion,string? secondPath =null )
+    public Task<BackUpCompleteResult>? CreateCompleteBackupAsync(string appVersion, string? exportPath = null)
     {
-        try
+        return Task.Run(async () =>
         {
-            var realm = RealmFactory.GetRealmInstance();
 
-            // Get app state
-            var appModel = realm.All<AppStateModel>().FirstOrDefaultNullSafe();
-            var appStateView = appModel?.ToAppStateModelView();
-
-            // Get favorite songs
-            var favoriteSongs = realm.All<SongModel>()
-                .Where(x => x.IsFavorite)
-                .AsEnumerable()
-                .Select(x => x.ToSongModelView())
-                .ToList();
-
-            // Get play events (only plain data)
-            var playEvents = realm.All<DimmerPlayEvent>()
-                .AsEnumerable()
-                .Select(x => ConvertToBackup(x))
-                .ToList();
-
-            // Create complete backup package
-            var backupData = new CompleteBackupData
+            try
             {
-                AppState = appStateView,
-                FavoriteSongs = favoriteSongs,
-                PlayEvents = playEvents,
-                BackupDate = DateTime.Now,
-                Version = AppVersion 
-            };
+                var realm = RealmFactory.GetRealmInstance();
 
-            // Serialize to JSON
-            var json = Newtonsoft.Json.JsonConvert.SerializeObject(backupData, Newtonsoft.Json.Formatting.Indented);
-
-            // Save as single file
-            if(  SaveBackUp(json, "CompleteBackup", "json",secondPath))
-            {
-                return new BackUpCompleteResult()
+                var backupData = new CompleteBackupData
                 {
-                    AppVersion = AppVersion,
-                    BackupDate = backupData.BackupDate,
-                    FavoriteBackedUp = backupData.FavoriteSongs.Count,
-                    IsBackUpComplete = true,
-                    PlayEventsBackedUp = backupData.PlayEvents.Count
+                    AppState = realm.All<AppStateModel>().FirstOrDefaultNullSafe()?.ToAppStateModelView(),
+                    FavoriteSongs = realm.All<SongModel>().Filter("IsFavorite == true").AsEnumerable().Select(x => x.ToSongModelView()).ToList(),
+                    PlayEvents = realm.All<DimmerPlayEvent>().AsEnumerable().Select(ConvertToBackup).ToList(),
+                    BackupDate = DateTime.UtcNow,
+                    Version = appVersion
                 };
+
+                if (!Directory.Exists(BackupDirectory)) Directory.CreateDirectory(BackupDirectory!);
+
+                // Note: Using a custom extension like .dimmerbak or .json.gz makes it clear it's compressed
+                string fileName = $"DimmerBackUp_{DateTime.Now:yyyy-MM-dd_HHmmss}.json.gz";
+                string filePath = Path.Combine(BackupDirectory!, fileName);
+
+                // 🚀 STREAMED SERIALIZATION: Writes directly to disk through the GZip compressor
+                await Task.Run(() =>
+                {
+                    using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write);
+                    using var gzipStream = new GZipStream(fileStream, CompressionLevel.Optimal);
+                    using var streamWriter = new StreamWriter(gzipStream, System.Text.Encoding.UTF8);
+                    using var jsonWriter = new JsonTextWriter(streamWriter);
+
+                    var serializer = Newtonsoft.Json.JsonSerializer.Create(_jsonSettings);
+                    serializer.Serialize(jsonWriter, backupData);
+                }).ConfigureAwait(false);
+
+                // Optional: Copy to Android scoped storage if requested
+                if (!string.IsNullOrEmpty(exportPath))
+                {
+                    // Implementation depends on your TaggingUtils, but ideally you copy the FileStream, not byte[]
+                }
+
+                return new BackUpCompleteResult { IsBackUpComplete = true, PlayEventsBackedUp = backupData.PlayEvents.Count };
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Complete backup failed: {ex}");
+                return new BackUpCompleteResult { IsBackUpComplete = false };
             }
 
-            return new BackUpCompleteResult();
-
-
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Complete backup failed: {ex}");
-            return new BackUpCompleteResult();
-        }
+        });
     }
-
-
 
     private DimmerPlayEventBackup ConvertToBackup(DimmerPlayEvent playEvent)
     {
@@ -187,6 +188,7 @@ public class DimmerBackupService
         string filePath,
         IProgress<string>? progress = null)
     {
+        if (string.IsNullOrEmpty(filePath)) return null;
         try
         {
             Stream? stream = null;
@@ -261,30 +263,46 @@ public class DimmerBackupService
     }
 
     private async Task<CompleteBackupData?> DeserializeBackupWithStreamingAsync(
-        Stream stream,
-        Dictionary<string, SongModelView> songCache,
-        IProgress<string>? progress = null)
+      Stream sourceStream,
+      Dictionary<string, SongModelView> songCache,
+      IProgress<string>? progress = null)
     {
         var completeData = new CompleteBackupData();
         var dimmerPlayEvents = new List<DimmerPlayEventBackup>();
 
-        using (var reader = new StreamReader(stream))
-        using (var jsonReader = new JsonTextReader(reader))
-        {
-            int eventCount = 0;
-            int processedCount = 0;
+        using var gzipStream = new GZipStream(sourceStream, CompressionMode.Decompress);
+        using var reader = new StreamReader(gzipStream, System.Text.Encoding.UTF8);
+        using var jsonReader = new JsonTextReader(reader);
 
-            while (await jsonReader.ReadAsync().ConfigureAwait(false))
+        int eventCount = 0;
+        int processedCount = 0;
+        var serializer = Newtonsoft.Json.JsonSerializer.Create(_jsonSettings);
+
+        while (await jsonReader.ReadAsync().ConfigureAwait(false))
+        {
+            if (jsonReader.TokenType == JsonToken.PropertyName)
             {
-                if (jsonReader.TokenType == JsonToken.PropertyName &&
-                    jsonReader.Value?.ToString() == "PlayEvents")
+                string propertyName = jsonReader.Value?.ToString() ?? string.Empty;
+
+                // 1. Capture AppState (Single Object)
+                if (propertyName == "AppState")
                 {
-                    await jsonReader.ReadAsync().ConfigureAwait(false); // Move to array start
+                    await jsonReader.ReadAsync().ConfigureAwait(false); // Move to start of object
+                    completeData.AppState = serializer.Deserialize<AppStateModelView>(jsonReader);
+                }
+                // 2. Capture FavoriteSongs (List)
+                else if (propertyName == "FavoriteSongs")
+                {
+                    await jsonReader.ReadAsync().ConfigureAwait(false); // Move to start of array
+                    completeData.FavoriteSongs = serializer.Deserialize<List<SongModelView>>(jsonReader);
+                }
+                // 3. Capture PlayEvents (Chunked stream-deserialization)
+                else if (propertyName == "PlayEvents")
+                {
+                    await jsonReader.ReadAsync().ConfigureAwait(false); // Move to start of array
 
                     if (jsonReader.TokenType == JsonToken.StartArray)
                     {
-                        var serializer = new  Newtonsoft.Json.JsonSerializer();
-
                         while (await jsonReader.ReadAsync().ConfigureAwait(false) &&
                                jsonReader.TokenType != JsonToken.EndArray)
                         {
@@ -300,7 +318,7 @@ public class DimmerBackupService
                                     if (eventCount % 1000 == 0)
                                     {
                                         progress?.Report($"Processed {eventCount} events...");
-                                        await Task.Yield(); // Allow UI to update
+                                        await Task.Yield(); // Allow UI thread to breathe/update
                                     }
                                 }
                             }
@@ -308,34 +326,32 @@ public class DimmerBackupService
                     }
                 }
             }
+        }
 
-            progress?.Report($"Processing {eventCount} events with song cache...");
+        progress?.Report($"Processing {eventCount} events with song cache...");
 
-            // Update cover paths using cache
-            foreach (var evt in dimmerPlayEvents)
+        // Update cover paths using the in-memory cache
+        foreach (var evt in dimmerPlayEvents)
+        {
+            if (!string.IsNullOrEmpty(evt.TitleAndDurationKey) &&
+                songCache.TryGetValue(evt.TitleAndDurationKey, out var songInDb))
             {
-                if (!string.IsNullOrEmpty(evt.TitleAndDurationKey) &&
-                    songCache.TryGetValue(evt.TitleAndDurationKey, out var songInDb))
-                {
-                    evt.CoverImagePath = songInDb.CoverImagePath;
-                    processedCount++;
+                evt.CoverImagePath = songInDb.CoverImagePath;
+                processedCount++;
 
-                    // Update progress every 1000 updates
-                    if (processedCount % 1000 == 0)
-                    {
-                        progress?.Report($"Updated {processedCount}/{eventCount} events...");
-                        await Task.Yield();
-                    }
+                if (processedCount % 1000 == 0)
+                {
+                    progress?.Report($"Updated {processedCount}/{eventCount} events...");
+                    await Task.Yield();
                 }
             }
-
-            progress?.Report($"Completed: {processedCount} events updated");
         }
+
+        progress?.Report($"Completed: {processedCount} events updated");
 
         completeData.PlayEvents = dimmerPlayEvents;
         return completeData;
     }
-
 
     // Restore complete data to Realm
     public async Task<RestoreResult> RestoreCompleteDataAsync(CompleteBackupData data, RestoreResult result)
@@ -597,11 +613,11 @@ public class DimmerBackupService
         }
 
         // THEN handle default path if requested
-        if (includeDefaultPath && Directory.Exists(_backupDirectory))
+        if (includeDefaultPath && Directory.Exists(BackupDirectory))
         {
             var supportedExtensions = new HashSet<string> { ".json" };
             filesInDefaultPath = await TaggingUtils.GetAllFilesFromPathsAsync(
-                new List<string> { _backupDirectory },
+                new List<string> { BackupDirectory },
                 supportedExtensions);
         }
 
@@ -612,10 +628,10 @@ public class DimmerBackupService
     {
         try
         {
-            if (!Directory.Exists(_backupDirectory))
+            if (!Directory.Exists(BackupDirectory))
                 return;
 
-            var files = Directory.GetFiles(_backupDirectory, "*.json")
+            var files = Directory.GetFiles(BackupDirectory, "*.json")
                 .OrderByDescending(f => File.GetCreationTime(f))
                 .Skip(keepLatest)
                 .ToList();

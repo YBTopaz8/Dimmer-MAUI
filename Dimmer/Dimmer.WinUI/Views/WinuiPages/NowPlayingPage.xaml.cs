@@ -303,7 +303,7 @@ public sealed partial class NowPlayingPage : Page
     private async void CurrentPlayingSongImg_Loading(FrameworkElement sender, object args)
     {
         if (MyViewModel.CurrentPlayingSongView is null) return;
-        MyViewModel.WhenPropertyChange(nameof(MyViewModel.CurrentPlayingSongView), v => MyViewModel.CurrentPlayingSongView)
+        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.CurrentPlayingSongView), v => MyViewModel.CurrentPlayingSongView)
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(async song =>
             {

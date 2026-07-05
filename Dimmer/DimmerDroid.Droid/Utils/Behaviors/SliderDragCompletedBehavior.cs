@@ -1,7 +1,4 @@
 ﻿using DevExpress.Maui.Editors;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Windows.Input;
 
 namespace Dimmer.Utils.Behaviors;

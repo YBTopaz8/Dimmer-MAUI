@@ -84,8 +84,6 @@
                     IsSwipeEnabled="False"
                     ItemsSource="{x:Bind MyViewModel.SearchResults}"
                     Loaded="MySongsTableView_Loaded"
-                    RightTapped="MySongsTableView_RightTapped"
-                    SelectionChanged="MySongsTableView_SelectionChanged"
                     SelectionMode="Single"
                     Sorting="MySongsTableView_Sorting"
                     Style="{StaticResource AcrylicDataGridStyle}"
@@ -108,9 +106,6 @@
                                         DoubleTapped="CardBorder_DoubleTapped"
                                         IsDoubleTapEnabled="True"
                                         IsHitTestVisible="True"
-                                        Loaded="CardBorder_Loaded"
-                                        PointerEntered="CardBorder_PointerEntered"
-                                        PointerExited="CardBorder_PointerExited"
                                         >
                                         <Grid
                                             x:Name="CoverImageGrid"
@@ -170,47 +165,17 @@
                                                 Stretch="UniformToFill"
                                                 />
 
-                                            <StackPanel
-                                                x:Name="ExtraPanel"
-                                                Grid.Row="1"
-                                                HorizontalAlignment="Left"
-                                                VerticalAlignment="Bottom"
-                                                Loaded="ExtraPanel_Loaded"
-                                                Opacity="0"
-                                                Orientation="Horizontal"
-                                                RenderTransformOrigin="0.5,0.5"
-                                                Spacing="10"
-                                                Visibility="Visible"
-                                                >
-                                                <StackPanel.RenderTransform>
-                                                    <TranslateTransform Y="150" />
-                                                </StackPanel.RenderTransform>
-                                                <Button
-                                                    x:Name="ViewSongBtn"
-                                                    Margin="30,0,0,0"
-                                                    HorizontalAlignment="Center"
-                                                    Background="DarkSlateBlue"
-                                                    Click="ViewSongBtn_Click"
-                                                    Content="View"
-                                                    Opacity="0.8"
-                                                    PointerEntered="ButtonHover_PointerEntered"
-                                                    PointerExited="ButtonHover_PointerExited"
-                                                    />
-                                                <Button
-                                                    x:Name="ViewOtherBtn"
-                                                    HorizontalAlignment="Center"
-                                                    Background="DarkSlateBlue"
-                                                    Click="ViewOtherBtn_Click"
-                                                    Content="Options"
-                                                    Opacity="0.8"
-                                                    PointerEntered="ButtonHover_PointerEntered"
-                                                    PointerExited="ButtonHover_PointerExited"
-                                                    />
-                                            </StackPanel>
 
-                                            <StackPanel Grid.Row="2" HorizontalAlignment="Left">
-                                                <TextBlock Text="{Binding FileFormat}" />
-                                            </StackPanel>
+
+                                            <Grid Grid.Row="2">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0" Text="{Binding FileFormat}" />
+
+
+                                            </Grid>
                                         </Grid>
 
                                     </Border>
@@ -270,6 +235,14 @@
                             Width="140"
                             Binding="{Binding IsFavorite}"
                             Header="Favorite?"
+                            IsReadOnly="True"
+                            />
+
+                        <dgView:TableViewDateColumn
+                            x:Name="DateCreated"
+                            Width="140"
+                            Binding="{Binding DateCreated}"
+                            Header="Date Created"
                             IsReadOnly="True"
                             />
 

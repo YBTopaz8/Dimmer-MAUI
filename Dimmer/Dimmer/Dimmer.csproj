@@ -9,7 +9,7 @@
 		<UseMaui>true</UseMaui>
 		<Nullable>enable</Nullable>
 		<LangVersion>preview</LangVersion>
-		<Version>1.9.6</Version>
+		<Version>1.9.7</Version>
 
 
 
@@ -74,6 +74,7 @@
 
 
 	<ItemGroup>
+	  <Folder Include="Data\ModelView\NewFolder\" />
 	  <Folder Include="Interfaces\Services\Lyrics\Models\" />
 	  <Folder Include="UIUtils\CustomPopups\" />
 	  <Folder Include="UIUtils\NewFolder\" />

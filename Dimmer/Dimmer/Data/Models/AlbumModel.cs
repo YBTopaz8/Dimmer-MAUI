@@ -53,7 +53,7 @@ public partial class AlbumModel : RealmObject, IRealmObjectWithObjectId
     /// <value>
     /// The image path.
     /// </value>
-    public string? ImagePath { get; set; } = "musicalbum.png";
+    public string? ImagePath { get; set; }
     /// <summary>
     /// Gets or sets the total duration.
     /// </summary>

@@ -13,6 +13,6 @@ public partial class AllStats : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        StatisticsViewModel.LoadLibraryStatsCommand.Execute(null);
+        //StatisticsViewModel.LoadLibraryStatsCommand.Execute(null);
     }
 }

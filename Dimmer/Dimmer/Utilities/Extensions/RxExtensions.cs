@@ -3,7 +3,7 @@
 public static class RxExtensions
 {
     // Watches a specific property name and returns the new value
-    public static IObservable<TProp> WhenPropertyChange<TObj, TProp>(this TObj source, string propertyName, Func<TObj, TProp> valueSelector)
+    public static IObservable<TProp> WhenPropertyChanged<TObj, TProp>(this TObj source, string propertyName, Func<TObj, TProp> valueSelector)
         where TObj : INotifyPropertyChanged
     {
         return Observable.FromEventPattern<PropertyChangedEventHandler, PropertyChangedEventArgs>(

@@ -22,7 +22,7 @@ public sealed partial class AllArtistsPage : Page
         MyViewModel = IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
 
         DataContext = MyViewModel;
-
+        MyViewModel.CurrentPageEnum = CurrentPage.AllArtistsPage;
         await Task.Delay(250);
         MyViewModel.SetupArtistPipeline();
     }
@@ -112,7 +112,15 @@ public sealed partial class AllArtistsPage : Page
 
         MyViewModel.NavigateToArtistPageWithArtistId(artist.Id);
     }
+    
 
- 
+    private void AllArtistsTableView_Tapped(object sender, TappedRoutedEventArgs e)
+    {
 
+    }
+
+    private void AllArtistsTableView_ItemClick(object sender, ItemClickEventArgs e)
+    {
+
+    }
 }

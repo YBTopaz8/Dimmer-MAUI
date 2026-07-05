@@ -1,11 +1,9 @@
 global using ATL;
-global using CommunityToolkit.Maui.Alerts;
 global using CommunityToolkit.Maui.Core;
 global using DevExpress.Maui.Core;
 global using Dimmer.Data.Models.LyricsModels;
 global using Font = Microsoft.Maui.Font;
-global using Toast = CommunityToolkit.Maui.Alerts.Toast;
-using Hqub.Lastfm.Entities;
+using Dimmer.ViewModel.StatsVMs;
 
 
 namespace Dimmer.Views.SingleSong;
@@ -14,17 +12,17 @@ public partial class DetailsOverview : ContentPage
 {
 
 
-    public DetailsOverview(BaseViewModelAnd baseViewModel, StatisticsViewModel statisticsService, LastFMViewModel lastFMVM)
+    public DetailsOverview(BaseViewModelAnd baseViewModel, SongStatsViewModel statsVM, LastFMViewModel lastFMVM)
 	{
 		InitializeComponent();
 		MyViewModel = baseViewModel;
-        StatsViewModel= statisticsService;
+        StatsViewModel= statsVM;
         LastFMViewModel = lastFMVM;
 
 
 	}
     public BaseViewModelAnd MyViewModel { get; }
-    public StatisticsViewModel StatsViewModel { get; }
+    public SongStatsViewModel StatsViewModel { get; }
     public LastFMViewModel LastFMViewModel { get; }
     public SongModelView ConcernedSong { get; private set; }
 
@@ -36,7 +34,14 @@ public partial class DetailsOverview : ContentPage
 
         StatsSectionPreview.BindingContext = StatsViewModel;
 
-        
+        ConcernedSong = MyViewModel.SelectedSong!;
+        _ = Task.Run(() =>
+        {
+
+            //_ = StatsViewModel.LoadSongStatsAsync(MyViewModel.SelectedSong);
+            _ = LastFMViewModel.LoadSelectedSongLastFMData();
+        });
+        StatsViewModel.LoadSong(MyViewModel.SelectedSong.Id);
     }
 
     protected override void OnDisappearing()
@@ -107,13 +112,7 @@ public partial class DetailsOverview : ContentPage
 
     private void DetailPagesShimmerView_Loaded(object sender, EventArgs e)
     {
-        ConcernedSong = MyViewModel.SelectedSong!;
-        _ = Task.Run(() =>
-        {
-
-            _ = StatsViewModel.LoadSongStatsAsync(MyViewModel.SelectedSong);
-            _ = LastFMViewModel.LoadSelectedSongLastFMData();
-        });
+        
     }
 
     private async void EditLyrics_Clicked(object sender, EventArgs e)
@@ -122,5 +121,59 @@ public partial class DetailsOverview : ContentPage
 
         await popup.ShowAsync();
 
+    }
+
+    private void StatsSectionPreview_Loaded(object sender, EventArgs e)
+    {
+        StatsSectionPreview.BindingContext = StatsViewModel;
+    }
+
+    private void ListInsights_Loaded(object sender, EventArgs e)
+    {
+        StatsViewModel?.WhenPropertyChanged(nameof(StatsViewModel.ListInsights), v => StatsViewModel?.ListInsights)
+            .Subscribe(insight =>
+            {
+                //ListInsights.ItemsSource = insight;
+            });
+    }
+
+   
+
+    private void ListPerfectPairings_Loaded(object sender, EventArgs e)
+    {
+        StatsViewModel?.WhenPropertyChanged(nameof(StatsViewModel.ListPerfectPairings), v => StatsViewModel?.ListPerfectPairings)
+            .Subscribe(insight =>
+            {
+                ListPerfectPairings.ItemsSource = insight;
+            });
+    }
+
+    private void ListMonthlyTrend_Loaded(object sender, EventArgs e)
+    {
+        StatsViewModel?.WhenPropertyChanged(nameof(StatsViewModel.ListMonthlyTrend), v => StatsViewModel?.ListMonthlyTrend)
+            .Subscribe(insight =>
+            {
+                ListMonthlyTrend.ItemsSource = insight;
+            });
+    }
+
+    private void ListWeeklyTrend_Loaded(object sender, EventArgs e)
+    {
+        StatsViewModel?.WhenPropertyChanged(nameof(StatsViewModel.ListWeeklyTrend), v => StatsViewModel?.ListWeeklyTrend)
+            .Subscribe(insight =>
+            {
+                ListWeeklyTrend.ItemsSource = insight;
+            });
+    }
+
+    private async void AddLyrics_Clicked(object sender, EventArgs e)
+    {
+        var localLyrics = await MyViewModel.LyricsMetadataService.GetLocalLyricsAsync(MyViewModel.SelectedSong!);
+        if(string.IsNullOrEmpty(localLyrics))
+        {
+            SongLyricsDownloadPopup popup = new SongLyricsDownloadPopup(MyViewModel, MyViewModel.SelectedSong!);
+
+            await popup.ShowAsync();
+        }
     }
 }

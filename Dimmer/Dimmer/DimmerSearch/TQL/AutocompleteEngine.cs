@@ -14,28 +14,16 @@ public class AutocompleteEngine
         IRepository<GenreModel> genreRepo)
     {
 
-        var art= artistRepo.GetAll().Select(x => x.Name).ToObservableCollection();
+        _masterArtists= artistRepo.GetAll().Select(x => x.Name).ToObservableCollection();
        
-        var albums = albumRepo.GetAll().Select(x => x.Name).ToObservableCollection();
+        _masterAlbums= albumRepo.GetAll().Select(x => x.Name).ToObservableCollection();
         
         
-        var genres = genreRepo.GetAll().Select(x => x.Name).ToObservableCollection();
+        _masterGenres= genreRepo.GetAll().Select(x => x.Name).ToObservableCollection();
         
     }
 
-    public AutocompleteEngine(
-        ObservableCollection<string> masterArtists,
-        ObservableCollection<string> masterAlbums,
-        ObservableCollection<string> masterGenres,
-        ObservableCollection<string> liveArtists,
-        ObservableCollection<string> liveAlbums,
-        ObservableCollection<string> liveGenres)
-    {
-        _masterArtists = masterArtists;
-        _masterAlbums = masterAlbums;
-        _masterGenres = masterGenres;
-       
-    }
+
     public static ObservableCollection<string> GetSuggestions(
 
     // The "Firm Search" sources (live, filtered data)

@@ -182,6 +182,9 @@
 	  <MauiXaml Update="Views\Toolkit\DuplicateFinder.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="Views\TQLSection\TqlSearchControlAndroid.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	</ItemGroup>
 
 
