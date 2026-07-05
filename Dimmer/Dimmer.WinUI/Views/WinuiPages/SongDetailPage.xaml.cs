@@ -1,4 +1,5 @@
 using Dimmer.Utilities.StatsUtils;
+using Dimmer.ViewModel.StatsVMs;
 using Microsoft.UI.Xaml.Documents;
 using System.Text.RegularExpressions;
 using NavigationEventArgs = Microsoft.UI.Xaml.Navigation.NavigationEventArgs;

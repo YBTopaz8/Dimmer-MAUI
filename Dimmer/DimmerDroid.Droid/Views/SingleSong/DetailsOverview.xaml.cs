@@ -3,6 +3,7 @@ global using CommunityToolkit.Maui.Core;
 global using DevExpress.Maui.Core;
 global using Dimmer.Data.Models.LyricsModels;
 global using Font = Microsoft.Maui.Font;
+using Dimmer.ViewModel.StatsVMs;
 
 
 namespace Dimmer.Views.SingleSong;
@@ -170,5 +171,10 @@ public partial class DetailsOverview : ContentPage
             {
                 ListWeeklyTrend.ItemsSource = insight;
             });
+    }
+
+    private void AddLyrics_Clicked(object sender, EventArgs e)
+    {
+
     }
 }

@@ -1,4 +1,8 @@
+using AndroidX.Navigation;
 using DevExpress.Maui.CollectionView;
+using Dimmer.Charts;
+using Dimmer.ViewModel.StatsVMs;
+using MongoDB.Bson;
 
 namespace Dimmer.Views.CustomViews;
 
@@ -8,9 +12,11 @@ public partial class NowPlayingView : ContentView
 	{
 		InitializeComponent();
         MyViewModel = IPlatformApplication.Current!.Services.GetService<BaseViewModelAnd>()!;
+        StatsViewModel = IPlatformApplication.Current!.Services.GetService<SongStatsViewModel>()!;
         BindingContext = MyViewModel;
 	}
     BaseViewModelAnd MyViewModel { get;}
+    SongStatsViewModel StatsViewModel { get;}
 
     SongModelView? songForLyrics;
     private async void LyricsChip_Tap(object sender, HandledEventArgs e)
@@ -206,6 +212,56 @@ public partial class NowPlayingView : ContentView
         await popup.ShowAsync();
     }
 
+    private void SwipedUp_Swiped(object sender, SwipedEventArgs e)
+    {
+        
+    }
+
+    private void AudioMgtButton_TapPressed(object sender, DXTapEventArgs e)
+    {
+//do a btm sheet having a tabview tab 1 being app volume management, tab 2 being app speaker choice
+    }
+
+
+    private void ShowFrequentlyPlayedExpanderChkBtn_CheckedChanging(object sender, ValueChangingEventArgs<bool> e)
+    {
+        if (e.NewValue)
+        {
+            StatsViewModel.LoadSong(MyViewModel.CurrentPlayingSongView.Id);
+        }
+    }
+    private void ListPerfectPairings_Loaded(object sender, EventArgs e)
+    {
+        if(ListPerfectPairings.IsLoaded)
+        {
+            StatsViewModel?.WhenPropertyChanged(nameof(StatsViewModel.ListPerfectPairings), v => StatsViewModel?.ListPerfectPairings)
+            .Subscribe(insight =>
+            {
+                ListPerfectPairings.ItemsSource = insight;
+            });
+        } 
+    }
+
+    private async void ListPerfectPairings_Tap(object sender, CollectionViewGestureEventArgs e)
+    {
+        var tappedItemHandle = e.ItemHandle;
+        var tappedItem = ListPerfectPairings.GetItem(tappedItemHandle) as SongPairing;
+
+        if (tappedItem != null && tappedItem.songId != null)
+        {
+            var song = MyViewModel.RealmFactory.GetRealmInstance().Find<SongModel>(tappedItem.songId).ToSongModelView();
+            if (song is null) return;
+            MyViewModel.AddToNext(new List<SongModelView>() { song});
+            await MyViewModel.NextTrackAsync();
+            FrequentlyPlayedExpander.SetIsExpanded(false);
+            await Task.Delay(250);
+            FrequentlyPlayedExpander.SetIsExpanded(true);
+        }
+        else
+        {
+
+        }
+    }
 
 
     //private void AllLyricsColView_SelectionChanged(object sender, DevExpress.Maui.CollectionView.CollectionViewSelectionChangedEventArgs e)

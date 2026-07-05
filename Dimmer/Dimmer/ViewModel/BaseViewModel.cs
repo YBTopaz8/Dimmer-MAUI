@@ -3751,7 +3751,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [RelayCommand]
     public async Task NextTrackAsync(bool IsSkipYes=true)
     {
-        if (IsDimmerPlaying && CurrentPlayingSongView != null && (CurrentTrackPositionPercentage < 90 || IsSkipYes))
+        if (
+            CurrentPlayingSongView != null && (CurrentTrackPositionPercentage < 90 || IsSkipYes))
         {
             await BaseAppFlow.UpdateDatabaseWithPlayEvent(
                 
@@ -3761,7 +3762,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
            
 
         }
-        else if (IsDimmerPlaying && CurrentPlayingSongView?.TitleDurationKey != null && (CurrentTrackPositionPercentage >= 90 || !IsSkipYes))
+        else if (CurrentPlayingSongView?.TitleDurationKey != null && (CurrentTrackPositionPercentage >= 90 || !IsSkipYes))
         {
             await BaseAppFlow.UpdateDatabaseWithPlayEvent(
                 

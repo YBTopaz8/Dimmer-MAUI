@@ -328,6 +328,22 @@ public partial class SongModelView : ObservableObject
         // MemberwiseClone creates a new object reference with the same values
         return (SongModelView)this.MemberwiseClone();
     }
+
+    public int CompareTo(SongModelView? other)
+    {
+       
+        // Ensure keys are generated
+        if (this.TitleDurationKey is null) SetTitleAndDuration(Title, DurationInSeconds);
+        if (other.TitleDurationKey is null) other.SetTitleAndDuration(other.Title, other.DurationInSeconds);
+
+        if(this.TitleDurationKey == other.TitleDurationKey)
+        {
+            return this.GetHashCode();
+        }
+
+      
+        return 0;
+    }
 }
 
 public partial class UserNoteModelView : ObservableObject

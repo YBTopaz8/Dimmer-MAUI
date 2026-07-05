@@ -113,6 +113,7 @@ public partial class HomePage : ContentPage
         var song = (SongModelView)send.BindingContext;
         //var songsInCV = SongsCV.ItemsSource;
 
+        if (song.TitleDurationKey == MyViewModel.CurrentPlayingSongView.TitleDurationKey) return;
 
         List<SongModelView> songsInCV = new();
         for (int i = 0; i < SongsCV.VisibleItemCount; i++)

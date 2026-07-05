@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Dimmer.ViewModel;
+namespace Dimmer.ViewModel.StatsVMs;
 
 
 public partial class SongStatsViewModel : ObservableObject, IDisposable
@@ -54,30 +54,41 @@ public partial class SongStatsViewModel : ObservableObject, IDisposable
             .DisposeWith(_disposables);
 
         _statsService.ListDropOffHeatmap
-            .Subscribe(data => ListDropOffHeatmap = data)
+            .Subscribe(data => { ListDropOffHeatmap = data; IsLoading = false; }    )
             .DisposeWith(_disposables);
 
         _statsService.ListWeeklyTrend
-            .Subscribe(data => ListWeeklyTrend = data)
+            .Subscribe(data => { ListWeeklyTrend = data; IsLoading = false; })
             .DisposeWith(_disposables);
 
         _statsService.ListMonthlyTrend
-            .Subscribe(data => ListMonthlyTrend = data)
+            .Subscribe(data => {
+                ListMonthlyTrend = data;
+        IsLoading = false;
+    })
             .DisposeWith(_disposables);
 
         _statsService.ListPerfectPairings
-            .Subscribe(data => ListPerfectPairings = data)
+            .Subscribe(data => 
+            {
+                ListPerfectPairings = data;
+                IsLoading = false; 
+            })
             .DisposeWith(_disposables);
 
         _statsService.ListWalkthrough
-            .Subscribe(data => ListWalkthrough = data)
+            .Subscribe(data => 
+            {
+                ListWalkthrough = data;
+                IsLoading = false;
+            })
             .DisposeWith(_disposables);
 
         _statsService.ListInsights
             .Subscribe(insights =>
             {
                 ListInsights = insights;
-                IsLoading = false; // Turn off loading spinner when data arrives!
+                IsLoading = false; 
             })
             .DisposeWith(_disposables);
     }

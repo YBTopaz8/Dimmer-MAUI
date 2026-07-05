@@ -9,7 +9,10 @@ public class SongStatsService
     private readonly IRealmFactory _realmF;
     private readonly Realm _mainThreadRealm;
     private readonly BehaviorSubject<ObjectId?> _currentSongId = new(null);
-    public void SetSongId(ObjectId id) => _currentSongId.OnNext(id);
+    public void SetSongId(ObjectId id)
+    {
+        _currentSongId.OnNext(id);
+    }
 
     // --- OUTPUTS ---
     public IObservable<TextStat> TextCompletionRate { get; }
@@ -31,16 +34,33 @@ public class SongStatsService
         _realmF = realmF;
         _mainThreadRealm = _realmF.GetRealmInstance();
 
-        var snapshotStream = _currentSongId.Where(id => id.HasValue).Select(id => id.Value)
+        var snapshotStream = _currentSongId.Where(id =>
+        {
+            return id.HasValue;
+        }).Select(id =>
+        {
+            return id.Value;
+        })
            .Select(songId => _mainThreadRealm.All<DimmerPlayEvent>().Where(e => e.SongId == songId).AsObservableChangeSet()
                .Throttle(TimeSpan.FromMilliseconds(250)).Select(_ => songId)
-               .Select(id => Observable.FromAsync(() => Task.Run(() => {
-                   using var bgRealm = _realmF.GetRealmInstance();
-                   var bgSong = bgRealm.Find<SongModel>(id);
-                   var songEvents = bgRealm.All<DimmerPlayEvent>().Filter("SongId == $0",(QueryArgument)id).OrderBy(e => e.DatePlayed).ToList();
-                   var allEvents = bgRealm.All<DimmerPlayEvent>().OrderBy(e => e.DatePlayed).ToList();
-                   return CalculateSongSnapshot(bgSong, songEvents, allEvents, bgRealm);
-               }))).Switch()).Switch().Publish().RefCount();
+               .Select(id => Observable.FromAsync(() =>
+               {
+                   return Task.Run(() =>
+                                  {
+                                      using var bgRealm = _realmF.GetRealmInstance();
+                                      var bgSong = bgRealm.Find<SongModel>(id);
+                                      var songEvents = bgRealm.All<DimmerPlayEvent>().Filter("SongId == $0", (QueryArgument)id).OrderBy(e => e.DatePlayed).ToList();
+                                      var allEvents = bgRealm.All<DimmerPlayEvent>().OrderBy(e => e.DatePlayed).ToList();
+                                      var res = CalculateSongSnapshot(bgSong, songEvents, allEvents, bgRealm);
+
+                                      if (res is null)
+                                      {
+
+                                      }
+
+                                      return res;
+                                  });
+               })).Switch()).Switch().Publish().RefCount();
 
         TextCompletionRate = snapshotStream.Select(s => s.CompRate).ObserveOn(RxSchedulers.UI);
         TextAvgListenDuration = snapshotStream.Select(s => s.AvgDuration).ObserveOn(RxSchedulers.UI);
@@ -95,17 +115,69 @@ public class SongStatsService
             mTrend.Add(new TrendStat($"{start:MMM yyyy}", cur, cur - prev));
         }
 
-        var pairingsDict = new Dictionary<ObjectId, int>();
+        Dictionary<ObjectId, int> pairingsDict = new Dictionary<ObjectId, int>();
         int totalFollowUps = 0;
         for (int i = 0; i < allEvents.Count - 1; i++)
         {
             if (allEvents[i].SongId == song.Id && allEvents[i + 1].SongId.HasValue && allEvents[i + 1].SongId != song.Id && (allEvents[i + 1].DatePlayed - allEvents[i].DatePlayed).TotalMinutes < 15)
             {
-                pairingsDict[allEvents[i + 1].SongId.Value] = pairingsDict.GetValueOrDefault(allEvents[i + 1].SongId.Value) + 1;
+
+                var vall = pairingsDict.GetValueOrDefault(allEvents[i + 1].SongId.Value);
+                vall = vall + 1;
+                //var songVal = pairingsDict.GetValueOrDefault(concernedSong.Id).Item1 ;
+                
+                pairingsDict[allEvents[i + 1].SongId.Value] = vall;
                 totalFollowUps++;
             }
         }
-        var pairings = pairingsDict.OrderByDescending(kvp => kvp.Value).Take(10).Select(kvp => new SongPairing(PairedSongTitle: bgRealm.Find<SongModel>(kvp.Key)?.Title ?? "Unknown", TimesPlayedTogether: kvp.Value, Context: "Played next")).ToList();
+        var pairings = pairingsDict.OrderByDescending(kvp => kvp.Value).Take(10).Select(kvp =>
+        {
+            var songKey = kvp.Key;
+            DimmerPlayEvent DimmerEvent = allEvents.First(e => e.SongId == songKey);
+
+            var intVal = kvp.Value;
+
+
+            SongModelView pairedSong = new SongModelView();
+
+            pairedSong.Title = DimmerEvent.SongName;
+            pairedSong.ArtistName = DimmerEvent.ArtistName;
+            pairedSong.AlbumName = DimmerEvent.AlbumName;
+            pairedSong.CoverImagePath = DimmerEvent.CoverImagePath;
+            
+
+
+            var query = "AlbumName == $0 AND Title == $1";
+           
+            //bgRealm.Find<SongModel>()
+            var res = bgRealm.All<SongModel>().Filter<SongModel>(query, pairedSong.AlbumName, pairedSong.Title);
+
+            if (res.Any())
+            {
+                var resSong = res.First();
+                if (resSong is not null)
+                {
+                    return new SongPairing(PairedSongTitle: resSong.Title ?? "Unknown", TimesPlayedTogether: intVal, Context: "Played next", CoverImagePath: resSong.CoverImagePath, resSong.TitleDurationKey, songId: resSong.Id, isPresentOnDevice: true);
+                }
+            }
+            else
+            {
+                var albQuery = "Name == $0";
+                var albRes = bgRealm.All<AlbumModel>().Filter(albQuery, pairedSong.AlbumName);
+                if (albRes.Any())
+                {
+                    var songsWithCover = albRes.First().SongsInAlbum?.Filter("CoverImagePath != ''");
+                    if (songsWithCover is not null && songsWithCover.Any())
+                    {
+                        SongModel fSong = songsWithCover.First()!;
+                        pairedSong.CoverImagePath = fSong.CoverImagePath;
+                    }
+                }
+             }
+            return new SongPairing(PairedSongTitle: pairedSong.Title, TimesPlayedTogether: intVal, Context: "Played next", CoverImagePath: pairedSong.CoverImagePath, songTitleDurationKey: null);
+
+
+        }).ToList();
 
         var predict = new TextStat("Predictability", totalFollowUps > 0 && pairings.Count != 0 ? $"{((double)pairings.First().TimesPlayedTogether / totalFollowUps) * 100:F0}%" : "N/A", "Chance of playing top pair next");
 

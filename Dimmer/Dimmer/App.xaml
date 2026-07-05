@@ -16,6 +16,7 @@
             <converters:BoolToYesNoConverter x:Key="BoolToYesNoConverter" />
             <converters:BoolToInverseConverter x:Key="BoolToInverseConverter" />
             <converters:IsNotNullConverter x:Key="IsNotNullConverter" />
+            <converters:PlayTypeToBorderBrush x:Key="PlayTypeToBorderBrushConv" />
             <converters:OtherArtistNamesToListOfStringsConverter x:Key="OtherArtistNamesToListOfStringsConverter" />
 
         </ResourceDictionary>

@@ -408,7 +408,11 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             {
                 _= Task.Run(async () =>
                 {
-                    BackUpCompletResult= await BackupService.CreateCompleteBackupAsync(BaseViewModel.CurrentAppVersion, path);
+                    var res= await BackupService.CreateCompleteBackupAsync(BaseViewModel.CurrentAppVersion, path);
+                    if(res is not null)
+                    {
+                        BackUpCompletResult = res;
+                    }
                 });
                 
             }

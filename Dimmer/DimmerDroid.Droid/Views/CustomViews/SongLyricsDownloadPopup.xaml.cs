@@ -204,4 +204,10 @@ public partial class SongLyricsDownloadPopup : DXPopup
         MyViewModel.AutoFillSearchFields();
 
     }
+
+    private void ClosePopUp_Clicked(object sender, EventArgs e)
+    {
+        
+        this.Close();
+    }
 }
