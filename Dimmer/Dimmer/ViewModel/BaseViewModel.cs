@@ -2499,16 +2499,21 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             AppTitle = $"{CurrentAppVersion} - {CurrentAppStage}";
             
             CurrentTrackDurationSeconds = song.DurationInSeconds > 0 ? song.DurationInSeconds : 1;
-            var imgPath = await LoadAndCacheCoverArtAsync(song);
-            if (!string.IsNullOrEmpty(imgPath))
-            {
-                RxSchedulers.UI.ScheduleTo(() =>
-                {
 
-                    CurrentPlayingSongView.CoverImagePath = imgPath;
+                var lp = new Progress<CoverProcessingProgress>(progress =>
+                {
+                    // Update the progress value as a double (0.0 to 1.0)
+                    CoverProgressValue = progress.TotalCount > 0
+                        ? (double)progress.ProcessedCount / progress.TotalCount
+                        : 0;
+
+                    CoverProgressText = $"Processing lyrics: {progress.ProcessedCount}/{progress.TotalCount} ({progress.CurrentFile})";
+
+
 
                 });
-            }
+                IsAppLoadingCovers = true;
+           
 
         }
         catch (Exception ex)
@@ -2523,9 +2528,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     /// A robust, multi-stage process to load cover art. It prioritizes existing paths, checks for cached files, and
     /// only extracts from the audio file as a last resort, caching the result for future use.
     /// </summary>
-    public async Task<string> LoadAndCacheCoverArtAsync(SongModelView song)
+    public async Task<string> LoadAndCacheCoverArtAsync(SongModelView song,
+        IProgress<CoverProcessingProgress>? progress, int totalCount, int processedCount)
     {
 
+        int currentProcessed;
         if (song.CoverImagePath == "musicnote1.png" || song.CoverImagePath == "musicnotess.png")
         {
             song.CoverImagePath = string.Empty;
@@ -2534,7 +2541,15 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         if (!string.IsNullOrEmpty(song.CoverImagePath))
         {
             if (TaggingUtils.FileExists(song.CoverImagePath))
-            {
+            {// Report progress in a thread-safe way.
+                currentProcessed = Interlocked.Increment(ref processedCount);
+                progress?.Report(new CoverProcessingProgress
+                {
+                    ProcessedCount = currentProcessed,
+                    TotalCount = totalCount,
+                    CurrentFile = Path.GetFileName(song.FilePath),
+                    FoundCover = true
+                });
                 return string.Empty;
             }
         }
@@ -2545,7 +2560,15 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         try
         {
             if (!TaggingUtils.FileExists(song.FilePath))
-            {
+            {// Report progress in a thread-safe way.
+                currentProcessed = Interlocked.Increment(ref processedCount);
+                progress?.Report(new CoverProcessingProgress
+                {
+                    ProcessedCount = currentProcessed,
+                    TotalCount = totalCount,
+                    CurrentFile = Path.GetFileName(song.FilePath),
+                    FoundCover = false
+                });
                 return string.Empty;
             }
 
@@ -2558,6 +2581,15 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed reading embedded art: {FilePath}", song.FilePath);
+            // Report progress in a thread-safe way.
+            currentProcessed = Interlocked.Increment(ref processedCount);
+            progress?.Report(new CoverProcessingProgress
+            {
+                ProcessedCount = currentProcessed,
+                TotalCount = totalCount,
+                CurrentFile = Path.GetFileName(song.FilePath),
+                FoundCover = false
+            });
             return string.Empty;
         }
 
@@ -2619,6 +2651,15 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 if (embeddedPicture != null)
                 {
                     finalImagePath = await _coverArtService.SaveOrGetCoverImageAsync(song.Id, song.FilePath, embeddedPicture);
+                    // Report progress in a thread-safe way.
+                     currentProcessed = Interlocked.Increment(ref processedCount);
+                    progress?.Report(new CoverProcessingProgress
+                    {
+                        ProcessedCount = currentProcessed,
+                        TotalCount = totalCount,
+                        CurrentFile = Path.GetFileName(song.FilePath),
+                        FoundCover = true
+                    });
                 }
             }
         }
@@ -2640,32 +2681,50 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             if (song.CoverImagePath != finalImagePath)
             {
-                
+                // Report progress in a thread-safe way.
+                 currentProcessed = Interlocked.Increment(ref processedCount);
+                progress?.Report(new CoverProcessingProgress
+                {
+                    ProcessedCount = currentProcessed,
+                    TotalCount = totalCount,
+                    CurrentFile = Path.GetFileName(song.FilePath),
+                    FoundCover = true
+                });
                 return finalImagePath;
             }
-            return string.Empty;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to load or update cover art from final path: {ImagePath}", finalImagePath);
         }
+        // Report progress in a thread-safe way.
+         currentProcessed = Interlocked.Increment(ref processedCount);
+        progress?.Report(new CoverProcessingProgress
+        {
+            ProcessedCount = currentProcessed,
+            TotalCount = totalCount,
+            CurrentFile = Path.GetFileName(song.FilePath),
+            FoundCover = false
+        });
         return string.Empty;
     }
 
 
     [ObservableProperty]
-    public partial Progress<(int current, int total, SongModelView song)> ProgressCoverArtLoad { get; set; }
+    public partial double CoverProgressValue { get; set; }
+
+    [ObservableProperty]
+    public partial string CoverProgressText { get; set; }
+
+    [ObservableProperty]
+    public partial IProgress<CoverProcessingProgress> ProgressCoverArtLoad { get; set; }
     [RelayCommand]
     public async Task EnsureAllCoverArtCachedForSongsAsync(CancellationToken cancellationToken = default)
     {
 
         try
         {
-            RxSchedulers.UI.ScheduleTo(() =>
-           {
-
-               IsAppLoadingCovers = true;
-           });
+           
             // 1. Get the TOTAL count safely using a short-lived Realm instance
             int totalCount = 0;
             List<ObjectId> songsToProcessIds = new();
@@ -2707,6 +2766,26 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                         }
                     }
                 }
+               
+                    var lp = new Progress<CoverProcessingProgress>(progress =>
+                    {
+                        RxSchedulers.UI.ScheduleTo(() =>
+                        {
+                            // Update the progress value as a double (0.0 to 1.0)
+                            CoverProgressValue = progress.TotalCount > 0
+                            ? (double)progress.ProcessedCount / progress.TotalCount
+                            : 0;
+
+                            CoverProgressText = $"Processing lyrics: {progress.ProcessedCount}/{progress.TotalCount} ({progress.CurrentFile})";
+
+                        });
+
+                    });
+                RxSchedulers.UI.ScheduleTo(() =>
+                {
+
+                    IsAppLoadingCovers = true;
+                });
                 foreach (var songView in songsInBatch)
                 {
                     // Check cancellation before processing each song
@@ -2717,8 +2796,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
                     if (needsProcessing)
                     {
-
-                        var coverImagePath = await LoadAndCacheCoverArtAsync(songView);
+                        
+                        var coverImagePath = await LoadAndCacheCoverArtAsync(songView,lp, totalCount,processedCount);
                         RxSchedulers.UI.ScheduleTo(() =>
                         {
                             var songInRes = SearchResults.FirstOrDefault(x => x.Id == songView.Id);
@@ -2728,7 +2807,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
                         if (current % 10 == 0 || current == totalCount)
                         {
-
+                            
                             _stateService.SetCurrentLogMsg(
                             $"Caching covers: [{current}/{totalCount}] - {songView.Title}", DimmerLogLevel.Info
                         );
@@ -2956,8 +3035,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             StatesMapper.Map(DimmerPlaybackState.Playing),
             0);
         await UpdateSongSpecificUi(CurrentPlayingSongView);
-        Debug.WriteLine("PLAYSTARTED "+args.AudioServiceCurrentPlayingSongView.Title);
-        Debug.WriteLine("PLAYSTARTED "+args.AudioServiceCurrentPlayingSongView.ArtistName);
+
     }
     #endregion
 
@@ -5568,30 +5646,45 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial ObservableCollection<DimmerStats> DailyListeningRoutineOHLC { get; set; }
 
     [ObservableProperty]
-    public partial  IProgress<LyricsProcessingProgress> LyricsProgress { get; set; }
-    public async Task LoadAllSongsLyricsFromOnlineAsync(
-        CancellationTokenSource _lyricsCts)
+    public partial double LyricsProgressValue { get; set; }
+
+    [ObservableProperty]
+    public partial string LyricsProgressText { get; set; }
+
+
+    
+
+    public async Task LoadAllSongsLyricsFromOnlineAsync(CancellationTokenSource _lyricsCts)
     {
-        
         var lp = new Progress<LyricsProcessingProgress>(progress =>
         {
+            // Update the progress value as a double (0.0 to 1.0)
+            LyricsProgressValue = progress.TotalCount > 0
+                ? (double)progress.ProcessedCount / progress.TotalCount
+                : 0;
+
+            LyricsProgressText = $"Processing lyrics: {progress.ProcessedCount}/{progress.TotalCount} ({progress.CurrentFile})";
+
             LatestAppLog = new AppLogEntryView()
             {
-                Message = $"Processing lyrics: {progress.ProcessedCount}/{progress.TotalCount} ({progress.CurrentFile})",
+                Message = LyricsProgressText,
                 ProgressValue = progress.ProcessedCount,
                 ProgressTotal = progress.TotalCount
             };
         });
-        LyricsProgress = lp;
+
         await SongDataProcessor.ProcessLyricsAsync(
             this,
             RealmFactory,
             _lyricsMetadataService,
-            LyricsProgress,
+            lp,
             _lyricsCts.Token);
     }
 
-    public record QueryComponents(
+
+
+
+public record QueryComponents(
         Func<SongModelView, bool>? Predicate,
         IComparer<SongModelView> Comparer,
         LimiterClause? Limiter);

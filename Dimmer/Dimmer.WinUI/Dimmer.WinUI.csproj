@@ -62,6 +62,7 @@
 		  <None Remove="Views\WinuiPages\PlaylistSection\AllPlaylistsPage.xaml" />
 		  <None Remove="Views\WinuiPages\PlaylistSection\SinglePlaylistPage.xaml" />
 		  <None Remove="Views\WinuiPages\SettingsPage.xaml" />
+		  <None Remove="Views\WinuiPages\Settings\AppUtilsPage.xaml" />
 		  <None Remove="Views\WinuiPages\Settings\FoldersSettingsPage.xaml" />
 		  <None Remove="Views\WinuiPages\Settings\RestoreBackupPage.xaml" />
 		  <None Remove="Views\WinuiPages\SingleSongPage\EditSongPage.xaml" />
@@ -91,16 +92,16 @@
 		
 		
 		<ItemGroup>
-			<PackageReference Include="DevWinUI" Version="9.9.4" />
-			<PackageReference Include="DevWinUI.ContextMenu" Version="9.9.1" />
-			<PackageReference Include="DevWinUI.Controls" Version="9.9.4" />
-			<PackageReference Include="DevWinUI.SourceGenerator" Version="9.9.0" />
+			
 			<PackageReference Include="LiveChartsCore.SkiaSharpView.WinUI" Version="2.0.5" />
 
 			<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.80" />
 			<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.9" />
 
-
+<PackageReference Include="DevWinUI" Version="9.9.4" />
+			<PackageReference Include="DevWinUI.ContextMenu" Version="9.9.1" />
+			<PackageReference Include="DevWinUI.Controls" Version="9.9.4" />
+			<PackageReference Include="DevWinUI.SourceGenerator" Version="9.9.0" />
 			<PackageReference Include="CommunityToolkit.WinUI.Animations" Version="8.2.251219" />
 			<PackageReference Include="CommunityToolkit.WinUI.Extensions" Version="8.2.251219" />
 			<PackageReference Include="CommunityToolkit.WinUI.Helpers" Version="8.2.251219" />
@@ -149,6 +150,11 @@
 		  <MauiXaml Include="Views\MAUIPages\HomePage.xaml">
 			<Generator>MSBuild:Compile</Generator>
 		  </MauiXaml>
+		</ItemGroup>
+		<ItemGroup>
+		  <Page Update="Views\WinuiPages\Settings\AppUtilsPage.xaml">
+		    <Generator>MSBuild:Compile</Generator>
+		  </Page>
 		</ItemGroup>
 		<ItemGroup>
 		  <Page Update="Views\WinuiPages\PlaylistSection\SinglePlaylistPage.xaml">

@@ -304,6 +304,11 @@ public sealed partial class SettingsPage : Page
                     contentFrameSettings.Navigate(typeof(RestoreBackupPage), MyViewModel);
 
                 break;
+            case "apputilspage":
+                if (contentFrameSettings.CurrentSourcePageType != typeof(AppUtilsPage))
+                    contentFrameSettings.Navigate(typeof(AppUtilsPage), MyViewModel);
+
+                break;
             default:
                 break;
         }

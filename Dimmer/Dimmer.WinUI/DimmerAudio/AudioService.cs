@@ -761,12 +761,7 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             else
             {
                 string fullPath = Path.GetFullPath(media.FilePath);
-                if (!TaggingUtils.FileExists(fullPath))
-                {
-                    Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: File does not exist at resolved path '{fullPath}' for '{media.Title}'.");
-                    return null;
-                }
-
+              
 
                 Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: Attempting StorageFile for path: {fullPath} for '{media.Title}'");
                 storageFile = await StorageFile.GetFileFromPathAsync(fullPath).AsTask(token);
