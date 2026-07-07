@@ -84,14 +84,10 @@
                         <NavigationViewItem.MenuItems>
                             <NavigationViewItem
                                 Content="App Utilities"
-                                Tag="appUtils"
+                                Tag="appUtilsPage"
                                 ToolTipService.ToolTip="Edit App Preferences"
                                 />
-                            <NavigationViewItem
-                                Content="Database Utilities"
-                                Tag="dbUtils"
-                                ToolTipService.ToolTip="Interact with the offline DB"
-                                />
+                          
                         </NavigationViewItem.MenuItems>
                     </NavigationViewItem>
                 </NavigationView.MenuItems>

@@ -306,7 +306,7 @@ public class CoverArtService : ICoverArtService
             if (TaggingUtils.FileExists(source))
             {
                 var result = await File.ReadAllBytesAsync(source);
-                if (result.Length > 0)
+                if (result is not null && result.Length > 0)
                 {
                     return result;
                 }

@@ -74,7 +74,7 @@ public partial class LoginViewModel : ObservableObject
                     }        
 
                 });
-        ;
+        
     }
 
     public bool CanLogin()

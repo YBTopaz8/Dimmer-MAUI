@@ -44,10 +44,11 @@ public class ParseFriendshipService : IFriendshipService, IDisposable
 
     private async Task FetchInitialFriendsAsync()
     {
-        var currentUser = _authService.CurrentUserValue;
+        UserModelOnline? currentUser = _authService.CurrentUserValue;
         if (currentUser == null)
             return;
-        var friends = await currentUser.GetRelation<UserModelOnline>("friends").Query.FindAsync();
+        var friends = await currentUser.GetRelation<UserModelOnline>("friends").Query
+            .FindAsync();
         _friendsCache.AddOrUpdate(friends);
     }
 

@@ -3,7 +3,7 @@ using MPage = Microsoft.Maui.Controls.Page;
 using MWindow = Microsoft.Maui.Controls.Window;
 
 namespace Dimmer.WinUI.Utils.WinMgt;
-internal class WindowManagerService : IMauiWindowManagerService
+internal partial class MauiWindowManagerService : IMauiWindowManagerService
 {
     private readonly IServiceProvider _mauiServiceProvider; // To potentially resolve MAUI services if needed
     private readonly List<MWindow> _openWindows = new(); // Simple tracking
@@ -12,7 +12,7 @@ internal class WindowManagerService : IMauiWindowManagerService
 
 
     // Constructor might take IServiceProvider if native pages need MAUI services
-    public WindowManagerService(IServiceProvider mauiServiceProvider)
+    public MauiWindowManagerService(IServiceProvider mauiServiceProvider)
     {
         _mauiServiceProvider = mauiServiceProvider; // From MAUI's DI
     }

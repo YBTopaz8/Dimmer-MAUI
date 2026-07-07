@@ -18,16 +18,8 @@ public partial class HomePage : ContentPage
         MyViewModel = viewModelAnd;
         MyLastFMViewModel = lastFMVM;
         MyLoginVM = loginVM;
-        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.OpenMediaUIOnNotificationTap), v => (MyViewModel.OpenMediaUIOnNotificationTap))
-            .Subscribe(
-                e =>
-                {
-                    if(e)
-                    {
-                        //this.MainPageTabView.SelectedItemIndex = 1;
-                    }
-
-                }).DisposeWith(compDisp);
+        compDisp = new();
+       
         MyViewModel.WhenPropertyChanged(nameof(MyViewModel.HomePageIndex), v => (MyViewModel.HomePageIndex))
             .Subscribe(
                 e =>
@@ -64,7 +56,7 @@ public partial class HomePage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        compDisp = new();
+        compDisp ??= new();
 
 
 
