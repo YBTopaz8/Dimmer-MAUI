@@ -8,6 +8,7 @@
     xmlns:customViews="using:Dimmer.WinUI.Views.CustomViews.WinuiViews"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:devWin="using:DevWinUI"
+    xmlns:dgView="using:WinUI.TableView"
     xmlns:local="using:Dimmer.WinUI.Views.WinuiPages.PlaylistSection"
     xmlns:localViews="using:Dimmer.WinUI.Views.CustomViews.WinuiViews"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -17,52 +18,90 @@
     >
 
     <Grid>
-        <GridView ItemsSource="{x:Bind MyViewModel.SelectedPlaylist.SongInPlaylist, Mode=OneWay}">
-            <GridView.Header>
-                <devWin:ShyHeader
-                    Title="{x:Bind MyViewModel.SelectedPlaylist.PlaylistName, Mode=OneWay}"
-                    BackgroundImage="{x:Bind MyViewModel.SelectedPlaylist.CoverImagePath, Mode=OneWay}"
-                    Description="{x:Bind MyViewModel.SelectedPlaylist.Description, Mode=OneWay}"
-                    >
-                    <devWin:ShyHeader.Profile>
-                        <PersonPicture
-                            Width="150"
-                            Height="150"
-                            ProfilePicture="{x:Bind MyViewModel.SelectedPlaylist.SongInPlaylist[0].CoverImagePath, Mode=OneWay}"
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0">
+            <TextBlock FontSize="25" Text="{x:Bind MyViewModel.SelectedPlaylist.PlaylistName}" />
+
+            <Button Content="{x:Bind MyViewModel.SelectedPlaylist.QueryText}" />
+        </StackPanel>
+        <Pivot x:Name="MainPivot" Grid.Row="1">
+            <PivotItem x:Name="SongsPivotItem" Header="Songs">
+                <dgView:TableView AutoGenerateColumns="False" ItemsSource="{x:Bind MyViewModel.SelectedPlaylist.SongsInPlaylist}">
+                    <dgView:TableView.Columns>
+                        <dgView:TableViewTemplateColumn Header="Image">
+                            <dgView:TableViewTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Image
+                                        Width="50"
+                                        Height="50"
+                                        Source="{Binding CoverImagePath}"
+                                        />
+                                </DataTemplate>
+                            </dgView:TableViewTemplateColumn.CellTemplate>
+                        </dgView:TableViewTemplateColumn>
+                        <dgView:TableViewTextColumn Binding="{Binding Title}" Header="Title" />
+                        <dgView:TableViewTextColumn Binding="{Binding OtherArtistsName}" Header="Artists" />
+                        <dgView:TableViewTextColumn Binding="{Binding AlbumName}" Header="Album" />
+                        <dgView:TableViewTextColumn Binding="{Binding GenreName}" Header="Genre" />
+                    </dgView:TableView.Columns>
+                </dgView:TableView>
+            </PivotItem>
+
+            <PivotItem
+                x:Name="StatsPivot"
+                Header="Statistics"
+                Loaded="StatsPivot_Loaded"
+                >
+                <Grid>
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <devWin:WrapPanel>
+                        <devWin:Card
+                            Title="{x:Bind MyStatsViewModel.TextTotalTime.Title}"
+                            Content="{x:Bind MyStatsViewModel.TextTotalTime.Value}"
+                            TitleContent="{x:Bind MyStatsViewModel.TextTotalTime.Subtitle}"
                             />
-                    </devWin:ShyHeader.Profile>
-                    <devWin:ShyHeader.Footer>
-                        <StackPanel Orientation="Horizontal">
-                            <Button Content="{x:Bind MyViewModel.SelectedPlaylist.SongsIdsInPlaylist.Count, Mode=OneWay}" />
-                            <TextBlock Text="Songs" />
-                        </StackPanel>
-                    </devWin:ShyHeader.Footer>
-                </devWin:ShyHeader>
-            </GridView.Header>
-            <GridView.ItemTemplate>
-                <DataTemplate>
-                    <StackPanel>
-
-                        <Image
-                            Width="200"
-                            Height="200"
-                            Margin="4"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            Source="{Binding CoverImagePath}"
-                            Stretch="UniformToFill"
+                        <devWin:Card
+                            Title="{x:Bind MyStatsViewModel.TextLifespan.Title}"
+                            Content="{x:Bind MyStatsViewModel.TextLifespan.Value}"
+                            TitleContent="{x:Bind MyStatsViewModel.TextLifespan.Subtitle}"
                             />
-                        <devWin:WrapPanel>
+                        <devWin:Card
+                            Title="{x:Bind MyStatsViewModel.TextDominantMood.Title}"
+                            Content="{x:Bind MyStatsViewModel.TextDominantMood.Value}"
+                            TitleContent="{x:Bind MyStatsViewModel.TextDominantMood.Subtitle}"
+                            />
+                        <devWin:Card
+                            Title="{x:Bind MyStatsViewModel.TextAverageDuration.Title}"
+                            Content="{x:Bind MyStatsViewModel.TextAverageDuration.Value}"
+                            TitleContent="{x:Bind MyStatsViewModel.TextAverageDuration.Subtitle}"
+                            />
+                        <devWin:Card
+                            Title="{x:Bind MyStatsViewModel.TextLifespan.Title}"
+                            Content="{x:Bind MyStatsViewModel.TextLifespan.Value}"
+                            TitleContent="{x:Bind MyStatsViewModel.TextLifespan.Subtitle}"
+                            />
+                        <devWin:Card
+                            Title="{x:Bind MyStatsViewModel.TextLoyaltyScore.Title}"
+                            Content="{x:Bind MyStatsViewModel.TextLoyaltyScore.Value}"
+                            TitleContent="{x:Bind MyStatsViewModel.TextLoyaltyScore.Subtitle}"
+                            />
+                        <devWin:Card
+                            Title="{x:Bind MyStatsViewModel.TextPlaylistVelocity.Title}"
+                            Content="{x:Bind MyStatsViewModel.TextPlaylistVelocity.Value}"
+                            TitleContent="{x:Bind MyStatsViewModel.TextPlaylistVelocity.Subtitle}"
+                            />
+                    </devWin:WrapPanel>
+                </Grid>
+            </PivotItem>
+        </Pivot>
 
-                            <TextBlock Text="{Binding Title}" />
-                            <TextBlock Text="{Binding ArtistName}" />
-                            <TextBlock Text="{Binding AlbumName}" />
-                            <TextBlock Text="{Binding PlayCompletedCount}" />
-
-                        </devWin:WrapPanel>
-                    </StackPanel>
-                </DataTemplate>
-            </GridView.ItemTemplate>
-        </GridView>
     </Grid>
 </Page>

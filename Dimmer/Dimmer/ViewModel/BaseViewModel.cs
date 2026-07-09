@@ -4793,13 +4793,20 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial ObservableCollection<PlaylistModelView> Playlists { get; set; } = new();
 
     [RelayCommand]
-    public void LoadPlaylists()
+    public void SetSelectedPlaylist(PlaylistModelView playlist)
     {
-        var playlistsFromDb = _playlistRepo.GetAll().OrderByDescending(p => p.LastPlayedDate).ToList();
-        Playlists.Clear();
-        foreach (var pl in playlistsFromDb)
+
+        var playlistsFromDb = _playlistRepo.GetById(playlist.Id);
+        
+        SelectedPlaylist = playlistsFromDb?.ToPlaylistModelView();
+        var realm = RealmFactory.GetRealmInstance();
+        foreach (var songId in SelectedPlaylist.SongsIdsInPlaylist)
         {
-            Playlists.Add(pl.ToPlaylistModelView());
+            SelectedPlaylist.SongsInPlaylist ??= new();
+
+            var songView = realm.Find<SongModel>(songId).ToSongModelView();
+
+            SelectedPlaylist.SongsInPlaylist.Add(songView);
         }
     }
 
@@ -4830,7 +4837,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             songInDb.UserNotes.Add(new UserNoteModel() { UserMessageText = newDescription, });
         }
-        LoadPlaylists();
+        
+
     }
 
 
@@ -4856,7 +4864,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             {
                 pl.PlaylistName = newName;
             });
-        LoadPlaylists();
     }
 
 
@@ -8706,6 +8713,8 @@ public void RemoveRule(VisualFilterRule rule)
         }
         return alb;
     }
+
+
 }
 
 public enum CollectionViewMode

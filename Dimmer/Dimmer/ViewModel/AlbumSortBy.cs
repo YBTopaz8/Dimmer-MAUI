@@ -1,14 +1,13 @@
 ﻿namespace Dimmer.ViewModel;
 
-public partial class BaseViewModel
+
+public enum AlbumSortBy
 {
-    public enum AlbumSortBy
-    {
-        NameAscending,
-        NameDescending,
-        ArtistAscending,
-        ArtistDescending,
-        YearAscending,
-        YearDescending
-    }
+    NameAscending,
+    NameDescending,
+    ArtistAscending,
+    ArtistDescending,
+    YearAscending,
+    YearDescending
 }
+

@@ -368,12 +368,12 @@ public sealed partial class ArtistPage : Page
 
     }
 
-    private void ListInsights_Loaded(object sender, RoutedEventArgs e)
+    private void ListEraPreference_Loaded(object sender, RoutedEventArgs e)
     {
-        MyArtistStatsViewModel?.WhenPropertyChanged(nameof(MyArtistStatsViewModel.ListInsights), v => MyArtistStatsViewModel?.ListInsights)
+        MyArtistStatsViewModel?.WhenPropertyChanged(nameof(MyArtistStatsViewModel.ListEraPreference), v => MyArtistStatsViewModel?.ListEraPreference)
             .Subscribe(insight =>
             {
-                ListInsights.ItemsSource = insight;
+                ListEraPreference.ItemsSource = insight;
             });
     }
 
@@ -411,7 +411,7 @@ public sealed partial class ArtistPage : Page
 
     private void ArtistSongsDG_Loaded(object sender, RoutedEventArgs e)
     {
-        ArtistSongsDG.ItemsSource = MyViewModel.SelectedArtist.SongsByArtist;
+        ArtistSongsDG.ItemsSource = MyViewModel.SelectedArtist?.SongsByArtist;
     }
 
     private void StoreCarouselTopSongs_Loaded(object sender, RoutedEventArgs e)
@@ -433,5 +433,12 @@ public sealed partial class ArtistPage : Page
 
     }
 
-  
+    private void ListPlaySkipRatio_Loaded(object sender, RoutedEventArgs e)
+    {
+        MyArtistStatsViewModel?.WhenPropertyChanged(nameof(MyArtistStatsViewModel.ListPlaySkipRatio), v => MyArtistStatsViewModel?.ListPlaySkipRatio)
+            .Subscribe(insight =>
+            {
+                ListPlaySkipRatio.ItemsSource = insight;
+            });
+    }
 }

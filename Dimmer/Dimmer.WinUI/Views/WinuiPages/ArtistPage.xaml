@@ -161,23 +161,35 @@
                                 Orientation="Horizontal"
                                 >
                                 <devWin:Card
-                                    Title="{x:Bind MyArtistStatsViewModel.TextBingeScore.Title, Mode=OneWay}"
-                                    Content="{x:Bind MyArtistStatsViewModel.TextBingeScore.Value, Mode=OneWay}"
-                                    TitleContent="{x:Bind MyArtistStatsViewModel.TextBingeScore.Subtitle, Mode=OneWay}"
+                                    Title="{x:Bind MyArtistStatsViewModel.TextBingeRecord.Title, Mode=OneWay}"
+                                    Content="{x:Bind MyArtistStatsViewModel.TextBingeRecord.Value, Mode=OneWay}"
+                                    TitleContent="{x:Bind MyArtistStatsViewModel.TextBingeRecord.Subtitle, Mode=OneWay}"
                                     />
 
 
 
                                 <devWin:Card
-                                    Title="{x:Bind MyArtistStatsViewModel.TextDiscoveryComparison.Title, Mode=OneWay}"
-                                    Content="{x:Bind MyArtistStatsViewModel.TextDiscoveryComparison.Value, Mode=OneWay}"
-                                    TitleContent="{x:Bind MyArtistStatsViewModel.TextDiscoveryComparison.Subtitle, Mode=OneWay}"
+                                    Title="{x:Bind MyArtistStatsViewModel.TextTotalTime.Title, Mode=OneWay}"
+                                    Content="{x:Bind MyArtistStatsViewModel.TextTotalTime.Value, Mode=OneWay}"
+                                    TitleContent="{x:Bind MyArtistStatsViewModel.TextTotalTime.Subtitle, Mode=OneWay}"
                                     />
 
                                 <devWin:Card
                                     Title="{x:Bind MyArtistStatsViewModel.TextLoyaltyIndex.Title, Mode=OneWay}"
                                     Content="{x:Bind MyArtistStatsViewModel.TextLoyaltyIndex.Value, Mode=OneWay}"
                                     TitleContent="{x:Bind MyArtistStatsViewModel.TextLoyaltyIndex.Subtitle, Mode=OneWay}"
+                                    />
+
+                                <devWin:Card
+                                    Title="{x:Bind MyArtistStatsViewModel.TextYoYGrowth.Title, Mode=OneWay}"
+                                    Content="{x:Bind MyArtistStatsViewModel.TextYoYGrowth.Value, Mode=OneWay}"
+                                    TitleContent="{x:Bind MyArtistStatsViewModel.TextYoYGrowth.Subtitle, Mode=OneWay}"
+                                    />
+
+                                <devWin:Card
+                                    Title="{x:Bind MyArtistStatsViewModel.TextLifespan.Title, Mode=OneWay}"
+                                    Content="{x:Bind MyArtistStatsViewModel.TextLifespan.Value, Mode=OneWay}"
+                                    TitleContent="{x:Bind MyArtistStatsViewModel.TextLifespan.Subtitle, Mode=OneWay}"
                                     />
 
                             </StackPanel>
@@ -217,10 +229,10 @@
                             </Grid.ColumnDefinitions>
 
                             <ItemsRepeater
-                                x:Name="ListInsights"
+                                x:Name="ListPlaySkipRatio"
                                 Grid.Column="0"
                                 Height="350"
-                                Loaded="ListInsights_Loaded"
+                                Loaded="ListPlaySkipRatio_Loaded"
                                 >
                                 <ItemsRepeater.ItemTemplate>
                                     <DataTemplate>
@@ -334,9 +346,10 @@
 
 
                             <ItemsRepeater
+                                x:Name="ListEraPreference"
                                 Grid.Column="4"
                                 Height="350"
-                                Loaded="ListInsights_Loaded"
+                                Loaded="ListEraPreference_Loaded"
                                 >
                                 <ItemsRepeater.ItemTemplate>
                                     <DataTemplate>

@@ -1,3 +1,5 @@
+using Dimmer.Charts.Services;
+using Dimmer.ViewModel.StatsVMs;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -44,4 +46,16 @@ public sealed partial class SinglePlaylistPage : Page
         compDisposable.Dispose();
     }
     CompositeDisposable compDisposable;
+    private PlaylistStatsViewModel? MyStatsViewModel;
+
+    private void StatsPivot_Loaded(object sender, RoutedEventArgs e)
+    {
+        MyStatsViewModel = IPlatformApplication.Current?.Services.GetService<PlaylistStatsViewModel>();
+        if(MyStatsViewModel is null || MyViewModel.SelectedPlaylist is null)
+        {
+            return;
+        }
+
+        MyStatsViewModel.LoadPlaylist(MyViewModel.SelectedPlaylist.Id);
+    }
 }

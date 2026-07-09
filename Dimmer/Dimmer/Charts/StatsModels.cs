@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace Dimmer.Charts;
-
 public partial class StatsModels
 {
 }

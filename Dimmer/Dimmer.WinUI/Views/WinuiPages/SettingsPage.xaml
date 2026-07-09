@@ -87,7 +87,7 @@
                                 Tag="appUtilsPage"
                                 ToolTipService.ToolTip="Edit App Preferences"
                                 />
-                          
+
                         </NavigationViewItem.MenuItems>
                     </NavigationViewItem>
                 </NavigationView.MenuItems>

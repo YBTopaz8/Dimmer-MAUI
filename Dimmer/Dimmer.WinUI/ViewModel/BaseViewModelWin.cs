@@ -1471,6 +1471,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         }
 
 
+
     [ObservableProperty]
     public partial SmokeViewQueueGrid NowPlayingView { get; set; }
 
