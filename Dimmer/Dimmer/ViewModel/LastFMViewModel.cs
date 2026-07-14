@@ -532,7 +532,7 @@ public partial class LastFMViewModel : ObservableObject
             if (lastFMArt is null)
                 return;
             art.ImagePath = lastFMArt.Images.FirstOrDefault(x => x.Size == "mega")?.Url;
-            await realm.WriteAsync(
+            realm.Write(
                 () =>
                 {
                     artInDb.ImagePath = art.ImagePath;

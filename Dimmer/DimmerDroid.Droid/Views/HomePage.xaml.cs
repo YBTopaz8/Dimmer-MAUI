@@ -3,6 +3,7 @@ global using Dimmer.Views.CustomViews;
 global using View = Microsoft.Maui.Controls.View;
 using DevExpress.Maui.Editors;
 using Dimmer.Utilities;
+using Syncfusion.Maui.Toolkit.Internals;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 
@@ -60,19 +61,17 @@ public partial class HomePage : ContentPage
 
 
 
-        MyViewModel.StartTQLPipeLine();
-
       
 
-        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.IsSearchResultEmpty), v => (MyViewModel.SearchResults))
+        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.IsTqlBusy), v => (MyViewModel.IsTqlBusy))
         .Subscribe(async col =>
         {
 
-           if(!isTQLBtmSheetOpened)
+           if(!col)
            {
-                if (SongsCV.IsLoaded)
+                if (SongsCV.IsLoaded && MyViewModel.SearchResults is not null)
                 {
-                    SongsCV.ItemsSource = new List<SongModelView>(col);
+                    SongsCV.ItemsSource = new List<SongModelView>(MyViewModel.SearchResults);
                 }
            }
            else
@@ -82,12 +81,6 @@ public partial class HomePage : ContentPage
 
         }).DisposeWith(compDisp);
 
-
-        if (!MyViewModel.IsInitialized)
-        {
-           _= InitializeAppLogic();
-            //MyViewModel.LoadSongsInitially();
-        }
     }
     CompositeDisposable compDisp;
 
@@ -771,13 +764,8 @@ public partial class HomePage : ContentPage
 
     private void SongsCV_PropertyChanged(object sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(SongsCV.VisibleItemCount))
-        {
+       
 
-            var newCount = (SongsCV.ItemsSource as ReadOnlyObservableCollection<SongModelView>)?.Count;
-            string? fullStr = newCount.ToString();
-            SearchText.Suffix = fullStr;
-        }
     }
 
     private void SortByChipGroup_SelectionChanged(object sender, EventArgs e)
@@ -863,7 +851,8 @@ public partial class HomePage : ContentPage
 
     private void SongsCV_Loaded(object sender, EventArgs e)
     {
-        MyViewModel.SetCollectionView(SongsCV);
+        
+        //MyViewModel.SetCollectionView(SongsCV);
     }
 
     private void IsFavorite_CheckedChanged(object sender, EventArgs e)
@@ -1094,9 +1083,18 @@ public partial class HomePage : ContentPage
 
     }
 
-    private void SelectedSongArtistBtn_Clicked(object sender, EventArgs e)
+    private async void SelectedSongArtistBtn_Clicked(object sender, EventArgs e)
     {
+        if(MyViewModel.SelectedSong?.ArtistToSong.Count >1)
+        {
+            ArtistsMgtBtmSheet.Show();
+        }
+        else
+        {
+            MyViewModel.SetSelectedArtist(MyViewModel.SelectedSong.Artist);
 
+            await  Shell.Current.GoToAsync(nameof(ArtistPage));
+        }
     }
 
     private async void GoToSelectedSongAlbumPage_Clicked(object sender, EventArgs e)
@@ -1206,7 +1204,10 @@ public partial class HomePage : ContentPage
 
     private void ShowTQLShortBTMSheet_Clicked(object sender, EventArgs e)
     {
-        TQLSearchBottomSheet.Show(BottomSheetState.FullExpanded);
+        TQLSearchGrid.IsVisible = true;
+        SearchText.Focus();
+        SearchText.CursorPosition = SearchText.Text?.Length is null ? 0 : SearchText.Text.Length;
+        //TQLSearchBottomSheet.Show(BottomSheetState.FullExpanded);
     }
 
     private void TQLSearchBottomSheet_StateChanged(object sender, ValueChangedEventArgs<BottomSheetState> e)
@@ -1233,7 +1234,7 @@ public partial class HomePage : ContentPage
 
     private void CloseTQLBtmSheet_Clicked(object sender, EventArgs e)
     {
-        TQLSearchBottomSheet.Close();
+        TQLSearchGrid.IsVisible = false;
     }
 
     private async void ViewArtistPage_Clicked(object sender, EventArgs e)
@@ -1264,29 +1265,87 @@ public partial class HomePage : ContentPage
         }
     }
 
-    private async void SearchResultDG_DoubleTap(object sender, DevExpress.Maui.DataGrid.DataGridGestureEventArgs e)
+    private void MyPage_Loaded(object sender, EventArgs e)
     {
-        var send = (View)sender;
-        var song = (SongModelView)send.BindingContext;
-        //var songsInCV = SongsCV.ItemsSource;
 
+        MyViewModel.StartTQLPipeLine();
 
-        List<SongModelView> songsInCV = new();
-        for (int i = 0; i < SearchResultDG.VisibleRowCount; i++)
+        if (!MyViewModel.IsInitialized)
         {
-            var itemHandle = SearchResultDG.GetRowHandleByVisibleIndex(i);
-
-            if (SearchResultDG.GetRowItem(itemHandle) is not SongModelView songByItemHandle) continue;
-            songsInCV.Add(songByItemHandle);
+            _ = InitializeAppLogic();
+            //MyViewModel.LoadSongsInitially();
         }
 
-
-
-        await MyViewModel.PlaySongAsync(song, CurrentPage.HomePage, songsInCV);
     }
 
+    private void SearchText_Loaded(object sender, EventArgs e)
+    {
+        var textEdit = (TextEdit)sender;
 
+        
+    }
 
+    private bool _wasKeyboardShowing = false;
+    private Android.Views.View _rootView;
+
+    protected override void OnHandlerChanged()
+    {
+        base.OnHandlerChanged();
+
+        // 1. If Handler is null, the view is being disconnected. We MUST clean up the listener to prevent memory leaks.
+        if (Handler == null)
+        {
+            if (_rootView?.ViewTreeObserver?.IsAlive == true)
+            {
+                _rootView.ViewTreeObserver.GlobalLayout -= OnGlobalLayout;
+            }
+            _rootView = null;
+            return;
+        }
+
+        // 2. Setup the listener when the Handler is attached
+        var activity = Microsoft.Maui.ApplicationModel.Platform.CurrentActivity;
+        _rootView = activity?.Window?.DecorView?.FindViewById(Android.Resource.Id.Content);
+
+        if (_rootView?.ViewTreeObserver != null)
+        {
+            _rootView.ViewTreeObserver.GlobalLayout += OnGlobalLayout;
+        }
+    }
+
+    private void OnGlobalLayout(object sender, EventArgs e)
+    {
+        if (_rootView == null) return;
+
+        Android.Graphics.Rect rect = new Android.Graphics.Rect();
+        _rootView.GetWindowVisibleDisplayFrame(rect);
+
+        // Calculate the difference between total height and visible height
+        int? screenHeight = _rootView.RootView?.Height;
+        int visibleHeight = rect.Bottom - rect.Top;
+        int? heightDiff = screenHeight - visibleHeight;
+
+        // Using 15% of the screen height as a threshold is much safer than 200px 
+        // across different device screen densities.
+        bool isKeyboardShowing = heightDiff > (screenHeight * 0.15);
+
+        if (!isKeyboardShowing && _wasKeyboardShowing)
+        {
+            // Keyboard Just Collapsed!
+            Dispatcher.Dispatch(() => {
+                // Call your portable MAUI method here
+                System.Diagnostics.Debug.WriteLine("Keyboard collapsed!");
+            });
+        }
+
+        // Save state for the next time this event fires
+        _wasKeyboardShowing = isKeyboardShowing;
+    }
+
+    private void SongsCV_Loaded_1(object sender, EventArgs e)
+    {
+
+    }
 
 
 

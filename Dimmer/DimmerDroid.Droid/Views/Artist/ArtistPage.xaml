@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
     x:Class="Dimmer.Views.Artist.ArtistPage"
+    x:Name="myPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:dx="http://schemas.devexpress.com/maui"
@@ -10,9 +11,10 @@
     xmlns:vm="clr-namespace:Dimmer.ViewModels"
     Title="{Binding Name}"
     x:DataType="models:ArtistModelView"
+    Loaded="MyPage_Loaded"
     Shell.NavBarIsVisible="True"
     >
-    <Grid RowDefinitions="auto,*" Margin="5">
+    <Grid Margin="5" RowDefinitions="auto,*">
         <Grid
             Grid.Row="0"
             ColumnDefinitions="*,*"

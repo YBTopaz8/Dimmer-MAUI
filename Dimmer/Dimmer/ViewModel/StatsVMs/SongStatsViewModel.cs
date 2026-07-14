@@ -78,14 +78,14 @@ public partial class SongStatsViewModel : ObservableObject, IDisposable
         _statsService.PerfectPairings.Subscribe(v => ListPerfectPairings = v).DisposeWith(_disposables);
 
         // New Common
-        _statsService.DailyTrend.Subscribe(v => ListDailyTrend = v).DisposeWith(_disposables);
-        _statsService.WeeklyTrend.Subscribe(v => ListWeeklyTrend = v).DisposeWith //_statsService.WeekendVsWeekday.Subscribe(v => TextWeekendVsWeekday = v).DisposeWith(_disposables);
+      
+        //_statsService.WeeklyTrend.Subscribe(v => ListWeeklyTrend = v).DisposeWith //_statsService.WeekendVsWeekday.Subscribe(v => TextWeekendVsWeekday = v).DisposeWith(_disposables);
         //_statsService.AveragePlaysPerActiveDay.Subscribe(v => TextAvgPlaysPerActiveDay = v).DisposeWith(_disposables);
         //_statsService.LongestDrought.Subscribe(v => TextLongestDrought = v).DisposeWith(_disposables);
         //_statsService.ConsistencyScore.Subscribe(v => TextConsistencyScore = v).DisposeWith(_disposables);
         //_statsService.MaxSessionDuration.Subscribe(v => TextMaxSessionDuration = v).DisposeWith(_disposables);
         //_statsService.PeakBingeIntensity.Subscribe(v => TextPeakBingeIntensity = v).DisposeWith(_disposables);
-(_disposables);
+//(_disposables);
        
         //// New Specific
         //_statsService.HourOfPower.Subscribe(v => TextHourOfPower = v).DisposeWith(_disposables);

@@ -47,7 +47,7 @@ public static class AlbumModelViewExtensions
                 alb.TotalSkipCount = songsInAlbum.Sum(x => x.SkipCount);
                 if(string.IsNullOrEmpty(alb.ImagePath) || alb.ImagePath== "musicalbum.png")
                 {
-                    alb.ImagePath = songsInAlbum.First(x => !string.IsNullOrEmpty(x.CoverImagePath)).CoverImagePath;
+                    alb.ImagePath = songsInAlbum.FirstOrDefault(x => !string.IsNullOrEmpty(x.CoverImagePath))?.CoverImagePath;
                    realm.Add(alb,update:true);
                 }
                 // Ensure artist-album relationship exists exactly once
@@ -95,7 +95,7 @@ public static class AlbumModelViewExtensions
         // Materialize fresh data
         var songsInDb = artInDb.Songs.AsEnumerable();
         var albumsInDb = artInDb.Albums.AsEnumerable();
-        var eventsInDb = artInDb.Songs.AsEnumerable().SelectMany(s => s.PlayHistory).AsEnumerable();
+        var eventsInDb = artInDb.Songs.AsEnumerable().SelectMany(s => s.PlayHistory);
 
         RxSchedulers.UI.ScheduleTo(() =>
         {

@@ -94,7 +94,7 @@ public class LibraryScannerService : ILibraryScannerService
                     if (filesToDelete.Count != 0)
                     {
                         _logger.LogInformation("Detected {Count} deleted files. Removing from database...", filesToDelete.Count);
-                        realm.Write(() => // Synchronous Write guarantees we stay on the safe thread
+                       await realm.WriteAsync(() => // Synchronous Write guarantees we stay on the safe thread
                         {
                             foreach (var songToDelete in filesToDelete)
                             {
@@ -131,53 +131,116 @@ public class LibraryScannerService : ILibraryScannerService
             {
                 using (var realm = _realmFactory.GetRealmInstance())
                 {
-                    realm.Write(() =>
+                  await  realm.WriteAsync(() =>
                     {
                         // Cache DB lookups into Dictionaries to prevent thousands of slow DB queries inside the loop
-                        var genreCache = realm.All<GenreModel>().ToDictionary(g => g.Name, StringComparer.OrdinalIgnoreCase);
-                        var artistCache = realm.All<ArtistModel>().ToDictionary(a => a.Name, StringComparer.OrdinalIgnoreCase);
-                        var albumCache = realm.All<AlbumModel>().ToDictionary(a => a.Name, StringComparer.OrdinalIgnoreCase);
 
                         foreach (var songView in newSongs)
                         {
                             var songModel = songView.ToSongModel();
+                            if (songModel is null) continue;
 
+                            var genreName = songView.GenreName;
                             // Link Genre
-                            if (!string.IsNullOrEmpty(songView.GenreName))
+                            if (!string.IsNullOrEmpty(genreName))
                             {
-                                if (!genreCache.TryGetValue(songView.GenreName, out var genre))
+                                var genreInDb = realm.All<GenreModel>().Filter("Name == $0", genreName);
+                                var countgenre = genreInDb.Count();
+                                var genre = new GenreModel { Id = ObjectId.GenerateNewId(), Name = genreName };
+                         
+                                if (countgenre == 1)
                                 {
-                                    genre = realm.Add(new GenreModel { Id = ObjectId.GenerateNewId(), Name = songView.GenreName });
-                                    genreCache[songView.GenreName] = genre;
+                                        genre = genreInDb.First();
+                                }
+                           
+                                if (countgenre == 0)
+                                {
+
+                                    genre = realm.Add(genre, update: true);
+                                }
+                                else if(countgenre > 1) 
+                                {
+                                    var dupgenre = genreInDb.AsEnumerable().OrderByDescending(x => x.DateCreated).Skip(1).ToList();
+                                  foreach (var item in dupgenre)
+                                  {
+                                        
+                                        realm.Remove(item);
+                                  }
+
                                 }
                                 songModel.Genre = genre;
                             }
 
                             // Link Artist
-                            if (!string.IsNullOrEmpty(songView.ArtistName))
+                            if (!string.IsNullOrEmpty(songView.OtherArtistsName))
                             {
-                                if (!artistCache.TryGetValue(songView.ArtistName, out var artist))
+                                var artName = songView.OtherArtistsName.Split(",");
+                                foreach (var art in artName)
                                 {
-                                    artist = realm.Add(new ArtistModel { Id = ObjectId.GenerateNewId(), Name = songView.ArtistName });
-                                    artistCache[songView.ArtistName] = artist;
+
+                                    var ArtsInDb = realm.All<ArtistModel>().Filter("Name == $0", art);
+                                    var countArtInDb = ArtsInDb.Count();
+                                    var artist = new ArtistModel { Id = ObjectId.GenerateNewId(), Name = art };
+                                    if (countArtInDb == 0)
+                                    {
+
+                                        artist = realm.Add(artist, update: true);
+                                    }
+
+                                    else if (countArtInDb == 1)
+                                    {
+                                        artist = ArtsInDb.First();
+                                    }
+                                    else if (countArtInDb > 1)
+                                    {
+                                        var dupArtists = ArtsInDb.AsEnumerable().OrderByDescending(x => x.DateCreated).Skip(1).ToList();
+                                     
+                                        foreach (var item in dupArtists)
+                                        {
+                                            realm.Remove(item);
+                                        }
+                                    }
+
+                                    songModel.Artist = artist;
+                                    songModel.ArtistToSong.Add(artist);
+                                    artist.TotalSongsByArtist++;
+
                                 }
-                                songModel.Artist = artist;
-                                songModel.ArtistToSong.Add(artist);
                             }
 
+                            var alb = songView.AlbumName;
                             // Link Album
-                            if (!string.IsNullOrEmpty(songView.AlbumName))
+                            if (!string.IsNullOrEmpty(alb))
                             {
-                                if (!albumCache.TryGetValue(songView.AlbumName, out var album))
-                                {
-                                    album = realm.Add(new AlbumModel { Id = ObjectId.GenerateNewId(), Name = songView.AlbumName });
-                                    albumCache[songView.AlbumName] = album;
-                                }
 
+                                var albsInDb = realm.All<AlbumModel>().Filter("Name == $0", alb);
+                                var countArtInDb = albsInDb.Count();
+                                var album = new AlbumModel { Id = ObjectId.GenerateNewId(), Name = alb };
+                                if (countArtInDb ==0)
+                                {
+
+                                    album = realm.Add(album);
+
+                                   
+                                }
+                                else if (countArtInDb == 1)
+                                {
+                                    album = albsInDb.First();
+                                }
+                                else if (countArtInDb > 1)
+                                {
+                                    var dupAlbs = albsInDb.AsEnumerable().OrderByDescending(x => x.DateCreated).Skip(1).ToList();
+                                    foreach (var item in dupAlbs)
+                                    {
+                                        realm.Remove(item);
+                                    }
+
+                                }
                                 if (songModel.Artist != null && !album.Artists.Contains(songModel.Artist))
                                     album.Artists.Add(songModel.Artist);
 
                                 songModel.Album = album;
+
                             }
 
                             songModel.IsNew = false;

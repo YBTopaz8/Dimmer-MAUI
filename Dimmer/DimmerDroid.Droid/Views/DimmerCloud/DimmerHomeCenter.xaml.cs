@@ -44,6 +44,7 @@ public partial class DimmerHomeCenter : ContentPage
     SessionManagementViewModel MyViewModel;
     private async void CancelLoginChip_Tap(object sender, HandledEventArgs e)
     {
+        LoginBottomSheet.Close();
         await Shell.Current.GoToAsync("//HomePage");
 
     }

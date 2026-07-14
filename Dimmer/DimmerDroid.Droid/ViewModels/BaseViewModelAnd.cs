@@ -492,7 +492,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
 
     [RelayCommand]
-    private void ApplyTQLSearch(string parameter)
+    private void ApplyTQLSearch(string? parameter)
     {
         base.SearchToTQL(parameter);
     }

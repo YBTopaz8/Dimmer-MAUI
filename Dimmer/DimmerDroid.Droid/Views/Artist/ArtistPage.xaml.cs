@@ -31,12 +31,7 @@ public partial class ArtistPage : ContentPage
         BindingContext = MyViewModel.SelectedArtist;
         base.OnAppearing();
         
-            
-        _=  Task.Run(async () =>
-          {
-              await Task.Delay(4000);
-              await MylastFMViewModel.LoadArtistLastFMDataAsync(MyViewModel.SelectedArtist);
-          });
+          
            //await StatsVM.LoadArtistStatsAsync(MyViewModel.SelectedArtist);
 
     }
@@ -78,5 +73,13 @@ public partial class ArtistPage : ContentPage
     private void ChartsScrollView_Loaded(object sender, EventArgs e)
     {
         ChartsScrollView.BindingContext = StatsVM;
+    }
+
+    private async void MyPage_Loaded(object sender, EventArgs e)
+    {
+
+        await Task.Delay(4000);
+        await MylastFMViewModel.LoadArtistLastFMDataAsync(MyViewModel.SelectedArtist);
+        
     }
 }
