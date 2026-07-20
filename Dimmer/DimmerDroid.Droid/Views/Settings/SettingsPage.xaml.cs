@@ -27,6 +27,7 @@ public partial class SettingsPage : ContentPage
             pageDisposable = new();
 
         }
+        MyViewModel.LoadFolderPaths();
     }
     private void RemoveFolderBtn_Clicked(object sender, HandledEventArgs e)
     {
