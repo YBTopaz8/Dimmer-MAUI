@@ -119,12 +119,17 @@ public class LibraryScannerService : ILibraryScannerService
 
             var processedResults = await audioFileProcessor.ProcessFilesInParallelForEachAsync(newFilesToProcess).ConfigureAwait(false);
 
-            var newSongs = processedResults
-                .Where(r => r.Success && r.ProcessedSong != null)
-                .Select(r => r.ProcessedSong!)
-                .DistinctBy(s => s.TitleDurationKey)
+            var successFullyProcessed = processedResults
+                .Where(r => r.Success && r.ProcessedSong != null);
+
+            var notnullProcessedSong = successFullyProcessed
+                .Select(r => r.ProcessedSong!);
+            var distinctSongsByTitleDur = notnullProcessedSong
+                .DistinctBy(s => s.TitleDurationKey);
+            var doubleCheckList = distinctSongsByTitleDur
                 .Where(s => !existingKeys.Contains(s.TitleDurationKey)) // Double check against DB
-                .ToList();
+                ;
+            var newSongs = doubleCheckList.ToList();
 
             // --- REALM BLOCK 3: INSERT NEW SONGS ---
             if (newSongs.Count > 0)

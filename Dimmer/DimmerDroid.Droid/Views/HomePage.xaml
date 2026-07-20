@@ -114,12 +114,26 @@
                             Clicked="OtherArtistsName_Clicked"
                             CommandParameter="{Binding .}"
                             Content="{Binding OtherArtistsName}"
+                            CornerRadius="5"
                             FontAttributes="Italic"
-                            FontSize="13" CornerRadius="5"
+                            FontSize="13"
                             HorizontalOptions="Start"
                             TextColor="{AppThemeBinding Dark=gray,
                                                         Light=black}"
-                            />
+                            >
+                            <dx:DXButton.GestureRecognizers>
+                                <SwipeGestureRecognizer
+                                    x:Name="SortArtistAsc"
+                                    Direction="Up"
+                                    Swiped="SortArtistAsc_Swiped"
+                                    />
+                                <SwipeGestureRecognizer
+                                    x:Name="SortArtistDesc"
+                                    Direction="Down"
+                                    Swiped="SortArtistDesc_Swiped"
+                                    />
+                            </dx:DXButton.GestureRecognizers>
+                        </dx:DXButton>
                     </dx:DXStackLayout>
 
                     <dx:DXButton
@@ -668,7 +682,7 @@
                     </Grid>
 
 
-                    <dx:BottomSheet x:Name="SingleSongBtmSheet" AllowDismiss="True">
+                    <dx:BottomSheet x:Name="SingleSongBtmSheet" AllowDismiss="True" StateChanged="SingleSongBtmSheet_StateChanged">
                         <dx:BottomSheet.Content>
                             <dx:DXStackLayout Margin="5,0" ItemSpacing="10">
                                 <dx:DXStackLayout.Resources>
@@ -700,9 +714,9 @@
                                         Text="{Binding SelectedSong.PlayCompletedCount, StringFormat='Played {0} Times'}"
                                         />
                                     <dx:Chip
-                                        Icon="heart.png"
+                                        x:Name="NextInQueueCounter"
+                                        Icon="playlistminimalistic3.png"
                                         IsIconVisible="True"
-                                        Text="{Binding SelectedSong.ManualFavoriteCount, StringFormat='Faved {0} Times'}"
                                         />
 
 

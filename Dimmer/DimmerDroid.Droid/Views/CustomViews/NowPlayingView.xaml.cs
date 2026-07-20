@@ -1,4 +1,5 @@
 using AndroidX.Navigation;
+using CommunityToolkit.Maui.Alerts;
 using DevExpress.Maui.CollectionView;
 using Dimmer.Charts;
 using Dimmer.ViewModel.StatsVMs;
@@ -247,24 +248,31 @@ public partial class NowPlayingView : ContentView
         } 
     }
 
+    CancellationTokenSource? cancellationTokenSource; 
     private async void ListPerfectPairings_Tap(object sender, CollectionViewGestureEventArgs e)
     {
+        cancellationTokenSource?.Cancel();
+        cancellationTokenSource = new();
         var tappedItemHandle = e.ItemHandle;
         var tappedItem = ListPerfectPairings.GetItem(tappedItemHandle) as SongPairing;
 
-        if (tappedItem != null && tappedItem.songId != null)
+        if (tappedItem != null && tappedItem.songId != null && tappedItem.isPresentOnDevice)
         {
-            var song = MyViewModel.RealmFactory.GetRealmInstance().Find<SongModel>(tappedItem.songId).ToSongModelView();
-            if (song is null) return;
-            MyViewModel.AddToNext(new List<SongModelView>() { song});
-            await MyViewModel.NextTrackAsync();
-            FrequentlyPlayedExpander.SetIsExpanded(false);
-            await Task.Delay(1250);
-            FrequentlyPlayedExpander.SetIsExpanded(true);
+            MyViewModel.SelectedSong = MyViewModel.RealmFactory.GetRealmInstance().Find<SongModel>(tappedItem.songId).ToSongModelView();
+            this.SingleSongStatView.State = BottomSheetState.HalfExpanded;
+
+            HapticFeedback.Default.Perform(HapticFeedbackType.Click);
         }
         else
         {
 
+            var songNotOnDeviceToast = new Snackbar();
+            var songNotOnDeviceToastText = "Song Not On Device";
+
+            CommunityToolkit.Maui.Alerts.Toast msgToast = new CommunityToolkit.Maui.Alerts.Toast() { Text = songNotOnDeviceToastText, Duration = CommunityToolkit.Maui.Core.ToastDuration.Short, TextSize=21};
+            msgToast?.Show(cancellationTokenSource.Token);
+
+            HapticFeedback.Default.Perform(HapticFeedbackType.LongPress);
         }
     }
 

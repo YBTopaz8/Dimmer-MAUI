@@ -148,7 +148,22 @@ public class SongStatsService
                 totalFollowUps++;
             }
         }
-        var pairings = pairingsDict.OrderByDescending(kvp => kvp.Value).Take(10).Select(kvp => new SongPairing(bgRealm.Find<SongModel>(kvp.Key)?.Title ?? "Unknown", kvp.Value, "Played Next", "", null)).ToList();
+        var pairings = pairingsDict.OrderByDescending(kvp => kvp.Value).Take(10).Select(kvp =>
+        {
+            var dimEvent = allEvents.First(x => x.SongId == kvp.Key).ToDimmerPlayEventView()! ;
+            bool isPresentOnDevice=false;
+            var songInDB = bgRealm.Find<SongModel>(dimEvent.SongId);
+
+            dimEvent.SongId = ObjectId.Empty;
+            if (songInDB is not null)
+            {
+                isPresentOnDevice = true;
+                dimEvent.SongId = songInDB.Id;
+                dimEvent.CoverImagePath = songInDB.CoverImagePath;
+            }
+            var songPair = new SongPairing(dimEvent.SongName, kvp.Value, "Played Next", dimEvent.CoverImagePath, null,dimEvent.SongId,isPresentOnDevice);
+            return songPair;
+        }).ToList();
         var predict = new TextStat("Predictability", totalFollowUps > 0 && pairings.Count != 0 ? $"{((double)pairings.First().TimesPlayedTogether / totalFollowUps) * 100:F0}%" : "N/A", "Chance of playing top pair next");
 
         // 1. Hour of Power (The specific hour this song peaks)

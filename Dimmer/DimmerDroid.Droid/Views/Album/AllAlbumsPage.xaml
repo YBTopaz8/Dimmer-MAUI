@@ -3,11 +3,205 @@
     x:Class="Dimmer.Views.Album.AllAlbumsPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    Title="Albums" Shell.ForegroundColor="DarkSlateBlue">
-    <VerticalStackLayout>
-        <Label
-            HorizontalOptions="Center"
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" />
-    </VerticalStackLayout>
-</ContentPage>
+    Title="Albums" 
+    Shell.ForegroundColor="DarkSlateBlue"
+    
+    x:Name="myPage"
+    xmlns:dx="http://schemas.devexpress.com/maui"
+    xmlns:globalVM="clr-namespace:Dimmer.ViewModel;assembly=Dimmer"
+    xmlns:local="clr-namespace:Dimmer.Views.CustomViews"
+    xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+    xmlns:vm="clr-namespace:Dimmer.ViewModels"
+    x:DataType="vm:BaseViewModelAnd"
+    BackgroundColor="#FFFFFF"
+    Shell.BackgroundColor="DarkGray"
+    Shell.NavBarIsVisible="False"
+    >
+        <Grid Margin="10,0" RowDefinitions="auto,*">
+
+
+            <dx:DXCollectionView
+            Grid.Row="1"
+            ItemSpacing="5"
+            ItemSpanCount="1"
+            ItemSpanSpacing="5"
+            ItemsSource="{Binding AlbumsCollection}"
+            SelectedItem="{Binding SelectedAlbum}"
+            SelectionMode="Single"
+            IsPullToRefreshEnabled="False" 
+            >
+                <dx:DXCollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:AlbumModelView">
+                        <dx:DXBorder
+                        Padding="10"
+                        BorderColor="DarkGray"
+                        BorderThickness="1"
+                        CornerRadius="12"
+                        >
+
+                            <Grid
+                            ColumnDefinitions="70,*,50"
+                            ColumnSpacing="5"
+                            HeightRequest="80"
+                            >
+
+                                <dx:DXImage Aspect="AspectFill" Source="{Binding ImagePath}" >
+                                    <dx:DXImage.Triggers>
+                                        <DataTrigger TargetType="dx:DXImage" Binding="{Binding ImagePath}" Value="">
+                                            <Setter Property="Source" Value="lyricist.png"/>
+                                        </DataTrigger>
+                                    </dx:DXImage.Triggers>
+                                </dx:DXImage>
+                                <dx:DXStackLayout Grid.Column="1" ItemSpacing="4">
+                                    <Label
+                                    FontAttributes="Bold"
+                                    FontSize="20"
+                                    Text="{Binding Name}"
+                                    TextColor="{AppThemeBinding Light=Black,
+                                                                Dark=White}"
+                                    />
+                                    <dx:Chip
+                                    x:Name="AlbumSongsCountChip"
+                                    Padding="0"
+                                    BorderThickness="0"
+                                    FontSize="16"
+                                    HorizontalOptions="Start"
+                                    Tap="AlbumSongsCountChip_Tap"
+                                    Text="{Binding TrackTotal, StringFormat='{0} Songs'}"
+                                    TextColor="{AppThemeBinding Light=#1e1e1e,
+                                                                Dark=White}"
+                                    />
+                                    <!--<dx:Chip
+                                    Padding="0"
+                                    BorderThickness="0"
+                                    FontSize="14"
+                                    HorizontalOptions="Start"
+                                    Text="{Binding TotalCompletedPlays, StringFormat='{0} Plays'}"
+                                    TextColor="{AppThemeBinding Light=#1e1e1e,
+                                                                Dark=White}"
+                                    />-->
+                                </dx:DXStackLayout>
+
+                                <dx:DXButton
+                                x:Name="NavigateToAlbumDetailsButton"
+                                Grid.Column="2"
+                                HorizontalContentAlignment="End"
+                                BackgroundColor="Transparent"
+                                CommandParameter="{Binding .}"
+                                HeightRequest="50"
+                                HorizontalOptions="End"
+                                Icon="arrowcircleright.png"
+                                IconColor="DarkSlateBlue"
+                                IconHeight="40"
+                                IconWidth="40"
+                                PressedBackgroundColor="DarkSlateBlue"
+                                PressedIconColor="{AppThemeBinding Dark=White,
+                                                                   Light=Black}"
+                                ShowContent="False"
+                                ShowIcon="True"
+                                Tap="NavigateToAlbumDetailsButton_Tapped"
+                                TextColor="Red"
+                                WidthRequest="50"
+                                />
+                            </Grid>
+
+                        </dx:DXBorder>
+                    </DataTemplate>
+                </dx:DXCollectionView.ItemTemplate>
+            </dx:DXCollectionView>
+
+            <dx:BottomSheet
+            x:Name="AlbumSongsBtmSheet"
+            Padding="15" IsModal="True"
+            >
+                <Grid RowDefinitions="auto,*" VerticalOptions="Start" RowSpacing="10">
+                    <dx:DXStackLayout>
+                        <dx:Chip
+                        x:Name="PlayAlbumSongsToNext"
+                        Icon="playlistadd.png"
+                        IsIconVisible="True"
+                        Text="Flush All To Play Next"
+                        />
+                    </dx:DXStackLayout>
+                    <dx:DXCollectionView HeightRequest="300"
+                    x:Name="AlbumSongsCV"
+                    Grid.Row="1"
+                    ItemsSource="{Binding SelectedAlbum.SongsInAlbum}"
+                    Tap="AlbumSongsCV_Tap"
+                    >
+                        <dx:DXCollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:SongModelView">
+                                <Grid
+                                ColumnDefinitions="50,*,auto"
+                                ColumnSpacing="10"
+                                RowDefinitions="80"
+                                >
+                                    <dx:DXImage
+                                    Grid.Column="0"
+                                    Source="{Binding CoverImagePath}"
+                                    VerticalOptions="Start"
+                                    />
+                                    <dx:DXStackLayout Grid.Column="1" ItemSpacing="5">
+
+                                        <Label FontSize="20" Text="{Binding Title}" />
+                                        <Label FontSize="13" Text="{Binding AlbumName}" />
+
+                                    </dx:DXStackLayout>
+                                    <dx:DXStackLayout
+                                    Grid.Column="2"
+                                    Orientation="Horizontal"
+                                    VerticalOptions="Start"
+                                    >
+                                        <dx:DXButton
+                                        Padding="2"
+                                        BackgroundColor="Transparent"
+                                        Icon="heart.png"
+                                        IconHeight="30"
+                                        IconWidth="30"
+                                        IsVisible="False"
+                                        ShowContent="False"
+                                        ShowIcon="True"
+                                        >
+                                            <dx:DXButton.Triggers>
+                                                <DataTrigger
+                                                Binding="{Binding IsFavorite}"
+                                                TargetType="dx:DXButton"
+                                                Value="True"
+                                                >
+                                                    <Setter Property="Icon" Value="heartlock.png" />
+                                                </DataTrigger>
+                                                <DataTrigger
+                                                Binding="{Binding IsFavorite}"
+                                                TargetType="dx:DXButton"
+                                                Value="False"
+                                                >
+                                                    <Setter Property="Icon" Value="heart.png" />
+                                                </DataTrigger>
+                                            </dx:DXButton.Triggers>
+                                        </dx:DXButton>
+
+                                        <dx:DXButton
+                                        x:Name="AddSongToNextInPlaylist"
+                                        Padding="2"
+                                        BackgroundColor="Transparent"
+                                        CommandParameter="{Binding .}"
+                                        Icon="playlistadd.png"
+                                        IconColor="DarkSlateBlue"
+                                        IconHeight="40"
+                                        IconWidth="40"
+                                        ShowContent="False"
+                                        ShowIcon="True"
+                                        Tap="AddSongToNextInPlaylist_Tap"
+                                        />
+                                    </dx:DXStackLayout>
+                                </Grid>
+                            </DataTemplate>
+                        </dx:DXCollectionView.ItemTemplate>
+                    </dx:DXCollectionView>
+                </Grid>
+            </dx:BottomSheet>
+
+
+
+        </Grid>
+    </ContentPage>

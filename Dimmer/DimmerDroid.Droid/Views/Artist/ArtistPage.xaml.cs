@@ -1,12 +1,14 @@
 
 
+using DevExpress.Maui.DataGrid;
+using Dimmer.Hoarder;
 using Dimmer.ViewModel.StatsVMs;
 
 namespace Dimmer.Views.Artist;
 
 public partial class ArtistPage : ContentPage
 {
-	public ArtistPage(BaseViewModelAnd baseViewModel , ArtistStatsViewModel statsVM,
+    public ArtistPage(BaseViewModelAnd baseViewModel, ArtistStatsViewModel statsVM,
     LastFMViewModel lastFMVM)
 
     {
@@ -17,7 +19,7 @@ public partial class ArtistPage : ContentPage
 
     }
     public BaseViewModelAnd MyViewModel { get; }
-    
+
     LastFMViewModel MylastFMViewModel { get; }
     public ArtistStatsViewModel StatsVM { get; }
 
@@ -30,16 +32,24 @@ public partial class ArtistPage : ContentPage
     {
         BindingContext = MyViewModel.SelectedArtist;
         base.OnAppearing();
-        
-          
-           //await StatsVM.LoadArtistStatsAsync(MyViewModel.SelectedArtist);
+
+
+        StatsVM.LoadArtist(MyViewModel.SelectedArtist.Id);
 
     }
 
     private void ExportEvt_Tap(object sender, HandledEventArgs e)
     {
-        
+        var dgView = ((Chip)sender).TapCommandParameter as DevExpress.Maui.DataGrid.DataGridView;
+
+        var linkk = dgView.GetExportLink();
+
+        var pdfExp = new DevExpress.XtraPrinting.PdfExportOptions();
+        pdfExp.ShowPrintDialogOnOpen = true;
+        linkk.ExportToPdf(System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments), pdfExp);
     }
+
+
 
     private async void CurrentPlayingCoverTapGesture_Tapped(object sender, TappedEventArgs e)
     {
@@ -80,6 +90,11 @@ public partial class ArtistPage : ContentPage
 
         await Task.Delay(4000);
         await MylastFMViewModel.LoadArtistLastFMDataAsync(MyViewModel.SelectedArtist);
+        
+    }
+
+    private void ChartsScrollView_Scrolled(object sender, ScrolledEventArgs e)
+    {
         
     }
 }

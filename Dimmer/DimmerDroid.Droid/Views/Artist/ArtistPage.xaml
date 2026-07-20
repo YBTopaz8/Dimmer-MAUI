@@ -8,6 +8,7 @@
     xmlns:globalVM="clr-namespace:Dimmer.ViewModel;assembly=Dimmer"
     xmlns:local="clr-namespace:Dimmer.Views.CustomViews"
     xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+    xmlns:statsVM="clr-namespace:Dimmer.ViewModel.StatsVMs;assembly=Dimmer"
     xmlns:vm="clr-namespace:Dimmer.ViewModels"
     Title="{Binding Name}"
     x:DataType="models:ArtistModelView"
@@ -15,32 +16,46 @@
     Shell.NavBarIsVisible="True"
     >
     <Grid Margin="5" RowDefinitions="auto,*">
-        <Grid
+        <dx:DXExpander
+            x:Name="TopExpander"
             Grid.Row="0"
-            ColumnDefinitions="*,*"
-            ColumnSpacing="5"
+            IsExpanded="True"
             >
 
-            <dx:DXImage Grid.Column="0" Source="{Binding ImagePath}" />
+            <Grid
+                Grid.Row="0"
+                ColumnDefinitions="auto,*"
+                ColumnSpacing="5"
+                >
 
-            <dx:DXStackLayout Grid.Column="1" ItemSpacing="10">
-                <dx:Chip Text="{Binding SongsByArtist.Count, StringFormat='{0} Songs'}" />
-                <dx:Chip Text="{Binding AlbumsByArtist.Count, StringFormat='{0} Albums'}" />
-                <dx:DXButton
-                    x:Name="LoadLastFMInfo"
-                    BackgroundColor="Transparent"
-                    Clicked="LoadLastFMInfo_Clicked"
-                    Icon="lastfm.png"
-                    IconColor="Red"
-                    IconHeight="30"
-                    IconWidth="30"
-                    ShowContent="False"
-                    ShowIcon="True"
+                <dx:DXImage
+                    Grid.Column="0"
+                    HeightRequest="160"
+                    HorizontalOptions="Start"
+                    Source="{Binding ImagePath}"
+                    VerticalOptions="Start"
+                    WidthRequest="200"
                     />
 
-            </dx:DXStackLayout>
-        </Grid>
+                <dx:DXStackLayout Grid.Column="1" ItemSpacing="10">
+                    <dx:Chip Text="{Binding SongsByArtist.Count, StringFormat='{0} Songs'}" />
+                    <dx:Chip Text="{Binding AlbumsByArtist.Count, StringFormat='{0} Albums'}" />
+                    <dx:DXButton
+                        x:Name="LoadLastFMInfo"
+                        BackgroundColor="Transparent"
+                        Clicked="LoadLastFMInfo_Clicked"
+                        Icon="lastfm.png"
+                        IconColor="Red"
+                        IconHeight="30"
+                        IconWidth="30"
+                        ShowContent="False"
+                        ShowIcon="True"
+                        />
 
+                </dx:DXStackLayout>
+            </Grid>
+
+        </dx:DXExpander>
         <dx:TabView
             x:Name="ArtistDetailsTableView"
             Grid.Row="1"
@@ -202,8 +217,13 @@
 
 
             <dx:TabViewItem HeaderText="Play History">
-                <dx:DXStackLayout>
-                    <dx:Chip x:Name="ExportEvt" Tap="ExportEvt_Tap" />
+                <dx:DXStackLayout ItemSpacing="10">
+                    <dx:Chip
+                        x:Name="ExportEvt" IsVisible="False"
+                        Tap="ExportEvt_Tap"
+                        TapCommandParameter="{Binding ., Source={x:Reference PlayEventDG}}"
+                        Text="Export"
+                        />
                     <dx:DataGridView
                         x:Name="PlayEventDG"
                         AutoGenerateColumnsMode="None"
@@ -238,7 +258,8 @@
                                 FieldName="EventDate"
                                 />
                             <dx:TextColumn
-                                Width="80"
+                                Width="120"
+                                HorizontalContentAlignment="Center"
                                 Caption="Position"
                                 FieldName="PositionInSeconds"
                                 />
@@ -250,30 +271,55 @@
             <dx:TabViewItem x:Name="ChartsTab" HeaderText="Charts">
                 <dx:DXScrollView
                     x:Name="ChartsScrollView"
-                    x:DataType="globalVM:StatisticsViewModel"
+                    x:DataType="statsVM:ArtistStatsViewModel"
                     Loaded="ChartsScrollView_Loaded"
+                    Scrolled="ChartsScrollView_Scrolled"
                     >
 
                     <dx:DXStackLayout Padding="10">
-                        <Label Text="{Binding ArtistStats.FilterUsed}" />
-                        <Label Text="{Binding ArtistStats.PlottableData.SongDurationDistributionMinutes.Count}" />
-                        <Label Text="{Binding ArtistStats.PlottableData.PlaysPerDayOfWeek.Count}" />
-                        <Label Text="{Binding ArtistStats.PlottableData.PlaysPerHourOfDay.Count}" />
-                        <Label Text="{Binding ArtistStats.CollaboratorNetwork.Count}" />
-                        <Label Text="{Binding ArtistStats.ObsessionRankedSongs.Count}" />
+                        <dx:DXStackLayout
+                            HorizontalOptions="Center"
+                            ItemSpacing="10"
+                            Orientation="Horizontal"
+                            >
+                            <dx:DXStackLayout
+                                Padding="5"
+                                BorderColor="DarkGray"
+                                BorderThickness="1"
+                                CornerRadius="15"
+                                >
 
+                                <Label
+                                    HorizontalOptions="Center"
+                                    Text="{Binding TextBingeRecord.Value}"
+                                    VerticalOptions="Center"
+                                    />
+                                <Label HorizontalOptions="Center" Text="Binge Record" />
+                            </dx:DXStackLayout>
+                            <dx:DXStackLayout
+                                Padding="5"
+                                BorderColor="DarkGray"
+                                BorderThickness="1"
+                                CornerRadius="15"
+                                ToolTipProperties.Text="{Binding TextTotalTime.Subtitle}"
+                                >
 
-                        <dx:ChartView HeightRequest="150">
-                            <dx:ChartView.Series>
-                                <dx:LineSeries>
-                                    <dx:LineSeries.Data>
-                                        <dx:SeriesDataAdapter ArgumentDataMember="Label" DataSource="{Binding ArtistStats.PlottableData.SongDurationDistributionMinutes}">
-                                            <dx:ValueDataMember Member="Value" Type="Value" />
-                                        </dx:SeriesDataAdapter>
-                                    </dx:LineSeries.Data>
-                                </dx:LineSeries>
-                            </dx:ChartView.Series>
-                        </dx:ChartView>
+                                <Label HorizontalOptions="Center" Text="{Binding TextTotalTime.Value}" />
+                                <Label HorizontalOptions="Center" Text="Total Time Played" />
+                            </dx:DXStackLayout>
+                            <dx:DXStackLayout
+                                Padding="5"
+                                BorderColor="DarkGray"
+                                BorderThickness="1"
+                                CornerRadius="15"
+                                ToolTipProperties.Text="{Binding TextOneHitWonderPct.Subtitle}"
+                                >
+
+                                <Label HorizontalOptions="Center" Text="{Binding TextOneHitWonderPct.Value}" />
+                                <Label HorizontalOptions="Center" Text="Binge Record" />
+                            </dx:DXStackLayout>
+                        </dx:DXStackLayout>
+                      
                         <dx:PieChartView
                             x:Name="ActionsRadarChart"
                             Grid.Row="0"
@@ -292,9 +338,9 @@
                                     <dx:PieSeries.Data>
                                         <dx:PieSeriesDataAdapter
                                             AllowLiveDataUpdates="True"
-                                            DataSource="{Binding ArtistStats.ObsessionRankedSongs}"
-                                            LabelDataMember="Label"
-                                            ValueDataMember="Value"
+                                            DataSource="{Binding ListMonthlyTrend}"
+                                            LabelDataMember="Period"
+                                            ValueDataMember="PlayCount"
                                             />
 
 
@@ -303,43 +349,6 @@
                             </dx:PieChartView.Series>
                         </dx:PieChartView>
 
-
-
-                        <dx:ChartView HeightRequest="150">
-                            <dx:ChartView.Series>
-                                <dx:LineSeries>
-                                    <dx:LineSeries.Data>
-                                        <dx:SeriesDataAdapter ArgumentDataMember="Label" DataSource="{Binding ArtistStats.PlottableData.PlaysPerHourOfDay}">
-                                            <dx:ValueDataMember Member="Value" Type="Value" />
-                                        </dx:SeriesDataAdapter>
-                                    </dx:LineSeries.Data>
-                                </dx:LineSeries>
-                            </dx:ChartView.Series>
-                        </dx:ChartView>
-
-                        <dx:ChartView HeightRequest="150">
-                            <dx:ChartView.Series>
-                                <dx:LineSeries>
-                                    <dx:LineSeries.Data>
-                                        <dx:SeriesDataAdapter ArgumentDataMember="Label" DataSource="{Binding ArtistStats.PlottableData.PlaysPerDayOfWeek}">
-                                            <dx:ValueDataMember Member="Value" Type="Value" />
-                                        </dx:SeriesDataAdapter>
-                                    </dx:LineSeries.Data>
-                                </dx:LineSeries>
-                            </dx:ChartView.Series>
-                        </dx:ChartView>
-
-                        <dx:ChartView HeightRequest="150">
-                            <dx:ChartView.Series>
-                                <dx:LineSeries>
-                                    <dx:LineSeries.Data>
-                                        <dx:SeriesDataAdapter ArgumentDataMember="Label" DataSource="{Binding ArtistStats.PlottableData.PlaysPerMonth}">
-                                            <dx:ValueDataMember Member="Value" Type="Value" />
-                                        </dx:SeriesDataAdapter>
-                                    </dx:LineSeries.Data>
-                                </dx:LineSeries>
-                            </dx:ChartView.Series>
-                        </dx:ChartView>
 
 
 

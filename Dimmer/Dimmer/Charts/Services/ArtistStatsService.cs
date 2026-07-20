@@ -113,7 +113,7 @@ public class ArtistStatsService
         var pareto = new TextStat("Pareto (80/20)", $"{paretoPct:F1}%", "Plays from top 20% of their songs");
 
         // Leaderboards
-        var topSongsList = songs.Select(s => new { S = s, P = events.Count(e => e.SongId == s.Id && e.PlayType == 3) }).OrderByDescending(x => x.P).Take(10).Select((x, i) => new LeaderboardItem($"#{i + 1}", x.S.Title, $"{x.P} plays", x.S.CoverImagePath)).ToList();
+        List<LeaderboardItem>? topSongsList = songs.Select(s => new { S = s, P = events.Count(e => e.SongId == s.Id && e.PlayType == 3) }).OrderByDescending(x => x.P).Take(10).Select((x, i) => new LeaderboardItem($"#{i + 1}", x.S.Title, $"{x.P} plays", x.S.CoverImagePath)).ToList();
         var deepCutsList = songs.Select(s => new { S = s, P = events.Count(e => e.SongId == s.Id && e.PlayType == 3) }).Where(x => x.P > 0).OrderBy(x => x.P).Take(10).Select((x, i) => new LeaderboardItem($"#{i + 1}", x.S.Title, $"{x.P} plays", x.S.CoverImagePath)).ToList();
         var topAlbumsList = events.Where(e => e.PlayType == 3).GroupBy(e => songs.FirstOrDefault(s => s.Id == e.SongId)?.Album).Where(g => g.Key != null).OrderByDescending(g => g.Count()).Take(10).Select((g, i) => new LeaderboardItem($"#{i + 1}", g.Key!.Name, $"{g.Count()} plays", g.Key.ImagePath)).ToList();
 

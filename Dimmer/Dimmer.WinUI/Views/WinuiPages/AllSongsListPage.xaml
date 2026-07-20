@@ -159,7 +159,6 @@
                                                 HorizontalAlignment="Left"
                                                 x:FieldModifier="Public"
                                                 Loaded="CoverArtImage_Loaded"
-                                                PointerPressed="coverArtImage_PointerPressed"
                                                 RightTapped="coverArtImage_RightTapped"
                                                 Source="{Binding CoverImagePath}"
                                                 Stretch="UniformToFill"
@@ -174,7 +173,8 @@
                                                 </Grid.ColumnDefinitions>
                                                 <TextBlock Grid.Column="0" Text="{Binding FileFormat}" />
 
-
+                                              
+                                                
                                             </Grid>
                                         </Grid>
 

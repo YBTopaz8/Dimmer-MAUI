@@ -195,6 +195,7 @@ public class DimmerBackupService
 
             if (filePath.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
             {
+                
                 if (TaggingUtils.PlatformGetStreamHook != null)
                 {
                     stream = TaggingUtils.PlatformGetStreamHook(filePath);
@@ -210,6 +211,14 @@ public class DimmerBackupService
                 return null;
             }
 
+            if (filePath.Contains(".json", StringComparison.OrdinalIgnoreCase))
+            {
+                progress?.Report("Loading song cache...");
+                var songCache = await BuildSongCacheAsync(progress);
+
+                progress?.Report("Reading backup file...");
+                return await DeserializeJsonBackupWithStreamingAsync(stream, songCache, progress);
+            }
             if (filePath.Contains("CompleteBackup", StringComparison.OrdinalIgnoreCase))
             {
                 progress?.Report("Loading song cache...");
@@ -262,7 +271,7 @@ public class DimmerBackupService
         }).ConfigureAwait(false);
     }
 
-    private async Task<CompleteBackupData?> DeserializeBackupWithStreamingAsync(
+    private async Task<CompleteBackupData?> DeserializeJsonBackupWithStreamingAsync(
       Stream sourceStream,
       Dictionary<string, SongModelView> songCache,
       IProgress<string>? progress = null)
@@ -270,6 +279,95 @@ public class DimmerBackupService
         var completeData = new CompleteBackupData();
         var dimmerPlayEvents = new List<DimmerPlayEventBackup>();
 
+        using var reader = new StreamReader(sourceStream, System.Text.Encoding.UTF8);
+        using var jsonReader = new JsonTextReader(reader);
+
+        int eventCount = 0;
+        int processedCount = 0;
+        var serializer = Newtonsoft.Json.JsonSerializer.Create(_jsonSettings);
+
+        while (await jsonReader.ReadAsync().ConfigureAwait(false))
+        {
+            if (jsonReader.TokenType == JsonToken.PropertyName)
+            {
+                string propertyName = jsonReader.Value?.ToString() ?? string.Empty;
+
+                // 1. Capture AppState (Single Object)
+                if (propertyName == "AppState")
+                {
+                    await jsonReader.ReadAsync().ConfigureAwait(false); // Move to start of object
+                    completeData.AppState = serializer.Deserialize<AppStateModelView>(jsonReader);
+                }
+                // 2. Capture FavoriteSongs (List)
+                else if (propertyName == "FavoriteSongs")
+                {
+                    await jsonReader.ReadAsync().ConfigureAwait(false); // Move to start of array
+                    completeData.FavoriteSongs = serializer.Deserialize<List<SongModelView>>(jsonReader);
+                }
+                // 3. Capture PlayEvents (Chunked stream-deserialization)
+                else if (propertyName == "PlayEvents")
+                {
+                    await jsonReader.ReadAsync().ConfigureAwait(false); // Move to start of array
+
+                    if (jsonReader.TokenType == JsonToken.StartArray)
+                    {
+                        while (await jsonReader.ReadAsync().ConfigureAwait(false) &&
+                               jsonReader.TokenType != JsonToken.EndArray)
+                        {
+                            if (jsonReader.TokenType == JsonToken.StartObject)
+                            {
+                                var playEvent = serializer.Deserialize<DimmerPlayEventBackup>(jsonReader);
+                                if (playEvent != null)
+                                {
+                                    dimmerPlayEvents.Add(playEvent);
+                                    eventCount++;
+
+                                    // Update progress every 1000 events
+                                    if (eventCount % 1000 == 0)
+                                    {
+                                        progress?.Report($"Processed {eventCount} events...");
+                                        await Task.Yield(); // Allow UI thread to breathe/update
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        progress?.Report($"Processing {eventCount} events with song cache...");
+
+        // Update cover paths using the in-memory cache
+        foreach (var evt in dimmerPlayEvents)
+        {
+            if (!string.IsNullOrEmpty(evt.TitleAndDurationKey) &&
+                songCache.TryGetValue(evt.TitleAndDurationKey, out var songInDb))
+            {
+                evt.CoverImagePath = songInDb.CoverImagePath;
+                processedCount++;
+
+                if (processedCount % 1000 == 0)
+                {
+                    progress?.Report($"Updated {processedCount}/{eventCount} events...");
+                    await Task.Yield();
+                }
+            }
+        }
+
+        progress?.Report($"Completed: {processedCount} events updated");
+
+        completeData.PlayEvents = dimmerPlayEvents;
+        return completeData;
+    }
+
+    private async Task<CompleteBackupData?> DeserializeBackupWithStreamingAsync(
+      Stream sourceStream,
+      Dictionary<string, SongModelView> songCache,
+      IProgress<string>? progress = null)
+    {
+        var completeData = new CompleteBackupData();
+        var dimmerPlayEvents = new List<DimmerPlayEventBackup>();
         using var gzipStream = new GZipStream(sourceStream, CompressionMode.Decompress);
         using var reader = new StreamReader(gzipStream, System.Text.Encoding.UTF8);
         using var jsonReader = new JsonTextReader(reader);

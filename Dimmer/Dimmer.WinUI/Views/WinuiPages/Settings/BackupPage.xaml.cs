@@ -8,9 +8,9 @@ namespace Dimmer.WinUI.Views.WinuiPages.Settings;
 /// <summary>
 /// An empty page that can be used on its own or navigated to within a Frame.
 /// </summary>
-public sealed partial class RestoreBackupPage : Page
+public sealed partial class BackupPage : Page
 {
-    public RestoreBackupPage()
+    public BackupPage()
     {
         InitializeComponent();
 

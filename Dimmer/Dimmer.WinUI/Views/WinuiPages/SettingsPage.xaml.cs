@@ -234,7 +234,7 @@ public sealed partial class SettingsPage : Page
 
     private async void LoadAlbumAndArtistInfoFromLastFM_Click(object sender, RoutedEventArgs e)
     {
-      await MyViewModel.WinBaseVM.LoadAlbumAndArtistDetailsFromLastFM();
+      //await MyViewModel.WinBaseVM.LoadAlbumAndArtistDetailsFromLastFM();
     }
 
 
@@ -259,21 +259,7 @@ public sealed partial class SettingsPage : Page
     {
         SelectorBarItem selectedItem = sender.SelectedItem;
         int currentSelectedIndex = sender.Items.IndexOf(selectedItem);
-        switch (currentSelectedIndex)
-        {
-            case 0:
-                pageType = typeof(RestoreBackupPage);
-                break;
-            case 1:
-                break;
-            case 2:
-                //pageTy?pe = typeof(LyricsManualSyncPage);
-                break;
-            case 3:
-                break;
-            default:
-                break;
-        }
+      
       
 
 
@@ -300,8 +286,13 @@ public sealed partial class SettingsPage : Page
 
                 break;
             case "backuppage":
-                if (contentFrameSettings.CurrentSourcePageType != typeof(RestoreBackupPage))
-                    contentFrameSettings.Navigate(typeof(RestoreBackupPage), MyViewModel);
+                if (contentFrameSettings.CurrentSourcePageType != typeof(BackupPage))
+                    contentFrameSettings.Navigate(typeof(BackupPage), MyViewModel);
+
+                break;
+            case "restorepage":
+                if (contentFrameSettings.CurrentSourcePageType != typeof(RestorePage))
+                    contentFrameSettings.Navigate(typeof(RestorePage), MyViewModel);
 
                 break;
             case "apputilspage":

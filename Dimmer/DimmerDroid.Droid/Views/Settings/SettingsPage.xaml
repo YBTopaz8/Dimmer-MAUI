@@ -267,6 +267,30 @@
                                             Clicked="BackupDeviceBtn_Clicked"
                                             Content="Backup Device"
                                             />
+
+                                        <dx:DXStackLayout x:Name="BackedUpStackLayout">
+                                            <dx:DXStackLayout.Triggers>
+                                                <DataTrigger
+                                                    Binding="{Binding BackUpCompletResult.IsBackUpComplete}"
+                                                    TargetType="dx:DXStackLayout"
+                                                    Value="True"
+                                                    >
+                                                    <Setter Property="IsVisible" Value="True" />
+                                                </DataTrigger>
+                                                <DataTrigger
+                                                    Binding="{Binding BackUpCompletResult.IsBackUpComplete}"
+                                                    TargetType="dx:DXStackLayout"
+                                                    Value="False"
+                                                    >
+                                                    <Setter Property="IsVisible" Value="False" />
+                                                </DataTrigger>
+                                            </dx:DXStackLayout.Triggers>
+
+                                            <Label Text="{Binding BackUpCompletResult.AppVersion}" />
+                                            <Label Text="{Binding BackUpCompletResult.BackupDate}" />
+                                            <Label Text="{Binding BackUpCompletResult.FavoriteBackedUp}" />
+                                            <Label Text="{Binding BackUpCompletResult.PlayEventsBackedUp}" />
+                                        </dx:DXStackLayout>
                                     </dx:DXStackLayout>
                                 </dx:DXScrollView>
                             </dx:TabViewItem>

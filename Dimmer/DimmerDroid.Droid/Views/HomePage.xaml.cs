@@ -972,7 +972,7 @@ public partial class HomePage : ContentPage
             case 2:
                 SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
                 {
-                    FieldName = "ArtistName"
+                    FieldName = nameof(SongModelView.OtherArtistsName)
            ,
                     SortOrder = (DataSortOrder)MyViewModel.CurrentSortOrderInt
                 });
@@ -1345,6 +1345,63 @@ public partial class HomePage : ContentPage
     private void SongsCV_Loaded_1(object sender, EventArgs e)
     {
 
+    }
+
+    private void SortArtistAsc_Swiped(object sender, SwipedEventArgs e)
+    {
+        MyViewModel.CurrentSortOrderInt = (int)DataSortOrder.Ascending;
+        MyViewModel.CurrentSortOrder = SortOrder.Asc;
+        SongsCV.SortDescriptions.Clear();
+        SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
+        {
+            FieldName = nameof(SongModelView.OtherArtistsName)
+        ,
+            SortOrder = (DataSortOrder)MyViewModel.CurrentSortOrderInt
+        });
+    }
+
+    private void SortArtistDesc_Swiped(object sender, SwipedEventArgs e)
+    {
+        MyViewModel.CurrentSortOrderInt = (int)DataSortOrder.Descending;
+        MyViewModel.CurrentSortOrder = SortOrder.Desc;
+        SongsCV.SortDescriptions.Clear();
+        SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
+        {
+            FieldName = nameof(SongModelView.OtherArtistsName)
+        ,
+            SortOrder = (DataSortOrder)MyViewModel.CurrentSortOrderInt
+        });
+    }
+
+    private void SingleSongBtmSheet_StateChanged(object sender, ValueChangedEventArgs<BottomSheetState> e)
+    {
+        switch (e.NewValue)
+        {
+            case BottomSheetState.FullExpanded:
+                break;
+            case BottomSheetState.HalfExpanded:
+                break;
+            case BottomSheetState.Hidden:
+                return;
+
+            default:
+                break;
+        }
+
+        var PosInQueue = MyViewModel.PlaybackQueue.IndexOf(MyViewModel.SelectedSong);
+        if (PosInQueue == - 1)
+            return;
+
+        var currentPos = MyViewModel.PlaybackQueue.IndexOf(MyViewModel.CurrentPlayingSongView);
+        var diffInPositions = PosInQueue - currentPos;
+        if(diffInPositions > 0)
+        {
+            //NextInQueueCounter.Text = $""
+        }
+        else
+        {
+
+        }
     }
 
 

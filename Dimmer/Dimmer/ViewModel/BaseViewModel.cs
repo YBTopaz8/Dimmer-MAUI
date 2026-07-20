@@ -8472,7 +8472,7 @@ public record QueryComponents(
     }
 
     [RelayCommand]
-    public async Task LoadAlbumAndArtistDetailsFromLastFM()
+    public async Task LoadAllAlbumAndArtistDetailsFromLastFM()
     {
         var realm = RealmFactory.GetRealmInstance();
         await realm.WriteAsync(async () =>
@@ -8491,8 +8491,6 @@ public record QueryComponents(
                 }
             }
             var AllArtists = RealmFactory.GetRealmInstance().All<ArtistModel>()
-                .AsEnumerable()
-                .Select(a => a.ToArtistModelView())
                 ;
             foreach (var artist in AllArtists)
             {

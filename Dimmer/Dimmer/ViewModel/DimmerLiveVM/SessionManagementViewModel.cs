@@ -426,16 +426,13 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
         StatusMessage = "Transfer request sent.";
     }
 
-   
-
-  
     public void Dispose()
     {
         _disposables.Dispose();
         _sessionManager.StopListeners(); // Important
     }
     [RelayCommand]
-    public async Task BackUpDataToCloud()
+    public async Task BackUpDataToCloud(string? devId)
     {
         if (IsBusy) return;
         IsBusy = true;
@@ -443,10 +440,17 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
 
         try
         {
+             
 
-
-                var result = await _sessionManager.CreateFullBackupAsync();
-                StatusMessage = result;
+            var result = await _sessionManager.CreateFullBackupAsync(devId);
+            if (result)
+            {
+                StatusMessage = $"BackUp Successful from device {devId}";
+            }
+            else
+            {
+                StatusMessage = "Failed Backup";
+            }
                 
         }
         catch (Exception ex)
@@ -555,6 +559,7 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
             IsBusy = false;
         }
     }
+
 
     [ObservableProperty]
     public partial bool IsScreeningActive { get; set; }

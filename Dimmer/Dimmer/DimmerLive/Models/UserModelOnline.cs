@@ -2,6 +2,8 @@
 [ParseClassName("_User")]
 public partial class UserModelOnline : ParseUser
 {
+
+    public new bool IsAuthenticated { get; set; }
     private static readonly HashSet<string> _immutableUserKeys = new HashSet<string>
     {
         "sessionToken",
@@ -49,6 +51,8 @@ public partial class UserModelOnline : ParseUser
 
         set => SetProperty(value);
     }
+
+
     
     public UserModelOnline() : base() { }
     public UserModelOnline(ParseUser plainUser) : this() // Calls the base parameterless constructor
