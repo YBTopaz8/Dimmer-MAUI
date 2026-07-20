@@ -64,7 +64,7 @@
 		  <None Remove="Views\WinuiPages\SettingsPage.xaml" />
 		  <None Remove="Views\WinuiPages\Settings\AppUtilsPage.xaml" />
 		  <None Remove="Views\WinuiPages\Settings\FoldersSettingsPage.xaml" />
-		  <None Remove="Views\WinuiPages\Settings\RestoreBackupPage.xaml" />
+		  <None Remove="Views\WinuiPages\Settings\RestorePage.xaml" />
 		  <None Remove="Views\WinuiPages\SingleSongPage\EditSongPage.xaml" />
 		  <None Remove="Views\WinuiPages\SingleSongPage\SingleSongLyrics.xaml" />
 		  <None Remove="Views\WinuiPages\SingleSongPage\SongStatsContainerPage.xaml" />
@@ -152,6 +152,11 @@
 		  </MauiXaml>
 		</ItemGroup>
 		<ItemGroup>
+		  <Page Update="Views\WinuiPages\Settings\RestorePage.xaml">
+		    <Generator>MSBuild:Compile</Generator>
+		  </Page>
+		</ItemGroup>
+		<ItemGroup>
 		  <Page Update="Views\WinuiPages\Settings\AppUtilsPage.xaml">
 		    <Generator>MSBuild:Compile</Generator>
 		  </Page>
@@ -197,7 +202,7 @@
 		  </Page>
 		</ItemGroup>
 		<ItemGroup>
-		  <Page Update="Views\WinuiPages\Settings\RestoreBackupPage.xaml">
+		  <Page Update="Views\WinuiPages\Settings\BackupPage.xaml">
 			<Generator>MSBuild:Compile</Generator>
 		  </Page>
 		</ItemGroup>

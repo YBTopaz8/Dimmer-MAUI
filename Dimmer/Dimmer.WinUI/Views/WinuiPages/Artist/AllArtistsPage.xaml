@@ -36,7 +36,14 @@
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0">
-            <TextBlock Text="tes" />
+            <AutoSuggestBox
+                x:Name="FilterArtistName"
+                BorderBrush="DarkSlateBlue"
+                BorderThickness="1"
+                Loaded="FilterArtistName_Loaded"
+                PlaceholderText="Search Artist Name"
+                SuggestionChosen="FilterArtistName_SuggestionChosen"
+                Tapped="FilterArtistName_Tapped"/>
         </StackPanel>
 
 

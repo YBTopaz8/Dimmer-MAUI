@@ -1,6 +1,8 @@
 using Dimmer.Utilities.StatsUtils;
 using Dimmer.ViewModel.StatsVMs;
 using Microsoft.UI.Xaml.Documents;
+using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Text.RegularExpressions;
 using NavigationEventArgs = Microsoft.UI.Xaml.Navigation.NavigationEventArgs;
 using Visibility = Microsoft.UI.Xaml.Visibility;
@@ -87,6 +89,8 @@ public sealed partial class SongDetailPage : Page
         MyLastFMViewModel = IPlatformApplication.Current!.Services.GetService<LastFMViewModel>()!;
         MySongStatsViewModel = IPlatformApplication.Current.Services.GetService<SongStatsViewModel>();
         //DetailedSong = DetailedSong is null ? MyViewModel.SelectedSong : DetailedSong;
+
+        compDisp = new();
         if (e.Parameter is BaseViewModelWin myVm)
         {
             MyViewModel = myVm;
@@ -816,13 +820,14 @@ public sealed partial class SongDetailPage : Page
 
     }
 
-    private void ListInsights_Loaded(object sender, RoutedEventArgs e)
+    private void ListDayOfWeekHeatmap_Loaded(object sender, RoutedEventArgs e)
     {
-        MySongStatsViewModel?.WhenPropertyChanged(nameof(MySongStatsViewModel.ListInsights), v => MySongStatsViewModel?.ListInsights)
+        MySongStatsViewModel?.WhenPropertyChanged(nameof(MySongStatsViewModel.ListDayOfWeekHeatmap), v => MySongStatsViewModel?.ListPlaySkipRatio)
             .Subscribe(insight =>
             {
-                ListInsights.ItemsSource = insight;
-            });
+                ListDayOfWeekHeatmap.ItemsSource = insight;
+            }).DisposeWith(compDisp);
+
     }
 
     private void ListWalkthrough_Loaded(object sender, RoutedEventArgs e)
@@ -836,7 +841,8 @@ public sealed partial class SongDetailPage : Page
             .Subscribe(insight =>
             {
                 ListPerfectPairings.ItemsSource = insight;
-            });
+            }).DisposeWith(compDisp);
+
     }
 
     private void ListMonthlyTrend_Loaded(object sender, RoutedEventArgs e)
@@ -845,16 +851,32 @@ public sealed partial class SongDetailPage : Page
             .Subscribe(insight =>
             {
                 ListMonthlyTrend.ItemsSource = insight;
-            });
+            }).DisposeWith(compDisp);
+
     }
 
-    private void ListWeeklyTrend_Loaded(object sender, RoutedEventArgs e)
+    private void ListPlaySkipRatio_Loaded(object sender, RoutedEventArgs e)
     {
-        MySongStatsViewModel?.WhenPropertyChanged(nameof(MySongStatsViewModel.ListWeeklyTrend), v => MySongStatsViewModel?.ListWeeklyTrend)
+        MySongStatsViewModel?.WhenPropertyChanged(nameof(MySongStatsViewModel.ListPlaySkipRatio), v => MySongStatsViewModel?.ListPlaySkipRatio)
             .Subscribe(insight =>
             {
-                ListWeeklyTrend.ItemsSource = insight;
-            });
+                ListPlaySkipRatio.ItemsSource = insight;
+            }).DisposeWith(compDisp);
+
+    }
+
+    private void ListInsights_Loaded(object sender, RoutedEventArgs e)
+    {
+       
+    }
+    CompositeDisposable compDisp;
+    private void ListTimeOfDayHeatmap_Loaded(object sender, RoutedEventArgs e)
+    {
+        MySongStatsViewModel?.WhenPropertyChanged(nameof(MySongStatsViewModel.ListTimeOfDayHeatmap), v => MySongStatsViewModel?.ListTimeOfDayHeatmap)
+          .Subscribe(insight =>
+          {
+              ListTimeOfDayHeatmap.ItemsSource = insight;
+          }).DisposeWith(compDisp);
     }
 }
 

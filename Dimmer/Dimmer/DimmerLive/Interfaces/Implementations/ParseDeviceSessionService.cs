@@ -135,6 +135,11 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
         if (cmd.DeviceId == MyDeviceId)
         {
             _myCurrentSession = cmd;
+            var ind = _otherDevicesCache.Items.FirstOrDefault(x => x.DeviceId == cmd.DeviceId);
+            if(ind is null)
+            {
+                _otherDevicesCache.AddOrUpdate(cmd);
+            }
             _logger.LogInformation("My device session updated: {SessionId}", cmd.ObjectId);
         }
         else
@@ -314,60 +319,63 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
     }
 
 
-    public async Task<string> CreateFullBackupAsync()
+    public async Task<bool> CreateFullBackupAsync(string? devId)
     {
-        if (ParseClient.Instance.CurrentUser == null) return "Not Logged In";
 
-        try
+            if (ParseClient.Instance.CurrentUser == null) return false;
+
+        if (devId == _myCurrentSession.DeviceId)
         {
-            _logger.LogInformation("Gathering local data...");
-            var realm = _vm.RealmFactory.GetRealmInstance();
-
-            // 1. Gather ALL Data into the container
-            // Note: Ensure your .ToView() methods map all properties correctly!
-            var backupData = new FullBackupData
+            try
             {
-                Platform = DeviceInfo.Platform.ToString(),
-                Songs = realm.All<SongModel>().AsEnumerable(),
-                PlayEvents = realm.All<DimmerPlayEvent>().AsEnumerable(),
-                //Playlists = realm.All<PlaylistModel>().AsEnumerable(),
-                Settings = realm.All<AppStateModel>().FirstOrDefault(),
-                // Map UserStats if you have a ToView() for it, or direct object if no circular refs
-                //Stats = realm.All<UserStats>().AsEnumerable()
-            };
+                _logger.LogInformation("Gathering local data...");
+                var realm = _vm.RealmFactory.GetRealmInstance();
 
-            if (!backupData.Songs.Any() && !backupData.PlayEvents.Any())
-                return "No data to backup.";
-
-            _logger.LogInformation($"Serializing {backupData.Songs.Count()} songs and {backupData.PlayEvents.Count()} events...");
-
-            // 2. Serialize to JSON
-            string jsonString = JsonSerializer.Serialize(backupData);
-            byte[] jsonBytes = System.Text.Encoding.UTF8.GetBytes(jsonString);
-
-            // 3. Compress (GZip)
-            byte[] compressedBytes;
-            using (var outStream = new MemoryStream())
-            {
-                using (var archive = new GZipStream(outStream, CompressionLevel.Optimal))
+                // 1. Gather ALL Data into the container
+                // Note: Ensure your .ToView() methods map all properties correctly!
+                var backupData = new FullBackupData
                 {
-                    archive.Write(jsonBytes, 0, jsonBytes.Length);
+                    Platform = DeviceInfo.Platform.ToString(),
+                    Songs = realm.All<SongModel>().AsEnumerable(),
+                    PlayEvents = realm.All<DimmerPlayEvent>().AsEnumerable(),
+                    //Playlists = realm.All<PlaylistModel>().AsEnumerable(),
+                    Settings = realm.All<AppStateModel>().FirstOrDefault(),
+                    // Map UserStats if you have a ToView() for it, or direct object if no circular refs
+                    //Stats = realm.All<UserStats>().AsEnumerable()
+                };
+
+                if (!backupData.Songs.Any() && !backupData.PlayEvents.Any())
+                    return false;
+
+                _logger.LogInformation($"Serializing {backupData.Songs.Count()} songs and {backupData.PlayEvents.Count()} events...");
+
+                // 2. Serialize to JSON
+                string jsonString = JsonSerializer.Serialize(backupData);
+                byte[] jsonBytes = System.Text.Encoding.UTF8.GetBytes(jsonString);
+
+                // 3. Compress (GZip)
+                byte[] compressedBytes;
+                using (var outStream = new MemoryStream())
+                {
+                    using (var archive = new GZipStream(outStream, CompressionLevel.Optimal))
+                    {
+                        archive.Write(jsonBytes, 0, jsonBytes.Length);
+                    }
+                    compressedBytes = outStream.ToArray();
                 }
-                compressedBytes = outStream.ToArray();
-            }
 
-            _logger.LogInformation($"Compressed size: {compressedBytes.Length / 1024} KB");
+                _logger.LogInformation($"Compressed size: {compressedBytes.Length / 1024} KB");
 
-            // 4. Create ParseFile
-            // Important: .json.gz extension helps identify content type
-            string fileName = $"backup_{ParseClient.Instance.CurrentUser.ObjectId}_{DateTime.UtcNow.Ticks}.json.gz";
-            ParseFile backupFile = new ParseFile(fileName, compressedBytes, "application/gzip");
+                // 4. Create ParseFile
+                // Important: .json.gz extension helps identify content type
+                string fileName = $"backup_{ParseClient.Instance.CurrentUser.ObjectId}_{DateTime.UtcNow.Ticks}.json.gz";
+                ParseFile backupFile = new ParseFile(fileName, compressedBytes, "application/gzip");
 
-            // Upload the file to Parse Storage
-            await backupFile.SaveAsync(ParseClient.Instance);
+                // Upload the file to Parse Storage
+                await backupFile.SaveAsync(ParseClient.Instance);
 
-            // 5. Link to Cloud Code
-            var parameters = new Dictionary<string, object>
+                // 5. Link to Cloud Code
+                var parameters = new Dictionary<string, object>
         {
             { "backupFile", backupFile },
             { "songCount", backupData.Songs.Count() },
@@ -375,16 +383,29 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
             { "deviceName", DeviceInfo.Name }
         };
 
-            // This function will handle the "Keep Max 3" logic
-            var result = await ParseClient.Instance.CallCloudCodeFunctionAsync<IDictionary<string, object>>("saveBackupReference", parameters);
+                // This function will handle the "Keep Max 3" logic
+                var result = await ParseClient.Instance.CallCloudCodeFunctionAsync<IDictionary<string, object>>("saveBackupReference", parameters);
 
-            return "Backup Successful";
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Backup failed");
+                return true;
+            }
         }
-        catch (Exception ex)
+        else
         {
-            _logger.LogError(ex, "Backup failed");
-            return $"Error: {ex.Message}";
+            DeviceCommand generateBackUpCommand = new();
+            generateBackUpCommand.ReceiverDeviceId = devId;
+            generateBackUpCommand.SenderDeviceId = _myCurrentSession.DeviceId;
+
+
+            await generateBackUpCommand.SaveAsync();
+            return true;
         }
+
+        return false;
     }
 
     public async Task<List<BackupMetadata>?> GetAvailableBackupsAsync()

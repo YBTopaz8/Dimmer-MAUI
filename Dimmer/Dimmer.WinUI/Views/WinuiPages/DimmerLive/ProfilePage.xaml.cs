@@ -182,7 +182,10 @@ public sealed partial class ProfilePage : Page
 
     private async void BackUpDevice_Click(object sender, RoutedEventArgs e)
     {
-        await ViewModel.SessionMgtVM.BackUpDataToCloud();
+        Button send= (Button)sender;
+
+        var devId = send.CommandParameter as string;
+        await ViewModel.SessionMgtVM.BackUpDataToCloud(devId);
     }
 }
 

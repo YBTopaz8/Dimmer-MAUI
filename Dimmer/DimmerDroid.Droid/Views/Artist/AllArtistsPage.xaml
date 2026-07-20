@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
     x:Class="Dimmer.Views.Artist.AllArtistsPage"
-    x:Name="myPafe"
+    x:Name="myPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:dx="http://schemas.devexpress.com/maui"
@@ -11,7 +11,7 @@
     xmlns:vm="clr-namespace:Dimmer.ViewModels"
     Title="All Artists"
     x:DataType="vm:BaseViewModelAnd"
-    BackgroundColor="DarkGray"
+    BackgroundColor="#FFFFFF"
     Shell.BackgroundColor="DarkGray"
     Shell.ForegroundColor="DarkSlateBlue"
     Shell.NavBarIsVisible="False"
@@ -35,17 +35,30 @@
             ItemsSource="{Binding ArtistsCollection}"
             SelectedItem="{Binding SelectedArtist}"
             SelectionMode="Single"
+            IsPullToRefreshEnabled="False" 
             >
             <dx:DXCollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:ArtistModelView">
-                    <dx:DXBorder Padding="10" BorderColor="Transparent">
+                    <dx:DXBorder
+                        Padding="10"
+                        BorderColor="DarkGray"
+                        BorderThickness="1"
+                        CornerRadius="12"
+                        >
 
                         <Grid
                             ColumnDefinitions="70,*,50"
                             ColumnSpacing="5"
                             HeightRequest="80"
                             >
-                            <dx:DXImage Aspect="AspectFill" Source="lyricist.png" />
+
+                            <dx:DXImage Aspect="AspectFill" Source="{Binding ImagePath}" >
+                                <dx:DXImage.Triggers>
+                                    <DataTrigger TargetType="dx:DXImage" Binding="{Binding ImagePath}" Value="">
+                                        <Setter Property="Source" Value="lyricist.png"/>
+                                    </DataTrigger>
+                                </dx:DXImage.Triggers>
+                            </dx:DXImage>
                             <dx:DXStackLayout Grid.Column="1" ItemSpacing="4">
                                 <Label
                                     FontAttributes="Bold"
@@ -65,7 +78,7 @@
                                     TextColor="{AppThemeBinding Light=#1e1e1e,
                                                                 Dark=White}"
                                     />
-                                <dx:Chip
+                                <!--<dx:Chip
                                     Padding="0"
                                     BorderThickness="0"
                                     FontSize="14"
@@ -73,7 +86,7 @@
                                     Text="{Binding TotalCompletedPlays, StringFormat='{0} Plays'}"
                                     TextColor="{AppThemeBinding Light=#1e1e1e,
                                                                 Dark=White}"
-                                    />
+                                    />-->
                             </dx:DXStackLayout>
 
                             <dx:DXButton
@@ -82,8 +95,10 @@
                                 HorizontalContentAlignment="End"
                                 BackgroundColor="Transparent"
                                 CommandParameter="{Binding .}"
+                                HeightRequest="50"
                                 HorizontalOptions="End"
                                 Icon="arrowcircleright.png"
+                                IconColor="DarkSlateBlue"
                                 IconHeight="40"
                                 IconWidth="40"
                                 PressedBackgroundColor="DarkSlateBlue"
@@ -93,6 +108,7 @@
                                 ShowIcon="True"
                                 Tap="NavigateToArtistDetailsButton_Tapped"
                                 TextColor="Red"
+                                WidthRequest="50"
                                 />
                         </Grid>
 
@@ -103,10 +119,9 @@
 
         <dx:BottomSheet
             x:Name="ArtistSongsBtmSheet"
-            Padding="15"
-            HalfExpandedRatio="0.7"
+            Padding="15" IsModal="True"
             >
-            <Grid RowDefinitions="auto,*" RowSpacing="10">
+            <Grid RowDefinitions="auto,*" VerticalOptions="Start" RowSpacing="10">
                 <dx:DXStackLayout>
                     <dx:Chip
                         x:Name="PlayArtistSongsToNext"
@@ -115,7 +130,7 @@
                         Text="Flush All To Play Next"
                         />
                 </dx:DXStackLayout>
-                <dx:DXCollectionView
+                <dx:DXCollectionView HeightRequest="300"
                     x:Name="ArtistSongsCV"
                     Grid.Row="1"
                     ItemsSource="{Binding SelectedArtist.SongsByArtist}"

@@ -130,11 +130,11 @@ public partial class DetailsOverview : ContentPage
 
     private void ListInsights_Loaded(object sender, EventArgs e)
     {
-        StatsViewModel?.WhenPropertyChanged(nameof(StatsViewModel.ListInsights), v => StatsViewModel?.ListInsights)
-            .Subscribe(insight =>
-            {
-                //ListInsights.ItemsSource = insight;
-            });
+        //StatsViewModel?.WhenPropertyChanged(nameof(StatsViewModel.ListInsights), v => StatsViewModel?.ListInsights)
+        //    .Subscribe(insight =>
+        //    {
+        //        //ListInsights.ItemsSource = insight;
+        //    });
     }
 
    

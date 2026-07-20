@@ -53,7 +53,7 @@ public sealed partial class AllPlaylistsPage : Page
         ;
         if(pl is null)
         {
-            pl = (e.OriginalSource as ListViewItemPresenter).DataContext as PlaylistModelView;
+            pl = (e.OriginalSource as ListViewItemPresenter)?.DataContext as PlaylistModelView;
         }
         if (pl is null) return;
         MyViewModel.SelectedPlaylist = pl;
@@ -64,6 +64,14 @@ public sealed partial class AllPlaylistsPage : Page
 
     private void PlaylistsListTableView_Tapped(object sender, TappedRoutedEventArgs e)
     {
+        
+        var playlist = (e.OriginalSource as FrameworkElement)?.DataContext as PlaylistModelView;
+
+        if (playlist is null) return;
+        MyViewModel.SetSelectedPlaylist(playlist);
+
+
+        MyViewModel.NavigateToAnyPageOfGivenType(typeof(SinglePlaylistPage));
 
     }
 
@@ -72,17 +80,7 @@ public sealed partial class AllPlaylistsPage : Page
 
     }
 
-    private void PlaylistsListTableView_CellDoubleTapped(object sender, TableViewCellDoubleTappedEventArgs e)
-    {
-
-    }
-
     private void PlaylistsListTableView_RowDoubleTapped(object sender, TableViewRowDoubleTappedEventArgs e)
-    {
-
-    }
-
-    private void PlaylistsListTableView_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
     {
 
     }

@@ -29,26 +29,12 @@ public partial class StatisticsViewModel : ObservableObject
         _generalStats = generalStats;
         _songStats = songStats;
 
-        // 1. Bind General Text/Charts
-        _generalStats.TotalListeningTime
-            .Subscribe(stat => LibraryTime = stat)
-            .DisposeWith(_disposables);
-
 
         _generalStats.TopSongs
             .Subscribe(stat => TopSongs = stat)
             .DisposeWith(_disposables);
 
-        // 3. Bind Song Specific Stats
-        _songStats.ListInsights 
-            .Subscribe(stat => SongInsights = stat)
-            .DisposeWith(_disposables);
 
-  
-
-        _songStats.ListActionRadar
-            .Subscribe(chartData => SongRadarData = chartData)
-            .DisposeWith(_disposables);
     }
 
     // Called from UI when user clicks a song

@@ -129,6 +129,12 @@
                                                                 CommandParameter="{Binding DeviceId}"
                                                                 Content="View"
                                                                 />
+                                                            <Button
+                                                                x:Name="BackUpDevice"
+                                                                Click="BackUpDevice_Click"
+                                                                CommandParameter="{Binding DeviceId}"
+                                                                Content="View"
+                                                                />
                                                         </StackPanel>
                                                     </DataTemplate>
                                                 </dgView:TableViewTemplateColumn.CellTemplate>

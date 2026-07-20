@@ -8,7 +8,7 @@
     xmlns:conv="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
     xmlns:droid="clr-namespace:CommunityToolkit.Maui.PlatformConfiguration.AndroidSpecific;assembly=CommunityToolkit.Maui"
     xmlns:dx="http://schemas.devexpress.com/maui"
-    xmlns:extMethods="[extMethods ]clr-namespace:Dimmer.Utils.Utils.Extensions"
+    xmlns:extMethods="clr-namespace:Dimmer.Utilities.Extensions;assembly=Dimmer"
     xmlns:local="clr-namespace:Dimmer.Views.CustomViews"
     xmlns:maui="using:Microsoft.Maui"
     xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
@@ -17,9 +17,9 @@
     xmlns:vm="clr-namespace:Dimmer.ViewModels"
     Title="HomePage"
     x:DataType="vm:BaseViewModelAnd"
+    Loaded="MyPage_Loaded"
     Shell.NavBarIsVisible="False"
     >
-
 
     <ContentPage.Resources>
         <ResourceDictionary>
@@ -108,18 +108,32 @@
                             />
                         <dx:DXButton
                             x:Name="OtherArtistsName"
-                            Padding="0"
+                            Padding="5,0"
                             BackgroundColor="Transparent"
                             BorderThickness="0"
                             Clicked="OtherArtistsName_Clicked"
                             CommandParameter="{Binding .}"
                             Content="{Binding OtherArtistsName}"
+                            CornerRadius="5"
                             FontAttributes="Italic"
                             FontSize="13"
                             HorizontalOptions="Start"
                             TextColor="{AppThemeBinding Dark=gray,
                                                         Light=black}"
-                            />
+                            >
+                            <dx:DXButton.GestureRecognizers>
+                                <SwipeGestureRecognizer
+                                    x:Name="SortArtistAsc"
+                                    Direction="Up"
+                                    Swiped="SortArtistAsc_Swiped"
+                                    />
+                                <SwipeGestureRecognizer
+                                    x:Name="SortArtistDesc"
+                                    Direction="Down"
+                                    Swiped="SortArtistDesc_Swiped"
+                                    />
+                            </dx:DXButton.GestureRecognizers>
+                        </dx:DXButton>
                     </dx:DXStackLayout>
 
                     <dx:DXButton
@@ -255,8 +269,24 @@
 
             <dx:DXExpander.Content>
 
-                <dx:DXStackLayout>
-                    <Grid ColumnDefinitions="*,auto">
+                <Grid>
+                    <Grid x:Name="TQLViewGrid" ColumnDefinitions="*,auto">
+                        <Grid.Triggers>
+                            <DataTrigger
+                                Binding="{Binding IsVisible, Source={x:Reference TQLSearchGrid}}"
+                                TargetType="Grid"
+                                Value="False"
+                                >
+                                <Setter Property="IsVisible" Value="True" />
+                            </DataTrigger>
+                            <DataTrigger
+                                Binding="{Binding IsVisible, Source={x:Reference TQLSearchGrid}}"
+                                TargetType="Grid"
+                                Value="True"
+                                >
+                                <Setter Property="IsVisible" Value="False" />
+                            </DataTrigger>
+                        </Grid.Triggers>
                         <dx:Chip
                             x:Name="CurrentTQLUI"
                             Grid.Column="0"
@@ -309,11 +339,70 @@
 
                         </dx:DXStackLayout>
                     </Grid>
+                    <Grid
+                        x:Name="TQLSearchGrid"
+                        Grid.Row="0"
+                        ColumnDefinitions="*,auto"
+                        ColumnSpacing="5"
+                        IsVisible="False"
+                        RowDefinitions="auto,auto"
+                        ZIndex="99"
+                        >
+                        <!--<Grid.Triggers>
+                            <DataTrigger
+                                Binding="{Binding IsVisible, Source={x:Reference TQLViewGrid}}"
+                                TargetType="Grid"
+                                Value="False"
+                                >
+                                <Setter Property="IsVisible" Value="True" />
+                            </DataTrigger>
+                        </Grid.Triggers>-->
+                        <dx:DXBorder
+                            Grid.ColumnSpan="1"
+                            BackgroundColor="Gray"
+                            CornerRadius="20"
+                            Opacity="0.4"
+                            />
+                        <dx:TextEdit
+                            x:Name="SearchText"
+                            Grid.Row="0"
+                            ClearIconCommand="{Binding ApplyTQLSearchCommand}"
+                            CornerRadius="20"
+                            IsVisible="True"
+                            Loaded="SearchText_Loaded"
+                            PlaceholderColor="DarkSlateBlue"
+                            PlaceholderText="Search Via TQL"
+                            ReturnCommand="{Binding ApplyTQLSearchCommand}"
+                            ReturnCommandParameter="{Binding Text, Source={x:Reference SearchText}}"
+                            ReturnType="Send"
+                            />
 
 
+                        <dx:DXBorder
+                            Grid.Column="1"
+                            BackgroundColor="Gray"
+                            CornerRadius="20"
+                            Opacity="0.4"
+                            />
+                        <dx:DXButton
+                            Grid.Column="1"
+                            Padding="5"
+                            BackgroundColor="Transparent"
+                            BorderColor="DarkSlateBlue"
+                            BorderThickness="0"
+                            Clicked="CloseTQLBtmSheet_Clicked"
+                            Content="X"
+                            FontSize="30"
+                            TextColor="DarkSlateBlue"
+                            WidthRequest="45"
+                            />
 
-
-                </dx:DXStackLayout>
+                        <dx:DXStackLayout Grid.Row="1" HorizontalOptions="Center">
+                            <Label Text="{Binding CurrentTqlQueryUI}" />
+                            <ActivityIndicator IsRunning="{Binding IsTqlBusy}" IsVisible="{Binding IsTqlBusy}" />
+                        </dx:DXStackLayout>
+                    </Grid>
+                </Grid>
             </dx:DXExpander.Content>
         </dx:DXExpander>
 
@@ -340,7 +429,6 @@
                         ItemSpacing="5"
                         ItemTemplate="{StaticResource LinearDataType}"
                         Loaded="SongsCV_Loaded"
-                        PropertyChanged="SongsCV_PropertyChanged"
                         ZIndex="0"
                         />
 
@@ -594,7 +682,7 @@
                     </Grid>
 
 
-                    <dx:BottomSheet x:Name="SingleSongBtmSheet" AllowDismiss="True">
+                    <dx:BottomSheet x:Name="SingleSongBtmSheet" AllowDismiss="True" StateChanged="SingleSongBtmSheet_StateChanged">
                         <dx:BottomSheet.Content>
                             <dx:DXStackLayout Margin="5,0" ItemSpacing="10">
                                 <dx:DXStackLayout.Resources>
@@ -626,9 +714,9 @@
                                         Text="{Binding SelectedSong.PlayCompletedCount, StringFormat='Played {0} Times'}"
                                         />
                                     <dx:Chip
-                                        Icon="heart.png"
+                                        x:Name="NextInQueueCounter"
+                                        Icon="playlistminimalistic3.png"
                                         IsIconVisible="True"
-                                        Text="{Binding SelectedSong.ManualFavoriteCount, StringFormat='Faved {0} Times'}"
                                         />
 
 
@@ -708,7 +796,7 @@
 
                                 <dx:Chip
                                     x:Name="DeleteSongBtn"
-                                    Icon="deletesonginterfacesymbol.png"
+                                    Icon="delete.png"
                                     IsIconVisible="True"
                                     IsVisible="False"
                                     Tap="DeleteSongBtn_Tap"
@@ -722,7 +810,7 @@
                     <dx:BottomSheet
                         x:Name="FilterBottomSheet"
                         AllowDismiss="True"
-                        HalfExpandedRatio="0.7"
+                        HalfExpandedRatio="0.9"
                         >
                         <dx:BottomSheet.Content>
                             <dx:DXStackLayout Margin="10">
@@ -751,7 +839,22 @@
                                     PickerShowMode="Popup"
                                     PickerTitle="Artists"
                                     Text="Artists"
-                                    />
+                                    >
+                                    <!--<dx:FilterCheckedListPickerItem.ContentTemplate>
+                                        <DataTemplate x:DataType="models:ArtistModelView">
+                                            <dx:DXStackLayout>
+                                                <Label Text="{Binding Name}" />
+                                            </dx:DXStackLayout>
+                                        </DataTemplate>
+                                    </dx:FilterCheckedListPickerItem.ContentTemplate>
+                                    <dx:FilterCheckedListPickerItem.PickerFilterModelTemplate>
+                                        <DataTemplate x:DataType="models:ArtistModelView">
+                                            <dx:DXStackLayout>
+                                                <Label Text="{Binding Name}" />
+                                            </dx:DXStackLayout>
+                                        </DataTemplate>
+                                    </dx:FilterCheckedListPickerItem.PickerFilterModelTemplate>-->
+                                </dx:FilterCheckedListPickerItem>
 
 
 
@@ -800,7 +903,11 @@
                     <dx:BottomSheet x:Name="ArtistsMgtBtmSheet">
                         <dx:BottomSheet.Content>
 
-                            <Grid Margin="5" RowDefinitions="auto,*">
+                            <Grid
+                                Margin="5"
+                                RowDefinitions="auto,*"
+                                RowSpacing="10"
+                                >
                                 <dx:DXStackLayout Grid.Row="0">
                                     <Label Text="Artists Count: " />
                                     <Label Text="{Binding SelectedSong.ArtistToSong.Count}" />
@@ -835,13 +942,7 @@
                                                     </dx:DXStackLayout>
                                                 </Grid>
 
-                                                <dx:DXExpander x:Name="ArtistQuickSongsExp" Grid.Row="1">
-                                                    <dx:DXCollectionView
-                                                        x:Name="ArtistQuickSongsColView"
-                                                        ItemTemplate="{StaticResource SearchTemplate}"
-                                                        ItemsSource="{Binding SongsByArtist}"
-                                                        />
-                                                </dx:DXExpander>
+
                                             </Grid>
                                         </DataTemplate>
                                     </dx:DXCollectionView.ItemTemplate>
@@ -874,105 +975,7 @@
                         </dx:DXPopup.Content>
                     </dx:DXPopup>
 
-                    <dx:BottomSheet
-                        x:Name="TQLSearchBottomSheet"
-                        AllowDismiss="False"
-                        AllowedState="FullExpanded"
-                        CornerRadius="5"
-                        HalfExpandedRatio="1"
-                        ShowGrabber="False"
-                        StateChanged="TQLSearchBottomSheet_StateChanged"
-                        >
-                        <dx:BottomSheet.Content>
-                            <Grid Margin="5,0" RowDefinitions="auto,*">
-                                <Grid
-                                    Grid.Row="0"
-                                    ColumnDefinitions="*,auto"
-                                    ColumnSpacing="5"
-                                    >
-                                    <dx:TextEdit
-                                        x:Name="SearchText"
-                                        Grid.Row="0"
-                                        IsVisible="True"
-                                        PlaceholderText="Search Via TQL"
-                                        ReturnCommand="{Binding ApplyTQLSearchCommand}"
-                                        ReturnCommandParameter="{Binding Text, Source={x:Reference SearchText}}"
-                                        ReturnType="Send"
-                                        />
 
-
-                                    <dx:DXButton
-                                        Grid.Column="1"
-                                        Padding="5"
-                                        BackgroundColor="Transparent"
-                                        BorderColor="DarkSlateBlue"
-                                        BorderThickness="0"
-                                        Clicked="CloseTQLBtmSheet_Clicked"
-                                        Content="X"
-                                        FontSize="30"
-                                        TextColor="DarkSlateBlue"
-                                        WidthRequest="45"
-                                        />
-                                </Grid>
-
-                                <dx:DataGridView
-                                    x:Name="SearchResultDG"
-                                    Grid.Row="1"
-                                    AutoGenerateColumnsMode="None"
-                                    DoubleTap="SearchResultDG_DoubleTap"
-                                    ItemsSource="{Binding SearchResults, Mode=OneWay}"
-                                    RowHeight="80"
-                                    >
-                                    <dx:DataGridView.Columns>
-                                        <dx:TextColumn
-                                            Width="*"
-                                            Caption="Title"
-                                            FieldName="Title"
-                                            />
-
-                                        <dx:TextColumn
-                                            Width="*"
-                                            Caption="Artists"
-                                            FieldName="OtherArtistsName"
-                                            />
-
-                                        <dx:TextColumn
-                                            Width="*"
-                                            Caption="Artists"
-                                            FieldName="AlbumName"
-                                            />
-
-                                        <dx:TextColumn
-                                            Width="80"
-                                            Caption="Duration"
-                                            FieldName="DurationFormatted"
-                                            />
-
-                                        <dx:NumberColumn
-                                            Width="68"
-                                            HorizontalContentAlignment="Center"
-                                            Caption="Dims"
-                                            FieldName="PlayCompletedCount"
-                                            />
-                                        <dx:TemplateColumn Width="65" Caption="More">
-                                            <dx:TemplateColumn.DisplayTemplate>
-                                                <DataTemplate x:DataType="models:SongModelView">
-                                                    <dx:DXStackLayout VerticalOptions="Center">
-                                                        <dx:DXButton
-                                                            BackgroundColor="Transparent"
-                                                            Icon="more1.png"
-                                                            IconColor="DarkSlateBlue"
-                                                            />
-                                                        <Label IsVisible="{Binding IsFavorite}" Text="❤️" />
-                                                    </dx:DXStackLayout>
-                                                </DataTemplate>
-                                            </dx:TemplateColumn.DisplayTemplate>
-                                        </dx:TemplateColumn>
-                                    </dx:DataGridView.Columns>
-                                </dx:DataGridView>
-                            </Grid>
-                        </dx:BottomSheet.Content>
-                    </dx:BottomSheet>
                 </Grid>
             </dx:TabViewItem>
             <dx:TabViewItem HeaderText="Now Playing">

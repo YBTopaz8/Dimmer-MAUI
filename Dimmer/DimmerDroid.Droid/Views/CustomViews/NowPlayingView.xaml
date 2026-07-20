@@ -294,14 +294,48 @@
                                         LongPress="LyricsChip_LongPress"
                                         Tap="LyricsChip_Tap"
                                         Text="🎙️"
-                                        />
+                                        >
+                                        <dx:Chip.Triggers>
+                                            <DataTrigger
+                                                Binding="{Binding CurrentPlayingSongView.HasLyrics}"
+                                                TargetType="dx:Chip"
+                                                Value="True"
+                                                >
+                                                <Setter Property="TextColor" Value="DarkSlateBlue" />
+                                            </DataTrigger>
+                                            <DataTrigger
+                                                Binding="{Binding CurrentPlayingSongView.HasLyrics}"
+                                                TargetType="dx:Chip"
+                                                Value="False"
+                                                >
+                                                <Setter Property="TextColor" Value="grey" />
+                                            </DataTrigger>
+                                        </dx:Chip.Triggers>
+                                    </dx:Chip>
 
 
                                 </dx:DXStackLayout>
 
                                 <dx:DXStackLayout Orientation="Horizontal">
 
-                                    <dx:DXButton
+
+                                    <dx:DXToggleButton
+                                        Padding="0"
+                                        BackgroundColor="Transparent"
+                                        BorderThickness="0"
+                                        CheckedBackgroundColor="Transparent"
+                                        CheckedChanging="ShowFrequentlyPlayedExpanderChkBtn_CheckedChanging"
+                                        CheckedIconColor="DarkSlateBlue"
+                                        Command="{Binding Commands.ToggleExpandState, Source={x:Reference FrequentlyPlayedExpander}}"
+                                        HorizontalOptions="End"
+                                        Icon="airbuds.png"
+                                        IconColor="DarkSlateBlue"
+                                        IconHeight="30"
+                                        IconWidth="50"
+                                        IsChecked="{Binding IsExpanded, Source={x:Reference FrequentlyPlayedExpander}}"
+                                        ShowIcon="True"
+                                        />
+                                    <!--<dx:DXButton
                                         x:Name="AudioMgtButton"
                                         Padding="5"
                                         BackgroundColor="Transparent"
@@ -310,7 +344,7 @@
                                         IconHeight="30"
                                         IconWidth="30"
                                         TapPressed="AudioMgtButton_TapPressed"
-                                        />
+                                        />-->
 
                                     <dx:DXButton
                                         x:Name="PlaybackChip"
@@ -524,22 +558,6 @@
                                         </dx:DXButton.Triggers>
                                     </dx:DXButton>
 
-                                    <dx:DXToggleButton
-                                        Padding="0"
-                                        BackgroundColor="Transparent"
-                                        BorderThickness="0"
-                                        CheckedBackgroundColor="Transparent"
-                                        CheckedChanging="ShowFrequentlyPlayedExpanderChkBtn_CheckedChanging"
-                                        CheckedIconColor="DarkSlateBlue"
-                                        Command="{Binding Commands.ToggleExpandState, Source={x:Reference FrequentlyPlayedExpander}}"
-                                        HorizontalOptions="End"
-                                        Icon="roundaltarrowdown.png"
-                                        IconColor="DarkSlateBlue"
-                                        IconHeight="50"
-                                        IconWidth="50"
-                                        IsChecked="{Binding IsExpanded, Source={x:Reference FrequentlyPlayedExpander}}"
-                                        ShowIcon="True"
-                                        />
 
                                 </dx:DXStackLayout>
 
@@ -556,7 +574,13 @@
                                     <Grid RowDefinitions="auto,*">
 
                                         <dx:DXStackLayout Grid.Row="0">
-                                            <Label Text="Frequently Played Next" />
+                                            <Label
+                                                FontSize="26"
+                                                Text="Frequently Played Next"
+                                                TextColor="{AppThemeBinding Light=WHite,
+                                                                            Dark=White}"
+                                                />
+
                                         </dx:DXStackLayout>
 
                                         <dx:DXCollectionView
@@ -565,45 +589,79 @@
                                             HorizontalOptions="Start"
                                             ItemSpacing="10"
                                             Loaded="ListPerfectPairings_Loaded"
-                                            MaximumHeightRequest="120"
-                                            Orientation="Horizontal"
+                                            MaximumHeightRequest="220"
+                                            Orientation="Vertical"
                                             SelectionMode="Single"
                                             Tap="ListPerfectPairings_Tap"
                                             >
                                             <dx:DXCollectionView.ItemTemplate>
                                                 <DataTemplate x:DataType="statsModels:SongPairing">
-                                                    <dx:DXStackLayout
-                                                        Padding="10"
-                                                        BorderThickness="1"
-                                                        CornerRadius="10"
-                                                        VerticalOptions="Start"
-                                                        >
-                                                        <dx:DXStackLayout.Triggers>
+                                                    <dx:DXBorder BorderThickness="1" CornerRadius="10">
+                                                        <dx:DXBorder.Triggers>
                                                             <DataTrigger
                                                                 Binding="{Binding isPresentOnDevice}"
-                                                                TargetType="dx:DXStackLayout"
+                                                                TargetType="dx:DXBorder"
                                                                 Value="True"
                                                                 >
                                                                 <Setter Property="BorderColor" Value="DarkSlateBlue" />
                                                             </DataTrigger>
                                                             <DataTrigger
                                                                 Binding="{Binding isPresentOnDevice}"
-                                                                TargetType="dx:DXStackLayout"
+                                                                TargetType="dx:DXBorder"
                                                                 Value="false"
                                                                 >
                                                                 <Setter Property="BorderColor" Value="Gray" />
                                                             </DataTrigger>
-                                                        </dx:DXStackLayout.Triggers>
-                                                        <dx:DXImage
-                                                            MaximumHeightRequest="45"
-                                                            MaximumWidthRequest="45"
-                                                            Source="{Binding CoverImagePath}"
-                                                            />
-                                                        <Label Text="{Binding PairedSongTitle}" />
-                                                        <Label Text="{Binding TimesPlayedTogether, StringFormat='{}{0} times'}" />
+                                                        </dx:DXBorder.Triggers>
+                                                        <Grid ColumnDefinitions="50,*">
+                                                            <dx:DXImage
+                                                                Grid.Column="0"
+                                                                MaximumHeightRequest="45"
+                                                                MaximumWidthRequest="45"
+                                                                Source="{Binding CoverImagePath}"
+                                                                />
+                                                            <dx:DXStackLayout
+                                                                Grid.Column="1"
+                                                                Padding="10"
+                                                                CornerRadius="10"
+                                                                VerticalOptions="Start"
+                                                                >
+                                                                <dx:DXStackLayout.Resources>
+                                                                    <ResourceDictionary>
+                                                                        <Style TargetType="Label">
+                                                                            <Setter Property="TextColor" Value="DimGray" />
+                                                                        </Style>
+                                                                    </ResourceDictionary>
+                                                                </dx:DXStackLayout.Resources>
 
 
-                                                    </dx:DXStackLayout>
+                                                                <Label FontSize="15" Text="{Binding PairedSongTitle}">
+                                                                    <Label.Triggers>
+                                                                        <DataTrigger
+                                                                            Binding="{Binding isPresentOnDevice}"
+                                                                            TargetType="Label"
+                                                                            Value="True"
+                                                                            >
+                                                                            <Setter Property="TextColor" Value="White" />
+                                                                        </DataTrigger>
+                                                                    </Label.Triggers>
+                                                                </Label>
+                                                                <Label Text="{Binding TimesPlayedTogether, StringFormat='{}{0} Times'}">
+                                                                    <Label.Triggers>
+                                                                        <DataTrigger
+                                                                            Binding="{Binding TimesPlayedTogether}"
+                                                                            TargetType="Label"
+                                                                            Value="1"
+                                                                            >
+                                                                            <Setter Property="Text" Value="{Binding TimesPlayedTogether, StringFormat='{}{0} Time'}" />
+                                                                        </DataTrigger>
+                                                                    </Label.Triggers>
+                                                                </Label>
+
+
+                                                            </dx:DXStackLayout>
+                                                        </Grid>
+                                                    </dx:DXBorder>
                                                 </DataTemplate>
                                             </dx:DXCollectionView.ItemTemplate>
                                         </dx:DXCollectionView>
@@ -630,7 +688,69 @@
 
 
 
+        <dx:BottomSheet
+            x:Name="SingleSongStatView"
+            AllowDismiss="True"
+            AllowedState="HalfExpanded" 
+            HalfExpandedRatio="0.90" ZIndex="99"
+            State="FullExpanded"
+            >
+            <Grid x:Name="FreqPlayed" RowDefinitions="*,*,*">
+                <dx:DXStackLayout>
+                    <dx:DXImage
+                        HeightRequest="50"
+                        HorizontalOptions="Start"
+                        Source="{Binding SelectedSong.CoverImagePath}"
+                        WidthRequest="50"
+                        />
+                    <Label Text="{Binding SelectedSong.Title}" />
+                    <dx:ChoiceChipGroup ChipBorderThickness="0">
+                        <dx:ChoiceChipGroup.Chips>
+                            <dx:Chip
+                                Icon="musicnote1.png"
+                                IconSize="30,30"
+                                IsIconVisible="True"
+                                />
+                            <dx:Chip
+                                Icon="heart.png"
+                                IconSize="30,30"
+                                IsIconVisible="True"
+                                />
+                            <dx:Chip
+                                Icon="searchh.png"
+                                IconSize="30,30"
+                                IsIconVisible="True"
+                                />
+                            <dx:Chip
+                                Icon="copy.png"
+                                IconSize="30,30"
+                                IsIconVisible="True"
+                                />
+                            <dx:Chip
+                                Icon="more1.png"
+                                IconSize="30,30"
+                                IsIconVisible="True"
+                                />
+                        </dx:ChoiceChipGroup.Chips>
+                    </dx:ChoiceChipGroup>
 
+                    <Grid ColumnDefinitions="*,*,*">
+                        <dx:DXStackLayout Grid.Column="0" ToolTipProperties.Text="Completed Plays">
+                            <Label Text="{Binding SelectedSong.PlayCompletedCount}" />
+                            <Label HorizontalOptions="Center" Text="dims" />
+                        </dx:DXStackLayout>
 
+                        <dx:DXStackLayout Grid.Column="1" ToolTipProperties.Text="Completed Plays">
+                            <Label Text="{Binding SelectedSong.ListenThroughRate}" />
+                            <Label HorizontalOptions="Center" Text="Through Rate" />
+                        </dx:DXStackLayout>
+                        <dx:DXStackLayout Grid.Column="2" ToolTipProperties.Text="Completed Plays">
+                            <Label Text="{Binding SelectedSong.EngagementScore}" />
+                            <Label HorizontalOptions="Center" Text="Score" />
+                        </dx:DXStackLayout>
+                    </Grid>
+                </dx:DXStackLayout>
+            </Grid>
+        </dx:BottomSheet>
     </Grid>
 </ContentView>

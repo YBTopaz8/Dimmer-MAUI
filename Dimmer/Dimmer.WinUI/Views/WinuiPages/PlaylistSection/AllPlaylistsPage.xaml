@@ -30,23 +30,20 @@
 
         <dgView:TableView
             x:Name="PlaylistsListTableView"
-            Grid.Row="1" IsReadOnly="True"
+            Grid.Row="1"
             AutoGenerateColumns="False"
+            IsReadOnly="True"
             ItemClick="PlaylistsListTableView_ItemClick"
             ItemsSource="{x:Bind MyViewModel.PlaylistsCollection, Mode=OneWay}"
             Tapped="PlaylistsListTableView_Tapped"
-            CellDoubleTapped="PlaylistsListTableView_CellDoubleTapped"
-            RowDoubleTapped="PlaylistsListTableView_RowDoubleTapped"
-            DoubleTapped="PlaylistsListTableView_DoubleTapped">
+            >
             <dgView:TableView.Columns>
-                <dgView:TableViewTextColumn Binding="{Binding PlaylistName}"
-                                            Header="Name"/>
-                
-                <dgView:TableViewTextColumn Binding="{Binding QueryText}"
-                                            Header="TQL Query"/>
-                
+                <dgView:TableViewTextColumn Binding="{Binding PlaylistName}" Header="Name" />
+
+                <dgView:TableViewTextColumn Binding="{Binding QueryText}" Header="TQL Query" />
+
             </dgView:TableView.Columns>
-            
+
         </dgView:TableView>
     </Grid>
 </Page>

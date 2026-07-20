@@ -84,4 +84,50 @@
             public static string? SortByAlbumDesc() => "desc album";    
 
         }
+
+    /// <summary>
+    /// Safely injects a chip action into the existing user query.
+    /// Example: InjectFilterClause("my fav >> save Favs", "exclude", "ar", "Kanye West")
+    /// Returns: "my fav exclude ar:\"Kanye West\" >> save Favs"
+    /// </summary>
+    public static string InjectFilterClause(string? currentQuery, string keyword, string fieldAlias, string value)
+    {
+        currentQuery = currentQuery?.Trim() ?? string.Empty;
+        var escapedValue = value.Replace("\"", "\\\"");
+        var clauseToInject = $"{keyword} {fieldAlias}:\"{escapedValue}\"";
+
+        // Check if there are commands attached (e.g. >> save MyList)
+        const string commandStart = " >>";
+        int commandStartIndex = currentQuery.LastIndexOf(commandStart, StringComparison.OrdinalIgnoreCase);
+
+        if (commandStartIndex != -1)
+        {
+            string filterPart = currentQuery.Substring(0, commandStartIndex).Trim();
+            string commandPart = currentQuery.Substring(commandStartIndex).Trim();
+            return $"{filterPart} {clauseToInject} {commandPart}".Trim();
+        }
+
+        return string.IsNullOrEmpty(currentQuery)
+            ? clauseToInject
+            : $"{currentQuery} {clauseToInject}".Trim();
     }
+}
+
+// Ensure you update your SearchResult to hold the facets
+//public class SearchResult
+//{
+//    public List<string> SongsResultIds { get; set; } = new();
+//    public RealmQueryPlan? Plan { get; set; }
+//    public string? ErrorMessage { get; set; }
+
+//    // NEW: Holds the facets generated during the search
+//    public SearchFacets? Facets { get; set; }
+//}
+public class SearchResult
+    {
+       
+        public RealmQueryPlan? Plan { get; set; }
+        public IReadOnlyList<ObjectId>? SongsResultIds { get; set; }
+        public string? ErrorMessage { get; set; }
+    public SearchFacets? Facets { get; set; }
+}

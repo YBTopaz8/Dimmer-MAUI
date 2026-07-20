@@ -167,16 +167,7 @@ public partial class SongLyricsDownloadPopup : DXPopup
 
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
-            var snackbarOptions = new SnackbarOptions
-            {
-                BackgroundColor = Colors.Black,
-                TextColor = Colors.White,
-                ActionButtonTextColor = Colors.SlateBlue,
-                CornerRadius = new CornerRadius(10),
-                Font = Font.SystemFontOfSize(14),
-                ActionButtonFont = Font.SystemFontOfSize(14),
-                CharacterSpacing = 0.5
-            };
+          
 
             string text = "Song Lyrics Updated";
 

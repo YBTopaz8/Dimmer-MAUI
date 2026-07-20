@@ -360,7 +360,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         if(fPicker == null)
             return;
         var file = fPicker.FullPath;
-
+        
 
         if(file is null)
             return;
@@ -379,7 +379,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         });
 
 
-         PickedUpBackup = await BackupService.PickFolderTeRestoreFromBackupAsync(SelectedFile);
+         PickedUpBackup = await BackupService.PickFolderTeRestoreFromBackupAsync(SelectedFile, progress);
 
 
 
@@ -396,8 +396,8 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     internal async Task BackUpAppDataAsync()
     {
         var picker = await FolderPicker.Default.PickAsync();
-
-        if(picker != null)
+        BackUpCompletResult = new();
+        if (picker != null)
         {
             if(!picker.IsSuccessful)
             {
@@ -408,10 +408,13 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             {
                 _= Task.Run(async () =>
                 {
-                    var res= await BackupService.CreateCompleteBackupAsync(BaseViewModel.CurrentAppVersion, path);
+                    DimmerBackupService.BackUpCompleteResult? res= await BackupService?.CreateCompleteBackupAsync(BaseViewModel.CurrentAppVersion, path);
                     if(res is not null)
                     {
-                        BackUpCompletResult = res;
+                        RxSchedulers.UI.ScheduleTo(() =>
+                        {
+                            BackUpCompletResult = res;
+                        });
                     }
                 });
                 
@@ -492,7 +495,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
 
     [RelayCommand]
-    private void ApplyTQLSearch(string parameter)
+    private void ApplyTQLSearch(string? parameter)
     {
         base.SearchToTQL(parameter);
     }

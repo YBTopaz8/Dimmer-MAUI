@@ -362,13 +362,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     private bool _isPipelineActive = false;
 
 
-    private class SearchResult
-    {
-       
-        public RealmQueryPlan? Plan { get; set; }
-        public IReadOnlyList<ObjectId>? SongsResultIds { get; set; }
-        public string? ErrorMessage { get; set; }
-    }
 
 
     private void UpdatePageStatus()
@@ -560,7 +553,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             .Bind(out _searchResults)
             .Subscribe(x =>
             {
-                
+
+                IsTqlBusy = false;
             })
             .DisposeWith(CompositeDisposables);
 
@@ -680,15 +674,19 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                Debug.WriteLine($"[UI] Query updated: {query}");
            });
        })
-       .Select(query =>  Observable.FromAsync(ct => Task.Run(() => PerformSearchBackground(query, ct), ct)))
+       .ObserveOn(RxSchedulers.Background)
+       .Select(query =>
+       {
+           return Observable.FromAsync(ct => Task.Run(() => PerformSearchBackground(query, ct), ct));
+       })
        
        .Switch() // Now switching between observables that already target UI
+       .ObserveOn(RxSchedulers.UI)
        .Subscribe(result =>
        {
 
            ApplySearchResults(result);
 
-           IsTqlBusy = false;
        },
        ex =>
        {
@@ -700,6 +698,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
        .DisposeWith(CompositeDisposables);
         IsTQLInitialized = true;
     }
+    [ObservableProperty] public partial IReadOnlyList<FacetItem> ActiveArtistFacets { get; set; }
+    [ObservableProperty] public partial IReadOnlyList<FacetItem> ActiveAlbumFacets {get;set;}
+    [ObservableProperty] public partial IReadOnlyList<FacetItem> ActiveGenreFacets {get;set;}
 
 
 
@@ -710,9 +711,21 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             TQLUserSearchErrorMessage = result.ErrorMessage;
             SearchResultsHolder.Edit(innerCache => innerCache.Clear()); // CLEAR THE LIST!
+            ActiveArtistFacets = new List<FacetItem>(); // Clear chips on error
+            ActiveAlbumFacets = new List<FacetItem>();
+            ActiveGenreFacets = new List<FacetItem>();
             return;
         }
         TQLUserSearchErrorMessage = string.Empty;
+        if (result.Facets != null)
+        {
+            // Don't show chips if all results belong to 1 artist anyway
+            ActiveArtistFacets = result.Facets.Artists.Count > 1 ? result.Facets.Artists : new List<FacetItem>();
+            ActiveAlbumFacets = result.Facets.Albums.Count > 1 ? result.Facets.Albums : new List<FacetItem>();
+            ActiveGenreFacets = result.Facets.Genres.Count > 1 ? result.Facets.Genres : new List<FacetItem>();
+        }
+
+
         if (result.SongsResultIds is not null)
         {
             // Realize the list so we can check the count
@@ -767,23 +780,19 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     viewModels = nativeFoundSongs.Select(s => s.ToSongModelView()!).ToList();
 
                 }
+           
 
-
-                // Update the UI
-                if (viewModels is not null)
+            // Update the UI
+            if (viewModels is not null)
                 {
-                    RxSchedulers.UI.ScheduleTo(() =>
-                    {
-                        SearchResultsHolder.Edit(innerCache => innerCache.Load(viewModels));
-                        IsSearchResultEmpty = viewModels.Count == 0;
-                        //OnPropertyChanging(nameof(IsSearchResultEmpty));
-                        OnPropertyChanged(nameof(IsSearchResultEmpty));
-                        UpdateIsSearchResultEmpty(IsSearchResultEmpty);
-                        //Debug.WriteLine(x.Count);
-                    });
-                }
+                SearchResultsHolder.Edit(innerCache => innerCache.Load(viewModels));
+                IsSearchResultEmpty = viewModels.Count == 0;
+                UpdateIsSearchResultEmpty(IsSearchResultEmpty);
+            }
           
         }
+
+
     }
     private SearchResult? PerformSearchBackground(string queryText,CancellationToken ct)
     {
@@ -791,18 +800,24 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         using var realmm = RealmFactory.GetRealmInstance();
 
-        // A. Fast Fail for Empty Query
         if (string.IsNullOrWhiteSpace(queryText))
         {
-            // Optimization: Only grab what we need, don't map everything instantly if we don't have to.
             var allSongsIds = realmm.All<SongModel>()
                 .OrderByDescending(s => s.DateCreated)
-                .ToList()
-                .Select(x => x.Id).ToList();// Fetch from Realm fast
+                .ToList(); // ToList resolves the realm query
 
-            IsLibraryEmpty = allSongsIds.Count > 0 ? true : false;
-            return new SearchResult { SongsResultIds = allSongsIds };
+            IsLibraryEmpty = allSongsIds.Count > 0;
+
+            // Generate facets for empty search (shows top artists overall)
+            var emptyFacets = FacetEngine.GenerateFacets(allSongsIds);
+
+            return new SearchResult
+            {
+                SongsResultIds = allSongsIds.Select(x => x.Id).ToList(),
+                Facets = emptyFacets
+            };
         }
+
 
         // B. Parse NLP (CPU Bound)
         var nlpResult = NaturalLanguageProcessor.Process(queryText);
@@ -816,7 +831,26 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             // C. Realm Filter (Zero-Copy, Fast)
             var query = realmm.All<SongModel>().Filter(plan.RqlFilter);
 
+            if (ct.IsCancellationRequested) 
+            { 
+                return null;
+            }
+
+            // DB SORT
+            bool didRealmSort = false;
+            if (plan.SortDescriptions.Count > 0)
+            {
+                var orderByString = string.Join(", ", plan.SortDescriptions.Select(
+                    desc => $"{desc.PropertyName} {(desc.Direction == SortDirection.Ascending ? "asc" : "desc")}"));
+                query = query.OrderBy(orderByString);
+                didRealmSort = true;
+            }
+
+
+
+
             if (ct.IsCancellationRequested) return null;
+
             // D. Realm Sorting (Do this in DB before pulling to RAM)
             if (plan.SortDescriptions.Count > 0)
             {
@@ -829,18 +863,19 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             // Grab the IDs or raw objects. ToList() evaluates the Realm query.
             IEnumerable<SongModel> intermediateList = query.ToList();
 
-            if (ct.IsCancellationRequested) return null;
+            if (ct.IsCancellationRequested)
+            {
+                return null;
+            }
 
-            if (plan.SortDescriptions.Count > 0)
+            // MEMORY SORT (Optimization: Skip if Realm already sorted it)
+            if (!didRealmSort && plan.SortDescriptions.Count > 0)
             {
                 var firstSort = plan.SortDescriptions[0];
-
-                // Sort Ascending (Lowest to Highest, 0 -> X) or Descending (X -> 0)
                 var orderedList = firstSort.Direction == SortDirection.Ascending
                     ? intermediateList.OrderBy(x => SemanticQueryHelpers.GetComparableProp(x, firstSort.PropertyName))
                     : intermediateList.OrderByDescending(x => SemanticQueryHelpers.GetComparableProp(x, firstSort.PropertyName));
 
-                // Handle multiple sort directives (e.g., asc year desc rating)
                 for (int i = 1; i < plan.SortDescriptions.Count; i++)
                 {
                     var sort = plan.SortDescriptions[i];
@@ -848,8 +883,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                         ? orderedList.ThenBy(x => SemanticQueryHelpers.GetComparableProp(x, sort.PropertyName))
                         : orderedList.ThenByDescending(x => SemanticQueryHelpers.GetComparableProp(x, sort.PropertyName));
                 }
-
-                intermediateList = orderedList; // Realize the accurate sort
+                intermediateList = orderedList;
             }
 
             // E. In-Memory Predicate (Chance, Regex, etc)
@@ -900,17 +934,51 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 }
             }
 
-            if (ct.IsCancellationRequested) return null;
-       
-            var finalViewListOfIds = intermediateList
-                .Select(x => x.Id).ToList();
+            if (ct.IsCancellationRequested)
+            {
+                return null;
+            }
+            // WE MATERIALIZE ONCE HERE FOR FACETS AND IDs
+            var realizedFinalList = intermediateList.ToList();
 
-            return new SearchResult { Plan = plan, SongsResultIds = finalViewListOfIds };
+            // ---> EXTRACT FACETS BEFORE LOSING REALM DATA <---
+            var facets = FacetEngine.GenerateFacets(realizedFinalList);
+
+            var finalViewListOfIds = realizedFinalList.Select(x => x.Id).ToList();
+
+            return new SearchResult
+            {
+                Plan = plan,
+                SongsResultIds = finalViewListOfIds,
+                Facets = facets // Pass it back to UI
+            };
         }
         catch (Exception ex)
         {
             return new SearchResult { ErrorMessage = ex.Message, Plan = plan };
         }
+    }
+
+    [RelayCommand]
+    public void ExcludeFacet(FacetItem facet)
+    {
+        // E.g., User tapped the [X] on the "Linkin Park" Artist chip
+        var newQuery = TQlStaticMethods.InjectFilterClause(CurrentTqlQueryUI, "exclude", facet.FieldAlias, facet.Value);
+
+        // Update the search bar text. The Rx Pipeline (_searchQuerySubject) will 
+        // automatically trigger the search in 250ms!
+        CurrentTqlQueryUI = newQuery;
+        _searchQuerySubject.OnNext(newQuery);
+    }
+
+    [RelayCommand]
+    public void IncludeFacet(FacetItem facet)
+    {
+        // E.g., User tapped the [✓] on the "Rock" Genre chip
+        var newQuery = TQlStaticMethods.InjectFilterClause(CurrentTqlQueryUI, "include", facet.FieldAlias, facet.Value);
+
+        CurrentTqlQueryUI = newQuery;
+        _searchQuerySubject.OnNext(newQuery);
     }
 
     [ObservableProperty] public partial bool CanSkipPage { get; set; } 
@@ -2071,7 +2139,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial string AppTitle { get; set; } = "Dimmer";
 
-    public static string CurrentAppVersion = "1.9.7a";
+    public static string CurrentAppVersion = "1.9.8";
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]
@@ -4793,13 +4861,20 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial ObservableCollection<PlaylistModelView> Playlists { get; set; } = new();
 
     [RelayCommand]
-    public void LoadPlaylists()
+    public void SetSelectedPlaylist(PlaylistModelView playlist)
     {
-        var playlistsFromDb = _playlistRepo.GetAll().OrderByDescending(p => p.LastPlayedDate).ToList();
-        Playlists.Clear();
-        foreach (var pl in playlistsFromDb)
+
+        var playlistsFromDb = _playlistRepo.GetById(playlist.Id);
+        
+        SelectedPlaylist = playlistsFromDb?.ToPlaylistModelView();
+        var realm = RealmFactory.GetRealmInstance();
+        foreach (var songId in SelectedPlaylist.SongsIdsInPlaylist)
         {
-            Playlists.Add(pl.ToPlaylistModelView());
+            SelectedPlaylist.SongsInPlaylist ??= new();
+
+            var songView = realm.Find<SongModel>(songId).ToSongModelView();
+
+            SelectedPlaylist.SongsInPlaylist.Add(songView);
         }
     }
 
@@ -4830,7 +4905,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             songInDb.UserNotes.Add(new UserNoteModel() { UserMessageText = newDescription, });
         }
-        LoadPlaylists();
+        
+
     }
 
 
@@ -4856,7 +4932,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             {
                 pl.PlaylistName = newName;
             });
-        LoadPlaylists();
     }
 
 
@@ -8397,7 +8472,7 @@ public record QueryComponents(
     }
 
     [RelayCommand]
-    public async Task LoadAlbumAndArtistDetailsFromLastFM()
+    public async Task LoadAllAlbumAndArtistDetailsFromLastFM()
     {
         var realm = RealmFactory.GetRealmInstance();
         await realm.WriteAsync(async () =>
@@ -8416,8 +8491,6 @@ public record QueryComponents(
                 }
             }
             var AllArtists = RealmFactory.GetRealmInstance().All<ArtistModel>()
-                .AsEnumerable()
-                .Select(a => a.ToArtistModelView())
                 ;
             foreach (var artist in AllArtists)
             {
@@ -8706,6 +8779,8 @@ public void RemoveRule(VisualFilterRule rule)
         }
         return alb;
     }
+
+
 }
 
 public enum CollectionViewMode

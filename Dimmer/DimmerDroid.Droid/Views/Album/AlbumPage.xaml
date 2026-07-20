@@ -166,7 +166,7 @@
     </ContentPage.Resources>
 
     <Grid Padding="10" RowDefinitions="auto,*">
-        <Grid ColumnDefinitions="*,auto">
+        <Grid ColumnDefinitions="*,auto" RowDefinitions="*,90">
             <dx:DXStackLayout Grid.Column="0" ItemSpacing="10">
                 <Label FontSize="30" Text="{Binding Name}" />
                 <dx:Chip
@@ -174,8 +174,9 @@
                     HorizontalOptions="Start"
                     Text="{Binding Artists[0].Name}"
                     />
+                
                 <Label Text="{Binding Artists.Count, StringFormat='{0} Artists'}" />
-                <Label Text="{Binding SongsInAlbum.Count, StringFormat='{0} Artists'}" />
+                <Label Text="{Binding SongsInAlbum.Count, StringFormat='{0} Songs'}" />
             </dx:DXStackLayout>
 
             <dx:DXImage
@@ -183,6 +184,21 @@
                 MaximumWidthRequest="50"
                 Source="{Binding ImagePath}"
                 />
+
+            <CarouselView
+                Grid.Row="1"
+                Grid.ColumnSpan="2"
+                ItemsSource="{Binding Artists}"
+                >
+                <CarouselView.ItemTemplate>
+                    <DataTemplate x:DataType="models:ArtistModelView">
+                        <dx:DXStackLayout WidthRequest="90">
+                            <dx:DXImage HorizontalOptions="Start" Source="{Binding ImagePath}" />
+                            <Label Text="{Binding Name}" />
+                        </dx:DXStackLayout>
+                    </DataTemplate>
+                </CarouselView.ItemTemplate>
+            </CarouselView>
         </Grid>
 
         <dx:TabView Grid.Row="1">
@@ -190,16 +206,35 @@
 
                 <dx:DXCollectionView
                     x:Name="SongsCV"
-                    Grid.Row="1"
                     Margin="0,0"
                     x:FieldModifier="Public"
                     BackgroundColor="Transparent"
                     ItemSpacing="5"
                     ItemTemplate="{StaticResource LinearDataType}"
-                    ItemsSource="{Binding MyViewModel.SearchResults, Source={x:Reference myPage}}"
+                    ItemsSource="{Binding SongsInAlbum}"
                     Loaded="SongsCV_Loaded"
                     PropertyChanged="SongsCV_PropertyChanged"
                     />
+            </dx:TabViewItem>
+
+            <dx:TabViewItem HeaderText="Artists">
+                <dx:DXCollectionView x:Name="ArtistsCV" ItemsSource="{Binding Artists}">
+                    <dx:DXCollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:ArtistModelView">
+                            <Grid
+                                Padding="5"
+                                ColumnDefinitions="80,*"
+                                ColumnSpacing="10"
+                                >
+                                <dx:DXImage Grid.Column="0" Source="{Binding ImagePath}" />
+                                <dx:DXStackLayout Grid.Column="1" ItemSpacing="10">
+                                    <Label FontSize="20" Text="{Binding Name}" />
+                                    <Label FontSize="14" Text="{Binding TotalSongsByArtist, StringFormat='{0} Songs'}" />
+                                </dx:DXStackLayout>
+                            </Grid>
+                        </DataTemplate>
+                    </dx:DXCollectionView.ItemTemplate>
+                </dx:DXCollectionView>
             </dx:TabViewItem>
         </dx:TabView>
 

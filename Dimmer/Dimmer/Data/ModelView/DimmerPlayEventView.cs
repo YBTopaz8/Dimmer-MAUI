@@ -47,7 +47,7 @@ public class DimmerPlayEventView
     public string? DeviceVersion { get; set; }
     public SongModelView? SongViewObject { get; internal set; }
 
-    public string? CoverImagePath => SongViewObject?.CoverImagePath;
+    public string? CoverImagePath { get; set; }
     public string? SongTitle => SongViewObject?.Title;
     public string? SongArtistName => SongViewObject?.ArtistName;
     public string? SongAlbumName => SongViewObject?.AlbumName;

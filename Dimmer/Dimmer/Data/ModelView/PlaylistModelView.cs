@@ -22,7 +22,7 @@ public partial class PlaylistModelView : ObservableObject
     public partial bool IsNew { get; set; }
 
     [ObservableProperty]
-    public partial ObservableCollection<SongModelView?>? SongInPlaylist { get; set; }
+    public partial ObservableCollection<SongModelView?>? SongsInPlaylist { get; set; }
 
     [ObservableProperty]
     public partial ObservableCollection<ObjectId>? SongsIdsInPlaylist { get; set; }

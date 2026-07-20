@@ -351,20 +351,22 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
     {
         if (window == null) return;
         // 1 try to recover a live tracked one first
-        if (!_openWindows.Contains(window) || !IsWindowOpen(window))
+        if (!IsWindowOpen(window))
         {
-            try
+            if (_openWindows.Contains(window))
             {
-                window.Activate();
-                TrackWindow(window);
+                try
+                {
+                    window.Activate();
+                    TrackWindow(window);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                }
+                return;
             }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex.Message);
-            }
-            return;
         }
-
         // 2️ check HWND validity
         IntPtr hwnd = WindowNative.GetWindowHandle(window);
         if (hwnd == IntPtr.Zero)

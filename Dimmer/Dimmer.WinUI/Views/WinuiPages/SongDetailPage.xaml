@@ -513,9 +513,9 @@
                                 </ResourceDictionary>
                             </Grid.Resources>
                             <ItemsRepeater
-                                x:Name="ListInsights"
+                                x:Name="ListDayOfWeekHeatmap"
                                 Grid.Column="0"
-                                Loaded="ListInsights_Loaded"
+                                Loaded="ListDayOfWeekHeatmap_Loaded"
                                 >
                                 <ItemsRepeater.ItemTemplate>
                                     <DataTemplate>
@@ -607,9 +607,9 @@
                             </ItemsRepeater>
 
                             <ItemsRepeater
-                                x:Name="ListWeeklyTrend"
+                                x:Name="ListPlaySkipRatio"
                                 Grid.Column="3"
-                                Loaded="ListWeeklyTrend_Loaded"
+                                Loaded="ListPlaySkipRatio_Loaded"
                                 >
                                 <ItemsRepeater.ItemTemplate>
                                     <DataTemplate>
@@ -680,7 +680,11 @@
                                 </ItemsRepeater.ItemTemplate>
                             </ItemsRepeater>
 
-                            <ItemsRepeater Grid.Column="5" Loaded="ListInsights_Loaded">
+                            <ItemsRepeater
+                                x:Name="ListTimeOfDayHeatmap"
+                                Grid.Column="5"
+                                Loaded="ListTimeOfDayHeatmap_Loaded"
+                                >
                                 <ItemsRepeater.ItemTemplate>
                                     <DataTemplate>
                                         <StackPanel

@@ -31,7 +31,7 @@
     <Page Update="Views\WinuiPages\Artist\AllArtistsPage.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Views\WinuiPages\Settings\RestoreBackupPage.xaml">
+    <Page Update="Views\WinuiPages\Settings\BackupPage.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\CustomViews\WinuiViews\SingleSongSection\ChangesReviewPopup.xaml">

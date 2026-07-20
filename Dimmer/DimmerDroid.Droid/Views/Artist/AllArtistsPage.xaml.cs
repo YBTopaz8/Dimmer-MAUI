@@ -58,4 +58,9 @@ public partial class AllArtistsPage : ContentPage
             return;
         MyViewModel.AddToNext(new List<SongModelView> { song });
     }
+
+    private void DXCollectionView_PullToRefresh(object sender, EventArgs e)
+    {
+        //MyViewModel.LoadAlbumAndArtistDetailsFromLastFM
+    }
 }
