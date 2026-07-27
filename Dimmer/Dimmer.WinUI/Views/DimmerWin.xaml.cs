@@ -371,12 +371,16 @@ public sealed partial class DimmerWin : Window
             ScrollToCurrentSong.Visibility = Visibility.Visible;
             nvSample.IsPaneOpen = true;
             TopRowGrid.Visibility = Visibility.Visible;
+            nvSample.IsBackButtonVisible = NavigationViewBackButtonVisible.Collapsed;
+            nvSample.IsBackEnabled = false;
             ContentFrame.BackStack.Clear();
         }
         else
         {
             ScrollToCurrentSong.Visibility = Visibility.Collapsed;
             nvSample.IsPaneOpen = false;
+            nvSample.IsBackButtonVisible = NavigationViewBackButtonVisible.Visible;
+            nvSample.IsBackEnabled = true;
             TopRowGrid.Visibility = Visibility.Collapsed;
         }
 
@@ -915,6 +919,7 @@ public sealed partial class DimmerWin : Window
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(curSong =>
             {
+                if (curSong is null) return;
                 //if (!MyViewModel.IsDimmerPlaying) return;
                if(!string.IsNullOrEmpty(curSong.CoverImagePath))
                 {

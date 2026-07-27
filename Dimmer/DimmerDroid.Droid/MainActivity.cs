@@ -1,3 +1,4 @@
+using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.NativeServices;
 using Dimmer.Views.LastFM;
 using Google.Android.Material.Dialog;
@@ -73,6 +74,35 @@ public partial class MainActivity : MauiAppCompatActivity
 
         // Configure JsonSerializer for mobile
         ConfigureJsonOptions();
+
+
+        // In your Android specific code (e.g. MainActivity.cs or Android Application setup)
+        TaggingUtils.PlatformSpecificStreamCreator = (folderUriPath, newFileName) =>
+        {
+            try
+            {
+                var context = Android.App.Application.Context;
+                var treeUri = Android.Net.Uri.Parse(folderUriPath);
+
+                // Connect to the scoped storage folder
+                var documentFile = AndroidX.DocumentFile.Provider.DocumentFile.FromTreeUri(context, treeUri);
+
+                // Create the file. Use "application/gzip" as the mime-type.
+                var newFile = documentFile?.CreateFile("application/gzip", newFileName);
+
+                if (newFile != null && newFile.Uri != null)
+                {
+                    // Return a writable stream to this newly created SAF file
+                    return context.ContentResolver?.OpenOutputStream(newFile.Uri);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error creating stream for SAF: {ex}");
+            }
+
+            return null;
+        };
     }
 
     private void CheckAndRequestPermissions()

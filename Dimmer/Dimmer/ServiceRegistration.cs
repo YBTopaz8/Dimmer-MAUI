@@ -86,6 +86,7 @@ public static class ServiceRegistration
 
         services.AddSingleton<ILiveSessionManagerService, ParseDeviceSessionService>();
         services.AddSingleton<SubscriptionManager>();
+        services.AddSingleton<PlayerViewModel>();
         services.AddSingleton<MusicDataService>();
         services.AddSingleton<IDimmerPlayEventRepository, DimmerPlayEventRepository>();
 

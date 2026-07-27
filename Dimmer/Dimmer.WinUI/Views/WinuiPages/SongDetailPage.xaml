@@ -37,6 +37,7 @@
             <Grid x:Name="FgGrid">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <Border
@@ -65,367 +66,353 @@
                     </StackPanel>
                 </Border>
 
-                <ScrollViewer
-                    x:Name="Scroller"
-                    Grid.Row="1"
-                    Margin="0,0,0,0"
-                    Background="Transparent"
-                    PointerPressed="Scroller_PointerPressed"
-                    VerticalScrollBarVisibility="Auto"
-                    ViewChanged="ScrollViewer_ViewChanged"
-                    >
-                    <StackPanel
-                        x:Name="SegmentStack"
-                        Padding="12"
-                        Orientation="Vertical"
-                        Spacing="20"
-                        >
 
-                        <!--  The elements involved in the animation  -->
-                        <StackPanel Orientation="Horizontal" Spacing="15">
+                <StackPanel Grid.Row="1">
+                    <!--  The elements involved in the animation  -->
+                    <StackPanel Orientation="Horizontal" Spacing="15">
 
-                            <Button
-                                x:Name="EditSongBtn"
-                                Click="EditSongBtn_Click"
-                                Content="Edit"
-                                FontSize="19"
+                        <Button
+                            x:Name="EditSongBtn"
+                            Click="EditSongBtn_Click"
+                            Content="Edit"
+                            FontSize="19"
+                            />
+
+                        <Button
+                            x:Name="EditSongAudioBtn"
+                            Click="EditSongAudioBtn_Click"
+                            Content="Edit Audio"
+                            FontSize="19"
+                            />
+                    </StackPanel>
+
+                    <Grid x:Name="SectionOverview" ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+
+                        </Grid.ColumnDefinitions>
+
+
+                        <StackPanel
+                            x:Name="detailedImageStackPanel"
+                            Grid.Column="0"
+                            Spacing="10"
+                            >
+
+                            <Image
+                                x:Uid="detailedImage"
+                                MaxWidth="350"
+                                MaxHeight="350"
+                                Loaded="detailedImage_Loaded"
                                 />
-
                             <Button
-                                x:Name="EditSongAudioBtn"
-                                Click="EditSongAudioBtn_Click"
-                                Content="Edit Audio"
-                                FontSize="19"
-                                />
-                        </StackPanel>
-
-                        <Grid x:Name="SectionOverview" ColumnSpacing="10">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-
-                            </Grid.ColumnDefinitions>
-
-                            <!--  The Image that will be the target of the connected animation  -->
-
-                            <StackPanel
-                                x:Name="detailedImageStackPanel"
-                                Grid.Column="0"
-                                Spacing="10"
+                                x:Name="PlaySongBtn"
+                                HorizontalAlignment="Center"
+                                Click="PlaySongBtn_Click"
+                                Loaded="PlaySongBtn_Loaded"
+                                Visibility="Collapsed"
                                 >
+                                <FontIcon FontSize="45" Glyph="&#xF5B0;" />
+                            </Button>
+                        </StackPanel>
+                        <Border Grid.Column="1">
 
-                                <Image
-                                    x:Uid="detailedImage"
-                                    MaxWidth="350"
-                                    MaxHeight="350"
-                                    Loaded="detailedImage_Loaded"
-                                    />
-                                <Button
-                                    x:Name="PlaySongBtn"
-                                    HorizontalAlignment="Center"
-                                    Click="PlaySongBtn_Click"
-                                    Loaded="PlaySongBtn_Loaded"
-                                    Visibility="Collapsed"
+                            <StackPanel HorizontalAlignment="Left" Spacing="5">
+                                <StackPanel
+                                    x:Name="UtilitiesSection"
+                                    Background="Transparent"
+                                    Orientation="Vertical"
+                                    Spacing="10"
                                     >
-                                    <FontIcon FontSize="45" Glyph="&#xF5B0;" />
-                                </Button>
-                            </StackPanel>
-                            <Border Grid.Column="1">
+                                    <TextBlock
+                                        x:Name="TitleBlock"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        FontSize="80"
+                                        Style="{ThemeResource TitleTextBlockStyle}"
+                                        Text="{x:Bind MyViewModel.CurrentPlayingSongView.Title}"
+                                        TextWrapping="Wrap"
+                                        />
 
-                                <StackPanel HorizontalAlignment="Left" Spacing="5">
-                                    <StackPanel
-                                        x:Name="UtilitiesSection"
-                                        Background="Transparent"
-                                        Orientation="Vertical"
-                                        Spacing="10"
-                                        >
-                                        <TextBlock
-                                            x:Name="TitleBlock"
-                                            HorizontalAlignment="Left"
+                                    <StackPanel Orientation="Horizontal" Spacing="5">
+                                        <Grid
+                                            x:Name="RootGrid"
+                                            Grid.Column="1"
                                             VerticalAlignment="Top"
-                                            FontSize="80"
-                                            Style="{ThemeResource TitleTextBlockStyle}"
-                                            Text="{x:Bind DetailedSong.Title}"
-                                            TextWrapping="Wrap"
-                                            />
-
-                                        <StackPanel Orientation="Horizontal" Spacing="5">
-                                            <Grid
-                                                x:Name="RootGrid"
-                                                Grid.Column="1"
-                                                VerticalAlignment="Top"
-                                                >
-                                                <StackPanel x:Name="ArtistListPanel" HorizontalAlignment="Left">
+                                            >
+                                            <StackPanel x:Name="ArtistListPanel" HorizontalAlignment="Left">
 
 
-                                                    <ItemsRepeater
-                                                        x:Name="ArtistToSong"
-                                                        HorizontalAlignment="Center"
-                                                        Loaded="ArtistToSong_Loaded"
-                                                        >
-
-                                                        <ItemsRepeater.ItemTemplate>
-
-                                                            <DataTemplate>
-                                                                <Button
-                                                                    x:Name="ArtistNameBtn"
-                                                                    Margin="0,10,0,0"
-                                                                    BorderThickness="1"
-                                                                    Click="Artist_Click"
-                                                                    CornerRadius="15"
-                                                                    Loaded="ArtistNameBtn_Loaded"
-                                                                    >
-                                                                    <StackPanel
-                                                                        VerticalAlignment="Center"
-                                                                        Background="Transparent"
-                                                                        Orientation="Horizontal"
-                                                                        Spacing="10"
-                                                                        >
-                                                                        <TextBlock FontSize="26" Text="{Binding Name}" />
-                                                                        <StackPanel
-                                                                            VerticalAlignment="Center"
-                                                                            Orientation="Horizontal"
-                                                                            Spacing="0"
-                                                                            >
-                                                                            <TextBlock FontSize="16" Text="(" />
-                                                                            <TextBlock FontSize="16" Text="{Binding TotalSongsByArtist}" />
-                                                                            <TextBlock FontSize="16" Text=")" />
-                                                                            <TextBlock
-                                                                                Margin="5,0,0,0"
-                                                                                FontSize="16"
-                                                                                Text="Songs"
-                                                                                />
-
-                                                                        </StackPanel>
-                                                                    </StackPanel>
-                                                                </Button>
-                                                            </DataTemplate>
-                                                        </ItemsRepeater.ItemTemplate>
-                                                    </ItemsRepeater>
-
-                                                </StackPanel>
-
-                                                <Border
-                                                    x:Name="ArtistDetailBorder"
-                                                    MinWidth="350"
-                                                    MaxWidth="750"
-                                                    MaxHeight="350"
-                                                    Padding="5"
+                                                <ItemsRepeater
+                                                    x:Name="ArtistToSong"
                                                     HorizontalAlignment="Center"
-                                                    VerticalAlignment="Center"
-                                                    Background="#1E1E1E"
-                                                    BorderBrush="DarkSlateBlue"
-                                                    BorderThickness="2"
-                                                    Canvas.ZIndex="99"
-                                                    CornerRadius="15"
-                                                    Visibility="Collapsed"
+                                                    Loaded="ArtistToSong_Loaded"
                                                     >
 
-                                                    <Grid>
+                                                    <ItemsRepeater.ItemTemplate>
 
-                                                        <Grid.RowDefinitions>
-                                                            <RowDefinition Height="auto" />
-                                                            <RowDefinition Height="*" />
-                                                        </Grid.RowDefinitions>
-                                                        <StackPanel Grid.Row="0">
-
-                                                            <StackPanel
-                                                                HorizontalAlignment="Center"
-                                                                VerticalAlignment="Top"
-                                                                Orientation="Horizontal"
-                                                                Spacing="10"
+                                                        <DataTemplate>
+                                                            <Button
+                                                                x:Name="ArtistNameBtn"
+                                                                Margin="0,10,0,0"
+                                                                BorderThickness="1"
+                                                                Click="Artist_Click"
+                                                                CornerRadius="15"
+                                                                Loaded="ArtistNameBtn_Loaded"
                                                                 >
-
-                                                                <Button
-                                                                    x:Name="ArtistPreviewButton"
-                                                                    Padding="10"
-                                                                    HorizontalAlignment="Center"
+                                                                <StackPanel
+                                                                    VerticalAlignment="Center"
                                                                     Background="Transparent"
-                                                                    Click="CloseArtistDetail_Click"
-                                                                    CornerRadius="12"
+                                                                    Orientation="Horizontal"
+                                                                    Spacing="10"
                                                                     >
-                                                                    <FontIcon Foreground="White" Glyph="&#xE72B;" />
-                                                                </Button>
+                                                                    <TextBlock FontSize="26" Text="{Binding Name}" />
+                                                                    <StackPanel
+                                                                        VerticalAlignment="Center"
+                                                                        Orientation="Horizontal"
+                                                                        Spacing="0"
+                                                                        >
+                                                                        <TextBlock FontSize="16" Text="(" />
+                                                                        <TextBlock FontSize="16" Text="{Binding TotalSongsByArtist}" />
+                                                                        <TextBlock FontSize="16" Text=")" />
+                                                                        <TextBlock
+                                                                            Margin="5,0,0,0"
+                                                                            FontSize="16"
+                                                                            Text="Songs"
+                                                                            />
 
-                                                                <TextBlock
-                                                                    x:Name="ArtistMiniName"
-                                                                    Margin="0,0,0,0"
-                                                                    HorizontalAlignment="Center"
-                                                                    FontSize="28"
-                                                                    FontWeight="Bold"
-                                                                    Foreground="White"
-                                                                    Text="{Binding Name}"
-                                                                    />
+                                                                    </StackPanel>
+                                                                </StackPanel>
+                                                            </Button>
+                                                        </DataTemplate>
+                                                    </ItemsRepeater.ItemTemplate>
+                                                </ItemsRepeater>
 
+                                            </StackPanel>
 
-                                                            </StackPanel>
+                                            <Border
+                                                x:Name="ArtistDetailBorder"
+                                                MinWidth="350"
+                                                MaxWidth="750"
+                                                MaxHeight="350"
+                                                Padding="5"
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                Background="#1E1E1E"
+                                                BorderBrush="DarkSlateBlue"
+                                                BorderThickness="2"
+                                                Canvas.ZIndex="99"
+                                                CornerRadius="15"
+                                                Visibility="Collapsed"
+                                                >
+
+                                                <Grid>
+
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="auto" />
+                                                        <RowDefinition Height="*" />
+                                                    </Grid.RowDefinitions>
+                                                    <StackPanel Grid.Row="0">
+
+                                                        <StackPanel
+                                                            HorizontalAlignment="Center"
+                                                            VerticalAlignment="Top"
+                                                            Orientation="Horizontal"
+                                                            Spacing="10"
+                                                            >
 
                                                             <Button
-                                                                Padding="8"
+                                                                x:Name="ArtistPreviewButton"
+                                                                Padding="10"
                                                                 HorizontalAlignment="Center"
                                                                 Background="Transparent"
-                                                                BorderThickness="2"
-                                                                Click="ArtistNameBtn_Click"
-                                                                Content="View"
+                                                                Click="CloseArtistDetail_Click"
                                                                 CornerRadius="12"
-                                                                FontSize="15"
-                                                                FontWeight="ExtraBold"
+                                                                >
+                                                                <FontIcon Foreground="White" Glyph="&#xE72B;" />
+                                                            </Button>
+
+                                                            <TextBlock
+                                                                x:Name="ArtistMiniName"
+                                                                Margin="0,0,0,0"
+                                                                HorizontalAlignment="Center"
+                                                                FontSize="28"
+                                                                FontWeight="Bold"
+                                                                Foreground="White"
+                                                                Text="{Binding Name}"
                                                                 />
+
 
                                                         </StackPanel>
 
-                                                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Visible">
+                                                        <Button
+                                                            Padding="8"
+                                                            HorizontalAlignment="Center"
+                                                            Background="Transparent"
+                                                            BorderThickness="2"
+                                                            Click="ArtistNameBtn_Click"
+                                                            Content="View"
+                                                            CornerRadius="12"
+                                                            FontSize="15"
+                                                            FontWeight="ExtraBold"
+                                                            />
 
-                                                            <ItemsRepeater x:Name="ArtistSongsPreviewIR" Loaded="ArtistSongsPreviewIR_Loaded">
-                                                                <ItemsRepeater.Layout>
-                                                                    <StackLayout Orientation="Vertical" Spacing="2" />
-                                                                </ItemsRepeater.Layout>
-                                                                <ItemsRepeater.ItemTemplate>
-                                                                    <DataTemplate>
-                                                                        <StackPanel Margin="11,0,11,0">
+                                                    </StackPanel>
+
+                                                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Visible">
+
+                                                        <ItemsRepeater x:Name="ArtistSongsPreviewIR" Loaded="ArtistSongsPreviewIR_Loaded">
+                                                            <ItemsRepeater.Layout>
+                                                                <StackLayout Orientation="Vertical" Spacing="2" />
+                                                            </ItemsRepeater.Layout>
+                                                            <ItemsRepeater.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <StackPanel Margin="11,0,11,0">
 
 
-                                                                            <Grid
-                                                                                Padding="2"
-                                                                                BorderBrush="Gray"
-                                                                                BorderThickness="0"
-                                                                                ColumnSpacing="10"
-                                                                                CornerRadius="5"
+                                                                        <Grid
+                                                                            Padding="2"
+                                                                            BorderBrush="Gray"
+                                                                            BorderThickness="0"
+                                                                            ColumnSpacing="10"
+                                                                            CornerRadius="5"
+                                                                            >
+                                                                            <Grid.ColumnDefinitions>
+                                                                                <ColumnDefinition Width="*" />
+                                                                                <ColumnDefinition Width="auto" />
+                                                                            </Grid.ColumnDefinitions>
+                                                                            <StackPanel Grid.Column="0" Spacing="5">
+
+                                                                                <TextBlock
+                                                                                    FontSize="16"
+                                                                                    MaxLines="3"
+                                                                                    Text="{Binding Title}"
+                                                                                    TextWrapping="Wrap"
+                                                                                    />
+
+                                                                                <TextBlock
+                                                                                    FontSize="9"
+                                                                                    FontStyle="Italic"
+                                                                                    MaxLines="3"
+                                                                                    Text="{Binding AlbumName}"
+                                                                                    TextWrapping="Wrap"
+                                                                                    />
+
+                                                                            </StackPanel>
+
+                                                                            <StackPanel
+                                                                                Grid.Column="1"
+                                                                                Orientation="Horizontal"
+                                                                                Spacing="5"
                                                                                 >
-                                                                                <Grid.ColumnDefinitions>
-                                                                                    <ColumnDefinition Width="*" />
-                                                                                    <ColumnDefinition Width="auto" />
-                                                                                </Grid.ColumnDefinitions>
-                                                                                <StackPanel Grid.Column="0" Spacing="5">
-
-                                                                                    <TextBlock
-                                                                                        FontSize="16"
-                                                                                        MaxLines="3"
-                                                                                        Text="{Binding Title}"
-                                                                                        TextWrapping="Wrap"
-                                                                                        />
-
-                                                                                    <TextBlock
-                                                                                        FontSize="9"
-                                                                                        FontStyle="Italic"
-                                                                                        MaxLines="3"
-                                                                                        Text="{Binding AlbumName}"
-                                                                                        TextWrapping="Wrap"
-                                                                                        />
-
-                                                                                </StackPanel>
-
-                                                                                <StackPanel
-                                                                                    Grid.Column="1"
-                                                                                    Orientation="Horizontal"
-                                                                                    Spacing="5"
+                                                                                <Button
+                                                                                    x:Name="PlaySongNowFromArtistListOfSongs"
+                                                                                    Background="Transparent"
+                                                                                    Click="PlaySongNowFromArtistListOfSongs_Click"
+                                                                                    FontSize="10"
+                                                                                    RightTapped="PlaySongNowFromArtistListOfSongs_RightTapped"
                                                                                     >
-                                                                                    <Button
-                                                                                        x:Name="PlaySongNowFromArtistListOfSongs"
-                                                                                        Background="Transparent"
-                                                                                        Click="PlaySongNowFromArtistListOfSongs_Click"
-                                                                                        FontSize="10"
-                                                                                        RightTapped="PlaySongNowFromArtistListOfSongs_RightTapped"
-                                                                                        >
-                                                                                        <FontIcon Glyph="&#xE768;" />
-                                                                                    </Button>
-                                                                                    <Button
-                                                                                        x:Name="AddNextInQueue"
-                                                                                        Background="Transparent"
-                                                                                        Click="AddNextInQueue_Click"
-                                                                                        FontSize="10"
-                                                                                        >
-                                                                                        <FontIcon Glyph="&#xEA37;" />
-                                                                                    </Button>
-                                                                                </StackPanel>
+                                                                                    <FontIcon Glyph="&#xE768;" />
+                                                                                </Button>
+                                                                                <Button
+                                                                                    x:Name="AddNextInQueue"
+                                                                                    Background="Transparent"
+                                                                                    Click="AddNextInQueue_Click"
+                                                                                    FontSize="10"
+                                                                                    >
+                                                                                    <FontIcon Glyph="&#xEA37;" />
+                                                                                </Button>
+                                                                            </StackPanel>
 
-                                                                            </Grid>
-                                                                            <Rectangle Height="1" Fill="DarkSlateBlue" />
-                                                                        </StackPanel>
-                                                                    </DataTemplate>
-                                                                </ItemsRepeater.ItemTemplate>
-                                                            </ItemsRepeater>
+                                                                        </Grid>
+                                                                        <Rectangle Height="1" Fill="DarkSlateBlue" />
+                                                                    </StackPanel>
+                                                                </DataTemplate>
+                                                            </ItemsRepeater.ItemTemplate>
+                                                        </ItemsRepeater>
 
-                                                        </ScrollViewer>
-                                                    </Grid>
-                                                </Border>
-                                            </Grid>
-                                        </StackPanel>
+                                                    </ScrollViewer>
+                                                </Grid>
+                                            </Border>
+                                        </Grid>
+                                    </StackPanel>
 
-                                        <StackPanel
-                                            Margin="0,10,0,0"
-                                            Orientation="Horizontal"
-                                            Spacing="10"
+                                    <StackPanel
+                                        Margin="0,10,0,0"
+                                        Orientation="Horizontal"
+                                        Spacing="10"
+                                        >
+
+                                        <Button
+                                            x:Name="AlbumBtn"
+                                            HorizontalAlignment="Left"
+                                            Background="Transparent"
+                                            BorderThickness="2"
+                                            Click="AlbumBtn_Click"
+                                            Content="{x:Bind MyViewModel.CurrentPlayingSongView.AlbumName}"
+                                            FontSize="30"
+                                            PointerPressed="AlbumBtn_PointerPressed"
+                                            />
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            FontSize="30"
+                                            Text="{x:Bind MyViewModel.CurrentPlayingSongView.ReleaseYear}"
+                                            />
+
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+
+                                        <Button
+                                            Background="Transparent"
+                                            BorderThickness="2"
+                                            Content="{x:Bind MyViewModel.CurrentPlayingSongView.FileFormat}"
+                                            />
+
+
+
+                                        <Button
+                                            x:Name="ViewInFolder"
+                                            Command="{x:Bind MyViewModel.OpenAndSelectFileInExplorerCommand}"
+                                            CommandParameter="{x:Bind MyViewModel.CurrentPlayingSongView}"
+                                            ToolTipService.ToolTip="{x:Bind MyViewModel.CurrentPlayingSongView.FilePath}"
+                                            >
+                                            <FontIcon Glyph="&#xE838;" />
+                                        </Button>
+
+                                        <Button x:Name="ViewCharts" Click="ViewCharts_Click">
+                                            <FontIcon Glyph="&#xEB05;" />
+                                        </Button>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <Button
+                                            x:Name="FavBtn"
+                                            VerticalAlignment="Bottom"
+                                            Background="Transparent"
+                                            BorderBrush="Transparent"
+                                            Click="FavBtn_Click"
+                                            Foreground="SlateBlue"
+                                            RightTapped="FavBtn_RightTapped"
                                             >
 
-                                            <Button
-                                                x:Name="AlbumBtn"
-                                                HorizontalAlignment="Left"
-                                                Background="Transparent"
-                                                BorderThickness="2"
-                                                Click="AlbumBtn_Click"
-                                                Content="{x:Bind DetailedSong.AlbumName}"
-                                                FontSize="30"
-                                                PointerPressed="AlbumBtn_PointerPressed"
-                                                />
-                                            <TextBlock
-                                                VerticalAlignment="Center"
-                                                FontSize="30"
-                                                Text="{x:Bind DetailedSong.ReleaseYear}"
-                                                />
+                                            <FontIcon Glyph="&#xEB52;" />
+                                        </Button>
 
-                                        </StackPanel>
-                                        <StackPanel Orientation="Horizontal" Spacing="8">
-
-                                            <Button
-                                                Background="Transparent"
-                                                BorderThickness="2"
-                                                Content="{x:Bind DetailedSong.FileFormat}"
-                                                />
-
-
-
-                                            <Button
-                                                x:Name="ViewInFolder"
-                                                Command="{x:Bind MyViewModel.OpenAndSelectFileInExplorerCommand}"
-                                                CommandParameter="{x:Bind DetailedSong}"
-                                                ToolTipService.ToolTip="{x:Bind DetailedSong.FilePath}"
-                                                >
-                                                <FontIcon Glyph="&#xE838;" />
-                                            </Button>
-
-                                            <Button x:Name="ViewCharts" Click="ViewCharts_Click">
-                                                <FontIcon Glyph="&#xEB05;" />
-                                            </Button>
-                                        </StackPanel>
-                                        <StackPanel Orientation="Horizontal" Spacing="10">
-                                            <Button
-                                                x:Name="FavBtn"
-                                                VerticalAlignment="Bottom"
-                                                Background="Transparent"
-                                                BorderBrush="Transparent"
-                                                Click="FavBtn_Click"
-                                                Foreground="SlateBlue"
-                                                RightTapped="FavBtn_RightTapped"
-                                                >
-
-                                                <FontIcon Glyph="&#xEB52;" />
-                                            </Button>
-
-                                        </StackPanel>
-
-                                        <RichTextBlock
-                                            x:Name="BioBlock"
-                                            Loaded="BioBlock_Loaded"
-                                            TextWrapping="Wrap"
-                                            />
                                     </StackPanel>
+
+                                    <RichTextBlock
+                                        x:Name="BioBlock"
+                                        Loaded="BioBlock_Loaded"
+                                        TextWrapping="Wrap"
+                                        />
                                 </StackPanel>
-                            </Border>
-                        </Grid>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </StackPanel>
 
-
-
+                <Pivot Grid.Row="2">
+                    <PivotItem>
                         <StackPanel
                             x:Name="SongStats"
                             Loaded="SongStats_Loaded"
@@ -495,6 +482,8 @@
 
                         </StackPanel>
 
+                    </PivotItem>
+                    <PivotItem>
                         <Grid Height="450">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -717,8 +706,8 @@
 
 
                         </Grid>
-
-
+                    </PivotItem>
+                    <PivotItem>
 
                         <!--  SECTION 3: LYRICS  -->
                         <StackPanel x:Name="SectionLyricsStackPanel" Background="Transparent">
@@ -773,90 +762,17 @@
                         </StackPanel>
 
 
+                    </PivotItem>
+                </Pivot>
 
 
-                    </StackPanel>
-                </ScrollViewer>
+
+
+
 
             </Grid>
         </Grid>
 
-        <Grid
-            x:Name="SmokeGrid"
-            HorizontalAlignment="Stretch"
-            VerticalAlignment="Stretch"
-            Visibility="Collapsed"
-            >
-            <Grid.Background>
-                <SolidColorBrush Opacity="0.8" Color="{ThemeResource SystemChromeAltHighColor}" />
-            </Grid.Background>
-            <Grid
-                x:Name="destinationElement"
-                Width="420"
-                MaxHeight="400"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                BorderThickness="0"
-                CornerRadius="5,5,5,5"
-                >
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
 
-                <Grid
-                    Height="120"
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch"
-                    Background="{ThemeResource SystemAccentColor}"
-                    >
-                    <TextBlock
-                        Margin="12"
-                        VerticalAlignment="Center"
-                        FontWeight="Bold"
-                        Style="{ThemeResource HeaderTextBlockStyle}"
-                        Text="{Binding SelectedAchievement.Name}"
-                        />
-                    <Button
-                        Width="40"
-                        Height="40"
-                        Margin="5"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Top"
-                        AutomationProperties.Name="Close"
-                        Click="PopUpBackButton_Click"
-                        ToolTipService.ToolTip="Close"
-                        >
-                        <Button.Content>
-                            <FontIcon Glyph="&#xE894;" />
-                        </Button.Content>
-                    </Button>
-                </Grid>
-                <Grid
-                    Grid.Row="1"
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch"
-                    Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}"
-                    >
-                    <StackPanel>
-
-                        <TextBlock Margin="12" Style="{ThemeResource BaseTextBlockStyle}" />
-
-                        <TextBlock
-                            Margin="12"
-                            Style="{ThemeResource BaseTextBlockStyle}"
-                            Text="{Binding SelectedAchievement.Description}"
-                            />
-
-                        <TextBlock
-                            Margin="12"
-                            Style="{ThemeResource BaseTextBlockStyle}"
-                            Text="{Binding SelectedAchievement.Tier}"
-                            />
-                    </StackPanel>
-
-                </Grid>
-            </Grid>
-        </Grid>
     </Grid>
 </Page>

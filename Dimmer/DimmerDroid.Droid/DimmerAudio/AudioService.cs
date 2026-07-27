@@ -1,321 +1,191 @@
 ﻿namespace Dimmer.DimmerAudio;
 
+
 public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged, IAsyncDisposable
 {
+    private static readonly Lazy<AudioService> lazyInstance = new(() => new AudioService());
+    public static IDimmerAudioService Current => lazyInstance.Value;
+
     private ExoPlayerServiceBinder? _binder;
-
     private ExoPlayerService? Service => _binder?.Service;
-    private IPlayer? Player => Service?.GetPlayerInstance();
 
-    // Store the last known song model to provide context in events.
-    private SongModelView? _currentSongModel;
-
-
-    public AudioService()
-    {
-    }
+    public AudioService() { }
 
     public SongModelView? CurrentTrackMetadata => ExoPlayerService.CurrentSongExposed;
-
-    #region IDimmerAudioService Implementation (Properties)
-
-    public bool IsPlaying => Player?.IsPlaying ?? false;
-    public double CurrentPosition => (Player?.CurrentPosition ?? 0) / 1000.0;
-    public double Duration => Player?.Duration > 0 ? Player.Duration / 1000.0 : 0;
+    public bool IsPlaying => Service?.IsPlaying ?? false;
+    public double CurrentPosition => Service?.CurrentPosition ?? 0;
+    public double Duration => Service?.Duration ?? 0;
 
     public double Volume
     {
-        get
-        {
-            return Player?.Volume ?? 1.0f;
-        }
-
-        set
-        {
-            if (Player != null)
-            {
-                RxSchedulers.UI.ScheduleTo(() =>
-                {
-
-                    Player.Volume = (float)Math.Clamp(value, 0.0, 1.0);
-                    NotifyPropertyChanged();
-                });
-            }
-        }
+        get => Service?.Volume ?? 1.0;
+        set { if (Service != null) Service.Volume = value; }
     }
 
-    public IEnumerable<AudioOutputDevice>? PlaybackDevices { get; }
-    public double AmbienceVolume { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public bool IsMuted
+    {
+        get => Service?.IsMuted ?? false;
+        set { if (Service != null) Service.IsMuted = value; }
+    }
 
-    #endregion
+    // --- Granular DSP Controls delegated directly to OwnaudioNET Service ---
+    public double PlaybackSpeed
+    {
+        get => Service?.PlaybackSpeed ?? 1.0;
+        set { if (Service != null) Service.PlaybackSpeed = value; }
+    }
+
+    public double PitchShift
+    {
+        get => Service?.PitchShift ?? 0.0;
+        set { if (Service != null) Service.PitchShift = value; }
+    }
+
+    public bool IsReversed
+    {
+        get => Service?.IsReversed ?? false;
+        set { if (Service != null) Service.IsReversed = value; }
+    }
+
+    public bool EnableReverb
+    {
+        get => Service?.EnableReverb ?? false;
+        set { if (Service != null) Service.EnableReverb = value; }
+    }
+
+    public double ReverbMix
+    {
+        get => Service?.ReverbMix ?? 0.4;
+        set { if (Service != null) Service.ReverbMix = value; }
+    }
+
+    public float ReverbRoomSize
+    {
+        get => Service?.ReverbRoomSize ?? 0.8f;
+        set { if (Service != null) Service.ReverbRoomSize = value; }
+    }
+
+    public float ReverbDamping
+    {
+        get => Service?.ReverbDamping ?? 0.4f;
+        set { if (Service != null) Service.ReverbDamping = value; }
+    }
+
+    public bool EnableLoFi
+    {
+        get => Service?.EnableLoFi ?? false;
+        set { if (Service != null) Service.EnableLoFi = value; }
+    }
+
+    public double LoFiCutoffFrequency
+    {
+        get => Service?.LoFiCutoffFrequency ?? 2000.0;
+        set { if (Service != null) Service.LoFiCutoffFrequency = value; }
+    }
+
+    public bool EnableSmartMaster
+    {
+        get => Service?.EnableSmartMaster ?? false;
+        set { if (Service != null) Service.EnableSmartMaster = value; }
+    }
+
+    // --- Dynamic Stems ---
+    public Task AddStemAsync(string stemId, string filePath, double initialVolume = 1.0)
+    {
+        Service?.AddStem(stemId, filePath, initialVolume);
+        return Task.CompletedTask;
+    }
+
+    public void RemoveStem(string stemId) => Service?.RemoveStem(stemId);
+    public void SetStemVolume(string stemId, double volume) => Service?.SetStemVolume(stemId, volume);
+    public void ClearAllStems() => Service?.ClearAllStems();
+
+    // --- AI Chord Analysis ---
+    public async Task<(string Key, int Bpm, string Chords)> AnalyzeTrackChordsAsync(string filePath)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+               
+                return ("Nothing",0,"Nil");
+            }
+            catch { return ("Error", 0, ""); }
+        });
+    }
+
+    // --- Binder Setup ---
+    public void SetBinder(ExoPlayerServiceBinder? binder)
+    {
+        _binder = binder;
+        if (Service != null) ConnectEvents();
+    }
+
+    public Task InitializeAsync(SongModelView songModel, double pos)
+    {
+        Service?.PrepareTrack(songModel, pos);
+        return Task.CompletedTask;
+    }
+
+    public void Play(double pos) => Service?.Play(pos);
+    public void Pause() => Service?.Pause();
+    public void Stop() => Service?.Stop();
+    public void Seek(double positionSeconds) => Service?.Seek(positionSeconds);
+
+    public IEnumerable<AudioOutputDevice>? PlaybackDevices => Service?.GetAvailableDevices();
+    public List<AudioOutputDevice>? GetAllAudioDevices() => Service?.GetAvailableDevices();
+    public Task<bool> SetPreferredOutputDeviceAsync(AudioOutputDevice dev)
+    {
+        var res= Service?.SetPreferredDevice(dev) ?? false;
+
+        return Task.FromResult(res);
+    }
+
+    public async Task SetDefaultAsync(AudioOutputDevice device) 
+    {
+        await SetPreferredOutputDeviceAsync(device); 
+       
+    }
+    public Task MuteDevice(bool mute) { IsMuted = mute; return Task.CompletedTask; }
+    public Task SetVolume(double volume) { Volume = volume; return Task.CompletedTask; }
+    public double GetCurrentVolume() => Volume;
+    public AudioOutputDevice? GetCurrentAudioOutputDevice()
+    {
+        return Service?.GetAvailableDevices().FirstOrDefault();
+        //return GetAvailableAudioOutputsAsync().Result?.FirstOrDefault();
+    }
+
+    public Task SendNextSong(SongModelView nextSong) => Task.CompletedTask;
+    public void InitializePlaylist(SongModelView songModelView, IEnumerable<SongModelView> songModels) { }
 
     private readonly BehaviorSubject<SongModelView?> _currentSong = new(null);
-
     public IObservable<SongModelView?> CurrentSong => _currentSong.AsObservable();
-    #region IDimmerAudioService Implementation (Events)
 
-    // These events are raised in response to the native service's events.
+    // --- Events ---
     public event EventHandler<PlaybackEventArgs>? PlaybackStateChanged;
     public event EventHandler<PlaybackEventArgs>? IsPlayingChanged;
     public event EventHandler<PlaybackEventArgs>? PlayEnded;
     public event EventHandler<PlaybackEventArgs>? MediaKeyPreviousPressed;
     public event EventHandler<PlaybackEventArgs>? MediaKeyNextPressed;
     public event EventHandler<double>? PositionChanged;
+    public event EventHandler<double>? DurationChanged;
     public event EventHandler<double>? SeekCompleted;
     public event EventHandler<double>? VolumeChanged;
     public event EventHandler<(double newVol, bool isDeviceMuted, int devMavVol)>? DeviceVolumeChanged;
     public event EventHandler<PlaybackEventArgs>? ErrorOccurred;
-
-    // Unused events from interface, kept for compatibility.
-    public event EventHandler<double>? DurationChanged;
-
     public event PropertyChangedEventHandler? PropertyChanged;
-
-    #endregion
-
-   
-
-    public void SetBinder(ExoPlayerServiceBinder? binder)
-    {
-        Debug.WriteLine($"[DEBUG-AUDIO] SetBinder called with: {(binder == null ? "NULL" : "VALID BINDER")}. AudioService Instance ID: {this.GetHashCode()}");
-        if (binder == null)
-            throw new ArgumentNullException("binder is null");
-
-        if (_binder != null && _binder.Service != null)
-            DisconnectEvents(); // Pass the old service explicitly!
-
-        _binder = binder;
-
-        if (Service != null)
-        {
-            ConnectEvents();
-            Console.WriteLine("[AudioService] Binder set and events connected.");
-            NotifyAllPropertiesChanged();
-        }
-        else
-        {
-            Console.WriteLine("[AudioService] Binder set to null or service not available.");
-        }
-    }
-    #region IDimmerAudioService Implementation (Commands)
-
-    public Task InitializeAsync(SongModelView songModel, double pos)
-    {
-        Debug.WriteLine($"[DEBUG-AUDIO] InitializeAsync called. AudioService Instance ID: {this.GetHashCode()}");
-        Debug.WriteLine($"[DEBUG-AUDIO] Is Service Null? {(Service == null ? "YES" : "NO")}");
-        if (Service is null )
-        {
-            
-        
-        }
-        
-        _currentSongModel = songModel;
-        // Tell the native service to prepare the track.
-        var finalSongTitle = songModel.IsFavorite ? "❤️ " + songModel.Title : songModel.Title;
-        var finalArtName = songModel.HasSyncedLyrics ? "🎙️ " + songModel.OtherArtistsName : songModel.OtherArtistsName;
-        long positionMs = (long)(pos * 1000.0);
-
-        Service?.Prepare(songModel.FilePath, finalSongTitle, finalArtName, songModel.AlbumName, songModel,startPositionMs: positionMs);
-
-        return Task.CompletedTask;
-    }
-
-    public void InitializePlaylist(SongModelView song, IEnumerable<SongModelView> songModels)
-    {
-        _currentSongModel = song;
-        //Service?.PreparePlaylist(song, songModels);
-    }
-
-    public void Play(double pos)
-    {
-        Player?.Play();
-        Seek(pos);
-    }
-
-    public void Pause() => Player?.Pause();
-    public void Stop() => Player?.Stop();
-
-    public void Seek(double positionSeconds)
-    {
-        // We just send the command. We do NOT raise the SeekCompleted event here.
-        // The native service will raise its event when the seek is actually done.
-        long positionMs = (long)(positionSeconds * 1000.0);
-        Player?.SeekTo(positionMs);
-    }
-
-    public List<AudioOutputDevice>? GetAllAudioDevices() => Service?.GetAvailableAudioOutputMAUI();
-    public bool SetPreferredOutputDevice(AudioOutputDevice dev) => Service?.SetPreferredDevice(dev) ?? false;
-
-    #endregion
-
-    #region Event Wiring
 
     private void ConnectEvents()
     {
-        if (Service == null)
-            return;
-
-        // Subscribe to events coming *from* the ExoPlayerService
-        Service.PlaybackStateChanged  += OnNativePlaybackStateChanged; // Use the central state event
-        Service.IsPlayingChanged  += OnNativeIsPlayingChanged;
-        Service.PlayingEnded += OnNativePlayEnded;
-        Service.PositionChanged += OnNativePositionChanged;
-        Service.DeviceVolumeChanged += OnDeviceVolumeChanged;
-        Service.SeekCompleted += OnNativeSeekCompleted;
-        Service.VolumeChanged += OnNativeVolumeChanged;
-        Service.PlayNextPressed += OnNativePlayNextPressed;
-        Service.PlayPreviousPressed += OnNativePlayPreviousPressed;
+        if (Service == null) return;
+        Service.PositionChanged += (s, pos) => PositionChanged?.Invoke(this, pos);
+        Service.IsPlayingChanged += (s, isPlaying) => IsPlayingChanged?.Invoke(this, new PlaybackEventArgs(CurrentTrackMetadata) { IsPlaying = isPlaying });
+        Service.PlayingEnded += (s, e) => PlayEnded?.Invoke(this, new PlaybackEventArgs(CurrentTrackMetadata));
     }
-
-    private void DisconnectEvents()
-    {
-        if (Service == null)
-            return;
-
-        // Unsubscribe from all events
-        Service.PlaybackStateChanged -= OnNativePlaybackStateChanged;
-        Service.IsPlayingChanged -= OnNativeIsPlayingChanged;
-        Service.PlayingEnded -= OnNativePlayEnded;
-        Service.PositionChanged -= OnNativePositionChanged;
-        Service.SeekCompleted -= OnNativeSeekCompleted;
-        Service.VolumeChanged -= OnNativeVolumeChanged;
-        Service.DeviceVolumeChanged -= OnDeviceVolumeChanged;
-        Service.PlayNextPressed -= OnNativePlayNextPressed;
-        Service.PlayPreviousPressed -= OnNativePlayPreviousPressed;
-    }
-
-    private void OnDeviceVolumeChanged(object? sender, (double newVol, bool isDeviceMuted, int devMavVol) e)
-    {
-        DeviceVolumeChanged?.Invoke(sender, e);
-    }
-
-    private void OnNativeVolumeChanged(object? sender, double e)
-    {
-        VolumeChanged?.Invoke(this, e);
-    }
-
-    #endregion
-
-    #region Native Event Handlers (The Translation Layer)
-
-    // These methods receive events from the native service and translate them
-    // into the cross-platform events without any other logic.
-
-    private void OnNativePlaybackStateChanged(object? sender, PlaybackEventArgs e)
-    {
-        // Simply forward the event. The ViewModel will handle the logic.
-        PlaybackStateChanged?.Invoke(this, e);
-    }
-
-    private void OnNativeIsPlayingChanged(object? sender, PlaybackEventArgs e)
-    {
-        // Simply forward the event. The ViewModel will handle the logic.
-        IsPlayingChanged?.Invoke(this, e);
-        NotifyPropertyChanged(nameof(IsPlaying)); // Update the property for any direct bindings
-    }
-
-    private void OnNativePlayEnded(object? sender, PlaybackEventArgs e)
-    {
-
-
-        // Simply forward the event.
-        PlayEnded?.Invoke(this, e);
-    }
-
-    private void OnNativePositionChanged(object? sender, long position)
-    {
-        // Translate and forward.
-        PositionChanged?.Invoke(this, position / 1000.0);
-        NotifyPropertyChanged(nameof(CurrentPosition));
-    }
-
-    private void OnNativeSeekCompleted(object? sender, double position)
-    {
-        // The native service confirms the seek is done. NOW we raise our event.
-        SeekCompleted?.Invoke(this, position);
-    }
-
-    private void OnNativePlayNextPressed(object? sender, PlaybackEventArgs e)
-    {
-        MediaKeyNextPressed?.Invoke(this, e);
-    }
-
-    private void OnNativePlayPreviousPressed(object? sender, PlaybackEventArgs e)
-    {
-        MediaKeyPreviousPressed?.Invoke(this, e);
-    }
-
-    #endregion
-
-    #region PropertyChanged Implementation
-
-    private void NotifyAllPropertiesChanged()
-    {
-        NotifyPropertyChanged(nameof(IsPlaying));
-        NotifyPropertyChanged(nameof(CurrentPosition));
-        NotifyPropertyChanged(nameof(Duration));
-        NotifyPropertyChanged(nameof(Volume));
-    }
-
-    protected void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
-
-    #endregion
 
     public async ValueTask DisposeAsync()
     {
-        DisconnectEvents();
         _binder = null;
         await Task.CompletedTask;
-    }
-
-    public Task SetDefaultAsync(AudioOutputDevice device)
-    {
-        Service?.SetPreferredDevice(device);
-        return Task.CompletedTask;
-    }
-
-    public Task MuteDevice(bool mute)
-    {
-        Player.DeviceMuted = mute;
-        return Task.CompletedTask;
-    }
-
-
-    public Task SetVolume(double volume)
-    {
-        Volume = volume;
-        return Task.CompletedTask;
-    }
-
-    public double GetCurrentVolume()
-    {
-        
-        return Player is null? 0: Player.Volume;
-    }
-
-    public AudioOutputDevice? GetCurrentAudioOutputDevice()
-    {
-        var currentDevice = ExoPlayerService.GetCurrentAudioOutputDevice();
-        return currentDevice;
-
-    }
-
-    public Task InitializeAmbienceAsync(string filePath)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void ToggleAmbience(bool isEnabled)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task SendNextSong(SongModelView nextSong)
-    {
-        Service?.PrepareNext(nextSong);
-        return Task.CompletedTask;
     }
 }

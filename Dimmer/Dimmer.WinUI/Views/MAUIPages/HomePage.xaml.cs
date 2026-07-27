@@ -498,7 +498,7 @@ public partial class HomePage : ContentPage
 #endif
 
 
-    private void SetPrefdevice_Clicked(object sender, EventArgs e)
+    private async void SetPrefdevice_Clicked(object sender, EventArgs e)
     {
         var send = (View)sender;
         var dev = send.BindingContext as AudioOutputDevice;
@@ -506,7 +506,7 @@ public partial class HomePage : ContentPage
         if (dev is null)
             return;
 
-        MyViewModel.SetPreferredAudioDevice(dev);
+       await MyViewModel.SetPreferredAudioDeviceAsync(dev);
     }
 
 

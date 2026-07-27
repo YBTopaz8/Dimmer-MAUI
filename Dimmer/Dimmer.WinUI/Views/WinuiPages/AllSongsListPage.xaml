@@ -81,7 +81,9 @@
                     IsItemClickEnabled="True"
                     IsMultiSelectCheckBoxEnabled="True"
                     IsRightTapEnabled="True"
-                    IsSwipeEnabled="False"
+                    ShowExportOptions="True"
+                    
+                    IsSwipeEnabled="False" ShowFilterItemsCount="True"
                     ItemsSource="{x:Bind MyViewModel.SearchResults}"
                     Loaded="MySongsTableView_Loaded"
                     SelectionMode="Single"
@@ -173,8 +175,8 @@
                                                 </Grid.ColumnDefinitions>
                                                 <TextBlock Grid.Column="0" Text="{Binding FileFormat}" />
 
-                                              
-                                                
+
+
                                             </Grid>
                                         </Grid>
 
@@ -200,9 +202,11 @@
                         <dgView:TableViewTextColumn
                             x:Name="ArtistsColumn"
                             Width="*"
+                            MinWidth="350"
                             Binding="{Binding OtherArtistsName}"
                             Header="Artists"
                             IsReadOnly="True"
+                            ToolTipService.ToolTip="{Binding OtherArtistsName}"
                             />
 
                         <dgView:TableViewTextColumn
@@ -232,7 +236,7 @@
 
                         <dgView:TableViewCheckBoxColumn
                             x:Name="IsFavorite"
-                            Width="140"
+                            Width="120"
                             Binding="{Binding IsFavorite}"
                             Header="Favorite?"
                             IsReadOnly="True"
@@ -240,9 +244,17 @@
 
                         <dgView:TableViewDateColumn
                             x:Name="DateCreated"
-                            Width="140"
+                            Width="120"
                             Binding="{Binding DateCreated}"
                             Header="Date Created"
+                            IsReadOnly="True"
+                            />
+
+                        <dgView:TableViewDateColumn
+                            x:Name="LastTimePlayed"
+                            Width="120"
+                            Binding="{Binding LastPlayed}"
+                            Header="Last Played"
                             IsReadOnly="True"
                             />
 

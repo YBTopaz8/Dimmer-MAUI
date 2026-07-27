@@ -393,6 +393,9 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     [ObservableProperty]
     public partial bool IsBackUpDone { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsDoingBackup { get; set; }
     internal async Task BackUpAppDataAsync()
     {
         var picker = await FolderPicker.Default.PickAsync();
@@ -408,6 +411,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
             {
                 _= Task.Run(async () =>
                 {
+                    IsDoingBackup = true;
                     DimmerBackupService.BackUpCompleteResult? res= await BackupService?.CreateCompleteBackupAsync(BaseViewModel.CurrentAppVersion, path);
                     if(res is not null)
                     {
@@ -426,6 +430,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         {
 
         }
+        IsDoingBackup = false;
     }
     [ObservableProperty]
     public partial bool IsNowPlayingBtmSheetOpened { get; set; }

@@ -28,6 +28,9 @@
 		<PackageReference Include="DevExpress.Maui.Gauges" Version="25.2.7" />
 		<PackageReference Include="DevExpress.Maui.ProjectTemplates" Version="25.2.7" />
 		<PackageReference Include="DevExpress.Maui.TreeView" Version="25.2.7" />
+		<PackageReference Include="OwnAudioSharp.Basic" Version="3.1.7" />
+		<!--<PackageReference Include="OwnAudioSharp" Version="3.1.7" />-->
+		<!--<PackageReference Include="OwnAudioSharp.Mobile" Version="3.1.7" />-->
 		
 		<PackageReference Include="SkiaSharp.Views" Version="3.119.2" />
 		<PackageReference Include="Xamarin.AndroidX.Activity.Ktx" Version="1.13.0" />
@@ -140,6 +143,9 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\CustomViews\PlaybackQueueBtmSheet.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\CustomViews\ShareSongAsStoryPopup.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\CustomViews\SingleSongInCVPopup.xaml">

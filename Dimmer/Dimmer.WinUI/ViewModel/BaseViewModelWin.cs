@@ -741,24 +741,24 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         DimmerMultiWindowCoordinator.ShowControlPanel();
     }
 
-    public void QuickViewArtist(SongModelView song, string artistName)
+    public void QuickViewArtist(SongModelView? song, string artistName)
     {
         SearchToTQL(TQlStaticMethods.PresetQueries.ByArtist(artistName));
     }
 
-    public void PlaySongsByArtistInCurrentAlbum(SongModelView song, string artistName)
+    public void PlaySongsByArtistInCurrentAlbum(SongModelView? song, string artistName)
     {
         Debug.WriteLine($"Play songs by {artistName} in current album.");
         // TODO: filter and start playback from current album list
     }
 
-    public void PlayAllSongsByArtist(SongModelView song, string artistName)
+    public void PlayAllSongsByArtist(SongModelView? song, string artistName)
     {
         Debug.WriteLine($"Play all songs by {artistName}.");
         // TODO: query Realm for all songs where Artist == artistName
     }
 
-    public void QueueAllSongsByArtist(SongModelView song, string artistName)
+    public void QueueAllSongsByArtist(SongModelView? song, string artistName)
     {
         Debug.WriteLine($"Queue all songs by {artistName}.");
         // TODO: add matching songs to NowPlayingQueue
@@ -785,7 +785,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     }
 
 
-    public bool IsArtistFavorite(SongModelView song, string artistName)
+    public bool IsArtistFavorite(SongModelView? song, string artistName)
     {
         Debug.WriteLine($"Checking favorite status for {artistName}");
         // TODO: query Realm for favorite
@@ -800,13 +800,13 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     {
         throw new NotImplementedException();
     }
-    public void ToggleFavoriteArtist(SongModelView song, string artistName, bool isFavorite)
+    public void ToggleFavoriteArtist(SongModelView? song, string artistName, bool isFavorite)
     {
         Debug.WriteLine($"Set favorite={isFavorite} for {artistName}");
         // TODO: update Realm favorites collection
     }
 
-    public int GetArtistPlayCount(SongModelView song, string artistName)
+    public int GetArtistPlayCount(SongModelView? song, string artistName)
     {
         
         var realm = RealmFactory.GetRealmInstance();
@@ -1280,7 +1280,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     {
         mostPlayedSongCoverImg.Source = null;
         if (songModelView is null) return;
-        var imgBytes = await ImageFilterUtils.ApplyFilter(songModelView.CoverImagePath
+        var imgBytes = await ImageFilterUtils.ApplyFilterAsync(songModelView.CoverImagePath
             , filter);
         if (imgBytes is null) return;
         using (var stream = new MemoryStream(imgBytes))

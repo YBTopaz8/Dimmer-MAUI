@@ -27,7 +27,11 @@
             Grid.Column="0"
             Stretch="UniformToFill"
             />
-        <ScrollViewer x:Name="mainView" PointerPressed="MainView_PointerPressed">
+        <ScrollViewer
+            x:Name="mainView"
+            PointerPressed="MainView_PointerPressed"
+            VerticalScrollBarVisibility="Disabled"
+            >
             <StackPanel Padding="40" Spacing="8">
                 <!--  Carousel Section  -->
                 <Grid>
@@ -42,7 +46,6 @@
                         MaxHeight="350"
                         Canvas.ZIndex="1"
                         Loaded="CurrentPlayingSongImg_Loaded"
-                        Loading="CurrentPlayingSongImg_Loading"
                         Stretch="UniformToFill"
                         />
 
@@ -96,12 +99,23 @@
                         Opacity="0.8"
                         />
                     <Button
-                        x:Name="ArtistBtn"
+                        x:Name="AlbumBtn"
                         HorizontalAlignment="Center"
                         HorizontalContentAlignment="Center"
                         Background="Transparent"
-                        Click="ArtistBtn_Click"
+                        Click="AlbumBtn_Click"
                         Content="{x:Bind MyViewModel.CurrentPlayingSongView.AlbumName, Mode=OneWay}"
+                        CornerRadius="12"
+                        FontSize="16"
+                        Opacity="0.6"
+                        />
+                    <Button
+                        x:Name="GenreBtn"
+                        HorizontalAlignment="Center"
+                        HorizontalContentAlignment="Center"
+                        Background="Transparent"
+                        Click="GenreBtn_Click"
+                        Content="{x:Bind MyViewModel.CurrentPlayingSongView.GenreName, Mode=OneWay}"
                         CornerRadius="12"
                         FontSize="16"
                         Opacity="0.6"
@@ -110,6 +124,15 @@
 
                 <!--  Progress Section  -->
                 <StackPanel Spacing="5">
+                    <devWin:SegmentedSlider
+                        x:Name="NewProgressSlider" Width="400"
+                        Foreground="DarkSlateBlue"
+                        Loaded="NewProgressSlider_Loaded"
+                        Maximum="{x:Bind MyViewModel.CurrentTrackDurationSeconds, Mode=OneWay}"
+                        SegmentCount="0"
+                        SelectedTimeChanged="NewProgressSlider_SelectedTimeChanged"
+                        Value="{x:Bind MyViewModel.CurrentTrackPositionSeconds, Mode=OneWay}"
+                        />
                     <Slider
                         x:Name="ProgressSlider"
                         Foreground="DarkSlateBlue"
@@ -152,7 +175,7 @@
                     <Button
                         Width="56"
                         Height="56"
-                        Command="{x:Bind MyViewModel.PreviousTrackCommand}"
+                        x:Name="PreviousTrackBtn" Click="PreviousTrackBtn_Click"
                         >
                         <Button.CommandParameter>
                             <x:Boolean>False</x:Boolean>
@@ -161,8 +184,9 @@
                     </Button>
                     <ToggleButton
                         Width="72"
+                        x:Name="PlayPauseToggleBtn" 
                         Height="72"
-                        Command="{x:Bind MyViewModel.PlayPauseToggleCommand}"
+                        Loaded="PlayPauseToggleBtn_Loaded"
                         Content="{x:Bind MyViewModel.IsDimmerPlaying, Converter={StaticResource BoolToPlayingPauseConverter}, Mode=OneWay}"
                         IsChecked="{x:Bind MyViewModel.IsDimmerPlaying, Mode=OneWay}"
                         />

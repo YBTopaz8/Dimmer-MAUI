@@ -102,7 +102,7 @@ public class DimmerBackupService
                 {
                     AppState = realm.All<AppStateModel>().FirstOrDefaultNullSafe()?.ToAppStateModelView(),
                     FavoriteSongs = realm.All<SongModel>().Filter("IsFavorite == true").AsEnumerable().Select(x => x.ToSongModelView()).ToList(),
-                    PlayEvents = realm.All<DimmerPlayEvent>().AsEnumerable().Select(ConvertToBackup).ToList(),
+                    PlayEvents = realm.All<DimmerPlayEvent>().AsEnumerable().Select(pe => ConvertToBackup(pe, realm)).ToList(),
                     BackupDate = DateTime.UtcNow,
                     Version = appVersion
                 };
@@ -113,9 +113,7 @@ public class DimmerBackupService
                 string fileName = $"DimmerBackUp_{DateTime.Now:yyyy-MM-dd_HHmmss}.json.gz";
                 string filePath = Path.Combine(BackupDirectory!, fileName);
 
-                // 🚀 STREAMED SERIALIZATION: Writes directly to disk through the GZip compressor
-                await Task.Run(() =>
-                {
+               
                     using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write);
                     using var gzipStream = new GZipStream(fileStream, CompressionLevel.Optimal);
                     using var streamWriter = new StreamWriter(gzipStream, System.Text.Encoding.UTF8);
@@ -123,12 +121,44 @@ public class DimmerBackupService
 
                     var serializer = Newtonsoft.Json.JsonSerializer.Create(_jsonSettings);
                     serializer.Serialize(jsonWriter, backupData);
-                }).ConfigureAwait(false);
 
-                // Optional: Copy to Android scoped storage if requested
                 if (!string.IsNullOrEmpty(exportPath))
                 {
-                    // Implementation depends on your TaggingUtils, but ideally you copy the FileStream, not byte[]
+                    try
+                    {
+                        if (exportPath.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
+                        {
+                            // For Android Scoped Storage
+                            if (TaggingUtils.PlatformSpecificStreamCreator != null)
+                            {
+                                using var destStream = TaggingUtils.PlatformSpecificStreamCreator(exportPath, fileName);
+
+                                if (destStream != null)
+                                {
+                                    // Stream the file directly from disk to the Android content URI
+                                    using var sourceStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+                                    sourceStream.CopyTo(destStream);
+                                    Debug.WriteLine($"Exported backup successfully to SAF: {exportPath}");
+                                }
+                            }
+                            else
+                            {
+                                Debug.WriteLine("Failed to export: TaggingUtils.PlatformSpecificStreamCreator is not initialized.");
+                            }
+                        }
+                        else
+                        {
+                            // For standard paths (Windows, or standard Android folders)
+                            string destPath = Path.Combine(exportPath, fileName);
+                            File.Copy(filePath, destPath, overwrite: true);
+                            Debug.WriteLine($"Exported backup successfully to: {destPath}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Failed to export backup to {exportPath}: {ex}");
+                        // We do not rethrow because the backup itself was successful to BackupDirectory
+                    }
                 }
 
                 return new BackUpCompleteResult { IsBackUpComplete = true, PlayEventsBackedUp = backupData.PlayEvents.Count };
@@ -142,23 +172,16 @@ public class DimmerBackupService
         });
     }
 
-    private DimmerPlayEventBackup ConvertToBackup(DimmerPlayEvent playEvent)
+    private DimmerPlayEventBackup ConvertToBackup(DimmerPlayEvent playEvent, Realm realm)
     {
         var songg = playEvent.SongsLinkingToThisEvent.FirstOrDefaultNullSafe();
-        if(songg is null)
+
+        // If songg is null, just READ it using the same realm instance. Do not Write.
+        if (songg is null && playEvent.SongId != null)
         {
-            var tempRealm = RealmFactory.GetRealmInstance();
-            songg = tempRealm.Find<SongModel>
-                (playEvent.SongId);
-            if (songg is not null)
-            {
-                tempRealm.Write(() =>
-                {
-                    if(!songg.PlayHistory.Contains(playEvent))
-                        songg.PlayHistory.Add(playEvent);
-                });
-            }
+            songg = realm.Find<SongModel>(playEvent.SongId);
         }
+
         return new DimmerPlayEventBackup
         {
             Id = playEvent.Id.ToString(),
@@ -182,7 +205,6 @@ public class DimmerBackupService
             DeviceVersion = playEvent.DeviceVersion
         };
     }
-
 
     public async Task<CompleteBackupData?> PickFolderTeRestoreFromBackupAsync(
         string filePath,

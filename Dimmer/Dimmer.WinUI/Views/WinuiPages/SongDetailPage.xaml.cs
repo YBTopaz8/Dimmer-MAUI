@@ -21,7 +21,7 @@ public sealed partial class SongDetailPage : Page
     private SongTransitionAnimation _userPrefAnim = SongTransitionAnimation.Spring;
 
     private readonly Compositor _compositor;
-    public SongModelView DetailedSong { get; set; }
+
     public SongDetailPage()
     {
         InitializeComponent();
@@ -88,14 +88,13 @@ public sealed partial class SongDetailPage : Page
         base.OnNavigatedTo(e);
         MyLastFMViewModel = IPlatformApplication.Current!.Services.GetService<LastFMViewModel>()!;
         MySongStatsViewModel = IPlatformApplication.Current.Services.GetService<SongStatsViewModel>();
-        //DetailedSong = DetailedSong is null ? MyViewModel.SelectedSong : DetailedSong;
+        //MyViewModel.SelectedSong = MyViewModel.SelectedSong is null ? MyViewModel.SelectedSong : MyViewModel.SelectedSong;
 
         compDisp = new();
         if (e.Parameter is BaseViewModelWin myVm)
         {
             MyViewModel = myVm;
             this.DataContext = MyViewModel;
-            DetailedSong = MyViewModel.SelectedSong!;
 
 
             MyViewModel.CurrentPageEnum = CurrentPage.SingleSongPage;
@@ -120,7 +119,6 @@ public sealed partial class SongDetailPage : Page
 
                 MyViewModel = vm;
                 MyViewModel.SelectedSong = argSong;
-                DetailedSong = args.Song;
                 this.DataContext = MyViewModel;
 
 
@@ -134,7 +132,6 @@ public sealed partial class SongDetailPage : Page
             }
         }
 
-        MyViewModel.SelectedSong = DetailedSong;
 
         MySongStatsViewModel?.LoadSong(MyViewModel.SelectedSong.Id);
 
@@ -193,7 +190,6 @@ public sealed partial class SongDetailPage : Page
 
     private void MyPage_Loaded(object sender, RoutedEventArgs e)
     {
-        CalculateSectionOffsets();
 
     }
 
@@ -202,14 +198,14 @@ public sealed partial class SongDetailPage : Page
 
         try
         {
-            if (DetailedSong is null) return;
+            if (MyViewModel.SelectedSong is null) return;
             // Navigate to the detail page, passing the selected song object.
             // Suppress the default page transition to let ours take over.
             var supNavTransInfo = new SlideNavigationTransitionInfo();
             Type pageType = typeof(ArtistPage);
             var navParams = new SongDetailNavArgs
             {
-                Song = DetailedSong!,
+                Song = MyViewModel.SelectedSong!,
                 ExtraParam = MyViewModel,
                 ViewModel = MyViewModel
             };
@@ -217,7 +213,7 @@ public sealed partial class SongDetailPage : Page
             MyViewModel.IsBackButtonVisible = WinUIVisibility.Collapsed;
             var realm = MyViewModel.RealmFactory.GetRealmInstance();
             var dbArtist = realm.All<ArtistModel>()
-                .FirstOrDefaultNullSafe(a => a.Name == DetailedSong.ArtistToSong.First()!.Name);
+                .FirstOrDefaultNullSafe(a => a.Name == MyViewModel.SelectedSong.ArtistToSong.First()!.Name);
 
 
 
@@ -238,7 +234,7 @@ public sealed partial class SongDetailPage : Page
                 ConnectedAnimationService.GetForCurrentView()
                     .PrepareToAnimate("MoveViewToArtistPageFromSongDetailPage", ArtistNameTxt);
             }
-            MyViewModel.SearchToTQL(TQlStaticMethods.PresetQueries.ByArtist(DetailedSong.ArtistName));
+            MyViewModel.SearchToTQL(TQlStaticMethods.PresetQueries.ByArtist(MyViewModel.SelectedSong.ArtistName));
             Frame?.NavigateToType(pageType, navParams, navigationOptions);
                
              
@@ -255,43 +251,8 @@ public sealed partial class SongDetailPage : Page
     private List<(double Offset, string Name)> _sectionOffsets = new();
 
 
-    private void CalculateSectionOffsets()
-    {
-        _sectionOffsets.Clear();
-        double currentY = 0;
-
-
-        foreach (var kv in _sectionNames)
-        {
-            var element = kv.Key;
-            // Only valid if element is actually in the visual tree
-            if (element.ActualHeight > 0)
-            {
-                var transform = element.TransformToVisual(SegmentStack); // Transform to the StackPanel inside Scroller
-                var point = transform.TransformPoint(new Windows.Foundation.Point(0, 0));
-                _sectionOffsets.Add((point.Y, kv.Value));
-            }
-        }
-    }
-    private void ScrollViewer_ViewChanged(object sender, ScrollViewerViewChangedEventArgs e)
-    {
-        if (_sectionOffsets.Count == 0) return;
-
-        var scrollY = Scroller.VerticalOffset;
-        // Add a buffer (e.g., 100px) so it highlights slightly before the element hits the very top
-        var targetY = scrollY + 100;
-
-        // Find the last section that has an offset less than current scroll position
-        var currentSection = _sectionOffsets.LastOrDefault(x => x.Offset <= targetY);
-
-        if (currentSection.Name != null && CurrentSectionLabel.Text != currentSection.Name)
-        {
-            CurrentSectionLabel.Text = currentSection.Name;
-            // Intense UI: Add a small bounce animation to the label when it changes
-            AnimateLabelChange();
-        }
-    }
-    private void AnimateLabelChange()
+  
+   private void AnimateLabelChange()
     {
         var visual = ElementCompositionPreview.GetElementVisual(CurrentSectionLabel);
         var anim = _compositor.CreateVector3KeyFrameAnimation();
@@ -357,7 +318,7 @@ public sealed partial class SongDetailPage : Page
         Type songDetailType = typeof(EditSongPage);
         var navParams = new SongDetailNavArgs
         {
-            Song = DetailedSong!,
+            Song = MyViewModel.SelectedSong!,
             ViewModel = MyViewModel
         };
 
@@ -387,7 +348,7 @@ public sealed partial class SongDetailPage : Page
         Type pageType = typeof(SingleSongLyrics);
         var navParams = new SongDetailNavArgs
         {
-            Song = DetailedSong!,
+            Song = MyViewModel.SelectedSong!,
             ExtraParam = MyViewModel,
             ViewModel = MyViewModel
         };
@@ -486,8 +447,7 @@ public sealed partial class SongDetailPage : Page
     }
     private void Animation_Completed(ConnectedAnimation sender, object args)
     {
-        SmokeGrid.Visibility = WinUIVisibility.Collapsed;
-        SmokeGrid.Children.Add(destinationElement);
+
     }
 
 
@@ -536,7 +496,7 @@ public sealed partial class SongDetailPage : Page
         }
         var navParams = new SongDetailNavArgs
         {
-            Song = DetailedSong!,
+            Song = MyViewModel.SelectedSong!,
             ExtraParam = MyViewModel,
             ViewModel = MyViewModel
         };
@@ -583,7 +543,7 @@ public sealed partial class SongDetailPage : Page
         Type pageType = typeof(ArtistPage);
         var navParams = new SongDetailNavArgs
         {
-            Song = DetailedSong!,
+            Song = MyViewModel.SelectedSong!,
             ExtraParam = MyViewModel,
             ViewModel = MyViewModel
         };
@@ -608,9 +568,9 @@ public sealed partial class SongDetailPage : Page
     private void detailedImage_Loaded(object sender, RoutedEventArgs e)
     {
         Image send = (Image)sender;
-        if (!string.IsNullOrEmpty(DetailedSong.CoverImagePath))
+        if (!string.IsNullOrEmpty(MyViewModel.SelectedSong.CoverImagePath))
         {
-            send.Source = new BitmapImage(new Uri(DetailedSong.CoverImagePath));
+            send.Source = new BitmapImage(new Uri(MyViewModel.SelectedSong.CoverImagePath));
         }
         else
         {

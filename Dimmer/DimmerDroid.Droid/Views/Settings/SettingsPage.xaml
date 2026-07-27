@@ -261,37 +261,40 @@
                         <dx:TabView x:Name="BackUpAndRestoreTabView" HeightRequest="300">
                             <dx:TabViewItem x:Name="BackUpTab" HeaderText="Back Up">
                                 <dx:DXScrollView>
-                                    <dx:DXStackLayout>
-                                        <dx:DXButton
+                                    <Grid>
+                                        <dx:DXStackLayout>
+                                            <dx:DXButton
                                             x:Name="BackupDeviceBtn"
                                             Clicked="BackupDeviceBtn_Clicked"
                                             Content="Backup Device"
                                             />
 
-                                        <dx:DXStackLayout x:Name="BackedUpStackLayout">
-                                            <dx:DXStackLayout.Triggers>
-                                                <DataTrigger
+                                            <dx:DXStackLayout x:Name="BackedUpStackLayout">
+                                                <dx:DXStackLayout.Triggers>
+                                                    <DataTrigger
                                                     Binding="{Binding BackUpCompletResult.IsBackUpComplete}"
                                                     TargetType="dx:DXStackLayout"
                                                     Value="True"
                                                     >
-                                                    <Setter Property="IsVisible" Value="True" />
-                                                </DataTrigger>
-                                                <DataTrigger
+                                                        <Setter Property="IsVisible" Value="True" />
+                                                    </DataTrigger>
+                                                    <DataTrigger
                                                     Binding="{Binding BackUpCompletResult.IsBackUpComplete}"
                                                     TargetType="dx:DXStackLayout"
                                                     Value="False"
                                                     >
-                                                    <Setter Property="IsVisible" Value="False" />
-                                                </DataTrigger>
-                                            </dx:DXStackLayout.Triggers>
+                                                        <Setter Property="IsVisible" Value="False" />
+                                                    </DataTrigger>
+                                                </dx:DXStackLayout.Triggers>
 
-                                            <Label Text="{Binding BackUpCompletResult.AppVersion}" />
-                                            <Label Text="{Binding BackUpCompletResult.BackupDate}" />
-                                            <Label Text="{Binding BackUpCompletResult.FavoriteBackedUp}" />
-                                            <Label Text="{Binding BackUpCompletResult.PlayEventsBackedUp}" />
+                                                <Label Text="{Binding BackUpCompletResult.AppVersion}" />
+                                                <Label Text="{Binding BackUpCompletResult.BackupDate}" />
+                                                <Label Text="{Binding BackUpCompletResult.FavoriteBackedUp}" />
+                                                <Label Text="{Binding BackUpCompletResult.PlayEventsBackedUp}" />
+                                            </dx:DXStackLayout>
                                         </dx:DXStackLayout>
-                                    </dx:DXStackLayout>
+                                        <ActivityIndicator IsVisible="{Binding IsDoingBackup}" IsRunning="{Binding IsDoingBackup}" />
+                                    </Grid>
                                 </dx:DXScrollView>
                             </dx:TabViewItem>
                             <dx:TabViewItem x:Name="RestoreTab" HeaderText="Restore">

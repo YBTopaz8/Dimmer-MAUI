@@ -14,14 +14,8 @@
     x:DataType="vm:BaseViewModelAnd"
     Unloaded="myPage_Unloaded"
     >
-    <ContentView.GestureRecognizers>
-        <SwipeGestureRecognizer
-            x:Name="SwipedUp"
-            Direction="Up"
-            Swiped="SwipedUp_Swiped"
-            Threshold="20"
-            />
-    </ContentView.GestureRecognizers>
+
+
 
     <Grid RowDefinitions="*">
         <Grid.Resources>
@@ -324,16 +318,16 @@
                                         BackgroundColor="Transparent"
                                         BorderThickness="0"
                                         CheckedBackgroundColor="Transparent"
-                                        CheckedChanging="ShowFrequentlyPlayedExpanderChkBtn_CheckedChanging"
+										
                                         CheckedIconColor="DarkSlateBlue"
-                                        Command="{Binding Commands.ToggleExpandState, Source={x:Reference FrequentlyPlayedExpander}}"
-                                        HorizontalOptions="End"
+                                     
+										HorizontalOptions="End"
                                         Icon="airbuds.png"
                                         IconColor="DarkSlateBlue"
                                         IconHeight="30"
                                         IconWidth="50"
-                                        IsChecked="{Binding IsExpanded, Source={x:Reference FrequentlyPlayedExpander}}"
-                                        ShowIcon="True"
+                                      
+										ShowIcon="True"
                                         />
                                     <!--<dx:DXButton
                                         x:Name="AudioMgtButton"
@@ -564,7 +558,7 @@
 
                             </Grid>
 
-                            <dx:DXExpander
+                            <!--<dx:DXExpander
                                 x:Name="FrequentlyPlayedExpander"
                                 x:DataType="statsVM:SongStatsViewModel"
                                 x:FieldModifier="Public"
@@ -667,16 +661,12 @@
                                         </dx:DXCollectionView>
 
                                     </Grid>
-                                    <dx:ShimmerView
-                                        IsLoading="{Binding IsLoading}"
-                                        IsVisible="{Binding IsLoading}"
-                                        ZIndex="99"
-                                        />
+
 
                                 </Grid>
 
 
-                            </dx:DXExpander>
+                            </dx:DXExpander>-->
                         </dx:DXStackLayout>
 
                     </Grid>
@@ -688,12 +678,13 @@
 
 
 
-        <dx:BottomSheet
+        <!--<dx:BottomSheet
             x:Name="SingleSongStatView"
             AllowDismiss="True"
-            AllowedState="HalfExpanded" 
-            HalfExpandedRatio="0.90" ZIndex="99"
+            AllowedState="HalfExpanded"
+            HalfExpandedRatio="0.90"
             State="FullExpanded"
+            ZIndex="99"
             >
             <Grid x:Name="FreqPlayed" RowDefinitions="*,*,*">
                 <dx:DXStackLayout>
@@ -751,6 +742,6 @@
                     </Grid>
                 </dx:DXStackLayout>
             </Grid>
-        </dx:BottomSheet>
+        </dx:BottomSheet>-->
     </Grid>
 </ContentView>

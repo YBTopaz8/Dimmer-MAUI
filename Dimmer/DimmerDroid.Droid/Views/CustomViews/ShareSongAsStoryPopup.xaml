@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<dx:BottomSheet
+    x:Class="Dimmer.Views.CustomViews.ShareSongAsStoryPopup"
+    x:Name="ShareSongStory"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
+    xmlns:dx="http://schemas.devexpress.com/maui"
+    xmlns:localBehv="clr-namespace:Dimmer.Utils.Behaviors"
+    xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+    xmlns:statsModels="clr-namespace:Dimmer.Charts;assembly=Dimmer"
+    xmlns:statsVM="clr-namespace:Dimmer.ViewModel.StatsVMs;assembly=Dimmer"
+    xmlns:vm="clr-namespace:Dimmer.ViewModels"
+    x:DataType="models:SongModelView"
+    BackgroundColor="Transparent"
+    StateChanged="ShareSongStory_StateChanged"
+    >
+    <Grid>
+        <dx:DXImage x:Name="BgBlurredImg" Opacity="0.5" />
+        <dx:DXStackLayout>
+
+            <Label FontSize="23" Text="{Binding Title}" />
+            <dx:DXImage
+                MinimumHeightRequest="100"
+                MinimumWidthRequest="100"
+                Source="{Binding CoverImagePath}"
+                />
+            <Label FontSize="19" Text="{Binding OtherArtistsName}" />
+            <Label FontSize="15" Text="{Binding AlbumName}" />
+        </dx:DXStackLayout>
+
+    </Grid>
+</dx:BottomSheet>

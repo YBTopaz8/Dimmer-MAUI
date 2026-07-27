@@ -31,7 +31,7 @@
     <Grid Padding="5" Background="#222222">
 
         <Grid.RowDefinitions>
-            <RowDefinition Height="auto" />
+            <RowDefinition Height="330" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 

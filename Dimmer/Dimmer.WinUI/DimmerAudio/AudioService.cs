@@ -1,315 +1,86 @@
-﻿using System.Reactive.Disposables;
+﻿using System.Collections.Concurrent;
+using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Subjects;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using System.Diagnostics;
 
-using AudioSwitcher.AudioApi;
-//using NAudio.CoreAudioApi;
-using AudioSwitcher.AudioApi.CoreAudio;
-using DeviceType = AudioSwitcher.AudioApi.DeviceType;
+using Windows.Media.Playback;
+using Windows.Media.Core;
+using Windows.Storage;
+using Microsoft.UI.Dispatching;
+
+using Ownaudio.Core;
+using OwnaudioNET;
+using OwnaudioNET.Core;
+using OwnaudioNET.Effects;
+using OwnaudioNET.Effects.SmartMaster;
+using OwnaudioNET.Features.OwnChordDetect;
+using OwnaudioNET.Mixing;
+using OwnaudioNET.Sources;
+
 namespace Dimmer.WinUI.DimmerAudio;
 
-
-/// <summary>
-/// Provides audio playback services using Windows.Media.Playback.MediaPlayer.
-/// Implements IDimmerAudioService, INotifyPropertyChanged, and IAsyncDisposable.
-/// Designed for robustness, asynchronous operations, and clear state management.
-/// </summary>
 public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged, IAsyncDisposable
 {
-    #region Singleton & Initialization
-
-
     private static readonly Lazy<AudioService> lazyInstance = new(() => new AudioService());
     public static IDimmerAudioService Current => lazyInstance.Value;
 
-    private MediaPlaybackList _playbackList;
+    private double _currentPositionValue;
+    private readonly BehaviorSubject<double> _currPositionBS = new(0);
+    public IObservable<double> CurrPositionObs => _currPositionBS.AsObservable();
 
-    private readonly MediaPlayer _mediaPlayer; 
-    private readonly MediaPlayer _ambiencePlayer;
+    public double CurrentPosition
+    {
+        get => _currentPositionValue;
+        private set
+        {
+            if (Math.Abs(_currentPositionValue - value) > 0.1)
+            {
+                _currPositionBS.OnNext(value);
+                if (SetProperty(ref _currentPositionValue, value))
+                    PositionChanged?.Invoke(this, value);
+            }
+        }
+    }
+
+
+    // Lazy Init Lock
+    private readonly SemaphoreSlim _initLock = new(1, 1);
+    private bool _isEngineInitialized;
+
+
+    // --- OwnaudioNET Components ---
+    private AudioMixer? _mixer;
+    private FileSource? _mainSource;
+    private readonly ConcurrentDictionary<string, FileSource> _activeStems = new();
+
+    // --- Built-in Effects ---
+    private ReverbEffect? _reverbEffect;
+    private Equalizer30BandEffect? _lofiEq;
+    private SmartMasterEffect? _smartMaster;
+
+    // --- Playback State ---
+    private Task? _uiUpdateTask;
+    private CancellationTokenSource? _uiUpdateCts;
     private readonly DispatcherQueue _dispatcherQueue;
-    private CancellationTokenSource? _initializationCts;
+    private readonly MediaPlayer _smtcPlayer; // Dummy player for Windows Media Keys
+    private readonly CompositeDisposable _disposables = new();
+
     private SongModelView? _currentTrackMetadata;
     private readonly BehaviorSubject<SongModelView?> _currentSong = new(null);
-
-    private readonly CompositeDisposable _disposables = new();
     public IObservable<SongModelView?> CurrentSong => _currentSong.AsObservable();
-    private bool _isDisposed;
-    private string? _currentAudioDeviceId;
-    private readonly CoreAudioController _controller;
-    private readonly object _sync = new();
-    public IEnumerable<AudioOutputDevice>? PlaybackDevices
-    { get; set; }
 
-    public CoreAudioDevice? DefaultPlaybackDevice
-    {
-        get
-        {
-            return _controller.GetDefaultDevice(DeviceType.Playback, Role.Multimedia);
-        }
-    }
-
-    public AudioService()
-    {
-        _controller = new CoreAudioController();
-        AudioSwitcher.AudioApi.CoreAudio.CoreAudioDevice defaultPlaybackDevice = _controller.DefaultPlaybackDevice;
-        //defaultPlaybackDevice.StateChanged += DefaultPlaybackDevice_StateChanged;
-        _dispatcherQueue = DispatcherQueue.GetForCurrentThread()
-            ?? throw new InvalidOperationException("AudioService must be initialized on a thread with a DispatcherQueue (typically the UI thread).");
-
-
-
-        _playbackList = new MediaPlaybackList();
-        _playbackList.CurrentItemChanged += PlaybackList_CurrentItemChanged;
-
-
-        _mediaPlayer = new MediaPlayer
-        {
-            AudioCategory = MediaPlayerAudioCategory.Media,
-            CommandManager = { IsEnabled = true },
-
-
-        };
-
-        _ambiencePlayer = new MediaPlayer
-        {
-            AudioCategory = MediaPlayerAudioCategory.GameMedia, // 'GameMedia' often mixes better as background fx
-            IsLoopingEnabled = true, // Crucial: Rain must loop forever
-            Volume = 0.5 // Default starting volume
-        };
-        _ambiencePlayer.CommandManager.IsEnabled = false;
-
-        SubscribeToPlayerEvents();
-        SubscribeToSystemEvents();
-
-
-
-        _volume = _mediaPlayer.Volume;
-        _isMuted = _mediaPlayer.IsMuted;
-        UpdatePlaybackState(DimmerPlaybackState.PlayCompleted);
-
-        _ = Task.Run(async () => await GetSetUpOutPutDevices());
-    }
-
-   
-    private void PlaybackList_CurrentItemChanged(MediaPlaybackList sender, CurrentMediaPlaybackItemChangedEventArgs args)
-    {
-
-        if (args.Reason == MediaPlaybackItemChangedReason.EndOfStream)
-        {
-            
-            MediaPlayer_MediaEnded(null, args);
-        }
-        if (args.NewItem == null ||_nextSongInList is null) return;
-        var newProps = args.NewItem.GetDisplayProperties();
-        //_currentTrackMetadata = _nextSongInList;
-
-    }
-
-    private async Task GetSetUpOutPutDevices()
-    {
-        var outputDevices = new List<AudioOutputDevice>();
-        try
-        {
-
-            string selector = MediaDevice.GetAudioRenderSelector();
-            DeviceInformationCollection devices = await DeviceInformation.FindAllAsync(selector);
-
-            foreach (var device in devices)
-            {
-                outputDevices.Add(new AudioOutputDevice { Id = device.Id, Name = device.Name });
-            }
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"[AudioService] Error getting audio output devices: {ex}");
-            OnErrorOccurred("Failed to enumerate audio output devices.", ex);
-        }
-        PlaybackDevices = outputDevices;
-    }
-
-    private void SubscribeToSystemEvents()
-    {
-        MediaDevice.DefaultAudioRenderDeviceChanged += MediaDevice_DefaultAudioRenderDeviceChanged;
-        DefaultAudioDevice = _controller.GetDefaultDevice(DeviceType.Playback, Role.Multimedia);
-        _controller.AudioDeviceChanged.Subscribe(e =>
-        {
-            switch (e)
-            {
-
-                case DefaultDeviceChangedArgs def: 
-                    Debug.WriteLine($"Default changed: {def.Device.Name}");
-                    DefaultAudioDevice = (CoreAudioDevice)def.Device;
-                    break;
-                case DeviceAddedArgs add: 
-                    Debug.WriteLine($"Device added: {add.Device.Name}"); 
-                    break;
-                case DeviceRemovedArgs rem: 
-                    Debug.WriteLine($"Device removed: {rem.Device.Name}"); 
-                    break;
-                case DeviceChangedArgs chg: 
-                    Debug.WriteLine($"Device property changed: {chg.Device.Name}"); 
-                    break;
-            }
-        }).DisposeWith(_disposables);
-
-        if (DefaultAudioDevice is not null)
-            DefaultAudioDevice.VolumeChanged.Subscribe(newVol =>
-            {
-
-                DeviceVolumeChanged?.Invoke(DefaultAudioDevice, (newVol.Device.Volume, newVol.Device.IsMuted, 100));
-
-            }).DisposeWith(_disposables);
-
-    }
-    public AudioOutputDevice? GetCurrentAudioOutputDevice()
-    {
-        var currentDev = _controller.DefaultPlaybackDevice;
-        if (currentDev is null) return null;
-        return new AudioOutputDevice
-        {
-            Id = currentDev.Id.ToString(),
-            Name = currentDev.Name,
-            IsDefaultDevice = currentDev.IsDefaultDevice,
-            IsMuted = currentDev.IsMuted,
-            Volume = currentDev.Volume
-            ,ProductName= currentDev.FullName
-            ,IconString = currentDev.IconPath
-        };
-    }
-    public double GetCurrentVolume()
-    {
-        return _controller.DefaultPlaybackDevice.Volume;
-    }
-
-    public async Task SetVolume(double volume)
-    {
-        var dev = _controller.DefaultPlaybackDevice;
-        if (dev != null)
-            await dev.SetVolumeAsync(volume);
-    }
-
-    public async Task SetDefaultAsync(AudioOutputDevice device)
-    {
-    
-        CoreAudioDevice newDev = _controller.GetDevice(Guid.Parse(device.Id!)) as CoreAudioDevice;
-        if (device == null) return;
-        await newDev.SetAsDefaultAsync();
-    }
-
-    public void WatchVolume()
-    {
-        
-        var dev = _controller.GetDefaultDevice(DeviceType.Playback, Role.Multimedia);
-        dev.VolumeChanged.Subscribe(x =>
-        {
-            Debug.WriteLine($"Volume: {x.Volume}");
-        });
-        dev.MuteChanged.Subscribe(x =>
-        {
-            Debug.WriteLine($"Muted: {x.IsMuted}");
-        });
-    }
-  
-    public async Task MuteDevice(bool mute)
-    {
-        var dev = _controller.DefaultPlaybackDevice;
-        if (dev != null)
-           await dev.SetMuteAsync(mute);
-    }
-    private void SubscribeToPlayerEvents()
-    {
-        
-
-        
-        _mediaPlayer.MediaOpened += MediaPlayer_MediaOpened;
-        _mediaPlayer.MediaEnded += MediaPlayer_MediaEnded;
-        _mediaPlayer.MediaFailed += MediaPlayer_MediaFailed;
-        _mediaPlayer.PlaybackSession.PlaybackStateChanged += PlaybackSession_PlaybackStateChanged;
-        _mediaPlayer.PlaybackSession.PositionChanged += PlaybackSession_PositionChanged;
-        _mediaPlayer.PlaybackSession.NaturalDurationChanged += PlaybackSession_NaturalDurationChanged;
-        _mediaPlayer.PlaybackSession.SeekCompleted += PlaybackSession_SeekCompleted;
-        _mediaPlayer.PlaybackSession.MediaPlayer.VolumeChanged +=MediaPlayer_VolumeChanged;
-
-        _mediaPlayer.CommandManager.PlayReceived += CommandManager_PlayReceived;
-        _mediaPlayer.CommandManager.PauseReceived += CommandManager_PauseReceived;
-        _mediaPlayer.CommandManager.NextReceived += CommandManager_NextReceived;
-        _mediaPlayer.CommandManager.PreviousReceived += CommandManager_PreviousReceived;
-
-        _mediaPlayer.VolumeChanged += MediaPlayer_VolumeChanged;
-
-        _mediaPlayer.CommandManager.NextBehavior.EnablingRule = MediaCommandEnablingRule.Always;
-        _mediaPlayer.CommandManager.PreviousBehavior.EnablingRule = MediaCommandEnablingRule.Always;
-    }
-
-    private void MediaPlayer_VolumeChanged(MediaPlayer sender, object args)
-    {
-      
-        VolumeChanged?.Invoke(sender, sender.Volume);
-    //DeviceVolumeChanged?.Invoke(sender, (sender.Volume,sender.IsMuted,100));
-    }
-
-    private void UnsubscribeFromSystemEvents()
-    {
-        _disposables.Clear();
-    }
-    private void UnsubscribeFromPlayerEvents()
-    {
-
-        MediaDevice.DefaultAudioRenderDeviceChanged -= MediaDevice_DefaultAudioRenderDeviceChanged;
-        if (_mediaPlayer == null)
-            return;
-        _mediaPlayer.VolumeChanged -= MediaPlayer_VolumeChanged;
-        _mediaPlayer.MediaOpened -= MediaPlayer_MediaOpened;
-        _mediaPlayer.MediaEnded -= MediaPlayer_MediaEnded;
-        _mediaPlayer.MediaFailed -= MediaPlayer_MediaFailed;
-
-        var session = _mediaPlayer.PlaybackSession;
-        if (session != null)
-        {
-            session.PlaybackStateChanged -= PlaybackSession_PlaybackStateChanged;
-            session.PositionChanged -= PlaybackSession_PositionChanged;
-            session.NaturalDurationChanged -= PlaybackSession_NaturalDurationChanged;
-            session.SeekCompleted -= PlaybackSession_SeekCompleted;
-        }
-
-        var commandManager = _mediaPlayer.CommandManager;
-        if (commandManager != null)
-        {
-            commandManager.PlayReceived -= CommandManager_PlayReceived;
-            commandManager.PauseReceived -= CommandManager_PauseReceived;
-            commandManager.NextReceived -= CommandManager_NextReceived;
-            commandManager.PreviousReceived -= CommandManager_PreviousReceived;
-            commandManager.IsEnabled = false;
-        }
-    }
-
-    #endregion
-
-    private double _requestedSeekPosition = -1;
-    #region Events (Interface + Additional)
-
-
+    // --- Events & State Management ---
+    public event EventHandler<PlaybackEventArgs>? IsPlayingChanged { add => _isPlayingChanged += value; remove => _isPlayingChanged -= value; }
     private EventHandler<PlaybackEventArgs>? _isPlayingChanged;
-    public event EventHandler<PlaybackEventArgs> IsPlayingChanged
-    {
-        add => _isPlayingChanged += value;
-        remove => _isPlayingChanged -= value;
-    }
 
+    public event EventHandler<PlaybackEventArgs>? PlayEnded { add => _playEnded += value; remove => _playEnded -= value; }
     private EventHandler<PlaybackEventArgs>? _playEnded;
-    public event EventHandler<PlaybackEventArgs> PlayEnded
-    {
-        add => _playEnded += value;
-        remove => _playEnded -= value;
-    }
 
+    public event EventHandler<PlaybackEventArgs>? PlayStarted { add => _playStarted += value; remove => _playStarted -= value; }
     private EventHandler<PlaybackEventArgs>? _playStarted;
-    public event EventHandler<PlaybackEventArgs> PlayStarted
-    {
-        add => _playStarted += value;
-        remove => _playStarted -= value;
-    }
-
 
     public event EventHandler<PlaybackEventArgs>? PlaybackStateChanged;
     public event EventHandler<PlaybackEventArgs>? ErrorOccurred;
@@ -322,12 +93,6 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     public event EventHandler<double>? VolumeChanged;
     public event EventHandler<(double newVol, bool isDeviceMuted, int devMavVol)>? DeviceVolumeChanged;
 
-
-
-    #endregion
-
-    #region Properties
-
     private DimmerPlaybackState _playbackState = DimmerPlaybackState.PlayCompleted;
     public DimmerPlaybackState CurrentPlaybackState
     {
@@ -336,6 +101,363 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     }
 
     public bool IsPlaying => CurrentPlaybackState == DimmerPlaybackState.Playing;
+
+    private void UpdatePlaybackState(DimmerPlaybackState newState)
+    {
+        if (SetProperty(ref _playbackState, newState, nameof(CurrentPlaybackState)))
+        {
+            OnPropertyChanged(nameof(IsPlaying));
+            var args = new PlaybackEventArgs(_currentTrackMetadata) { IsPlaying = IsPlaying, EventType = newState };
+            PlaybackStateChanged?.Invoke(this, args);
+            RaiseIsPlayingChanged();
+        }
+    }
+
+    public void InitializePlaylist(SongModelView songModelView, IEnumerable<SongModelView> songModels)
+    {
+        Task.Run(async () => await InitializeAsync(songModelView, 0));
+    }
+
+    public List<AudioOutputDevice>? GetAllAudioDevices() => PlaybackDevices?.ToList();
+
+    public async Task<List<AudioOutputDevice>> GetAvailableAudioOutputsAsync()
+    {
+        await GetSetUpOutPutDevices();
+        return PlaybackDevices?.ToList() ?? new List<AudioOutputDevice>();
+    }
+
+    public async Task<bool> SetPreferredOutputDeviceAsync(AudioOutputDevice dev)
+    {
+        if (dev?.Name == null || !OwnaudioNet.IsInitialized) return false;
+        try
+        {
+            // Use Async extension off the UI thread to prevent 500ms UI freeze
+            await Task.Run(async () =>
+            {
+                await OwnaudioNet.Engine!.UnderlyingEngine.SetOutputDeviceByNameAsync(dev.Name);
+            });
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[AudioService] Device switch failed: {ex.Message}");
+            return false;
+        }
+    }
+
+
+    public async Task MuteDevice(bool mute)
+    {
+        IsMuted = mute;
+        await Task.CompletedTask;
+    }
+
+    public async Task SetVolume(double volume)
+    {
+        Volume = volume;
+        await Task.CompletedTask;
+    }
+
+    public double GetCurrentVolume() => Volume;
+    public AudioOutputDevice? GetCurrentAudioOutputDevice() => PlaybackDevices?.FirstOrDefault(d => d.IsDefaultDevice);
+
+    private SongModelView? _nextSongInList;
+    public Task SendNextSong(SongModelView nextSong)
+    {
+        _nextSongInList = nextSong;
+        return Task.CompletedTask;
+    }
+
+    public AudioService()
+    {
+        _dispatcherQueue = DispatcherQueue.GetForCurrentThread() ?? throw new InvalidOperationException("Must be on UI thread.");
+
+        _smtcPlayer = new MediaPlayer { AudioCategory = MediaPlayerAudioCategory.Media, Volume = 0, IsMuted = true };
+        _smtcPlayer.CommandManager.IsEnabled = true;
+        SubscribeToSMTCEvents();
+
+        MediaDevice.DefaultAudioRenderDeviceChanged += OnWindowsDefaultAudioDeviceChanged;
+    }
+
+
+
+    /// <summary>
+    /// Thread-safe, deferred initialization. Guarantees the engine starts before any operation,
+    /// but avoids async-in-constructor anti-patterns.
+    /// </summary>
+    private async Task EnsureEngineInitializedAsync()
+    {
+        if (_isEngineInitialized) return;
+
+
+        await _initLock.WaitAsync();
+        try
+        {
+            if (_isEngineInitialized) return;
+
+            // FIX 1: 4096 Buffer Size (~85ms). 
+            // Gives the GC and UI thread plenty of room to breathe. Guarantees ZERO CRACKLING.
+            var config = new AudioConfig
+            {
+                SampleRate = 48000,
+                Channels = 2,
+                BufferSize = 4096,
+                HostType = EngineHostType.None,
+                FallbackToDefaultOnDisconnect = true
+            };
+
+            // Start engine on background thread to avoid blocking UI during WASAPI COM setup
+            await Task.Run(() =>
+            {
+                OwnaudioNet.Initialize(config);
+                OwnaudioNet.Start();
+            });
+
+            _mixer = new AudioMixer(OwnaudioNet.Engine!.UnderlyingEngine, bufferSizeInFrames: 4096);
+            _mixer.MasterVolume = 1.0f;
+
+            _reverbEffect = new ReverbEffect(size: 0.8f, damp: 0.4f, wet: 0.4f, dry: 0.8f, stereoWidth: 1.0f, mix: 0.0f);
+            _lofiEq = new Equalizer30BandEffect { Enabled = false };
+
+            _smartMaster = new SmartMasterEffect();
+            _smartMaster.Initialize(config);
+            _smartMaster.LoadSpeakerPreset(SpeakerType.HiFi);
+            _smartMaster.Enabled = false;
+
+            _mixer.AddMasterEffect(_reverbEffect);
+            _mixer.AddMasterEffect(_lofiEq);
+            _mixer.AddMasterEffect(_smartMaster);
+
+            _mixer.Start();
+
+            _isEngineInitialized = true;
+            Debug.WriteLine("[AudioService] Ownaudio Engine Initialized Successfully.");
+        }
+        catch (Exception ex)
+        {
+            OnErrorOccurred("Audio engine init failed", ex);
+        }
+        finally
+        {
+            _initLock.Release();
+        }
+    }
+
+    private async void OnWindowsDefaultAudioDeviceChanged(object sender, DefaultAudioRenderDeviceChangedEventArgs args)
+    {
+        Debug.WriteLine($"[AudioService] Windows OS reported audio device change. New ID: {args.Id}");
+
+        // Push to UI thread so we can safely update collections
+        _dispatcherQueue.TryEnqueue(async () =>
+        {
+            try
+            {
+                await EnsureEngineInitializedAsync();
+
+                // Get the newly updated list of devices from the engine
+                var devices = await GetAvailableAudioOutputsAsync();
+                var newDefault = devices.FirstOrDefault(d => d.IsDefaultDevice);
+
+                if (newDefault != null && OwnaudioNet.IsInitialized)
+                {
+                    // Force the engine to route to the new Windows default
+                    await Task.Run(() => OwnaudioNet.Engine!.UnderlyingEngine.SetOutputDeviceByName(newDefault.Name));
+                    Debug.WriteLine($"[AudioService] Successfully re-routed audio to: {newDefault.Name}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[AudioService] Device re-routing failed: {ex.Message}");
+            }
+        });
+    }
+
+
+    public async Task SetDefaultAsync(AudioOutputDevice device)
+    {
+        if (device?.Name == null || !OwnaudioNet.IsInitialized) return;
+        await Task.Run(async () =>
+        {
+            await OwnaudioNet.Engine!.UnderlyingEngine.SetOutputDeviceByNameAsync(device.Name);
+        });
+    }
+    private void SubscribeToSMTCEvents()
+    {
+        var cmd = _smtcPlayer.CommandManager;
+        cmd.NextBehavior.EnablingRule = MediaCommandEnablingRule.Always;
+        cmd.PreviousBehavior.EnablingRule = MediaCommandEnablingRule.Always;
+
+        cmd.PlayReceived += (s, e) => { e.Handled = true; _dispatcherQueue.TryEnqueue(() => Play(CurrentPosition)); };
+        cmd.PauseReceived += (s, e) => { e.Handled = true; _dispatcherQueue.TryEnqueue(Pause); };
+        cmd.NextReceived += (s, e) => { e.Handled = true; MediaKeyNextPressed?.Invoke(this, new PlaybackEventArgs(_currentTrackMetadata)); };
+        cmd.PreviousReceived += (s, e) => { e.Handled = true; MediaKeyPreviousPressed?.Invoke(this, new PlaybackEventArgs(_currentTrackMetadata)); };
+    }
+
+    private bool _isDisposed;
+    public IEnumerable<AudioOutputDevice>? PlaybackDevices { get; set; }
+
+    private async Task InitializeAudioEngineAsync()
+    {
+        try
+        {
+            var config = new AudioConfig { SampleRate = 48000, Channels = 2, BufferSize = 1024, HostType = EngineHostType.None,
+                FallbackToDefaultOnDisconnect = true
+            };
+           await OwnaudioNet.InitializeAsync(config);
+            OwnaudioNet.Start();
+
+            _mixer = new AudioMixer(OwnaudioNet.Engine!.UnderlyingEngine, bufferSizeInFrames: 1024);
+            _mixer.MasterVolume = 1.0f;
+
+            _reverbEffect = new ReverbEffect(size: 0.8f, damp: 0.4f, wet: 0.4f, dry: 0.8f, stereoWidth: 1.0f, mix: 0.0f);
+
+            _lofiEq = new Equalizer30BandEffect();
+            _lofiEq.Enabled = false;
+
+            _smartMaster = new SmartMasterEffect();
+            _smartMaster.Initialize(config);
+            _smartMaster.LoadSpeakerPreset(SpeakerType.HiFi);
+            _smartMaster.Enabled = false;
+
+            _mixer.AddMasterEffect(_reverbEffect);
+            _mixer.AddMasterEffect(_lofiEq);
+            _mixer.AddMasterEffect(_smartMaster);
+
+            _mixer.Start();
+
+            OwnaudioNet.Engine.UnderlyingEngine.OutputDeviceChanged += (s, e) => GetSetUpOutPutDevices().ConfigureAwait(false);
+            OwnaudioNet.Engine.UnderlyingEngine.DeviceStateChanged += (s, e) => GetSetUpOutPutDevices().ConfigureAwait(false);
+            OwnaudioNet.Engine.UnderlyingEngine.DeviceReconnected += (s, e) => GetSetUpOutPutDevices().ConfigureAwait(false);
+            await GetSetUpOutPutDevices();
+        }
+        catch (Exception ex) { OnErrorOccurred("Audio engine init failed", ex); }
+    }
+
+    // --- Properties (DSP mapped directly to OwnaudioNET Sources/Mixer) ---
+    private double _playbackSpeed = 1.0;
+    public double PlaybackSpeed
+    {
+        get => _playbackSpeed;
+        set
+        {
+            if (SetProperty(ref _playbackSpeed, Math.Clamp(value, 0.25, 2.0)))
+            {
+                ApplyPitchAndSpeed();
+            }
+        }
+    }
+    private double _pitchShift = 0.0;
+    public double PitchShift
+    {
+        get => _pitchShift;
+        set
+        {
+            if (SetProperty(ref _pitchShift, Math.Clamp(value, -12.0, 12.0)))
+            {
+                ApplyPitchAndSpeed();
+            }
+        }
+    }
+    private bool _enableReverb;
+    public bool EnableReverb
+    {
+        get => _enableReverb;
+        set { if (SetProperty(ref _enableReverb, value) && _reverbEffect != null) _reverbEffect.Mix = value ? (float)_reverbMix : 0f; }
+    }
+
+    private double _reverbMix = 0.4;
+    public double ReverbMix
+    {
+        get => _reverbMix;
+        set { if (SetProperty(ref _reverbMix, Math.Clamp(value, 0.0, 1.0)) && _reverbEffect != null && _enableReverb) _reverbEffect.Mix = (float)value; }
+    }
+
+    private bool _enableLoFi;
+    public bool EnableLoFi
+    {
+        get => _enableLoFi;
+        set
+        {
+            if (SetProperty(ref _enableLoFi, value) && _lofiEq != null)
+            {
+                _lofiEq.Enabled = value;
+                if (value) ApplyLoFiEQProfile();
+            }
+        }
+    }
+    private double _lofiCutoffFrequency = 2000.0; // 2 kHz default lowpass cutoff
+    public double LoFiCutoffFrequency
+    {
+        get => _lofiCutoffFrequency;
+        set
+        {
+            if (SetProperty(ref _lofiCutoffFrequency, Math.Clamp(value, 200.0, 10000.0)))
+            {
+                if (_enableLoFi) ApplyLoFiEQProfile();
+            }
+        }
+    }
+
+
+    private void ApplyLoFiEQProfile()
+    {
+        if (_lofiEq == null) return;
+
+        // Dynamic 30-Band Lowpass Filter according to LoFiCutoffFrequency
+        for (int i = 0; i < 30; i++)
+        {
+            float freq = _lofiEq.GetBandFrequency(i);
+            if (freq > _lofiCutoffFrequency)
+            {
+                // Muffle highs above cutoff frequency
+                _lofiEq.SetBandGain(i, freq, 1.0f, -18f);
+            }
+            else if (freq < 120)
+            {
+                // Cut sub-bass for telephone/radio effect
+                _lofiEq.SetBandGain(i, freq, 1.0f, -12f);
+            }
+            else
+            {
+                _lofiEq.SetBandGain(i, freq, 1.0f, 0f);
+            }
+        }
+    }
+
+    private bool _enableSmartMaster;
+    public bool EnableSmartMaster
+    {
+        get => _enableSmartMaster;
+        set { if (SetProperty(ref _enableSmartMaster, value) && _smartMaster != null) _smartMaster.Enabled = value; }
+    }
+
+    private double _volume = 1.0;
+    public double Volume
+    {
+        get => _volume;
+        set
+        {
+            var clamped = Math.Clamp(value, 0.0, 1.0);
+            if (SetProperty(ref _volume, clamped))
+            {
+                if (_mixer != null && !IsMuted) _mixer.MasterVolume = (float)clamped;
+                VolumeChanged?.Invoke(this, clamped);
+            }
+        }
+    }
+
+    private bool _isMuted;
+    public bool IsMuted
+    {
+        get => _isMuted;
+        set
+        {
+            if (SetProperty(ref _isMuted, value))
+            {
+                if (_mixer != null) _mixer.MasterVolume = value ? 0f : (float)_volume;
+            }
+        }
+    }
 
     private double _duration;
     public double Duration
@@ -346,1062 +468,358 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
             if (SetProperty(ref _duration, value))
             {
                 DurationChanged?.Invoke(this, value);
-
                 if (IsPlaying || CurrentPlaybackState == DimmerPlaybackState.PausedDimmer)
-                {
                     RaiseIsPlayingChanged();
-                }
             }
         }
-    }
-    private double _currentPositionValue;
-    private readonly BehaviorSubject<double> _currPositionBS = new(0);
-
-    public IObservable<double> CurrPositionObs => _currPositionBS.AsObservable();
-    public double CurrentPosition
-    {
-        get => _currentPositionValue;
-        private set
-        {
-            if ((Math.Abs(_currentPositionValue - value) > 0.1 || Math.Abs(value) < 0.0001 || Math.Abs(value - Duration) < 0.0001))
-            {
-                _currPositionBS.OnNext(value);
-                if (SetProperty(ref _currentPositionValue, value))
-                {
-                    PositionChanged?.Invoke(this, value);
-                }
-            }
-        }
-    }
-
-    private double _volume = 1.0;
-    public double Volume
-    {
-        get
-        {
-            if (_mediaPlayer is null)
-            {
-                return _volume;
-            }
-            else
-            {
-                return _mediaPlayer.Volume;
-            }
-
-        }
-
-        set
-        {
-            var clampedValue = Math.Clamp(value, 0.0, 1.0);
-            if (Math.Abs(_mediaPlayer.Volume - clampedValue) > 0.001)
-            {
-                _mediaPlayer.Volume = clampedValue;
-
-                SetProperty(ref _volume, clampedValue, nameof(Volume));
-            }
-        }
-    }
-    private readonly BehaviorSubject<bool?> _isMutedObs = new(false);
-
-    public IObservable<bool?> IsMutedObs => _isMutedObs.AsObservable();
-
-    private bool _isMuted;
-    public bool Muted
-    {
-        get
-        {
-            return _mediaPlayer.IsMuted;
-        }
-
-        set
-        {
-            if (_mediaPlayer.IsMuted != value)
-            {
-                _mediaPlayer.IsMuted = value;
-                _isMutedObs.OnNext(value);
-                SetProperty(ref _isMuted, value, nameof(Muted));
-            }
-        }
-    }
-
-
-    private double _balance;
-    public double Balance
-    {
-        get => _balance;
-        set => SetProperty(ref _balance, Math.Clamp(value, -1.0, 1.0)); // Store value, but no effect yet
     }
 
     public SongModelView? CurrentTrackMetadata => _currentTrackMetadata;
 
-    private bool _isAmbienceEnabled = false;
-
-    private double _ambienceVolume = 0.5;
-    private SongModelView _nextSongInList;
-
-    public double AmbienceVolume
+    public async Task InitializeAsync(SongModelView songModel, double pos)
     {
-        get => _ambienceVolume;
-        set
-        {
-            // Clamp and set
-            double clamped = Math.Clamp(value, 0.0, 1.0);
-            if (SetProperty(ref _ambienceVolume, clamped))
-            {
-                if (_ambiencePlayer != null)
-                {
-                    _ambiencePlayer.Volume = clamped;
-                }
-            }
-        }
-    }
+        ThrowIfDisposed();
+        await EnsureEngineInitializedAsync(); // Make sure engine is ready
+        Stop();
 
-    public CoreAudioDevice DefaultAudioDevice { get; private set; }
-
-    public async Task InitializeAmbienceAsync(string filePath)
-    {
-        if (string.IsNullOrWhiteSpace(filePath) || !TaggingUtils.FileExists(filePath))
-            return;
+        _currentTrackMetadata = songModel;
+        _currentSong.OnNext(songModel);
+        OnPropertyChanged(nameof(CurrentTrackMetadata));
 
         try
         {
-            StorageFile file = await StorageFile.GetFileFromPathAsync(filePath);
-            var source = MediaSource.CreateFromStorageFile(file);
+            int sr = OwnaudioNet.Engine!.Config.SampleRate;
+            int ch = OwnaudioNet.Engine!.Config.Channels;
 
-            // Create item and set to player
-            _ambiencePlayer.Source = new MediaPlaybackItem(source);
+            _mainSource = new FileSource(songModel.FilePath, 4096, targetSampleRate: sr, targetChannels: ch);
 
-            Debug.WriteLine($"[AudioService] Ambience loaded: {filePath}");
+            ApplyPitchAndSpeed();
+            //_mainSource.PitchShift = (float)_playbackSpeed - 1.0f;
 
-            // If music is already playing and ambience is enabled, start it immediately
-            if (IsPlaying && _isAmbienceEnabled)
-            {
-                _ambiencePlayer.Play();
-            }
+            this.Duration = _mainSource.Duration;
+
+            _mixer?.Stop();
+
+            _mainSource.Seek(pos);
+            CurrentPosition = pos;
+            _mainSource.AttachToClock(_mixer!.MasterClock);
+            _mixer.AddSource(_mainSource);
+
+            await UpdateSMTCMetadataAsync(songModel);
+            Play(pos);
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[AudioService] Failed to load ambience: {ex.Message}");
+            UpdatePlaybackState(DimmerPlaybackState.Error);
+            OnErrorOccurred($"Failed to initialize track: {songModel.Title}", ex);
         }
     }
 
-    public void ToggleAmbience(bool isEnabled)
+    private async Task UpdateSMTCMetadataAsync(SongModelView media)
     {
-        _isAmbienceEnabled = isEnabled;
-
-        if (_ambiencePlayer.Source == null) return;
-
-        if (isEnabled && IsPlaying)
+        try
         {
-            _ambiencePlayer.Play();
+            var mediaSource = MediaSource.CreateFromUri(new Uri("ms-appx:///Assets/silent.mp3"));
+            var mediaPlaybackItem = new MediaPlaybackItem(mediaSource);
+            var props = mediaPlaybackItem.GetDisplayProperties();
+
+            props.Type = MediaPlaybackType.Music;
+            props.MusicProperties.Title = media.Title ?? Path.GetFileNameWithoutExtension(media.FilePath) ?? "Unknown Title";
+            props.MusicProperties.Artist = media.OtherArtistsName?.ToString() ?? "";
+
+            if (!string.IsNullOrEmpty(media.CoverImagePath) && File.Exists(media.CoverImagePath))
+            {
+                var coverFile = await StorageFile.GetFileFromPathAsync(media.CoverImagePath);
+                props.Thumbnail = RandomAccessStreamReference.CreateFromFile(coverFile);
+            }
+
+            mediaPlaybackItem.ApplyDisplayProperties(props);
+            _smtcPlayer.Source = mediaPlaybackItem;
         }
-        else
-        {
-            _ambiencePlayer.Pause();
-        }
+        catch { }
     }
 
-    #endregion
-
-
-    public async Task SendNextSong(SongModelView nextSong)
-    {
-        _nextSongInList = nextSong;
-        //var mediaPBItem = await CreateMediaPlaybackItemAsync(nextSong);
-        //_playbackList.Items.Add(mediaPBItem);
-        
-    }
-
-    #region Core Playback Methods (Async)
-
-    /// <summary>
-    /// Initializes the player with the specified track metadata and plays at the speficified position. Stops any current playback.
-    /// </summary>
-    /// <param name="metadata">The metadata of the track to load.</param>
-    /// <returns>Task indicating completion.</returns>
-    public async Task InitializeAsync(SongModelView songModel,double pos)
-    {
-
-        {
-            ThrowIfDisposed();
-            ArgumentNullException.ThrowIfNull(songModel);
-
-            _currentTrackMetadata = songModel;
-            _currentSong.OnNext(songModel);
-            OnPropertyChanged(nameof(CurrentTrackMetadata));
-
-
-            _mediaPlayer.Pause();
-            _playbackList.Items.Clear();
-            Debug.WriteLine("[AudioService] InitializeAsync: MediaPlayer paused and source nulled.");
-
-
-            MediaPlaybackItem? mediaPlaybackItem = null;
-            bool success = false;
-
-            try
-            {
-                mediaPlaybackItem = await CreateMediaPlaybackItemAsync(songModel).ConfigureAwait(false);
-
-                if (mediaPlaybackItem != null)
-                {
-                    _playbackList.Items.Clear(); // Clear previous queue
-                    _playbackList.Items.Add(mediaPlaybackItem);
-                    success = true;
-
-                    if (pos > 0)
-                    {
-                        _mediaPlayer.PlaybackSession.Position = TimeSpan.FromSeconds(pos);
-                    }
-                    _mediaPlayer.Source = _playbackList;
-                    _mediaPlayer.Play();
-                    Debug.WriteLine("[AudioService] InitializeAsync: MediaPlayer source SET for {SongTitle}. Waiting for MediaOpened", songModel.Title);
-                }
-                else
-                {
-                    Debug.WriteLine("[AudioService] InitializeAsync: CreateMediaPlaybackItemAsync returned null for {SongTitle}. Cannot set source.", songModel.Title);
-
-
-                }
-            }
-            catch (OperationCanceledException ex)
-            {
-                Debug.WriteLine($"[AudioService] InitializeAsync: Operation CANCELED while creating/setting source for {songModel.Title}. {ex.Message}");
-
-            }
-            catch(Exception ee)
-            {
-                Debug.WriteLine(ee.Message);
-            }
-            finally
-            {
-
-
-
-                if (!success)
-                {
-                    Debug.WriteLine("[AudioService] InitializeAsync: Finalizing with FAILED status for {SongTitle}.", songModel.Title);
-
-                    if (ReferenceEquals(_currentTrackMetadata, songModel))
-                    {
-                        _currentTrackMetadata = null;
-                        OnPropertyChanged(nameof(CurrentTrackMetadata));
-                    }
-                    UpdatePlaybackState(DimmerPlaybackState.Error);
-                    OnErrorOccurred($"Failed to initialize track: {songModel?.Title}", null);
-                }
-
-
-            }
-        }
-    }
-
-    /// <summary>
-    /// Starts or resumes playback.
-    /// </summary>
-    /// <returns>Task indicating completion.</returns>
     public void Play(double pos)
     {
-        ThrowIfDisposed();
-        if (_mediaPlayer.Source == null)
+        if (_mainSource == null || _mixer == null) return;
+
+
+        _mainSource.Seek(pos);
+        foreach (var stem in _activeStems.Values) stem.Seek(pos);
+        CurrentPosition = pos;
+       
+        _mixer.Start();
+        _mainSource.Play();
+        foreach (var stem in _activeStems.Values) stem.Play();
+
+        UpdatePlaybackState(DimmerPlaybackState.Playing);
+        _playStarted?.Invoke(this, new PlaybackEventArgs(_currentTrackMetadata) { EventType = DimmerPlaybackState.Playing });
+
+        StartUIUpdateLoop();
+    }
+
+    public void Pause()
+    {
+        if (_mainSource == null || _mixer == null) return;
+
+        _mainSource.Pause();
+        foreach (var stem in _activeStems.Values) stem.Pause();
+
+        StopUIUpdateLoop();
+        UpdatePlaybackState(DimmerPlaybackState.PausedDimmer);
+    }
+
+    public void Stop()
+    {
+        StopUIUpdateLoop();
+        ClearAllStems();
+
+        if (_mainSource != null)
         {
-            Debug.WriteLine("[AudioService] PlayAsync called but no source is set.");
+            _mainSource.Stop();
+            _mixer?.RemoveSource(_mainSource);
+            _mainSource.Dispose();
+            _mainSource = null;
         }
 
+        CurrentPosition = 0;
+        UpdatePlaybackState(DimmerPlaybackState.PlayCompleted);
+    }
+
+    public void Seek(double positionSeconds)
+    {
+        if (_mainSource == null) return;
+
+        var target = Math.Clamp(positionSeconds, 0, Duration);
+
+        _mainSource.Seek(target);
+        foreach (var stem in _activeStems.Values) stem.Seek(target);
+
+        CurrentPosition = target;
+        SeekCompleted?.Invoke(this, target);
+    }
+
+    // --- Multi-Track (Stem) Management ---
+    public async Task AddStemAsync(string stemId, string filePath, double initialVolume = 1.0)
+    {
+        if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath) || _mixer == null) return;
 
         try
         {
-            Debug.WriteLine("[AudioService] PlayAsync executing.");
-            _mediaPlayer.Play();
-            _mediaPlayer.Position = TimeSpan.FromSeconds(pos);
-            if (_isAmbienceEnabled && _ambiencePlayer.Source != null)
+            int sr = OwnaudioNet.Engine!.Config.SampleRate;
+            int ch = OwnaudioNet.Engine!.Config.Channels;
+
+            var stemSource = new FileSource(filePath, 4096, targetSampleRate: sr, targetChannels: ch);
+            stemSource.Volume = (float)Math.Clamp(initialVolume, 0.0, 1.0);
+            stemSource.PitchShift = (float)_playbackSpeed - 1.0f;
+
+            stemSource.AttachToClock(_mixer.MasterClock);
+            _mixer.AddSource(stemSource);
+
+            if (_mainSource != null) stemSource.Seek(_mainSource.Position);
+
+            if (CurrentPlaybackState == DimmerPlaybackState.Playing) stemSource.Play();
+
+            _activeStems.AddOrUpdate(stemId, stemSource, (key, old) =>
             {
-                _ambiencePlayer.Play();
-            }
+                _mixer.RemoveSource(old);
+                old.Dispose();
+                return stemSource;
+            });
+
+            await Task.CompletedTask;
         }
-        catch (Exception ex)
+        catch (Exception ex) { Debug.WriteLine($"[AudioService] Failed to add stem {stemId}: {ex.Message}"); }
+    }
+
+    public void RemoveStem(string stemId)
+    {
+        if (_activeStems.TryRemove(stemId, out var stem))
         {
-            Debug.WriteLine($"[AudioService] Error calling Play(): {ex}");
-            OnErrorOccurred("Failed to start playback.", ex);
-            UpdatePlaybackState(DimmerPlaybackState.Error);
+            _mixer?.RemoveSource(stem);
+            stem.Dispose();
         }
     }
 
-    /// <summary>
-    /// Pauses playback.
-    /// </summary>
-    /// <returns>Task indicating completion.</returns>
-    public void Pause()
+    public void SetStemVolume(string stemId, double volume)
     {
-        ThrowIfDisposed();
-        if (_mediaPlayer.PlaybackSession.CanPause)
-        {
+        if (_activeStems.TryGetValue(stemId, out var stem)) stem.Volume = (float)Math.Clamp(volume, 0.0, 1.0);
+    }
 
+    public void ClearAllStems()
+    {
+        foreach (var kvp in _activeStems)
+        {
+            _mixer?.RemoveSource(kvp.Value);
+            kvp.Value.Dispose();
+        }
+        _activeStems.Clear();
+    }
+
+    // --- AI Chord Detect ---
+    public async Task<(string Key, int Bpm, string Chords)> AnalyzeTrackChordsAsync(string filePath)
+    {
+        if (!File.Exists(filePath)) return ("Unknown", 0, "");
+
+        return await Task.Run(() =>
+        {
             try
             {
-                Debug.WriteLine("[AudioService] PauseAsync executing.");
-                _mediaPlayer.Pause();
-                if (_ambiencePlayer.PlaybackSession.CanPause)
-                {
-                    _ambiencePlayer.Pause();
-                }
+                var (chords, key, bpm) = ChordDetect.DetectFromFile(filePath);
+                string chordString = string.Join("\n", chords.Select(c => $"{c.StartTime:F1}s - {c.EndTime:F1}s: {c.ChordName}"));
+                return (key.KeyName, bpm, chordString);
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[AudioService] Error calling Pause(): {ex}");
-
-                OnErrorOccurred("Failed to pause playback.", ex);
+                Debug.WriteLine($"Chord detect failed: {ex}");
+                return ("Error", 0, "");
             }
-        }
-        else
-        {
-            Debug.WriteLine("[AudioService] PauseAsync called but cannot pause in current state.");
-        }
+        });
     }
 
-    /// <summary>
-    /// Stops playback, resets position, and clears the current source.
-    /// </summary>
-    /// <returns>Task indicating completion.</returns>
-    public void Stop()
+    // --- UI Update Loop ---
+    private void StartUIUpdateLoop()
+    {
+        if (_uiUpdateTask != null && !_uiUpdateTask.IsCompleted) return;
+        _uiUpdateCts = new CancellationTokenSource();
+        _uiUpdateTask = Task.Run(() => UIUpdateLoopAsync(_uiUpdateCts.Token));
+    }
+
+    private void StopUIUpdateLoop()
+    {
+        _uiUpdateCts?.Cancel();
+        _uiUpdateCts?.Dispose();
+        _uiUpdateCts = null;
+    }
+
+    private async Task UIUpdateLoopAsync(CancellationToken token)
     {
         try
         {
-
-        ThrowIfDisposed();
-        Debug.WriteLine("[AudioService] StopAsync executing.");
-        _mediaPlayer.Pause();
-        _mediaPlayer.Source = null;
-        _currentTrackMetadata = null;
-        OnPropertyChanged(nameof(CurrentTrackMetadata));
-        CurrentPosition = 0;
-        Duration = 0;
-        UpdatePlaybackState(DimmerPlaybackState.PausedDimmer);
-
-            _ambiencePlayer.Pause();
-            _initializationCts?.Cancel();
-        _initializationCts?.Dispose();
-        _initializationCts = null;
-
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex.Message);
-        }
-    }
-
-    /// <summary>
-    /// Seeks to the specified position in seconds.
-    /// </summary>
-    /// <param name="positionSeconds">The target position in seconds.</param>
-    /// <returns>Task indicating completion of the seek request (not necessarily the completion of the seek operation itself).</returns>
-    public void Seek(double positionSeconds)
-    {
-        try
-        {
-
-        ThrowIfDisposed(); 
-
-        if (_mediaPlayer.PlaybackSession.CanSeek)
-        {
-            
-            var targetPositionSeconds = Math.Clamp(positionSeconds, 0, _mediaPlayer.PlaybackSession.NaturalDuration.TotalSeconds);
-            var targetPosition = TimeSpan.FromSeconds(targetPositionSeconds);
-
-            
-            if (Math.Abs(_mediaPlayer.PlaybackSession.Position.TotalSeconds - targetPosition.TotalSeconds) > 0.2)
+            while (!token.IsCancellationRequested)
             {
-                
-                _requestedSeekPosition = targetPositionSeconds;
-
-                Debug.WriteLine($"[AudioService] Storing requested position ({_requestedSeekPosition}) and seeking to: {targetPosition}");
-
-                
-                _mediaPlayer.PlaybackSession.Position = targetPosition;
-            }
-        }
-        else
-        {
-            
-            CurrentPosition = positionSeconds;
-            Debug.WriteLine("[AudioService] Seek requested but session cannot seek.");
-            }
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex.Message);
-        }
-    }
-
-    #endregion
-
-    #region Media Item Creation
-
-    private static async Task<MediaPlaybackItem?> CreateMediaPlaybackItemAsync(SongModelView media, CancellationToken token = default)
-    {
-
-
-        if (string.IsNullOrWhiteSpace(media.FilePath))
-        {
-            Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: No FilePath for '{media.Title ?? "Unknown"}', cannot create item.");
-            return null;
-        }
-
-        Uri? uri = null;
-        StorageFile? storageFile = null;
-
-        try
-        {
-
-            if (Uri.TryCreate(media.FilePath, UriKind.Absolute, out var parsedUri) && !parsedUri.IsFile)
-            {
-                uri = parsedUri;
-                Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: Using direct URI: {uri} for '{media.Title}'");
-            }
-            else
-            {
-                string fullPath = Path.GetFullPath(media.FilePath);
-              
-
-                Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: Attempting StorageFile for path: {fullPath} for '{media.Title}'");
-                storageFile = await StorageFile.GetFileFromPathAsync(fullPath).AsTask(token);
-            }
-            
-            if(token.IsCancellationRequested)
-            {
-                return null;
-            }
-            MediaSource? mediaSource;
-            if (storageFile != null)
-            {
-                
-                mediaSource = MediaSource.CreateFromStorageFile(storageFile);
-                Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: Created MediaSource from StorageFile for '{media.Title}'. ContentType: {storageFile.ContentType}");
-            }
-            else if (uri != null)
-            {
-                mediaSource = MediaSource.CreateFromUri(uri);
-                Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: Created MediaSource from URI for '{media.Title}'.");
-            }
-            else
-            {
-
-                Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: Could not determine how to create MediaSource for '{media.Title}'.");
-                return null;
-            }
-
-
-            var mediaPlaybackItem = new MediaPlaybackItem(mediaSource);
-            var props = mediaPlaybackItem.GetDisplayProperties();
-            props.Type = MediaPlaybackType.Music;
-
-            props.MusicProperties.Title = media.Title ?? Path.GetFileNameWithoutExtension(media.FilePath) ?? "Unknown Title";
-            props.MusicProperties.Artist = media.OtherArtistsName.ToString();
-            props.MusicProperties.AlbumTitle = media.AlbumName ?? string.Empty;
-            props.MusicProperties.AlbumArtist = media.OtherArtistsName.ToString();
-            
-            if (!string.IsNullOrEmpty(media.CoverImagePath) && File.Exists(media.CoverImagePath))
-            {
-                try
+                if (_mainSource != null && _mixer != null)
                 {
-
-                    var coverFile = await StorageFile.GetFileFromPathAsync(media.CoverImagePath);
-                    
-                    props.Thumbnail = RandomAccessStreamReference.CreateFromFile(coverFile);
-                    Debug.WriteLine($"[AudioService] Successfully created thumbnail reference for '{media.Title}'.");
+                    if (_mainSource.State == AudioState.Playing)
+                    {
+                        _dispatcherQueue.TryEnqueue(() => CurrentPosition = _mainSource.Position);
+                    }
+                    else if (_mainSource.State == AudioState.Stopped && CurrentPlaybackState == DimmerPlaybackState.Playing)
+                    {
+                        _dispatcherQueue.TryEnqueue(() =>
+                        {
+                            UpdatePlaybackState(DimmerPlaybackState.PlayCompleted);
+                            _playEnded?.Invoke(this, new PlaybackEventArgs(_currentTrackMetadata) { EventType = DimmerPlaybackState.PlayCompleted });
+                            Stop();
+                        });
+                        break;
+                    }
                 }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"[AudioService] Error creating thumbnail for '{media.Title}' from path '{media.CoverImagePath}': {ex.Message}");
-                    // Optionally, set a default placeholder image here
-                }
+                await Task.Delay(100, token);
             }
-            else
+        }
+        catch (OperationCanceledException) { }
+    }
+
+    // --- Output Management ---
+    private async Task GetSetUpOutPutDevices()
+    {
+        var devices = OwnaudioNet.Engine?.UnderlyingEngine.GetOutputDevices();
+        if (devices != null)
+        {
+            PlaybackDevices = devices.Select(d => new AudioOutputDevice
             {
-                Debug.WriteLine($"[AudioService] Cover image path is missing or file does not exist for '{media.Title}'. Path: '{media.CoverImagePath}'");
-                // Optionally, set a default placeholder image here
-            }
-            mediaPlaybackItem.ApplyDisplayProperties(props);
-            Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: Successfully created MediaPlaybackItem for '{media.Title}'.");
-            return mediaPlaybackItem;
-            
+                Id = d.DeviceId,
+                Name = d.Name,
+                IsDefaultDevice = d.IsDefault,
+                IsPlaybackDevice = true
+            }).ToList();
+            OnPropertyChanged(nameof(PlaybackDevices));
         }
-        catch (OperationCanceledException)
-        {
-            Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: Operation CANCELED for '{media.Title ?? media.FilePath}'.");
-            throw;
-        }
-        catch (FileNotFoundException fnfEx)
-        {
-            Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: File not found for '{media.FilePath}': {fnfEx.Message}");
-            return null;
-        }
-        catch (UnauthorizedAccessException uaEx)
-        {
-            Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: Access denied for '{media.FilePath}': {uaEx.Message}. Check capabilities (e.g., broadFileSystemAccess) or file permissions.");
-            return null;
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"[AudioService] CreateMediaPlaybackItemAsync: Generic error creating MediaSource for '{media.FilePath}': {ex.Message}");
-            return null;
-        }
-    }
-
-    #endregion
-
-    #region Player Event Handlers
-
-    private void PlaybackSession_PlaybackStateChanged(MediaPlaybackSession sender, object args)
-    {
-        MediaPlaybackState winuiState = sender.PlaybackState;
-        var newState = ConvertPlaybackState(winuiState);
-        Debug.WriteLine($"[AudioService] PlaybackStateChanged: {winuiState} -> {newState}");
-        if (newState.Item2)
-        {
-            UpdatePlaybackState(newState.Item1);
-        }
-    }
-
-    private void PlaybackSession_PositionChanged(MediaPlaybackSession sender, object args)
-    {
-        CurrentPosition = sender.Position.TotalSeconds;
-    }
-
-    private void PlaybackSession_NaturalDurationChanged(MediaPlaybackSession sender, object args)
-    {
-        var newDuration = sender.NaturalDuration.TotalSeconds;
-
-        if (newDuration > 0)
-        {
-            Debug.WriteLine($"[AudioService] NaturalDurationChanged: {newDuration}");
-            Duration = newDuration;
-        }
-    }
-
-    private void PlaybackSession_SeekCompleted(MediaPlaybackSession sender, object args)
-    {
-
-        if (_requestedSeekPosition >= 0)
-        {
-            var confirmedPosition = _requestedSeekPosition;
-            _requestedSeekPosition = -1; // Reset for the next operation
-
-            // This debug line will now show the CORRECT value
-            Debug.WriteLine($"[AudioService] PlaybackSession_SeekCompleted fired. Using confirmed position: {confirmedPosition}");
-
-            // Update your service's internal state
-            CurrentPosition = confirmedPosition;
-
-            // Invoke your custom event with the RELIABLE data
-            SeekCompleted?.Invoke(this, confirmedPosition);
-        }
-        else
-        {
-            // This might happen if the player seeks for its own reasons (e.g., buffering).
-            // You can decide if you want to handle this or just log it.
-            Debug.WriteLine($"[AudioService] PlaybackSession_SeekCompleted fired unexpectedly. Sender position: {sender.Position.TotalSeconds}");
-        }
-    }
-
-    private void MediaPlayer_MediaOpened(MediaPlayer sender, object args)
-    {
-
-        Debug.WriteLine($"[AudioService] MediaOpened: {_currentTrackMetadata?.Title ?? "Unknown"}");
-        Duration = sender.PlaybackSession.NaturalDuration.TotalSeconds;
-        CurrentPosition = sender.PlaybackSession.Position.TotalSeconds;
-        var eventArgs = new PlaybackEventArgs(_currentTrackMetadata) { EventType=DimmerPlaybackState.Playing };
-        _playStarted?.Invoke(this, eventArgs);
-        
-    }
-
-    private void MediaPlayer_MediaEnded(MediaPlayer sender, object args)
-    {
-        
-        Debug.WriteLine($"[AudioService] MediaEnded: {_currentTrackMetadata?.Title ?? "Unknown"}");
-        _ambiencePlayer.Pause();
-        CurrentPosition = Duration;
-        UpdatePlaybackState(DimmerPlaybackState.PlayCompleted);
-
-
-        var eventArgs = new PlaybackEventArgs(_currentTrackMetadata) { EventType=DimmerPlaybackState.PlayCompleted };
-        _playEnded?.Invoke(this, eventArgs);
-
-    }
-        private void MediaPlayer_MediaFailed(MediaPlayer sender, MediaPlayerFailedEventArgs args)
-    {
-        Debug.WriteLine($"[AudioService] MediaFailed: Error={args.Error}, Code={args.ExtendedErrorCode}, Msg={args.ErrorMessage}");
-        OnErrorOccurred($"Playback failed: {args.ErrorMessage}", args.ExtendedErrorCode, args.Error);
-
-
-        _currentTrackMetadata = null;
-        OnPropertyChanged(nameof(CurrentTrackMetadata));
-        UpdatePlaybackState(DimmerPlaybackState.Error);
-        CurrentPosition = 0;
-        Duration = 0;
-    }
-
-    #endregion
-
-    #region SMTC Command Handlers
-
-    private void CommandManager_PlayReceived(MediaPlaybackCommandManager sender, MediaPlaybackCommandManagerPlayReceivedEventArgs args)
-    {
-        Debug.WriteLine("[AudioService] SMTC Play Received");
-
-        var deferral = args.GetDeferral();
-        try
-        {
-            if (_mediaPlayer.Source != null)
-            {
-                Play(CurrentPosition);
-                args.Handled = true;
-            }
-            else
-            {
-                args.Handled = false;
-            }
-        }
-        finally
-        {
-            deferral.Complete();
-        }
-    }
-
-    private void CommandManager_PauseReceived(MediaPlaybackCommandManager sender, MediaPlaybackCommandManagerPauseReceivedEventArgs args)
-    {
-        Debug.WriteLine("[AudioService] SMTC Pause Received");
-        var deferral = args.GetDeferral();
-        try
-        {
-            if (_mediaPlayer.PlaybackSession.CanPause)
-            {
-                Pause();
-                args.Handled = true;
-            }
-            else
-            {
-                args.Handled = false;
-            }
-        }
-        finally
-        {
-            deferral.Complete();
-        }
-    }
-
-    private void CommandManager_NextReceived(MediaPlaybackCommandManager sender, MediaPlaybackCommandManagerNextReceivedEventArgs args)
-    {
-        Debug.WriteLine("[AudioService] SMTC Next Received");
-
-        var eventArgs = new PlaybackEventArgs(_currentTrackMetadata) { EventType= DimmerPlaybackState.PlayNextUser };
-
-        MediaKeyNextPressed?.Invoke(this, eventArgs);
-        args.Handled = true;
-    }
-
-    private void CommandManager_PreviousReceived(MediaPlaybackCommandManager sender, MediaPlaybackCommandManagerPreviousReceivedEventArgs args)
-    {
-        Debug.WriteLine("[AudioService] SMTC Previous Received");
-
-        var eventArgs = new PlaybackEventArgs(_currentTrackMetadata) { EventType=DimmerPlaybackState.PlayPreviousUser };
-        MediaKeyPreviousPressed?.Invoke(this, eventArgs);
-        args.Handled = true;
-    }
-
-    #endregion
-
-    #region Audio Output Management
-
-    /// <summary>
-    /// Gets a list of available audio output devices.
-    /// </summary>
-    public async Task<List<AudioOutputDevice>> GetAvailableAudioOutputsAsync()
-    {
-        ThrowIfDisposed();
-      
-        var outputDevices = new List<AudioOutputDevice>();
-        try
-        {
-
-            string selector = MediaDevice.GetAudioRenderSelector();
-            DeviceInformationCollection devices = await DeviceInformation.FindAllAsync(selector);
-
-            foreach (var device in devices)
-            {
-                outputDevices.Add(new AudioOutputDevice { Id = device.Id, Name = device.Name });
-            }
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"[AudioService] Error getting audio output devices: {ex}");
-            OnErrorOccurred("Failed to enumerate audio output devices.", ex);
-        }
-        return outputDevices;
-    }
-
-    /// <summary>
-    /// Sets the audio output device for the MediaPlayer.
-    /// </summary>
-    /// <param name="deviceId">The ID of the device to use, or null to use the system default.</param>
-    public async Task SetAudioOutputDeviceAsync(string? deviceId)
-    {
-        ThrowIfDisposed();
-        try
-        {
-            DeviceInformation? deviceInfo = null;
-            if (!string.IsNullOrEmpty(deviceId))
-            {
-                deviceInfo = await DeviceInformation.CreateFromIdAsync(deviceId);
-            }
-
-
-            _mediaPlayer.AudioDevice = deviceInfo;
-            _ambiencePlayer.AudioDevice = deviceInfo;
-            _currentAudioDeviceId = deviceInfo?.Id;
-            Debug.WriteLine($"[AudioService] Audio output device set to: {deviceInfo?.Name ?? "System Default"} (ID: {_currentAudioDeviceId})");
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"[AudioService] Error setting audio output device (ID: {deviceId}): {ex}");
-            OnErrorOccurred($"Failed to set audio output device to {deviceId}.", ex);
-        }
-    }
-
-
-    private async void MediaDevice_DefaultAudioRenderDeviceChanged(object sender, DefaultAudioRenderDeviceChangedEventArgs args)
-    {
-        Debug.WriteLine($"[AudioService] System default audio render device changed. Role: {args.Role}, New ID: {args.Id}");
-
-
-
-
-
-
-
-
-
-        if (!string.IsNullOrEmpty(_currentAudioDeviceId) && _currentAudioDeviceId != args.Id)
-        {
-
-            try
-            {
-                var currentDevice = await DeviceInformation.CreateFromIdAsync(_currentAudioDeviceId);
-
-                Debug.WriteLine($"[AudioService] Still using explicitly selected device: {currentDevice.Name}");
-            }
-            catch
-            {
-
-                Debug.WriteLine($"[AudioService] Previously selected device ID {_currentAudioDeviceId} is no longer valid. Resetting to default.");
-                await SetAudioOutputDeviceAsync(null);
-            }
-        }
-        else if (string.IsNullOrEmpty(_currentAudioDeviceId))
-        {
-
-            Debug.WriteLine("[AudioService] Using system default, MediaPlayer should adapt.");
-        }
-    }
-
-
-    #endregion
-
-    #region State Management & Helpers
-
-    private void UpdatePlaybackState(DimmerPlaybackState newState)
-    {
-
-        if (SetProperty(ref _playbackState, newState, nameof(CurrentPlaybackState)))
-        {
-
-            OnPropertyChanged(nameof(IsPlaying));
-
-
-
-            var args = new PlaybackEventArgs(_currentTrackMetadata) { IsPlaying= IsPlaying, EventType=  newState };
-            PlaybackStateChanged?.Invoke(this, args);
-
-
-            RaiseIsPlayingChanged();
-
-        }
-    }
-
-
-    private static (DimmerPlaybackState, bool) ConvertPlaybackState(MediaPlaybackState state)
-    {
-        switch (state)
-        {
-            case MediaPlaybackState.None:
-                return (DimmerPlaybackState.None, false);
-
-            case MediaPlaybackState.Opening:
-                return (DimmerPlaybackState.Opening, false);
-            case MediaPlaybackState.Buffering:
-                return (DimmerPlaybackState.Buffering, false);
-            case MediaPlaybackState.Playing:
-                return (DimmerPlaybackState.Playing, true);
-            case MediaPlaybackState.Paused:
-                return (DimmerPlaybackState.PausedDimmer, true);
-            default:
-                return (DimmerPlaybackState.PlayCompleted, true);
-        }
-
+        await Task.CompletedTask;
     }
 
     private void RaiseIsPlayingChanged()
     {
-        // Use current state to construct the event args
-        DimmerPlaybackState eventType = IsPlaying ? DimmerPlaybackState.Playing : DimmerPlaybackState.PausedDimmer;
-
-        var args = new PlaybackEventArgs(_currentTrackMetadata) { IsPlaying= IsPlaying, EventType=  eventType };
-        _isPlayingChanged?.Invoke(this, args);
+        var eventType = IsPlaying ? DimmerPlaybackState.Playing : DimmerPlaybackState.PausedDimmer;
+        _isPlayingChanged?.Invoke(this, new PlaybackEventArgs(_currentTrackMetadata) { IsPlaying = IsPlaying, EventType = eventType });
     }
 
-    private void OnErrorOccurred(string message, Exception? exception = null, MediaPlayerError? playerError = null)
+    private void OnErrorOccurred(string message, Exception? exception = null)
     {
-
-        Debug.WriteLine($"[AudioService ERROR] {message} | Exception: {exception?.Message} | PlayerError: {playerError}");
-        
-        DimmerPlaybackState dimmerPBError =DimmerPlaybackState.Error;
-        if(playerError is not null)
-        {
-            dimmerPBError = playerError.Value == MediaPlayerError.SourceNotSupported ? DimmerPlaybackState.ErrorAudioSourceNotSupported : DimmerPlaybackState.Error;
-        }
-        var args = new PlaybackEventArgs(_currentTrackMetadata) { IsPlaying= IsPlaying, EventType= dimmerPBError };
-        ErrorOccurred?.Invoke(this, args);
+        Debug.WriteLine($"[AudioService ERROR] {message} | {exception?.Message}");
+        ErrorOccurred?.Invoke(this, new PlaybackEventArgs(_currentTrackMetadata) { IsPlaying = IsPlaying, EventType = DimmerPlaybackState.Error });
     }
-
-
-    #endregion
-
-
-    #region INotifyPropertyChanged
 
     private bool SetProperty<T>(ref T backingStore, T value, [CallerMemberName] string propertyName = "")
     {
-        if (EqualityComparer<T>.Default.Equals(backingStore, value))
-            return false;
-
+        if (EqualityComparer<T>.Default.Equals(backingStore, value)) return false;
         backingStore = value;
-
-
-        _dispatcherQueue.TryEnqueue(() =>
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        });
+        _dispatcherQueue.TryEnqueue(() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)));
         return true;
     }
 
-
     private void OnPropertyChanged([CallerMemberName] string propertyName = "")
     {
-        _dispatcherQueue.TryEnqueue(() =>
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        });
+        _dispatcherQueue.TryEnqueue(() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)));
     }
-
-    #endregion
-
-    #region IAsyncDisposable
 
     private void ThrowIfDisposed()
     {
-        if (_isDisposed)
+        if (_isDisposed) throw new ObjectDisposedException(nameof(AudioService));
+    }
+    private bool _isReversed;
+    public bool IsReversed
+    {
+        get => _isReversed;
+        set
         {
-            throw new ObjectDisposedException(nameof(AudioService));
+            if (SetProperty(ref _isReversed, value))
+            {
+                ApplyPitchAndSpeed();
+            }
         }
     }
+
+    private void ApplyPitchAndSpeed()
+    {
+        // Combines PlaybackSpeed, PitchShift, and Reverse into the FileSource PitchShift property
+        float pitchVal = (float)(_pitchShift + (_playbackSpeed - 1.0));
+        if (_isReversed) pitchVal = -Math.Abs(pitchVal == 0 ? 1.0f : pitchVal);
+
+        if (_mainSource != null) _mainSource.PitchShift = pitchVal;
+        foreach (var stem in _activeStems.Values) stem.PitchShift = pitchVal;
+    }
+    // Granular Reverb:
+    public float ReverbRoomSize
+    {
+        get => _reverbEffect?.RoomSize ?? 0.8f;
+        set { if (_reverbEffect != null) _reverbEffect.RoomSize = (float)Math.Clamp(value, 0.0, 1.0); }
+    }
+
+    public float ReverbDamping
+    {
+        get => _reverbEffect?.Damping ?? 0.4f;
+        set { if (_reverbEffect != null) _reverbEffect.Damping = (float)Math.Clamp(value, 0.0, 1.0); }
+    }
+
+
+
+
+
 
     public async ValueTask DisposeAsync()
     {
-        if (_isDisposed)
-        {
-            return;
-        }
+        if (_isDisposed) return;
         _isDisposed = true;
 
-        Debug.WriteLine("[AudioService] Starting asynchronous disposal...");
+        Stop();
 
+        _mixer?.Dispose();
+        OwnaudioNet.Stop();
+        OwnaudioNet.Shutdown();
 
-        MediaDevice.DefaultAudioRenderDeviceChanged -= MediaDevice_DefaultAudioRenderDeviceChanged;
-
-
-        if (_initializationCts is not null)
-        {
-            await _initializationCts.CancelAsync();
-        }
-        _initializationCts?.Dispose();
-        _initializationCts = null;
-
-
-        _mediaPlayer?.Pause();
-        _mediaPlayer?.Source = null;
-
-        _controller?.Dispose();
-
-        UnsubscribeFromPlayerEvents();
-        UnsubscribeFromSystemEvents();
-        try
-        {
-            _ambiencePlayer?.Pause();
-            _ambiencePlayer?.Source = null;
-            _ambiencePlayer?.Dispose();
-        }
-        catch { /* Ignore ambience dispose errors */ }
-
-
-        _mediaPlayer?.Dispose();
-        Debug.WriteLine("[AudioService] MediaPlayer disposed.");
-
-
-        _isPlayingChanged = null;
-        _playEnded = null;
-        _playStarted = null;
-        PlaybackStateChanged = null;
-        ErrorOccurred = null;
-        DurationChanged = null;
-        PositionChanged = null;
-        SeekCompleted = null;
-        MediaKeyNextPressed = null;
-        MediaKeyPreviousPressed = null;
-        PropertyChanged = null;
-
-        Debug.WriteLine("[AudioService] Asynchronous disposal complete.");
-
-
-        await Task.CompletedTask;
+        _smtcPlayer?.Dispose();
+        _disposables.Dispose();
     }
-
-
-
-    #endregion
-
-    /// <summary>
-    /// Copies data from a regular Stream to an IRandomAccessStream.
-    /// </summary>
-    /// <param name="fileStream">The source stream.</param>
-    /// <param name="randomAccessStream">The target random access stream.</param>
-    /// <param name="token">A cancellation token.</param>
-    /// <param name="progressHandler">A progress handler reporting the number of bytes copied.</param>
-    public static async Task CopyFileStreamToRandomAccessStreamAsync(Stream fileStream, IRandomAccessStream randomAccessStream, CancellationToken token, IProgress<long> progressHandler)
-    {
-
-        using (Stream outputStream = randomAccessStream.GetOutputStreamAt(0).AsStreamForWrite())
-        {
-
-            const int bufferSize = 81920;
-            byte[] buffer = new byte[bufferSize];
-            long totalBytesCopied = 0;
-            int bytesRead;
-
-
-            while ((bytesRead = await fileStream.ReadAsync(buffer, 0, buffer.Length, token)) > 0)
-            {
-                await outputStream.WriteAsync(buffer, 0, bytesRead, token);
-                totalBytesCopied += bytesRead;
-                progressHandler?.Report(totalBytesCopied);
-            }
-
-
-            await outputStream.FlushAsync(token);
-            token.ThrowIfCancellationRequested();
-        }
-    }
-
-    private readonly object _lockObject = new object();
-
-
-
- 
-
-    public bool SetPreferredOutputDevice(AudioOutputDevice dev)
-    {
-        if (dev?.Id == null)
-            return false;
-
-        try
-        {
-            if (dev?.Id == null)
-                return false;
-
-            try
-            {
-                // The library works with its own device objects. Get it by its ID.
-                // The ID from NAudio is compatible.
-                var deviceToSet = _controller.GetDevice(new Guid(dev.Id));
-                
-                if (deviceToSet == null)
-                {
-                    Debug.WriteLine($"Device with ID {dev.Id} not found by AudioSwitcher.");
-                    return false;
-                }
-
-                // This one line does it all. It's clean, safe, and readable.
-                deviceToSet.SetAsDefault();
-                // You can also set the communications default separately if needed
-                deviceToSet.SetAsDefaultCommunications();
-
-                Debug.WriteLine($"Successfully set default audio output device to: {dev.Name}");
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error setting default audio device: {ex.Message}");
-                return false;
-            }
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Error in SetPreferredOutputDevice: {ex.Message}");
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// Gets a list of all active audio output devices using AudioSwitcher for consistency.
-    /// </summary>
-    public List<AudioOutputDevice> GetAllAudioDevices()
-    {
-        // Get all active playback devices from the controller.
-        //var devices = _audioController.GetPla ybackDevices(AudioSwitcher.AudioApi.DeviceState.Active);
-        IEnumerable<CoreAudioDevice>? devices = _controller.GetPlaybackDevices(DeviceState.Active)
-            . Where(x=>x.DeviceType == DeviceType.Playback);
-
-        // Map them to your own simple model.
-        return devices.Select(d => new AudioOutputDevice
-        {
-            // Note: The library provides the ID as a Guid. Convert to string.
-            Id = d.Id.ToString(),
-            Name = d.FullName,
-            Type = d.DeviceType.ToString(),
-            ProductName = d.InterfaceName,
-            IsPlaybackDevice=d.IsPlaybackDevice,
-            IconString=d.Icon.ToString(),
-            State=d.State.ToString(),
-            Volume= d.Volume,
-            IsMuted=d.IsMuted,
-            IsDefaultCommunicationsDevice=d.IsDefaultCommunicationsDevice,
-            IsDefaultDevice=d.IsDefaultDevice,
-
-        }).ToList();
-    }
-
-
-    public void InitializePlaylist(SongModelView songModelView, IEnumerable<SongModelView> songModels)
-    {
-        try
-        {
-
-            Task.Run(async () => await InitializeAsync(songModelView,0));
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex.Message);
-        }
-    }
-
 }
-

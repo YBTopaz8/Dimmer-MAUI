@@ -2167,7 +2167,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public void LoadAllAudioDevices()
     {
         var devices = _audioService.GetAllAudioDevices();
-        AudioDevices = new ObservableCollection<AudioOutputDevice>(devices);
+        if (devices is not null)
+        {
+            AudioDevices = new ObservableCollection<AudioOutputDevice>(devices);
+        }
         //SelectedAudioDevice = AudioDevices.FirstOrDefault(d => d.IsSource) ?? AudioDevices.FirstOrDefault();
         //if (SelectedAudioDevice != null)
         //{
@@ -2182,11 +2185,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         SelectedAudioDevice = currentDevice;
     }
     [RelayCommand]
-    public void SetPreferredAudioDevice(AudioOutputDevice device)
+    public async Task SetPreferredAudioDeviceAsync(AudioOutputDevice device)
     {
         if (device == null)
             return;
-        _audioService.SetPreferredOutputDevice(device);
+        _audioService.SetPreferredOutputDeviceAsync(device);
         SelectedAudioDevice = device;
         LoadAllAudioDevices();
     }

@@ -469,7 +469,13 @@ public static class TaggingUtils
         return filesBag.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
         });
     }
-
+    /// <summary>
+    /// Hook to create a file at a platform-specific location (e.g., Android content:// URI).
+    /// Param 1: The destination folder path/URI
+    /// Param 2: The file name
+    /// Returns: A writable Stream to the new file.
+    /// </summary>
+    public static Func<string, string, Stream?>? PlatformSpecificStreamCreator { get; set; }
     internal static string GetReadableFilePath(string path)
     {
         if (path.StartsWith("content://", StringComparison.OrdinalIgnoreCase))

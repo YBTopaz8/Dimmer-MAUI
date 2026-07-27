@@ -10,9 +10,6 @@ public sealed partial class NowPlayingPage : Page
     {
         InitializeComponent();
 
-        _previewTimer = new DispatcherTimer();
-        _previewTimer.Interval = TimeSpan.FromMilliseconds(50);
-        _previewTimer.Tick += OnPreviewTick;
     }
 
     public BaseViewModelWin MyViewModel { get; internal set; }
@@ -26,11 +23,46 @@ public sealed partial class NowPlayingPage : Page
     {
 
         MyViewModel = IPlatformApplication.Current?.Services.GetService<BaseViewModelWin>()!;
+
+        this.DataContext = MyViewModel;
        ArrayOfGoeyy = new List<string>();
         ArrayOfGoeyy.Add("Favorite");
         ArrayOfGoeyy.Add("Note");
         MyViewModel.CurrentPageEnum = CurrentPage.NowPlayingPage;
         compDisp = new();
+
+
+        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.CurrentPlayingSongView), v => MyViewModel.CurrentPlayingSongView)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(async song =>
+            {
+                if (!string.IsNullOrEmpty(song.CoverImagePath))
+                {
+                    CurrentPlayingSongImg.Source = new BitmapImage(new Uri(song.CoverImagePath));
+
+                    var imgBytes = await ImageFilterUtils.ApplyFilterAsync(song.CoverImagePath, FilterType.Mauve);
+                    if (imgBytes is null) return;
+
+                    CurrentPlayingSongImgBG.Source = null;
+
+                    using var stream = new MemoryStream(imgBytes);
+                    var bitmap = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage();
+                    await bitmap.SetSourceAsync(stream.AsRandomAccessStream());
+                    DispatcherQueue.TryEnqueue(() =>
+                    {
+                        CurrentPlayingSongImgBG.Source = bitmap;
+
+                    });
+
+                }
+                else
+                {
+
+                }
+
+
+            }).DisposeWith(compDisp);
+
 
     }
     protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
@@ -302,38 +334,7 @@ public sealed partial class NowPlayingPage : Page
 
     private async void CurrentPlayingSongImg_Loading(FrameworkElement sender, object args)
     {
-        if (MyViewModel.CurrentPlayingSongView is null) return;
-        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.CurrentPlayingSongView), v => MyViewModel.CurrentPlayingSongView)
-            .ObserveOn(RxSchedulers.UI)
-            .Subscribe(async song =>
-            {
-                if (!string.IsNullOrEmpty(song.CoverImagePath))
-                {
-                    CurrentPlayingSongImg.Source = new BitmapImage(new Uri(song.CoverImagePath));
-
-                    var imgBytes = await ImageFilterUtils.ApplyFilter(song.CoverImagePath, FilterType.DarkAcrylic);
-                    if (imgBytes is null) return;
-
-                    CurrentPlayingSongImgBG.Source = null;
-
-                    using var stream = new MemoryStream(imgBytes);
-                    var bitmap = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage();
-                    await bitmap.SetSourceAsync(stream.AsRandomAccessStream());
-                    DispatcherQueue.TryEnqueue(() =>
-                    {
-                        CurrentPlayingSongImgBG.Source = bitmap;
-
-                    });
-
-                }
-                else
-                {
-
-                }
-
-
-            }).DisposeWith(compDisp);
-        
+       
     }
     CompositeDisposable compDisp;
 
@@ -344,7 +345,6 @@ public sealed partial class NowPlayingPage : Page
 
     private bool _isDragging = false;
     private double _dragStartValue;
-    private DispatcherTimer _previewTimer;
     private void OnSliderPointerPressed(object sender, PointerRoutedEventArgs e)
     {
         _isDragging = true;
@@ -358,8 +358,6 @@ public sealed partial class NowPlayingPage : Page
         var newValue = CalculateValueFromPoint(point.Position);
         ProgressSlider.Value = newValue;
 
-        // Start preview timer
-        _previewTimer.Start();
 
         e.Handled = true;
     }
@@ -382,8 +380,7 @@ public sealed partial class NowPlayingPage : Page
     {
         _isDragging = false;
 
-        // Stop preview timer
-        _previewTimer.Stop();
+
 
         // Only seek if value actually changed
         if (Math.Abs(ProgressSlider.Value - _dragStartValue) > 0.01)
@@ -407,13 +404,6 @@ public sealed partial class NowPlayingPage : Page
         var percent = point.X / ProgressSlider.ActualWidth;
         return ProgressSlider.Minimum + (percent * range);
     }
-
-    private void OnPreviewTick(object? sender, object e)
-    {
-        // Update preview label during drag
-        //PreviewTimeText.Text = TimeSpan.FromSeconds(ProgressSlider.Value).ToString(@"mm\:ss");
-    }
-
     private void SyncLyricsListView_ItemClick(object sender, ItemClickEventArgs e)
     {
         var lyricTapped = e.ClickedItem as LyricPhraseModelView;
@@ -432,6 +422,49 @@ public sealed partial class NowPlayingPage : Page
     }
 
     private void NowPlayingSpecViz_Loaded(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void GenreBtn_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void AlbumBtn_Click(object sender, RoutedEventArgs e)
+    {
+        MyViewModel.SetSelectedAlbum(MyViewModel.CurrentPlayingSongView.Album);
+
+        MyViewModel.NavigateToAnyPageOfGivenType(typeof(AlbumPage));
+    }
+
+    private void NewProgressSlider_SelectedTimeChanged(object sender, TimeSpan e)
+    {
+
+    }
+
+    private void NewProgressSlider_Loaded(object sender, RoutedEventArgs e)
+    {
+        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.CurrentPlayingSongView), v => MyViewModel.CurrentPlayingSongView)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(s =>
+            {
+                NewProgressSlider.TotalTime = TimeSpan.FromSeconds(s.DurationInSeconds);    
+
+            });
+    }
+
+    private async void PreviousTrackBtn_Click(object sender, RoutedEventArgs e)
+    {
+      await  MyViewModel.PreviousTrackAsync(false);
+    }
+
+    private async void NextTrackBtn_Click(object sender, RoutedEventArgs e)
+    {
+      await  MyViewModel.NextTrackAsync(false);
+    }
+
+    private void PlayPauseToggleBtn_Loaded(object sender, RoutedEventArgs e)
     {
 
     }

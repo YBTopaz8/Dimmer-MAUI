@@ -432,20 +432,20 @@
                         ZIndex="0"
                         />
 
-                    <dx:DXButton
+                    <dx:Chip
                         x:Name="ShowTQLShortBTMSheet"
                         Grid.Row="1"
                         Margin="10,40"
                         BackgroundColor="Transparent"
-                        Clicked="ShowTQLShortBTMSheet_Clicked"
+                        BorderThickness="0"
                         HorizontalOptions="End"
                         Icon="searchd.png"
                         IconColor="DarkSlateBlue"
-                        IconHeight="40"
-                        IconWidth="40"
+                        IconSize="40,40"
+                        IsIconVisible="True"
+                        LongPress="ShowTQLShortBTMSheet_LongPress"
                         PressedBackgroundColor="{Binding CurrentPlaySongDominantColor}"
-                        ShowContent="False"
-                        ShowIcon="True"
+                        Tap="ShowTQLShortBTMSheet_Tapped"
                         VerticalOptions="End"
                         ZIndex="1"
                         />
@@ -682,7 +682,11 @@
                     </Grid>
 
 
-                    <dx:BottomSheet x:Name="SingleSongBtmSheet" AllowDismiss="True" StateChanged="SingleSongBtmSheet_StateChanged">
+                    <dx:BottomSheet
+                        x:Name="SingleSongBtmSheet"
+                        AllowDismiss="True"
+                        StateChanged="SingleSongBtmSheet_StateChanged"
+                        >
                         <dx:BottomSheet.Content>
                             <dx:DXStackLayout Margin="5,0" ItemSpacing="10">
                                 <dx:DXStackLayout.Resources>
@@ -714,9 +718,10 @@
                                         Text="{Binding SelectedSong.PlayCompletedCount, StringFormat='Played {0} Times'}"
                                         />
                                     <dx:Chip
-                                        x:Name="NextInQueueCounter"
-                                        Icon="playlistminimalistic3.png"
+                                        x:Name="AddNote"
+                                        Icon="pena.png"
                                         IsIconVisible="True"
+                                        Tap="AddNote_Tap"
                                         />
 
 

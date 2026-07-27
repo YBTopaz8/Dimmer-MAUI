@@ -33,6 +33,7 @@
         IsBackButtonVisible="Collapsed"
         IsSettingsVisible="False"
         IsTapEnabled="True"
+        BackRequested="nvSample_BackRequested"
         PaneClosing="NvSample_PaneClosing"
         PaneOpening="NvSample_PaneOpening"
         SelectionChanged="NvSample_SelectionChanged"
@@ -132,7 +133,7 @@
                         Grid.Column="0"
                         MaxWidth="100"
                         MaxHeight="100"
-                        HorizontalAlignment="Center"
+                        HorizontalAlignment="Left"
                         >
 
                         <Image
@@ -190,7 +191,7 @@
                                     IsChecked="{x:Bind MyViewModel.IsDimmerPlaying, Mode=OneWay}"
                                     Loaded="PlayPauseToggleBtn_Loaded"
                                     />
-                                <devWin:BubbleButton
+                                <Button
                                     HorizontalAlignment="Right"
                                     VerticalAlignment="Top"
                                     Background="Transparent"
@@ -271,36 +272,23 @@
 
 
                 <StackPanel Margin="10" Spacing="5">
-                    <StackPanel
-                        Margin="10"
-                        Orientation="Horizontal"
-                        Spacing="5"
-                        >
-                        <devWin:TextBox
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                        <StackPanel Spacing="5">
+                            <devWin:TextBox
                             x:Name="SearchBoxEdit"
                             MinWidth="350"
                             Header="Search With TQL."
                             PlaceholderText=""
                             TextChanged="SearchBoxEdit_TextChanged"
-                            >
-                            <devWin:TextBox.Content>
-                                <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
-                                    <Button
-                                        x:Name="SaveTQL"
-                                        HorizontalAlignment="Left"
-                                        HorizontalContentAlignment="Left"
-                                        Click="SaveTQL_Click"
-                                        >
-                                        <FontIcon Glyph="&#xE74E;" />
-                                    </Button>
-                                </StackPanel>
-                            </devWin:TextBox.Content>
-                        </devWin:TextBox>
-                        <TextBlock
+                            />
+
+                            <TextBlock Text="{x:Bind MyViewModel.CurrentTqlQueryUI, Mode=OneWay}"/>
+                            <TextBlock
                             x:Name="SearchResultErrorText"
                             FontSize="16"
                             Loaded="SearchResultErrorText_Loaded"
                             />
+                        </StackPanel>
                     </StackPanel>
 
 

@@ -25,7 +25,7 @@ public partial class HomePage : ContentPage
             .Subscribe(
                 e =>
                 {
-                    NowPlaying.FrequentlyPlayedExpander.IsExpanded = false;
+                    //NowPlaying.FrequentlyPlayedExpander.IsExpanded = false;
                     switch (e)
                     {
                         case 1:
@@ -1204,11 +1204,7 @@ public partial class HomePage : ContentPage
 
     private void ShowTQLShortBTMSheet_Clicked(object sender, EventArgs e)
     {
-        TQLSearchGrid.IsVisible = true;
-        SearchText.Focus();
-        SearchText.CursorPosition = SearchText.Text?.Length is null ? 0 : SearchText.Text.Length;
-        //TQLSearchBottomSheet.Show(BottomSheetState.FullExpanded);
-    }
+       }
 
     private void TQLSearchBottomSheet_StateChanged(object sender, ValueChangedEventArgs<BottomSheetState> e)
     {
@@ -1402,6 +1398,39 @@ public partial class HomePage : ContentPage
         {
 
         }
+    }
+
+    private void ShowTQLShortBTMSheet_Tapped(object sender, HandledEventArgs e)
+    {
+        TQLSearchGrid.IsVisible = true;
+        SearchText.Focus();
+        SearchText.CursorPosition = SearchText.Text?.Length is null ? 0 : SearchText.Text.Length;
+        //TQLSearchBottomSheet.Show(BottomSheetState.FullExpanded);
+
+    }
+
+    private void ShowTQLShortBTMSheet_LongPress(object sender, HandledEventArgs e)
+    {
+        var songHandle = SongsCV.FindItemHandle(MyViewModel.CurrentPlayingSongView);
+
+        SongsCV.ScrollTo(songHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
+
+    }
+
+    private async void AddNote_Tap(object sender, HandledEventArgs e)
+    {
+        var res = await Shell.Current.DisplayPromptAsync("Add Note/Tag", "Enter a note or a tag for the song", "OK", "Cancel", keyboard: Keyboard.Text);
+        switch (res)
+        {
+
+            case "Cancel":
+                return;
+                break;
+            default:
+
+                break;
+        }
+        await MyViewModel.SaveUserNoteToSong(MyViewModel.SelectedSong, res);
     }
 
 
