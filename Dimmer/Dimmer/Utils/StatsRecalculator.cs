@@ -32,7 +32,7 @@ public class StatsRecalculator
                 {
                     if (song.PlayHistory?.Any() == true)
                     {
-                        // --- Core Play Counts ---
+                        // --- Core PlayAsync Counts ---
                         song.PlayCount = song.PlayHistory.Count;
                         song.PlayCompletedCount = song.PlayHistory.Count(p => p.PlayType == (int)PlayType.Completed);
                         song.SkipCount = song.PlayHistory.Count(p => p.PlayType == (int)PlayType.Skipped);
@@ -86,7 +86,7 @@ public class StatsRecalculator
                     }
                     else
                     {
-                        // --- No Play History ---
+                        // --- No PlayAsync History ---
                         song.PlayCount = 0;
                         song.PlayCompletedCount = 0;
                         song.SkipCount = 0;

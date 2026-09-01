@@ -1,6 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
-	<Import Project="..\..\externals.props" Condition="Exists('..\..\externals.props')" />
+  <Import Project="..\..\..\DimmerExternals.props" Condition="Exists('..\..\..\DimmerExternals.props')" />
 
 	<PropertyGroup>
 		<TargetFramework>net10.0-android</TargetFramework>

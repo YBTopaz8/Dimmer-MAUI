@@ -748,13 +748,13 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     public void PlaySongsByArtistInCurrentAlbum(SongModelView song, string artistName)
     {
-        Debug.WriteLine($"Play songs by {artistName} in current album.");
+        Debug.WriteLine($"PlayAsync songs by {artistName} in current album.");
         // TODO: filter and start playback from current album list
     }
 
     public void PlayAllSongsByArtist(SongModelView song, string artistName)
     {
-        Debug.WriteLine($"Play all songs by {artistName}.");
+        Debug.WriteLine($"PlayAsync all songs by {artistName}.");
         // TODO: query Realm for all songs where Artist == artistName
     }
 
@@ -907,8 +907,8 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
         // --- 2) Actions
         // Playback / queue actions require your app playback service -> throw NotImplementedException.
-        flyout.Items.Add(MI("Play Now", () => throw new NotImplementedException("Play Now: wire to your playback service.")));
-        flyout.Items.Add(MI("Play Next", () => throw new NotImplementedException("Play Next: wire to your playback service.")));
+        flyout.Items.Add(MI("PlayAsync Now", () => throw new NotImplementedException("PlayAsync Now: wire to your playback service.")));
+        flyout.Items.Add(MI("PlayAsync Next", () => throw new NotImplementedException("PlayAsync Next: wire to your playback service.")));
         flyout.Items.Add(MI("Add to End of Queue", () => throw new NotImplementedException("Add to Queue: wire to your playback/queue service.")));
 
         flyout.Items.Add(new MenuFlyoutSeparator());
@@ -980,7 +980,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         flyout.Items.Add(new MenuFlyoutSeparator());
 
         // --- 2) Actions (play/queue/add to playlist) -> require playback/playlist service
-        flyout.Items.Add(MI("Play all by artist", () => throw new NotImplementedException("Play all by artist: wire to your playback service.")));
+        flyout.Items.Add(MI("PlayAsync all by artist", () => throw new NotImplementedException("PlayAsync all by artist: wire to your playback service.")));
         flyout.Items.Add(MI("Queue all by artist", () => throw new NotImplementedException("Queue all by artist: wire to your queue service.")));
         flyout.Items.Add(MI("Add artist to playlist…", () => throw new NotImplementedException("Add to playlist: open your Add to Playlist dialog.")));
 
@@ -1023,7 +1023,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         flyout.Items.Add(new MenuFlyoutSeparator());
 
         // --- Actions (play / queue / add to playlist) -> app-specific
-        flyout.Items.Add(MI("Play album", () => throw new NotImplementedException("Play album: wire to playback service.")));
+        flyout.Items.Add(MI("PlayAsync album", () => throw new NotImplementedException("PlayAsync album: wire to playback service.")));
         flyout.Items.Add(MI("Queue album", () => throw new NotImplementedException("Queue album: wire to queue service.")));
         flyout.Items.Add(MI("Add album to playlist…", () => throw new NotImplementedException("Add album to playlist: open playlist UI.")));
 

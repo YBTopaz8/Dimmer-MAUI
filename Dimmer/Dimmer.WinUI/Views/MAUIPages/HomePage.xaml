@@ -198,7 +198,7 @@
                     Grid.Row="1"
                     Padding="5"
                     BackgroundColor="Transparent"
-                    RowDefinitions="auto,*"
+                    RowDefinitions="auto,*,auto"
                     >
                     <Border
                         x:Name="NavTab"
@@ -642,6 +642,22 @@
 
                         </HorizontalStackLayout>
 
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Row="2" Spacing="5">
+                        <HorizontalStackLayout Spacing="10">
+                            <Button Text="Normal Speed"
+                                Command="{Binding SetNormalPitchCommand}"/>
+
+                            <Button Text="Night Core"
+                                Command="{Binding SetNightCoreCommand}"/>
+
+                            <Button Text="Slow and Reverb"
+                                Command="{Binding SetSlowReverbCommand}"/>
+
+                        </HorizontalStackLayout>
+                        <HorizontalStackLayout>
+                            <Switch IsToggled="{Binding IsEqualizerEnabled,Mode=TwoWay}"/>
+                        </HorizontalStackLayout>
                     </VerticalStackLayout>
                 </Grid>
 

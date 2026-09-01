@@ -92,10 +92,10 @@ public sealed partial class AllArtistsPage : Page
                 case 1: // Name Desc
                     MyViewModel.ArtistSortSubject.OnNext(SortExpressionComparer<ArtistModelView>.Descending(x => x.Name));
                     break;
-                case 2: // Total Play Count Asc
+                case 2: // Total PlayAsync Count Asc
                     MyViewModel.ArtistSortSubject.OnNext(SortExpressionComparer<ArtistModelView>.Ascending(x => x.TotalCompletedPlays));
                     break;
-                case 3: // Total Play Count Desc
+                case 3: // Total PlayAsync Count Desc
                     MyViewModel.ArtistSortSubject.OnNext(SortExpressionComparer<ArtistModelView>.Descending(x => x.TotalCompletedPlays));
                     break;
                 case 4: // Total Albums Asc

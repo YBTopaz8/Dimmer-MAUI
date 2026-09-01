@@ -14,12 +14,12 @@ public partial class PlayTypeToBorderBrush : IValueConverter
         }
         else if (playType == 0)
         {
-            var playBrush = new SolidColorBrush(Color.FromRgba(255, 33, 150, 243)); // Blue color for Play
+            var playBrush = new SolidColorBrush(Color.FromRgba(255, 33, 150, 243)); // Blue color for PlayAsync
             return playBrush;
         }
         else if (playType == 1)
         {
-            var pauseBrush = new SolidColorBrush(Color.FromRgba(255, 255, 193, 7)); // Yellow color for Pause
+            var pauseBrush = new SolidColorBrush(Color.FromRgba(255, 255, 193, 7)); // Yellow color for PauseAsync
             return pauseBrush;
         }
         else if (playType == 5)

@@ -916,7 +916,7 @@ public sealed partial class DimmerWin : Window
             .Subscribe(curSong =>
             {
                 //if (!MyViewModel.IsDimmerPlaying) return;
-               if(!string.IsNullOrEmpty(curSong.CoverImagePath))
+               if(!string.IsNullOrEmpty(curSong?.CoverImagePath))
                 {
                     CurrentPlayingSongImage.Source = new BitmapImage(new Uri(curSong.CoverImagePath));
                     CurrentPlayingSongImage.Visibility = Visibility.Visible;

@@ -633,7 +633,7 @@ public partial class ExoPlayerService : MediaSessionService
             //// If same song reappears (duplicate entry in playlist)
             //if (newId == _lastMediaId)
             //{
-            //    service.player?.Pause(); // immediate cut — no 1s replay
+            //    service.player?.PauseAsync(); // immediate cut — no 1s replay
             //    service.RaisePlayingEnded();
             //    Console.WriteLine($"[ExoPlayerService] Duplicate transition intercepted → {newId}");
             //    return;
@@ -670,7 +670,7 @@ public partial class ExoPlayerService : MediaSessionService
             //    oldPosition?.MediaItem?.MediaId != null &&
             //    newPosition?.MediaItem?.MediaId == oldPosition.MediaItem.MediaId)
             //{
-            //    service.player?.Pause();
+            //    service.player?.PauseAsync();
             //    service.RaisePlayingEnded();
             //    Console.WriteLine("[ExoPlayerService] Duplicate discontinuity stopped early");
             //    return;
@@ -696,7 +696,7 @@ public partial class ExoPlayerService : MediaSessionService
             //{
             //    Console.WriteLine($"{DateTime.Now}!!!!!!!!!!!!!!!!!!!!!!!!! state changed and new state is {playbackState}");
             //}
-            //    //    service.player?.Pause(); // pause instead of stop for smoother state handover
+            //    //    service.player?.PauseAsync(); // pause instead of stop for smoother state handover
             //    //    service.RaisePlayingEnded();
             //    //    Console.WriteLine("[ExoPlayerService] Playback ended → event raised");
             //    //}
@@ -914,7 +914,7 @@ public partial class ExoPlayerService : MediaSessionService
                 case Keycode.MediaPlay:
                 case Keycode.MediaPause:
                 case Keycode.MediaPlayPause:
-                    // Toggle Play/Pause logic
+                    // Toggle PlayAsync/PauseAsync logic
                     if (service.player.IsPlaying) service.player.Pause();
                     else service.player.Play();
                     return true;
@@ -976,7 +976,7 @@ public partial class ExoPlayerService : MediaSessionService
                     return SessionResult.ResultSuccess;
 
                 case 4:
-                    // Handle Play/Pause
+                    // Handle PlayAsync/PauseAsync
                     return SessionResult.ResultSuccess;
             }
 
@@ -1001,13 +1001,13 @@ public partial class ExoPlayerService : MediaSessionService
             //    {
 
             //        case 9:
-            //            service.player?.Pause();
+            //            service.player?.PauseAsync();
             //            service.RaisePlayNextPressed();
             //            break;
 
             //        case 7:
-            //            service.player?.Pause();
-            //            service.player?.Pause();
+            //            service.player?.PauseAsync();
+            //            service.player?.PauseAsync();
             //            service.RaisePlayPreviousPressed();
 
             //            break;

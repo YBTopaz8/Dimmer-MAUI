@@ -129,13 +129,13 @@ public partial class AudioService : IDimmerAudioService, INotifyPropertyChanged,
     public void Play(double pos)
     {
         Player?.Play();
-        Seek(pos);
+        SeekAsync(pos);
     }
 
     public void Pause() => Player?.Pause();
     public void Stop() => Player?.Stop();
 
-    public void Seek(double positionSeconds)
+    public void SeekAsync(double positionSeconds)
     {
         // We just send the command. We do NOT raise the SeekCompleted event here.
         // The native service will raise its event when the seek is actually done.

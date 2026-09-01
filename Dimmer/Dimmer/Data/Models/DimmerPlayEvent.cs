@@ -37,10 +37,10 @@ public partial class DimmerPlayEvent : RealmObject, IRealmObjectWithObjectId
     /// <summary>
     /// Indicates the type of play action performed.
     /// Possible VALID values for <see cref="PlayType" />:
-    /// <list type="bullet"><item><term>0</term><description>Play</description>
+    /// <list type="bullet"><item><term>0</term><description>PlayAsync</description>
     /// </item><item><term>1</term>
     /// <description>
-    /// Pause</description></item>
+    /// PauseAsync</description></item>
     /// <item><term>2</term>
     /// <description>Resume</description>
     /// </item><item><term>3</term>

@@ -31,7 +31,7 @@ public static class MauiProgram
         builder.Services.AddDimmerCoreServices();
 
 
-        builder.Services.AddSingleton<IDimmerAudioService, AudioService>();
+        builder.Services.AddSingleton<IDimmerAudioService, OwnAudioService>();
         builder.Services.AddSingleton<BaseViewModelWin>();
         builder.Services.AddSingleton<EditorViewModel>();
         builder.Services.AddSingleton<IWinUIWindowMgrService, WinUIWindowMgrService>();

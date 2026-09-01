@@ -60,7 +60,7 @@ public partial class HomePage : ContentPage
 
         _ = InitializeAsync();
 
-
+        MyViewModel.AudioService.InitializeEngineAsync();
 
         Debug.WriteLine($"[UI VIEW] Bound to ViewModel Instance: {MyViewModel.InstanceId}");
 

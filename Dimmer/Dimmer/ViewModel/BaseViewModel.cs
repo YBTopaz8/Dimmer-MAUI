@@ -1,4 +1,5 @@
 ﻿global using CommunityToolkit.Diagnostics;
+
 global using Dimmer.DimmerLive.ParseStatics;
 global using Dimmer.DimmerSearch.TQL.RealmSection;
 global using Dimmer.Hoarder;
@@ -8,9 +9,13 @@ global using Dimmer.Resources.Localization;
 global using Dimmer.UIUtils;
 global using Dimmer.Utils;
 global using Dimmer.ViewModel.TQL;
+
 global using DynamicData.Binding;
+
 global using Hqub.Lastfm.Entities;
+
 global using Microsoft.Extensions.Logging.Abstractions;
+
 global using Parse.LiveQuery;
 
 global using System.ComponentModel;
@@ -20,6 +25,7 @@ global using System.Security.Cryptography;
 global using System.Text.Json.Serialization;
 global using System.Text.RegularExpressions;
 
+using Syncfusion.Maui.Toolkit.TextInputLayout;
 
 using EventHandler = System.EventHandler;
 
@@ -2164,9 +2170,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     private IDialogueService _dialogueService;
 
     #region audio device management
-    public void LoadAllAudioDevices()
+    public async Task LoadAllAudioDevices()
     {
-        var devices = _audioService.GetAllAudioDevices();
+        var devices = await _audioService.GetAllAudioDevicesAsync();
         AudioDevices = new ObservableCollection<AudioOutputDevice>(devices);
         //SelectedAudioDevice = AudioDevices.FirstOrDefault(d => d.IsSource) ?? AudioDevices.FirstOrDefault();
         //if (SelectedAudioDevice != null)
@@ -3152,7 +3158,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         if(oldValue is not null)
             oldValue.IsCurrentPlayingHighlight = false;
-        if (newValue is null) return;
+        if (newValue is null)
+        {
+            Debugger.Break();
+        }
         if (oldValue?.TitleDurationKey == newValue.TitleDurationKey) return;
         if(string.IsNullOrWhiteSpace(newValue.CoverImagePath))
         {
@@ -3161,11 +3170,16 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         OnPropertyChanged(nameof(CurrentPlayingSongView));
         await ProcessSongChangeAsync(newValue);
         CurrentPlaySongDominantColor = await ImageFilterUtils.GetDominantMauiColorAsync(newValue.CoverImagePath);
+
+        
     }
     public SongModelView? OldSongValue { get; internal set; }
     async partial void OnCurrentPlayingSongViewChanged(SongModelView oldValue, SongModelView newValue)
     {
-        if (newValue is null) return;
+        if (newValue is null)
+        {
+            Debugger.Break();
+        }
         if (oldValue is not null && oldValue.TitleDurationKey is null || newValue.TitleDurationKey is null)
             return;
         OldSongValue = oldValue;
@@ -3937,7 +3951,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         if (_audioService.IsPlaying)
         {
-            _audioService.Pause();
+            await _audioService.PauseAsync();
         }
         else
         {
@@ -3946,7 +3960,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 await _audioService.InitializeAsync(CurrentPlayingSongView, CurrentTrackPositionSeconds);
                 return;
             }
-            _audioService.Play(CurrentTrackPositionSeconds);
+           await _audioService.PlayAsync(CurrentTrackPositionSeconds);
         }
     }
 
@@ -4029,7 +4043,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     {
         if (_audioService.CurrentPosition > 15 && !SkipToPreviousDirectly)
         {
-            _audioService.Seek(0);
+            await _audioService.SeekAsync(0);
             await BaseAppFlow.UpdateDatabaseWithPlayEvent(
 
                   CurrentPlayingSongView,
@@ -4250,7 +4264,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     _logger.LogInformation("Sleep timer expired. Pausing playback.");
                     if (IsDimmerPlaying)
                     {
-                        _audioService.Pause();
+                        _audioService.PauseAsync();
                     }
                     IsSleepTimerActive = false;
                 });
@@ -4425,7 +4439,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     /// <summary>
     /// Stops current playback, clears queue, and plays the selected song with its context.
-    /// This is typically triggered by long-press or explicit "Play Now" action.
+    /// This is typically triggered by long-press or explicit "PlayAsync Now" action.
     /// </summary>
     private async Task PlaySongNowAsync(SongModelView songToPlay, IEnumerable<SongModelView>? context)
     {
@@ -4773,13 +4787,47 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     public bool IsProgrammaticSeek;
     [RelayCommand]
-    public void SeekTrackPosition(double positionSeconds)
+    public async Task SeekTrackPosition(double positionSeconds)
     {
         _logger.LogDebug("SeekTrackPosition called by UI to: {PositionSeconds}s", positionSeconds);
-
-        _audioService.Seek(positionSeconds);
+        
+        await _audioService.SeekAsync(positionSeconds);
     }
 
+    [RelayCommand]
+    public void SetNormalPitch()
+    { 
+        AudioService.SetPitchAndSpeed(0f, 1.0f);
+
+       
+    }
+
+    [RelayCommand]
+    public void SetNightCore()
+    {
+        // "Nightcore" Mode (Fast & High Pitch)
+        AudioService.SetPitchAndSpeed(3f, 1.25f);
+
+    }
+    [RelayCommand]
+    public void ToggleEqualizer()
+    {
+        IsEqualizerEnabled = !IsEqualizerEnabled;
+
+        AudioService.EnableEqualizer(IsEqualizerEnabled);
+
+    }
+
+    [ObservableProperty]
+    public partial bool IsEqualizerEnabled { get; set; }
+
+    [RelayCommand]
+    public void SetSlowReverb()
+    {
+        // "Slowed & Reverb" / Vaporwave Mode
+        AudioService.SetPitchAndSpeed(-2f, 0.85f);
+        AudioService.EnableReverb(true, roomSize: 0.8f, mix: 0.4f);
+    }
 
     public void RequestSeekPercentage(double percentage)
     {
@@ -5141,7 +5189,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         // Phase 1: Data Preparation
         var scrobblesInPeriod = realm.Find<SongModel>(song.Id)?.PlayHistory
             //.Where(p => p.EventDate >= startDate && p.EventDate < endDate &&
-            //            (p.PlayType == (int)PlayType.Play || p.PlayType == (int)PlayType.Completed))
+            //            (p.PlayType == (int)PlayType.PlayAsync || p.PlayType == (int)PlayType.Completed))
             //.OrderBy(p => p.EventDate) // Important for sequential analysis
             .ToList();
         var allSongs = realm.All<SongModel>().ToList();
@@ -7880,7 +7928,7 @@ public record QueryComponents(
         // Now, seek to the correct position
         if (startPositionSeconds > 0 && startPositionSeconds < transferredSong.DurationInSeconds)
         {
-            _audioService.Seek(startPositionSeconds);
+           await _audioService.SeekAsync(startPositionSeconds);
         }
     }
 

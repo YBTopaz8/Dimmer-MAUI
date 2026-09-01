@@ -78,7 +78,7 @@ public class LastfmService : ILastfmService
         _logger.LogInformation("Last.fm Service starting listeners...");
 
         // --- 1. Handle "Now Playing" and setting the scrobble candidate ---
-        // We use PlaybackStateChanged because it fires for Play, Resume, etc.
+        // We use PlaybackStateChanged because it fires for PlayAsync, Resume, etc.
         Observable.FromEventPattern<PlaybackEventArgs>(
             h => audioService.PlaybackStateChanged += h,
             h => audioService.PlaybackStateChanged -= h)

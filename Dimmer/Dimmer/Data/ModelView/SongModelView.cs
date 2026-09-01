@@ -175,7 +175,7 @@ public partial class SongModelView : ObservableObject
     public void RefreshDenormalizedProperties()
     {
 
-        // 1. Update Play Counts and Last Played
+        // 1. Update PlayAsync Counts and Last Played
         if (PlayEvents.Any())
         {
             PlayCount = PlayEvents.Count;

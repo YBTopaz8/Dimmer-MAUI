@@ -10,7 +10,7 @@ public static class CommonStatsHelper
         return new TextStat("Total Time", $"{(int)ts.TotalDays}d {ts.Hours}h {ts.Minutes}m");
     }
 
-    // 2. Play vs Skip Ratio
+    // 2. PlayAsync vs Skip Ratio
     public static ChartPoint[] GetPlaySkipRatio(List<DimmerPlayEvent> events)
     {
         int comps = events.Count(e => e.PlayType == (int)PlayType.Completed);
@@ -120,7 +120,7 @@ public static class CommonStatsHelper
         return trend;
     }
 
-    // 6. Play vs Skip Ratio - Good for Pie Charts
+    // 6. PlayAsync vs Skip Ratio - Good for Pie Charts
     public static IReadOnlyList<ChartPoint> GetPlaySkipRatio(IReadOnlyList<DimmerPlayEvent> events)
     {
         int comps = events.Count(e => e.PlayType == 3 || e.WasPlayCompleted); // 3 usually represents Completed

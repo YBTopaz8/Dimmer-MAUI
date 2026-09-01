@@ -37,7 +37,7 @@ public partial class StoryViewModel : ObservableObject
         if (StartLine == null || EndLine == null) return;
 
         double start = StartLine.TimeStampMs / 1000.0;
-        double end = EndLine.TimeStampMs / 1000.0 + (EndLine.DurationMs / 1000.0); // Play until end of last line
+        double end = EndLine.TimeStampMs / 1000.0 + (EndLine.DurationMs / 1000.0); // PlayAsync until end of last line
 
         // Use your AudioService to play the range
         // You might need to add a method PlayRange(start, end) to your AudioService

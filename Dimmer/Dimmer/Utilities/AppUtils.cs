@@ -32,7 +32,7 @@ public static class AppUtils
         string shareText = $"🎵 Now Playing: \"{title}\" by {artist}\n" +
                            $"💿 Album: {album}\n" +
                            $"⏱ Duration: {duration}\n" +
-                           $"▶️ Play Count: {playCount}\n" +
+                           $"▶️ PlayAsync Count: {playCount}\n" +
                            $"✅ Completed Plays: {playCompletedCount}\n" +
                            $"⏭ Skips: {skippedCount}\n" +
                            $"⏸ Pauses: {pausedCount}\n" +

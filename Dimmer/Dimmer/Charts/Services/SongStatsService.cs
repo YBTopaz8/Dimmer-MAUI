@@ -120,7 +120,7 @@ public class SongStatsService
         int eddington = dailyPlays.Where((count, index) => count >= index + 1).Count();
         var eddStat = new TextStat("Eddington No.", eddington.ToString(), $"Played {eddington}+ times on {eddington}+ days");
 
-        // 6. Play Streak
+        // 6. PlayAsync Streak
         int maxStreak = 0, currentStreak = 0;
         DateTime? lastDate = null;
         foreach (var date in events.Select(e => e.DatePlayed.Date).Distinct().OrderBy(d => d))
@@ -130,7 +130,7 @@ public class SongStatsService
             maxStreak = Math.Max(maxStreak, currentStreak);
             lastDate = date;
         }
-        var streakStat = new TextStat("Max Play Streak", $"{maxStreak} Days", "Consecutive days played");
+        var streakStat = new TextStat("Max PlayAsync Streak", $"{maxStreak} Days", "Consecutive days played");
 
         // 7. Time To Skip
         var skipEvents = events.Where(e => e.PlayType == 5 && e.PositionInSeconds > 0).ToList();

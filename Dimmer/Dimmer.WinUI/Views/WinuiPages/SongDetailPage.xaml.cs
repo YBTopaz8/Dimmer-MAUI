@@ -480,7 +480,7 @@ public sealed partial class SongDetailPage : Page
        //     animation.Configuration = new DirectConnectedAnimationConfiguration();
        // }
 
-       // // Play the second connected animation.
+       // // PlayAsync the second connected animation.
        // await AllAchievementsIR.TryStartConnectedAnimationAsync(animation, _storedItem, "connectedPopUpElement");
 
     }

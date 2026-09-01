@@ -349,7 +349,7 @@ namespace Dimmer.Resources.Localization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Pause.
+        ///   Looks up a localized string similar to PauseAsync.
         /// </summary>
         public static string txt_pause {
             get {
@@ -358,7 +358,7 @@ namespace Dimmer.Resources.Localization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Play.
+        ///   Looks up a localized string similar to PlayAsync.
         /// </summary>
         public static string txt_play {
             get {

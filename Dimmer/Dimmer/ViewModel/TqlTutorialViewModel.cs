@@ -139,7 +139,7 @@ public partial class TqlTutorialViewModel : ObservableObject
         Lessons.Add(new TqlLesson
         {
             Category = "Commands",
-            Title = "Play Results",
+            Title = "PlayAsync Results",
             Explanation = "Use '>> play!' to immediately replace your queue with the search results.",
             TqlQuery = "genre:Ambient >> play!"
         });

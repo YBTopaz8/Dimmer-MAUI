@@ -159,7 +159,7 @@ public class AchievementService : IDisposable
                         }
                         else
                         {
-                            // Default to Play Count
+                            // Default to PlayAsync Count
                             if (type == PlayType.Completed) passed = stats.TotalPlays >= rule.Threshold;
                         }
 
@@ -225,10 +225,10 @@ public class AchievementService : IDisposable
                 // We differentiate by ID string convention used in your BuildAllRules
                 if (rule.Id.Contains("SKIP")) return type == PlayType.Skipped;
                 if (rule.Id.Contains("FAV")) return type == PlayType.Favorited;
-                return type == PlayType.Completed; // Default Global is Play Count
+                return type == PlayType.Completed; // Default Global is PlayAsync Count
 
             case AchievementCategory.Misc:
-                // Misc contains "Genre Collector" (Fav) and "Night Owl" (Play).
+                // Misc contains "Genre Collector" (Fav) and "Night Owl" (PlayAsync).
                 // We have to inspect the definition or be permissive.
 
                 // If the rule involves favorites (Naming convention check)
@@ -236,7 +236,7 @@ public class AchievementService : IDisposable
                 {
                     if (type == PlayType.Favorited) return true;
                     // Some collector rules might be play-based, but most are fav based.
-                    // If you have "Play 5 Genres" (Explorer), that is a Play event.
+                    // If you have "PlayAsync 5 Genres" (Explorer), that is a PlayAsync event.
                     if (rule.Id.Contains("EXPLORER") || rule.Id.Contains("GENRE_PLAY")) return type == PlayType.Completed;
                 }
 

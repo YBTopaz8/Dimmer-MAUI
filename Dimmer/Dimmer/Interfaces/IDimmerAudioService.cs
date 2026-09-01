@@ -1,12 +1,15 @@
-﻿namespace Dimmer.Interfaces;
-public interface IDimmerAudioService
+﻿using OwnaudioNET.Effects;
+using OwnaudioNET.Effects.SmartMaster;
+
+namespace Dimmer.Interfaces;
+public  interface IDimmerAudioService
 {
 
 
-    void Pause();
+    Task PauseAsync();
 
 
-    void Seek(double positionSeconds);
+    Task SeekAsync(double positionSeconds);
 
 
     void InitializePlaylist(SongModelView songModelView, IEnumerable<SongModelView> songModels);
@@ -64,9 +67,9 @@ public interface IDimmerAudioService
 
     ValueTask DisposeAsync();
     void Stop();
-    List<AudioOutputDevice>? GetAllAudioDevices();
+    Task<List<AudioOutputDevice>?> GetAllAudioDevicesAsync();
     bool SetPreferredOutputDevice(AudioOutputDevice dev);
-    void Play(double pos);
+    Task PlayAsync(double pos);
     /// <summary>
     /// Initializes the player with the specified track metadata. Stops any current playback.
     /// </summary>
@@ -74,8 +77,8 @@ public interface IDimmerAudioService
     /// <returns>Task indicating completion.</returns>
     Task InitializeAsync(SongModelView songModel, double pos);
     Task SetDefaultAsync(AudioOutputDevice device);
-    Task MuteDevice(bool mute);
-    Task SetVolume(double volume);
+    void MuteDevice(bool mute);
+    void SetVolume(double volume);
     double GetCurrentVolume();
     AudioOutputDevice? GetCurrentAudioOutputDevice();
 
@@ -90,6 +93,15 @@ public interface IDimmerAudioService
     /// </summary>
     void ToggleAmbience(bool isEnabled);
     Task SendNextSong(SongModelView nextSong);
+
+    Task InitializeEngineAsync(string? outputDeviceId = null);
+    void SetPitchAndSpeed(float pitchSemitones, float tempoRatio);
+    void EnableEqualizer(bool enable);
+    void SetEqualizerPreset(EqualizerPreset preset);
+    void SetEqualizerBand(int bandIndex, float gainDb);
+    void EnableReverb(bool enable, float roomSize = 0.6F, float mix = 0.25F);
+    void EnableCompressor(bool enable, CompressorPreset preset = CompressorPreset.VocalGentle);
+    void EnableSmartMaster(bool enable, SpeakerType targetSpeaker = SpeakerType.HiFi);
 
     /// <summary>
     /// Gets or sets the volume of the ambience track (0.0 to 1.0), independent of main volume.

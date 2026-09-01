@@ -43,7 +43,7 @@ public sealed partial class RemoteControlPage : Page
 
         switch (commandParameter)
         {
-            case "Play":
+            case "PlayAsync":
                await MyViewModel.SessionMgtVM.SendDeviceCommand(commandParameter);
                 break;
             default:

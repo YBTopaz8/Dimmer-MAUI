@@ -45,7 +45,7 @@ public partial class AchievementsViewModel : ObservableObject, IDisposable
         foreach (var rule in allRules)
         {
             // Only show Global/General/Streak rules here. 
-            // Song-Specific rules (like "Play THIS song 50 times") usually clutter the global view.
+            // Song-Specific rules (like "PlayAsync THIS song 50 times") usually clutter the global view.
             if (!IsSongSpecific((AchievementCategory)rule.Category))
             {
                 bool unlocked = unlockedIds.Contains(rule);
