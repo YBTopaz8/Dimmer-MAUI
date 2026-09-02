@@ -394,7 +394,7 @@ public sealed partial class NowPlayingPage : Page
             MyViewModel.CurrentTrackPositionSeconds = finalValue;
 
             // Then perform seek
-            MyViewModel.SeekTrackPosition(finalValue);
+            MyViewModel.SeekTrackPositionAsync(finalValue);
         }
 
         ProgressSlider.ReleasePointerCapture(e.Pointer);
@@ -421,7 +421,7 @@ public sealed partial class NowPlayingPage : Page
         if (lyricTapped is null)
             return;
         var timeInSec = TimeSpan.FromMilliseconds(lyricTapped.TimestampStart).Seconds;
-        MyViewModel.SeekTrackPosition(timeInSec);
+        MyViewModel.SeekTrackPositionAsync(timeInSec);
         SyncLyricsListView.SmoothScrollIntoViewWithItemAsync(lyricTapped, itemPlacement:ScrollItemPlacement.Top);
 
     }

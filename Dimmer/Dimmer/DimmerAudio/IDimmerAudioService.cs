@@ -14,7 +14,7 @@ public  interface IDimmerAudioService
 
     void InitializePlaylist(SongModelView songModelView, IEnumerable<SongModelView> songModels);
 
-
+    DimmerPlaybackState CurrentPlaybackState { get; set; }
     bool IsPlaying { get; }
 
     double CurrentPosition { get; }
@@ -102,10 +102,13 @@ public  interface IDimmerAudioService
     void EnableReverb(bool enable, float roomSize = 0.6F, float mix = 0.25F);
     void EnableCompressor(bool enable, CompressorPreset preset = CompressorPreset.VocalGentle);
     void EnableSmartMaster(bool enable, SpeakerType targetSpeaker = SpeakerType.HiFi);
+    void ChangeEqBand(int bandIndex, float gainDb);
+    void SetDjCrossfade(double balance = 0.5);
 
     /// <summary>
     /// Gets or sets the volume of the ambience track (0.0 to 1.0), independent of main volume.
     /// </summary>
     double AmbienceVolume { get; set; }
     IObservable<SongModelView?> CurrentSong { get; }
+    IObservable<float[]> EqBands { get; }
 }

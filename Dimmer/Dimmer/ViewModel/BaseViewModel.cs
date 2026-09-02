@@ -3068,7 +3068,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         // or tapping on the slider track.
         if (!IsUserDraggingSlider) // This ensures it only seeks on tap, not during drag
         {
-            SeekTrackPosition(CurrentTrackPositionSeconds);
+            SeekTrackPositionAsync(CurrentTrackPositionSeconds);
         }
     }
 
@@ -4787,17 +4787,18 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     public bool IsProgrammaticSeek;
     [RelayCommand]
-    public async Task SeekTrackPosition(double positionSeconds)
+    public async Task SeekTrackPositionAsync(double positionSeconds)
     {
-        _logger.LogDebug("SeekTrackPosition called by UI to: {PositionSeconds}s", positionSeconds);
+        _logger.LogDebug("SeekTrackPositionAsync called by UI to: {PositionSeconds}s", positionSeconds);
         
         await _audioService.SeekAsync(positionSeconds);
     }
 
     [RelayCommand]
     public void SetNormalPitch()
-    { 
+    {
         AudioService.SetPitchAndSpeed(0f, 1.0f);
+        AudioService.EnableReverb(false);
 
        
     }
@@ -4808,6 +4809,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         // "Nightcore" Mode (Fast & High Pitch)
         AudioService.SetPitchAndSpeed(3f, 1.25f);
 
+        AudioService.EnableReverb(false);
     }
     [RelayCommand]
     public void ToggleEqualizer()
@@ -4826,15 +4828,15 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     {
         // "Slowed & Reverb" / Vaporwave Mode
         AudioService.SetPitchAndSpeed(-2f, 0.85f);
-        AudioService.EnableReverb(true, roomSize: 0.8f, mix: 0.4f);
+        AudioService.EnableReverb(true, roomSize: 0.3f, mix: 0.6f);
     }
 
-    public void RequestSeekPercentage(double percentage)
+    public async Task RequestSeekPercentage(double percentage)
     {
         if (CurrentTrackDurationSeconds > 0)
         {
             double targetSeconds = percentage * CurrentTrackDurationSeconds;
-            SeekTrackPosition(targetSeconds);
+          await  SeekTrackPositionAsync(targetSeconds);
         }
     }
 

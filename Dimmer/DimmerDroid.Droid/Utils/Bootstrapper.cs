@@ -25,7 +25,7 @@ internal class Bootstrapper
 
           
 
-            services.AddSingleton<IDimmerAudioService, AudioService>();
+
 
             services.AddSingleton<IBluetoothService, AndroidBluetoothService>();
 

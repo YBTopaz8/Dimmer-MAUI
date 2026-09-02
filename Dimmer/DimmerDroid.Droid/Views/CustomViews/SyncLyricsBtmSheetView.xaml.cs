@@ -50,7 +50,7 @@ public partial class SyncLyricsBtmSheetView : BottomSheet
         if (lyricTapped is null)
             return;
         var timeInSec = TimeSpan.FromMilliseconds(lyricTapped.EndTimeMs).Seconds;
-        MyViewModel.SeekTrackPosition(timeInSec);
+        MyViewModel.SeekTrackPositionAsync(timeInSec);
         AllLyricsColView.ScrollTo(lyricTappedHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
 
     }

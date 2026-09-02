@@ -193,7 +193,7 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
                         _mainViewModel.PlayPauseToggleCommand.Execute(null);
                         break;
                     case "SEEK":
-                        _mainViewModel.SeekTrackPosition(double.Parse(cmd.Payload));
+                        _mainViewModel.SeekTrackPositionAsync(double.Parse(cmd.Payload));
                         break;
 
                     case "GetFavs":

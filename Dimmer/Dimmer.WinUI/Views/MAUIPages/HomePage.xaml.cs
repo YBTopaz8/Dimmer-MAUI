@@ -60,7 +60,6 @@ public partial class HomePage : ContentPage
 
         _ = InitializeAsync();
 
-        MyViewModel.AudioService.InitializeEngineAsync();
 
         Debug.WriteLine($"[UI VIEW] Bound to ViewModel Instance: {MyViewModel.InstanceId}");
 
@@ -1260,7 +1259,7 @@ public partial class HomePage : ContentPage
     }
     private void ExecuteSeek(object? state)
     {
-        MainThread.BeginInvokeOnMainThread(() =>
+        MainThread.BeginInvokeOnMainThread(async () =>
         {
             // Critical: Don't let timer cause multiple seeks
             var value = _pendingSeekValue;
@@ -1268,7 +1267,7 @@ public partial class HomePage : ContentPage
 
             // Update ViewModel's property to keep binding in sync
             MyViewModel.CurrentTrackPositionSeconds = value;
-            MyViewModel.SeekTrackPosition(value);
+            await MyViewModel.SeekTrackPositionAsync(value);
 
             //PreviewTimeLabel.IsVisible = false;
         });
@@ -1277,5 +1276,10 @@ public partial class HomePage : ContentPage
     private void myPage_Unloaded(object sender, EventArgs e)
     {
         _debounceTimer?.Dispose();
+    }
+
+    private void ToggleEqualizer_Toggled(object sender, ToggledEventArgs e)
+    {
+        MyViewModel.ToggleEqualizer();
     }
 }

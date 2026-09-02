@@ -14,22 +14,12 @@ namespace DimmerDroid.Droid;
     ConfigChanges.Density)]
 public partial class MainActivity : MauiAppCompatActivity
 {
-    MediaPlayerServiceConnection? _serviceConnection;
-    Intent? _serviceIntent;
-    private ExoPlayerServiceBinder? _binder;
+
     BaseViewModelAnd? MyViewModel { get; set; }
     public MainActivity()
     {
       }
 
-    public ExoPlayerServiceBinder? Binder
-    {
-        get => _binder
-               ?? throw new InvalidOperationException("Service not bound yet");
-        set => _binder = value;
-
-
-    }
     const int REQUEST_AUDIO_PERMS = 99;
     const int REQUEST_STORAGE_PERMS = 98;
 
@@ -37,11 +27,8 @@ public partial class MainActivity : MauiAppCompatActivity
 
     protected override void OnDestroy()
     {
-        if (_serviceConnection != null)
-        {
-            UnbindService(_serviceConnection);
-            _serviceConnection = null;
-        }
+        
+
         base.OnDestroy();
 
     }
@@ -59,14 +46,14 @@ public partial class MainActivity : MauiAppCompatActivity
 
         // });
 
-        SetupService();
-
         SetupBackNavigation();
 
 
 
         CheckAndRequestPermissions();     
         
+        SetupService();
+
         // Increase thread pool for background operations
         ThreadPool.SetMinThreads(4, 4);
 
@@ -118,16 +105,15 @@ public partial class MainActivity : MauiAppCompatActivity
 
     public void SetupService()
     {
-        _serviceConnection = new MediaPlayerServiceConnection();
-        _serviceIntent = new Intent(this, typeof(ExoPlayerService));
-
-        // Start service but delay binding
+        var serviceIntent = new Intent(this, typeof(DimmerMediaService));
         if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
-            StartForegroundService(_serviceIntent);
+        {
+            StartForegroundService(serviceIntent);
+        }
         else
-            StartService(_serviceIntent);
-
-        BindService(_serviceIntent, _serviceConnection, Bind.AutoCreate);
+        {
+            StartService(serviceIntent);
+        }
     }
     private void ProcessIntent(Android.Content.Intent? intent)
     {

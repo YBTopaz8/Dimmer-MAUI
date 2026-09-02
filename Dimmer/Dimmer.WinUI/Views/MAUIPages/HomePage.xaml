@@ -656,7 +656,7 @@
 
                         </HorizontalStackLayout>
                         <HorizontalStackLayout>
-                            <Switch IsToggled="{Binding IsEqualizerEnabled,Mode=TwoWay}"/>
+                            <Switch IsToggled="{Binding IsEqualizerEnabled}"  x:Name="ToggleEqualizer"/>
                         </HorizontalStackLayout>
                     </VerticalStackLayout>
                 </Grid>

@@ -126,7 +126,12 @@ public sealed partial class OnlineLyricsSearchPage : Page
 
         // Set metadata
         LyricsTypeText.Text = hasSyncedLyrics ? "Synced" : "Plain";
-        LyricsDurationText.Text = TimeSpan.FromSeconds(lyricData.Duration).ToString(@"mm\:ss");
+        if (lyricData.Duration is not null)
+        {
+
+            LyricsDurationText.Text = TimeSpan.FromSeconds((double)lyricData.Duration).ToString(@"mm\:ss");
+
+        }
         InstrumentalIndicator.Visibility = lyricData.Instrumental ? WinUIVisibility.Visible : WinUIVisibility.Collapsed;
 
         // Set the default tab based on what's available

@@ -168,7 +168,7 @@ public partial class NowPlayingView : ContentView
 
             // Update ViewModel's property to keep binding in sync
             MyViewModel.CurrentTrackPositionSeconds = value;
-            MyViewModel.SeekTrackPosition(value);
+            MyViewModel.SeekTrackPositionAsync(value);
 
             //PreviewTimeLabel.IsVisible = false;
         });
@@ -313,7 +313,7 @@ public partial class NowPlayingView : ContentView
     //    if (lyricTapped is null)
     //        return;
     //    var timeInSec = TimeSpan.FromMilliseconds(lyricTapped.TimestampStart).Seconds;
-    //    MyViewModel.SeekTrackPosition(timeInSec);
+    //    MyViewModel.SeekTrackPositionAsync(timeInSec);
     //    AllLyricsColView.ScrollTo(lyricTappedHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
 
     //}

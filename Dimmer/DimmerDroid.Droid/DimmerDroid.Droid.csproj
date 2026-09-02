@@ -3,14 +3,23 @@
 
 	<PropertyGroup>
 		<TargetFramework>net10.0-android</TargetFramework>
-		<SupportedOSPlatformVersion>23.0</SupportedOSPlatformVersion>
-		<OutputType>Exe</OutputType>
+		<SupportedOSPlatformVersion>24.0</SupportedOSPlatformVersion>
+
+    <RuntimeIdentifiers>android-arm;android-arm64;android-x86;android-x64</RuntimeIdentifiers>
+
+    <OutputType>Exe</OutputType>
 		<RootNamespace>Dimmer</RootNamespace>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<LangVersion>preview</LangVersion>
 		<UseMaui>true</UseMaui>
 	</PropertyGroup>
+
+  <Target Name="_OwnaudioClearNonAndroidRid" BeforeTargets="Build">
+    <PropertyGroup>
+      <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' != '' AND !$(RuntimeIdentifier.StartsWith('android-'))"></RuntimeIdentifier>
+    </PropertyGroup>
+  </Target>
 
 	<ItemGroup>
 		<!--<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.120" />-->
@@ -27,6 +36,7 @@
 		<PackageReference Include="DevExpress.Maui.Gauges" Version="25.2.7" />
 		<PackageReference Include="DevExpress.Maui.ProjectTemplates" Version="25.2.7" />
 		<PackageReference Include="DevExpress.Maui.TreeView" Version="25.2.7" />
+    
 		
 		<PackageReference Include="SkiaSharp.Views" Version="3.119.2" />
 		<PackageReference Include="Xamarin.AndroidX.Activity.Ktx" Version="1.13.0" />

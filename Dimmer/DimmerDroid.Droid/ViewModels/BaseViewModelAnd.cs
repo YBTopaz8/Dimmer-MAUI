@@ -509,7 +509,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     void SeekToPosition(double position)
     {
         IsProgrammaticSeek = true;
-        base.SeekTrackPosition(position);
+        base.SeekTrackPositionAsync(position);
     }
 
     [RelayCommand]

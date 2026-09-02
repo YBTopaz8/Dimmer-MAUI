@@ -97,19 +97,6 @@ public class BaseAppFlow : IDisposable
             return null;
         }
 
-        // Deduplication logic - improved with timestamp to prevent issues
-        if (_lastEventCache.TryGetValue(songView.Id, out var lastEvent))
-        {
-            // If it's the same event type AND it's not Favorited AND it happened recently (within 1 second)
-            if (lastEvent.Type == type &&
-                type != PlayType.Favorited &&
-                (DateTime.UtcNow - lastEvent.Timestamp).TotalSeconds < 1)
-            {
-                _logger.LogDebug("Ignoring duplicate event {Type} for song {SongTitle}", type, songView.Title);
-                return null;
-            }
-        }
-
         // Update cache with new event
         _lastEventCache[songView.Id] = (type.Value, DateTime.UtcNow);
 

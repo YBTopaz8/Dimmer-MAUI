@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using Dimmer.Charts.Services;
+using Dimmer.DimmerAudio;
 using Dimmer.Interfaces.Services.Lyrics;
 using Dimmer.Interfaces.Services.Lyrics.Orchestrator;
 using Dimmer.ViewModel.DimmerLiveVM;
@@ -83,6 +84,9 @@ public static class ServiceRegistration
         services.AddSingleton<IErrorHandler, ErrorHandler>();
         services.AddSingleton<IUiErrorPresenter, ErrorHandler>();
         services.AddSingleton<IFolderMgtService, FolderMgtService>();
+
+        services.AddSingleton<IDimmerAudioService, OwnAudioService>();
+
 
         services.AddSingleton<ILiveSessionManagerService, ParseDeviceSessionService>();
         services.AddSingleton<SubscriptionManager>();

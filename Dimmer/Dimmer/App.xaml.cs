@@ -32,8 +32,12 @@ public partial class App : Application
     protected override Window CreateWindow(IActivationState? activationState)
     {
 
-        var win = AppUtilImple.LoadWindow();
+        _ = Task.Run(async () =>
+        {
+            await MyViewModel.AudioService.InitializeEngineAsync();
         
+        });
+        var win = AppUtilImple.LoadWindow();
         return win;
     }
 
