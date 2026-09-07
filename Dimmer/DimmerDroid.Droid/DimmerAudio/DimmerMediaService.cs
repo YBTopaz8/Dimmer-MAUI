@@ -1,4 +1,5 @@
 ﻿using AndroidX.Core.App;
+using AndroidX.Media3.ExoPlayer;
 using AndroidX.Media3.Session;
 
 using System;
@@ -54,6 +55,8 @@ public partial class DimmerMediaService : MediaSessionService
         Intent intent = new Intent(Platform.AppContext, typeof(MainActivity));
         PendingIntentFlags flags = PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable;
         PendingIntent? pendingIntent = PendingIntent.GetActivity(Platform.AppContext, 0, intent, flags);
+
+        IExoPlayer? pl = new ExoPlayerBuilder(this).Build();
 
         // 4. Build the Media Session
         _mediaSession = new MediaSession.Builder(this, _playerAdapter)!
