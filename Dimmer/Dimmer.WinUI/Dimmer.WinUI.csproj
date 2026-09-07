@@ -113,8 +113,6 @@
 		</ItemGroup>
 		<ItemGroup>
 			
-			<ProjectReference Include="$(AudioSwitcherCorePath)" />
-			<ProjectReference Include="$(AudioSwitcherApiPath)" />
 			<ProjectReference Include="..\Dimmer\Dimmer.csproj" />
 		</ItemGroup>
 

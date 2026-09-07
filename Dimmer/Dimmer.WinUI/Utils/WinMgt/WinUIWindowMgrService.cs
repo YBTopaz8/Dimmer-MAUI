@@ -407,7 +407,10 @@ public partial class WinUIWindowMgrService : IWinUIWindowMgrService
         WindowId id = Win32Interop.GetWindowIdFromWindow(hwnd);
         AppWindow appWindow = AppWindow.GetFromWindowId(id);
 
-        
+        if(appWindow == null)
+        {
+            return false;
+        }
         var presenter = appWindow.Presenter as OverlappedPresenter;
         if (presenter != null)
         {
