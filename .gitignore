@@ -60,3 +60,5 @@
 /Dimmer/DimmerDroid.Droid/bin/Debug/net10.0-android
 /Dimmer/DimmerDroid.Droid/bin/Release/net10.0-android/android-arm64
 /Dimmer/DimmerDroid.Droid/bin/Release/net10.0-android
+/ATL/bin/Debug/net6.0
+/ATL/obj
