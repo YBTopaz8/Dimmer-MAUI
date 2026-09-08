@@ -27,7 +27,7 @@ public partial class MainActivity : MauiAppCompatActivity
 
     protected override void OnDestroy()
     {
-        
+        _serviceStarter?.Dispose();
 
         base.OnDestroy();
 
@@ -89,6 +89,8 @@ public partial class MainActivity : MauiAppCompatActivity
 
     public static JsonSerializerOptions JsonOptions => _jsonOptions;
     private static JsonSerializerOptions _jsonOptions;
+    private IDisposable? _serviceStarter;
+
     private void ConfigureJsonOptions()
     {
         // Use these settings for better mobile performance
@@ -105,15 +107,30 @@ public partial class MainActivity : MauiAppCompatActivity
 
     public void SetupService()
     {
-        var serviceIntent = new Intent(this, typeof(DimmerMediaService));
-        if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
-        {
-            StartForegroundService(serviceIntent);
-        }
-        else
-        {
-            StartService(serviceIntent);
-        }
+        var audioService = IPlatformApplication.Current!.Services.GetRequiredService<IDimmerAudioService>();
+
+        // Wait until the user actually plays a song, then boot up the background service.
+        // Take(1) ensures we only send the Start Intent once per app lifecycle!
+        _serviceStarter = audioService.PlaybackStateObs
+            .Where(state => state == DimmerPlaybackState.Playing)
+            .Take(1)
+            .Subscribe(_ =>
+            {
+                var intent = new Intent(this, typeof(DimmerCompatMediaService));
+                if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+                    StartForegroundService(intent);
+                else
+                    StartService(intent);
+            });
+        //var intent = new Intent(this, typeof(DimmerCompatMediaService));
+        //if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+        //{
+        //    StartForegroundService(intent);
+        //}
+        //else
+        //{
+        //    StartService(intent);
+        //}
     }
     private void ProcessIntent(Android.Content.Intent? intent)
     {
