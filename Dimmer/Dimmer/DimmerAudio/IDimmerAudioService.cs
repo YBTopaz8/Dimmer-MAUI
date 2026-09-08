@@ -104,6 +104,9 @@ public  interface IDimmerAudioService
     void EnableSmartMaster(bool enable, SpeakerType targetSpeaker = SpeakerType.HiFi);
     void ChangeEqBand(int bandIndex, float gainDb);
     void SetDjCrossfade(double balance = 0.5);
+    void TriggerNext();
+    void TriggerPrevious();
+    void TriggerFavorite();
 
     /// <summary>
     /// Gets or sets the volume of the ambience track (0.0 to 1.0), independent of main volume.
@@ -111,4 +114,9 @@ public  interface IDimmerAudioService
     double AmbienceVolume { get; set; }
     IObservable<SongModelView?> CurrentSong { get; }
     IObservable<float[]> EqBands { get; }
+    IObservable<DimmerPlaybackState> PlaybackStateObs { get; }
+    IObservable<double> PositionObs { get; }
+    IObservable<SongModelView?> CurrentSongObs { get; }
+    IObservable<SongModelView> FavoriteRequestedObs { get; }
+    IObservable<double> DurationObs { get; }
 }

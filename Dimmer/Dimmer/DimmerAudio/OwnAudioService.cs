@@ -16,6 +16,23 @@ namespace Dimmer.DimmerAudio;
 
 public partial class OwnAudioService : IDimmerAudioService, INotifyPropertyChanged, IAsyncDisposable
 {
+    public IObservable<double> DurationObs => _duration.AsObservable();
+    public IObservable<DimmerPlaybackState> PlaybackStateObs => _playbackState.AsObservable();
+    public IObservable<double> PositionObs => _currentPosition.AsObservable();
+    public IObservable<SongModelView?> CurrentSongObs => _currentSong.AsObservable();
+
+    // A Subject to broadcast when the user taps "Favorite" on the notification
+    private readonly Subject<SongModelView> _favoriteRequested = new();
+    public IObservable<SongModelView> FavoriteRequestedObs => _favoriteRequested.AsObservable();
+
+    // Called by our Android Callback
+    public void TriggerNext() => MediaKeyNextPressed?.Invoke(this, new PlaybackEventArgs(_currentSong.Value));
+    public void TriggerPrevious() => MediaKeyPreviousPressed?.Invoke(this, new PlaybackEventArgs(_currentSong.Value));
+    public void TriggerFavorite()
+    {
+        if (_currentSong.Value != null)
+            _favoriteRequested.OnNext(_currentSong.Value);
+    }
     private static readonly Lazy<OwnAudioService> lazyInstance = new(() => new OwnAudioService());
     public static IDimmerAudioService Current => lazyInstance.Value;
 
@@ -772,20 +789,7 @@ public partial class OwnAudioService : IDimmerAudioService, INotifyPropertyChang
                 break;
         }
     }
-    #region Media Key Triggers (Called by Adapter)
 
-    public void TriggerNext()
-    {
-        // Fires the event so your ViewModel/App knows to play the next song
-        MediaKeyNextPressed?.Invoke(this, new PlaybackEventArgs(_currentSong.Value));
-    }
-
-    public void TriggerPrevious()
-    {
-        MediaKeyPreviousPressed?.Invoke(this, new PlaybackEventArgs(_currentSong.Value));
-    }
-
-    #endregion
 
     #region DJ/DuoPlayback
     private FileSource? _secondarySource;
@@ -829,6 +833,7 @@ public partial class OwnAudioService : IDimmerAudioService, INotifyPropertyChang
         }
     }
 
+    
     /// <summary>
     /// 
     // 0.0 = Track A full volume, Track B silent
