@@ -507,8 +507,8 @@ public partial class SessionManagementViewModel : ObservableObject, IDisposable
             var newWidth = (int)(original.Width * resizeRatio);
             var newHeight = (int)(original.Height * resizeRatio);
 
-            using var resized = original.Resize(new SKImageInfo(newWidth, newHeight), SKFilterQuality.High);
-
+            using var resized = original.Resize(new SKImageInfo(newWidth, newHeight), SKSamplingOptions.Default);
+           
             // Create square crop if needed (for perfect circle avatars)
             using var square = new SKBitmap(256, 256);
             using var canvas = new SKCanvas(square);

@@ -57,7 +57,6 @@
 		  <None Remove="Views\WinuiPages\DimmerLive\RemoteControlPage.xaml" />
 		  <None Remove="Views\WinuiPages\DimmerLive\SocialPage.xaml" />
 		  <None Remove="Views\WinuiPages\DimmsSection\AllDimsView.xaml" />
-		  <None Remove="Views\WinuiPages\GraphAndNodes.xaml" />
 		  <None Remove="Views\WinuiPages\LastFMSection\LastFmPage.xaml" />
 		  <None Remove="Views\WinuiPages\PlaylistSection\AllPlaylistsPage.xaml" />
 		  <None Remove="Views\WinuiPages\PlaylistSection\SinglePlaylistPage.xaml" />
@@ -95,8 +94,8 @@
 			
 			<PackageReference Include="LiveChartsCore.SkiaSharpView.WinUI" Version="2.0.5" />
 
-			<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.80" />
-			<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.9" />
+			<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.101" />
+			<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.11" />
 
 <PackageReference Include="DevWinUI" Version="9.9.4" />
 			<PackageReference Include="DevWinUI.ContextMenu" Version="9.9.1" />
@@ -105,6 +104,7 @@
 			<PackageReference Include="CommunityToolkit.WinUI.Animations" Version="8.2.251219" />
 			<PackageReference Include="CommunityToolkit.WinUI.Extensions" Version="8.2.251219" />
 			<PackageReference Include="CommunityToolkit.WinUI.Helpers" Version="8.2.251219" />
+			<PackageReference Include="Microsoft.WindowsAppSDK.Base" Version="2.0.4" />
 			<PackageReference Include="CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.1.2" />
 			<PackageReference Include="WinUI.TableView" Version="1.4.1" />
 			<PackageReference Include="Xabe.FFmpeg" Version="6.0.2" />
@@ -311,11 +311,6 @@
 		</ItemGroup>
 		<ItemGroup>
 		  <Page Update="Views\WinuiPages\DimmsSection\AllDimsView.xaml">
-			<Generator>MSBuild:Compile</Generator>
-		  </Page>
-		</ItemGroup>
-		<ItemGroup>
-		  <Page Update="Views\WinuiPages\GraphAndNodes.xaml">
 			<Generator>MSBuild:Compile</Generator>
 		  </Page>
 		</ItemGroup>

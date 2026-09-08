@@ -1208,30 +1208,8 @@ public partial class HomePage : ContentPage
 
     private void ViewLyricsChip_Loaded(object sender, EventArgs e)
     {
-        if(CurrentPlayingSong.HasSyncedLyrics)
-        {
-            ViewLyricsChip.Behaviors
-                .Add(
-                    new IconTintColorBehavior()                        
-                    {
-                        TintColor = ColorsM.DarkSlateBlue,
-                    });
-            return;
-        }
-        if(CurrentPlayingSong.HasLyrics)
-        {
-            ViewLyricsChip.Behaviors
-                .Add(
-                    new IconTintColorBehavior()
-                    {
-                        TintColor = ColorsM.DarkSlateGray,
-                    });
-            return;
-        }
-        var platElt = ((MButton)sender).Handler?.PlatformView;
-        var nativeElt = (UIElement?)platElt;
-        if(nativeElt is null)
-            return;
+        
+
 
     
     }

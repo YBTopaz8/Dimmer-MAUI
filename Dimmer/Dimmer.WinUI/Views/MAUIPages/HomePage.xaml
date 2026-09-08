@@ -134,9 +134,8 @@
                                 ToolTipProperties.Text="LastFM Page"
                                 WidthRequest="60"
                                 >
-                                <Button.Behaviors>
-                                    <toolkit:IconTintColorBehavior TintColor="#BE0606" />
-                                </Button.Behaviors>
+                              
+                                
 
                             </Button>
 
@@ -179,9 +178,8 @@
                                 ImageSource="settings.png"
                                 >
 
-                                <Button.Behaviors>
-                                    <toolkit:IconTintColorBehavior TintColor="DarkSlateBlue" />
-                                </Button.Behaviors>
+                               
+                                
                             </Button>
                             <Label
                                 FontSize="10"
@@ -452,9 +450,8 @@
                                     ToolTipProperties.Text="{Binding IsShuffleActive, Converter={converters:BoolToYesNoConverter}, StringFormat='Is Shuffle Active? : {0}'}"
                                     WidthRequest="60"
                                     >
-                                    <Button.Behaviors>
-                                        <toolkit:IconTintColorBehavior TintColor="{Binding CurrentPlaySongDominantColor}" />
-                                    </Button.Behaviors>
+                                    
+                                    
                                     <Button.Triggers>
                                         <DataTrigger
                                             Binding="{Binding IsShuffleActive}"
@@ -484,9 +481,8 @@
                                     <Button.CommandParameter>
                                         <x:Boolean>False</x:Boolean>
                                     </Button.CommandParameter>
-                                    <Button.Behaviors>
-                                        <toolkit:IconTintColorBehavior TintColor="{Binding CurrentPlaySongDominantColor}" />
-                                    </Button.Behaviors>
+                                   
+                                    
                                 </Button>
 
                             </Border>
@@ -503,9 +499,8 @@
                                     ImageSource="play.png"
                                     Loaded="ButtonLoaded"
                                     >
-                                    <Button.Behaviors>
-                                        <toolkit:IconTintColorBehavior TintColor="{Binding CurrentPlaySongDominantColor}" />
-                                    </Button.Behaviors>
+                                   
+                                    
 
                                     <Button.Triggers>
                                         <DataTrigger
@@ -540,9 +535,8 @@
                                 <Button.CommandParameter>
                                     <x:Boolean>True</x:Boolean>
                                 </Button.CommandParameter>
-                                <Button.Behaviors>
-                                    <toolkit:IconTintColorBehavior TintColor="{Binding CurrentPlaySongDominantColor}" />
-                                </Button.Behaviors>
+                               
+                                
                             </Button>
 
                             <Border Margin="4" Loaded="ButtonBorder_Loaded">
@@ -553,9 +547,8 @@
                                     Loaded="ButtonLoaded"
                                     ToolTipProperties.Text="{Binding CurrentRepeatMode, StringFormat='Current Repeat Mode : {0}'}"
                                     >
-                                    <Button.Behaviors>
-                                        <toolkit:IconTintColorBehavior TintColor="{Binding CurrentPlaySongDominantColor}" />
-                                    </Button.Behaviors>
+                                   
+                                    
                                     <Button.Triggers>
                                         <DataTrigger
                                             Binding="{Binding CurrentRepeatMode}"
@@ -728,10 +721,7 @@
                             Unloaded="ViewNPQ_Unloaded"
                             >
 
-                            <Button.Behaviors>
-
-                                <toolkit:IconTintColorBehavior TintColor="{Binding CurrentPlaySongDominantColor}" />
-                            </Button.Behaviors>
+                            
                         </Button>
 
                         <Grid

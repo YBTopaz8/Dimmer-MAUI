@@ -51,9 +51,9 @@ public static class NotificationHelper
         // 4. Build the Notification UI
         var builder = new NotificationCompat.Builder(context, ChannelId)?
             .SetContentTitle(currentSong?.Title ?? "Unknown Title")?
-            .SetContentText(currentSong?.ArtistName ?? "Unknown Artist")?
+            .SetContentText(currentSong?.OtherArtistsName ?? "Unknown Artist")?
             .SetSubText(currentSong?.AlbumName ?? "Unknown Album")?
-            .SetSmallIcon(Resource.Drawable.dimmicoo)? // REPLACE WITH YOUR APP ICON
+            .SetSmallIcon(Resource.Drawable.dimmicoo)? 
             .SetLargeIcon(coverArt)?
             .SetContentIntent(openAppPendingIntent)?
             .SetVisibility(NotificationCompat.VisibilityPublic)?

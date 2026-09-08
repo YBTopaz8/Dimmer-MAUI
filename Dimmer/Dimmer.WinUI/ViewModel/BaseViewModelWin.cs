@@ -553,23 +553,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     }
 
 
-    public async Task ShareSongViewClipboard(SongModelView song)
-    {
-
-        var byteData = await ShareCurrentPlayingAsStoryInCardLikeGradient(song, true);
-
-        if (byteData.imgBytes != null)
-        {
-
-
-            // listening to, text so, title, artistname, album with app name, and version.
-            string clipboardText = $"{song.Title} - {song.ArtistName}\nAlbum: {song.AlbumName}\n\nShared via Dimmer Music Player v{CurrentAppVersion}";
-
-            System.Windows.Clipboard.SetText(clipboardText);
-
-        }
-    }
-
+    
     protected override async Task OnPlaybackStarted(PlaybackEventArgs args)
     {
         await base.OnPlaybackStarted(args);

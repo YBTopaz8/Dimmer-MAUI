@@ -8208,54 +8208,6 @@ public record QueryComponents(
     }
 
 
-    public async Task<(byte[]? imgBytes, Stream? ImgStream)> ShareCurrentPlayingAsStoryInCardLikeGradient(
-        SongModelView? selectedSong,
-        bool ShareToClipboardInstead = false)
-    {
-        if (selectedSong is null)
-        {
-            if (SelectedSong is null)
-            {
-                SelectedSong = CurrentPlayingSongView;
-            }
-            else
-            {
-                //SelectedSong = SongColView.SelectedItem as SongModelView;
-            }
-        }
-        else
-        {
-            SelectedSong = selectedSong;
-        }
-        if (SelectedSong is null)
-        {
-            return (null, null);
-        }
-
-        // first create the image with SkiaSharp
-        var result = CoverArtService.CreateStoryImageAsync(SelectedSong, null);
-        if (ShareToClipboardInstead)
-        {
-            return (result.stream, result.memStream);
-        }
-        var imagePath = result.filePathResult;
-        if (string.IsNullOrEmpty(imagePath))
-        {
-            await Shell.Current.DisplayAlertAsync("Error", "Failed to create story image.", "OK");
-            return (null, null);
-        }
-        // then share it
-        ShareFileRequest request = new ShareFileRequest
-        {
-            Title = $"Share {SelectedSong.Title} by {SelectedSong.ArtistName}",
-            File = new ShareFile(imagePath),
-        };
-        await Share.RequestAsync(request);
-
-
-        return (null, null);
-    }
-
 
     public async Task SaveCurrentCoverToDisc(SongModelView? selectedSong)
     {

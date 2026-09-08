@@ -269,25 +269,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         }
     }
 
-    [RelayCommand]
-
-    public async Task ShareSongViewClipboard(SongModelView song)
-    {
-
-
-        var byteData = await ShareCurrentPlayingAsStoryInCardLikeGradient(song, true);
-
-        string clipboardText = $"{song.Title} - {song.ArtistName}\nAlbum: {song.AlbumName}\n\nShared via Dimmer Music Player v{CurrentAppVersion}";
-
-        if (byteData.imgBytes != null)
-        {
-            //await Clipboard.SetTextAsync(clipboardText);
-
-
-        }
-
-    }
-
+  
 
     #region Binding Views Section
 

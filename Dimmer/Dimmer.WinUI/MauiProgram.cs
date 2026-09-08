@@ -20,13 +20,7 @@ public static class MauiProgram
 
         builder
             .UseSharedMauiApp()
-            .UseMauiCommunityToolkit(options =>
-            {
-                options.SetShouldSuppressExceptionsInAnimations(true);
-                options.SetShouldSuppressExceptionsInBehaviors(true);
-                options.SetShouldSuppressExceptionsInConverters(true);
-
-            })
+            
             ;
         builder.Services.AddDimmerCoreServices();
 

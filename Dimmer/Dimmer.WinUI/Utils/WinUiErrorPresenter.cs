@@ -19,10 +19,11 @@ public class WinUiErrorPresenter : IUiErrorPresenter
 
     private static XamlRoot GetActiveWindowXamlRoot()
     {
-        var s = System.Windows.Application.Current
+        
+        var s =  Microsoft.Maui.Controls.Application.Current?
             .Windows;
-        var activeWindow = System.Windows.Application.Current
-            .Windows
+        var activeWindow = Microsoft.Maui.Controls.Application.Current?
+            .Windows?
             .OfType<Window>()
             .FirstOrDefault(w => w.Visible)?.Content.XamlRoot;
         return activeWindow == null ? throw new InvalidOperationException("No active window found to attach the dialog.") : activeWindow!;
