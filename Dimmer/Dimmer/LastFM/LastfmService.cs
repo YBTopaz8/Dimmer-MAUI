@@ -1,4 +1,5 @@
-﻿using Hqub.Lastfm;
+﻿using Dimmer.DimmerAudio;
+using Hqub.Lastfm;
 using Hqub.Lastfm.Cache;
 
 using Microsoft.Extensions.Options;
@@ -11,7 +12,7 @@ public class LastfmService : ILastfmService
     private readonly IRealmFactory _realmFactory;
     private readonly LastfmClient _client;
     private readonly LastfmSettings _settings; 
-    private readonly IDimmerAudioService audioService; 
+    private readonly IDimmerAudioService _audioService; 
     private readonly ILogger<LastfmService> _logger;
     private readonly CompositeDisposable _disposables = new(); // To manage subscriptions
 
@@ -41,7 +42,7 @@ public class LastfmService : ILastfmService
         IRepository<DimmerPlayEvent> playEventRepo)
     {
         _realmFactory = realmFactory;
-        this.audioService = _audioService;
+        this._audioService = _audioService;
         _songRepo = songRepo;
         _playEventRepo = playEventRepo;
         this._logger=logger;
@@ -77,29 +78,33 @@ public class LastfmService : ILastfmService
 
         _logger.LogInformation("Last.fm Service starting listeners...");
 
-        // --- 1. Handle "Now Playing" and setting the scrobble candidate ---
-        // We use PlaybackStateChanged because it fires for PlayAsync, Resume, etc.
-        Observable.FromEventPattern<PlaybackEventArgs>(
-            h => audioService.PlaybackStateChanged += h,
-            h => audioService.PlaybackStateChanged -= h)
-        .Select(evt => evt.EventArgs)
-        .Where(_ => ((ILastfmService)this).IsAuthenticated)
-        .ObserveOn(RxSchedulers.Background)
-        .Subscribe(async x =>
-        {
-            await HandlePlaybackStateChange(x);
-        }, ex => _logger.LogError(ex, "Error in Last.fm PlaybackStateChanged subscription."))
-        .DisposeWith(_disposables);
+        // 1. Listen for Playback State Changes
+        _audioService.PlaybackStateObs
+            .WithLatestFrom(_audioService.CurrentSongObs, (state, song) => new { state, song })
+            .Where(_ => ((ILastfmService)this).IsAuthenticated)
+            .ObserveOn(RxSchedulers.Background)
+            .Subscribe(async x =>
+            {
+                // Reconstruct the EventArgs so you don't have to rewrite your HandlePlaybackStateChange logic!
+                var args = new PlaybackEventArgs(x.song)
+                {
+                    EventType = x.state,
+                    IsPlaying = x.state == DimmerPlaybackState.Playing
+                };
 
-        Observable.FromEventPattern<PlaybackEventArgs>(
-                    h => audioService.PlayEnded += h,
-                    h => audioService.PlayEnded -= h)
-                .ObserveOn(RxSchedulers.UI)
-                .Subscribe(async _ => await OnPlaybackEnded(), ex => _logger.LogError(ex, "Error in PlayEnded subscription"))
-                .DisposeWith(_disposables);
+                await HandlePlaybackStateChange(args);
+            },
+            ex => _logger.LogError(ex, "Error in Last.fm PlaybackStateObs subscription."))
+            .DisposeWith(_disposables);
 
+        // 2. Listen for Play Ended
+        _audioService.PlayEndedObs
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(
+                async _ => await OnPlaybackEnded(),
+                ex => _logger.LogError(ex, "Error in PlayEndedObs subscription"))
+            .DisposeWith(_disposables);
     }
-
     private async Task OnPlaybackEnded()
     {
         // This event is for when the *entire queue* finishes.

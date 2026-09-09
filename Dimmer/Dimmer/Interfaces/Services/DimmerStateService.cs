@@ -1,6 +1,7 @@
 ﻿// Assuming Dimmer.Data.Models and Dimmer.Utilities.Enums are accessible
 // using Dimmer.Platform; // For Window
 
+using Dimmer.DimmerAudio;
 using System.Runtime.CompilerServices;
 
 using DimmerLogLevel = Dimmer.Data.Models.DimmerLogLevel;

@@ -1,4 +1,6 @@
-﻿namespace Dimmer.WinUI.ViewModel;
+﻿using Dimmer.DimmerAudio;
+
+namespace Dimmer.WinUI.ViewModel;
 
 public partial class StoryViewModel : ObservableObject
 {

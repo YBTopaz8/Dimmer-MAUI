@@ -116,9 +116,8 @@
                         IsThumbToolTipEnabled="True"
                         Maximum="{x:Bind MyViewModel.CurrentTrackDurationSeconds, Mode=OneWay}"
                         Minimum="0"
-                        PointerMoved="OnSliderPointerMoved"
-                        PointerPressed="OnSliderPointerPressed"
-                        PointerReleased="OnSliderPointerReleased"
+                        
+                        
                         Value="{x:Bind MyViewModel.CurrentTrackPositionSeconds, Mode=OneWay}"
                         />
                     <Grid>
@@ -203,12 +202,81 @@
                             </Flyout>
                         </Button.Flyout>
                     </Button>
-                    <Button
-                        Click="ViewLyricsButton_Click"
-                        Content="Lyrics"
-                        Style="{StaticResource SecondaryButtonStyle}"
-                        Visibility="{x:Bind MyViewModel.CurrentPlayingSongView.HasSyncedLyrics, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"
-                        />
+                    <Button Content="Audio FX" Style="{StaticResource SecondaryButtonStyle}">
+                        <Button.Flyout>
+                            <Flyout Placement="Top">
+                                <StackPanel Width="320" Spacing="15" Padding="10">
+                                    <TextBlock Text="Audio Tweaks" FontSize="18" FontWeight="SemiBold" />
+
+                                    <!-- Playback Mode (Nightcore, Slowed, etc) -->
+                                    <ComboBox Header="Playback Mode" 
+                          HorizontalAlignment="Stretch"
+                          SelectedIndex="{x:Bind MyViewModel.SelectedPlaybackModeIndex, Mode=TwoWay}">
+                                        <ComboBoxItem Content="Normal" />
+                                        <ComboBoxItem Content="Nightcore (Fast &amp; High)" />
+                                        <ComboBoxItem Content="Slowed (Clean)" />
+                                        <ComboBoxItem Content="Slowed + Reverb" />
+                                    </ComboBox>
+
+                                    <MenuFlyoutSeparator />
+
+                                    <!-- Enhancements -->
+                                    <ToggleSwitch Header="Vocal Compressor" 
+                              IsOn="{x:Bind MyViewModel.IsCompressorEnabled, Mode=TwoWay}" />
+
+                                    <ToggleSwitch Header="Ambience (Rain)" 
+                              IsOn="{x:Bind MyViewModel.IsAmbienceEnabled, Mode=TwoWay}" />
+
+                                    <MenuFlyoutSeparator />
+
+                                    <!-- 10-Band Equalizer (Mini Version) -->
+                                    <TextBlock Text="10-Band Equalizer" FontWeight="SemiBold" />
+                                    <ToggleSwitch IsOn="{x:Bind MyViewModel.IsEqEnabled, Mode=TwoWay}" OffContent="Off" OnContent="On" />
+
+                                    <!-- Horizontal layout for EQ sliders -->
+                                    <Grid Height="120"  >
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Band 0 (Sub Bass) -->
+                                        <Slider Grid.Column="0" Orientation="Vertical" HorizontalAlignment="Center" 
+                            Minimum="-12" Maximum="12" Value="{x:Bind MyViewModel.EqBand0, Mode=TwoWay}" />
+                                        <!-- Band 2 (Bass) -->
+                                        <Slider Grid.Column="1" Orientation="Vertical" HorizontalAlignment="Center" 
+                            Minimum="-12" Maximum="12" Value="{x:Bind MyViewModel.EqBand2, Mode=TwoWay}" />
+                                        <!-- Band 4 (Mids) -->
+                                        <Slider Grid.Column="2" Orientation="Vertical" HorizontalAlignment="Center" 
+                            Minimum="-12" Maximum="12" Value="{x:Bind MyViewModel.EqBand4, Mode=TwoWay}" />
+                                        <!-- Band 7 (Treble) -->
+                                        <Slider Grid.Column="3" Orientation="Vertical" HorizontalAlignment="Center" 
+                            Minimum="-12" Maximum="12" Value="{x:Bind MyViewModel.EqBand7, Mode=TwoWay}"  />
+                                        <!-- Band 9 (Air) -->
+                                        <Slider Grid.Column="4" Orientation="Vertical" HorizontalAlignment="Center" 
+                            Minimum="-12" Maximum="12" Value="{x:Bind MyViewModel.EqBand9, Mode=TwoWay}" />
+                                    </Grid>
+                                    <Grid >
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="31Hz" FontSize="10" HorizontalAlignment="Center" />
+                                        <TextBlock Grid.Column="1" Text="125Hz" FontSize="10" HorizontalAlignment="Center" />
+                                        <TextBlock Grid.Column="2" Text="500Hz" FontSize="10" HorizontalAlignment="Center" />
+                                        <TextBlock Grid.Column="3" Text="4kHz" FontSize="10" HorizontalAlignment="Center" />
+                                        <TextBlock Grid.Column="4" Text="16kHz" FontSize="10" HorizontalAlignment="Center" />
+                                    </Grid>
+                                </StackPanel>
+                            </Flyout>
+                        </Button.Flyout>
+                    </Button>
                     <Button
                         Click="ViewSongDetailsButton_Click"
                         Content="Details"

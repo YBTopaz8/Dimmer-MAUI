@@ -1,4 +1,6 @@
-﻿namespace Dimmer.Orchestration;
+﻿using Dimmer.DimmerAudio;
+
+namespace Dimmer.Orchestration;
 
 public class BaseAppFlow : IDisposable
 {

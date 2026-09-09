@@ -1,4 +1,6 @@
-﻿namespace Dimmer.WinUI.Views.MAUIPages;
+﻿using Dimmer.DimmerAudio;
+
+namespace Dimmer.WinUI.Views.MAUIPages;
 
 public partial class DimmerMAUIWin : Microsoft.Maui.Controls.Window
 {

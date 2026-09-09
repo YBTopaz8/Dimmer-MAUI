@@ -137,7 +137,7 @@ public static class DimmerMappers
 
             // --- Collections ---
             // Mapping RealmLists to ObservableCollections
-            //PlayEvents = src.PlayHistory?.Select(x => x.ToDimmerPlayEventView()).ToObservableCollection() ?? new(),
+            PlayEvents = src.PlayHistory.Select(x => x.ToDimmerPlayEventView()!).ToObservableCollection() ?? new(),
             UserNoteAggregatedCol = src.UserNotes?.Select(x => x.ToUserNoteModelView()).ToObservableCollection() ?? new(),
             EmbeddedSync = src.EmbeddedSync?.Select(x => x.ToLyricPhraseModelView()).ToObservableCollection() ?? new(),
 

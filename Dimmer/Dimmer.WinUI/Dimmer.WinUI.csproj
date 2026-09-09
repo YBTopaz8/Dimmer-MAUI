@@ -104,7 +104,8 @@
 			<PackageReference Include="CommunityToolkit.WinUI.Animations" Version="8.2.251219" />
 			<PackageReference Include="CommunityToolkit.WinUI.Extensions" Version="8.2.251219" />
 			<PackageReference Include="CommunityToolkit.WinUI.Helpers" Version="8.2.251219" />
-			<PackageReference Include="Microsoft.WindowsAppSDK.Base" Version="2.0.4" />
+			<PackageReference Include="Microsoft.WindowsAppSDK.Base" Version="1.8.251216001" />
+			<!--<PackageReference Include="Microsoft.WindowsAppSDK.Base" Version="2.0.4" />-->
 			<PackageReference Include="CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.1.2" />
 			<PackageReference Include="WinUI.TableView" Version="1.4.1" />
 			<PackageReference Include="Xabe.FFmpeg" Version="6.0.2" />

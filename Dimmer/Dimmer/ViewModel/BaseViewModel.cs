@@ -24,7 +24,8 @@ global using System.Linq;
 global using System.Security.Cryptography;
 global using System.Text.Json.Serialization;
 global using System.Text.RegularExpressions;
-
+using Dimmer.DimmerAudio;
+using Newtonsoft.Json.Linq;
 using Syncfusion.Maui.Toolkit.TextInputLayout;
 
 using EventHandler = System.EventHandler;
@@ -520,34 +521,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }, _backgroundCachingCts.Token);
 
 
-        Observable.FromEventPattern<PlaybackEventArgs>(
-            h => _audioService.IsPlayingChanged += h,
-            h => _audioService.IsPlayingChanged -= h)
-            .Select(evt => evt.EventArgs.IsPlaying)
-            .StartWith(false)
-            .Subscribe(
-                async obs =>
-                {
-                    if (obs)
-                    {
-                        _ = Task.Run(
-                            async () =>
-                            {
-                                var currentAudioServiceSong = await _audioService.CurrentSong.LastOrDefaultAsync();
-                                if (currentAudioServiceSong is null)
-                                {
-                                    return;
-                                }
-                                if (CurrentPlayingSongView.TitleDurationKey != currentAudioServiceSong.TitleDurationKey)
-                                {
-                                    CurrentPlayingSongView = currentAudioServiceSong;
-                                }
-                            });
-                    }
-                });
-        ;
-
-
 
         SearchResultsHolder.Connect()
              .AutoRefresh(song => song.IsFavorite)
@@ -566,13 +539,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
 
 
-        // 4. Handle Logging. Remove the temporary `if (pos == 0)` check.
-        _subsMgr.Add(Observable.FromEventPattern<double>(
-             h => _audioService.SeekCompleted += h,
-             h => _audioService.SeekCompleted -= h)
-             .Select(evt => evt.EventArgs)
-             .ObserveOn(RxSchedulers.UI)
-             .Subscribe(OnSeekCompleted, ex => _logger.LogError(ex, "Error in SeekCompleted subscription")));
         _duplicateSource
         .Connect()
         .Bind(out _duplicateSets)
@@ -649,6 +615,111 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         return;
     }
 
+    private void SubscribeToAudioServiceEvents()
+    {
+        // 1. Current Song (Replaces the clunky Task.Run / IsPlaying start check)
+        _subsMgr.Add(
+            _audioService.CurrentSongObs
+                .ObserveOn(RxSchedulers.UI)
+                .Subscribe(song =>
+                {
+                    if (song is null) return;
+                    if (CurrentPlayingSongView?.TitleDurationKey != song.TitleDurationKey)
+                    {
+                        CurrentPlayingSongView = song;
+                    }
+                },
+                ex => _logger.LogError(ex, "Error in CurrentSongObs subscription")));
+
+        // 2. Playback State (Handles IsPlayingChanged AND PlaybackStateChanged)
+        _subsMgr.Add(
+            _audioService.PlaybackStateObs
+                .ObserveOn(RxSchedulers.UI)
+                .Subscribe(async state =>
+                {
+                    IsDimmerPlaying = (state == DimmerPlaybackState.Playing);
+
+                    // Recreate the EventArgs so your existing HandlePlaybackStateChange method works perfectly
+                    var args = new PlaybackEventArgs(CurrentPlayingSongView)
+                    {
+                        EventType = state,
+                        IsPlaying = IsDimmerPlaying
+                    };
+
+                    await HandlePlaybackStateChange(args);
+                },
+                ex => _logger.LogError(ex, "Error in PlaybackStateObs subscription")));
+
+        // 3. Play Ended
+        _subsMgr.Add(
+            _audioService.PlayEndedObs
+                .ObserveOn(RxSchedulers.UI)
+                .Subscribe(
+                    async _ => await OnPlaybackEnded(),
+                    ex => _logger.LogError(ex, "Error in PlayEndedObs subscription")));
+
+        // 4. Seek Completed
+        _subsMgr.Add(
+            _audioService.SeekCompletedObs
+                .ObserveOn(RxSchedulers.UI)
+                .Subscribe(
+                    pos => OnSeekCompleted(pos),
+                    ex => _logger.LogError(ex, "Error in SeekCompletedObs subscription")));
+
+        // 5. Position Changed
+        _subsMgr.Add(
+            _audioService.PositionObs
+                .ObserveOn(RxSchedulers.UI)
+                .Subscribe(posInSec =>
+                {
+                    if (IsSliderBeingDragged) return;
+                    OnPositionChanged(posInSec);
+                    CurrentTrackPosition = TimeSpan.FromSeconds(posInSec);
+                },
+                ex => _logger.LogError(ex, "Error in PositionObs subscription")));
+
+        // 6. Error Occurred
+        _subsMgr.Add(
+            _audioService.ErrorObs
+                .ObserveOn(RxSchedulers.UI)
+                .Subscribe(async ex =>
+                {
+                    var args = new PlaybackEventArgs(CurrentPlayingSongView)
+                    {
+                        EventType = DimmerPlaybackState.Error
+                    };
+                    await OnPlayBackErrorOccured(args);
+                },
+                ex => _logger.LogError(ex, "Error in ErrorObs subscription")));
+
+        // 7. Media Key: Next
+        _subsMgr.Add(
+            _audioService.NextRequestedObs
+                .ObserveOn(RxSchedulers.UI)
+                .Subscribe(
+                    async _ => await NextTrackAsync(),
+                    ex => _logger.LogError(ex, "Error in NextRequestedObs subscription")));
+
+        // 8. Media Key: Previous
+        _subsMgr.Add(
+            _audioService.PreviousRequestedObs
+                .ObserveOn(RxSchedulers.UI)
+                .Subscribe(
+                    async _ => await PreviousTrackAsync(),
+                    ex => _logger.LogError(ex, "Error in PreviousRequestedObs subscription")));
+
+        // 9. Media Key: Favorite (from Android Notification)
+        _subsMgr.Add(
+            _audioService.FavoriteRequestedObs
+                .ObserveOn(RxSchedulers.UI)
+                .Subscribe(
+                    async song =>
+                    {
+                        // Call whatever method you use to toggle favorites!
+                        // Example: await ToggleFavoriteAsync(song);
+                    },
+                    ex => _logger.LogError(ex, "Error in FavoriteRequestedObs subscription")));
+    }
     public void UpdateAlbumSearch(string text)
     {
 
@@ -1519,7 +1590,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     appmodel.LastKnownRepeatState = (int)CurrentRepeatMode;
                     appmodel.LastKnownPosition = CurrentTrackPositionSeconds;
                     appmodel.CurrentSongId = CurrentPlayingSongView.Id.ToString();
-                    appmodel.VolumeLevelPreference = _audioService.Volume;
                     //appmodel.ScrobbleToLastFM = ScrobbleToLastFM;
                     appmodel.KeepScreenOnDuringLyrics = KeepScreenOnDuringLyrics;
                 });
@@ -2139,7 +2209,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         double newVolume = Math.Clamp(newValue, 0.0, 1.0);
         _logger.LogDebug("AudioEngine: UI Requesting SetVolume to {Volume}", newVolume);
 
-        _audioService.Volume = newVolume;
+        //_audioService.Volume = newVolume;
     }
 
     [ObservableProperty]
@@ -2188,13 +2258,13 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         SelectedAudioDevice = currentDevice;
     }
     [RelayCommand]
-    public void SetPreferredAudioDevice(AudioOutputDevice device)
+    public async Task SetPreferredAudioDevice(AudioOutputDevice device)
     {
         if (device == null)
             return;
         _audioService.SetPreferredOutputDevice(device);
         SelectedAudioDevice = device;
-        LoadAllAudioDevices();
+        await LoadAllAudioDevices();
     }
 
 
@@ -2782,7 +2852,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         });
         return string.Empty;
     }
-
+    [ObservableProperty]
+    public partial bool IsSliderBeingDragged { get;  set; }
 
     [ObservableProperty]
     public partial double CoverProgressValue { get; set; }
@@ -4017,7 +4088,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         var NextSongIndex = GetNextIndexInQueue(1);
         var nextSongInQueue = _playbackQueue[NextSongIndex];
-        await _audioService.SendNextSong(nextSongInQueue);
+        //await _audioService.SendNextSong(nextSongInQueue);
         
     }
 
@@ -4660,100 +4731,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
                         NextLine = line;
                     }));
-    }
-
-    private void SubscribeToAudioServiceEvents()
-    {
-        _subsMgr.Add(
-            Observable.FromEventPattern<PlaybackEventArgs>(
-                h => _audioService.PlaybackStateChanged += h,
-                h => _audioService.PlaybackStateChanged -= h)
-                .Select(evt => evt.EventArgs)
-                .ObserveOn(RxSchedulers.UI)
-                .Subscribe(
-                    async x => await HandlePlaybackStateChange(x),
-                    ex => _logger.LogError(ex, "Error in PlaybackStateChanged subscription")));
-
-        _subsMgr.Add(Observable.FromEventPattern<PlaybackEventArgs>(
-            h => _audioService.ErrorOccurred += h,
-            h => _audioService.ErrorOccurred -= h)
-                .Select(evt => evt.EventArgs)
-            .ObserveOn(RxSchedulers.UI)
-            .Subscribe(async x =>
-            {
-                await OnPlayBackErrorOccured(x);
-            },
-            ex =>
-            {
-                _logger.LogError(ex, "Error in Subscribing to OnErrorOccured");
-            }));
-        _subsMgr.Add(
-            Observable.FromEventPattern<PlaybackEventArgs>(
-                h => _audioService.IsPlayingChanged += h,
-                h => _audioService.IsPlayingChanged -= h)
-                .Select(evt => evt.EventArgs.IsPlaying)
-                .ObserveOn(RxSchedulers.UI)
-                .Subscribe(
-                    isPlaying =>
-                    {
-                        IsDimmerPlaying = isPlaying;
-                    },
-                    ex => _logger.LogError(ex, "Error in IsPlayingChanged subscription")));
-
-        _subsMgr.Add(Observable.FromEventPattern<double>(
-                h => _audioService.PositionChanged += h,
-                h => _audioService.PositionChanged -= h)
-                .Select(evt => evt.EventArgs)
-                .ObserveOn(RxSchedulers.UI)
-                .Subscribe(posInSec =>
-                {
-                    // Keep your existing method call
-                    OnPositionChanged(posInSec);
-
-                    // Feed the UI
-                    CurrentTrackPosition = TimeSpan.FromSeconds(posInSec);
-                },
-                ex => _logger.LogError(ex, "Error in PositionChanged subscription")));
-
-        //_subsMgr.Add(Observable.FromEventPattern<double>(
-        //        h => _audioService.SeekCompleted += h,
-        //        h => _audioService.SeekCompleted -= h)
-        //    .Select(evt => evt.EventArgs)
-        //    .ObserveOn(RxSchedulers.UI)
-        //    .Subscribe(newPost =>
-        //    {
-        //        OnSeekCompleted(newPost);
-        //    }, ex => _logger.LogError(ex, "Error in SeekCompleted subscription")));
-
-
-        _subsMgr.Add(
-            Observable.FromEventPattern<PlaybackEventArgs>(
-                h => _audioService.PlayEnded += h,
-                h => _audioService.PlayEnded -= h)
-                .ObserveOn(RxSchedulers.UI)
-                .Subscribe(
-                    async _ =>
-                    {
-                        await OnPlaybackEnded();
-                    },
-                    ex => _logger.LogError(ex, "Error in PlayEnded subscription")));
-
-
-        _subsMgr.Add(
-            Observable.FromEventPattern<PlaybackEventArgs>(
-                h => _audioService.MediaKeyNextPressed += h,
-                h => _audioService.MediaKeyNextPressed -= h)
-                .Subscribe(
-                    async _ => await NextTrackAsync(),
-                    ex => _logger.LogError(ex, "Error in MediaKeyNextPressed subscription")));
-
-        _subsMgr.Add(
-            Observable.FromEventPattern<PlaybackEventArgs>(
-                h => _audioService.MediaKeyPreviousPressed += h,
-                h => _audioService.MediaKeyPreviousPressed -= h)
-                .Subscribe(
-                    async _ => await PreviousTrackAsync(),
-                    ex => _logger.LogError(ex, "Error in MediaKeyPreviousPressed subscription")));
     }
 
     private async Task OnPlayBackErrorOccured(PlaybackEventArgs x)
@@ -8472,6 +8449,72 @@ public record QueryComponents(
         await Share.RequestAsync(request);
         await Clipboard.Default.SetTextAsync(shareText);
     }
+
+    [ObservableProperty]
+    public partial int SelectedPlaybackModeIndex { get;  set; }
+    partial void OnSelectedPlaybackModeIndexChanged(int value)
+    {
+        _audioService.SetPlaybackMode((PlaybackModeEnum)value);
+    }
+
+    [ObservableProperty]
+    public partial int EqBand0 { get;  set; }
+    partial void OnEqBand0Changed(int value)
+    {
+        _audioService.ChangeEqBand(0, (float)value);
+    }
+    partial void OnEqBand2Changed(int value)
+    {
+        _audioService.ChangeEqBand(2, (float)value);
+    }
+    partial void OnEqBand4Changed(int value)
+    {
+        _audioService.ChangeEqBand(4, (float)value);
+    }
+    partial void OnEqBand7Changed(int value)
+    {
+        _audioService.ChangeEqBand(7, (float)value);
+    }
+    partial void OnEqBand9Changed(int value)
+    {
+        _audioService.ChangeEqBand(9, (float)value);
+    }
+    [ObservableProperty]
+    public partial int EqBand2 { get;  set; }
+
+    [ObservableProperty]
+    public partial int EqBand4 { get;  set; }
+
+    [ObservableProperty]
+    public partial int EqBand7 { get;  set; }
+
+    [ObservableProperty]
+    public partial int EqBand9 { get;  set; }
+
+    [ObservableProperty]
+    public partial bool IsCompressorEnabled { get; set; }
+
+    partial void OnIsCompressorEnabledChanged(bool value)
+    {
+        _audioService.EnableCompressor(value);
+    }
+
+    [ObservableProperty]
+    public partial bool IsAmbienceEnabled { get; set; }
+    partial void OnIsAmbienceEnabledChanged(bool value)
+    {
+        _audioService.ToggleAmbience(value);
+    }
+   
+
+    [ObservableProperty]
+    public partial bool IsEqEnabled { get; set; }
+    partial void OnIsEqEnabledChanged(bool value)
+    {
+        _audioService.EnableEqualizer(value);
+    }
+
+
 
     [RelayCommand]
     public async Task LoadAllAlbumAndArtistDetailsFromLastFM()

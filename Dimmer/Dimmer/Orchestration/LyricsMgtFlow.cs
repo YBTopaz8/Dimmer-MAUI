@@ -1,4 +1,6 @@
-﻿namespace Dimmer.Orchestration;
+﻿using Dimmer.DimmerAudio;
+
+namespace Dimmer.Orchestration;
 
 public class LyricsMgtFlow : IDisposable
 {
@@ -49,35 +51,28 @@ public class LyricsMgtFlow : IDisposable
         _logger = logger ?? NullLogger<LyricsMgtFlow>.Instance;
 
         _subsManager.Add(
-     Observable.FromEventPattern<PlaybackEventArgs>(h => _audioService.PlaybackStateChanged += h, h => _audioService.PlaybackStateChanged -= h)
-         .Select(evt => evt.EventArgs)
-         // We only care about the 'Playing' state, which signals a new track has begun.
-         .Where(args => args.EventType == DimmerPlaybackState.Playing)
-         // Get the song from the event arguments.
-         .Select(args => args.AudioServiceCurrentPlayingSongView)
-         //.DistinctUntilChanged(song => song?.Id)
-         .Subscribe(
-             async song =>
-             {
-                 await ProcessExistingLyricsForSong(song);
-             },
-             ex => _logger.LogError(ex, "Error processing new song for lyrics from audio service event.")
-         ));
+         _audioService.PlaybackStateObs
+             .WithLatestFrom(_audioService.CurrentSongObs, (state, song) => new { state, song })
+             // We only care about the 'Playing' state, which signals a new track has begun.
+             .Where(x => x.state == DimmerPlaybackState.Playing && x.song != null)
+             // Prevent re-searching if the user just pauses and plays the same song
+             .DistinctUntilChanged(x => x.song?.Id)
+             .Subscribe(
+                 async x => await ProcessExistingLyricsForSong(x.song),
+                 ex => _logger.LogError(ex, "Error processing new song for lyrics from audio service event.")
+             ));
 
-        // ALSO, add a subscription to the Stop event to clear lyrics.
+        // 2. Clear lyrics when playback naturally ends
         _subsManager.Add(
-            Observable.FromEventPattern<PlaybackEventArgs>(h => _audioService.PlayEnded += h, h => _audioService.PlayEnded -= h)
-                // A simple stop/end should clear the lyrics.
+            _audioService.PlayEndedObs
                 .Subscribe(
                     _ => ClearLyrics(),
                     ex => _logger.LogError(ex, "Error clearing lyrics on PlayEnded.")
                 ));
 
-
-        _subsManager.Add(Observable.FromEventPattern<double>(
-                h => _audioService.PositionChanged += h,
-                h => _audioService.PositionChanged -= h)
-                .Select(evt => evt.EventArgs)
+        // 3. Sync the lyrics to the current audio position
+        _subsManager.Add(
+            _audioService.PositionObs
                 .ObserveOn(RxSchedulers.UI)
                 .Subscribe(posInSec =>
                 {
@@ -85,15 +80,9 @@ public class LyricsMgtFlow : IDisposable
                     {
                         UpdateLyricsForPosition(TimeSpan.FromSeconds(posInSec));
                     }
-                }, ex =>
-                {
-                    _logger.LogError(ex, "Error in PositionChanged subscription");
-                }));
-
-
-    
+                },
+                ex => _logger.LogError(ex, "Error in PositionObs subscription")));
     }
-
     public IObservable<double> AudioEnginePositionObservable { get; }
     /// <summary>
     /// A NEW PUBLIC method that the ViewModel will call when the user

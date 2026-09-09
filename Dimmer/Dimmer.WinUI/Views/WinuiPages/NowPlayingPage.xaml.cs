@@ -10,9 +10,10 @@ public sealed partial class NowPlayingPage : Page
     {
         InitializeComponent();
 
-        _previewTimer = new DispatcherTimer();
-        _previewTimer.Interval = TimeSpan.FromMilliseconds(50);
-        _previewTimer.Tick += OnPreviewTick;
+
+        ProgressSlider.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler(OnSliderPointerPressed), true);
+        ProgressSlider.AddHandler(UIElement.PointerReleasedEvent, new PointerEventHandler(OnSliderPointerReleased), true);
+        ProgressSlider.AddHandler(UIElement.PointerCaptureLostEvent, new PointerEventHandler(OnSliderPointerReleased), true);
     }
 
     public BaseViewModelWin MyViewModel { get; internal set; }
@@ -21,14 +22,12 @@ public sealed partial class NowPlayingPage : Page
     {
         MyViewModel?.OpenLyricsPopUpWindow(1);
     }
-    List<string> ArrayOfGoeyy;
     protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
     {
 
         MyViewModel = IPlatformApplication.Current?.Services.GetService<BaseViewModelWin>()!;
-       ArrayOfGoeyy = new List<string>();
-        ArrayOfGoeyy.Add("Favorite");
-        ArrayOfGoeyy.Add("Note");
+      
+
         MyViewModel.CurrentPageEnum = CurrentPage.NowPlayingPage;
         compDisp = new();
 
@@ -339,29 +338,20 @@ public sealed partial class NowPlayingPage : Page
 
     private void ListView_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
     {
+        if (MyViewModel.CurrentLine is null)
+        {
+            return;
+        }
         SyncLyricsListView.ScrollIntoView(MyViewModel.CurrentLine,ScrollIntoViewAlignment.Leading);
     }
 
     private bool _isDragging = false;
     private double _dragStartValue;
-    private DispatcherTimer _previewTimer;
+
     private void OnSliderPointerPressed(object sender, PointerRoutedEventArgs e)
     {
         _isDragging = true;
-        _dragStartValue = ProgressSlider.Value;
-
-        // Capture pointer for smooth tracking
-        ProgressSlider.CapturePointer(e.Pointer);
-
-        // Update position immediately on click
-        var point = e.GetCurrentPoint(ProgressSlider);
-        var newValue = CalculateValueFromPoint(point.Position);
-        ProgressSlider.Value = newValue;
-
-        // Start preview timer
-        _previewTimer.Start();
-
-        e.Handled = true;
+        MyViewModel.IsSliderBeingDragged = true;
     }
 
     private void OnSliderPointerMoved(object sender, PointerRoutedEventArgs e)
@@ -380,25 +370,17 @@ public sealed partial class NowPlayingPage : Page
 
     private async void OnSliderPointerReleased(object sender, PointerRoutedEventArgs e)
     {
+        if (!_isDragging) return;
         _isDragging = false;
 
-        // Stop preview timer
-        _previewTimer.Stop();
-
-        // Only seek if value actually changed
-        if (Math.Abs(ProgressSlider.Value - _dragStartValue) > 0.01)
+        if (MyViewModel != null)
         {
-            var finalValue = ProgressSlider.Value;
+            // Send the actual seek command to the audio engine
+            await MyViewModel.SeekTrackPositionAsync(ProgressSlider.Value);
 
-            // Update ViewModel binding first
-            MyViewModel.CurrentTrackPositionSeconds = finalValue;
-
-            // Then perform seek
-            MyViewModel.SeekTrackPositionAsync(finalValue);
+            // Let the Rx stream resume updating the UI
+            MyViewModel.IsSliderBeingDragged = false;
         }
-
-        ProgressSlider.ReleasePointerCapture(e.Pointer);
-        e.Handled = true;
     }
 
     private double CalculateValueFromPoint(Point point)
@@ -414,15 +396,15 @@ public sealed partial class NowPlayingPage : Page
         //PreviewTimeText.Text = TimeSpan.FromSeconds(ProgressSlider.Value).ToString(@"mm\:ss");
     }
 
-    private void SyncLyricsListView_ItemClick(object sender, ItemClickEventArgs e)
+    private async void SyncLyricsListView_ItemClick(object sender, ItemClickEventArgs e)
     {
-        var lyricTapped = e.ClickedItem as LyricPhraseModelView;
-        //LyricPhraseModelView? lyricTapped = e.Item as LyricPhraseModelView;
-        if (lyricTapped is null)
-            return;
-        var timeInSec = TimeSpan.FromMilliseconds(lyricTapped.TimestampStart).Seconds;
-        MyViewModel.SeekTrackPositionAsync(timeInSec);
-        SyncLyricsListView.SmoothScrollIntoViewWithItemAsync(lyricTapped, itemPlacement:ScrollItemPlacement.Top);
+        if (e.ClickedItem is not LyricPhraseModelView lyricTapped) return;
+
+
+        var timeInSec = TimeSpan.FromMilliseconds(lyricTapped.TimestampStart).TotalSeconds;
+
+        await MyViewModel.SeekTrackPositionAsync(timeInSec);
+        await SyncLyricsListView.SmoothScrollIntoViewWithItemAsync(lyricTapped, itemPlacement: ScrollItemPlacement.Top);
 
     }
 
@@ -434,5 +416,17 @@ public sealed partial class NowPlayingPage : Page
     private void NowPlayingSpecViz_Loaded(object sender, RoutedEventArgs e)
     {
 
+    }
+
+    private async void ProgressSlider_PointerCaptureLost(object sender, PointerRoutedEventArgs e)
+    {
+        if (!_isDragging) return;
+        _isDragging = false;
+
+        // Send the actual seek command to the audio engine
+        await MyViewModel.SeekTrackPositionAsync(ProgressSlider.Value);
+
+        // Let the Rx stream resume updating the UI
+        MyViewModel.IsSliderBeingDragged = false;
     }
 }

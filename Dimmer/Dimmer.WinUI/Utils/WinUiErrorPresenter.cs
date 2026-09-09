@@ -20,6 +20,7 @@ public class WinUiErrorPresenter : IUiErrorPresenter
     private static XamlRoot GetActiveWindowXamlRoot()
     {
         
+        
         var s =  Microsoft.Maui.Controls.Application.Current?
             .Windows;
         var activeWindow = Microsoft.Maui.Controls.Application.Current?

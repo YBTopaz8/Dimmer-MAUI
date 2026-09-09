@@ -5,6 +5,7 @@
 
 using CommunityToolkit.Maui.Core.Extensions;
 using DevWinUI;
+using Dimmer.DimmerAudio;
 using Dimmer.Utils;
 using Dimmer.WinUI.Views.CustomViews.WinuiViews;
 using MongoDB.Bson;
@@ -1461,4 +1462,6 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     [ObservableProperty]
     public partial CoreWindow DimmerCoreWindow { get; set; }
+
+   
 }
