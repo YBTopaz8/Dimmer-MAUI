@@ -45,23 +45,23 @@ public partial class HomePage : ContentPage
 
 
 
-      
+
 
         MyViewModel.WhenPropertyChanged(nameof(MyViewModel.IsTqlBusy), v => (MyViewModel.IsTqlBusy))
         .Subscribe(async col =>
         {
 
-           if(!col)
-           {
+            if (!col)
+            {
                 if (SongsCV.IsLoaded && MyViewModel.SearchResults is not null)
                 {
                     SongsCV.ItemsSource = new List<SongModelView>(MyViewModel.SearchResults);
                 }
-           }
-           else
-           {
+            }
+            else
+            {
 
-           }
+            }
 
         }).DisposeWith(compDisp);
 
@@ -76,7 +76,7 @@ public partial class HomePage : ContentPage
 
                 var startTime = Java.Lang.JavaSystem.CurrentTimeMillis();
 
-                MyViewModel.InitializeAllVMCoreComponents();
+                await MyViewModel.InitializeAllVMCoreComponents();
 
                 var duration = Java.Lang.JavaSystem.CurrentTimeMillis() - startTime;
                 Console.WriteLine($"InitializeAppLogic took {duration}ms");
@@ -648,6 +648,10 @@ public partial class HomePage : ContentPage
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(pbQueue =>
             {
+                if (pbQueue is null )
+                {
+                    return;
+                }
                 if (pbQueue.Count < 1)
                 {
                     PlaybackQueueGrid.IsVisible = false;
@@ -1249,17 +1253,19 @@ public partial class HomePage : ContentPage
         }
     }
 
-    private void MyPage_Loaded(object sender, EventArgs e)
+    private async void MyPage_Loaded(object sender, EventArgs e)
     {
 
-        MyViewModel.StartTQLPipeLine();
+        
+
 
         if (!MyViewModel.IsInitialized)
         {
-            RxSchedulers.Background.ScheduleTo(async ()=> await InitializeAppLogic());
+            await InitializeAppLogic();
             //MyViewModel.LoadSongsInitially();
         }
 
+        MyViewModel.StartTQLPipeLine();
     }
 
     private void SearchText_Loaded(object sender, EventArgs e)

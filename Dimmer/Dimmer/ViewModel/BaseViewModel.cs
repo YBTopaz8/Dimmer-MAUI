@@ -25,8 +25,7 @@ global using System.Security.Cryptography;
 global using System.Text.Json.Serialization;
 global using System.Text.RegularExpressions;
 using Dimmer.DimmerAudio;
-using Newtonsoft.Json.Linq;
-using Syncfusion.Maui.Toolkit.TextInputLayout;
+
 
 using EventHandler = System.EventHandler;
 
@@ -441,7 +440,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
 
 
-    public void InitializeAllVMCoreComponents()
+    public async Task InitializeAllVMCoreComponents()
     {
         //return;
         IsFirstBoot = true;
@@ -461,8 +460,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         Debug.WriteLine(DateTime.Now + "start start bg task");
 
-        _ = Task.Run(async () =>
-        {
             try
             {
                 using (var db = RealmFactory.GetRealmInstance())
@@ -496,22 +493,23 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 await OnAppOpeningAsync();
 
                 LoadLastTenPlayedSongsFromDBToPlayBackQueue();
-                if (string.IsNullOrEmpty(CurrentPlayingSongView.CoverImagePath))
+            if (string.IsNullOrEmpty(CurrentPlayingSongView.CoverImagePath))
+            {
+                var songInDb = RealmFactory.GetRealmInstance().Find<SongModel>(CurrentPlayingSongView.Id);
+                if (songInDb is not null)
                 {
-                    var songInDb = RealmFactory.GetRealmInstance().Find<SongModel>(CurrentPlayingSongView.Id);
-                    if (songInDb is null) return;
                     if (!string.IsNullOrEmpty(songInDb.Album.ImagePath))
                     {
                         CurrentPlayingSongView.CoverImagePath = songInDb.Album.ImagePath;
-                        return;
+                        
                     }
 
                     CurrentPlayingSongView.CoverImagePath = songInDb.Album.SongsInAlbum?.FirstOrDefault(c => !string.IsNullOrEmpty(c.CoverImagePath))?.CoverImagePath ?? string.Empty;
                 }
-                await HeavierBackGroundLoadings(FolderPaths);
+            }
 
                 //await Task.Delay(1500);
-                await EnsureAllCoverArtCachedForSongsAsync(_backgroundCachingCts.Token);
+                //await EnsureAllCoverArtCachedForSongsAsync(_backgroundCachingCts.Token);
                 //await this.LoadAllSongsLyricsFromOnlineAsync(_backgroundCachingCts);
             }
             catch (OperationCanceledException er)
@@ -522,7 +520,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             {
                 _logger.LogError(ex, "Error during background initialization and cover art caching.");
             }
-        }, _backgroundCachingCts.Token);
+       
 
 
 
@@ -541,6 +539,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             })
             .DisposeWith(CompositeDisposables);
 
+        var allSongs = RealmFactory.GetRealmInstance().All<SongModel>().AsEnumerable().Select(x => x.ToSongModelView());
+        SearchResultsHolder.Edit(innerCache => innerCache.Load(allSongs));
 
 
         _duplicateSource
@@ -560,17 +560,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             .DisposeWith(CompositeDisposables);
 
-        Debug.WriteLine($"{DateTime.Now}: Playback queue subscription set up.");
-
-
-
-
-        Debug.WriteLine(DateTime.Now + "start query pipeline");
-
-
-
-        Debug.WriteLine($"{DateTime.Now}: Search query subscription set up.");
-
+       
         _logger.LogInformation(string.Format("{0}: Calculating ranks using RQL sorting...", DateTime.Now));
 
      
@@ -599,6 +589,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _backgroundCachingCts = new CancellationTokenSource();
 
 
+        await HeavierBackGroundLoadings(FolderPaths);
         this.WhenPropertyChanged(
           nameof(this.IsBackGrounded),
           isBG => (this.IsBackGrounded))
@@ -754,7 +745,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public void StartTQLPipeLine()
     {
        if( IsTQLInitialized )return;
-
+      
         IsFirstBoot = true;
         var searchStream = _searchQuerySubject
        .Throttle(TimeSpan.FromMilliseconds(250), RxSchedulers.Background)
@@ -766,7 +757,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
            RxSchedulers.UI.ScheduleTo(() =>
            {
                IsTqlBusy = true;
-               CurrentTqlQueryUI = query;
+
                TQLUserSearchErrorMessage = string.Empty; // Clear old errors!
                Debug.WriteLine($"[UI] Query updated: {query}");
            });
@@ -872,19 +863,24 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         try
         {
-            // 2. Fast Realm RQL Filter
-            var query = realmm.All<SongModel>().Filter(plan.RqlFilter);
-            if (ct.IsCancellationRequested) return null;
-
-            // 3. Fast Realm Sort
+            // 2. Fast Realm RQL Filter WITH NATIVE SORTING
+            string finalRql = plan.RqlFilter;
             bool didRealmSort = false;
+
             if (plan.SortDescriptions.Count > 0)
             {
-                var orderByString = string.Join(", ", plan.SortDescriptions.Select(
-                    desc => $"{desc.PropertyName} {(desc.Direction == SortDirection.Ascending ? "asc" : "desc")}"));
-                query = query.OrderBy(orderByString);
+                // Realm syntax requires: SORT(Property ASC, OtherProperty DESC)
+                var sortParts = plan.SortDescriptions.Select(
+                    desc => $"{desc.PropertyName} {(desc.Direction == SortDirection.Ascending ? "ASC" : "DESC")}");
+
+                finalRql += $" SORT({string.Join(", ", sortParts)})";
                 didRealmSort = true;
             }
+
+            // ONE single, ultra-fast native database query. No Reflection required!
+            var query = realmm.All<SongModel>().Filter(finalRql);
+
+            if (ct.IsCancellationRequested) return null;
 
             // 4. Materialize to RAM
             IEnumerable<SongModel> intermediateList = query.ToList();
@@ -893,6 +889,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             // 5. Memory Sort (Only if Realm couldn't)
             if (!didRealmSort && plan.SortDescriptions.Count > 0)
             {
+              
+
                 var firstSort = plan.SortDescriptions[0];
                 var orderedList = firstSort.Direction == SortDirection.Ascending
                     ? intermediateList.OrderBy(x => SemanticQueryHelpers.GetComparableProp(x, firstSort.PropertyName))
@@ -2099,10 +2097,14 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
  
     [ObservableProperty] public partial AudioOutputDevice? SelectedAudioDevice { get; set; }
-    partial void OnSelectedAudioDeviceChanged(AudioOutputDevice? value)
+    partial void OnSelectedAudioDeviceChanged(AudioOutputDevice? oldValue, AudioOutputDevice? newValue)
     {
-        _audioService.SetPreferredOutputDevice(value);
-    }
+        if (newValue is not null)
+        {
+
+            _audioService.SetPreferredOutputDevice(newValue);
+        }
+    }  
     [ObservableProperty] public partial string? SelectedSortingMode { get; set; }
 
     [ObservableProperty] public partial bool IsAscending { get; set; }
@@ -2121,9 +2123,15 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         // This method can be overridden in platform-specific ViewModels to trigger UI updates when playback state changes.
     }
     [ObservableProperty]
-    public partial bool IsTqlBusy { get; set; } = true;
+    public partial bool IsTqlBusy { get; set; }
 
-    
+    partial void OnIsTqlBusyChanged(bool oldValue, bool newValue)
+    {
+        if (newValue)
+        {
+            //Debugger.Break();
+        }
+    }
   
 
 [ObservableProperty]
@@ -8846,6 +8854,10 @@ public void RemoveRule(VisualFilterRule rule)
             });
         }
         return alb;
+    }
+    public void LoadCurrentAudioDevice()
+    {
+       SelectedAudioDevice=  _audioService.GetCurrentAudioOutputDevice();
     }
 
 

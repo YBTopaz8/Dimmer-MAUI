@@ -442,5 +442,9 @@ public sealed partial class NowPlayingPage : Page
             }).DisposeWith(compDisp);
 
     }
-            
+
+    private void ComboBox_Loaded(object sender, RoutedEventArgs e)
+    {
+        MyViewModel.GetCurrentAudioDevice();
+    }
 }

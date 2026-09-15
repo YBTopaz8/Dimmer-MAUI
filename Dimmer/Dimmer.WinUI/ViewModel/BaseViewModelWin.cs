@@ -1453,7 +1453,8 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
 
             //BackupService.CleanupOldBackups(3);
-        }
+    }
+
 
 
 

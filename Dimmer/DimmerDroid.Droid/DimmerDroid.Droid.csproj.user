@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <SelectedDevice>phone_m-dpi_5_4in_-_api_35_0_1</SelectedDevice>
+    <SelectedDevice>phone_m-dpi_5_4in_-_api_35_0</SelectedDevice>
     <SelectedPlatformGroup>Emulator</SelectedPlatformGroup>
-    <ActiveDebugProfile>Phone M-DPI 5.4in - API 35.0 (1) (Android 15.0 - API 35)</ActiveDebugProfile>
-    <DefaultDevice>phone_m-dpi_5_4in_-_api_35_0_1</DefaultDevice>
+    <ActiveDebugProfile>Phone M-DPI 5.4in - API 35.0 (Android 15.0 - API 35)</ActiveDebugProfile>
+    <DefaultDevice>phone_m-dpi_5_4in_-_api_35_0</DefaultDevice>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DebuggerFlavor>ProjectDebugger</DebuggerFlavor>

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
+    x:Name="myPage"
     x:Class="Dimmer.Views.HomePage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
@@ -14,7 +15,6 @@
     xmlns:statsVm="clr-namespace:Dimmer.ViewModel;assembly=Dimmer"
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:vm="clr-namespace:Dimmer.ViewModels"
-    x:Name="myPage"
     Title="HomePage"
     x:DataType="vm:BaseViewModelAnd"
     Loaded="MyPage_Loaded"
@@ -393,7 +393,6 @@
                         BackgroundColor="Transparent"
                         ItemSpacing="5"
                         ItemTemplate="{StaticResource LinearDataType}"
-                        Loaded="SongsCV_Loaded"
                         ZIndex="0" />
 
                     <dx:DXButton
@@ -1171,7 +1170,7 @@
             </dx:TabViewItem>
 
         </dx:TabView>
-        
+
         <dx:DXPopup
             x:Name="SortPopUp"
             AllowScrim="True"

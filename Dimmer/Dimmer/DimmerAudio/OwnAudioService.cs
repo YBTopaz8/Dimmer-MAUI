@@ -70,7 +70,7 @@ public partial class OwnAudioService : IDimmerAudioService
     private FileSource? _ambienceSource;
     private readonly SemaphoreSlim _transportLock = new(1, 1);
     private readonly Stopwatch _watch = new();
-    private EffectSpectrumAnalyzer? _visualizer;
+
     private EffectSpectrumAnalyzer? _analyzer;
     private IDisposable? _analyzerTimer;
     private readonly Subject<float[]> _spectrumData = new();
