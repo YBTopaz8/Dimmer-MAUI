@@ -1798,7 +1798,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
 
         var restoredQueue = await GetOrderedSongsFromIdsAsync(existingPlaylist.SongsIdsInPlaylist);
-        if (restoredQueue.Count == 0)
+        if (restoredQueue?.Count == 0)
         {
             _logger.LogWarning(
                 "Previous playback session playlist was found but its songs could not be located in the database.");
@@ -2181,7 +2181,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
     [ObservableProperty]
-    public partial double LeftVuDb { get; set; }= "-60.0 dB";
+    public partial string LeftVuDb { get; set; }= "-60.0 dB";
 
     [ObservableProperty]
     public partial double LeftVuLevel { get; set; } = 0.0;
@@ -2193,7 +2193,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial double RightVuLevel { get; set; } = 0.0;
 
     [ObservableProperty]
-    public partial double RightVuDb { get; set; } = "-60.0 dB";
+    public partial string RightVuDb { get; set; } = "-60.0 dB";
     [RelayCommand]
     private void ToggleMute()
     {
@@ -2201,7 +2201,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _audioService.MuteDevice(IsMuted);
     }
 
-    CancellationTokenSource? folderPickCTS;
+    CancellationTokenSource? _folderPickCTS;
     [RelayCommand]
     private async Task ExportRemix()
     {

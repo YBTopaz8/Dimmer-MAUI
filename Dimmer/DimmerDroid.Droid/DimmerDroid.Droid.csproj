@@ -5,7 +5,8 @@
 		<TargetFramework>net10.0-android</TargetFramework>
 		<SupportedOSPlatformVersion>24.0</SupportedOSPlatformVersion>
 
-    <RuntimeIdentifiers>android-arm;android-arm64;android-x86;android-x64</RuntimeIdentifiers>
+    <!--<RuntimeIdentifiers>android-arm;android-arm64;android-x86;android-x64</RuntimeIdentifiers>-->
+    <RuntimeIdentifiers>android-arm64</RuntimeIdentifiers>
 
     <OutputType>Exe</OutputType>
 		<RootNamespace>Dimmer</RootNamespace>
