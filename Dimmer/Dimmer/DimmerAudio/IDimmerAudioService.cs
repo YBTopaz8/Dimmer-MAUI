@@ -9,6 +9,16 @@ using static Dimmer.DimmerAudio.OwnAudioService;
 
 public interface IDimmerAudioService : IAsyncDisposable
 {
+    void SetEqualizerPreset(Equalizer30Preset preset);
+    Task CrossfadeToNextAsync(SongModelView nextSong, double overlapSeconds = 3D);
+    void ExportRemixToDisk(string outputFilePath);
+    void StopExport();
+    void StopVisualizer();
+    void StartVisualizer(int fftSize = 2048);
+    Task InitializeDjModeAsync(SongModelView trackA, SongModelView trackB);
+    
+
+
     // ==========================================================
     // 1. REACTIVE STATE STREAMS (ViewModels subscribe to these)
     // ==========================================================
@@ -61,14 +71,14 @@ public interface IDimmerAudioService : IAsyncDisposable
     void SetPitchAndSpeed(float pitchSemitones, float tempoRatio);
 
     void EnableEqualizer(bool enable);
-    void SetEqualizerPreset(EqualizerPreset preset);
+
     void ChangeEqBand(int bandIndex, float gainDb);
 
     void EnableReverb(bool enable, float roomSize = 0.35f, float mix = 0.15f);
     void EnableCompressor(bool enable, CompressorPreset preset = CompressorPreset.VocalGentle);
     void EnableSmartMaster(bool enable, SpeakerType targetSpeaker = SpeakerType.HiFi);
 
-    void SetDjCrossfade(double balance = 0.5);
+    void SetDjCrossFade(double balance = 0.5);
 
     // ==========================================================
     // 5. AMBIENCE (Background noise)
@@ -86,5 +96,8 @@ public interface IDimmerAudioService : IAsyncDisposable
     void SetVolume(double volume);
     void MuteDevice(bool mute);
     double Volume { get; set; }
+    bool IsMuted { get;  }
+    IObservable<(double Left, double Right)> PeakLevelsObs { get; }
+
     AudioOutputDevice? GetCurrentAudioOutputDevice();
 }

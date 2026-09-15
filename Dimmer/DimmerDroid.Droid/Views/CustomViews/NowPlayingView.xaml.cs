@@ -226,53 +226,31 @@ public partial class NowPlayingView : ContentView
 
     private void ShowFrequentlyPlayedExpanderChkBtn_CheckedChanging(object sender, ValueChangingEventArgs<bool> e)
     {
-        if (e.NewValue)
-        {
-            StatsViewModel.LoadSong(MyViewModel.CurrentPlayingSongView.Id);
-            return;
-        }
-        if (FrequentlyPlayedExpander.IsExpanded)
-        {
-            StatsViewModel.LoadSong(MyViewModel.CurrentPlayingSongView.Id);
-        }
+       
     }
     private void ListPerfectPairings_Loaded(object sender, EventArgs e)
     {
-        if(ListPerfectPairings.IsLoaded)
-        {
-            StatsViewModel?.WhenPropertyChanged(nameof(StatsViewModel.ListPerfectPairings), v => StatsViewModel?.ListPerfectPairings)
-            .Subscribe(insight =>
-            {
-                ListPerfectPairings.ItemsSource = insight;
-            });
-        } 
+       
     }
 
     CancellationTokenSource? cancellationTokenSource; 
     private async void ListPerfectPairings_Tap(object sender, CollectionViewGestureEventArgs e)
     {
-        cancellationTokenSource?.Cancel();
-        cancellationTokenSource = new();
-        var tappedItemHandle = e.ItemHandle;
-        var tappedItem = ListPerfectPairings.GetItem(tappedItemHandle) as SongPairing;
+      
+    }
 
-        if (tappedItem != null && tappedItem.songId != null && tappedItem.isPresentOnDevice)
+    private async void AudioControlCenterSheet_StateChanged(object sender, ValueChangedEventArgs<BottomSheetState> e)
+    {
+        switch (e.NewValue)
         {
-            MyViewModel.SelectedSong = MyViewModel.RealmFactory.GetRealmInstance().Find<SongModel>(tappedItem.songId).ToSongModelView();
-            this.SingleSongStatView.State = BottomSheetState.HalfExpanded;
-
-            HapticFeedback.Default.Perform(HapticFeedbackType.Click);
-        }
-        else
-        {
-
-            var songNotOnDeviceToast = new Snackbar();
-            var songNotOnDeviceToastText = "Song Not On Device";
-
-            CommunityToolkit.Maui.Alerts.Toast msgToast = new CommunityToolkit.Maui.Alerts.Toast() { Text = songNotOnDeviceToastText, Duration = CommunityToolkit.Maui.Core.ToastDuration.Short, TextSize=21};
-            msgToast?.Show(cancellationTokenSource.Token);
-
-            HapticFeedback.Default.Perform(HapticFeedbackType.LongPress);
+            case BottomSheetState.FullExpanded:
+            case BottomSheetState.HalfExpanded:
+                await MyViewModel.AudioService.InitializeEngineAsync();
+                break;
+            case BottomSheetState.Hidden:
+                break;
+            default:
+                break;
         }
     }
 

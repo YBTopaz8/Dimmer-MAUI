@@ -2,6 +2,7 @@
 using OwnaudioNET.Effects;
 using OwnaudioNET.Effects.SmartMaster;
 using OwnaudioNET.Mixing;
+using OwnaudioNET.Monitoring;
 using OwnaudioNET.Sources;
 
 using System.Reactive.Disposables;
@@ -24,8 +25,10 @@ public partial class OwnAudioService : IDimmerAudioService
     private readonly BehaviorSubject<double> _duration = new(0);
     private readonly BehaviorSubject<double> _volume = new(1.0);
     private readonly BehaviorSubject<AudioOutputDevice?> _currentDevice = new(null);
-    private readonly BehaviorSubject<float[]> _eqBands = new(new float[10]);
+    
+    private readonly BehaviorSubject<float[]> _eqBands = new(new float[30]);
 
+    private readonly BehaviorSubject<(double Left, double Right)> _peakLevels = new((-60.0, -60.0));
     // ==========================================================
     // REACTIVE EVENTS (Subjects are for one-time triggers)
     // ==========================================================
@@ -34,11 +37,13 @@ public partial class OwnAudioService : IDimmerAudioService
     private readonly Subject<Exception> _errors = new();
     private readonly Subject<SongModelView> _nextRequested = new();
     private readonly Subject<SongModelView> _prevRequested = new();
-    private readonly Subject<SongModelView> _favRequested = new();
+    private readonly Subject<SongModelView> _favRequested = new(); 
+    
 
     // ==========================================================
     // EXPOSED OBSERVABLES
     // ==========================================================
+    public IObservable<(double Left, double Right)> PeakLevelsObs => _peakLevels.AsObservable();
     public IObservable<SongModelView?> CurrentSongObs => _currentSong.AsObservable();
     public IObservable<DimmerPlaybackState> PlaybackStateObs => _playbackState.AsObservable();
     public IObservable<double> PositionObs => _currentPosition.AsObservable();
@@ -54,6 +59,7 @@ public partial class OwnAudioService : IDimmerAudioService
     public IObservable<SongModelView> NextRequestedObs => _nextRequested.AsObservable();
     public IObservable<SongModelView> PreviousRequestedObs => _prevRequested.AsObservable();
     public IObservable<SongModelView> FavoriteRequestedObs => _favRequested.AsObservable();
+    public IObservable<float[]> SpectrumDataObs => _spectrumData.AsObservable();
 
     // ==========================================================
     // INTERNAL ENGINE STATE
@@ -64,7 +70,10 @@ public partial class OwnAudioService : IDimmerAudioService
     private FileSource? _ambienceSource;
     private readonly SemaphoreSlim _transportLock = new(1, 1);
     private readonly Stopwatch _watch = new();
-
+    private EffectSpectrumAnalyzer? _visualizer;
+    private EffectSpectrumAnalyzer? _analyzer;
+    private IDisposable? _analyzerTimer;
+    private readonly Subject<float[]> _spectrumData = new();
     private double _lastEnginePos;
     private double _lastEnginePosAt;
     private bool _isDisposed;
@@ -72,7 +81,7 @@ public partial class OwnAudioService : IDimmerAudioService
     private double _ambienceVolume = 0.5;
 
     // Effects
-    private EqualizerEffect? _eqEffect;
+    private Equalizer30BandEffect? _eqEffect;
     private ReverbEffect? _reverbEffect;
     private CompressorEffect? _compressorEffect;
     private SmartMasterEffect? _smartMasterEffect;
@@ -119,6 +128,10 @@ public partial class OwnAudioService : IDimmerAudioService
     // ==========================================================
     public async Task InitializeEngineAsync(string? outputDeviceId = null)
     {
+        if (OwnaudioNet.Engine?.UnderlyingEngine is not null)
+        {
+            return ;
+        }
         try
         {
             var config = OwnaudioNet.CreateDefaultConfig();
@@ -135,7 +148,7 @@ public partial class OwnAudioService : IDimmerAudioService
             _mixer = new AudioMixer(OwnaudioNet.Engine!.UnderlyingEngine, bufferSizeInFrames: 1024);
 
             _compressorEffect = new CompressorEffect { Enabled = false };
-            _eqEffect = new EqualizerEffect { Enabled = false };
+            _eqEffect = new Equalizer30BandEffect { Enabled = false };
             _reverbEffect = new ReverbEffect { Enabled = false };
             _smartMasterEffect = new SmartMasterEffect { Enabled = false };
 
@@ -236,7 +249,18 @@ public partial class OwnAudioService : IDimmerAudioService
                 _mixer?.RemoveSource(_mainSource.Id);
                 _mainSource.Dispose();
             }
+            if(OwnaudioNet.Engine is null)
+            {
+                await InitializeEngineAsync();
+            }
 
+            
+            if(OwnaudioNet.Engine is null)
+            {
+                throw new InvalidOperationException("OwnaudioNet Engine is not initialized.");
+            }
+
+            
             int sr = OwnaudioNet.Engine!.Config.SampleRate;
             int ch = OwnaudioNet.Engine!.Config.Channels;
 
@@ -290,6 +314,7 @@ public partial class OwnAudioService : IDimmerAudioService
             _ambienceSource?.Pause();
             _mixer?.Pause();
             _playbackState.OnNext(DimmerPlaybackState.PausedUser);
+            _peakLevels.OnNext((-60.0, -60.0));
         }
         catch (Exception ex) { _errors.OnNext(ex); }
         finally { _transportLock.Release(); }
@@ -319,13 +344,16 @@ public partial class OwnAudioService : IDimmerAudioService
         _mainSource?.Stop();
         _ambienceSource?.Stop();
         _currentPosition.OnNext(0);
+        _peakLevels.OnNext((-60.0, -60.0));
         _playbackState.OnNext(DimmerPlaybackState.PlayCompleted);
     }
-
+    private static double ToDbFs(float linear)
+    => linear > 0f ? Math.Max(20.0 * Math.Log10(linear), -60.0) : -60.0;
     private void UpdatePositionFromEngine()
     {
         if (_mixer == null || _mainSource == null || _mainSource.IsEndOfStream) return;
 
+        // 1. Update Position
         double enginePos = _mixer.MasterClock.CurrentTimestamp;
         double now = _watch.Elapsed.TotalSeconds;
 
@@ -334,11 +362,19 @@ public partial class OwnAudioService : IDimmerAudioService
             _lastEnginePos = enginePos;
             _lastEnginePosAt = now;
         }
-
         double smoothPos = _lastEnginePos + (now - _lastEnginePosAt);
         _currentPosition.OnNext(Math.Clamp(smoothPos, 0, _duration.Value));
-    }
 
+        // 2. Update VU Meters (Only push if changed by 0.5dB to save UI layout passes)
+        double leftDb = ToDbFs(_mixer.LeftPeak);
+        double rightDb = ToDbFs(_mixer.RightPeak);
+        var currentPeaks = _peakLevels.Value;
+
+        if (Math.Abs(leftDb - currentPeaks.Left) >= 0.5 || Math.Abs(rightDb - currentPeaks.Right) >= 0.5)
+        {
+            _peakLevels.OnNext((leftDb, rightDb));
+        }
+    }
 
     public double Volume
     {
@@ -350,7 +386,7 @@ public partial class OwnAudioService : IDimmerAudioService
             _volume.OnNext(clamped);
         }
     }
-
+    public bool IsMuted => _volume.Value == 0;
     public AudioOutputDevice? GetCurrentAudioOutputDevice()
     {
         return _currentDevice.Value;
@@ -358,9 +394,110 @@ public partial class OwnAudioService : IDimmerAudioService
 
     public async Task SendNextSong(SongModelView nextSong)
     {
-        // This is a stub for old Gapless/Preload logic.
+        // Pre-load the upcoming track while the current one is still playing
+        int sr = OwnaudioNet.Engine!.Config.SampleRate;
+        int ch = OwnaudioNet.Engine!.Config.Channels;
+
+        _secondarySource = new FileSource(nextSong.FilePath, targetSampleRate: sr, targetChannels: ch);
+
+        // Add it to the mixer PREPARED, but DO NOT start it yet.
+        // The engine holds it in memory, fully decoded and ready to fire.
+        _mixer?.AddSourcePrepared(_secondarySource);
+    }
+    public void StartVisualizer(int fftSize = 2048)
+    {
+        if (_mixer == null) return;
+
+        _analyzer?.Dispose();
+        _analyzerTimer?.Dispose();
+
+        // Tap the master chain so it includes Reverb, Nightcore, and EQ
+        _analyzer = new EffectSpectrumAnalyzer(_mixer.CreateMasterEffectTap(), fftSize);
+
+        // Poll at ~30fps (33ms)
+        _analyzerTimer = Observable.Interval(TimeSpan.FromMilliseconds(33))
+            .Where(_ => IsPlaying)
+            .Subscribe(_ =>
+            {
+                if (_analyzer != null && _analyzer.Update())
+                {
+                    // Wet signal (PostMagnitudesDb) is what the user actually hears
+                    _spectrumData.OnNext(_analyzer.PostMagnitudesDb.ToArray());
+                }
+            });
+    }
+
+    public void StopVisualizer()
+    {
+        _analyzerTimer?.Dispose();
+        _analyzerTimer = null;
+        _analyzer?.Dispose();
+        _analyzer = null;
+    }
+    public void ExportRemixToDisk(string outputFilePath)
+    {
         
-        await Task.CompletedTask;
+        _mixer?.StartRecording(outputFilePath);
+    }
+
+    public void StopExport()
+    {
+        _mixer?.StopRecording();
+    }
+
+    public async Task CrossfadeToNextAsync(SongModelView nextSong, double overlapSeconds = 3.0)
+    {
+        await _transportLock.WaitAsync();
+        try
+        {
+            int sr = OwnaudioNet.Engine!.Config.SampleRate;
+            int ch = OwnaudioNet.Engine!.Config.Channels;
+
+            // 1. Decode the next track completely silently in the background
+            _secondarySource = new FileSource(nextSong.FilePath, targetSampleRate: sr, targetChannels: ch);
+            _secondarySource.SetPitchSmooth(_currentPitchSemitones);
+            _secondarySource.SetTempoSmooth(_currentTempoRatio);
+            _secondarySource.Volume = 0f; // Start silent for the fade in
+
+            // 2. Attach it to the master clock so it doesn't drift
+            _mixer?.AddSourcePrepared(_secondarySource);
+
+            // 3. Start it exactly NOW
+            _mixer?.StartPreparedSources(0);
+
+            // 4. Execute the crossfade asynchronously
+            var oldSource = _mainSource;
+            _mainSource = _secondarySource;
+
+            _currentSong.OnNext(nextSong);
+            _duration.OnNext(_mainSource.Duration);
+
+            // Fire & Forget the volume fade (100 steps over 'overlapSeconds')
+            _ = Task.Run(async () =>
+            {
+                int steps = 50;
+                int delayMs = (int)((overlapSeconds * 1000) / steps);
+
+                for (int i = 0; i <= steps; i++)
+                {
+                    float ratio = (float)i / steps;
+                    if (oldSource != null) oldSource.Volume = 1f - ratio;
+                    if (_mainSource != null) _mainSource.Volume = ratio;
+
+                    await Task.Delay(delayMs);
+                }
+
+                // Cleanup the old song once it's fully silent
+                if (oldSource != null)
+                {
+                    _mixer?.RemoveSource(oldSource.Id);
+                    oldSource.Stop();
+                    oldSource.Dispose();
+                }
+            });
+        }
+        catch (Exception ex) { _errors.OnNext(ex); }
+        finally { _transportLock.Release(); }
     }
 
     // ==========================================================
@@ -401,37 +538,21 @@ public partial class OwnAudioService : IDimmerAudioService
     }
 
     public void EnableEqualizer(bool enable) { if (_eqEffect != null) _eqEffect.Enabled = enable; }
-    public void SetEqualizerPreset(EqualizerPreset preset) => _eqEffect?.SetPreset(preset);
+    public void SetEqualizerPreset(Equalizer30Preset preset) => _eqEffect?.SetPreset(preset);
 
     public void ChangeEqBand(int bandIndex, float gainDb)
     {
-        if (_eqEffect == null || bandIndex < 0 || bandIndex > 9) return;
+        if (_eqEffect == null || bandIndex < 0 || bandIndex >= 30) return;
 
-        // Reflection/Switch wrapper based on your underlying engine logic
-        SetEqBandInternal(bandIndex, gainDb);
+       
+        _eqEffect.SetBandGain(bandIndex, 0f, 1f, gainDb); // Freq and Q are ignored by the wrapper for standard index calls, but gain is applied.
 
         var currentBands = _eqBands.Value;
         currentBands[bandIndex] = gainDb;
         _eqBands.OnNext(currentBands);
     }
 
-    private void SetEqBandInternal(int band, float gain)
-    {
-        if (_eqEffect == null) return;
-        switch (band)
-        {
-            case 0: _eqEffect.Band0Gain = gain; break;
-            case 1: _eqEffect.Band1Gain = gain; break;
-            case 2: _eqEffect.Band2Gain = gain; break;
-            case 3: _eqEffect.Band3Gain = gain; break;
-            case 4: _eqEffect.Band4Gain = gain; break;
-            case 5: _eqEffect.Band5Gain = gain; break;
-            case 6: _eqEffect.Band6Gain = gain; break;
-            case 7: _eqEffect.Band7Gain = gain; break;
-            case 8: _eqEffect.Band8Gain = gain; break;
-            case 9: _eqEffect.Band9Gain = gain; break;
-        }
-    }
+
 
     public void EnableReverb(bool enable, float roomSize = 0.35f, float mix = 0.15f)
     {
@@ -467,8 +588,48 @@ public partial class OwnAudioService : IDimmerAudioService
         if (_mixer != null) _mixer.MasterVolume = (float)clamped;
         _volume.OnNext(clamped);
     }
-    public void MuteDevice(bool mute) => _mixer!.MasterVolume = mute ? 0.0f : (float)_volume.Value;
-    public void SetDjCrossfade(double balance = 0.5) { /* Implement your DJ crossfade volume math here */ }
+    public void MuteDevice(bool mute)
+    {
+        
+        _mixer!.MasterVolume = mute ? 0.0f : (float)_volume.Value;
+    }
+    public async Task InitializeDjModeAsync(SongModelView trackA, SongModelView trackB)
+    {
+        await _transportLock.WaitAsync();
+        try
+        {
+            // 1. Clean up old sources
+            if (_mainSource != null) { _mixer?.RemoveSource(_mainSource.Id); _mainSource.Dispose(); }
+            if (_secondarySource != null) { _mixer?.RemoveSource(_secondarySource.Id); _secondarySource.Dispose(); }
+
+            int sr = OwnaudioNet.Engine!.Config.SampleRate;
+            int ch = OwnaudioNet.Engine!.Config.Channels;
+
+            _mainSource = new FileSource(trackA.FilePath, targetSampleRate: sr, targetChannels: ch);
+            _secondarySource = new FileSource(trackB.FilePath, targetSampleRate: sr, targetChannels: ch);
+
+            // 2. Add both via Prepared (Guarantees they start on the exact same sample!)
+            _mixer?.Pause();
+            _mixer?.AddSourcePrepared(_mainSource);
+            _mixer?.AddSourcePrepared(_secondarySource);
+
+            SetDjCrossFade(0.5); // Start at 50/50 mix
+
+            _mixer?.StartPreparedSources(0);
+            _mixer?.Start();
+
+            _playbackState.OnNext(DimmerPlaybackState.Playing);
+        }
+        finally { _transportLock.Release(); }
+    }
+    public void SetDjCrossFade(double balance = 0.5)
+    {
+        // Balance: 0.0 = 100% Track A, 1.0 = 100% Track B, 0.5 = 50% Both
+        var clamped = Math.Clamp(balance, 0.0, 1.0);
+
+        if (_mainSource != null) _mainSource.Volume = (float)(1.0 - clamped);
+        if (_secondarySource != null) _secondarySource.Volume = (float)clamped;
+    }
 
     // ==========================================================
     // HARDWARE & NOTIFICATION TRIGGERS
@@ -480,8 +641,36 @@ public partial class OwnAudioService : IDimmerAudioService
     // ==========================================================
     // AMBIENCE
     // ==========================================================
-    public async Task InitializeAmbienceAsync(string filePath) { /* Implement existing Ambience init */ }
-    public void ToggleAmbience(bool isEnabled) { /* Implement existing Ambience toggle */ }
+    public async Task InitializeAmbienceAsync(string filePath)
+    {
+        await _transportLock.WaitAsync();
+        try
+        {
+            _ambienceSource?.Dispose();
+
+            _ambienceSource = new FileSource(filePath)
+            {
+                Volume = (float)_ambienceVolume,
+                // Assuming Ownaudio FileSource has a looping mechanism, otherwise you hook into its end event to restart it
+            };
+
+            _mixer?.AddSource(_ambienceSource);
+
+            if (_isAmbienceEnabled && IsPlaying)
+                _ambienceSource.Play();
+        }
+        finally { _transportLock.Release(); }
+    }
+
+    public void ToggleAmbience(bool isEnabled)
+    {
+        _isAmbienceEnabled = isEnabled;
+        if (_ambienceSource == null) return;
+
+        if (isEnabled && IsPlaying) _ambienceSource.Play();
+        else _ambienceSource.Pause();
+    }
+
 
     // ==========================================================
     // CLEANUP

@@ -1114,16 +1114,16 @@ public partial class HomePage : ContentPage
 
     }
 
-    private void AudioDeviceSwitcherButton_Clicked(object sender, EventArgs e)
+    private async void AudioDeviceSwitcherButton_Clicked(object sender, EventArgs e)
     {  
         var send = (View)sender;
         var platView = send.Handler?.PlatformView as Microsoft.UI.Xaml.UIElement;
 
         if (platView is null) return;
-        MyViewModel.LoadAllAudioDevices();
-        if (MyViewModel.AudioDevices is null) return;
+        await MyViewModel.LoadAllAudioDevices();
+        if (MyViewModel.AvailableDevices is null) return;
 
-        var audioDevicesList = MyViewModel.AudioDevices.Select(x =>
+        var audioDevicesList = MyViewModel.AvailableDevices.Select(x =>
         {
             if(MyViewModel.SelectedAudioDevice?.Id == x.Id)
             {

@@ -9,9 +9,9 @@
 		<UseMaui>true</UseMaui>
 		<Nullable>enable</Nullable>
 		<LangVersion>preview</LangVersion>
-		<Version>1.9.8</Version>
-
-
+		<Version>1.9.9</Version>
+		
+		
 
 		<!-- Enable XAML source generation for faster build times and improved performance.
 		     This generates C# code from XAML at compile time instead of runtime inflation.

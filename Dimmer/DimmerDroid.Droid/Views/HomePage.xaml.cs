@@ -21,23 +21,7 @@ public partial class HomePage : ContentPage
         MyLoginVM = loginVM;
         compDisp = new();
        
-        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.HomePageIndex), v => (MyViewModel.HomePageIndex))
-            .Subscribe(
-                e =>
-                {
-                    NowPlaying.FrequentlyPlayedExpander.IsExpanded = false;
-                    switch (e)
-                    {
-                        case 1:
-
-                            break;
-                        default:
-
-                            break;
-
-                    }
-
-                }).DisposeWith(compDisp);
+      
         MyLastFMViewModel.LoadBaseViewModel(viewModelAnd);
         _ = Task.Run(() => loginVM.InitializeAsync());
      
@@ -89,7 +73,7 @@ public partial class HomePage : ContentPage
         
             try
             {
-            await Task.Delay(2500);
+
                 var startTime = Java.Lang.JavaSystem.CurrentTimeMillis();
 
                 MyViewModel.InitializeAllVMCoreComponents();
@@ -1272,7 +1256,7 @@ public partial class HomePage : ContentPage
 
         if (!MyViewModel.IsInitialized)
         {
-            _ = InitializeAppLogic();
+            RxSchedulers.Background.ScheduleTo(async ()=> await InitializeAppLogic());
             //MyViewModel.LoadSongsInitially();
         }
 

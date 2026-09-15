@@ -1,6 +1,8 @@
-﻿using Dimmer.DimmerSearch.TQLActions;
+﻿using System.Text.RegularExpressions;
+using Dimmer.DimmerSearch.TQLActions;
 
 namespace Dimmer.DimmerSearch.TQL;
+
 public class QuerySegment
 {
     public SegmentType SegmentType { get; }
@@ -27,9 +29,6 @@ public static class MetaParser
     private static readonly HashSet<TokenType> _directiveTokens = new()
         { TokenType.Asc, TokenType.Desc, TokenType.Random, TokenType.Shuffle, TokenType.First, TokenType.Last };
 
-    private static readonly HashSet<TokenType> _directiveKeywords = new()
-        { TokenType.Asc, TokenType.Desc, TokenType.Random, TokenType.Shuffle, TokenType.First, TokenType.Last };
-
     public static RealmQueryPlan Parse(string rawQuery)
     {
         try
@@ -43,32 +42,41 @@ public static class MetaParser
             // 3. Separate the main filter tokens from the directive tokens (sort, limit, etc.)
             var (filterTokens, directiveTokens) = SeparateFilterAndDirectives(allTokens);
 
-            // 4. Build the Master AST from ONLY the filter tokens using the new powerful parser
-            IQueryNode masterAst = new AstParser(filterTokens).Parse();
+            // 4. Build the Master AST from ONLY the filter tokens
+            var astResult = new AstParser(filterTokens).Parse();
+
+            // If parsing failed, we return the Error Plan gracefully.
+            if (!astResult.IsSuccess)
+            {
+                var match = Regex.Match(astResult.Error!, @"Unknown field '(\w+)'");
+                string? suggestion = match.Success ? QueryValidator.SuggestCorrectField(match.Groups[1].Value) : null;
+                return CreateErrorPlan(astResult.Error!, suggestion);
+            }
+
+            // Proceed safely
+            IQueryNode masterAst = astResult.Value!;
 
             // 5. Split the AST for hybrid execution
             var (databaseAst, inMemoryAst) = AstSplitter.Split(masterAst);
 
             // 6. Generate the RQL and the in-memory predicate
             var rqlFilter = RqlGenerator.Generate(databaseAst);
-            var inMemoryPredicate = new AstEvaluator().CreatePredicate(masterAst); // Always use the full master AST here
+            var inMemoryPredicate = new AstEvaluator().CreatePredicate(masterAst);
 
             // 7. Parse the separated directive tokens
             var sortDescriptions = CreateSortDescriptions(directiveTokens);
             var limiter = CreateLimiterClause(directiveTokens);
             var shuffleNode = CreateShuffleNode(directiveTokens);
 
-            // 8. Parse the Command part
-            IQueryNode? commandNode = ParseCommand(commandQuery);
+            // 8. Parse the Command part (USING NEW RESULT PATTERN)
+            var commandResult = ParseCommand(commandQuery);
+            if (!commandResult.IsSuccess)
+            {
+                return CreateErrorPlan(commandResult.Error!);
+            }
 
             // 9. Assemble and return the final plan
-            return new RealmQueryPlan(rqlFilter, inMemoryPredicate, sortDescriptions, limiter, commandNode, shuffleNode);
-        }
-        catch (ParsingException ex)
-        {
-            var match = Regex.Match(ex.Message, @"Unknown field '(\w+)'");
-            string? suggestion = match.Success ? QueryValidator.SuggestCorrectField(match.Groups[1].Value) : null;
-            return CreateErrorPlan(ex.Message, suggestion);
+            return new RealmQueryPlan(rqlFilter, inMemoryPredicate, sortDescriptions, limiter, commandResult.Value, shuffleNode);
         }
         catch (Exception ex)
         {
@@ -76,7 +84,6 @@ public static class MetaParser
         }
     }
 
-    // New helper to replace the complex and flawed segmentation system.
     private static (List<Token> filterTokens, List<Token> directiveTokens) SeparateFilterAndDirectives(List<Token> allTokens)
     {
         var filterTokens = new List<Token>();
@@ -86,12 +93,9 @@ public static class MetaParser
         {
             var token = allTokens[i];
 
-            // 1. Sort Directives
             if (token.Type is TokenType.Asc or TokenType.Desc)
             {
                 directiveTokens.Add(token);
-
-                // Steal the next token ONLY if it is an Identifier AND NOT followed by a Colon!
                 if (i + 1 < allTokens.Count && allTokens[i + 1].Type == TokenType.Identifier)
                 {
                     if (i + 2 >= allTokens.Count || allTokens[i + 2].Type != TokenType.Colon)
@@ -100,30 +104,26 @@ public static class MetaParser
                     }
                 }
             }
-            // 2. Limit / Shuffle Directives
             else if (token.Type is TokenType.First or TokenType.Last or TokenType.Random or TokenType.Shuffle)
             {
                 directiveTokens.Add(token);
 
-                // Grab number (e.g., shuffle 10)
                 if (i + 1 < allTokens.Count && allTokens[i + 1].Type == TokenType.Number)
                 {
                     directiveTokens.Add(allTokens[++i]);
                 }
 
-                // Grab bias (e.g., shuffle by rating desc)
                 if (i + 1 < allTokens.Count && allTokens[i + 1].Type == TokenType.Identifier && allTokens[i + 1].Text.Equals("by", StringComparison.OrdinalIgnoreCase))
                 {
-                    // Ensure 'by' isn't accidentally part of a filter like "by:artist"
                     if (i + 2 >= allTokens.Count || allTokens[i + 2].Type != TokenType.Colon)
                     {
-                        directiveTokens.Add(allTokens[++i]); // Add 'by'
+                        directiveTokens.Add(allTokens[++i]);
                         if (i + 1 < allTokens.Count && allTokens[i + 1].Type == TokenType.Identifier)
                         {
-                            directiveTokens.Add(allTokens[++i]); // Add the field
+                            directiveTokens.Add(allTokens[++i]);
                             if (i + 1 < allTokens.Count && allTokens[i + 1].Type is TokenType.Asc or TokenType.Desc)
                             {
-                                directiveTokens.Add(allTokens[++i]); // Add asc/desc
+                                directiveTokens.Add(allTokens[++i]);
                             }
                         }
                     }
@@ -137,9 +137,10 @@ public static class MetaParser
 
         return (filterTokens, directiveTokens);
     }
+
     private static RealmQueryPlan CreateErrorPlan(string message, string? suggestion = null)
     {
-        Func<SongModel, bool> predicate = _ => false; // Predicate that always returns false
+        Func<SongModel, bool> predicate = _ => false;
         return new RealmQueryPlan("FALSEPREDICATE", predicate, [], null, null, null, message, suggestion);
     }
 
@@ -162,51 +163,19 @@ public static class MetaParser
         return (rawQuery, string.Empty);
     }
 
-    private static void ProcessSegment(List<Token> segmentTokens, SegmentType segmentType, List<QuerySegment> segments)
-    {
-        var filterTokens = new List<Token>();
-        var directiveTokens = new List<Token>();
-
-        for (int i = 0; i < segmentTokens.Count; i++)
-        {
-            var token = segmentTokens[i];
-            bool isDirective = _directiveTokens.Contains(token.Type);
-
-            if (isDirective)
-            {
-                directiveTokens.Add(token);
-                // Handle directives that take arguments (e.g., 'asc title', 'first 10')
-                if ((token.Type is TokenType.Asc or TokenType.Desc) && i + 1 < segmentTokens.Count && segmentTokens[i + 1].Type == TokenType.Identifier)
-                {
-                    directiveTokens.Add(segmentTokens[++i]);
-                }
-                else if ((token.Type is TokenType.First or TokenType.Last or TokenType.Random or TokenType.Shuffle) && i + 1 < segmentTokens.Count && segmentTokens[i + 1].Type == TokenType.Number)
-                {
-                    directiveTokens.Add(segmentTokens[++i]);
-                }
-            }
-            else
-            {
-                filterTokens.Add(token);
-            }
-        }
-        segments.Add(new QuerySegment(segmentType, filterTokens, directiveTokens));
-    }
-
-    private static CommandNode? ParseCommand(string commandQuery)
+    private static ParseResult<CommandNode?> ParseCommand(string commandQuery)
     {
         if (string.IsNullOrWhiteSpace(commandQuery))
         {
-            return null;
+            return ParseResult<CommandNode?>.Ok(null);
         }
 
         var commandTokens = Lexer.Tokenize(commandQuery).Where(t => t.Type != TokenType.EndOfFile).ToList();
-        if (commandTokens.Count==0 || commandTokens.First().Type != TokenType.Identifier)
+        if (commandTokens.Count == 0 || commandTokens.First().Type != TokenType.Identifier)
         {
-            return null;
+            return ParseResult<CommandNode?>.Ok(null);
         }
 
-        // This is your existing `ParseAsCommand` logic, slightly refactored to fit here.
         var commandToken = commandTokens.First();
         var commandName = commandToken.Text.ToLowerInvariant();
         var arguments = new Dictionary<string, object>();
@@ -215,29 +184,24 @@ public static class MetaParser
         switch (commandName)
         {
             case "save":
-            case "savepl": // Add alias
-                if (argTokens.Count!=0)
+            case "savepl":
+                if (argTokens.Count != 0)
                 {
-                    // Join all remaining tokens to form the playlist name
                     var playlistName = string.Join(" ", argTokens.Select(t => t.Text));
                     arguments["playlistName"] = playlistName;
                 }
                 else
                 {
-                    throw new ParsingException("The 'save' command requires a playlist name.", commandToken.Position);
+                    return ParseResult<CommandNode?>.Fail("The 'save' command requires a playlist name.", commandToken.Position);
                 }
                 break;
 
             case "addnext":
-                // No arguments needed
-                break;
-
             case "addend":
-                // No arguments needed
                 break;
 
             case "addto":
-            case "addtopos": // Add alias
+            case "addtopos":
                 if (argTokens.Count == 1 && argTokens[0].Type == TokenType.Number)
                 {
                     if (int.TryParse(argTokens[0].Text, out int position))
@@ -246,72 +210,57 @@ public static class MetaParser
                     }
                     else
                     {
-                        throw new ParsingException($"Invalid position '{argTokens[0].Text}' for 'addto' command.", argTokens[0].Position);
+                        return ParseResult<CommandNode?>.Fail($"Invalid position '{argTokens[0].Text}' for 'addto' command.", argTokens[0].Position);
                     }
                 }
                 else
                 {
-                    throw new ParsingException("The 'addto' command requires a single number argument (e.g., '> addto 6').", commandToken.Position);
+                    return ParseResult<CommandNode?>.Fail("The 'addto' command requires a single number argument (e.g., '> addto 6').", commandToken.Position);
                 }
                 break;
+
             case "addall":
                 if (argTokens.Count < 2)
-                {
-                    throw new ParsingException("The 'addall' command requires indices and a position (e.g., '> addall (1,3) next').", commandToken.Position);
-                }
+                    return ParseResult<CommandNode?>.Fail("The 'addall' command requires indices and a position (e.g., '> addall (1,3) next').", commandToken.Position);
 
-                // Find the opening parenthesis of the index set.
                 int openParenIndex = argTokens.FindIndex(t => t.Type == TokenType.LeftParen);
                 if (openParenIndex == -1)
-                {
-                    throw new ParsingException("Missing index set for 'addall' command.", commandToken.Position);
-                }
+                    return ParseResult<CommandNode?>.Fail("Missing index set for 'addall' command.", commandToken.Position);
 
-                // Find the matching closing parenthesis.
                 int closeParenIndex = argTokens.FindIndex(openParenIndex, t => t.Type == TokenType.RightParen);
                 if (closeParenIndex == -1)
-                {
-                    throw new ParsingException("Mismatched parentheses in 'addall' command.", openParenIndex);
-                }
-                if (closeParenIndex + 1 >= argTokens.Count)
-                {
-                    throw new ParsingException("Missing position (e.g., 'next', 'end') after index set for 'addall'.", argTokens[closeParenIndex].Position);
-                }
-                // Extract the tokens for the index set and the final argument.
-                var indexTokens = argTokens.GetRange(openParenIndex, closeParenIndex - openParenIndex + 1);
+                    return ParseResult<CommandNode?>.Fail("Mismatched parentheses in 'addall' command.", openParenIndex);
 
+                if (closeParenIndex + 1 >= argTokens.Count)
+                    return ParseResult<CommandNode?>.Fail("Missing position (e.g., 'next', 'end') after index set for 'addall'.", argTokens[closeParenIndex].Position);
+
+                var indexTokens = argTokens.GetRange(openParenIndex, closeParenIndex - openParenIndex + 1);
                 var positionToken = argTokens[closeParenIndex + 1];
 
-                // Parse the indices using our new helper.
-                var parsedIndices = ParseIndexSet(indexTokens);
-                arguments["indices"] = parsedIndices;
+                var parsedIndicesRes = ParseIndexSet(indexTokens);
+                if (!parsedIndicesRes.IsSuccess)
+                    return ParseResult<CommandNode?>.Fail(parsedIndicesRes.Error, parsedIndicesRes.ErrorPosition);
+
+                arguments["indices"] = parsedIndicesRes.Value!;
                 arguments["position"] = positionToken.Text.ToLowerInvariant();
                 break;
+
             case "viewal":
-                // Default to the first album if no number is given
                 int albumIndex = 1;
                 if (argTokens.Count == 1 && argTokens[0].Type == TokenType.Number)
                 {
                     int.TryParse(argTokens[0].Text, out albumIndex);
                 }
-                arguments["albumIndex"] = Math.Max(1, albumIndex); // Ensure index is at least 1
+                arguments["albumIndex"] = Math.Max(1, albumIndex);
                 break;
 
             case "scrollto":
-                // No arguments needed
-                break;
-
             case "deletedup":
             case "deleteall":
-                // No changes needed for these
-                break;
-
-            default:
-                // Let the evaluator handle it as an unrecognized command
                 break;
         }
 
-        return new CommandNode(commandName, arguments);
+        return ParseResult<CommandNode?>.Ok(new CommandNode(commandName, arguments));
     }
 
     private static List<SortDescription> CreateSortDescriptions(IReadOnlyList<Token> allDirectives)
@@ -330,7 +279,7 @@ public static class MetaParser
                         var direction = token.Type == TokenType.Asc ? SortDirection.Ascending : SortDirection.Descending;
                         sortDescriptions.Add(new SortDescription(fieldDef, direction));
                     }
-                    i++; // Consume the field token
+                    i++;
                 }
             }
         }
@@ -364,7 +313,6 @@ public static class MetaParser
 
     private static ShuffleNode? CreateShuffleNode(IReadOnlyList<Token> allDirectives)
     {
-        // Find the 'shuffle' or 'random' token.
         var shuffleTokenIndex = -1;
         for (int i = 0; i < allDirectives.Count; i++)
         {
@@ -375,17 +323,12 @@ public static class MetaParser
             }
         }
 
-        if (shuffleTokenIndex == -1)
-        {
-            return null; // No shuffle directive found.
-        }
-
+        if (shuffleTokenIndex == -1) return null;
 
         var shuffleToken = allDirectives[shuffleTokenIndex];
         int count = int.MaxValue;
         int currentIndex = shuffleTokenIndex + 1;
 
-        // Check for a count (e.g., "shuffle 50")
         if (currentIndex < allDirectives.Count && allDirectives[currentIndex].Type == TokenType.Number)
         {
             if (int.TryParse(allDirectives[currentIndex].Text, out int parsedCount) && parsedCount > 0)
@@ -395,7 +338,6 @@ public static class MetaParser
             currentIndex++;
         }
 
-        // Check for a bias (e.g., "shuffle by rating desc")
         if (currentIndex + 1 < allDirectives.Count &&
             allDirectives[currentIndex].Text.Equals("by", StringComparison.OrdinalIgnoreCase) &&
             allDirectives[currentIndex + 1].Type == TokenType.Identifier)
@@ -405,33 +347,28 @@ public static class MetaParser
 
             if (FieldRegistry.FieldsByAlias.TryGetValue(fieldAlias, out var fieldDef))
             {
-                // The bias has been found. Now check for an optional direction.
-                var direction = SortDirection.Ascending; // Default bias direction
+                var direction = SortDirection.Ascending;
                 if (currentIndex < allDirectives.Count && allDirectives[currentIndex].Type == TokenType.Desc)
                 {
                     direction = SortDirection.Descending;
                 }
-
-                // Return a biased shuffle node
                 return new ShuffleNode(count, fieldDef, direction);
             }
         }
 
-        // If no valid bias was found, return a simple, pure random shuffle node.
         return new ShuffleNode(count);
     }
-    private static HashSet<int> ParseIndexSet(List<Token> tokens)
+
+    private static ParseResult<HashSet<int>> ParseIndexSet(List<Token> tokens)
     {
         var indices = new HashSet<int>();
         if (tokens.Count < 3 || tokens[0].Type != TokenType.LeftParen || tokens.Last().Type != TokenType.RightParen)
         {
-            throw new ParsingException("Invalid index format. Expected format like (1,3,5-9).", tokens.FirstOrDefault()?.Position ?? 0);
+            return ParseResult<HashSet<int>>.Fail("Invalid index format. Expected format like (1,3,5-9).", tokens.FirstOrDefault()?.Position ?? 0);
         }
 
-        // We only care about the tokens inside the parentheses.
         var innerTokens = tokens.Skip(1).Take(tokens.Count - 2).ToList();
 
-        // Use a simple loop to process numbers, commas, and hyphens.
         for (int i = 0; i < innerTokens.Count; i++)
         {
             var currentToken = innerTokens[i];
@@ -439,46 +376,37 @@ public static class MetaParser
             if (currentToken.Type == TokenType.Number)
             {
                 if (!int.TryParse(currentToken.Text, out int index))
-                {
-                    throw new ParsingException($"Invalid number '{currentToken.Text}' in index set.", currentToken.Position);
-                }
+                    return ParseResult<HashSet<int>>.Fail($"Invalid number '{currentToken.Text}' in index set.", currentToken.Position);
 
-                // Check if the next token is a hyphen for a range.
                 if (i + 2 < innerTokens.Count && innerTokens[i + 1].Type == TokenType.Minus && innerTokens[i + 2].Type == TokenType.Number)
                 {
                     if (!int.TryParse(innerTokens[i + 2].Text, out int endIndex))
-                    {
-                        throw new ParsingException($"Invalid end range number '{innerTokens[i+2].Text}'.", innerTokens[i+2].Position);
-                    }
+                        return ParseResult<HashSet<int>>.Fail($"Invalid end range number '{innerTokens[i + 2].Text}'.", innerTokens[i + 2].Position);
+
                     if (endIndex < index)
-                    {
-                        throw new ParsingException("End range must be greater than or equal to start range.", innerTokens[i + 2].Position);
-                    }
+                        return ParseResult<HashSet<int>>.Fail("End range must be greater than or equal to start range.", innerTokens[i + 2].Position);
 
                     for (int j = index; j <= endIndex; j++)
                     {
-                        // Convert from 1-based (user input) to 0-based (list index).
                         indices.Add(j - 1);
                     }
-                    i += 2; // Skip the hyphen and the end number.
+                    i += 2;
                 }
                 else
                 {
-                    // It's a single number.
                     indices.Add(index - 1);
                 }
             }
             else if (currentToken.Type == TokenType.Comma)
             {
-                // Commas are separators, we can just continue.
                 continue;
             }
             else
             {
-                throw new ParsingException($"Unexpected token '{currentToken.Text}' in index set.", currentToken.Position);
+                return ParseResult<HashSet<int>>.Fail($"Unexpected token '{currentToken.Text}' in index set.", currentToken.Position);
             }
         }
 
-        return indices;
+        return ParseResult<HashSet<int>>.Ok(indices);
     }
 }

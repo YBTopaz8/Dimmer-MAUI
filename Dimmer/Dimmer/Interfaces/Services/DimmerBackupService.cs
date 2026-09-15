@@ -183,10 +183,9 @@ public class DimmerBackupService
         };
     }
 
-
     public async Task<CompleteBackupData?> PickFolderTeRestoreFromBackupAsync(
-        string filePath,
-        IProgress<string>? progress = null)
+    string filePath,
+    IProgress<string>? progress = null)
     {
         if (string.IsNullOrEmpty(filePath)) return null;
         try
@@ -195,47 +194,37 @@ public class DimmerBackupService
 
             if (filePath.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
             {
-                
                 if (TaggingUtils.PlatformGetStreamHook != null)
-                {
                     stream = TaggingUtils.PlatformGetStreamHook(filePath);
-                }
             }
             else
             {
                 stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
             }
 
-            if (stream == null)
-            {
-                return null;
-            }
+            if (stream == null) return null;
 
-            if (filePath.Contains(".json", StringComparison.OrdinalIgnoreCase))
-            {
-                progress?.Report("Loading song cache...");
-                var songCache = await BuildSongCacheAsync(progress);
+            progress?.Report("Loading song cache...");
+            var songCache = await BuildSongCacheAsync(progress);
 
-                progress?.Report("Reading backup file...");
-                return await DeserializeJsonBackupWithStreamingAsync(stream, songCache, progress);
-            }
-            if (filePath.Contains("CompleteBackup", StringComparison.OrdinalIgnoreCase))
-            {
-                progress?.Report("Loading song cache...");
-                var songCache = await BuildSongCacheAsync(progress);
+            progress?.Report("Reading backup file...");
 
-                progress?.Report("Reading backup file...");
+            // If it ends in .gz, use the GZip decompressor!
+            if (filePath.EndsWith(".gz", StringComparison.OrdinalIgnoreCase))
+            {
                 return await DeserializeBackupWithStreamingAsync(stream, songCache, progress);
+            }
+            else
+            {
+                return await DeserializeJsonBackupWithStreamingAsync(stream, songCache, progress);
             }
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"Error during restore: {ex}");
+            return null;
         }
-
-        return null;
     }
-
 
     private async Task<Dictionary<string, SongModelView>> BuildSongCacheAsync(IProgress<string>? progress = null)
     {
@@ -480,16 +469,11 @@ public class DimmerBackupService
                 var songs = realm.All<SongModel>();
             foreach (var item in songs)
             {
-                if(string.IsNullOrEmpty(item.TitleDurationKey))
-                    return;
-                if(songsByKey.ContainsKey(item.TitleDurationKey))
-                {
-                    // Handle duplicate key scenario if needed
-                }
-                else
-                {
-                    songsByKey[item.TitleDurationKey] = item;
-                }
+
+                if (string.IsNullOrEmpty(item.TitleDurationKey))
+                    continue;
+
+                songsByKey[item.TitleDurationKey] = item;
             }
 
 
@@ -563,82 +547,7 @@ public class DimmerBackupService
     }
     
 
-    // Individual restore methods
-    private async Task RestoreFavoritesAsync(List<SongModelView>? favorites, RestoreResult result)
-    {
-        if (favorites?.Any() != true) return;
 
-        var realm = RealmFactory.GetRealmInstance();
-
-        await realm.WriteAsync(() =>
-        {
-          
-            // Set new favorites
-            foreach (var favView in favorites)
-            {
-                var song = realm.All<SongModel>()
-                    .FirstOrDefaultNullSafe(s => s.TitleDurationKey == favView.TitleDurationKey);
-
-                if (song != null)
-                {
-                    song.IsFavorite = true;
-                }
-            }
-        });
-
-        result.FavoritesRestored = favorites.Count;
-    }
-
-    private async Task RestoreAppStateAsync(AppStateModelView? appState, RestoreResult result)
-    {
-        if (appState == null) return;
-
-        var realm = RealmFactory.GetRealmInstance();
-
-        await realm.WriteAsync(() =>
-        {
-            var existingAppState = realm.All<AppStateModel>().FirstOrDefaultNullSafe();
-            if (existingAppState != null)
-            {
-                UpdateAppStateFromView(existingAppState, appState);
-            }
-            else
-            {
-                var newAppState = new AppStateModel();
-                UpdateAppStateFromView(newAppState, appState);
-                realm.Add(newAppState);
-            }
-        });
-
-        result.AppStateRestored = true;
-    }
-
-    private async Task RestorePlayEventsAsync(List<DimmerPlayEventBackup>? events, RestoreResult result)
-    {
-        if (events?.Any() != true) return;
-
-        var realm = RealmFactory.GetRealmInstance();
-
-        await realm.WriteAsync(() =>
-        {
-            foreach (var backupEvent in events)
-            {
-                var newEvent = ConvertFromBackup(backupEvent);
-                var eventInDb = realm.Find<DimmerPlayEvent>(newEvent.Id);
-                if (eventInDb is null)
-                {
-                    eventInDb = newEvent;
-                    var songInDb = realm.All<SongModel>().FirstOrDefaultNullSafe(x=>x.TitleDurationKey == backupEvent.TitleAndDurationKey);
-                    songInDb?.PlayHistory.Add(eventInDb);
-                    
-                    realm.Add(eventInDb);
-                }
-            }
-        });
-
-        result.EventsRestored = events.Count;
-        
-    }
 
     // Helper methods
     private DimmerPlayEvent ConvertFromBackup(DimmerPlayEventBackup backup)
@@ -750,7 +659,7 @@ public class DimmerBackupService
 // Result class for restore operations
 public class RestoreResult
 {
-    public bool Success => !string.IsNullOrEmpty(ErrorMessage);
+    public bool Success => string.IsNullOrEmpty(ErrorMessage);
     public string? ErrorMessage { get; set; }
     public int FavoritesRestored { get; set; }
     public int EventsRestored { get; set; }

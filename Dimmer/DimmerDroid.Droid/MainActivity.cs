@@ -122,15 +122,7 @@ public partial class MainActivity : MauiAppCompatActivity
                 else
                     StartService(intent);
             });
-        //var intent = new Intent(this, typeof(DimmerCompatMediaService));
-        //if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
-        //{
-        //    StartForegroundService(intent);
-        //}
-        //else
-        //{
-        //    StartService(intent);
-        //}
+        
     }
     private void ProcessIntent(Android.Content.Intent? intent)
     {

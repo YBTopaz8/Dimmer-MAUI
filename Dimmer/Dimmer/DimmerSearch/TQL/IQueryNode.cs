@@ -1,4 +1,4 @@
-﻿namespace Dimmer.DimmerSearch.TQL;
+﻿    namespace Dimmer.DimmerSearch.TQL;
 public interface IQueryNode
 {
 }
@@ -9,6 +9,19 @@ public class NotNode : IQueryNode
     public NotNode(IQueryNode node)
     {
         NodeToNegate = node;
+    }       
+}
+public class InNode : IQueryNode
+{
+    public string Field { get; }
+    public IReadOnlyList<string> Values { get; }
+    public bool IsNegated { get; }
+
+    public InNode(string field, List<string> values, bool isNegated = false)
+    {
+        Field = field;
+        Values = values;
+        IsNegated = isNegated;
     }
 }
 public enum LogicalOperator { And, Or }

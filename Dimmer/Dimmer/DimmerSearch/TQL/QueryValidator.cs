@@ -11,10 +11,8 @@ public static class QueryValidator
         int parenBalance = 0;
         foreach (var token in tokens)
         {
-            if (token.Type == TokenType.LeftParen)
-                parenBalance++;
-            if (token.Type == TokenType.RightParen)
-                parenBalance--;
+            if (token.Type == TokenType.LeftParen) parenBalance++;
+            if (token.Type == TokenType.RightParen) parenBalance--;
             if (parenBalance < 0)
                 return new(false, "Mismatched ')' found.", token.Position);
         }
@@ -26,7 +24,6 @@ public static class QueryValidator
         {
             var token = tokens[i];
 
-            // Look for a field definition: `identifier` followed by `colon`
             if (token.Type == TokenType.Identifier && i + 1 < tokens.Count && tokens[i + 1].Type == TokenType.Colon)
             {
                 if (!FieldRegistry.FieldsByAlias.TryGetValue(token.Text, out var fieldDef))
@@ -34,8 +31,14 @@ public static class QueryValidator
                     return new(false, $"Unknown field '{token.Text}'.", token.Position);
                 }
 
-                // We have a valid field, now check the value that follows
-                int valueIndex = i + 2; // Position of the value token after the colon
+                int valueIndex = i + 2;
+
+                // Check if the next token is an operator and skip it
+                if (valueIndex < tokens.Count && IsOperator(tokens[valueIndex].Type))
+                {
+                    valueIndex++;
+                }
+
                 if (valueIndex < tokens.Count)
                 {
                     var result = ValidateValueForField(fieldDef, tokens[valueIndex]);
@@ -47,6 +50,12 @@ public static class QueryValidator
 
         return new(true, "Query is valid.");
     }
+
+    // Add this helper method directly into QueryValidator!
+    private static bool IsOperator(TokenType type) =>
+        type is TokenType.GreaterThan or TokenType.LessThan or TokenType.GreaterThanOrEqual
+             or TokenType.LessThanOrEqual or TokenType.Equals or TokenType.Tilde
+             or TokenType.Caret or TokenType.Dollar;
 
     private static ValidationResult ValidateValueForField(FieldDefinition field, Token valueToken)
     {

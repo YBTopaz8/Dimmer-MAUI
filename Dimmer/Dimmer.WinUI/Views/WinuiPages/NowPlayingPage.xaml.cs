@@ -1,6 +1,7 @@
 ﻿using Microsoft.UI.Xaml.Controls.Primitives;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
+using Grid = Microsoft.UI.Xaml.Controls.Grid;
 using Point = Windows.Foundation.Point;
 namespace Dimmer.WinUI.Views.WinuiPages;
 
@@ -429,4 +430,17 @@ public sealed partial class NowPlayingPage : Page
         // Let the Rx stream resume updating the UI
         MyViewModel.IsSliderBeingDragged = false;
     }
+
+    private void Grid_Loaded(object sender, RoutedEventArgs e)
+    {
+        var sentGrid = (Grid)sender;
+        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.IsEqEnabled), v => MyViewModel.IsEqEnabled)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(isEnabled =>
+            {
+                sentGrid.IsTapEnabled = isEnabled;
+            }).DisposeWith(compDisp);
+
+    }
+            
 }

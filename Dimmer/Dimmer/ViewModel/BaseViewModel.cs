@@ -398,7 +398,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         SetupHistoryPipeline();
         _isPipelineActive = true;
     }
+    [ObservableProperty]
+    public partial ObservableCollection<string> AutocompleteSuggestions { get; set; } = new();
 
+    [ObservableProperty]
+    public partial bool IsAutocompleteVisible { get; set; }
     private void FixMissingEventRelationship(ObjectId eventId, ObjectId songId)
     {
         Task.Run(async () =>
@@ -630,6 +634,22 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     }
                 },
                 ex => _logger.LogError(ex, "Error in CurrentSongObs subscription")));
+        _subsMgr.Add(
+           _audioService.PeakLevelsObs
+        .ObserveOn(RxSchedulers.UI)
+        .Subscribe(peaks =>
+        {
+            // Update Text (e.g. "-12.4 dB")
+            LeftVuDb = $"{peaks.Left:F1} dB";
+            RightVuDb = $"{peaks.Right:F1} dB";
+
+            // The Progress Bar needs a value between 0.0 and 1.0. 
+            // The engine gives us -60dB (silent) to 0dB (loudest).
+            // This math converts that range into a clean percentage.
+            LeftVuLevel = Math.Clamp((peaks.Left + 60.0) / 60.0, 0.0, 1.0);
+            RightVuLevel = Math.Clamp((peaks.Right + 60.0) / 60.0, 0.0, 1.0);
+        })
+            );
 
         // 2. Playback State (Handles IsPlayingChanged AND PlaybackStateChanged)
         _subsMgr.Add(
@@ -780,123 +800,70 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty] public partial IReadOnlyList<FacetItem> ActiveGenreFacets {get;set;}
 
 
-
     private void ApplySearchResults(SearchResult? result)
     {
         if (result == null) return;
+
+        // 1. Handle Syntax Errors & Trigger Autocomplete
         if (!string.IsNullOrEmpty(result.ErrorMessage))
         {
             TQLUserSearchErrorMessage = result.ErrorMessage;
-            SearchResultsHolder.Edit(innerCache => innerCache.Clear()); // CLEAR THE LIST!
-            ActiveArtistFacets = new List<FacetItem>(); // Clear chips on error
+            SearchResultsHolder.Edit(innerCache => innerCache.Clear());
+            ActiveArtistFacets = new List<FacetItem>();
             ActiveAlbumFacets = new List<FacetItem>();
             ActiveGenreFacets = new List<FacetItem>();
+
+            // Wire up Autocomplete if the error implies a missing value
+            if (result.ErrorMessage.Contains("Expected a value") || result.ErrorMessage.Contains("Unknown field"))
+            {
+                // Optional: Trigger your Autocomplete UI dropdown here using the logic 
+                // from the AutocompleteEngine enhancement discussed earlier.
+            }
             return;
         }
+
         TQLUserSearchErrorMessage = string.Empty;
+
+        // 2. Apply Facets
         if (result.Facets != null)
         {
-            // Don't show chips if all results belong to 1 artist anyway
             ActiveArtistFacets = result.Facets.Artists.Count > 1 ? result.Facets.Artists : new List<FacetItem>();
             ActiveAlbumFacets = result.Facets.Albums.Count > 1 ? result.Facets.Albums : new List<FacetItem>();
             ActiveGenreFacets = result.Facets.Genres.Count > 1 ? result.Facets.Genres : new List<FacetItem>();
         }
 
-
-        if (result.SongsResultIds is not null)
+        // 3. Update the UI List (Instantly fast now!)
+        if (result.Results != null)
         {
-            // Realize the list so we can check the count
-            var idList = result.SongsResultIds;
-            if (idList.Count == 0)
-            {
-                SearchResultsHolder.Edit(innerCache => innerCache.Clear());
-                return;
-            }
-            
-                using var uiRealm = RealmFactory.GetRealmInstance();
-
-                var resultCount = result.SongsResultIds.Count;
-                var totalDbCount = uiRealm.All<SongModel>().Count(); // This is instant in Realm
-
-            List<SongModelView> viewModels = new() ;
-
-                if (resultCount > (totalDbCount * 0.3))
-                {
-                    Debug.WriteLine("Strategy: [Table Scan] (Approach 1: AsEnumerable)");
-
-                    // --- PHASE 1: DATABASE FETCH ---
-                    var idSet = result.SongsResultIds.ToHashSet();
-                    var idToSongMap = uiRealm.All<SongModel>()
-                        .AsEnumerable()
-                        .Where(s => idSet.Contains(s.Id))
-                        .ToDictionary(s => s.Id);
-
-
-                    viewModels = result.SongsResultIds
-                        .Where(id => idToSongMap.ContainsKey(id))
-                        .Select(id => idToSongMap[id].ToSongModelView()!)
-                        .ToList();
-
-                }
-                else
-                {
-                    Debug.WriteLine("Strategy: [Index Seek] (Approach 3: Native Find)");
-
-                    var nativeFoundSongs = new List<SongModel>(resultCount);
-                    foreach (var id in result.SongsResultIds)
-                    {
-                        var song = uiRealm.Find<SongModel>(id);
-                        if (song != null)
-                        {
-                            nativeFoundSongs.Add(song);
-                        }
-                    }
-
-
-
-                    viewModels = nativeFoundSongs.Select(s => s.ToSongModelView()!).ToList();
-
-                }
-           
-
-            // Update the UI
-            if (viewModels is not null)
-                {
-                SearchResultsHolder.Edit(innerCache => innerCache.Load(viewModels));
-                IsSearchResultEmpty = viewModels.Count == 0;
-                UpdateIsSearchResultEmpty(IsSearchResultEmpty);
-            }
-          
+            SearchResultsHolder.Edit(innerCache => innerCache.Load(result.Results));
+            IsSearchResultEmpty = result.Results.Count == 0;
+            UpdateIsSearchResultEmpty(IsSearchResultEmpty);
         }
 
-
+        // 4. EXECUTE COMMANDS
+        if (result.CommandToExecute != null && result.CommandToExecute is not NoAction)
+        {
+            ExecuteTqlCommand(result.CommandToExecute);
+        }
     }
-    private SearchResult? PerformSearchBackground(string queryText,CancellationToken ct)
+    private SearchResult? PerformSearchBackground(string queryText, CancellationToken ct)
     {
-
-
         using var realmm = RealmFactory.GetRealmInstance();
+        int totalDbCount = realmm.All<SongModel>().Count();
 
         if (string.IsNullOrWhiteSpace(queryText))
         {
-            var allSongsIds = realmm.All<SongModel>()
-                .OrderByDescending(s => s.DateCreated)
-                .ToList(); // ToList resolves the realm query
-
-            IsLibraryEmpty = allSongsIds.Count > 0;
-
-            // Generate facets for empty search (shows top artists overall)
-            var emptyFacets = FacetEngine.GenerateFacets(allSongsIds);
+            var allSongs = realmm.All<SongModel>().OrderByDescending(s => s.DateCreated).ToList();
+            RxSchedulers.UI.ScheduleTo(()=> IsLibraryEmpty = allSongs.Count == 0);
 
             return new SearchResult
             {
-                SongsResultIds = allSongsIds.Select(x => x.Id).ToList(),
-                Facets = emptyFacets
+                Results = allSongs.Select(x => x.ToSongModelView()!).ToList(),
+                Facets = FacetEngine.GenerateFacets(allSongs)
             };
         }
 
-
-        // B. Parse NLP (CPU Bound)
+        // 1. NLP & Parse
         var nlpResult = NaturalLanguageProcessor.Process(queryText);
         var plan = MetaParser.Parse(nlpResult);
 
@@ -905,15 +872,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         try
         {
-            // C. Realm Filter (Zero-Copy, Fast)
+            // 2. Fast Realm RQL Filter
             var query = realmm.All<SongModel>().Filter(plan.RqlFilter);
+            if (ct.IsCancellationRequested) return null;
 
-            if (ct.IsCancellationRequested) 
-            { 
-                return null;
-            }
-
-            // DB SORT
+            // 3. Fast Realm Sort
             bool didRealmSort = false;
             if (plan.SortDescriptions.Count > 0)
             {
@@ -923,29 +886,11 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 didRealmSort = true;
             }
 
-
-
-
+            // 4. Materialize to RAM
+            IEnumerable<SongModel> intermediateList = query.ToList();
             if (ct.IsCancellationRequested) return null;
 
-            // D. Realm Sorting (Do this in DB before pulling to RAM)
-            if (plan.SortDescriptions.Count > 0)
-            {
-                var orderByString = string.Join(", ", plan.SortDescriptions.Select(
-                    desc => $"{desc.PropertyName} {(desc.Direction == SortDirection.Ascending ? "asc" : "desc")}"));
-                query = query.OrderBy(orderByString);
-            }
-
-            // --- WE LEAVE REALM SPACE HERE ---
-            // Grab the IDs or raw objects. ToList() evaluates the Realm query.
-            IEnumerable<SongModel> intermediateList = query.ToList();
-
-            if (ct.IsCancellationRequested)
-            {
-                return null;
-            }
-
-            // MEMORY SORT (Optimization: Skip if Realm already sorted it)
+            // 5. Memory Sort (Only if Realm couldn't)
             if (!didRealmSort && plan.SortDescriptions.Count > 0)
             {
                 var firstSort = plan.SortDescriptions[0];
@@ -963,71 +908,53 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 intermediateList = orderedList;
             }
 
-            // E. In-Memory Predicate (Chance, Regex, etc)
+            // 6. In-Memory Predicates, Shuffle, Limits
             if (plan.InMemoryPredicate != null)
-            {
-                // Note: We temporarily map to view model JUST for the predicate check.
-                // A future optimization would be making AstEvaluator take SongModel directly.
                 intermediateList = intermediateList.Where(x => plan.InMemoryPredicate(x));
-            }
 
             if (plan.Shuffle != null)
             {
                 var random = new Random();
                 if (plan.Shuffle.IsBiased && plan.Shuffle.BiasField != null)
                 {
-                  
                     var grouped = intermediateList
                         .GroupBy(s => SemanticQueryHelpers.GetComparableProp(s, plan.Shuffle.BiasField.PropertyName) ?? "null")
                         .SelectMany(g => g.OrderBy(_ => random.Next()));
-
-                    intermediateList = plan.Shuffle.BiasDirection == SortDirection.Descending
-                        ? grouped.Reverse() : grouped;
+                    intermediateList = plan.Shuffle.BiasDirection == SortDirection.Descending ? grouped.Reverse() : grouped;
                 }
                 else
                 {
-                    // Pure shuffle
                     intermediateList = intermediateList.OrderBy(_ => random.Next());
                 }
 
-                // Shuffle nodes also act as limiters if a count was provided
                 if (plan.Shuffle.Count < int.MaxValue)
-                {
                     intermediateList = intermediateList.Take(plan.Shuffle.Count);
-                }
             }
 
-            // G. Apply Limiter (First 10, Last 5, etc) (NEW)
             if (plan.Limiter != null)
             {
                 if (plan.Limiter.Type == LimiterType.First)
-                {
                     intermediateList = intermediateList.Take(plan.Limiter.Count);
-                }
                 else if (plan.Limiter.Type == LimiterType.Last)
-                {
-                    // TakeLast requires .NET 8+ or we do Reverse().Take().Reverse()
                     intermediateList = intermediateList.TakeLast(plan.Limiter.Count);
-                }
             }
 
-            if (ct.IsCancellationRequested)
-            {
-                return null;
-            }
-            // WE MATERIALIZE ONCE HERE FOR FACETS AND IDs
+            if (ct.IsCancellationRequested) return null;
+
+            // 7. Materialize final list and Map to ViewModels ON THE BACKGROUND THREAD
             var realizedFinalList = intermediateList.ToList();
-
-            // ---> EXTRACT FACETS BEFORE LOSING REALM DATA <---
             var facets = FacetEngine.GenerateFacets(realizedFinalList);
+            var viewModels = realizedFinalList.Select(x => x.ToSongModelView()!).ToList();
 
-            var finalViewListOfIds = realizedFinalList.Select(x => x.Id).ToList();
+            // 8. Evaluate Commands (like ">> save" or ">> play")
+            var commandAction = new CommandEvaluator().Evaluate(plan.CommandNode, viewModels);
 
             return new SearchResult
             {
                 Plan = plan,
-                SongsResultIds = finalViewListOfIds,
-                Facets = facets // Pass it back to UI
+                Results = viewModels,
+                Facets = facets,
+                CommandToExecute = commandAction // Pass the action up to the UI!
             };
         }
         catch (Exception ex)
@@ -1035,29 +962,53 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             return new SearchResult { ErrorMessage = ex.Message, Plan = plan };
         }
     }
-
     [RelayCommand]
     public void ExcludeFacet(FacetItem facet)
     {
-        // E.g., User tapped the [X] on the "Linkin Park" Artist chip
         var newQuery = TQlStaticMethods.InjectFilterClause(CurrentTqlQueryUI, "exclude", facet.FieldAlias, facet.Value);
 
-        // Update the search bar text. The Rx Pipeline (_searchQuerySubject) will 
-        // automatically trigger the search in 250ms!
+        // If CurrentTqlQueryUI is bound Two-Way in XAML, setting this will AUTOMATICALLY 
+        // push to the subject. Do not call _searchQuerySubject.OnNext() here!
         CurrentTqlQueryUI = newQuery;
-        _searchQuerySubject.OnNext(newQuery);
     }
 
     [RelayCommand]
     public void IncludeFacet(FacetItem facet)
     {
-        // E.g., User tapped the [✓] on the "Rock" Genre chip
         var newQuery = TQlStaticMethods.InjectFilterClause(CurrentTqlQueryUI, "include", facet.FieldAlias, facet.Value);
-
         CurrentTqlQueryUI = newQuery;
-        _searchQuerySubject.OnNext(newQuery);
     }
+    private void ExecuteTqlCommand(ICommandAction action)
+    {
+        switch (action)
+        {
+            case ReplaceQueueAction rep:
+                
+                //_playbackQueue.Clear();
+                //_playbackQueue.AddRange(rep.Songs);
 
+                // _audioService.Play(_playbackQueue.First()); 
+                break;
+
+            case AddToNextAction next:
+                // Insert after currently playing song
+                break;
+
+            case SavePlaylistAction save:
+                // Save the playlist to the DB
+                Debug.WriteLine($"[TQL Command] Saved playlist: {save.Name} with {save.Songs.Count} songs.");
+                // var newPlaylist = new PlaylistModel { Name = save.Name ... }
+                break;
+
+            case ScrollToPlayingAction _:
+                // Trigger an event to make the UI scroll to the current song
+                break;
+
+            case UnrecognizedCommandAction unrec:
+                TQLUserSearchErrorMessage = $"Unknown command: {unrec.CommandName}";
+                break;
+        }
+    }
     [ObservableProperty] public partial bool CanSkipPage { get; set; } 
     [ObservableProperty] public partial bool IsFirstBoot { get; set; }
     public async Task CleanDatabaseOnBootAsync()
@@ -2144,11 +2095,14 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     [ObservableProperty] public partial SortOrder CurrentSortOrder { get; set; } = SortOrder.Asc;
 
-    [ObservableProperty] public partial ObservableCollection<AudioOutputDevice>? AudioDevices { get; set; }
+    [ObservableProperty] public partial ObservableCollection<AudioOutputDevice>? AvailableDevices { get; set; }
 
  
     [ObservableProperty] public partial AudioOutputDevice? SelectedAudioDevice { get; set; }
-
+    partial void OnSelectedAudioDeviceChanged(AudioOutputDevice? value)
+    {
+        _audioService.SetPreferredOutputDevice(value);
+    }
     [ObservableProperty] public partial string? SelectedSortingMode { get; set; }
 
     [ObservableProperty] public partial bool IsAscending { get; set; }
@@ -2209,41 +2163,150 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         double newVolume = Math.Clamp(newValue, 0.0, 1.0);
         _logger.LogDebug("AudioEngine: UI Requesting SetVolume to {Volume}", newVolume);
 
-        //_audioService.Volume = newVolume;
+        _audioService.Volume = newVolume;
     }
 
     [ObservableProperty]
     public partial string AppTitle { get; set; } = "Dimmer";
 
-    public static string CurrentAppVersion = "1.9.8";
+    [ObservableProperty]
+    public partial bool IsMuted { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsVisualizerEnabled { get; set; }
+    partial void OnIsVisualizerEnabledChanged(bool value)
+    {
+        if (value) _audioService.StartVisualizer();
+        else _audioService.StopVisualizer();
+    }
+
+    [ObservableProperty]
+    public partial double LeftVuDb { get; set; }= "-60.0 dB";
+
+    [ObservableProperty]
+    public partial double LeftVuLevel { get; set; } = 0.0;
+
+
+
+
+    [ObservableProperty]
+    public partial double RightVuLevel { get; set; } = 0.0;
+
+    [ObservableProperty]
+    public partial double RightVuDb { get; set; } = "-60.0 dB";
+    [RelayCommand]
+    private void ToggleMute()
+    {
+        IsMuted = !IsMuted;
+        _audioService.MuteDevice(IsMuted);
+    }
+
+    CancellationTokenSource? folderPickCTS;
+    [RelayCommand]
+    private async Task ExportRemix()
+    {
+        await _folderPickCTS?.CancelAsync();
+        _folderPickCTS ??= new();
+
+        // Pick the folder where they want to save it
+        var pathToExport = await FolderPicker.Default.PickAsync(_folderPickCTS.Token);
+
+        if (pathToExport != null && pathToExport.IsSuccessful)
+        {
+            // 🚨 CRITICAL FIX: The engine needs a FULL file path, not just a folder!
+            // We generate a filename based on the current time so it doesn't overwrite old exports.
+            string fileName = $"Dimmer_Remix_{DateTime.Now:yyyyMMdd_HHmmss}.wav";
+            string fullFilePath = Path.Combine(pathToExport.Folder.Path, fileName);
+
+            _logger.LogInformation("Exporting mix to: {Path}", fullFilePath);
+
+            // Start streaming the master bus to disk
+            _audioService.ExportRemixToDisk(fullFilePath);
+
+            // TODO: Show a Toast/Snackbar saying "Recording Started..."
+        }
+    }
+
+    [RelayCommand]
+    private void StopExportingRemix()
+    {
+        _audioService.StopExport();
+        // TODO: Show a Toast/Snackbar saying "Remix Saved successfully!"
+    }
+
+    [ObservableProperty]
+    public partial double CrossfadeBalance { get; set; } = 0.5;
+    partial void OnCrossfadeBalanceChanged(double value)
+    => _audioService.SetDjCrossFade(value);
+    public static string CurrentAppVersion = "1.9.9";
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]
-    public partial SongModelView CurrentPlayingSongView { get; set; }
+    public partial int SelectedPlaybackModeIndex { get; set; }
+    partial void OnSelectedPlaybackModeIndexChanged(int value)
+    {
+        _audioService.SetPlaybackMode((PlaybackModeEnum)value);
+    }
 
+    [ObservableProperty]
+    public partial bool IsSmartMasterEnabled { get; set; }
+    partial void OnIsSmartMasterEnabledChanged(bool value)
+    {
+        _audioService.EnableSmartMaster(value);
+
+    }
+    partial void OnEqBand0Changed(double value) => _audioService.ChangeEqBand(0, (float)value);
+    partial void OnEqBand1Changed(double value) => _audioService.ChangeEqBand(1, (float)value);
+    partial void OnEqBand2Changed(double value) => _audioService.ChangeEqBand(2, (float)value);
+    partial void OnEqBand3Changed(double value) => _audioService.ChangeEqBand(3, (float)value);
+    partial void OnEqBand4Changed(double value) => _audioService.ChangeEqBand(4, (float)value);
+    partial void OnEqBand5Changed(double value) => _audioService.ChangeEqBand(5, (float)value);
+    partial void OnEqBand6Changed(double value) => _audioService.ChangeEqBand(6, (float)value);
+    partial void OnEqBand7Changed(double value) => _audioService.ChangeEqBand(7, (float)value);
+    partial void OnEqBand8Changed(double value) => _audioService.ChangeEqBand(8, (float)value);
+    partial void OnEqBand9Changed(double value) => _audioService.ChangeEqBand(9, (float)value);
+    [ObservableProperty] public partial double EqBand0 { get; set; }
+    [ObservableProperty] public partial double EqBand1 { get; set; }
+    [ObservableProperty] public partial double EqBand2 { get; set; }
+    [ObservableProperty] public partial double EqBand3 { get; set; }
+    [ObservableProperty] public partial double EqBand4 { get; set; }
+    [ObservableProperty] public partial double EqBand5 { get; set; }
+    [ObservableProperty] public partial double EqBand6 { get; set; }
+    [ObservableProperty] public partial double EqBand7 { get; set; }
+    [ObservableProperty] public partial double EqBand8 { get; set; }
+    [ObservableProperty] public partial double EqBand9 { get; set; }
+    [ObservableProperty]
+    public partial bool IsCompressorEnabled { get; set; }
+
+    partial void OnIsCompressorEnabledChanged(bool value)
+    {
+        _audioService.EnableCompressor(value);
+    }
+
+    [ObservableProperty]
+    public partial bool IsAmbienceEnabled { get; set; }
+
+    [ObservableProperty]
+    public partial double AmbienceVolume { get; set; }
+    partial void OnAmbienceVolumeChanged(double value)
+    => _audioService.AmbienceVolume = value;
+    partial void OnIsAmbienceEnabledChanged(bool value)
+    {
+        _audioService.ToggleAmbience(value);
+    }
 
 
     [ObservableProperty]
-    public partial SongModelView? NextSongInCarousel { get; set; }
-
-    [ObservableProperty]
-    public partial ObservableCollection<SongModelView> CarouselItems { get; set; } = new();
-
-    [ObservableProperty]
-    public partial SongModelView EditableSongView { get; set; }
-
-    [ObservableProperty]
-    public partial string? CurrentNoteToSave { get; set; }
-
-
-
-    private IDialogueService _dialogueService;
-
-    #region audio device management
+    public partial bool IsEqEnabled { get; set; }
+    partial void OnIsEqEnabledChanged(bool value)
+    {
+        _audioService.EnableEqualizer(value);
+    }
+    [RelayCommand]
     public async Task LoadAllAudioDevices()
     {
         var devices = await _audioService.GetAllAudioDevicesAsync();
-        AudioDevices = new ObservableCollection<AudioOutputDevice>(devices);
+        AvailableDevices = new ObservableCollection<AudioOutputDevice>(devices);
         //SelectedAudioDevice = AudioDevices.FirstOrDefault(d => d.IsSource) ?? AudioDevices.FirstOrDefault();
         //if (SelectedAudioDevice != null)
         //{
@@ -2267,6 +2330,30 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         await LoadAllAudioDevices();
     }
 
+
+    [ObservableProperty]
+    public partial SongModelView CurrentPlayingSongView { get; set; }
+
+
+
+    [ObservableProperty]
+    public partial SongModelView? NextSongInCarousel { get; set; }
+
+    [ObservableProperty]
+    public partial ObservableCollection<SongModelView> CarouselItems { get; set; } = new();
+
+    [ObservableProperty]
+    public partial SongModelView EditableSongView { get; set; }
+
+    [ObservableProperty]
+    public partial string? CurrentNoteToSave { get; set; }
+
+
+
+    private IDialogueService _dialogueService;
+
+    #region audio device management
+   
 
     [RelayCommand]
     private void LogoutFromLastfm() { lastfmService.Logout(); }
@@ -4801,11 +4888,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial bool IsEqualizerEnabled { get; set; }
 
     [RelayCommand]
-    public void SetSlowReverb()
+    public void SetSlowed()
     {
-        // "Slowed & Reverb" / Vaporwave Mode
-        AudioService.SetPitchAndSpeed(-2f, 0.85f);
-        AudioService.EnableReverb(true, roomSize: 0.3f, mix: 0.6f);
+        _audioService.SetPlaybackMode(PlaybackModeEnum.Slowed);
+
     }
 
     public async Task RequestSeekPercentage(double percentage)
@@ -8450,69 +8536,6 @@ public record QueryComponents(
         await Clipboard.Default.SetTextAsync(shareText);
     }
 
-    [ObservableProperty]
-    public partial int SelectedPlaybackModeIndex { get;  set; }
-    partial void OnSelectedPlaybackModeIndexChanged(int value)
-    {
-        _audioService.SetPlaybackMode((PlaybackModeEnum)value);
-    }
-
-    [ObservableProperty]
-    public partial int EqBand0 { get;  set; }
-    partial void OnEqBand0Changed(int value)
-    {
-        _audioService.ChangeEqBand(0, (float)value);
-    }
-    partial void OnEqBand2Changed(int value)
-    {
-        _audioService.ChangeEqBand(2, (float)value);
-    }
-    partial void OnEqBand4Changed(int value)
-    {
-        _audioService.ChangeEqBand(4, (float)value);
-    }
-    partial void OnEqBand7Changed(int value)
-    {
-        _audioService.ChangeEqBand(7, (float)value);
-    }
-    partial void OnEqBand9Changed(int value)
-    {
-        _audioService.ChangeEqBand(9, (float)value);
-    }
-    [ObservableProperty]
-    public partial int EqBand2 { get;  set; }
-
-    [ObservableProperty]
-    public partial int EqBand4 { get;  set; }
-
-    [ObservableProperty]
-    public partial int EqBand7 { get;  set; }
-
-    [ObservableProperty]
-    public partial int EqBand9 { get;  set; }
-
-    [ObservableProperty]
-    public partial bool IsCompressorEnabled { get; set; }
-
-    partial void OnIsCompressorEnabledChanged(bool value)
-    {
-        _audioService.EnableCompressor(value);
-    }
-
-    [ObservableProperty]
-    public partial bool IsAmbienceEnabled { get; set; }
-    partial void OnIsAmbienceEnabledChanged(bool value)
-    {
-        _audioService.ToggleAmbience(value);
-    }
-   
-
-    [ObservableProperty]
-    public partial bool IsEqEnabled { get; set; }
-    partial void OnIsEqEnabledChanged(bool value)
-    {
-        _audioService.EnableEqualizer(value);
-    }
 
 
 

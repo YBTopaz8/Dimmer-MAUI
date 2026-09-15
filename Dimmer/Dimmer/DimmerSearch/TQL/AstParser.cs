@@ -1,4 +1,9 @@
-﻿namespace Dimmer.DimmerSearch.TQL;
+﻿using System.Text.RegularExpressions;
+
+
+namespace Dimmer.DimmerSearch.TQL;
+
+
 
 public class AstParser
 {
@@ -16,111 +21,136 @@ public class AstParser
 
     public AstParser(string filterQuery) : this(Lexer.Tokenize(filterQuery)) { }
 
-    public IQueryNode Parse()
+    public ParseResult<IQueryNode> Parse()
     {
         if (_tokens.All(t => t.Type == TokenType.EndOfFile))
-            return new ClauseNode("any", "matchall", "");
+            return ParseResult<IQueryNode>.Ok(new ClauseNode("any", "matchall", ""));
 
-        var result = ParseAddRemove(); // StartAsync parsing from the lowest precedence operator
+        var result = ParseAddRemove();
+        if (!result.IsSuccess) return result;
 
         if (!IsAtEnd())
-            throw new ParsingException($"Syntax error: Unexpected token '{Peek().Text}' after valid expression.", Peek().Position);
+            return ParseResult<IQueryNode>.Fail($"Syntax error: Unexpected token '{Peek().Text}' after valid expression.", Peek().Position);
 
         return result;
     }
-    private IQueryNode ParseAddRemove()
+
+    private ParseResult<IQueryNode> ParseAddRemove()
     {
         if (Match(TokenType.Exclude, TokenType.Remove))
         {
-            var right = ParseExpression();
-            // Implicitly put a "matchall" on the left
+            var rightRes = ParseExpression();
+            if (!rightRes.IsSuccess) return rightRes;
+
             var implicitLeft = new ClauseNode("any", "matchall", "");
-            return new LogicalNode(implicitLeft, LogicalOperator.And, new NotNode(right));
+            return ParseResult<IQueryNode>.Ok(new LogicalNode(implicitLeft, LogicalOperator.And, new NotNode(rightRes.Value!)));
         }
-        var left = ParseExpression(); // Parse the next level up
+
+        var leftRes = ParseExpression();
+        if (!leftRes.IsSuccess) return leftRes;
+        var left = leftRes.Value!;
 
         while (Match(TokenType.Add, TokenType.Include, TokenType.Remove, TokenType.Exclude))
         {
             var opToken = Previous();
-            var right = ParseExpression();
+            var rightRes = ParseExpression();
+            if (!rightRes.IsSuccess) return rightRes;
 
             left = opToken.Type switch
             {
-                TokenType.Add or TokenType.Include => new LogicalNode(left, LogicalOperator.Or, right),
-                TokenType.Remove or TokenType.Exclude => new LogicalNode(left, LogicalOperator.And, new NotNode(right)),
+                TokenType.Add or TokenType.Include => new LogicalNode(left, LogicalOperator.Or, rightRes.Value!),
+                TokenType.Remove or TokenType.Exclude => new LogicalNode(left, LogicalOperator.And, new NotNode(rightRes.Value!)),
                 _ => left
             };
         }
-        return left;
+        return ParseResult<IQueryNode>.Ok(left);
     }
 
-    private IQueryNode ParseExpression()
+    private ParseResult<IQueryNode> ParseExpression()
     {
-        var left = ParseTerm();
+        var leftRes = ParseTerm();
+        if (!leftRes.IsSuccess) return leftRes;
+        var left = leftRes.Value!;
+
         while (Match(TokenType.Or, TokenType.Pipe))
         {
-            left = new LogicalNode(left, LogicalOperator.Or, ParseTerm());
+            var rightRes = ParseTerm();
+            if (!rightRes.IsSuccess) return rightRes;
+            left = new LogicalNode(left, LogicalOperator.Or, rightRes.Value!);
         }
-        return left;
+        return ParseResult<IQueryNode>.Ok(left);
     }
 
-    // Level 3: Handles implicit 'and'
-    private IQueryNode ParseTerm()
+    private ParseResult<IQueryNode> ParseTerm()
     {
-        var left = ParseFactor();
+        var leftRes = ParseFactor();
+        if (!leftRes.IsSuccess) return leftRes;
+        var left = leftRes.Value!;
+
         while (!IsAtEnd() && IsImplicitAnd())
         {
-            Match(TokenType.And); // Consume optional 'and' keyword
-            left = new LogicalNode(left, LogicalOperator.And, ParseFactor());
+            Match(TokenType.And);
+            var rightRes = ParseFactor();
+            if (!rightRes.IsSuccess) return rightRes;
+            left = new LogicalNode(left, LogicalOperator.And, rightRes.Value!);
         }
-        return left;
+        return ParseResult<IQueryNode>.Ok(left);
     }
 
-    // Level 4: Handles 'not', parentheses, and clauses
-    private IQueryNode ParseFactor()
+    private ParseResult<IQueryNode> ParseFactor()
     {
         if (Match(TokenType.Not, TokenType.Bang))
-            return new NotNode(ParseFactor());
+        {
+            var factorRes = ParseFactor();
+            if (!factorRes.IsSuccess) return factorRes;
+            return ParseResult<IQueryNode>.Ok(new NotNode(factorRes.Value!));
+        }
 
         if (Match(TokenType.LeftParen))
         {
-            var expression = ParseAddRemove(); // A parenthesis can contain a full sub-query, so restart from the top level
-            Consume(TokenType.RightParen, "Expected ')' after expression.");
-            return expression;
+            var expressionRes = ParseAddRemove();
+            if (!expressionRes.IsSuccess) return expressionRes;
+
+            var parenRes = Consume(TokenType.RightParen, "Expected ')' after expression.");
+            if (!parenRes.IsSuccess) return ParseResult<IQueryNode>.Fail(parenRes.Error, parenRes.ErrorPosition);
+
+            return expressionRes;
         }
 
         return ParseClause();
     }
-
-    // Level 5 (Highest Precedence): Handles individual clauses like 'artist:name'
-    private IQueryNode ParseClause()
+    private ParseResult<IQueryNode> ParseClause()
     {
         var peekToken = Peek();
         string field = "any";
         string op = "contains";
-        bool isNegated = false;
+        bool isNegated;
 
         if (peekToken.Type == TokenType.Identifier && Peek(1).Type != TokenType.Colon)
         {
             if (peekToken.Text.Equals("chance", StringComparison.OrdinalIgnoreCase))
-            {
                 return ParseChanceClause();
-            }
         }
 
         if (Peek().Type == TokenType.Identifier && Peek(1).Type == TokenType.Colon)
         {
-            field = Consume(TokenType.Identifier).Text;
-            Consume(TokenType.Colon, $"Expected ':' after field '{field}'.");
+            var identRes = Consume(TokenType.Identifier);
+            if (!identRes.IsSuccess) return ParseResult<IQueryNode>.Fail(identRes.Error, identRes.ErrorPosition);
+            field = identRes.Value!.Text;
+
+            var colonRes = Consume(TokenType.Colon, $"Expected ':' after field '{field}'.");
+            if (!colonRes.IsSuccess) return ParseResult<IQueryNode>.Fail(colonRes.Error, colonRes.ErrorPosition);
         }
 
         if (IsOperator(Peek().Type))
         {
-            op = Consume(Peek().Type).Text;
+            var opRes = Consume(Peek().Type);
+            if (!opRes.IsSuccess) return ParseResult<IQueryNode>.Fail(opRes.Error, opRes.ErrorPosition);
+            op = opRes.Value!.Text;
         }
+
         isNegated = Match(TokenType.Not, TokenType.Bang);
 
-        // Date keyword parsing...
         if (FieldRegistry.FieldsByAlias.TryGetValue(field, out var fieldDef) && fieldDef.Type == FieldType.Date)
         {
             var nextTokenForDate = Peek();
@@ -141,187 +171,265 @@ public class AstParser
             }
         }
 
-        // Stricter check for what a value can be
+
+        if (op.Equals("in", StringComparison.OrdinalIgnoreCase))
+        {
+            var lParen = Consume(TokenType.LeftParen, "Expected '(' after 'in'.");
+            if (!lParen.IsSuccess) return ParseResult<IQueryNode>.Fail(lParen.Error, lParen.ErrorPosition);
+
+            var values = new List<string>();
+            while (!Match(TokenType.RightParen))
+            {
+                if (IsAtEnd()) return ParseResult<IQueryNode>.Fail("Expected ')' to close 'in' list.", Peek().Position);
+
+                var valToken = Consume(Peek().Type);
+                if (!valToken.IsSuccess) return ParseResult<IQueryNode>.Fail(valToken.Error, valToken.ErrorPosition);
+
+                values.Add(valToken.Value!.Text);
+                Match(TokenType.Comma);
+            }
+            return ParseResult<IQueryNode>.Ok(new InNode(field, values, isNegated));
+        }
+
         var nextToken = Peek();
         if (IsStartOfNewClauseOrSegment(nextToken))
-        {
-            throw new ParsingException($"Expected a value for field '{field}' but found the start of a new clause '{nextToken.Text}'.", nextToken.Position);
-        }
+            return ParseResult<IQueryNode>.Fail($"Expected a value for field '{field}' but found the start of a new clause '{nextToken.Text}'.", nextToken.Position);
 
         if (!IsValueToken(nextToken.Type))
         {
-            FieldRegistry.FieldsByAlias.TryGetValue(field, out var fieldDeff);
-            string example = fieldDeff?.Type switch
+            string example = "\"value\"";
+            if (FieldRegistry.FieldsByAlias.TryGetValue(field, out var fieldDeff))
             {
-                FieldType.Numeric => "5",
-                FieldType.Boolean => "true",
-                FieldType.Date => "today",
-                FieldType.Duration => "3:30",
-                _ => "\"value\""
-            };
-            throw new ParsingException($"Expected a value for '{field}'. Example: {field}:{example}", nextToken.Position);
+                example = fieldDeff.Type switch
+                {
+                    FieldType.Numeric => "5",
+                    FieldType.Boolean => "true",
+                    FieldType.Date => "today",
+                    FieldType.Duration => "3:30",
+                    _ => "\"value\""
+                };
+            }
+            return ParseResult<IQueryNode>.Fail($"Expected a value for '{field}'. Example: {field}:{example}", nextToken.Position);
         }
-    
-        var valueToken = Consume(nextToken.Type);
+
+        var valRes = Consume(nextToken.Type);
+        if (!valRes.IsSuccess) return ParseResult<IQueryNode>.Fail(valRes.Error, valRes.ErrorPosition);
+
+        string valueText = valRes.Value!.Text;
+
+        // --- NEW LOGIC: Greedily consume trailing words for implicit quotes ---
+        while (!IsAtEnd())
+        {
+            var peek = Peek();
+
+            // Stop if the next word is a new field (e.g. "artist:")
+            if (peek.Type == TokenType.Identifier && Peek(1).Type == TokenType.Colon) break;
+
+            // Stop if it's a structural keyword (and, or, asc, desc)
+            if (IsReservedKeyword(peek.Type)) break;
+
+            // Stop if it hits structural syntax like Parentheses, Minuses (for ranges), Pipes
+            if (peek.Type is not (TokenType.Identifier or TokenType.Number or TokenType.StringLiteral)) break;
+
+            var nextPart = Consume(peek.Type);
+            valueText += " " + nextPart.Value!.Text;
+        }
 
         if (Match(TokenType.Minus))
         {
             if (IsValueToken(Peek().Type))
             {
-                var upperValueToken = Consume(Peek().Type);
-                return new ClauseNode(field, "-", valueToken.Text, upperValueToken.Text, isNegated);
+                var upperValRes = Consume(Peek().Type);
+                if (!upperValRes.IsSuccess) return ParseResult<IQueryNode>.Fail(upperValRes.Error, upperValRes.ErrorPosition);
+                return ParseResult<IQueryNode>.Ok(new ClauseNode(field, "-", valueText, upperValRes.Value!.Text, isNegated));
             }
         }
 
-        return new ClauseNode(field, op, valueToken.Text, isNegated);
+        return ParseResult<IQueryNode>.Ok(new ClauseNode(field, op, valueText, isNegated));
     }
 
-    // This helper determines when to stop an implicit AND chain.
-    private bool IsImplicitAnd()
+    // Helper method to stop the greedy consumer from eating important syntax keywords
+    private static bool IsReservedKeyword(TokenType type) =>
+        type is TokenType.And or TokenType.Or or TokenType.Not or
+        TokenType.Include or TokenType.Add or TokenType.Exclude or TokenType.Remove or
+        TokenType.Asc or TokenType.Desc or TokenType.Random or TokenType.Shuffle or
+        TokenType.First or TokenType.Last;
+    private ParseResult<IQueryNode> ParseChanceClause()
     {
-        if (IsAtEnd())
-            return false;
-        return Peek().Type switch
-        {
-            TokenType.Or or TokenType.Pipe or TokenType.RightParen or
-            TokenType.Include or TokenType.Add or
-            TokenType.Exclude or TokenType.Remove => false, // These stop the 'and' chain
-            _ => true,
-        };
-    }
+        var identRes = Consume(TokenType.Identifier);
+        if (!identRes.IsSuccess) return ParseResult<IQueryNode>.Fail(identRes.Error, identRes.ErrorPosition);
 
-    // This helper prevents the parser from consuming a keyword as a value.
-    private bool IsStartOfNewClauseOrSegment(Token token)
-    {
-        if (token.Type == TokenType.Identifier && (
-            token.Text.Equals("chance", StringComparison.OrdinalIgnoreCase) ||
-            Peek(1).Type == TokenType.Colon))
-        {
-            return true;
-        }
-        return false; // The main precedence parser now handles add/remove
-    }
+        var paren1 = Consume(TokenType.LeftParen, "Expected '(' after 'chance'.");
+        if (!paren1.IsSuccess) return ParseResult<IQueryNode>.Fail(paren1.Error, paren1.ErrorPosition);
 
-    private RandomChanceNode ParseChanceClause()
-    {
-        Consume(TokenType.Identifier);
-        Consume(TokenType.LeftParen, "Expected '(' after 'chance'.");
-        var numberToken = Consume(TokenType.Number, "Expected a number for chance percentage.");
-        Consume(TokenType.RightParen, "Expected ')' after chance percentage.");
+        var numToken = Consume(TokenType.Number, "Expected a number for chance percentage.");
+        if (!numToken.IsSuccess) return ParseResult<IQueryNode>.Fail(numToken.Error, numToken.ErrorPosition);
 
-        string numberText = numberToken.Text.Replace("%", "");
+        var paren2 = Consume(TokenType.RightParen, "Expected ')' after chance percentage.");
+        if (!paren2.IsSuccess) return ParseResult<IQueryNode>.Fail(paren2.Error, paren2.ErrorPosition);
+
+        string numberText = numToken.Value!.Text.Replace("%", "");
         if (int.TryParse(numberText, out int percentage))
-        {
-            return new RandomChanceNode(percentage);
-        }
-        throw new ParsingException($"Invalid percentage value '{numberToken.Text}'.", numberToken.Position);
+            return ParseResult<IQueryNode>.Ok(new RandomChanceNode(percentage));
+
+        return ParseResult<IQueryNode>.Fail($"Invalid percentage value '{numToken.Value.Text}'.", numToken.Value.Position);
     }
 
-    private IQueryNode ParseFuzzyDateClause(string field, string op)
+    private ParseResult<IQueryNode> ParseFuzzyDateClause(string field, string op)
     {
-        var typeToken = Consume(TokenType.Identifier);
-        switch (typeToken.Text.ToLowerInvariant())
+        var typeTokenRes = Consume(TokenType.Identifier);
+        if (!typeTokenRes.IsSuccess) return ParseResult<IQueryNode>.Fail(typeTokenRes.Error, typeTokenRes.ErrorPosition);
+
+        switch (typeTokenRes.Value!.Text.ToLowerInvariant())
         {
             case "never":
-                // --- ADD: Pass the operator to the node ---
-                return new FuzzyDateNode(field, FuzzyDateNode.Qualifier.Never, op);
-            case "ago":
-                Consume(TokenType.LeftParen, "Expected '(' after 'ago'.");
-                string val = "";
+                return ParseResult<IQueryNode>.Ok(new FuzzyDateNode(field, FuzzyDateNode.Qualifier.Never, op));
 
-                // Support both "30d" (StringLiteral) AND 30d (Number + Identifier)
+            case "ago":
+                var parenRes = Consume(TokenType.LeftParen, "Expected '(' after 'ago'.");
+                if (!parenRes.IsSuccess) return ParseResult<IQueryNode>.Fail(parenRes.Error, parenRes.ErrorPosition);
+
+                string val = "";
                 if (Peek().Type == TokenType.StringLiteral)
                 {
-                    val = Consume(TokenType.StringLiteral).Text;
+                    val = Consume(TokenType.StringLiteral).Value!.Text;
                 }
                 else if (Peek().Type == TokenType.Number)
                 {
-                    val = Consume(TokenType.Number).Text;
+                    val = Consume(TokenType.Number).Value!.Text;
                     if (Peek().Type == TokenType.Identifier)
                     {
-                        val += Consume(TokenType.Identifier).Text; // Append 'd', 'w', etc.
+                        val += Consume(TokenType.Identifier).Value!.Text;
                     }
                 }
                 else
                 {
-                    throw new ParsingException("Expected a time span (e.g. \"30d\" or 30d).");
+                    return ParseResult<IQueryNode>.Fail("Expected a time span (e.g. \"30d\" or 30d).", Peek().Position);
                 }
 
-                Consume(TokenType.RightParen, "Expected ')' after time string.");
-                return new FuzzyDateNode(field, FuzzyDateNode.Qualifier.Ago, op, ParseTimeSpan(val));
+                var rParenRes = Consume(TokenType.RightParen, "Expected ')' after time string.");
+                if (!rParenRes.IsSuccess) return ParseResult<IQueryNode>.Fail(rParenRes.Error, rParenRes.ErrorPosition);
+
+                var spanRes = ParseTimeSpan(val);
+                if (!spanRes.IsSuccess) return ParseResult<IQueryNode>.Fail(spanRes.Error, spanRes.ErrorPosition);
+
+                return ParseResult<IQueryNode>.Ok(new FuzzyDateNode(field, FuzzyDateNode.Qualifier.Ago, op, spanRes.Value));
 
             case "between":
-                Consume(TokenType.LeftParen, "Expected '(' after 'between'.");
+                var bParenRes = Consume(TokenType.LeftParen, "Expected '(' after 'between'.");
+                if (!bParenRes.IsSuccess) return ParseResult<IQueryNode>.Fail(bParenRes.Error, bParenRes.ErrorPosition);
+
                 var olderValToken = Consume(TokenType.StringLiteral, "Expected the 'older' time string.");
-                Consume(TokenType.Comma, "Expected a comma ',' separating the two date ranges.");
+                if (!olderValToken.IsSuccess) return ParseResult<IQueryNode>.Fail(olderValToken.Error, olderValToken.ErrorPosition);
+
+                var commaRes = Consume(TokenType.Comma, "Expected a comma ',' separating the two date ranges.");
+                if (!commaRes.IsSuccess) return ParseResult<IQueryNode>.Fail(commaRes.Error, commaRes.ErrorPosition);
+
                 var newerValToken = Consume(TokenType.StringLiteral, "Expected the 'newer' time string.");
-                Consume(TokenType.RightParen, "Expected ')' after the second time string.");
-                var olderTimeSpan = ParseTimeSpan(olderValToken.Text);
-                var newerTimeSpan = ParseTimeSpan(newerValToken.Text);
-                if (olderTimeSpan < newerTimeSpan)
-                {
-                    throw new ParsingException("The first date in 'between' must be older than the second.", olderValToken.Position);
-                }
-                // --- ADD: Pass the operator to the node (usually defaults to 'contains') ---
-                return new FuzzyDateNode(field, FuzzyDateNode.Qualifier.Between, op, olderTimeSpan, newerTimeSpan);
+                if (!newerValToken.IsSuccess) return ParseResult<IQueryNode>.Fail(newerValToken.Error, newerValToken.ErrorPosition);
+
+                var rbParenRes = Consume(TokenType.RightParen, "Expected ')' after the second time string.");
+                if (!rbParenRes.IsSuccess) return ParseResult<IQueryNode>.Fail(rbParenRes.Error, rbParenRes.ErrorPosition);
+
+                var olderTimeSpan = ParseTimeSpan(olderValToken.Value!.Text);
+                var newerTimeSpan = ParseTimeSpan(newerValToken.Value!.Text);
+
+                if (!olderTimeSpan.IsSuccess) return ParseResult<IQueryNode>.Fail(olderTimeSpan.Error, olderValToken.ErrorPosition);
+                if (!newerTimeSpan.IsSuccess) return ParseResult<IQueryNode>.Fail(newerTimeSpan.Error, newerValToken.ErrorPosition);
+
+                if (olderTimeSpan.Value < newerTimeSpan.Value)
+                    return ParseResult<IQueryNode>.Fail("The first date in 'between' must be older than the second.", olderValToken.Value.Position);
+
+                return ParseResult<IQueryNode>.Ok(new FuzzyDateNode(field, FuzzyDateNode.Qualifier.Between, op, olderTimeSpan.Value, newerTimeSpan.Value));
+
             default:
-                throw new ParsingException($"Unknown fuzzy date qualifier '{typeToken.Text}'.", typeToken.Position);
+                return ParseResult<IQueryNode>.Fail($"Unknown fuzzy date qualifier '{typeTokenRes.Value.Text}'.", typeTokenRes.Value.Position);
         }
     }
 
-    private TimeSpan ParseTimeSpan(string text)
+    private ParseResult<TimeSpan> ParseTimeSpan(string text)
     {
         text = text.Replace("ago", "").Trim();
         var match = Regex.Match(text, @"(\d+)\s*([a-zA-Z]+)");
         if (!match.Success)
-            throw new ParsingException($"Invalid time span format '{text}'.", 0);
+            return ParseResult<TimeSpan>.Fail($"Invalid time span format '{text}'.", 0);
 
         var value = int.Parse(match.Groups[1].Value);
         var unit = match.Groups[2].Value.ToLowerInvariant();
 
         return unit switch
         {
-            "d" or "day" or "days" => TimeSpan.FromDays(value),
-            "w" or "week" or "weeks" => TimeSpan.FromDays(value * 7),
-            "m" or "month" or "months" => TimeSpan.FromDays(value * 30.44),
-            "y" or "year" or "years" => TimeSpan.FromDays(value * 365.25),
-            _ => throw new ParsingException($"Unknown time unit '{unit}' in '{text}'.", 0)
+            "d" or "day" or "days" => ParseResult<TimeSpan>.Ok(TimeSpan.FromDays(value)),
+            "w" or "week" or "weeks" => ParseResult<TimeSpan>.Ok(TimeSpan.FromDays(value * 7)),
+            "m" or "month" or "months" => ParseResult<TimeSpan>.Ok(TimeSpan.FromDays(value * 30.44)),
+            "y" or "year" or "years" => ParseResult<TimeSpan>.Ok(TimeSpan.FromDays(value * 365.25)),
+            _ => ParseResult<TimeSpan>.Fail($"Unknown time unit '{unit}' in '{text}'.", 0)
         };
     }
 
-    private DaypartNode ParseDaypartClause(string field)
+    private ParseResult<IQueryNode> ParseDaypartClause(string field)
     {
-        var daypartToken = Consume(TokenType.Identifier);
-        var (start, end) = daypartToken.Text.ToLowerInvariant() switch
+        var daypartTokenRes = Consume(TokenType.Identifier);
+        if (!daypartTokenRes.IsSuccess) return ParseResult<IQueryNode>.Fail(daypartTokenRes.Error, daypartTokenRes.ErrorPosition);
+
+        var (start, end) = daypartTokenRes.Value!.Text.ToLowerInvariant() switch
         {
             "morning" => (TimeSpan.FromHours(6), TimeSpan.FromHours(12)),
             "afternoon" => (TimeSpan.FromHours(12), TimeSpan.FromHours(18)),
             "evening" => (TimeSpan.FromHours(18), TimeSpan.FromHours(22)),
             "night" => (TimeSpan.FromHours(22), TimeSpan.FromHours(6)),
-            _ => throw new ParsingException("Invalid daypart specified.", daypartToken.Position)
+            _ => (TimeSpan.Zero, TimeSpan.Zero)
         };
-        return new DaypartNode(field, start, end);
+
+        if (start == TimeSpan.Zero && end == TimeSpan.Zero)
+            return ParseResult<IQueryNode>.Fail("Invalid daypart specified.", daypartTokenRes.Value.Position);
+
+        return ParseResult<IQueryNode>.Ok(new DaypartNode(field, start, end));
+    }
+
+    private bool IsImplicitAnd()
+    {
+        if (IsAtEnd()) return false;
+        return Peek().Type switch
+        {
+            TokenType.Or or TokenType.Pipe or TokenType.RightParen or
+            TokenType.Include or TokenType.Add or
+            TokenType.Exclude or TokenType.Remove => false,
+            _ => true,
+        };
+    }
+
+    private bool IsStartOfNewClauseOrSegment(Token token)
+    {
+        return token.Type == TokenType.Identifier && (
+            token.Text.Equals("chance", StringComparison.OrdinalIgnoreCase) ||
+            Peek(1).Type == TokenType.Colon);
     }
 
     private Token Previous() => _tokens[_position - 1];
-
     private Token Peek(int offset = 0) => _position + offset >= _tokens.Count ? _tokens.Last() : _tokens[_position + offset];
     private bool IsAtEnd() => Peek().Type == TokenType.EndOfFile;
-    private Token Consume(TokenType type, string message) => Peek().Type == type ? _tokens[_position++] : throw new ParsingException(message, Peek().Position);
-    private Token Consume(TokenType type) => Consume(type, $"Expected {type} but got {Peek().Type}.");
+
+    private ParseResult<Token> Consume(TokenType type, string message)
+    {
+        if (Peek().Type == type) return ParseResult<Token>.Ok(_tokens[_position++]);
+        return ParseResult<Token>.Fail(message, Peek().Position);
+    }
+
+    private ParseResult<Token> Consume(TokenType type) => Consume(type, $"Expected {type} but got {Peek().Type}.");
+
     private bool Match(params TokenType[] types)
     {
-        if (IsAtEnd() || !types.Contains(Peek().Type))
-            return false;
+        if (IsAtEnd() || !types.Contains(Peek().Type)) return false;
         _position++;
         return true;
     }
 
     private static bool IsOperator(TokenType type) => type is TokenType.GreaterThan or TokenType.LessThan or TokenType.GreaterThanOrEqual or TokenType.LessThanOrEqual or TokenType.Equals or TokenType.Tilde or TokenType.Caret or TokenType.Dollar;
-    private static bool IsValueToken(TokenType type) =>
-    type is TokenType.Identifier or TokenType.Number or TokenType.StringLiteral
 
-    or TokenType.First or TokenType.Last or TokenType.Random or TokenType.Shuffle
-    or TokenType.Asc or TokenType.Desc or TokenType.And or TokenType.Or or TokenType.Not
-    or TokenType.Add or TokenType.Include or TokenType.Remove or TokenType.Exclude;
+    private static bool IsValueToken(TokenType type) =>
+        type is TokenType.Identifier or TokenType.Number or TokenType.StringLiteral
+        or TokenType.First or TokenType.Last or TokenType.Random or TokenType.Shuffle
+        or TokenType.Asc or TokenType.Desc or TokenType.And or TokenType.Or or TokenType.Not
+        or TokenType.Add or TokenType.Include or TokenType.Remove or TokenType.Exclude;
 }

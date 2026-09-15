@@ -21,8 +21,21 @@ public class AstEvaluator
         RandomChanceNode n => (Math.Abs(song.Id.GetHashCode()) % 100) < n.Percentage,
         FuzzyDateNode n => EvaluateFuzzyDate(n, song),
         DaypartNode n => EvaluateDaypart(n, song),
+        InNode n => EvaluateInClause(n, song),
         _ => true
     };
+    private bool EvaluateInClause(InNode node, SongModel song)
+    {
+        if (!FieldRegistry.FieldsByAlias.TryGetValue(node.Field, out var fieldDef))
+            return false;
+
+        string songValue = SemanticQueryHelpers.GetStringProp(song, fieldDef.PropertyName);
+
+        // Checks if ANY of the values in the list match the song's property
+        bool result = node.Values.Any(val => songValue.Equals(val, StringComparison.OrdinalIgnoreCase));
+
+        return node.IsNegated ? !result : result;
+    }
 
     private bool EvaluateLogical(LogicalNode node, SongModel song)
     {
@@ -88,7 +101,7 @@ public class AstEvaluator
             case FieldType.Duration:
                 double songNumericValue = SemanticQueryHelpers.GetNumericProp(song, fieldDef.PropertyName);
                 double queryNumericValue = fieldDef.Type == FieldType.Duration
-                    ? ParseDuration(node.Value.ToString())
+                    ? TqlUtilities.ParseDuration(node.Value.ToString())
                     : Convert.ToDouble(node.Value, CultureInfo.InvariantCulture);
 
 
@@ -111,7 +124,7 @@ public class AstEvaluator
                         break;
 
                     case "-":
-                        double upperValue = ParseDuration(node.UpperValue?.ToString() ?? "0");
+                        double upperValue = TqlUtilities.ParseDuration(node.UpperValue?.ToString() ?? "0");
                         result = songNumericValue >= queryNumericValue && songNumericValue <= upperValue;
                         break;
 
@@ -169,25 +182,7 @@ public class AstEvaluator
         // Finally, apply negation if it exists.
         return node.IsNegated ? !result : result;
     }
-    private static double ParseDuration(string? text)
-    {
-        if (string.IsNullOrWhiteSpace(text))
-            return 0;
-        double totalSeconds = 0;
-        var parts = text.Split(':');
-        double multiplier = 1;
-        for (int i = parts.Length - 1; i >= 0; i--)
-        {
-            if (double.TryParse(parts[i], NumberStyles.Any, CultureInfo.InvariantCulture, out double value))
-            {
-                totalSeconds += value * multiplier;
-                multiplier *= 60;
-            }
-            else
-            { return 0; }
-        }
-        return totalSeconds;
-    }
+
     /// <summary>
     /// Parses a user's date query string into a start and end date range.
     /// Handles relative terms like "today", absolute dates like "2023-01-15",

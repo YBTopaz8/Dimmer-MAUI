@@ -22,6 +22,8 @@
   </Target>
 
 	<ItemGroup>
+		
+		
 		<!--<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.120" />-->
 		<PackageReference Include="DevExpress.Maui.Charts" Version="26.1.4" />
 		<PackageReference Include="DevExpress.Maui.CollectionView" Version="26.1.4" />
@@ -97,7 +99,7 @@
 		<PackageReference Include="Xamarin.AndroidX.Window" Version="1.5.1.3" />
 		<PackageReference Include="Xamarin.Google.Android.Material" Version="1.14.0.6" />
 
-
+		<PackageReference Include="OwnAudioSharp.Mobile" Version="4.0.7" />
 
 		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.101" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.11" />
