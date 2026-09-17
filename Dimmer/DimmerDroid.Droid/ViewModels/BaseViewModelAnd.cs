@@ -452,6 +452,8 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     public void SetCollectionView(DXCollectionView collectionView)
     {
         _collectionView = collectionView;
+      
+
     }
  
 

@@ -1,4 +1,6 @@
-﻿namespace Dimmer.DimmerAudio;
+﻿#pragma warning disable CS0618
+#pragma warning disable CA1422
+namespace Dimmer.DimmerAudio;
 
 using Android.Graphics;
 using Android.Support.V4.Media;
@@ -12,12 +14,14 @@ public partial class DimmerCompatMediaService : Service
 {
     private MediaSessionCompat? _mediaSession;
     private IDimmerAudioService? _audioService;
+    private PowerManager.WakeLock? _wakeLock;
 
     // The ONE object that prevents memory leaks
     private readonly CompositeDisposable _disposables = new();
 
     private Bitmap? _currentCoverArt;
 
+    private DimmerPlaybackState _lastState = DimmerPlaybackState.None;
     public override void OnCreate()
     {
         base.OnCreate();
@@ -25,11 +29,18 @@ public partial class DimmerCompatMediaService : Service
         // 1. Fetch exactly the same instance your ViewModels use via DI
         _audioService = IPlatformApplication.Current!.Services.GetRequiredService<IDimmerAudioService>();
 
+        var powerManager = (PowerManager)GetSystemService(PowerService)!;
+        _wakeLock = powerManager.NewWakeLock(WakeLockFlags.Partial, "Dimmer::AudioServiceLock");
+        _wakeLock?.SetReferenceCounted(false);
+
+
         // 2. Initialize MediaSessionCompat
         var componentName = new ComponentName(this, Java.Lang.Class.FromType(typeof(DimmerMediaButtonReceiver)));
+
+
         _mediaSession = new MediaSessionCompat(this, "DimmerRxSession", componentName, null);
         
-        //_mediaSession.SetFlags(MediaSessionCompat.FlagHandlesMediaButtons | MediaSessionCompat.FlagHandlesTransportControls);
+      
         _mediaSession.SetCallback(new DimmerMediaSessionCallback(_audioService));
         _mediaSession.Active = true;
 
@@ -45,6 +56,7 @@ public partial class DimmerCompatMediaService : Service
                 LoadCoverArtAndSetMetadata(song!,0);
             })
             .DisposeWith(_disposables);
+
         _audioService.DurationObs
     .Where(duration => duration > 0) // Only fire when the Rust engine finds the actual length
     .Subscribe(duration =>
@@ -65,6 +77,7 @@ public partial class DimmerCompatMediaService : Service
             .Sample(TimeSpan.FromMilliseconds(200)) // Throttle slightly
             .Subscribe(x =>
             {
+                _lastState = x.state;
                 UpdateAndroidPlaybackState(x.state, x.pos);
             })
             .DisposeWith(_disposables);
@@ -151,9 +164,18 @@ public partial class DimmerCompatMediaService : Service
         else
             StartForeground(NotificationHelper.NotificationId, notification);
 
-        // Allow user to swipe the notification away if paused
-        if (!isPlaying)
+        bool isTransitioning = _lastState == DimmerPlaybackState.PlayCompleted ||
+                              _lastState == DimmerPlaybackState.Opening;
+
+        if (isPlaying || isTransitioning)
         {
+            // Lock the CPU so it doesn't sleep while we fetch the next track
+            if (_wakeLock?.IsHeld == false) _wakeLock.Acquire();
+        }
+        else
+        {
+            // The user EXPLICITLY paused. It is safe to drop foreground and sleep.
+            if (_wakeLock?.IsHeld == true) _wakeLock.Release();
             StopForeground(StopForegroundFlags.Detach);
         }
     }
@@ -166,6 +188,7 @@ public partial class DimmerCompatMediaService : Service
         _currentCoverArt?.Dispose();
         _mediaSession?.Release();
 
+        if (_wakeLock?.IsHeld == true) _wakeLock.Release();
         StopForeground(StopForegroundFlags.Remove);
         base.OnDestroy();
     }

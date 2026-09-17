@@ -155,7 +155,7 @@ public class ShuffleNode : IQueryNode
 {
     public int Count { get; }
     public FieldDefinition? BiasField { get; }
-    public SortDirection BiasDirection { get; }
+    public TQLSortDirection BiasDirection { get; }
     public bool IsBiased => BiasField != null;
 
     // Constructor for a simple shuffle (e.g., "shuffle 50")
@@ -163,11 +163,11 @@ public class ShuffleNode : IQueryNode
     {
         Count = count;
         BiasField = null;
-        BiasDirection = SortDirection.Ascending; // Not used
+        BiasDirection = TQLSortDirection.Ascending; // Not used
     }
 
     // Constructor for a biased shuffle (e.g., "shuffle by rating desc")
-    public ShuffleNode(int count, FieldDefinition biasField, SortDirection biasDirection)
+    public ShuffleNode(int count, FieldDefinition biasField, TQLSortDirection biasDirection)
     {
         Count = count;
         BiasField = biasField;

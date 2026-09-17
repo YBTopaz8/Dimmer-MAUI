@@ -263,9 +263,9 @@ public static class MetaParser
         return ParseResult<CommandNode?>.Ok(new CommandNode(commandName, arguments));
     }
 
-    private static List<SortDescription> CreateSortDescriptions(IReadOnlyList<Token> allDirectives)
+    private static List<TQLSortDescription> CreateSortDescriptions(IReadOnlyList<Token> allDirectives)
     {
-        var sortDescriptions = new List<SortDescription>();
+        var sortDescriptions = new List<TQLSortDescription>();
         for (int i = 0; i < allDirectives.Count; i++)
         {
             var token = allDirectives[i];
@@ -276,8 +276,8 @@ public static class MetaParser
                     string fieldAlias = allDirectives[i + 1].Text;
                     if (FieldRegistry.FieldsByAlias.TryGetValue(fieldAlias, out var fieldDef))
                     {
-                        var direction = token.Type == TokenType.Asc ? SortDirection.Ascending : SortDirection.Descending;
-                        sortDescriptions.Add(new SortDescription(fieldDef, direction));
+                        var direction = token.Type == TokenType.Asc ? TQLSortDirection.Ascending : TQLSortDirection.Descending;
+                        sortDescriptions.Add(new TQLSortDescription(fieldDef, direction));
                     }
                     i++;
                 }
@@ -347,10 +347,10 @@ public static class MetaParser
 
             if (FieldRegistry.FieldsByAlias.TryGetValue(fieldAlias, out var fieldDef))
             {
-                var direction = SortDirection.Ascending;
+                var direction = TQLSortDirection.Ascending;
                 if (currentIndex < allDirectives.Count && allDirectives[currentIndex].Type == TokenType.Desc)
                 {
-                    direction = SortDirection.Descending;
+                    direction = TQLSortDirection.Descending;
                 }
                 return new ShuffleNode(count, fieldDef, direction);
             }

@@ -376,7 +376,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     // Example for the "Title" column
     [ObservableProperty]
-    public partial SortDirection TitleColumnSortDirection { get; set; } = SortDirection.Ascending; // Default value
+    public partial TQLSortDirection TitleColumnSortDirection { get; set; } = TQLSortDirection.Ascending; // Default value
 
     // Example for the "Artist" column
     [ObservableProperty]
@@ -400,7 +400,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     // --- The partial OnChanged methods that are our triggers ---
 
-    partial void OnTitleColumnSortDirectionChanged(SortDirection oldValue, SortDirection newValue)
+    partial void OnTitleColumnSortDirectionChanged(TQLSortDirection oldValue, TQLSortDirection newValue)
     {
         // The user has changed the sorting of the Title column!
         ScheduleVisibleCountUpdate();

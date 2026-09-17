@@ -338,7 +338,6 @@
                             ClearIconCommand="{Binding ApplyTQLSearchCommand}"
                             CornerRadius="20"
                             IsVisible="True"
-                            Loaded="SearchText_Loaded"
                             PlaceholderColor="DarkSlateBlue"
                             PlaceholderText="Search Via TQL"
                             ReturnCommand="{Binding ApplyTQLSearchCommand}"
@@ -393,6 +392,8 @@
                         BackgroundColor="Transparent"
                         ItemSpacing="5"
                         ItemTemplate="{StaticResource LinearDataType}"
+                        ItemsSource="{Binding SearchResults}"
+                        Loaded="SongsCV_Loaded"
                         ZIndex="0" />
 
                     <dx:DXButton
@@ -406,6 +407,7 @@
                         IconColor="DarkSlateBlue"
                         IconHeight="40"
                         IconWidth="40"
+                        Loaded="ShowTQLShortBTMSheet_Loaded"
                         PressedBackgroundColor="{Binding CurrentPlaySongDominantColor}"
                         ShowContent="False"
                         ShowIcon="True"

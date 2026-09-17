@@ -6,7 +6,7 @@
 public record RealmQueryPlan(
     string RqlFilter,
     Func<SongModel, bool> InMemoryPredicate,
-    IReadOnlyList<SortDescription> SortDescriptions,
+    IReadOnlyList<TQLSortDescription> SortDescriptions,
     LimiterClause? Limiter,
     IQueryNode? CommandNode, 
     ShuffleNode? Shuffle,
