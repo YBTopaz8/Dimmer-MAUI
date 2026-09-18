@@ -592,7 +592,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _ = Task.Run(async () =>
         {
 
-            await HeavierBackGroundLoadings(FolderPaths);
+            //await HeavierBackGroundLoadings(FolderPaths);
         });
         this.WhenPropertyChanged(
           nameof(this.IsBackGrounded),
@@ -940,7 +940,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         if (!string.IsNullOrEmpty(result.ErrorMessage))
         {
             TQLUserSearchErrorMessage = result.ErrorMessage;
-            SearchResultsHolder.Edit(innerCache => innerCache.Clear());
+            //SearchResultsHolder.Edit(innerCache => innerCache.Clear());
             ActiveArtistFacets = new List<FacetItem>();
             ActiveAlbumFacets = new List<FacetItem>();
             ActiveGenreFacets = new List<FacetItem>();
@@ -967,7 +967,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         // 3. Update the UI List (Instantly fast now!)
         if (result.Results != null)
         {
-            SearchResultsHolder.Edit(innerCache => innerCache.Load(result.Results));
+            SearchResultsHolder.EditDiff(result.Results, (song1, song2) => song1.Id == song2.Id);
             IsSearchResultEmpty = result.Results.Count == 0;
             UpdateIsSearchResultEmpty(IsSearchResultEmpty);
         }
@@ -977,6 +977,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             ExecuteTqlCommand(result.CommandToExecute);
         }
+
+        IsTqlBusy = false;
     }
     private SearchResult? PerformSearchBackground(string queryText, CancellationToken ct)
     {
@@ -990,7 +992,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             return new SearchResult
             {
-                Results = allSongs.Select(x => x.ToSongModelView()!).ToList(),
+                Results = allSongs.Select(x => x.ToSongModelView(true)!).ToList(),
                 Facets = FacetEngine.GenerateFacets(allSongs)
             };
         }
@@ -3772,8 +3774,14 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         var ordered = IsAscending
             ? PlaybackQueueSource.Items.OrderBy(s => s.AlbumName)
             : PlaybackQueueSource.Items.OrderByDescending(s => s.AlbumName);
-        PlaybackQueueSource.Clear();
-        PlaybackQueueSource.AddRange(ordered);
+        PlaybackQueueSource.Edit(
+               updater =>
+               {
+                   updater.Clear();
+                   updater.AddRange(ordered);
+               });
+
+
         IsAscending = !IsAscending;
     }
 

@@ -43,7 +43,7 @@ public partial class HomePage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        compDisp ??= new();
+        compDisp = new();
 
 
 
@@ -129,16 +129,20 @@ public partial class HomePage : ContentPage
     {
         DXImage img = (DXImage)sender;
         var platView = img.Handler?.PlatformView as Android.Views.View;
-
+        platView.Click -= PlatView_Click;
+        platView.Click += PlatView_Click;
         if (platView is null)
             return;
-        platView.Click += (s, e) =>
-        {
-            var songHandle = SongsCV.FindItemHandle(MyViewModel.CurrentPlayingSongView);
-            HapticFeedback.Default.Perform(HapticFeedbackType.Click);
-            SongsCV.ScrollTo(songHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
-        };
+      
     }
+
+    private void PlatView_Click(object? sender, EventArgs e)
+    {
+        var songHandle = SongsCV.FindItemHandle(MyViewModel.CurrentPlayingSongView);
+        HapticFeedback.Default.Perform(HapticFeedbackType.Click);
+        SongsCV.ScrollTo(songHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
+    }
+
     private void CurrentPlayingTitleChip_Tap(object sender, DXTapEventArgs e)
     {
         MainPageTabView.SelectedItemIndex = 1;
@@ -163,6 +167,7 @@ public partial class HomePage : ContentPage
         var send = (View)sender;
         var song = (SongModelView)send.BindingContext;
         MyViewModel.SelectedSong = song;
+
         SingleSongBtmSheet.Show();
     }
 
@@ -1021,12 +1026,18 @@ public partial class HomePage : ContentPage
     private void ShowTQLShortBTMSheet_Loaded(object sender, EventArgs e)
     {
         var nativeView = ShowTQLShortBTMSheet.Handler?.PlatformView as Android.Views.View;
-        nativeView?.LongClick += (s, args) =>
+        if (nativeView != null)
         {
-            var songHandle = SongsCV.FindItemHandle(MyViewModel.CurrentPlayingSongView);
-            HapticFeedback.Default.Perform(HapticFeedbackType.Click);
-            SongsCV.ScrollTo(songHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
+            // Unsubscribe first to guarantee we never double-subscribe!
+            nativeView.LongClick -= NativeView_LongClick;
+            nativeView.LongClick += NativeView_LongClick;
+        }
+    }
 
-        };
+    private void NativeView_LongClick(object? sender, Android.Views.View.LongClickEventArgs e)
+    {
+        var songHandle = SongsCV.FindItemHandle(MyViewModel.CurrentPlayingSongView);
+        HapticFeedback.Default.Perform(HapticFeedbackType.Click);
+        SongsCV.ScrollTo(songHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
     }
 }

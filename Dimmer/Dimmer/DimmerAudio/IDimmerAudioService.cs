@@ -9,6 +9,11 @@ using static Dimmer.DimmerAudio.OwnAudioService;
 
 public interface IDimmerAudioService : IAsyncDisposable
 {
+    float CurrentPitch { get; set; }
+    float CurrentSpeed { get; set; }
+    IObservable<float> SpeedObs { get; }
+    IObservable<float> PitchObs { get; }
+
     void SetEqualizerPreset(Equalizer30Preset preset);
     Task CrossfadeToNextAsync(SongModelView nextSong, double overlapSeconds = 3D);
     void ExportRemixToDisk(string outputFilePath);

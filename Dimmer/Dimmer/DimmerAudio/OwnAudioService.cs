@@ -29,6 +29,14 @@ public partial class OwnAudioService : IDimmerAudioService
     private readonly BehaviorSubject<float[]> _eqBands = new(new float[30]);
 
     private readonly BehaviorSubject<(double Left, double Right)> _peakLevels = new((-60.0, -60.0));
+
+
+    private readonly BehaviorSubject<float> _pitch = new(0f);
+    private readonly BehaviorSubject<float> _speed = new(1f);
+
+    public IObservable<float> PitchObs => _pitch.AsObservable();
+    public IObservable<float> SpeedObs => _speed.AsObservable();
+
     // ==========================================================
     // REACTIVE EVENTS (Subjects are for one-time triggers)
     // ==========================================================
@@ -122,6 +130,30 @@ public partial class OwnAudioService : IDimmerAudioService
             })
             .DisposeWith(_disposables);
     }
+
+
+    public float CurrentPitch
+    {
+        get => _pitch.Value;
+        set
+        {
+            var clamped = Math.Clamp(value, -12f, 12f);
+            _pitch.OnNext(clamped);
+            _mainSource?.SetPitchSmooth(clamped);
+        }
+    }
+
+    public float CurrentSpeed
+    {
+        get => _speed.Value;
+        set
+        {
+            var clamped = Math.Clamp(value, 0.5f, 2.0f);
+            _speed.OnNext(clamped);
+            _mainSource?.SetTempoSmooth(clamped);
+        }
+    }
+
 
     // ==========================================================
     // INITIALIZATION & DEVICE ROUTING
@@ -531,10 +563,8 @@ public partial class OwnAudioService : IDimmerAudioService
 
     public void SetPitchAndSpeed(float pitchSemitones, float tempoRatio)
     {
-        _currentPitchSemitones = Math.Clamp(pitchSemitones, -12f, 12f);
-        _currentTempoRatio = Math.Clamp(tempoRatio, 0.5f, 2.0f);
-        _mainSource?.SetPitchSmooth(_currentPitchSemitones);
-        _mainSource?.SetTempoSmooth(_currentTempoRatio);
+        CurrentPitch = pitchSemitones;
+        CurrentSpeed = tempoRatio;
     }
 
     public void EnableEqualizer(bool enable) { if (_eqEffect != null) _eqEffect.Enabled = enable; }
@@ -651,7 +681,7 @@ public partial class OwnAudioService : IDimmerAudioService
             _ambienceSource = new FileSource(filePath)
             {
                 Volume = (float)_ambienceVolume,
-                // Assuming Ownaudio FileSource has a looping mechanism, otherwise you hook into its end event to restart it
+                Loop = true
             };
 
             _mixer?.AddSource(_ambienceSource);
