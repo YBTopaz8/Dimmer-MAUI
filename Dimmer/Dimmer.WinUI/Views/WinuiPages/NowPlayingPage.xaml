@@ -42,7 +42,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <!--  The Player  -->
-                <ColumnDefinition Width="450" />
+                <ColumnDefinition Width="auto" />
                 <!--  The Audio Control Center  -->
             </Grid.ColumnDefinitions>
 
