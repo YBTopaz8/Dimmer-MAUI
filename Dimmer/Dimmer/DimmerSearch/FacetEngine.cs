@@ -6,8 +6,9 @@ public static class FacetEngine
 {
     public static SearchFacets GenerateFacets(IReadOnlyList<SongModel> results)
     {
+        var vmResults = results.AsEnumerable().Select(x => x.ToSongModelView());
         // 1. Group Artists (Alias: "ar")
-        var artists = results
+        var artists = vmResults
             .Where(s => !string.IsNullOrWhiteSpace(s.OtherArtistsName))
             .GroupBy(s => s.OtherArtistsName)
             .Select(g => new FacetItem(g.Key, g.Count(), "ar"))
@@ -16,7 +17,7 @@ public static class FacetEngine
             .ToList();
 
         // 2. Group Albums (Alias: "al")
-        var albums = results
+        var albums = vmResults
             .Where(s => !string.IsNullOrWhiteSpace(s.AlbumName))
             .GroupBy(s => s.AlbumName)
             .Select(g => new FacetItem(g.Key, g.Count(), "al"))
@@ -25,7 +26,7 @@ public static class FacetEngine
             .ToList();
 
         // 3. Group Genres (Alias: "genre")
-        var genres = results
+        var genres = vmResults
             .Where(s => !string.IsNullOrWhiteSpace(s.GenreName))
             .GroupBy(s => s.GenreName)
             .Select(g => new FacetItem(g.Key, g.Count(), "genre"))

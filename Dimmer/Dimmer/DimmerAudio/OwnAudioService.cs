@@ -45,12 +45,16 @@ public partial class OwnAudioService : IDimmerAudioService
     private readonly Subject<Exception> _errors = new();
     private readonly Subject<SongModelView> _nextRequested = new();
     private readonly Subject<SongModelView> _prevRequested = new();
-    private readonly Subject<SongModelView> _favRequested = new(); 
-    
+    private readonly Subject<SongModelView> _favRequested = new();
 
+    private readonly BehaviorSubject<(double? A, double? B)> _abLoopState = new((null, null));
+   
+    private bool _isLoopSeeking = false;
     // ==========================================================
     // EXPOSED OBSERVABLES
     // ==========================================================
+    public IObservable<(double? A, double? B)> AbLoopStateObs => _abLoopState.AsObservable();
+
     public IObservable<(double Left, double Right)> PeakLevelsObs => _peakLevels.AsObservable();
     public IObservable<SongModelView?> CurrentSongObs => _currentSong.AsObservable();
     public IObservable<DimmerPlaybackState> PlaybackStateObs => _playbackState.AsObservable();
@@ -88,6 +92,9 @@ public partial class OwnAudioService : IDimmerAudioService
     private bool _isAmbienceEnabled;
     private double _ambienceVolume = 0.5;
 
+    private double? _loopPointA;
+    private double? _loopPointB;
+    public bool IsAbLooping { get; private set; }
     // Effects
     private Equalizer30BandEffect? _eqEffect;
     private ReverbEffect? _reverbEffect;
@@ -397,6 +404,20 @@ public partial class OwnAudioService : IDimmerAudioService
         double smoothPos = _lastEnginePos + (now - _lastEnginePosAt);
         _currentPosition.OnNext(Math.Clamp(smoothPos, 0, _duration.Value));
 
+        if (IsAbLooping && _loopPointA.HasValue && _loopPointB.HasValue)
+        {
+            if (smoothPos >= _loopPointB.Value && !_isLoopSeeking)
+            {
+                _isLoopSeeking = true;
+                Task.Run(async () =>
+                {
+                    await SeekAsync(_loopPointA.Value);
+                    _isLoopSeeking = false;
+                });
+            }
+        }
+
+
         // 2. Update VU Meters (Only push if changed by 0.5dB to save UI layout passes)
         double leftDb = ToDbFs(_mixer.LeftPeak);
         double rightDb = ToDbFs(_mixer.RightPeak);
@@ -501,6 +522,8 @@ public partial class OwnAudioService : IDimmerAudioService
             var oldSource = _mainSource;
             _mainSource = _secondarySource;
 
+            
+
             _currentSong.OnNext(nextSong);
             _duration.OnNext(_mainSource.Duration);
 
@@ -560,7 +583,35 @@ public partial class OwnAudioService : IDimmerAudioService
                 break;
         }
     }
+    public void SetLoopPointA()
+    {
+        _loopPointA = _currentPosition.Value;
 
+        // If B is already set and is behind A, reset B
+        if (_loopPointB.HasValue && _loopPointB.Value <= _loopPointA.Value)
+        {
+            _loopPointB = null;
+            IsAbLooping = false;
+        }
+        _abLoopState.OnNext((_loopPointA, _loopPointB));
+    }
+    public void SetLoopPointB()
+    {
+        if (_loopPointA.HasValue && _currentPosition.Value > _loopPointA.Value)
+        {
+            _loopPointB = _currentPosition.Value;
+            IsAbLooping = true;
+            _abLoopState.OnNext((_loopPointA, _loopPointB));
+        }
+    }
+    public void ClearAbLoop()
+    {
+        _loopPointA = null;
+        _loopPointB = null;
+        IsAbLooping = false;
+        _abLoopState.OnNext((null, null));
+    }
+    
     public void SetPitchAndSpeed(float pitchSemitones, float tempoRatio)
     {
         CurrentPitch = pitchSemitones;
@@ -611,7 +662,49 @@ public partial class OwnAudioService : IDimmerAudioService
             _smartMasterEffect.Enabled = enable;
         }
     }
+    public async Task TransitionToNextGaplessAsync(SongModelView nextSong)
+    {
+        await _transportLock.WaitAsync();
+        try
+        {
+            int sr = OwnaudioNet.Engine!.Config.SampleRate;
+            int ch = OwnaudioNet.Engine!.Config.Channels;
 
+            // 1. If we haven't pre-loaded the next song yet, decode it now
+            if (_secondarySource == null)
+            {
+                _secondarySource = new FileSource(nextSong.FilePath, targetSampleRate: sr, targetChannels: ch);
+                _mixer?.AddSourcePrepared(_secondarySource);
+            }
+
+            _secondarySource.SetPitchSmooth(_currentPitchSemitones);
+            _secondarySource.SetTempoSmooth(_currentTempoRatio);
+            _secondarySource.Volume = (float)_volume.Value; // Full volume immediately
+
+            // 2. Start it instantly on the existing master clock
+            _mixer?.StartPreparedSources(0);
+
+            var oldSource = _mainSource;
+            _mainSource = _secondarySource;
+            _secondarySource = null; // Reset for the next-next song
+
+            _currentSong.OnNext(nextSong);
+            _duration.OnNext(_mainSource.Duration);
+
+            // 3. Detach and dispose the old song in the background
+            if (oldSource != null)
+            {
+                RxSchedulers.Background.ScheduleTo(() =>
+                {
+                    _mixer?.RemoveSource(oldSource.Id);
+                    oldSource.Stop();
+                    oldSource.Dispose();
+                });
+            }
+        }
+        catch (Exception ex) { _errors.OnNext(ex); }
+        finally { _transportLock.Release(); }
+    }
     public void SetVolume(double volume)
     {
         var clamped = Math.Clamp(volume, 0.0, 1.0);

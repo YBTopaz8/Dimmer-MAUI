@@ -9,6 +9,11 @@ using static Dimmer.DimmerAudio.OwnAudioService;
 
 public interface IDimmerAudioService : IAsyncDisposable
 {
+    void ClearAbLoop();
+    void SetLoopPointB();
+    void SetLoopPointA();
+
+    bool IsAbLooping { get; }
     float CurrentPitch { get; set; }
     float CurrentSpeed { get; set; }
     IObservable<float> SpeedObs { get; }

@@ -51,16 +51,16 @@ public class LyricsMgtFlow : IDisposable
         _logger = logger ?? NullLogger<LyricsMgtFlow>.Instance;
 
         _subsManager.Add(
-         _audioService.PlaybackStateObs
-             .WithLatestFrom(_audioService.CurrentSongObs, (state, song) => new { state, song })
-             // We only care about the 'Playing' state, which signals a new track has begun.
-             .Where(x => x.state == DimmerPlaybackState.Playing && x.song != null)
-             // Prevent re-searching if the user just pauses and plays the same song
-             .DistinctUntilChanged(x => x.song?.Id)
-             .Subscribe(
-                 async x => await ProcessExistingLyricsForSong(x.song),
-                 ex => _logger.LogError(ex, "Error processing new song for lyrics from audio service event.")
-             ));
+    _audioService.CurrentSongObs
+            .Where(song => song != null)
+            .DistinctUntilChanged(song => song!.Id)
+            
+            .Select(song => Observable.FromAsync(ct => ProcessExistingLyricsForSong(song, ct)))
+            .Switch() 
+            .Subscribe(
+                _ => { },
+                ex => _logger.LogError(ex, "Error processing new song for lyrics.")
+            ));
 
         // 2. Clear lyrics when playback naturally ends
         _subsManager.Add(
@@ -106,7 +106,7 @@ public class LyricsMgtFlow : IDisposable
         }
     }
 
-    public async Task<ObservableCollection<LyricPhraseModelView>> GetLyrics(SongModelView songConcerned)
+    public async Task<ObservableCollection<LyricPhraseModelView>> GetLyrics(SongModelView songConcerned, CancellationToken ct)
     {
         var res = await GetStoredLyricsContentAsync(songConcerned);
         if (res is not null)
@@ -118,7 +118,7 @@ public class LyricsMgtFlow : IDisposable
         }
         if(_lyrics is null || _lyrics.Count<1)
         {
-            var OnlineLyrics = await GetLyricsAndSaveContentToDBAsync(songConcerned);
+            var OnlineLyrics = await GetLyricsAndSaveContentToDBAsync(songConcerned,ct);
             var collectionfOfLyricModelViewsFromOnlineLyrics
                 = new List<LyricPhraseModelView > { };
             
@@ -202,8 +202,8 @@ public class LyricsMgtFlow : IDisposable
     }
 
     SongModelView? currentSong;
-    private async Task ProcessExistingLyricsForSong(SongModelView? song,bool loadLyricsInSyncMode=true)
-    {
+  private async Task ProcessExistingLyricsForSong(SongModelView? song, CancellationToken ct,bool loadLyricsInSyncMode = true)
+    { 
         if (song == null || currentSong?.TitleDurationKey == song.TitleDurationKey)
         {
             ClearLyrics();
@@ -215,7 +215,8 @@ public class LyricsMgtFlow : IDisposable
         string? lrcContent = await GetStoredLyricsContentAsync(song);
         if (!string.IsNullOrWhiteSpace(lrcContent))
         {
-            // If we found content, parse and load it for synchronization.
+            if (ct.IsCancellationRequested) return; // Abort if song changed!
+
             LoadLyrics(lrcContent);
             isLoadingLyrics.OnNext(false);
         }
@@ -225,7 +226,7 @@ public class LyricsMgtFlow : IDisposable
             ClearLyrics();
             isSearchingLyrics.OnNext(true);
             isLoadingLyrics.OnNext(false);
-            var res = await GetLyricsAndSaveContentToDBAsync(song);
+            var res = await GetLyricsAndSaveContentToDBAsync(song, ct);
 
             if(res is not null && res.Any())
             {
@@ -253,9 +254,9 @@ public class LyricsMgtFlow : IDisposable
         _currentLyricSubject.OnNext(null);
         _nextLyricSubject.OnNext(_lyrics.FirstOrDefault());
     }
-    private async Task<IEnumerable<LrcLibLyrics>?> GetLyricsAndSaveContentToDBAsync(SongModelView song,bool saveToDB=true)
+    private async Task<IEnumerable<LrcLibLyrics>?> GetLyricsAndSaveContentToDBAsync(SongModelView song, CancellationToken ct, bool saveToDB=true)
     {
-        CancellationTokenSource cts = new();
+
         var instru =  song.IsInstrumental is true;
         if (instru)
         {
@@ -281,7 +282,7 @@ public class LyricsMgtFlow : IDisposable
         }
 
 
-        IEnumerable<LrcLibLyrics>? onlineResults = await _lyricsMetadataService.GetAllLyricsPropsOnlineAsync(song.ToSongModel(), cts.Token);
+        IEnumerable<LrcLibLyrics>? onlineResults = await _lyricsMetadataService.GetAllLyricsPropsOnlineAsync(song.ToSongModel()!, ct);
         var onlineLyrics = onlineResults?.FirstOrDefault();
 
         if (onlineLyrics != null)

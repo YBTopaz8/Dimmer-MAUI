@@ -192,7 +192,7 @@ public class AudioFileProcessor : IAudioFileProcessor
                 DateCreated = DateTimeOffset.UtcNow,
                 LastDateUpdated = DateTimeOffset.UtcNow
             };
-
+          
 
             song.PlatformPath = TaggingUtils.GetReadableFilePath(filePath);
             song.FilePath = filePath;

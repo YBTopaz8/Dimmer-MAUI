@@ -154,13 +154,17 @@ public class BaseAppFlow : IDisposable
                 if (song != null)
                 {
                     song.PlayHistory.Add(addedEvent);
-                }
-                else
-                {
-                    _logger.LogWarning("Song {SongId} not found when adding play event", songView.Id);
+                    if (type == PlayType.Pause) song.PauseCount++;
+                    if (type == PlayType.Completed) song.PlayCompletedCount++;
+                    if (type == PlayType.Resume) song.ResumeCount++;
+                    if (type == PlayType.SeekRestarted) song.RestartCount++;
+                    if (type == PlayType.Restarted) song.RepeatCount++;
+                    if (type == PlayType.Skipped) song.SkipCount++;
+
+                    song.LastPlayed = DateTimeOffset.UtcNow;
                 }
 
-                    songView = song.ToSongModelView();
+                songView = song.ToSongModelView();
             });
 
             

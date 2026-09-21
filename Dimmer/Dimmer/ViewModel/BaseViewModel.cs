@@ -592,7 +592,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         _ = Task.Run(async () =>
         {
 
-            //await HeavierBackGroundLoadings(FolderPaths);
+            await HeavierBackGroundLoadings(FolderPaths);
         });
         this.WhenPropertyChanged(
           nameof(this.IsBackGrounded),
@@ -888,6 +888,27 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
        if( IsTQLInitialized )return;
       
         IsFirstBoot = true;
+
+        _facetGenerationTrigger
+        .ObserveOn(RxSchedulers.Background) // Keep it off the UI thread
+        .Subscribe(songs =>
+        {
+            var facets = FacetEngine.GenerateFacets(songs);
+            RxSchedulers.UI.ScheduleTo(() =>
+            {
+                // 2. Apply Facets
+                if(facets != null)
+                {
+                    ActiveArtistFacets = facets.Artists.Count > 1 ? facets.Artists : new List<FacetItem>();
+                    ActiveAlbumFacets = facets.Albums.Count > 1 ? facets.Albums : new List<FacetItem>();
+                    ActiveGenreFacets = facets.Genres.Count > 1 ? facets.Genres : new List<FacetItem>();
+                }
+            });
+        });
+
+
+
+
         var searchStream = _searchQuerySubject
        .Throttle(TimeSpan.FromMilliseconds(250), RxSchedulers.Background)
        .DistinctUntilChanged()
@@ -956,13 +977,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         TQLUserSearchErrorMessage = string.Empty;
 
-        // 2. Apply Facets
-        if (result.Facets != null)
-        {
-            ActiveArtistFacets = result.Facets.Artists.Count > 1 ? result.Facets.Artists : new List<FacetItem>();
-            ActiveAlbumFacets = result.Facets.Albums.Count > 1 ? result.Facets.Albums : new List<FacetItem>();
-            ActiveGenreFacets = result.Facets.Genres.Count > 1 ? result.Facets.Genres : new List<FacetItem>();
-        }
+        
 
         // 3. Update the UI List (Instantly fast now!)
         if (result.Results != null)
@@ -988,7 +1003,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         if (string.IsNullOrWhiteSpace(queryText))
         {
             var allSongs = realmm.All<SongModel>().OrderByDescending(s => s.DateCreated).ToList();
-            RxSchedulers.UI.ScheduleTo(()=> IsLibraryEmpty = allSongs.Count == 0);
+            RxSchedulers.UI.ScheduleTo(() => IsLibraryEmpty = allSongs.Count == 0);
 
             return new SearchResult
             {
@@ -1032,7 +1047,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             // 5. Memory Sort (Only if Realm couldn't)
             if (!didRealmSort && plan.SortDescriptions.Count > 0)
             {
-              
+
 
                 var firstSort = plan.SortDescriptions[0];
                 var orderedList = firstSort.Direction == TQLSortDirection.Ascending
@@ -1084,17 +1099,22 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
             // 7. Materialize final list and Map to ViewModels ON THE BACKGROUND THREAD
             var realizedFinalList = intermediateList.ToList();
-            var facets = FacetEngine.GenerateFacets(realizedFinalList);
+
+            _facetGenerationTrigger.OnNext(realizedFinalList);
+
             var viewModels = realizedFinalList.Select(x => x.ToSongModelView()!).ToList();
 
-            // 8. Evaluate Commands (like ">> save" or ">> play")
-            var commandAction = new CommandEvaluator().Evaluate(plan.CommandNode, viewModels);
-
+            // Change this at the bottom of PerformSearchBackground:
+            ICommandAction? commandAction = null;
+            if (plan.CommandNode != null)
+            {
+                commandAction = new CommandEvaluator().Evaluate(plan.CommandNode, viewModels);
+            }
             return new SearchResult
             {
                 Plan = plan,
                 Results = viewModels,
-                Facets = facets,
+
                 CommandToExecute = commandAction // Pass the action up to the UI!
             };
         }
@@ -1102,7 +1122,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             return new SearchResult { ErrorMessage = ex.Message, Plan = plan };
         }
+
+
     }
+    private readonly Subject<IReadOnlyList<SongModel>> _facetGenerationTrigger = new();
     [RelayCommand]
     public void ExcludeFacet(FacetItem facet)
     {
@@ -1968,7 +1991,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         }
 
         var songsInPlaylist = await GetOrderedSongsFromIdsAsync(playlist.SongsIdsInPlaylist);
-        if (songsInPlaylist.Count == 0)
+        if (songsInPlaylist?.Count == 0)
         {
             _logger.LogWarning("Could not find any songs in the database for the selected playlist.");
             return;
@@ -3252,7 +3275,17 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             CurrentPlayingSongView,
             StatesMapper.Map(DimmerPlaybackState.PlayCompleted),
             CurrentTrackDurationSeconds);
+        if (dbOutputSong != null)
+        {
+            // 2. MAGIC: Replace the old song in the main list with the updated one!
+            SearchResultsHolder.AddOrUpdate(dbOutputSong);
 
+            // (Optional) Update it in the PlaybackQueue if it's there
+            var queueIndex = PlaybackQueueSource.Items.IndexOf(CurrentPlayingSongView);
+            if (queueIndex >= 0) PlaybackQueueSource.ReplaceAt(queueIndex, dbOutputSong);
+
+            CurrentPlayingSongView = dbOutputSong;
+        }
         CurrentTrackPositionSeconds = 0;
         CurrentTrackPositionPercentage = 0;
         IsProgrammaticSeek = false;
@@ -3891,12 +3924,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         {
             // A. Stop current playback and clear UI if the new song is null.
             if (songToPlay == null)
-        {
-            if (_audioService.IsPlaying)
-                _audioService.Stop();
-            await UpdateSongSpecificUi(null);
-            return false;
-        }
+            {
+                if (_audioService.IsPlaying)
+                    _audioService.Stop();
+                await UpdateSongSpecificUi(null);
+                return false;
+            }
 
         // B. Validate the song file path.
         if (string.IsNullOrEmpty(songToPlay.FilePath) || 
@@ -4080,7 +4113,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
 
-    private async Task StartNewPlaybackQueue(IEnumerable<SongModelView> songs, int startIndex, string contextQuery)
+    private async Task StartNewPlaybackQueue(IEnumerable<SongModelView?>? songs, int startIndex, string contextQuery)
     {
         List<SongModelView> initialSongList = songs.ToList();
         if (initialSongList.Count == 0 || startIndex < 0 || startIndex >= initialSongList.Count)
@@ -6903,7 +6936,8 @@ public record QueryComponents(
         if (lyricIndex.IsSectionHeader || lyricIndex.SectionType == "Generic")
             return;
 
-        var currentTime = TimeSpan.FromSeconds(_audioService.CurrentPosition);
+        double adjustedPosition = Math.Max(0, _audioService.CurrentPosition - 0.25);
+        var currentTime = TimeSpan.FromSeconds(adjustedPosition);
         var timestampString = currentTime.ToString(@"mm\:ss\.ff");
 
 
@@ -7171,7 +7205,19 @@ public record QueryComponents(
         }
         _logger.LogInformation("Repeated {Count} lines.", linesToRepeat.Count);
     }
+    [RelayCommand]
+    public async Task SkipBackward5s()
+    {
+        double newPos = Math.Max(0, _audioService.CurrentPosition - 5.0);
+        await _audioService.SeekAsync(newPos);
+    }
 
+    [RelayCommand]
+    public async Task SkipForward5s()
+    {
+        double newPos = Math.Min(CurrentPlayingSongView.DurationInSeconds, _audioService.CurrentPosition + 5.0);
+        await _audioService.SeekAsync(newPos);
+    }
     public async Task LoadPlainLyricsFromFile(string PickedPath)
     {
         var fileContent = await File.ReadAllTextAsync(PickedPath);
@@ -8759,7 +8805,10 @@ public record QueryComponents(
 
     public async Task LoadLyricsFromOnlineOrDBIfNeededAsync(SongModelView concernedSong)
     {
-        SelectedSong.SyncLyricsCol =  await _lyricsMgtFlow.GetLyrics(concernedSong);
+        CancellationTokenSource cts = new();
+
+        
+        SelectedSong.SyncLyricsCol =  await _lyricsMgtFlow.GetLyrics(concernedSong,cts.Token);
     }
 
     [ObservableProperty]
