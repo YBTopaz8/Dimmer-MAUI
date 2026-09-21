@@ -6,7 +6,9 @@ using Android.Graphics;
 using Android.Media;
 using Android.Support.V4.Media;
 using Android.Support.V4.Media.Session;
+using AndroidX.Core.App;
 using AndroidX.Media.Session;
+using Avalonia.Controls.Notifications;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 
@@ -16,83 +18,73 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
     private MediaSessionCompat? _mediaSession;
     private IDimmerAudioService? _audioService;
     private PowerManager.WakeLock? _wakeLock;
-
+    private NotificationManagerCompat? _notificationManager;
     private AudioManager? _audioManager;
     private AudioBecomingNoisyReceiver? _noisyReceiver;
     // The ONE object that prevents memory leaks
     private readonly CompositeDisposable _disposables = new();
-
+    private DimmerAudioDeviceCallback? _deviceCallback;
     private Bitmap? _currentCoverArt;
-
+    private bool _isStartedInForeground = false;
     private DimmerPlaybackState _lastState = DimmerPlaybackState.None;
+
     public override void OnCreate()
     {
         base.OnCreate();
 
-        // 1. Fetch exactly the same instance your ViewModels use via DI
         _audioService = IPlatformApplication.Current!.Services.GetRequiredService<IDimmerAudioService>();
         _audioManager = (AudioManager?)GetSystemService(AudioService);
+        _notificationManager = NotificationManagerCompat.From(this);
+
+
+
+        _deviceCallback = new DimmerAudioDeviceCallback(_audioService);
+        _audioManager?.RegisterAudioDeviceCallback(_deviceCallback, null);
+
 
         var powerManager = (PowerManager)GetSystemService(PowerService)!;
         _wakeLock = powerManager.NewWakeLock(WakeLockFlags.Partial, "Dimmer::AudioServiceLock");
         _wakeLock?.SetReferenceCounted(false);
 
-
-        // 1. Setup Headset Unplug Receiver
+        // 1. Headset unplug receiver
         _noisyReceiver = new AudioBecomingNoisyReceiver(_audioService);
         RegisterReceiver(_noisyReceiver, new IntentFilter(AudioManager.ActionAudioBecomingNoisy));
 
-
-        // 2. Initialize MediaSessionCompat
+        // 2. MediaSession setup
         var componentName = new ComponentName(this, Java.Lang.Class.FromType(typeof(DimmerMediaButtonReceiver)));
-
-
         _mediaSession = new MediaSessionCompat(this, "DimmerRxSession", componentName, null);
-        
-      
         _mediaSession.SetCallback(new DimmerMediaSessionCallback(_audioService));
         _mediaSession.Active = true;
 
-        // ==========================================
-        // 3. PURE RX.NET BINDINGS
-        // ==========================================
-
-        // A) Observe Song Changes (Updates Metadata & Cover Art)
+        // 3. Rx Bindings (Direct execution, no UI scheduler required)
         _audioService.CurrentSongObs
             .Where(song => song != null)
-            .Subscribe(song =>
-            {
-                LoadCoverArtAndSetMetadata(song!,0);
-            })
+            .Subscribe(song => LoadCoverArtAndSetMetadata(song!, 0))
             .DisposeWith(_disposables);
 
         _audioService.DurationObs
-    .Where(duration => duration > 0) // Only fire when the Rust engine finds the actual length
-    .Subscribe(duration =>
-    {
-        if (_audioService.CurrentTrackMetadata != null)
-        {
-            // Re-push the metadata, but this time with the real duration!
-            LoadCoverArtAndSetMetadata(_audioService.CurrentTrackMetadata, duration);
-        }
-    })
-    .DisposeWith(_disposables);
+            .Where(duration => duration > 0)
+            .Subscribe(duration =>
+            {
+                if (_audioService.CurrentTrackMetadata != null)
+                    LoadCoverArtAndSetMetadata(_audioService.CurrentTrackMetadata, duration);
+            })
+            .DisposeWith(_disposables);
 
-        // B) Observe Playback State (Combine State + Position)
-        // We only push updates to Android when State changes or when user seeks, 
-        // to avoid spamming the UI thread every 16ms. Android extrapolates the seekbar automatically!
         _audioService.PlaybackStateObs
             .CombineLatest(_audioService.PositionObs, (state, pos) => new { state, pos })
-            .Sample(TimeSpan.FromMilliseconds(200)) // Throttle slightly
+            .Sample(TimeSpan.FromMilliseconds(250))
             .Subscribe(x =>
             {
                 _lastState = x.state;
                 UpdateAndroidPlaybackState(x.state, x.pos);
+
                 if (x.state == DimmerPlaybackState.Playing)
                     RequestAudioFocus();
             })
             .DisposeWith(_disposables);
     }
+
     private void RequestAudioFocus()
     {
         if (_audioManager == null) return;
@@ -117,22 +109,25 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
 
     public override StartCommandResult OnStartCommand(Intent? intent, StartCommandFlags flags, int startId)
     {
+        // 🔥 FIX 1: Promote to foreground IMMEDIATELY to satisfy Android's 5-second watchdog timer
+        if (!_isStartedInForeground)
+        {
+            PromoteToForeground();
+        }
+
         if (intent != null)
         {
-            // Route Custom Intents (Like our Favorite button)
             if (intent.Action == DimmerMediaSessionCallback.ActionFavorite)
             {
                 if (_audioService is OwnAudioService srv) srv.TriggerFavorite();
             }
             else
             {
-                // Route Standard Media Intents
                 MediaButtonReceiver.HandleIntent(_mediaSession, intent);
             }
         }
         return StartCommandResult.Sticky;
     }
-
     private void LoadCoverArtAndSetMetadata(SongModelView song, double durationInSeconds)
     {
         // If you have local file paths for images:
@@ -163,6 +158,26 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
 
         _mediaSession!.SetMetadata(builder?.Build());
         RedrawNotification();
+    }
+
+    private void PromoteToForeground()
+    {
+        var notification = NotificationHelper.BuildNotification(
+            this,
+            _mediaSession!,
+            _audioService?.IsPlaying ?? false,
+            _audioService?.CurrentTrackMetadata,
+            _currentCoverArt);
+
+        if (notification != null)
+        {
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.Q)
+                StartForeground(NotificationHelper.NotificationId, notification, global::Android.Content.PM.ForegroundService.TypeMediaPlayback);
+            else
+                StartForeground(NotificationHelper.NotificationId, notification);
+
+            _isStartedInForeground = true;
+        }
     }
     public static int CalculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight)
     {
@@ -197,7 +212,6 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
             _ => PlaybackStateCompat.StatePaused
         };
 
-        // 1.0f means Android will animate the seekbar automatically while playing!
         float playbackSpeed = compatState == PlaybackStateCompat.StatePlaying ? 1.0f : 0f;
 
         var stateBuilder = new PlaybackStateCompat.Builder()?
@@ -222,25 +236,25 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
 
             var notification = NotificationHelper.BuildNotification(this, _mediaSession!, isPlaying, currentSong, _currentCoverArt);
             if (notification is null) return;
-            if (Build.VERSION.SdkInt >= BuildVersionCodes.Q)
-                StartForeground(NotificationHelper.NotificationId, notification, global::Android.Content.PM.ForegroundService.TypeMediaPlayback);
-            else
-                StartForeground(NotificationHelper.NotificationId, notification);
 
-            bool isTransitioning = _lastState == DimmerPlaybackState.PlayCompleted ||
-                                  _lastState == DimmerPlaybackState.Opening;
-
-            if (isPlaying || isTransitioning)
+            if (!_isStartedInForeground)
             {
-                // Lock the CPU so it doesn't sleep while we fetch the next track
+                PromoteToForeground();
+                return;
+            }
+
+            _notificationManager?.Notify(NotificationHelper.NotificationId, notification);
+
+            if (isPlaying)
+            {
                 if (_wakeLock?.IsHeld == false) _wakeLock.Acquire();
             }
             else
             {
-                // The user EXPLICITLY paused. It is safe to drop foreground and sleep.
                 if (_wakeLock?.IsHeld == true) _wakeLock.Release();
-                StopForeground(StopForegroundFlags.Detach);
+                // DO NOT call StopForeground(Detach) here. Keep the service alive while paused!
             }
+
 
         });
     }
@@ -249,12 +263,20 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
     {
         // CLEANUP: Zero Memory Leaks!
         _disposables.Dispose();
+        if (_noisyReceiver != null) UnregisterReceiver(_noisyReceiver);
+        _audioManager?.AbandonAudioFocus(this);
+
+        if (_deviceCallback != null)
+        {
+            _audioManager?.UnregisterAudioDeviceCallback(_deviceCallback);
+        }
 
         _currentCoverArt?.Dispose();
         _mediaSession?.Release();
 
         if (_wakeLock?.IsHeld == true) _wakeLock.Release();
         StopForeground(StopForegroundFlags.Remove);
+        _isStartedInForeground = false;
         base.OnDestroy();
     }
 

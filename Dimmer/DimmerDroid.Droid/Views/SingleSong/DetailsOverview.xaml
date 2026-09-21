@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
-    x:Class="Dimmer.Views.SingleSong.DetailsOverview"
     x:Name="myPage"
+    x:Class="Dimmer.Views.SingleSong.DetailsOverview"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:conv="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
@@ -15,8 +15,7 @@
     xmlns:vm="clr-namespace:Dimmer.ViewModels"
     Padding="5"
     x:DataType="models:SongModelView"
-    Shell.NavBarIsVisible="False"
-    >
+    Shell.NavBarIsVisible="False">
 
     <ContentPage.Resources>
         <ResourceDictionary>
@@ -37,8 +36,7 @@
                         MaximumHeightRequest="350"
                         MaximumWidthRequest="350"
                         Source="{Binding CoverImagePath}"
-                        VerticalOptions="Start"
-                        />
+                        VerticalOptions="Start" />
                     <dx:DXButton
                         Padding="0"
                         BackgroundColor="Transparent"
@@ -47,32 +45,28 @@
                         IconHeight="40"
                         IconWidth="40"
                         IsVisible="{Binding IsFavorite}"
-                        ShowIcon="True"
-                        />
+                        ShowIcon="True" />
                 </dx:DXStackLayout>
 
 
                 <dx:DXStackLayout
                     Grid.Column="1"
                     ItemSpacing="5"
-                    VerticalOptions="Start"
-                    >
+                    VerticalOptions="Start">
                     <Label
                         x:Name="TitleLabel"
                         FontSize="23"
                         HorizontalTextAlignment="Justify"
                         LineBreakMode="WordWrap"
                         Text="{Binding Title}"
-                        VerticalOptions="Start"
-                        />
+                        VerticalOptions="Start" />
                     <dx:Chip
                         x:Name="ArtistNamesChip"
                         FontSize="17"
                         HorizontalOptions="Start"
                         Icon="artistt.png"
                         IsIconVisible="True"
-                        Tap="ArtistNamesChip_Tap"
-                        >
+                        Tap="ArtistNamesChip_Tap">
                         <dx:Chip.ContentTemplate>
                             <DataTemplate>
                                 <Label Text="{Binding OtherArtistsName}" />
@@ -86,8 +80,7 @@
                         Icon="musicalbum.png"
                         IsIconVisible="True"
                         Tap="AlbumChip_Tap"
-                        TapCommandParameter="{Binding Album}"
-                        >
+                        TapCommandParameter="{Binding Album}">
                         <dx:Chip.ContentTemplate>
                             <DataTemplate>
                                 <Label Text="{Binding AlbumName}" />
@@ -100,14 +93,12 @@
                             FontSize="12"
                             HorizontalOptions="Start"
                             Text="{Binding GenreName}"
-                            ToolTipProperties.Text="Genre Name"
-                            />
+                            ToolTipProperties.Text="Genre Name" />
                         <dx:Chip
                             BindingContext="{Binding StatsViewModel.TextCompletionRate, Source={x:Reference myPage}}"
                             FontSize="12"
                             HorizontalOptions="Start"
-                            ToolTipProperties.Text="{Binding StatsViewModel.TextCompletionRate.Title, Source={x:Reference myPage}}"
-                            >
+                            ToolTipProperties.Text="{Binding StatsViewModel.TextCompletionRate.Title, Source={x:Reference myPage}}">
                             <dx:Chip.ContentTemplate>
                                 <DataTemplate x:DataType="statsModels:TextStat">
                                     <dx:DXStackLayout ItemSpacing="5" Orientation="Horizontal">
@@ -130,8 +121,7 @@
                     Grid.Column="0"
                     FontSize="26"
                     HorizontalOptions="Center"
-                    Text="Info"
-                    />
+                    Text="Info" />
                 <dx:DXButton
                     Grid.Column="1"
                     Padding="4"
@@ -142,15 +132,13 @@
                     IconHeight="25"
                     IconWidth="25"
                     ShowContent="False"
-                    ShowIcon="True"
-                    />
+                    ShowIcon="True" />
             </Grid>
             <dx:DXBorder
                 Padding="5"
                 BorderColor="DarkSlateBlue"
                 BorderThickness="1"
-                CornerRadius="10"
-                >
+                CornerRadius="10">
 
                 <Grid ColumnDefinitions="*,*">
                     <Grid.Resources>
@@ -173,8 +161,7 @@
                     <dx:DXStackLayout
                         Grid.Column="1"
                         HorizontalOptions="End"
-                        ItemSpacing="15"
-                        >
+                        ItemSpacing="15">
                         <dx:DXStackLayout.Resources>
                             <ResourceDictionary>
                                 <Style TargetType="Label">
@@ -208,23 +195,20 @@
                     Command="{Binding Commands.ToggleExpandState, Source={x:Reference StatsExpander}}"
                     Content="Stats"
                     FontSize="26"
-                    HorizontalOptions="Center"
-                    />
+                    HorizontalOptions="Center" />
                 <dx:DXExpander x:Name="StatsExpander" IsExpanded="False">
 
                     <Grid
                         x:Name="StatsSectionPreview"
                         Padding="5"
                         Loaded="StatsSectionPreview_Loaded"
-                        RowDefinitions="400,auto"
-                        >
+                        RowDefinitions="400,auto">
                         <dx:SlideView
                             x:Name="StatsSlideView"
                             Padding="5,0"
                             BorderColor="Gray"
                             BorderThickness="1"
-                            CornerRadius="15"
-                            >
+                            CornerRadius="15">
                             <dx:SlideView.Resources>
                                 <Style TargetType="dx:DXCollectionView">
                                     <Setter Property="ItemSpacing" Value="5" />
@@ -244,16 +228,14 @@
                                             x:Name="ListWeeklyTrend"
                                             Grid.Column="3"
                                             Header="Weekly Trend"
-                                            Loaded="ListWeeklyTrend_Loaded"
-                                            >
+                                            Loaded="ListWeeklyTrend_Loaded">
                                             <dx:DXCollectionView.ItemTemplate>
                                                 <DataTemplate x:DataType="statsModels:TrendStat">
                                                     <dx:DXStackLayout
                                                         Padding="10"
                                                         BorderColor="Gray"
                                                         BorderThickness="1"
-                                                        CornerRadius="10"
-                                                        >
+                                                        CornerRadius="10">
                                                         <dx:DXStackLayout ItemSpacing="5" Orientation="Horizontal">
 
                                                             <Label Text="Period" />
@@ -273,8 +255,7 @@
                                                             <Label
                                                                 FontAttributes="Bold"
                                                                 Text="{Binding ChangeVsPrevious}"
-                                                                TextColor="Orange"
-                                                                />
+                                                                TextColor="Orange" />
                                                         </dx:DXStackLayout>
                                                     </dx:DXStackLayout>
                                                 </DataTemplate>
@@ -287,8 +268,7 @@
                                         <dx:ChartView
                                             HeightRequest="150"
                                             SelectionKind="Point"
-                                            SelectionMode="Single"
-                                            >
+                                            SelectionMode="Single">
                                             <dx:ChartView.Series>
                                                 <dx:LineSeries>
                                                     <dx:LineSeries.Data>
@@ -316,16 +296,14 @@
                                     x:Name="ListMonthlyTrend"
                                     Grid.Column="2"
                                     Header="MonthlyTrend"
-                                    Loaded="ListMonthlyTrend_Loaded"
-                                    >
+                                    Loaded="ListMonthlyTrend_Loaded">
                                     <dx:DXCollectionView.ItemTemplate>
                                         <DataTemplate x:DataType="statsModels:TrendStat">
                                             <dx:DXStackLayout
                                                 Padding="10"
                                                 BorderColor="Gray"
                                                 BorderThickness="1"
-                                                CornerRadius="10"
-                                                >
+                                                CornerRadius="10">
                                                 <dx:DXStackLayout ItemSpacing="5" Orientation="Horizontal">
 
                                                     <Label Text="Period" />
@@ -363,14 +341,12 @@
                                 Command="{Binding Commands.ShowPrevious, Source={Reference StatsSlideView}}"
                                 Icon="skipprevious.png"
                                 ShowContent="False"
-                                VerticalOptions="End"
-                                />
+                                VerticalOptions="End" />
                             <dx:DXButton
                                 Grid.Column="1"
                                 Command="{Binding Commands.ShowNext, Source={Reference StatsSlideView}}"
                                 Icon="skipnext.png"
-                                VerticalOptions="End"
-                                />
+                                VerticalOptions="End" />
 
                         </Grid>
                     </Grid>
@@ -383,8 +359,7 @@
                     <Label
                         FontAttributes="Bold"
                         FontSize="18"
-                        Text="Frequently Played Next"
-                        />
+                        Text="Frequently Played Next" />
                 </dx:DXStackLayout>
 
                 <dx:DXCollectionView
@@ -393,8 +368,7 @@
                     ItemSpacing="10"
                     Loaded="ListPerfectPairings_Loaded"
                     Orientation="Horizontal"
-                    VerticalOptions="Start"
-                    >
+                    VerticalOptions="Start">
                     <dx:DXCollectionView.ItemTemplate>
                         <DataTemplate x:DataType="statsModels:SongPairing">
                             <dx:DXStackLayout
@@ -402,21 +376,18 @@
                                 BorderColor="Gray"
                                 BorderThickness="1"
                                 CornerRadius="10"
-                                VerticalOptions="Start"
-                                >
+                                VerticalOptions="Start">
                                 <dx:DXStackLayout.Triggers>
                                     <DataTrigger
                                         Binding="{Binding isPresentOnDevice}"
                                         TargetType="dx:DXStackLayout"
-                                        Value="True"
-                                        >
+                                        Value="True">
                                         <Setter Property="BorderColor" Value="DarkSlateBlue" />
                                     </DataTrigger>
                                     <DataTrigger
                                         Binding="{Binding isPresentOnDevice}"
                                         TargetType="dx:DXStackLayout"
-                                        Value="False"
-                                        >
+                                        Value="False">
                                         <Setter Property="BorderColor" Value="Gray" />
                                     </DataTrigger>
                                 </dx:DXStackLayout.Triggers>
@@ -425,14 +396,12 @@
                                     <dx:DXImage
                                         Grid.Column="0"
                                         Source="{Binding CoverImagePath}"
-                                        VerticalOptions="Start"
-                                        />
+                                        VerticalOptions="Start" />
                                     <dx:DXStackLayout
                                         Grid.Column="1"
                                         Padding="10"
                                         CornerRadius="10"
-                                        VerticalOptions="Start"
-                                        >
+                                        VerticalOptions="Start">
                                         <dx:DXStackLayout ItemSpacing="5" Orientation="Vertical">
 
                                             <Label FontAttributes="Bold" Text="{Binding PairedSongTitle}" />
@@ -462,8 +431,7 @@
                     Grid.Column="0"
                     FontSize="26"
                     HorizontalOptions="Center"
-                    Text="Lyrics Section"
-                    />
+                    Text="Lyrics Section" />
                 <dx:DXButton
                     x:Name="EditLyrics"
                     Grid.Column="1"
@@ -477,8 +445,7 @@
                     IconWidth="25"
                     IsVisible="{Binding HasSyncedLyrics}"
                     ShowContent="False"
-                    ShowIcon="True"
-                    />
+                    ShowIcon="True" />
                 <dx:DXButton
                     x:Name="AddLyrics"
                     Grid.Column="1"
@@ -492,8 +459,7 @@
                     IconWidth="25"
                     IsVisible="{Binding HasSyncedLyrics, Converter={conv:BoolToInverseConverter}}"
                     ShowContent="False"
-                    ShowIcon="True"
-                    />
+                    ShowIcon="True" />
 
             </Grid>
 
@@ -504,22 +470,19 @@
             <dx:DXPopup
                 x:Name="ArtistToSongPopup"
                 Margin="10"
-                MaximumHeightRequest="500"
-                >
+                MaximumHeightRequest="500">
                 <dx:DXPopup.Content>
                     <Grid Margin="10" RowDefinitions="auto,*">
                         <Label
                             Grid.Row="0"
                             HorizontalOptions="Center"
-                            Text="{Binding ArtistToSong.Count, StringFormat='{0} Artists'}"
-                            />
+                            Text="{Binding ArtistToSong.Count, StringFormat='{0} Artists'}" />
 
                         <dx:DXCollectionView
                             Grid.Row="1"
                             ItemSpacing="10"
                             ItemsSource="{Binding ArtistToSong}"
-                            MaximumHeightRequest="200"
-                            >
+                            MaximumHeightRequest="200">
                             <dx:DXCollectionView.ItemTemplate>
                                 <DataTemplate x:DataType="models:ArtistModelView">
                                     <Grid ColumnDefinitions="*,auto">
@@ -534,8 +497,7 @@
                                                 CommandParameter="{Binding .}"
                                                 Icon="eye.png"
                                                 ShowContent="False"
-                                                ShowIcon="True"
-                                                />
+                                                ShowIcon="True" />
 
 
                                         </dx:DXStackLayout>
@@ -548,131 +510,6 @@
             </dx:DXPopup>
         </dx:DXStackLayout>
     </dx:DXScrollView>
-    <!--
-        <Grid
-    x:Name="StatsVisualGrid"
-    Padding="5"
-    x:DataType="globalVM:StatisticsViewModel"
-    RowDefinitions="250,150"
-    >
-    <dx:PieChartView
-        x:Name="ActionsRadarChart"
-        Grid.Row="0"
-        SelectionChanged="ActionsRadarChart_SelectionChanged"
-        >
-        <dx:PieChartView.Hint>
-            <dx:PieHint Enabled="True" />
-        </dx:PieChartView.Hint>
-        <dx:PieChartView.Series>
-
-            <dx:PieSeries>
-                <dx:PieSeries.Label>
-                    <dx:PieSeriesLabel Position="TwoColumns" />
-                </dx:PieSeries.Label>
-                <dx:PieSeries.Data>
-                    <dx:PieSeriesDataAdapter
-                        AllowLiveDataUpdates="True"
-                        DataSource="{Binding SongStats.ActionRadar}"
-                        LabelDataMember="Label"
-                        ValueDataMember="Value"
-                        />
-
-
-                </dx:PieSeries.Data>
-            </dx:PieSeries>
-        </dx:PieChartView.Series>
-    </dx:PieChartView>
-    <dx:DXCollectionView Grid.Row="1" ItemsSource="{Binding SongStats.ActionRadar}">
-        <dx:DXCollectionView.ItemTemplate>
-            <DataTemplate x:DataType="models:LabelValue">
-                <FlexLayout JustifyContent="SpaceBetween">
-                    <Label Text="{Binding Label}" />
-                    <Label Text="{Binding Value}" />
-                </FlexLayout>
-            </DataTemplate>
-        </dx:DXCollectionView.ItemTemplate>
-    </dx:DXCollectionView>
-
-</Grid>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        <dx:TabViewItem HeaderText="Search Lyrics">
-
-                </dx:TabViewItem>
-
-
-                <dx:TabViewItem HeaderText="Statistics">
-                    <dx:DXScrollView>
-
-                        <dx:DXStackLayout
-                            x:Name="StatisticsStackLayout"
-                            x:DataType="globalVM:StatisticsViewModel"
-                            Loaded="StatisticsStackLayout_Loaded">
-
-
-                            <Label HorizontalOptions="Center" Text="{Binding SongActionRadarData.Count}" />
-
-
-
-                            <dx:ChartView>
-                                <dx:ChartView.Series>
-                                    <dx:LineSeries>
-                                        <dx:LineSeries.Data>
-                                            <dx:SeriesDataAdapter ArgumentDataMember="Label" DataSource="{Binding SongHourlyData}">
-                                                <dx:ValueDataMember Member="Value" Type="Value" />
-                                            </dx:SeriesDataAdapter>
-                                        </dx:LineSeries.Data>
-                                    </dx:LineSeries>
-                                </dx:ChartView.Series>
-                            </dx:ChartView>
-
-
-
-
-                        </dx:DXStackLayout>
-
-                    </dx:DXScrollView>
-                </dx:TabViewItem>
-
-                <dx:TabViewItem HeaderText="TimeLine">
-                    <dx:DXScrollView>
-                        <Grid RowDefinitions="auto,*">
-                            <dx:DXStackLayout Grid.Row="0">
-                                <Label Text="{Binding PlayEvents.Count}" />
-                            </dx:DXStackLayout>
-                            <dx:DataGridView
-                                Grid.Row="1"
-                                AutoGenerateColumnsMode="None"
-                                ItemsSource="{Binding PlayEvents}"
-                                RowHeight="80"
-                                ShowAutoFilterRow="True"
-                                ShowFilterIcon="True">
-                                <dx:DataGridView.Columns>
-                                    <dx:TextColumn AllowSort="True" FieldName="PlayTypeStr" />
-                                    <dx:DateColumn FieldName="EventDate" />
-                                    <dx:CheckBoxColumn FieldName="WasPlayCompleted" />
-                                </dx:DataGridView.Columns>
-                            </dx:DataGridView>
-                        </Grid>
-                    </dx:DXScrollView>
-                </dx:TabViewItem>-->
 
 
 

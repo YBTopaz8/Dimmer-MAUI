@@ -242,8 +242,9 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     }
 
     [RelayCommand]
-    public async Task DeleteFileFromSystem(SongModelView song)
+    public async Task DeleteFileFromSystem(SongModelView? song)
     {
+        if (song is null) return;
         bool confirm = await Shell.Current.DisplayAlertAsync("Confirm Delete", $"Are you sure you want to delete '{song.Title}' from your device? This action cannot be undone.", "Delete", "Cancel");
         if (confirm)
         {

@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Dimmer.Views.SingleSong.LyricsManualSyncPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:dx="http://schemas.devexpress.com/maui"
+    xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+    xmlns:vm="clr-namespace:Dimmer.ViewModels"
+    Title="Sync Studio"
+    x:DataType="vm:BaseViewModelAnd"
+    Shell.NavBarIsVisible="False">
+
+    <Grid
+        Padding="10"
+        RowDefinitions="Auto,*,Auto"
+        RowSpacing="10">
+
+        <!--  ==========================================================  -->
+        <!--  1. TOP HEADER & QUICK PLAYBACK TOOLBAR  -->
+        <!--  ==========================================================  -->
+        <dx:DXBorder
+            Grid.Row="0"
+            Padding="12"
+            BackgroundColor="{AppThemeBinding Dark=#1E1E1E,
+                                              Light=#F5F5F5}"
+            BorderColor="{AppThemeBinding Dark=#333333,
+                                          Light=#E0E0E0}"
+            BorderThickness="1"
+            CornerRadius="16">
+
+            <Grid RowDefinitions="Auto,Auto" RowSpacing="10">
+                <!--  Song Metadata Banner  -->
+                <Grid
+                    Grid.Row="0"
+                    ColumnDefinitions="Auto,*"
+                    ColumnSpacing="12">
+                    <dx:DXImage
+                        Grid.Column="0"
+                        Aspect="AspectFill"
+                        HeightRequest="45"
+                        Source="{Binding CurrentPlayingSongView.CoverImagePath}"
+                        WidthRequest="45" />
+
+                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                        <Label
+                            FontAttributes="Bold"
+                            FontSize="15"
+                            LineBreakMode="TailTruncation"
+                            Text="{Binding CurrentPlayingSongView.Title}" />
+                        <Label
+                            FontSize="12"
+                            LineBreakMode="TailTruncation"
+                            Opacity="0.7"
+                            Text="{Binding CurrentPlayingSongView.ArtistName}" />
+                    </VerticalStackLayout>
+                </Grid>
+
+                <!--  Quick Control Toolbar  -->
+                <Grid
+                    Grid.Row="1"
+                    ColumnDefinitions="Auto,*,Auto,Auto,Auto"
+                    ColumnSpacing="6">
+                    <dx:DXButton
+                        Grid.Column="0"
+                        Padding="8,4"
+                        Command="{Binding PasteLyricsFromClipboardCommand}"
+                        Content="Paste Text"
+                        FontSize="11"
+                        Icon="clipboard.png"
+                        ShowIcon="True" />
+
+                    <!--  Spacer  -->
+                    <BoxView Grid.Column="1" BackgroundColor="Transparent" />
+
+                    <!--  Rewind 5s  -->
+                    <dx:DXButton
+                        Grid.Column="2"
+                        Padding="0"
+                        Clicked="SkipBackwards_Clicked"
+                        Content="-5s"
+                        FontSize="11"
+                        HeightRequest="36"
+                        WidthRequest="42" />
+
+                    <!--  Play / Pause  -->
+                    <dx:DXButton
+                        Grid.Column="3"
+                        Padding="0"
+                        Command="{Binding PlayPauseToggleCommand}"
+                        HeightRequest="36"
+                        WidthRequest="42">
+                        <dx:DXButton.Triggers>
+                            <DataTrigger
+                                Binding="{Binding IsDimmerPlaying}"
+                                TargetType="dx:DXButton"
+                                Value="True">
+                                <Setter Property="Icon" Value="pause.png" />
+                            </DataTrigger>
+                            <DataTrigger
+                                Binding="{Binding IsDimmerPlaying}"
+                                TargetType="dx:DXButton"
+                                Value="False">
+                                <Setter Property="Icon" Value="play.png" />
+                            </DataTrigger>
+                        </dx:DXButton.Triggers>
+                    </dx:DXButton>
+
+                    <!--  Forward 5s  -->
+                    <dx:DXButton
+                        Grid.Column="4"
+                        Padding="0"
+                        Clicked="SkipForward_Clicked"
+                        Content="+5s"
+                        FontSize="11"
+                        HeightRequest="36"
+                        WidthRequest="42" />
+                </Grid>
+            </Grid>
+        </dx:DXBorder>
+
+        <!--  ==========================================================  -->
+        <!--  2. SCROLLABLE LYRICS LIST (DevExpress CollectionView)  -->
+        <!--  ==========================================================  -->
+        <dx:DXCollectionView
+            x:Name="LyricsCV"
+            Grid.Row="1"
+            ItemSpacing="8"
+            ItemsSource="{Binding LyricsInEditor}"
+            SelectionMode="None">
+            <dx:DXCollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:LyricEditingLineViewModel">
+                    <dx:DXBorder
+                        x:Name="LineBorder"
+                        Padding="10,6"
+                        BackgroundColor="{AppThemeBinding Dark=#121212,
+                                                          Light=#FAFAFA}"
+                        BorderColor="Transparent"
+                        BorderThickness="1"
+                        CornerRadius="10">
+
+                        <!--  Highlight Active Line using DataTriggers  -->
+                        <dx:DXBorder.Triggers>
+                            <DataTrigger
+                                Binding="{Binding IsCurrentLine}"
+                                TargetType="dx:DXBorder"
+                                Value="True">
+                                <Setter Property="BorderColor" Value="DarkSlateBlue" />
+                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Dark=#1F1F35, Light=#EAEAF8}" />
+                            </DataTrigger>
+                        </dx:DXBorder.Triggers>
+
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+                            <!--  Timestamp Display  -->
+                            <Label
+                                Grid.Column="0"
+                                FontFamily="Monospace"
+                                FontSize="12"
+                                Text="{Binding Timestamp}"
+                                VerticalOptions="Center">
+                                <Label.Triggers>
+                                    <DataTrigger
+                                        Binding="{Binding IsTimed}"
+                                        TargetType="Label"
+                                        Value="True">
+                                        <Setter Property="Opacity" Value="1.0" />
+                                        <Setter Property="TextColor" Value="DarkSlateBlue" />
+                                        <Setter Property="FontAttributes" Value="Bold" />
+                                    </DataTrigger>
+                                    <DataTrigger
+                                        Binding="{Binding IsTimed}"
+                                        TargetType="Label"
+                                        Value="False">
+                                        <Setter Property="Opacity" Value="0.35" />
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
+
+                            <!--  Lyric Text  -->
+                            <Label
+                                Grid.Column="1"
+                                FontSize="14"
+                                LineBreakMode="WordWrap"
+                                Text="{Binding Text}"
+                                VerticalOptions="Center">
+                                <Label.Triggers>
+                                    <DataTrigger
+                                        Binding="{Binding IsCurrentLine}"
+                                        TargetType="Label"
+                                        Value="True">
+                                        <Setter Property="FontAttributes" Value="Bold" />
+                                        <Setter Property="FontSize" Value="15" />
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
+
+                            <!--  Duplicate Line Button  -->
+                            <dx:DXButton
+                                Grid.Column="2"
+                                Padding="0"
+                                BackgroundColor="Transparent"
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:BaseViewModelAnd}}, Path=RepeatLineCommand}"
+                                CommandParameter="{Binding .}"
+                                HeightRequest="32"
+                                Icon="copy.png"
+                                WidthRequest="32" />
+
+                            <!--  Delete Line Button  -->
+                            <dx:DXButton
+                                Grid.Column="3"
+                                Padding="0"
+                                BackgroundColor="Transparent"
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:BaseViewModelAnd}}, Path=DeleteTimestampFromLineCommand}"
+                                CommandParameter="{Binding .}"
+                                HeightRequest="32"
+                                Icon="delete.png"
+                                IconColor="IndianRed"
+                                WidthRequest="32" />
+                        </Grid>
+                    </dx:DXBorder>
+                </DataTemplate>
+            </dx:DXCollectionView.ItemTemplate>
+        </dx:DXCollectionView>
+
+        <!--  ==========================================================  -->
+        <!--  3. BOTTOM ACTIONS & GIANT SYNC BUTTON  -->
+        <!--  ==========================================================  -->
+        <VerticalStackLayout Grid.Row="2" Spacing="8">
+            <!--  Repeat Previous Line (For Chorus Loops)  -->
+            <dx:DXButton
+                BackgroundColor="{AppThemeBinding Dark=#2A2A2A,
+                                                  Light=#EAEAEA}"
+                Command="{Binding DuplicateAndTimestampLastLineCommand}"
+                Content="Repeat Previous Line"
+                CornerRadius="12"
+                HeightRequest="42"
+                Icon="repeat.png"
+                ShowIcon="True"
+                TextColor="{AppThemeBinding Dark=White,
+                                            Light=Black}" />
+
+            <!--  🔥 THE GIANT SYNC BUTTON (Designed for Thumb Tapping)  -->
+            <dx:DXButton
+                x:Name="SyncButton"
+                BackgroundColor="DarkSlateBlue"
+                Clicked="SyncButton_Clicked"
+                Content="SYNC CURRENT LINE"
+                CornerRadius="16"
+                FontAttributes="Bold"
+                FontSize="16"
+                HeightRequest="60"
+                Icon="checkcircle.png"
+                ShowIcon="True"
+                TextColor="White" />
+
+            <!--  Footer Exit Actions  -->
+            <Grid
+                Margin="0,4,0,0"
+                ColumnDefinitions="*,*"
+                ColumnSpacing="10">
+                <dx:DXButton
+                    Grid.Column="0"
+                    BackgroundColor="Transparent"
+                    BorderColor="IndianRed"
+                    BorderThickness="1"
+                    Clicked="CancelBtn_Clicked"
+                    Content="Cancel"
+                    CornerRadius="10"
+                    TextColor="IndianRed" />
+
+                <dx:DXButton
+                    Grid.Column="1"
+                    BackgroundColor="DarkOliveGreen"
+                    Command="{Binding SaveTimestampedLyricsCommand}"
+                    CommandParameter="{Binding CurrentSongPlainLyricsEdit}"
+                    Content="Save to LRC"
+                    CornerRadius="10"
+                    TextColor="White" />
+            </Grid>
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>

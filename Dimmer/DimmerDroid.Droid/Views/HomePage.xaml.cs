@@ -992,35 +992,11 @@ public partial class HomePage : ContentPage
         }
     }
 
-    private void SearchText_TextChanged(object sender, EventArgs e)
+
+
+    private async void DeleteSongBtn_Tap(object sender, HandledEventArgs e)
     {
-        var userQuery = SearchText.Text;
-        if (string.IsNullOrWhiteSpace(userQuery))
-        {
-            SongsCV.FilterString = string.Empty; // Instant reset
-            return;
-        }
-
-        // 1. Parse TQL to AST
-        var allTokens = Lexer.Tokenize(userQuery).Where(t => t.Type != TokenType.EndOfFile).ToList();
-        var astResult = new AstParser(allTokens).Parse();
-
-        if (!astResult.IsSuccess)
-        {
-            // Show typo error to user
-            return;
-        }
-
-        // 2. Generate DevExpress Filter Syntax
-        string dxFilter = DxCriteriaGenerator.Generate(astResult.Value!);
-
-        // 3. Hand it directly to DevExpress (Executes in C++ in ~2ms!)
-        SongsCV.FilterString = dxFilter;
-    }
-
-    private void DeleteSongBtn_Tap(object sender, HandledEventArgs e)
-    {
-
+        await MyViewModel.DeleteFileFromSystem(MyViewModel.SelectedSong);
     }
 
     private void ShowTQLShortBTMSheet_Loaded(object sender, EventArgs e)

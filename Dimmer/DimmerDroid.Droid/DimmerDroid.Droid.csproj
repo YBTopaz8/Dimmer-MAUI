@@ -5,8 +5,8 @@
 		<TargetFramework>net10.0-android</TargetFramework>
 		<SupportedOSPlatformVersion>24.0</SupportedOSPlatformVersion>
 
-    <RuntimeIdentifiers>android-arm;android-arm64;android-x86;android-x64</RuntimeIdentifiers>
-    <!--<RuntimeIdentifiers>android-arm64</RuntimeIdentifiers>-->
+    <!--<RuntimeIdentifiers>android-arm;android-arm64;android-x86;android-x64</RuntimeIdentifiers>
+    <RuntimeIdentifiers>android-arm64</RuntimeIdentifiers>-->
 
     <OutputType>Exe</OutputType>
 		<RootNamespace>Dimmer</RootNamespace>
@@ -15,7 +15,16 @@
 		<LangVersion>preview</LangVersion>
 		<UseMaui>true</UseMaui>
 	</PropertyGroup>
+	
+	<!-- When debugging locally (Emulators or USB phones), build everything so it always works -->
+	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+		<RuntimeIdentifiers>android-arm;android-arm64;android-x86;android-x64</RuntimeIdentifiers>
+	</PropertyGroup>
 
+	<!-- When Publishing (dotnet publish -c Release), ONLY build ARM64 to keep the APK tiny -->
+	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+		<RuntimeIdentifiers>android-arm64</RuntimeIdentifiers>
+	</PropertyGroup>
   <Target Name="_OwnaudioClearNonAndroidRid" BeforeTargets="Build">
     <PropertyGroup>
       <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' != '' AND !$(RuntimeIdentifier.StartsWith('android-'))"></RuntimeIdentifier>
@@ -186,6 +195,9 @@
 	  </MauiXaml>
 	  <MauiXaml Update="Views\SingleSong\DetailsOverview.xaml">
 	  
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\SingleSong\LyricsManualSyncPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\SingleSong\SyncLyricsView.xaml">
