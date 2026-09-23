@@ -1,3 +1,4 @@
+using DevWinUI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -31,7 +32,7 @@ public sealed partial class AppUtilsPage : Page
     {
         base.OnNavigatedTo(e);
 
-        MyViewModel = IPlatformApplication.Current.Services.GetService<BaseViewModelWin>();
+        MyViewModel = IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
         DataContext = MyViewModel;
     }
     BaseViewModelWin MyViewModel;
@@ -45,6 +46,14 @@ public sealed partial class AppUtilsPage : Page
 
     private async void SyncCovers_Click(object sender, RoutedEventArgs e)
     {
+        var windowHandle = PlatUtils.GetWindowHandle();
         await MyViewModel.EnsureAllCoverArtCachedForSongsAsync();
+        
+        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.CoverProgressValue),v=>MyViewModel.CoverProgressValue).Subscribe(covProg =>
+        {
+            
+
+            TaskbarHelper.SetProgressValue(windowHandle, covProg, 100);
+        });
     }
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
-    x:Class="Dimmer.Views.Artist.ArtistPage"
     x:Name="myPage"
+    x:Class="Dimmer.Views.Artist.ArtistPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:dx="http://schemas.devexpress.com/maui"
@@ -13,9 +13,205 @@
     Title="{Binding Name}"
     x:DataType="models:ArtistModelView"
     Loaded="MyPage_Loaded"
-    Shell.NavBarIsVisible="True"
-    >
-    <Grid Margin="5" RowDefinitions="auto,*">
+    Shell.NavBarIsVisible="True">
+    <Grid
+        Padding="14,10,14,0"
+        RowDefinitions="Auto,*"
+        RowSpacing="12">
+
+        <!--  ==========================================================  -->
+        <!--  1. ARTIST HERO BANNER (Spotify Style)  -->
+        <!--  ==========================================================  -->
+        <dx:DXBorder
+            Grid.Row="0"
+            Padding="16"
+            BackgroundColor="{AppThemeBinding Dark=#1A1A24,
+                                              Light=#FFFFFF}"
+            BorderColor="{AppThemeBinding Dark=#262636,
+                                          Light=#EAEAEA}"
+            BorderThickness="1"
+            CornerRadius="20">
+
+            <Grid
+                ColumnDefinitions="Auto,*"
+                ColumnSpacing="16"
+                VerticalOptions="Center">
+                <!--  Circular Avatar  -->
+                <dx:DXBorder
+                    Grid.Column="0"
+                    BorderColor="DarkSlateBlue"
+                    BorderThickness="2"
+                    CornerRadius="45"
+                    HeightRequest="90"
+                    WidthRequest="90">
+                    <dx:DXImage Aspect="AspectFill" Source="{Binding ImagePath}" />
+                </dx:DXBorder>
+
+                <!--  Artist Info  -->
+                <VerticalStackLayout
+                    Grid.Column="1"
+                    Spacing="4"
+                    VerticalOptions="Center">
+                    <Label
+                        FontAttributes="Bold"
+                        FontSize="22"
+                        Text="{Binding Name}"
+                        TextColor="{AppThemeBinding Dark=White,
+                                                    Light=Black}" />
+
+                    <!--  Quick Metrics  -->
+                    <HorizontalStackLayout Opacity="0.75" Spacing="8">
+                        <Label FontSize="13" Text="{Binding TotalSongsByArtist, StringFormat='{0} Tracks'}" />
+                        <Label
+                            FontSize="11"
+                            Text="•"
+                            VerticalOptions="Center" />
+                        <Label FontSize="13" Text="{Binding TotalAlbumsByArtist, StringFormat='{0} Albums'}" />
+                    </HorizontalStackLayout>
+
+                    <!--  Play All Next Button  -->
+                    <dx:DXButton
+                        Margin="0,4,0,0"
+                        BackgroundColor="DarkSlateBlue"
+                        Clicked="PlayAllArtistSongs_Clicked"
+                        Content="Play Artist Radio"
+                        CornerRadius="17"
+                        FontSize="12"
+                        HeightRequest="34"
+                        HorizontalOptions="Start"
+                        Icon="play.png"
+                        ShowIcon="True"
+                        TextColor="White" />
+                </VerticalStackLayout>
+            </Grid>
+        </dx:DXBorder>
+
+        <!--  ==========================================================  -->
+        <!--  2. HIGH-PERFORMANCE TAB VIEW  -->
+        <!--  ==========================================================  -->
+        <dx:TabView
+            Grid.Row="1"
+            BackgroundColor="Transparent"
+            HeaderPanelPosition="Top"
+            ItemHeaderTextColor="{AppThemeBinding Dark=#888888,
+                                                  Light=#666666}"
+            SelectedItemHeaderTextColor="DarkSlateBlue">
+
+            <!--  TAB 1: POPULAR SONGS  -->
+            <dx:TabViewItem HeaderText="Songs">
+                <dx:DXCollectionView
+                    Margin="0,8,0,0"
+                    ItemSpacing="8"
+                    ItemsSource="{Binding SongsByArtist}">
+                    <dx:DXCollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:SongModelView">
+                            <dx:DXBorder
+                                Padding="12,8"
+                                BackgroundColor="{AppThemeBinding Dark=#171720,
+                                                                  Light=#FFFFFF}"
+                                BorderColor="{AppThemeBinding Dark=#22222E,
+                                                              Light=#F0F0F0}"
+                                BorderThickness="1"
+                                CornerRadius="12">
+
+                                <Grid
+                                    ColumnDefinitions="45,*,Auto"
+                                    ColumnSpacing="12"
+                                    HeightRequest="45">
+                                    <dx:DXImage
+                                        Grid.Column="0"
+                                        Aspect="AspectFill"
+                                        Source="{Binding CoverImagePath}" />
+
+                                    <VerticalStackLayout
+                                        Grid.Column="1"
+                                        Spacing="2"
+                                        VerticalOptions="Center">
+                                        <Label
+                                            FontAttributes="Bold"
+                                            FontSize="15"
+                                            LineBreakMode="TailTruncation"
+                                            Text="{Binding Title}" />
+                                        <Label
+                                            FontSize="12"
+                                            LineBreakMode="TailTruncation"
+                                            Opacity="0.6"
+                                            Text="{Binding AlbumName}" />
+                                    </VerticalStackLayout>
+
+                                    <!--  Quick Play  -->
+                                    <dx:DXButton
+                                        Grid.Column="2"
+                                        BackgroundColor="Transparent"
+                                        Clicked="PlayTrack_Clicked"
+                                        CommandParameter="{Binding .}"
+                                        CornerRadius="18"
+                                        HeightRequest="36"
+                                        Icon="playcircle.png"
+                                        IconColor="DarkSlateBlue"
+                                        ShowContent="False"
+                                        ShowIcon="True"
+                                        WidthRequest="36" />
+                                </Grid>
+                            </dx:DXBorder>
+                        </DataTemplate>
+                    </dx:DXCollectionView.ItemTemplate>
+                </dx:DXCollectionView>
+            </dx:TabViewItem>
+
+            <!--  TAB 2: ALBUMS (HORIZONTAL GRID)  -->
+            <dx:TabViewItem HeaderText="Albums">
+                <dx:DXCollectionView
+                    Margin="0,8,0,0"
+                    ItemSpacing="10"
+                    ItemsSource="{Binding AlbumsByArtist}">
+                    <dx:DXCollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:AlbumModelView">
+                            <dx:DXBorder
+                                Padding="12"
+                                BackgroundColor="{AppThemeBinding Dark=#171720,
+                                                                  Light=#FFFFFF}"
+                                BorderColor="{AppThemeBinding Dark=#22222E,
+                                                              Light=#F0F0F0}"
+                                BorderThickness="1"
+                                CornerRadius="14">
+
+                                <Grid ColumnDefinitions="60,*,Auto" ColumnSpacing="12">
+                                    <dx:DXImage
+                                        Grid.Column="0"
+                                        Aspect="AspectFill"
+                                        Source="{Binding ImagePath}" />
+
+                                    <VerticalStackLayout
+                                        Grid.Column="1"
+                                        Spacing="2"
+                                        VerticalOptions="Center">
+                                        <Label
+                                            FontAttributes="Bold"
+                                            FontSize="15"
+                                            LineBreakMode="TailTruncation"
+                                            Text="{Binding Name}" />
+                                        <Label
+                                            FontSize="12"
+                                            Opacity="0.6"
+                                            Text="{Binding ReleaseYear, StringFormat='Year {0}'}" />
+                                    </VerticalStackLayout>
+
+                                    <Label
+                                        Grid.Column="2"
+                                        FontSize="12"
+                                        Opacity="0.5"
+                                        Text="{Binding SongsInAlbum.Count, StringFormat='{0} Songs'}"
+                                        VerticalOptions="Center" />
+                                </Grid>
+                            </dx:DXBorder>
+                        </DataTemplate>
+                    </dx:DXCollectionView.ItemTemplate>
+                </dx:DXCollectionView>
+            </dx:TabViewItem>
+        </dx:TabView>
+    </Grid>
+    <!--<Grid Margin="5" RowDefinitions="auto,*">
         <dx:DXExpander
             x:Name="TopExpander"
             Grid.Row="0"
@@ -319,7 +515,7 @@
                                 <Label HorizontalOptions="Center" Text="Binge Record" />
                             </dx:DXStackLayout>
                         </dx:DXStackLayout>
-                      
+
                         <dx:PieChartView
                             x:Name="ActionsRadarChart"
                             Grid.Row="0"
@@ -359,5 +555,5 @@
         </dx:TabView>
 
 
-    </Grid>
+    </Grid>-->
 </ContentPage>

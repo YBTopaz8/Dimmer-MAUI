@@ -1400,7 +1400,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         SearchResultsHolder.Edit(innerList =>
         {
             innerList.Clear();
-            innerList.AddOrUpdate(PlaybackQueue);
+            innerList.AddRange(PlaybackQueue);
         });
     }
 

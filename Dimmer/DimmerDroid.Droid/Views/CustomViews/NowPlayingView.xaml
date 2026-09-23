@@ -512,94 +512,224 @@
         </dx:DXExpander>
 
 
-        <!--  THE ULTIMATE AUDIO CONTROL CENTER  -->
+        <!--  ==========================================================  -->
+        <!--  🔥 THE ULTIMATE AUDIO CONTROL CENTER (STUDIO SUITE)  -->
+        <!--  ==========================================================  -->
         <dx:BottomSheet
             x:Name="AudioControlCenterSheet"
             AllowDismiss="True"
-            AllowedState="HalfExpanded"
             BackgroundColor="{AppThemeBinding Light=#F8F9FA,
-                                              Dark=#1E1E2C}"
-            CornerRadius="25"
-            HalfExpandedRatio="0.85"
-            StateChanged="AudioControlCenterSheet_StateChanged">
+                                              Dark=#14141E}"
+            CornerRadius="28"
+            HalfExpandedRatio="0.9">
 
             <dx:BottomSheet.Resources>
                 <ResourceDictionary>
-                    <Style TargetType="Label">
-                        <Setter Property="TextColor" Value="{AppThemeBinding Light=#424242, Dark=#EEEEEE}" />
-                    </Style>
-                    <Style TargetType="dx:ChipGroup">
-                        <Setter Property="ChipTextColor" Value="{AppThemeBinding Light=#424242, Dark=White}" />
-                    </Style>
-                    <!--  Sleek styling for section headers  -->
-                    <Style x:Key="HeaderLabel" TargetType="Label">
+                    <Style x:Key="SectionHeader" TargetType="Label">
                         <Setter Property="FontAttributes" Value="Bold" />
-                        <Setter Property="FontSize" Value="16" />
+                        <Setter Property="FontSize" Value="13" />
                         <Setter Property="TextColor" Value="DarkSlateBlue" />
-                        <Setter Property="Margin" Value="0,10,0,5" />
+                        <Setter Property="Margin" Value="0,10,0,4" />
+                    </Style>
+                    <Style x:Key="ValueLabel" TargetType="Label">
+                        <Setter Property="FontSize" Value="12" />
+                        <Setter Property="Opacity" Value="0.7" />
+                        <Setter Property="FontFamily" Value="Monospace" />
                     </Style>
                 </ResourceDictionary>
             </dx:BottomSheet.Resources>
 
             <dx:TabView
                 BackgroundColor="Transparent"
-                HeaderPanelBackgroundColor="Transparent"
                 HeaderPanelPosition="Top"
-                ItemHeaderTextColor="{AppThemeBinding Light=#333333,
-                                                      Dark=White}">
+                ItemHeaderTextColor="{AppThemeBinding Light=#666666,
+                                                      Dark=#AAAAAA}"
+                SelectedItemHeaderTextColor="DarkSlateBlue">
 
-                <!--  ==========================================  -->
-                <!--  TAB 1: MASTER FX & MODES  -->
-                <!--  ==========================================  -->
-                <dx:TabViewItem HeaderText="Master FX">
+                <!--  ==========================================================  -->
+                <!--  TAB 1: VIBE, TEMPO & A-B LOOP  -->
+                <!--  ==========================================================  -->
+                <dx:TabViewItem HeaderText="Vibe &amp; Tempo">
                     <dx:DXScrollView IsScrollBarVisible="False">
-                        <dx:DXStackLayout Padding="15" ItemSpacing="20">
+                        <VerticalStackLayout Padding="16" Spacing="16">
 
-                            <!--  VIBE MODES (Nightcore, Slowed, etc.)  -->
-                            <dx:DXStackLayout ItemSpacing="5">
-                                <Label Style="{StaticResource HeaderLabel}" Text="VIBE MODES" />
+                            <!--  Quick Vibe Presets  -->
+                            <VerticalStackLayout Spacing="6">
+                                <Label Style="{StaticResource SectionHeader}" Text="QUICK PRESETS" />
                                 <dx:ChoiceChipGroup
                                     ChipSelectedBackgroundColor="DarkSlateBlue"
                                     ChipSelectedTextColor="White"
                                     SelectedIndex="{Binding SelectedPlaybackModeIndex, Mode=TwoWay}">
                                     <dx:ChoiceChipGroup.Chips>
-                                        <dx:Chip Text="Normal" />
-                                        <dx:Chip Text="Nightcore" />
-                                        <dx:Chip Text="Slowed" />
+                                        <dx:Chip Text="Original" />
+                                        <dx:Chip Text="Nightcore (+3st / 1.25x)" />
+                                        <dx:Chip Text="Slowed (-3st / 0.85x)" />
                                         <dx:Chip Text="Slowed + Reverb" />
                                     </dx:ChoiceChipGroup.Chips>
                                 </dx:ChoiceChipGroup>
-                            </dx:DXStackLayout>
+                            </VerticalStackLayout>
 
-                            <!--  STUDIO POLISH  -->
-                            <dx:DXStackLayout ItemSpacing="5">
-                                <Label Style="{StaticResource HeaderLabel}" Text="STUDIO POLISH" />
+                            <!--  🔥 REAL-TIME PITCH & SPEED SLIDERS  -->
+                            <VerticalStackLayout Spacing="6">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Label
+                                        Grid.Column="0"
+                                        Style="{StaticResource SectionHeader}"
+                                        Text="MANUAL PITCH &amp; SPEED" />
+                                    <dx:DXButton
+                                        Grid.Column="1"
+                                        Padding="8,0"
+                                        BackgroundColor="Transparent"
+                                        Command="{Binding ResetPitchAndSpeedCommand}"
+                                        Content="Reset"
+                                        FontSize="11"
+                                        HeightRequest="28"
+                                        TextColor="IndianRed" />
+                                </Grid>
+
                                 <dx:DXBorder
-                                    Padding="15"
+                                    Padding="14"
+                                    BackgroundColor="{AppThemeBinding Light=White,
+                                                                      Dark=#1B1B28}"
                                     BorderColor="{AppThemeBinding Light=#E0E0E0,
-                                                                  Dark=#333344}"
+                                                                  Dark=#262636}"
                                     BorderThickness="1"
-                                    CornerRadius="12">
-                                    <Grid
-                                        ColumnDefinitions="*, Auto"
-                                        RowDefinitions="*,*"
-                                        RowSpacing="15">
-                                        <Label
-                                            Grid.Row="0"
+                                    CornerRadius="16">
+                                    <VerticalStackLayout Spacing="12">
+                                        <!--  Speed Slider (0.5x to 2.0x)  -->
+                                        <VerticalStackLayout Spacing="4">
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <Label FontSize="13" Text="Playback Speed" />
+                                                <Label
+                                                    Grid.Column="1"
+                                                    Style="{StaticResource ValueLabel}"
+                                                    Text="{Binding CurrentSpeed, StringFormat='{0:F2}x'}" />
+                                            </Grid>
+                                            <Slider
+                                                Maximum="2.0"
+                                                Minimum="0.5"
+                                                MinimumTrackColor="DarkSlateBlue"
+                                                ThumbColor="DarkSlateBlue"
+                                                Value="{Binding CurrentSpeed, Mode=TwoWay}" />
+                                        </VerticalStackLayout>
+
+                                        <!--  Pitch Slider (-12 to +12 Semitones)  -->
+                                        <VerticalStackLayout Spacing="4">
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <Label FontSize="13" Text="Pitch Shifting" />
+                                                <Label
+                                                    Grid.Column="1"
+                                                    Style="{StaticResource ValueLabel}"
+                                                    Text="{Binding CurrentPitch, StringFormat='{0:+0;-0;0} semitones'}" />
+                                            </Grid>
+                                            <Slider
+                                                Maximum="12"
+                                                Minimum="-12"
+                                                MinimumTrackColor="DarkSlateBlue"
+                                                ThumbColor="DarkSlateBlue"
+                                                Value="{Binding CurrentPitch, Mode=TwoWay}" />
+                                        </VerticalStackLayout>
+                                    </VerticalStackLayout>
+                                </dx:DXBorder>
+                            </VerticalStackLayout>
+
+                            <!--  🔁 A-B REPEAT (LOOP SECTIONS)  -->
+                            <VerticalStackLayout Spacing="6">
+                                <Label Style="{StaticResource SectionHeader}" Text="A-B SECTION LOOP" />
+                                <dx:DXBorder
+                                    Padding="14"
+                                    BackgroundColor="{AppThemeBinding Light=White,
+                                                                      Dark=#1B1B28}"
+                                    BorderColor="{AppThemeBinding Light=#E0E0E0,
+                                                                  Dark=#262636}"
+                                    BorderThickness="1"
+                                    CornerRadius="16">
+                                    <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                                        <dx:DXButton
                                             Grid.Column="0"
-                                            Text="Smart Master (Hi-Fi)"
-                                            VerticalOptions="Center" />
+                                            BackgroundColor="{AppThemeBinding Light=#EAEAEA,
+                                                                              Dark=#2A2A3A}"
+                                            Command="{Binding SetLoopPointACommand}"
+                                            Content="Set [A]"
+                                            CornerRadius="10"
+                                            HeightRequest="40"
+                                            TextColor="{AppThemeBinding Light=Black,
+                                                                        Dark=White}" />
+                                        <dx:DXButton
+                                            Grid.Column="1"
+                                            BackgroundColor="{AppThemeBinding Light=#EAEAEA,
+                                                                              Dark=#2A2A3A}"
+                                            Command="{Binding SetLoopPointBCommand}"
+                                            Content="Set [B]"
+                                            CornerRadius="10"
+                                            HeightRequest="40"
+                                            TextColor="{AppThemeBinding Light=Black,
+                                                                        Dark=White}" />
+                                        <dx:DXButton
+                                            Grid.Column="2"
+                                            BackgroundColor="Transparent"
+                                            BorderColor="IndianRed"
+                                            BorderThickness="1"
+                                            Command="{Binding ClearAbLoopCommand}"
+                                            Content="Clear"
+                                            CornerRadius="10"
+                                            HeightRequest="40"
+                                            TextColor="IndianRed" />
+                                    </Grid>
+                                </dx:DXBorder>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </dx:DXScrollView>
+                </dx:TabViewItem>
+
+                <!--  ==========================================================  -->
+                <!--  TAB 2: STUDIO DSP & AMBIENCE  -->
+                <!--  ==========================================================  -->
+                <dx:TabViewItem HeaderText="DSP &amp; Ambience">
+                    <dx:DXScrollView IsScrollBarVisible="False">
+                        <VerticalStackLayout Padding="16" Spacing="16">
+
+                            <!--  Studio Polish (SmartMaster & Compressor)  -->
+                            <VerticalStackLayout Spacing="6">
+                                <Label Style="{StaticResource SectionHeader}" Text="STUDIO HARDWARE EMULATION" />
+                                <dx:DXBorder
+                                    Padding="14"
+                                    BackgroundColor="{AppThemeBinding Light=White,
+                                                                      Dark=#1B1B28}"
+                                    BorderColor="{AppThemeBinding Light=#E0E0E0,
+                                                                  Dark=#262636}"
+                                    BorderThickness="1"
+                                    CornerRadius="16">
+                                    <Grid
+                                        ColumnDefinitions="*,Auto"
+                                        RowDefinitions="Auto,Auto"
+                                        RowSpacing="14">
+                                        <VerticalStackLayout Grid.Row="0" Grid.Column="0">
+                                            <Label
+                                                FontAttributes="Bold"
+                                                FontSize="14"
+                                                Text="Smart Master (Limiter / Hi-Fi)" />
+                                            <Label
+                                                FontSize="11"
+                                                Opacity="0.6"
+                                                Text="Maximizes loudness without distortion" />
+                                        </VerticalStackLayout>
                                         <dx:DXSwitch
                                             Grid.Row="0"
                                             Grid.Column="1"
                                             CheckedThumbColor="DarkSlateBlue"
                                             IsChecked="{Binding IsSmartMasterEnabled}" />
 
-                                        <Label
-                                            Grid.Row="1"
-                                            Grid.Column="0"
-                                            Text="Vocal Compressor"
-                                            VerticalOptions="Center" />
+                                        <VerticalStackLayout Grid.Row="1" Grid.Column="0">
+                                            <Label
+                                                FontAttributes="Bold"
+                                                FontSize="14"
+                                                Text="Vocal Compressor" />
+                                            <Label
+                                                FontSize="11"
+                                                Opacity="0.6"
+                                                Text="Smooths out sudden spikes and dips" />
+                                        </VerticalStackLayout>
                                         <dx:DXSwitch
                                             Grid.Row="1"
                                             Grid.Column="1"
@@ -607,603 +737,538 @@
                                             IsChecked="{Binding IsCompressorEnabled}" />
                                     </Grid>
                                 </dx:DXBorder>
-                            </dx:DXStackLayout>
+                            </VerticalStackLayout>
 
-                            <!--  AMBIENCE (Rain/Vinyl)  -->
-                            <dx:DXStackLayout ItemSpacing="5">
-                                <Label Style="{StaticResource HeaderLabel}" Text="AMBIENCE (STUDY MODE)" />
+                            <!--  🌧️ AMBIENCE LOADER (Rain, Vinyl, Cafe)  -->
+                            <VerticalStackLayout Spacing="6">
+                                <Label Style="{StaticResource SectionHeader}" Text="AMBIENCE BACKGROUND LAYER" />
                                 <dx:DXBorder
-                                    Padding="15"
+                                    Padding="14"
+                                    BackgroundColor="{AppThemeBinding Light=White,
+                                                                      Dark=#1B1B28}"
                                     BorderColor="{AppThemeBinding Light=#E0E0E0,
-                                                                  Dark=#333344}"
+                                                                  Dark=#262636}"
                                     BorderThickness="1"
-                                    CornerRadius="12">
-                                    <Grid
-                                        ColumnDefinitions="*, Auto"
-                                        RowDefinitions="Auto, Auto"
-                                        RowSpacing="10">
-                                        <Label
-                                            Grid.Row="0"
-                                            Grid.Column="0"
-                                            Text="Enable Background Noise"
-                                            VerticalOptions="Center" />
-                                        <dx:DXSwitch
-                                            Grid.Row="0"
-                                            Grid.Column="1"
-                                            CheckedThumbColor="DarkSlateBlue"
-                                            IsChecked="{Binding IsAmbienceEnabled}" />
+                                    CornerRadius="16">
+                                    <VerticalStackLayout Spacing="12">
+                                        <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                                            <VerticalStackLayout Grid.Column="0">
+                                                <Label
+                                                    FontAttributes="Bold"
+                                                    FontSize="14"
+                                                    Text="Enable Ambience Noise" />
+                                                <Label
+                                                    FontSize="11"
+                                                    Opacity="0.6"
+                                                    Text="{Binding SelectedAmbienceName, TargetNullValue='No Audio File Loaded'}" />
+                                            </VerticalStackLayout>
+                                            <dx:DXSwitch
+                                                Grid.Column="1"
+                                                CheckedThumbColor="DarkSlateBlue"
+                                                IsChecked="{Binding IsAmbienceEnabled}" />
+                                        </Grid>
 
-                                        <dx:DXSlider
-                                            Grid.Row="1"
-                                            Grid.ColumnSpan="2"
-                                            IsEnabled="{Binding IsAmbienceEnabled}"
-                                            MaxValue="1"
-                                            MinValue="0"
-                                            Value="{Binding AmbienceVolume}" />
-                                    </Grid>
+                                        <!--  Pick Sound Button  -->
+                                        <dx:DXButton
+                                            BackgroundColor="{AppThemeBinding Light=#EAEAEA,
+                                                                              Dark=#2A2A3A}"
+                                            Command="{Binding PickAmbienceFileCommand}"
+                                            Content="Load Background Audio File (.mp3, .wav)"
+                                            CornerRadius="10"
+                                            FontSize="12"
+                                            HeightRequest="36"
+                                            Icon="musical_notes.png"
+                                            ShowIcon="True"
+                                            TextColor="{AppThemeBinding Light=Black,
+                                                                        Dark=White}" />
+
+                                        <!--  Volume Slider  -->
+                                        <VerticalStackLayout IsVisible="{Binding IsAmbienceEnabled}" Spacing="2">
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <Label FontSize="12" Text="Layer Volume" />
+                                                <Label
+                                                    Grid.Column="1"
+                                                    Style="{StaticResource ValueLabel}"
+                                                    Text="{Binding AmbienceVolume, StringFormat='{0:P0}'}" />
+                                            </Grid>
+                                            <Slider
+                                                Maximum="1"
+                                                Minimum="0"
+                                                MinimumTrackColor="DarkSlateBlue"
+                                                Value="{Binding AmbienceVolume, Mode=TwoWay}" />
+                                        </VerticalStackLayout>
+                                    </VerticalStackLayout>
                                 </dx:DXBorder>
-                            </dx:DXStackLayout>
+                            </VerticalStackLayout>
 
-                            <!--  EXPORT REMIX (Save to WAV)  -->
-                            <dx:DXStackLayout ItemSpacing="5">
-                                <Label Style="{StaticResource HeaderLabel}" Text="EXPORT" />
-                                <dx:DXButton
-                                    BackgroundColor="MediumPurple"
-                                    Command="{Binding ExportRemixCommand}"
-                                    Content="Save Remix to Audio File"
-                                    CornerRadius="10"
-                                    Icon="save.png"
-                                    TextColor="White" />
-                            </dx:DXStackLayout>
-
-                        </dx:DXStackLayout>
+                            <!--  Export Remix Action  -->
+                            <dx:DXButton
+                                BackgroundColor="DarkSlateBlue"
+                                Command="{Binding ExportRemixCommand}"
+                                Content="Export Current Master to WAV"
+                                CornerRadius="12"
+                                HeightRequest="46"
+                                Icon="savea.png"
+                                ShowIcon="True"
+                                TextColor="White" />
+                        </VerticalStackLayout>
                     </dx:DXScrollView>
                 </dx:TabViewItem>
 
-                <!--  ==========================================  -->
-                <!--  TAB 2: 10-BAND EQUALIZER  -->
-                <!--  ==========================================  -->
+                <!--  ==========================================================  -->
+                <!--  TAB 3: GRAPHIC EQUALIZER (TOUCH-SAFE HORIZONTAL BANDS)  -->
+                <!--  ==========================================================  -->
                 <dx:TabViewItem HeaderText="Equalizer">
-                    <Grid Padding="15" RowDefinitions="Auto, *">
-
+                    <Grid
+                        Padding="16"
+                        RowDefinitions="Auto,Auto,*"
+                        RowSpacing="12">
+                        <!--  EQ Header Toggle  -->
                         <Grid
                             Grid.Row="0"
-                            Margin="0,0,0,20"
-                            ColumnDefinitions="*, Auto">
+                            ColumnDefinitions="*,Auto"
+                            VerticalOptions="Center">
                             <Label
                                 Grid.Column="0"
-                                Style="{StaticResource HeaderLabel}"
-                                Text="GRAPHIC EQUALIZER"
-                                VerticalOptions="Center" />
+                                Style="{StaticResource SectionHeader}"
+                                Text="10-BAND GRAPHIC EQUALIZER" />
                             <dx:DXSwitch
                                 Grid.Column="1"
                                 CheckedThumbColor="DarkSlateBlue"
                                 IsChecked="{Binding IsEqEnabled}" />
                         </Grid>
 
-                        <!--  FIXED: Used a HorizontalStackLayout for a true scrolling mixing desk  -->
-                        <ScrollView
+                        <!--  Preset Chips  -->
+                        <dx:ChoiceChipGroup
                             Grid.Row="1"
                             IsEnabled="{Binding IsEqEnabled}"
-                            Orientation="Horizontal"
-                            VerticalOptions="Fill">
-                            <HorizontalStackLayout Padding="10,0" Spacing="25">
-                                <!--  We use Standard MAUI Sliders rotated -90 degrees for vertical EQ faders!  -->
+                            SelectedIndex="{Binding SelectedEqPresetIndex, Mode=TwoWay}">
+                            <dx:ChoiceChipGroup.Chips>
+                                <dx:Chip Text="Flat" />
+                                <dx:Chip Text="Bass Boost" />
+                                <dx:Chip Text="Vocal" />
+                                <dx:Chip Text="Rock" />
+                                <dx:Chip Text="Electronic" />
+                            </dx:ChoiceChipGroup.Chips>
+                        </dx:ChoiceChipGroup>
 
-                                <!--  Band 1: Sub Bass  -->
-                                <VerticalStackLayout Spacing="10" WidthRequest="40">
+                        <!--  🔥 TOUCH-RELIABLE EQUALIZER BANDS (No broken -90deg rotations!)  -->
+                        <dx:DXScrollView Grid.Row="2" IsEnabled="{Binding IsEqEnabled}">
+                            <VerticalStackLayout Spacing="8">
+                                <!--  Helper template for each band  -->
+                                <!--  Band 1: 31 Hz  -->
+                                <Grid
+                                    ColumnDefinitions="60,*,45"
+                                    ColumnSpacing="8"
+                                    VerticalOptions="Center">
                                     <Label
-                                        FontSize="10"
-                                        HorizontalTextAlignment="Center"
-                                        Text="+12"
-                                        TextColor="Gray" />
-                                    <!--  Rotate MAUI slider to make it a vertical fader  -->
-                                    <dx:DXSlider
-                                        HeightRequest="40"
-                                        MaxValue="12"
-                                        MinValue="-12"
-                                        Rotation="-90"
-                                        TranslationX="-55"
-                                        TranslationY="55"
-                                        WidthRequest="150"
-                                        Value="{Binding EqBand0}" />
-                                    <Label
-                                        FontSize="10"
-                                        HorizontalTextAlignment="Center"
-                                        Text="-12"
-                                        TextColor="Gray"
-                                        TranslationY="110" />
-                                    <Label
+                                        Grid.Column="0"
                                         FontAttributes="Bold"
                                         FontSize="12"
-                                        HorizontalTextAlignment="Center"
                                         Text="31 Hz"
-                                        TranslationY="110" />
-                                </VerticalStackLayout>
+                                        VerticalOptions="Center" />
+                                    <Slider
+                                        Grid.Column="1"
+                                        Maximum="12"
+                                        Minimum="-12"
+                                        MinimumTrackColor="DarkSlateBlue"
+                                        Value="{Binding EqBand0, Mode=TwoWay}" />
+                                    <Label
+                                        Grid.Column="2"
+                                        Style="{StaticResource ValueLabel}"
+                                        Text="{Binding EqBand0, StringFormat='{0:+0;-0;0}dB'}"
+                                        VerticalOptions="Center" />
+                                </Grid>
 
-                                <!--  Band 2: Bass  -->
-                                <VerticalStackLayout Spacing="10" WidthRequest="40">
+                                <!--  Band 2: 62 Hz  -->
+                                <Grid
+                                    ColumnDefinitions="60,*,45"
+                                    ColumnSpacing="8"
+                                    VerticalOptions="Center">
                                     <Label
-                                        FontSize="10"
-                                        HorizontalTextAlignment="Center"
-                                        Text="+12"
-                                        TextColor="Gray" />
-                                    <dx:DXSlider
-                                        HeightRequest="40"
-                                        MaxValue="12"
-                                        MinValue="-12"
-                                        Rotation="-90"
-                                        TranslationX="-55"
-                                        TranslationY="55"
-                                        WidthRequest="150"
-                                        Value="{Binding EqBand1}" />
-                                    <Label
-                                        FontSize="10"
-                                        HorizontalTextAlignment="Center"
-                                        Text="-12"
-                                        TextColor="Gray"
-                                        TranslationY="110" />
-                                    <Label
+                                        Grid.Column="0"
                                         FontAttributes="Bold"
                                         FontSize="12"
-                                        HorizontalTextAlignment="Center"
                                         Text="62 Hz"
-                                        TranslationY="110" />
-                                </VerticalStackLayout>
+                                        VerticalOptions="Center" />
+                                    <Slider
+                                        Grid.Column="1"
+                                        Maximum="12"
+                                        Minimum="-12"
+                                        MinimumTrackColor="DarkSlateBlue"
+                                        Value="{Binding EqBand1, Mode=TwoWay}" />
+                                    <Label
+                                        Grid.Column="2"
+                                        Style="{StaticResource ValueLabel}"
+                                        Text="{Binding EqBand1, StringFormat='{0:+0;-0;0}dB'}"
+                                        VerticalOptions="Center" />
+                                </Grid>
 
-                                <!--  Band 3: Low Mid  -->
-                                <VerticalStackLayout Spacing="10" WidthRequest="40">
+                                <!--  Band 3: 125 Hz  -->
+                                <Grid
+                                    ColumnDefinitions="60,*,45"
+                                    ColumnSpacing="8"
+                                    VerticalOptions="Center">
                                     <Label
-                                        FontSize="10"
-                                        HorizontalTextAlignment="Center"
-                                        Text="+12"
-                                        TextColor="Gray" />
-                                    <dx:DXSlider
-                                        HeightRequest="40"
-                                        MaxValue="12"
-                                        MinValue="-12"
-                                        Rotation="-90"
-                                        TranslationX="-55"
-                                        TranslationY="55"
-                                        WidthRequest="150"
-                                        Value="{Binding EqBand2}" />
-                                    <Label
-                                        FontSize="10"
-                                        HorizontalTextAlignment="Center"
-                                        Text="-12"
-                                        TextColor="Gray"
-                                        TranslationY="110" />
-                                    <Label
+                                        Grid.Column="0"
                                         FontAttributes="Bold"
                                         FontSize="12"
-                                        HorizontalTextAlignment="Center"
                                         Text="125 Hz"
-                                        TranslationY="110" />
-                                </VerticalStackLayout>
+                                        VerticalOptions="Center" />
+                                    <Slider
+                                        Grid.Column="1"
+                                        Maximum="12"
+                                        Minimum="-12"
+                                        MinimumTrackColor="DarkSlateBlue"
+                                        Value="{Binding EqBand2, Mode=TwoWay}" />
+                                    <Label
+                                        Grid.Column="2"
+                                        Style="{StaticResource ValueLabel}"
+                                        Text="{Binding EqBand2, StringFormat='{0:+0;-0;0}dB'}"
+                                        VerticalOptions="Center" />
+                                </Grid>
 
-                                <!--  Band 4  -->
-                                <VerticalStackLayout Spacing="10" WidthRequest="40">
+                                <!--  Band 4: 250 Hz  -->
+                                <Grid
+                                    ColumnDefinitions="60,*,45"
+                                    ColumnSpacing="8"
+                                    VerticalOptions="Center">
                                     <Label
-                                        FontSize="10"
-                                        HorizontalTextAlignment="Center"
-                                        Text="+12"
-                                        TextColor="Gray" />
-                                    <dx:DXSlider
-                                        HeightRequest="40"
-                                        MaxValue="12"
-                                        MinValue="-12"
-                                        Rotation="-90"
-                                        TranslationX="-55"
-                                        TranslationY="55"
-                                        WidthRequest="150"
-                                        Value="{Binding EqBand3}" />
-                                    <Label
-                                        FontSize="10"
-                                        HorizontalTextAlignment="Center"
-                                        Text="-12"
-                                        TextColor="Gray"
-                                        TranslationY="110" />
-                                    <Label
+                                        Grid.Column="0"
                                         FontAttributes="Bold"
                                         FontSize="12"
-                                        HorizontalTextAlignment="Center"
                                         Text="250 Hz"
-                                        TranslationY="110" />
-                                </VerticalStackLayout>
+                                        VerticalOptions="Center" />
+                                    <Slider
+                                        Grid.Column="1"
+                                        Maximum="12"
+                                        Minimum="-12"
+                                        MinimumTrackColor="DarkSlateBlue"
+                                        Value="{Binding EqBand3, Mode=TwoWay}" />
+                                    <Label
+                                        Grid.Column="2"
+                                        Style="{StaticResource ValueLabel}"
+                                        Text="{Binding EqBand3, StringFormat='{0:+0;-0;0}dB'}"
+                                        VerticalOptions="Center" />
+                                </Grid>
 
-                                <!--  Band 5  -->
-                                <VerticalStackLayout Spacing="10" WidthRequest="40">
+                                <!--  Band 5: 500 Hz  -->
+                                <Grid
+                                    ColumnDefinitions="60,*,45"
+                                    ColumnSpacing="8"
+                                    VerticalOptions="Center">
                                     <Label
-                                        FontSize="10"
-                                        HorizontalTextAlignment="Center"
-                                        Text="+12"
-                                        TextColor="Gray" />
-                                    <dx:DXSlider
-                                        HeightRequest="40"
-                                        MaxValue="12"
-                                        MinValue="-12"
-                                        Rotation="-90"
-                                        TranslationX="-55"
-                                        TranslationY="55"
-                                        WidthRequest="150"
-                                        Value="{Binding EqBand4}" />
-                                    <Label
-                                        FontSize="10"
-                                        HorizontalTextAlignment="Center"
-                                        Text="-12"
-                                        TextColor="Gray"
-                                        TranslationY="110" />
-                                    <Label
+                                        Grid.Column="0"
                                         FontAttributes="Bold"
                                         FontSize="12"
-                                        HorizontalTextAlignment="Center"
                                         Text="500 Hz"
-                                        TranslationY="110" />
-                                </VerticalStackLayout>
+                                        VerticalOptions="Center" />
+                                    <Slider
+                                        Grid.Column="1"
+                                        Maximum="12"
+                                        Minimum="-12"
+                                        MinimumTrackColor="DarkSlateBlue"
+                                        Value="{Binding EqBand4, Mode=TwoWay}" />
+                                    <Label
+                                        Grid.Column="2"
+                                        Style="{StaticResource ValueLabel}"
+                                        Text="{Binding EqBand4, StringFormat='{0:+0;-0;0}dB'}"
+                                        VerticalOptions="Center" />
+                                </Grid>
 
-                                <!--  Band 6  -->
-                                <VerticalStackLayout Spacing="10" WidthRequest="40">
+                                <!--  Band 6: 1 kHz  -->
+                                <Grid
+                                    ColumnDefinitions="60,*,45"
+                                    ColumnSpacing="8"
+                                    VerticalOptions="Center">
                                     <Label
-                                        FontSize="10"
-                                        HorizontalTextAlignment="Center"
-                                        Text="+12"
-                                        TextColor="Gray" />
-                                    <dx:DXSlider
-                                        HeightRequest="40"
-                                        MaxValue="12"
-                                        MinValue="-12"
-                                        Rotation="-90"
-                                        TranslationX="-55"
-                                        TranslationY="55"
-                                        WidthRequest="150"
-                                        Value="{Binding EqBand5}" />
-                                    <Label
-                                        FontSize="10"
-                                        HorizontalTextAlignment="Center"
-                                        Text="-12"
-                                        TextColor="Gray"
-                                        TranslationY="110" />
-                                    <Label
+                                        Grid.Column="0"
                                         FontAttributes="Bold"
                                         FontSize="12"
-                                        HorizontalTextAlignment="Center"
                                         Text="1 kHz"
-                                        TranslationY="110" />
-                                </VerticalStackLayout>
+                                        VerticalOptions="Center" />
+                                    <Slider
+                                        Grid.Column="1"
+                                        Maximum="12"
+                                        Minimum="-12"
+                                        MinimumTrackColor="DarkSlateBlue"
+                                        Value="{Binding EqBand5, Mode=TwoWay}" />
+                                    <Label
+                                        Grid.Column="2"
+                                        Style="{StaticResource ValueLabel}"
+                                        Text="{Binding EqBand5, StringFormat='{0:+0;-0;0}dB'}"
+                                        VerticalOptions="Center" />
+                                </Grid>
 
-                                <!--  Band 7  -->
-                                <VerticalStackLayout Spacing="10" WidthRequest="40">
+                                <!--  Band 7: 2 kHz  -->
+                                <Grid
+                                    ColumnDefinitions="60,*,45"
+                                    ColumnSpacing="8"
+                                    VerticalOptions="Center">
                                     <Label
-                                        FontSize="10"
-                                        HorizontalTextAlignment="Center"
-                                        Text="+12"
-                                        TextColor="Gray" />
-                                    <dx:DXSlider
-                                        HeightRequest="40"
-                                        MaxValue="12"
-                                        MinValue="-12"
-                                        Rotation="-90"
-                                        TranslationX="-55"
-                                        TranslationY="55"
-                                        WidthRequest="150"
-                                        Value="{Binding EqBand6}" />
-                                    <Label
-                                        FontSize="10"
-                                        HorizontalTextAlignment="Center"
-                                        Text="-12"
-                                        TextColor="Gray"
-                                        TranslationY="110" />
-                                    <Label
+                                        Grid.Column="0"
                                         FontAttributes="Bold"
                                         FontSize="12"
-                                        HorizontalTextAlignment="Center"
                                         Text="2 kHz"
-                                        TranslationY="110" />
-                                </VerticalStackLayout>
+                                        VerticalOptions="Center" />
+                                    <Slider
+                                        Grid.Column="1"
+                                        Maximum="12"
+                                        Minimum="-12"
+                                        MinimumTrackColor="DarkSlateBlue"
+                                        Value="{Binding EqBand6, Mode=TwoWay}" />
+                                    <Label
+                                        Grid.Column="2"
+                                        Style="{StaticResource ValueLabel}"
+                                        Text="{Binding EqBand6, StringFormat='{0:+0;-0;0}dB'}"
+                                        VerticalOptions="Center" />
+                                </Grid>
 
-                                <!--  Band 8  -->
-                                <VerticalStackLayout Spacing="10" WidthRequest="40">
+                                <!--  Band 8: 4 kHz  -->
+                                <Grid
+                                    ColumnDefinitions="60,*,45"
+                                    ColumnSpacing="8"
+                                    VerticalOptions="Center">
                                     <Label
-                                        FontSize="10"
-                                        HorizontalTextAlignment="Center"
-                                        Text="+12"
-                                        TextColor="Gray" />
-                                    <dx:DXSlider
-                                        HeightRequest="40"
-                                        MaxValue="12"
-                                        MinValue="-12"
-                                        Rotation="-90"
-                                        TranslationX="-55"
-                                        TranslationY="55"
-                                        WidthRequest="150"
-                                        Value="{Binding EqBand7}" />
-                                    <Label
-                                        FontSize="10"
-                                        HorizontalTextAlignment="Center"
-                                        Text="-12"
-                                        TextColor="Gray"
-                                        TranslationY="110" />
-                                    <Label
+                                        Grid.Column="0"
                                         FontAttributes="Bold"
                                         FontSize="12"
-                                        HorizontalTextAlignment="Center"
                                         Text="4 kHz"
-                                        TranslationY="110" />
-                                </VerticalStackLayout>
+                                        VerticalOptions="Center" />
+                                    <Slider
+                                        Grid.Column="1"
+                                        Maximum="12"
+                                        Minimum="-12"
+                                        MinimumTrackColor="DarkSlateBlue"
+                                        Value="{Binding EqBand7, Mode=TwoWay}" />
+                                    <Label
+                                        Grid.Column="2"
+                                        Style="{StaticResource ValueLabel}"
+                                        Text="{Binding EqBand7, StringFormat='{0:+0;-0;0}dB'}"
+                                        VerticalOptions="Center" />
+                                </Grid>
 
-                                <!--  Band 9  -->
-                                <VerticalStackLayout Spacing="10" WidthRequest="40">
+                                <!--  Band 9: 8 kHz  -->
+                                <Grid
+                                    ColumnDefinitions="60,*,45"
+                                    ColumnSpacing="8"
+                                    VerticalOptions="Center">
                                     <Label
-                                        FontSize="10"
-                                        HorizontalTextAlignment="Center"
-                                        Text="+12"
-                                        TextColor="Gray" />
-                                    <dx:DXSlider
-                                        HeightRequest="40"
-                                        MaxValue="12"
-                                        MinValue="-12"
-                                        Rotation="-90"
-                                        TranslationX="-55"
-                                        TranslationY="55"
-                                        WidthRequest="150"
-                                        Value="{Binding EqBand8}" />
-                                    <Label
-                                        FontSize="10"
-                                        HorizontalTextAlignment="Center"
-                                        Text="-12"
-                                        TextColor="Gray"
-                                        TranslationY="110" />
-                                    <Label
+                                        Grid.Column="0"
                                         FontAttributes="Bold"
                                         FontSize="12"
-                                        HorizontalTextAlignment="Center"
                                         Text="8 kHz"
-                                        TranslationY="110" />
-                                </VerticalStackLayout>
+                                        VerticalOptions="Center" />
+                                    <Slider
+                                        Grid.Column="1"
+                                        Maximum="12"
+                                        Minimum="-12"
+                                        MinimumTrackColor="DarkSlateBlue"
+                                        Value="{Binding EqBand8, Mode=TwoWay}" />
+                                    <Label
+                                        Grid.Column="2"
+                                        Style="{StaticResource ValueLabel}"
+                                        Text="{Binding EqBand8, StringFormat='{0:+0;-0;0}dB'}"
+                                        VerticalOptions="Center" />
+                                </Grid>
 
-                                <!--  Band 10: Air/Sparkle  -->
-                                <VerticalStackLayout Spacing="10" WidthRequest="40">
+                                <!--  Band 10: 16 kHz  -->
+                                <Grid
+                                    ColumnDefinitions="60,*,45"
+                                    ColumnSpacing="8"
+                                    VerticalOptions="Center">
                                     <Label
-                                        FontSize="10"
-                                        HorizontalTextAlignment="Center"
-                                        Text="+12"
-                                        TextColor="Gray" />
-                                    <dx:DXSlider
-                                        HeightRequest="40"
-                                        MaxValue="12"
-                                        MinValue="-12"
-                                        Rotation="-90"
-                                        TranslationX="-55"
-                                        TranslationY="55"
-                                        WidthRequest="150"
-                                        Value="{Binding EqBand9}" />
-                                    <Label
-                                        FontSize="10"
-                                        HorizontalTextAlignment="Center"
-                                        Text="-12"
-                                        TextColor="Gray"
-                                        TranslationY="110" />
-                                    <Label
+                                        Grid.Column="0"
                                         FontAttributes="Bold"
                                         FontSize="12"
-                                        HorizontalTextAlignment="Center"
                                         Text="16 kHz"
-                                        TranslationY="110" />
-                                </VerticalStackLayout>
-
-                            </HorizontalStackLayout>
-                        </ScrollView>
+                                        VerticalOptions="Center" />
+                                    <Slider
+                                        Grid.Column="1"
+                                        Maximum="12"
+                                        Minimum="-12"
+                                        MinimumTrackColor="DarkSlateBlue"
+                                        Value="{Binding EqBand9, Mode=TwoWay}" />
+                                    <Label
+                                        Grid.Column="2"
+                                        Style="{StaticResource ValueLabel}"
+                                        Text="{Binding EqBand9, StringFormat='{0:+0;-0;0}dB'}"
+                                        VerticalOptions="Center" />
+                                </Grid>
+                            </VerticalStackLayout>
+                        </dx:DXScrollView>
                     </Grid>
                 </dx:TabViewItem>
 
-                <!--  ==========================================  -->
-                <!--  TAB 3: METERS & VISUALIZER (NEW!)  -->
-                <!--  ==========================================  -->
-                <dx:TabViewItem HeaderText="Visuals">
-                    <dx:DXStackLayout Padding="15" ItemSpacing="20">
+                <!--  ==========================================================  -->
+                <!--  TAB 4: HARDWARE ROUTING & METERS  -->
+                <!--  ==========================================================  -->
+                <dx:TabViewItem HeaderText="Hardware &amp; VU">
+                    <dx:DXScrollView IsScrollBarVisible="False">
+                        <VerticalStackLayout Padding="16" Spacing="16">
 
-                        <!--  LIVE VU METERS (L/R Peak Levels)  -->
-                        <dx:DXStackLayout ItemSpacing="5">
-                            <Label Style="{StaticResource HeaderLabel}" Text="MASTER OUTPUT LEVELS" />
-                            <dx:DXBorder
-                                Padding="15"
-                                BorderColor="{AppThemeBinding Light=#E0E0E0,
-                                                              Dark=#333344}"
-                                BorderThickness="1"
-                                CornerRadius="12">
-                                <Grid
-                                    ColumnDefinitions="Auto, *, Auto"
-                                    RowDefinitions="Auto, Auto"
-                                    RowSpacing="15">
-
-                                    <!--  Left Channel  -->
-                                    <Label
-                                        Grid.Row="0"
-                                        Grid.Column="0"
-                                        Margin="0,0,10,0"
-                                        FontAttributes="Bold"
-                                        Text="L" />
-                                    <ProgressBar
-                                        Grid.Row="0"
-                                        Grid.Column="1"
-                                        Progress="{Binding LeftVuLevel}"
-                                        ProgressColor="SpringGreen"
-                                        VerticalOptions="Center" />
-                                    <Label
-                                        Grid.Row="0"
-                                        Grid.Column="2"
-                                        Margin="10,0,0,0"
-                                        FontSize="12"
-                                        Text="{Binding LeftVuDb, StringFormat='{0:F1} dB'}" />
-
-                                    <!--  Right Channel  -->
-                                    <Label
-                                        Grid.Row="1"
-                                        Grid.Column="0"
-                                        Margin="0,0,10,0"
-                                        FontAttributes="Bold"
-                                        Text="R" />
-                                    <ProgressBar
-                                        Grid.Row="1"
-                                        Grid.Column="1"
-                                        Progress="{Binding RightVuLevel}"
-                                        ProgressColor="SpringGreen"
-                                        VerticalOptions="Center" />
-                                    <Label
-                                        Grid.Row="1"
-                                        Grid.Column="2"
-                                        Margin="10,0,0,0"
-                                        FontSize="12"
-                                        Text="{Binding RightVuDb, StringFormat='{0:F1} dB'}" />
-                                </Grid>
-                            </dx:DXBorder>
-                        </dx:DXStackLayout>
-
-                        <!--  SPECTRUM ANALYZER (DevExpress Chart Placeholder)  -->
-                        <dx:DXStackLayout ItemSpacing="5" VerticalOptions="Fill">
-                            <Grid ColumnDefinitions="*, Auto">
-                                <Label
-                                    Grid.Column="0"
-                                    Style="{StaticResource HeaderLabel}"
-                                    Text="SPECTRUM ANALYZER" />
-                                <dx:DXSwitch
-                                    Grid.Column="1"
-                                    CheckedThumbColor="DarkSlateBlue"
-                                    IsChecked="{Binding IsVisualizerEnabled}" />
-                            </Grid>
-                            <dx:DXBorder
-                                Padding="5"
-                                BackgroundColor="#0A0A12"
-                                CornerRadius="12"
-                                HeightRequest="150">
-                                <!--  If you have DevExpress Charts installed, you bind the Spectrum array here!  -->
-                                <!--  If not, it's a sleek black display box waiting for SkiaSharp.  -->
-                                <Label
-                                    HorizontalOptions="Center"
-                                    IsVisible="{Binding IsVisualizerEnabled}"
-                                    Text="[ Visualizer Active ]"
-                                    TextColor="SpringGreen"
-                                    VerticalOptions="Center" />
-                            </dx:DXBorder>
-                        </dx:DXStackLayout>
-
-                    </dx:DXStackLayout>
-                </dx:TabViewItem>
-
-                <!--  ==========================================  -->
-                <!--  TAB 4: ROUTING & MIXING  -->
-                <!--  ==========================================  -->
-                <dx:TabViewItem HeaderText="Routing">
-                    <dx:DXScrollView>
-                        <dx:DXStackLayout Padding="15" ItemSpacing="25">
-
-                            <!--  Volume & Mute  -->
-                            <dx:DXStackLayout ItemSpacing="5">
-                                <Grid ColumnDefinitions="*, Auto">
-                                    <Label
-                                        Grid.Column="0"
-                                        Style="{StaticResource HeaderLabel}"
-                                        Text="MASTER VOLUME"
-                                        VerticalOptions="Center" />
-                                    <dx:DXButton
-                                        Grid.Column="1"
-                                        BackgroundColor="Transparent"
-                                        Command="{Binding ToggleMuteCommand}"
-                                        Icon="volumemute.png" />
-                                </Grid>
-                                <dx:DXSlider
-                                    MaxValue="1"
-                                    MinValue="0"
-                                    Value="{Binding DeviceVolumeLevel}" />
-                            </dx:DXStackLayout>
-
-                            <!--  DJ Crossfade  -->
-                            <dx:DXStackLayout ItemSpacing="5">
-                                <Label Style="{StaticResource HeaderLabel}" Text="DJ CROSSFADER" />
+                            <!--  LIVE VU METERS  -->
+                            <VerticalStackLayout Spacing="6">
+                                <Label Style="{StaticResource SectionHeader}" Text="OUTPUT METERS (L/R)" />
                                 <dx:DXBorder
-                                    Padding="15,10"
+                                    Padding="14"
+                                    BackgroundColor="{AppThemeBinding Light=White,
+                                                                      Dark=#1B1B28}"
                                     BorderColor="{AppThemeBinding Light=#E0E0E0,
-                                                                  Dark=#333344}"
+                                                                  Dark=#262636}"
                                     BorderThickness="1"
-                                    CornerRadius="12">
-                                    <dx:DXStackLayout ItemSpacing="0">
-                                        <dx:DXSlider
-                                            MaxValue="1"
-                                            MinValue="0"
-                                            Value="{Binding CrossfadeBalance}" />
+                                    CornerRadius="16">
+                                    <Grid
+                                        ColumnDefinitions="Auto,*,Auto"
+                                        RowDefinitions="Auto,Auto"
+                                        RowSpacing="8">
+                                        <Label
+                                            Grid.Row="0"
+                                            Grid.Column="0"
+                                            Margin="0,0,10,0"
+                                            FontAttributes="Bold"
+                                            Text="L" />
+                                        <ProgressBar
+                                            Grid.Row="0"
+                                            Grid.Column="1"
+                                            Progress="{Binding LeftVuLevel}"
+                                            ProgressColor="MediumSpringGreen"
+                                            VerticalOptions="Center" />
+                                        <Label
+                                            Grid.Row="0"
+                                            Grid.Column="2"
+                                            Margin="10,0,0,0"
+                                            Style="{StaticResource ValueLabel}"
+                                            Text="{Binding LeftVuDb, StringFormat='{0:F1} dB'}" />
+
+                                        <Label
+                                            Grid.Row="1"
+                                            Grid.Column="0"
+                                            Margin="0,0,10,0"
+                                            FontAttributes="Bold"
+                                            Text="R" />
+                                        <ProgressBar
+                                            Grid.Row="1"
+                                            Grid.Column="1"
+                                            Progress="{Binding RightVuLevel}"
+                                            ProgressColor="MediumSpringGreen"
+                                            VerticalOptions="Center" />
+                                        <Label
+                                            Grid.Row="1"
+                                            Grid.Column="2"
+                                            Margin="10,0,0,0"
+                                            Style="{StaticResource ValueLabel}"
+                                            Text="{Binding RightVuDb, StringFormat='{0:F1} dB'}" />
+                                    </Grid>
+                                </dx:DXBorder>
+                            </VerticalStackLayout>
+
+                            <!--  DJ Crossfader  -->
+                            <VerticalStackLayout Spacing="6">
+                                <Label Style="{StaticResource SectionHeader}" Text="DJ CROSSFADER" />
+                                <dx:DXBorder
+                                    Padding="14"
+                                    BackgroundColor="{AppThemeBinding Light=White,
+                                                                      Dark=#1B1B28}"
+                                    BorderColor="{AppThemeBinding Light=#E0E0E0,
+                                                                  Dark=#262636}"
+                                    BorderThickness="1"
+                                    CornerRadius="16">
+                                    <VerticalStackLayout Spacing="4">
+                                        <Slider
+                                            Maximum="1"
+                                            Minimum="0"
+                                            MinimumTrackColor="DarkSlateBlue"
+                                            Value="{Binding CrossfadeBalance, Mode=TwoWay}" />
                                         <Grid ColumnDefinitions="*,*">
                                             <Label
                                                 Grid.Column="0"
-                                                FontSize="12"
-                                                Text="Track A"
-                                                TextColor="Gray" />
+                                                FontSize="11"
+                                                Opacity="0.6"
+                                                Text="Track A (100%)" />
                                             <Label
                                                 Grid.Column="1"
-                                                FontSize="12"
-                                                HorizontalTextAlignment="End"
-                                                Text="Track B"
-                                                TextColor="Gray" />
+                                                FontSize="11"
+                                                HorizontalOptions="End"
+                                                Opacity="0.6"
+                                                Text="Track B (100%)" />
                                         </Grid>
-                                    </dx:DXStackLayout>
+                                    </VerticalStackLayout>
                                 </dx:DXBorder>
-                            </dx:DXStackLayout>
+                            </VerticalStackLayout>
 
-                            <!--  Output Device Selection  -->
-                            <dx:DXStackLayout ItemSpacing="5">
-                                <Grid ColumnDefinitions="*, Auto">
+                            <!--  🎧 AUDIO HARDWARE WITH GREEN ACTIVE INDICATOR  -->
+                            <VerticalStackLayout Spacing="6">
+                                <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
                                     <Label
                                         Grid.Column="0"
-                                        Style="{StaticResource HeaderLabel}"
-                                        Text="AUDIO HARDWARE"
-                                        VerticalOptions="Center" />
+                                        Style="{StaticResource SectionHeader}"
+                                        Text="OUTPUT DEVICE" />
                                     <dx:DXButton
                                         Grid.Column="1"
                                         BackgroundColor="Transparent"
                                         Command="{Binding LoadAllAudioDevicesCommand}"
-                                        Icon="refresh.png" />
+                                        HeightRequest="32"
+                                        Icon="refresh.png"
+                                        ShowContent="False"
+                                        ShowIcon="True"
+                                        WidthRequest="32" />
                                 </Grid>
 
                                 <dx:DXBorder
+                                    BackgroundColor="{AppThemeBinding Light=White,
+                                                                      Dark=#1B1B28}"
                                     BorderColor="{AppThemeBinding Light=#E0E0E0,
-                                                                  Dark=#333344}"
+                                                                  Dark=#262636}"
                                     BorderThickness="1"
-                                    CornerRadius="12">
+                                    CornerRadius="16">
                                     <dx:DXCollectionView
-                                        HeightRequest="180"
+                                        HeightRequest="160"
                                         ItemsSource="{Binding AvailableDevices}"
                                         SelectedItem="{Binding SelectedAudioDevice, Mode=TwoWay}"
                                         SelectionMode="Single">
                                         <dx:DXCollectionView.ItemTemplate>
                                             <DataTemplate x:DataType="models:AudioOutputDevice">
-                                                <Grid Padding="15,10" ColumnDefinitions="Auto, *">
-                                                    <!--  Assuming you have an icon named speaker.png  -->
+                                                <Grid Padding="14,10" ColumnDefinitions="Auto,*,Auto">
                                                     <dx:DXImage
                                                         Grid.Column="0"
-                                                        Margin="0,0,15,0"
-                                                        HeightRequest="20"
-                                                        Source="speaker.png"
-                                                        TintColor="{AppThemeBinding Light=Black,
-                                                                                    Dark=White}"
+                                                        Margin="0,0,12,0"
+                                                        HeightRequest="22"
+                                                        Source="airbuds.png"
                                                         VerticalOptions="Center"
-                                                        WidthRequest="20" />
+                                                        WidthRequest="22" />
+
                                                     <Label
                                                         Grid.Column="1"
                                                         FontSize="14"
                                                         Text="{Binding Name}"
                                                         VerticalOptions="Center" />
+
+                                                    <!--  🔥 ACTIVE DEVICE GREEN BADGE  -->
+                                                    <dx:DXBorder
+                                                        Grid.Column="2"
+                                                        Padding="8,2"
+                                                        BackgroundColor="DarkGreen"
+                                                        CornerRadius="8"
+                                                        IsVisible="{Binding IsDefaultDevice}">
+                                                        <Label
+                                                            FontAttributes="Bold"
+                                                            FontSize="10"
+                                                            Text="ACTIVE"
+                                                            TextColor="White" />
+                                                    </dx:DXBorder>
                                                 </Grid>
                                             </DataTemplate>
                                         </dx:DXCollectionView.ItemTemplate>
                                     </dx:DXCollectionView>
                                 </dx:DXBorder>
-                            </dx:DXStackLayout>
+                            </VerticalStackLayout>
 
-                        </dx:DXStackLayout>
+                        </VerticalStackLayout>
                     </dx:DXScrollView>
                 </dx:TabViewItem>
 
             </dx:TabView>
         </dx:BottomSheet>
-
     </Grid>
 </ContentView>

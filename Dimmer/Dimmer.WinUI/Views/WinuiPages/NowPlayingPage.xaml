@@ -6,8 +6,11 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="using:Dimmer.WinUI.Utils.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:devWin="using:DevWinUI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:Dimmer.Data.ModelView"
+    Loaded="Page_Loaded"
+    Unloaded="Page_Unloaded"
     mc:Ignorable="d">
 
     <Page.Resources>
@@ -62,6 +65,7 @@
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
                         <Image
                             x:Name="CurrentPlayingSongImg"
@@ -73,33 +77,36 @@
                             Loading="CurrentPlayingSongImg_Loading"
                             Stretch="UniformToFill" />
 
-                        <ListView
-                            x:Name="SyncLyricsListView"
-                            Grid.Column="0"
-                            MaxHeight="350"
-                            Margin="0,0,50,0"
-                            HorizontalAlignment="Right"
-                            ItemClick="SyncLyricsListView_ItemClick"
-                            ItemsSource="{x:Bind MyViewModel.AllLines}"
-                            ScrollViewer.VerticalScrollBarVisibility="Hidden"
-                            SelectedItem="{x:Bind MyViewModel.CurrentLine, Mode=OneWay}"
-                            SelectionChanged="ListView_SelectionChanged"
-                            SelectionMode="Single">
-                            <ListView.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Padding="10">
-                                        <TextBlock
-                                            FontSize="16"
-                                            FontWeight="SemiBold"
-                                            Text="{Binding Text}"
-                                            TextWrapping="Wrap" />
-                                    </Border>
-                                </DataTemplate>
-                            </ListView.ItemTemplate>
-                        </ListView>
+                        <devWin:BetterLyric
+                            x:Name="BetterLyricControl"
+                            Grid.Column="1"
+                            Height="500"
+                            Margin="0,0,30,0"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            AutoWrap="True"
+                            CurrentIsPlaying="{x:Bind MyViewModel.IsDimmerPlaying, Mode=OneWay}"
+                            CurrentPosition="{x:Bind MyViewModel.CurrentTrackPosition, Mode=OneWay}"
+                            IsLyricsBlurEffectEnabled="True"
+                            IsLyricsFadeOutEffectEnabled="True"
+                            IsLyricsFloatAnimationEnabled="True"
+                            IsLyricsGlowEffectEnabled="True"
+                            IsLyricsOutOfSightEffectEnabled="True"
+                            IsLyricsScaleEffectEnabled="True"
+                            IsLyricsVisible="True"
+                            IsScrollViewerEnabled="True"
+                            LineClicked="BetterLyricControl_LineClicked"
+                            LyricsAlignmentType="Center"
+                            LyricsGlowEffectAmount="10"
+                            LyricsScaleEffectAmount="115"
+                            LyricsScrollDuration="600"
+                            LyricsScrollEasingMode="Out"
+                            LyricsScrollEasingType="Cubic"
+                            NonCurrentLineFillColor="#44FFFFFF"
+                            PlayedCurrentLineFillColor="#FFFFFF"
+                            UnplayedCurrentLineFillColor="#88FFFFFF"
+                            WordByWordEffectMode="Auto" />
                     </Grid>
-
-                    <!--  Song Info  -->
                     <StackPanel
                         x:Name="SongInfoStackPanel"
                         HorizontalAlignment="Center"

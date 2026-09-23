@@ -536,6 +536,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
 
         SearchResultsHolder.Connect()
+            //.SortAndBind
             .ObserveOn(RxSchedulers.UI)
             .Bind(_searchResultsInternal)
             .Subscribe(x =>
@@ -982,7 +983,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         // 3. Update the UI List (Instantly fast now!)
         if (result.Results != null)
         {
-            SearchResultsHolder.EditDiff(result.Results, (song1, song2) => song1.Id == song2.Id);
+            SearchResultsHolder.EditDiff(result.Results);
             IsSearchResultEmpty = result.Results.Count == 0;
             UpdateIsSearchResultEmpty(IsSearchResultEmpty);
         }
@@ -2006,7 +2007,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     //public RuleBasedPlaybackManager PlaybackManager { get; }
 
     #region private fields
-    public SourceCache<SongModelView, string> SearchResultsHolder { get; } = new(x => x.Id.ToString());
+    
+    public SourceList<SongModelView> SearchResultsHolder { get; } = new();
     public ReadOnlyObservableCollection<SongModelView> SearchResults { get; }
     private readonly ObservableCollectionExtended<SongModelView> _searchResultsInternal = new();
     private ReadOnlyObservableCollection<DimmerPlayEventView> _dimmerEventsCollection;
@@ -3278,7 +3280,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         if (dbOutputSong != null)
         {
             // 2. MAGIC: Replace the old song in the main list with the updated one!
-            SearchResultsHolder.AddOrUpdate(dbOutputSong);
+            SearchResultsHolder.Replace(CurrentPlayingSongView,dbOutputSong);
 
             // (Optional) Update it in the PlaybackQueue if it's there
             var queueIndex = PlaybackQueueSource.Items.IndexOf(CurrentPlayingSongView);
@@ -8770,7 +8772,7 @@ public record QueryComponents(
         SearchResultsHolder.Edit(updater =>
         {
             updater.Clear();
-            updater.AddOrUpdate(PlaybackQueue);
+            updater.AddRange(PlaybackQueue);
         });
 
 
@@ -8786,7 +8788,7 @@ public record QueryComponents(
         SearchResultsHolder.Edit(upd =>
         {
             upd.Clear();
-            upd.AddOrUpdate(tempListOfSongs);
+            upd.AddRange(tempListOfSongs);
         });
         tempListOfSongs.Clear();
     }
@@ -8852,7 +8854,7 @@ public void RemoveRule(VisualFilterRule rule)
     {
         hashSetOfCurrentSongsIdInOrder = SearchResults.Select(x => x.Id).ToHashSet();
         if (artist.SongsByArtist is null) return;
-        SearchResultsHolder.Edit(innerCache => innerCache.Load(artist.SongsByArtist));
+        SearchResultsHolder.Edit(innerCache => innerCache.AddRange(artist.SongsByArtist));
         
     }
     [RelayCommand]
@@ -8871,7 +8873,7 @@ public void RemoveRule(VisualFilterRule rule)
     {
         hashSetOfCurrentSongsIdInOrder = SearchResults.Select(x => x.Id).ToHashSet();
 
-        SearchResultsHolder.Edit(innerCache => innerCache.Load(PlaybackQueue));
+        SearchResultsHolder.Edit(innerCache => innerCache.AddRange(PlaybackQueue));
         
     }
 

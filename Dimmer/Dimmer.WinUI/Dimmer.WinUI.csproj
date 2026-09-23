@@ -88,7 +88,12 @@
 		<PropertyGroup Condition="'$(TargetFramework)'=='net10.0-windows10.0.19041.0'">
 			<DefineConstants>WINDOWS</DefineConstants>
 		</PropertyGroup>
-		
+
+
+		<PropertyGroup>
+			<!-- Silences the version constraint warning -->
+			<NoWarn>$(NoWarn);NU1608</NoWarn>
+		</PropertyGroup>
 		
 		<ItemGroup>
 			
@@ -97,18 +102,21 @@
 			<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.101" />
 			<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.11" />
 
-<PackageReference Include="DevWinUI" Version="9.9.4" />
-			<PackageReference Include="DevWinUI.ContextMenu" Version="9.9.1" />
-			<PackageReference Include="DevWinUI.Controls" Version="9.9.4" />
-			<PackageReference Include="DevWinUI.SourceGenerator" Version="9.9.0" />
+<PackageReference Include="DevWinUI" Version="10.4.1" />
+			<PackageReference Include="DevWinUI.ContextMenu" Version="10.0.0" />
+			
+			<!--<PackageReference Include="DevWinUI.SourceGenerator" Version="10.2.0" />-->
 			<PackageReference Include="CommunityToolkit.WinUI.Animations" Version="8.2.251219" />
 			<PackageReference Include="CommunityToolkit.WinUI.Extensions" Version="8.2.251219" />
 			<PackageReference Include="CommunityToolkit.WinUI.Helpers" Version="8.2.251219" />
-			<PackageReference Include="Microsoft.WindowsAppSDK.Base" Version="1.8.251216001" />
+			<!--<PackageReference Include="Microsoft.WindowsAppSDK.Base" Version="1.8.251216001" />-->
 			<!--<PackageReference Include="Microsoft.WindowsAppSDK.Base" Version="2.0.4" />-->
 			<PackageReference Include="CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.1.2" />
-			<PackageReference Include="WinUI.TableView" Version="1.4.1" />
+			<PackageReference Include="WinUI.TableView" Version="1.5.0" />
 			<PackageReference Include="Xabe.FFmpeg" Version="6.0.2" />
+			<PackageReference Include="Microsoft.WindowsAppSDK.Foundation" Version="2.3.9" />
+			<PackageReference Include="Microsoft.WindowsAppSDK.WinUI" Version="2.3.6" />
+			<!--<PackageReference Include="Microsoft.WindowsAppSDK.Base" Version="2.0.4" />-->
 			
 			<PackageReference Include="Xabe.FFmpeg.Downloader" Version="6.0.2" />
 		</ItemGroup>

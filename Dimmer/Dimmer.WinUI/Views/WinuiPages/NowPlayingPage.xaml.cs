@@ -1,4 +1,6 @@
-﻿using Microsoft.UI.Xaml.Controls.Primitives;
+﻿using DevWinUI;
+using DynamicData.Binding;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using Grid = Microsoft.UI.Xaml.Controls.Grid;
@@ -7,6 +9,7 @@ namespace Dimmer.WinUI.Views.WinuiPages;
 
 public sealed partial class NowPlayingPage : Page
 {
+    public LyricData? CurrentLyricData { get; private set; }
     public NowPlayingPage()
     {
         InitializeComponent();
@@ -337,14 +340,7 @@ public sealed partial class NowPlayingPage : Page
     }
     CompositeDisposable compDisp;
 
-    private void ListView_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
-    {
-        if (MyViewModel.CurrentLine is null)
-        {
-            return;
-        }
-        SyncLyricsListView.ScrollIntoView(MyViewModel.CurrentLine,ScrollIntoViewAlignment.Leading);
-    }
+
 
     private bool _isDragging = false;
     private double _dragStartValue;
@@ -397,17 +393,6 @@ public sealed partial class NowPlayingPage : Page
         //PreviewTimeText.Text = TimeSpan.FromSeconds(ProgressSlider.Value).ToString(@"mm\:ss");
     }
 
-    private async void SyncLyricsListView_ItemClick(object sender, ItemClickEventArgs e)
-    {
-        if (e.ClickedItem is not LyricPhraseModelView lyricTapped) return;
-
-
-        var timeInSec = TimeSpan.FromMilliseconds(lyricTapped.TimestampStart).TotalSeconds;
-
-        await MyViewModel.SeekTrackPositionAsync(timeInSec);
-        await SyncLyricsListView.SmoothScrollIntoViewWithItemAsync(lyricTapped, itemPlacement: ScrollItemPlacement.Top);
-
-    }
 
     private void Goeyy_Tapped(object sender, TappedRoutedEventArgs e)
     {
@@ -446,5 +431,119 @@ public sealed partial class NowPlayingPage : Page
     private void ComboBox_Loaded(object sender, RoutedEventArgs e)
     {
         MyViewModel.GetCurrentAudioDevice();
+    }
+
+    private async void BetterLyricControl_LineClicked(object sender, int e)
+    {
+        var lineIndex = e;
+        var lines = BetterLyricControl.CurrentLyricsData?.LyricsLines;
+        if (lines == null || lineIndex < 0 || lineIndex >= lines.Count)
+            return;
+
+        var targetLine = lines[lineIndex];
+
+        // Convert Milliseconds to Seconds for your AudioService
+        double seekTimeSeconds = targetLine.StartMs / 1000.0;
+
+        await MyViewModel.SeekTrackPositionAsync(seekTimeSeconds);
+    }
+
+    private void Page_Loaded(object sender, RoutedEventArgs e)
+    {
+        BetterLyricControl.IsLyricsVisible = true;
+
+        // 1. 🛡️ CRASH SHIELD: Intercept the mouse wheel so it NEVER hits BetterLyric's broken code!
+        BetterLyricControl.AddHandler(UIElement.PointerWheelChangedEvent, new PointerEventHandler((s, args) =>
+        {
+            args.Handled = true; // Prevents the NullReferenceException!
+        }), true);
+
+        // 2. 🎨 SET EXPLICIT HIGH-CONTRAST COLORS IN C# (Guaranteed to work!)
+        BetterLyricControl.PlayedCurrentLineFillColor = Microsoft.UI.Colors.White;
+        BetterLyricControl.PlayedTextStrokeColor = Microsoft.UI.Colors.DarkSlateBlue;
+        BetterLyricControl.UnplayedCurrentLineFillColor = Microsoft.UI.ColorHelper.FromArgb(180, 200, 200, 200); // 70% White
+        BetterLyricControl.NonCurrentLineFillColor = Microsoft.UI.ColorHelper.FromArgb(100, 150, 150, 150);     // Dim Gray
+
+       
+        if (MyViewModel != null)
+        {
+            // Subscribe to song changes to reload the canvas
+            MyViewModel.WhenPropertyChanged(nameof(MyViewModel.CurrentPlayingSongView), v => MyViewModel.CurrentPlayingSongView)
+                .Subscribe(_ => UpdateLyricsCanvas()).DisposeWith(compDisp);
+
+            // Also reload if lyrics were just downloaded/edited
+            MyViewModel.WhenPropertyChanged(nameof(MyViewModel.AllLines), v => MyViewModel.AllLines)
+                .Subscribe(_ => UpdateLyricsCanvas()).DisposeWith(compDisp);
+        }
+    }
+    private void UpdateLyricsCanvas()
+    {
+        var song = MyViewModel?.CurrentPlayingSongView;
+        if (song == null || string.IsNullOrWhiteSpace(song.SyncLyrics))
+        {
+            BetterLyricControl.CurrentLyricsData = null;
+            BetterLyricControl.IsLyricsVisible = false;
+            return;
+        }
+
+        try
+        {
+            var lyricLines = new List<DevWinUI.LyricLine>();
+
+            // We use Dimmer's already parsed AllLines collection
+            if (MyViewModel.AllLines != null && MyViewModel.AllLines.Count > 0)
+            {
+                var phrases = MyViewModel.AllLines.ToList();
+
+                for (int i = 0; i < phrases.Count; i++)
+                {
+                    var phrase = phrases[i];
+                    if (string.IsNullOrWhiteSpace(phrase.Text)) continue;
+
+                    int startMs = phrase.TimestampStart;
+                    int endMs = (i + 1 < phrases.Count)
+                        ? phrases[i + 1].TimestampStart
+                        : (phrase.TimeStampMs > startMs ? phrase.TimeStampMs : startMs + 4000);
+
+                    // Construct exactly like the developer's sample
+                    lyricLines.Add(new DevWinUI.LyricLine
+                    {
+                        PrimaryText = phrase.Text,
+                        StartMs = startMs,
+                        EndMs = endMs,
+
+                        // 🚨 This tells the engine it has Word-By-Word capability
+                        IsPrimaryHasRealSyllableInfo = true,
+
+                        // 🚨 You MUST provide at least one syllable (the whole line) for it to render
+                        PrimarySyllables = new List<DevWinUI.BaseLyric>
+                    {
+                        new DevWinUI.BaseLyric
+                        {
+                            Text = phrase.Text,
+                            StartMs = startMs,
+                            EndMs = endMs
+                        }
+                    }
+                    });
+                }
+            }
+
+            // Apply it
+            var lyricData = new DevWinUI.LyricData(lyricLines);
+            BetterLyricControl.CurrentLyricsData = lyricData;
+            BetterLyricControl.IsLyricsVisible = lyricData.LyricsLines.Count > 0;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[BetterLyric] Failed to load lyrics: {ex.Message}");
+            BetterLyricControl.IsLyricsVisible = false;
+        }
+    }
+
+    private void Page_Unloaded(object sender, RoutedEventArgs e)
+    {
+        BetterLyricControl.IsLyricsVisible = false;
+        BetterLyricControl.CurrentLyricsData = null;
     }
 }

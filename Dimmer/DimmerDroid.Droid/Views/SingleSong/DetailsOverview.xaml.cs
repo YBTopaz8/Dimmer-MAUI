@@ -32,7 +32,7 @@ public partial class DetailsOverview : ContentPage
         if (MyViewModel.SelectedSong is null) return;
         BindingContext = MyViewModel.SelectedSong;
 
-        StatsSectionPreview.BindingContext = StatsViewModel;
+        //StatsSectionPreview.BindingContext = StatsViewModel;
 
         ConcernedSong = MyViewModel.SelectedSong!;
         _ = Task.Run(() =>
@@ -83,7 +83,7 @@ public partial class DetailsOverview : ContentPage
         var btn = (DXButton)sender;
         var artist = btn.CommandParameter as ArtistModelView;
         MyViewModel.SetSelectedArtist(artist);
-        ArtistToSongPopup.Close();
+        //ArtistToSongPopup.Close();
         await Shell.Current.GoToAsync(nameof(ArtistPage));
     }
 
@@ -99,7 +99,7 @@ public partial class DetailsOverview : ContentPage
             await Shell.Current.GoToAsync(nameof(ArtistPage));
             return;
         }
-        await ArtistToSongPopup.ShowAsync(this);
+        //await ArtistToSongPopup.ShowAsync(this);
     }
 
     
@@ -125,7 +125,7 @@ public partial class DetailsOverview : ContentPage
 
     private void StatsSectionPreview_Loaded(object sender, EventArgs e)
     {
-        StatsSectionPreview.BindingContext = StatsViewModel;
+        //StatsSectionPreview.BindingContext = StatsViewModel;
     }
 
     private void ListInsights_Loaded(object sender, EventArgs e)
@@ -144,7 +144,7 @@ public partial class DetailsOverview : ContentPage
         StatsViewModel?.WhenPropertyChanged(nameof(StatsViewModel.ListPerfectPairings), v => StatsViewModel?.ListPerfectPairings)
             .Subscribe(insight =>
             {
-                ListPerfectPairings.ItemsSource = insight;
+                //ListPerfectPairings.ItemsSource = insight;
             });
     }
 
@@ -153,7 +153,7 @@ public partial class DetailsOverview : ContentPage
         StatsViewModel?.WhenPropertyChanged(nameof(StatsViewModel.ListMonthlyTrend), v => StatsViewModel?.ListMonthlyTrend)
             .Subscribe(insight =>
             {
-                ListMonthlyTrend.ItemsSource = insight;
+                //ListMonthlyTrend.ItemsSource = insight;
             });
     }
 
@@ -162,7 +162,7 @@ public partial class DetailsOverview : ContentPage
         StatsViewModel?.WhenPropertyChanged(nameof(StatsViewModel.ListWeeklyTrend), v => StatsViewModel?.ListWeeklyTrend)
             .Subscribe(insight =>
             {
-                ListWeeklyTrend.ItemsSource = insight;
+                //ListWeeklyTrend.ItemsSource = insight;
             });
     }
 

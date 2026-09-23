@@ -739,11 +739,12 @@ public sealed partial class DimmerWin : Window
         contStackPanel.Children.Add(usrQueryName);
         WindowedContentDialog dialog = new()
         {
-            Title = "Save Query",
+            
             Content = contStackPanel
             
         };
-        ContentDialogResult result = await dialog.ShowAsync(true);
+
+        ContentDialogResult result = await dialog.ShowAsync();
 
         switch (result)
         {
