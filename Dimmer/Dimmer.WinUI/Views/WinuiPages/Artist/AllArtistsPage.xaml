@@ -201,15 +201,17 @@
                                         </Grid.ColumnDefinitions>
 
                                         <!--  Album Cover  -->
-                                        <devWin:ImageEx
-                                            Grid.Column="0"
-                                            Width="160"
-                                            Height="160"
-                                            VerticalAlignment="Top"
-                                            CornerRadius="8"
-                                            Source="{Binding ImagePath, Mode=OneWay, Converter={StaticResource StringToImageConverter}}"
-                                            Stretch="UniformToFill" />
+                                        <StackPanel Grid.Column="0">
 
+                                            <devWin:ImageEx
+                                                Width="160"
+                                                Height="160"
+                                                VerticalAlignment="Top"
+                                                CornerRadius="8"
+                                                Source="{Binding ImagePath, Mode=OneWay, Converter={StaticResource StringToImageConverter}}"
+                                                Stretch="UniformToFill" />
+                                            <TextBlock Text="{Binding Artists[0].Name}" />
+                                        </StackPanel>
                                         <!--  Album Details & Songs  -->
                                         <Grid Grid.Column="1" RowSpacing="12">
                                             <Grid.RowDefinitions>
@@ -220,12 +222,18 @@
                                             <!--  Album Title & Stats  -->
                                             <StackPanel Grid.Row="0">
                                                 <TextBlock
+                                                    FontSize="19"
                                                     FontWeight="Bold"
                                                     Style="{ThemeResource SubtitleTextBlockStyle}"
                                                     Text="{Binding Name, Mode=OneWay}" />
                                                 <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}">
                                                     <Run Text="{Binding SongsInAlbum.Count, Mode=OneWay}" />
                                                     <Run Text="Tracks" />
+                                                </TextBlock>
+
+                                                <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}">
+                                                    <Run Text="{Binding Artists.Count, Mode=OneWay}" />
+                                                    <Run Text="Artists" />
                                                 </TextBlock>
                                             </StackPanel>
 
@@ -243,17 +251,18 @@
                                                 MaxHeight="350"
                                                 AutoGenerateColumns="False"
                                                 Background="Transparent"
-                                                HeadersVisibility="None"
+                                                HeadersVisibility="All"
                                                 IsReadOnly="True"
                                                 ItemsSource="{Binding SongsInAlbum, Mode=OneWay}"
                                                 RowHeight="40"
-                                                ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                                                ScrollViewer.VerticalScrollMode="Disabled">
+                                                ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                                ScrollViewer.VerticalScrollMode="Auto">
                                                 <dgView:TableView.Columns>
-                                                    <dgView:TableViewTemplateColumn Width="95">
+                                                    <dgView:TableViewTemplateColumn Width="auto" Header="s">
                                                         <dgView:TableViewTemplateColumn.CellTemplate>
                                                             <DataTemplate>
                                                                 <StackPanel
+                                                                    Width="90"
                                                                     VerticalAlignment="Center"
                                                                     Opacity="{Binding Converter={StaticResource SongHighlightConverter}, ConverterParameter='Opacity'}"
                                                                     Orientation="Horizontal"
@@ -298,7 +307,7 @@
                                                                         Text="{Binding Title}"
                                                                         TextTrimming="CharacterEllipsis" />
 
-                                                                    <!--  Optional 'Featured' badge if they are a collaborator  -->
+
                                                                     <Border
                                                                         Padding="4,1"
                                                                         Background="{ThemeResource SystemAccentColor}"
@@ -329,18 +338,21 @@
 
                                                 </dgView:TableView.Columns>
 
-                                                <dgView:TableView.Footer>
-                                                    <StackPanel
-                                                        Margin="0,4,8,0"
-                                                        HorizontalAlignment="Right"
-                                                        Orientation="Horizontal">
-                                                        <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}">
-                                                            <Run Text="{Binding SongsInAlbum.Count, Mode=OneWay}" />
-                                                            <Run Text="Total Tracks" />
-                                                        </TextBlock>
+                                                <dgView:TableView.FooterTemplate>
+                                                    <DataTemplate>
+                                                        <StackPanel
+                                                            Margin="0,4,8,0"
+                                                            HorizontalAlignment="Right"
+                                                            Orientation="Horizontal">
+                                                            <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}">
+                                                                <Run Text="{Binding SongsInAlbum.Count, Mode=OneWay}" />
+                                                                <Run Text="Total Tracks" />
+                                                            </TextBlock>
 
-                                                    </StackPanel>
-                                                </dgView:TableView.Footer>
+                                                        </StackPanel>
+                                                    </DataTemplate>
+
+                                                </dgView:TableView.FooterTemplate>
                                             </dgView:TableView>
                                         </Grid>
                                     </Grid>

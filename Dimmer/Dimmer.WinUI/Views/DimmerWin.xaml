@@ -17,8 +17,7 @@
     Activated="Window_Activated"
     Closed="DimmerWindowClosed"
     SizeChanged="Window_SizeChanged"
-    mc:Ignorable="d"
-    >
+    mc:Ignorable="d">
 
 
 
@@ -36,15 +35,13 @@
         PaneClosing="NvSample_PaneClosing"
         PaneOpening="NvSample_PaneOpening"
         SelectionChanged="NvSample_SelectionChanged"
-        Tapped="NvSample_Tapped"
-        >
+        Tapped="NvSample_Tapped">
         <NavigationView.MenuItems>
             <NavigationViewItem
                 x:Name="SongsBtn"
                 Content="Songs"
                 Tag="SongsTag"
-                Tapped="SongsBtn_Tapped"
-                >
+                Tapped="SongsBtn_Tapped">
                 <NavigationViewItem.Icon>
                     <FontIcon FontSize="30" Glyph="&#xE8D6;" />
                 </NavigationViewItem.Icon>
@@ -53,8 +50,7 @@
                 x:Name="ArtistsBtn"
                 Content="Artists"
                 Tag="ArtistsTag"
-                Tapped="ArtistsBtn_Tapped"
-                >
+                Tapped="ArtistsBtn_Tapped">
 
                 <NavigationViewItem.Icon>
                     <FontIcon FontSize="30" Glyph="&#xE720;" />
@@ -64,8 +60,7 @@
                 x:Name="AlbumsBtn"
                 Content="Albums"
                 Tag="AlbumsTag"
-                Tapped="AlbumsBtn_Tapped"
-                >
+                Tapped="AlbumsBtn_Tapped">
                 <NavigationViewItem.Icon>
                     <FontIcon FontSize="30" Glyph="&#xE93C;" />
                 </NavigationViewItem.Icon>
@@ -75,8 +70,7 @@
                 x:Name="PlaylistsBtn"
                 Content="Playlists"
                 Tag="PlaylistsTag"
-                Tapped="PlaylistsBtn_Tapped"
-                >
+                Tapped="PlaylistsBtn_Tapped">
                 <NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xEA65;" />
                 </NavigationViewItem.Icon>
@@ -88,8 +82,7 @@
                 x:Name="DimsStatsBtn"
                 Content="Dimner Stats"
                 Tag="DimsStats"
-                Tapped="DimsStatsBtn_Tapped"
-                >
+                Tapped="DimsStatsBtn_Tapped">
                 <NavigationViewItem.Icon>
                     <FontIcon FontSize="30" Glyph="&#xEB05;" />
                 </NavigationViewItem.Icon>
@@ -99,8 +92,7 @@
                 x:Name="DimmerUtilities"
                 Content="Utilities"
                 Tag="UtilitiesTag"
-                Tapped="DimmerUtilities_Tapped"
-                >
+                Tapped="DimmerUtilities_Tapped">
                 <NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xEC7A;" />
                 </NavigationViewItem.Icon>
@@ -110,8 +102,7 @@
                 x:Name="DimmerCloud"
                 Content="Dimmer Cloud"
                 Tag="DimmerCloudTag"
-                Tapped="DimmerCloud_Tapped"
-                >
+                Tapped="DimmerCloud_Tapped">
                 <NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xEA91;" />
                 </NavigationViewItem.Icon>
@@ -124,55 +115,50 @@
             <StackPanel
                 x:Name="BottomCurrentPlayingSongPanel"
                 Margin="5"
-                Visibility="{x:Bind MyViewModel.BottomCurrentPlayingSongPanelVisibility, Mode=OneWay}"
-                >
+                Visibility="{x:Bind MyViewModel.BottomCurrentPlayingSongPanelVisibility, Mode=OneWay}">
 
                 <StackPanel Margin="5">
                     <Grid
                         Grid.Column="0"
-                        MaxWidth="100"
-                        MaxHeight="100"
-                        HorizontalAlignment="Center"
-                        >
+                        Width="100"
+                        Height="100"
+                        HorizontalAlignment="Center">
 
-                        <Image
+                        <devWin:ImageEx
                             x:Name="CurrentPlayingSongImage"
                             VerticalAlignment="Top"
+                            CornerRadius="30"
                             Loaded="CurrentPlayingSongImage_Loaded"
-                            PointerPressed="CurrentPlayingSongImage_PointerPressed"
-                            />
+                            PointerPressed="CurrentPlayingSongImage_PointerPressed" />
                     </Grid>
 
                     <StackPanel
                         Grid.Column="1"
                         Background="Transparent"
-                        Spacing="5"
-                        >
+                        Loaded="StackPanel_Loaded"
+                        Spacing="5">
 
                         <devWin:AutoScrollView IsPlaying="True">
                             <TextBlock
+                                x:Name="CurrentPlayingTitleTB"
                                 FontSize="22"
-                                Text="{x:Bind MyViewModel.CurrentPlayingSongView.Title, Mode=OneWay}"
-                                TextTrimming="CharacterEllipsis"
-                                />
+                                TextTrimming="CharacterEllipsis" />
                         </devWin:AutoScrollView>
 
 
 
                         <devWin:AutoScrollView IsPlaying="True">
                             <TextBlock
+                                x:Name="CurrentPlayingArtistsTB"
                                 FontSize="18"
-                                Text="{x:Bind MyViewModel.CurrentPlayingSongView.OtherArtistsName, Mode=OneWay}"
-                                TextTrimming="CharacterEllipsis"
-                                />
+                                TextTrimming="CharacterEllipsis" />
                         </devWin:AutoScrollView>
 
                         <devWin:AutoScrollView IsPlaying="True">
                             <TextBlock
+                                x:Name="CurrentPlayingAlbumTB"
                                 FontSize="16"
-                                Text="{x:Bind MyViewModel.CurrentPlayingSongView.AlbumName, Mode=OneWay}"
-                                TextTrimming="CharacterEllipsis"
-                                />
+                                TextTrimming="CharacterEllipsis" />
                         </devWin:AutoScrollView>
 
 
@@ -188,8 +174,7 @@
                                     Height="40"
                                     Command="{x:Bind MyViewModel.PlayPauseToggleCommand}"
                                     IsChecked="{x:Bind MyViewModel.IsDimmerPlaying, Mode=OneWay}"
-                                    Loaded="PlayPauseToggleBtn_Loaded"
-                                    />
+                                    Loaded="PlayPauseToggleBtn_Loaded" />
                                 <devWin:BubbleButton
                                     HorizontalAlignment="Right"
                                     VerticalAlignment="Top"
@@ -197,8 +182,7 @@
                                     BorderThickness="0"
                                     Content="❤️"
                                     FontSize="40"
-                                    Visibility="{x:Bind MyViewModel.CurrentPlayingSongView.IsFavorite, Mode=OneWay}"
-                                    />
+                                    Visibility="{x:Bind MyViewModel.CurrentPlayingSongView.IsFavorite, Mode=OneWay}" />
                             </StackPanel>
 
 
@@ -211,8 +195,7 @@
                     x:Name="ScrollToCurrentSong"
                     Content="ScrollToSong"
                     Tag="ScrollToSong"
-                    Tapped="ScrollToCurrentSong_Tapped"
-                    >
+                    Tapped="ScrollToCurrentSong_Tapped">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE890;" />
                     </NavigationViewItem.Icon>
@@ -222,8 +205,7 @@
                     x:Name="DimmerLiveBtn"
                     Content="Dimmer Live"
                     Tag="DimmerLiveTag"
-                    Tapped="DimmerLiveBtn_Tapped"
-                    >
+                    Tapped="DimmerLiveBtn_Tapped">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE93E;" />
                     </NavigationViewItem.Icon>
@@ -232,8 +214,7 @@
                     x:Name="SettingsBtn"
                     Content="Settings"
                     Tag="SettingsTag"
-                    Tapped="SettingsBtn_Tapped"
-                    >
+                    Tapped="SettingsBtn_Tapped">
                     <NavigationViewItem.Icon>
                         <FontIcon FontSize="30" Glyph="&#xE713;" />
                     </NavigationViewItem.Icon>
@@ -255,14 +236,12 @@
                 x:Name="ContentFrame"
                 Grid.Row="1"
                 x:FieldModifier="Public"
-                Navigated="ContentFrame_Navigated"
-                />
+                Navigated="ContentFrame_Navigated" />
 
             <Grid
                 x:Name="TopRowGrid"
                 Grid.Row="0"
-                ColumnSpacing="5"
-                >
+                ColumnSpacing="5">
                 <Grid.ColumnDefinitions>
 
 
@@ -274,23 +253,20 @@
                     <StackPanel
                         Margin="10"
                         Orientation="Horizontal"
-                        Spacing="5"
-                        >
+                        Spacing="5">
                         <devWin:TextBox
                             x:Name="SearchBoxEdit"
                             MinWidth="350"
                             Header="Search With TQL."
                             PlaceholderText=""
-                            TextChanged="SearchBoxEdit_TextChanged"
-                            >
+                            TextChanged="SearchBoxEdit_TextChanged">
                             <devWin:TextBox.Content>
                                 <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
                                     <Button
                                         x:Name="SaveTQL"
                                         HorizontalAlignment="Left"
                                         HorizontalContentAlignment="Left"
-                                        Click="SaveTQL_Click"
-                                        >
+                                        Click="SaveTQL_Click">
                                         <FontIcon Glyph="&#xE74E;" />
                                     </Button>
                                 </StackPanel>
@@ -299,32 +275,27 @@
                         <TextBlock
                             x:Name="SearchResultErrorText"
                             FontSize="16"
-                            Loaded="SearchResultErrorText_Loaded"
-                            />
+                            Loaded="SearchResultErrorText_Loaded" />
                     </StackPanel>
 
 
                     <StackPanel
                         x:Name="QuickTQLCommandsStackPanel"
                         Orientation="Horizontal"
-                        Spacing="8"
-                        >
+                        Spacing="8">
                         <ToggleButton
                             x:Name="ShowNowPlayingQueue"
                             Checked="ShowNowPlayingQueue_Checked"
                             Content="Now Playing Queue"
-                            Unchecked="ShowNowPlayingQueue_Unchecked"
-                            />
+                            Unchecked="ShowNowPlayingQueue_Unchecked" />
                         <Button
                             x:Name="ApplyShuffleToTql"
                             Click="ApplyShuffleToTql_Click"
-                            Content="Shuffle"
-                            />
+                            Content="Shuffle" />
                         <Button
                             x:Name="SaveQueueToPlaylist"
                             Click="SaveQueueToPlaylist_Click"
-                            ToolTipService.ToolTip="Save To Playlist"
-                            >
+                            ToolTipService.ToolTip="Save To Playlist">
                             <FontIcon Glyph="&#xE74E;" />
                         </Button>
                     </StackPanel>
@@ -332,8 +303,7 @@
                         x:Name="SongsCountFlipCard"
                         HorizontalAlignment="Left"
                         Source="Value"
-                        Value="{x:Bind MyViewModel.MySongsTableViewItemsCount, Mode=OneWay}"
-                        />
+                        Value="{x:Bind MyViewModel.MySongsTableViewItemsCount, Mode=OneWay}" />
                 </StackPanel>
             </Grid>
 

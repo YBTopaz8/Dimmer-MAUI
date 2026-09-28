@@ -88,11 +88,12 @@
                     <dgView:TableView.Columns>
 
                         <!--  Column for the Cover Art  -->
-                        <dgView:TableViewTemplateColumn x:Name="ImgCol" Width="95">
+                        <dgView:TableViewTemplateColumn x:Name="ImgCol" Width="*">
                             <dgView:TableViewTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Border
                                         x:Name="CardBorder"
+                                        Width="80"
                                         Margin="5,0"
                                         AllowFocusOnInteraction="False"
                                         Background="Transparent"
@@ -220,15 +221,14 @@
                             Header="Favorite?"
                             IsReadOnly="True" />
 
+
+
                         <dgView:TableViewDateColumn
-                            x:Name="DateCreated"
+                            x:Name="LastPlayed"
                             Width="140"
-                            Binding="{Binding DateCreated}"
-                            Header="Date Created"
+                            Binding="{Binding LastPlayed}"
+                            Header="LastPlayed"
                             IsReadOnly="True" />
-
-
-
 
 
                     </dgView:TableView.Columns>

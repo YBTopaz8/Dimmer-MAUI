@@ -13,8 +13,7 @@
     xmlns:modelsDb="clr-namespace:Dimmer.Data.Models;assembly=Dimmer"
     xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
     Padding="10"
-    mc:Ignorable="d"
-    >
+    mc:Ignorable="d">
 
     <ScrollViewer Background="#1e1e1e" VerticalScrollBarVisibility="Auto">
         <Grid>
@@ -48,20 +47,18 @@
                     <TextBlock Text="{x:Bind MyViewModel.TotalNumberOfDimmerEvents}" />
                 </StackPanel>
             </Grid>
-            <StackPanel Grid.Row="1" >
+            <StackPanel Grid.Row="1">
                 <Button
                     x:Name="BackUpDataBtn"
                     Click="BackUpDataBtn_Click"
-                    Content="Backup AppData"
-                    />
+                    Content="Backup AppData" />
 
                 <InfoBar
                     x:Name="StatusInfoBar"
                     Title="Success!"
                     Content="Backup Successful!"
                     Tapped="StatusInfoBar_Tapped"
-                    Visibility="Collapsed"
-                    />
+                    Visibility="Collapsed" />
             </StackPanel>
         </Grid>
     </ScrollViewer>

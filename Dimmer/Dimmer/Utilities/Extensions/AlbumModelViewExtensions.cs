@@ -112,7 +112,7 @@ public static class AlbumModelViewExtensions
         var artistName = artInDb.Name;
 
         var albumViews = new List<AlbumModelView>();
-
+       
         foreach (var alb in artInDb.Albums)
         {
             var albView = alb.ToAlbumModelView(withArtist: false, withSongs: false);
@@ -127,7 +127,7 @@ public static class AlbumModelViewExtensions
                     var songView = songDb.ToSongModelView(isShallow: true);
                     if (songView == null) continue;
 
-                    // FIX: Check collaboration directly against the Realm model BEFORE it gets mapped to shallow!
+                  
                     bool isPrimary = (songDb.Artist != null && songDb.Artist.Id == artistId) || songDb.ArtistName == artistName;
                     bool isCollab = songDb.ArtistToSong != null && songDb.ArtistToSong.Any(x => x.Id == artistId);
                     bool inOtherText = !string.IsNullOrEmpty(songDb.OtherArtistsName) &&
@@ -138,7 +138,7 @@ public static class AlbumModelViewExtensions
                 }
 
                 albView.SongsInAlbum = songsInAlbumViews.ToObservableCollection();
-
+                albView.Artists = alb.Artists.Select(x => x.ToArtistModelView()!).ToList();
                 // Set cover if empty
                 if (string.IsNullOrEmpty(albView.ImagePath))
                 {
