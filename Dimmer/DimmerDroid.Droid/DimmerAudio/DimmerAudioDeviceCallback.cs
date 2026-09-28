@@ -15,29 +15,41 @@ public partial class DimmerAudioDeviceCallback : AudioDeviceCallback
         _audioService = audioService;
     }
 
-
     public override void OnAudioDevicesAdded(AudioDeviceInfo[]? addedDevices)
     {
         base.OnAudioDevicesAdded(addedDevices);
-
         if (addedDevices == null || addedDevices.Length == 0) return;
 
         foreach (var device in addedDevices)
         {
             if (IsHeadsetOrBluetooth(device))
             {
-                System.Diagnostics.Debug.WriteLine($"[AudioRouting] Detected new audio hardware: {device.ProductName} ({device.Type})");
+                System.Diagnostics.Debug.WriteLine($"[AudioRouting] Detected new audio hardware: {device.ProductName}");
 
-                // Switch back to the newly plugged headset!
                 RxSchedulers.Background.ScheduleTo(async () =>
                 {
-                    // Refresh devices
-                    var devices = await _audioService.GetAllAudioDevicesAsync();
-                    var target = devices?.FirstOrDefault(d => d.IsDefaultDevice) ?? devices?.FirstOrDefault();
-
-                    if (target != null)
+                    try
                     {
-                        _audioService.SetPreferredOutputDevice(target);
+                     
+                        await Task.Delay(1000);
+
+                        var devices = await _audioService.GetAllAudioDevicesAsync();
+                        var target = devices?.FirstOrDefault(d => d.IsDefaultDevice) ?? devices?.FirstOrDefault();
+
+                        if (target != null)
+                        {
+                            // Pause -> Switch -> Resume prevents native crashes
+                            bool wasPlaying = _audioService.IsPlaying;
+                            if (wasPlaying) await _audioService.PauseAsync();
+
+                            _audioService.SetPreferredOutputDevice(target);
+
+                            if (wasPlaying) await _audioService.PlayAsync();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[AudioRouting] Error adding device: {ex}");
                     }
                 });
                 break;
@@ -50,6 +62,26 @@ public partial class DimmerAudioDeviceCallback : AudioDeviceCallback
     {
         base.OnAudioDevicesRemoved(removedDevices);
         System.Diagnostics.Debug.WriteLine("[AudioRouting] Audio device removed.");
+        RxSchedulers.Background.ScheduleTo(async () =>
+        {
+            try
+            {
+                
+                await _audioService.PauseAsync();
+
+                var devices = await _audioService.GetAllAudioDevicesAsync();
+                var fallbackTarget = devices?.FirstOrDefault(d => d.IsDefaultDevice) ?? devices?.FirstOrDefault();
+
+                if (fallbackTarget != null)
+                {
+                    _audioService.SetPreferredOutputDevice(fallbackTarget);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[AudioRouting] Error switching after removal: {ex.Message}");
+            }
+        });
     }
 
     private static bool IsHeadsetOrBluetooth(AudioDeviceInfo device)

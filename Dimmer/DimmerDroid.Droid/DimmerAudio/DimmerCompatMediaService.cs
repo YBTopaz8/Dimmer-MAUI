@@ -15,6 +15,8 @@ using System.Reactive.Disposables.Fluent;
 [Service(Name = "com.yvanbrunel.dimmer.DimmerCompatMediaService", Exported = true, ForegroundServiceType = global::Android.Content.PM.ForegroundService.TypeMediaPlayback)]
 public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFocusChangeListener
 {
+    private AudioFocusRequestClass? _audioFocusRequest;
+    private double _volumeBeforeDuck = 1.0; // To remember volume before a notification
     private MediaSessionCompat? _mediaSession;
     private IDimmerAudioService? _audioService;
     private PowerManager.WakeLock? _wakeLock;
@@ -84,12 +86,35 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
             })
             .DisposeWith(_disposables);
     }
-
     private void RequestAudioFocus()
     {
         if (_audioManager == null) return;
-        var focusResult = _audioManager.RequestAudioFocus(this, Stream.Music, AudioFocus.Gain);
-        if (focusResult != AudioFocusRequest.Granted)
+
+        int focusResult;
+
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+        {
+            // Modern Android 8.0+ Focus Request
+            if (_audioFocusRequest == null)
+            {
+                _audioFocusRequest = new AudioFocusRequestClass.Builder(AudioFocus.Gain)
+                    .SetAudioAttributes(new AudioAttributes.Builder()?
+                        .SetUsage(AudioUsageKind.Media)?
+                        .SetContentType(AudioContentType.Music)?
+                        .Build()!)
+                    .SetAcceptsDelayedFocusGain(true)
+                    .SetOnAudioFocusChangeListener(this)
+                    .Build();
+            }
+            focusResult = (int)_audioManager.RequestAudioFocus(_audioFocusRequest);
+        }
+        else
+        {
+            // Legacy Android
+            focusResult = (int)_audioManager.RequestAudioFocus(this, Stream.Music, AudioFocus.Gain);
+        }
+
+        if (focusResult != (int)AudioFocusRequest.Granted)
         {
             _ = _audioService?.PauseAsync();
         }
@@ -100,16 +125,43 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
         switch (focusChange)
         {
             case AudioFocus.Loss:
+                // Another app (like YouTube) started playing. Stop completely.
+                _ = _audioService?.PauseAsync();
+                break;
+
             case AudioFocus.LossTransient:
-                _ = _audioService?.PauseAsync(); // Pause for phone calls/youtube
+                // A phone call or WhatsApp audio is playing. Pause temporarily.
+                _ = _audioService?.PauseAsync();
+                break;
+
+            case AudioFocus.LossTransientCanDuck:
+                // A notification pinged. Lower the volume (Ducking).
+                if (_audioService != null)
+                {
+                    _volumeBeforeDuck = _audioService.Volume;
+                    _audioService.SetVolume(_volumeBeforeDuck * 0.2); // Drop to 20%
+                }
+                break;
+
+            case AudioFocus.Gain:
+                // WhatsApp voice note finished, or notification finished. Resume/Restore!
+                if (_audioService != null)
+                {
+                    // Restore volume if we ducked
+                    _audioService.SetVolume(_volumeBeforeDuck);
+
+                    // Only resume if we were paused by the system
+                    if (!_audioService.IsPlaying)
+                    {
+                        _ = _audioService.PlayAsync();
+                    }
+                }
                 break;
         }
     }
-
-
     public override StartCommandResult OnStartCommand(Intent? intent, StartCommandFlags flags, int startId)
     {
-        // 🔥 FIX 1: Promote to foreground IMMEDIATELY to satisfy Android's 5-second watchdog timer
+      
         if (!_isStartedInForeground)
         {
             PromoteToForeground();
