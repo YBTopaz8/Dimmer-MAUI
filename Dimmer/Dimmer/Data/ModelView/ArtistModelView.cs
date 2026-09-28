@@ -81,4 +81,8 @@ public partial class ArtistModelView : ObservableObject
     public partial ObservableCollection<string> ListOfSimilarArtistsNames { get;  set; }
     public ObservableCollection<SongModelView?>? SongsByArtist { get;  set; }
     public ObservableCollection<Artist>? ListOfSimilarArtists { get; set; }
+    [ObservableProperty]
+    public partial bool IsExpanded { get; set; }
+    [ObservableProperty]
+    public partial bool IsLoadingArtist { get; set; }
 }

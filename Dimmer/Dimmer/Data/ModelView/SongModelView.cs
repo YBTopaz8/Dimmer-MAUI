@@ -13,6 +13,12 @@ public partial class SongModelView : ObservableObject
     public partial string? TitleDurationKey { get; set; }
 
     [ObservableProperty]
+    public partial bool IsCurrentArtistInvolved { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsBySelectedArtist { get; set; }
+
+    [ObservableProperty]
     public partial int NumberOfTimesFaved { get; set; }
 
     [ObservableProperty]

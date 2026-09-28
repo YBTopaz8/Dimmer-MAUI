@@ -270,9 +270,6 @@ public static class DimmerMappers
             .ToList();
     }
 
-   
-
- 
     public static SongModel? ToSongModel(this SongModelView? src)
     {
         if (src is null) return null;
@@ -372,16 +369,15 @@ public static class DimmerMappers
     // ==============================================================================
     // 📀 ALBUM MAPPERS
     // ==============================================================================
-
-    public static AlbumModelView? ToAlbumModelView(this AlbumModel? src, bool withArtist=false, bool withSongs=false)
+    public static AlbumModelView? ToAlbumModelView(this AlbumModel? src, bool withArtist = false, bool withSongs = false)
     {
         if (src is null) return null;
 
-        var returnAlbum =  new AlbumModelView
+        var returnAlbum = new AlbumModelView
         {
             Id = src.Id,
             Name = src.Name,
-            Url = src.Url is not null ? src.Url : string.Empty,
+            Url = src.Url ?? string.Empty,
             ReleaseYear = src.ReleaseYear,
             IsNew = src.IsNew,
             NumberOfTracks = src.NumberOfTracks,
@@ -408,30 +404,18 @@ public static class DimmerMappers
             TotalSkipCount = src.TotalSkipCount,
             TotalPlayDurationSeconds = src.TotalPlayDurationSeconds,
             IsFavorite = src.IsFavorite,
-            
-            // Ignores from Config
-            // ImageBytes -> Ignored
-            // SongsInAlbum -> Ignored
-            // Artists -> Ignored
-            // IsCurrentlySelected -> Ignored
-         
         };
-        if (withArtist)
+
+        if (withArtist && src.Artists != null)
         {
-            IEnumerable<ArtistModelView>? albumArtistsView = IPlatformApplication.Current!.Services.GetService<IRealmFactory>()!.GetRealmInstance()
-                .Find<AlbumModel>(src.Id)?.Artists.Select(x=>x.ToArtistModelView())!;
 
-            returnAlbum.Artists = albumArtistsView is null ? null : albumArtistsView!.ToList()!;
-
+            returnAlbum.Artists = src.Artists.Select(x => x.ToArtistModelView()).ToList()!;
         }
-        
-        if (withSongs)
-        {
-            var songsInAlbum = IPlatformApplication.Current!.Services.GetService<IRealmFactory>()!.GetRealmInstance()
-                .Find<AlbumModel>(src.Id)!.SongsInAlbum!.AsEnumerable().Select(x => x.ToSongModelView()!)!; ;
-            
-            returnAlbum.SongsInAlbum = songsInAlbum is null ? null : songsInAlbum!.ToObservableCollection()!;
 
+        if (withSongs && src.SongsInAlbum != null)
+        {
+       
+            returnAlbum.SongsInAlbum = src.SongsInAlbum.AsEnumerable().Select(x => x.ToSongModelView(isShallow: true)!).ToObservableCollection();
         }
 
         return returnAlbum;

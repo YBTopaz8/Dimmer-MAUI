@@ -1,31 +1,27 @@
 using DynamicData.Binding;
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
-
 namespace Dimmer.WinUI.Views.WinuiPages.Artist;
 
-/// <summary>
-/// An empty page that can be used on its own or navigated to within a Frame.
-/// </summary>
 public sealed partial class AllArtistsPage : Page
 {
+    CompositeDisposable compDisp;
+    public BaseViewModelWin MyViewModel { get; set; }
+
     public AllArtistsPage()
     {
         InitializeComponent();
-
-        
     }
 
     protected override void OnNavigatedFrom(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
     {
         base.OnNavigatedFrom(e);
-
-        compDisp.Dispose();
+        compDisp?.Dispose();
     }
-    protected override async void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
+
+    protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
         compDisp = new();
@@ -33,135 +29,129 @@ public sealed partial class AllArtistsPage : Page
 
         DataContext = MyViewModel;
         MyViewModel.CurrentPageEnum = CurrentPage.AllArtistsPage;
-        await Task.Delay(250);
         MyViewModel.SetupArtistPipeline();
 
         MyViewModel.WhenPropertyChanged(nameof(MyViewModel.IsArtistInitialized), v => MyViewModel.ArtistsCollection)
             .Subscribe(s =>
             {
-
                 var send = this.FilterArtistName;
                 if (!send.IsLoaded) return;
                 var namesList = MyViewModel.ArtistsCollection.Where(x => x is not null).Select(x => x.Name).Distinct().ToList();
                 send.ItemsSource = namesList;
+
+                // Initialize A-Z Grouping
+                ApplyAZGrouping();
             }).DisposeWith(compDisp);
     }
-    CompositeDisposable compDisp;
-    public BaseViewModelWin MyViewModel { get; set; }
 
-
-
-    //FrameworkElement? artistClicked;
-
-    private void ArtistsItemsRepeater_Tapped(object sender, TappedRoutedEventArgs e)
+    // ==========================================
+    // UI ELEVATION: A-Z GROUPING
+    // ==========================================
+    private void ApplyAZGrouping()
     {
-        
-    }
 
-    private void ArtistImg_PointerPressed(object sender, PointerRoutedEventArgs e)
-    {
-        var propr = e.GetCurrentPoint((UIElement)sender).Properties;
-        if (propr != null)
+        // Check if your TableView supports GroupDescriptions. 
+        // Since you provided GroupDescription, it likely has a GroupDescriptions collection or a GroupBy method.
+        // We group by the first character of the Artist's name.
+        if (AllArtistsTableView.GroupDescriptions != null && AllArtistsTableView.GroupDescriptions.Count == 0)
         {
-            if (propr.IsLeftButtonPressed)
-            {
-                FrameworkElement? artistClicked = (FrameworkElement)e.OriginalSource;
-
-                var artist = artistClicked.DataContext as ArtistModelView;
-
-                if (artist != null)
+            AllArtistsTableView.GroupDescriptions.Add(new GroupDescription(
+                propertyName: "Name",
+                valueDelegate: obj =>
                 {
-
-                    MyViewModel.NavigateToArtistPageWithArtistId(artist.Id);
-                }
-            }
-
+                    if (obj is ArtistModelView artist && !string.IsNullOrWhiteSpace(artist.Name))
+                    {
+                        char firstChar = artist.Name.ToUpper()[0];
+                        return char.IsLetter(firstChar) ? firstChar.ToString() : "#";
+                    }
+                    return "?";
+                }));
         }
     }
 
-    private void SortRadioBtns_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
+    // ==========================================
+    // UI ELEVATION: REAL-TIME FILTERING
+    // ==========================================
+    private void FilterArtistName_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
-        if (sender is RadioButtons rb && MyViewModel != null)
+        if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
         {
-            int colorName = rb.SelectedIndex;
-            switch (colorName)
+            string query = sender.Text.ToLower().Trim();
+
+            // Clear previous filters
+            AllArtistsTableView.FilterDescriptions?.Clear();
+
+            // Apply new filter if text isn't empty
+            if (!string.IsNullOrEmpty(query))
             {
-                case 0: // Name Asc
-                    MyViewModel.ArtistSortSubject.OnNext(SortExpressionComparer<ArtistModelView>.Ascending(x => x.Name));
-                    break;
-                case 1: // Name Desc
-                    MyViewModel.ArtistSortSubject.OnNext(SortExpressionComparer<ArtistModelView>.Descending(x => x.Name));
-                    break;
-                case 2: // Total PlayAsync Count Asc
-                    MyViewModel.ArtistSortSubject.OnNext(SortExpressionComparer<ArtistModelView>.Ascending(x => x.TotalCompletedPlays));
-                    break;
-                case 3: // Total PlayAsync Count Desc
-                    MyViewModel.ArtistSortSubject.OnNext(SortExpressionComparer<ArtistModelView>.Descending(x => x.TotalCompletedPlays));
-                    break;
-                case 4: // Total Albums Asc
-                    MyViewModel.ArtistSortSubject.OnNext(SortExpressionComparer<ArtistModelView>.Ascending(x => x.TotalAlbumsByArtist));
-                    break;
-                case 5: // Total Albums Desc
-                    MyViewModel.ArtistSortSubject.OnNext(SortExpressionComparer<ArtistModelView>.Descending(x => x.TotalAlbumsByArtist));
-                    break;
+                AllArtistsTableView.FilterDescriptions?.Add(new FilterDescription(
+                    propertyName: "Name",
+                    predicate: obj =>
+                    {
+                        if (obj is ArtistModelView artist && !string.IsNullOrWhiteSpace(artist.Name))
+                        {
+                            return artist.Name.ToLower().Contains(query);
+                        }
+                        return false;
+                    }));
             }
         }
-    }
-
-    private void ArtistBtnView_Click(object sender, RoutedEventArgs e)
-    {
-        var send = (Button)sender;
-
-        var artist = send.DataContext as ArtistModelView;
-    }
-
-    private async void AllArtistsTableView_CellDoubleTapped(object sender, TableViewCellDoubleTappedEventArgs e)
-    {
-        FrameworkElement element = (e.Cell as FrameworkElement)!;
-        ArtistModelView? artist = null;
-        if (element == null)
-            return;
-
-        if (e.Item is ArtistModelView currentArtist)
-        {
-            artist = currentArtist;
-        }
-        if (artist == null)
-            return;
-
-
-
-        MyViewModel.NavigateToArtistPageWithArtistId(artist.Id);
-    }
-    
-
-    private void AllArtistsTableView_Tapped(object sender, TappedRoutedEventArgs e)
-    {
-
-    }
-
-    private void AllArtistsTableView_ItemClick(object sender, ItemClickEventArgs e)
-    {
-
-    }
-
-    private void FilterArtistName_Loaded(object sender, RoutedEventArgs e)
-    {
-    }
-
-    private void FilterArtistName_Tapped(object sender, TappedRoutedEventArgs e)
-    {
-
     }
 
     private void FilterArtistName_SuggestionChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args)
     {
-        var selectedVal = args.SelectedItem;
-        var selectedValString = selectedVal as string;
+        var selectedValString = args.SelectedItem as string;
+        var firstItem = MyViewModel.ArtistsCollection.FirstOrDefault(x => x.Name == selectedValString);
 
-        var firstItem = MyViewModel.ArtistsCollection.First(x => x.Name == selectedValString);
+        if (firstItem == null) return;
 
-        if(firstItem == null) return;
-        this.AllArtistsTableView.SmoothScrollIntoViewWithItemAsync(firstItem, ScrollItemPlacement.Top);
+        // Ensure re-entrancy safety
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            MyViewModel.SetSelectedArtist(firstItem, true);
+        });
+    }
+
+    // ==========================================
+    // SELECTION FIXES
+    // ==========================================
+    private void AllArtistsTableView_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        var OGFrameworkElt = e.OriginalSource as FrameworkElement;
+        if (OGFrameworkElt is null) return;
+
+        var artistModelView = OGFrameworkElt.DataContext as ArtistModelView;
+        if (artistModelView == null) return;
+
+        // FIXED: Defer execution to prevent the Reentrancy/Layout Crash
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            MyViewModel.SetSelectedArtist(artistModelView, true);
+        });
+    }
+
+    private void AllArtistsTableView_CellDoubleTapped(object sender, TableViewCellDoubleTappedEventArgs e)
+    {
+        if (e.Item is ArtistModelView artist)
+        {
+            MyViewModel.NavigateToArtistPageWithArtistId(artist.Id);
+        }
+    }
+
+    private void FilterArtistName_Loaded(object sender, RoutedEventArgs e) { }
+
+    private void ContextMenuPlay_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void ContextMenuQueue_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void ContextMenuPlaylist_Click(object sender, RoutedEventArgs e)
+    {
+
     }
 }

@@ -149,7 +149,7 @@
                                                 x:FieldModifier="Public"
                                                 Loaded="CoverArtImage_Loaded"
                                                 RightTapped="coverArtImage_RightTapped"
-                                                Source="{Binding CoverImagePath}"
+                                                Source="{Binding CoverImagePath, Converter={StaticResource StringToImageConverter}}"
                                                 Stretch="UniformToFill" />
 
 

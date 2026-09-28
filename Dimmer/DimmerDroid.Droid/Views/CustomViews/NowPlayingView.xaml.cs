@@ -149,30 +149,7 @@ public partial class NowPlayingView : ContentView
         //UpdatePreviewLabel(_pendingSeekValue);
     }
 
-    private void OnSliderDragCompleted(object sender, EventArgs e)
-    {
-        _isUserDragging = false;
-        _pendingSeekValue = TrackProgressSlider.Value;
 
-        // Debounce to prevent rapid seeks
-        _debounceTimer?.Dispose();
-        _debounceTimer = new Timer(ExecuteSeek, null, 150, Timeout.Infinite);
-    }
-    private void ExecuteSeek(object? state)
-    {
-        MainThread.BeginInvokeOnMainThread(() =>
-        {
-            // Critical: Don't let timer cause multiple seeks
-            var value = _pendingSeekValue;
-            _pendingSeekValue = -1;
-
-            // Update ViewModel's property to keep binding in sync
-            MyViewModel.CurrentTrackPositionSeconds = value;
-            MyViewModel.SeekTrackPositionAsync(value);
-
-            //PreviewTimeLabel.IsVisible = false;
-        });
-    }
 
     private void myPage_Unloaded(object sender, EventArgs e)
     {
@@ -182,7 +159,7 @@ public partial class NowPlayingView : ContentView
     private async void CoverImgInNowPlayingPage_Tapped(object sender, TappedEventArgs e)
     {
 
-        await Shell.Current.GoToAsync("..");
+
 
     }
 

@@ -24,39 +24,47 @@ public partial class App : MauiWinUIApplication
     /// </summary>
     public App()
     {
-        Debug.WriteLine("Dimmer WinUI :D");
-
-        var mainInstance = AppInstance.FindOrRegisterForKey("MainDimmer");
-        if (!mainInstance.IsCurrent)
+        try
         {
-            // This is a secondary instance. Redirect and exit.
-            var currentInstance = AppInstance.GetCurrent();
-            var args = currentInstance.GetActivatedEventArgs();
-            // Asynchronously redirect and then exit.
-            // No need to GetAwaiter().GetResult() here, fire and forget is okay for redirection.
-            _ = mainInstance.RedirectActivationToAsync(args); // Use discard _ for fire-and-forget
+            Debug.WriteLine("Dimmer WinUI :D");
 
-            Process.GetCurrentProcess().Kill();
-            return; // Essential to prevent further initialization of this instance
+            var mainInstance = AppInstance.FindOrRegisterForKey("MainDimmer");
+            if (!mainInstance.IsCurrent)
+            {
+                // This is a secondary instance. Redirect and exit.
+                var currentInstance = AppInstance.GetCurrent();
+                var args = currentInstance.GetActivatedEventArgs();
+                // Asynchronously redirect and then exit.
+                // No need to GetAwaiter().GetResult() here, fire and forget is okay for redirection.
+                _ = mainInstance.RedirectActivationToAsync(args); // Use discard _ for fire-and-forget
 
+                Process.GetCurrentProcess().Kill();
+                return; // Essential to prevent further initialization of this instance
+
+            }
+            else
+            {
+                // This is the main instance. Subscribe to activated events.
+                mainInstance.Activated += MainInstance_Activated;
+            }
+
+
+            this.InitializeComponent();
+            AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
+
+
+            System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+            AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+            TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
+
+            Microsoft.UI.Xaml.Application.Current.UnhandledException += App_UnhandledException;
         }
-        else
+        catch (Exception ex)
         {
-            // This is the main instance. Subscribe to activated events.
-            mainInstance.Activated += MainInstance_Activated;
+            System.Diagnostics.Debugger.Break();
+            throw;
         }
-
-
-        this.InitializeComponent();
-        AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
-
-
-        System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
-        AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
-        AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-        TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
-
-        Microsoft.UI.Xaml.Application.Current.UnhandledException += App_UnhandledException;
     }
     private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
     {
@@ -140,6 +148,8 @@ public partial class App : MauiWinUIApplication
         base.OnLaunched(args);
         MainSyncContext = SynchronizationContext.Current!;
 
+        this.DebugSettings.LayoutCycleTracingLevel = LayoutCycleTracingLevel.High;
+        this.DebugSettings.LayoutCycleDebugBreakLevel = LayoutCycleDebugBreakLevel.High;
 
 
         Utils.StaticUtils.UiThreads.EnsureInitialized();

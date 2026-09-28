@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="Dimmer.WinUI.Views.WinuiPages.Artist.ArtistDetailsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:devWin="using:DevWinUI"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+    xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
+    d:DataContext="{d:DesignInstance Type=vm:BaseViewModelWin}"
+    mc:Ignorable="d">
+
+    <ScrollViewer Padding="0,0,0,40" VerticalScrollBarVisibility="Auto">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="350" />
+                <!--  Hero Header  -->
+                <RowDefinition Height="*" />
+                <!--  Content  -->
+            </Grid.RowDefinitions>
+
+            <!--  ==========================================================  -->
+            <!--  1. HERO HEADER (Banner, Name, Main Actions)  -->
+            <!--  ==========================================================  -->
+            <Grid Grid.Row="0">
+                <!--  Artist Background Image with dark gradient fade  -->
+                <devWin:ImageEx
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    Source="{x:Bind MyViewModel.SelectedArtist.ImagePath, Mode=OneWay}"
+                    Stretch="UniformToFill" />
+
+                <Grid>
+                    <Grid.Background>
+                        <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                            <GradientStop Offset="0.0" Color="Transparent" />
+                            <GradientStop Offset="0.7" Color="#CC121212" />
+                            <GradientStop Offset="1.0" Color="#FF121212" />
+                        </LinearGradientBrush>
+                    </Grid.Background>
+                </Grid>
+
+                <StackPanel
+                    Padding="40,24"
+                    VerticalAlignment="Bottom"
+                    Spacing="12">
+                    <!--  Quick Stats Badges  -->
+                    <StackPanel Orientation="Horizontal" Spacing="16">
+                        <TextBlock
+                            CharacterSpacing="100"
+                            FontSize="12"
+                            FontWeight="Bold"
+                            Foreground="{ThemeResource SystemAccentColorLight2}"
+                            Text="VERIFIED ARTIST" />
+                        <StackPanel
+                            Opacity="0.8"
+                            Orientation="Horizontal"
+                            Spacing="4">
+                            <FontIcon
+                                FontSize="12"
+                                Foreground="Gold"
+                                Glyph="&#xE8D6;"
+                                Visibility="{x:Bind MyViewModel.SelectedArtist.IsFavorite, Mode=OneWay}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!--  Artist Name  -->
+                    <TextBlock
+                        FontSize="64"
+                        FontWeight="Black"
+                        Text="{x:Bind MyViewModel.SelectedArtist.Name, Mode=OneWay}"
+                        TextTrimming="CharacterEllipsis"
+                        TextWrapping="NoWrap" />
+
+                    <!--  Stats Row  -->
+                    <TextBlock FontSize="14" Foreground="#BBBBBB">
+                        <Run Text="{x:Bind MyViewModel.SelectedArtist.TotalCompletedPlays, Mode=OneWay}" /> <Run Text="Total Plays  • " />
+                        <Run Text="{x:Bind MyViewModel.SelectedArtist.TotalAlbumsByArtist, Mode=OneWay}" /> <Run Text="Albums  • " />
+                        <Run Text="{x:Bind MyViewModel.SelectedArtist.TotalSongsByArtist, Mode=OneWay}" /> <Run Text="Songs" />
+                    </TextBlock>
+
+                    <!--  Main Actions  -->
+                    <StackPanel
+                        Margin="0,12,0,0"
+                        Orientation="Horizontal"
+                        Spacing="12">
+                        <Button
+                            Height="48"
+                            Padding="24,0"
+                            CornerRadius="24"
+                            Style="{ThemeResource AccentButtonStyle}">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE768;" />
+                                <TextBlock
+                                    FontSize="16"
+                                    FontWeight="SemiBold"
+                                    Text="Play" />
+                            </StackPanel>
+                        </Button>
+                        <Button
+                            Width="48"
+                            Height="48"
+                            CornerRadius="24"
+                            ToolTipService.ToolTip="Shuffle">
+                            <FontIcon Glyph="&#xE8B1;" />
+                        </Button>
+                        <Button
+                            Width="48"
+                            Height="48"
+                            CornerRadius="24"
+                            ToolTipService.ToolTip="Add to Favorites">
+                            <FontIcon Glyph="&#xE113;" />
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+
+            <!--  ==========================================================  -->
+            <!--  2. MAIN CONTENT SPLIT (Left: Music, Right: Insights)  -->
+            <!--  ==========================================================  -->
+            <Grid
+                Grid.Row="1"
+                Padding="40,24"
+                ColumnSpacing="40">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="6.5*" />
+                    <!--  Music  -->
+                    <ColumnDefinition Width="3.5*" />
+                    <!--  Bio & Stats  -->
+                </Grid.ColumnDefinitions>
+
+                <!--  LEFT COLUMN: MUSIC  -->
+                <StackPanel Grid.Column="0" Spacing="32">
+
+                    <!--  Popular Tracks (Top 5-10 Songs)  -->
+                    <StackPanel Spacing="16">
+                        <TextBlock
+                            FontWeight="Bold"
+                            Style="{ThemeResource TitleTextBlockStyle}"
+                            Text="Popular" />
+
+                        <ItemsRepeater ItemsSource="{Binding MyViewModel.SelectedArtist.SongsByArtist, Mode=OneWay}">
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid
+                                        Padding="8,10"
+                                        ColumnSpacing="16"
+                                        CornerRadius="8">
+                                        <!--  Hover Effect  -->
+                                        <Grid.Background>
+                                            <SolidColorBrush Color="Transparent" />
+                                        </Grid.Background>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="30" />
+                                            <ColumnDefinition Width="40" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="100" />
+                                            <ColumnDefinition Width="50" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBlock
+                                            Grid.Column="0"
+                                            VerticalAlignment="Center"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Text="{Binding TrackNumber}" />
+
+                                        <devWin:ImageEx
+                                            Grid.Column="1"
+                                            Width="40"
+                                            Height="40"
+                                            CornerRadius="4"
+                                            Source="{Binding CoverImagePath}"
+                                            Stretch="UniformToFill" />
+
+                                        <TextBlock
+                                            Grid.Column="2"
+                                            VerticalAlignment="Center"
+                                            FontWeight="SemiBold"
+                                            Text="{Binding Title}"
+                                            TextTrimming="CharacterEllipsis" />
+
+                                        <!--  Show how many times this specific song was played  -->
+                                        <TextBlock
+                                            Grid.Column="3"
+                                            VerticalAlignment="Center"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}">
+                                            <Run Text="{Binding PlayCompletedCount}" /> <Run Text="plays" />
+                                        </TextBlock>
+
+                                        <TextBlock
+                                            Grid.Column="4"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Center"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Text="{Binding DurationFormatted}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+                    </StackPanel>
+
+                    <!--  Discography (Horizontal Albums Scroll)  -->
+                    <StackPanel Spacing="16">
+                        <TextBlock
+                            FontWeight="Bold"
+                            Style="{ThemeResource TitleTextBlockStyle}"
+                            Text="Discography" />
+
+                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                            <ItemsRepeater ItemsSource="{x:Bind MyViewModel.SelectedArtist.AlbumsByArtist, Mode=OneWay}">
+                                <ItemsRepeater.Layout>
+                                    <StackLayout Orientation="Horizontal" Spacing="16" />
+                                </ItemsRepeater.Layout>
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button
+                                            Padding="8"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            CornerRadius="8">
+                                            <StackPanel Width="160" Spacing="8">
+                                                <devWin:ImageEx
+                                                    Width="160"
+                                                    Height="160"
+                                                    CornerRadius="8"
+                                                    Source="{Binding ImagePath}"
+                                                    Stretch="UniformToFill" />
+                                                <TextBlock
+                                                    FontWeight="Bold"
+                                                    Text="{Binding Name}"
+                                                    TextTrimming="CharacterEllipsis" />
+                                                <TextBlock
+                                                    FontSize="12"
+                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                    Text="{Binding ReleaseYear}" />
+                                            </StackPanel>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
+                        </ScrollViewer>
+                    </StackPanel>
+                </StackPanel>
+
+                <!--  RIGHT COLUMN: BIO & DEEP STATS  -->
+                <StackPanel Grid.Column="1" Spacing="32">
+
+                    <!--  About / Bio  -->
+                    <StackPanel Spacing="12">
+                        <TextBlock
+                            FontWeight="Bold"
+                            Style="{ThemeResource SubtitleTextBlockStyle}"
+                            Text="About" />
+                        <Border
+                            Padding="20"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="12">
+                            <StackPanel Spacing="12">
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    LineHeight="22"
+                                    MaxLines="6"
+                                    Text="{x:Bind MyViewModel.SelectedArtist.Bio, Mode=OneWay}"
+                                    TextTrimming="WordEllipsis"
+                                    TextWrapping="Wrap" />
+                                <HyperlinkButton Content="Read full bio" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!--  Listening Habits (Your Custom Stats!)  -->
+                    <StackPanel Spacing="12">
+                        <TextBlock
+                            FontWeight="Bold"
+                            Style="{ThemeResource SubtitleTextBlockStyle}"
+                            Text="Your Listening Habits" />
+                        <Border
+                            Padding="20"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="12">
+                            <StackPanel Spacing="20">
+
+                                <!--  Completion Percentage  -->
+                                <StackPanel Spacing="6">
+                                    <Grid>
+                                        <TextBlock
+                                            HorizontalAlignment="Left"
+                                            FontSize="12"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Text="Completion Rate" />
+                                        <TextBlock
+                                            HorizontalAlignment="Right"
+                                            FontSize="12"
+                                            FontWeight="Bold">
+                                            <Run Text="{x:Bind MyViewModel.SelectedArtist.CompletionPercentage, Mode=OneWay}" />
+                                            %</TextBlock>
+                                    </Grid>
+                                    <!--  ProgressBar assuming value is 0-100. If it's 0-1, use Maximum="1"  -->
+                                    <ProgressBar
+                                        Height="6"
+                                        CornerRadius="3"
+                                        Maximum="100"
+                                        Value="{x:Bind MyViewModel.SelectedArtist.CompletionPercentage, Mode=OneWay}" />
+                                </StackPanel>
+
+                                <!--  Eddington Number & Rank  -->
+                                <Grid ColumnSpacing="16">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0" Spacing="2">
+                                        <TextBlock
+                                            FontSize="12"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Text="Eddington No." />
+                                        <TextBlock
+                                            FontSize="24"
+                                            FontWeight="Bold"
+                                            Foreground="{ThemeResource SystemAccentColorLight2}"
+                                            Text="{x:Bind MyViewModel.SelectedArtist.EddingtonNumber, Mode=OneWay}" />
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="1" Spacing="2">
+                                        <TextBlock
+                                            FontSize="12"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Text="Overall Rank" />
+                                        <TextBlock FontSize="24" FontWeight="Bold">
+                                            <Run Text="#" /><Run Text="{x:Bind MyViewModel.SelectedArtist.OverallRank, Mode=OneWay}" />
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Grid>
+
+                                <!--  Discovery Date  -->
+                                <StackPanel Spacing="2">
+                                    <TextBlock
+                                        FontSize="12"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Text="Discovered On" />
+                                    <TextBlock FontWeight="SemiBold" Text="{x:Bind MyViewModel.SelectedArtist.DiscoveryDate, Mode=OneWay}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!--  Similar Artists  -->
+                    <StackPanel Spacing="12">
+                        <TextBlock
+                            FontWeight="Bold"
+                            Style="{ThemeResource SubtitleTextBlockStyle}"
+                            Text="Similar Artists" />
+                        <ItemsControl ItemsSource="{x:Bind MyViewModel.SelectedArtist.ListOfSimilarArtistsNames, Mode=OneWay}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <!--  WrapPanel requires CommunityToolkit.WinUI.UI.Controls  -->
+                                    <!--  If you don't have it, replace with a horizontal ScrollViewer  -->
+                                    <StackPanel Orientation="Vertical" Spacing="8" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="x:String">
+                                    <HyperlinkButton Content="{x:Bind}" FontSize="14" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </ScrollViewer>
+</Page>

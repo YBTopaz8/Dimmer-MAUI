@@ -6,9 +6,9 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:Dimmer.WinUI.Views.WinuiPages.Artist"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d"
-    >
-
+    xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
+    d:DataContext="{d:DesignInstance Type=vm:BaseViewModelWin}"
+    mc:Ignorable="d">
 
     <Grid Background="Transparent">
         <Grid.ColumnDefinitions>
@@ -19,32 +19,32 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
+
         <SelectorBar
             x:Name="ArtistSelectorBar"
             Grid.Row="0"
-            SelectionChanged="ArtistSelectorBar_SelectionChanged"
-            >
+            SelectionChanged="ArtistSelectorBar_SelectionChanged">
             <SelectorBarItem
                 x:Name="AllArtistsSelector"
                 IsSelected="True"
-                Text="All Artists"
-                />
-            <SelectorBarItem x:Name="ArtistAlbumsSelector" Text="Artist Albums" />
+                Text="All Artists" />
+            <SelectorBarItem x:Name="ArtistAlbumsSelector" Text="Artist Profile" />
             <SelectorBarItem x:Name="ArtistSongsSelector" Text="Artist Songs" />
         </SelectorBar>
+
         <StackPanel
             x:Name="TopRightOptionSection"
             Grid.Column="1"
-            Margin="5"
-            >
+            Margin="5">
             <Button Click="FetchAllInfos_Click" Content="Fetch Artist Images" />
         </StackPanel>
+
+        <!--  THIS IS THE MISSING FRAME!  -->
         <Frame
             x:Name="ArtistContentFrame"
             Grid.Row="1"
             Grid.ColumnSpan="2"
             x:FieldModifier="Public"
-            IsNavigationStackEnabled="False"
-            />
+            IsNavigationStackEnabled="False" />
     </Grid>
 </Page>

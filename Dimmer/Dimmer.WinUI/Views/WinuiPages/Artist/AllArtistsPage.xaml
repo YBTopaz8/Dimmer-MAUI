@@ -5,7 +5,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
     xmlns:convertersWinUI="using:Dimmer.WinUI.Utils.Converters"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:d="http://schemas.microsoft.com/expression/blBottom/2008"
+    xmlns:devWin="using:DevWinUI"
     xmlns:dgView="using:WinUI.TableView"
     xmlns:dimmSearch="clr-namespace:Dimmer.Data.ModelView.DimmerSearch;assembly=Dimmer"
     xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
@@ -19,91 +20,337 @@
     xmlns:queryBuilder="queries"
     xmlns:tql="clr-namespace:Dimmer.DimmerSearch.TQL;assembly=Dimmer"
     xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
-    mc:Ignorable="d"
-    >
+    d:DataContext="{d:DesignInstance Type=vm:BaseViewModelWin}"
+    mc:Ignorable="d">
 
 
+    <Page.Resources>
+        <Style x:Key="HeaderSortButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
 
+        <!--  Table Row Button Style (Provides the smooth Windows 11 hover & press states)  -->
+        <Style x:Key="ProTableRowButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Padding" Value="12,6" />
+            <Setter Property="MinHeight" Value="40" />
+            <Setter Property="CornerRadius" Value="6" />
+        </Style>
 
-    <Grid
-        Margin="15,2"
-        CornerRadius="10"
-        RowSpacing="10"
-        >
-        <Grid.RowDefinitions>
-            <RowDefinition Height="auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
+        <!--  Row Quick Action Menu  -->
+        <MenuFlyout x:Key="RowQuickFlyout">
+            <MenuFlyoutItem
+                Click="ContextMenuPlay_Click"
+                Icon="Play"
+                Text="Play" />
+            <MenuFlyoutItem
+                Click="ContextMenuQueue_Click"
+                Icon="List"
+                Text="Add to Queue" />
+            <MenuFlyoutItem
+                Click="ContextMenuPlaylist_Click"
+                Icon="Add"
+                Text="Add to Playlist" />
+        </MenuFlyout>
+    </Page.Resources>
+    <Grid Margin="16" ColumnSpacing="24">
+        <Grid.ColumnDefinitions>
+            <!--  Left Panel Fixed Width  -->
+            <ColumnDefinition Width="320" />
+            <!--  Right Panel takes the rest  -->
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
 
-        <StackPanel Grid.Row="0">
+        <!--  ================= LEFT PANEL: ARTISTS LIST =================  -->
+        <Grid Grid.Column="0" RowSpacing="16">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <TextBlock
+                FontWeight="Bold"
+                Style="{ThemeResource TitleTextBlockStyle}"
+                Text="Artists" />
+
+            <!--  The Search Bar  -->
             <AutoSuggestBox
                 x:Name="FilterArtistName"
-                BorderBrush="DarkSlateBlue"
-                BorderThickness="1"
+                Grid.Row="1"
                 Loaded="FilterArtistName_Loaded"
-                PlaceholderText="Search Artist Name"
+                PlaceholderText="Search artists..."
                 SuggestionChosen="FilterArtistName_SuggestionChosen"
-                Tapped="FilterArtistName_Tapped"/>
-        </StackPanel>
+                TextChanged="FilterArtistName_TextChanged" />
 
-
-        <Grid Grid.Row="1">
-
+            <!--  The Artists Table View  -->
             <dgView:TableView
                 x:Name="AllArtistsTableView"
+                Grid.Row="2"
                 AutoGenerateColumns="False"
-                CellDoubleTapped="AllArtistsTableView_CellDoubleTapped"
+                Background="Transparent"
                 IsReadOnly="True"
-                ItemClick="AllArtistsTableView_ItemClick"
                 ItemsSource="{x:Bind MyViewModel.ArtistsCollection, Mode=OneWay}"
-                RowHeight="80"
-                Tapped="AllArtistsTableView_Tapped"
-                >
+                RowHeight="60"
+                Tapped="AllArtistsTableView_Tapped">
 
                 <dgView:TableView.Columns>
-                    <dgView:TableViewTemplateColumn Header="Image">
+                    <dgView:TableViewTemplateColumn Width="*" Header="Name">
                         <dgView:TableViewTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <Image Width="80">
-                                    <Image.Source>
-                                        <BitmapImage UriSource="{Binding ImagePath}" />
-                                    </Image.Source>
-                                </Image>
+                                <StackPanel
+                                    Padding="8,0"
+                                    Orientation="Horizontal"
+                                    Spacing="12">
+                                    <PersonPicture
+                                        Width="36"
+                                        Height="36"
+                                        DisplayName="{Binding Name}" />
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        Style="{ThemeResource BodyStrongTextBlockStyle}"
+                                        Text="{Binding Name}" />
+                                </StackPanel>
                             </DataTemplate>
                         </dgView:TableViewTemplateColumn.CellTemplate>
                     </dgView:TableViewTemplateColumn>
-
-                    <dgView:TableViewTextColumn
-                        Width="*"
-                        Binding="{Binding Name}"
-                        Header="Name"
-                        />
-                    <dgView:TableViewNumberColumn
-                        Width="*"
-                        Binding="{Binding TotalAlbumsByArtist}"
-                        Header="Total Albums By Artist"
-                        />
-                    <dgView:TableViewNumberColumn
-                        Width="*"
-                        Binding="{Binding TotalSongsByArtist}"
-                        Header="Total Songs By Artist"
-                        />
-                    <dgView:TableViewNumberColumn
-                        Width="*"
-                        Binding="{Binding TotalCompletedPlays}"
-                        Header="Total Completed Plays"
-                        />
-
-
-                    <dgView:TableViewNumberColumn
-                        Width="*"
-                        Binding="{Binding OverallRank}"
-                        Header="Overall Rank"
-                        />
                 </dgView:TableView.Columns>
             </dgView:TableView>
         </Grid>
 
+        <!--  ================= RIGHT PANEL: ARTIST DETAILS =================  -->
+        <Border
+            Grid.Column="1"
+            Padding="24,24,8,0"
+            Background="{ThemeResource LayerFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="12">
+
+            <Grid RowSpacing="24">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!--  Header Actions  -->
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock
+                        FontWeight="Bold"
+                        Style="{ThemeResource HeaderTextBlockStyle}"
+                        Text="{x:Bind MyViewModel.SelectedArtist.Name, Mode=OneWay}"
+                        TextWrapping="WrapWholeWords" />
+
+                    <StackPanel
+                        Grid.Column="1"
+                        Margin="0,0,16,0"
+                        VerticalAlignment="Center"
+                        Orientation="Horizontal"
+                        Spacing="10">
+                        <Button
+                            Padding="16,8"
+                            CornerRadius="20"
+                            Style="{ThemeResource AccentButtonStyle}">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon FontSize="14" Glyph="&#xE768;" />
+                                <TextBlock FontWeight="SemiBold" Text="Play All" />
+                            </StackPanel>
+                        </Button>
+                        <Button CornerRadius="20" ToolTipService.ToolTip="Add To Queue">
+                            <FontIcon FontSize="14" Glyph="&#xE8D8;" />
+                        </Button>
+                        <Button CornerRadius="20" ToolTipService.ToolTip="Add To Playlist">
+                            <FontIcon FontSize="14" Glyph="&#xE109;" />
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <!--  Scrollable Albums Area  -->
+                <ScrollViewer
+                    Grid.Row="1"
+                    Padding="0,0,16,24"
+                    VerticalScrollBarVisibility="Auto">
+                    <ItemsRepeater ItemsSource="{x:Bind MyViewModel.SelectedArtist.AlbumsByArtist, Mode=OneWay}">
+                        <ItemsRepeater.ItemTemplate>
+                            <DataTemplate>
+                                <!--  ALBUM CARD  -->
+                                <Border
+                                    Margin="0,0,0,24"
+                                    Padding="16"
+                                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="12">
+                                    <Grid ColumnSpacing="20">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <!--  Album Cover  -->
+                                        <devWin:ImageEx
+                                            Grid.Column="0"
+                                            Width="160"
+                                            Height="160"
+                                            VerticalAlignment="Top"
+                                            CornerRadius="8"
+                                            Source="{Binding ImagePath, Mode=OneWay, Converter={StaticResource StringToImageConverter}}"
+                                            Stretch="UniformToFill" />
+
+                                        <!--  Album Details & Songs  -->
+                                        <Grid Grid.Column="1" RowSpacing="12">
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                            </Grid.RowDefinitions>
+
+                                            <!--  Album Title & Stats  -->
+                                            <StackPanel Grid.Row="0">
+                                                <TextBlock
+                                                    FontWeight="Bold"
+                                                    Style="{ThemeResource SubtitleTextBlockStyle}"
+                                                    Text="{Binding Name, Mode=OneWay}" />
+                                                <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}">
+                                                    <Run Text="{Binding SongsInAlbum.Count, Mode=OneWay}" />
+                                                    <Run Text="Tracks" />
+                                                </TextBlock>
+                                            </StackPanel>
+
+                                            <!--  Songs Table (Restricted Height to avoid Layout Cycle)  -->
+                                            <!--
+                                            <ListView ItemsSource="{Binding SongsInAlbum,Mode=OneWay}">
+                                                <ListView.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Grid
+                                                    </DataTemplate>
+                                                </ListView.ItemTemplate>
+                                            </ListView>-->
+                                            <dgView:TableView
+                                                Grid.Row="1"
+                                                MaxHeight="350"
+                                                AutoGenerateColumns="False"
+                                                Background="Transparent"
+                                                HeadersVisibility="None"
+                                                IsReadOnly="True"
+                                                ItemsSource="{Binding SongsInAlbum, Mode=OneWay}"
+                                                RowHeight="40"
+                                                ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                                ScrollViewer.VerticalScrollMode="Disabled">
+                                                <dgView:TableView.Columns>
+                                                    <dgView:TableViewTemplateColumn Width="95">
+                                                        <dgView:TableViewTemplateColumn.CellTemplate>
+                                                            <DataTemplate>
+                                                                <StackPanel
+                                                                    VerticalAlignment="Center"
+                                                                    Opacity="{Binding Converter={StaticResource SongHighlightConverter}, ConverterParameter='Opacity'}"
+                                                                    Orientation="Horizontal"
+                                                                    Spacing="4">
+                                                                    <Button
+                                                                        Padding="8"
+                                                                        Background="Transparent"
+                                                                        BorderThickness="0">
+                                                                        <FontIcon FontSize="12" Glyph="&#xE768;" />
+                                                                    </Button>
+                                                                    <Button
+                                                                        Padding="8"
+                                                                        Background="Transparent"
+                                                                        BorderThickness="0">
+                                                                        <FontIcon FontSize="12" Glyph="&#xE109;" />
+                                                                    </Button>
+                                                                </StackPanel>
+                                                            </DataTemplate>
+                                                        </dgView:TableViewTemplateColumn.CellTemplate>
+                                                    </dgView:TableViewTemplateColumn>
+                                                    <dgView:TableViewTemplateColumn Width="50" Header="#">
+                                                        <dgView:TableViewTemplateColumn.CellTemplate>
+                                                            <DataTemplate>
+                                                                <TextBlock
+                                                                    VerticalAlignment="Center"
+                                                                    Opacity="{Binding Converter={StaticResource SongHighlightConverter}, ConverterParameter='Opacity'}"
+                                                                    Text="{Binding TrackNumber}" />
+                                                            </DataTemplate>
+                                                        </dgView:TableViewTemplateColumn.CellTemplate>
+                                                    </dgView:TableViewTemplateColumn>
+
+                                                    <dgView:TableViewTemplateColumn Width="*" Header="Title">
+                                                        <dgView:TableViewTemplateColumn.CellTemplate>
+                                                            <DataTemplate>
+                                                                <StackPanel
+                                                                    VerticalAlignment="Center"
+                                                                    Orientation="Horizontal"
+                                                                    Spacing="8">
+                                                                    <TextBlock
+                                                                        FontWeight="{Binding Converter={StaticResource SongHighlightConverter}, ConverterParameter='FontWeight'}"
+                                                                        Opacity="{Binding Converter={StaticResource SongHighlightConverter}, ConverterParameter='Opacity'}"
+                                                                        Text="{Binding Title}"
+                                                                        TextTrimming="CharacterEllipsis" />
+
+                                                                    <!--  Optional 'Featured' badge if they are a collaborator  -->
+                                                                    <Border
+                                                                        Padding="4,1"
+                                                                        Background="{ThemeResource SystemAccentColor}"
+                                                                        CornerRadius="4"
+                                                                        Visibility="{Binding IsBySelectedArtist, Mode=OneWay}">
+                                                                        <TextBlock
+                                                                            FontSize="9"
+                                                                            FontWeight="Bold"
+                                                                            Foreground="White"
+                                                                            Text="ARTIST TRACK" />
+                                                                    </Border>
+                                                                </StackPanel>
+                                                            </DataTemplate>
+                                                        </dgView:TableViewTemplateColumn.CellTemplate>
+                                                    </dgView:TableViewTemplateColumn>
+
+                                                    <!--  Time  -->
+                                                    <dgView:TableViewTemplateColumn Width="80" Header="Time">
+                                                        <dgView:TableViewTemplateColumn.CellTemplate>
+                                                            <DataTemplate>
+                                                                <TextBlock
+                                                                    VerticalAlignment="Center"
+                                                                    Opacity="{Binding Converter={StaticResource SongHighlightConverter}, ConverterParameter='Opacity'}"
+                                                                    Text="{Binding DurationFormatted}" />
+                                                            </DataTemplate>
+                                                        </dgView:TableViewTemplateColumn.CellTemplate>
+                                                    </dgView:TableViewTemplateColumn>
+
+                                                </dgView:TableView.Columns>
+
+                                                <dgView:TableView.Footer>
+                                                    <StackPanel
+                                                        Margin="0,4,8,0"
+                                                        HorizontalAlignment="Right"
+                                                        Orientation="Horizontal">
+                                                        <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}">
+                                                            <Run Text="{Binding SongsInAlbum.Count, Mode=OneWay}" />
+                                                            <Run Text="Total Tracks" />
+                                                        </TextBlock>
+
+                                                    </StackPanel>
+                                                </dgView:TableView.Footer>
+                                            </dgView:TableView>
+                                        </Grid>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
+                </ScrollViewer>
+            </Grid>
+        </Border>
     </Grid>
 
 </Page>

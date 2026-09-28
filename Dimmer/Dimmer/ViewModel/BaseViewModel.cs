@@ -4963,7 +4963,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public void DecreaseVolumeLevel() { SetVolumeLevel(DeviceVolumeLevel - 0.05); }
 
 
-    public void SetSelectedArtist(ArtistModelView? artist)
+    public void SetSelectedArtist(ArtistModelView? artist,bool IncludeSongsInAlbum=false)
     {
         if(artist is null)
         {
@@ -4971,7 +4971,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         };
         SelectedArtist = artist;
         if(artist.SongsByArtist is null || artist.SongsByArtist?.Count<1)
-            SelectedArtist.RefreshAlbumAndSongsFromDB(RealmFactory);
+            SelectedArtist.RefreshAlbumAndSongsFromDB(RealmFactory, IncludeSongsInAlbum: IncludeSongsInAlbum);
     }
     public async Task<bool> SelectedArtistAndNavtoPage(SongModelView? song)
     {

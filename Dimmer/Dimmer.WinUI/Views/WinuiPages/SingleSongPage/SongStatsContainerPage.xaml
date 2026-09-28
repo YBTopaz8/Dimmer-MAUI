@@ -17,22 +17,10 @@
             PaneDisplayMode="Top"
             SelectionChanged="StatsNavView_SelectionChanged">
             <NavigationView.MenuItems>
-                <NavigationViewItem
-                    Content="Overview"
-                    Icon="Globe"
-                    Tag="Overview" />
-                <NavigationViewItem
-                    Content="Album Context"
-                    Icon="Library"
-                    Tag="Album" />
-                <NavigationViewItem
-                    Content="Artist Comparison"
-                    Icon="People"
-                    Tag="Artist" />
-                <NavigationViewItem
-                    Content="The Journey"
-                    Icon="Clock"
-                    Tag="Journey" />
+                <NavigationViewItem Content="Overview" Tag="Overview" />
+                <NavigationViewItem Content="Album Context" Tag="Album" />
+                <NavigationViewItem Content="Artist Comparison" Tag="Artist" />
+                <NavigationViewItem Content="The Journey" Tag="Journey" />
             </NavigationView.MenuItems>
 
             <!--  The Frame where the sub-pages load  -->

@@ -1,4 +1,5 @@
 using DevExpress.Maui.Editors;
+using Hqub.Lastfm.Entities;
 
 namespace Dimmer.Views.Artist;
 
@@ -40,16 +41,7 @@ public partial class AllArtistsPage : ContentPage
 
     }
 
-    private void ArtistSongsCountChip_Tap(object sender, HandledEventArgs e)
-    {
-        var artist = ((Chip)sender).BindingContext as ArtistModelView;
-        if(artist != null)
-        {
-            MyViewModel.SetSelectedArtist(artist);
-            ArtistSongsCV.ItemsSource = artist.SongsByArtist;
-            ArtistSongsBtmSheet.Show();
-        }
-    }
+
 
     private async void ArtistSongsCV_Tap(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
     {
@@ -96,6 +88,10 @@ public partial class AllArtistsPage : ContentPage
     // ==========================================================
     private void FilterChips_SelectionChanged(object sender, EventArgs e)
     {
+        if (ArtistsCV is null || !ArtistsCV.IsLoaded)
+        {
+            return;
+        }
         var chipGroup = (ChoiceChipGroup)sender;
         string selected = chipGroup.SelectedItem?.ToString() ?? "";
 
@@ -154,18 +150,7 @@ public partial class AllArtistsPage : ContentPage
         });
     }
 
-    // ==========================================================
-    // 📱 4. NAVIGATION & BOTTOM SHEET PREVIEWS
-    // ==========================================================
-    private void QuickSongsPreview_Clicked(object sender, EventArgs e)
-    {
-        var btn = (DXButton)sender;
-        if (btn.CommandParameter is ArtistModelView artist)
-        {
-            MyViewModel.SetSelectedArtist(artist);
-            ArtistSongsBtmSheet.Show();
-        }
-    }
+
 
     private async void NavigateToArtistDetails_Clicked(object sender, EventArgs e)
     {
@@ -177,14 +162,7 @@ public partial class AllArtistsPage : ContentPage
         }
     }
 
-    private void PlayAllArtistSongsNext_Clicked(object sender, EventArgs e)
-    {
-        if (MyViewModel.SelectedArtist?.SongsByArtist != null)
-        {
-            MyViewModel.AddToNext(MyViewModel.SelectedArtist.SongsByArtist);
-            ArtistSongsBtmSheet.Close();
-        }
-    }
+
 
     private void AddSingleSongToNext_Clicked(object sender, EventArgs e)
     {
@@ -193,5 +171,49 @@ public partial class AllArtistsPage : ContentPage
         {
             MyViewModel.AddToNext(new List<SongModelView> { song });
         }
+    }
+
+
+
+    private void ArtistHeader_Tapped(object sender, TappedEventArgs e)
+    {
+        
+    }
+
+    private void ArtistHeaderBtn_Tap(object sender, DXTapEventArgs e)
+    {
+        var send = (DXButton)sender;
+        var artist = send.BindingContext as ArtistModelView;
+
+        if (artist is null) return;
+
+        
+        
+    }
+
+    private void ArtistExpander_StateChanged(object sender, ValueChangedEventArgs<BottomSheetState> e)
+    {
+
+    }
+    bool isLoadingArtist;
+    private void ArtistsCV_TapConfirmed(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
+    {
+       
+    }
+
+    private void ArtistsCV_Tap(object sender, DevExpress.Maui.CollectionView.CollectionViewGestureEventArgs e)
+    {
+        var artist = ArtistsCV.GetItem(e.ItemHandle) as ArtistModelView;
+
+        if (artist is null) return;
+        artist.IsLoadingArtist = true;
+        // 2. Lazy load songs/albums only when expanded the first time!
+        if ((artist.AlbumsByArtist == null || artist.AlbumsByArtist.Count == 0))
+        {
+
+            artist.RefreshAlbumAndSongsFromDB(MyViewModel.RealmFactory, IncludeSongsInAlbum: true);
+        }
+        artist.IsLoadingArtist = false;
+        ArtistExpander.Show();
     }
 }

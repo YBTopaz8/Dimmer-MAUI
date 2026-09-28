@@ -18,7 +18,7 @@
 
                 <!--  Other merged dictionaries here  -->
             </ResourceDictionary.MergedDictionaries>
-
+            <converters:SongArtistHighlightConverter x:Key="SongHighlightConverter" />
             <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
             <converters:BoolToInverseVisibilityConverter x:Key="BoolToInverseVisibilityConverter" />
             <converters:BoolToPlayingPauseConv x:Key="BoolToPlayingPauseConverter" />
@@ -26,6 +26,7 @@
             <converters:MsToDurationConverter x:Key="MsToDurationConverter" />
             <converters:BoolToVisConverter x:Key="BoolToVisConverter" />
             <converters:PlayTypeToBorderBrush x:Key="PlayTypeToBorderBrush" />
+            <converters:StringFormatConverter x:Key="StringFormatConverter" />
             <converters:EventDateToTimeAgo x:Key="EventDateToTimeAgoConverter" />
             <converters:EventDateOffsetToTimeAgo x:Key="EventDateOffsetToTimeAgo" />
             <converters:TrackImageConverter x:Key="TrackImageConverter" />
