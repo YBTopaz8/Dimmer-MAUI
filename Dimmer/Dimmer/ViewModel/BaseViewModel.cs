@@ -3280,7 +3280,14 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         if (dbOutputSong != null)
         {
             // 2. MAGIC: Replace the old song in the main list with the updated one!
-            SearchResultsHolder.Replace(CurrentPlayingSongView,dbOutputSong);
+            SearchResultsHolder.Edit(x=>
+            {
+                var ind = x.IndexOf(CurrentPlayingSongView);
+                if (ind != -1)
+                {
+                    x.ReplaceOrAdd(CurrentPlayingSongView, dbOutputSong);
+                }
+            });
 
             // (Optional) Update it in the PlaybackQueue if it's there
             var queueIndex = PlaybackQueueSource.Items.IndexOf(CurrentPlayingSongView);
