@@ -25,7 +25,7 @@ public class MusicStatsService
         
 
         var sinceDate = DateTimeOffset.UtcNow.AddDays(-days);
-        // 1. RQL Filter: Get all recent 'Play' or 'Completed' events.
+        // 1. RQL Filter: Get all recent 'PlayAsync' or 'Completed' events.
         var recentEvents = _realm.All<DimmerPlayEvent>()
             .Filter("PlayType IN {0, 3} AND DatePlayed > $0", sinceDate);
 

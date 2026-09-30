@@ -12,8 +12,8 @@ public partial class PlayDataLink : ObservableObject
     /// Indicates the type of play action performed.    
     /// Possible VALID values for <see cref="PlayType"/>:
     /// <list type="bullet">
-    /// <item><term>0</term><description>Play</description></item>
-    /// <item><term>1</term><description>Pause</description></item>
+    /// <item><term>0</term><description>PlayAsync</description></item>
+    /// <item><term>1</term><description>PauseAsync</description></item>
     /// <item><term>2</term><description>Resume</description></item>
     /// <item><term>3</term><description>Completed</description></item>
     /// <item><term>4</term><description>Seeked</description></item>

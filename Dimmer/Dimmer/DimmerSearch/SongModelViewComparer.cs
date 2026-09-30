@@ -12,14 +12,14 @@ public class LimiterClause
     public LimiterClause() { }
 }
 
-public enum SortDirection { Ascending, Descending, Random }
+public enum TQLSortDirection { Ascending, Descending, Random }
 
-public class SortDescription
+public class TQLSortDescription
 {
     public FieldDefinition Field { get; }
-    public SortDirection Direction { get; }
+    public TQLSortDirection Direction { get; }
     public string PropertyName => Field.PropertyName;
-    public SortDescription(FieldDefinition fieldDefinition, SortDirection direction)
+    public TQLSortDescription(FieldDefinition fieldDefinition, TQLSortDirection direction)
     {
         Field = fieldDefinition;
         Direction = direction;
@@ -28,14 +28,14 @@ public class SortDescription
 
 public partial class SongModelComparer : IComparer<SongModel>
 {
-    public IReadOnlyList<SortDescription> SortDescriptions { get; }
+    public IReadOnlyList<TQLSortDescription> SortDescriptions { get; }
 
-    public SongModelComparer(List<SortDescription>? descriptions)
+    public SongModelComparer(List<TQLSortDescription>? descriptions)
     {
         // This constructor intentionally ignores any 'Random' sort descriptions.
         // The responsibility for random sorting belongs to the ViewModel's data pipeline.
-        SortDescriptions = descriptions?.Where(d => d.Direction != SortDirection.Random).ToList()
-                           ?? new List<SortDescription>();
+        SortDescriptions = descriptions?.Where(d => d.Direction != TQLSortDirection.Random).ToList()
+                           ?? new List<TQLSortDescription>();
     }
 
     public int Compare(SongModel? x, SongModel? y)
@@ -57,7 +57,7 @@ public partial class SongModelComparer : IComparer<SongModel>
             if (result != 0)
             {
                 // Ternary expression is cleaner here
-                return desc.Direction == SortDirection.Ascending ? result : -result;
+                return desc.Direction == TQLSortDirection.Ascending ? result : -result;
             }
         }
 
@@ -69,10 +69,10 @@ public partial class SongModelComparer : IComparer<SongModel>
     {
         var invertedDescriptions = SortDescriptions.Select(desc =>
         {
-            var invertedDirection = desc.Direction == SortDirection.Ascending
-                ? SortDirection.Descending
-                : SortDirection.Ascending;
-            return new SortDescription(desc.Field, invertedDirection);
+            var invertedDirection = desc.Direction == TQLSortDirection.Ascending
+                ? TQLSortDirection.Descending
+                : TQLSortDirection.Ascending;
+            return new TQLSortDescription(desc.Field, invertedDirection);
         }).ToList();
         return new SongModelComparer(invertedDescriptions);
     }

@@ -9,7 +9,7 @@
     mc:Ignorable="d">
 
     <Grid>
-        <ListView ItemsSource="{x:Bind MyViewModel.AudioDevices}"
+        <ListView ItemsSource="{x:Bind MyViewModel.AvailableDevices}"
               SelectedItem="{Binding SelectedDevice}">
         </ListView>
     </Grid>

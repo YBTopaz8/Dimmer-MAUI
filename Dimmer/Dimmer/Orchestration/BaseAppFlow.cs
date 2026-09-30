@@ -1,4 +1,6 @@
-﻿namespace Dimmer.Orchestration;
+﻿using Dimmer.DimmerAudio;
+
+namespace Dimmer.Orchestration;
 
 public class BaseAppFlow : IDisposable
 {
@@ -97,19 +99,6 @@ public class BaseAppFlow : IDisposable
             return null;
         }
 
-        // Deduplication logic - improved with timestamp to prevent issues
-        if (_lastEventCache.TryGetValue(songView.Id, out var lastEvent))
-        {
-            // If it's the same event type AND it's not Favorited AND it happened recently (within 1 second)
-            if (lastEvent.Type == type &&
-                type != PlayType.Favorited &&
-                (DateTime.UtcNow - lastEvent.Timestamp).TotalSeconds < 1)
-            {
-                _logger.LogDebug("Ignoring duplicate event {Type} for song {SongTitle}", type, songView.Title);
-                return null;
-            }
-        }
-
         // Update cache with new event
         _lastEventCache[songView.Id] = (type.Value, DateTime.UtcNow);
 
@@ -165,13 +154,17 @@ public class BaseAppFlow : IDisposable
                 if (song != null)
                 {
                     song.PlayHistory.Add(addedEvent);
-                }
-                else
-                {
-                    _logger.LogWarning("Song {SongId} not found when adding play event", songView.Id);
+                    if (type == PlayType.Pause) song.PauseCount++;
+                    if (type == PlayType.Completed) song.PlayCompletedCount++;
+                    if (type == PlayType.Resume) song.ResumeCount++;
+                    if (type == PlayType.SeekRestarted) song.RestartCount++;
+                    if (type == PlayType.Restarted) song.RepeatCount++;
+                    if (type == PlayType.Skipped) song.SkipCount++;
+
+                    song.LastPlayed = DateTimeOffset.UtcNow;
                 }
 
-                    songView = song.ToSongModelView();
+                songView = song.ToSongModelView();
             });
 
             

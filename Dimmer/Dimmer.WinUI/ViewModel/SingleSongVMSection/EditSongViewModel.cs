@@ -590,7 +590,7 @@ public partial class EditSongViewModel : ObservableObject
                 EditingSong.UnSyncLyrics = OriginalSong.UnSyncLyrics;
                 break;
 
-            // Play stats (should probably not be editable, but just in case)
+            // PlayAsync stats (should probably not be editable, but just in case)
             case nameof(SongModelView.Rating):
                 EditingSong.Rating = OriginalSong.Rating;
                 break;

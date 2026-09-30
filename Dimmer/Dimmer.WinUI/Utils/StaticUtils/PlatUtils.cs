@@ -6,7 +6,7 @@ using Windows.Graphics;
 using Application = Microsoft.Maui.Controls.Application;
 using Compositor = Microsoft.UI.Composition.Compositor;
 using FlyoutBase = Microsoft.UI.Xaml.Controls.Primitives.FlyoutBase;
-using ImageFormat = System.Drawing.Imaging.ImageFormat;
+
 using ImageSource = Microsoft.Maui.Controls.ImageSource;
 
 namespace Dimmer.WinUI.Utils.StaticUtils;
@@ -21,38 +21,8 @@ public static class PlatUtils
     [StructLayout(LayoutKind.Sequential)]
     private struct Rect { public int Left, Top, Right, Bottom; }
 
-    /// <summary>
-    /// Captures the given MAUI Window to a PNG-backed ImageSource.
-    /// </summary>
-    public static ImageSource CaptureWindow(this Microsoft.Maui.Controls.Window mauiWindow)
-    {
-        if (mauiWindow == null)
-            throw new ArgumentNullException(nameof(mauiWindow));
-        // 1) get native handle
-        var native = mauiWindow.Handler.PlatformView as Microsoft.Maui.MauiWinUIWindow
-                     ?? throw new InvalidOperationException("Not running on WinUI");
-        IntPtr hwnd = WindowNative.GetWindowHandle(native);
+    
 
-        // 2) grab bounds
-        GetWindowRect(hwnd, out var rect);
-        int w = rect.Right - rect.Left;
-        int h = rect.Bottom - rect.Top;
-
-        // 3) render into Bitmap
-        using var bmp = new Bitmap(w, h, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-        using var g = Graphics.FromImage(bmp);
-        IntPtr hdc = g.GetHdc();
-        PrintWindow(hwnd, hdc, 0);
-        g.ReleaseHdc(hdc);
-
-        // 4) encode to PNG in-memory
-        var ms = new MemoryStream();
-        bmp.Save(ms, ImageFormat.Png);
-        ms.Position = 0;
-
-        // 5) wrap in MAUI ImageSource
-        return ImageSource.FromStream(() => ms);
-    }
     public static IntPtr DimmerHandle { get; set; }
     public static bool IsAppInForeground { get; set; }
     public static AppWindowPresenter? AppWinPresenter { get; set; }

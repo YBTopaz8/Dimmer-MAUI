@@ -127,7 +127,8 @@ public class SearchResult
     {
        
         public RealmQueryPlan? Plan { get; set; }
-        public IReadOnlyList<ObjectId>? SongsResultIds { get; set; }
+        public IReadOnlyList<SongModelView?>? Results { get; set; }
         public string? ErrorMessage { get; set; }
     public SearchFacets? Facets { get; set; }
+    public ICommandAction? CommandToExecute { get; set; }
 }

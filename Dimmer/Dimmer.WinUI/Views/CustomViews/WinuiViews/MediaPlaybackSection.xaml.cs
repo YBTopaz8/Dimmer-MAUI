@@ -111,13 +111,13 @@ public sealed partial class MediaPlaybackSection : UserControl
             viewBy.Items.Add(viewAlbums);
             viewBy.Items.Add(viewGenres);
 
-            // Play Songs...
-            var play = new Microsoft.UI.Xaml.Controls.MenuFlyoutSubItem { Text = "Play / Queue" };
+            // PlayAsync Songs...
+            var play = new Microsoft.UI.Xaml.Controls.MenuFlyoutSubItem { Text = "PlayAsync / Queue" };
 
-            var playInAlbum = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = $"Play Songs In This Album {MyViewModel.CurrentPlayingSongView.AlbumName}" };
+            var playInAlbum = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = $"PlayAsync Songs In This Album {MyViewModel.CurrentPlayingSongView.AlbumName}" };
             playInAlbum.Click += (_, __) => TryVM(a => a.PlaySongsByArtistInCurrentAlbum(song, artistName));
 
-            var playAll = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = "Play All by Artist Immediately" };
+            var playAll = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = "PlayAsync All by Artist Immediately" };
             playAll.Click += (_, __) => TryVM(a => a.PlayAllSongsByArtist(song, artistName));
 
             var queueAll = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = "Queue All by Artist" };

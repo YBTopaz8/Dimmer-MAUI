@@ -17,7 +17,7 @@ public class LrcLibLyrics
     public string AlbumName { get; set; } = string.Empty;
 
     [JsonPropertyName("duration")]
-    public double Duration { get; set; }
+    public double? Duration { get; set; }
 
     [Ignored]
 
@@ -25,11 +25,15 @@ public class LrcLibLyrics
     {
         get
         {
-            TimeSpan time = TimeSpan.FromSeconds(Duration);
-            if(time.Hours > 0)
-                return time.ToString(@"hh\:mm\:ss");
-            else
-                return time.ToString(@"mm\:ss");
+            if (Duration is not null)
+            {
+                TimeSpan time = TimeSpan.FromSeconds((double)Duration);
+                if (time.Hours > 0)
+                    return time.ToString(@"hh\:mm\:ss");
+                else
+                    return time.ToString(@"mm\:ss");
+            }
+            return "00:00";
         }
     }
         [JsonPropertyName("instrumental")]

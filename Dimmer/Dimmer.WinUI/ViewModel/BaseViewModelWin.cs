@@ -5,6 +5,7 @@
 
 using CommunityToolkit.Maui.Core.Extensions;
 using DevWinUI;
+using Dimmer.DimmerAudio;
 using Dimmer.Utils;
 using Dimmer.WinUI.Views.CustomViews.WinuiViews;
 using MongoDB.Bson;
@@ -375,7 +376,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     // Example for the "Title" column
     [ObservableProperty]
-    public partial SortDirection TitleColumnSortDirection { get; set; } = SortDirection.Ascending; // Default value
+    public partial TQLSortDirection TitleColumnSortDirection { get; set; } = TQLSortDirection.Ascending; // Default value
 
     // Example for the "Artist" column
     [ObservableProperty]
@@ -399,7 +400,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     // --- The partial OnChanged methods that are our triggers ---
 
-    partial void OnTitleColumnSortDirectionChanged(SortDirection oldValue, SortDirection newValue)
+    partial void OnTitleColumnSortDirectionChanged(TQLSortDirection oldValue, TQLSortDirection newValue)
     {
         // The user has changed the sorting of the Title column!
         ScheduleVisibleCountUpdate();
@@ -553,23 +554,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     }
 
 
-    public async Task ShareSongViewClipboard(SongModelView song)
-    {
-
-        var byteData = await ShareCurrentPlayingAsStoryInCardLikeGradient(song, true);
-
-        if (byteData.imgBytes != null)
-        {
-
-
-            // listening to, text so, title, artistname, album with app name, and version.
-            string clipboardText = $"{song.Title} - {song.ArtistName}\nAlbum: {song.AlbumName}\n\nShared via Dimmer Music Player v{CurrentAppVersion}";
-
-            System.Windows.Clipboard.SetText(clipboardText);
-
-        }
-    }
-
+    
     protected override async Task OnPlaybackStarted(PlaybackEventArgs args)
     {
         await base.OnPlaybackStarted(args);
@@ -748,13 +733,13 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     public void PlaySongsByArtistInCurrentAlbum(SongModelView song, string artistName)
     {
-        Debug.WriteLine($"Play songs by {artistName} in current album.");
+        Debug.WriteLine($"PlayAsync songs by {artistName} in current album.");
         // TODO: filter and start playback from current album list
     }
 
     public void PlayAllSongsByArtist(SongModelView song, string artistName)
     {
-        Debug.WriteLine($"Play all songs by {artistName}.");
+        Debug.WriteLine($"PlayAsync all songs by {artistName}.");
         // TODO: query Realm for all songs where Artist == artistName
     }
 
@@ -907,8 +892,8 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
         // --- 2) Actions
         // Playback / queue actions require your app playback service -> throw NotImplementedException.
-        flyout.Items.Add(MI("Play Now", () => throw new NotImplementedException("Play Now: wire to your playback service.")));
-        flyout.Items.Add(MI("Play Next", () => throw new NotImplementedException("Play Next: wire to your playback service.")));
+        flyout.Items.Add(MI("PlayAsync Now", () => throw new NotImplementedException("PlayAsync Now: wire to your playback service.")));
+        flyout.Items.Add(MI("PlayAsync Next", () => throw new NotImplementedException("PlayAsync Next: wire to your playback service.")));
         flyout.Items.Add(MI("Add to End of Queue", () => throw new NotImplementedException("Add to Queue: wire to your playback/queue service.")));
 
         flyout.Items.Add(new MenuFlyoutSeparator());
@@ -980,7 +965,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         flyout.Items.Add(new MenuFlyoutSeparator());
 
         // --- 2) Actions (play/queue/add to playlist) -> require playback/playlist service
-        flyout.Items.Add(MI("Play all by artist", () => throw new NotImplementedException("Play all by artist: wire to your playback service.")));
+        flyout.Items.Add(MI("PlayAsync all by artist", () => throw new NotImplementedException("PlayAsync all by artist: wire to your playback service.")));
         flyout.Items.Add(MI("Queue all by artist", () => throw new NotImplementedException("Queue all by artist: wire to your queue service.")));
         flyout.Items.Add(MI("Add artist to playlist…", () => throw new NotImplementedException("Add to playlist: open your Add to Playlist dialog.")));
 
@@ -1023,7 +1008,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         flyout.Items.Add(new MenuFlyoutSeparator());
 
         // --- Actions (play / queue / add to playlist) -> app-specific
-        flyout.Items.Add(MI("Play album", () => throw new NotImplementedException("Play album: wire to playback service.")));
+        flyout.Items.Add(MI("PlayAsync album", () => throw new NotImplementedException("PlayAsync album: wire to playback service.")));
         flyout.Items.Add(MI("Queue album", () => throw new NotImplementedException("Queue album: wire to queue service.")));
         flyout.Items.Add(MI("Add album to playlist…", () => throw new NotImplementedException("Add album to playlist: open playlist UI.")));
 
@@ -1415,7 +1400,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         SearchResultsHolder.Edit(innerList =>
         {
             innerList.Clear();
-            innerList.AddOrUpdate(PlaybackQueue);
+            innerList.AddRange(PlaybackQueue);
         });
     }
 
@@ -1468,7 +1453,8 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
 
             //BackupService.CleanupOldBackups(3);
-        }
+    }
+
 
 
 
@@ -1477,4 +1463,6 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
     [ObservableProperty]
     public partial CoreWindow DimmerCoreWindow { get; set; }
+
+   
 }

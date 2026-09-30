@@ -1,7 +1,9 @@
 
 global using Dimmer.Views.CustomViews;
 global using View = Microsoft.Maui.Controls.View;
+using DevExpress.Maui.CollectionView;
 using DevExpress.Maui.Editors;
+using Dimmer.DimmerSearch.TQL;
 using Dimmer.Utilities;
 using Syncfusion.Maui.Toolkit.Internals;
 using System.Reactive.Disposables;
@@ -21,23 +23,7 @@ public partial class HomePage : ContentPage
         MyLoginVM = loginVM;
         compDisp = new();
        
-        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.HomePageIndex), v => (MyViewModel.HomePageIndex))
-            .Subscribe(
-                e =>
-                {
-                    NowPlaying.FrequentlyPlayedExpander.IsExpanded = false;
-                    switch (e)
-                    {
-                        case 1:
-
-                            break;
-                        default:
-
-                            break;
-
-                    }
-
-                }).DisposeWith(compDisp);
+      
         MyLastFMViewModel.LoadBaseViewModel(viewModelAnd);
         _ = Task.Run(() => loginVM.InitializeAsync());
      
@@ -57,55 +43,53 @@ public partial class HomePage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        compDisp ??= new();
+        compDisp = new();
 
 
 
-      
 
-        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.IsTqlBusy), v => (MyViewModel.IsTqlBusy))
-        .Subscribe(async col =>
+
+
+    }
+    private async void MyPage_Loaded(object sender, EventArgs e)
+    {
+
+
+
+
+        if (!MyViewModel.IsInitialized)
         {
+            InitializeAppLogic();
 
-           if(!col)
-           {
-                if (SongsCV.IsLoaded && MyViewModel.SearchResults is not null)
-                {
-                    SongsCV.ItemsSource = new List<SongModelView>(MyViewModel.SearchResults);
-                }
-           }
-           else
-           {
+        }
 
-           }
-
-        }).DisposeWith(compDisp);
-
+        MyViewModel.StartTQLPipeLine();
     }
     CompositeDisposable compDisp;
 
-    private async Task InitializeAppLogic()
+    private void InitializeAppLogic()
     {
-        
-            try
-            {
-            await Task.Delay(2500);
-                var startTime = Java.Lang.JavaSystem.CurrentTimeMillis();
+        _= Task.Run(async () =>
+           {
+               try
+               {
 
-                MyViewModel.InitializeAllVMCoreComponents();
+                   var startTime = Java.Lang.JavaSystem.CurrentTimeMillis();
 
-                var duration = Java.Lang.JavaSystem.CurrentTimeMillis() - startTime;
-                Console.WriteLine($"InitializeAppLogic took {duration}ms");
-                if (duration > 2000)
-                    Android.Util.Log.Warn("ANR_WARNING", $"OnCreate took {duration}ms - ANR risk!");
-            }
-            catch (Exception ex)
-            {
-                await Shell.Current.DisplayAlertAsync("Fatal Error Init Logic", ex.Message, "ok");
-                Console.WriteLine($"VM INIT CRASH: {ex}");
-                Android.Util.Log.Error("DIMMER_INIT", ex.ToString());
-            }
-        
+                   await MyViewModel.InitializeAllVMCoreComponents();
+
+                   var duration = Java.Lang.JavaSystem.CurrentTimeMillis() - startTime;
+                   Console.WriteLine($"InitializeAppLogic took {duration}ms");
+                   if (duration > 2000)
+                       Android.Util.Log.Warn("ANR_WARNING", $"InitializeAppLogic took {duration}ms - ANR risk!");
+               }
+               catch (Exception ex)
+               {
+                   await Shell.Current.DisplayAlertAsync("Fatal Error Init Logic", ex.Message, "ok");
+                   Console.WriteLine($"VM INIT CRASH: {ex}");
+                   Android.Util.Log.Error("DIMMER_INIT", ex.ToString());
+               }
+           });
     }
 
     private async void TapToPlaySongGestRecog_Tapped(object sender, TappedEventArgs e)
@@ -145,16 +129,20 @@ public partial class HomePage : ContentPage
     {
         DXImage img = (DXImage)sender;
         var platView = img.Handler?.PlatformView as Android.Views.View;
-
+        platView.Click -= PlatView_Click;
+        platView.Click += PlatView_Click;
         if (platView is null)
             return;
-        platView.Click += (s, e) =>
-        {
-            var songHandle = SongsCV.FindItemHandle(MyViewModel.CurrentPlayingSongView);
-            HapticFeedback.Default.Perform(HapticFeedbackType.Click);
-            SongsCV.ScrollTo(songHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
-        };
+      
     }
+
+    private void PlatView_Click(object? sender, EventArgs e)
+    {
+        var songHandle = SongsCV.FindItemHandle(MyViewModel.CurrentPlayingSongView);
+        HapticFeedback.Default.Perform(HapticFeedbackType.Click);
+        SongsCV.ScrollTo(songHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
+    }
+
     private void CurrentPlayingTitleChip_Tap(object sender, DXTapEventArgs e)
     {
         MainPageTabView.SelectedItemIndex = 1;
@@ -172,14 +160,6 @@ public partial class HomePage : ContentPage
     }
 
 
-    private void SearchText_TextChanged(object sender, EventArgs e)
-    {
-        string? txt = SearchText.Text;
-        if (txt is not null)
-        {
-            MyViewModel.SearchToTQL(txt);
-        }
-    }
 
     private void MoreBtn_Tap(object sender, DXTapEventArgs e)
     {
@@ -187,6 +167,7 @@ public partial class HomePage : ContentPage
         var send = (View)sender;
         var song = (SongModelView)send.BindingContext;
         MyViewModel.SelectedSong = song;
+
         SingleSongBtmSheet.Show();
     }
 
@@ -214,254 +195,7 @@ public partial class HomePage : ContentPage
     
     }
 
-    //private void PlayButton_Clicked(object sender, EventArgs e)
-    //{
 
-    //}
-
-    //private async void MiddleGridSection_TappedToPlaySong(object sender, TappedEventArgs e)
-    //{
-
-    //    var send = (View)sender;
-    //    var song = (SongModelView)send.BindingContext;
-    //    //var songsInCV = SongsCV.ItemsSource;
-    //    var platView = SongsCV.Handler?.PlatformView;
-
-    //    Debug.WriteLine(SongsCV.VisibleItemCount);
-    //    Debug.WriteLine(SongsCV.ScrollItemCount);
-
-    //    List<SongModelView> songsInCV = new();
-    //    for (int i = 0; i < SongsCV.VisibleItemCount; i++)
-    //    {
-    //        var itemHandle = SongsCV.GetItemHandleByVisibleIndex(i);
-
-    //        if (SongsCV.GetItem(itemHandle) is not SongModelView songByItemHandle) continue;
-    //        songsInCV.Add(songByItemHandle);
-    //    }
-    //    //Debug.WriteLine(songsInCV?.GetType());
-
-
-    //    await MyViewModel.PlaySongAsync(song,CurrentPage.HomePage,songsInCV);
-    //}
-
-    //private async void TitleChip_Tap(object sender, HandledEventArgs e)
-    //{
-    //    MiddleGridSection_TappedToPlaySong(sender, new TappedEventArgs( e));
-
-    //}
-
-    //private void ArtistChip_Tap(object sender, HandledEventArgs e)
-    //{
-    //    var send = (View)sender;
-    //    var song = (SongModelView)send.BindingContext;
-    //    //var artInDb = MyViewModel.RealmFactory.GetRealmInstance().Find<SongModel>(song.Id)?.Artist.ToArtistModelView();
-    //    //if(artInDb == null)
-    //    //    return;
-    //    //MyViewModel.SetSelectedArtist(artInDb);
-    //    MyViewModel.SelectedSong = song;
-    //    ArtistsChoiceBtmSheet.Show();
-    //}
-
-    //private async void ArtistChip_DoubleTap(object sender, HandledEventArgs e)
-    //{
-
-    //    var send = (View)sender;
-    //    var song = (SongModelView)send.BindingContext;
-
-    //    MyViewModel.SetSelectedArtist(song.Artist);
-
-    //    await Shell.Current.GoToAsync(nameof(ArtistPage), true);
-
-    //}
-
-    //private void ArtistChip_LongPress(object sender, HandledEventArgs e)
-    //{
-
-    //}
-
-    //private void PlaybackQueueBtmSheet_Loaded(object sender, EventArgs e)
-    //{
-
-    //}
-
-
-    //private void PBQueueBtmSheet_StateChanged(object sender, DevExpress.Maui.Core.ValueChangedEventArgs<BottomSheetState> e)
-    //{
-
-    //}
-
-    //private void SearchBar_TextChanged(object sender, EventArgs e)
-    //{
-    //    string? txt = SearchBarTextEdit.Text;
-    //    if(txt is not null)
-    //    {
-    //        MyViewModel.SearchToTQL(txt);
-    //    }
-    //}
-
-    //private void MenuBtn_Tap(object sender, HandledEventArgs e)
-    //{
-    //    Shell.Current.FlyoutIsPresented = !Shell.Current.FlyoutIsPresented;
-
-    //}
-
-    //private void SearchBar_Unloaded(object sender, EventArgs e)
-    //{
-    //    MyViewModel.ClearSubscriptionToSearchBar();
-    //}
-
-    //private void SearchBar_Loaded(object sender, EventArgs e)
-    //{
-
-
-
-    //    MyViewModel.SubscribeToPlayCount(SearchBarTextEdit);
-
-
-
-    //}
-
-
-    //private async void NPBottomBar_PanUpdated(object sender, PanUpdatedEventArgs e)
-    //{
-    //    bool IsSwipedUp = e.TotalY < -100; // Adjust the threshold as needed
-    //    bool IsSwipedDown = e.TotalY > 100; // Adjust the threshold as needed
-    //    bool IsSwipedLeft = e.TotalX < -100; // Adjust the threshold as needed
-    //    bool IsSwipedRight = e.TotalX > 100; // Adjust the threshold as needed
-
-    //    if (IsSwipedUp)
-    //    {
-    //        NPBtmSheet.Show();
-    //        // Handle swipe up action
-    //        Debug.WriteLine("Swiped Up");
-    //    }
-    //    else if (IsSwipedDown)
-    //    {
-    //        //SearchBarTextEdit.Focus();
-
-    //    InputMethodManager? imm = (InputMethodManager?)MainApplication.Context.GetSystemService(Activity.InputMethodService);
-    //        var view = SearchBarTextEdit.Handler?.PlatformView as Android.Views.View;
-    //        imm?.ShowSoftInput(view, ShowFlags.Implicit);
-
-
-    //// Handle swipe down action
-    //Debug.WriteLine("Swiped Down");
-    //    }
-    //    else if (IsSwipedLeft)
-    //    {
-    //        await MyViewModel.PreviousTrackAsync();
-    //        // Handle swipe left action
-    //        Debug.WriteLine("Swiped Left");
-    //    }
-    //    else if (IsSwipedRight)
-    //    {
-    //        await MyViewModel.NextTrackAsync();
-    //        // Handle swipe right action
-    //        Debug.WriteLine("Swiped Right");
-    //    }
-
-    //}
-
-
-
-    //private void CurrentPlayingArtistChip_LongPress(object sender, HandledEventArgs e)
-    //{
-
-    //    var songHandle = SongsCV.FindItemHandle(MyViewModel.CurrentPlayingSongView);
-
-    //    SongsCV.ScrollTo(songHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
-    //}
-
-    //private async void SettingsBtn_Clicked(object sender, EventArgs e)
-    //{
-    //    await Shell.Current.GoToAsync(nameof(SettingsPage), true);
-    //}
-
-    //private void ArtistChip_Tap_1(object sender, HandledEventArgs e)
-    //{
-
-    //}
-
-    //private async void ArtistBtmChip_Tap(object sender, HandledEventArgs e)
-    //{
-    //    var artChip = (DevExpress.Maui.Editors.Chip)sender;
-    //    var art = artChip.LongPressCommandParameter as ArtistModelView;
-
-    //    MyViewModel.SetSelectedArtist(art);
-
-    //    await Shell.Current.GoToAsync(nameof(ArtistPage), true);    
-    //}
-
-    //private void ArtistBtmChip_LongPress(object sender, HandledEventArgs e)
-    //{
-    //    var artChip = (DevExpress.Maui.Editors.Chip)sender;
-    //    var art = artChip.LongPressCommandParameter as ArtistModelView;
-
-    //    if(art != null && !string.IsNullOrEmpty(art.Name))
-    //    {
-    //        MyViewModel.SearchToTQL(TQlStaticMethods.PresetQueries.ByArtist(art.Name));
-    //    }
-    //}
-
-    //private void ArtistGrid_Tapped(object sender, TappedEventArgs e)
-    //{
-
-    //}
-
-    //private void SearchArtistBtnTQL_Tap(object sender, HandledEventArgs e)
-    //{
-
-    //    var artChip = (DevExpress.Maui.Editors.Chip)sender;
-    //    var art = artChip.LongPressCommandParameter as string;
-    //    if (art is null) return;
-    //    SearchBarTextEdit.Text = SearchBarTextEdit.Text + TQlStaticMethods.PresetQueries.ByArtist(art);
-    //}
-
-    //private async void ViewArtistBtn_Tap(object sender, HandledEventArgs e)
-    //{
-    //    var artChip = (DevExpress.Maui.Editors.Chip)sender;
-    //    var art = artChip.LongPressCommandParameter as ArtistModelView;
-
-    //    MyViewModel.SetSelectedArtist(art);
-
-    //    await ArtistsChoiceBtmSheet.CloseAsync();
-    //    await Shell.Current.GoToAsync(nameof(ArtistPage), true);
-    //}
-
-    //private void DXToggleButton_Tap(object sender, DevExpress.Maui.Core.DXTapEventArgs e)
-    //{
-
-    //}
-
-    
-
-
-    private async void DeleteSongBtn_Tap(object sender, HandledEventArgs e)
-
-    {
-        var result = await Shell.Current.DisplayAlertAsync("Confirm Delete",
-            "Delete Song", "Yes", "No");
-        if (result)
-        {
-            await MyViewModel.DeleteSongs(new List<SongModelView>() { MyViewModel.SelectedSong! });
-        }
-    }
-
-
-
-  
-
-    //private void CurrentPlayingTitleChip_LongPress(object sender, HandledEventArgs e)
-    //{
-    //}
-
-    //private void SongTitle_Loaded(object sender, EventArgs e)
-    //{
-    //    SongTitle.Text = MyViewModel.SelectedSong!.IsFavorite
-    //        ? $"❤️{MyViewModel.SelectedSong?.Title}"
-    //        : $"{MyViewModel.SelectedSong?.Title}";
-    //    ;
-    //}
 
     private void PlayNextBtn_Clicked(object sender, EventArgs e)
     {
@@ -484,105 +218,6 @@ public partial class HomePage : ContentPage
 
     }
 
-    //private void AlbumChip_Tap(object sender, HandledEventArgs e)
-    //{
-
-    //}
-
-    //private void ArtistsSongs_Loaded(object sender, EventArgs e)
-    //{
-    //    DXCollectionView cv = (DXCollectionView)sender;
-    //    cv.ItemsSource = MyViewModel.SelectedArtist?.SongsByArtist;
-
-
-    //}
-
-    //private void DXButton_Loaded(object sender, EventArgs e)
-    //{
-    //    var send = (DXButton)sender;
-    //    MyViewModel.WhenPropertyChange(MyViewModel.CurrentTqlQuery, v => (MyViewModel.CurrentTqlQuery))
-    //        .Subscribe(
-    //            e =>
-    //            {
-    //               if(string.IsNullOrEmpty(e) || string.IsNullOrWhiteSpace(e))
-    //                {
-    //                   send.IsVisible = false;
-    //                   return;
-    //                }
-    //                send.IsVisible = true;
-
-    //            });
-
-    //}
-
-    //private void NPMiddleGridSection_Tapped(object sender, TappedEventArgs e)
-    //{
-    //    CurrentPlayingTitleChip_Tap(sender, new DXTapEventArgs(new Point()));
-    //}
-
-    //private void SwipeGestureRecog_PanUpdated(object sender, PanUpdatedEventArgs e)
-    //{
-    //    var isSwipeUp = e.StatusType == GestureStatus.Running && e.TotalY < -100; // Adjust the threshold as needed
-    //}
-
-    //private void ViewPlaybackQueueBtn_Clicked(object sender, HandledEventArgs e)
-    //{
-    //    NPBtmSheet.ShowAndOpenPlaybackQueue();
-    //}
-
-    //private void SwipeGestureRecognizer_Swiped(object sender, SwipedEventArgs e)
-    //{
-
-    //}
-
-    //private void TouchBehavior_LongPressCompleted(object sender, CommunityToolkit.Maui.Core.LongPressCompletedEventArgs e)
-    //{
-
-    //    var songHandle = SongsCV.FindItemHandle(MyViewModel.CurrentPlayingSongView);
-
-    //    SongsCV.ScrollTo(songHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
-    //}
-
-    //private void SongsCV_PullToRefresh(object sender, EventArgs e)
-    //{
-
-    //}
-
-    //private void CurrentPlayingTitleChip_Tap(object sender, DXTapEventArgs e)
-    //{
-    //    NPBtmSheet.NowPlayingExp.IsExpanded = true;
-    //    NPBtmSheet.PlayBackQueueExp.IsExpanded = false;
-
-    //    NPBtmSheet.Show();
-    //    NPBtmSheet.State = BottomSheetState.FullExpanded;
-    //}
-
-
-
-
-    //private void BtmBarCoverImageView_Loaded(object sender, EventArgs e)
-    //{
-    //    DXImage img = (DXImage)sender;
-    //    var platView = img.Handler?.PlatformView as Android.Views.View;
-
-    //    if(platView is null)
-    //        return;
-    //    platView.Click += (s, e) =>
-    //    {
-    //        var songHandle = SongsCV.FindItemHandle(MyViewModel.CurrentPlayingSongView);
-    //        HapticFeedback.Default.Perform(HapticFeedbackType.Click);
-    //        SongsCV.ScrollTo(songHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
-    //    };
-
-    //    //platView.LongClickable = true;
-    //    //platView.LongClick += async (s, e) =>
-    //    //{
-    //    //    var send = (View)sender;
-    //    //    var song = MyViewModel.CurrentPlayingSongView;
-    //    //    MyViewModel.SelectedSong = song;
-
-    //    //};
-    //}
 
     private async void SelectedSongBtmSheetArtistNameChip_Tap(object sender, HandledEventArgs e)
     {
@@ -664,6 +299,10 @@ public partial class HomePage : ContentPage
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(pbQueue =>
             {
+                if (pbQueue is null )
+                {
+                    return;
+                }
                 if (pbQueue.Count < 1)
                 {
                     PlaybackQueueGrid.IsVisible = false;
@@ -852,7 +491,7 @@ public partial class HomePage : ContentPage
     private void SongsCV_Loaded(object sender, EventArgs e)
     {
         
-        //MyViewModel.SetCollectionView(SongsCV);
+        MyViewModel.SetCollectionView(SongsCV);
     }
 
     private void IsFavorite_CheckedChanged(object sender, EventArgs e)
@@ -937,10 +576,7 @@ public partial class HomePage : ContentPage
        
     }
 
-    private void SortByFieldCV_SelectionChanged(object sender, DevExpress.Maui.CollectionView.CollectionViewSelectionChangedEventArgs e)
-    {
-        
-    }
+
 
  
 
@@ -951,135 +587,102 @@ public partial class HomePage : ContentPage
     int currentSelectedSortIndex;
     private bool isTQLBtmSheetOpened;
 
+    public void ApplyTqlSortsToDevExpress(List<TQLSortDescription> sortDescriptions)
+    {
+        SongsCV.SortDescriptions.Clear();
+
+        foreach (var sort in sortDescriptions)
+        {
+            SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription
+            {
+                FieldName = sort.PropertyName,
+                SortOrder = sort.Direction == TQLSortDirection.Ascending
+                    ? DataSortOrder.Ascending
+                    : DataSortOrder.Descending
+            });
+        }
+    }
+    public void ApplySingleSort(string propertyName, DataSortOrder sortOrder)
+    {
+        SongsCV.SortDescriptions.Clear();
+
+        if (string.IsNullOrEmpty(propertyName) || sortOrder == DataSortOrder.None)
+            return;
+
+        SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription
+        {
+            FieldName = propertyName,
+            SortOrder = sortOrder
+        });
+    }
     private void ConfirmSortAndClosePopupBtn_Clicked(object sender, EventArgs e)
     {
         SortPopUp.Close();
-        SongsCV.SortDescriptions.Clear();
-        switch (currentSelectedSortIndex)
+
+        // Safe property name mapping using nameof() to prevent typos
+        string propertyName = currentSelectedSortIndex switch
         {
-            case 0:
+            1 => nameof(SongModelView.Title),
+            2 => nameof(SongModelView.OtherArtistsName),
+            3 => nameof(SongModelView.AlbumName),
+            4 => nameof(SongModelView.GenreName), 
+            5 => nameof(SongModelView.DurationInSeconds),
+            6 => nameof(SongModelView.PlayCompletedCount),
+            7 => nameof(SongModelView.LastPlayed),
+            8 => nameof(SongModelView.DateCreated),
+            _ => string.Empty
+        };
 
-                break;
-            case 1:
-                SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
-                {
-                    FieldName = "Title"
-           ,
-                    SortOrder = (DataSortOrder)MyViewModel.CurrentSortOrderInt
-                });
-
-                break;
-            case 2:
-                SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
-                {
-                    FieldName = nameof(SongModelView.OtherArtistsName)
-           ,
-                    SortOrder = (DataSortOrder)MyViewModel.CurrentSortOrderInt
-                });
-
-                break;
-            case 3:
-                SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
-                {
-                    FieldName = "AlbumName"
-           ,
-                    SortOrder = (DataSortOrder)MyViewModel.CurrentSortOrderInt
-                });
-
-                break;
-            case 4:
-                SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
-                {
-                    FieldName = "Genre Name"
-           ,
-                    SortOrder = (DataSortOrder)MyViewModel.CurrentSortOrderInt
-                });
-                break;
-            case 5:
-                SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
-                {
-                    FieldName = "DurationInSeconds"
-           ,
-                    SortOrder = (DataSortOrder)MyViewModel.CurrentSortOrderInt
-                });
-                break;
-            case 6:
-                SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
-                {
-                    FieldName = "PlayCompletedCount"
-           ,
-                    SortOrder = (DataSortOrder)MyViewModel.CurrentSortOrderInt
-                });
-                break;
-            case 7:
-                SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
-                {
-                    FieldName = "LastPlayed"
-           ,
-                    SortOrder = (DataSortOrder)MyViewModel.CurrentSortOrderInt
-                });
-                break;
-            case 8:
-                SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
-                {
-                    FieldName = "DateCreated"
-           ,
-                    SortOrder = (DataSortOrder)MyViewModel.CurrentSortOrderInt
-                });
-                break;
-            default:
-                break;
-        }
+        var order = (DataSortOrder)MyViewModel.CurrentSortOrderInt;
+        ApplySingleSort(propertyName, order);
     }
 
     private void SortDownBtn_Clicked(object sender, EventArgs e)
     {
         var send = (DXButton)sender;
-        currentSelectedSortIndex = MyViewModel.SortByFieldNameCollection.IndexOf((send.BindingContext as string)!);
-        MyViewModel.CurrentSortDisplay = (send.BindingContext as string)!;
+        var field = (send.BindingContext as string)!;
+        currentSelectedSortIndex = MyViewModel.SortByFieldNameCollection.IndexOf(field);
+        MyViewModel.CurrentSortDisplay = field;
         MyViewModel.CurrentSortOrder = SortOrder.Desc;
-        MyViewModel.CurrentSortOrderInt = 2;
+        MyViewModel.CurrentSortOrderInt = (int)DataSortOrder.Descending;
     }
-
     private void SortUpBtn_Clicked(object sender, EventArgs e)
     {
         var send = (DXButton)sender;
-        currentSelectedSortIndex = MyViewModel.SortByFieldNameCollection.IndexOf((send.BindingContext as string)!);
-        MyViewModel.CurrentSortDisplay = (send.BindingContext as string)!;
+        var field = (send.BindingContext as string)!;
+        currentSelectedSortIndex = MyViewModel.SortByFieldNameCollection.IndexOf(field);
+        MyViewModel.CurrentSortDisplay = field;
         MyViewModel.CurrentSortOrder = SortOrder.Asc;
-        MyViewModel.CurrentSortOrderInt = 1;
-
+        MyViewModel.CurrentSortOrderInt = (int)DataSortOrder.Ascending;
     }
-
     private void SortFieldBtn_Clicked(object sender, EventArgs e)
     {
-        DXButton send = (DXButton)sender;
+        var send = (DXButton)sender;
         var selectedField = send.BindingContext as string;
         if (string.IsNullOrEmpty(selectedField)) return;
+
         currentSelectedSortIndex = MyViewModel.SortByFieldNameCollection.IndexOf(selectedField);
 
-        if(currentSelectedSortIndex ==0)
+        if (currentSelectedSortIndex == 0)
         {
             MyViewModel.CurrentSortOrder = SortOrder.None;
-            MyViewModel.CurrentSortOrderInt = 0;
+            MyViewModel.CurrentSortOrderInt = (int)DataSortOrder.None;
             return;
         }
-        if(MyViewModel.CurrentSortDisplay== selectedField)
+
+        if (MyViewModel.CurrentSortDisplay == selectedField)
         {
             MyViewModel.CurrentSortOrder = MyViewModel.CurrentSortOrder == SortOrder.Asc ? SortOrder.Desc : SortOrder.Asc;
             MyViewModel.CurrentSortOrderInt = (int)MyViewModel.CurrentSortOrder;
-            
         }
 
-        MyViewModel.CurrentSortDisplay = (send.BindingContext as string)!;
+        MyViewModel.CurrentSortDisplay = selectedField;
     }
-
     private void HasSyncLyricsFilter_Loaded(object sender, EventArgs e)
     {
         var send = (FilterCheckItem)sender;
         send.Context = SongsCV.FilteringContext;
         send.FieldName = "HasSyncedLyrics";
-
 
     }
 
@@ -1265,24 +868,10 @@ public partial class HomePage : ContentPage
         }
     }
 
-    private void MyPage_Loaded(object sender, EventArgs e)
-    {
-
-        MyViewModel.StartTQLPipeLine();
-
-        if (!MyViewModel.IsInitialized)
-        {
-            _ = InitializeAppLogic();
-            //MyViewModel.LoadSongsInitially();
-        }
-
-    }
 
     private void SearchText_Loaded(object sender, EventArgs e)
     {
-        var textEdit = (TextEdit)sender;
-
-        
+      
     }
 
     private bool _wasKeyboardShowing = false;
@@ -1313,7 +902,7 @@ public partial class HomePage : ContentPage
         }
     }
 
-    private void OnGlobalLayout(object sender, EventArgs e)
+    private void OnGlobalLayout(object? sender, EventArgs e)
     {
         if (_rootView == null) return;
 
@@ -1332,7 +921,9 @@ public partial class HomePage : ContentPage
         if (!isKeyboardShowing && _wasKeyboardShowing)
         {
             // Keyboard Just Collapsed!
-            Dispatcher.Dispatch(() => {
+            RxSchedulers.UI.ScheduleTo(() => 
+            {
+
                 // Call your portable MAUI method here
                 System.Diagnostics.Debug.WriteLine("Keyboard collapsed!");
             });
@@ -1342,10 +933,7 @@ public partial class HomePage : ContentPage
         _wasKeyboardShowing = isKeyboardShowing;
     }
 
-    private void SongsCV_Loaded_1(object sender, EventArgs e)
-    {
-
-    }
+    
 
     private void SortArtistAsc_Swiped(object sender, SwipedEventArgs e)
     {
@@ -1406,145 +994,26 @@ public partial class HomePage : ContentPage
 
 
 
-    //private void SearchIconBtn_Tapped(object sender, HandledEventArgs e)
-    //{
-    //    SearchBarTextEdit.Focus();
-    //}
+    private async void DeleteSongBtn_Tap(object sender, HandledEventArgs e)
+    {
+        await MyViewModel.DeleteFileFromSystem(MyViewModel.SelectedSong);
+    }
 
-    //private void SearchBarTextEdit_Focused(object sender, FocusEventArgs e)
-    //{
+    private void ShowTQLShortBTMSheet_Loaded(object sender, EventArgs e)
+    {
+        var nativeView = ShowTQLShortBTMSheet.Handler?.PlatformView as Android.Views.View;
+        if (nativeView != null)
+        {
+            // Unsubscribe first to guarantee we never double-subscribe!
+            nativeView.LongClick -= NativeView_LongClick;
+            nativeView.LongClick += NativeView_LongClick;
+        }
+    }
 
-    //    TQLFilterExpander.SetIsExpanded(true, true);
-    //    //InputMethodManager? imm = (InputMethodManager?)MainApplication.Context.GetSystemService(Activity.InputMethodService);
-    //    //var view = SearchBarTextEdit.Handler?.PlatformView as Android.Views.View;
-    //    //imm?.ShowSoftInput(view, ShowFlags.Implicit);
-
-    //}
-
-    //private void SearchBarTextEdit_Unfocused(object sender, FocusEventArgs e)
-    //{
-    //    TQLFilterExpander.SetIsExpanded(false, true);
-
-    //}
-
-    //private void ArtistsPicker_Tap(object sender, HandledEventArgs e)
-    //{
-    //    Debug.WriteLine(sender?.GetType());
-    //    //FilteredArtistsChoiceChip
-    //}
-
-    //private void ArtistsPicker_PropertyChanged(object sender, PropertyChangedEventArgs e)
-    //{
-    //    //if(e.PropertyName == nameof(ArtistsPicker.SelectedItems))
-    //    //{
-
-    //    //    FilteredArtistsChoiceChip.ItemsSource = ArtistsPicker.SelectedItems;
-    //    //    // this should, 
-    //    //}
-    //}
-
-    //private void IncludeFavCheckEdit_CheckedChanged(object sender, EventArgs e)
-    //{
-    //    //switch (IncludeFavCheckEdit.IsChecked)
-    //    //{
-    //    //    case null:
-
-    //    //        break;
-    //    //    case true:
-
-    //    //        break;
-    //    //    case false:
-
-    //    //        break;
-    //    //    default:
-    //    //        break;
-    //    //}
-    //}
-
-    //private void AddRule_Clicked(object sender, EventArgs e)
-    //{
-    //    //string? selectedField = ArtistFieldPicker.SelectedItem?.ToString();
-    //    //if (string.IsNullOrEmpty(selectedField)) return;
-
-    //    //var newRule = new VisualFilterRule();
-
-    //    //switch (selectedField)
-    //    //{
-    //    //    case "Artist":
-    //    //        // Here, you would open your ArtistsPicker, get the result, and assign it
-    //    //        //string chosenArtist = await PickArtistAsync(); // Implement this UI flow
-    //    //        //newRule.FieldAlias = "ar";
-    //    //        //newRule.DisplayField = "Artist";
-    //    //        //newRule.Value = chosenArtist;
-    //    //        break;
-
-    //    //    case "Favorites":
-    //    //        newRule.FieldAlias = "fav";
-    //    //        newRule.DisplayField = "Favorites";
-    //    //        newRule.Value = "true";
-    //    //        break;
-
-    //    //        // Add cases for Genre, Year, Length, etc.
-    //    //}
-
-    //    //MyViewModel.ActiveFilterRules.Add(newRule);
-    //    MyViewModel.UpdateGeneratedTql();
-    //}
-
-    //private void ArtistFieldPicker_Tap(object sender, HandledEventArgs e)
-    //{
-
-    //}
-
-    //private void ArtistToggleButton_CheckedChanged(object sender, ValueChangedEventArgs<bool> e)
-    //{
-    //    switch (e.NewValue)
-    //    {
-    //        case true:
-    //            //ArtistFieldPicker.Commands.Show.Execute(null);
-    //            break;
-    //        case false:
-    //            break;
-    //        default:
-    //            break;
-    //    }
-    //}
-
-    //private void SearchIconBtn_DoubleTap(object sender, HandledEventArgs e)
-    //{
-
-
-    //    var songHandle = SongsCV.FindItemHandle(MyViewModel.CurrentPlayingSongView);
-
-    //    SongsCV.ScrollTo(songHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
-
-    //}
-
-    //private void TQLMyFavChip_Tap(object sender, HandledEventArgs e)
-    //{
-    //    SearchBarTextEdit.Text = SearchBarTextEdit.Text + " my fav";
-
-
-    //}
-
-    //private void TQLShuffleChip_Tap(object sender, HandledEventArgs e)
-    //{
-
-    //    SearchBarTextEdit.Text = SearchBarTextEdit.Text + " shuffle";
-    //}
-
-    //private void EditSongChip_Tap(object sender, HandledEventArgs e)
-    //{
-
-    //}
-
-    //private async void ViewSongChip_Tap(object sender, HandledEventArgs e)
-    //{
-
-    //    if (Shell.Current.CurrentPage.GetType() != typeof(DetailsOverview))
-    //    {
-    //        SingleSongPopup.Close();
-    //        await Shell.Current.GoToAsync(nameof(DetailsOverview), true);
-    //    }
-    //}
+    private void NativeView_LongClick(object? sender, Android.Views.View.LongClickEventArgs e)
+    {
+        var songHandle = SongsCV.FindItemHandle(MyViewModel.CurrentPlayingSongView);
+        HapticFeedback.Default.Perform(HapticFeedbackType.Click);
+        SongsCV.ScrollTo(songHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
+    }
 }

@@ -15,7 +15,7 @@ public partial class SongLyricsDownloadPopup : DXPopup
     BaseViewModelAnd MyViewModel;
     private async void LyricsTabVSL_Loaded(object sender, EventArgs e)
     {
-        await Task.Delay(2000);
+
         MyViewModel.ReadySearchViewAndProduceSearchText();
     }
 
@@ -159,7 +159,7 @@ public partial class SongLyricsDownloadPopup : DXPopup
             MyViewModel.SearchResultsHolder.Edit(updater =>
             {
                 OnPropertyChanged(nameof(MyViewModel.SelectedSong));
-                updater.AddOrUpdate(MyViewModel.SelectedSong, MyViewModel.SelectedSong.Id.ToString());
+                updater.Add(MyViewModel.SelectedSong);
 
             });
 

@@ -77,25 +77,8 @@ public partial class SongStatsViewModel : ObservableObject, IDisposable
         _statsService.DropOffHeatmap.Subscribe(v => ListDropOffHeatmap = v).DisposeWith(_disposables);
         _statsService.PerfectPairings.Subscribe(v => ListPerfectPairings = v).DisposeWith(_disposables);
 
-        // New Common
-      
-        //_statsService.WeeklyTrend.Subscribe(v => ListWeeklyTrend = v).DisposeWith //_statsService.WeekendVsWeekday.Subscribe(v => TextWeekendVsWeekday = v).DisposeWith(_disposables);
-        //_statsService.AveragePlaysPerActiveDay.Subscribe(v => TextAvgPlaysPerActiveDay = v).DisposeWith(_disposables);
-        //_statsService.LongestDrought.Subscribe(v => TextLongestDrought = v).DisposeWith(_disposables);
-        //_statsService.ConsistencyScore.Subscribe(v => TextConsistencyScore = v).DisposeWith(_disposables);
-        //_statsService.MaxSessionDuration.Subscribe(v => TextMaxSessionDuration = v).DisposeWith(_disposables);
-        //_statsService.PeakBingeIntensity.Subscribe(v => TextPeakBingeIntensity = v).DisposeWith(_disposables);
-//(_disposables);
-       
-        //// New Specific
-        //_statsService.HourOfPower.Subscribe(v => TextHourOfPower = v).DisposeWith(_disposables);
-        //_statsService.SeasonalVibe.Subscribe(v => TextSeasonalVibe = v).DisposeWith(_disposables);
-        //_statsService.RepeatOffender.Subscribe(v => TextRepeatOffender = v).DisposeWith(_disposables);
-        //_statsService.TimeBias.Subscribe(v => TextTimeBias = v).DisposeWith(_disposables);
-        //_statsService.Resurrection.Subscribe(v => TextResurrection = v).DisposeWith(_disposables);
-        //_statsService.NextMilestone.Subscribe(v => TextNextMilestone = v).DisposeWith(_disposables);
-        //_statsService.SkipTrend.Subscribe(v => TextSkipTrend = v).DisposeWith(_disposables);
-        //_statsService.DiscoveryAnniversary.Subscribe(v => TextDiscoveryAnniversary = v).DisposeWith(_disposables);
+        
+
     }
 
 

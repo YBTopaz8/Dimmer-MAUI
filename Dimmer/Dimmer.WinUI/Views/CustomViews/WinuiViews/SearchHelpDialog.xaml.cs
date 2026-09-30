@@ -50,7 +50,7 @@ public sealed partial class SearchHelpDialog : ContentDialog
     void LoadNaturalHints()
     {
         var hints = new[]{
-            "Play Adele songs",
+            "PlayAsync Adele songs",
             "Show songs with lyrics",
             "Unplayed tracks",
             "Top rated songs",

@@ -1,7 +1,329 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
-    x:Class="Dimmer.Views.Artist.AllArtistsPage"
     x:Name="myPage"
+    x:Class="Dimmer.Views.Artist.AllArtistsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:dx="http://schemas.devexpress.com/maui"
+    xmlns:globalVM="clr-namespace:Dimmer.ViewModel;assembly=Dimmer"
+    xmlns:local="clr-namespace:Dimmer.Views.CustomViews"
+    xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
+    xmlns:vm="clr-namespace:Dimmer.ViewModels"
+    Title="Artists"
+    x:DataType="vm:BaseViewModelAnd"
+    BackgroundColor="{AppThemeBinding Dark=#121212,
+                                      Light=#F8F9FA}"
+    Shell.NavBarIsVisible="False">
+
+    <Grid RowDefinitions="Auto,Auto,*" RowSpacing="0">
+
+        <!--  ==========================================================  -->
+        <!--  1. SEARCH BAR & HEADER (Sleek & Sticky)  -->
+        <!--  ==========================================================  -->
+        <Grid
+            Grid.Row="0"
+            Padding="16,16,16,8"
+            ColumnDefinitions="*,Auto"
+            ColumnSpacing="12">
+            <dx:TextEdit
+                x:Name="ArtistSearchEdit"
+                Grid.Column="0"
+                BackgroundColor="{AppThemeBinding Dark=#1E1E1E,
+                                                  Light=#FFFFFF}"
+                BorderColor="Transparent"
+                ClearIconVisibility="Auto"
+                CornerRadius="12"
+                HeightRequest="48"
+                PlaceholderText="Find an artist..."
+                StartIcon="searchd.png"
+                TextChanged="ArtistSearchEdit_TextChanged" />
+
+            <dx:DXButton
+                Grid.Column="1"
+                BackgroundColor="{AppThemeBinding Dark=#1E1E1E,
+                                                  Light=#FFFFFF}"
+                BorderColor="Transparent"
+                Clicked="OpenSortMenu_Clicked"
+                CornerRadius="12"
+                HeightRequest="48"
+                Icon="sortvertical.png"
+                IconColor="{AppThemeBinding Dark=#FFFFFF,
+                                            Light=#121212}"
+                ShowContent="False"
+                ShowIcon="True"
+                WidthRequest="48" />
+        </Grid>
+
+        <!--  ==========================================================  -->
+        <!--  2. FILTER CHIPS  -->
+        <!--  ==========================================================  -->
+        <ScrollView
+            Grid.Row="1"
+            Margin="0,0,0,8"
+            HorizontalScrollBarVisibility="Never"
+            Orientation="Horizontal">
+            <dx:ChoiceChipGroup
+                x:Name="FilterChips"
+                Padding="16,0"
+                SelectionChanged="FilterChips_SelectionChanged">
+                <dx:Chip IsSelected="True" Text="All Artists" />
+                <dx:Chip Text="❤️ Favorites" />
+                <dx:Chip Text="🔥 Most Played" />
+            </dx:ChoiceChipGroup>
+        </ScrollView>
+
+        <!--  ==========================================================  -->
+        <!--  3. MAIN ARTISTS LIST (Premium Flat List)  -->
+        <!--  ==========================================================  -->
+        <Grid Grid.Row="2">
+            <dx:RadialProgressBar
+                HeightRequest="60"
+                HorizontalOptions="Center"
+                IsIndeterminate="True"
+                IsVisible="{Binding IsLoading}"
+                VerticalOptions="Center"
+                WidthRequest="60" />
+
+            <dx:DXCollectionView
+                x:Name="ArtistsCV"
+                ItemSpacing="10"
+                ItemsSource="{Binding ArtistsCollection}"
+                SelectionMode="Single"
+                Tap="ArtistsCV_Tap">
+
+                <dx:DXCollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:ArtistModelView">
+                        <!--  Outer Card Container  -->
+
+                        <Grid RowDefinitions="*,auto" RowSpacing="0">
+
+                            <!--  ================= 1. ALWAYS VISIBLE HEADER =================  -->
+                            <dx:DXButton
+                                x:Name="ArtistHeaderBtn"
+                                Padding="5"
+                                HorizontalContentAlignment="Start"
+                                BackgroundColor="Transparent">
+
+                                <Grid
+                                    BackgroundColor="Transparent"
+                                    ColumnDefinitions="Auto,*,Auto"
+                                    ColumnSpacing="14">
+                                    <!--  Tap anywhere on the header to expand/collapse  -->
+
+                                    <!--  Circular Avatar  -->
+                                    <dx:DXBorder
+                                        Grid.Column="0"
+                                        BackgroundColor="{AppThemeBinding Dark=#252525,
+                                                                          Light=#EFEFEF}"
+                                        CornerRadius="28"
+                                        HeightRequest="56"
+                                        WidthRequest="56">
+                                        <dx:DXImage Aspect="AspectFill" Source="{Binding ImagePath}">
+                                            <dx:DXImage.Triggers>
+                                                <DataTrigger
+                                                    Binding="{Binding ImagePath}"
+                                                    TargetType="dx:DXImage"
+                                                    Value="">
+                                                    <Setter Property="Source" Value="lyricist.png" />
+                                                </DataTrigger>
+                                            </dx:DXImage.Triggers>
+                                        </dx:DXImage>
+                                    </dx:DXBorder>
+
+                                    <!--  Artist Metadata  -->
+                                    <VerticalStackLayout
+                                        Grid.Column="1"
+                                        Spacing="2"
+                                        VerticalOptions="Center">
+                                        <HorizontalStackLayout Padding="6">
+                                            <Label
+                                                FontAttributes="Bold"
+                                                FontSize="16"
+                                                LineBreakMode="TailTruncation"
+                                                Text="{Binding Name}"
+                                                TextColor="{AppThemeBinding Dark=White,
+                                                                            Light=Black}" />
+                                            <Label
+                                                FontSize="12"
+                                                IsVisible="{Binding IsFavorite}"
+                                                Text="★"
+                                                TextColor="Gold"
+                                                VerticalOptions="Center" />
+                                        </HorizontalStackLayout>
+
+                                        <Label FontSize="13" TextColor="{AppThemeBinding Dark=#A0A0A0, Light=#666666}">
+                                            <Label.Text>
+                                                <MultiBinding StringFormat="{}{0} Albums • {1} Songs">
+                                                    <Binding Path="TotalAlbumsByArtist" />
+                                                    <Binding Path="TotalSongsByArtist" />
+                                                </MultiBinding>
+                                            </Label.Text>
+                                        </Label>
+                                    </VerticalStackLayout>
+
+                                    <!--  Chevron Indicator (Flips when expanded)  -->
+                                    <dx:DXImage
+                                        Grid.Column="2"
+                                        HeightRequest="16"
+                                        Opacity="0.5"
+                                        Source="chevron_down.png"
+                                        VerticalOptions="Center"
+                                        WidthRequest="16">
+                                        <dx:DXImage.Triggers>
+                                            <DataTrigger
+                                                Binding="{Binding IsExpanded}"
+                                                TargetType="dx:DXImage"
+                                                Value="True">
+                                                <Setter Property="Rotation" Value="180" />
+                                            </DataTrigger>
+                                        </dx:DXImage.Triggers>
+                                    </dx:DXImage>
+                                </Grid>
+
+                            </dx:DXButton>
+                            <!--  ================= 2. THE INLINE EXPANDER =================  -->
+
+                        </Grid>
+
+
+                    </DataTemplate>
+                </dx:DXCollectionView.ItemTemplate>
+            </dx:DXCollectionView>
+        </Grid>
+        <dx:BottomSheet
+            x:Name="ArtistExpander"
+            Grid.Row="1"
+            AllowedState="All"
+            HalfExpandedRatio="0.80"
+            ZIndex="1">
+            <dx:ShimmerView IsLoading="{Binding SelectedArtist.IsLoadingArtist}" IsVisible="{Binding SelectedArtist.IsLoadingArtist}">
+
+
+                <VerticalStackLayout Padding="0,16,0,0" Spacing="14">
+
+                    <BoxView HeightRequest="1" Color="{AppThemeBinding Dark=#2A2A2A, Light=#EAEAEA}" />
+
+                    <!--  Action Buttons Row  -->
+                    <Grid ColumnDefinitions="*,*,Auto" ColumnSpacing="8">
+                        <dx:DXButton
+                            Grid.Column="0"
+                            BackgroundColor="DarkSlateBlue"
+                            Clicked="PlayAll_Clicked"
+                            CommandParameter="{Binding .}"
+                            Content="Play All"
+                            CornerRadius="12"
+                            HeightRequest="38"
+                            Icon="play.png"
+                            TextColor="White" />
+                        <dx:DXButton
+                            Grid.Column="1"
+                            BackgroundColor="{AppThemeBinding Dark=#2A2A2A,
+                                                              Light=#EFEFEF}"
+                            Content="Queue"
+                            CornerRadius="12"
+                            HeightRequest="38"
+                            Icon="list.png" />
+                        <dx:DXButton
+                            Grid.Column="2"
+                            BackgroundColor="Transparent"
+                            Clicked="NavigateToArtistDetails_Clicked"
+                            CommandParameter="{Binding .}"
+                            CornerRadius="12"
+                            HeightRequest="38"
+                            Icon="arrowcircleright.png"
+                            ShowContent="False"
+                            WidthRequest="38" />
+                    </Grid>
+
+                    <!--  Albums & Songs (Using BindableLayout to prevent Android scroll lag!)  -->
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding AlbumsByArtist}" Spacing="12">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="models:AlbumModelView">
+                                <VerticalStackLayout Spacing="8">
+
+                                    <!--  Album Header  -->
+                                    <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                                        <dx:DXBorder
+                                            CornerRadius="6"
+                                            HeightRequest="32"
+                                            WidthRequest="32">
+                                            <dx:DXImage Aspect="AspectFill" Source="{Binding ImagePath}" />
+                                        </dx:DXBorder>
+                                        <Label
+                                            FontAttributes="Bold"
+                                            FontSize="14"
+                                            Text="{Binding Name}"
+                                            TextColor="DarkSlateBlue"
+                                            VerticalOptions="Center" />
+                                    </HorizontalStackLayout>
+
+                                    <!--  Songs in Album  -->
+                                    <VerticalStackLayout
+                                        Padding="12,0,0,0"
+                                        BindableLayout.ItemsSource="{Binding SongsInAlbum}"
+                                        Spacing="4">
+                                        <BindableLayout.ItemTemplate>
+                                            <DataTemplate x:DataType="models:SongModelView">
+                                                <Grid
+                                                    ColumnDefinitions="28,*,Auto"
+                                                    ColumnSpacing="8"
+                                                    HeightRequest="32">
+                                                    <Label
+                                                        Grid.Column="0"
+                                                        FontSize="12"
+                                                        HorizontalOptions="Center"
+                                                        Text="{Binding TrackNumber}"
+                                                        TextColor="#888"
+                                                        VerticalOptions="Center" />
+                                                    <Label
+                                                        Grid.Column="1"
+                                                        FontSize="13"
+                                                        LineBreakMode="TailTruncation"
+                                                        Text="{Binding Title}"
+                                                        TextColor="{AppThemeBinding Dark=White,
+                                                                                    Light=Black}"
+                                                        VerticalOptions="Center" />
+                                                    <Label
+                                                        Grid.Column="2"
+                                                        FontSize="11"
+                                                        Text="{Binding DurationFormatted}"
+                                                        TextColor="#888"
+                                                        VerticalOptions="Center" />
+                                                </Grid>
+                                            </DataTemplate>
+                                        </BindableLayout.ItemTemplate>
+                                    </VerticalStackLayout>
+                                </VerticalStackLayout>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </dx:ShimmerView>
+        </dx:BottomSheet>
+
+
+
+        <!--  ==========================================================  -->
+        <!--  5. SORT BOTTOM SHEET  -->
+        <!--  ==========================================================  -->
+        <dx:BottomSheet
+            x:Name="SortBottomSheet"
+            AllowDismiss="True"
+            CornerRadius="24"
+            HalfExpandedRatio="0.45">
+            <dx:DXStackLayout>
+                <Label Text="ss" />
+            </dx:DXStackLayout>
+        </dx:BottomSheet>
+
+    </Grid>
+</ContentPage>
+
+
+<!--<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Name="myPage"
+    x:Class="Dimmer.Views.Artist.AllArtistsPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:dx="http://schemas.devexpress.com/maui"
@@ -14,193 +336,339 @@
     BackgroundColor="#FFFFFF"
     Shell.BackgroundColor="DarkGray"
     Shell.ForegroundColor="DarkSlateBlue"
-    Shell.NavBarIsVisible="False"
-    >
-    <Grid Margin="10,0" RowDefinitions="auto,*">
+    Shell.NavBarIsVisible="False">
+    <Grid
+        Padding="14,10,14,0"
+        RowDefinitions="Auto,Auto,*"
+        RowSpacing="12">-->
+<!--  ==========================================================  -->
+<!--  1. HEADER & SEARCH BAR  -->
+<!--  ==========================================================  -->
+<!--
+        <Grid
+            Grid.Row="0"
+            ColumnDefinitions="*,Auto"
+            ColumnSpacing="10"
+            VerticalOptions="Center">-->
+<!--  Search Edit (Instant DevExpress In-Memory Filtering)  -->
+<!--
+            <dx:TextEdit
+                x:Name="ArtistSearchEdit"
+                Grid.Column="0"
+                BackgroundColor="{AppThemeBinding Dark=#1E1E1E,
+                                                  Light=#FFFFFF}"
+                BorderColor="{AppThemeBinding Dark=#333333,
+                                              Light=#E0E0E0}"
+                ClearIconVisibility="Auto"
+                CornerRadius="20"
+                HeightRequest="44"
+                PlaceholderText="Find an artist..."
+                StartIcon="searchd.png"
+                TextChanged="ArtistSearchEdit_TextChanged" />-->
+<!--  Sort Button (Opens DevExpress Native Sort Sheet)  -->
+<!--
+            <dx:DXButton
+                Grid.Column="1"
+                BackgroundColor="{AppThemeBinding Dark=#1E1E1E,
+                                                  Light=#FFFFFF}"
+                BorderColor="{AppThemeBinding Dark=#333333,
+                                              Light=#E0E0E0}"
+                BorderThickness="1"
+                Clicked="OpenSortMenu_Clicked"
+                CornerRadius="22"
+                HeightRequest="44"
+                Icon="sortvertical.png"
+                ShowContent="False"
+                ShowIcon="True"
+                WidthRequest="44" />
+        </Grid>-->
+<!--  ==========================================================  -->
+<!--  2. QUICK FILTER PILL CHIPS  -->
+<!--  ==========================================================  -->
+<!--
+        <HorizontalStackLayout Grid.Row="1" Spacing="8">
+            <dx:ChoiceChipGroup x:Name="FilterChips" SelectionChanged="FilterChips_SelectionChanged">
+                <dx:Chip IsSelected="True" Text="All Artists" />
+                <dx:Chip Text="❤️ Favorites" />
+                <dx:Chip Text="🔥 Most Played" />
+            </dx:ChoiceChipGroup>
+        </HorizontalStackLayout>-->
+<!--  ==========================================================  -->
+<!--  3. ARTISTS COLLECTION VIEW  -->
+<!--  ==========================================================  -->
+<!--
+        <Grid Grid.Row="2">-->
+<!--  Loading Indicator  -->
+<!--
+            <dx:RadialProgressBar
+                HeightRequest="80"
+                HorizontalOptions="Center"
+                IsIndeterminate="True"
+                IsVisible="{Binding IsLoading}"
+                VerticalOptions="Center"
+                WidthRequest="80" />
 
-        <dx:RadialProgressBar
-            Grid.Row="1"
-            HeightRequest="180"
-            HorizontalOptions="Center"
-            IsIndeterminate="True"
-            IsVisible="{Binding IsLoading}"
-            VerticalOptions="Center"
-            />
+            <dx:DXCollectionView
+                x:Name="ArtistsCV"
+                IsPullToRefreshEnabled="False"
+                ItemSpacing="10"
+                ItemsSource="{Binding ArtistsCollection}"
+                SelectedItem="{Binding SelectedArtist}"
+                SelectionMode="Single">
+                <dx:DXCollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:ArtistModelView">-->
+<!--  Premium Surface Card  -->
+<!--
+                        <dx:DXBorder
+                            Padding="12,10"
+                            BackgroundColor="{AppThemeBinding Dark=#1A1A1A,
+                                                              Light=#FFFFFF}"
+                            BorderColor="{AppThemeBinding Dark=#242424,
+                                                          Light=#EAEAEA}"
+                            BorderThickness="1"
+                            CornerRadius="16">
 
-        <dx:DXCollectionView
-            Grid.Row="1"
-            ItemSpacing="5"
-            ItemSpanCount="1"
-            ItemSpanSpacing="5"
-            ItemsSource="{Binding ArtistsCollection}"
-            SelectedItem="{Binding SelectedArtist}"
-            SelectionMode="Single"
-            IsPullToRefreshEnabled="False" 
-            >
-            <dx:DXCollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:ArtistModelView">
-                    <dx:DXBorder
-                        Padding="10"
-                        BorderColor="DarkGray"
-                        BorderThickness="1"
-                        CornerRadius="12"
-                        >
+                            <Grid
+                                ColumnDefinitions="Auto,*,Auto"
+                                ColumnSpacing="14"
+                                VerticalOptions="Center">-->
+<!--  CIRCULAR ARTIST AVATAR  -->
+<!--
+                                <dx:DXBorder
+                                    Grid.Column="0"
+                                    BackgroundColor="{AppThemeBinding Dark=#252525,
+                                                                      Light=#EFEFEF}"
+                                    BorderColor="DarkSlateBlue"
+                                    BorderThickness="1.5"
+                                    CornerRadius="33"
+                                    HeightRequest="66"
+                                    WidthRequest="66">
 
-                        <Grid
-                            ColumnDefinitions="70,*,50"
-                            ColumnSpacing="5"
-                            HeightRequest="80"
-                            >
+                                    <dx:DXImage Aspect="AspectFill" Source="{Binding ImagePath}">
+                                        <dx:DXImage.Triggers>
+                                            <DataTrigger
+                                                Binding="{Binding ImagePath}"
+                                                TargetType="dx:DXImage"
+                                                Value="">
+                                                <Setter Property="Source" Value="lyricist.png" />
+                                            </DataTrigger>
+                                        </dx:DXImage.Triggers>
+                                    </dx:DXImage>
+                                </dx:DXBorder>-->
+<!--  ARTIST INFO & METADATA BADGES  -->
+<!--
+                                <VerticalStackLayout
+                                    Grid.Column="1"
+                                    Spacing="4"
+                                    VerticalOptions="Center">
+                                    <HorizontalStackLayout Spacing="6">
+                                        <Label
+                                            FontAttributes="Bold"
+                                            FontSize="17"
+                                            LineBreakMode="TailTruncation"
+                                            Text="{Binding Name}"
+                                            TextColor="{AppThemeBinding Dark=White,
+                                                                        Light=Black}" />-->
+<!--  Favorite Star Badge  -->
+<!--
+                                        <Label
+                                            FontSize="14"
+                                            IsVisible="{Binding IsFavorite}"
+                                            Text="★"
+                                            TextColor="Gold"
+                                            VerticalOptions="Center" />
+                                    </HorizontalStackLayout>-->
+<!--  Metadata Row: Albums • Songs • Plays  -->
+<!--
+                                    <HorizontalStackLayout Opacity="0.75" Spacing="8">
+                                        <Label
+                                            FontSize="12"
+                                            Text="{Binding TotalAlbumsByArtist, StringFormat='{0} Albums'}"
+                                            TextColor="{AppThemeBinding Dark=#CCCCCC,
+                                                                        Light=#555555}" />
+                                        <Label
+                                            FontSize="10"
+                                            Text="•"
+                                            VerticalOptions="Center" />
+                                        <Label
+                                            FontSize="12"
+                                            Text="{Binding TotalSongsByArtist, StringFormat='{0} Songs'}"
+                                            TextColor="{AppThemeBinding Dark=#CCCCCC,
+                                                                        Light=#555555}" />-->
+<!--  Play Count Badge (If > 0)  -->
+<!--
+                                        <HorizontalStackLayout Spacing="4">
+                                            <Label
+                                                FontSize="10"
+                                                Text="•"
+                                                VerticalOptions="Center" />
+                                            <Label
+                                                FontAttributes="Bold"
+                                                FontSize="11"
+                                                Text="{Binding TotalCompletedPlays, StringFormat='▶ {0}'}"
+                                                TextColor="DarkSlateBlue" />
+                                        </HorizontalStackLayout>
+                                    </HorizontalStackLayout>
+                                </VerticalStackLayout>-->
+<!--  ACTION BUTTONS (Quick Preview + Details)  -->
+<!--
+                                <HorizontalStackLayout
+                                    Grid.Column="2"
+                                    Spacing="4"
+                                    VerticalOptions="Center">-->
+<!--  Preview Songs Bottom Sheet Button  -->
+<!--
+                                    <dx:DXButton
+                                        BackgroundColor="Transparent"
+                                        Clicked="QuickSongsPreview_Clicked"
+                                        CommandParameter="{Binding .}"
+                                        CornerRadius="19"
+                                        HeightRequest="38"
+                                        Icon="song.png"
+                                        IconColor="DarkSlateBlue"
+                                        ShowContent="False"
+                                        ShowIcon="True"
+                                        WidthRequest="38" />-->
+<!--  Open Dedicated Artist Page Button  -->
+<!--
+                                    <dx:DXButton
+                                        BackgroundColor="Transparent"
+                                        Clicked="NavigateToArtistDetails_Clicked"
+                                        CommandParameter="{Binding .}"
+                                        CornerRadius="19"
+                                        HeightRequest="38"
+                                        Icon="arrowcircleright.png"
+                                        IconColor="{AppThemeBinding Dark=White,
+                                                                    Light=#333333}"
+                                        ShowContent="False"
+                                        ShowIcon="True"
+                                        WidthRequest="38" />
+                                </HorizontalStackLayout>
+                            </Grid>
+                        </dx:DXBorder>
+                    </DataTemplate>
+                </dx:DXCollectionView.ItemTemplate>
+            </dx:DXCollectionView>
+        </Grid>-->
+<!--  ==========================================================  -->
+<!--  4. PURE DEVEXPRESS SORT BOTTOM SHEET  -->
+<!--  ==========================================================  -->
+<!--
+        <dx:BottomSheet
+            x:Name="SortBottomSheet"
+            AllowDismiss="True"
+            HalfExpandedRatio="0.45">
+            <VerticalStackLayout Padding="18" Spacing="14">
+                <Label
+                    FontAttributes="Bold"
+                    FontSize="18"
+                    HorizontalOptions="Center"
+                    Text="Sort Artists By" />
 
-                            <dx:DXImage Aspect="AspectFill" Source="{Binding ImagePath}" >
-                                <dx:DXImage.Triggers>
-                                    <DataTrigger TargetType="dx:DXImage" Binding="{Binding ImagePath}" Value="">
-                                        <Setter Property="Source" Value="lyricist.png"/>
-                                    </DataTrigger>
-                                </dx:DXImage.Triggers>
-                            </dx:DXImage>
-                            <dx:DXStackLayout Grid.Column="1" ItemSpacing="4">
-                                <Label
-                                    FontAttributes="Bold"
-                                    FontSize="20"
-                                    Text="{Binding Name}"
-                                    TextColor="{AppThemeBinding Light=Black,
-                                                                Dark=White}"
-                                    />
-                                <dx:Chip
-                                    x:Name="ArtistSongsCountChip"
-                                    Padding="0"
-                                    BorderThickness="0"
-                                    FontSize="16"
-                                    HorizontalOptions="Start"
-                                    Tap="ArtistSongsCountChip_Tap"
-                                    Text="{Binding TotalSongsByArtist, StringFormat='{0} Songs'}"
-                                    TextColor="{AppThemeBinding Light=#1e1e1e,
-                                                                Dark=White}"
-                                    />
-                                <!--<dx:Chip
-                                    Padding="0"
-                                    BorderThickness="0"
-                                    FontSize="14"
-                                    HorizontalOptions="Start"
-                                    Text="{Binding TotalCompletedPlays, StringFormat='{0} Plays'}"
-                                    TextColor="{AppThemeBinding Light=#1e1e1e,
-                                                                Dark=White}"
-                                    />-->
-                            </dx:DXStackLayout>
-
-                            <dx:DXButton
-                                x:Name="NavigateToArtistDetailsButton"
-                                Grid.Column="2"
-                                HorizontalContentAlignment="End"
-                                BackgroundColor="Transparent"
-                                CommandParameter="{Binding .}"
-                                HeightRequest="50"
-                                HorizontalOptions="End"
-                                Icon="arrowcircleright.png"
-                                IconColor="DarkSlateBlue"
-                                IconHeight="40"
-                                IconWidth="40"
-                                PressedBackgroundColor="DarkSlateBlue"
-                                PressedIconColor="{AppThemeBinding Dark=White,
-                                                                   Light=Black}"
-                                ShowContent="False"
-                                ShowIcon="True"
-                                Tap="NavigateToArtistDetailsButton_Tapped"
-                                TextColor="Red"
-                                WidthRequest="50"
-                                />
-                        </Grid>
-
-                    </dx:DXBorder>
-                </DataTemplate>
-            </dx:DXCollectionView.ItemTemplate>
-        </dx:DXCollectionView>
-
+                <dx:DXButton
+                    Clicked="SortAZ_Clicked"
+                    Content="Name (A to Z)"
+                    CornerRadius="12" />
+                <dx:DXButton
+                    Clicked="SortZA_Clicked"
+                    Content="Name (Z to A)"
+                    CornerRadius="12" />
+                <dx:DXButton
+                    Clicked="SortMostPlayed_Clicked"
+                    Content="Most Played"
+                    CornerRadius="12" />
+                <dx:DXButton
+                    Clicked="SortMostSongs_Clicked"
+                    Content="Most Songs"
+                    CornerRadius="12" />
+            </VerticalStackLayout>
+        </dx:BottomSheet>-->
+<!--  ==========================================================  -->
+<!--  5. POLISHED QUICK SONGS PREVIEW BOTTOM SHEET  -->
+<!--  ==========================================================  -->
+<!--
         <dx:BottomSheet
             x:Name="ArtistSongsBtmSheet"
-            Padding="15" IsModal="True"
-            >
-            <Grid RowDefinitions="auto,*" VerticalOptions="Start" RowSpacing="10">
-                <dx:DXStackLayout>
-                    <dx:Chip
-                        x:Name="PlayArtistSongsToNext"
+            AllowDismiss="True"
+            HalfExpandedRatio="0.75">
+            <Grid
+                Padding="16"
+                RowDefinitions="Auto,*"
+                RowSpacing="12">-->
+<!--  Header  -->
+<!--
+                <Grid
+                    Grid.Row="0"
+                    ColumnDefinitions="*,Auto"
+                    VerticalOptions="Center">
+                    <VerticalStackLayout Grid.Column="0">
+                        <Label
+                            FontAttributes="Bold"
+                            FontSize="20"
+                            Text="{Binding SelectedArtist.Name}" />
+                        <Label
+                            FontSize="13"
+                            Opacity="0.6"
+                            Text="Top Songs" />
+                    </VerticalStackLayout>
+
+                    <dx:DXButton
+                        Grid.Column="1"
+                        BackgroundColor="DarkSlateBlue"
+                        Clicked="PlayAllArtistSongsNext_Clicked"
+                        Content="Play Next"
+                        CornerRadius="19"
+                        HeightRequest="38"
                         Icon="playlistadd.png"
-                        IsIconVisible="True"
-                        Text="Flush All To Play Next"
-                        />
-                </dx:DXStackLayout>
-                <dx:DXCollectionView HeightRequest="300"
+                        ShowIcon="True"
+                        TextColor="White" />
+                </Grid>-->
+<!--  Track List  -->
+<!--
+                <dx:DXCollectionView
                     x:Name="ArtistSongsCV"
                     Grid.Row="1"
-                    ItemsSource="{Binding SelectedArtist.SongsByArtist}"
-                    Tap="ArtistSongsCV_Tap"
-                    >
+                    ItemSpacing="8"
+                    ItemsSource="{Binding SelectedArtist.SongsByArtist}">
                     <dx:DXCollectionView.ItemTemplate>
                         <DataTemplate x:DataType="models:SongModelView">
                             <Grid
-                                ColumnDefinitions="50,*,auto"
-                                ColumnSpacing="10"
-                                RowDefinitions="80"
-                                >
+                                ColumnDefinitions="45,*,Auto"
+                                ColumnSpacing="12"
+                                HeightRequest="50">
                                 <dx:DXImage
                                     Grid.Column="0"
-                                    Source="{Binding CoverImagePath}"
-                                    VerticalOptions="Start"
-                                    />
-                                <dx:DXStackLayout Grid.Column="1" ItemSpacing="5">
+                                    Aspect="AspectFill"
+                                    Source="{Binding CoverImagePath}" />
 
-                                    <Label FontSize="20" Text="{Binding Title}" />
-                                    <Label FontSize="13" Text="{Binding AlbumName}" />
+                                <VerticalStackLayout
+                                    Grid.Column="1"
+                                    Spacing="2"
+                                    VerticalOptions="Center">
+                                    <Label
+                                        FontAttributes="Bold"
+                                        FontSize="15"
+                                        LineBreakMode="TailTruncation"
+                                        Text="{Binding Title}" />
+                                    <Label
+                                        FontSize="12"
+                                        LineBreakMode="TailTruncation"
+                                        Opacity="0.6"
+                                        Text="{Binding AlbumName}" />
+                                </VerticalStackLayout>
 
-                                </dx:DXStackLayout>
-                                <dx:DXStackLayout
+                                <dx:DXButton
                                     Grid.Column="2"
-                                    Orientation="Horizontal"
-                                    VerticalOptions="Start"
-                                    >
-                                    <dx:DXButton
-                                        Padding="2"
-                                        BackgroundColor="Transparent"
-                                        Icon="heart.png"
-                                        IconHeight="30"
-                                        IconWidth="30"
-                                        IsVisible="False"
-                                        ShowContent="False"
-                                        ShowIcon="True"
-                                        >
-                                        <dx:DXButton.Triggers>
-                                            <DataTrigger
-                                                Binding="{Binding IsFavorite}"
-                                                TargetType="dx:DXButton"
-                                                Value="True"
-                                                >
-                                                <Setter Property="Icon" Value="heartlock.png" />
-                                            </DataTrigger>
-                                            <DataTrigger
-                                                Binding="{Binding IsFavorite}"
-                                                TargetType="dx:DXButton"
-                                                Value="False"
-                                                >
-                                                <Setter Property="Icon" Value="heart.png" />
-                                            </DataTrigger>
-                                        </dx:DXButton.Triggers>
-                                    </dx:DXButton>
-
-                                    <dx:DXButton
-                                        x:Name="AddSongToNextInPlaylist"
-                                        Padding="2"
-                                        BackgroundColor="Transparent"
-                                        CommandParameter="{Binding .}"
-                                        Icon="playlistadd.png"
-                                        IconColor="DarkSlateBlue"
-                                        IconHeight="40"
-                                        IconWidth="40"
-                                        ShowContent="False"
-                                        ShowIcon="True"
-                                        Tap="AddSongToNextInPlaylist_Tap"
-                                        />
-                                </dx:DXStackLayout>
+                                    BackgroundColor="Transparent"
+                                    Clicked="AddSingleSongToNext_Clicked"
+                                    CommandParameter="{Binding .}"
+                                    CornerRadius="18"
+                                    HeightRequest="36"
+                                    Icon="playlistadd.png"
+                                    IconColor="DarkSlateBlue"
+                                    ShowContent="False"
+                                    ShowIcon="True"
+                                    WidthRequest="36" />
                             </Grid>
                         </DataTemplate>
                     </dx:DXCollectionView.ItemTemplate>
@@ -208,7 +676,5 @@
             </Grid>
         </dx:BottomSheet>
 
-
-
     </Grid>
-</ContentPage>
+</ContentPage>-->

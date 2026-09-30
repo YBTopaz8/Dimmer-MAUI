@@ -88,7 +88,7 @@ public partial int MinReleaseYear { get; set; } = 1950;
             new SortFieldInfo { FieldName = "ReleaseYear", DisplayName = "Release Year" },
             new SortFieldInfo { FieldName = "DurationInSeconds", DisplayName = "Duration" },
             new SortFieldInfo { FieldName = "NumberOfTimesFaved", DisplayName = "Favorite Count" },
-            new SortFieldInfo { FieldName = "PlayCount", DisplayName = "Play Count" },
+            new SortFieldInfo { FieldName = "PlayCount", DisplayName = "PlayAsync Count" },
             new SortFieldInfo { FieldName = "Rating", DisplayName = "Rating" },
             new SortFieldInfo { FieldName = "DateCreated", DisplayName = "Date Added" },
             new SortFieldInfo { FieldName = "LastPlayed", DisplayName = "Last Played" },

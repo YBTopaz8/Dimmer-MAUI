@@ -97,30 +97,68 @@ public class SongStatsService
 
         DiscoveryAnniversary = snapshotStream.Select(s => s.Lifespan).ObserveOn(RxSchedulers.UI);
     }
-
     private SongSnapshot CalculateSnapshot(SongModel? song, List<DimmerPlayEvent> events, List<DimmerPlayEvent> allEvents, Realm bgRealm)
     {
         if (song == null || events.Count == 0) return SongSnapshot.Empty();
 
-        int plays = events.Count(e => e.PlayType == 0);
-        int skips = events.Count(e => e.PlayType == 5);
-        int completes = events.Count(e => e.WasPlayCompleted || e.PlayType == 3);
+        // ========================================================
+        // OPTIMIZATION 1: Pre-filter lists so we only iterate ONCE
+        // ========================================================
+        var playEvents = new List<DimmerPlayEvent>();
+        var skipEvents = new List<DimmerPlayEvent>();
+        var completeEvents = new List<DimmerPlayEvent>();
 
-        // Specifics
+        // Cache local times to save heavy CPU datetime math during groupings
+        var localHours = new List<int>(events.Count);
+
+        foreach (var e in events)
+        {
+            if (e.PlayType == 0) playEvents.Add(e);
+            else if (e.PlayType == 5) skipEvents.Add(e);
+
+            if (e.WasPlayCompleted || e.PlayType == 3) completeEvents.Add(e);
+
+            localHours.Add(e.DatePlayed.ToLocalTime().Hour);
+        }
+
+        int plays = playEvents.Count;
+        int skips = skipEvents.Count;
+        int completes = completeEvents.Count;
+
+        // ========================================================
+        // FAST METRICS
+        // ========================================================
         var compRate = new TextStat("Completion Rate", plays > 0 ? $"{((double)completes / plays) * 100:F1}%" : "0%");
-        var avgDur = new TextStat("Avg Listen", TimeSpan.FromSeconds(events.Where(e => e.PlayType == 5 || e.PlayType == 3).Select(e => e.PositionInSeconds).DefaultIfEmpty(0).Average()).ToString(@"mm\:ss"));
-        var bingeGroup = events.Where(e => e.PlayType == 3).GroupBy(e => e.DatePlayed.Date).OrderByDescending(g => g.Count()).FirstOrDefault();
+
+        // Use the pre-filtered skip/complete events
+        var avgDurList = events.Where(e => e.PlayType == 5 || e.PlayType == 3).Select(e => e.PositionInSeconds).ToList();
+        var avgDur = new TextStat("Avg Listen", TimeSpan.FromSeconds(avgDurList.Count > 0 ? avgDurList.Average() : 0).ToString(@"mm\:ss"));
+
+        var bingeGroup = completeEvents.GroupBy(e => e.DatePlayed.Date).OrderByDescending(g => g.Count()).FirstOrDefault();
         var binge = new TextStat("Binge Factor", bingeGroup != null ? $"{bingeGroup.Count()} plays in 1 day" : "N/A");
 
-        var radar = new List<ChartPoint> { new("Plays", plays), new("Skips", skips), new("Completions", completes), new("Repeats", events.Count(e => e.PlayType == 6 || e.PlayType == 8)) };
-        var dropOff = events.Where(e => e.PlayType == 5 && e.PositionInSeconds > 0).GroupBy(e => Math.Floor(e.PositionInSeconds / 10) * 10).Select(g => new ChartPoint($"{g.Key}s", g.Count(), g.Key)).OrderBy(c => c.XValue).ToList();
+        var radar = new List<ChartPoint> {
+        new("Plays", plays),
+        new("Skips", skips),
+        new("Completions", completes),
+        new("Repeats", events.Count(e => e.PlayType == 6 || e.PlayType == 8))
+    };
 
-        // 5. Eddington Number
+        var dropOff = skipEvents.Where(e => e.PositionInSeconds > 0)
+            .GroupBy(e => Math.Floor(e.PositionInSeconds / 10) * 10)
+            .Select(g => new ChartPoint($"{g.Key}s", g.Count(), g.Key))
+            .OrderBy(c => c.XValue).ToList();
+
+        // ========================================================
+        // COMPLEX METRICS
+        // ========================================================
+
+        // Eddington Number
         var dailyPlays = events.GroupBy(e => e.DatePlayed.Date).Select(g => g.Count()).OrderByDescending(c => c).ToList();
         int eddington = dailyPlays.Where((count, index) => count >= index + 1).Count();
         var eddStat = new TextStat("Eddington No.", eddington.ToString(), $"Played {eddington}+ times on {eddington}+ days");
 
-        // 6. Play Streak
+        // PlayAsync Streak
         int maxStreak = 0, currentStreak = 0;
         DateTime? lastDate = null;
         foreach (var date in events.Select(e => e.DatePlayed.Date).Distinct().OrderBy(d => d))
@@ -132,50 +170,56 @@ public class SongStatsService
         }
         var streakStat = new TextStat("Max Play Streak", $"{maxStreak} Days", "Consecutive days played");
 
-        // 7. Time To Skip
-        var skipEvents = events.Where(e => e.PlayType == 5 && e.PositionInSeconds > 0).ToList();
+        // Time To Skip
         var avgPatience = skipEvents.Count != 0 ? TimeSpan.FromSeconds(skipEvents.Average(e => e.PositionInSeconds)) : TimeSpan.Zero;
         var patienceStat = new TextStat("Avg Time-to-Skip", avgPatience.ToString(@"mm\:ss"), "Patience before skipping");
 
-        // Pairings & Predictability
+        // Pairings (Using the optimized Realm Query)
         Dictionary<ObjectId, int> pairingsDict = new();
         int totalFollowUps = 0;
-        for (int i = 0; i < allEvents.Count - 1; i++)
+
+        foreach (var ev in events)
         {
-            if (allEvents[i].SongId == song.Id && allEvents[i + 1].SongId.HasValue && allEvents[i + 1].SongId != song.Id && (allEvents[i + 1].DatePlayed - allEvents[i].DatePlayed).TotalMinutes < 15)
+            var nextEndTime = ev.DatePlayed.AddMinutes(15);
+            var nextEvent = bgRealm.All<DimmerPlayEvent>()
+                .Where(e => e.DatePlayed > ev.DatePlayed && e.DatePlayed <= nextEndTime)
+                .OrderBy(e => e.DatePlayed)
+                .FirstOrDefault();
+
+            if (nextEvent != null && nextEvent.SongId.HasValue && nextEvent.SongId != song.Id)
             {
-                pairingsDict[allEvents[i + 1].SongId.Value] = pairingsDict.GetValueOrDefault(allEvents[i + 1].SongId.Value) + 1;
+                pairingsDict[nextEvent.SongId.Value] = pairingsDict.GetValueOrDefault(nextEvent.SongId.Value) + 1;
                 totalFollowUps++;
             }
         }
+
         var pairings = pairingsDict.OrderByDescending(kvp => kvp.Value).Take(10).Select(kvp =>
         {
-            var dimEvent = allEvents.First(x => x.SongId == kvp.Key).ToDimmerPlayEventView()! ;
-            bool isPresentOnDevice=false;
-            var songInDB = bgRealm.Find<SongModel>(dimEvent.SongId);
-
-            dimEvent.SongId = ObjectId.Empty;
-            if (songInDB is not null)
-            {
-                isPresentOnDevice = true;
-                dimEvent.SongId = songInDB.Id;
-                dimEvent.CoverImagePath = songInDB.CoverImagePath;
-            }
-            var songPair = new SongPairing(dimEvent.SongName, kvp.Value, "Played Next", dimEvent.CoverImagePath, null,dimEvent.SongId,isPresentOnDevice);
-            return songPair;
+            var pairedSongInDB = bgRealm.Find<SongModel>(kvp.Key);
+            return new SongPairing(
+                PairedSongTitle: pairedSongInDB?.Title ?? "Unknown Song",
+                TimesPlayedTogether: kvp.Value,
+                Context: "Played Next",
+                CoverImagePath: pairedSongInDB?.CoverImagePath,
+                songTitleDurationKey: pairedSongInDB?.TitleDurationKey,
+                songId: kvp.Key,
+                isPresentOnDevice: pairedSongInDB != null
+            );
         }).ToList();
+
         var predict = new TextStat("Predictability", totalFollowUps > 0 && pairings.Count != 0 ? $"{((double)pairings.First().TimesPlayedTogether / totalFollowUps) * 100:F0}%" : "N/A", "Chance of playing top pair next");
 
-        // 1. Hour of Power (The specific hour this song peaks)
-        var hourOfPower = events.GroupBy(e => e.DatePlayed.ToLocalTime().Hour).OrderByDescending(g => g.Count()).FirstOrDefault();
+        // ========================================================
+        // DATE & TIME METRICS (Using the cached localHours!)
+        // ========================================================
+        var hourOfPower = localHours.GroupBy(h => h).OrderByDescending(g => g.Count()).FirstOrDefault();
         var hourOfPowerStat = new TextStat("Hour of Power", hourOfPower != null ? $"{hourOfPower.Key}:00" : "N/A", "Most frequent listening hour");
 
-        // 2. Seasonal Preference (Spring, Summer, Fall, Winter)
         var seasonPlays = events.GroupBy(e => (e.DatePlayed.Month % 12) / 3).OrderByDescending(g => g.Count()).FirstOrDefault();
         string seasonName = seasonPlays?.Key switch { 0 => "Winter", 1 => "Spring", 2 => "Summer", 3 => "Fall", _ => "Unknown" };
         var seasonalStat = new TextStat("Seasonal Vibe", seasonName, "Highest played season");
 
-        // 3. Repeat Offender (Max consecutive plays in one sitting)
+        // Repeat Offender
         int maxConsecutive = 0, currentConsecutive = 0;
         for (int i = 1; i < events.Count; i++)
         {
@@ -185,39 +229,41 @@ public class SongStatsService
         }
         var repeatStat = new TextStat("Repeat Offender", $"{maxConsecutive + 1}x", "Most consecutive loops");
 
-        // 4. Night Owl vs Early Bird (AM vs PM dominance)
-        int amPlays = events.Count(e => e.DatePlayed.ToLocalTime().Hour < 12);
+        // Night Owl vs Early Bird (Using cached localHours!)
+        int amPlays = localHours.Count(h => h < 12);
         int pmPlays = events.Count - amPlays;
         var amPmStat = new TextStat("Time Bias", amPlays > pmPlays ? "Early Bird (AM)" : "Night Owl (PM)", $"{Math.Max(amPlays, pmPlays)} plays");
 
-        // 5. Resurrection Factor (Longest time between discovering and actually bingeing)
+        // Resurrection Factor
         var firstPlay = events.Min(e => e.DatePlayed);
-        var firstBinge = bingeGroup?.Key ?? firstPlay.Date; // From your existing binge logic
+        var firstBinge = bingeGroup?.Key ?? firstPlay.Date;
         var resFactor = new TextStat("Resurrection", $"{(firstBinge - firstPlay).TotalDays:F0} days", "From discovery to peak binge");
 
-        // 6. Milestone Tracker (Next big play milestone)
-        int[] milestones = { 10, 50, 100, 500, 1000 };
+        // Milestone Tracker
+        int[] milestones = { 10, 50, 100, 500, 1000, 5000, 10000 };
         int nextMilestone = milestones.FirstOrDefault(m => m > plays);
         var milestoneStat = new TextStat("Next Milestone", nextMilestone > 0 ? $"{plays}/{nextMilestone}" : "Legendary", "Plays to next tier");
 
-        // 7. Skip Velocity (Are they skipping earlier or later over time?)
-        var recentSkips = events.Where(e => e.PlayType == 5).OrderByDescending(e => e.DatePlayed).Take(5).Select(e => e.PositionInSeconds);
-        var oldSkips = events.Where(e => e.PlayType == 5).OrderBy(e => e.DatePlayed).Take(5).Select(e => e.PositionInSeconds);
+        // Skip Velocity (Using pre-filtered skipEvents!)
+        var recentSkips = skipEvents.OrderByDescending(e => e.DatePlayed).Take(5).Select(e => e.PositionInSeconds).ToList();
+        var oldSkips = skipEvents.OrderBy(e => e.DatePlayed).Take(5).Select(e => e.PositionInSeconds).ToList();
         double recentAvg = recentSkips.Any() ? recentSkips.Average() : 0;
         double oldAvg = oldSkips.Any() ? oldSkips.Average() : 0;
         var skipVelStat = new TextStat("Skip Trend", recentAvg > oldAvg ? "More Patient" : "Less Patient", "Patience trend over time");
 
-        // 8. Anniversary (When is its next discovery birthday?)
+        // Anniversary
         var nextAnni = new DateTimeOffset(DateTime.UtcNow.Year, firstPlay.Month, firstPlay.Day, 0, 0, 0, TimeSpan.Zero);
         if (nextAnni < DateTimeOffset.UtcNow) nextAnni = nextAnni.AddYears(1);
         var anniStat = new TextStat("Discovery Anniversary", $"In {(nextAnni - DateTimeOffset.UtcNow).TotalDays:F0} days", firstPlay.ToString("MMM d"));
 
-
-        return new SongSnapshot(CommonStatsHelper.GetTotalPlayTime(events),seasonalStat,repeatStat,amPmStat,resFactor, CommonStatsHelper.GetPlaySkipRatio(events),milestoneStat,skipVelStat,anniStat,CommonStatsHelper.GetTimeOfDayHeatmap(events), CommonStatsHelper.GetDayOfWeekHeatmap(events),
-            CommonStatsHelper.GetRollingMonthlyTrend(events), CommonStatsHelper.GetRollingWeeklyTrend(events), CommonStatsHelper.GetDiscoveryLifespan(events),  
-            compRate, avgDur, binge, predict, eddStat, streakStat, patienceStat, radar, dropOff, pairings);
+        return new SongSnapshot(
+            CommonStatsHelper.GetTotalPlayTime(events), seasonalStat, repeatStat, amPmStat, resFactor,
+            CommonStatsHelper.GetPlaySkipRatio(events), milestoneStat, skipVelStat, anniStat,
+            CommonStatsHelper.GetTimeOfDayHeatmap(events), CommonStatsHelper.GetDayOfWeekHeatmap(events),
+            CommonStatsHelper.GetRollingMonthlyTrend(events), CommonStatsHelper.GetRollingWeeklyTrend(events),
+            CommonStatsHelper.GetDiscoveryLifespan(events), compRate, avgDur, binge, predict, eddStat,
+            streakStat, patienceStat, radar, dropOff, pairings);
     }
-
     private record SongSnapshot(TextStat TotalTime,TextStat SeasonalStat, TextStat RepeatStat, TextStat AmPmStat, TextStat ResFactor, IReadOnlyList<ChartPoint> PlaySkipRatio,TextStat MileStoneStat,TextStat SkipVelStat,TextStat AnnivStat, IReadOnlyList<ChartPoint> TimeOfDayHeatmap, IReadOnlyList<ChartPoint> DayOfWeekHeatmap, IReadOnlyList<TrendStat> MonthlyTrend,  IReadOnlyList<TrendStat> WeeklyTrend, TextStat Lifespan, TextStat CompRate, TextStat AvgDuration, TextStat Binge, TextStat Predict, TextStat Eddington, TextStat Streak, TextStat TimeToSkip, IReadOnlyList<ChartPoint> Radar, IReadOnlyList<ChartPoint> DropOff, IReadOnlyList<SongPairing> Pairings)
     {
         public static SongSnapshot Empty()

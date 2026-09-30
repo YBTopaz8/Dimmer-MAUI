@@ -380,28 +380,8 @@ public sealed partial class DimmerWin : Window
             TopRowGrid.Visibility = Visibility.Collapsed;
         }
 
-        Debug.WriteLine(e.Uri);
 
-        //else if (navPageType == typeof(AllArtistsPage))
-        //{
-        //    DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[1];
-        //}
-        //else if (navPageType == typeof(AllAlbumsPage))
-        //{
-        //    DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[2];
-        //}
-        //else if (navPageType == typeof(LastFmPage))
-        //{
-        //    DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[3];
-        //}
-        //else if (navPageType == typeof(DimmerToolKit))
-        //{
-        //    DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[4];
-        //}
-        //else if (navPageType == typeof(SettingsPage))
-        //{
-        //    DimmerAppSelectorBar.SelectedItem = DimmerAppSelectorBar.Items[5];
-        //}
+
     }
 
     private void CurrentSongImg_Tapped(object sender, TappedRoutedEventArgs e)
@@ -739,11 +719,12 @@ public sealed partial class DimmerWin : Window
         contStackPanel.Children.Add(usrQueryName);
         WindowedContentDialog dialog = new()
         {
-            Title = "Save Query",
+            
             Content = contStackPanel
             
         };
-        ContentDialogResult result = await dialog.ShowAsync(true);
+
+        ContentDialogResult result = await dialog.ShowAsync();
 
         switch (result)
         {
@@ -916,7 +897,7 @@ public sealed partial class DimmerWin : Window
             .Subscribe(curSong =>
             {
                 //if (!MyViewModel.IsDimmerPlaying) return;
-               if(!string.IsNullOrEmpty(curSong.CoverImagePath))
+               if(!string.IsNullOrEmpty(curSong?.CoverImagePath))
                 {
                     CurrentPlayingSongImage.Source = new BitmapImage(new Uri(curSong.CoverImagePath));
                     CurrentPlayingSongImage.Visibility = Visibility.Visible;
@@ -927,5 +908,15 @@ public sealed partial class DimmerWin : Window
                     CurrentPlayingSongImage.Visibility = Visibility.Collapsed;
                 }
             }).DisposeWith(compDisp);
+    }
+
+    private void StackPanel_Loaded(object sender, RoutedEventArgs e)
+    {
+        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.CurrentPlayingSongView), v => MyViewModel.CurrentPlayingSongView)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(async curSong =>
+            {
+                await Task.WhenAll(TextBlockHelper.AnimateTextChangeAsync(this.CurrentPlayingTitleTB, curSong.Title, TextBlockSlideDirection.LeftToRight), TextBlockHelper.AnimateTextChangeAsync(this.CurrentPlayingAlbumTB,curSong.AlbumName, TextBlockSlideDirection.LeftToRight), TextBlockHelper.AnimateTextChangeAsync(this.CurrentPlayingArtistsTB, curSong.OtherArtistsName, TextBlockSlideDirection.LeftToRight));
+            });
     }
 }

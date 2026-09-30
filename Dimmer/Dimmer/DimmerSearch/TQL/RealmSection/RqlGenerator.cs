@@ -11,10 +11,21 @@ public static class RqlGenerator
         LogicalNode n => HandleLogical(n), // Use a helper to clean up predicates
         NotNode n => $"NOT ({Generate(n.NodeToNegate)})",
         ClauseNode n => GenerateClause(n),
+        InNode n => GenerateInClause(n),
         FuzzyDateNode n => GenerateFuzzyDateClause(n),
         _ => MatchAllPredicate
     };
+    private static string GenerateInClause(InNode node)
+    {
+        if (!FieldRegistry.FieldsByAlias.TryGetValue(node.Field, out var fieldDef))
+            return MatchAllPredicate;
 
+        // Realm RQL format: FieldName IN {'Val1', 'Val2'}
+        var formattedValues = node.Values.Select(v => FormatValue(v, fieldDef.Type));
+        string clause = $"{fieldDef.PropertyName} IN {{{string.Join(", ", formattedValues)}}}";
+
+        return node.IsNegated ? $"NOT ({clause})" : clause;
+    }
     private static string HandleLogical(LogicalNode n)
     {
         string left = Generate(n.Left);
@@ -78,11 +89,15 @@ public static class RqlGenerator
             // --- HANDLE TEXT TYPE LAST (AS IT'S THE MOST COMPLEX) ---
             FieldType.Text => op switch
             {
+                // ADD THIS CHECK:
+                _ when value?.ToString()?.ToLowerInvariant() is "empty" or "none" or "null"
+                    => $"({fieldDef.PropertyName} == null OR {fieldDef.PropertyName} == '')",
+
                 "=" => $"{fieldDef.PropertyName} == {FormatValue(value)}",
                 "^" => $"{fieldDef.PropertyName} BEGINSWITH[c] {FormatValue(value)}",
                 "$" => $"{fieldDef.PropertyName} ENDSWITH[c] {FormatValue(value)}",
                 "~" => $"{fieldDef.PropertyName} LIKE[c] '*{value}*'",
-                _ => $"{fieldDef.PropertyName} CONTAINS[c] {FormatValue(value)}", // Default to contains
+                _ => $"{fieldDef.PropertyName} CONTAINS[c] {FormatValue(value)}",
             },
 
             // Fallback for any unhandled types
@@ -137,7 +152,7 @@ public static class RqlGenerator
         {
             FieldType.Text => $"'{value.ToString()?.Replace("'", "\\'")}'",
             FieldType.Numeric => Convert.ToDouble(value, CultureInfo.InvariantCulture).ToString(CultureInfo.InvariantCulture),
-            FieldType.Duration => ParseDuration(value.ToString()).ToString(CultureInfo.InvariantCulture),
+            FieldType.Duration => TqlUtilities.ParseDuration(value.ToString()).ToString(CultureInfo.InvariantCulture),
             FieldType.Boolean => ("true|yes|1".Contains(value.ToString()?.ToLowerInvariant() ?? "")) ? "true" : "false",
             FieldType.Date when value is DateTimeOffset dto => $"TIMESTAMP({dto.ToString("o")})",
             _ => $"'{value.ToString()?.Replace("'", "\\'")}'" // Default to string
@@ -186,55 +201,43 @@ public static class RqlGenerator
         if (string.IsNullOrWhiteSpace(value))
             return "TRUEPREDICATE";
 
-       if (op is ">" or "<" or ">=" or "<=")
+        // 1. Resolve Keyword first (e.g. "thisweek")
+        var parsedKeywordRange = ParseDateKeyword(value);
+
+        // 2. Handle specific operators (<, >, <=, >=)
+        if (op is ">" or "<" or ">=" or "<=")
         {
+            if (parsedKeywordRange.start != DateTimeOffset.MinValue)
+            {
+                return $"{fieldDef.PropertyName} {op} {FormatValue(parsedKeywordRange.start, FieldType.Date)}";
+            }
+
             if (DateTimeOffset.TryParse(value, out var boundaryDate))
             {
-       
                 return $"{fieldDef.PropertyName} {op} {FormatValue(boundaryDate, FieldType.Date)}";
             }
-            else
-            {
-    
-                return "FALSEPREDICATE";
-            }
+            return "FALSEPREDICATE";
         }
 
-     
-        var (start, end) = ParseDateKeyword(value);
+        // 3. Handle default range generation (no operator provided)
+        var start = parsedKeywordRange.start;
+        var end = parsedKeywordRange.end;
 
-      
+        // If it wasn't a keyword, try to parse it as an exact date
         if (start == DateTimeOffset.MinValue && DateTimeOffset.TryParse(value, out var singleDate))
         {
-            start = singleDate.Date; // StartAsync of the day
+            start = singleDate.Date; // Start of the day
             end = start.AddDays(1).AddTicks(-1); // End of the day
         }
 
-        // If we still don't have a valid date range, the input is invalid for a range query.
+        // If we STILL don't have a valid date, the input is garbage
         if (start == DateTimeOffset.MinValue)
         {
             return "FALSEPREDICATE";
         }
 
-        // Build the final range-based query. This is correct for keywords and exact date matches.
+        // Return final range-based query
         return $"{fieldDef.PropertyName} >= {FormatValue(start, FieldType.Date)} AND {fieldDef.PropertyName} <= {FormatValue(end, FieldType.Date)}";
-    }
+    }                   
 
-    private static double ParseDuration(string? text)
-    {
-        if (string.IsNullOrWhiteSpace(text))
-            return 0;
-        double totalSeconds = 0;
-        var parts = text.Split(':');
-        double multiplier = 1;
-        for (int i = parts.Length - 1; i >= 0; i--)
-        {
-            if (double.TryParse(parts[i], NumberStyles.Any, CultureInfo.InvariantCulture, out double val))
-            {
-                totalSeconds += val * multiplier;
-                multiplier *= 60;
-            }
-        }
-        return totalSeconds;
-    }
 }

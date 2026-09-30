@@ -1,24 +1,20 @@
-﻿using CommunityToolkit.Maui.Behaviors;
+using CommunityToolkit.Maui.Behaviors;
+using Dimmer.DimmerAudio;
 using Dimmer.WinUI.Views.WinuiPages.DimmsSection;
-
-
-
-
-
-
 //using Dimmer.DimmerLive;
 //using Dimmer.DimmerSearch;
 using Microsoft.UI.Xaml.Controls.Primitives;
-
-
+using Syncfusion.Maui.Toolkit.Chips;
+using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using Application = Microsoft.Maui.Controls.Application;
 using Border = Microsoft.Maui.Controls.Border;
 using ButtonM = Microsoft.Maui.Controls.Button;
 using ColorsM = Microsoft.Maui.Graphics.Colors;
+using MButton = Microsoft.Maui.Controls.Button;
 //using Microsoft.UI.Xaml.Controls;
 using ToolTip = Microsoft.UI.Xaml.Controls.ToolTip;
 using View = Microsoft.Maui.Controls.View;
-using MButton = Microsoft.Maui.Controls.Button;
 
 
 namespace Dimmer.WinUI.Views.MAUIPages;
@@ -31,7 +27,7 @@ public partial class HomePage : ContentPage
     public LastFMViewModel MyLastFMViewModel { get; internal set; }
     SongModelView CurrentPlayingSong => MyViewModel.CurrentPlayingSongView;
     private readonly Compositor _compositor = PlatUtils.MainWindowCompositor;
-    public HomePage(BaseViewModelWin vm, IWinUIWindowMgrService windowManagerService, 
+    public HomePage(BaseViewModelWin vm, IWinUIWindowMgrService windowManagerService,
         LoginViewModelWin LoginVM,
         LastFMViewModel lastFMViewModel,
         SessionManagementViewModel sessVM)
@@ -51,6 +47,7 @@ public partial class HomePage : ContentPage
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
+        compositeDisposable.Dispose();
     }
 
 
@@ -61,9 +58,8 @@ public partial class HomePage : ContentPage
         _ = InitializeAsync();
 
 
-
         Debug.WriteLine($"[UI VIEW] Bound to ViewModel Instance: {MyViewModel.InstanceId}");
-
+        compositeDisposable = new();
     }
 
     private async Task InitializeAsync()
@@ -550,7 +546,7 @@ public partial class HomePage : ContentPage
 
             MyViewModel.NavigateToAnyPageOfGivenType(typeof(NowPlayingPage));
             return;
-          
+
 
         }
         catch (Exception ex)
@@ -774,15 +770,15 @@ public partial class HomePage : ContentPage
     }
 
     bool _initialized;
-    private void MyPage_Loaded(object sender, EventArgs e)
+    private async void MyPage_Loaded(object sender, EventArgs e)
     {
         //FrameworkElement? send = (FrameworkElement?)MainScrollView.Handler?.PlatformView;
         //UIElement? sendUIElt = (UIElement?)MainScrollView.Handler?.PlatformView;
-       
+
         if (!_initialized)
         {
             _initialized = true;
-            MyViewModel.InitializeAllVMCoreComponents();
+            await MyViewModel.InitializeAllVMCoreComponents();
 
         }
     }
@@ -812,19 +808,19 @@ public partial class HomePage : ContentPage
 
             native.PointerEntered += (s, e) =>
             {
-                Native_PointerEntered(s, e); 
+                Native_PointerEntered(s, e);
                 send.BorderWidth = 2;
                 send.BorderColor = ColorsM.DarkSlateBlue;
-                
+
             };
 
             native.PointerExited += (s, e) =>
             {
-                Native_PointerExited(s, e); 
+                Native_PointerExited(s, e);
                 send.BorderWidth = 0;
                 send.BorderColor = ColorsM.Transparent;
                 toolTipAboutClickToCompleteOrSetSkipped?.IsOpen = false;
-                toolTipAboutClickToCompleteOrSetSkipped= null;
+                toolTipAboutClickToCompleteOrSetSkipped = null;
             };
 
 
@@ -846,13 +842,14 @@ public partial class HomePage : ContentPage
     private void Native_PointerExited(object sender, PointerRoutedEventArgs e)
     {
         var native = sender as Microsoft.UI.Xaml.UIElement;
-        if ( native is null)
+        if (native is null)
             return;
         PlatUtils.AnimateHoverUIElement(native, false, _compositor);
-            
+
     }
 
     private readonly List<Microsoft.UI.Xaml.UIElement> _borders = [];
+    private CompositeDisposable compositeDisposable;
 
     private void ButtonBorder_Loaded(object sender, EventArgs e)
     {
@@ -866,7 +863,7 @@ public partial class HomePage : ContentPage
 
             native.PointerEntered += (s, _) =>
             {
-               PlatUtils.AnimateHoverUIElement(native, true, _compositor);
+                PlatUtils.AnimateHoverUIElement(native, true, _compositor);
 
 
                 //AnimateBorderColor(send, true);
@@ -913,16 +910,16 @@ public partial class HomePage : ContentPage
         native.PointerEntered += (s, e) =>
         {
             MyViewModel.GetCurrentAudioDevice();
-            var CurrentVolumeAndCurrentDeviceSelected=
+            var CurrentVolumeAndCurrentDeviceSelected =
             $"Volume: {MyViewModel.DeviceVolumeLevel * 100:0}%\n" +
-            $"Device: {MyViewModel.SelectedAudioDevice?.Name?? "Default"}";
+            $"Device: {MyViewModel.SelectedAudioDevice?.Name ?? "Default"}";
             ToolTip volumeToolTip = new()
             {
                 Content = CurrentVolumeAndCurrentDeviceSelected,
                 Placement = PlacementMode.Top,
 
             };
-            
+
             ToolTipService.SetToolTip(native, volumeToolTip);
             volumeToolTip.IsOpen = true;
 
@@ -936,22 +933,22 @@ public partial class HomePage : ContentPage
         {
             var tt = ToolTipService.GetToolTip(native) as ToolTip;
             if (tt != null)
-                tt.IsOpen = false; 
-         
+                tt.IsOpen = false;
+
             PlatUtils.AnimateHoverUIElement(native, false, _compositor);
-            
+
             send.BorderWidth = 0;
             send.BorderColor = ColorsM.Transparent;
-           
+
         };
     }
 
     private void AudioDevicesButton_Loaded(object sender, EventArgs e)
     {
-        
+
     }
 
-    
+
     private void ArtistBtn_Clicked(object sender, EventArgs e)
     {
 
@@ -980,24 +977,21 @@ public partial class HomePage : ContentPage
                 if (MyViewModel.CurrentPlayingSongView is null) return;
                 var items = MyViewModel.PlaybackQueueSource.Items;
                 var isInItems = items.Contains(MyViewModel.CurrentPlayingSongView);
-                if(!isInItems) return;
+                if (!isInItems) return;
 
                 //scroll to current song in the now playing queue
             }
         }
     }
 
-    private void MainScrollView_Scrolled(object sender, ScrolledEventArgs e)
-    {
-        
-    }
+
 
     private void ViewNPQ_Loaded(object sender, EventArgs e)
     {
         ButtonLoaded(sender, e);
         var senderUIElement = (sender as ButtonM)?.Handler?.PlatformView as Microsoft.UI.Xaml.UIElement;
 
-        if(senderUIElement is null) return;
+        if (senderUIElement is null) return;
         ElementCompositionPreview.SetIsTranslationEnabled(senderUIElement, true);
 
         senderUIElement.PointerEntered += Native_PointerEntered;
@@ -1005,19 +999,19 @@ public partial class HomePage : ContentPage
         senderUIElement.PointerExited += Native_PointerExited;
     }
 
- 
+
     private void ViewNPQ_Unloaded(object sender, EventArgs e)
     {
         var native = sender as Microsoft.UI.Xaml.UIElement;
         if (native is null) return;
-       
+
         PlatUtils.AnimateHoverUIElement(native, false, _compositor);
 
         native.PointerExited -= Native_PointerExited;
         native.PointerEntered -= Native_PointerEntered;
     }
 
-  
+
     private void ArtistBtn_ClickedFromNPQ(object sender, EventArgs e)
     {
 
@@ -1054,10 +1048,10 @@ public partial class HomePage : ContentPage
 
     private async void UserLoginClicked(object sender, EventArgs e)
     {
-        if(loginVM is not null)
+        if (loginVM is not null)
         {
-          await  loginVM.NavigateToProfilePageAsync();
-            
+            await loginVM.NavigateToProfilePageAsync();
+
         }
 
     }
@@ -1066,21 +1060,21 @@ public partial class HomePage : ContentPage
     {
         var send = (ImageButton)sender;
         await loginVM.InitAsync();
-        if(loginVM.CurrentUserOnline is not null && !string.IsNullOrEmpty(loginVM.CurrentUserOnline.ProfileImagePath))
+        if (loginVM.CurrentUserOnline is not null && !string.IsNullOrEmpty(loginVM.CurrentUserOnline.ProfileImagePath))
         {
             send.Source = loginVM.CurrentUserOnline.ProfileImagePath;
-            _= sessionVM.RegisterCurrentDeviceAsync();
+            _ = sessionVM.RegisterCurrentDeviceAsync();
         }
 
-        
-        loginVM.CurrentUserOnline?.WhenPropertyChanged(nameof(loginVM.CurrentUserOnline.SessionToken), v=>loginVM.CurrentUserOnline)
+
+        loginVM.CurrentUserOnline?.WhenPropertyChanged(nameof(loginVM.CurrentUserOnline.SessionToken), v => loginVM.CurrentUserOnline)
             .ObserveOn(RxSchedulers.UI)
             .Subscribe(x =>
             {
                 if (string.IsNullOrEmpty(x.SessionToken)) return;
                 send.Source = loginVM.CurrentUserOnline.ProfileImagePath;
 
-            });            
+            });
     }
 
     private void ViewFullStatsClicked(object sender, EventArgs e)
@@ -1100,33 +1094,33 @@ public partial class HomePage : ContentPage
     private void SongTitlePointerReg_PointerPressed(object sender, PointerEventArgs e)
     {
         MyViewModel.SelectedSong = MyViewModel.CurrentPlayingSongView;
-      
-            MyViewModel.NavigateToAnyPageOfGivenType(typeof(SongDetailPage));
-     
+
+        MyViewModel.NavigateToAnyPageOfGivenType(typeof(SongDetailPage));
+
     }
 
     private void ViewAllSongs_Clicked(object sender, EventArgs e)
     {
-       
+
 
         MyViewModel.NavigateToAnyPageOfGivenType(typeof(AllSongsListPage));
-        
+
         //MyViewModel.SearchSongForSearchResultHolder(TQlStaticMethods.PresetQueries.DescAdded());
 
     }
 
-    private void AudioDeviceSwitcherButton_Clicked(object sender, EventArgs e)
-    {  
+    private async void AudioDeviceSwitcherButton_Clicked(object sender, EventArgs e)
+    {
         var send = (View)sender;
         var platView = send.Handler?.PlatformView as Microsoft.UI.Xaml.UIElement;
 
         if (platView is null) return;
-        MyViewModel.LoadAllAudioDevices();
-        if (MyViewModel.AudioDevices is null) return;
+        await MyViewModel.LoadAllAudioDevices();
+        if (MyViewModel.AvailableDevices is null) return;
 
-        var audioDevicesList = MyViewModel.AudioDevices.Select(x =>
+        var audioDevicesList = MyViewModel.AvailableDevices.Select(x =>
         {
-            if(MyViewModel.SelectedAudioDevice?.Id == x.Id)
+            if (MyViewModel.SelectedAudioDevice?.Id == x.Id)
             {
                 var menFlyOut = new Microsoft.UI.Xaml.Controls.ToggleMenuFlyoutItem
                 {
@@ -1160,7 +1154,7 @@ public partial class HomePage : ContentPage
         menu.Items.Clear();
         foreach (var item in audioDevicesList)
         {
-            
+
             menu.Items.Add(item);
         }
         FlyoutShowOptions flyoutPlace = new FlyoutShowOptions
@@ -1194,7 +1188,7 @@ public partial class HomePage : ContentPage
         ButtonLoaded(sender, e);
         if (MyViewModel.CurrentTrackPositionPercentage >= 90)
         {
-            var nativePreviousBtn= (UIElement)sender;
+            var nativePreviousBtn = (UIElement)sender;
             ShowToolTipTellingUserThatSkippingWillAutomaticallySaveSongAsCompletedTooAndRightClickWillSaveAsSkipped(
                 nativePreviousBtn);
             nativePreviousBtn.RightTapped += NativePreviousBtn_RightTapped; ;
@@ -1209,32 +1203,10 @@ public partial class HomePage : ContentPage
 
     private void ViewLyricsChip_Loaded(object sender, EventArgs e)
     {
-        if(CurrentPlayingSong.HasSyncedLyrics)
-        {
-            ViewLyricsChip.Behaviors
-                .Add(
-                    new IconTintColorBehavior()                        
-                    {
-                        TintColor = ColorsM.DarkSlateBlue,
-                    });
-            return;
-        }
-        if(CurrentPlayingSong.HasLyrics)
-        {
-            ViewLyricsChip.Behaviors
-                .Add(
-                    new IconTintColorBehavior()
-                    {
-                        TintColor = ColorsM.DarkSlateGray,
-                    });
-            return;
-        }
-        var platElt = ((MButton)sender).Handler?.PlatformView;
-        var nativeElt = (UIElement?)platElt;
-        if(nativeElt is null)
-            return;
 
-    
+
+
+
     }
     private bool _isUserDragging = false;
     private double _pendingSeekValue;
@@ -1260,7 +1232,7 @@ public partial class HomePage : ContentPage
     }
     private void ExecuteSeek(object? state)
     {
-        MainThread.BeginInvokeOnMainThread(() =>
+        MainThread.BeginInvokeOnMainThread(async () =>
         {
             // Critical: Don't let timer cause multiple seeks
             var value = _pendingSeekValue;
@@ -1268,7 +1240,7 @@ public partial class HomePage : ContentPage
 
             // Update ViewModel's property to keep binding in sync
             MyViewModel.CurrentTrackPositionSeconds = value;
-            MyViewModel.SeekTrackPosition(value);
+            await MyViewModel.SeekTrackPositionAsync(value);
 
             //PreviewTimeLabel.IsVisible = false;
         });
@@ -1278,4 +1250,69 @@ public partial class HomePage : ContentPage
     {
         _debounceTimer?.Dispose();
     }
+
+    private void ToggleEqualizer_Toggled(object sender, ToggledEventArgs e)
+    {
+        MyViewModel.ToggleEqualizer();
+    }
+
+    private void SetPlaybackMode_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.Chips.SelectionChangedEventArgs e)
+    {
+        var itemm = e.AddedItem as IEnumerable<SfChip>;
+
+        if (itemm is not null && itemm.Any())
+        {
+            var pbPreset = (itemm.FirstOrDefault()?.CommandParameter as string);
+            switch (pbPreset)
+            {
+                case "Normal":
+                    MyViewModel.SetPlayBackFromEnum(PlaybackModeEnum.Normal);
+                    break;
+                case "Nightcore":
+                    MyViewModel.SetPlayBackFromEnum(PlaybackModeEnum.Nightcore);
+                    break;
+                case "Slowed":
+                    MyViewModel.SetPlayBackFromEnum(PlaybackModeEnum.Slowed);
+                    break;
+                case "SlowedAndReverb":
+                    MyViewModel.SetPlayBackFromEnum(PlaybackModeEnum.SlowedAndReverb);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    private void EQChipGroup_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.Chips.SelectionChangedEventArgs e)
+    {
+
+    }
+
+    private async void ViewLastFM_Loaded(object sender, EventArgs e)
+    {
+        var send = (ImageButton)sender;
+
+
+        if (MyLastFMViewModel.LastFMService.IsAuthenticated && !string.IsNullOrEmpty(MyLastFMViewModel.CurrentUserLocal?.LastFMAccountInfo.Image.Url))
+        {
+            send.Source = MyViewModel.CurrentUserLocal.LastFMAccountInfo.Image.Url;
+        }
+
+
+        MyLastFMViewModel.LastFMService.IsAuthenticatedChanged
+          .ObserveOn(RxSchedulers.UI)
+          .Subscribe(
+        async isAuthenticated =>
+        {
+            send.Source = MyLastFMViewModel.LastFMUserInfo?.Images.FirstOrDefault(x => !string.IsNullOrEmpty(x.Url))?.Url;
+
+        }).DisposeWith(this.compositeDisposable);
+    }
+
+    private async void PlaybackBtmSheettOpener_Clicked(object sender, EventArgs e)
+    {
+        BtmPart.IsVisible = true;
+        await MainScrollView.ScrollToAsync(BtmPart, position: ScrollToPosition.Start, true);
+    }
+
 }

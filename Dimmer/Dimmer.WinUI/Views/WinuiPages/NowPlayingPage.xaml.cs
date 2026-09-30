@@ -1,18 +1,23 @@
-﻿using Microsoft.UI.Xaml.Controls.Primitives;
+﻿using DevWinUI;
+using DynamicData.Binding;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
+using Grid = Microsoft.UI.Xaml.Controls.Grid;
 using Point = Windows.Foundation.Point;
 namespace Dimmer.WinUI.Views.WinuiPages;
 
 public sealed partial class NowPlayingPage : Page
 {
+    public LyricData? CurrentLyricData { get; private set; }
     public NowPlayingPage()
     {
         InitializeComponent();
 
-        _previewTimer = new DispatcherTimer();
-        _previewTimer.Interval = TimeSpan.FromMilliseconds(50);
-        _previewTimer.Tick += OnPreviewTick;
+
+        ProgressSlider.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler(OnSliderPointerPressed), true);
+        ProgressSlider.AddHandler(UIElement.PointerReleasedEvent, new PointerEventHandler(OnSliderPointerReleased), true);
+        ProgressSlider.AddHandler(UIElement.PointerCaptureLostEvent, new PointerEventHandler(OnSliderPointerReleased), true);
     }
 
     public BaseViewModelWin MyViewModel { get; internal set; }
@@ -21,14 +26,12 @@ public sealed partial class NowPlayingPage : Page
     {
         MyViewModel?.OpenLyricsPopUpWindow(1);
     }
-    List<string> ArrayOfGoeyy;
     protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
     {
 
         MyViewModel = IPlatformApplication.Current?.Services.GetService<BaseViewModelWin>()!;
-       ArrayOfGoeyy = new List<string>();
-        ArrayOfGoeyy.Add("Favorite");
-        ArrayOfGoeyy.Add("Note");
+      
+
         MyViewModel.CurrentPageEnum = CurrentPage.NowPlayingPage;
         compDisp = new();
 
@@ -126,13 +129,13 @@ public sealed partial class NowPlayingPage : Page
                 viewBy.Items.Add(viewAlbums);
                 viewBy.Items.Add(viewGenres);
 
-                // Play Songs...
-                var play = new Microsoft.UI.Xaml.Controls.MenuFlyoutSubItem { Text = "Play / Queue" };
+                // PlayAsync Songs...
+                var play = new Microsoft.UI.Xaml.Controls.MenuFlyoutSubItem { Text = "PlayAsync / Queue" };
 
-                var playInAlbum = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = "Play Songs In This Album" };
+                var playInAlbum = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = "PlayAsync Songs In This Album" };
                 playInAlbum.Click += (_, __) => TryVM(a => a.PlaySongsByArtistInCurrentAlbum(song, artistName));
 
-                var playAll = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = "Play All by Artist" };
+                var playAll = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = "PlayAsync All by Artist" };
                 playAll.Click += (_, __) => TryVM(a => a.PlayAllSongsByArtist(song, artistName));
 
                 var queueAll = new Microsoft.UI.Xaml.Controls.MenuFlyoutItem { Text = "Queue All by Artist" };
@@ -337,31 +340,15 @@ public sealed partial class NowPlayingPage : Page
     }
     CompositeDisposable compDisp;
 
-    private void ListView_SelectionChanged(object sender, Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs e)
-    {
-        SyncLyricsListView.ScrollIntoView(MyViewModel.CurrentLine,ScrollIntoViewAlignment.Leading);
-    }
+
 
     private bool _isDragging = false;
     private double _dragStartValue;
-    private DispatcherTimer _previewTimer;
+
     private void OnSliderPointerPressed(object sender, PointerRoutedEventArgs e)
     {
         _isDragging = true;
-        _dragStartValue = ProgressSlider.Value;
-
-        // Capture pointer for smooth tracking
-        ProgressSlider.CapturePointer(e.Pointer);
-
-        // Update position immediately on click
-        var point = e.GetCurrentPoint(ProgressSlider);
-        var newValue = CalculateValueFromPoint(point.Position);
-        ProgressSlider.Value = newValue;
-
-        // Start preview timer
-        _previewTimer.Start();
-
-        e.Handled = true;
+        MyViewModel.IsSliderBeingDragged = true;
     }
 
     private void OnSliderPointerMoved(object sender, PointerRoutedEventArgs e)
@@ -380,25 +367,17 @@ public sealed partial class NowPlayingPage : Page
 
     private async void OnSliderPointerReleased(object sender, PointerRoutedEventArgs e)
     {
+        if (!_isDragging) return;
         _isDragging = false;
 
-        // Stop preview timer
-        _previewTimer.Stop();
-
-        // Only seek if value actually changed
-        if (Math.Abs(ProgressSlider.Value - _dragStartValue) > 0.01)
+        if (MyViewModel != null)
         {
-            var finalValue = ProgressSlider.Value;
+            // Send the actual seek command to the audio engine
+            await MyViewModel.SeekTrackPositionAsync(ProgressSlider.Value);
 
-            // Update ViewModel binding first
-            MyViewModel.CurrentTrackPositionSeconds = finalValue;
-
-            // Then perform seek
-            MyViewModel.SeekTrackPosition(finalValue);
+            // Let the Rx stream resume updating the UI
+            MyViewModel.IsSliderBeingDragged = false;
         }
-
-        ProgressSlider.ReleasePointerCapture(e.Pointer);
-        e.Handled = true;
     }
 
     private double CalculateValueFromPoint(Point point)
@@ -414,17 +393,6 @@ public sealed partial class NowPlayingPage : Page
         //PreviewTimeText.Text = TimeSpan.FromSeconds(ProgressSlider.Value).ToString(@"mm\:ss");
     }
 
-    private void SyncLyricsListView_ItemClick(object sender, ItemClickEventArgs e)
-    {
-        var lyricTapped = e.ClickedItem as LyricPhraseModelView;
-        //LyricPhraseModelView? lyricTapped = e.Item as LyricPhraseModelView;
-        if (lyricTapped is null)
-            return;
-        var timeInSec = TimeSpan.FromMilliseconds(lyricTapped.TimestampStart).Seconds;
-        MyViewModel.SeekTrackPosition(timeInSec);
-        SyncLyricsListView.SmoothScrollIntoViewWithItemAsync(lyricTapped, itemPlacement:ScrollItemPlacement.Top);
-
-    }
 
     private void Goeyy_Tapped(object sender, TappedRoutedEventArgs e)
     {
@@ -434,5 +402,148 @@ public sealed partial class NowPlayingPage : Page
     private void NowPlayingSpecViz_Loaded(object sender, RoutedEventArgs e)
     {
 
+    }
+
+    private async void ProgressSlider_PointerCaptureLost(object sender, PointerRoutedEventArgs e)
+    {
+        if (!_isDragging) return;
+        _isDragging = false;
+
+        // Send the actual seek command to the audio engine
+        await MyViewModel.SeekTrackPositionAsync(ProgressSlider.Value);
+
+        // Let the Rx stream resume updating the UI
+        MyViewModel.IsSliderBeingDragged = false;
+    }
+
+    private void Grid_Loaded(object sender, RoutedEventArgs e)
+    {
+        var sentGrid = (Grid)sender;
+        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.IsEqEnabled), v => MyViewModel.IsEqEnabled)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(isEnabled =>
+            {
+                sentGrid.IsTapEnabled = isEnabled;
+            }).DisposeWith(compDisp);
+
+    }
+
+    private void ComboBox_Loaded(object sender, RoutedEventArgs e)
+    {
+        MyViewModel.GetCurrentAudioDevice();
+    }
+
+    private async void BetterLyricControl_LineClicked(object sender, int e)
+    {
+        var lineIndex = e;
+        var lines = BetterLyricControl.CurrentLyricsData?.LyricsLines;
+        if (lines == null || lineIndex < 0 || lineIndex >= lines.Count)
+            return;
+
+        var targetLine = lines[lineIndex];
+
+        // Convert Milliseconds to Seconds for your AudioService
+        double seekTimeSeconds = targetLine.StartMs / 1000.0;
+
+        await MyViewModel.SeekTrackPositionAsync(seekTimeSeconds);
+    }
+
+    private void Page_Loaded(object sender, RoutedEventArgs e)
+    {
+        BetterLyricControl.IsLyricsVisible = true;
+
+        // 1. 🛡️ CRASH SHIELD: Intercept the mouse wheel so it NEVER hits BetterLyric's broken code!
+        BetterLyricControl.AddHandler(UIElement.PointerWheelChangedEvent, new PointerEventHandler((s, args) =>
+        {
+            args.Handled = true; // Prevents the NullReferenceException!
+        }), true);
+
+        // 2. 🎨 SET EXPLICIT HIGH-CONTRAST COLORS IN C# (Guaranteed to work!)
+        BetterLyricControl.PlayedCurrentLineFillColor = Microsoft.UI.Colors.White;
+        BetterLyricControl.PlayedTextStrokeColor = Microsoft.UI.Colors.DarkSlateBlue;
+        BetterLyricControl.UnplayedCurrentLineFillColor = Microsoft.UI.ColorHelper.FromArgb(180, 200, 200, 200); // 70% White
+        BetterLyricControl.NonCurrentLineFillColor = Microsoft.UI.ColorHelper.FromArgb(100, 150, 150, 150);     // Dim Gray
+
+       
+        if (MyViewModel != null)
+        {
+            // Subscribe to song changes to reload the canvas
+            MyViewModel.WhenPropertyChanged(nameof(MyViewModel.CurrentPlayingSongView), v => MyViewModel.CurrentPlayingSongView)
+                .Subscribe(_ => UpdateLyricsCanvas()).DisposeWith(compDisp);
+
+            // Also reload if lyrics were just downloaded/edited
+            MyViewModel.WhenPropertyChanged(nameof(MyViewModel.AllLines), v => MyViewModel.AllLines)
+                .Subscribe(_ => UpdateLyricsCanvas()).DisposeWith(compDisp);
+        }
+    }
+    private void UpdateLyricsCanvas()
+    {
+        var song = MyViewModel?.CurrentPlayingSongView;
+        if (song == null || string.IsNullOrWhiteSpace(song.SyncLyrics))
+        {
+            BetterLyricControl.CurrentLyricsData = null;
+            BetterLyricControl.IsLyricsVisible = false;
+            return;
+        }
+
+        try
+        {
+            var lyricLines = new List<DevWinUI.LyricLine>();
+
+            // We use Dimmer's already parsed AllLines collection
+            if (MyViewModel.AllLines != null && MyViewModel.AllLines.Count > 0)
+            {
+                var phrases = MyViewModel.AllLines.ToList();
+
+                for (int i = 0; i < phrases.Count; i++)
+                {
+                    var phrase = phrases[i];
+                    if (string.IsNullOrWhiteSpace(phrase.Text)) continue;
+
+                    int startMs = phrase.TimestampStart;
+                    int endMs = (i + 1 < phrases.Count)
+                        ? phrases[i + 1].TimestampStart
+                        : (phrase.TimeStampMs > startMs ? phrase.TimeStampMs : startMs + 4000);
+
+                    // Construct exactly like the developer's sample
+                    lyricLines.Add(new DevWinUI.LyricLine
+                    {
+                        PrimaryText = phrase.Text,
+                        StartMs = startMs,
+                        EndMs = endMs,
+
+                        // 🚨 This tells the engine it has Word-By-Word capability
+                        IsPrimaryHasRealSyllableInfo = true,
+
+                        // 🚨 You MUST provide at least one syllable (the whole line) for it to render
+                        PrimarySyllables = new List<DevWinUI.BaseLyric>
+                    {
+                        new DevWinUI.BaseLyric
+                        {
+                            Text = phrase.Text,
+                            StartMs = startMs,
+                            EndMs = endMs
+                        }
+                    }
+                    });
+                }
+            }
+
+            // Apply it
+            var lyricData = new DevWinUI.LyricData(lyricLines);
+            BetterLyricControl.CurrentLyricsData = lyricData;
+            BetterLyricControl.IsLyricsVisible = lyricData.LyricsLines.Count > 0;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[BetterLyric] Failed to load lyrics: {ex.Message}");
+            BetterLyricControl.IsLyricsVisible = false;
+        }
+    }
+
+    private void Page_Unloaded(object sender, RoutedEventArgs e)
+    {
+        BetterLyricControl.IsLyricsVisible = false;
+        BetterLyricControl.CurrentLyricsData = null;
     }
 }

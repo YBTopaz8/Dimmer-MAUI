@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
-    x:Class="Dimmer.WinUI.Views.MAUIPages.HomePage"
     x:Name="myPage"
+    x:Class="Dimmer.WinUI.Views.MAUIPages.HomePage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:audio="clr-namespace:Dimmer.DimmerAudio;assembly=Dimmer"
     xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
     xmlns:cw="clr-namespace:Dimmer.WinUI.Views.CustomViews.WinuiViews"
     xmlns:device="clr-namespace:Microsoft.Maui.Devices;assembly=Microsoft.Maui.Essentials"
@@ -14,6 +15,7 @@
     xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
     xmlns:modelsDb="clr-namespace:Dimmer.Data.Models;assembly=Dimmer"
     xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
+    xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:tql="clr-namespace:Dimmer.DimmerSearch.TQL;assembly=Dimmer"
     xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
@@ -26,8 +28,7 @@
     Loaded="MyPage_Loaded"
     Shell.FlyoutBehavior="Disabled"
     Shell.NavBarIsVisible="False"
-    Unloaded="myPage_Unloaded"
-    >
+    Unloaded="myPage_Unloaded">
 
     <ContentPage.Resources>
         <converters:DurationConverterFromSecondsToTimeSpan x:Key="DurationConverter" />
@@ -58,19 +59,17 @@
             Opacity="0.10"
             Source="{Binding CurrentPlayingSongView.CoverImagePath, Converter={converters:PathToImageConverter}}"
             ToolTipProperties.Text="Click to view song details"
-            VerticalOptions="Center"
-            />
+            VerticalOptions="Center" />
 
         <ScrollView x:Name="MainScrollView" VerticalScrollBarVisibility="Default">
 
-            <Grid RowDefinitions="*,*,auto">
+            <Grid RowDefinitions="*,*,auto,auto">
 
                 <VerticalStackLayout
                     Grid.Row="0"
                     Margin="10,5"
                     BackgroundColor="Transparent"
-                    Spacing="10"
-                    >
+                    Spacing="10">
                     <Label IsVisible="{Binding IsAppScanning}" Text="{Binding LatestAppLog.Message}" />
                     <HorizontalStackLayout HorizontalOptions="End" Spacing="10">
 
@@ -83,27 +82,23 @@
                                 BorderWidth="1"
                                 Clicked="ViewAllSongs_Clicked"
                                 ImageSource="song.png"
-                                WidthRequest="60"
-                                />
+                                WidthRequest="60" />
                             <Label
                                 FontSize="10"
                                 HorizontalOptions="Center"
-                                Text="All Songs"
-                                />
+                                Text="All Songs" />
                         </VerticalStackLayout>
                         <VerticalStackLayout Spacing="5" WidthRequest="60">
                             <Button
                                 BackgroundColor="Transparent"
                                 BorderWidth="1"
                                 Clicked="ViewFullStatsClicked"
-                                ImageSource="chart.png"
-                                />
+                                ImageSource="chart.png" />
 
                             <Label
                                 FontSize="10"
                                 HorizontalOptions="Center"
-                                Text="Dimmer stats"
-                                />
+                                Text="Dimmer stats" />
                         </VerticalStackLayout>
                         <VerticalStackLayout Spacing="5" WidthRequest="60">
 
@@ -113,38 +108,45 @@
                                 BorderWidth="1"
                                 Clicked="ViewDimmerSection_Clicked"
                                 ImageSource="playcircle.png"
-                                WidthRequest="60"
-                                />
+                                WidthRequest="60" />
 
                             <Label
                                 FontSize="10"
                                 HorizontalOptions="Center"
-                                Text="Play History"
-                                />
+                                Text="Play History" />
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Spacing="5" WidthRequest="60">
+
+                            <ImageButton
+                                x:Name="PlaybackBtmSheettOpener"
+                                BackgroundColor="Transparent"
+                                BorderWidth="1"
+                                Clicked="PlaybackBtmSheettOpener_Clicked"
+                                Source="devices.png"
+                                WidthRequest="60" />
+
+                            <Label
+                                FontSize="10"
+                                HorizontalOptions="Center"
+                                Text="Play History" />
                         </VerticalStackLayout>
 
                         <VerticalStackLayout Spacing="5" WidthRequest="60">
 
-                            <Button
+                            <ImageButton
                                 x:Name="ViewLastFM"
                                 BackgroundColor="Transparent"
                                 BorderWidth="1"
                                 Clicked="ViewLastFM_Clicked"
-                                ImageSource="lastfm.png"
+                                Loaded="ViewLastFM_Loaded"
+                                Source="lastfm.png"
                                 ToolTipProperties.Text="LastFM Page"
-                                WidthRequest="60"
-                                >
-                                <Button.Behaviors>
-                                    <toolkit:IconTintColorBehavior TintColor="#BE0606" />
-                                </Button.Behaviors>
-
-                            </Button>
+                                WidthRequest="60" />
 
                             <Label
                                 FontSize="10"
                                 HorizontalOptions="Center"
-                                Text="Last FM"
-                                />
+                                Text="Last FM" />
                         </VerticalStackLayout>
 
 
@@ -153,21 +155,18 @@
                             <Border
                                 Padding="5"
                                 StrokeShape="RoundRectangle 15"
-                                StrokeThickness="0"
-                                >
+                                StrokeThickness="1">
 
                                 <ImageButton
                                     Clicked="UserLoginClicked"
                                     Loaded="UserLoginClicked_Loaded"
-                                    Source="user.png"
-                                    />
+                                    Source="user.png" />
 
                             </Border>
                             <Label
                                 FontSize="10"
                                 HorizontalOptions="Center"
-                                Text="Dimmer Live"
-                                />
+                                Text="Dimmer Live" />
                         </VerticalStackLayout>
 
                         <VerticalStackLayout Spacing="5" WidthRequest="60">
@@ -176,18 +175,11 @@
                                 BackgroundColor="Transparent"
                                 BorderWidth="1"
                                 Clicked="SettingsNavChips_ChipClicked"
-                                ImageSource="settings.png"
-                                >
-
-                                <Button.Behaviors>
-                                    <toolkit:IconTintColorBehavior TintColor="DarkSlateBlue" />
-                                </Button.Behaviors>
-                            </Button>
+                                ImageSource="settings.png" />
                             <Label
                                 FontSize="10"
                                 HorizontalOptions="Center"
-                                Text="Settings"
-                                />
+                                Text="Settings" />
                         </VerticalStackLayout>
                     </HorizontalStackLayout>
 
@@ -198,16 +190,14 @@
                     Grid.Row="1"
                     Padding="5"
                     BackgroundColor="Transparent"
-                    RowDefinitions="auto,*"
-                    >
+                    RowDefinitions="auto,*,auto">
                     <Border
                         x:Name="NavTab"
                         Grid.Column="0"
                         Margin="0,0"
                         BackgroundColor="Transparent"
                         StrokeShape="RoundRectangle 20"
-                        StrokeThickness="0"
-                        >
+                        StrokeThickness="0">
                         <Border.Triggers>
 
 
@@ -215,8 +205,7 @@
                             <DataTrigger
                                 Binding="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
                                 TargetType="Border"
-                                Value="true"
-                                >
+                                Value="true">
                                 <Setter Property="Stroke" Value="{Binding CurrentPlaySongDominantColor}" />
                             </DataTrigger>
 
@@ -227,23 +216,20 @@
                             x:Name="CoverImageSection"
                             Padding="5"
                             RowDefinitions="auto,*"
-                            VerticalOptions="Start"
-                            >
+                            VerticalOptions="Start">
                             <Grid Grid.Row="0" Margin="5">
 
                                 <VerticalStackLayout
                                     x:Name="LyricsSection"
                                     HorizontalOptions="Center"
                                     IsVisible="True"
-                                    VerticalOptions="Center"
-                                    >
+                                    VerticalOptions="Center">
                                     <VerticalStackLayout.Triggers>
 
                                         <DataTrigger
                                             Binding="{Binding CurrentPlayingSongView.HasSyncedLyrics}"
                                             TargetType="VerticalStackLayout"
-                                            Value="true"
-                                            >
+                                            Value="true">
                                             <Setter Property="IsVisible" Value="True" />
                                         </DataTrigger>
 
@@ -252,8 +238,7 @@
                                         <DataTrigger
                                             Binding="{Binding AllLines.Count, Converter={converters:CollectionSizeToVisibility}}"
                                             TargetType="VerticalStackLayout"
-                                            Value="false"
-                                            >
+                                            Value="false">
                                             <Setter Property="IsVisible" Value="False" />
                                         </DataTrigger>
                                     </VerticalStackLayout.Triggers>
@@ -262,14 +247,12 @@
                                         FontSize="15"
                                         HorizontalTextAlignment="Center"
                                         Opacity="0.7"
-                                        Text="{Binding PreviousLine.Text}"
-                                        />
+                                        Text="{Binding PreviousLine.Text}" />
                                     <Grid HorizontalOptions="Center">
                                         <Border
                                             BackgroundColor="{AppThemeBinding Dark=#1e1e1e}"
                                             Opacity="0.7"
-                                            StrokeShape="RoundRectangle 15"
-                                            />
+                                            StrokeShape="RoundRectangle 15" />
                                         <Label
                                             Margin="10"
                                             FontAttributes="Bold"
@@ -277,8 +260,7 @@
                                             HorizontalTextAlignment="Center"
                                             Opacity="1"
                                             Text="{Binding CurrentLine.Text}"
-                                            TextColor="MediumSlateBlue"
-                                            >
+                                            TextColor="MediumSlateBlue">
                                             <Label.Triggers />
                                         </Label>
                                     </Grid>
@@ -286,8 +268,7 @@
                                         FontSize="17"
                                         HorizontalTextAlignment="Center"
                                         Opacity="0.7"
-                                        Text="{Binding NextLine.Text}"
-                                        />
+                                        Text="{Binding NextLine.Text}" />
                                 </VerticalStackLayout>
 
                             </Grid>
@@ -297,8 +278,7 @@
                                 Grid.Row="1"
                                 Margin="10"
                                 Padding="10"
-                                Spacing="5"
-                                >
+                                Spacing="5">
                                 <Button
                                     BackgroundColor="Transparent"
                                     FontAttributes="Bold"
@@ -306,8 +286,7 @@
                                     HorizontalOptions="Center"
                                     LineBreakMode="WordWrap"
                                     Loaded="ButtonLoaded"
-                                    Text="{Binding CurrentPlayingSongView.Title}"
-                                    >
+                                    Text="{Binding CurrentPlayingSongView.Title}">
                                     <Button.GestureRecognizers>
                                         <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped" />
                                         <PointerGestureRecognizer x:Name="SongTitlePointerReg" PointerPressed="SongTitlePointerReg_PointerPressed" />
@@ -325,15 +304,13 @@
                                     ImageSource="heart.png"
                                     Loaded="ButtonLoaded"
                                     Text="{Binding CurrentPlayingSongView.PlayCompletedCount}"
-                                    WidthRequest="90"
-                                    >
+                                    WidthRequest="90">
 
                                     <Button.Triggers>
                                         <DataTrigger
                                             Binding="{Binding CurrentPlayingSongView.IsFavorite}"
                                             TargetType="Button"
-                                            Value="False"
-                                            >
+                                            Value="False">
                                             <Setter Property="ImageSource" Value="heartbroken.png" />
                                             <Setter Property="ToolTipProperties.Text" Value="Not Favorite" />
 
@@ -341,8 +318,7 @@
                                         <DataTrigger
                                             Binding="{Binding CurrentPlayingSongView.IsFavorite}"
                                             TargetType="Button"
-                                            Value="True"
-                                            >
+                                            Value="True">
                                             <Setter Property="ImageSource" Value="heartlock.png" />
                                             <Setter Property="ToolTipProperties.Text" Value="Favorite" />
 
@@ -367,8 +343,7 @@
                         x:Name="BottomLeft"
                         Grid.Row="1"
                         Padding="10"
-                        Spacing="0"
-                        >
+                        Spacing="0">
 
 
                         <Grid BackgroundColor="Transparent" ColumnDefinitions="*,auto">
@@ -386,8 +361,7 @@
                                     Text="{Binding CurrentPlayingSongView.OtherArtistsName}"
                                     TextColor="{AppThemeBinding Light=Black,
                                                                 Dark=White}"
-                                    ToolTipProperties.Text="{Binding CurrentPlayingSongView.OtherArtistsName}"
-                                    />
+                                    ToolTipProperties.Text="{Binding CurrentPlayingSongView.OtherArtistsName}" />
 
                                 <Button
                                     x:Name="AlbumBtn"
@@ -402,8 +376,7 @@
                                     TextColor="{AppThemeBinding Light=Black,
                                                                 Dark=White}"
                                     TextTransform="Lowercase"
-                                    ToolTipProperties.Text="{Binding CurrentPlayingSongView.AlbumName}"
-                                    />
+                                    ToolTipProperties.Text="{Binding CurrentPlayingSongView.AlbumName}" />
 
                             </VerticalStackLayout>
                             <VerticalStackLayout Grid.Column="1">
@@ -417,8 +390,7 @@
                                     HeightRequest="70"
                                     ImageSource="lyrics.png"
                                     Loaded="ViewLyricsChip_Loaded"
-                                    WidthRequest="70"
-                                    />
+                                    WidthRequest="70" />
 
                             </VerticalStackLayout>
                         </Grid>
@@ -432,8 +404,7 @@
                             BackgroundColor="Transparent"
                             HorizontalOptions="Center"
                             Spacing="10"
-                            VerticalOptions="Center"
-                            >
+                            VerticalOptions="Center">
                             <HorizontalStackLayout.Resources>
                                 <Style TargetType="Button">
                                     <Setter Property="HeightRequest" Value="50" />
@@ -450,17 +421,14 @@
                                     IsEnabled="{Binding IsTimestampingInProgress, Converter={converters:BoolToInverseConverter}}"
                                     Loaded="ButtonLoaded"
                                     ToolTipProperties.Text="{Binding IsShuffleActive, Converter={converters:BoolToYesNoConverter}, StringFormat='Is Shuffle Active? : {0}'}"
-                                    WidthRequest="60"
-                                    >
-                                    <Button.Behaviors>
-                                        <toolkit:IconTintColorBehavior TintColor="{Binding CurrentPlaySongDominantColor}" />
-                                    </Button.Behaviors>
+                                    WidthRequest="60">
+
+
                                     <Button.Triggers>
                                         <DataTrigger
                                             Binding="{Binding IsShuffleActive}"
                                             TargetType="Button"
-                                            Value="True"
-                                            >
+                                            Value="True">
                                             <Setter Property="BorderColor" Value="{Binding CurrentPlaySongDominantColor}" />
                                             <Setter Property="BorderWidth" Value="2" />
 
@@ -479,14 +447,12 @@
                                     Command="{Binding PreviousTrackCommand}"
                                     ImageSource="skipprevious.png"
                                     IsEnabled="{Binding IsTimestampingInProgress, Converter={converters:BoolToInverseConverter}}"
-                                    Loaded="ButtonLoaded"
-                                    >
+                                    Loaded="ButtonLoaded">
                                     <Button.CommandParameter>
                                         <x:Boolean>False</x:Boolean>
                                     </Button.CommandParameter>
-                                    <Button.Behaviors>
-                                        <toolkit:IconTintColorBehavior TintColor="{Binding CurrentPlaySongDominantColor}" />
-                                    </Button.Behaviors>
+
+
                                 </Button>
 
                             </Border>
@@ -501,26 +467,22 @@
                                     BorderWidth="1"
                                     Command="{Binding PlayPauseToggleCommand}"
                                     ImageSource="play.png"
-                                    Loaded="ButtonLoaded"
-                                    >
-                                    <Button.Behaviors>
-                                        <toolkit:IconTintColorBehavior TintColor="{Binding CurrentPlaySongDominantColor}" />
-                                    </Button.Behaviors>
+                                    Loaded="ButtonLoaded">
+
+
 
                                     <Button.Triggers>
                                         <DataTrigger
                                             Binding="{Binding IsDimmerPlaying}"
                                             TargetType="Button"
-                                            Value="true"
-                                            >
+                                            Value="true">
                                             <Setter Property="ImageSource" Value="pause.png" />
                                         </DataTrigger>
 
                                         <DataTrigger
                                             Binding="{Binding IsDimmerPlaying}"
                                             TargetType="Button"
-                                            Value="false"
-                                            >
+                                            Value="false">
                                             <Setter Property="ImageSource" Value="play.png" />
                                         </DataTrigger>
                                     </Button.Triggers>
@@ -535,14 +497,12 @@
                                 Command="{Binding NextTrackCommand}"
                                 ImageSource="skipnext.png"
                                 IsEnabled="{Binding IsTimestampingInProgress, Converter={converters:BoolToInverseConverter}}"
-                                Loaded="ButtonLoaded"
-                                >
+                                Loaded="ButtonLoaded">
                                 <Button.CommandParameter>
                                     <x:Boolean>True</x:Boolean>
                                 </Button.CommandParameter>
-                                <Button.Behaviors>
-                                    <toolkit:IconTintColorBehavior TintColor="{Binding CurrentPlaySongDominantColor}" />
-                                </Button.Behaviors>
+
+
                             </Button>
 
                             <Border Margin="4" Loaded="ButtonBorder_Loaded">
@@ -551,17 +511,14 @@
                                     Command="{Binding ToggleRepeatModeCommand}"
                                     ImageSource="repeat.png"
                                     Loaded="ButtonLoaded"
-                                    ToolTipProperties.Text="{Binding CurrentRepeatMode, StringFormat='Current Repeat Mode : {0}'}"
-                                    >
-                                    <Button.Behaviors>
-                                        <toolkit:IconTintColorBehavior TintColor="{Binding CurrentPlaySongDominantColor}" />
-                                    </Button.Behaviors>
+                                    ToolTipProperties.Text="{Binding CurrentRepeatMode, StringFormat='Current Repeat Mode : {0}'}">
+
+
                                     <Button.Triggers>
                                         <DataTrigger
                                             Binding="{Binding CurrentRepeatMode}"
                                             TargetType="Button"
-                                            Value="0"
-                                            >
+                                            Value="0">
                                             <Setter Property="BorderColor" Value="{Binding CurrentPlaySongDominantColor}" />
                                             <Setter Property="BorderWidth" Value="1" />
 
@@ -570,8 +527,7 @@
                                         <DataTrigger
                                             Binding="{Binding CurrentRepeatMode}"
                                             TargetType="Button"
-                                            Value="1"
-                                            >
+                                            Value="1">
                                             <Setter Property="BorderColor" Value="LightBlue" />
                                             <Setter Property="BorderWidth" Value="2" />
 
@@ -579,8 +535,7 @@
                                         <DataTrigger
                                             Binding="{Binding CurrentRepeatMode}"
                                             TargetType="Button"
-                                            Value="2"
-                                            >
+                                            Value="2">
                                             <Setter Property="BorderColor" Value="Orange" />
                                             <Setter Property="BorderWidth" Value="2" />
 
@@ -588,8 +543,7 @@
                                         <DataTrigger
                                             Binding="{Binding CurrentRepeatMode}"
                                             TargetType="Button"
-                                            Value="3"
-                                            >
+                                            Value="3">
                                             <Setter Property="BorderColor" Value="Red" />
                                             <Setter Property="BorderWidth" Value="2" />
 
@@ -610,22 +564,19 @@
                             Minimum="0"
                             MinimumTrackColor="DarkSlateBlue"
                             ThumbColor="{Binding CurrentPlaySongDominantColor}"
-                            Value="{Binding CurrentTrackPositionSeconds}"
-                            />
+                            Value="{Binding CurrentTrackPositionSeconds}" />
                         <HorizontalStackLayout HorizontalOptions="Center" Spacing="10">
                             <Label
                                 Grid.Column="0"
                                 HorizontalTextAlignment="Start"
                                 Text="{Binding CurrentTrackPositionSeconds, Converter={StaticResource DurationConverter}}"
                                 TextColor="{AppThemeBinding Light=DarkSlateblue,
-                                                            Dark=white}"
-                                >
+                                                            Dark=white}">
                                 <Label.Triggers>
                                     <DataTrigger
                                         Binding="{Binding IsDimmerPlaying}"
                                         TargetType="Label"
-                                        Value="True"
-                                        >
+                                        Value="True">
                                         <Setter Property="TextColor" Value="DarkSlateBlue" />
                                         <Setter Property="FontAttributes" Value="Bold" />
                                     </DataTrigger>
@@ -637,12 +588,13 @@
                                 Grid.Column="2"
                                 BackgroundColor="Transparent"
                                 HorizontalTextAlignment="Start"
-                                Text="{Binding CurrentPlayingSongView.DurationInSeconds, Converter={StaticResource DurationConverter}}"
-                                />
+                                Text="{Binding CurrentPlayingSongView.DurationInSeconds, Converter={StaticResource DurationConverter}}" />
 
                         </HorizontalStackLayout>
 
                     </VerticalStackLayout>
+
+
                 </Grid>
 
 
@@ -651,8 +603,7 @@
                     Grid.Row="2"
                     BackgroundColor="{AppThemeBinding Dark=transparent}"
                     IsVisible="{Binding IsLibraryEmpty, Converter={converters:BoolToInverseConverter}}"
-                    RowDefinitions="auto,*"
-                    >
+                    RowDefinitions="auto,*">
                     <Grid.GestureRecognizers>
                         <PointerGestureRecognizer PointerReleased="TogglePanelClicked" />
                     </Grid.GestureRecognizers>
@@ -661,8 +612,7 @@
                     <VerticalStackLayout
                         Grid.Row="0"
                         Margin="5"
-                        Spacing="5"
-                        >
+                        Spacing="5">
 
                         <Button
                             x:Name="ThemeToggler"
@@ -676,21 +626,18 @@
                             Loaded="ThemeToggler_Loaded"
                             Text="{Binding IsDarkModeOn}"
                             TextColor="{AppThemeBinding Light=Black,
-                                                        Dark=White}"
-                            >
+                                                        Dark=White}">
                             <Button.Triggers>
                                 <DataTrigger
                                     Binding="{Binding IsDarkModeOn}"
                                     TargetType="Button"
-                                    Value="True"
-                                    >
+                                    Value="True">
                                     <Setter Property="Text" Value="Dark Mode On" />
                                 </DataTrigger>
                                 <DataTrigger
                                     Binding="{Binding IsDarkModeOn}"
                                     TargetType="Button"
-                                    Value="False"
-                                    >
+                                    Value="False">
                                     <Setter Property="Text" Value="Light Mode On" />
                                 </DataTrigger>
                             </Button.Triggers>
@@ -709,21 +656,13 @@
                             TextColor="{AppThemeBinding Light=Black,
                                                         Dark=White}"
                             ToolTipProperties.Text="{Binding CurrentPlaybackQuery, StringFormat='Current Query {0}'}"
-                            Unloaded="ViewNPQ_Unloaded"
-                            >
-
-                            <Button.Behaviors>
-
-                                <toolkit:IconTintColorBehavior TintColor="{Binding CurrentPlaySongDominantColor}" />
-                            </Button.Behaviors>
-                        </Button>
+                            Unloaded="ViewNPQ_Unloaded" />
 
                         <Grid
                             Grid.Row="2"
                             Padding="10"
                             ColumnDefinitions="auto,*,auto"
-                            ColumnSpacing="10"
-                            >
+                            ColumnSpacing="10">
 
                             <Label Text="Volume" VerticalOptions="Center" />
 
@@ -738,8 +677,7 @@
                                 ToolTipProperties.Text="{Binding DeviceVolumeLevel}"
                                 Unloaded="VolumeSlider_Unloaded"
                                 VerticalOptions="Center"
-                                Value="{Binding DeviceVolumeLevel}"
-                                />
+                                Value="{Binding DeviceVolumeLevel}" />
                             <HorizontalStackLayout x:Name="TooltipHSL" Grid.Column="2">
 
 
@@ -749,8 +687,7 @@
                                     Clicked="AudioDeviceSwitcherButton_Clicked"
                                     HeightRequest="40"
                                     ImageSource="devices.png"
-                                    Loaded="TooltipHSL_Loaded"
-                                    />
+                                    Loaded="TooltipHSL_Loaded" />
                             </HorizontalStackLayout>
 
                         </Grid>
@@ -758,8 +695,756 @@
 
                 </Grid>
 
+
+
+                <Grid
+                    x:Name="BtmPart"
+                    Grid.Row="3"
+                    BackgroundColor="{AppThemeBinding Dark=#1f1f1f,
+                                                      Light=#FFFFFF}"
+                    IsVisible="False"
+                    RowDefinitions="auto,auto,auto,auto">
+                    <Grid.Resources>
+                        <ResourceDictionary>
+                            <Style x:Key="SectionHeader" TargetType="Label">
+                                <Setter Property="FontAttributes" Value="Bold" />
+                                <Setter Property="FontSize" Value="13" />
+                                <Setter Property="TextColor" Value="DarkSlateBlue" />
+                                <Setter Property="Margin" Value="0,10,0,4" />
+                            </Style>
+                            <Style x:Key="ValueLabel" TargetType="Label">
+                                <Setter Property="FontSize" Value="12" />
+                                <Setter Property="Opacity" Value="0.7" />
+                                <Setter Property="FontFamily" Value="Monospace" />
+                            </Style>
+                        </ResourceDictionary>
+                    </Grid.Resources>
+                    <toolkit:Expander
+                        x:Name="QuickVibeExp"
+                        Grid.Row="0"
+                        Direction="Up">
+                        <toolkit:Expander.Header>
+                            <Label FontSize="21" Text="Quick Persets" />
+                        </toolkit:Expander.Header>
+
+
+                        <VerticalStackLayout Padding="16" Spacing="16">
+
+                            <!--  Quick Vibe Presets  -->
+                            <VerticalStackLayout Spacing="6">
+                                <Label Style="{StaticResource SectionHeader}" Text="QUICK PRESETS" />
+                                <syncf:SfChipGroup
+                                    x:Name="SetPlaybackMode"
+                                    SelectedChipTextColor="White"
+                                    SelectionChanged="SetPlaybackMode_SelectionChanged"
+                                    SelectionIndicatorColor="DarkSlateBlue">
+                                    <syncf:SfChipGroup.Items>
+                                        <syncf:SfChip CommandParameter="{x:Static audio:PlaybackModeEnum.Normal}" Text="Original" />
+                                        <syncf:SfChip CommandParameter="{x:Static audio:PlaybackModeEnum.Nightcore}" Text="Nightcore (+3st / 1.25x)" />
+                                        <syncf:SfChip CommandParameter="{x:Static audio:PlaybackModeEnum.Slowed}" Text="Slowed (-3st / 0.85x)" />
+                                        <syncf:SfChip CommandParameter="{x:Static audio:PlaybackModeEnum.SlowedAndReverb}" Text="Slowed + Reverb" />
+                                    </syncf:SfChipGroup.Items>
+                                </syncf:SfChipGroup>
+                            </VerticalStackLayout>
+
+                            <!--  🔥 REAL-TIME PITCH & SPEED SLIDERS  -->
+                            <VerticalStackLayout Spacing="6">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Label
+                                        Grid.Column="0"
+                                        Style="{StaticResource SectionHeader}"
+                                        Text="MANUAL PITCH &amp; SPEED" />
+                                    <Button
+                                        Grid.Column="1"
+                                        Padding="8,0"
+                                        BackgroundColor="Transparent"
+                                        Command="{Binding ResetPitchAndSpeedCommand}"
+                                        FontSize="11"
+                                        HeightRequest="28"
+                                        Text="Reset"
+                                        TextColor="IndianRed" />
+                                </Grid>
+
+                                <Border
+                                    Padding="14"
+                                    BackgroundColor="{AppThemeBinding Light=White,
+                                                                      Dark=#1B1B28}"
+                                    Stroke="{AppThemeBinding Light=#E0E0E0,
+                                                             Dark=#262636}"
+                                    StrokeShape="RoundRectangle 16"
+                                    StrokeThickness="1">
+                                    <VerticalStackLayout Spacing="12">
+                                        <!--  Speed Slider (0.5x to 2.0x)  -->
+                                        <VerticalStackLayout Spacing="4">
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <Label FontSize="13" Text="Playback Speed" />
+                                                <Label
+                                                    Grid.Column="1"
+                                                    Style="{StaticResource ValueLabel}"
+                                                    Text="{Binding CurrentSpeed, StringFormat='{0:F2}x'}" />
+                                            </Grid>
+                                            <Slider
+                                                Maximum="2.0"
+                                                Minimum="0.5"
+                                                MinimumTrackColor="DarkSlateBlue"
+                                                ThumbColor="DarkSlateBlue"
+                                                Value="{Binding CurrentSpeed, Mode=TwoWay}" />
+                                        </VerticalStackLayout>
+
+                                        <!--  Pitch Slider (-12 to +12 Semitones)  -->
+                                        <VerticalStackLayout Spacing="4">
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <Label FontSize="13" Text="Pitch Shifting" />
+                                                <Label
+                                                    Grid.Column="1"
+                                                    Style="{StaticResource ValueLabel}"
+                                                    Text="{Binding CurrentPitch, StringFormat='{0:+0;-0;0} semitones'}" />
+                                            </Grid>
+                                            <Slider
+                                                Maximum="12" 
+                                                Minimum="-12"
+                                                MinimumTrackColor="DarkSlateBlue"
+                                                ThumbColor="DarkSlateBlue"
+                                                Value="{Binding CurrentPitch, Mode=TwoWay}" />
+                                        </VerticalStackLayout>
+                                    </VerticalStackLayout>
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <!--  🔁 A-B REPEAT (LOOP SECTIONS)  -->
+                            <VerticalStackLayout Spacing="6">
+                                <Label Style="{StaticResource SectionHeader}" Text="A-B SECTION LOOP" />
+                                <Border
+                                    Padding="14"
+                                    BackgroundColor="{AppThemeBinding Light=White,
+                                                                      Dark=#1B1B28}"
+                                    Stroke="{AppThemeBinding Light=#E0E0E0,
+                                                             Dark=#262636}"
+                                    StrokeShape="RoundRectangle 16"
+                                    StrokeThickness="1">
+                                    <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                                        <Button
+                                            Grid.Column="0"
+                                            BackgroundColor="{AppThemeBinding Light=#EAEAEA,
+                                                                              Dark=#2A2A3A}"
+                                            Command="{Binding SetLoopPointACommand}"
+                                            CornerRadius="10"
+                                            HeightRequest="40"
+                                            Text="Set [A]"
+                                            TextColor="{AppThemeBinding Light=Black,
+                                                                        Dark=White}" />
+                                        <Button
+                                            Grid.Column="1"
+                                            BackgroundColor="{AppThemeBinding Light=#EAEAEA,
+                                                                              Dark=#2A2A3A}"
+                                            Command="{Binding SetLoopPointBCommand}"
+                                            CornerRadius="10"
+                                            HeightRequest="40"
+                                            Text="Set [B]"
+                                            TextColor="{AppThemeBinding Light=Black,
+                                                                        Dark=White}" />
+                                        <Button
+                                            Grid.Column="2"
+                                            BackgroundColor="Transparent"
+                                            BorderColor="IndianRed"
+                                            BorderWidth="1"
+                                            Command="{Binding ClearAbLoopCommand}"
+                                            CornerRadius="10"
+                                            HeightRequest="40"
+                                            Text="Clear"
+                                            TextColor="IndianRed" />
+                                    </Grid>
+                                </Border>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+
+                    </toolkit:Expander>
+
+
+                    <toolkit:Expander x:Name="DSPAndAmbience" Grid.Row="1">
+                        <toolkit:Expander.Header>
+                            <Label FontSize="21" Text="DSP &amp; Ambience" />
+                        </toolkit:Expander.Header>
+
+                        <VerticalStackLayout Padding="16" Spacing="16">
+
+                            <!--  Studio Polish (SmartMaster & Compressor)  -->
+                            <VerticalStackLayout Spacing="6">
+                                <Label Style="{StaticResource SectionHeader}" Text="STUDIO HARDWARE EMULATION" />
+                                <Border
+                                    Padding="14"
+                                    BackgroundColor="{AppThemeBinding Light=White,
+                                                                      Dark=#1B1B28}"
+                                    Stroke="{AppThemeBinding Light=#E0E0E0,
+                                                             Dark=#262636}"
+                                    StrokeShape="RoundRectangle 16"
+                                    StrokeThickness="1">
+                                    <Grid
+                                        ColumnDefinitions="*,Auto"
+                                        RowDefinitions="Auto,Auto"
+                                        RowSpacing="14">
+                                        <VerticalStackLayout Grid.Row="0" Grid.Column="0">
+                                            <Label
+                                                FontAttributes="Bold"
+                                                FontSize="14"
+                                                Text="Smart Master (Limiter / Hi-Fi)" />
+                                            <Label
+                                                FontSize="11"
+                                                Opacity="0.6"
+                                                Text="Maximizes loudness without distortion" />
+                                        </VerticalStackLayout>
+                                        <Switch
+                                            Grid.Row="0"
+                                            Grid.Column="1"
+                                            IsToggled="{Binding IsSmartMasterEnabled}"
+                                            OnColor="DarkSlateBlue" />
+
+                                        <VerticalStackLayout Grid.Row="1" Grid.Column="0">
+                                            <Label
+                                                FontAttributes="Bold"
+                                                FontSize="14"
+                                                Text="Vocal Compressor" />
+                                            <Label
+                                                FontSize="11"
+                                                Opacity="0.6"
+                                                Text="Smooths out sudden spikes and dips" />
+                                        </VerticalStackLayout>
+                                        <Switch
+                                            Grid.Row="1"
+                                            Grid.Column="1"
+                                            IsToggled="{Binding IsCompressorEnabled}"
+                                            OnColor="DarkSlateBlue" />
+                                    </Grid>
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <!--  🌧️ AMBIENCE LOADER (Rain, Vinyl, Cafe)  -->
+                            <VerticalStackLayout Spacing="6">
+                                <Label Style="{StaticResource SectionHeader}" Text="AMBIENCE BACKGROUND LAYER" />
+                                <Border
+                                    Padding="14"
+                                    BackgroundColor="{AppThemeBinding Light=White,
+                                                                      Dark=#1B1B28}"
+                                    Stroke="{AppThemeBinding Light=#E0E0E0,
+                                                             Dark=#262636}"
+                                    StrokeShape="RoundRectangle 16"
+                                    StrokeThickness="1">
+                                    <VerticalStackLayout Spacing="12">
+                                        <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                                            <VerticalStackLayout Grid.Column="0">
+                                                <Label
+                                                    FontAttributes="Bold"
+                                                    FontSize="14"
+                                                    Text="Enable Ambience Noise" />
+                                                <Label
+                                                    FontSize="11"
+                                                    Opacity="0.6"
+                                                    Text="{Binding SelectedAmbienceName, TargetNullValue='No Audio File Loaded'}" />
+                                            </VerticalStackLayout>
+                                            <Switch
+                                                Grid.Column="1"
+                                                IsToggled="{Binding IsAmbienceEnabled}"
+                                                OnColor="DarkSlateBlue" />
+                                        </Grid>
+
+                                        <!--  Pick Sound Button  -->
+                                        <Button
+                                            BackgroundColor="{AppThemeBinding Light=#EAEAEA,
+                                                                              Dark=#2A2A3A}"
+                                            Command="{Binding PickAmbienceFileCommand}"
+                                            CornerRadius="10"
+                                            FontSize="12"
+                                            HeightRequest="36"
+                                            ImageSource="musical_notes.png"
+                                            Text="Load Background Audio File (.mp3, .wav)"
+                                            TextColor="{AppThemeBinding Light=Black,
+                                                                        Dark=White}" />
+
+                                        <!--  Volume Slider  -->
+                                        <VerticalStackLayout IsVisible="{Binding IsAmbienceEnabled}" Spacing="2">
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <Label FontSize="12" Text="Layer Volume" />
+                                                <Label
+                                                    Grid.Column="1"
+                                                    Style="{StaticResource ValueLabel}"
+                                                    Text="{Binding AmbienceVolume, StringFormat='{0:P0}'}" />
+                                            </Grid>
+                                            <Slider
+                                                Maximum="1"
+                                                Minimum="0"
+                                                MinimumTrackColor="DarkSlateBlue"
+                                                Value="{Binding AmbienceVolume, Mode=TwoWay}" />
+                                        </VerticalStackLayout>
+                                    </VerticalStackLayout>
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <!--  Export Remix Action  -->
+                            <Button
+                                BackgroundColor="DarkSlateBlue"
+                                Command="{Binding ExportRemixCommand}"
+                                CornerRadius="12"
+                                HeightRequest="46"
+                                ImageSource="savea.png"
+                                Text="Export Current Master to WAV"
+                                TextColor="White" />
+                        </VerticalStackLayout>
+                    </toolkit:Expander>
+
+                    <toolkit:Expander x:Name="Equalizer" Grid.Row="2">
+                        <toolkit:Expander.Header>
+                            <Label FontSize="21" Text="EQ" />
+                        </toolkit:Expander.Header>
+                        <Grid
+                            Padding="16"
+                            RowDefinitions="Auto,Auto,*"
+                            RowSpacing="12">
+                            <!--  EQ Header Toggle  -->
+                            <Grid
+                                Grid.Row="0"
+                                ColumnDefinitions="*,Auto"
+                                VerticalOptions="Center">
+                                <Label
+                                    Grid.Column="0"
+                                    Style="{StaticResource SectionHeader}"
+                                    Text="10-BAND GRAPHIC EQUALIZER" />
+                                <Switch
+                                    Grid.Column="1"
+                                    IsToggled="{Binding IsEqEnabled}"
+                                    OnColor="DarkSlateBlue" />
+                            </Grid>
+
+                            <!--  Preset Chips  -->
+                            <syncf:SfChipGroup
+                                x:Name="EQChipGroup"
+                                Grid.Row="1"
+                                IsEnabled="{Binding IsEqEnabled}"
+                                SelectionChanged="EQChipGroup_SelectionChanged">
+                                <syncf:SfChipGroup.Items>
+                                    <syncf:SfChip Text="Flat" />
+                                    <syncf:SfChip Text="Bass Boost" />
+                                    <syncf:SfChip Text="Vocal" />
+                                    <syncf:SfChip Text="Rock" />
+                                    <syncf:SfChip Text="Electronic" />
+                                </syncf:SfChipGroup.Items>
+                            </syncf:SfChipGroup>
+
+
+
+                            <ScrollView Grid.Row="2" IsEnabled="{Binding IsEqEnabled}">
+                                <VerticalStackLayout Spacing="8">
+
+                                    <Grid
+                                        ColumnDefinitions="60,*,45"
+                                        ColumnSpacing="8"
+                                        VerticalOptions="Center">
+                                        <Label
+                                            Grid.Column="0"
+                                            FontAttributes="Bold"
+                                            FontSize="12"
+                                            Text="31 Hz"
+                                            VerticalOptions="Center" />
+                                        <Slider
+                                            Grid.Column="1"
+                                            Maximum="12"
+                                            Minimum="-12"
+                                            MinimumTrackColor="DarkSlateBlue"
+                                            Value="{Binding EqBand0, Mode=TwoWay}" />
+                                        <Label
+                                            Grid.Column="2"
+                                            Style="{StaticResource ValueLabel}"
+                                            Text="{Binding EqBand0, StringFormat='{0:+0;-0;0}dB'}"
+                                            VerticalOptions="Center" />
+                                    </Grid>
+
+                                    <!--  Band 2: 62 Hz  -->
+                                    <Grid
+                                        ColumnDefinitions="60,*,45"
+                                        ColumnSpacing="8"
+                                        VerticalOptions="Center">
+                                        <Label
+                                            Grid.Column="0"
+                                            FontAttributes="Bold"
+                                            FontSize="12"
+                                            Text="62 Hz"
+                                            VerticalOptions="Center" />
+                                        <Slider
+                                            Grid.Column="1"
+                                            Maximum="12"
+                                            Minimum="-12"
+                                            MinimumTrackColor="DarkSlateBlue"
+                                            Value="{Binding EqBand1, Mode=TwoWay}" />
+                                        <Label
+                                            Grid.Column="2"
+                                            Style="{StaticResource ValueLabel}"
+                                            Text="{Binding EqBand1, StringFormat='{0:+0;-0;0}dB'}"
+                                            VerticalOptions="Center" />
+                                    </Grid>
+
+                                    <!--  Band 3: 125 Hz  -->
+                                    <Grid
+                                        ColumnDefinitions="60,*,45"
+                                        ColumnSpacing="8"
+                                        VerticalOptions="Center">
+                                        <Label
+                                            Grid.Column="0"
+                                            FontAttributes="Bold"
+                                            FontSize="12"
+                                            Text="125 Hz"
+                                            VerticalOptions="Center" />
+                                        <Slider
+                                            Grid.Column="1"
+                                            Maximum="12"
+                                            Minimum="-12"
+                                            MinimumTrackColor="DarkSlateBlue"
+                                            Value="{Binding EqBand2, Mode=TwoWay}" />
+                                        <Label
+                                            Grid.Column="2"
+                                            Style="{StaticResource ValueLabel}"
+                                            Text="{Binding EqBand2, StringFormat='{0:+0;-0;0}dB'}"
+                                            VerticalOptions="Center" />
+                                    </Grid>
+
+                                    <!--  Band 4: 250 Hz  -->
+                                    <Grid
+                                        ColumnDefinitions="60,*,45"
+                                        ColumnSpacing="8"
+                                        VerticalOptions="Center">
+                                        <Label
+                                            Grid.Column="0"
+                                            FontAttributes="Bold"
+                                            FontSize="12"
+                                            Text="250 Hz"
+                                            VerticalOptions="Center" />
+                                        <Slider
+                                            Grid.Column="1"
+                                            Maximum="12"
+                                            Minimum="-12"
+                                            MinimumTrackColor="DarkSlateBlue"
+                                            Value="{Binding EqBand3, Mode=TwoWay}" />
+                                        <Label
+                                            Grid.Column="2"
+                                            Style="{StaticResource ValueLabel}"
+                                            Text="{Binding EqBand3, StringFormat='{0:+0;-0;0}dB'}"
+                                            VerticalOptions="Center" />
+                                    </Grid>
+
+                                    <!--  Band 5: 500 Hz  -->
+                                    <Grid
+                                        ColumnDefinitions="60,*,45"
+                                        ColumnSpacing="8"
+                                        VerticalOptions="Center">
+                                        <Label
+                                            Grid.Column="0"
+                                            FontAttributes="Bold"
+                                            FontSize="12"
+                                            Text="500 Hz"
+                                            VerticalOptions="Center" />
+                                        <Slider
+                                            Grid.Column="1"
+                                            Maximum="12"
+                                            Minimum="-12"
+                                            MinimumTrackColor="DarkSlateBlue"
+                                            Value="{Binding EqBand4, Mode=TwoWay}" />
+                                        <Label
+                                            Grid.Column="2"
+                                            Style="{StaticResource ValueLabel}"
+                                            Text="{Binding EqBand4, StringFormat='{0:+0;-0;0}dB'}"
+                                            VerticalOptions="Center" />
+                                    </Grid>
+
+                                    <!--  Band 6: 1 kHz  -->
+                                    <Grid
+                                        ColumnDefinitions="60,*,45"
+                                        ColumnSpacing="8"
+                                        VerticalOptions="Center">
+                                        <Label
+                                            Grid.Column="0"
+                                            FontAttributes="Bold"
+                                            FontSize="12"
+                                            Text="1 kHz"
+                                            VerticalOptions="Center" />
+                                        <Slider
+                                            Grid.Column="1"
+                                            Maximum="12"
+                                            Minimum="-12"
+                                            MinimumTrackColor="DarkSlateBlue"
+                                            Value="{Binding EqBand5, Mode=TwoWay}" />
+                                        <Label
+                                            Grid.Column="2"
+                                            Style="{StaticResource ValueLabel}"
+                                            Text="{Binding EqBand5, StringFormat='{0:+0;-0;0}dB'}"
+                                            VerticalOptions="Center" />
+                                    </Grid>
+
+                                    <!--  Band 7: 2 kHz  -->
+                                    <Grid
+                                        ColumnDefinitions="60,*,45"
+                                        ColumnSpacing="8"
+                                        VerticalOptions="Center">
+                                        <Label
+                                            Grid.Column="0"
+                                            FontAttributes="Bold"
+                                            FontSize="12"
+                                            Text="2 kHz"
+                                            VerticalOptions="Center" />
+                                        <Slider
+                                            Grid.Column="1"
+                                            Maximum="12"
+                                            Minimum="-12"
+                                            MinimumTrackColor="DarkSlateBlue"
+                                            Value="{Binding EqBand6, Mode=TwoWay}" />
+                                        <Label
+                                            Grid.Column="2"
+                                            Style="{StaticResource ValueLabel}"
+                                            Text="{Binding EqBand6, StringFormat='{0:+0;-0;0}dB'}"
+                                            VerticalOptions="Center" />
+                                    </Grid>
+
+                                    <!--  Band 8: 4 kHz  -->
+                                    <Grid
+                                        ColumnDefinitions="60,*,45"
+                                        ColumnSpacing="8"
+                                        VerticalOptions="Center">
+                                        <Label
+                                            Grid.Column="0"
+                                            FontAttributes="Bold"
+                                            FontSize="12"
+                                            Text="4 kHz"
+                                            VerticalOptions="Center" />
+                                        <Slider
+                                            Grid.Column="1"
+                                            Maximum="12"
+                                            Minimum="-12"
+                                            MinimumTrackColor="DarkSlateBlue"
+                                            Value="{Binding EqBand7, Mode=TwoWay}" />
+                                        <Label
+                                            Grid.Column="2"
+                                            Style="{StaticResource ValueLabel}"
+                                            Text="{Binding EqBand7, StringFormat='{0:+0;-0;0}dB'}"
+                                            VerticalOptions="Center" />
+                                    </Grid>
+
+                                    <!--  Band 9: 8 kHz  -->
+                                    <Grid
+                                        ColumnDefinitions="60,*,45"
+                                        ColumnSpacing="8"
+                                        VerticalOptions="Center">
+                                        <Label
+                                            Grid.Column="0"
+                                            FontAttributes="Bold"
+                                            FontSize="12"
+                                            Text="8 kHz"
+                                            VerticalOptions="Center" />
+                                        <Slider
+                                            Grid.Column="1"
+                                            Maximum="12"
+                                            Minimum="-12"
+                                            MinimumTrackColor="DarkSlateBlue"
+                                            Value="{Binding EqBand8, Mode=TwoWay}" />
+                                        <Label
+                                            Grid.Column="2"
+                                            Style="{StaticResource ValueLabel}"
+                                            Text="{Binding EqBand8, StringFormat='{0:+0;-0;0}dB'}"
+                                            VerticalOptions="Center" />
+                                    </Grid>
+
+                                    <!--  Band 10: 16 kHz  -->
+                                    <Grid
+                                        ColumnDefinitions="60,*,45"
+                                        ColumnSpacing="8"
+                                        VerticalOptions="Center">
+                                        <Label
+                                            Grid.Column="0"
+                                            FontAttributes="Bold"
+                                            FontSize="12"
+                                            Text="16 kHz"
+                                            VerticalOptions="Center" />
+                                        <Slider
+                                            Grid.Column="1"
+                                            Maximum="12"
+                                            Minimum="-12"
+                                            MinimumTrackColor="DarkSlateBlue"
+                                            Value="{Binding EqBand9, Mode=TwoWay}" />
+                                        <Label
+                                            Grid.Column="2"
+                                            Style="{StaticResource ValueLabel}"
+                                            Text="{Binding EqBand9, StringFormat='{0:+0;-0;0}dB'}"
+                                            VerticalOptions="Center" />
+                                    </Grid>
+                                </VerticalStackLayout>
+                            </ScrollView>
+                        </Grid>
+                    </toolkit:Expander>
+
+                    <toolkit:Expander x:Name="HardwareExp" Grid.Row="3">
+                        <toolkit:Expander.Header>
+                            <Label FontSize="21" Text="Hardware" />
+                        </toolkit:Expander.Header>
+                        <VerticalStackLayout Padding="16" Spacing="16">
+
+                            <!--  LIVE VU METERS  -->
+                            <VerticalStackLayout Spacing="6">
+                                <Label Style="{StaticResource SectionHeader}" Text="OUTPUT METERS (L/R)" />
+                                <Border
+                                    Padding="14"
+                                    BackgroundColor="{AppThemeBinding Light=White,
+                                                                      Dark=#1B1B28}"
+                                    Stroke="{AppThemeBinding Light=#E0E0E0,
+                                                             Dark=#262636}"
+                                    StrokeShape="RoundRectangle 16"
+                                    StrokeThickness="1">
+                                    <Grid
+                                        ColumnDefinitions="Auto,*,Auto"
+                                        RowDefinitions="Auto,Auto"
+                                        RowSpacing="8">
+                                        <Label
+                                            Grid.Row="0"
+                                            Grid.Column="0"
+                                            Margin="0,0,10,0"
+                                            FontAttributes="Bold"
+                                            Text="L" />
+                                        <ProgressBar
+                                            Grid.Row="0"
+                                            Grid.Column="1"
+                                            Progress="{Binding LeftVuLevel}"
+                                            ProgressColor="MediumSpringGreen"
+                                            VerticalOptions="Center" />
+                                        <Label
+                                            Grid.Row="0"
+                                            Grid.Column="2"
+                                            Margin="10,0,0,0"
+                                            Style="{StaticResource ValueLabel}"
+                                            Text="{Binding LeftVuDb, StringFormat='{0:F1} dB'}" />
+
+                                        <Label
+                                            Grid.Row="1"
+                                            Grid.Column="0"
+                                            Margin="0,0,10,0"
+                                            FontAttributes="Bold"
+                                            Text="R" />
+                                        <ProgressBar
+                                            Grid.Row="1"
+                                            Grid.Column="1"
+                                            Progress="{Binding RightVuLevel}"
+                                            ProgressColor="MediumSpringGreen"
+                                            VerticalOptions="Center" />
+                                        <Label
+                                            Grid.Row="1"
+                                            Grid.Column="2"
+                                            Margin="10,0,0,0"
+                                            Style="{StaticResource ValueLabel}"
+                                            Text="{Binding RightVuDb, StringFormat='{0:F1} dB'}" />
+                                    </Grid>
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <!--  DJ Crossfader  -->
+                            <VerticalStackLayout Spacing="6">
+                                <Label Style="{StaticResource SectionHeader}" Text="DJ CROSSFADER" />
+                                <Border
+                                    Padding="14"
+                                    BackgroundColor="{AppThemeBinding Light=White,
+                                                                      Dark=#1B1B28}"
+                                    Stroke="{AppThemeBinding Light=#E0E0E0,
+                                                             Dark=#262636}"
+                                    StrokeShape="RoundRectangle 16"
+                                    StrokeThickness="1">
+                                    <VerticalStackLayout Spacing="4">
+                                        <Slider
+                                            Maximum="1"
+                                            Minimum="0"
+                                            MinimumTrackColor="DarkSlateBlue"
+                                            Value="{Binding CrossfadeBalance, Mode=TwoWay}" />
+                                        <Grid ColumnDefinitions="*,*">
+                                            <Label
+                                                Grid.Column="0"
+                                                FontSize="11"
+                                                Opacity="0.6"
+                                                Text="Track A (100%)" />
+                                            <Label
+                                                Grid.Column="1"
+                                                FontSize="11"
+                                                HorizontalOptions="End"
+                                                Opacity="0.6"
+                                                Text="Track B (100%)" />
+                                        </Grid>
+                                    </VerticalStackLayout>
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <!--  🎧 AUDIO HARDWARE WITH GREEN ACTIVE INDICATOR  -->
+                            <VerticalStackLayout Spacing="6">
+                                <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                                    <Label
+                                        Grid.Column="0"
+                                        Style="{StaticResource SectionHeader}"
+                                        Text="OUTPUT DEVICE" />
+                                    <Button
+                                        Grid.Column="1"
+                                        BackgroundColor="Transparent"
+                                        Command="{Binding LoadAllAudioDevicesCommand}"
+                                        HeightRequest="32"
+                                        ImageSource="cupmusic.png"
+                                        WidthRequest="32" />
+                                </Grid>
+
+                                <Border
+                                    BackgroundColor="{AppThemeBinding Light=White,
+                                                                      Dark=#1B1B28}"
+                                    Stroke="{AppThemeBinding Light=#E0E0E0,
+                                                             Dark=#262636}"
+                                    StrokeShape="RoundRectangle 16"
+                                    StrokeThickness="1">
+                                    <CollectionView
+                                        HeightRequest="160"
+                                        ItemsSource="{Binding AvailableDevices}"
+                                        SelectedItem="{Binding SelectedAudioDevice, Mode=TwoWay}"
+                                        SelectionMode="Single">
+                                        <CollectionView.ItemTemplate>
+                                            <DataTemplate x:DataType="models:AudioOutputDevice">
+                                                <Grid Padding="14,10" ColumnDefinitions="Auto,*,Auto">
+                                                    <Image
+                                                        Grid.Column="0"
+                                                        Margin="0,0,12,0"
+                                                        HeightRequest="22"
+                                                        Source="airbuds.png"
+                                                        VerticalOptions="Center"
+                                                        WidthRequest="22" />
+
+                                                    <Label
+                                                        Grid.Column="1"
+                                                        FontSize="14"
+                                                        Text="{Binding Name}"
+                                                        VerticalOptions="Center" />
+
+                                                    <!--  🔥 ACTIVE DEVICE GREEN BADGE  -->
+                                                    <Border
+                                                        Grid.Column="2"
+                                                        Padding="8,2"
+                                                        BackgroundColor="DarkGreen"
+                                                        IsVisible="{Binding IsDefaultDevice}">
+                                                        <Label
+                                                            FontAttributes="Bold"
+                                                            FontSize="10"
+                                                            Text="ACTIVE"
+                                                            TextColor="White" />
+                                                    </Border>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </CollectionView.ItemTemplate>
+                                    </CollectionView>
+                                </Border>
+                            </VerticalStackLayout>
+
+                        </VerticalStackLayout>
+                    </toolkit:Expander>
+                </Grid>
+
             </Grid>
 
         </ScrollView>
+
+
     </Grid>
 </ContentPage>

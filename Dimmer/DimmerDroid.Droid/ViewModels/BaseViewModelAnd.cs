@@ -242,8 +242,9 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     }
 
     [RelayCommand]
-    public async Task DeleteFileFromSystem(SongModelView song)
+    public async Task DeleteFileFromSystem(SongModelView? song)
     {
+        if (song is null) return;
         bool confirm = await Shell.Current.DisplayAlertAsync("Confirm Delete", $"Are you sure you want to delete '{song.Title}' from your device? This action cannot be undone.", "Delete", "Cancel");
         if (confirm)
         {
@@ -269,25 +270,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         }
     }
 
-    [RelayCommand]
-
-    public async Task ShareSongViewClipboard(SongModelView song)
-    {
-
-
-        var byteData = await ShareCurrentPlayingAsStoryInCardLikeGradient(song, true);
-
-        string clipboardText = $"{song.Title} - {song.ArtistName}\nAlbum: {song.AlbumName}\n\nShared via Dimmer Music Player v{CurrentAppVersion}";
-
-        if (byteData.imgBytes != null)
-        {
-            //await Clipboard.SetTextAsync(clipboardText);
-
-
-        }
-
-    }
-
+  
 
     #region Binding Views Section
 
@@ -335,58 +318,48 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
        _= redoStats.RecalculateAllStatisticsAsync();
     }
 
-
     [RelayCommand]
     public async Task PickFolderToRestoreAppDataAsync()
     {
-        var tcs = new TaskCompletionSource<(bool includeDefault, string customPath)>();
+        // Allow both JSON and GZip files on Android
+        var customMimeTypes = new FilePickerFileType(
+            new Dictionary<DevicePlatform, IEnumerable<string>>
+            {
+            { DevicePlatform.Android, new[] { "application/json", "application/gzip", "application/x-gzip", "*/*" } },
+            { DevicePlatform.WinUI, new[] { ".json", ".gz" } },
+            { DevicePlatform.MacCatalyst, new[] { "public.json", "org.gnu.gnu-zip-archive" } },
+            { DevicePlatform.iOS, new[] { "public.json", "org.gnu.gnu-zip-archive" } }
+            });
 
+        var fPicker = await FilePicker.Default.PickAsync(new PickOptions { FileTypes = customMimeTypes });
+        if (fPicker == null || string.IsNullOrEmpty(fPicker.FullPath)) return;
 
-        var fPicker = await FilePicker.Default
-            .PickAsync(
-                new
-            PickOptions()
-                {
-                    FileTypes =
-                        new FilePickerFileType(
-                                new Dictionary<DevicePlatform, IEnumerable<string>>
-                                {
-                        { DevicePlatform.Android, new[] { "application/json" } },
-                        { DevicePlatform.WinUI, new[] { ".json" } },
-                        { DevicePlatform.MacCatalyst, new[] { "public.json" } },
-                        { DevicePlatform.iOS, new[] { "public.json" } }
-                                }),
-                });
-        if(fPicker == null)
-            return;
-        var file = fPicker.FullPath;
-        
-
-        if(file is null)
-            return;
-            
-
-
-
-        SelectedFile = file;
+        SelectedFile = fPicker.FullPath;
 
         var progress = new Progress<string>(msg =>
         {
-            // Update UI on main thread
-            MainThread.BeginInvokeOnMainThread(() => {
+            RxSchedulers.UI.ScheduleTo(() => {
                 StatusLabelText = msg;
             });
         });
 
+        // 1. Read & Deserialize the file
+        PickedUpBackup = await BackupService.PickFolderTeRestoreFromBackupAsync(SelectedFile, progress);
 
-         PickedUpBackup = await BackupService.PickFolderTeRestoreFromBackupAsync(SelectedFile, progress);
+        // 2. ACTUALLY RESTORE IT TO REALM!
+        if (PickedUpBackup != null)
+        {
+            var restoreResult = new RestoreResult();
+            await BackupService.RestoreCompleteDataAsync(PickedUpBackup, restoreResult);
 
-
-
-
-        //BackupService.CleanupOldBackups(3);
+            StatusLabelText = restoreResult.ToString();
+            IsBackUpDone = restoreResult.Success;
+        }
+        else
+        {
+            StatusLabelText = "Failed to parse backup file.";
+        }
     }
-
 
     [ObservableProperty]
     public partial string StatusLabelText { get; set; }
@@ -480,6 +453,8 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     public void SetCollectionView(DXCollectionView collectionView)
     {
         _collectionView = collectionView;
+      
+
     }
  
 
@@ -509,7 +484,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     void SeekToPosition(double position)
     {
         IsProgrammaticSeek = true;
-        base.SeekTrackPosition(position);
+        base.SeekTrackPositionAsync(position);
     }
 
     [RelayCommand]
@@ -530,14 +505,5 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
 
     }
 
-    internal void LoadSongsInitially()
-    {
-        var songs = RealmFactory.GetRealmInstance().All<SongModel>().AsEnumerable().Select(x => x.ToSongModelView()!);
-        if (songs is null) return;
-        SearchResultsHolder.Edit(updater =>
-        {
-            updater.Clear();
-            updater.AddOrUpdate(songs);
-        });
-    }
+
 }

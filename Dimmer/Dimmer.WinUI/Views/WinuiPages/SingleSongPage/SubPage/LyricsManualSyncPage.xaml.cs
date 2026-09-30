@@ -25,7 +25,7 @@ public sealed partial class LyricsManualSyncPage : Page
             MyViewModel = vm;
 
             // Auto-scroll logic: When the "CurrentLine" changes, scroll to it
-            MyViewModel.LyricsInEditor.CollectionChanged += LyricsInEditor_CollectionChanged;
+          
         }
         this.KeyDown += LyricsManualSyncPage_KeyDown;
     }
@@ -36,20 +36,11 @@ public sealed partial class LyricsManualSyncPage : Page
         this.KeyDown -= LyricsManualSyncPage_KeyDown;
         if (MyViewModel != null && MyViewModel.LyricsInEditor != null)
         {
-            MyViewModel.LyricsInEditor.CollectionChanged -= LyricsInEditor_CollectionChanged;
+     
         }
         this.KeyDown -= LyricsManualSyncPage_KeyDown;
     }
 
-    private void LyricsInEditor_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-    {
-        // Find the index of the line where IsCurrentLine == true
-        var currentLine = MyViewModel.LyricsInEditor.FirstOrDefault(x => x.IsCurrentLine);
-        if (currentLine != null)
-        {
-            LyricsListView.ScrollIntoView(currentLine);
-        }
-    }
 
     private void LyricsManualSyncPage_KeyDown(object sender, KeyRoutedEventArgs e)
     {
@@ -67,14 +58,23 @@ public sealed partial class LyricsManualSyncPage : Page
     {
         SyncNextLine();
     }
-
     private void SyncNextLine()
     {
-        // Find the line that is currently marked as "IsCurrentLine"
         var targetLine = MyViewModel.LyricsInEditor.FirstOrDefault(x => x.IsCurrentLine);
         if (targetLine != null)
         {
+            // 1. Stamp the line
             MyViewModel.TimestampCurrentLyricLineCommand.Execute(targetLine);
+
+            // 2. The ViewModel moved the "IsCurrentLine" to the NEXT item. Find it.
+            var nextLine = MyViewModel.LyricsInEditor.FirstOrDefault(x => x.IsCurrentLine);
+
+            // 3. Scroll it into view!
+            if (nextLine != null)
+            {
+                // Use ScrollIntoViewAlignment.Default or Leading to keep it centered/visible
+                LyricsListView.ScrollIntoView(nextLine, ScrollIntoViewAlignment.Default);
+            }
         }
     }
 

@@ -14,7 +14,7 @@ public static class MauiProgramExtensions
                 options.SetShouldSuppressExceptionsInAnimations(true);
                 options.SetShouldSuppressExceptionsInBehaviors(true);
                 options.SetShouldSuppressExceptionsInConverters(true);
-                options.SetShouldEnableSnackbarOnWindows(true);
+
 
             })
             .ConfigureFonts(fonts =>

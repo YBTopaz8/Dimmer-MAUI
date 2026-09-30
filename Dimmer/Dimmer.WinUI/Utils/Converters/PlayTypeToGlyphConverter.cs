@@ -31,11 +31,11 @@ public partial class PlayTypeToGlyphConverter : IValueConverter
     {
         return type switch
         {
-            PlayEventType.Play => "\uE768",          // Play Icon
-            PlayEventType.Pause => "\uE769",         // Pause Icon
-            PlayEventType.Resume => "\uE768",        // Play Icon (Resume)
+            PlayEventType.Play => "\uE768",          // PlayAsync Icon
+            PlayEventType.Pause => "\uE769",         // PauseAsync Icon
+            PlayEventType.Resume => "\uE768",        // PlayAsync Icon (Resume)
             PlayEventType.Completed => "\uE73E",     // Checkmark (Success)
-            PlayEventType.Seeked => "\uE762",        // Progress Ring / Seek
+            PlayEventType.Seeked => "\uE762",        // Progress Ring / SeekAsync
             PlayEventType.Skipped => "\uE711",       // 'X' (Close) - indicating it wasn't finished
             PlayEventType.Restarted => "\uE72C",     // Rotate/Refresh
             PlayEventType.SeekRestarted => "\uE72C", // Rotate/Refresh

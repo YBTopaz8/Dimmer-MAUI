@@ -1,9 +1,11 @@
-﻿namespace Dimmer.Utilities.Extensions;
+﻿using Avalonia.Controls.Shapes;
+
+namespace Dimmer.Utilities.Extensions;
 
 public static class AlbumModelViewExtensions
 {
 
-    public static void RefreshAlbumAndSongsFromDB(this ArtistModelView art, IRealmFactory realmFactory)
+    public static void RefreshAlbumAndSongsFromDB(this ArtistModelView art, IRealmFactory realmFactory,bool IncludeSongsInAlbum=false)
     {
         try
         {
@@ -12,10 +14,10 @@ public static class AlbumModelViewExtensions
             if (artInDb == null) return;
 
             // Step 1: Process ALL database updates in a single write transaction
-            ProcessArtistDatabaseUpdates(realm, artInDb);
+           RxSchedulers.Background.ScheduleTo(()=> ProcessArtistDatabaseUpdates(realmFactory, art.Id));
 
             // Step 2: Refresh the view model on UI thread
-            RefreshArtistViewModel(art, artInDb);
+            RefreshArtistViewModel(art, artInDb, IncludeSongsInAlbum: IncludeSongsInAlbum);
         }
         catch (Exception ex)
         {
@@ -23,8 +25,12 @@ public static class AlbumModelViewExtensions
         }
     }
 
-    private static void ProcessArtistDatabaseUpdates(Realm realm, ArtistModel artInDb)
+    private static void ProcessArtistDatabaseUpdates(IRealmFactory realmF, ObjectId artId)
     {
+        var realm = realmF.GetRealmInstance();
+        var artInDb = realm.Find<ArtistModel>(artId); 
+        
+        if (artInDb == null) return;
         // Materialize once
         var songsInDb = artInDb.Songs.ToList();
         var albumsInDb = artInDb.Albums.ToList();
@@ -89,52 +95,94 @@ public static class AlbumModelViewExtensions
             }
         }
     }
-
-    private static void RefreshArtistViewModel(ArtistModelView art, ArtistModel artInDb)
+    private static void RefreshArtistViewModel(ArtistModelView art, ArtistModel artInDb, bool IncludePlayEvents = false, bool IncludeSongsInAlbum = false)
     {
-        // Materialize fresh data
-        var songsInDb = artInDb.Songs.AsEnumerable();
-        var albumsInDb = artInDb.Albums.AsEnumerable();
-        var eventsInDb = artInDb.Songs.AsEnumerable().SelectMany(s => s.PlayHistory);
+        // ========================================================
+        // PHASE 1: BACKGROUND / WORKER THREAD (Heavy computations)
+        // ========================================================
 
-        RxSchedulers.UI.ScheduleTo(() =>
+        // 1. Materialize Songs
+        var songViews = artInDb.Songs.AsEnumerable()
+            .Select(s => s.ToSongModelView(isShallow: true))
+            .Where(s => s != null)
+            .ToList();
+
+        // 2. Materialize Albums & Songs in Albums
+        var artistId = artInDb.Id;
+        var artistName = artInDb.Name;
+
+        var albumViews = new List<AlbumModelView>();
+       
+        foreach (var alb in artInDb.Albums)
         {
-            // Refresh songs
-            art.SongsByArtist ??= new ObservableCollection<SongModelView?>();
-            art.SongsByArtist.Clear();
+            var albView = alb.ToAlbumModelView(withArtist: false, withSongs: false);
+            if (albView == null) continue;
 
-            var songViews = songsInDb
-                .Select(s => s.ToSongModelView())
-                .Where(s => s != null)
-                .ToList();
-            art.SongsByArtist.AddRange(songViews);
-
-            // Refresh albums
-            art.AlbumsByArtist ??= new ObservableCollection<AlbumModelView?>();
-            art.AlbumsByArtist.Clear();
-
-            var albumViews = albumsInDb
-                .Select(a =>
-                {
-                            var albView = a.ToAlbumModelView();
-                    albView?.ImagePath = a.SongsInAlbum?.Where(s => !string.IsNullOrEmpty(s.CoverImagePath)).AsEnumerable().Select(s => s.CoverImagePath).FirstOrDefault();
-                    return albView;
-                })
-                .Where(a => a != null)
-                .ToList();
-
-            foreach (var albumView in albumViews)
+            if (IncludeSongsInAlbum && alb.SongsInAlbum != null)
             {
-                art.AlbumsByArtist.Add(albumView);
-            }
-                art.PlayEvents ??= new();
-            art.PlayEvents.Clear();
+                var songsInAlbumViews = new List<SongModelView>();
 
-            var playEventViews = eventsInDb
+                foreach (var songDb in alb.SongsInAlbum)
+                {
+                    var songView = songDb.ToSongModelView(isShallow: true);
+                    if (songView == null) continue;
+
+                  
+                    bool isPrimary = (songDb.Artist != null && songDb.Artist.Id == artistId) || songDb.ArtistName == artistName;
+                    bool isCollab = songDb.ArtistToSong != null && songDb.ArtistToSong.Any(x => x.Id == artistId);
+                    bool inOtherText = !string.IsNullOrEmpty(songDb.OtherArtistsName) &&
+                                       songDb.OtherArtistsName.Contains(artistName, StringComparison.OrdinalIgnoreCase);
+
+                    songView.IsBySelectedArtist = isPrimary || isCollab || inOtherText;
+                    songsInAlbumViews.Add(songView);
+                }
+
+                albView.SongsInAlbum = songsInAlbumViews.ToObservableCollection();
+                albView.Artists = alb.Artists.Select(x => x.ToArtistModelView()!).ToList();
+                // Set cover if empty
+                if (string.IsNullOrEmpty(albView.ImagePath))
+                {
+                    albView.ImagePath = alb.SongsInAlbum
+                        .FirstOrDefault(s => !string.IsNullOrEmpty(s.CoverImagePath))?.CoverImagePath;
+                }
+            }
+
+            albumViews.Add(albView);
+        }
+
+        // 3. Play History (ONLY read if requested!)
+        List<DimmerPlayEventView>? playEventViews = null;
+        if (IncludePlayEvents)
+        {
+            playEventViews = artInDb.Songs.AsEnumerable()
+                .SelectMany(s => s.PlayHistory)
                 .Select(e => e.ToDimmerPlayEventView())
                 .Where(e => e != null)
-                .ToList();
-            art.PlayEvents!.AddRange(playEventViews);
+                .ToList()!;
+        }
+
+        // ========================================================
+        // PHASE 2: UI THREAD (Fast swap only)
+        // ========================================================
+        RxSchedulers.UI.ScheduleTo(() =>
+        {
+            // 1. Assign Songs
+            art.SongsByArtist ??= new ObservableCollection<SongModelView?>();
+            art.SongsByArtist.Clear();
+            art.SongsByArtist.AddRange(songViews);
+
+            // 2. Assign Albums
+            art.AlbumsByArtist ??= new ObservableCollection<AlbumModelView?>();
+            art.AlbumsByArtist.Clear();
+            art.AlbumsByArtist.AddRange(albumViews);
+
+            // 3. Assign Play Events
+            if (IncludePlayEvents && playEventViews != null)
+            {
+                art.PlayEvents ??= new();
+                art.PlayEvents.Clear();
+                art.PlayEvents.AddRange(playEventViews);
+            }
         });
     }
 }

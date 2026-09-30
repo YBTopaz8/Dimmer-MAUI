@@ -137,43 +137,38 @@ public sealed partial class ArtistsOverViewPage : Page
 
     }
 
-
     private void ArtistSelectorBar_SelectionChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs args)
     {
         SelectorBarItem selectedItem = sender.SelectedItem;
         int currentSelectedIndex = sender.Items.IndexOf(selectedItem);
-        System.Type pageType;
+        System.Type? pageType=null;
 
         switch (currentSelectedIndex)
         {
             case 0:
-                pageType = typeof(AllArtistsPage);
+                pageType = typeof(AllArtistsPage); // The page we built earlier with the left/right view
                 break;
             case 1:
-                pageType = typeof(ArtistPage);
-
+                // When they want just the focused details of the selected artist
+                pageType = typeof(ArtistDetailsPage);
                 break;
             case 2:
-                pageType = typeof(ArtistPage);
-
-                break;
-            case 3:
-                pageType = typeof(ArtistPage);
-
+                //pageType = typeof(ArtistSongsPage);
                 break;
             default:
-                pageType = typeof(ArtistPage);
-
+                pageType = typeof(AllArtistsPage);
                 break;
         }
 
-        var slideNavigationTransitionEffect = currentSelectedIndex - previousSelectedIndex > 0 ? SlideNavigationTransitionEffect.FromRight : SlideNavigationTransitionEffect.FromLeft;
+        var effect = currentSelectedIndex > previousSelectedIndex
+            ? SlideNavigationTransitionEffect.FromRight
+            : SlideNavigationTransitionEffect.FromLeft;
 
-        ArtistContentFrame.Navigate(pageType, null, new SlideNavigationTransitionInfo() { Effect = slideNavigationTransitionEffect });
+        // Pass the ViewModel to the new page so it has the SelectedArtist!
+        ArtistContentFrame.Navigate(pageType, MyViewModel, new SlideNavigationTransitionInfo() { Effect = effect });
 
         previousSelectedIndex = currentSelectedIndex;
     }
-
     private void FetchAllInfos_Click(object sender, RoutedEventArgs e)
     {
         try

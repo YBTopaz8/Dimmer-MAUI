@@ -1,4 +1,4 @@
-﻿namespace Dimmer.DimmerSearch.TQL;
+﻿    namespace Dimmer.DimmerSearch.TQL;
 public interface IQueryNode
 {
 }
@@ -9,6 +9,19 @@ public class NotNode : IQueryNode
     public NotNode(IQueryNode node)
     {
         NodeToNegate = node;
+    }       
+}
+public class InNode : IQueryNode
+{
+    public string Field { get; }
+    public IReadOnlyList<string> Values { get; }
+    public bool IsNegated { get; }
+
+    public InNode(string field, List<string> values, bool isNegated = false)
+    {
+        Field = field;
+        Values = values;
+        IsNegated = isNegated;
     }
 }
 public enum LogicalOperator { And, Or }
@@ -142,7 +155,7 @@ public class ShuffleNode : IQueryNode
 {
     public int Count { get; }
     public FieldDefinition? BiasField { get; }
-    public SortDirection BiasDirection { get; }
+    public TQLSortDirection BiasDirection { get; }
     public bool IsBiased => BiasField != null;
 
     // Constructor for a simple shuffle (e.g., "shuffle 50")
@@ -150,11 +163,11 @@ public class ShuffleNode : IQueryNode
     {
         Count = count;
         BiasField = null;
-        BiasDirection = SortDirection.Ascending; // Not used
+        BiasDirection = TQLSortDirection.Ascending; // Not used
     }
 
     // Constructor for a biased shuffle (e.g., "shuffle by rating desc")
-    public ShuffleNode(int count, FieldDefinition biasField, SortDirection biasDirection)
+    public ShuffleNode(int count, FieldDefinition biasField, TQLSortDirection biasDirection)
     {
         Count = count;
         BiasField = biasField;

@@ -124,7 +124,7 @@ public static class QueryResultProcessor
                           .Take(shuffleNode.Count)
                           .ToList();
     }
-    private static double CalculateWeight(SongModel song, FieldDefinition field, SortDirection direction)
+    private static double CalculateWeight(SongModel song, FieldDefinition field, TQLSortDirection direction)
     {
         // Get the value of the property using our helper
         var propValue = SemanticQueryHelpers.GetComparableProp(song, field.PropertyName);
@@ -146,7 +146,7 @@ public static class QueryResultProcessor
         // Handle direction. If descending (e.g., rating desc), a higher value is better.
         // If ascending (e.g., played asc), a higher value (more days ago) is better.
         // So, we need to invert for descending cases where a lower value is "better".
-        if (field.PropertyName == nameof(SongModel.LastPlayed) && direction == SortDirection.Descending)
+        if (field.PropertyName == nameof(SongModel.LastPlayed) && direction == TQLSortDirection.Descending)
         {
             // This is a special case: "played desc" means we want RECENT songs.
             // A smaller number of days ago is better, so we invert the weight.

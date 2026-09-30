@@ -14,7 +14,7 @@ public enum PlaybackAction
 
     /// <summary>
     /// Stop current playback, clear the queue, and start playing the selected song and its context.
-    /// This is typically triggered by long-press or explicit "Play Now" action.
+    /// This is typically triggered by long-press or explicit "PlayAsync Now" action.
     /// </summary>
     PlayNow = 1,
 

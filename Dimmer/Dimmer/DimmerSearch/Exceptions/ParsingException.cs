@@ -1,11 +1,9 @@
 ﻿namespace Dimmer.DimmerSearch.Exceptions;
-public class ParsingException : Exception
-{
-    public int Position { get; }
 
-    public ParsingException(string message, int position = -1) : base(message)
-    {
-        Position = position;
-    }
-    public override string? StackTrace => string.Empty;
+public readonly record struct ParseResult<T>(T? Value, string? Error, int ErrorPosition, bool IsSuccess)
+{
+    public static ParseResult<T> Ok(T value) => new(value, null, -1, true);
+
+  
+    public static ParseResult<T> Fail(string? error, int position) => new(default, error, position, false);
 }

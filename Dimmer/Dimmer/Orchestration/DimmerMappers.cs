@@ -30,7 +30,7 @@ public static class DimmerMappers
         };
         return dest;
     }
-    public static SongModelView? ToSongModelView(this SongModel? src)
+    public static SongModelView? ToSongModelView(this SongModel? src, bool isShallow=true)
     {
         if (src is null) return null;
 
@@ -40,7 +40,7 @@ public static class DimmerMappers
             Id = src.Id,
             Title = src.Title,
             FilePath = src.FilePath,
-            
+
             DurationInSeconds = src.DurationInSeconds,
             IsHidden = src.IsHidden,
             ReleaseYear = src.ReleaseYear is null ? 0 : (int)src.ReleaseYear,
@@ -48,7 +48,7 @@ public static class DimmerMappers
             ManualFavoriteCount = src.ManualFavoriteCount,
             TrackNumber = src.TrackNumber,
             FileFormat = src.FileFormat,
-            PlatformPath=src.PlatformPath,
+            PlatformPath = src.PlatformPath,
             Lyricist = src.Lyricist,
             Composer = src.Composer,
             Conductor = src.Conductor,
@@ -124,30 +124,39 @@ public static class DimmerMappers
             AlbumName = src.AlbumName,
             GenreName = src.Genre?.Name ?? string.Empty,
 
-
+        };
+        if (!isShallow)
+        {
             // --- Nested Objects ---
             // Note: We use ToModelView() recursively. 
             // Warning: Your AutoMapper config IGNORED ArtistToSong list to prevent cycles. We do the same.
-            ArtistToSong = src.ArtistToSong.AsEnumerable().Select(x => x.ToArtistModelView()).ToObservableCollection(),
+            dest.ArtistToSong = src.ArtistToSong.AsEnumerable().Select(x => x.ToArtistModelView()).ToObservableCollection();
 
 
-            Artist = src.Artist?.ToArtistModelView(),
-            Album = src.Album?.ToAlbumModelView(),
-            Genre = src.Genre?.ToGenreModelView() ?? new GenreModelView(),
+            dest.Artist = src.Artist?.ToArtistModelView();
+            dest.Album = src.Album?.ToAlbumModelView();
+            dest.Genre = src.Genre?.ToGenreModelView() ?? new GenreModelView();
 
             // --- Collections ---
             // Mapping RealmLists to ObservableCollections
-            //PlayEvents = src.PlayHistory?.Select(x => x.ToDimmerPlayEventView()).ToObservableCollection() ?? new(),
-            UserNoteAggregatedCol = src.UserNotes?.Select(x => x.ToUserNoteModelView()).ToObservableCollection() ?? new(),
-            EmbeddedSync = src.EmbeddedSync?.Select(x => x.ToLyricPhraseModelView()).ToObservableCollection() ?? new(),
+            dest.PlayEvents = src.PlayHistory.Select(x => x.ToDimmerPlayEventView()!).ToObservableCollection() ?? new();
+            dest.UserNoteAggregatedCol = src.UserNotes?.Select(x => x.ToUserNoteModelView()).ToObservableCollection() ?? new();
+            dest.EmbeddedSync = src.EmbeddedSync?.Select(x => x.ToLyricPhraseModelView()).ToObservableCollection() ?? new();
 
             // Explicit Ignores from Config:
             // PlaylistsHavingSong -> Ignored
             // HasLyricsColumnIsFiltered -> Ignored
             // IsCurrentPlayingHighlight -> Ignored
             // CurrentPlaySongDominantColor -> Ignored
-        };
-
+        }
+         else
+        {
+            // Give them empty collections so the UI doesn't crash on null
+            dest.ArtistToSong = new();
+            dest.PlayEvents = new();
+            dest.UserNoteAggregatedCol = new();
+            dest.EmbeddedSync = new();
+        }
         // Equivalent to AfterMap logic
         // dest.RefreshDenormalizedProperties(); 
 
@@ -261,9 +270,6 @@ public static class DimmerMappers
             .ToList();
     }
 
-   
-
- 
     public static SongModel? ToSongModel(this SongModelView? src)
     {
         if (src is null) return null;
@@ -363,16 +369,15 @@ public static class DimmerMappers
     // ==============================================================================
     // 📀 ALBUM MAPPERS
     // ==============================================================================
-
-    public static AlbumModelView? ToAlbumModelView(this AlbumModel? src, bool withArtist=false, bool withSongs=false)
+    public static AlbumModelView? ToAlbumModelView(this AlbumModel? src, bool withArtist = false, bool withSongs = false)
     {
         if (src is null) return null;
 
-        var returnAlbum =  new AlbumModelView
+        var returnAlbum = new AlbumModelView
         {
             Id = src.Id,
             Name = src.Name,
-            Url = src.Url is not null ? src.Url : string.Empty,
+            Url = src.Url ?? string.Empty,
             ReleaseYear = src.ReleaseYear,
             IsNew = src.IsNew,
             NumberOfTracks = src.NumberOfTracks,
@@ -399,30 +404,18 @@ public static class DimmerMappers
             TotalSkipCount = src.TotalSkipCount,
             TotalPlayDurationSeconds = src.TotalPlayDurationSeconds,
             IsFavorite = src.IsFavorite,
-            
-            // Ignores from Config
-            // ImageBytes -> Ignored
-            // SongsInAlbum -> Ignored
-            // Artists -> Ignored
-            // IsCurrentlySelected -> Ignored
-         
         };
-        if (withArtist)
+
+        if (withArtist && src.Artists != null)
         {
-            IEnumerable<ArtistModelView>? albumArtistsView = IPlatformApplication.Current!.Services.GetService<IRealmFactory>()!.GetRealmInstance()
-                .Find<AlbumModel>(src.Id)?.Artists.Select(x=>x.ToArtistModelView())!;
 
-            returnAlbum.Artists = albumArtistsView is null ? null : albumArtistsView!.ToList()!;
-
+            returnAlbum.Artists = src.Artists.Select(x => x.ToArtistModelView()).ToList()!;
         }
-        
-        if (withSongs)
-        {
-            var songsInAlbum = IPlatformApplication.Current!.Services.GetService<IRealmFactory>()!.GetRealmInstance()
-                .Find<AlbumModel>(src.Id)!.SongsInAlbum!.AsEnumerable().Select(x => x.ToSongModelView()!)!; ;
-            
-            returnAlbum.SongsInAlbum = songsInAlbum is null ? null : songsInAlbum!.ToObservableCollection()!;
 
+        if (withSongs && src.SongsInAlbum != null)
+        {
+       
+            returnAlbum.SongsInAlbum = src.SongsInAlbum.AsEnumerable().Select(x => x.ToSongModelView(isShallow: true)!).ToObservableCollection();
         }
 
         return returnAlbum;

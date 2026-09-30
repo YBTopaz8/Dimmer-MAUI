@@ -1,4 +1,6 @@
-﻿namespace Dimmer.ViewModel;
+﻿using Dimmer.DimmerAudio;
+
+namespace Dimmer.ViewModel;
 
 public partial class SettingsViewModel : BaseViewModel
 {

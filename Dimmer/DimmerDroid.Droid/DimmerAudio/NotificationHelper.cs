@@ -1,318 +1,76 @@
-﻿using AndroidX.Core.App;
-using AndroidX.Media3.Session;
-using AndroidX.Media3.UI;
-using Notification = Android.App.Notification;
+﻿namespace Dimmer.DimmerAudio;
 
-namespace Dimmer.DimmerAudio;
+using Android.Graphics;
+using Android.Support.V4.Media.Session;
+using AndroidX.Core.App;
+using Resource = Dimmer.Resource;
+using AndroidX.Media.Session;
 
 public static class NotificationHelper
 {
-    public const string ChannelId = "dimmer_media_playback_channel";
-    public const int NotificationId = 10899;
+    public const string ChannelId = "dimmer_audio_channel";
+    public const int NotificationId = 1000;
 
-
-
-    public static NotificationChannel? CreateChannel(Context ctx)
+    public static void CreateNotificationChannel(Context context)
     {
-        if (Build.VERSION.SdkInt < BuildVersionCodes.O)
-            return null;
+        if (Build.VERSION.SdkInt < BuildVersionCodes.O) return;
 
-        var notificationManager = (NotificationManager)ctx.GetSystemService(Context.NotificationService);
-        if (notificationManager == null)
-        {
-            Log.Error("NotifHelper", "Failed to get NotificationManager service for channel creation.");
-            return null;
-        }
-
-
-        var existingChannel = notificationManager.GetNotificationChannel(ChannelId);
-        if (existingChannel != null)
-        {
-            
-
-
-        }
-
-
-        var channelName = "Dimmer Playback";
-        var channelDesc = "Media Playback Controls For Dimmer";
-        var importance = NotificationImportance.Low;
-
-        var chan = new NotificationChannel(ChannelId, channelName, importance)
-        {
-            Description = channelDesc
+        var channel = new NotificationChannel(ChannelId, "Dimmer Playback", NotificationImportance.Low)
+        { 
+            Description = "Controls for Dimmer Audio Playback", LockscreenVisibility = NotificationVisibility.Public,
+            //ShowBadge = false
         };
 
-        chan.EnableLights(true);
-        chan.LockscreenVisibility = NotificationVisibility.Public;
-        chan.SetShowBadge(true);
-        chan.SetBypassDnd(true);
-        chan.EnableVibration(false);
-
-
-
-
-        notificationManager.CreateNotificationChannel(chan);
-      
-
-        return chan;
+        var manager = context.GetSystemService(Context.NotificationService) as NotificationManager;
+        manager?.CreateNotificationChannel(channel);
     }
 
-    public static PlayerNotificationManager BuildManager(
-        MediaSessionService service,
-        MediaSession session, SongModelView? song)
+    public static Notification? BuildNotification(
+        Context context,
+        MediaSessionCompat mediaSession,
+        bool isPlaying,
+        SongModelView? currentSong,
+        Bitmap? coverArt) // Pass null if you don't have it
     {
-        CreateChannel(service);
+        CreateNotificationChannel(context);
 
-        var mainIntent = new Intent(service, typeof(MainActivity))
-            .SetAction("ShowMiniPlayer")
-            .AddCategory(Intent.CategoryLauncher);
+        // 1. Standard Intents (Routed through MediaButtonReceiver)
+        var playPauseIntent = MediaButtonReceiver.BuildMediaButtonPendingIntent(context, isPlaying ? PlaybackStateCompat.ActionPause : PlaybackStateCompat.ActionPlay);
+        var prevIntent = MediaButtonReceiver.BuildMediaButtonPendingIntent(context, PlaybackStateCompat.ActionSkipToPrevious);
+        var nextIntent = MediaButtonReceiver.BuildMediaButtonPendingIntent(context, PlaybackStateCompat.ActionSkipToNext);
 
+        // 2. Custom Intent (Favorite)
+        var favIntent = new Intent(context, typeof(DimmerCompatMediaService));
+        favIntent.SetAction(DimmerMediaSessionCallback.ActionFavorite);
+        var favPendingIntent = PendingIntent.GetService(context, 200, favIntent, PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
 
-        var pi = PendingIntent.GetActivity(
-            service, 0,
-            mainIntent,
-            PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable
-        );
+        // 3. App Open Intent (When user taps the notification body)
+        var openAppIntent = new Intent(context, typeof(MainActivity));
+        var openAppPendingIntent = PendingIntent.GetActivity(context, 0, openAppIntent, PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
 
+        // 4. Build the Notification UI
+        var builder = new NotificationCompat.Builder(context, ChannelId)?
+            .SetContentTitle(currentSong?.Title ?? "Unknown Title")?
+            .SetContentText(currentSong?.OtherArtistsName ?? "Unknown Artist")?
+            .SetSubText(currentSong?.AlbumName ?? "Unknown Album")?
+            .SetSmallIcon(Resource.Drawable.dimmicoo)? 
+            .SetLargeIcon(coverArt)?
+            .SetContentIntent(openAppPendingIntent)?
+            .SetVisibility(NotificationCompat.VisibilityPublic)?
+            .SetOngoing(isPlaying)? // Prevents swipe-away while playing
 
-        var customActionReceiver = new DimmerActionReceiver(service);
+            // Actions (0, 1, 2, 3)
+            .AddAction(currentSong?.IsFavorite ?? false ? Resource.Drawable.media3_icon_heart_filled : Resource.Drawable.media3_icon_heart_unfilled, "Favorite", favPendingIntent)? // Action 0
+            .AddAction(Resource.Drawable.media3_icon_previous, "Previous", prevIntent)?        // Action 1
+            .AddAction(isPlaying ? Resource.Drawable.media3_icon_pause : Resource.Drawable.media3_icon_circular_play, isPlaying ? "Pause" : "Play", playPauseIntent)? // Action 2
+            .AddAction(Resource.Drawable.media3_icon_next, "Next", nextIntent)?                // Action 3
 
-        var descrAdapter = new DefaultMediaDescriptionAdapter(pi);
+            // Apply MediaStyle
+            .SetStyle(new AndroidX.Media.App.NotificationCompat.MediaStyle()?
+                .SetMediaSession(mediaSession.SessionToken)?
+                // Show Prev, Play/Pause, Next on the compact lock screen view
+                .SetShowActionsInCompactView(1, 2, 3));
 
-
-        PlayerNotificationManager? mgr = new PlayerNotificationManager.Builder(
-                service, NotificationId, ChannelId
-            )
-            .SetMediaDescriptionAdapter(descrAdapter)!
-        .SetCustomActionReceiver(customActionReceiver)!
-            .SetNotificationListener(new NotificationListener(service))!
-            .SetSmallIconResourceId(Resource.Drawable.media_session_service_notification_ic_music_note)!
-
-            .Build()!;
-
-        mgr.SetShowPlayButtonIfPlaybackIsSuppressed(true);
-        mgr.SetMediaSessionToken(session.PlatformToken);
-
-        var actionList = new List<string> {
-        DimmerActionReceiver.ActionFavorite,
-        DimmerActionReceiver.ActionShuffle,
-        DimmerActionReceiver.ActionRepeat,
-        DimmerActionReceiver.ActionLyrics
-    };
-
-        if (song != null)
-        {
-            mgr.SetUseChronometer(song.HasSyncedLyrics); // optional: show time counter if lyrics exist
-        }
-
-
-        mgr.SetUseFastForwardActionInCompactView(false);
-        mgr.SetUsePreviousAction(false);
-        mgr.SetUseNextActionInCompactView(false);
-        mgr.SetUsePreviousActionInCompactView(false);
-        mgr.SetUseNextAction(false);
-        mgr.SetUseRewindActionInCompactView(false);
-        mgr.SetUseStopAction(false);
-
-
-        Log.Debug("NotifHelper", "Manager built");
-        return mgr;
+        return builder?.Build();
     }
-
-    class NotificationListener : Java.Lang.Object, PlayerNotificationManager.INotificationListener
-    {
-        readonly MediaSessionService _svc;
-        public NotificationListener(MediaSessionService svc) => _svc = svc;
-
-
-        public void OnNotificationPosted(int notificationId, Notification? notification, bool ongoing)
-        {
-            try
-            {
-                if (ongoing)
-                    _svc.StartForeground(notificationId, notification);
-                else
-                {
-                    if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu)
-                    {
-                        _svc.StopForeground(StopForegroundFlags.Detach);
-                    }
-                    else
-                    {
-                        _svc.StopForeground(StopForegroundFlags.Detach);
-                    }
-
-                }
-                Log.Debug("NotifHelper", $"Posted id={notificationId} ongoing={ongoing}");
-
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-        }
-
-        public void OnNotificationCancelled(int notificationId, bool dismissedByUser)
-        {
-           
-
-
-            _svc.StopForeground(true);
-
-
-        }
-
-    }
-
-
-    public static Notification BuildMinimalNotification(Context context)
-    {
-        CreateChannel(context);
-        var builder = new Notification.Builder(context, ChannelId)!
-            .SetContentTitle("Dimmer Music Player")!
-            .SetContentText("Preparing playback...")!
-            .SetSmallIcon(Resource.Drawable.media_session_service_notification_ic_music_note)!
-            .SetOngoing(true)!
-            .SetPriority(0)!
-
-            .SetVisibility(NotificationVisibility.Secret)!;
-
-        return builder.Build();
-    }
-    class DimmerActionReceiver : Java.Lang.Object, PlayerNotificationManager.ICustomActionReceiver
-    {
-        private readonly Context _ctx;
-        public const string ActionLyrics = "ACTION_LYRICS";
-
-        public DimmerActionReceiver(Context ctx) => _ctx = ctx;
-        public const string ActionFavorite = "ACTION_FAVORITE";
-        public const string ActionShuffle = "ACTION_SHUFFLE";
-        public const string ActionRepeat = "ACTION_REPEAT";
-
-        public IList<string> GetCustomActions(IPlayer? player)
-        {
-            return new List<string> { ActionFavorite, ActionShuffle, ActionRepeat, ActionLyrics };
-        }
-
-        // 2. Create the actual Button UI (C# logic)
-        public NotificationCompat.Action? GetCustomAction(Context context, string action)
-        {
-            switch (action)
-            {
-                case ActionFavorite:
-                    // Check your VM for current favorite status to pick icon
-                    int heartIcon = ExoPlayerService.CurrentSongContext?.IsFavorite == true
-                        ? Resource.Drawable.media3_icon_heart_filled
-                        : Resource.Drawable.heart;
-                    return CreateAction(context, heartIcon, "Favorite", ActionFavorite);
-
-                case ActionShuffle:
-                    // Check shuffle state to pick icon
-                    bool isShuffleOn = ExoPlayerService.GetShuffleState();
-                    int shuffleIcon = isShuffleOn
-                        ? Resource.Drawable.media3_icon_shuffle_on
-                        : Resource.Drawable.media3_icon_shuffle_off;
-                    return CreateAction(context, shuffleIcon, "Shuffle", ActionShuffle);
-
-                case ActionRepeat:
-                    // Check repeat mode to pick icon
-                    int repeatMode = ExoPlayerService.GetRepeatMode();
-                    int repeatIcon = repeatMode switch
-                    {
-                        2 => Resource.Drawable.media3_icon_repeat_one,  // Repeat One
-                        0 => Resource.Drawable.media3_icon_repeat_all,  // Repeat All
-                        _ => Resource.Drawable.media3_icon_repeat_off   // Repeat Off
-                    };
-                    return CreateAction(context, repeatIcon, "Repeat", ActionRepeat);
-
-                case ActionLyrics:
-                    return CreateAction(context, Resource.Drawable.lyrics, "Lyrics", ActionLyrics);
-            }
-            return null;
-        }
-
-        private NotificationCompat.Action CreateAction(Context context, int icon, string title, string action)
-        {
-            var intent = new Intent(context, typeof(ExoPlayerService)).SetAction(action);
-            var pi = PendingIntent.GetService(context, 0, intent, PendingIntentFlags.Immutable | PendingIntentFlags.UpdateCurrent);
-            return new NotificationCompat.Action(icon, new Java.Lang.String(title), pi);
-        }
-
-        // 3. Handle the Click in C#
-        public void OnCustomAction(IPlayer? player, string? action, Intent? intent)
-        {
-            //if (action == ActionFavorite)
-            //{
-            //    _service.MyViewModel.ToggleFavorite(_service.CurrentSongContext);
-            //    _service.RefreshNotification(); // Helper to redraw the heart
-            //}
-            //else if (action == ActionShuffle)
-            //{
-            //    _service.ToggleShuffle();
-            //}
-            //else if (action == ActionLyrics)
-            //{
-            //    // Trigger your C# lyrics overlay
-            //}
-        }
-        private NotificationCompat.Action BuildNotificationAction(Context context, int icon, string title, string action)
-        {
-            // Create an intent that points back to your ExoPlayerService
-            var intent = new Intent(context, typeof(ExoPlayerService)).SetAction(action);
-
-            // For Android 12+, we MUST use Immutable or Mutable. Background actions are usually Immutable.
-            var flags = PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable;
-            var pi = PendingIntent.GetService(context, 0, intent, flags);
-
-            return new NotificationCompat.Action(icon, new Java.Lang.String(title), pi);
-        }
-        public IDictionary<string, NotificationCompat.Action>? CreateCustomActions(Context? context, int p1)
-        {
-            var actions = new Dictionary<string, NotificationCompat.Action>();
-
-            // 1. Create the Favorite Action
-            // We check the ViewModel state to decide which icon to "register"
-            //bool isFav = _service.MyViewModel.CurrentPlayingSongView?.IsFavorite ?? false;
-            bool isFav = true;
-            int heartIcon = isFav ? Resource.Drawable.media3_icon_heart_filled : Resource.Drawable.heartbroken;
-            actions.Add(ActionFavorite, BuildNotificationAction(context, heartIcon, "Favorite", ActionFavorite));
-
-            // 2. Create the Shuffle Action
-            actions.Add(ActionShuffle, BuildNotificationAction(context, Resource.Drawable.shuffle, "Shuffle", ActionShuffle));
-
-            // 3. Create the Lyrics Action
-            actions.Add(ActionLyrics, BuildNotificationAction(context, Resource.Drawable.lyrics, "Lyrics", ActionLyrics));
-
-            return actions;
-        }
-        public NotificationCompat.Action? CreateCustomAction(Context context, string action, int instanceId)
-        {
-            switch (action)
-            {
-                case ActionFavorite:
-                // Check C# state for the heart icon
-                //bool isFav = _service.MyViewModel.CurrentPlayingSongView?.IsFavorite ?? false;
-                //int heartIcon = isFav ? Resource.Drawable.heart_filled : Resource.Drawable.heart_outline;
-                //return BuildAction(context, heartIcon, "Favorite", ActionFavorite);
-
-                case ActionShuffle:
-                    return BuildAction(context, Resource.Drawable.shuffle, "Shuffle", ActionShuffle);
-
-                case ActionLyrics:
-                    //return BuildAction(context, Resource.Drawable.lyrics_icon, "Lyrics", ActionLyrics);
-                    break;
-            }
-            return null;
-        }
-        private NotificationCompat.Action BuildAction(Context context, int icon, string title, string action)
-        {
-            var intent = new Intent(context, typeof(ExoPlayerService)).SetAction(action);
-            var pi = PendingIntent.GetService(context, 0, intent, PendingIntentFlags.Immutable | PendingIntentFlags.UpdateCurrent);
-            return new NotificationCompat.Action(icon, new Java.Lang.String(title), pi);
-        }
-
-    }
-
-
 }

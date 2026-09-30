@@ -13,6 +13,12 @@ public partial class SongModelView : ObservableObject
     public partial string? TitleDurationKey { get; set; }
 
     [ObservableProperty]
+    public partial bool IsCurrentArtistInvolved { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsBySelectedArtist { get; set; }
+
+    [ObservableProperty]
     public partial int NumberOfTimesFaved { get; set; }
 
     [ObservableProperty]
@@ -175,7 +181,7 @@ public partial class SongModelView : ObservableObject
     public void RefreshDenormalizedProperties()
     {
 
-        // 1. Update Play Counts and Last Played
+        // 1. Update PlayAsync Counts and Last Played
         if (PlayEvents.Any())
         {
             PlayCount = PlayEvents.Count;

@@ -11,17 +11,8 @@ public static class SemanticQueryHelpers
     // The value will be a compiled delegate like Func<SongModel, object>
     private static readonly ConcurrentDictionary<string, Delegate> _accessorCache = new();
 
-    /// <summary>
-    /// This is the core of our performance optimization.
-    /// It takes a type (like SongModel) and a property name (like "Title" or "Genre.Name")
-    /// and returns a pre-compiled, lightning-fast function to get that property's value.
-    /// The slow work of finding the property is only done ONCE. After that, it's retrieved
-    /// from the cache.
-    /// </summary>
-    /// <typeparam name="T">The type of the object to get the property from (e.g., SongModel).</typeparam>
-    /// <typeparam name="TResult">The expected return type of the property (we use 'object' for flexibility).</typeparam>
-    /// <param name="propertyName">The name of the property, supporting nesting like "Genre.Name".</param>
-    /// <returns>A compiled function that gets the property value.</returns>
+    
+
     // Step 1: Modify GetAccessor to build the chain and collect the parts.
     private static readonly object _compilationLock = new();
     private static Func<T, TResult> GetAccessor<T, TResult>(string propertyName)

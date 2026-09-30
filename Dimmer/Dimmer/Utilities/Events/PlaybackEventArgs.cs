@@ -1,7 +1,7 @@
 ﻿namespace Dimmer.Utilities.Events;
 public class PlaybackEventArgs : EventArgs
 {
-    public SongModelView? AudioServiceCurrentPlayingSongView { get; set; }
+    public SongModelView? AudioServiceCurrentPlayingSongView { get; private set; }
     public bool IsPlaying { get; set; }
     public DimmerPlaybackState EventType { get; set; }
     public bool IsUseMyPlaylist { get; set; } = true;

@@ -533,9 +533,14 @@ public sealed partial class AllSongsListPage : Page
 
     private void CoverArtImage_Loaded(object sender, RoutedEventArgs e)
     {
+      
         UIElement send = (UIElement)sender;
+        
         AnimationHelper.TryStart(send, null,
            AnimationHelper.Key_ToViewSingleSongPopUp, AnimationHelper.Key_ListToDetail);
+
+
+
     }
 
 

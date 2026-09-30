@@ -127,7 +127,7 @@ public class AlbumStatsService
         var sideAIds = songs.Where(s => s.TrackNumber <= midPoint).Select(s => s.Id).ToHashSet();
         int sideAPlays = events.Count(e => e.SongId.HasValue && sideAIds.Contains(e.SongId.Value));
         int sideBPlays = plays - sideAPlays; // 'plays' is your existing total play count
-        var sideStat = new TextStat("Side A vs Side B", $"{sideAPlays} / {sideBPlays}", "Play distribution");
+        var sideStat = new TextStat("Side A vs Side B", $"{sideAPlays} / {sideBPlays}", "PlayAsync distribution");
 
         // 2. The Closer (How often the final track is played compared to the first)
         var firstTrack = songs.OrderBy(s => s.TrackNumber).FirstOrDefault();

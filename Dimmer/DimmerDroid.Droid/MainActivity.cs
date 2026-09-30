@@ -14,22 +14,12 @@ namespace DimmerDroid.Droid;
     ConfigChanges.Density)]
 public partial class MainActivity : MauiAppCompatActivity
 {
-    MediaPlayerServiceConnection? _serviceConnection;
-    Intent? _serviceIntent;
-    private ExoPlayerServiceBinder? _binder;
+
     BaseViewModelAnd? MyViewModel { get; set; }
     public MainActivity()
     {
       }
 
-    public ExoPlayerServiceBinder? Binder
-    {
-        get => _binder
-               ?? throw new InvalidOperationException("Service not bound yet");
-        set => _binder = value;
-
-
-    }
     const int REQUEST_AUDIO_PERMS = 99;
     const int REQUEST_STORAGE_PERMS = 98;
 
@@ -37,11 +27,8 @@ public partial class MainActivity : MauiAppCompatActivity
 
     protected override void OnDestroy()
     {
-        if (_serviceConnection != null)
-        {
-            UnbindService(_serviceConnection);
-            _serviceConnection = null;
-        }
+        _serviceStarter?.Dispose();
+
         base.OnDestroy();
 
     }
@@ -59,14 +46,14 @@ public partial class MainActivity : MauiAppCompatActivity
 
         // });
 
-        SetupService();
-
         SetupBackNavigation();
 
 
 
         CheckAndRequestPermissions();     
         
+        SetupService();
+
         // Increase thread pool for background operations
         ThreadPool.SetMinThreads(4, 4);
 
@@ -102,6 +89,8 @@ public partial class MainActivity : MauiAppCompatActivity
 
     public static JsonSerializerOptions JsonOptions => _jsonOptions;
     private static JsonSerializerOptions _jsonOptions;
+    private IDisposable? _serviceStarter;
+
     private void ConfigureJsonOptions()
     {
         // Use these settings for better mobile performance
@@ -118,16 +107,22 @@ public partial class MainActivity : MauiAppCompatActivity
 
     public void SetupService()
     {
-        _serviceConnection = new MediaPlayerServiceConnection();
-        _serviceIntent = new Intent(this, typeof(ExoPlayerService));
+        var audioService = IPlatformApplication.Current!.Services.GetRequiredService<IDimmerAudioService>();
 
-        // Start service but delay binding
-        if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
-            StartForegroundService(_serviceIntent);
-        else
-            StartService(_serviceIntent);
-
-        BindService(_serviceIntent, _serviceConnection, Bind.AutoCreate);
+        // Wait until the user actually plays a song, then boot up the background service.
+        // Take(1) ensures we only send the Start Intent once per app lifecycle!
+        _serviceStarter = audioService.PlaybackStateObs
+            .Where(state => state == DimmerPlaybackState.Playing)
+            .Take(1)
+            .Subscribe(_ =>
+            {
+                var intent = new Intent(this, typeof(DimmerCompatMediaService));
+                if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+                    StartForegroundService(intent);
+                else
+                    StartService(intent);
+            });
+        
     }
     private void ProcessIntent(Android.Content.Intent? intent)
     {

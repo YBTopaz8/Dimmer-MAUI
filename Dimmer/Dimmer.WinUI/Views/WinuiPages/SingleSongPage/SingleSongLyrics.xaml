@@ -9,38 +9,39 @@
     mc:Ignorable="d">
 
     <ScrollViewer>
-        
-    <Grid Background="Transparent" RowSpacing="10">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
 
-        <SelectorBar
-            x:Name="SelectorBar2"
-            Grid.Row="0"
-            SelectionChanged="SelectorBar2_SelectionChanged">
+        <Grid Background="Transparent" RowSpacing="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
 
-            <SelectorBarItem
-                x:Name="LyricsEditorPage"
-                IsSelected="True"
-                Text="Online Lyric via LibLRC" />
-            <SelectorBarItem
-                x:Name="OnlineLyricsSearchPage"
-                Text="OnlineLyricsSearch Page"
-                Visibility="Collapsed" />
-            <SelectorBarItem x:Name="LyricsManualSyncPage" Text="LyricsManualSync Page" />
-            <SelectorBarItem
-                x:Name="SelectorBarItemPage5"
-                Text="Page5"
-                Visibility="Collapsed" />
-        </SelectorBar>
+            <SelectorBar
+                x:Name="SelectorBar2"
+                Grid.Row="0"
+                SelectionChanged="SelectorBar2_SelectionChanged">
 
-        <Frame
-            x:Name="ContentFrame"
-            Grid.Row="1" x:FieldModifier="Public"
-            IsNavigationStackEnabled="False" />
-    </Grid>
+                <SelectorBarItem
+                    x:Name="LyricsEditorPage"
+                    IsSelected="True"
+                    Text="Online Lyric via LibLRC" />
+                <SelectorBarItem
+                    x:Name="OnlineLyricsSearchPage"
+                    Text="OnlineLyricsSearch Page"
+                    Visibility="Collapsed" />
+                <SelectorBarItem x:Name="LyricsManualSyncPage" Text="LyricsManualSync Page" />
+                <SelectorBarItem
+                    x:Name="SelectorBarItemPage5"
+                    Text="Page5"
+                    Visibility="Collapsed" />
+            </SelectorBar>
+
+            <Frame
+                x:Name="ContentFrame"
+                Grid.Row="1"
+                x:FieldModifier="Public"
+                IsNavigationStackEnabled="False" />
+        </Grid>
 
     </ScrollViewer>
 </Page>

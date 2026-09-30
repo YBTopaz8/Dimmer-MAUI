@@ -16,6 +16,12 @@
     <None Update="Package.appxmanifest">
       <SubType>Designer</SubType>
     </None>
+    <None Update="Views\MAUIPages\HomePage.xaml">
+      <SubType>Designer</SubType>
+    </None>
+    <Page Update="Views\WinuiPages\Artist\ArtistDetailsPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Views\WinuiPages\Settings\FoldersSettingsPage.xaml">
       <SubType>Designer</SubType>
     </Page>
@@ -100,9 +106,6 @@
     <Page Update="Views\WinuiPages\DimmsSection\AllDimsView.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Views\WinuiPages\GraphAndNodes.xaml">
-      <SubType>Designer</SubType>
-    </Page>
     <Page Update="Views\WinuiPages\SingleSongPage\SubPage\Stats\SongJourneyPage.xaml">
       <SubType>Designer</SubType>
     </Page>
@@ -169,9 +172,6 @@
     <Page Update="Views\CustomViews\WinuiViews\HoverCardControl.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <MauiXaml Update="Views\MAUIPages\HomePage.xaml">
-      <SubType>Designer</SubType>
-    </MauiXaml>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\DimmerWin.xaml">

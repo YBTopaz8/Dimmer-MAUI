@@ -84,7 +84,7 @@ public partial class TqlBuilderViewModel : ObservableObject
         {
             // Use your existing parser!
             var astNode = new AstParser(SearchQueryText).Parse();
-            var extractedChips = FlattenAstToChips(astNode);
+            var extractedChips = FlattenAstToChips(astNode.Value);
 
             foreach (var chip in extractedChips)
             {

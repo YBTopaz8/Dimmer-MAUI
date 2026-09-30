@@ -82,13 +82,12 @@ public partial class ArtistPage : ContentPage
 
     private void ChartsScrollView_Loaded(object sender, EventArgs e)
     {
-        ChartsScrollView.BindingContext = StatsVM;
+        //ChartsScrollView.BindingContext = StatsVM;
     }
 
     private async void MyPage_Loaded(object sender, EventArgs e)
     {
 
-        await Task.Delay(4000);
         await MylastFMViewModel.LoadArtistLastFMDataAsync(MyViewModel.SelectedArtist);
         
     }
