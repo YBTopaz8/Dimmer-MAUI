@@ -29,26 +29,7 @@ public partial class LastFMViewModel : ObservableObject
 
                    IsLastfmAuthenticated = isAuthenticated;
                    LastFMName = lastfmService.AuthenticatedUser ?? "Not Logged In";
-                   //if (isAuthenticated)
-                   //{
-                   //    lastFMCOmpleteLoginBtnVisible = false;
-                   //    LastFMLoginBtnVisible = false;
 
-                   //    var lastFMRealm = RealmFactory.GetRealmInstance();
-                   //    var currentUser = lastFMRealm
-                   //    .All<UserModel>().FirstOrDefaultNullSafe();
-                   //    await lastFMRealm.WriteAsync(() =>
-                   //    {
-                   //        if ((!string.IsNullOrEmpty(lastfmService.AuthenticatedUser)) && currentUser is not null)
-                   //        {
-                   //            currentUser.UserName ??= !string.IsNullOrEmpty(lastfmService.AuthenticatedUser) ?
-                   //   lastfmService.AuthenticatedUser : "NewUser_" + DateTimeOffset.UtcNow.ToString();
-                   //            currentUser.LastFMAccountInfo ??= LastFMUserInfo.ToLastFMUser()!;
-
-                   //            CurrentUserLocal.Username ??= lastfmService.AuthenticatedUser;
-                   //        }
-                   //    });
-                   //}
                
                })
            .DisposeWith(CompositeDisposables);

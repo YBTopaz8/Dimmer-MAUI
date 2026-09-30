@@ -8,6 +8,7 @@ global using Dimmer.WinUI.Views.WinuiPages.DimmerLive;
 global using Dimmer.WinUI.Views.WinuiPages.LastFMSection;
 global using Dimmer.WinUI.Views.WinuiPages.SingleSongPage;
 global using Dimmer.WinUI.Views.WinuiPages.Utilities;
+using Syncfusion.Maui.Toolkit.Hosting;
 
 namespace Dimmer.WinUI;
 
@@ -20,7 +21,7 @@ public static class MauiProgram
 
         builder
             .UseSharedMauiApp()
-            
+            .ConfigureSyncfusionToolkit()
             ;
         builder.Services.AddDimmerCoreServices();
 

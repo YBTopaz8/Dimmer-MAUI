@@ -127,7 +127,6 @@ public static class ImageFilterUtils
     /// Extracts the most dominant, vibrant color from an image, suitable for UI accenting.
     /// Ignores blacks, whites, and grays.
     /// </summary>
-    /// <param name="imageData">The byte array of the image.</param>
     /// <param name="defaultColor">A fallback color if no suitable color is found.</param>
     /// <returns>The dominant SKColor.</returns>
     public async static Task<SKColor?> GetSKDominantColorAsync(string coverfilePath, SKColor? defaultColor = null)
@@ -419,7 +418,6 @@ public static class ImageFilterUtils
     /// <summary>
     /// Applies a specified filter effect to an image.
     /// </summary>
-    /// <param name="imageData">The original image data in bytes.</param>
     /// <param name="filterType">The filter effect to apply.</param>
     /// <returns>A new byte array representing the filtered image, or the original if the filter is None or fails.</returns>
     public async static Task<byte[]?> ApplyFilter(string? coverfilePath, FilterType filterType)

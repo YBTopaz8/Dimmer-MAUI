@@ -883,6 +883,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                         // Example: await ToggleFavoriteAsync(song);
                     },
                     ex => _logger.LogError(ex, "Error in FavoriteRequestedObs subscription")));
+
+        InitializeEqBands();
     }
     public void StartTQLPipeLine()
     {
@@ -2262,7 +2264,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     [ObservableProperty] public partial ObservableCollection<AudioOutputDevice>? AvailableDevices { get; set; }
 
- 
+    #region audio device management
+
     [ObservableProperty] public partial AudioOutputDevice? SelectedAudioDevice { get; set; }
     partial void OnSelectedAudioDeviceChanged(AudioOutputDevice? oldValue, AudioOutputDevice? newValue)
     {
@@ -2301,7 +2304,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
   
 
-[ObservableProperty]
+    [ObservableProperty]
     public partial bool IsShuffleActive { get; set; }
 
     [ObservableProperty]
@@ -2377,6 +2380,43 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
 
     CancellationTokenSource? _folderPickCTS;
+    [ObservableProperty]
+    public partial string? SelectedAmbienceName { get; set; }
+    [RelayCommand]
+    private async Task PickAmbienceFile()
+    {
+        try
+        {
+            // Define audio file types
+            var customFileType = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+        {
+            { DevicePlatform.iOS, new[] { "public.audio" } },
+            { DevicePlatform.Android, new[] { "audio/*" } },
+            { DevicePlatform.WinUI, new[] { ".mp3", ".wav", ".flac", ".ogg" } }
+        });
+
+            var result = await FilePicker.Default.PickAsync(new PickOptions
+            {
+                PickerTitle = "Select Ambience Audio File",
+                FileTypes = customFileType
+            });
+
+            if (result != null)
+            {
+                SelectedAmbienceName = result.FileName;
+
+                // Send the file to the audio engine
+                await _audioService.InitializeAmbienceAsync(result.FullPath);
+
+                // Auto-enable it so the user hears it immediately
+                IsAmbienceEnabled = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to pick ambience file: {ex.Message}");
+        }
+    }
     [RelayCommand]
     private async Task ExportRemix()
     {
@@ -2388,8 +2428,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         if (pathToExport != null && pathToExport.IsSuccessful)
         {
-            // 🚨 CRITICAL FIX: The engine needs a FULL file path, not just a folder!
-            // We generate a filename based on the current time so it doesn't overwrite old exports.
+
             string fileName = $"Dimmer_Remix_{DateTime.Now:yyyyMMdd_HHmmss}.wav";
             string fullFilePath = Path.Combine(pathToExport.Folder.Path, fileName);
 
@@ -2417,10 +2456,69 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]
+    public partial Syncfusion.Maui.Toolkit.Chips.SfChip SelectedPlaybackModeChip { get; set; }
+
+    partial void OnSelectedPlaybackModeChipChanged(Syncfusion.Maui.Toolkit.Chips.SfChip oldValue, Syncfusion.Maui.Toolkit.Chips.SfChip newValue)
+    {
+
+        //switch ()
+        //{
+        //    case ""
+        //    default:
+        //        break;
+        //}
+    }
+    [ObservableProperty]
     public partial int SelectedPlaybackModeIndex { get; set; }
+
+    [ObservableProperty]
+    public partial double CurrentSpeed { get; set; } = 1;
+
+    [ObservableProperty]
+    public partial double CurrentPitch { get; set; } = 0;
+
+    partial void OnCurrentPitchChanged(double value)
+    {
+        _audioService.CurrentPitch = Convert.ToSingle(value);
+    }
+
+    partial void OnCurrentSpeedChanged(double value)
+    {
+        _audioService.CurrentSpeed = Convert.ToSingle(value);
+    }
     partial void OnSelectedPlaybackModeIndexChanged(int value)
     {
+        
         _audioService.SetPlaybackMode((PlaybackModeEnum)value);
+    }
+    [RelayCommand]
+    public void SetPlayBackFromEnum(PlaybackModeEnum selectedMode)
+    {
+
+        _audioService.SetPlaybackMode(selectedMode);
+    }
+    [RelayCommand]
+    private void SetLoopPointA()
+    {
+        _audioService.SetLoopPointA();
+    }
+    [RelayCommand]
+    private void SetLoopPointB()
+    {
+
+        _audioService.SetLoopPointB();
+    }
+    [RelayCommand]
+    private void ClearAbLoop()
+    {
+
+        _audioService.ClearAbLoop();
+    }
+    [RelayCommand]
+    private void ResetPitchAndSpeed()
+    {
+
+        _audioService.SetPlaybackMode(PlaybackModeEnum.Normal);
     }
 
     [ObservableProperty]
@@ -2450,6 +2548,45 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty] public partial double EqBand7 { get; set; }
     [ObservableProperty] public partial double EqBand8 { get; set; }
     [ObservableProperty] public partial double EqBand9 { get; set; }
+    [ObservableProperty] public partial CompressorPreset CurrentCompressorPreset { get; set; }
+
+
+    [ObservableProperty]
+    public partial bool ShowAdvancedEq { get; set; }
+    partial void OnShowAdvancedEqChanged(bool value)
+    {
+        OnPropertyChanged(nameof(VisibleEqBands));
+    }
+    public ObservableCollection<EqBandViewModel> AllEqBands { get; } = new();
+    public IEnumerable<EqBandViewModel> VisibleEqBands =>
+    ShowAdvancedEq ? AllEqBands : AllEqBands.Where(b => b.IsBasic);
+    private void InitializeEqBands()
+    {
+        // A standard 30-band ISO frequency list
+        string[] freqs = {
+        "25", "31", "40", "50", "63", "80", "100", "125", "160", "200",
+        "250", "315", "400", "500", "630", "800", "1k", "1.25k", "1.6k", "2k",
+        "2.5k", "3.15k", "4k", "5k", "6.3k", "8k", "10k", "12.5k", "16k", "20k"
+    };
+
+        // The indexes of the 10 "Basic" bands (approximate 10-band ISO spacing)
+        int[] basicIndexes = { 1, 4, 7, 10, 13, 16, 19, 22, 25, 28 };
+
+        for (int i = 0; i < 30; i++)
+        {
+            bool isBasic = basicIndexes.Contains(i);
+            AllEqBands.Add(new EqBandViewModel(i, freqs[i], isBasic, (index, gain) =>
+            {
+                _audioService.ChangeEqBand(index, (float)gain);
+            }));
+        }
+    }
+    [RelayCommand]
+    public void ChangeCompressorEffect(CompressorPreset selectedPreset)
+    {
+        _audioService.EnableCompressor(true, selectedPreset);
+    }
+
     [ObservableProperty]
     public partial bool IsCompressorEnabled { get; set; }
 
@@ -2504,7 +2641,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         SelectedAudioDevice = device;
         await LoadAllAudioDevices();
     }
-
+#endregion
 
     [ObservableProperty]
     public partial SongModelView CurrentPlayingSongView { get; set; }
@@ -2527,12 +2664,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     private IDialogueService _dialogueService;
 
-    #region audio device management
    
 
     [RelayCommand]
     private void LogoutFromLastfm() { lastfmService.Logout(); }
-    #endregion
+   
+
 
 
 
@@ -7363,11 +7500,7 @@ public record QueryComponents(
         await ShowNotification("Artist updated successfully!");
     }
 
-    /// <summary>
-    /// Creates a new artist in the database and assigns the selected song(s) to it. Useful for quickly categorizing
-    /// untagged files.
-    /// </summary>
-    /// <param name="songsToAssign">The list of songs to assign to the new artist.</param>
+
     [RelayCommand]
     private async Task CreateArtistAndAssignSongsAsync()
     {
@@ -7412,11 +7545,7 @@ public record QueryComponents(
 
 
 
-    /// <summary>
-    /// Merges multiple songs into a single album, creating the album if it doesn't exist. This is the core command for
-    /// "compiling" an album from loose tracks.
-    /// </summary>
-    /// <param name="songsToAlbumize">The list of songs to group into an album.</param>
+
     [RelayCommand]
     private async Task GroupSongsIntoAlbumAsync()
     {
@@ -7460,10 +7589,7 @@ public record QueryComponents(
     }
 
 
-    /// <summary>
-    /// Applies a single genre to a batch of selected songs.
-    /// </summary>
-    /// <param name="songsToGenre">The songs to apply the genre to.</param>
+
     [RelayCommand]
     private async Task ApplyGenreToSongsAsync()
     {
@@ -7501,10 +7627,7 @@ public record QueryComponents(
         await ShowNotification($"Genre '{genreName}' applied to {songsToGenre.Count} songs.");
     }
 
-    /// <summary>
-    /// Applies one or more tags (comma-separated) to a batch of selected songs.
-    /// </summary>
-    /// <param name="songsToTag">The songs to apply tags to.</param>
+
     [RelayCommand]
     private async Task ApplyTagsToSongsAsync()
     {

@@ -551,10 +551,10 @@
                 <!--  ==========================================================  -->
                 <dx:TabViewItem HeaderText="Vibe &amp; Tempo">
                     <dx:DXScrollView IsScrollBarVisible="False">
-                        <VerticalStackLayout Padding="16" Spacing="16">
+                        <dx:DXStackLayout Padding="16" ItemSpacing="16">
 
                             <!--  Quick Vibe Presets  -->
-                            <VerticalStackLayout Spacing="6">
+                            <dx:DXStackLayout ItemSpacing="6">
                                 <Label Style="{StaticResource SectionHeader}" Text="QUICK PRESETS" />
                                 <dx:ChoiceChipGroup
                                     ChipSelectedBackgroundColor="DarkSlateBlue"
@@ -567,10 +567,10 @@
                                         <dx:Chip Text="Slowed + Reverb" />
                                     </dx:ChoiceChipGroup.Chips>
                                 </dx:ChoiceChipGroup>
-                            </VerticalStackLayout>
+                            </dx:DXStackLayout>
 
                             <!--  🔥 REAL-TIME PITCH & SPEED SLIDERS  -->
-                            <VerticalStackLayout Spacing="6">
+                            <dx:DXStackLayout ItemSpacing="6">
                                 <Grid ColumnDefinitions="*,Auto">
                                     <Label
                                         Grid.Column="0"
@@ -595,9 +595,9 @@
                                                                   Dark=#262636}"
                                     BorderThickness="1"
                                     CornerRadius="16">
-                                    <VerticalStackLayout Spacing="12">
+                                    <dx:DXStackLayout ItemSpacing="12">
                                         <!--  Speed Slider (0.5x to 2.0x)  -->
-                                        <VerticalStackLayout Spacing="4">
+                                        <dx:DXStackLayout ItemSpacing="4">
                                             <Grid ColumnDefinitions="*,Auto">
                                                 <Label FontSize="13" Text="Playback Speed" />
                                                 <Label
@@ -611,7 +611,7 @@
                                                 MinimumTrackColor="DarkSlateBlue"
                                                 ThumbColor="DarkSlateBlue"
                                                 Value="{Binding CurrentSpeed, Mode=TwoWay}" />
-                                        </VerticalStackLayout>
+                                        </dx:DXStackLayout>
 
                                         <!--  Pitch Slider (-12 to +12 Semitones)  -->
                                         <VerticalStackLayout Spacing="4">
@@ -629,12 +629,12 @@
                                                 ThumbColor="DarkSlateBlue"
                                                 Value="{Binding CurrentPitch, Mode=TwoWay}" />
                                         </VerticalStackLayout>
-                                    </VerticalStackLayout>
+                                    </dx:DXStackLayout>
                                 </dx:DXBorder>
-                            </VerticalStackLayout>
+                            </dx:DXStackLayout>
 
                             <!--  🔁 A-B REPEAT (LOOP SECTIONS)  -->
-                            <VerticalStackLayout Spacing="6">
+                            <dx:DXStackLayout ItemSpacing="6">
                                 <Label Style="{StaticResource SectionHeader}" Text="A-B SECTION LOOP" />
                                 <dx:DXBorder
                                     Padding="14"
@@ -677,8 +677,8 @@
                                             TextColor="IndianRed" />
                                     </Grid>
                                 </dx:DXBorder>
-                            </VerticalStackLayout>
-                        </VerticalStackLayout>
+                            </dx:DXStackLayout>
+                        </dx:DXStackLayout>
                     </dx:DXScrollView>
                 </dx:TabViewItem>
 
@@ -1100,9 +1100,7 @@
                     </Grid>
                 </dx:TabViewItem>
 
-                <!--  ==========================================================  -->
-                <!--  TAB 4: HARDWARE ROUTING & METERS  -->
-                <!--  ==========================================================  -->
+
                 <dx:TabViewItem HeaderText="Hardware &amp; VU">
                     <dx:DXScrollView IsScrollBarVisible="False">
                         <VerticalStackLayout Padding="16" Spacing="16">

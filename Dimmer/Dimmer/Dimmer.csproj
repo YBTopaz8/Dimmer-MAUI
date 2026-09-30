@@ -79,7 +79,6 @@
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
 		<PackageReference Include="CommunityToolkit.Maui" Version="15.0.1" />
 		<PackageReference Include="Realm" Version="20.1.0" />
-		<PackageReference Include="Xabe.FFmpeg" Version="6.0.2" />
 	</ItemGroup>
 
 

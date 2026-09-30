@@ -1,11 +1,9 @@
-﻿using OwnaudioNET.Effects;
-using OwnaudioNET.Effects.SmartMaster;
+﻿
 
-namespace Dimmer.DimmerAudio;
-
-using OwnaudioNET.Effects;
-using OwnaudioNET.Effects.SmartMaster;
+global using OwnaudioNET.Effects;
+global using OwnaudioNET.Effects.SmartMaster;
 using static Dimmer.DimmerAudio.OwnAudioService;
+namespace Dimmer.DimmerAudio;
 
 public interface IDimmerAudioService : IAsyncDisposable
 {
@@ -78,6 +76,11 @@ public interface IDimmerAudioService : IAsyncDisposable
     // 4. AUDIO EFFECTS & TWEAKS
     // ==========================================================
     void SetPlaybackMode(PlaybackModeEnum mode, float customReverbMix = 0.15f, float customRoomSize = 0.35f);
+    /// <summary>
+    /// Sets Pitch (Pitch semi tones) and Speed (Tempo Ratio)
+    /// </summary>
+    /// <param name="pitchSemitones"></param>
+    /// <param name="tempoRatio"></param>
     void SetPitchAndSpeed(float pitchSemitones, float tempoRatio);
 
     void EnableEqualizer(bool enable);

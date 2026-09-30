@@ -246,7 +246,12 @@ public partial class OwnAudioService : IDimmerAudioService
 
         Task.Run(async () =>
         {
-            await _transportLock.WaitAsync();
+
+            if (!await _transportLock.WaitAsync(TimeSpan.FromSeconds(3)))
+            {
+                _errors.OnNext(new TimeoutException("Audio engine locked during device switch."));
+                return ;
+            }
             try
             {
                 var wasPlaying = IsPlaying;
@@ -497,10 +502,16 @@ public partial class OwnAudioService : IDimmerAudioService
     {
         _mixer?.StopRecording();
     }
-
+    private CancellationTokenSource? _crossfadeCts;
     public async Task CrossfadeToNextAsync(SongModelView nextSong, double overlapSeconds = 3.0)
     {
+        _crossfadeCts?.Cancel();
+        _crossfadeCts = new CancellationTokenSource();
+        var token = _crossfadeCts.Token;
         await _transportLock.WaitAsync();
+        // 4. Execute the crossfade asynchronously
+        var oldSource = _mainSource;
+        _mainSource = _secondarySource;
         try
         {
             int sr = OwnaudioNet.Engine!.Config.SampleRate;
@@ -518,9 +529,6 @@ public partial class OwnAudioService : IDimmerAudioService
             // 3. Start it exactly NOW
             _mixer?.StartPreparedSources(0);
 
-            // 4. Execute the crossfade asynchronously
-            var oldSource = _mainSource;
-            _mainSource = _secondarySource;
 
             
 
@@ -535,6 +543,7 @@ public partial class OwnAudioService : IDimmerAudioService
 
                 for (int i = 0; i <= steps; i++)
                 {
+                    if (token.IsCancellationRequested) break;
                     float ratio = (float)i / steps;
                     if (oldSource != null) oldSource.Volume = 1f - ratio;
                     if (_mainSource != null) _mainSource.Volume = ratio;
@@ -542,17 +551,20 @@ public partial class OwnAudioService : IDimmerAudioService
                     await Task.Delay(delayMs);
                 }
 
-                // Cleanup the old song once it's fully silent
-                if (oldSource != null)
-                {
-                    _mixer?.RemoveSource(oldSource.Id);
-                    oldSource.Stop();
-                    oldSource.Dispose();
-                }
+                
             });
         }
         catch (Exception ex) { _errors.OnNext(ex); }
-        finally { _transportLock.Release(); }
+        finally
+        {
+            // Guarantee cleanup happens
+            if (oldSource != null)
+            {
+                _mixer?.RemoveSource(oldSource.Id);
+                oldSource.Stop();
+                oldSource.Dispose();
+            }
+        }
     }
 
     // ==========================================================

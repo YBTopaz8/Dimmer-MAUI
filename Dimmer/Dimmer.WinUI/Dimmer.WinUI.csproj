@@ -38,7 +38,6 @@
 		  <None Remove="Views\CustomViews\WinuiViews\SongMetadataView.xaml" />
 		  <None Remove="Views\CustomViews\WinuiViews\SongStatsView.xaml" />
 		  <None Remove="Views\CustomViews\WinuiViews\VolumeTab.xaml" />
-		  <None Remove="Views\MAUIPages\HomePage.xaml" />
 		  <None Remove="Views\WinuiPages\Achievements\GlobalAchievementsPage.xaml" />
 		  <None Remove="Views\WinuiPages\Achievements\SongAchievementsControl.xaml" />
 		  <None Remove="Views\WinuiPages\AlbumPage.xaml" />
@@ -103,7 +102,7 @@
 			<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.101" />
 			<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.11" />
 
-			<PackageReference Include="DevWinUI" Version="10.4.1" />
+			<PackageReference Include="DevWinUI" Version="10.4.2" />
 			<!--<PackageReference Include="DevWinUI.ContextMenu" Version="10.0.0" />-->
 			
 			<!--<PackageReference Include="DevWinUI.SourceGenerator" Version="10.2.0" />-->
@@ -155,10 +154,11 @@
 		  <MauiXaml Include="Views\CustomViews\MauiViews\SyncLyricsPopUpViewWindow.xaml">
 			<Generator>MSBuild:Compile</Generator>
 		  </MauiXaml>
-		  <MauiXaml Include="Views\MAUIPages\HomePage.xaml">
-			<Generator>MSBuild:Compile</Generator>
-		  </MauiXaml>
+		  <MauiXaml Include="Views\MAUIPages\HomePage.xaml" />
+		 
 		</ItemGroup>
+	
+		
 		<ItemGroup>
 		  <Page Update="Views\WinuiPages\Artist\ArtistDetailsPage.xaml">
 		    <Generator>MSBuild:Compile</Generator>
