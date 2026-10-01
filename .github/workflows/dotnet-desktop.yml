@@ -155,16 +155,14 @@ jobs:
             Write-Host "Fixing $projectType project: $csprojPath"
             $content = Get-Content $csprojPath -Raw
             
-            # Fix import path to externals.props
             # Remove any old/broken externals import
             $content = $content -replace '<Import Project=".*[Ee]xternals\.props"[^>]*/>', ''
             
             # Inject guaranteed imports for both local and CI paths right after <Project ...>
-            $importSnippet = @'
-            <Import Project="$(MSBuildThisFileDirectory)..\..\externals.props" Condition="Exists('$(MSBuildThisFileDirectory)..\..\externals.props')" />
-            <Import Project="$(MSBuildThisFileDirectory)..\..\DimmerExternals.props" Condition="Exists('$(MSBuildThisFileDirectory)..\..\DimmerExternals.props')" />
-            <Import Project="$(MSBuildThisFileDirectory)..\..\..\DimmerExternals.props" Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\DimmerExternals.props')" />
-            '@
+            $importSnippet = "  <Import Project=`"`$(MSBuildThisFileDirectory)..\..\externals.props`" Condition=`"Exists('`$(MSBuildThisFileDirectory)..\..\externals.props')`" />`n" +
+                             "  <Import Project=`"`$(MSBuildThisFileDirectory)..\..\DimmerExternals.props`" Condition=`"Exists('`$(MSBuildThisFileDirectory)..\..\DimmerExternals.props')`" />`n" +
+                             "  <Import Project=`"`$(MSBuildThisFileDirectory)..\..\..\DimmerExternals.props`" Condition=`"Exists('`$(MSBuildThisFileDirectory)..\..\..\DimmerExternals.props')`" />"
+            
             $content = $content -replace '(<Project[^>]*>)', "`$1`n$importSnippet"
             
             # Replace hardcoded project references
