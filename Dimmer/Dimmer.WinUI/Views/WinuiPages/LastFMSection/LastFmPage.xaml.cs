@@ -327,6 +327,7 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
             }
             else
             {
+                
                 // If it's not local, ask if they want to search for it
                 _ = MyViewModel.OpenSongInOnlineSearch("YouTube", clickedTrack.Name, clickedTrack.Artist.Name);
             }

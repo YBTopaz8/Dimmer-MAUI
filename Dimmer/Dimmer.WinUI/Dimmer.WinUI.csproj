@@ -14,7 +14,7 @@
 			<RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
 			<PublishProfile>win-$(Platform).pubxml</PublishProfile>
 			<UseWinUI>true</UseWinUI>
-			<EnableMsixTooling>true</EnableMsixTooling>
+			<EnableMsixTooling>false</EnableMsixTooling>
 			<Nullable>enable</Nullable>
 			<LangVersion>preview</LangVersion>
 			<ImplicitUsings>enable</ImplicitUsings>
@@ -131,23 +131,8 @@
 			<Content Update="Assets\Images\*" TargetPath="%(Filename)%(Extension)" />
 		</ItemGroup>
 
-		<!--<ItemGroup>
-			<Manifest Include="$(ApplicationManifest)" />
-		</ItemGroup>-->
-
-		<!--
-			Defining the "Msix" ProjectCapability here allows the Single-project MSIX Packaging
-			Tools extension to be activated for this project even if the Windows App SDK Nuget
-			package has not yet been restored.
-		-->
-		<ItemGroup Condition="'$(DisableMsixProjectCapabilityAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
-			<ProjectCapability Include="Msix" />
-		</ItemGroup>
-		<ItemGroup>
-		  <Folder Include="DimmerAudio\" />
-		  <Folder Include="Utils\Helpers\" />
-		  <Folder Include="Utils\StaticUtils\TaskBarSection\" />
-		</ItemGroup>
+		
+		
 		<ItemGroup>
 		  <MauiXaml Include="AppShell.xaml">
 			<Generator>MSBuild:Compile</Generator>
@@ -436,13 +421,7 @@
 		  </Page>
 		</ItemGroup>
 
-		<!--
-			Defining the "HasPackageAndPublishMenuAddedByProject" property here allows the Solution
-			Explorer "Package and Publish" context menu entry to be enabled for this project even if
-			the Windows App SDK Nuget package has not yet been restored.
-		-->
-		<PropertyGroup Condition="'$(DisableHasPackageAndPublishMenuAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
-			<HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>
-		</PropertyGroup>
+		
+		
 
 	</Project>

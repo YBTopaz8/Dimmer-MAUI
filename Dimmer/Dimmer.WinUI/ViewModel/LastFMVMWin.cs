@@ -37,6 +37,8 @@ public partial class LastFMVMWin :LastFMViewModel
 
     private Task GeneratePremiumInsights(LastFMUserView user, IEnumerable<Hqub.Lastfm.Entities.Track>? recentTracks)
     {
+        if(user is null) return Task.CompletedTask;
+
         return Task.Run(() =>
         {
             if (recentTracks == null || !recentTracks.Any()) return;
@@ -63,7 +65,7 @@ public partial class LastFMVMWin :LastFMViewModel
 
             // Filter out "Now Playing" tracks which have a null Date
             var validTracks = recentTracks.Where(t => t.Date.HasValue).ToList();
-            if (!validTracks.Any()) return;
+            if (validTracks.Count <0) return;
 
             // 2. CALCULATE TIME OF DAY HABITS (Morning, Afternoon, Evening, Night)
             int morning = 0, afternoon = 0, evening = 0, night = 0;

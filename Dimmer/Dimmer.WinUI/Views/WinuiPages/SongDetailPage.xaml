@@ -3,6 +3,7 @@
     x:Class="Dimmer.WinUI.Views.WinuiPages.SongDetailPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:SingleSongViews="using:Dimmer.WinUI.Views.WinuiPages.SingleSongPage"
     xmlns:charts="clr-namespace:Dimmer.Charts;assembly=Dimmer"
     xmlns:devWin="using:DevWinUI"
     xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
@@ -149,7 +150,12 @@
                             FontWeight="Bold"
                             Style="{ThemeResource TitleTextBlockStyle}"
                             Text="Details" />
-                        <!--  Add File info, Genre, BPM, FileSize, etc. here  -->
+
+                        <devWin:FlipSide>
+                            <devWin:FlipSide.Side1 />
+
+                            <devWin:FlipSide.Side2 />
+                        </devWin:FlipSide>
                     </StackPanel>
                 </ScrollViewer>
 
