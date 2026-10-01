@@ -8676,6 +8676,7 @@ public record QueryComponents(
         await Launcher.Default.OpenAsync(new Uri(url));
     }
 
+
     [RelayCommand]
     public async Task SearchSongPlainLyricsnOnlineSearch(string? service)
     {

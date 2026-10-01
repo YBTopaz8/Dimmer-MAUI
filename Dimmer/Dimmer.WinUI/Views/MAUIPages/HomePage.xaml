@@ -51,7 +51,6 @@
     <Grid>
         <Image
             Grid.Row="0"
-            Grid.RowSpan="4"
             Margin="0,0,10,0"
             Aspect="AspectFit"
             BackgroundColor="Transparent"
@@ -128,7 +127,7 @@
                             <Label
                                 FontSize="10"
                                 HorizontalOptions="Center"
-                                Text="Play History" />
+                                Text="PlayBack Control" />
                         </VerticalStackLayout>
 
                         <VerticalStackLayout Spacing="5" WidthRequest="60">

@@ -309,7 +309,10 @@
                                 Content="Export List (.txt)" />
                         </Grid>
 
-                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                        <ScrollViewer
+                            HorizontalScrollBarVisibility="Auto"
+                            HorizontalScrollMode="Enabled" 
+                            VerticalScrollBarVisibility="Disabled">
                             <GridView
                                 ItemsSource="{x:Bind MyLastFMViewModel.MissingLovedTracks, Mode=OneWay}"
                                 SelectionMode="None"

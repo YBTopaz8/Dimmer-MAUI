@@ -3,6 +3,7 @@
     x:Class="Dimmer.WinUI.Views.WinuiPages.SongDetailPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:SingleSongViews="using:Dimmer.WinUI.Views.WinuiPages.SingleSongPage"
     xmlns:charts="clr-namespace:Dimmer.Charts;assembly=Dimmer"
     xmlns:devWin="using:DevWinUI"
     xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
@@ -145,11 +146,21 @@
                 <ScrollViewer x:Name="OverviewTab" VerticalScrollBarVisibility="Auto">
                     <StackPanel Spacing="32">
                         <!--  Basic Stats & Details  -->
-                        <TextBlock
-                            FontWeight="Bold"
-                            Style="{ThemeResource TitleTextBlockStyle}"
-                            Text="Details" />
-                        <!--  Add File info, Genre, BPM, FileSize, etc. here  -->
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock
+                                FontWeight="Bold"
+                                Style="{ThemeResource TitleTextBlockStyle}"
+                                Text="Details" />
+                            <ToggleSwitch x:Name="ViewEditToggle" IsEnabledChanged="ViewEditToggle_IsEnabledChanged" OffContent="View Mode" OnContent="Edit Mode" />
+                        </StackPanel>
+
+                        <devWin:FlipSide>
+                            <devWin:FlipSide.Side1 />
+
+                            <devWin:FlipSide.Side2>
+                                <SingleSongViews:EditSongPage />
+                            </devWin:FlipSide.Side2>
+                        </devWin:FlipSide>
                     </StackPanel>
                 </ScrollViewer>
 

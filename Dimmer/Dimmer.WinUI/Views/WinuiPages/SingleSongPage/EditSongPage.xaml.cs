@@ -15,54 +15,54 @@ namespace Dimmer.WinUI.Views.WinuiPages.SingleSongPage;
 /// <summary>
 /// An empty page that can be used on its own or navigated to within a Frame.
 /// </summary>
-public sealed partial class EditSongPage : Page
+public sealed partial class EditSongPage : UserControl
 {
     private SongTransitionAnimation _userPrefAnim = SongTransitionAnimation.Spring;
 
-    private readonly Compositor _compositor;
+
     public SongModelView? DetailedSong { get; set; }
     public EditSongPage()
     {
         InitializeComponent(); 
-        _compositor = ElementCompositionPreview.GetElementVisual(this).Compositor;
+        //_compositor = ElementCompositionPreview.GetElementVisual(this).Compositor;
     }
 
     BaseViewModelWin MyViewModel { get; set; }
     LastFMViewModel MyLastFMViewModel { get; set; }
-    protected override async void OnNavigatedTo(NavigationEventArgs e)
-    {
-        base.OnNavigatedTo(e);
-        //DetailedSong = DetailedSong is null ? MyViewModel.SelectedSong : DetailedSong;
+    //protected override async void OnNavigatedTo(NavigationEventArgs e)
+    //{
+    //    base.OnNavigatedTo(e);
+    //    //DetailedSong = DetailedSong is null ? MyViewModel.SelectedSong : DetailedSong;
 
-        if (e.Parameter is SongDetailNavArgs args)
-        {
-            var vm = args.ExtraParam is null ? args.ViewModel as BaseViewModelWin : args.ExtraParam as BaseViewModelWin;
+    //    if (e.Parameter is SongDetailNavArgs args)
+    //    {
+    //        var vm = args.ExtraParam is null ? args.ViewModel as BaseViewModelWin : args.ExtraParam as BaseViewModelWin;
 
-            if (vm != null)
-            {
-                detailedImage.Opacity = 0;
-                MyViewModel = vm;
-                DetailedSong = args.Song;
+    //        if (vm != null)
+    //        {
+    //            detailedImage.Opacity = 0;
+    //            MyViewModel = vm;
+    //            DetailedSong = args.Song;
 
-                MyViewModel.CurrentPageEnum = CurrentPage.EditSongPage;
-                _editViewModel = new EditSongViewModel(vm, vm.SelectedSong!);
-                MyViewModel.SelectedSong = DetailedSong;
+    //            MyViewModel.CurrentPageEnum = CurrentPage.EditSongPage;
+    //            _editViewModel = new EditSongViewModel(vm, vm.SelectedSong!);
+    //            MyViewModel.SelectedSong = DetailedSong;
               
-            }
-        }
-    }
+    //        }
+    //    }
+    //}
  
     private EditSongViewModel _editViewModel;
     private void BackButton_Click(object sender, RoutedEventArgs e)
     {
-        if (Frame.CanGoBack)
-        {
-            AnimationHelper.Prepare(AnimationHelper.Key_Backward,
-                detailedImage,
-                AnimationHelper.ConnectedAnimationStyle.ScaleDown
-                );
-            Frame.GoBack();
-        }
+        //if (Frame.CanGoBack)
+        //{
+        //    AnimationHelper.Prepare(AnimationHelper.Key_Backward,
+        //        detailedImage,
+        //        AnimationHelper.ConnectedAnimationStyle.ScaleDown
+        //        );
+        //    Frame.GoBack();
+        //}
       
     }
 
@@ -214,21 +214,6 @@ public sealed partial class EditSongPage : Page
         //    ShowNotification("Changes discarded");
         //}
     }
-    private void ShowNotification(string message)
-    {
-        PageNotificationText.Text = message;
-        PageNotificationText.Visibility = Visibility.Visible;
-
-        var vis = ElementCompositionPreview.GetElementVisual(PageNotificationText);
-        PlatUtils.ApplyEntranceEffect(vis, PageNotificationText,
-            SongTransitionAnimation.Fade, _compositor);
-
-        _ = Task.Delay(2600).ContinueWith(_ =>
-        {
-            DispatcherQueue.TryEnqueue(() =>
-                PageNotificationText.Visibility = Visibility.Collapsed);
-        });
-    }
 
     private async void SaveChangeBtn_Click(object sender, RoutedEventArgs e)
     {
@@ -246,24 +231,10 @@ public sealed partial class EditSongPage : Page
         else
         {
             // No changes, just show notification
-            ShowNotification("No changes to save");
+            //ShowNotification("No changes to save");
         }
     }
 
-    protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
-    {
-
-        if (e.NavigationMode == Microsoft.UI.Xaml.Navigation.NavigationMode.Back)
-        {
-            if (detailedImage != null && VisualTreeHelper.GetParent(detailedImage) != null)
-            {
-                ConnectedAnimationService.GetForCurrentView()
-                    .PrepareToAnimate("BackConnectedAnimation", detailedImage);
-            }
-        }
-        base.OnNavigatingFrom(e);
-
-    }
 
     IEnumerable<ArtistModel>? listOfArtistsModel;
     private void ArtistToSongDataGrid_Loaded(object sender, RoutedEventArgs e)
@@ -510,5 +481,26 @@ public sealed partial class EditSongPage : Page
         SearchSongLastFMExp.IsExpanded = false;
         SearchSongLastFMExp.Visibility = Visibility.Collapsed;
         //SearchSongLastFMExp.
+    }
+
+    private void UserControl_Loaded(object sender, RoutedEventArgs e)
+    {
+        DetailedSong = DetailedSong is null ? MyViewModel.SelectedSong : DetailedSong;
+
+
+            //var vm = args.ExtraParam is null ? args.ViewModel as BaseViewModelWin : args.ExtraParam as BaseViewModelWin;
+
+            //if (vm != null)
+            //{
+            //    detailedImage.Opacity = 0;
+            //    MyViewModel = vm;
+            //    DetailedSong = args.Song;
+
+            //    MyViewModel.CurrentPageEnum = CurrentPage.EditSongPage;
+            //    _editViewModel = new EditSongViewModel(vm, vm.SelectedSong!);
+            //    MyViewModel.SelectedSong = DetailedSong;
+
+            //}
+     
     }
 }

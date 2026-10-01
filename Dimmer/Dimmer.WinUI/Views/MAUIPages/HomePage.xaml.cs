@@ -1302,9 +1302,14 @@ public partial class HomePage : ContentPage
         MyLastFMViewModel.LastFMService.IsAuthenticatedChanged
           .ObserveOn(RxSchedulers.UI)
           .Subscribe(
-        async isAuthenticated =>
+        isAuthenticated =>
         {
-            send.Source = MyLastFMViewModel.LastFMUserInfo?.Images.FirstOrDefault(x => !string.IsNullOrEmpty(x.Url))?.Url;
+            if (MyLastFMViewModel.LastFMUserInfo is null) return;
+            var urll= MyLastFMViewModel.LastFMUserInfo?.Images.FirstOrDefault(x => !string.IsNullOrEmpty(x.Url))?.Url;
+            if (!string.IsNullOrEmpty(urll))
+            {
+                send.Source = urll;
+            }
 
         }).DisposeWith(this.compositeDisposable);
     }

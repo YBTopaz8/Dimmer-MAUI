@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<Page
+<UserControl
     x:Class="Dimmer.WinUI.Views.WinuiPages.SingleSongPage.EditSongPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -8,10 +8,12 @@
     xmlns:dgView="using:WinUI.TableView"
     xmlns:local="using:Dimmer.WinUI.Views.WinuiPages.SingleSongPage"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d"
-    >
+    xmlns:singlesongvmsection="using:Dimmer.WinUI.ViewModel.SingleSongVMSection"
+    d:DataContext="{d:DesignInstance Type=singlesongvmsection:EditSongViewModel}"
+    Loaded="UserControl_Loaded"
+    mc:Ignorable="d">
 
-    <Page.Resources>
+    <UserControl.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
         <converters:BoolToInverseVisibilityConverter x:Key="BoolToInverseVisibilityConverter" />
         <converters:BoolToPlayingPauseConv x:Key="BoolToPlayingPauseConverter" />
@@ -25,16 +27,14 @@
         <converters:BoolToImageConverter
             x:Key="PlayPauseConverter"
             FalseValue="play.png"
-            TrueValue="pause.png"
-            />
+            TrueValue="pause.png" />
         <converters:BoolToImageConverter
             x:Key="FavIconConverter"
             FalseValue="heartbroken.png"
-            TrueValue="heartlock.png"
-            />
+            TrueValue="heartlock.png" />
 
 
-    </Page.Resources>
+    </UserControl.Resources>
     <Grid PointerPressed="Grid_PointerPressed">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
@@ -44,35 +44,30 @@
             Grid.Row="0"
             Margin="10,0"
             Orientation="Horizontal"
-            Spacing="15"
-            >
+            Spacing="15">
             <Button
                 x:Name="BackBtn"
                 VerticalAlignment="Center"
                 Click="BackButton_Click"
-                Content="Back"
-                />
+                Content="Back" />
             <Button
                 x:Name="SaveChangeBtn"
                 Width="120"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Center"
                 Click="SaveChangeBtn_Click"
-                Content="Save Changes"
-                />
+                Content="Save Changes" />
             <TextBlock
                 x:Name="PageNotificationText"
                 FontSize="30"
                 Foreground="DarkOrange"
-                Visibility="Visible"
-                />
+                Visibility="Visible" />
         </StackPanel>
         <ScrollViewer
             x:Name="PageScrollviewer"
             Grid.Row="1"
             VerticalScrollBarVisibility="Hidden"
-            Visibility="Visible"
-            >
+            Visibility="Visible">
             <Grid Padding="10,0" ColumnSpacing="10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="auto" />
@@ -87,23 +82,20 @@
                         MaxHeight="300"
                         HorizontalAlignment="Center"
                         Loaded="DetailedImage_Loaded"
-                        Source="{x:Bind DetailedSong.CoverImagePath, Mode=OneWay}"
-                        />
+                        Source="{x:Bind DetailedSong.CoverImagePath, Mode=OneWay}" />
 
                     <SplitButton
                         x:Name="MyImagePickerBtn"
                         HorizontalAlignment="Center"
                         Click="ChooseImageFromOtherSongsInAlbum_Click"
-                        Content="Edit Image"
-                        >
+                        Content="Edit Image">
                         <SplitButton.Flyout>
 
                             <MenuFlyout>
                                 <MenuFlyoutItem
                                     x:Name="ChooseImageFromFileSystem"
                                     Click="ChooseImageFromFileSystem_Click"
-                                    Text="Choose From File System"
-                                    >
+                                    Text="Choose From File System">
                                     <MenuFlyoutItem.Icon>
                                         <FontIcon Glyph="&#xE91B;" />
                                     </MenuFlyoutItem.Icon>
@@ -111,8 +103,7 @@
                                 <MenuFlyoutItem
                                     x:Name="ChooseImageFromOtherSongsInAlbum"
                                     Click="ChooseImageFromOtherSongsInAlbum_Click"
-                                    Text="Choose From Other Songs In Album"
-                                    >
+                                    Text="Choose From Other Songs In Album">
                                     <MenuFlyoutItem.Icon>
                                         <FontIcon Glyph="&#xE93C;" />
                                     </MenuFlyoutItem.Icon>
@@ -120,8 +111,7 @@
                                 <MenuFlyoutItem
                                     x:Name="RemoveImageFromSong"
                                     Click="RemoveImageFromSong_Click"
-                                    Text="Remove Image"
-                                    >
+                                    Text="Remove Image">
                                     <MenuFlyoutItem.Icon>
                                         <FontIcon Glyph="&#xE74D;" />
                                     </MenuFlyoutItem.Icon>
@@ -147,8 +137,7 @@
                                             Width="80"
                                             Height="80"
                                             PointerPressed="Image_PointerPressed"
-                                            Source="{Binding}"
-                                            />
+                                            Source="{Binding}" />
                                     </DataTemplate>
                                 </ItemsRepeater.ItemTemplate>
                             </ItemsRepeater>
@@ -157,16 +146,14 @@
                         <Button
                             Grid.Column="1"
                             Click="GridOfOtherImagesCloseButton_Click"
-                            Content="X"
-                            />
+                            Content="X" />
                     </Grid>
 
                     <ToggleButton
                         x:Name="ToggleSearchSongLastFM"
                         Checked="ToggleSearchSongLastFM_Checked"
                         Content="Search Online"
-                        Unchecked="ToggleSearchSongLastFM_Unchecked"
-                        />
+                        Unchecked="ToggleSearchSongLastFM_Unchecked" />
                     <Expander x:Name="SearchSongLastFMExp" IsExpanded="False">
                         <Expander.Content>
                             <StackPanel Width="300">
@@ -175,8 +162,7 @@
                                     x:Name="SongNameTB"
                                     BorderBrush="Red"
                                     BorderThickness="1"
-                                    TextChanged="SongNameTB_TextChanged"
-                                    />
+                                    TextChanged="SongNameTB_TextChanged" />
 
                                 <TextBlock Text="Artist" />
                                 <TextBox x:Name="SongArtistNameTB" />
@@ -187,8 +173,7 @@
                                 <Button
                                     x:Name="SearchOnLastFM"
                                     Click="SearchOnLastFM_Click"
-                                    Content="Search"
-                                    />
+                                    Content="Search" />
                             </StackPanel>
                         </Expander.Content>
                     </Expander>
@@ -197,8 +182,7 @@
                         Padding="10"
                         BorderBrush="SlateGray"
                         BorderThickness="1"
-                        CornerRadius="15"
-                        >
+                        CornerRadius="15">
 
                         <Grid ColumnSpacing="15">
                             <Grid.ColumnDefinitions>
@@ -210,44 +194,38 @@
                                 Grid.Column="0"
                                 HorizontalAlignment="Left"
                                 Orientation="Horizontal"
-                                Spacing="5"
-                                >
+                                Spacing="5">
 
                                 <TextBlock
                                     Width="80"
                                     HorizontalAlignment="Left"
                                     VerticalAlignment="Center"
                                     FontWeight="SemiBold"
-                                    Text="Title:"
-                                    />
+                                    Text="Title:" />
                                 <TextBox
                                     x:Name="TitleTextBox"
                                     Margin="0,5,0,15"
                                     Style="{StaticResource MyTextBoxStyle}"
-                                    Text="{x:Bind MyViewModel.SelectedSong.Title, Mode=TwoWay}"
-                                    />
+                                    Text="{x:Bind MyViewModel.SelectedSong.Title, Mode=TwoWay}" />
                             </StackPanel>
 
                             <StackPanel
                                 Grid.Column="1"
                                 HorizontalAlignment="Left"
                                 Orientation="Horizontal"
-                                Spacing="5"
-                                >
+                                Spacing="5">
 
                                 <TextBlock
                                     Width="80"
                                     HorizontalAlignment="Left"
                                     VerticalAlignment="Center"
                                     FontWeight="SemiBold"
-                                    Text="Track #"
-                                    />
+                                    Text="Track #" />
                                 <TextBox
                                     x:Name="TrackNumberTextBox"
                                     Margin="0,5,0,15"
                                     Style="{StaticResource MyTextBoxStyle}"
-                                    Text="{x:Bind MyViewModel.SelectedSong.TrackNumber, Mode=TwoWay}"
-                                    />
+                                    Text="{x:Bind MyViewModel.SelectedSong.TrackNumber, Mode=TwoWay}" />
                             </StackPanel>
                         </Grid>
 
@@ -261,24 +239,21 @@
                                 Grid.Column="0"
                                 HorizontalAlignment="Left"
                                 Orientation="Horizontal"
-                                Spacing="5"
-                                >
+                                Spacing="5">
 
                                 <TextBlock
                                     Width="80"
                                     HorizontalAlignment="Left"
                                     VerticalAlignment="Center"
                                     FontWeight="SemiBold"
-                                    Text="Release Year:"
-                                    />
+                                    Text="Release Year:" />
 
                                 <TextBox
                                     x:Name="ReleaseYearTextBox"
                                     Margin="0,5,0,15"
                                     InputScope="Digits"
                                     Style="{StaticResource MyTextBoxStyle}"
-                                    Text="{x:Bind MyViewModel.SelectedSong.ReleaseYear, Mode=TwoWay}"
-                                    />
+                                    Text="{x:Bind MyViewModel.SelectedSong.ReleaseYear, Mode=TwoWay}" />
                             </StackPanel>
 
 
@@ -287,22 +262,19 @@
                                 Grid.Column="1"
                                 HorizontalAlignment="Left"
                                 Orientation="Horizontal"
-                                Spacing="5"
-                                >
+                                Spacing="5">
 
                                 <TextBlock
                                     Width="80"
                                     HorizontalAlignment="Left"
                                     VerticalAlignment="Center"
                                     FontWeight="SemiBold"
-                                    Text="Conductor:"
-                                    />
+                                    Text="Conductor:" />
                                 <TextBox
                                     x:Name="ConductorTextBox"
                                     Margin="0,5,0,15"
                                     Style="{StaticResource MyTextBoxStyle}"
-                                    Text="{x:Bind MyViewModel.SelectedSong.Conductor, Mode=TwoWay}"
-                                    />
+                                    Text="{x:Bind MyViewModel.SelectedSong.Conductor, Mode=TwoWay}" />
                             </StackPanel>
                         </Grid>
 
@@ -316,22 +288,19 @@
                                 Grid.Column="0"
                                 HorizontalAlignment="Left"
                                 Orientation="Horizontal"
-                                Spacing="5"
-                                >
+                                Spacing="5">
 
                                 <TextBlock
                                     Width="80"
                                     HorizontalAlignment="Left"
                                     VerticalAlignment="Center"
                                     FontWeight="SemiBold"
-                                    Text="Composer:"
-                                    />
+                                    Text="Composer:" />
                                 <TextBox
                                     x:Name="ComposerTextBox"
                                     Margin="0,5,0,15"
                                     Style="{StaticResource MyTextBoxStyle}"
-                                    Text="{x:Bind MyViewModel.SelectedSong.Composer, Mode=TwoWay}"
-                                    />
+                                    Text="{x:Bind MyViewModel.SelectedSong.Composer, Mode=TwoWay}" />
                             </StackPanel>
 
 
@@ -339,16 +308,14 @@
                                 Grid.Column="1"
                                 HorizontalAlignment="Left"
                                 Orientation="Horizontal"
-                                Spacing="5"
-                                >
+                                Spacing="5">
 
                                 <TextBlock
                                     Width="80"
                                     HorizontalAlignment="Left"
                                     VerticalAlignment="Center"
                                     FontWeight="SemiBold"
-                                    Text="Description:"
-                                    />
+                                    Text="Description:" />
                                 <RichEditBox x:Name="DescriptionTextBox" Margin="0,5,0,15" />
                             </StackPanel>
                         </Grid>
@@ -363,22 +330,19 @@
                                 Grid.Column="0"
                                 HorizontalAlignment="Left"
                                 Orientation="Horizontal"
-                                Spacing="5"
-                                >
+                                Spacing="5">
 
                                 <TextBlock
                                     HorizontalAlignment="Left"
                                     VerticalAlignment="Center"
                                     FontWeight="SemiBold"
-                                    Text="Is Song Instrumental:"
-                                    />
+                                    Text="Is Song Instrumental:" />
                                 <ToggleButton
                                     x:Name="IsInstrumentalBox"
                                     Height="20"
                                     Margin="0,5,0,5"
                                     VerticalAlignment="Bottom"
-                                    IsChecked="{x:Bind MyViewModel.SelectedSong.IsInstrumental, Mode=TwoWay}"
-                                    />
+                                    IsChecked="{x:Bind MyViewModel.SelectedSong.IsInstrumental, Mode=TwoWay}" />
                             </StackPanel>
 
 
@@ -391,8 +355,7 @@
                 <StackPanel
                     x:Name="LastFMSearchStackPanel"
                     Grid.Column="1"
-                    Visibility="Collapsed"
-                    >
+                    Visibility="Collapsed">
                     <ProgressRing IsActive="{x:Bind MyViewModel.IsSearchingOnLastFM, Mode=OneWay}" />
                     <TextBlock Text="{x:Bind MyViewModel.InfoFromLastFM.Name, Mode=OneWay}" />
                     <TextBlock Text="{x:Bind MyViewModel.InfoFromLastFM.Artist.Name, Mode=OneWay}" />
@@ -410,16 +373,14 @@
                     <Button
                         x:Name="SaveInfoFromLastFMToSongInDb"
                         Click="SaveInfoFromLastFMToSongInDb_Click"
-                        Content="Save"
-                        />
+                        Content="Save" />
                 </StackPanel>
                 <Grid
                     x:Name="PartTwoSection"
                     Grid.Column="1"
                     Padding="10"
                     RowSpacing="10"
-                    Visibility="Visible"
-                    >
+                    Visibility="Visible">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*" />
                         <RowDefinition Height="*" />
@@ -440,14 +401,12 @@
                                 Grid.Column="0"
                                 HorizontalAlignment="Center"
                                 FontSize="21"
-                                Text="Artists To Song"
-                                />
+                                Text="Artists To Song" />
                             <Button
                                 x:Name="EditArtistsToSong"
                                 Grid.Column="1"
                                 Click="EditArtistsToSong_Click"
-                                CommandParameter="Edit"
-                                >
+                                CommandParameter="Edit">
                                 <Button.Content>
                                     <FontIcon Glyph="&#xEC87;" />
                                 </Button.Content>
@@ -461,16 +420,14 @@
                             AutoGenerateColumns="False"
                             Loaded="ArtistToSongDataGrid_Loaded"
                             SelectionChanged="ArtistToSongDataGrid_SelectionChanged"
-                            SelectionMode="Multiple"
-                            >
+                            SelectionMode="Multiple">
                             <dgView:TableView.Columns>
                                 <dgView:TableViewTextColumn
                                     Width="*"
                                     Binding="{Binding Name}"
                                     Header="Artist Name"
                                     IsReadOnly="True"
-                                    ToolTipService.Placement="Mouse"
-                                    />
+                                    ToolTipService.Placement="Mouse" />
                             </dgView:TableView.Columns>
                         </dgView:TableView>
                     </Grid>
@@ -482,39 +439,33 @@
                         Padding="10"
                         BorderBrush="MediumSlateBlue"
                         BorderThickness="1"
-                        CornerRadius="15"
-                        >
+                        CornerRadius="15">
                         <TextBlock
                             HorizontalAlignment="Center"
                             FontSize="25"
-                            Text="Song Album Edits"
-                            />
+                            Text="Song Album Edits" />
 
 
                         <StackPanel
                             HorizontalAlignment="Center"
                             Orientation="Horizontal"
-                            Spacing="10"
-                            >
+                            Spacing="10">
                             <TextBlock
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Top"
                                 FontSize="25"
                                 FontWeight="SemiBold"
-                                Text="Album:"
-                                />
+                                Text="Album:" />
                             <Button
                                 x:Name="AlbumTextBox2"
                                 Margin="0,5,0,15"
-                                Content="{Binding SelectedSong.AlbumName}"
-                                />
+                                Content="{Binding SelectedSong.AlbumName}" />
                         </StackPanel>
 
                         <StackPanel
                             HorizontalAlignment="Center"
                             Orientation="Horizontal"
-                            Spacing="10"
-                            >
+                            Spacing="10">
                             <Button x:Name="AssignNewAlbumToSong" Content="Update" />
                             <Button x:Name="RemoveFromAlbum" Content="Remove From Album" />
                         </StackPanel>
@@ -526,37 +477,31 @@
                         Padding="10"
                         BorderBrush="LightSlateGray"
                         BorderThickness="1"
-                        CornerRadius="15"
-                        >
+                        CornerRadius="15">
                         <TextBlock
                             HorizontalAlignment="Center"
                             FontSize="25"
-                            Text="Song Genre Edit"
-                            />
+                            Text="Song Genre Edit" />
                         <StackPanel
                             HorizontalAlignment="Center"
                             Orientation="Horizontal"
-                            Spacing="10"
-                            >
+                            Spacing="10">
                             <TextBlock
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Top"
                                 FontSize="25"
                                 FontWeight="SemiBold"
-                                Text="Genre:"
-                                />
+                                Text="Genre:" />
                             <TextBox
                                 x:Name="GenreTextBox"
                                 Margin="0,5,0,15"
-                                Text="{Binding SelectedSong.Genre.Name}"
-                                />
+                                Text="{Binding SelectedSong.Genre.Name}" />
                         </StackPanel>
 
                         <StackPanel
                             HorizontalAlignment="Center"
                             Orientation="Horizontal"
-                            Spacing="10"
-                            >
+                            Spacing="10">
                             <Button x:Name="AssignNewGenreToSong" Content="Update" />
                             <Button x:Name="RemoveFromGenre" Content="Remove From Genre" />
                         </StackPanel>
@@ -569,19 +514,16 @@
                         BorderBrush="DarkSlateBlue"
                         BorderThickness="1"
                         CornerRadius="15"
-                        Spacing="10"
-                        >
+                        Spacing="10">
                         <TextBlock
                             HorizontalAlignment="Center"
                             FontSize="25"
-                            Text="Song Notes"
-                            />
+                            Text="Song Notes" />
                         <Button
                             x:Name="AddNoteToSong"
                             HorizontalAlignment="Center"
                             Click="AddNoteToSong_Click"
-                            Content="Add"
-                            />
+                            Content="Add" />
                         <ItemsRepeater ItemsSource="{Binding SelectedSong.UserNoteAggregatedCol}">
 
                             <ItemsRepeater.ItemTemplate>
@@ -592,20 +534,17 @@
                                         Margin="0,10,0,0"
                                         BorderThickness="1"
                                         CornerRadius="15"
-                                        PointerPressed="UserNoteBtn_PointerPressed"
-                                        >
+                                        PointerPressed="UserNoteBtn_PointerPressed">
                                         <StackPanel
                                             Background="Transparent"
                                             Orientation="Horizontal"
-                                            Spacing="15"
-                                            >
+                                            Spacing="15">
 
                                             <TextBlock
                                                 HorizontalAlignment="Left"
                                                 VerticalAlignment="Center"
                                                 FontSize="26"
-                                                Text="{Binding UserMessageText}"
-                                                />
+                                                Text="{Binding UserMessageText}" />
 
 
                                         </StackPanel>
@@ -624,8 +563,7 @@
         <Grid
             x:Name="LastFMSection"
             Grid.Row="1"
-            Visibility="Collapsed"
-            >
+            Visibility="Collapsed">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
@@ -639,20 +577,17 @@
                 <Button
                     Command="{x:Bind MyLastFMViewModel.FetchSongOnlineOnLastFMCommand}"
                     CommandParameter="{x:Bind DetailedSong}"
-                    Content="Search On Last FM"
-                    />
+                    Content="Search On Last FM" />
 
                 <Button
                     x:Name="PrefillFieldsBtn"
                     Click="PrefillFieldsBtn_Click"
-                    Content="Prefill Fields"
-                    />
+                    Content="Prefill Fields" />
 
                 <Button
                     x:Name="ResetFieldsBtn"
                     Click="ResetFieldsBtn_Click"
-                    Content="Reset Fields"
-                    />
+                    Content="Reset Fields" />
 
                 <ScrollViewer Grid.Column="0" />
             </StackPanel>
@@ -674,4 +609,4 @@
 
         </Grid>
     </Grid>
-</Page>
+</UserControl>
