@@ -24,7 +24,6 @@ public partial class LastFMVMWin :LastFMViewModel
     }
     #region --- Pano Scrobbler Premium Visualizations & Utilities ---
 
-    [ObservableProperty] public partial double LastFmMilestoneProgress { get; set; }
 
     // Charts
     [ObservableProperty] public partial ISeries[]? WeeklyScrobblesChart { get; set; }

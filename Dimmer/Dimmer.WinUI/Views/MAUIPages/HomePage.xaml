@@ -107,7 +107,7 @@
                                 BackgroundColor="Transparent"
                                 BorderWidth="1"
                                 Clicked="ViewDimmerSection_Clicked"
-                                ImageSource="playcircle.png"
+                                ImageSource="audioui.png"
                                 WidthRequest="60" />
 
                             <Label
@@ -122,7 +122,7 @@
                                 BackgroundColor="Transparent"
                                 BorderWidth="1"
                                 Clicked="PlaybackBtmSheettOpener_Clicked"
-                                Source="devices.png"
+                                Source="audioui"
                                 WidthRequest="60" />
 
                             <Label
@@ -139,7 +139,7 @@
                                 BorderWidth="1"
                                 Clicked="ViewLastFM_Clicked"
                                 Loaded="ViewLastFM_Loaded"
-                                Source="lastfm.png"
+                                Source="lastfmsmoll.png"
                                 ToolTipProperties.Text="LastFM Page"
                                 WidthRequest="60" />
 
@@ -801,7 +801,7 @@
                                                     Text="{Binding CurrentPitch, StringFormat='{0:+0;-0;0} semitones'}" />
                                             </Grid>
                                             <Slider
-                                                Maximum="12" 
+                                                Maximum="12"
                                                 Minimum="-12"
                                                 MinimumTrackColor="DarkSlateBlue"
                                                 ThumbColor="DarkSlateBlue"
