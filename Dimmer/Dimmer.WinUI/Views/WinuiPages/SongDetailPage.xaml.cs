@@ -127,5 +127,10 @@ public sealed partial class SongDetailPage : Page
     {
 
     }
+
+    private void ViewEditToggle_IsEnabledChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        
+    }
 }
 

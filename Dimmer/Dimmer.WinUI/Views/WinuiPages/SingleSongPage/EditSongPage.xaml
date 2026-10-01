@@ -6,10 +6,11 @@
     xmlns:converters="using:Dimmer.WinUI.Utils.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:dgView="using:WinUI.TableView"
-    xmlns:local="using:Dimmer.WinUI.Views.WinuiPages.SingleSongPage" Loaded="UserControl_Loaded"
+    xmlns:local="using:Dimmer.WinUI.Views.WinuiPages.SingleSongPage"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:singlesongvmsection="using:Dimmer.WinUI.ViewModel.SingleSongVMSection"
     d:DataContext="{d:DesignInstance Type=singlesongvmsection:EditSongViewModel}"
+    Loaded="UserControl_Loaded"
     mc:Ignorable="d">
 
     <UserControl.Resources>

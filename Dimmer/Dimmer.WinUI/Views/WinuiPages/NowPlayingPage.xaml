@@ -101,8 +101,10 @@
                             LyricsScrollEasingMode="Out"
                             LyricsScrollEasingType="Cubic"
                             NonCurrentLineFillColor="#44FFFFFF"
+                            Opacity="0.7"
                             PlayedCurrentLineFillColor="#FFFFFF"
                             UnplayedCurrentLineFillColor="#88FFFFFF"
+                            Visibility="{x:Bind MyViewModel.CurrentPlayingSongView.HasSyncedLyrics, Converter={StaticResource BoolToVisConverter}}"
                             WordByWordEffectMode="Auto" />
                     </Grid>
                     <StackPanel

@@ -146,15 +146,20 @@
                 <ScrollViewer x:Name="OverviewTab" VerticalScrollBarVisibility="Auto">
                     <StackPanel Spacing="32">
                         <!--  Basic Stats & Details  -->
-                        <TextBlock
-                            FontWeight="Bold"
-                            Style="{ThemeResource TitleTextBlockStyle}"
-                            Text="Details" />
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock
+                                FontWeight="Bold"
+                                Style="{ThemeResource TitleTextBlockStyle}"
+                                Text="Details" />
+                            <ToggleSwitch x:Name="ViewEditToggle" IsEnabledChanged="ViewEditToggle_IsEnabledChanged" OffContent="View Mode" OnContent="Edit Mode" />
+                        </StackPanel>
 
                         <devWin:FlipSide>
                             <devWin:FlipSide.Side1 />
 
-                            <devWin:FlipSide.Side2 />
+                            <devWin:FlipSide.Side2>
+                                <SingleSongViews:EditSongPage />
+                            </devWin:FlipSide.Side2>
                         </devWin:FlipSide>
                     </StackPanel>
                 </ScrollViewer>
