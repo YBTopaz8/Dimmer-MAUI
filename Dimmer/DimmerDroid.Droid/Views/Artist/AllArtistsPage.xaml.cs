@@ -216,4 +216,9 @@ public partial class AllArtistsPage : ContentPage
         artist.IsLoadingArtist = false;
         ArtistExpander.Show();
     }
+
+    private void PlayAll_Clicked(object sender, EventArgs e)
+    {
+
+    }
 }

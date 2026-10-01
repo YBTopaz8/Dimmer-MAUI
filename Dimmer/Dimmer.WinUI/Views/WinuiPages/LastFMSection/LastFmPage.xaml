@@ -7,17 +7,16 @@
     xmlns:dgView="using:WinUI.TableView"
     xmlns:entities="using:Hqub.Lastfm.Entities"
     xmlns:local="using:Dimmer.WinUI.Views.WinuiPages.LastFMSection"
+    xmlns:lvc="using:LiveChartsCore.SkiaSharpView.WinUI"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d"
-    >
+    mc:Ignorable="d">
 
     <Grid>
 
         <Grid
             x:Name="LastFMGridNonAuth"
             Padding="40"
-            Background="Transparent"
-            >
+            Background="Transparent">
             <StackPanel HorizontalAlignment="Center" Visibility="{x:Bind MyLastFMViewModel.IsLastfmAuthenticated, Mode=OneWay, Converter={StaticResource BoolToInverseVisibilityConverter}}">
 
                 <TextBox
@@ -26,8 +25,7 @@
                     Header="Enter your Last FM username:"
                     KeyUp="LastFMUname_KeyUp"
                     PlaceholderText="User Name"
-                    TextChanged="LastFMUname_TextChanged"
-                    />
+                    TextChanged="LastFMUname_TextChanged" />
 
                 <Button
                     x:Name="LoginLastFMBtn"
@@ -38,8 +36,7 @@
                     Content="Login to Last FM"
                     FontSize="19"
                     FontWeight="Bold"
-                    IsEnabled="{x:Bind MyLastFMViewModel.IsLastFMAuthButtonClickable, Mode=OneWay, Converter={StaticResource BoolToInverseConverter}}"
-                    />
+                    IsEnabled="{x:Bind MyLastFMViewModel.IsLastFMAuthButtonClickable, Mode=OneWay, Converter={StaticResource BoolToInverseConverter}}" />
                 <TextBlock Text="LastFM UserName Required" Visibility="{x:Bind MyLastFMViewModel.IsLastFMNeedsUsername}" />
             </StackPanel>
 
@@ -57,8 +54,7 @@
                             Background="DarkRed"
                             BorderBrush="DarkRed"
                             Click="LogoutLastFM_Click"
-                            Content="Logout"
-                            />
+                            Content="Logout" />
 
 
                         <Border CornerRadius="40">
@@ -66,36 +62,31 @@
                                 Width="60"
                                 Height="60"
                                 Source="{x:Bind MyViewModel.CurrentUserLocal.LastFMAccountInfo.Image.Url, Mode=OneWay}"
-                                Stretch="UniformToFill"
-                                />
+                                Stretch="UniformToFill" />
                         </Border>
                         <TextBlock
                             Margin="0,0,0,5"
                             HorizontalAlignment="Center"
                             FontSize="24"
                             Foreground="White"
-                            Text="{x:Bind MyViewModel.CurrentUserLocal.LastFMAccountInfo.RealName, Mode=OneWay}"
-                            />
+                            Text="{x:Bind MyViewModel.CurrentUserLocal.LastFMAccountInfo.RealName, Mode=OneWay}" />
 
 
                         <StackPanel
                             HorizontalAlignment="Center"
                             Orientation="Horizontal"
-                            Spacing="10"
-                            >
+                            Spacing="10">
                             <TextBlock
                                 Margin="0,0,0,5"
                                 FontSize="24"
                                 Foreground="White"
-                                Text="{x:Bind MyViewModel.CurrentUserLocal.LastFMAccountInfo.Playcount, Mode=OneWay}"
-                                />
+                                Text="{x:Bind MyViewModel.CurrentUserLocal.LastFMAccountInfo.Playcount, Mode=OneWay}" />
                             <TextBlock
                                 Margin="0,0,0,5"
                                 HorizontalAlignment="Center"
                                 FontSize="24"
                                 Foreground="White"
-                                Text="Scrobbles"
-                                />
+                                Text="Scrobbles" />
 
                         </StackPanel>
 
@@ -105,523 +96,345 @@
                 </Grid>
             </StackPanel>
         </Grid>
-        <Grid x:Name="LastFMAuthedSection" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
+        <Grid x:Name="LastFMAuthedSection">
+            <!--  LOADING OVERLAY  -->
+            <ProgressRing
+                Width="60"
+                Height="60"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Canvas.ZIndex="100"
+                IsActive="{x:Bind MyLastFMViewModel.IsBusy, Mode=OneWay}" />
 
-            <Image
-                Grid.Row="0"
-                Grid.RowSpan="2"
-                VerticalAlignment="Top"
-                Opacity="0.05"
-                Source="{Binding Images[3].Url, Mode=OneWay, Converter={StaticResource StringToImageConverter}}"
-                Stretch="UniformToFill"
-                />
+            <!--  DASHBOARD SCROLL  -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto" Visibility="{x:Bind MyLastFMViewModel.IsLastfmAuthenticated, Mode=OneWay}">
 
-            <!--  1. HEADER (Profile Info)  -->
-            <!--  Mimics the Android FrameLayout with Image + Scrim + Text  -->
-            <Grid
-                Grid.Row="0"
-                Margin="0,0,0,12"
-                CornerRadius="0,0,12,12"
-                >
+                <StackPanel Padding="32" Spacing="24">
 
-                <StackPanel
-                    Background="Transparent"
-                    Orientation="Horizontal"
-                    Spacing="15"
-                    >
+                    <!--  ROW 1: HERO HEADER (Profile & Milestones)  -->
+                    <Grid
+                        Height="220"
+                        Padding="32"
+                        CornerRadius="16">
+                        <Grid.Background>
+                            <AcrylicBrush
+                                FallbackColor="#1A1A24"
+                                TintColor="#1A1A24"
+                                TintOpacity="0.85" />
+                        </Grid.Background>
 
-                    <PersonPicture
-                        x:Name="UserAvatarImg"
-                        Width="100"
-                        Height="100"
-                        Opacity="0.6"
-                        />
-                    <StackPanel
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Center"
-                        Spacing="4"
-                        >
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <PersonPicture
+                            Grid.Column="0"
+                            Width="130"
+                            Height="130"
+                            VerticalAlignment="Center"
+                            ProfilePicture="{x:Bind MyViewModel.CurrentUserLocal.LastFMAccountInfo.Image.Url, Mode=OneWay}" />
+
+                        <StackPanel
+                            Grid.Column="1"
+                            Margin="32,0,0,0"
+                            VerticalAlignment="Center"
+                            Spacing="8">
+                            <TextBlock
+                                FontSize="42"
+                                FontWeight="Bold"
+                                Foreground="White"
+                                Text="{x:Bind MyViewModel.CurrentUserLocal.LastFMAccountInfo.RealName, Mode=OneWay}" />
+
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <TextBlock>
+                                    <Run
+                                        FontSize="24"
+                                        FontWeight="SemiBold"
+                                        Foreground="DarkSlateBlue"
+                                        Text="{x:Bind MyViewModel.CurrentUserLocal.LastFMAccountInfo.Playcount, Mode=OneWay}" />
+                                </TextBlock>
+                                <TextBlock
+                                    Margin="0,0,0,3"
+                                    VerticalAlignment="Bottom"
+                                    FontSize="18"
+                                    Foreground="LightGray"
+                                    Text="Total Scrobbles" />
+                            </StackPanel>
+                            <TextBlock>
+
+                                <Run
+                                    FontSize="14"
+                                    Foreground="Gray"
+                                    Text="Scrobbling since {0}" />
+
+                                <Run
+                                    FontSize="14"
+                                    Foreground="Gray"
+                                    Text="{x:Bind MyViewModel.CurrentUserLocal.LastFMAccountInfo.Registered.Year, Mode=OneWay}" />
+                            </TextBlock>
+
+                        </StackPanel>
+
+                        <!--  Milestone Widget  -->
+                        <Border
+                            Grid.Column="2"
+                            Width="240"
+                            Padding="20"
+                            VerticalAlignment="Center"
+                            Background="#262633"
+                            CornerRadius="12">
+                            <StackPanel Spacing="12">
+                                <TextBlock
+                                    HorizontalAlignment="Center"
+                                    CharacterSpacing="100"
+                                    FontSize="11"
+                                    FontWeight="Bold"
+                                    Foreground="Gray"
+                                    Text="NEXT MILESTONE" />
+
+                                <ProgressBar
+                                    Height="10"
+                                    CornerRadius="5"
+                                    Foreground="DarkSlateBlue"
+                                    Maximum="1"
+                                    Value="{x:Bind MyLastFMViewModel.LastFmMilestoneProgress, Mode=OneWay}" />
+
+                                <TextBlock
+                                    HorizontalAlignment="Center"
+                                    FontSize="15"
+                                    Foreground="White"
+                                    Text="{x:Bind MyLastFMViewModel.LastFmMilestoneText, Mode=OneWay}"
+                                    TextAlignment="Center"
+                                    TextWrapping="WrapWholeWords" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <!--  ROW 2: ANALYTICS (Charts)  -->
+                    <Grid
+                        Height="300"
+                        ColumnDefinitions="*, 350"
+                        ColumnSpacing="24">
+
+                        <!--  Weekly Chart  -->
+                        <Border
+                            Grid.Column="0"
+                            Padding="24"
+                            Background="#111116"
+                            CornerRadius="16">
+                            <Grid RowDefinitions="Auto,*">
+                                <StackPanel
+                                    Grid.Row="0"
+                                    Margin="0,0,0,16"
+                                    Orientation="Horizontal"
+                                    Spacing="12">
+                                    <TextBlock
+                                        FontSize="20"
+                                        FontWeight="SemiBold"
+                                        Text="Recent Activity" />
+                                    <TextBlock
+                                        Margin="0,0,0,3"
+                                        VerticalAlignment="Bottom"
+                                        FontSize="14"
+                                        Foreground="DarkSlateBlue"
+                                        Text="{x:Bind MyLastFMViewModel.WeeklyScrobbleCountText, Mode=OneWay}" />
+                                </StackPanel>
+
+                                <lvc:CartesianChart
+                                    Grid.Row="1"
+                                    Series="{x:Bind MyLastFMViewModel.WeeklyScrobblesChart, Mode=OneWay}"
+                                    TooltipPosition="Top"
+                                    XAxes="{x:Bind MyLastFMViewModel.ChartXAxes, Mode=OneWay}" />
+                            </Grid>
+                        </Border>
+
+                        <!--  Time of Day Doughnut  -->
+                        <Border
+                            Grid.Column="1"
+                            Padding="24"
+                            Background="#111116"
+                            CornerRadius="16">
+                            <Grid RowDefinitions="Auto,*">
+                                <TextBlock
+                                    Grid.Row="0"
+                                    Margin="0,0,0,8"
+                                    FontSize="20"
+                                    FontWeight="SemiBold"
+                                    Text="Listening Habits" />
+
+                                <lvc:PieChart
+                                    Grid.Row="1"
+                                    CornerRadius="20"
+                                    LegendPosition="Bottom"
+                                    Series="{x:Bind MyLastFMViewModel.TimeOfDayChart, Mode=OneWay}" />
+
+                                <!--  Center Text  -->
+                                <TextBlock
+                                    Grid.Row="1"
+                                    Width="100"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    FontSize="12"
+                                    Foreground="Gray"
+                                    Text="{x:Bind MyLastFMViewModel.FavoriteListeningTime, Mode=OneWay}"
+                                    TextAlignment="Center"
+                                    TextWrapping="Wrap" />
+                            </Grid>
+                        </Border>
+                    </Grid>
+
+                    <!--  ROW 3: LOVED BUT MISSING (Actionable Utilities)  -->
+                    <StackPanel Spacing="12">
+                        <Grid>
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <TextBlock
+                                    FontSize="22"
+                                    FontWeight="Bold"
+                                    Foreground="IndianRed"
+                                    Text="Loved &amp; Missing" />
+                                <TextBlock
+                                    Margin="0,0,0,3"
+                                    VerticalAlignment="Bottom"
+                                    FontSize="14"
+                                    Foreground="Gray"
+                                    Text="Songs you love on Last.fm but aren't downloaded here." />
+                            </StackPanel>
+
+                            <Button
+                                HorizontalAlignment="Right"
+                                Background="#262633"
+                                Click="ExportAbsentSongsToTxtBtn_Click"
+                                Content="Export List (.txt)" />
+                        </Grid>
+
+                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                            <GridView
+                                ItemsSource="{x:Bind MyLastFMViewModel.MissingLovedTracks, Mode=OneWay}"
+                                SelectionMode="None"
+                                ShowsScrollingPlaceholders="False">
+                                <GridView.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <ItemsWrapGrid MaximumRowsOrColumns="1" Orientation="Vertical" />
+                                    </ItemsPanelTemplate>
+                                </GridView.ItemsPanel>
+                                <GridView.ItemTemplate>
+                                    <DataTemplate x:DataType="entities:Track">
+                                        <Grid
+                                            Width="220"
+                                            Margin="0,0,16,0"
+                                            Padding="12"
+                                            Background="#111116"
+                                            CornerRadius="12">
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                            </Grid.RowDefinitions>
+
+                                            <StackPanel Grid.Row="0" Spacing="8">
+                                                <Border Height="140" CornerRadius="8">
+                                                    <Image Source="{Binding Images[3].Url, Mode=OneWay}" Stretch="UniformToFill" />
+                                                </Border>
+                                                <TextBlock
+                                                    FontSize="15"
+                                                    FontWeight="SemiBold"
+                                                    Text="{Binding Name}"
+                                                    TextTrimming="CharacterEllipsis" />
+                                                <TextBlock
+                                                    FontSize="13"
+                                                    Foreground="Gray"
+                                                    Text="{Binding Artist.Name}"
+                                                    TextTrimming="CharacterEllipsis" />
+                                            </StackPanel>
+
+                                            <Button
+                                                Grid.Row="1"
+                                                Margin="0,12,0,0"
+                                                HorizontalAlignment="Stretch"
+                                                Background="IndianRed"
+                                                Click="SearchOnline_Click"
+                                                Content="Search Online" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </GridView.ItemTemplate>
+                            </GridView>
+                        </ScrollViewer>
+                    </StackPanel>
+
+                    <!--  ROW 4: RECENT SCROBBLES  -->
+                    <StackPanel Margin="0,24,0,0" Spacing="12">
                         <TextBlock
-                            x:Name="UserNameTxt"
-                            FontSize="28"
+                            FontSize="22"
                             FontWeight="Bold"
-                            Foreground="White"
-                            HorizontalTextAlignment="Center"
-                            Style="{StaticResource TitleTextBlockStyle}"
-                            Text="Loading..."
-                            />
+                            Text="Recent Scrobbles" />
 
-                        <TextBlock
-                            x:Name="TotalScrobblesTxt"
-                            Foreground="LightGray"
-                            HorizontalTextAlignment="Center"
-                            Style="{StaticResource BodyTextBlockStyle}"
-                            Text="0 Scrobbles"
-                            />
+                        <ListView
+                            IsItemClickEnabled="True"
+                            ItemClick="RecentTrack_ItemClick"
+                            ItemsSource="{x:Bind MyLastFMViewModel.CollectionOfUserRecentTracks, Mode=OneWay}"
+                            SelectionMode="None">
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="entities:Track">
+                                    <Grid
+                                        Padding="12"
+                                        Background="Transparent"
+                                        ColumnSpacing="16"
+                                        CornerRadius="8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
 
-                        <TextBlock
-                            x:Name="scrobblingSince"
-                            Foreground="LightGray"
-                            HorizontalTextAlignment="Center"
-                            Style="{StaticResource BodyTextBlockStyle}"
-                            />
+                                        <!--  Indicator if it exists locally  -->
+                                        <Border
+                                            Grid.Column="0"
+                                            Width="4"
+                                            Height="30"
+                                            Background="DarkSlateBlue"
+                                            CornerRadius="2"
+                                            Visibility="{Binding IsOnPresentDevice, Converter={StaticResource BoolToVis}}" />
 
-                        <Button Command="{x:Bind MyLastFMViewModel.LogOutCommand}" Content="Log Out" />
+                                        <StackPanel
+                                            Grid.Column="1"
+                                            Margin="12,0,0,0"
+                                            VerticalAlignment="Center">
+                                            <TextBlock
+                                                FontSize="16"
+                                                FontWeight="SemiBold"
+                                                Text="{Binding Name}" />
+                                            <TextBlock
+                                                FontSize="14"
+                                                Foreground="Gray"
+                                                Text="{Binding Artist.Name}" />
+                                        </StackPanel>
 
+                                        <FontIcon
+                                            Grid.Column="2"
+                                            Margin="0,0,24,0"
+                                            VerticalAlignment="Center"
+                                            FontSize="16"
+                                            Foreground="IndianRed"
+                                            Glyph="&#xEB52;"
+                                            Visibility="{Binding UserLoved, Converter={StaticResource BoolToVis}}" />
+
+                                        <TextBlock
+                                            Grid.Column="3"
+                                            Width="100"
+                                            VerticalAlignment="Center"
+                                            FontSize="13"
+                                            Foreground="Gray"
+                                            Text="{Binding Date, Converter={StaticResource EventDateToTimeAgoConverter}}"
+                                            TextAlignment="Right" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
                     </StackPanel>
                 </StackPanel>
-            </Grid>
-
-            <!--  2. TABS (Pivot)  -->
-            <Pivot
-                Grid.Row="1"
-                Background="Transparent"
-                SelectionChanged="Pivot_SelectionChanged"
-                >
-
-                <!--  RECENT TRACKS  -->
-                <PivotItem Header="Recent">
-                    <dgView:TableView
-                        x:Name="RecentTracksList"
-                        Width="auto"
-                        AutoGenerateColumns="False"
-                        Background="Transparent"
-                        ItemsSource="{x:Bind MyLastFMViewModel.CollectionOfUserRecentTracks, Mode=OneWay}"
-                        Loaded="RecentTracksList_Loaded"
-                        SelectionMode="None"
-                        >
-                        <dgView:TableView.Columns>
-
-                            <!--  Column for the Cover Art  -->
-                            <dgView:TableViewTemplateColumn Header="Cover">
-                                <dgView:TableViewTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <Border>
-                                            <Image
-                                                x:Name="coverArtImage"
-                                                Width="150"
-                                                Height="150"
-                                                Source="{Binding Images[3].Url, Mode=OneWay, Converter={StaticResource StringToImageConverter}}"
-                                                Stretch="UniformToFill"
-                                                />
-                                        </Border>
-                                    </DataTemplate>
-                                </dgView:TableViewTemplateColumn.CellTemplate>
-                            </dgView:TableViewTemplateColumn>
-
-
-                            <dgView:TableViewTemplateColumn Width="*" Header="Track">
-                                <dgView:TableViewTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <StackPanel>
-                                            <Button
-                                                x:Name="SongTitle"
-                                                Background="Transparent"
-                                                Click="SongTitle_Click"
-                                                Content="{Binding Name}"
-                                                FontSize="19"
-                                                IsEnabled="{Binding IsOnPresentDevice}"
-                                                />
-                                            <TextBlock FontSize="15" Text="{Binding Album.Name}" />
-                                            <FontIcon
-                                                HorizontalAlignment="Left"
-                                                Foreground="SlateBlue"
-                                                Glyph="&#xE978;"
-                                                Visibility="{Binding IsOnPresentDevice, Converter={StaticResource BoolToVisibilityConverter}}"
-                                                />
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </dgView:TableViewTemplateColumn.CellTemplate>
-                            </dgView:TableViewTemplateColumn>
-
-                            <dgView:TableViewTemplateColumn Width="*" Header="Artist">
-                                <dgView:TableViewTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <StackPanel>
-                                            <TextBlock FontSize="19" Text="{Binding Artist.Name}" />
-                                            <Button FontSize="15" Visibility="{Binding UserLoved, Converter={StaticResource BoolToVis}}">
-                                                <FontIcon Foreground="DarkSlateBlue" Glyph="&#xEB52;" />
-                                            </Button>
-
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </dgView:TableViewTemplateColumn.CellTemplate>
-                            </dgView:TableViewTemplateColumn>
-
-                            <dgView:TableViewTemplateColumn Width="*" Header="Time">
-                                <dgView:TableViewTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <StackPanel>
-                                            <TextBlock FontSize="19" Text="{Binding Date, Converter={StaticResource EventDateToTimeAgoConverter}}" />
-                                            <TextBlock
-                                                FontSize="12"
-                                                FontStyle="Italic"
-                                                Foreground="Gray"
-                                                Text="{Binding Date}"
-                                                />
-
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </dgView:TableViewTemplateColumn.CellTemplate>
-                            </dgView:TableViewTemplateColumn>
-
-                            <dgView:TableViewTemplateColumn Width="auto" Header="Actions">
-                                <dgView:TableViewTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <StackPanel Orientation="Horizontal" Spacing="10">
-                                            <Button
-                                                Click="LoveTrackButton_Click"
-                                                IsEnabled="{Binding IsOnPresentDevice}"
-                                                ToolTipService.ToolTip="Love Track"
-                                                >
-                                                <FontIcon Foreground="Red" Glyph="&#xEB52;" />
-                                            </Button>
-                                            <Button
-                                                Click="BanTrackButton_Click"
-                                                IsEnabled="{Binding IsOnPresentDevice}"
-                                                ToolTipService.ToolTip="Ban Track"
-                                                >
-                                                <FontIcon Foreground="Black" Glyph="&#xE8E0;" />
-                                            </Button>
-
-                                            <Button
-                                                x:Name="DeleteScrobble"
-                                                Click="DeleteScrobble_Click"
-                                                IsEnabled="{Binding IsOnPresentDevice}"
-                                                ToolTipService.ToolTip="Delete Scrobble"
-                                                >
-                                                <FontIcon Foreground="Black" Glyph="&#xE74D;" />
-                                            </Button>
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </dgView:TableViewTemplateColumn.CellTemplate>
-                            </dgView:TableViewTemplateColumn>
-                        </dgView:TableView.Columns>
-                    </dgView:TableView>
-                </PivotItem>
-
-                <!--  TOP TRACKS  -->
-                <PivotItem Header="Top Tracks">
-                    <dgView:TableView
-                        x:Name="TopTracksList"
-                        Width="auto"
-                        AutoGenerateColumns="False"
-                        ItemsSource="{x:Bind MyLastFMViewModel.CollectionUserTopTracks, Mode=OneWay}"
-                        SelectionMode="None"
-                        >
-                        <dgView:TableView.Columns>
-
-                            <!--  Column for the Cover Art  -->
-                            <dgView:TableViewTemplateColumn Header="Cover">
-                                <dgView:TableViewTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <Border>
-                                            <Image
-                                                x:Name="Imgg"
-                                                Width="150"
-                                                Height="150"
-                                                Source="{Binding Images[3].Url, Mode=OneWay, Converter={StaticResource StringToImageConverter}}"
-                                                Stretch="UniformToFill"
-                                                />
-                                        </Border>
-                                    </DataTemplate>
-                                </dgView:TableViewTemplateColumn.CellTemplate>
-                            </dgView:TableViewTemplateColumn>
-
-
-                            <dgView:TableViewTemplateColumn Width="*" Header="Track">
-                                <dgView:TableViewTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <StackPanel>
-                                            <Button
-                                                Background="Transparent"
-                                                Click="SongTitle_Click"
-                                                Content="{Binding Name}"
-                                                FontSize="19"
-                                                IsEnabled="{Binding IsOnPresentDevice}"
-                                                />
-                                            <TextBlock FontSize="15" Text="{Binding Album.Name}" />
-                                            <FontIcon
-                                                HorizontalAlignment="Left"
-                                                Foreground="SlateBlue"
-                                                Glyph="&#xE978;"
-                                                Visibility="{Binding IsOnPresentDevice, Converter={StaticResource BoolToVisibilityConverter}}"
-                                                />
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </dgView:TableViewTemplateColumn.CellTemplate>
-                            </dgView:TableViewTemplateColumn>
-
-                            <dgView:TableViewTemplateColumn Width="*" Header="Artist">
-                                <dgView:TableViewTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <StackPanel>
-                                            <TextBlock FontSize="19" Text="{Binding Artist.Name}" />
-                                            <TextBlock FontSize="15" Text="{Binding UserLoved}" />
-
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </dgView:TableViewTemplateColumn.CellTemplate>
-                            </dgView:TableViewTemplateColumn>
-
-                            <dgView:TableViewTextColumn
-                                Width="*"
-                                Binding="{Binding Statistics.PlayCount}"
-                                Header="Times Played"
-                                />
-                        </dgView:TableView.Columns>
-                    </dgView:TableView>
-                </PivotItem>
-
-                <!--  Albums  -->
-                <PivotItem Header="Top Album">
-                    <dgView:TableView
-                        x:Name="TopAlbum"
-                        Width="auto"
-                        AutoGenerateColumns="False"
-                        ItemsSource="{x:Bind MyLastFMViewModel.CollectionUserTopAlbums, Mode=OneWay}"
-                        SelectionMode="None"
-                        >
-                        <dgView:TableView.Columns>
-
-                            <!--  Column for the Cover Art  -->
-                            <dgView:TableViewTemplateColumn Header="Cover">
-                                <dgView:TableViewTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <Border>
-                                            <Image
-                                                Width="150"
-                                                Height="150"
-                                                Source="{Binding Images[3].Url, Mode=OneWay, Converter={StaticResource StringToImageConverter}}"
-                                                Stretch="UniformToFill"
-                                                />
-                                        </Border>
-                                    </DataTemplate>
-                                </dgView:TableViewTemplateColumn.CellTemplate>
-                            </dgView:TableViewTemplateColumn>
-
-
-                            <dgView:TableViewTemplateColumn Header="Track">
-                                <dgView:TableViewTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <StackPanel>
-                                            <Button
-                                                Background="Transparent"
-                                                Click="SongAlbum_Click"
-                                                Content="{Binding Name}"
-                                                FontSize="19"
-                                                IsEnabled="{Binding IsOnPresentDevice}"
-                                                />
-                                            <TextBlock FontSize="15" Text="{Binding Album.Name}" />
-                                            <FontIcon
-                                                HorizontalAlignment="Left"
-                                                Foreground="SlateBlue"
-                                                Glyph="&#xE978;"
-                                                Visibility="{Binding IsOnPresentDevice, Converter={StaticResource BoolToVisibilityConverter}}"
-                                                />
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </dgView:TableViewTemplateColumn.CellTemplate>
-                            </dgView:TableViewTemplateColumn>
-
-                            <dgView:TableViewTemplateColumn Header="Artist">
-                                <dgView:TableViewTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <StackPanel>
-                                            <TextBlock FontSize="19" Text="{Binding Artist.Name}" />
-                                            <TextBlock FontSize="15" Text="{Binding UserLoved}" />
-
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </dgView:TableViewTemplateColumn.CellTemplate>
-                            </dgView:TableViewTemplateColumn>
-
-                            <dgView:TableViewTemplateColumn Header="Time">
-                                <dgView:TableViewTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <StackPanel>
-                                            <TextBlock FontSize="19" Text="{Binding Date, Converter={StaticResource EventDateToTimeAgoConverter}}" />
-
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </dgView:TableViewTemplateColumn.CellTemplate>
-                            </dgView:TableViewTemplateColumn>
-                        </dgView:TableView.Columns>
-                    </dgView:TableView>
-                </PivotItem>
-
-
-                <!--  Loved TRACKS  -->
-                <PivotItem Header="Loved">
-                    <Grid RowSpacing="10">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="auto" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-                        <StackPanel Grid.Row="0">
-                            <StackPanel>
-                                <Button
-                                    x:Name="ExportAbsentSongsToTxtBtn"
-                                    Background="Transparent"
-                                    Click="ExportAbsentSongsToTxtBtn_Click"
-                                    >
-                                    <Button.Content>
-                                        <StackPanel Orientation="Horizontal" Spacing="5">
-                                            <FontIcon FontSize="18" Glyph="&#xF587;" />
-                                            <TextBlock Text="Export Absent Songs To Text File" />
-                                        </StackPanel>
-                                    </Button.Content>
-                                </Button>
-                            </StackPanel>
-                        </StackPanel>
-                        <dgView:TableView
-                            x:Name="LovedTracksList"
-                            Grid.Row="1"
-                            Width="auto"
-                            AutoGenerateColumns="False"
-                            ItemsSource="{x:Bind MyLastFMViewModel.CollectionOfUserLovedTracks, Mode=OneWay}"
-                            SelectionMode="None"
-                            >
-                            <dgView:TableView.Columns>
-
-                                <!--  Column for the Cover Art  -->
-                                <dgView:TableViewTemplateColumn Header="Cover">
-                                    <dgView:TableViewTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <Border>
-                                                <Image
-                                                    Width="150"
-                                                    Height="150"
-                                                    Source="{Binding Images[3].Url, Mode=OneWay, Converter={StaticResource StringToImageConverter}}"
-                                                    Stretch="UniformToFill"
-                                                    />
-                                            </Border>
-                                        </DataTemplate>
-                                    </dgView:TableViewTemplateColumn.CellTemplate>
-                                </dgView:TableViewTemplateColumn>
-
-
-                                <dgView:TableViewTemplateColumn Width="*" Header="Track">
-                                    <dgView:TableViewTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <StackPanel Margin="10" Spacing="5">
-                                                <Button
-                                                    Click="SongTitle_Click"
-                                                    Content="{Binding Name}"
-                                                    FontSize="19"
-                                                    IsEnabled="{Binding IsOnPresentDevice}"
-                                                    />
-                                                <TextBlock FontSize="15" Text="{Binding Album.Name}" />
-
-                                                <StackPanel
-                                                    Orientation="Horizontal"
-                                                    Spacing="5"
-                                                    Visibility="{Binding IsOnPresentDevice, Converter={StaticResource BoolToVisConverter}}"
-                                                    >
-                                                    <TextBlock
-                                                        FontStyle="Italic"
-                                                        Foreground="Orange"
-                                                        Text="Present On Device"
-                                                        />
-                                                </StackPanel>
-
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </dgView:TableViewTemplateColumn.CellTemplate>
-                                </dgView:TableViewTemplateColumn>
-
-                                <dgView:TableViewTemplateColumn Width="*" Header="Artist">
-                                    <dgView:TableViewTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <StackPanel Padding="10">
-                                                <TextBlock FontSize="19" Text="{Binding Artist.Name}" />
-                                                <FontIcon
-                                                    HorizontalAlignment="Left"
-                                                    FontSize="15"
-                                                    Foreground="Red"
-                                                    Glyph="&#xEB52;"
-                                                    Visibility="{Binding UserLoved, Converter={StaticResource BoolToVisibilityConverter}}"
-                                                    />
-
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </dgView:TableViewTemplateColumn.CellTemplate>
-                                </dgView:TableViewTemplateColumn>
-
-                                <dgView:TableViewTemplateColumn Width="180" Header="Time">
-                                    <dgView:TableViewTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <StackPanel Padding="10">
-                                                <TextBlock
-                                                    HorizontalAlignment="Center"
-                                                    FontSize="21"
-                                                    Text="{Binding Date, Converter={StaticResource EventDateToTimeAgoConverter}}"
-                                                    />
-                                                <TextBlock
-                                                    HorizontalAlignment="Center"
-                                                    FontSize="13"
-                                                    Text="{Binding Date}"
-                                                    />
-
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </dgView:TableViewTemplateColumn.CellTemplate>
-                                </dgView:TableViewTemplateColumn>
-                                <dgView:TableViewCheckBoxColumn
-                                    x:Name="IsPresentColumn"
-                                    Width="*"
-                                    Binding="{Binding IsOnPresentDevice}"
-                                    CanFilter="True"
-                                    CanSort="True"
-                                    Header="Is On Device"
-                                    IsReadOnly="True"
-                                    />
-
-                                <dgView:TableViewTemplateColumn Width="100" CanResize="False">
-                                    <dgView:TableViewTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <StackPanel
-                                                Padding="10"
-                                                Orientation="Vertical"
-                                                Spacing="10"
-                                                >
-                                                <Button
-                                                    Background="#3BE477"
-                                                    Click="Button_Click"
-                                                    Content="Spotify"
-                                                    Foreground="Black"
-                                                    />
-                                                <Button
-                                                    Background="#6213A8"
-                                                    Click="Button_Click"
-                                                    Content="Deezer"
-                                                    />
-                                                <Button
-                                                    Background="#FF0033"
-                                                    Click="Button_Click"
-                                                    Content="YouTube"
-                                                    />
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </dgView:TableViewTemplateColumn.CellTemplate>
-                                </dgView:TableViewTemplateColumn>
-                            </dgView:TableView.Columns>
-                        </dgView:TableView>
-
-                    </Grid>
-                </PivotItem>
-
-                <PivotItem Header="Top Artists">
-                    <dgView:TableView AutoGenerateColumns="True" ItemsSource="{x:Bind MyLastFMViewModel.TopUserArtistsInLibrary, Mode=OneWay}" />
-                </PivotItem>
-
-            </Pivot>
+            </ScrollViewer>
         </Grid>
-
     </Grid>
-
 </Page>

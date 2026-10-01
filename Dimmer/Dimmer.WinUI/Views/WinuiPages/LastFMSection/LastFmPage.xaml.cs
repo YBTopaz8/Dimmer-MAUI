@@ -19,7 +19,7 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
     public ObservableCollection<Track> TopTracks { get; } = new();
     public ObservableCollection<Track> LovedTracks { get; } = new();
 
-    public LastFMViewModel MyLastFMViewModel { get; private set; }
+    public LastFMVMWin MyLastFMViewModel { get; private set; }
     public BaseViewModelWin MyViewModel { get; private set; }
 
     public LastFmPage()
@@ -27,7 +27,7 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
         this.InitializeComponent();
         _compositor = ElementCompositionPreview.GetElementVisual(this).Compositor;
         MyViewModel = IPlatformApplication.Current!.Services.GetService<BaseViewModelWin>()!;
-        MyLastFMViewModel = IPlatformApplication.Current!.Services.GetService<LastFMViewModel>()!;
+        MyLastFMViewModel = IPlatformApplication.Current!.Services.GetService<LastFMVMWin>()!;
 
         MyLastFMViewModel.LoadBaseViewModel(MyViewModel);
     }
@@ -114,18 +114,18 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
                 user = userr.ToLastFMUserView();
             }
             
-            UserNameTxt.Text = user?.Name;
-            TotalScrobblesTxt.Text = $"{user?.Playcount:N0} Scrobbles";
-            scrobblingSince.Text = $"Scrobbling since {user?.Registered:dd MMM yyyy}";
+            //UserNameTxt.Text = user?.Name;
+            //TotalScrobblesTxt.Text = $"{user?.Playcount:N0} Scrobbles";
+            //scrobblingSince.Text = $"Scrobbling since {user?.Registered:dd MMM yyyy}";
             // If user.Image is a string URL:
             if (!string.IsNullOrEmpty(user?.Image?.Url))
             {
                 if (!string.IsNullOrEmpty(user.Image.Url))
                 {
-                    UserAvatarImg.ProfilePicture
-                        = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(user.Image.Url));
+                    //UserAvatarImg.ProfilePicture
+                    //    = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(user.Image.Url));
                 }
-                UserAvatarImg.DisplayName = user.Name;
+                //UserAvatarImg.DisplayName = user.Name;
             }
 
             if (Connectivity.NetworkAccess != NetworkAccess.Internet) return;
@@ -136,8 +136,8 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
         {
             LastFMGridNonAuth.Visibility = WinUIVisibility.Visible;
             LastFMAuthedSection.Visibility = WinUIVisibility.Collapsed;
-            UserNameTxt.Text = "Not Connected";
-            TotalScrobblesTxt.Text = "Log in via Settings";
+            //UserNameTxt.Text = "Not Connected";
+            //TotalScrobblesTxt.Text = "Log in via Settings";
         }
     }
 
@@ -296,5 +296,40 @@ public ObservableCollection<Track> RecentTracks { get; } = new();
     private void LastFMUname_TextChanged(object sender, Microsoft.UI.Xaml.Controls.TextChangedEventArgs e)
     {
         MyLastFMViewModel.LastFMName = LastFMUname.Text;
+    }
+    private async void SearchOnline_Click(object sender, RoutedEventArgs e)
+    {
+        var btn = (Button)sender;
+        var track = btn.DataContext as Hqub.Lastfm.Entities.Track;
+        if (track != null)
+        {
+            // Automatically kicks off a search for the user to download/find it
+            await MyViewModel.OpenSongInOnlineSearch("YouTube", track.Name, track.Artist.Name);
+        }
+    }
+
+    private void RecentTrack_ItemClick(object sender, ItemClickEventArgs e)
+    {
+        if (e.ClickedItem is Hqub.Lastfm.Entities.Track clickedTrack)
+        {
+            // SMART NAVIGATION: If the track is on the device, jump to Song Details!
+            if (clickedTrack.IsOnPresentDevice)
+            {
+                var localMatch = MyViewModel.SearchResults.FirstOrDefault(song =>
+                    song.Title == clickedTrack.Name &&
+                    song.ArtistName != null && song.ArtistName.Contains(clickedTrack.Artist.Name));
+
+                if (localMatch != null)
+                {
+                    MyViewModel.SelectedSong = localMatch;
+                    Frame?.Navigate(typeof(SongDetailPage), new SongDetailNavArgs { Song = localMatch, ViewModel=MyViewModel });
+                }
+            }
+            else
+            {
+                // If it's not local, ask if they want to search for it
+                _ = MyViewModel.OpenSongInOnlineSearch("YouTube", clickedTrack.Name, clickedTrack.Artist.Name);
+            }
+        }
     }
 }

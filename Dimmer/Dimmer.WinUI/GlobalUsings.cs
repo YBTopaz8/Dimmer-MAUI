@@ -7,7 +7,6 @@ global using Microsoft.UI.Windowing;
 global using Microsoft.VisualBasic.FileIO;
 global using System.Collections.ObjectModel;
 global using FileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
-global using Dimmer.WinUI.DimmerAudio;
 global using Dimmer.WinUI.ViewModel;
 global using Microsoft.Maui.LifecycleEvents;
 global using Microsoft.UI;
@@ -18,7 +17,6 @@ global using CommunityToolkit.Maui;
 
 global using Dimmer.WinUI.Views.MAUIPages;
 global using Dimmer.WinUI.Views.WinuiPages;
-global using Xabe.FFmpeg;
 global using WinUI.TableView;
 global using Dimmer.Data;
 global using Dimmer.DimmerSearch;

@@ -1207,7 +1207,8 @@
                                         BackgroundColor="Transparent"
                                         Command="{Binding LoadAllAudioDevicesCommand}"
                                         HeightRequest="32"
-                                        Icon="refresh.png"
+                                        Icon="devices.png"
+                                        IconColor="DarkSlateBlue"
                                         ShowContent="False"
                                         ShowIcon="True"
                                         WidthRequest="32" />

@@ -624,7 +624,7 @@ public class LastfmService : ILastfmService
         if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet) return null;
         try
         {
-
+            
             return await _client.Track.GetInfoAsync(trackName, artistName);
         }
         catch (Exception ex)

@@ -96,4 +96,14 @@ public partial class ArtistPage : ContentPage
     {
         
     }
+
+    private void PlayAllArtistSongs_Clicked(object sender, EventArgs e)
+    {
+
+    }
+
+    private void PlayTrack_Clicked(object sender, EventArgs e)
+    {
+
+    }
 }

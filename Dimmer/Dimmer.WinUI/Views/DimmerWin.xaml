@@ -226,17 +226,11 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto" />
                 <RowDefinition Height="*" />
+                <RowDefinition Height="auto" />
             </Grid.RowDefinitions>
 
 
 
-
-
-            <Frame
-                x:Name="ContentFrame"
-                Grid.Row="1"
-                x:FieldModifier="Public"
-                Navigated="ContentFrame_Navigated" />
 
             <Grid
                 x:Name="TopRowGrid"
@@ -307,7 +301,14 @@
                 </StackPanel>
             </Grid>
 
+            <Frame
+                x:Name="ContentFrame"
+                Grid.Row="1"
+                x:FieldModifier="Public"
+                Navigated="ContentFrame_Navigated" />
 
+          
+            
         </Grid>
 
     </NavigationView>

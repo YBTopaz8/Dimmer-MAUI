@@ -1,4 +1,5 @@
-﻿using static Dimmer.Data.ModelView.LastFMUserView;
+﻿using SkiaSharp;
+using static Dimmer.Data.ModelView.LastFMUserView;
 
 namespace Dimmer.ViewModel;
 
@@ -159,6 +160,9 @@ public partial class LastFMViewModel : ObservableObject
 
     [ObservableProperty]
     public partial ObservableCollection<Hqub.Lastfm.Entities.Track>? CollectionOfUserLovedTracks { get; set; }
+
+    [ObservableProperty]
+    public partial ObservableCollection<Hqub.Lastfm.Entities.Track>? MissingLovedTracks { get; set; }
 
     [ObservableProperty]
     public partial Hqub.Lastfm.Entities.User? LastFMUserInfo { get; set; }
@@ -545,8 +549,9 @@ public partial class LastFMViewModel : ObservableObject
     [ObservableProperty]
     public partial ObservableCollection<Hqub.Lastfm.Entities.Album>? CollectionUserTopAlbums { get; set; }
 
-    [RelayCommand]
-    public async Task LoadUserLastFMDataAsync(LastFMUserView? user)
+
+    [ObservableProperty] public partial string LastFmMilestoneText { get; set; } = "Calculating...";
+    public virtual async Task LoadUserLastFMDataAsync(LastFMUserView? user)
     {
         if (user is null) return;
         if (lastfmService.AuthenticatedUser is null) return;
@@ -554,7 +559,7 @@ public partial class LastFMViewModel : ObservableObject
         // 1. Fetch all data concurrently (much faster than awaiting one by one)
         var tasks = new
         {
-            Recent = lastfmService.GetUserRecentTracksAsync(lastfmService.AuthenticatedUser, 150),
+            Recent = lastfmService.GetUserRecentTracksAsync(lastfmService.AuthenticatedUser, 250),
 
             UserLibraryArtists = lastfmService.GetUserLibArtistsAsync(),
             TopTracks = lastfmService.GetUserTopTracksAsync(),
@@ -568,6 +573,9 @@ public partial class LastFMViewModel : ObservableObject
         // 2. Build the Lookup ONE time (O(N))
         // This creates a hash map of your local library for instant matching
         var localLibraryLookup = LastFmEnricher.BuildLocalLibraryLookup(_baseViewModel!.SearchResults);
+
+
+        var allRealmAlbums = RealmFactory.GetRealmInstance().All<AlbumModel>();
 
         // 3. Process the results using the Centralized Logic
         // We pass 'SearchResults' as the second arg for the Fallback Duration check
@@ -596,13 +604,16 @@ public partial class LastFMViewModel : ObservableObject
             CollectionOfUserLovedTracks = lovedTracks
             .EnrichWithLocalData(localLibraryLookup, _baseViewModel.SearchResults)
             .ToObservableCollection();
+
+            MissingLovedTracks = CollectionOfUserLovedTracks
+                  .Where(t => !t.IsOnPresentDevice)
+                  .ToObservableCollection();
         }
         var topAlbums = await tasks.TopAlbums;
         TopUserArtistsInLibrary = await tasks.UserLibraryArtists;
 
 
-        var realm = RealmFactory.GetRealmInstance();
-        IQueryable<AlbumModel>? allRealmAlbums = realm.All<AlbumModel>();
+
 
             // 4. Run the Pipeline
             if (topAlbums is not null)
@@ -611,8 +622,8 @@ public partial class LastFMViewModel : ObservableObject
             .EnrichWithLocalData(allRealmAlbums)
             .ToObservableCollection();
             }
-
     }
+
     [ObservableProperty]
     public partial ObservableCollection<Hqub.Lastfm.Entities.Artist>? TopUserArtistsInLibrary { get; set; }
     public async Task LoadAlbumLastFMDataAsync(AlbumModelView? alb)
@@ -768,10 +779,7 @@ public partial class LastFMViewModel : ObservableObject
 
    
 
-    // 6. Milestone Progress (Distance to next 10,000 plays milestone)
-    // Chart: Syncfusion CircularGauge / Radial Bar
-    // Value = playcount, Maximum = next milestone
     [ObservableProperty] public partial double LastFmMilestoneProgress { get; set; }
-    [ObservableProperty] public partial string LastFmMilestoneText { get; set; }
+
     #endregion
 }

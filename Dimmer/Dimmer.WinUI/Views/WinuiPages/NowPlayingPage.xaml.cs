@@ -1,4 +1,5 @@
-﻿using DevWinUI;
+﻿using Avalonia.Input;
+using DevWinUI;
 using DynamicData.Binding;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using System.Reactive.Disposables;
@@ -545,5 +546,12 @@ public sealed partial class NowPlayingPage : Page
     {
         BetterLyricControl.IsLyricsVisible = false;
         BetterLyricControl.CurrentLyricsData = null;
+    }
+
+    private async void SongInfoStackPanel_Loaded(object sender, RoutedEventArgs e)
+    {
+        var curSong = MyViewModel.CurrentPlayingSongView;
+        if (curSong == null) return;
+        await Task.WhenAll(TextBlockHelper.AnimateTextChangeAsync(this.SongTitleTB, curSong.Title, TextBlockSlideDirection.LeftToRight), TextBlockHelper.AnimateTextChangeAsync(this.AlbumNameTB, curSong.AlbumName, TextBlockSlideDirection.LeftToRight), TextBlockHelper.AnimateTextChangeAsync(this.ArtistNameTB, curSong.OtherArtistsName, TextBlockSlideDirection.LeftToRight));
     }
 }
