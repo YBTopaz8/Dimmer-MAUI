@@ -88,7 +88,10 @@
                     <dgView:TableView.Columns>
 
                         <!--  Column for the Cover Art  -->
-                        <dgView:TableViewTemplateColumn x:Name="ImgCol" Width="*">
+                        <dgView:TableViewTemplateColumn
+                            x:Name="ImgCol"
+                            Width="*"
+                            MinWidth="180">
                             <dgView:TableViewTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Border
@@ -142,7 +145,7 @@
                                                     Glyph="&#xEB52;"
                                                     Visibility="{Binding IsFavorite, Converter={StaticResource BoolToVisibilityConverter}}" />
                                             </StackPanel>
-                                            <Image
+                                            <devWin:ImageEx
                                                 x:Name="coverArtImage"
                                                 Grid.Row="1"
                                                 Width="65"
@@ -188,6 +191,7 @@
                         <dgView:TableViewTextColumn
                             x:Name="ArtistsColumn"
                             Width="*"
+                            MinWidth="200"
                             Binding="{Binding OtherArtistsName}"
                             Header="Artists"
                             IsReadOnly="True" />

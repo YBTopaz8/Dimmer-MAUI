@@ -1,6 +1,9 @@
 ﻿	<Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="..\..\..\DimmerExternals.props" Condition="Exists('..\..\..\DimmerExternals.props')" />
-    
+		<Import Project="..\..\externals.props" Condition="Exists('..\..\externals.props')" />
+		<Import Project="..\..\DimmerExternals.props" Condition="Exists('..\..\DimmerExternals.props')" />
+		<Import Project="..\..\..\DimmerExternals.props" Condition="Exists('..\..\..\DimmerExternals.props')" />
+		
+		
 		<PropertyGroup>
 			<OutputType>WinExe</OutputType>
 			<TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
@@ -99,8 +102,8 @@
 			
 			<PackageReference Include="LiveChartsCore.SkiaSharpView.WinUI" Version="2.0.5" />
 
-			<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.101" />
-			<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.11" />
+			<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.110" />
+			<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.12" />
 
 			<PackageReference Include="DevWinUI" Version="10.4.2" />
 			<!--<PackageReference Include="DevWinUI.ContextMenu" Version="10.0.0" />-->
@@ -112,19 +115,16 @@
 			<!--<PackageReference Include="Microsoft.WindowsAppSDK.Base" Version="1.8.251216001" />-->
 			<!--<PackageReference Include="Microsoft.WindowsAppSDK.Base" Version="2.0.4" />-->
 			<PackageReference Include="CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.1.2" />
+			<PackageReference Include="SkiaSharp.HarfBuzz" Version="4.153.1" />
 			<PackageReference Include="WinUI.TableView" Version="1.5.0" />
-			<PackageReference Include="Xabe.FFmpeg" Version="6.0.2" />
-			<PackageReference Include="Microsoft.WindowsAppSDK.Foundation" Version="2.3.9" />
-			<PackageReference Include="Microsoft.WindowsAppSDK.WinUI" Version="2.3.6" />
+			<PackageReference Include="Microsoft.WindowsAppSDK.Foundation" Version="2.3.12" />
+			<PackageReference Include="Microsoft.WindowsAppSDK.WinUI" Version="2.3.9" />
 			<!--<PackageReference Include="Microsoft.WindowsAppSDK.Base" Version="2.0.4" />-->
-			
-			<PackageReference Include="Xabe.FFmpeg.Downloader" Version="6.0.2" />
 		</ItemGroup>
+		
 		<ItemGroup>
-			
-			<ProjectReference Include="..\Dimmer\Dimmer.csproj" />
+			<ProjectReference Include="..\Dimmer\Dimmer.csproj" SetTargetFramework="TargetFramework=net10.0-windows10.0.19041.0" />
 		</ItemGroup>
-
 	
 		<ItemGroup>
 			<!-- Make sure all image assets to be in the root of the package to match the other platforms -->
@@ -144,6 +144,7 @@
 			<ProjectCapability Include="Msix" />
 		</ItemGroup>
 		<ItemGroup>
+		  <Folder Include="DimmerAudio\" />
 		  <Folder Include="Utils\Helpers\" />
 		  <Folder Include="Utils\StaticUtils\TaskBarSection\" />
 		</ItemGroup>

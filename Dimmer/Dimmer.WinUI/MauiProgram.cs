@@ -31,7 +31,6 @@ public static class MauiProgram
         builder.Services.AddSingleton<EditorViewModel>();
         builder.Services.AddSingleton<IWinUIWindowMgrService, WinUIWindowMgrService>();
         builder.Services.AddSingleton<IMauiWindowManagerService, MauiWindowManagerService>();
-        builder.Services.AddSingleton<IDimmerAudioEditorService, WindowsAudioEditorService>();
 
         builder.Services.AddSingleton<DimmerWin>();
         builder.Services.AddSingleton<AllArtistsPage>();
@@ -93,6 +92,7 @@ public static class MauiProgram
 
 
         builder.Services.AddSingleton<IAnimationService, WindowsAnimationService>();
+        builder.Services.AddSingleton< LastFMVMWin>();
 
 
 

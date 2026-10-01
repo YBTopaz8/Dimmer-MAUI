@@ -65,26 +65,24 @@
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
                         <Image
                             x:Name="CurrentPlayingSongImg"
-                            Grid.Column="0"
-                            MaxWidth="400"
-                            MaxHeight="400"
-                            Canvas.ZIndex="1"
+                            MaxWidth="500"
+                            MaxHeight="500"
+                            Canvas.ZIndex="-1"
                             Loaded="CurrentPlayingSongImg_Loaded"
                             Loading="CurrentPlayingSongImg_Loading"
                             Stretch="UniformToFill" />
 
                         <devWin:BetterLyric
                             x:Name="BetterLyricControl"
-                            Grid.Column="1"
                             Height="500"
                             Margin="0,0,30,0"
                             HorizontalAlignment="Stretch"
                             VerticalAlignment="Stretch"
                             AutoWrap="True"
+                            Canvas.ZIndex="1"
                             CurrentIsPlaying="{x:Bind MyViewModel.IsDimmerPlaying, Mode=OneWay}"
                             CurrentPosition="{x:Bind MyViewModel.CurrentTrackPosition, Mode=OneWay}"
                             IsLyricsBlurEffectEnabled="True"
@@ -110,12 +108,13 @@
                     <StackPanel
                         x:Name="SongInfoStackPanel"
                         HorizontalAlignment="Center"
+                        Loaded="SongInfoStackPanel_Loaded"
                         Spacing="5">
                         <TextBlock
+                            x:Name="SongTitleTB"
                             HorizontalAlignment="Center"
                             FontSize="32"
                             FontWeight="Bold"
-                            Text="{x:Bind MyViewModel.CurrentPlayingSongView.Title, Mode=OneWay}"
                             TextAlignment="Center"
                             TextWrapping="WrapWholeWords" />
                         <Button
@@ -124,18 +123,25 @@
                             Background="Transparent"
                             BorderThickness="0"
                             Click="CurrentArtistBtn_Click"
-                            Content="{x:Bind MyViewModel.CurrentPlayingSongView.OtherArtistsName, Mode=OneWay}"
                             FontSize="20"
-                            Opacity="0.8" />
+                            Opacity="0.8">
+                            <Button.Content>
+                                <TextBlock x:Name="ArtistNameTB" />
+                            </Button.Content>
+
+                        </Button>
                         <Button
                             x:Name="ArtistBtn"
                             HorizontalAlignment="Center"
                             Background="Transparent"
                             BorderThickness="0"
                             Click="ArtistBtn_Click"
-                            Content="{x:Bind MyViewModel.CurrentPlayingSongView.AlbumName, Mode=OneWay}"
                             FontSize="16"
-                            Opacity="0.6" />
+                            Opacity="0.6">
+                            <Button.Content>
+                                <TextBlock x:Name="AlbumNameTB" />
+                            </Button.Content>
+                        </Button>
                     </StackPanel>
 
                     <!--  Progress Bar  -->
