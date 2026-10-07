@@ -151,14 +151,53 @@
                                 FontWeight="Bold"
                                 Style="{ThemeResource TitleTextBlockStyle}"
                                 Text="Details" />
-                            <ToggleSwitch x:Name="ViewEditToggle" IsEnabledChanged="ViewEditToggle_IsEnabledChanged" OffContent="View Mode" OnContent="Edit Mode" />
+                            <ToggleButton
+                                Checked="ToggleButton_Checked"
+                                Content="Edit"
+                                Unchecked="ToggleButton_Checked" />
                         </StackPanel>
 
-                        <devWin:FlipSide>
-                            <devWin:FlipSide.Side1 />
+                        <devWin:FlipSide x:Name="EditSongFlipSide">
+                            <devWin:FlipSide.Side1>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Spacing="10">
+
+                                        <devWin:Card Title="Title" Content="{x:Bind DetailedSong.Title}" />
+                                        <devWin:Divider LineStrokeThickness="1" />
+
+                                        <devWin:Card Title="Artist" Content="{x:Bind DetailedSong.OtherArtistsName}" />
+                                        <devWin:Divider LineStrokeThickness="1" />
+
+                                        <devWin:Card Title="Album" Content="{x:Bind DetailedSong.AlbumName}" />
+                                        <devWin:Divider LineStrokeThickness="1" />
+
+                                        <devWin:Card Title="Genre" Content="{x:Bind DetailedSong.GenreName}" />
+                                        <devWin:Divider LineStrokeThickness="1" />
+
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Spacing="10">
+                                        <devWin:Card Title="Duration" Content="{x:Bind DetailedSong.DurationFormatted}" />
+                                        <devWin:Divider LineStrokeThickness="1" />
+
+                                        <devWin:Card Title="Last Played" Content="{x:Bind DetailedSong.LastPlayed.Value}" />
+                                        <devWin:Divider LineStrokeThickness="1" />
+
+                                        <devWin:Card Title="Date Created" Content="{x:Bind DetailedSong.DateCreated.Value}" />
+                                        <devWin:Divider LineStrokeThickness="1" />
+
+                                        <devWin:Card Title="File Format" Content="{x:Bind DetailedSong.FileFormat}" />
+                                        <devWin:Divider LineStrokeThickness="1" />
+
+                                    </StackPanel>
+                                </Grid>
+                            </devWin:FlipSide.Side1>
 
                             <devWin:FlipSide.Side2>
-                                <SingleSongViews:EditSongPage />
+                                <SingleSongViews:EditSongPage devWin:MaterialAttach.UseAcrylicBackground="True" IsBackBtnClicked="EditSongPage_IsBackBtnClicked" />
                             </devWin:FlipSide.Side2>
                         </devWin:FlipSide>
                     </StackPanel>
@@ -276,7 +315,11 @@
                                         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                                         BorderThickness="1"
                                         CornerRadius="8">
-                                        <Grid ColumnDefinitions="40,*" ColumnSpacing="12">
+                                        <Grid ColumnSpacing="12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="40" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
                                             <devWin:ImageEx
                                                 Width="40"
                                                 Height="40"

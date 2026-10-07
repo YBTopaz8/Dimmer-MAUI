@@ -115,7 +115,7 @@ public sealed partial class SongDetailPage : Page
 
     private void PlaySongBtn_Click(object sender, RoutedEventArgs e)
     {
-
+        MyViewModel.AddToNext(new List<SongModelView>() { DetailedSong });
     }
 
     private void EditSongAudioBtn_Click(object sender, RoutedEventArgs e)
@@ -131,6 +131,17 @@ public sealed partial class SongDetailPage : Page
     private void ViewEditToggle_IsEnabledChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
         
+    }
+
+    private void ToggleButton_Checked(object sender, RoutedEventArgs e)
+    {
+        this.EditSongFlipSide.IsFlipped = !this.EditSongFlipSide.IsFlipped;
+    }
+
+    private void EditSongPage_IsBackBtnClicked(object sender, EventArgs e)
+    {
+        this.EditSongFlipSide.IsFlipped = !this.EditSongFlipSide.IsFlipped;
+
     }
 }
 

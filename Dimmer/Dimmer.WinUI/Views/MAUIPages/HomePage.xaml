@@ -11,14 +11,14 @@
     xmlns:dimmSearch="clr-namespace:Dimmer.Data.ModelView.DimmerSearch;assembly=Dimmer"
     xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
     xmlns:local="clr-namespace:Dimmer.WinUI.Views"
-    xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+    
     xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
     xmlns:modelsDb="clr-namespace:Dimmer.Data.Models;assembly=Dimmer"
     xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
     xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:tql="clr-namespace:Dimmer.DimmerSearch.TQL;assembly=Dimmer"
-    xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+    
     xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
     xmlns:windows="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;assembly=Microsoft.Maui.Controls"
     Title="HomePage"
@@ -121,7 +121,7 @@
                                 BackgroundColor="Transparent"
                                 BorderWidth="1"
                                 Clicked="PlaybackBtmSheettOpener_Clicked"
-                                Source="audioui"
+                                Source="playbackspeed.png"
                                 WidthRequest="60" />
 
                             <Label
@@ -379,7 +379,7 @@
 
                             </VerticalStackLayout>
                             <VerticalStackLayout Grid.Column="1">
-                                <Label Text="{Binding CurrentPlayingSongView.GenreName}" />
+
                                 <Button
                                     x:Name="ViewLyricsChip"
                                     BackgroundColor="Transparent"
@@ -388,7 +388,6 @@
                                     CornerRadius="20"
                                     HeightRequest="70"
                                     ImageSource="lyrics.png"
-                                    Loaded="ViewLyricsChip_Loaded"
                                     WidthRequest="70" />
 
                             </VerticalStackLayout>

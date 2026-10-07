@@ -571,7 +571,7 @@ IRepository<SongModel> songRepository, // Inject the repository
         return $"{ts.Minutes:D2}:{ts.Seconds:D2}.{ts.Milliseconds:D3}";
     }
 
-    public async Task<bool> SaveLyricsToDB(bool IsInstru, string planLyrics, SongModel song, string? lrcContent, LyricsInfo? lyrics)
+    public async Task<bool> SaveLyricsToDB(bool? IsInstru, string planLyrics, SongModel song, string? lrcContent, LyricsInfo? lyrics)
     {
         if (string.IsNullOrEmpty(song?.FilePath) || string.IsNullOrWhiteSpace(lrcContent))
         {

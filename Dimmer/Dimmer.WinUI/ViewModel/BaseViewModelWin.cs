@@ -435,45 +435,20 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         }
 
     }
+    private NativeLyricsOverlayWindow? _lyricsOverlayWindow;
 
-    public void OpenLyricsPopUpWindow(int Position) // 0 - Topleft, 1 - TopRight, 2 - BottomLeft, 3 - BottomRight
+    public void OpenLyricsPopUpWindow(int position = 3) // Defaults to Bottom-Right
     {
-
         if (!CurrentPlayingSongView.HasSyncedLyrics) return;
 
-        var syncLyricsWindow = windowManager.GetOrCreateUniqueWindow(windowFactory: () => new SyncLyricsPopUpViewWindow(this));
-        if (syncLyricsWindow is null) return;
-        var newPosition = new Windows.Graphics.RectInt32();
-        newPosition.Width = 600;
-        newPosition.Height = 500;
-        switch (Position)
+        if (_lyricsOverlayWindow == null)
         {
-            case 0:
-                newPosition.X = 0;
-                newPosition.Y = 0;
-
-                break;
-            case 1:
-                newPosition.X = 0;
-                newPosition.Y = 1;
-                break;
-            case 2:
-                newPosition.X = 1;
-                newPosition.Y = 1;
-                break;
-            case 3:
-                newPosition.X = 1;
-                newPosition.Y = 0;
-                break;
-            default:
-                break;
+            _lyricsOverlayWindow = new NativeLyricsOverlayWindow(this);
+            _lyricsOverlayWindow.Closed += (s, e) => _lyricsOverlayWindow = null;
         }
-        //Application.Current?.OpenWindow(syncLyricsWindow);
-        PlatUtils.OpenAndSetWindowToEdgePosition(syncLyricsWindow, newPosition);
-        var nativeWindow = PlatUtils.GetNativeWindowFromMAUIWindow();
-        var press = nativeWindow.AppWindow.Presenter as OverlappedPresenter;
-        press?.Minimize();
 
+        _lyricsOverlayWindow.Activate();
+        _lyricsOverlayWindow.SnapToCorner(position);
     }
 
 
@@ -524,12 +499,18 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         }
     }
 
-    public override void ResetCurrentPlaySongDominantColor()
+    public void ResetCurrentPlaySongDominantColor()
     {
         if (CurrentPlaySongDominantColor is null)
             return;
         var c = CurrentPlaySongDominantColor;
-        WinUIDominantBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(
+        WinUIDominantBrush = Windows.UI.Color.FromArgb(
+        (byte)(c.Alpha * 255),
+        (byte)(c.Red * 255),
+        (byte)(c.Green * 255),
+        (byte)(c.Blue * 255)
+    );
+        WinUISolidDominantBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(
         (byte)(c.Alpha * 255),
         (byte)(c.Red * 255),
         (byte)(c.Green * 255),
@@ -542,7 +523,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         // 1. Let the base class do all of its work first.
         await base.ProcessSongChangeAsync(value);
 
-
+        ResetCurrentPlaySongDominantColor();
         if (value.IsCurrentPlayingHighlight)
         {
 
@@ -702,7 +683,9 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     [ObservableProperty]
     public partial ObservableCollection<WindowEntry> AllWindows { get; set; }
     [ObservableProperty]
-    public partial SolidColorBrush WinUIDominantBrush { get; set; }
+    public partial SolidColorBrush WinUISolidDominantBrush { get; set; }
+    [ObservableProperty]
+    public partial Windows.UI.Color WinUIDominantBrush { get; set; }
 
     [RelayCommand]
     public void RefreshWindows()
@@ -756,7 +739,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         SetSelectedArtist(art);
         Debug.WriteLine($"Navigating to artist page: {artistName}");
         if(SelectedArtist is not null)
-            NavigateToAnyPageOfGivenType(typeof(ArtistPage));
+            NavigateToAnyPageOfGivenType(typeof(ArtistDetailsPage));
     }
 
     public void NavigateToArtistPageWithArtistId(ObjectId artistId)
@@ -766,7 +749,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
         SetSelectedArtist(artModel);
         Debug.WriteLine($"Navigating to artist page: {artistId}");
         if(SelectedArtist is not null)
-            NavigateToAnyPageOfGivenType(typeof(ArtistPage));
+            NavigateToAnyPageOfGivenType(typeof(ArtistDetailsPage));
     }
 
 

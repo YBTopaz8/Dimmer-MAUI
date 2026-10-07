@@ -16,7 +16,9 @@ using System.Reactive.Disposables.Fluent;
 public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFocusChangeListener
 {
     private AudioFocusRequestClass? _audioFocusRequest;
-    private double _volumeBeforeDuck = 1.0; // To remember volume before a notification
+    private double _volumeBeforeDuck = 1.0; // To remember volume before a
+    private bool _isDucked = false; 
+    private bool _wasPlayingBeforeFocusLoss = false; 
     private MediaSessionCompat? _mediaSession;
     private IDimmerAudioService? _audioService;
     private PowerManager.WakeLock? _wakeLock;
@@ -25,11 +27,27 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
     private AudioBecomingNoisyReceiver? _noisyReceiver;
     // The ONE object that prevents memory leaks
     private readonly CompositeDisposable _disposables = new();
-    private DimmerAudioDeviceCallback? _deviceCallback;
     private Bitmap? _currentCoverArt;
     private bool _isStartedInForeground = false;
     private DimmerPlaybackState _lastState = DimmerPlaybackState.None;
 
+    private void UpdateDurationMetadataOnly(double durationInSeconds)
+    {
+        var song = _audioService?.CurrentTrackMetadata;
+        if (song == null || _mediaSession == null) return;
+
+        var builder = new MediaMetadataCompat.Builder()?
+            .PutString(MediaMetadataCompat.MetadataKeyTitle, song.Title)?
+            .PutString(MediaMetadataCompat.MetadataKeyArtist, song.ArtistName)?
+            .PutString(MediaMetadataCompat.MetadataKeyAlbum, song.AlbumName)?
+            .PutLong(MediaMetadataCompat.MetadataKeyDuration, (long)(durationInSeconds * 1000));
+
+        if (_currentCoverArt != null && !_currentCoverArt.IsRecycled)
+            builder?.PutBitmap(MediaMetadataCompat.MetadataKeyAlbumArt, _currentCoverArt);
+
+        _mediaSession.SetMetadata(builder?.Build());
+    }
+    
     public override void OnCreate()
     {
         base.OnCreate();
@@ -39,9 +57,7 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
         _notificationManager = NotificationManagerCompat.From(this);
 
 
-
-        _deviceCallback = new DimmerAudioDeviceCallback(_audioService);
-        _audioManager?.RegisterAudioDeviceCallback(_deviceCallback, null);
+;
 
 
         var powerManager = (PowerManager)GetSystemService(PowerService)!;
@@ -61,16 +77,12 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
         // 3. Rx Bindings (Direct execution, no UI scheduler required)
         _audioService.CurrentSongObs
             .Where(song => song != null)
-            .Subscribe(song => LoadCoverArtAndSetMetadata(song!, 0))
+            .Subscribe(async song => await LoadCoverArtAndSetMetadataAsync(song!, 0))
             .DisposeWith(_disposables);
 
         _audioService.DurationObs
             .Where(duration => duration > 0)
-            .Subscribe(duration =>
-            {
-                if (_audioService.CurrentTrackMetadata != null)
-                    LoadCoverArtAndSetMetadata(_audioService.CurrentTrackMetadata, duration);
-            })
+                .Subscribe(duration => UpdateDurationMetadataOnly(duration))
             .DisposeWith(_disposables);
 
         _audioService.PlaybackStateObs
@@ -83,6 +95,8 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
 
                 if (x.state == DimmerPlaybackState.Playing)
                     RequestAudioFocus();
+                else if (x.state == DimmerPlaybackState.PausedUser || x.state == DimmerPlaybackState.PlayCompleted)
+                    _audioManager?.AbandonAudioFocus(this);
             })
             .DisposeWith(_disposables);
     }
@@ -126,32 +140,37 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
         {
             case AudioFocus.Loss:
                 // Another app (like YouTube) started playing. Stop completely.
+                _wasPlayingBeforeFocusLoss = false;
+
                 _ = _audioService?.PauseAsync();
                 break;
 
             case AudioFocus.LossTransient:
                 // A phone call or WhatsApp audio is playing. Pause temporarily.
+                _wasPlayingBeforeFocusLoss = _audioService?.IsPlaying ?? false;
                 _ = _audioService?.PauseAsync();
                 break;
 
             case AudioFocus.LossTransientCanDuck:
-                // A notification pinged. Lower the volume (Ducking).
-                if (_audioService != null)
+                if (_audioService is OwnAudioService srv && !_isDucked)
                 {
-                    _volumeBeforeDuck = _audioService.Volume;
-                    _audioService.SetVolume(_volumeBeforeDuck * 0.2); // Drop to 20%
+                    srv.SetDucking(true);
+                    _isDucked = true;
                 }
                 break;
 
             case AudioFocus.Gain:
-                // WhatsApp voice note finished, or notification finished. Resume/Restore!
+                
                 if (_audioService != null)
                 {
-                    // Restore volume if we ducked
-                    _audioService.SetVolume(_volumeBeforeDuck);
+                    if (_isDucked && _audioService is OwnAudioService srvc)
+                    {
+                        srvc.SetDucking(false);
+                        _isDucked = false;
+                    }
 
-                    // Only resume if we were paused by the system
-                    if (!_audioService.IsPlaying)
+                    // Only resume if WE were the ones playing before the interruption
+                    if (_wasPlayingBeforeFocusLoss && !_audioService.IsPlaying)
                     {
                         _ = _audioService.PlayAsync();
                     }
@@ -180,25 +199,31 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
         }
         return StartCommandResult.Sticky;
     }
-    private void LoadCoverArtAndSetMetadata(SongModelView song, double durationInSeconds)
+    private async Task LoadCoverArtAndSetMetadataAsync(SongModelView song, double durationInSeconds)
     {
+       
+        Bitmap? newCoverArt = null;
         // If you have local file paths for images:
         if (!string.IsNullOrEmpty(song.CoverImagePath) && File.Exists(song.CoverImagePath))
         {
-            var options = new BitmapFactory.Options { InJustDecodeBounds = true };
-            BitmapFactory.DecodeFile(song.CoverImagePath, options);
+            newCoverArt = await Task.Run(() =>
+            {
+                var options = new BitmapFactory.Options { InJustDecodeBounds = true };
+                BitmapFactory.DecodeFile(song.CoverImagePath, options);
 
-            // Calculate downsample ratio
-            options.InSampleSize = CalculateInSampleSize(options, 256, 256);
-            options.InJustDecodeBounds = false;
+                // Calculate downsample ratio
+                options.InSampleSize = CalculateInSampleSize(options, 256, 256);
+                options.InJustDecodeBounds = false;
 
-            _currentCoverArt = BitmapFactory.DecodeFile(song.CoverImagePath, options);
+                return BitmapFactory.DecodeFile(song.CoverImagePath, options);
+            });
         }
-        else
+        if (_currentCoverArt != null)
         {
-            _currentCoverArt = null;
+            _currentCoverArt.Dispose();
         }
-
+        _currentCoverArt = newCoverArt;
+        
         var builder = new MediaMetadataCompat.Builder()?
             .PutString(MediaMetadataCompat.MetadataKeyTitle, song.Title)?
             .PutString(MediaMetadataCompat.MetadataKeyArtist, song.ArtistName)?
@@ -220,8 +245,10 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
             _audioService?.IsPlaying ?? false,
             _audioService?.CurrentTrackMetadata,
             _currentCoverArt);
+        if (notification == null) return;
 
-        if (notification != null)
+
+        try
         {
             if (Build.VERSION.SdkInt >= BuildVersionCodes.Q)
                 StartForeground(NotificationHelper.NotificationId, notification, global::Android.Content.PM.ForegroundService.TypeMediaPlayback);
@@ -229,6 +256,12 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
                 StartForeground(NotificationHelper.NotificationId, notification);
 
             _isStartedInForeground = true;
+        }
+        catch (Android.App.ForegroundServiceStartNotAllowedException ex)
+        {
+            // Android 12+ prevents background apps from starting foreground services.
+            //  gracefully catch this. The MediaSession will still exist to wake the app.
+            System.Diagnostics.Debug.WriteLine($"[AudioService] Cannot promote to foreground from background: {ex.Message}");
         }
     }
     public static int CalculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight)
@@ -265,13 +298,19 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
         };
 
         float playbackSpeed = compatState == PlaybackStateCompat.StatePlaying ? 1.0f : 0f;
-
+        var isFav = _audioService?.CurrentTrackMetadata?.IsFavorite ?? false;
+        var favIcon = isFav ? Resource.Drawable.media3_icon_heart_filled : Resource.Drawable.media3_icon_heart_unfilled;
+        var favCustomAction = new PlaybackStateCompat.CustomAction.Builder(
+      DimmerMediaSessionCallback.ActionFavorite,
+      "Favorite",
+      favIcon).Build();
         var stateBuilder = new PlaybackStateCompat.Builder()?
             .SetActions(PlaybackStateCompat.ActionPlay |
                         PlaybackStateCompat.ActionPause |
                         PlaybackStateCompat.ActionSkipToNext |
                         PlaybackStateCompat.ActionSkipToPrevious |
                         PlaybackStateCompat.ActionSeekTo)?
+        .AddCustomAction(favCustomAction)?
             .SetState(compatState, (long)(positionSec * 1000), playbackSpeed);
 
         _mediaSession.SetPlaybackState(stateBuilder?.Build());
@@ -280,6 +319,7 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
 
     private void RedrawNotification()
     {
+        
         RxSchedulers.UI.ScheduleTo(() =>
         {
            
@@ -304,7 +344,10 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
             else
             {
                 if (_wakeLock?.IsHeld == true) _wakeLock.Release();
-                // DO NOT call StopForeground(Detach) here. Keep the service alive while paused!
+              
+                StopForeground(StopForegroundFlags.Detach);
+                _isStartedInForeground = false;
+                _notificationManager?.Notify(NotificationHelper.NotificationId, notification);
             }
 
 
@@ -318,10 +361,6 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
         if (_noisyReceiver != null) UnregisterReceiver(_noisyReceiver);
         _audioManager?.AbandonAudioFocus(this);
 
-        if (_deviceCallback != null)
-        {
-            _audioManager?.UnregisterAudioDeviceCallback(_deviceCallback);
-        }
 
         _currentCoverArt?.Dispose();
         _mediaSession?.Release();

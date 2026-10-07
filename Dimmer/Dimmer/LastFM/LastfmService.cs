@@ -823,12 +823,22 @@ public class LastfmService : ILastfmService
         try
         {
 
+            if(string.IsNullOrEmpty(song.ArtistName))
+            {
+                song = _realmFactory.GetRealmInstance().Find<SongModel>(song.Id).ToSongModelView();
+            }
+            if (!string.IsNullOrEmpty(song?.ArtistName))
+            {
 
-            var artistName = song.ArtistName.Split("| ", StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
 
-            var isUpdated = await _client.Track.LoveAsync(song.Title, artistName);
-            
-            return true;
+
+                var artistName = song.ArtistName.Split("| ", StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+
+                var isUpdated = await _client.Track.LoveAsync(song.Title, artistName);
+
+                return true;
+            }
+            return false;
         }
         catch (Exception ex)
         {
@@ -844,13 +854,21 @@ public class LastfmService : ILastfmService
             return false;
         try
         {
+            if (string.IsNullOrEmpty(song.ArtistName))
+            {
+                song = _realmFactory.GetRealmInstance().Find<SongModel>(song.Id).ToSongModelView();
+            }
+            if (!string.IsNullOrEmpty(song?.ArtistName))
+            {
 
-            var artistName = song.ArtistName.Split("| ", StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+                var artistName = song.ArtistName.Split("| ", StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
 
-            var isUpdated = await _client.Track.UnloveAsync(song.Title, artistName);
+                var isUpdated = await _client.Track.UnloveAsync(song.Title, artistName);
 
-            
-            return true;
+
+                return true;
+            }
+            return false;
         }
         catch (Exception ex)
         {

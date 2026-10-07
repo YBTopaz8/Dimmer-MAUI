@@ -36,8 +36,8 @@ public class LrcLibLyrics
             return "00:00";
         }
     }
-        [JsonPropertyName("instrumental")]
-    public bool Instrumental { get; set; }
+    [JsonPropertyName("instrumental")]
+    public bool? Instrumental { get; set; }
 
     [JsonPropertyName("plainLyrics")]
     public string? PlainLyrics { get; set; }

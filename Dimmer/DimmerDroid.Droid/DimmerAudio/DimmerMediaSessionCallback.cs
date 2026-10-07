@@ -33,7 +33,7 @@ public partial class DimmerMediaSessionCallback : MediaSessionCompat.Callback
 
     public override void OnCustomAction(string? action, Bundle? extras)
     {
-        Debugger.Break();
+
         if (action == ActionFavorite)
         {
             if (_audioService is OwnAudioService srv) srv.TriggerFavorite();

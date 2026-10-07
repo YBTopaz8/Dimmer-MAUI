@@ -23,16 +23,19 @@
 			<EnableDefaultMauiItems>false</EnableDefaultMauiItems>
 			<!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
 			<WindowsPackageType>None</WindowsPackageType>
+			<WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
 			<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 		</PropertyGroup>
 
 		<ItemGroup>
 		  <None Remove="AppShell.xaml" />
+		  <None Remove="Themes\Converters.xaml" />
 		  <None Remove="Views\CustomViews\MauiViews\SyncLyricsPopUpViewWindow.xaml" />
 		  <None Remove="Views\CustomViews\WinuiViews\ArcFabControl.xaml" />
 		  <None Remove="Views\CustomViews\WinuiViews\HoverCardControl.xaml" />
 		  <None Remove="Views\CustomViews\WinuiViews\MediaPlaybackSection.xaml" />
 		  <None Remove="Views\CustomViews\WinuiViews\MorphContainerView.xaml" />
+		  <None Remove="Views\CustomViews\WinuiViews\NativeLyricsOverlayWindow.xaml" />
 		  <None Remove="Views\CustomViews\WinuiViews\SearchHelpDialog.xaml" />
 		  <None Remove="Views\CustomViews\WinuiViews\SingleSongDetailsPopupView.xaml" />
 		  <None Remove="Views\CustomViews\WinuiViews\SingleSongSection\ChangesReviewPopup.xaml" />
@@ -105,8 +108,8 @@
 			<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.110" />
 			<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.12" />
 
-			<PackageReference Include="DevWinUI" Version="10.4.2" />
-			<!--<PackageReference Include="DevWinUI.ContextMenu" Version="10.0.0" />-->
+			<!--<PackageReference Include="DevWinUI" Version="10.4.2" />
+			<PackageReference Include="DevWinUI.ContextMenu" Version="10.0.0" />-->
 			
 			<!--<PackageReference Include="DevWinUI.SourceGenerator" Version="10.2.0" />-->
 			<PackageReference Include="CommunityToolkit.WinUI.Animations" Version="8.2.251219" />
@@ -123,7 +126,10 @@
 		</ItemGroup>
 		
 		<ItemGroup>
-			<ProjectReference Include="..\Dimmer\Dimmer.csproj"/>
+			<!--<ProjectReference Include="..\..\..\YBTopaz8\DevWinUI-main\dev\DevWinUI\DevWinUI.csproj" />-->
+			<!--<ProjectReference Include="..\..\..\YBTopaz8\DevWinUI-main\dev\DevWinUI.ContextMenu\DevWinUI.ContextMenu.csproj" />-->
+			<ProjectReference Include="..\..\..\YBTopaz8\DevWinUI-main\dev\DevWinUI\DevWinUI.csproj" />
+			<ProjectReference Include="..\Dimmer\Dimmer.csproj" />
 		</ItemGroup>
 	
 		<ItemGroup>
@@ -142,6 +148,14 @@
 		  </MauiXaml>
 		  <MauiXaml Include="Views\MAUIPages\HomePage.xaml" />
 		 
+		</ItemGroup>
+
+		
+		
+		<ItemGroup>
+		  <Page Update="Views\CustomViews\WinuiViews\NativeLyricsOverlayWindow.xaml">
+		    <Generator>MSBuild:Compile</Generator>
+		  </Page>
 		</ItemGroup>
 	
 		
@@ -418,6 +432,11 @@
 		<ItemGroup>
 		  <Page Update="Views\CustomViews\WinuiViews\HoverCardControl.xaml">
 			<Generator>MSBuild:Compile</Generator>
+		  </Page>
+		</ItemGroup>
+		<ItemGroup>
+		  <Page Update="Themes\Converters.xaml">
+		    <Generator>MSBuild:Compile</Generator>
 		  </Page>
 		</ItemGroup>
 

@@ -167,6 +167,7 @@ public static class ServiceRegistration
         services.AddSingleton<SongStatsService>();
         services.AddSingleton<SongStatsViewModel>();
         services.AddTransient<ArtistStatsViewModel>();
+        services.AddTransient<GeneralStatsViewModel>();
         return services;
     }
 

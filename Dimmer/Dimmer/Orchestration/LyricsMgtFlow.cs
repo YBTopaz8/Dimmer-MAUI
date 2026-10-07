@@ -73,10 +73,10 @@ public class LyricsMgtFlow : IDisposable
         // 3. Sync the lyrics to the current audio position
         _subsManager.Add(
             _audioService.PositionObs
-                .ObserveOn(RxSchedulers.UI)
+
                 .Subscribe(posInSec =>
                 {
-                    if (_audioService.IsPlaying && _synchronizer != null)
+                    if (_synchronizer != null)
                     {
                         UpdateLyricsForPosition(TimeSpan.FromSeconds(posInSec));
                     }
@@ -176,17 +176,90 @@ public class LyricsMgtFlow : IDisposable
 
         return phrases;
     }
+    private SongModelView? _currentSong;
 
-    /// <summary>
-    /// Helper method that replaces the old automatic search logic.
-    /// </summary>
+    private async Task ProcessExistingLyricsForSong(SongModelView? song, CancellationToken ct, bool loadLyricsInSyncMode = true)
+    {
+        if (song == null)
+        {
+            ClearLyrics();
+            _currentSong = null;
+            return;
+        }
+
+        // Only skip if it is genuinely the exact same song already loaded
+        if (_currentSong != null &&
+            !string.IsNullOrEmpty(song.TitleDurationKey) &&
+            _currentSong.TitleDurationKey == song.TitleDurationKey)
+        {
+            return;
+        }
+
+        _currentSong = song;
+
+        isLoadingLyrics.OnNext(true);
+        isSearchingLyrics.OnNext(false);
+
+        try
+        {
+            // 1. Try DB and Local Storage first
+            string? lrcContent = await GetStoredLyricsContentAsync(song);
+            if (ct.IsCancellationRequested) return;
+
+            if (!string.IsNullOrWhiteSpace(lrcContent))
+            {
+                LoadLyrics(lrcContent);
+                return;
+            }
+
+            // 2. Fallback to Online Search
+            ClearLyrics();
+            isLoadingLyrics.OnNext(false);
+            isSearchingLyrics.OnNext(true);
+
+            var res = await GetLyricsAndSaveContentToDBAsync(song, ct);
+            if (ct.IsCancellationRequested) return;
+
+            if (res is not null && res.Any())
+            {
+                var match = res.FirstOrDefault(x => !string.IsNullOrEmpty(x.SyncedLyrics));
+                string? lyricsToLoad = match?.SyncedLyrics;
+
+                // Fallback to plain lyrics if no synced lyrics available
+                if (string.IsNullOrEmpty(lyricsToLoad))
+                {
+                    lyricsToLoad = res.FirstOrDefault(x => !string.IsNullOrEmpty(x.PlainLyrics))?.PlainLyrics;
+                }
+
+                if (!string.IsNullOrEmpty(lyricsToLoad) && loadLyricsInSyncMode)
+                {
+                    LoadLyrics(lyricsToLoad);
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected on track switch
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to load lyrics for song {Title}", song.Title);
+        }
+        finally
+        {
+            isLoadingLyrics.OnNext(false);
+            isSearchingLyrics.OnNext(false);
+        }
+    }
+
     private async Task<string?> GetStoredLyricsContentAsync(SongModelView song)
     {
-        var instruNullable = song.IsInstrumental;
-        if ((instruNullable is bool instru))
+        // Fix: Only return empty if it is explicitly marked instrumental
+        if (song.IsInstrumental is true)
         {
             return string.Empty;
         }
+
         if (!string.IsNullOrEmpty(song.SyncLyrics))
         {
             _logger.LogTrace("Found lyrics in database for {SongTitle}", song.Title);
@@ -198,55 +271,9 @@ public class LyricsMgtFlow : IDisposable
         {
             return localLyrics;
         }
-        return null; // Don't search online here.
+
+        return null;
     }
-
-    SongModelView? currentSong;
-  private async Task ProcessExistingLyricsForSong(SongModelView? song, CancellationToken ct,bool loadLyricsInSyncMode = true)
-    { 
-        if (song == null || currentSong?.TitleDurationKey == song.TitleDurationKey)
-        {
-            ClearLyrics();
-            return;
-        }
-
-        isLoadingLyrics.OnNext(true);
-        // Try to get lyrics from DB first, then local files.
-        string? lrcContent = await GetStoredLyricsContentAsync(song);
-        if (!string.IsNullOrWhiteSpace(lrcContent))
-        {
-            if (ct.IsCancellationRequested) return; // Abort if song changed!
-
-            LoadLyrics(lrcContent);
-            isLoadingLyrics.OnNext(false);
-        }
-        else
-        {
-
-            ClearLyrics();
-            isSearchingLyrics.OnNext(true);
-            isLoadingLyrics.OnNext(false);
-            var res = await GetLyricsAndSaveContentToDBAsync(song, ct);
-
-            if(res is not null && res.Any())
-            {
-                var lyrics = res.Where(x => !string.IsNullOrEmpty(x.SyncedLyrics)).FirstOrDefault()?.SyncedLyrics;
-                if(lyrics is null)
-                {
-                    return;
-                }
-                if(loadLyricsInSyncMode)
-                {
-
-                    LoadLyrics(lyrics);
-                    isSearchingLyrics.OnNext(false);
-                    isLoadingLyrics.OnNext(false);
-                }
-            }
-        }
-    }
-
-
 
     private void ResetCurrentLyricDisplay()
     {
@@ -273,7 +300,7 @@ public class LyricsMgtFlow : IDisposable
                 Duration = song.DurationInSeconds,
                 TrackName = song.Title,
                 SyncedLyrics = song.SyncLyrics,
-                Instrumental = song.IsInstrumental is not null && (bool)song.IsInstrumental,
+                Instrumental = song.IsInstrumental,
                 PlainLyrics = song.UnSyncLyrics
             };
             List<LrcLibLyrics> list = new List<LrcLibLyrics>();

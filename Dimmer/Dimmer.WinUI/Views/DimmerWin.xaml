@@ -19,13 +19,6 @@
     SizeChanged="Window_SizeChanged"
     mc:Ignorable="d">
 
-
-
-
-
-
-
-
     <NavigationView
         x:Name="nvSample"
         x:FieldModifier="Public"
@@ -115,21 +108,62 @@
             <StackPanel
                 x:Name="BottomCurrentPlayingSongPanel"
                 Margin="5"
+                HorizontalAlignment="Stretch"
                 Visibility="{x:Bind MyViewModel.BottomCurrentPlayingSongPanelVisibility, Mode=OneWay}">
 
                 <StackPanel Margin="5">
                     <Grid
                         Grid.Column="0"
-                        Width="100"
-                        Height="100"
+                        MaxWidth="150"
+                        MaxHeight="150"
                         HorizontalAlignment="Center">
+                        <devWin:GooeyButton
+                            x:Name="CurrentPlayingSongGooeyButton"
+                            Background="#1e1e1e"
+                            Canvas.ZIndex="1"
+                            ExitDisplayModeOnAccessKeyInvoked="True"
+                            ItemInvoked="CurrentPlayingSongGooeyButton_ItemInvoked"
+                            Loaded="CurrentPlayingSongGooeyButton_Loaded"
+                            Opacity="0.3">
+                            <devWin:GooeyButton.Items>
+                                <devWin:GooeyButtonItem
+                                    x:Name="ScrollToCurrentSongGooeyBtnItem"
+                                    Width="70"
+                                    Height="70"
+                                    CornerRadius="15">
+                                    <devWin:GooeyButtonItem.Content>
+                                        <SymbolIcon x:Name="ViewSymbol" Symbol="View" />
+                                    </devWin:GooeyButtonItem.Content>
+                                </devWin:GooeyButtonItem>
 
+                                <devWin:GooeyButtonItem
+                                    x:Name="FavCurrentSongGooeyBtnItem"
+                                    Width="70"
+                                    Height="70"
+                                    CornerRadius="15">
+                                    <devWin:GooeyButtonItem.Content>
+                                        <FontIcon x:Name="FavCurrentSong" Glyph="&#xEB51;" />
+                                    </devWin:GooeyButtonItem.Content>
+                                </devWin:GooeyButtonItem>
+
+                                <devWin:GooeyButtonItem
+                                    x:Name="OpenNowPlayingView"
+                                    Width="70"
+                                    Height="70"
+                                    CornerRadius="15">
+                                    <devWin:GooeyButtonItem.Content>
+                                        <FontIcon x:Name="OpenNowPlayingViewFontIcon" Glyph="&#xF71C;" />
+                                    </devWin:GooeyButtonItem.Content>
+                                </devWin:GooeyButtonItem>
+
+                            </devWin:GooeyButton.Items>
+                        </devWin:GooeyButton>
                         <devWin:ImageEx
                             x:Name="CurrentPlayingSongImage"
                             VerticalAlignment="Top"
-                            CornerRadius="30"
-                            Loaded="CurrentPlayingSongImage_Loaded"
-                            PointerPressed="CurrentPlayingSongImage_PointerPressed" />
+                            Canvas.ZIndex="0"
+                            CornerRadius="20"
+                            Loaded="CurrentPlayingSongImage_Loaded" />
                     </Grid>
 
                     <StackPanel
@@ -227,6 +261,7 @@
                 <RowDefinition Height="auto" />
                 <RowDefinition Height="*" />
                 <RowDefinition Height="auto" />
+
             </Grid.RowDefinitions>
 
 
@@ -239,6 +274,7 @@
                 <Grid.ColumnDefinitions>
 
 
+                    <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="auto" />
                 </Grid.ColumnDefinitions>
 
@@ -299,6 +335,14 @@
                         Source="Value"
                         Value="{x:Bind MyViewModel.MySongsTableViewItemsCount, Mode=OneWay}" />
                 </StackPanel>
+
+                <StackPanel
+                    Grid.Column="1"
+                    HorizontalAlignment="Left"
+                    devWin:Growl.GrowlEnterTransition="EntranceThemeTransition"
+                    devWin:Growl.GrowlExitTransition="EntranceThemeTransition"
+                    devWin:Growl.GrowlParent="True"
+                    devWin:Growl.Token="BottomCurrentPlayingSongPanel" />
             </Grid>
 
             <Frame
@@ -307,8 +351,8 @@
                 x:FieldModifier="Public"
                 Navigated="ContentFrame_Navigated" />
 
-          
-            
+
+
         </Grid>
 
     </NavigationView>

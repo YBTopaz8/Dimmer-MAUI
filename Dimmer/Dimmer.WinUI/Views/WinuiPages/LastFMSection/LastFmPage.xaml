@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:devWin="using:DevWinUI"
     xmlns:dgView="using:WinUI.TableView"
     xmlns:entities="using:Hqub.Lastfm.Entities"
     xmlns:local="using:Dimmer.WinUI.Views.WinuiPages.LastFMSection"
@@ -167,7 +168,7 @@
                                 <Run
                                     FontSize="14"
                                     Foreground="Gray"
-                                    Text="Scrobbling since {0}" />
+                                    Text="Scrobbling since" />
 
                                 <Run
                                     FontSize="14"
@@ -311,7 +312,7 @@
 
                         <ScrollViewer
                             HorizontalScrollBarVisibility="Auto"
-                            HorizontalScrollMode="Enabled" 
+                            HorizontalScrollMode="Enabled"
                             VerticalScrollBarVisibility="Disabled">
                             <GridView
                                 ItemsSource="{x:Bind MyLastFMViewModel.MissingLovedTracks, Mode=OneWay}"
@@ -392,13 +393,13 @@
                                         </Grid.ColumnDefinitions>
 
                                         <!--  Indicator if it exists locally  -->
-                                        <Border
+                                        <devWin:ImageEx
                                             Grid.Column="0"
                                             Width="4"
                                             Height="30"
                                             Background="DarkSlateBlue"
                                             CornerRadius="2"
-                                            Visibility="{Binding IsOnPresentDevice, Converter={StaticResource BoolToVis}}" />
+                                            Source="{Binding LargestImgUrl}" />
 
                                         <StackPanel
                                             Grid.Column="1"

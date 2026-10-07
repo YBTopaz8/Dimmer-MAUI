@@ -4,196 +4,488 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:devWin="using:DevWinUI"
     xmlns:dgView="using:WinUI.TableView"
     xmlns:local="using:Dimmer.WinUI.Views.WinuiPages.DimmsSection"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     mc:Ignorable="d">
 
     <Grid>
         <Grid.RowDefinitions>
-
-            <RowDefinition Height="auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="auto" />
-
-
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" />
+        <!--  ===================================================================  -->
+        <!--  1. HEADER & GLOBAL FILTERS  -->
+        <!--  ===================================================================  -->
+        <Grid Padding="32,24,32,16" Background="{ThemeResource LayerFillColorDefaultBrush}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
 
-        
-        <dgView:TableView MaxHeight="300"
-            x:Name="MyEventsTableView"
-            Grid.Row="1"
-            AutoGenerateColumns="False"
-            ItemsSource="{x:Bind MyViewModel.ArtistsCollection, Mode=OneWay}"
-            Loaded="MyEventsTableView_Loaded"
-            RowHeight="120"
-            Unloaded="MyEventsTableView_Unloaded">
-
-            <dgView:TableView.Columns>
-
-                <dgView:TableViewTemplateColumn x:Name="ImageCol" Header="Image Col">
-                    <dgView:TableViewTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <Border
-                                x:Name="CardBorder"
-                                Height="90"
-                                HorizontalAlignment="Left">
-                                <Grid HorizontalAlignment="Left">
-                                    <Image x:Name="SongImg">
-                                        <Image.Source>
-                                            <BitmapImage UriSource="{Binding CoverImagePath}" />
-                                        </Image.Source>
-                                    </Image>
-
-
-                                </Grid>
-                            </Border>
-                        </DataTemplate>
-
-                    </dgView:TableViewTemplateColumn.CellTemplate>
-                </dgView:TableViewTemplateColumn>
-
-                <dgView:TableViewTemplateColumn
-                    x:Name="TextsCol"
-                    Width="*"
-                    Header="Song">
-                    <dgView:TableViewTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <StackPanel
-                                x:Name="TextsCardBorder"
-                                HorizontalAlignment="Stretch"
-                                Background="Transparent"
-                                Spacing="5">
-
-                                <StackPanel Orientation="Horizontal" Spacing="5">
-                                    <Button
-                                        Background="Transparent"
-                                        BorderThickness="0"
-                                        Click="SongTitle_Click">
-                                        <TextBlock
-                                            FontSize="21"
-                                            FontWeight="Bold"
-                                            Text="{Binding SongName}"
-                                            TextWrapping="WrapWholeWords" />
-
-                                    </Button>
-
-                                    <Border
-                                        HorizontalAlignment="Right"
-                                        Canvas.ZIndex="1"
-                                        Visibility="{Binding SongViewObject.IsFavorite, Converter={StaticResource BoolToVis}}">
-                                        <FontIcon
-                                            Foreground="DarkSlateBlue"
-                                            Glyph="&#xEB52;"
-                                            Rotation="37" />
-                                    </Border>
-                                </StackPanel>
-
-                                <Button
-                                    x:Name="SongArtists"
-                                    Background="Transparent"
-                                    BorderThickness="0"
-                                    Click="SongArtists_Click">
-                                    <TextBlock
-                                        FontSize="19"
-                                        Text="{Binding SongViewObject.OtherArtistsName}"
-                                        TextWrapping="WrapWholeWords" />
-                                </Button>
-
-                                <Button
-                                    x:Name="SongAlbum"
-                                    Background="Transparent"
-                                    BorderThickness="0"
-                                    Click="SongAlbum_Click">
-
-                                    <TextBlock
-                                        FontSize="12"
-                                        FontStyle="Oblique"
-                                        FontWeight="Light"
-                                        Text="{Binding SongViewObject.AlbumName}"
-                                        TextWrapping="WrapWholeWords" />
-                                </Button>
-                            </StackPanel>
-                        </DataTemplate>
-
-                    </dgView:TableViewTemplateColumn.CellTemplate>
-                </dgView:TableViewTemplateColumn>
-
-                <dgView:TableViewTemplateColumn
-                    x:Name="MoreCol"
-                    Width="auto"
-                    Header="More">
-                    <dgView:TableViewTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <StackPanel x:Name="MoreCardBorder">
-                                <TextBlock
-                                    HorizontalAlignment="Center"
-                                    Text="{Binding PlayTypeStr}"
-                                    TextWrapping="WrapWholeWords" />
-                                <TextBlock
-                                    HorizontalAlignment="Center"
-                                    Text="{Binding EventDate, Converter={StaticResource EventDateOffsetToTimeAgo}}"
-                                    TextWrapping="WrapWholeWords"
-                                    />
-
-                                <Button
-                                    x:Name="MoreBtn"
-                                    Background="Transparent"
-                                    Click="MoreBtn_Click">
-                                    <SymbolIcon Symbol="More" />
-                                </Button>
-                            </StackPanel>
-                        </DataTemplate>
-
-                    </dgView:TableViewTemplateColumn.CellTemplate>
-                </dgView:TableViewTemplateColumn>
-
-            </dgView:TableView.Columns>
-
-        </dgView:TableView>
-        <StackPanel
-            Grid.Row="1"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Visibility="{x:Bind MyViewModel.IsPlayEventsLoading, Mode=OneWay, Converter={StaticResource BoolToVis}}">
-
-            <ProgressRing
-                Width="60"
-                Height="60"
-                IsActive="True" />
-            <TextBlock
-                Margin="0,10,0,0"
-                HorizontalAlignment="Center"
-                Text="Loading History..." />
-        </StackPanel>
-        <Border
-            Grid.Row="2"
-            Padding="10"
-            Background="{ThemeResource LayerFillColorDefaultBrush}"
-            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
-            BorderThickness="0,1,0,0">
-
-            <StackPanel
-                HorizontalAlignment="Center"
-                Orientation="Horizontal"
-                Spacing="20">
-
-                <Button Command="{x:Bind MyViewModel.PrevEvtPageCommand}" IsEnabled="{x:Bind MyViewModel.CanGoPrev, Mode=OneWay}">
-                    <SymbolIcon Symbol="Back" />
-                </Button>
-
+            <StackPanel>
                 <TextBlock
-                    VerticalAlignment="Center"
-                    FontWeight="SemiBold"
-                    Text="{x:Bind MyViewModel.PageStatusString, Mode=OneWay}" />
-
-                <Button Command="{x:Bind MyViewModel.NextEvtPageCommand}" IsEnabled="{x:Bind MyViewModel.CanGoNext, Mode=OneWay}">
-                    <SymbolIcon Symbol="Forward" />
-                </Button>
-
+                    FontSize="32"
+                    FontWeight="Bold"
+                    Text="Your Data Hub" />
+                <TextBlock
+                    FontSize="14"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Text="Deep analytics, insights, and complete listening history." />
             </StackPanel>
-        </Border>
+
+            <!--  Global Date Filter (Hooks into GeneralStatsService.SetDateFilter)  -->
+            <StackPanel
+                Grid.Column="1"
+                VerticalAlignment="Center"
+                Orientation="Horizontal"
+                Spacing="12">
+                <FontIcon
+                    FontSize="16"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Glyph="&#xE787;" />
+                <ComboBox
+                    x:Name="DateFilterCombo"
+                    Width="180"
+                    SelectedIndex="0"
+                    SelectionChanged="DateFilterCombo_SelectionChanged">
+                    <ComboBoxItem Content="All Time" Tag="AllTime" />
+                    <ComboBoxItem Content="Last 30 Days" Tag="Last30Days" />
+                    <ComboBoxItem Content="Last 90 Days" Tag="Last90Days" />
+                    <ComboBoxItem Content="This Year" Tag="Last365Days" />
+                </ComboBox>
+            </StackPanel>
+        </Grid>
+
+        <!--  ===================================================================  -->
+        <!--  2. MAIN NAVIGATION CONTENT  -->
+        <!--  ===================================================================  -->
+        <NavigationView
+            x:Name="StatsNav"
+            Grid.Row="1"
+            IsBackButtonVisible="Collapsed"
+            PaneDisplayMode="Top"
+            SelectionChanged="StatsNav_SelectionChanged">
+            <NavigationView.MenuItems>
+                <NavigationViewItem
+                    Content="Overview"
+                    Icon="Home"
+                    Tag="Overview" />
+                <NavigationViewItem
+                    Content="Leaderboards"
+                    Icon="FourBars"
+                    Tag="Leaderboards" />
+                <NavigationViewItem
+                    Content="Raw History (Dims)"
+                    Icon="List"
+                    Tag="History" />
+            </NavigationView.MenuItems>
+
+            <Grid Margin="32,16,32,0">
+
+                <!--  ================== TAB 1: OVERVIEW ==================  -->
+                <ScrollViewer
+                    x:Name="OverviewTab"
+                    Loaded="OverviewTab_Loaded"
+                    VerticalScrollBarVisibility="Auto"
+                    Visibility="Visible">
+                    <StackPanel Padding="0,0,0,40" Spacing="32">
+                        <TextBlock
+                            FontSize="20"
+                            FontWeight="SemiBold"
+                            Text="Macro Insights" />
+
+                        <Grid ColumnSpacing="16" RowSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <devWin:Card
+                                Title="{x:Bind MyGeneralStatsVM.TextTotalTime.Title, Mode=OneWay}"
+                                Grid.Column="0"
+                                Content="{x:Bind MyGeneralStatsVM.TextTotalTime.Value, Mode=OneWay}"
+                                TitleContent="{x:Bind MyGeneralStatsVM.TextTotalTime.Subtitle, Mode=OneWay}" />
+                            <devWin:Card
+                                Title="{x:Bind MyGeneralStatsVM.TextIntrovertExtrovertScore.Title, Mode=OneWay}"
+                                Grid.Column="1"
+                                Content="{x:Bind MyGeneralStatsVM.TextIntrovertExtrovertScore.Value, Mode=OneWay}"
+                                TitleContent="{x:Bind MyGeneralStatsVM.TextIntrovertExtrovertScore.Subtitle, Mode=OneWay}" />
+                            <devWin:Card
+                                Title="{x:Bind MyGeneralStatsVM.TextSkipToCompletionRatio.Title, Mode=OneWay}"
+                                Grid.Column="2"
+                                Content="{x:Bind MyGeneralStatsVM.TextSkipToCompletionRatio.Value, Mode=OneWay}"
+                                TitleContent="{x:Bind MyGeneralStatsVM.TextSkipToCompletionRatio.Subtitle, Mode=OneWay}" />
+                            <devWin:Card
+                                Title="{x:Bind MyGeneralStatsVM.TextParetoPrinciple.Title, Mode=OneWay}"
+                                Grid.Column="3"
+                                Content="{x:Bind MyGeneralStatsVM.TextParetoPrinciple.Value, Mode=OneWay}"
+                                TitleContent="{x:Bind MyGeneralStatsVM.TextParetoPrinciple.Subtitle, Mode=OneWay}" />
+                        </Grid>
+
+                        <Grid ColumnSpacing="24">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Spacing="12">
+                                <TextBlock
+                                    FontWeight="SemiBold"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="Library Churn &amp; Era" />
+                                <devWin:Card
+                                    Title="{x:Bind MyGeneralStatsVM.TextLibraryChurn.Title, Mode=OneWay}"
+                                    Margin="0,0,0,12"
+                                    Content="{x:Bind MyGeneralStatsVM.TextLibraryChurn.Value, Mode=OneWay}"
+                                    TitleContent="{x:Bind MyGeneralStatsVM.TextLibraryChurn.Subtitle, Mode=OneWay}" />
+                                <devWin:Card
+                                    Title="{x:Bind MyGeneralStatsVM.TextPrimaryDecade.Title, Mode=OneWay}"
+                                    Content="{x:Bind MyGeneralStatsVM.TextPrimaryDecade.Value, Mode=OneWay}"
+                                    TitleContent="{x:Bind MyGeneralStatsVM.TextPrimaryDecade.Subtitle, Mode=OneWay}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Spacing="12">
+                                <TextBlock
+                                    FontWeight="SemiBold"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="Adventurousness" />
+                                <devWin:Card
+                                    Title="{x:Bind MyGeneralStatsVM.TextAdventurousness.Title, Mode=OneWay}"
+                                    Content="{x:Bind MyGeneralStatsVM.TextAdventurousness.Value, Mode=OneWay}"
+                                    TitleContent="{x:Bind MyGeneralStatsVM.TextAdventurousness.Subtitle, Mode=OneWay}" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!--  ================== TAB 2: LEADERBOARDS ==================  -->
+                <ScrollViewer
+                    x:Name="LeaderboardsTab"
+                    VerticalScrollBarVisibility="Auto"
+                    Visibility="Collapsed">
+                    <Grid Padding="0,0,0,40" ColumnSpacing="32">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <!--  Top Songs  -->
+                        <StackPanel Grid.Column="0" Spacing="16">
+                            <TextBlock
+                                FontSize="20"
+                                FontWeight="SemiBold"
+                                Text="Top Songs" />
+                            <ItemsRepeater ItemsSource="{x:Bind MyStatsVM.TopSongs, Mode=OneWay}">
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid
+                                            Margin="0,0,0,8"
+                                            Padding="12"
+                                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="30" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock
+                                                Grid.Column="0"
+                                                VerticalAlignment="Center"
+                                                FontWeight="Bold"
+                                                Foreground="{ThemeResource SystemAccentColor}"
+                                                Text="{Binding Rank}" />
+                                            <TextBlock
+                                                Grid.Column="1"
+                                                VerticalAlignment="Center"
+                                                FontWeight="SemiBold"
+                                                Text="{Binding Name}"
+                                                TextTrimming="CharacterEllipsis" />
+                                            <TextBlock
+                                                Grid.Column="2"
+                                                VerticalAlignment="Center"
+                                                FontSize="12"
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                Text="{Binding SubValue}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
+                        </StackPanel>
+
+                        <!--  Musical Trinity (Top 3 Artists)  -->
+                        <StackPanel Grid.Column="1" Spacing="16">
+                            <TextBlock
+                                FontSize="20"
+                                FontWeight="SemiBold"
+                                Foreground="Gold"
+                                Text="The Musical Trinity" />
+                            <ItemsRepeater ItemsSource="{x:Bind MyGeneralStatsVM.ListMusicalTrinity, Mode=OneWay}">
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid
+                                            Margin="0,0,0,8"
+                                            Padding="16"
+                                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                            BorderBrush="Gold"
+                                            BorderThickness="1"
+                                            CornerRadius="8">
+                                            <StackPanel>
+                                                <TextBlock
+                                                    FontSize="12"
+                                                    FontWeight="Bold"
+                                                    Foreground="Gold"
+                                                    Text="{Binding Rank}" />
+                                                <TextBlock
+                                                    Margin="0,4,0,0"
+                                                    FontSize="18"
+                                                    FontWeight="Black"
+                                                    Text="{Binding Name}" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
+                        </StackPanel>
+
+                        <!--  Forgotten Gems  -->
+                        <StackPanel Grid.Column="2" Spacing="16">
+                            <TextBlock
+                                FontSize="20"
+                                FontWeight="SemiBold"
+                                Foreground="{ThemeResource SystemAccentColorLight2}"
+                                Text="Forgotten Gems" />
+                            <ItemsRepeater ItemsSource="{x:Bind MyGeneralStatsVM.ListForgottenGems, Mode=OneWay}">
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid
+                                            Margin="0,0,0,8"
+                                            Padding="12"
+                                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="8">
+                                            <StackPanel>
+                                                <TextBlock
+                                                    FontWeight="SemiBold"
+                                                    Text="{Binding Name}"
+                                                    TextTrimming="CharacterEllipsis" />
+                                                <TextBlock
+                                                    FontSize="12"
+                                                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                                    Text="{Binding SubValue}" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
+                        </StackPanel>
+                    </Grid>
+                </ScrollViewer>
+
+                <!--  ================== TAB 3: RAW HISTORY (DIMS LOG) ==================  -->
+                <Grid x:Name="HistoryTab" Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <!--  Filter & Sort Bar  -->
+                    <Grid
+                        Grid.Row="0"
+                        Margin="0,0,0,16"
+                        ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="300" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <AutoSuggestBox PlaceholderText="Search history..." QueryIcon="Find" />
+
+                        <ComboBox
+                            x:Name="EventTypesComboBox"
+                            Grid.Column="2"
+                            Width="150"
+                            SelectedIndex="0"
+                            SelectionChanged="EventTypesComboBox_SelectionChanged">
+                            <ComboBoxItem Content="All Event Types" />
+                            <ComboBoxItem Content="Play" />
+                            <ComboBoxItem Content="Completed" />
+                            <ComboBoxItem Content="Resume" />
+                            <ComboBoxItem Content="Skipped" />
+                            <ComboBoxItem Content="Favorites" />
+                        </ComboBox>
+
+                        <Button
+                            Grid.Column="3"
+                            Content="Export CSV"
+                            Style="{ThemeResource DefaultButtonStyle}" />
+                    </Grid>
+
+                    <!--  The Main Log Table  -->
+                    <Border
+                        Grid.Row="1"
+                        Padding="0,8"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8">
+
+                        <!--  Loading Ring Overlay  -->
+                        <Grid>
+                            <dgView:TableView
+                                x:Name="MyEventsTableView"
+                                AutoGenerateColumns="False"
+                                Background="Transparent"
+                                HeadersVisibility="Columns"
+                                ItemsSource="{x:Bind MyViewModel.DimmerEventsCollection, Mode=OneWay}"
+                                RowHeight="64">
+
+                                <dgView:TableView.Columns>
+                                    <dgView:TableViewTemplateColumn Width="60">
+                                        <dgView:TableViewTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <devWin:ImageEx
+                                                    Width="44"
+                                                    Height="44"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    CornerRadius="4"
+                                                    Source="{Binding CoverImagePath}"
+                                                    Stretch="UniformToFill" />
+                                            </DataTemplate>
+                                        </dgView:TableViewTemplateColumn.CellTemplate>
+                                    </dgView:TableViewTemplateColumn>
+
+                                    <dgView:TableViewTemplateColumn Width="3*" Header="Track &amp; Artist">
+                                        <dgView:TableViewTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <StackPanel VerticalAlignment="Center" Spacing="2">
+                                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                                        <TextBlock
+                                                            FontSize="14"
+                                                            FontWeight="Bold"
+                                                            Text="{Binding SongName}"
+                                                            TextTrimming="CharacterEllipsis" />
+                                                        <FontIcon
+                                                            FontSize="12"
+                                                            Foreground="HotPink"
+                                                            Glyph="&#xEB51;"
+                                                            Visibility="{Binding SongViewObject.IsFavorite, Converter={StaticResource BoolToVis}}" />
+                                                    </StackPanel>
+                                                    <TextBlock
+                                                        FontSize="12"
+                                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                        Text="{Binding ArtistName}"
+                                                        TextTrimming="CharacterEllipsis" />
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </dgView:TableViewTemplateColumn.CellTemplate>
+                                    </dgView:TableViewTemplateColumn>
+
+                                    <dgView:TableViewTextColumn
+                                        Width="2*"
+                                        Binding="{Binding AlbumName}"
+                                        Header="Album" />
+
+                                    <dgView:TableViewTextColumn
+                                        Width="150"
+                                        Binding="{Binding PlayTypeStr}"
+                                        Header="Event Type" />
+
+
+
+                                    <dgView:TableViewTemplateColumn Width="150" Header="Time">
+                                        <dgView:TableViewTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontSize="12"
+                                                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                                    Text="{Binding EventDate, Converter={StaticResource EventDateOffsetToTimeAgo}}" />
+                                            </DataTemplate>
+                                        </dgView:TableViewTemplateColumn.CellTemplate>
+                                    </dgView:TableViewTemplateColumn>
+
+                                    <!--  Quick Context Menu Column  -->
+                                    <dgView:TableViewTemplateColumn Width="60">
+                                        <dgView:TableViewTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Button
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    Click="MoreBtn_Click">
+                                                    <FontIcon FontSize="16" Glyph="&#xE712;" />
+                                                </Button>
+                                            </DataTemplate>
+                                        </dgView:TableViewTemplateColumn.CellTemplate>
+                                    </dgView:TableViewTemplateColumn>
+                                </dgView:TableView.Columns>
+                            </dgView:TableView>
+
+                            <!--  Loading Overlay  -->
+                            <StackPanel
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Spacing="12"
+                                Visibility="{x:Bind MyViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                                <ProgressRing
+                                    Width="48"
+                                    Height="48"
+                                    IsActive="True" />
+                                <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Loading Timeline..." />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!--  Pagination Footer  -->
+                    <Border
+                        Grid.Row="2"
+                        Margin="0,16,0,0"
+                        Padding="16,8"
+                        Background="{ThemeResource LayerFillColorAltBrush}"
+                        CornerRadius="8">
+                        <StackPanel
+                            HorizontalAlignment="Center"
+                            Orientation="Horizontal"
+                            Spacing="24">
+                            <Button
+                                Background="Transparent"
+                                Command="{x:Bind MyViewModel.PrevEvtPageCommand}"
+                                IsEnabled="{x:Bind MyViewModel.CanGoPrev, Mode=OneWay}">
+                                <FontIcon FontSize="14" Glyph="&#xE72B;" />
+                            </Button>
+
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontWeight="SemiBold"
+                                Text="{x:Bind MyViewModel.PageStatusString, Mode=OneWay}" />
+
+                            <Button
+                                Background="Transparent"
+                                Command="{x:Bind MyViewModel.NextEvtPageCommand}"
+                                IsEnabled="{x:Bind MyViewModel.CanGoNext, Mode=OneWay}">
+                                <FontIcon FontSize="14" Glyph="&#xE72A;" />
+                            </Button>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+            </Grid>
+        </NavigationView>
     </Grid>
 </Page>

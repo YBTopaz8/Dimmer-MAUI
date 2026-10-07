@@ -405,7 +405,7 @@ public sealed partial class ArtistPage : Page
         MyArtistStatsViewModel?.WhenPropertyChanged(nameof(MyArtistStatsViewModel.ListTopAlbums), v => MyArtistStatsViewModel?.ListTopAlbums)
             .Subscribe(insight =>
             {
-                ListTopAlbums.ItemsSource = insight;
+                //ListTopAlbums.ItemsSource = insight;
             });
     }
 

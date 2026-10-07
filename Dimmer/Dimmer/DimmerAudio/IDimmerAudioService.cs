@@ -113,4 +113,5 @@ public interface IDimmerAudioService : IAsyncDisposable
     IObservable<(double Left, double Right)> PeakLevelsObs { get; }
 
     AudioOutputDevice? GetCurrentAudioOutputDevice();
+    void SetDucking(bool isDucked);
 }

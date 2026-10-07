@@ -27,6 +27,8 @@ public sealed partial class NowPlayingPage : Page
     {
         MyViewModel?.OpenLyricsPopUpWindow(1);
     }
+
+
     protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
     {
 
@@ -453,11 +455,8 @@ public sealed partial class NowPlayingPage : Page
     {
         BetterLyricControl.IsLyricsVisible = true;
 
-        // 1. 🛡️ CRASH SHIELD: Intercept the mouse wheel so it NEVER hits BetterLyric's broken code!
-        BetterLyricControl.AddHandler(UIElement.PointerWheelChangedEvent, new PointerEventHandler((s, args) =>
-        {
-            args.Handled = true; // Prevents the NullReferenceException!
-        }), true);
+        
+
 
         // 2. 🎨 SET EXPLICIT HIGH-CONTRAST COLORS IN C# (Guaranteed to work!)
         BetterLyricControl.PlayedCurrentLineFillColor = Microsoft.UI.Colors.White;
@@ -481,12 +480,14 @@ public sealed partial class NowPlayingPage : Page
     {
         var song = MyViewModel?.CurrentPlayingSongView;
         if (song == null || string.IsNullOrWhiteSpace(song.SyncLyrics))
-        {
-            BetterLyricControl.CurrentLyricsData = null;
+        { 
+            BetterLyricControl.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+        BetterLyricControl.CurrentLyricsData = null;
             BetterLyricControl.IsLyricsVisible = false;
             return;
         }
 
+        BetterLyricControl.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
         try
         {
             var lyricLines = new List<DevWinUI.LyricLine>();
