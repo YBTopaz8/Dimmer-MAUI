@@ -36,7 +36,8 @@ public partial class DimmerMediaSessionCallback : MediaSessionCompat.Callback
 
         if (action == ActionFavorite)
         {
-            if (_audioService is OwnAudioService srv) srv.TriggerFavorite();
+            if (_audioService is OwnAudioService srv) 
+                srv.TriggerFavorite();
         }
     }
 

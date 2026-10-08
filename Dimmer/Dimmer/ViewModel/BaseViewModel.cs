@@ -766,6 +766,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     private void SubscribeToAudioServiceEvents()
     {
         // 1. Current Song (Replaces the clunky Task.Run / IsPlaying start check)
+
+        //_subsMgr.Add(
+        //    _audioService.FavoriteRequestedObs.obs
+        //    );
         _subsMgr.Add(
             _audioService.CurrentSongObs
                 .ObserveOn(RxSchedulers.UI)
@@ -2474,7 +2478,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial double CrossfadeBalance { get; set; } = 0.5;
     partial void OnCrossfadeBalanceChanged(double value)
     => _audioService.SetDjCrossFade(value);
-    public static string CurrentAppVersion = "1.9.9";
+    public static string CurrentAppVersion = "1.9.9a";
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]
@@ -2943,7 +2947,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial int ShellTabIndex { get; set; } = 0;
 
-    partial void OnShellTabIndexChanged(int oldValue, int newValue)
+    async partial  void OnShellTabIndexChanged(int oldValue, int newValue)
     {
         switch (newValue)
         {
@@ -2952,7 +2956,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 break;
 
             case 1:
-                LoadAllAudioDevices();
+               await LoadAllAudioDevices();
 
                 break;
             default:

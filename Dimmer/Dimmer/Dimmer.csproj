@@ -13,7 +13,7 @@
 		<UseMaui>true</UseMaui>
 		<Nullable>enable</Nullable>
 		<LangVersion>preview</LangVersion>
-		<Version>1.9.9</Version>
+		<Version>1.9.9a</Version>
 		
 		
 
@@ -27,6 +27,10 @@
 
 	</PropertyGroup>
 
+	<PropertyGroup Condition="$(TargetFramework.Contains('-windows'))">
+		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+	</PropertyGroup>
+	
 	<ItemGroup>
 		<!-- Images -->
 		<MauiImage Include="Resources\Images\*" />

@@ -36,16 +36,16 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
         var song = _audioService?.CurrentTrackMetadata;
         if (song == null || _mediaSession == null) return;
 
-        var builder = new MediaMetadataCompat.Builder()?
-            .PutString(MediaMetadataCompat.MetadataKeyTitle, song.Title)?
-            .PutString(MediaMetadataCompat.MetadataKeyArtist, song.ArtistName)?
-            .PutString(MediaMetadataCompat.MetadataKeyAlbum, song.AlbumName)?
-            .PutLong(MediaMetadataCompat.MetadataKeyDuration, (long)(durationInSeconds * 1000));
+        var currentMetadata = _mediaSession.Controller?.Metadata;
+        var builder = currentMetadata is null
+            ? new MediaMetadataCompat.Builder()
+            : new MediaMetadataCompat.Builder(currentMetadata);
 
-        if (_currentCoverArt != null && !_currentCoverArt.IsRecycled)
-            builder?.PutBitmap(MediaMetadataCompat.MetadataKeyAlbumArt, _currentCoverArt);
+        builder.PutLong(MediaMetadataCompat.MetadataKeyDuration, (long)(durationInSeconds * 1000));
 
-        _mediaSession.SetMetadata(builder?.Build());
+        _mediaSession.SetMetadata(builder.Build()); 
+        
+        RedrawNotification();
     }
     
     public override void OnCreate()
@@ -91,7 +91,10 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
             .Subscribe(x =>
             {
                 _lastState = x.state;
-                UpdateAndroidPlaybackState(x.state, x.pos);
+
+                double currentPos = _audioService?.CurrentPosition ?? 0;
+
+                UpdateAndroidPlaybackState(x.state, currentPos);
 
                 if (x.state == DimmerPlaybackState.Playing)
                     RequestAudioFocus();
@@ -190,7 +193,10 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
         {
             if (intent.Action == DimmerMediaSessionCallback.ActionFavorite)
             {
-                if (_audioService is OwnAudioService srv) srv.TriggerFavorite();
+                if (_audioService is OwnAudioService srv)
+                { 
+                    srv.TriggerFavorite();
+                }
             }
             else
             {
@@ -239,6 +245,7 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
 
     private void PromoteToForeground()
     {
+        if (_isStartedInForeground) return;
         var notification = NotificationHelper.BuildNotification(
             this,
             _mediaSession!,
@@ -329,12 +336,15 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
             var notification = NotificationHelper.BuildNotification(this, _mediaSession!, isPlaying, currentSong, _currentCoverArt);
             if (notification is null) return;
 
-            if (!_isStartedInForeground)
+            if (_isStartedInForeground)
             {
-                PromoteToForeground();
-                return;
+                _notificationManager?.Notify(NotificationHelper.NotificationId, notification);
             }
-
+            else
+            {
+                // Only promote if we haven't started foreground yet
+                PromoteToForeground();
+            }
             _notificationManager?.Notify(NotificationHelper.NotificationId, notification);
 
             if (isPlaying)
@@ -345,9 +355,7 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
             {
                 if (_wakeLock?.IsHeld == true) _wakeLock.Release();
               
-                StopForeground(StopForegroundFlags.Detach);
-                _isStartedInForeground = false;
-                _notificationManager?.Notify(NotificationHelper.NotificationId, notification);
+               
             }
 
 

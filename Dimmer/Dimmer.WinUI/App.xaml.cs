@@ -91,6 +91,11 @@ public partial class App : MauiWinUIApplication
             // Just return and don't log it.
             return;
         }
+
+        if (ex.Message.Contains("Unable to read data from the transport connection: The I/O operation has been aborted because of either a thread exit or an application request.."))
+        {
+            return; // Ignore this specific exception
+        }
         if (ex.Message.Contains("No such host is known."))            
         {
             // This is the noisy exception we want to ignore.
@@ -353,6 +358,11 @@ public partial class App : MauiWinUIApplication
             errorDetails += "***** Inner Exception *****\n" +
                             $"ChatMessage: {e.Exception.InnerException.Message}\n" +
                             $"Stack Trace: {e.Exception.InnerException.StackTrace}\n";
+        }
+
+        if (e.Exception.Message.Contains("Unable to read data from the transport connection: The I/O operation has been aborted because of either a thread exit or an application request.."))
+        {
+           return; // Ignore this specific exception
         }
 
         // Print to Debug Console

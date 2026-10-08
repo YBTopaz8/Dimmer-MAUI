@@ -14,7 +14,7 @@
 			<RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
 			<PublishProfile>win-$(Platform).pubxml</PublishProfile>
 			<UseWinUI>true</UseWinUI>
-			<EnableMsixTooling>false</EnableMsixTooling>
+			<EnableMsixTooling>true</EnableMsixTooling>
 			<Nullable>enable</Nullable>
 			<LangVersion>preview</LangVersion>
 			<ImplicitUsings>enable</ImplicitUsings>
@@ -23,6 +23,8 @@
 			<EnableDefaultMauiItems>false</EnableDefaultMauiItems>
 			<!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
 			<WindowsPackageType>None</WindowsPackageType>
+		
+			
 			<WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
 			<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 		</PropertyGroup>
@@ -103,6 +105,8 @@
 		
 		<ItemGroup>
 			
+			<PackageReference Include="DevWinUI" Version="10.6.0" />
+			
 			<PackageReference Include="LiveChartsCore.SkiaSharpView.WinUI" Version="2.0.5" />
 
 			<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.110" />
@@ -118,17 +122,18 @@
 			<!--<PackageReference Include="Microsoft.WindowsAppSDK.Base" Version="1.8.251216001" />-->
 			<!--<PackageReference Include="Microsoft.WindowsAppSDK.Base" Version="2.0.4" />-->
 			<PackageReference Include="CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.1.2" />
+			<PackageReference Include="Microsoft.WindowsAppSDK.InteractiveExperiences" Version="2.1.9" />
+			<PackageReference Include="Microsoft.WindowsAppSDK.WinUI" Version="2.3.9" />
 			<PackageReference Include="SkiaSharp.HarfBuzz" Version="4.153.1" />
 			<PackageReference Include="WinUI.TableView" Version="1.5.0" />
 			<PackageReference Include="Microsoft.WindowsAppSDK.Foundation" Version="2.3.12" />
-			<PackageReference Include="Microsoft.WindowsAppSDK.WinUI" Version="2.3.9" />
+			
 			<!--<PackageReference Include="Microsoft.WindowsAppSDK.Base" Version="2.0.4" />-->
 		</ItemGroup>
 		
 		<ItemGroup>
 			<!--<ProjectReference Include="..\..\..\YBTopaz8\DevWinUI-main\dev\DevWinUI\DevWinUI.csproj" />-->
 			<!--<ProjectReference Include="..\..\..\YBTopaz8\DevWinUI-main\dev\DevWinUI.ContextMenu\DevWinUI.ContextMenu.csproj" />-->
-			<ProjectReference Include="..\..\..\YBTopaz8\DevWinUI-main\dev\DevWinUI\DevWinUI.csproj" />
 			<ProjectReference Include="..\Dimmer\Dimmer.csproj" />
 		</ItemGroup>
 	

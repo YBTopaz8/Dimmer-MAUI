@@ -3,6 +3,7 @@
     x:Class="Dimmer.WinUI.Views.CustomViews.WinuiViews.NativeLyricsOverlayWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="using:Dimmer.WinUI.Utils.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:devWin="using:DevWinUI"
     xmlns:local="using:Dimmer.WinUI.Views.CustomViews.WinuiViews"
@@ -21,46 +22,50 @@
 
         <!--  Smooth Fade Animations  -->
         <Grid.Resources>
-            <Storyboard x:Name="FadeInControls">
-                <DoubleAnimation
-                    Storyboard.TargetName="AppTitleBar"
-                    Storyboard.TargetProperty="Opacity"
-                    To="1"
-                    Duration="0:0:0.3">
-                    <DoubleAnimation.EasingFunction>
-                        <CubicEase EasingMode="EaseOut" />
-                    </DoubleAnimation.EasingFunction>
-                </DoubleAnimation>
-                <DoubleAnimation
-                    Storyboard.TargetName="FloatingControlBar"
-                    Storyboard.TargetProperty="Opacity"
-                    To="1"
-                    Duration="0:0:0.3">
-                    <DoubleAnimation.EasingFunction>
-                        <CubicEase EasingMode="EaseOut" />
-                    </DoubleAnimation.EasingFunction>
-                </DoubleAnimation>
-            </Storyboard>
-            <Storyboard x:Name="FadeOutControls">
-                <DoubleAnimation
-                    Storyboard.TargetName="AppTitleBar"
-                    Storyboard.TargetProperty="Opacity"
-                    To="0"
-                    Duration="0:0:0.5">
-                    <DoubleAnimation.EasingFunction>
-                        <CubicEase EasingMode="EaseIn" />
-                    </DoubleAnimation.EasingFunction>
-                </DoubleAnimation>
-                <DoubleAnimation
-                    Storyboard.TargetName="FloatingControlBar"
-                    Storyboard.TargetProperty="Opacity"
-                    To="0"
-                    Duration="0:0:0.5">
-                    <DoubleAnimation.EasingFunction>
-                        <CubicEase EasingMode="EaseIn" />
-                    </DoubleAnimation.EasingFunction>
-                </DoubleAnimation>
-            </Storyboard>
+            <ResourceDictionary>
+
+
+                <Storyboard x:Name="FadeInControls">
+                    <DoubleAnimation
+                        Storyboard.TargetName="AppTitleBar"
+                        Storyboard.TargetProperty="Opacity"
+                        To="1"
+                        Duration="0:0:0.3">
+                        <DoubleAnimation.EasingFunction>
+                            <CubicEase EasingMode="EaseOut" />
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                    <DoubleAnimation
+                        Storyboard.TargetName="FloatingControlBar"
+                        Storyboard.TargetProperty="Opacity"
+                        To="1"
+                        Duration="0:0:0.3">
+                        <DoubleAnimation.EasingFunction>
+                            <CubicEase EasingMode="EaseOut" />
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                </Storyboard>
+                <Storyboard x:Name="FadeOutControls">
+                    <DoubleAnimation
+                        Storyboard.TargetName="AppTitleBar"
+                        Storyboard.TargetProperty="Opacity"
+                        To="0"
+                        Duration="0:0:0.5">
+                        <DoubleAnimation.EasingFunction>
+                            <CubicEase EasingMode="EaseIn" />
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                    <DoubleAnimation
+                        Storyboard.TargetName="FloatingControlBar"
+                        Storyboard.TargetProperty="Opacity"
+                        To="0"
+                        Duration="0:0:0.5">
+                        <DoubleAnimation.EasingFunction>
+                            <CubicEase EasingMode="EaseIn" />
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                </Storyboard>
+            </ResourceDictionary>
         </Grid.Resources>
 
         <!--  1. Deep Cinematic Background  -->
@@ -316,9 +321,7 @@
                             Padding="0"
                             Click="PlayPause_Click"
                             CornerRadius="22"
-                            Style="{ThemeResource AccentButtonStyle}">
-                            <FontIcon FontSize="18" Glyph="{x:Bind MyViewModel.IsDimmerPlaying, Mode=OneWay}" />
-                        </Button>
+                            Loaded="PlayPauseBtn_Loaded" />
                         <Button
                             Width="36"
                             Height="36"

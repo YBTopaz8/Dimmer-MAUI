@@ -386,7 +386,8 @@
                                     BorderWidth="0"
                                     Clicked="ViewLyricsChip_Clicked"
                                     CornerRadius="20"
-                                    HeightRequest="70"
+                                    HeightRequest="70" 
+                                    
                                     ImageSource="lyrics.png"
                                     WidthRequest="70" />
 

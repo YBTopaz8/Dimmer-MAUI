@@ -300,7 +300,7 @@ public partial class OwnAudioService : IDimmerAudioService
         ArgumentNullException.ThrowIfNull(songModel);
         if (!await _transportLock.WaitAsync(TimeSpan.FromSeconds(2)))
         {
-            Debug.WriteLine("Engine is hung!");
+            Debug.WriteLine("Engine is hung! at InitializeAsync");
             return;
         }
         try
@@ -312,9 +312,16 @@ public partial class OwnAudioService : IDimmerAudioService
             if (_mainSource != null)
             {
                 _mixer?.RemoveSource(_mainSource.Id);
-                _mainSource.Dispose();
+                SafeDisposeSource(_mainSource);
+                _mainSource = null;
             }
-            if(OwnaudioNet.Engine is null)
+            if (_secondarySource != null)
+            {
+                _mixer?.RemoveSource(_secondarySource.Id);
+                SafeDisposeSource(_secondarySource);
+                _secondarySource = null;
+            }
+            if (OwnaudioNet.Engine is null)
             {
                 await InitializeEngineAsync();
             }
@@ -351,7 +358,7 @@ public partial class OwnAudioService : IDimmerAudioService
     {
         if (!await _transportLock.WaitAsync(TimeSpan.FromSeconds(2)))
         {
-            Debug.WriteLine("Engine is hung!");
+            Debug.WriteLine("Engine is hung! at PlayAsync");
             return;
         }
         try
@@ -364,7 +371,7 @@ public partial class OwnAudioService : IDimmerAudioService
                     _mixer?.Seek(pos);
                     _mainSource.Seek(pos);
                 }
-                _mainSource.Play();
+                //_mainSource.Play();
                 _mixer?.Start();
                 _playbackState.OnNext(DimmerPlaybackState.Playing);
 
@@ -379,7 +386,7 @@ public partial class OwnAudioService : IDimmerAudioService
     {
         if (!await _transportLock.WaitAsync(TimeSpan.FromSeconds(2)))
         {
-            Debug.WriteLine("Engine is hung!");
+            Debug.WriteLine("Engine is hung! at PauseAsync");
             return;
         }
 
@@ -400,7 +407,7 @@ public partial class OwnAudioService : IDimmerAudioService
     {
         if (!await _transportLock.WaitAsync(TimeSpan.FromSeconds(2)))
         {
-            Debug.WriteLine("Engine is hung!");
+            Debug.WriteLine("Engine is hung! at SeekAsync");
             return;
         }
         try
@@ -413,6 +420,7 @@ public partial class OwnAudioService : IDimmerAudioService
                 _mainSource.Seek(safePos);
 
                 _lastEnginePos = safePos;
+                _lastEnginePosAt = _watch.Elapsed.TotalSeconds;
                 _currentPosition.OnNext(safePos);
                 _seekCompleted.OnNext(safePos);
             }
@@ -424,6 +432,8 @@ public partial class OwnAudioService : IDimmerAudioService
     {
         _mainSource?.Stop();
         _ambienceSource?.Stop();
+        _mixer?.Pause();
+        _mixer?.Seek(0);  
         _currentPosition.OnNext(0);
         _peakLevels.OnNext((-60.0, -60.0));
         _playbackState.OnNext(DimmerPlaybackState.PlayCompleted);
@@ -548,7 +558,7 @@ public partial class OwnAudioService : IDimmerAudioService
 
         if (!await _transportLock.WaitAsync(TimeSpan.FromSeconds(2)))
         {
-            Debug.WriteLine("Engine is hung!");
+            Debug.WriteLine("Engine is hung! at CrossfadeToNextAsync");
             return;
         }
 
@@ -597,8 +607,8 @@ public partial class OwnAudioService : IDimmerAudioService
                     if (oldSource != null)
                     {
                         _mixer?.RemoveSource(oldSource.Id);
-                        oldSource.Stop();
-                        oldSource.Dispose();
+                        SafeDisposeSource(oldSource);
+
                     }
                 }
             });
@@ -725,7 +735,7 @@ public partial class OwnAudioService : IDimmerAudioService
     {
         if (!await _transportLock.WaitAsync(TimeSpan.FromSeconds(2)))
         {
-            Debug.WriteLine("Engine is hung!");
+            Debug.WriteLine("Engine is hung! at TransitionToNextGaplessAsync");
             return;
         }
         try
@@ -761,8 +771,7 @@ public partial class OwnAudioService : IDimmerAudioService
                 RxSchedulers.Background.ScheduleTo(() =>
                 {
                     _mixer?.RemoveSource(oldSource.Id);
-                    oldSource.Stop();
-                    oldSource.Dispose();
+                    SafeDisposeSource(oldSource);
                 });
             }
         }
@@ -783,15 +792,24 @@ public partial class OwnAudioService : IDimmerAudioService
     {
         if (!await _transportLock.WaitAsync(TimeSpan.FromSeconds(2)))
         {
-            Debug.WriteLine("Engine is hung!");
+            Debug.WriteLine("Engine is hung! at InitializeDjModeAsync");
             return;
         }
         try
         {
             
             // 1. Clean up old sources
-            if (_mainSource != null) { _mixer?.RemoveSource(_mainSource.Id); _mainSource.Dispose(); }
-            if (_secondarySource != null) { _mixer?.RemoveSource(_secondarySource.Id); _secondarySource.Dispose(); }
+            if (_mainSource != null) 
+            { 
+                _mixer?.RemoveSource(_mainSource.Id); 
+                
+                SafeDisposeSource(_mainSource); 
+            }
+            if (_secondarySource != null)
+            {
+                _mixer?.RemoveSource(_secondarySource.Id);
+                SafeDisposeSource(_secondarySource);
+            }
 
             int sr = OwnaudioNet.Engine!.Config.SampleRate;
             int ch = OwnaudioNet.Engine!.Config.Channels;
@@ -834,15 +852,19 @@ public partial class OwnAudioService : IDimmerAudioService
     // ==========================================================
     public async Task InitializeAmbienceAsync(string filePath)
     {
-
+        if (!await _transportLock.WaitAsync(TimeSpan.FromSeconds(2)))
+        {
+            Debug.WriteLine("Engine is hung! at InitializeAmbienceAsync");
+            return;
+        }
         try
         {
-            if (!await _transportLock.WaitAsync(TimeSpan.FromSeconds(2)))
+
+            if (_ambienceSource != null)
             {
-                Debug.WriteLine("Engine is hung!");
-                return; // Prevent app freeze
+                _mixer?.RemoveSource(_ambienceSource.Id);
+                SafeDisposeSource(_ambienceSource);
             }
-            _ambienceSource?.Dispose();
 
             _ambienceSource = new FileSource(filePath)
             {
@@ -866,7 +888,26 @@ public partial class OwnAudioService : IDimmerAudioService
         if (isEnabled && IsPlaying) _ambienceSource.Play();
         else _ambienceSource.Pause();
     }
+    private void SafeDisposeSource(FileSource? source)
+    {
+        if (source == null) return;
 
+        // Fire and forget: Give the native C++ audio thread 250ms to 
+        // finish its current buffer and detach before we wipe the memory.
+        Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(250);
+                source.Stop();
+                source.Dispose();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"SafeDispose error: {ex}");
+            }
+        });
+    }
 
     // ==========================================================
     // CLEANUP

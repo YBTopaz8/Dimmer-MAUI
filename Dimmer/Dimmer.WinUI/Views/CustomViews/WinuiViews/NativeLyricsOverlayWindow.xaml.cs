@@ -2,6 +2,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
@@ -287,5 +288,28 @@ public sealed partial class NativeLyricsOverlayWindow : Window
         _disposables.Dispose();
         _hideControlsTimer.Stop();
         BetterLyricControl.CurrentLyricsData = null;
+    }
+
+    private void Button_Loaded(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void PlayPauseBtn_Loaded(object sender, RoutedEventArgs e)
+    {
+        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.IsDimmerPlaying), v => MyViewModel.IsDimmerPlaying)
+            .ObserveOn(RxSchedulers.UI)
+            .Subscribe(_ =>
+            {
+                if (sender is Button btn)
+                {
+                    var fontIcon = btn.Content as FontIcon;
+                    if (fontIcon != null)
+                    {
+                        fontIcon.Glyph = MyViewModel.IsDimmerPlaying ? "\uE768" : "\uE769"; // Play/Pause glyphs
+                    }
+                }
+            })
+            .DisposeWith(_disposables);
     }
 }
