@@ -35,7 +35,7 @@ jobs:
         run: |
           $projectFile = Get-ChildItem -Recurse -Filter "Dimmer.csproj" | Select-Object -First 1
           [xml]$xml = Get-Content $projectFile.FullName
-          $currentVersionStr = $xml.Project.PropertyGroup.Version.Trim()
+          $currentVersionStr = $xml.SelectSingleNode("//Version").InnerText.Trim()
           $newTag = "v$currentVersionStr"
           
           "NEW_TAG=$newTag" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
