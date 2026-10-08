@@ -766,6 +766,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     private void SubscribeToAudioServiceEvents()
     {
         // 1. Current Song (Replaces the clunky Task.Run / IsPlaying start check)
+
+        //_subsMgr.Add(
+        //    _audioService.FavoriteRequestedObs.obs
+        //    );
         _subsMgr.Add(
             _audioService.CurrentSongObs
                 .ObserveOn(RxSchedulers.UI)
@@ -778,6 +782,28 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     }
                 },
                 ex => _logger.LogError(ex, "Error in CurrentSongObs subscription")));
+
+        _subsMgr.Add(
+            _audioService.PitchObs
+                .ObserveOn(RxSchedulers.UI)
+                .Subscribe(pitch =>
+                {
+
+                    CurrentPitch = Convert.ToSingle(pitch);
+
+                },
+                ex => _logger.LogError(ex, "Error in CurrentSongObs subscription")));
+       
+
+        _subsMgr.Add(
+            _audioService.SpeedObs
+                .ObserveOn(RxSchedulers.UI)
+                .Subscribe(speed =>
+                {
+                    CurrentSpeed = Convert.ToSingle(speed);
+                },
+                ex => _logger.LogError(ex, "Error in CurrentSongObs subscription")));
+       
         _subsMgr.Add(
            _audioService.PeakLevelsObs
         .ObserveOn(RxSchedulers.UI)
@@ -2452,7 +2478,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial double CrossfadeBalance { get; set; } = 0.5;
     partial void OnCrossfadeBalanceChanged(double value)
     => _audioService.SetDjCrossFade(value);
-    public static string CurrentAppVersion = "1.9.9";
+    public static string CurrentAppVersion = "1.9.9a";
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]
@@ -2477,18 +2503,10 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial double CurrentPitch { get; set; } = 0;
 
-    partial void OnCurrentPitchChanged(double value)
-    {
-        _audioService.CurrentPitch = Convert.ToSingle(value);
-    }
 
-    partial void OnCurrentSpeedChanged(double value)
-    {
-        _audioService.CurrentSpeed = Convert.ToSingle(value);
-    }
     partial void OnSelectedPlaybackModeIndexChanged(int value)
     {
-        
+
         _audioService.SetPlaybackMode((PlaybackModeEnum)value);
     }
     [RelayCommand]
@@ -2929,7 +2947,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty]
     public partial int ShellTabIndex { get; set; } = 0;
 
-    partial void OnShellTabIndexChanged(int oldValue, int newValue)
+    async partial  void OnShellTabIndexChanged(int oldValue, int newValue)
     {
         switch (newValue)
         {
@@ -2938,7 +2956,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 break;
 
             case 1:
-                LoadAllAudioDevices();
+               await LoadAllAudioDevices();
 
                 break;
             default:
@@ -3635,10 +3653,6 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     #region Current Playing Song and Color Management
 
 
-    public virtual void ResetCurrentPlaySongDominantColor()
-    {
-        
-    }
 
     async partial void OnCurrentPlayingSongViewChanging(SongModelView oldValue, SongModelView newValue)
     {
@@ -4781,7 +4795,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     /// Inserts a list of songs to play immediately after the current one. If the queue is empty, it starts playback
     /// with this new list.
     /// </summary>
-    public async Task PlayNextSongsImmediately(IEnumerable<SongModelView>? songs)
+    public async Task PlayNextSongsImmediatelyAsync(IEnumerable<SongModelView>? songs)
     {
         if (songs == null || !songs.Any())
             return;
@@ -6744,15 +6758,15 @@ public record QueryComponents(
             songInDb.ReleaseYear = src.ReleaseYear;
             songInDb.NumberOfTimesFaved = src.NumberOfTimesFaved;
             songInDb.ManualFavoriteCount = src.ManualFavoriteCount;
-            songInDb.TrackNumber = src.TrackNumber;
+            songInDb.TrackNumber = Convert.ToInt32(src.TrackNumber);
             songInDb.FileFormat = src.FileFormat;
             songInDb.Lyricist = src.Lyricist;
             songInDb.Composer = src.Composer;
             songInDb.Conductor = src.Conductor;
             songInDb.Description = src.Description;
             songInDb.Language = src.Language;
-            songInDb.DiscNumber = src.DiscNumber;
-            songInDb.DiscTotal = src.DiscTotal;
+            songInDb.DiscNumber = Convert.ToInt32(src.DiscNumber);
+            songInDb.DiscTotal = Convert.ToInt32(src.DiscTotal);
             songInDb.FileSize = src.FileSize;
             songInDb.BitRate = src.BitRate;
             songInDb.Rating = src.Rating;
@@ -6761,7 +6775,7 @@ public record QueryComponents(
             songInDb.IsInstrumental = src.IsInstrumental;
             songInDb.SyncLyrics = src.SyncLyrics;
             songInDb.CoverImagePath = src.CoverImagePath;
-            songInDb.TrackTotal = src.TrackTotal;
+            songInDb.TrackTotal = Convert.ToInt32(src.TrackTotal);
             songInDb.SampleRate = src.SampleRate;
             songInDb.Encoder = src.Encoder;
             songInDb.BitDepth = src.BitDepth;
@@ -6779,7 +6793,7 @@ public record QueryComponents(
             songInDb.DeviceVersion = src.DeviceVersion;
             songInDb.UserIDOnline = src.UserIDOnline;
             songInDb.IsNew = src.IsNew;
-            songInDb.BPM = src.BPM;
+            //songInDb.BPM = float.Parse(src.BPM);
             songInDb.SetTitleAndDuration(src.Title, src.DurationInSeconds);
             songInDb.SongTypeValue = src.SongTypeValue;
             songInDb.ParentSongId = src.ParentSongId;
@@ -9042,6 +9056,12 @@ public void RemoveRule(VisualFilterRule rule)
     public void LoadCurrentAudioDevice()
     {
        SelectedAudioDevice=  _audioService.GetCurrentAudioOutputDevice();
+    }
+    public Task<SongModelView> ParseSingleFileToSongModel(string firstFile)
+    {
+        // Implement the logic to parse a single file into a SongModel
+        Debugger.Break();
+        return Task.FromResult<SongModelView>(null!);
     }
 
 

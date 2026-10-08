@@ -132,7 +132,7 @@ public sealed partial class OnlineLyricsSearchPage : Page
             LyricsDurationText.Text = TimeSpan.FromSeconds((double)lyricData.Duration).ToString(@"mm\:ss");
 
         }
-        InstrumentalIndicator.Visibility = lyricData.Instrumental ? WinUIVisibility.Visible : WinUIVisibility.Collapsed;
+        InstrumentalIndicator.Visibility = lyricData.Instrumental is null ? WinUIVisibility.Visible : WinUIVisibility.Collapsed;
 
         // Set the default tab based on what's available
         if (hasSyncedLyrics)

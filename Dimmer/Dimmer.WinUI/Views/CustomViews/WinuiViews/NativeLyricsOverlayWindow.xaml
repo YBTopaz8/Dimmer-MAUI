@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Window
+    x:Class="Dimmer.WinUI.Views.CustomViews.WinuiViews.NativeLyricsOverlayWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="using:Dimmer.WinUI.Utils.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:devWin="using:DevWinUI"
+    xmlns:local="using:Dimmer.WinUI.Views.CustomViews.WinuiViews"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="Dimmer Floating Lyrics"
+    mc:Ignorable="d">
+
+
+    <Grid
+        x:Name="RootGrid"
+        Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
+        PointerEntered="RootGrid_PointerEntered"
+        PointerExited="RootGrid_PointerExited"
+        PointerMoved="RootGrid_PointerMoved"
+        PointerPressed="RootGrid_PointerPressed">
+
+        <!--  Smooth Fade Animations  -->
+        <Grid.Resources>
+            <ResourceDictionary>
+
+
+                <Storyboard x:Name="FadeInControls">
+                    <DoubleAnimation
+                        Storyboard.TargetName="AppTitleBar"
+                        Storyboard.TargetProperty="Opacity"
+                        To="1"
+                        Duration="0:0:0.3">
+                        <DoubleAnimation.EasingFunction>
+                            <CubicEase EasingMode="EaseOut" />
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                    <DoubleAnimation
+                        Storyboard.TargetName="FloatingControlBar"
+                        Storyboard.TargetProperty="Opacity"
+                        To="1"
+                        Duration="0:0:0.3">
+                        <DoubleAnimation.EasingFunction>
+                            <CubicEase EasingMode="EaseOut" />
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                </Storyboard>
+                <Storyboard x:Name="FadeOutControls">
+                    <DoubleAnimation
+                        Storyboard.TargetName="AppTitleBar"
+                        Storyboard.TargetProperty="Opacity"
+                        To="0"
+                        Duration="0:0:0.5">
+                        <DoubleAnimation.EasingFunction>
+                            <CubicEase EasingMode="EaseIn" />
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                    <DoubleAnimation
+                        Storyboard.TargetName="FloatingControlBar"
+                        Storyboard.TargetProperty="Opacity"
+                        To="0"
+                        Duration="0:0:0.5">
+                        <DoubleAnimation.EasingFunction>
+                            <CubicEase EasingMode="EaseIn" />
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                </Storyboard>
+            </ResourceDictionary>
+        </Grid.Resources>
+
+        <!--  1. Deep Cinematic Background  -->
+        <Image
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Opacity="0.15"
+            Source="{x:Bind MyViewModel.CurrentPlayingSongView.CoverImagePath, Mode=OneWay}"
+            Stretch="UniformToFill" />
+        <Grid>
+            <Grid.Background>
+                <RadialGradientBrush Center="0.5,0.5" RadiusX="0.8" RadiusY="0.8">
+                    <GradientStop Offset="0" Color="#00000000" />
+                    <GradientStop Offset="1" Color="#AA000000" />
+                </RadialGradientBrush>
+            </Grid.Background>
+        </Grid>
+
+        <!--  2. TOP STRIP: Info & Window Controls  -->
+        <Grid
+            x:Name="AppTitleBar"
+            Height="50"
+            Padding="16,8"
+            VerticalAlignment="Top"
+            Canvas.ZIndex="10"
+            Opacity="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!--  Song Info Pill  -->
+            <StackPanel
+                VerticalAlignment="Center"
+                Orientation="Horizontal"
+                Spacing="8">
+                <devWin:ImageEx
+                    Width="32"
+                    Height="32"
+                    CornerRadius="4"
+                    Source="{x:Bind MyViewModel.CurrentPlayingSongView.CoverImagePath, Mode=OneWay}"
+                    Stretch="UniformToFill" />
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock
+                        MaxWidth="220"
+                        FontSize="13"
+                        FontWeight="Bold"
+                        Text="{x:Bind MyViewModel.CurrentPlayingSongView.Title, Mode=OneWay}"
+                        TextTrimming="CharacterEllipsis" />
+                    <TextBlock
+                        MaxWidth="150"
+                        FontSize="11"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="{x:Bind MyViewModel.CurrentPlayingSongView.ArtistName, Mode=OneWay}"
+                        TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+            </StackPanel>
+
+            <!--  Window Controls  -->
+            <StackPanel
+                Grid.Column="1"
+                Orientation="Horizontal"
+                Spacing="4">
+                <ToggleButton
+                    x:Name="PinButton"
+                    Width="36"
+                    Height="36"
+                    Padding="0"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Click="PinButton_Click"
+                    IsChecked="True"
+                    ToolTipService.ToolTip="Always on Top">
+                    <FontIcon FontSize="14" Glyph="&#xE840;" />
+                </ToggleButton>
+
+                <Button
+                    Width="36"
+                    Height="36"
+                    Padding="0"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    ToolTipService.ToolTip="Snap Position">
+                    <FontIcon FontSize="14" Glyph="&#xE737;" />
+                    <Button.Flyout>
+                        <MenuFlyout Placement="BottomEdgeAlignedRight">
+                            <MenuFlyoutItem
+                                Click="DockPosition_Click"
+                                Icon="DockLeft"
+                                Tag="0"
+                                Text="Top Left" />
+                            <MenuFlyoutItem
+                                Click="DockPosition_Click"
+                                Icon="DockRight"
+                                Tag="1"
+                                Text="Top Right" />
+                            <MenuFlyoutItem
+                                Click="DockPosition_Click"
+                                Icon="DockBottom"
+                                Tag="2"
+                                Text="Bottom Left" />
+                            <MenuFlyoutItem
+                                Click="DockPosition_Click"
+                                Icon="DockBottom"
+                                Tag="3"
+                                Text="Bottom Right" />
+                        </MenuFlyout>
+                    </Button.Flyout>
+                </Button>
+
+                <Button
+                    Width="36"
+                    Height="36"
+                    Padding="0"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Click="CloseButton_Click"
+                    ToolTipService.ToolTip="Close Lyrics">
+                    <FontIcon FontSize="12" Glyph="&#xE711;" />
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!--  3. CENTER: BetterLyric Engine  -->
+        <devWin:BetterLyric
+            x:Name="BetterLyricControl"
+            Margin="20,50,20,90"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
+            AutoWrap="True"
+            Canvas.ZIndex="1"
+            CurrentIsPlaying="{x:Bind MyViewModel.IsDimmerPlaying, Mode=OneWay}"
+            CurrentPosition="{x:Bind MyViewModel.CurrentTrackPosition, Mode=OneWay}"
+            IsLyricsBlurEffectEnabled="True"
+            IsLyricsFadeOutEffectEnabled="True"
+            IsLyricsFloatAnimationEnabled="True"
+            IsLyricsGlowEffectEnabled="True"
+            IsLyricsOutOfSightEffectEnabled="True"
+            IsLyricsScaleEffectEnabled="True"
+            IsLyricsVisible="True"
+            IsScrollViewerEnabled="True"
+            LineClicked="BetterLyricControl_LineClicked"
+            LyricsAlignmentType="Center"
+            LyricsGlowEffectAmount="12"
+            LyricsScaleEffectAmount="115"
+            LyricsScrollDuration="600"
+            LyricsScrollEasingMode="Out"
+            LyricsScrollEasingType="Cubic"
+            NonCurrentLineFillColor="#66FFFFFF"
+            PlayedCurrentLineFillColor="{x:Bind MyViewModel.WinUIDominantBrush, Mode=OneWay}"
+            UnplayedCurrentLineFillColor="#AAFFFFFF"
+            WordByWordEffectMode="Auto" />
+
+        <!--  4. BOTTOM STRIP: Auto-Hiding Control Bar  -->
+        <Border
+            x:Name="FloatingControlBar"
+            Width="440"
+            Margin="0,0,0,20"
+            Padding="20,12"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Bottom"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            Canvas.ZIndex="20"
+            CornerRadius="32"
+            Opacity="0">
+
+            <Border.Shadow>
+                <ThemeShadow />
+            </Border.Shadow>
+
+            <Grid RowSpacing="8">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!--  Seek Bar  -->
+                <Grid Grid.Row="0" ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        FontSize="11"
+                        FontWeight="SemiBold"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="{x:Bind MyViewModel.CurrentTrackPositionSecondsTxt, Mode=OneWay}" />
+
+                    <Slider
+                        x:Name="TrackSlider"
+                        Grid.Column="1"
+                        Height="24"
+                        Padding="0"
+                        Maximum="100"
+                        Minimum="0"
+                        PointerCaptureLost="TrackSlider_PointerReleased"
+                        PointerPressed="TrackSlider_PointerPressed"
+                        PointerReleased="TrackSlider_PointerReleased"
+                        Value="{x:Bind MyViewModel.CurrentTrackPositionPercentage, Mode=OneWay}" />
+
+                    <TextBlock
+                        Grid.Column="2"
+                        VerticalAlignment="Center"
+                        FontSize="11"
+                        FontWeight="SemiBold"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="{x:Bind MyViewModel.CurrentPlayingSongView.DurationFormatted, Mode=OneWay}" />
+                </Grid>
+
+                <!--  Action Buttons  -->
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="50" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="50" />
+                    </Grid.ColumnDefinitions>
+
+                    <ToggleButton
+                        Grid.Column="0"
+                        Height="36"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        CornerRadius="18"
+                        IsChecked="{x:Bind MyViewModel.CurrentPlayingSongView.IsFavorite, Mode=TwoWay}">
+                        <FontIcon
+                            FontSize="16"
+                            Foreground="{ThemeResource SystemAccentColorLight2}"
+                            Glyph="&#xEB51;" />
+                    </ToggleButton>
+
+                    <StackPanel
+                        Grid.Column="1"
+                        HorizontalAlignment="Center"
+                        Orientation="Horizontal"
+                        Spacing="16">
+                        <Button
+                            Width="36"
+                            Height="36"
+                            Padding="0"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Click="Prev_Click">
+                            <FontIcon FontSize="16" Glyph="&#xE892;" />
+                        </Button>
+                        <Button
+                            Width="44"
+                            Height="44"
+                            Padding="0"
+                            Click="PlayPause_Click"
+                            CornerRadius="22"
+                            Loaded="PlayPauseBtn_Loaded" />
+                        <Button
+                            Width="36"
+                            Height="36"
+                            Padding="0"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Click="Next_Click">
+                            <FontIcon FontSize="16" Glyph="&#xE893;" />
+                        </Button>
+                    </StackPanel>
+
+                    <Button
+                        Grid.Column="2"
+                        Width="36"
+                        Height="36"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        CornerRadius="18">
+                        <FontIcon FontSize="16" Glyph="&#xE8B1;" />
+                    </Button>
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

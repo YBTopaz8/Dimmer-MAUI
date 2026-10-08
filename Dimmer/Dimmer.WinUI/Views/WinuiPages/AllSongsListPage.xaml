@@ -20,6 +20,7 @@
     xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
     xmlns:queryBuilder="queries"
     xmlns:tql="clr-namespace:Dimmer.DimmerSearch.TQL;assembly=Dimmer"
+    xmlns:viewmodel="using:Dimmer.ViewModel"
     xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
     Loaded="MyPageGrid_Loaded"
     Unloaded="Page_Unloaded"
@@ -67,6 +68,7 @@
                     x:Name="MySongsTableView"
                     HorizontalAlignment="Stretch"
                     HorizontalContentAlignment="Stretch"
+                    d:DataContext="{d:DesignInstance Type=vm:BaseViewModelWin}"
                     AllowFocusOnInteraction="False"
                     AllowFocusWhenDisabled="False"
                     AutoGenerateColumns="False"
@@ -77,14 +79,336 @@
                     IsMultiSelectCheckBoxEnabled="True"
                     IsRightTapEnabled="True"
                     IsSwipeEnabled="False"
-                    ItemsSource="{x:Bind MyViewModel.SearchResults}"
+                    ItemsSource="{Binding SearchResults, Mode=OneWay}"
                     Loaded="MySongsTableView_Loaded"
                     SelectionMode="Single"
                     ShowFilterItemsCount="True"
                     Sorting="MySongsTableView_Sorting"
                     Style="{StaticResource AcrylicDataGridStyle}"
                     Tapped="MySongsTableView_Tapped">
+                    <dgView:TableView.RowContextFlyout>
+                        <MenuFlyout
+                            devWin:MenuFlyoutAttach.AutoCloseByClickOnSecondaryMenuItems="True"
+                            devWin:MenuFlyoutAttach.SecondaryMenuPlacement="Top"
+                            AreOpenCloseAnimationsEnabled="True"
+                            Opening="MenuFlyout_Opening">
 
+                            <!--  ===================================================================  -->
+                            <!--  TOP CARD: RICH SONG HEADER + HORIZONTAL QUICK ACTIONS  -->
+                            <!--  ===================================================================  -->
+                            <devWin:MenuFlyoutAttach.SecondaryMenu>
+                                <devWin:MenuFlyoutSecondaryItems>
+                                    <Grid
+                                        Width="380"
+                                        Padding="12,12,12,6"
+                                        d:DataContext="{d:DesignInstance Type=vm:BaseViewModelWin}"
+                                        Loaded="Grid_Loaded"
+                                        RowSpacing="12">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+
+                                        <!--  Row 0: Art + Metadata Header  -->
+                                        <Grid Grid.Row="0" ColumnSpacing="12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <!--  Album Art with subtle rounded corners  -->
+                                            <Border
+                                                Grid.Column="0"
+                                                Width="68"
+                                                Height="68"
+                                                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="8">
+                                                <Grid>
+                                                    <FontIcon
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center"
+                                                        FontSize="28"
+                                                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                                        Glyph="&#xE8D6;" />
+                                                    <devWin:ImageEx
+                                                        CornerRadius="8"
+                                                        Source="{Binding CoverImagePath, Mode=OneWay}"
+                                                        Stretch="UniformToFill" />
+                                                </Grid>
+                                            </Border>
+
+                                            <!--  Song Details  -->
+                                            <StackPanel
+                                                Grid.Column="1"
+                                                VerticalAlignment="Center"
+                                                Spacing="2">
+                                                <TextBlock
+                                                    FontSize="15"
+                                                    FontWeight="SemiBold"
+                                                    MaxLines="1"
+                                                    Text="{Binding Title, Mode=OneWay}"
+                                                    TextTrimming="CharacterEllipsis" />
+
+                                                <TextBlock
+                                                    FontSize="13"
+                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                    MaxLines="1"
+                                                    Text="{Binding OtherArtistsName, Mode=OneWay}"
+                                                    TextTrimming="CharacterEllipsis" />
+
+                                                <TextBlock
+                                                    FontSize="12"
+                                                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                                    MaxLines="1"
+                                                    Text="{Binding AlbumName, Mode=OneWay}"
+                                                    TextTrimming="CharacterEllipsis" />
+
+                                                <!--  Audio Specs Badge Pills (e.g. FLAC • 24-bit • 1411 kbps • 120 BPM)  -->
+                                                <StackPanel
+                                                    Margin="0,3,0,0"
+                                                    Orientation="Horizontal"
+                                                    Spacing="6">
+                                                    <Border
+                                                        Padding="5,1"
+                                                        Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                                        CornerRadius="4">
+                                                        <TextBlock
+                                                            FontSize="10"
+                                                            FontWeight="Bold"
+                                                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                                            Text="{Binding FileFormat, Mode=OneWay}" />
+                                                    </Border>
+
+                                                    <Border
+                                                        Padding="5,1"
+                                                        Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                                        CornerRadius="4">
+                                                        <TextBlock FontSize="10" Foreground="{ThemeResource TextFillColorTertiaryBrush}">
+                                                            <Run Text="{Binding DurationFormatted, Mode=OneWay}" />
+                                                        </TextBlock>
+                                                    </Border>
+
+                                                    <Border
+                                                        Padding="5,1"
+                                                        Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                                        CornerRadius="4">
+                                                        <TextBlock FontSize="10" Foreground="{ThemeResource TextFillColorTertiaryBrush}">
+                                                            <Run Text="{Binding BPM, Mode=OneWay}" />
+                                                            <Run Text="BPM" />
+                                                        </TextBlock>
+                                                    </Border>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <!--  Row 1: Divider  -->
+                                        <MenuFlyoutSeparator Grid.Row="1" Margin="-12,0,-12,0" />
+
+                                        <!--  Row 2: Horizontal Quick-Tap Command Bar  -->
+                                        <StackPanel
+                                            Grid.Row="2"
+                                            Margin="0,-4,0,0"
+                                            HorizontalAlignment="Stretch"
+                                            Orientation="Horizontal">
+                                            <AppBarButton
+                                                x:Name="PlayAppBarBtn"
+                                                Width="60"
+                                                Click="PlayAppBarBtn_Click"
+                                                Icon="Play"
+                                                Label="Play"
+                                                ToolTipService.ToolTip="Play immediately" />
+                                            <AppBarButton
+                                                x:Name="PlayNextAppBarBtn"
+                                                Width="60"
+                                                Click="PlayNextAppBarBtn_Click"
+                                                Label="Next"
+                                                PointerPressed="PlayAppBarBtn_PointerPressed"
+                                                ToolTipService.ToolTip="Play next in queue">
+                                                <AppBarButton.Icon>
+                                                    <FontIcon Glyph="&#xE72A;" />
+                                                </AppBarButton.Icon>
+                                            </AppBarButton>
+                                            <AppBarButton
+                                                x:Name="AddEndAppBarBtn"
+                                                Width="60"
+                                                Click="AddEndAppBarBtn_Click"
+                                                Icon="Add"
+                                                Label="Queue"
+                                                ToolTipService.ToolTip="Add to queue end" />
+                                            <AppBarButton
+                                                Width="60"
+                                                Label="Fav"
+                                                ToolTipService.ToolTip="Toggle Favorite">
+                                                <AppBarButton.Icon>
+                                                    <FontIcon Glyph="&#xEB51;" />
+                                                </AppBarButton.Icon>
+                                            </AppBarButton>
+                                            <AppBarButton
+                                                x:Name="AddNoteAppBarBtn"
+                                                Width="60"
+                                                Click="AddNoteAppBarBtn_Click"
+                                                Icon="Edit"
+                                                Label="Note"
+                                                ToolTipService.ToolTip="Add personal note to this song" />
+                                        </StackPanel>
+                                    </Grid>
+                                </devWin:MenuFlyoutSecondaryItems>
+                            </devWin:MenuFlyoutAttach.SecondaryMenu>
+
+
+                            <!--  ===================================================================  -->
+                            <!--  VERTICAL CONTEXT MENU ITEMS  -->
+                            <!--  ===================================================================  -->
+
+                            <!--  1. QUEUE & PLAYLIST MANAGEMENT  -->
+                            <MenuFlyoutItem Text="Play Next">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE893;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutItem Text="Add to End of Queue">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE109;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutSubItem Text="Add to Playlist">
+                                <MenuFlyoutSubItem.Icon>
+                                    <FontIcon Glyph="&#xE142;" />
+                                </MenuFlyoutSubItem.Icon>
+                                <MenuFlyoutItem Text="New Playlist...">
+                                    <MenuFlyoutItem.Icon>
+                                        <SymbolIcon Symbol="Add" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                                <MenuFlyoutSeparator />
+                                <!--  Bind to user playlists or populate in Opening handler  -->
+                                <MenuFlyoutItem Text="Chill Vibes" />
+                                <MenuFlyoutItem Text="Workout Pump" />
+                                <MenuFlyoutItem Text="Night Drive" />
+                            </MenuFlyoutSubItem>
+
+                            <MenuFlyoutSeparator />
+
+                            <!--  2. DIMMER NICHE DSP / AUDIO ENGINE FEATURES  -->
+                            <MenuFlyoutSubItem Text="Special Playback Modes">
+                                <MenuFlyoutSubItem.Icon>
+                                    <FontIcon Glyph="&#xEC16;" />
+                                </MenuFlyoutSubItem.Icon>
+                                <MenuFlyoutItem Text="Normal Engine" />
+                                <MenuFlyoutItem Text="Nightcore Mode (+3 semitones, 1.25x speed)">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xE735;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                                <MenuFlyoutItem Text="Slowed &amp; Reverb (-3 semitones, 0.85x speed)">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xE93C;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                                <MenuFlyoutItem Text="Hi-Fi Smart Master Mode">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xEFA9;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                                <MenuFlyoutSeparator />
+                                <MenuFlyoutItem Text="Export Rendered Remix to Disk...">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xEDE1;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                            </MenuFlyoutSubItem>
+
+                            <!--  3. SEGMENT & A-B LOOPING (Niche feature in your SongModelView!)  -->
+                            <MenuFlyoutSubItem Text="Loops &amp; Segments">
+                                <MenuFlyoutSubItem.Icon>
+                                    <FontIcon Glyph="&#xE8EE;" />
+                                </MenuFlyoutSubItem.Icon>
+                                <MenuFlyoutItem Text="Set as Custom Segment (Loop Chorus)" />
+                                <MenuFlyoutItem Text="Clear Saved Segment Points" />
+                            </MenuFlyoutSubItem>
+
+                            <MenuFlyoutSeparator />
+
+                            <!--  4. LYRICS & USER MEMORIES  -->
+                            <MenuFlyoutItem Text="View &amp; Calibrate Synced Lyrics">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xED15;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutItem Text="Song Notes &amp; Memories">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE70F;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+
+                            <!--  5. ANALYTICS & STATS (Leveraging your rich SongModelView stats!)  -->
+                            <MenuFlyoutSubItem Text="Track Insights">
+                                <MenuFlyoutSubItem.Icon>
+                                    <FontIcon Glyph="&#xE9D2;" />
+                                </MenuFlyoutSubItem.Icon>
+                                <MenuFlyoutItem IsEnabled="False" Text="{Binding PlayCount, Mode=OneWay}" />
+                                <MenuFlyoutItem IsEnabled="False" Text="{Binding SkipCount, Mode=OneWay}" />
+                                <MenuFlyoutItem IsEnabled="False" Text="{Binding ListenThroughRate, Mode=OneWay}" />
+                                <MenuFlyoutItem IsEnabled="False" Text="{Binding PlayStreakDays, Mode=OneWay}" />
+                                <MenuFlyoutItem IsEnabled="False" Text="{Binding EddingtonNumber, Mode=OneWay}" />
+                                <MenuFlyoutSeparator />
+                                <MenuFlyoutItem Text="View Detailed Listening Graph" />
+                            </MenuFlyoutSubItem>
+
+                            <MenuFlyoutSeparator />
+
+                            <!--  6. NAVIGATION & DISCOVERY  -->
+                            <MenuFlyoutItem Text="Go to Artist">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE77B;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutItem Text="Go to Album">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE93C;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutItem Text="Find Matching BPM Tracks">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE81E;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+
+                            <MenuFlyoutSeparator />
+
+                            <!--  7. FILE SYSTEM & SYSTEM PROPERTIES  -->
+                            <MenuFlyoutSubItem Text="File &amp; Metadata">
+                                <MenuFlyoutSubItem.Icon>
+                                    <FontIcon Glyph="&#xE8B7;" />
+                                </MenuFlyoutSubItem.Icon>
+                                <MenuFlyoutItem Text="Show in File Explorer">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xEC50;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                                <MenuFlyoutItem Text="Copy File Path">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xE8C8;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                                <MenuFlyoutItem Text="Edit Song Tags (ID3 Metadata)...">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xE70F;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                                <MenuFlyoutSeparator />
+                                <MenuFlyoutItem Foreground="{ThemeResource SystemFillColorCriticalBrush}" Text="Delete from Library / Disk">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Foreground="{ThemeResource SystemFillColorCriticalBrush}" Glyph="&#xE74D;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                            </MenuFlyoutSubItem>
+
+                        </MenuFlyout>
+                    </dgView:TableView.RowContextFlyout>
                     <dgView:TableView.Columns>
 
                         <!--  Column for the Cover Art  -->
@@ -184,7 +508,7 @@
                             Header="Title"
                             IsReadOnly="True"
                             ToolTipService.Placement="Mouse"
-                            ToolTipService.ToolTip="{x:Bind MyViewModel.CurrentPlayingSongView.Title}" />
+                            ToolTipService.ToolTip="{Binding CurrentPlayingSongView.Title, Mode=OneWay}" />
 
 
 

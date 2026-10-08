@@ -1,4 +1,7 @@
+using Dimmer.Charts.Services;
+using Dimmer.ViewModel.StatsVMs;
 using Microsoft.UI.Xaml.Controls.Primitives;
+using SelectionChangedEventArgs = Microsoft.UI.Xaml.Controls.SelectionChangedEventArgs;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -15,7 +18,8 @@ public sealed partial class AllDimsView : Page
         InitializeComponent();
         //MyEventsTableView
     }
-
+    public StatisticsViewModel MyStatsVM;
+    public GeneralStatsViewModel MyGeneralStatsVM;
     BaseViewModelWin MyViewModel;
 
     protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
@@ -28,351 +32,155 @@ public sealed partial class AllDimsView : Page
         }
         this.DataContext = MyViewModel;
 
-       
-            MyViewModel.ActivateHistory();
-
-
-            MyEventsTableView.ItemsSource = MyViewModel.DimmerEventsCollection;
-            var items = MyEventsTableView.Items.Count;
-            Debug.WriteLine($"Items in EventsTableView: {items}");
-
-            var dims = MyViewModel.DimmerEventsCollection.Count;
+        MyStatsVM = IPlatformApplication.Current.Services.GetService<StatisticsViewModel>();
+        MyGeneralStatsVM = IPlatformApplication.Current.Services.GetService<GeneralStatsViewModel>();
+        MyViewModel.ActivateHistory();
     }
+
+          // ==========================================
+          // TAB NAVIGATION
+          // ==========================================
+    private void StatsNav_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+    {
+        if (args.SelectedItem is NavigationViewItem navItem)
+        {
+            OverviewTab.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+            LeaderboardsTab.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+            HistoryTab.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+
+            switch (navItem.Tag.ToString())
+            {
+                case "Overview":
+                    OverviewTab.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+                    break;
+                case "Leaderboards":
+                    LeaderboardsTab.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+                    break;
+                case "History":
+                    HistoryTab.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
+                    break;
+            }
+        }
+    }
+
+    // ==========================================
+    // DATE FILTERING
+    // ==========================================
+    private void DateFilterCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (MyStatsVM == null) return;
+
+        var selectedItem = (ComboBoxItem)DateFilterCombo.SelectedItem;
+        if (Enum.TryParse(typeof(DateRangeFilter), selectedItem.Tag.ToString(), out var filterVal))
+        {
+            // Call your GeneralStatsService to update data streams!
+            // E.g., _generalStatsService.SetDateFilter((DateRangeFilter)filterVal);
+        }
+    }
+
+    // ==========================================
+    // CONTEXT MENU (PREMIUM STYLING)
+    // ==========================================
     private void MoreBtn_Click(object sender, RoutedEventArgs e)
     {
-        var MoreBtn = (Button)sender;
-        var moreBtnFlyout = new MenuFlyout()
-            ;
+        var btn = (Button)sender;
+        var evt = btn.DataContext as DimmerPlayEventView;
+        if (evt == null) return;
 
+        var flyout = new MenuFlyout();
 
-        var addNoteToSongMFItem = new MenuFlyoutItem { Text = "Add Note to Song" };
-        FontIcon iconNote = new FontIcon();
-        iconNote.Glyph = "\uF7BB";
-        addNoteToSongMFItem.Icon = iconNote;
+        // Play Now
+        flyout.Items.Add(new MenuFlyoutItem { Text = "Play Now", Icon = new FontIcon { Glyph = "\uE768" } });
 
-        moreBtnFlyout.Items.Add(addNoteToSongMFItem);
-
-        FontIcon LoveIcon = new FontIcon();
-        LoveIcon.Glyph = "\uEB51";
-        var menuItemOne = new MenuFlyoutItem()
+        // Favorite Toggle
+        flyout.Items.Add(new MenuFlyoutItem
         {
-            Text = "Love",
-            Icon = LoveIcon
-        };
-        moreBtnFlyout.Items.Add(menuItemOne);
+            Text = evt.SongViewObject?.IsFavorite == true ? "Unfavorite" : "Favorite",
+            Icon = new FontIcon { Glyph = "\uEB51", Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.HotPink) }
+        });
 
+        flyout.Items.Add(new MenuFlyoutSeparator());
 
-        FontIcon EditIcon = new FontIcon();
-        EditIcon.Glyph = "\uE70F";
-        var menuItemTwo = new MenuFlyoutItem()
-        {
-            Text = "Edit",
-            Icon = EditIcon
-        };
+        // Add Note
+        flyout.Items.Add(new MenuFlyoutItem { Text = "Add Note to Song", Icon = new FontIcon { Glyph = "\uF7BB" } });
 
-        //moreBtnFlyout.Items.Add(menuItemTwo);
+        // Go to Artist / Album SubMenu
+        var navigateSub = new MenuFlyoutSubItem { Text = "Go to...", Icon = new FontIcon { Glyph = "\uE8A0" } };
+        navigateSub.Items.Add(new MenuFlyoutItem { Text = "Artist", Icon = new FontIcon { Glyph = "\uE720" } });
+        navigateSub.Items.Add(new MenuFlyoutItem { Text = "Album", Icon = new FontIcon { Glyph = "\uE93C" } });
+        flyout.Items.Add(navigateSub);
 
+        flyout.Items.Add(new MenuFlyoutSeparator());
 
-        FontIcon Deleteicon = new FontIcon();
-        Deleteicon.Glyph = "\uE74D";
-        var menuItemThree = new MenuFlyoutItem()
-        {
-            Text = "Delete",
-            Icon = Deleteicon
-            ,
-            
-          
-        };
-        
+        // Delete Event from History
+        var deleteItem = new MenuFlyoutItem { Text = "Remove from History", Icon = new FontIcon { Glyph = "\uE74D" } };
+        // deleteItem.Click += (s, args) => MyViewModel.DeleteHistoryEvent(evt);
+        flyout.Items.Add(deleteItem);
 
-        moreBtnFlyout.Items.Add(menuItemThree);
-
-        FontIcon moreSubSectionicon = new FontIcon();
-        moreSubSectionicon.Glyph = "\uE713";
-        MenuFlyoutSubItem moreSubSection = new MenuFlyoutSubItem();
-        moreSubSection.Text = "More";
-        moreSubSection.Icon = moreSubSectionicon;
-
-        FontIcon SearchIcon = new FontIcon();
-        SearchIcon.Glyph = "\uE721";
-        var searchFlyoutItem = new MenuFlyoutItem()
-        { Text = "Search", Icon = SearchIcon };
-
-        FontIcon Shareicon = new FontIcon();
-        Shareicon.Glyph = "\uE72D";
-        var ShareFlyoutItem = new MenuFlyoutItem()
-        { Text = "Share",Icon= Shareicon }; 
-        moreSubSection.Items.Add(searchFlyoutItem);
-        moreSubSection.Items.Add(ShareFlyoutItem);
-
-
-        FontIcon BlockIcon = new FontIcon();
-        BlockIcon.Glyph = "\uF140";
-
-        MenuFlyoutSubItem BlockSubSection = new MenuFlyoutSubItem();
-        BlockSubSection.Text = "Block";
-        BlockSubSection.Icon = BlockIcon;
-
-        FontIcon Trackicon = new FontIcon();
-        Trackicon.Glyph = "\uEC4F";
-
-        var blockTrackFlyoutItem = new MenuFlyoutItem()
-        { Text = "Track",Icon= Trackicon };
-
-        FontIcon blockArtisticon = new FontIcon();
-        blockArtisticon.Glyph = "\uE720";
-        
-        var blockArtistMenuFlyout= new MenuFlyoutItem()
-        { Text = "Artist",Icon=blockArtisticon };
-
-
-        FontIcon blockAlbumMFicon = new FontIcon();
-        blockAlbumMFicon.Glyph = "\uE93C";
-        var blockAlbumMF = new MenuFlyoutItem()
-        { Text = "Album",Icon= blockAlbumMFicon };
-        BlockSubSection.Items.Add(blockTrackFlyoutItem);
-        BlockSubSection.Items.Add(blockArtistMenuFlyout);
-        BlockSubSection.Items.Add(blockAlbumMF);
-
-
-
-        moreBtnFlyout.Items.Add(moreSubSection);
-        moreSubSection.Items.Add(BlockSubSection);
-
-        FlyoutShowOptions flyoutShowOpt = new FlyoutShowOptions
-        {
-            Placement = FlyoutPlacementMode.Auto,
-            ShowMode = FlyoutShowMode.Auto
-        };
-        moreBtnFlyout.ShowAt(MoreBtn, flyoutShowOpt);
+        flyout.ShowAt(btn, new FlyoutShowOptions { Placement = FlyoutPlacementMode.BottomEdgeAlignedRight });
     }
 
-    SongModelView? trackModel = null;
-    Microsoft.UI.Xaml.Controls.Button? SongTitlebutton;
-    private void SongTitle_Click(object sender, RoutedEventArgs e)
+    private void OverviewTab_Loaded(object sender, RoutedEventArgs e)
     {
-        SongTitlebutton = sender as Button;
-        var evt = SongTitlebutton?.DataContext as DimmerPlayEventView;
-        trackModel = evt.SongViewObject;
-        MyViewModel.SelectedSong = trackModel;
 
-        AnimationHelper.Prepare(AnimationHelper.Key_ListToDetail, SongTitlebutton);
-
-        var supNavTransInfo = new SuppressNavigationTransitionInfo();
-        Type songDetailType = typeof(SongDetailPage);
-        var navParams = new SongDetailNavArgs
-        {
-            Song = trackModel,
-            ViewModel = MyViewModel,
-        };
-
-        FrameNavigationOptions navigationOptions = new FrameNavigationOptions
-        {
-            TransitionInfoOverride = supNavTransInfo,
-            IsNavigationStackEnabled = true
-
-        };
-
-        Frame?.NavigateToType(songDetailType, navParams, navigationOptions);
-    }
-   
-   
-
- 
-    private async void MyEventsTableView_Loaded(object sender, RoutedEventArgs e)
-    {
-        
-        var items = MyEventsTableView.Items.Count;
-        Debug.WriteLine($"Items in EventsTableView: {items}");
-
-
-      
-
+        MyGeneralStatsVM ??= IPlatformApplication.Current.Services.GetService<GeneralStatsViewModel>();
+        OverviewTab.DataContext = MyGeneralStatsVM;
     }
 
-    private async void SongArtists_Click(object sender, RoutedEventArgs e)
+    private void EventTypesComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        var btn = sender as Button;
-        var evt = btn?.DataContext as DimmerPlayEventView;
-        if (evt != null)
+        if (sender is not ComboBox comboBox) return;
+        if (MyEventsTableView is null)
         {
-            var songModelView = evt.SongViewObject;
-            var songInDb = MyViewModel.RealmFactory.GetRealmInstance()
-                .Find<SongModel>(evt.SongId);
-
-            try
-            {
-
-                var nativeElement = (Microsoft.UI.Xaml.UIElement)sender;
-               
-
-                // Navigate to the detail page, passing the selected song object.
-                // Suppress the default page transition to let ours take over.
-                var supNavTransInfo = new SuppressNavigationTransitionInfo();
-                Type pageType = typeof(ArtistPage);
-                var navParams = new SongDetailNavArgs
-                {
-                    Song = songModelView!,
-                    ExtraParam = MyViewModel,
-                    ViewModel = MyViewModel
-                };
-                var contextMenuFlyout = new MenuFlyout();
-
-                var dbSongArtists = MyViewModel.RealmFactory.GetRealmInstance();
-                var dbSong = dbSongArtists
-                    .Find<SongModel>(songModelView!.Id);
-                if (dbSong is null) return;
-                if ((dbSong.ArtistToSong.Count < 1 || dbSong.Artist is null))
-                {
-
-                    var ArtistsInSong = songModelView.OtherArtistsName.
-                    Split(",").ToList();
-                    await MyViewModel.AssignArtistToSongAsync(songModelView!.Id,
-                         ArtistsInSong);
-
-
-                }
-                var selectingg = dbSong.ArtistToSong.ToList();
-                var sel2 = selectingg.Select(x => new ArtistModelView()
-                {
-                    Id = x.Id,
-                    Name = x.Name,
-                    Bio = x.Bio,
-                    ImagePath = x.ImagePath
-                });
-                var namesOfartists = sel2.Select(a => a.Name);
-
-                bool isSingular = namesOfartists.Count() > 1 ? false : true;
-                string artistText = string.Empty;
-                if (isSingular)
-                {
-                    artistText = "artist";
-                }
-                else
-                {
-                    artistText = "artists";
-                }
-                contextMenuFlyout.Items.Add(
-                    new MenuFlyoutItem
-                    {
-                        Text = $"{namesOfartists.Count()} {artistText} linked",
-                        IsTapEnabled = false
-
-                    });
-
-                foreach (var artistName in namesOfartists)
-                {
-                    var root = new MenuFlyoutItem { Text = artistName };
-
-                    root.Click += async (obj, routedEv) =>
-                    {
-
-                        var songContext = ((MenuFlyoutItem)obj).Text;
-
-                        var selectedArtist = MyViewModel.RealmFactory.GetRealmInstance()
-                        .Find<SongModel>(songModelView.Id).ArtistToSong.First(x => x.Name == songContext)
-                        .ToArtistModelView();
-
-
-                        var nativeElementMenuFlyout = (Microsoft.UI.Xaml.UIElement)obj;
-                        
-                         MyViewModel.SetSelectedArtist(selectedArtist);
-
-
-                        FrameNavigationOptions navigationOptions = new FrameNavigationOptions
-                        {
-                            TransitionInfoOverride = supNavTransInfo,
-                            IsNavigationStackEnabled = true
-
-                        };
-                        AnimationHelper.PrepareFromChild(
-         sender as DependencyObject,
-         "ArtistNameTxt",
-         AnimationHelper.Key_Forward
-     );
-
-                        Frame?.NavigateToType(pageType, navParams, navigationOptions);
-                    };
-
-                    contextMenuFlyout.Items.Add(root);
-                }
-
-
-                try
-                {
-                    if (namesOfartists.Count() > 1)
-                    {
-                        contextMenuFlyout.ShowAt(nativeElement, showOptions:new FlyoutShowOptions()
-                        { ShowMode = FlyoutShowMode.Auto, Placement = FlyoutPlacementMode.Right});
-                    }
-                    else
-                    {
-
-                        var selectedArtist = MyViewModel.RealmFactory.GetRealmInstance()
-                        .Find<SongModel>(songModelView.Id)?.ArtistToSong.First()
-                        .ToArtistModelView();
-                        if (selectedArtist is null) return;
-                         MyViewModel.SetSelectedArtist(selectedArtist);
-
-
-                        FrameNavigationOptions navigationOptions = new FrameNavigationOptions
-                        {
-                            TransitionInfoOverride = supNavTransInfo,
-                            IsNavigationStackEnabled = true
-
-                        };
-                        AnimationHelper.PrepareFromChild(
-         sender as DependencyObject,
-         "ArtistNameTxt",
-         AnimationHelper.Key_Forward
-     );
-
-                        Frame?.NavigateToType(pageType, navParams, navigationOptions);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"MenuFlyout.ShowAt failed: {ex.Message}");
-                    // fallback: anchor without position
-                    //flyout.ShowAt(nativeElement);
-                }
-
-
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex.Message);
-            }
-
-
+            return;
         }
-    }
+        // Get the selected string (e.g., "Completed", "Skipped", or "All")
+        string? selectedItem = comboBox.SelectedItem switch
+        {
+            ComboBoxItem cbi => cbi.Content?.ToString(),
+            string str => str,
+            _ => null
+        };
 
-    private void SongAlbum_Click(object sender, RoutedEventArgs e)
-    {
+        string propertyName = nameof(DimmerPlayEventView.PlayTypeStr);
 
-    }
-  private ScrollViewer? GetScrollViewer(DependencyObject depObj)
-    {
-        if (depObj is ScrollViewer scrollViewer)
-        { 
-            return scrollViewer; 
+        // 1. Remove any existing filter on this column to avoid stacking conflicting filters
+        var existingFilter = MyEventsTableView.FilterDescriptions
+            .FirstOrDefault(f => f.PropertyName == propertyName);
+
+        if (existingFilter != null)
+        {
+            MyEventsTableView.FilterDescriptions.Remove(existingFilter);
         }
 
-        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(depObj); i++)
+        // 2. If "All" or null is selected, do not apply a filter (show everything)
+        if (string.IsNullOrWhiteSpace(selectedItem) ||
+            selectedItem.Equals("All", StringComparison.OrdinalIgnoreCase) ||
+            selectedItem.Equals("All Event Types", StringComparison.OrdinalIgnoreCase))
         {
-            var child = VisualTreeHelper.GetChild(depObj, i);
-            var result = GetScrollViewer(child);
-            if (result != null)
-            {
-                return result;
-            }
+            MyEventsTableView.FilterDescriptions.Clear(); // Clear all filters if "All" is selected
+            return;
         }
-        return null;
-    }
 
-    private void MyEventsTableView_Unloaded(object sender, RoutedEventArgs e)
-    {
+        // 3. Define the Predicate (safely checks row object OR string value)
+        Predicate<object?> predicate = itemOrValue =>
+        {
+            // Case A: The TableView passes the entire DimmerPlayEventView row object
+            if (itemOrValue is DimmerPlayEventView row)
+            {
+                return string.Equals(row.PlayTypeStr, selectedItem, StringComparison.OrdinalIgnoreCase);
+            }
 
+            // Case B: The TableView passes just the property value (string)
+            if (itemOrValue is string strVal)
+            {
+                return string.Equals(strVal, selectedItem, StringComparison.OrdinalIgnoreCase);
+            }
+
+            return false;
+        };
+
+        // 4. Add the new filter description
+        MyEventsTableView.FilterDescriptions.Add(new FilterDescription(propertyName, predicate));
     }
 }

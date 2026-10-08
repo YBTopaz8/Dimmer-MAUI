@@ -60,6 +60,31 @@ public partial class App : Application
             // Just return and don't log it.
             return;
         }
+       
+        if (ex.Message.Contains("Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..\r\n"))
+        {
+            // This is the noisy exception we want to ignore.
+            // Just return and don't log it.
+            return;
+        }
+        if (ex.Message.Contains("No such host is known."))
+        {
+            // This is the noisy exception we want to ignore.
+            // Just return and don't log it.
+            return;
+        }
+        if (ex.Message.Contains("Unable to connect to the remote server"))
+        {
+            // This is the noisy exception we want to ignore.
+            // Just return and don't log it.
+            return;
+        }
+        if (ex.Message.Contains("Exception has been thrown by the target of an invocation"))
+        {
+            // This is the noisy exception we want to ignore.
+            // Just return and don't log it.
+            return;
+        }
         if (ex.Message.Contains("Unable to read data from the transport connection: The I/O operation has been aborted because of either a thread exit or an application request"))
         {
             return;

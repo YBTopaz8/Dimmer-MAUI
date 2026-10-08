@@ -11,158 +11,188 @@
     d:DataContext="{d:DesignInstance Type=vm:BaseViewModelWin}"
     mc:Ignorable="d">
 
-    <ScrollViewer Padding="0,0,0,40" VerticalScrollBarVisibility="Auto">
+
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="350" />
+                <RowDefinition Height="400" />
                 <!--  Hero Header  -->
                 <RowDefinition Height="*" />
                 <!--  Content  -->
             </Grid.RowDefinitions>
 
             <!--  ==========================================================  -->
-            <!--  1. HERO HEADER (Banner, Name, Main Actions)  -->
+            <!--  1. HERO HEADER: Edge-to-Edge with Smooth Gradient Fade  -->
             <!--  ==========================================================  -->
             <Grid Grid.Row="0">
-                <!--  Artist Background Image with dark gradient fade  -->
                 <devWin:ImageEx
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Stretch"
                     Source="{x:Bind MyViewModel.SelectedArtist.ImagePath, Mode=OneWay}"
                     Stretch="UniformToFill" />
 
+                <!--  Rich multi-stop gradient to blend seamlessly into the page background  -->
                 <Grid>
                     <Grid.Background>
                         <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                            <GradientStop Offset="0.0" Color="Transparent" />
-                            <GradientStop Offset="0.7" Color="#CC121212" />
-                            <GradientStop Offset="1.0" Color="#FF121212" />
+                            <GradientStop Offset="0.0" Color="#44000000" />
+                            <GradientStop Offset="0.5" Color="#AA000000" />
+                            <GradientStop Offset="0.9" Color="{ThemeResource SolidBackgroundFillColorBase}" />
+                            <GradientStop Offset="1.0" Color="{ThemeResource ApplicationPageBackgroundThemeBrush}" />
                         </LinearGradientBrush>
                     </Grid.Background>
                 </Grid>
 
                 <StackPanel
-                    Padding="40,24"
+                    Padding="48,0,48,32"
                     VerticalAlignment="Bottom"
-                    Spacing="12">
-                    <!--  Quick Stats Badges  -->
-                    <StackPanel Orientation="Horizontal" Spacing="16">
-                        <TextBlock
-                            CharacterSpacing="100"
-                            FontSize="12"
-                            FontWeight="Bold"
-                            Foreground="{ThemeResource SystemAccentColorLight2}"
-                            Text="VERIFIED ARTIST" />
-                        <StackPanel
-                            Opacity="0.8"
-                            Orientation="Horizontal"
-                            Spacing="4">
-                            <FontIcon
-                                FontSize="12"
-                                Foreground="Gold"
-                                Glyph="&#xE8D6;"
-                                Visibility="{x:Bind MyViewModel.SelectedArtist.IsFavorite, Mode=OneWay}" />
-                        </StackPanel>
+                    Spacing="16">
+
+                    <!--  Verified & Rank Badge  -->
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Border
+                            Padding="6,2"
+                            Background="{ThemeResource SystemAccentColor}"
+                            CornerRadius="4">
+                            <TextBlock
+                                CharacterSpacing="50"
+                                FontSize="10"
+                                FontWeight="Bold"
+                                Foreground="White"
+                                Text="VERIFIED ARTIST" />
+                        </Border>
+
+                        <Border
+                            Padding="6,2"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="4">
+                            <TextBlock
+                                FontSize="10"
+                                FontWeight="Bold"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}">
+                                <Run Text="RANK #" /><Run Text="{x:Bind MyViewModel.SelectedArtist.OverallRank, Mode=OneWay}" />
+                            </TextBlock>
+                        </Border>
                     </StackPanel>
 
                     <!--  Artist Name  -->
                     <TextBlock
-                        FontSize="64"
+                        Margin="0,-10,0,0"
+                        FontSize="72"
                         FontWeight="Black"
                         Text="{x:Bind MyViewModel.SelectedArtist.Name, Mode=OneWay}"
-                        TextTrimming="CharacterEllipsis"
-                        TextWrapping="NoWrap" />
+                        TextTrimming="CharacterEllipsis" />
 
-                    <!--  Stats Row  -->
-                    <TextBlock FontSize="14" Foreground="#BBBBBB">
-                        <Run Text="{x:Bind MyViewModel.SelectedArtist.TotalCompletedPlays, Mode=OneWay}" /> <Run Text="Total Plays  • " />
-                        <Run Text="{x:Bind MyViewModel.SelectedArtist.TotalAlbumsByArtist, Mode=OneWay}" /> <Run Text="Albums  • " />
-                        <Run Text="{x:Bind MyViewModel.SelectedArtist.TotalSongsByArtist, Mode=OneWay}" /> <Run Text="Songs" />
+                    <!--  Quick Play Stats  -->
+                    <TextBlock
+                        FontSize="15"
+                        FontWeight="SemiBold"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}">
+                        <Run Foreground="{ThemeResource TextFillColorPrimaryBrush}" Text="{x:Bind MyViewModel.SelectedArtist.TotalCompletedPlays, Mode=OneWay}" /> <Run Text="Total Plays  • " />
+                        <Run Foreground="{ThemeResource TextFillColorPrimaryBrush}" Text="{x:Bind MyViewModel.SelectedArtist.TotalSongsByArtist, Mode=OneWay}" /> <Run Text="Songs  •  Discovered" />
+                        <Run Foreground="{ThemeResource TextFillColorPrimaryBrush}" Text="{x:Bind MyViewModel.SelectedArtist.DiscoveryDate, Mode=OneWay}" />
                     </TextBlock>
 
                     <!--  Main Actions  -->
                     <StackPanel
-                        Margin="0,12,0,0"
+                        Margin="0,16,0,0"
                         Orientation="Horizontal"
-                        Spacing="12">
+                        Spacing="16">
                         <Button
-                            Height="48"
-                            Padding="24,0"
-                            CornerRadius="24"
+                            Height="52"
+                            Padding="32,0"
+                            CornerRadius="26"
                             Style="{ThemeResource AccentButtonStyle}">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <FontIcon Glyph="&#xE768;" />
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <FontIcon FontSize="18" Glyph="&#xE768;" />
                                 <TextBlock
+                                    Margin="0,2,0,0"
                                     FontSize="16"
-                                    FontWeight="SemiBold"
+                                    FontWeight="Bold"
                                     Text="Play" />
                             </StackPanel>
                         </Button>
                         <Button
-                            Width="48"
-                            Height="48"
-                            CornerRadius="24"
-                            ToolTipService.ToolTip="Shuffle">
-                            <FontIcon Glyph="&#xE8B1;" />
+                            Width="52"
+                            Height="52"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            CornerRadius="26"
+                            ToolTipService.ToolTip="Shuffle All">
+                            <FontIcon FontSize="18" Glyph="&#xE8B1;" />
                         </Button>
                         <Button
-                            Width="48"
-                            Height="48"
-                            CornerRadius="24"
-                            ToolTipService.ToolTip="Add to Favorites">
-                            <FontIcon Glyph="&#xE113;" />
+                            Width="52"
+                            Height="52"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            CornerRadius="26"
+                            ToolTipService.ToolTip="Start Artist Radio">
+                            <FontIcon FontSize="18" Glyph="&#xEC15;" />
                         </Button>
+                        <ToggleButton
+                            Width="52"
+                            Height="52"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            CornerRadius="26"
+                            IsChecked="{x:Bind MyViewModel.SelectedArtist.IsFavorite, Mode=TwoWay}"
+                            ToolTipService.ToolTip="Favorite">
+                            <FontIcon
+                                FontSize="18"
+                                Foreground="{ThemeResource SystemAccentColorLight2}"
+                                Glyph="&#xEB51;" />
+                        </ToggleButton>
                     </StackPanel>
                 </StackPanel>
             </Grid>
 
             <!--  ==========================================================  -->
-            <!--  2. MAIN CONTENT SPLIT (Left: Music, Right: Insights)  -->
+            <!--  2. MAIN CONTENT SPLIT (Left: Music, Right: Deep Insights)  -->
             <!--  ==========================================================  -->
             <Grid
                 Grid.Row="1"
-                Padding="40,24"
-                ColumnSpacing="40">
+                Padding="48,24"
+                ColumnSpacing="48">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="6.5*" />
                     <!--  Music  -->
                     <ColumnDefinition Width="3.5*" />
-                    <!--  Bio & Stats  -->
+                    <!--  Analytics  -->
                 </Grid.ColumnDefinitions>
 
                 <!--  LEFT COLUMN: MUSIC  -->
-                <StackPanel Grid.Column="0" Spacing="32">
+                <StackPanel Grid.Column="0" Spacing="40">
 
-                    <!--  Popular Tracks (Top 5-10 Songs)  -->
+                    <!--  TOP TRACKS LIST  -->
                     <StackPanel Spacing="16">
                         <TextBlock
                             FontWeight="Bold"
                             Style="{ThemeResource TitleTextBlockStyle}"
-                            Text="Popular" />
+                            Text="Popular Tracks" />
 
                         <ItemsRepeater ItemsSource="{Binding MyViewModel.SelectedArtist.SongsByArtist, Mode=OneWay}">
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate>
                                     <Grid
-                                        Padding="8,10"
-                                        ColumnSpacing="16"
-                                        CornerRadius="8">
-                                        <!--  Hover Effect  -->
-                                        <Grid.Background>
-                                            <SolidColorBrush Color="Transparent" />
-                                        </Grid.Background>
+                                        Padding="12,8"
+                                        Background="Transparent"
+                                        CornerRadius="6">
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="30" />
                                             <ColumnDefinition Width="40" />
+                                            <ColumnDefinition Width="48" />
                                             <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="100" />
-                                            <ColumnDefinition Width="50" />
+                                            <ColumnDefinition Width="120" />
+                                            <ColumnDefinition Width="60" />
                                         </Grid.ColumnDefinitions>
 
+                                        <!--  Track Number / Hover Play Icon  -->
                                         <TextBlock
                                             Grid.Column="0"
+                                            HorizontalAlignment="Center"
                                             VerticalAlignment="Center"
-                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            FontWeight="SemiBold"
+                                            Foreground="{ThemeResource TextFillColorTertiaryBrush}"
                                             Text="{Binding TrackNumber}" />
 
                                         <devWin:ImageEx
@@ -173,25 +203,43 @@
                                             Source="{Binding CoverImagePath}"
                                             Stretch="UniformToFill" />
 
-                                        <TextBlock
+                                        <!--  Title & Popularity Bar  -->
+                                        <StackPanel
                                             Grid.Column="2"
-                                            VerticalAlignment="Center"
-                                            FontWeight="SemiBold"
-                                            Text="{Binding Title}"
-                                            TextTrimming="CharacterEllipsis" />
+                                            Margin="16,0,0,0"
+                                            VerticalAlignment="Center">
+                                            <TextBlock
+                                                FontSize="15"
+                                                FontWeight="SemiBold"
+                                                Text="{Binding Title}"
+                                                TextTrimming="CharacterEllipsis" />
+                                            <ProgressBar
+                                                Width="60"
+                                                Height="2"
+                                                Margin="0,4,0,0"
+                                                HorizontalAlignment="Left"
+                                                Foreground="{ThemeResource SystemAccentColor}"
+                                                Maximum="100"
+                                                Opacity="0.5"
+                                                Value="{Binding PlayCompletedCount}" />
+                                        </StackPanel>
 
-                                        <!--  Show how many times this specific song was played  -->
                                         <TextBlock
                                             Grid.Column="3"
                                             VerticalAlignment="Center"
+                                            FontSize="13"
                                             Foreground="{ThemeResource TextFillColorSecondaryBrush}">
-                                            <Run Text="{Binding PlayCompletedCount}" /> <Run Text="plays" />
+                                            <Run
+                                                FontWeight="SemiBold"
+                                                Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                                                Text="{Binding PlayCompletedCount}" /> <Run Text="plays" />
                                         </TextBlock>
 
                                         <TextBlock
                                             Grid.Column="4"
                                             HorizontalAlignment="Right"
                                             VerticalAlignment="Center"
+                                            FontSize="13"
                                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                             Text="{Binding DurationFormatted}" />
                                     </Grid>
@@ -200,42 +248,42 @@
                         </ItemsRepeater>
                     </StackPanel>
 
-                    <!--  Discography (Horizontal Albums Scroll)  -->
+                    <!--  DISCOGRAPHY  -->
                     <StackPanel Spacing="16">
-                        <TextBlock
-                            FontWeight="Bold"
-                            Style="{ThemeResource TitleTextBlockStyle}"
-                            Text="Discography" />
+                        <Grid>
+                            <TextBlock
+                                FontWeight="Bold"
+                                Style="{ThemeResource TitleTextBlockStyle}"
+                                Text="Discography" />
+                            <HyperlinkButton HorizontalAlignment="Right" Content="Show All" />
+                        </Grid>
 
                         <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
                             <ItemsRepeater ItemsSource="{x:Bind MyViewModel.SelectedArtist.AlbumsByArtist, Mode=OneWay}">
                                 <ItemsRepeater.Layout>
-                                    <StackLayout Orientation="Horizontal" Spacing="16" />
+                                    <StackLayout Orientation="Horizontal" Spacing="24" />
                                 </ItemsRepeater.Layout>
                                 <ItemsRepeater.ItemTemplate>
                                     <DataTemplate>
-                                        <Button
-                                            Padding="8"
-                                            Background="Transparent"
-                                            BorderThickness="0"
-                                            CornerRadius="8">
-                                            <StackPanel Width="160" Spacing="8">
-                                                <devWin:ImageEx
-                                                    Width="160"
-                                                    Height="160"
-                                                    CornerRadius="8"
-                                                    Source="{Binding ImagePath}"
-                                                    Stretch="UniformToFill" />
+                                        <StackPanel Width="180" Spacing="12">
+                                            <devWin:ImageEx
+                                                Width="180"
+                                                Height="180"
+                                                CornerRadius="8"
+                                                Source="{Binding ImagePath}"
+                                                Stretch="UniformToFill" />
+                                            <StackPanel Spacing="2">
                                                 <TextBlock
+                                                    FontSize="15"
                                                     FontWeight="Bold"
                                                     Text="{Binding Name}"
                                                     TextTrimming="CharacterEllipsis" />
-                                                <TextBlock
-                                                    FontSize="12"
-                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                    Text="{Binding ReleaseYear}" />
+                                                <TextBlock FontSize="13" Foreground="{ThemeResource TextFillColorSecondaryBrush}">
+                                                    <Run Text="{Binding ReleaseYear}" />
+                                                    •<Run Text="{Binding NumberOfTracks}" /> <Run Text="tracks" />
+                                                </TextBlock>
                                             </StackPanel>
-                                        </Button>
+                                        </StackPanel>
                                     </DataTemplate>
                                 </ItemsRepeater.ItemTemplate>
                             </ItemsRepeater>
@@ -243,133 +291,167 @@
                     </StackPanel>
                 </StackPanel>
 
-                <!--  RIGHT COLUMN: BIO & DEEP STATS  -->
+                <!--  RIGHT COLUMN: NICHE DIMMER STATS  -->
                 <StackPanel Grid.Column="1" Spacing="32">
 
-                    <!--  About / Bio  -->
-                    <StackPanel Spacing="12">
-                        <TextBlock
-                            FontWeight="Bold"
-                            Style="{ThemeResource SubtitleTextBlockStyle}"
-                            Text="About" />
-                        <Border
-                            Padding="20"
-                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                            BorderThickness="1"
-                            CornerRadius="12">
-                            <StackPanel Spacing="12">
-                                <TextBlock
-                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                    LineHeight="22"
-                                    MaxLines="6"
-                                    Text="{x:Bind MyViewModel.SelectedArtist.Bio, Mode=OneWay}"
-                                    TextTrimming="WordEllipsis"
-                                    TextWrapping="Wrap" />
-                                <HyperlinkButton Content="Read full bio" />
+                    <TextBlock
+                        FontWeight="Bold"
+                        Style="{ThemeResource TitleTextBlockStyle}"
+                        Text="Your Insights" />
+
+                    <!--  STAT CARD 1: The Pareto Effect  -->
+                    <Border
+                        Padding="20"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="12">
+                        <StackPanel Spacing="12">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon
+                                    FontSize="16"
+                                    Foreground="{ThemeResource SystemAccentColor}"
+                                    Glyph="&#xE81E;" />
+                                <TextBlock FontWeight="Bold" Text="Listening Persona: Fixated" />
                             </StackPanel>
-                        </Border>
-                    </StackPanel>
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                LineHeight="20"
+                                TextWrapping="Wrap">
+                                You heavily favor a few tracks.<Run
+                                    FontWeight="Bold"
+                                    Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                                    Text="{x:Bind MyViewModel.SelectedArtist.ParetoPercentage, Mode=OneWay}" />
+                                of all your plays come from just<Run
+                                    FontWeight="Bold"
+                                    Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                                    Text="{x:Bind MyViewModel.SelectedArtist.ParetoTopSongsCount, Mode=OneWay}" />
+                                songs.</TextBlock>
+                        </StackPanel>
+                    </Border>
 
-                    <!--  Listening Habits (Your Custom Stats!)  -->
-                    <StackPanel Spacing="12">
-                        <TextBlock
-                            FontWeight="Bold"
-                            Style="{ThemeResource SubtitleTextBlockStyle}"
-                            Text="Your Listening Habits" />
-                        <Border
-                            Padding="20"
-                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                            BorderThickness="1"
-                            CornerRadius="12">
-                            <StackPanel Spacing="20">
+                    <!--  STAT CARD 2: Attention / Listen-Through Rate  -->
+                    <Border
+                        Padding="20"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="12">
+                        <StackPanel Spacing="16">
+                            <TextBlock FontWeight="Bold" Text="Attention Score (Listen-Through)" />
 
-                                <!--  Completion Percentage  -->
-                                <StackPanel Spacing="6">
-                                    <Grid>
-                                        <TextBlock
-                                            HorizontalAlignment="Left"
-                                            FontSize="12"
-                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                            Text="Completion Rate" />
-                                        <TextBlock
-                                            HorizontalAlignment="Right"
-                                            FontSize="12"
-                                            FontWeight="Bold">
-                                            <Run Text="{x:Bind MyViewModel.SelectedArtist.CompletionPercentage, Mode=OneWay}" />
-                                            %</TextBlock>
-                                    </Grid>
-                                    <!--  ProgressBar assuming value is 0-100. If it's 0-1, use Maximum="1"  -->
-                                    <ProgressBar
-                                        Height="6"
-                                        CornerRadius="3"
-                                        Maximum="100"
-                                        Value="{x:Bind MyViewModel.SelectedArtist.CompletionPercentage, Mode=OneWay}" />
-                                </StackPanel>
-
-                                <!--  Eddington Number & Rank  -->
-                                <Grid ColumnSpacing="16">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-
-                                    <StackPanel Grid.Column="0" Spacing="2">
-                                        <TextBlock
-                                            FontSize="12"
-                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                            Text="Eddington No." />
-                                        <TextBlock
-                                            FontSize="24"
-                                            FontWeight="Bold"
-                                            Foreground="{ThemeResource SystemAccentColorLight2}"
-                                            Text="{x:Bind MyViewModel.SelectedArtist.EddingtonNumber, Mode=OneWay}" />
-                                    </StackPanel>
-
-                                    <StackPanel Grid.Column="1" Spacing="2">
-                                        <TextBlock
-                                            FontSize="12"
-                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                            Text="Overall Rank" />
-                                        <TextBlock FontSize="24" FontWeight="Bold">
-                                            <Run Text="#" /><Run Text="{x:Bind MyViewModel.SelectedArtist.OverallRank, Mode=OneWay}" />
-                                        </TextBlock>
-                                    </StackPanel>
-                                </Grid>
-
-                                <!--  Discovery Date  -->
-                                <StackPanel Spacing="2">
+                            <StackPanel Spacing="8">
+                                <Grid>
                                     <TextBlock
                                         FontSize="12"
                                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                        Text="Discovered On" />
-                                    <TextBlock FontWeight="SemiBold" Text="{x:Bind MyViewModel.SelectedArtist.DiscoveryDate, Mode=OneWay}" />
+                                        Text="Average Song Completion" />
+                                    <TextBlock
+                                        HorizontalAlignment="Right"
+                                        FontWeight="Bold"
+                                        Text="{x:Bind MyViewModel.SelectedArtist.AverageSongListenThroughRate, Mode=OneWay}" />
+                                </Grid>
+                                <ProgressBar
+                                    Height="6"
+                                    CornerRadius="3"
+                                    Foreground="#4CAF50"
+                                    Maximum="100"
+                                    Value="{x:Bind MyViewModel.SelectedArtist.AverageSongListenThroughRate, Mode=OneWay}" />
+                                <TextBlock
+                                    Margin="0,4,0,0"
+                                    FontSize="12"
+                                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                    TextWrapping="Wrap">
+                                    When you play this artist, you rarely skip before the song ends.
+                                </TextBlock>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!--  STAT CARD 3: Eddington & Catalog  -->
+                    <Border
+                        Padding="20"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="12">
+                        <Grid ColumnSpacing="20" RowSpacing="20">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <!--  Eddington  -->
+                            <StackPanel
+                                Grid.Row="0"
+                                Grid.Column="0"
+                                Spacing="4">
+                                <TextBlock
+                                    FontSize="12"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="Eddington No."
+                                    ToolTipService.ToolTip="You have played E songs at least E times." />
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <FontIcon
+                                        FontSize="16"
+                                        Foreground="{ThemeResource SystemAccentColor}"
+                                        Glyph="&#xE9D2;" />
+                                    <TextBlock
+                                        FontSize="24"
+                                        FontWeight="Bold"
+                                        Text="{x:Bind MyViewModel.SelectedArtist.EddingtonNumber, Mode=OneWay}" />
                                 </StackPanel>
                             </StackPanel>
-                        </Border>
-                    </StackPanel>
 
-                    <!--  Similar Artists  -->
-                    <StackPanel Spacing="12">
+                            <!--  Catalog Completion  -->
+                            <StackPanel
+                                Grid.Row="0"
+                                Grid.Column="1"
+                                Spacing="4">
+                                <TextBlock
+                                    FontSize="12"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="Catalog Explored" />
+                                <TextBlock FontSize="24" FontWeight="Bold">
+                                    <Run Text="{x:Bind MyViewModel.SelectedArtist.CompletionPercentage, Mode=OneWay}" />
+                                    %</TextBlock>
+                            </StackPanel>
+
+                            <!--  Skips  -->
+                            <StackPanel
+                                Grid.Row="1"
+                                Grid.Column="0"
+                                Spacing="4">
+                                <TextBlock
+                                    FontSize="12"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="Total Skips" />
+                                <TextBlock
+                                    FontSize="20"
+                                    FontWeight="SemiBold"
+                                    Foreground="#E57373"
+                                    Text="{x:Bind MyViewModel.SelectedArtist.TotalSkipCount, Mode=OneWay}" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!--  BIO SECTION  -->
+                    <StackPanel Margin="0,16,0,0" Spacing="12">
                         <TextBlock
                             FontWeight="Bold"
-                            Style="{ThemeResource SubtitleTextBlockStyle}"
-                            Text="Similar Artists" />
-                        <ItemsControl ItemsSource="{x:Bind MyViewModel.SelectedArtist.ListOfSimilarArtistsNames, Mode=OneWay}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <!--  WrapPanel requires CommunityToolkit.WinUI.UI.Controls  -->
-                                    <!--  If you don't have it, replace with a horizontal ScrollViewer  -->
-                                    <StackPanel Orientation="Vertical" Spacing="8" />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="x:String">
-                                    <HyperlinkButton Content="{x:Bind}" FontSize="14" />
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                            Style="{ThemeResource TitleTextBlockStyle}"
+                            Text="About" />
+                        <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            LineHeight="22"
+                            MaxLines="6"
+                            Text="{x:Bind MyViewModel.SelectedArtist.Bio, Mode=OneWay}"
+                            TextTrimming="WordEllipsis"
+                            TextWrapping="Wrap" />
                     </StackPanel>
 
                 </StackPanel>

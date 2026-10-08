@@ -15,54 +15,13 @@
             <ResourceDictionary.MergedDictionaries>
 
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
+                <ResourceDictionary Source="ms-appx:///DevWinUI/Themes/Generic.xaml" />
 
+
+                <ResourceDictionary Source="Themes/Converters.xaml" />
                 <!--  Other merged dictionaries here  -->
             </ResourceDictionary.MergedDictionaries>
-            <converters:SongArtistHighlightConverter x:Key="SongHighlightConverter" />
-            <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-            <converters:BoolToInverseVisibilityConverter x:Key="BoolToInverseVisibilityConverter" />
-            <converters:BoolToPlayingPauseConv x:Key="BoolToPlayingPauseConverter" />
-            <converters:BytesToMegabytesConverter x:Key="BytesToMegabytesConverter" />
-            <converters:MsToDurationConverter x:Key="MsToDurationConverter" />
-            <converters:BoolToVisConverter x:Key="BoolToVisConverter" />
-            <converters:PlayTypeToBorderBrush x:Key="PlayTypeToBorderBrush" />
-            <converters:StringFormatConverter x:Key="StringFormatConverter" />
-            <converters:EventDateToTimeAgo x:Key="EventDateToTimeAgoConverter" />
-            <converters:EventDateOffsetToTimeAgo x:Key="EventDateOffsetToTimeAgo" />
-            <converters:TrackImageConverter x:Key="TrackImageConverter" />
-            <converters:BoolToCompleteColorConverter x:Key="BoolToCompleteColorConverter" />
-            <converters:BoolToCompleteIconConverter x:Key="BoolToCompleteIconConverter" />
-            <converters:StringToImageSourceConverter x:Key="StringToImageConverter" />
-            <converters:IsObjNullToVisInverseConverter x:Key="IsObjNullToVisInverseConverter" />
-            <converters:BoolToHeartColorConverter x:Key="BoolToHeartColorConverter" />
-            <converters:EnumToIntConver x:Key="EnumToIntConver" />
-            <converters:EnumToStringConver x:Key="EnumToStringConver" />
 
-            <converters:BoolToInverseConverter x:Key="BoolToInverseConverter" />
-            <converters:IsObjNullToVisConverter x:Key="IsObjNullToVisConverter" />
-            <converters:IsFavoriteToFontIcon x:Key="IsFavoriteToFontIcon" />
-            <converters:StringToBoolConverter x:Key="StringToBoolConverter" />
-            <converters:BoolToVisibilityConverter x:Key="BoolToVis" />
-            <converters:InverseBoolToVisibilityConverter x:Key="InvBoolToVis" />
-            <converters:VolumeToPercentConverter x:Key="VolumeToPercentConverter" />
-            <converters:DurationConverterFromSecondsToTimeSpan x:Key="DurationConverter" />
-            <converters:CollectionSizeToVisibility x:Key="CollectionSizeToVisibility" />
-            <converters:CollectionSizeToVisibilityInverted x:Key="CollectionSizeToVisibilityInverted" />
-            <converters:RepeatModeConverter x:Key="RepeatModeConverter" />
-            <converters:BoolToGlyphConverter x:Key="BoolToGlyphConverter" />
-            <converters:BoolToPlanNameConverter x:Key="BoolToPlanNameConverter" />
-            <converters:BoolOpacityConverter x:Key="BoolOpacityConverter" />
-            <converters:BoolInverterConverter x:Key="BoolInverterConverter" />
-
-            <converters:StringNullOrEmptyToVisibility x:Key="StringNullOrEmptyToVisibility" />
-            <converters:BoolToImageConverter
-                x:Key="PlayPauseConverter"
-                FalseValue="play.png"
-                TrueValue="pause.png" />
-            <converters:BoolToImageConverter
-                x:Key="FavIconConverter"
-                FalseValue="heartbroken.png"
-                TrueValue="heartlock.png" />
 
             <Color x:Key="MyAccentColor">#483D8B</Color>
             <!--  DarkSlateBlue  -->

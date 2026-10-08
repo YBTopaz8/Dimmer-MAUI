@@ -155,7 +155,7 @@ public class AudioFileProcessor : IAudioFileProcessor
                 FileSize = actualFileSize,
                 Title = string.IsNullOrEmpty(track.Title) ? finalTitle : track.Title,
                 Description = track.Description ?? string.Empty, // Store version info in Description!
-                
+
                 // Artist Info
                 ArtistName = primaryArtistName,
                 OtherArtistsName = string.Join(", ", artistNames)!,
@@ -174,15 +174,15 @@ public class AudioFileProcessor : IAudioFileProcessor
                 FileFormat = Path.GetExtension(filePath).TrimStart('.').ToLowerInvariant(),
                 // Tag Info
                 ReleaseYear = track.Year is null ? 0 : (int)track.Year,
-                TrackNumber = track.TrackNumber,
-                DiscNumber = track.DiscNumber,
-                DiscTotal = track.DiscTotal,
-                BPM = track.BPM,
+                TrackNumber = Convert.ToDouble(track.TrackNumber),
+                DiscNumber = Convert.ToDouble(track.DiscNumber),
+                DiscTotal = Convert.ToDouble(track.DiscTotal),
+                BPM = Convert.ToDouble(track.BPM),
                 Composer = track.Composer,
                 Conductor = track.Conductor ?? string.Empty,
                 Language = track.Language ?? string.Empty,
                 PopularityScore = track.Popularity ?? 0, // Map ATL's Popularity to Rating
-                TrackTotal = track.TrackTotal,
+                TrackTotal = Convert.ToDouble(track.TrackTotal),
                 SampleRate = track.SampleRate,
                 //CoverImagePath = track.EmbeddedPictures.
                 Encoder = track.Encoder,

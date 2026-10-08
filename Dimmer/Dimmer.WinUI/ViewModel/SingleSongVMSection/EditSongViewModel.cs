@@ -1,4 +1,7 @@
-﻿namespace Dimmer.WinUI.ViewModel.SingleSongVMSection;
+﻿using CommunityToolkit.Maui.Core.Extensions;
+
+
+namespace Dimmer.WinUI.ViewModel.SingleSongVMSection;
 
 
 public partial class EditSongViewModel : ObservableObject
@@ -31,14 +34,96 @@ public partial class EditSongViewModel : ObservableObject
     [ObservableProperty]
     public partial List<string> AllArtists { get; set; }
 
-    [ObservableProperty]
-    public partial ObservableCollection<string?> SelectedArtists { get; set; } = new();
 
     // Track original artists for comparison
-    List<string?> _originalArtistNames;
+    List<string> _originalArtistNames;
 
     // Change tracking dictionary for quick lookup
     private Dictionary<string, PropertyChangeModelView> _changeMap = new();
+    // Artists Management
+
+    [ObservableProperty]
+    public partial ObservableCollection<string> ArtistSuggestions { get; set; } = new();
+
+    [ObservableProperty]
+    public partial ObservableCollection<string> AllArtistsMasterList { get; set; } = new();
+
+    [ObservableProperty]
+    public partial ObservableCollection<string> SelectedArtists { get; set; } = new();
+
+    // Album Arts from Album
+    [ObservableProperty]
+    public partial ObservableCollection<string> AlbumArtCandidates { get; set; } = new();
+
+    [ObservableProperty]
+    public partial bool HasAlbumArtCandidates { get; set; }
+
+    // Online Metadata (Last.fm)
+    [ObservableProperty]
+    public partial bool IsSearchingOnline { get; set; }
+
+    [ObservableProperty]
+    public partial bool HasOnlineResults { get; set; }
+
+    [ObservableProperty]
+    public partial string OnlineSearchTitle { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial string OnlineSearchArtist { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial string OnlineSearchAlbum { get; set; } = string.Empty;
+
+    private dynamic? _onlineMetadataResult;
+    public dynamic? OnlineMetadataResult
+    {
+        get => _onlineMetadataResult;
+        set
+        {
+            if (!ReferenceEquals(_onlineMetadataResult, value))
+            {
+                OnPropertyChanging(nameof(OnlineMetadataResult));
+                _onlineMetadataResult = value;
+                OnPropertyChanged(nameof(OnlineMetadataResult));
+            }
+        }
+    }
+
+    // Notifications
+    [ObservableProperty]
+    public partial string StatusMessage { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial InfoBarSeverity StatusSeverity { get; set; } = InfoBarSeverity.Informational;
+
+    private static readonly Dictionary<string, (string Display, string Category, int Order)> TrackedProperties = new()
+    {
+        { "Artists", ("Artists Linked", "Credits", 0) },
+        { nameof(SongModelView.Title), ("Title", "Basic Info", 1) },
+        { nameof(SongModelView.TrackNumber), ("Track #", "Basic Info", 2) },
+        { nameof(SongModelView.TrackTotal), ("Track Total", "Basic Info", 3) },
+        { nameof(SongModelView.DiscNumber), ("Disc #", "Basic Info", 4) },
+        { nameof(SongModelView.DiscTotal), ("Disc Total", "Basic Info", 5) },
+        { nameof(SongModelView.ReleaseYear), ("Release Year", "Basic Info", 6) },
+        { nameof(SongModelView.IsInstrumental), ("Instrumental", "Basic Info", 7) },
+        { nameof(SongModelView.AlbumName), ("Album Name", "Album", 8) },
+        { nameof(SongModelView.GenreName), ("Genre", "Genre", 9) },
+        { nameof(SongModelView.CoverImagePath), ("Cover Image", "Artwork", 10) },
+        { nameof(SongModelView.Composer), ("Composer", "Credits", 11) },
+        { nameof(SongModelView.Conductor), ("Conductor", "Credits", 12) },
+        { nameof(SongModelView.Lyricist), ("Lyricist", "Credits", 13) },
+        { nameof(SongModelView.BPM), ("BPM", "Audio Specs", 14) },
+        { nameof(SongModelView.Language), ("Language", "Metadata", 15) },
+        { nameof(SongModelView.Description), ("Description", "Metadata", 16) },
+        { nameof(SongModelView.SyncLyrics), ("Synced Lyrics", "Lyrics", 17) },
+        { nameof(SongModelView.UnSyncLyrics), ("Unsynced Lyrics", "Lyrics", 18) },
+        { nameof(SongModelView.Rating), ("Rating", "Statistics", 19) },
+        { nameof(SongModelView.IsFavorite), ("Favorite Status", "Statistics", 20) },
+        { nameof(SongModelView.Achievement), ("Achievement", "Metadata", 21) },
+        { nameof(SongModelView.DurationInSeconds), ("Duration", "Audio Specs", 22) }
+    };
+    [ObservableProperty]
+    public partial bool IsStatusOpen { get; set; }
 
     public EditSongViewModel(BaseViewModelWin mainViewModel, SongModelView songToEdit)
     {
@@ -48,41 +133,103 @@ public partial class EditSongViewModel : ObservableObject
         OriginalSong = songToEdit;
         EditingSong = songToEdit.ShallowCopy();
 
-        // Store original artists
         _originalArtistNames = OriginalSong.ArtistToSong?
-            .Select(a => a.Name)
-            .ToList() ?? new List<string?>();
+            .Where(a => a != null && !string.IsNullOrWhiteSpace(a.Name))
+            .Select(a => a!.Name)
+            .ToList() ?? new List<string>();
 
-        SelectedArtists = new ObservableCollection<string?>(_originalArtistNames);
+        if (!_originalArtistNames.Any() && !string.IsNullOrWhiteSpace(OriginalSong.ArtistName))
+        {
+            _originalArtistNames.Add(OriginalSong.ArtistName);
+        }
 
-        LoadAllArtists();
+        SelectedArtists = new ObservableCollection<string>(_originalArtistNames);
 
-        // Subscribe to property changes
+        // Preload fields for online search
+        OnlineSearchTitle = EditingSong.Title ?? string.Empty;
+        OnlineSearchArtist = EditingSong.ArtistName ?? string.Empty;
+        OnlineSearchAlbum = EditingSong.AlbumName ?? string.Empty;
+
+        LoadArtistsMasterList();
+        LoadAlbumArtCandidates();
+
         EditingSong.PropertyChanged += OnEditingSongPropertyChanged;
     }
 
-    private void LoadAllArtists()
+
+    private void LoadArtistsMasterList()
     {
-        AllArtists = _realmFactory.GetRealmInstance()
-            .All<ArtistModel>().AsEnumerable()
-            .Where(a => !string.IsNullOrWhiteSpace(a.Name))
-            .Select(a => a.Name)
-            .Distinct()
-            .OrderBy(n => n)
-            .ToList();
+        try
+        {
+            var realm = _realmFactory.GetRealmInstance();
+            AllArtistsMasterList = realm.All<ArtistModel>()
+                .AsEnumerable()
+                .Where(a => !string.IsNullOrWhiteSpace(a.Name))
+                .Select(a => a.Name)
+                .Distinct()
+                .OrderBy(n => n)
+                .ToObservableCollection();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Failed to load artists master list: {ex.Message}");
+        }
     }
+
+    private void LoadAlbumArtCandidates()
+    {
+        try
+        {
+            var realm = _realmFactory.GetRealmInstance();
+            var dbSong = realm.Find<SongModel>(OriginalSong.Id);
+            var candidates = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            if (dbSong?.Album != null)
+            {
+                var paths = dbSong.Album.SongsInAlbum
+                    .Select(s => s.CoverImagePath)
+                    .Where(p => !string.IsNullOrWhiteSpace(p) && File.Exists(p));
+
+                foreach (var p in paths) candidates.Add(p);
+            }
+            else if (!string.IsNullOrWhiteSpace(OriginalSong.AlbumName))
+            {
+                var albumFromDb = realm.All<AlbumModel>().FirstOrDefault(a => a.Name == OriginalSong.AlbumName);
+                if (albumFromDb?.SongsInAlbum != null)
+                {
+                    var paths = albumFromDb.SongsInAlbum
+                        .Select(s => s.CoverImagePath)
+                        .Where(p => !string.IsNullOrWhiteSpace(p) && File.Exists(p));
+
+                    foreach (var p in paths) candidates.Add(p);
+                }
+            }
+
+            AlbumArtCandidates = new ObservableCollection<string>(candidates);
+            HasAlbumArtCandidates = AlbumArtCandidates.Any();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error querying album art candidates: {ex.Message}");
+        }
+    }
+
 
     private void OnEditingSongPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(SongModelView.ArtistToSong))
-            return; // Handle artists separately
+        if (string.IsNullOrEmpty(e.PropertyName) || !TrackedProperties.ContainsKey(e.PropertyName))
+            return;
 
-        var oldValue = GetOriginalValue(e.PropertyName);
-        var newValue = GetCurrentValue(e.PropertyName);
+        var prop = typeof(SongModelView).GetProperty(e.PropertyName);
+        if (prop == null) return;
 
-        if (!AreValuesEqual(oldValue, newValue))
+        var originalVal = prop.GetValue(OriginalSong);
+        var currentVal = prop.GetValue(EditingSong);
+
+        if (!AreValuesEqual(originalVal, currentVal))
         {
-            AddOrUpdateChange(e.PropertyName, oldValue, newValue);
+            var info = TrackedProperties[e.PropertyName];
+            AddOrUpdateChange(e.PropertyName, info.Display, info.Category, info.Order, originalVal, currentVal);
         }
         else
         {
@@ -91,7 +238,6 @@ public partial class EditSongViewModel : ObservableObject
 
         UpdateHasChanges();
     }
-
     private object? GetOriginalValue(string? propertyName)
     {
         if (propertyName == null) return null;
@@ -99,20 +245,35 @@ public partial class EditSongViewModel : ObservableObject
         {
             nameof(SongModelView.Title) => OriginalSong.Title,
             nameof(SongModelView.TrackNumber) => OriginalSong.TrackNumber,
+            nameof(SongModelView.TrackTotal) => OriginalSong.TrackTotal,
+            nameof(SongModelView.DiscNumber) => OriginalSong.DiscNumber,
+            nameof(SongModelView.DiscTotal) => OriginalSong.DiscTotal,
             nameof(SongModelView.ReleaseYear) => OriginalSong.ReleaseYear,
             nameof(SongModelView.Conductor) => OriginalSong.Conductor,
             nameof(SongModelView.Composer) => OriginalSong.Composer,
+            nameof(SongModelView.Lyricist) => OriginalSong.Lyricist,
+            nameof(SongModelView.BPM) => OriginalSong.BPM,
+            nameof(SongModelView.Language) => OriginalSong.Language,
             nameof(SongModelView.Description) => OriginalSong.Description,
             nameof(SongModelView.IsInstrumental) => OriginalSong.IsInstrumental,
             nameof(SongModelView.GenreName) => OriginalSong.GenreName,
             nameof(SongModelView.AlbumName) => OriginalSong.AlbumName,
             nameof(SongModelView.CoverImagePath) => OriginalSong.CoverImagePath,
-            nameof(SongModelView.Lyricist) => OriginalSong.Lyricist,
-            nameof(SongModelView.BPM) => OriginalSong.BPM,
-            nameof(SongModelView.Language) => OriginalSong.Language,
-            nameof(SongModelView.DiscNumber) => OriginalSong.DiscNumber,
-            nameof(SongModelView.DiscTotal) => OriginalSong.DiscTotal,
-            _ => null
+            nameof(SongModelView.SyncLyrics) => OriginalSong.SyncLyrics,
+            nameof(SongModelView.UnSyncLyrics) => OriginalSong.UnSyncLyrics,
+            nameof(SongModelView.Rating) => OriginalSong.Rating,
+            nameof(SongModelView.IsFavorite) => OriginalSong.IsFavorite,
+            nameof(SongModelView.Achievement) => OriginalSong.Achievement,
+            nameof(SongModelView.DurationInSeconds) => OriginalSong.DurationInSeconds,
+            nameof(SongModelView.FilePath) => OriginalSong.FilePath,
+            nameof(SongModelView.FileFormat) => OriginalSong.FileFormat,
+            nameof(SongModelView.FileSize) => OriginalSong.FileSize,
+            nameof(SongModelView.BitRate) => OriginalSong.BitRate,
+            nameof(SongModelView.BitDepth) => OriginalSong.BitDepth,
+            nameof(SongModelView.SampleRate) => OriginalSong.SampleRate,
+            nameof(SongModelView.NbOfChannels) => OriginalSong.NbOfChannels,
+            nameof(SongModelView.Encoder) => OriginalSong.Encoder,
+            _ => typeof(SongModelView).GetProperty(propertyName)?.GetValue(OriginalSong)
         };
     }
 
@@ -123,38 +284,53 @@ public partial class EditSongViewModel : ObservableObject
         {
             nameof(SongModelView.Title) => EditingSong.Title,
             nameof(SongModelView.TrackNumber) => EditingSong.TrackNumber,
+            nameof(SongModelView.TrackTotal) => EditingSong.TrackTotal,
+            nameof(SongModelView.DiscNumber) => EditingSong.DiscNumber,
+            nameof(SongModelView.DiscTotal) => EditingSong.DiscTotal,
             nameof(SongModelView.ReleaseYear) => EditingSong.ReleaseYear,
             nameof(SongModelView.Conductor) => EditingSong.Conductor,
             nameof(SongModelView.Composer) => EditingSong.Composer,
+            nameof(SongModelView.Lyricist) => EditingSong.Lyricist,
+            nameof(SongModelView.BPM) => EditingSong.BPM,
+            nameof(SongModelView.Language) => EditingSong.Language,
             nameof(SongModelView.Description) => EditingSong.Description,
             nameof(SongModelView.IsInstrumental) => EditingSong.IsInstrumental,
             nameof(SongModelView.GenreName) => EditingSong.GenreName,
             nameof(SongModelView.AlbumName) => EditingSong.AlbumName,
             nameof(SongModelView.CoverImagePath) => EditingSong.CoverImagePath,
-            nameof(SongModelView.Lyricist) => EditingSong.Lyricist,
-            nameof(SongModelView.BPM) => EditingSong.BPM,
-            nameof(SongModelView.Language) => EditingSong.Language,
-            nameof(SongModelView.DiscNumber) => EditingSong.DiscNumber,
-            nameof(SongModelView.DiscTotal) => EditingSong.DiscTotal,
-            _ => null
+            nameof(SongModelView.SyncLyrics) => EditingSong.SyncLyrics,
+            nameof(SongModelView.UnSyncLyrics) => EditingSong.UnSyncLyrics,
+            nameof(SongModelView.Rating) => EditingSong.Rating,
+            nameof(SongModelView.IsFavorite) => EditingSong.IsFavorite,
+            nameof(SongModelView.Achievement) => EditingSong.Achievement,
+            nameof(SongModelView.DurationInSeconds) => EditingSong.DurationInSeconds,
+            nameof(SongModelView.FilePath) => EditingSong.FilePath,
+            nameof(SongModelView.FileFormat) => EditingSong.FileFormat,
+            nameof(SongModelView.FileSize) => EditingSong.FileSize,
+            nameof(SongModelView.BitRate) => EditingSong.BitRate,
+            nameof(SongModelView.BitDepth) => EditingSong.BitDepth,
+            nameof(SongModelView.SampleRate) => EditingSong.SampleRate,
+            nameof(SongModelView.NbOfChannels) => EditingSong.NbOfChannels,
+            nameof(SongModelView.Encoder) => EditingSong.Encoder,
+            _ => typeof(SongModelView).GetProperty(propertyName)?.GetValue(EditingSong)
         };
     }
-
-    private bool AreValuesEqual(object? oldVal, object? newVal)
+    private static bool AreValuesEqual(object? v1, object? v2)
     {
-        if (oldVal == null && newVal == null) return true;
-        if (oldVal == null || newVal == null) return false;
+        if (v1 == null && v2 == null) return true;
+        if (v1 == null || v2 == null) return false;
 
-        // Handle special cases
-        if (oldVal is double d1 && newVal is double d2)
-            return Math.Abs(d1 - d2) < 0.001;
+        if (v1 is string s1 && v2 is string s2)
+            return string.Equals(s1.Trim(), s2.Trim(), StringComparison.Ordinal);
 
-        if (oldVal is float f1 && newVal is float f2)
+        if (v1 is float f1 && v2 is float f2)
             return Math.Abs(f1 - f2) < 0.001f;
 
-        return oldVal.Equals(newVal);
-    }
+        if (v1 is double d1 && v2 is double d2)
+            return Math.Abs(d1 - d2) < 0.001;
 
+        return v1.Equals(v2);
+    }
     private bool ShouldSkipTracking(string propertyName)
     {
         // Skip auto-calculated properties
@@ -167,76 +343,46 @@ public partial class EditSongViewModel : ObservableObject
             nameof(SongModelView.CurrentPlaySongDominantColor) => true,
             _ => false
         };
+
     }
-    private void AddOrUpdateChange(string? propertyName, object? oldValue, object? newValue)
+    private void AddOrUpdateChange(string propName, string displayName, string category, int order, object? oldVal, object? newVal)
     {
-        if (propertyName is null) return;
-        if (ShouldSkipTracking(propertyName))
-            return;
-
-        var displayName = GetDisplayName(propertyName);
-        var category = GetCategory(propertyName);
-        var order = GetDisplayOrder(propertyName);
-
-        // Handle null/empty string normalization
-        if (oldValue is string oldStr && string.IsNullOrEmpty(oldStr))
-            oldValue = null;
-        if (newValue is string newStr && string.IsNullOrEmpty(newStr))
-            newValue = null;
-
-        if (_changeMap.TryGetValue(propertyName, out var existing))
+        if (_changeMap.TryGetValue(propName, out var change))
         {
-            // Update existing change
-            existing.NewValue = newValue;
-            existing.IsAccepted = false;
-            existing.IsRejected = false;
+            change.NewValue = newVal;
+            change.IsAccepted = true;
         }
         else
         {
-            // Create new change
-            var change = new PropertyChangeModelView() // Pass ViewModel reference
+            var newChange = new PropertyChangeModelView
             {
-                PropertyName = propertyName,
+                PropertyName = propName,
                 DisplayName = displayName,
-                OldValue = oldValue,
-                NewValue = newValue,
                 Category = category,
-                DisplayOrder = order
+                DisplayOrder = order,
+                OldValue = oldVal,
+                NewValue = newVal,
+                IsAccepted = true
             };
+            _changeMap[propName] = newChange;
 
-            _changeMap[propertyName] = change;
-
-            // Insert in order
-            var insertIndex = PendingChanges
-                .TakeWhile(c => c.DisplayOrder <= order)
-                .Count();
-
-            // Ensure we insert at the right position
-            while (insertIndex < PendingChanges.Count &&
-                   PendingChanges[insertIndex].DisplayOrder == order &&
-                   string.Compare(PendingChanges[insertIndex].DisplayName, displayName) < 0)
-            {
-                insertIndex++;
-            }
-
-            PendingChanges.Insert(insertIndex, change);
+            int index = PendingChanges.TakeWhile(c => c.DisplayOrder <= order).Count();
+            PendingChanges.Insert(index, newChange);
         }
 
         TotalChangesCount = PendingChanges.Count;
     }
 
-    private void RemoveChangeIfExists(string? propertyName)
+
+    private void RemoveChangeIfExists(string propName)
     {
-        if (propertyName is null) return;
-        if (_changeMap.TryGetValue(propertyName, out var change))
+        if (_changeMap.TryGetValue(propName, out var change))
         {
             PendingChanges.Remove(change);
-            _changeMap.Remove(propertyName);
+            _changeMap.Remove(propName);
+            TotalChangesCount = PendingChanges.Count;
         }
-
-        TotalChangesCount = PendingChanges.Count;
     }
-
     private string GetDisplayName(string propertyName)
     {
         return propertyName switch
@@ -317,20 +463,7 @@ public partial class EditSongViewModel : ObservableObject
         CheckArtistChanges();
     }
 
-    public void AddArtist(string artistName)
-    {
-        if (!SelectedArtists.Contains(artistName))
-        {
-            SelectedArtists.Add(artistName);
-            CheckArtistChanges();
-        }
-    }
 
-    public void RemoveArtist(string artistName)
-    {
-        SelectedArtists.Remove(artistName);
-        CheckArtistChanges();
-    }
 
     private void CheckArtistChanges()
     {
@@ -344,8 +477,9 @@ public partial class EditSongViewModel : ObservableObject
 
             if (string.IsNullOrEmpty(oldValue)) oldValue = "<none>";
             if (string.IsNullOrEmpty(newValue)) newValue = "<none>";
-
-            AddOrUpdateChange("Artists", oldValue, newValue);
+            var (Display, Category, Order) = TrackedProperties["Artists"];
+            AddOrUpdateChange("Artists", Display, Category, Order, oldValue, newValue);
+            //AddOrUpdateChange("Artists", oldValue, newValue,0);
         }
         else
         {
@@ -355,12 +489,77 @@ public partial class EditSongViewModel : ObservableObject
         UpdateHasChanges();
     }
 
+
     private void UpdateHasChanges()
     {
         HasChanges = PendingChanges.Any();
-        AcceptedChangesCount = PendingChanges.Count(c => c.IsAccepted);
     }
 
+    #region Artist Management Commands
+
+    [RelayCommand]
+    public void FilterArtistSuggestions(string query)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            ArtistSuggestions.Clear();
+            return;
+        }
+
+        var matches = AllArtistsMasterList
+            .Where(a => a.Contains(query, StringComparison.OrdinalIgnoreCase) && !SelectedArtists.Contains(a))
+            .Take(10)
+            .ToList();
+
+        ArtistSuggestions = new ObservableCollection<string>(matches);
+    }
+
+    [RelayCommand]
+    public void AddArtist(string? artistName)
+    {
+        if (string.IsNullOrWhiteSpace(artistName)) return;
+
+        var clean = artistName.Trim();
+        if (!SelectedArtists.Contains(clean, StringComparer.OrdinalIgnoreCase))
+        {
+            SelectedArtists.Add(clean);
+            EvaluateArtistChanges();
+        }
+    }
+
+    [RelayCommand]
+    public void RemoveArtist(string? artistName)
+    {
+        if (string.IsNullOrWhiteSpace(artistName)) return;
+
+        var item = SelectedArtists.FirstOrDefault(a => string.Equals(a, artistName, StringComparison.OrdinalIgnoreCase));
+        if (item != null)
+        {
+            SelectedArtists.Remove(item);
+            EvaluateArtistChanges();
+        }
+    }
+
+    private void EvaluateArtistChanges()
+    {
+        var current = SelectedArtists.OrderBy(a => a).ToList();
+        var orig = _originalArtistNames.OrderBy(a => a).ToList();
+
+        if (!current.SequenceEqual(orig, StringComparer.OrdinalIgnoreCase))
+        {
+            var oldVal = orig.Count != 0 ? string.Join(", ", orig) : "<None>";
+            var newVal = current.Count != 0 ? string.Join(", ", current) : "<None>";
+            AddOrUpdateChange("Artists", "Artists Linked", "Credits", 0, oldVal, newVal);
+        }
+        else
+        {
+            RemoveChangeIfExists("Artists");
+        }
+
+        UpdateHasChanges();
+    }
+
+    #endregion
     // Change acceptance/rejection
     public void AcceptChange(PropertyChangeModelView change)
     {
@@ -431,7 +630,233 @@ public partial class EditSongViewModel : ObservableObject
                 break;
         }
     }
+    #region Cover Image Commands
 
+    [RelayCommand]
+    public async Task PickImageFromFileAsync()
+    {
+        try
+        {
+            var picker = new FileOpenPicker();
+            picker.FileTypeFilter.Add(".jpg");
+            picker.FileTypeFilter.Add(".jpeg");
+            picker.FileTypeFilter.Add(".png");
+            picker.FileTypeFilter.Add(".webp");
+
+            var hwnd =  PlatUtils.DimmerHandle;
+            WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+
+            var file = await picker.PickSingleFileAsync();
+            if (file != null)
+            {
+                EditingSong.CoverImagePath = file.Path;
+                ShowNotification("Cover image updated from local storage.", InfoBarSeverity.Success);
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowNotification($"Failed to pick image: {ex.Message}", InfoBarSeverity.Error);
+        }
+    }
+
+    [RelayCommand]
+    public void ApplyAlbumCandidateImage(string imagePath)
+    {
+        if (!string.IsNullOrWhiteSpace(imagePath) && File.Exists(imagePath))
+        {
+            EditingSong.CoverImagePath = imagePath;
+            ShowNotification("Applied album image.", InfoBarSeverity.Success);
+        }
+    }
+
+    [RelayCommand]
+    public void RemoveCoverImage()
+    {
+        EditingSong.CoverImagePath = string.Empty;
+        ShowNotification("Cover image removed.", InfoBarSeverity.Informational);
+    }
+
+    #endregion
+
+    [RelayCommand]
+    public void DiscardChanges()
+    {
+        EditingSong = OriginalSong.ShallowCopy();
+
+        SelectedArtists.Clear();
+        foreach (var art in _originalArtistNames)
+            SelectedArtists.Add(art);
+
+        PendingChanges.Clear();
+        _changeMap.Clear();
+        UpdateHasChanges();
+        TotalChangesCount = 0;
+
+        EditingSong.PropertyChanged += OnEditingSongPropertyChanged;
+        ShowNotification("Draft discarded. Restored original values.", InfoBarSeverity.Informational);
+    }
+
+    [RelayCommand]
+    public async Task SaveChangesAsync()
+    {
+        if (!HasChanges)
+        {
+            ShowNotification("No changes detected to save.", InfoBarSeverity.Informational);
+            return;
+        }
+
+        try
+        {
+            // 1. Commit editing values to OriginalSong
+            foreach (var change in PendingChanges.Where(c => c.IsAccepted))
+            {
+                if (change.PropertyName == "Artists")
+                {
+                    await CommitArtistsToRealmAsync(SelectedArtists);
+                    continue;
+                }
+
+                var prop = typeof(SongModelView).GetProperty(change.PropertyName);
+                if (prop != null && prop.CanWrite)
+                {
+                    var val = prop.GetValue(EditingSong);
+                    prop.SetValue(OriginalSong, val);
+                }
+            }
+
+            // Sync denormalized / key fields
+            OriginalSong.SetTitleAndDuration(OriginalSong.Title, OriginalSong.DurationInSeconds);
+            OriginalSong.RefreshDenormalizedProperties();
+
+            // 2. Commit to database through main VM
+            await _mainViewModel.ApplyNewSongEdits(OriginalSong);
+
+            // 3. Clear change tracking state
+            PendingChanges.Clear();
+            _changeMap.Clear();
+            _originalArtistNames.Clear();
+            _originalArtistNames.AddRange(SelectedArtists);
+
+            UpdateHasChanges();
+            TotalChangesCount = 0;
+
+            ShowNotification("All modifications saved successfully.", InfoBarSeverity.Success);
+        }
+        catch (Exception ex)
+        {
+            ShowNotification($"Failed to save changes: {ex.Message}", InfoBarSeverity.Error);
+        }
+    }
+
+    private async Task CommitArtistsToRealmAsync(IEnumerable<string> artistNames)
+    {
+        var realm = _realmFactory.GetRealmInstance();
+        var songInDb = realm.Find<SongModel>(OriginalSong.Id);
+        if (songInDb == null) return;
+
+        await realm.WriteAsync(() =>
+        {
+            songInDb.ArtistToSong.Clear();
+            foreach (var name in artistNames)
+            {
+                var existing = realm.All<ArtistModel>().FirstOrDefault(a => a.Name == name);
+                if (existing == null)
+                {
+                    existing = realm.Add(new ArtistModel { Name = name });
+                }
+                songInDb.ArtistToSong.Add(existing);
+            }
+
+            // Update primary artist reference
+            var primary = songInDb.ArtistToSong.FirstOrDefault();
+            if (primary != null)
+            {
+                songInDb.Artist = primary;
+                OriginalSong.ArtistName = primary.Name;
+            }
+        });
+    }
+
+    [RelayCommand]
+    public async Task SearchOnlineAsync()
+    {
+        if (string.IsNullOrWhiteSpace(OnlineSearchTitle) && string.IsNullOrWhiteSpace(OnlineSearchArtist))
+        {
+            ShowNotification("Please provide a Title and Artist to search online.", InfoBarSeverity.Warning);
+            return;
+        }
+
+        try
+        {
+            IsSearchingOnline = true;
+            HasOnlineResults = false;
+
+            var trackInfo = await _mainViewModel.LastfmService.GetTrackInfoAsync(OnlineSearchArtist, OnlineSearchTitle);
+            if (trackInfo == null || trackInfo.IsNull)
+            {
+                ShowNotification("No online match found on Last.fm.", InfoBarSeverity.Informational);
+                return;
+            }
+
+            OnlineMetadataResult = trackInfo;
+            HasOnlineResults = true;
+            ShowNotification("Online metadata retrieved successfully.", InfoBarSeverity.Success);
+        }
+        catch (Exception ex)
+        {
+            ShowNotification($"Online search error: {ex.Message}", InfoBarSeverity.Error);
+        }
+        finally
+        {
+            IsSearchingOnline = false;
+        }
+    }
+    #region Online Metadata (Last.fm)
+
+    [RelayCommand]
+    public void ApplyOnlineMetadata()
+    {
+        if (OnlineMetadataResult == null) return;
+
+        try
+        {
+            if (!string.IsNullOrWhiteSpace((string)OnlineMetadataResult.Name))
+                EditingSong.Title = OnlineMetadataResult.Name;
+
+            if (OnlineMetadataResult.Artist != null && !string.IsNullOrWhiteSpace((string)OnlineMetadataResult.Artist.Name))
+            {
+                var artistName = (string)OnlineMetadataResult.Artist.Name;
+                if (!SelectedArtists.Contains(artistName))
+                {
+                    SelectedArtists.Clear();
+                    SelectedArtists.Add(artistName);
+                    EvaluateArtistChanges();
+                }
+            }
+
+            if (OnlineMetadataResult.Album != null && !string.IsNullOrWhiteSpace((string)OnlineMetadataResult.Album.Name))
+            {
+                EditingSong.AlbumName = OnlineMetadataResult.Album.Name;
+            }
+
+            ShowNotification("Metadata merged into editing draft.", InfoBarSeverity.Success);
+        }
+        catch (Exception ex)
+        {
+            ShowNotification($"Could not apply online metadata: {ex.Message}", InfoBarSeverity.Error);
+        }
+    }
+
+    #endregion
+
+
+
+    private void ShowNotification(string message, InfoBarSeverity severity)
+    {
+        StatusMessage = message;
+        StatusSeverity = severity;
+        IsStatusOpen = true;
+    }
     private void RevertChangeInEditingSong(PropertyChangeModelView change)
     {
         // Revert the value in EditingSong back to original
@@ -812,17 +1237,107 @@ public partial class EditSongViewModel : ObservableObject
         _originalArtistNames = SelectedArtists.ToList();
     }
 
-    private void SetOriginalValue(string propertyName, object value)
+    private void SetOriginalValue(string propertyName, object? value)
     {
         switch (propertyName)
         {
             case nameof(SongModelView.Title):
-                OriginalSong.Title = (string)value;
+                OriginalSong.Title = value as string ?? string.Empty;
                 break;
             case nameof(SongModelView.TrackNumber):
-                OriginalSong.TrackNumber = (int?)value;
+                OriginalSong.TrackNumber = value is int tn ? tn : 0;
                 break;
-                // ... etc
+            case nameof(SongModelView.TrackTotal):
+                OriginalSong.TrackTotal = value is int tt ? tt : 0;
+                break;
+            case nameof(SongModelView.DiscNumber):
+                OriginalSong.DiscNumber = value is int dn ? dn : 0;
+                break;
+            case nameof(SongModelView.DiscTotal):
+                OriginalSong.DiscTotal = value is int dt ? dt : 0;
+                break;
+            case nameof(SongModelView.ReleaseYear):
+                OriginalSong.ReleaseYear = value is int ry ? ry : 0;
+                break;
+            case nameof(SongModelView.IsInstrumental):
+                OriginalSong.IsInstrumental = (bool)value!;
+                break;
+            case nameof(SongModelView.AlbumName):
+                OriginalSong.AlbumName = value as string ?? string.Empty;
+                break;
+            case nameof(SongModelView.GenreName):
+                OriginalSong.GenreName = value as string ?? string.Empty;
+                break;
+            case nameof(SongModelView.CoverImagePath):
+                OriginalSong.CoverImagePath = value as string ?? string.Empty;
+                break;
+            case nameof(SongModelView.Composer):
+                OriginalSong.Composer = value as string ?? string.Empty;
+                break;
+            case nameof(SongModelView.Conductor):
+                OriginalSong.Conductor = value as string ?? string.Empty;
+                break;
+            case nameof(SongModelView.Lyricist):
+                OriginalSong.Lyricist = value as string ?? string.Empty;
+                break;
+            //case nameof(SongModelView.BPM):
+                //OriginalSong.BPM = value is double bpm ? bpm : (value is double dBpm ? (double)dBpm : 0);
+                //break;
+            case nameof(SongModelView.Language):
+                OriginalSong.Language = value as string ?? string.Empty;
+                break;
+            case nameof(SongModelView.Description):
+                OriginalSong.Description = value as string ?? string.Empty;
+                break;
+            case nameof(SongModelView.SyncLyrics):
+                OriginalSong.SyncLyrics = value as string;
+                break;
+            case nameof(SongModelView.UnSyncLyrics):
+                OriginalSong.UnSyncLyrics = value as string;
+                break;
+            case nameof(SongModelView.Rating):
+                OriginalSong.Rating = value is int r ? r : 0;
+                break;
+            case nameof(SongModelView.IsFavorite):
+                OriginalSong.IsFavorite = value is bool fav && fav;
+                break;
+            case nameof(SongModelView.Achievement):
+                OriginalSong.Achievement = value as string ?? string.Empty;
+                break;
+            case nameof(SongModelView.DurationInSeconds):
+                OriginalSong.DurationInSeconds = value is double dur ? dur : 0;
+                break;
+            case nameof(SongModelView.FilePath):
+                OriginalSong.FilePath = value as string ?? string.Empty;
+                break;
+            case nameof(SongModelView.FileFormat):
+                OriginalSong.FileFormat = value as string ?? string.Empty;
+                break;
+            case nameof(SongModelView.FileSize):
+                OriginalSong.FileSize = value is long fs ? fs : (value is int ifs ? ifs : 0L);
+                break;
+            case nameof(SongModelView.BitRate):
+                OriginalSong.BitRate = value is int br ? br : 0;
+                break;
+            case nameof(SongModelView.BitDepth):
+                OriginalSong.BitDepth = value is int bd ? bd : 0;
+                break;
+            case nameof(SongModelView.SampleRate):
+                OriginalSong.SampleRate = value is double sr ? sr : 0;
+                break;
+            case nameof(SongModelView.NbOfChannels):
+                OriginalSong.NbOfChannels = value is int nc ? nc : 0;
+                break;
+            case nameof(SongModelView.Encoder):
+                OriginalSong.Encoder = value as string ?? string.Empty;
+                break;
+            default:
+                var prop = typeof(SongModelView).GetProperty(propertyName);
+                if (prop != null && prop.CanWrite)
+                {
+                    prop.SetValue(OriginalSong, value);
+                }
+                break;
         }
     }
 

@@ -605,12 +605,11 @@
                                                     Style="{StaticResource ValueLabel}"
                                                     Text="{Binding CurrentSpeed, StringFormat='{0:F2}x'}" />
                                             </Grid>
-                                            <Slider
-                                                Maximum="2.0"
-                                                Minimum="0.5"
-                                                MinimumTrackColor="DarkSlateBlue"
-                                                ThumbColor="DarkSlateBlue"
-                                                Value="{Binding CurrentSpeed, Mode=TwoWay}" />
+                                            <dx:DXSlider
+                                                MaxValue="2.0"
+                                                MinValue="0.5"
+                                                ValueStep="0.5"
+                                                Value="{Binding CurrentSpeed, Mode=OneWay}" />
                                         </dx:DXStackLayout>
 
                                         <!--  Pitch Slider (-12 to +12 Semitones)  -->

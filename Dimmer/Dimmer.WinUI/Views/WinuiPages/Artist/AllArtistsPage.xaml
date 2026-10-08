@@ -169,6 +169,13 @@
                                 <TextBlock FontWeight="SemiBold" Text="Play All" />
                             </StackPanel>
                         </Button>
+                        <Button
+                            x:Name="ViewArtistButton"
+                            Click="ViewArtistButton_Click"
+                            CornerRadius="20"
+                            ToolTipService.ToolTip="View Artist">
+                            <FontIcon FontSize="14" Glyph="&#xE890;" />
+                        </Button>
                         <Button CornerRadius="20" ToolTipService.ToolTip="Add To Queue">
                             <FontIcon FontSize="14" Glyph="&#xE8D8;" />
                         </Button>

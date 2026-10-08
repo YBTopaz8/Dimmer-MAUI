@@ -65,9 +65,11 @@
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="auto" />
                         </Grid.ColumnDefinitions>
                         <Image
                             x:Name="CurrentPlayingSongImg"
+                            Grid.Column="0"
                             MaxWidth="500"
                             MaxHeight="500"
                             Canvas.ZIndex="-1"
@@ -77,6 +79,7 @@
 
                         <devWin:BetterLyric
                             x:Name="BetterLyricControl"
+                            Grid.Column="1"
                             Height="500"
                             Margin="0,0,30,0"
                             HorizontalAlignment="Stretch"
@@ -101,10 +104,9 @@
                             LyricsScrollEasingMode="Out"
                             LyricsScrollEasingType="Cubic"
                             NonCurrentLineFillColor="#44FFFFFF"
-                            Opacity="0.7"
+                            Opacity="1"
                             PlayedCurrentLineFillColor="#FFFFFF"
                             UnplayedCurrentLineFillColor="#88FFFFFF"
-                            Visibility="{x:Bind MyViewModel.CurrentPlayingSongView.HasSyncedLyrics, Converter={StaticResource BoolToVisConverter}}"
                             WordByWordEffectMode="Auto" />
                     </Grid>
                     <StackPanel
@@ -190,6 +192,9 @@
                             Height="60"
                             Command="{x:Bind MyViewModel.PreviousTrackCommand}"
                             CornerRadius="30">
+                            <Button.CommandParameter>
+                                <x:Boolean>True</x:Boolean>
+                            </Button.CommandParameter>
                             <FontIcon FontSize="22" Glyph="&#xE892;" />
                         </Button>
                         <ToggleButton
@@ -206,6 +211,9 @@
                             Height="60"
                             Command="{x:Bind MyViewModel.NextTrackCommand}"
                             CornerRadius="30">
+                            <Button.CommandParameter>
+                                <x:Boolean>True</x:Boolean>
+                            </Button.CommandParameter>
                             <FontIcon FontSize="22" Glyph="&#xE893;" />
                         </Button>
                         <Button

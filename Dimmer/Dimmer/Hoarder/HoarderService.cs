@@ -160,7 +160,7 @@ public class HoarderService : IHoarderService
             string safeAlbum = SanitizeFileName(song.AlbumName ?? "Unknown Album");
             string yearStr = song.ReleaseYear > 0 ? $"[{song.ReleaseYear}] " : "";
             string safeTitle = SanitizeFileName(song.Title ?? "Unknown Title");
-            string trackStr = song.TrackNumber.HasValue ? $"{song.TrackNumber:D2} - " : "";
+            string trackStr =  $"{song.TrackNumber:D2} - " ;
             string ext = Path.GetExtension(song.FilePath);
 
             string targetDir = Path.Combine(rootFolder, safeArtist, $"{yearStr}{safeAlbum}");
@@ -211,7 +211,7 @@ public class HoarderService : IHoarderService
         if (album.SongsInAlbum == null || !album.SongsInAlbum.Any()) return missing;
 
         // 1. Get max track number found
-        int maxTrack = album.SongsInAlbum.Max(s => s.TrackNumber ?? 0);
+        var maxTrack = album.SongsInAlbum.Max(s => Convert.ToDouble(s.TrackNumber ));
 
         // 2. If metadata says "TotalTracks", use that
         if (album.TrackTotal.HasValue && album.TrackTotal > maxTrack)
@@ -219,8 +219,8 @@ public class HoarderService : IHoarderService
 
         // 3. Find gaps
         var existingTracks = album.SongsInAlbum
-            .Where(s => s.TrackNumber.HasValue)
-            .Select(s => s.TrackNumber.Value)
+
+            .Select(s => s.TrackNumber)
             .ToHashSet();
 
         for (int i = 1; i <= maxTrack; i++)
@@ -299,9 +299,7 @@ public class HoarderService : IHoarderService
                 string ext = Path.GetExtension(song.FilePath);
 
                 // Logic: "01 - Song Title.mp3"
-                string fileName = song.TrackNumber.HasValue
-                    ? $"{song.TrackNumber:D2} - {title}{ext}"
-                    : $"{title}{ext}";
+                string fileName = $"{song.TrackNumber:D2} - {title}{ext}";
 
                 // 3. Construct Destination
                 // Structure: TargetRoot / Artist / Album - Year / File

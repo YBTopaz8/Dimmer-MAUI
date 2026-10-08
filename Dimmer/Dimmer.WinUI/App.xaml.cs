@@ -1,9 +1,10 @@
-﻿using System.Collections.Concurrent;
-using System.Reactive.Concurrency;
+﻿using Avalonia.Controls;
+using DevWinUI;
 using Dimmer.Utils;
-
+using Dimmer.WinUI.DimmerAudioWin;
 using Microsoft.Windows.AppLifecycle;
-
+using System.Collections.Concurrent;
+using System.Reactive.Concurrency;
 using Windows.ApplicationModel.Activation;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -59,6 +60,8 @@ public partial class App : MauiWinUIApplication
             TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
 
             Microsoft.UI.Xaml.Application.Current.UnhandledException += App_UnhandledException;
+
+
         }
         catch (Exception ex)
         {
@@ -82,6 +85,29 @@ public partial class App : MauiWinUIApplication
             // Just return and don't log it.
             return;
         }
+        if (ex.Message.Contains("Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..\r\n"))            
+        {
+            // This is the noisy exception we want to ignore.
+            // Just return and don't log it.
+            return;
+        }
+
+        if (ex.Message.Contains("Unable to read data from the transport connection: The I/O operation has been aborted because of either a thread exit or an application request.."))
+        {
+            return; // Ignore this specific exception
+        }
+        if (ex.Message.Contains("No such host is known."))            
+        {
+            // This is the noisy exception we want to ignore.
+            // Just return and don't log it.
+            return;
+        }
+        if (ex.Message.Contains("Exception has been thrown by the target of an invocation"))            
+        {
+            // This is the noisy exception we want to ignore.
+            // Just return and don't log it.
+            return;
+        }
         var errorHandler = Services.GetService<IErrorHandler>();
         errorHandler?.HandleError((Exception)e.ExceptionObject);
         Exception exx = (Exception)e.ExceptionObject;
@@ -91,161 +117,12 @@ public partial class App : MauiWinUIApplication
                                  $"Message: {exx.Message}\n" +
                                  $"Source: {exx.Source}\n" +
                                  $"Stack Trace: {exx.StackTrace}\n";
-
+        
         // ... Log to file, etc.
         Debug.WriteLine(errorDetails);
         LogException(exx);
     }
 
-    private void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
-    {
-        Debug.WriteLine($"UNOBSERVED TASK EXCEPTION: {e.Exception}");
-        var errorHandler = Services.GetService<IErrorHandler>();
-        errorHandler?.HandleError(e.Exception);
-        e.SetObserved(); // Prevent app from crashing due to unobserved exception
-    }
-
-    // This event handler is for the MAIN INSTANCE when it's activated by a redirected instance
-    private void MainInstance_Activated(object? sender, AppActivationArguments e)
-    {
-        try
-        {
-            if (e.Kind == ExtendedActivationKind.ToastNotification)
-            {
-                Debug.WriteLine("OK");
-                return;
-            }
-
-            //await PlatUtils.EnsureWindowReadyAsync();
-            //m_window = PlatUtils.GetNativeWindow();
-
-
-            // This is guaranteed to run on the main instance.
-            // We need to bring the activation to the UI thread to be safe.
-            m_window.DispatcherQueue.TryEnqueue(() =>
-            {
-                HandleActivation(e);
-            });
-        }
-        catch (Exception ex)
-        {
-            RxSchedulers.UI.Schedule(async () =>
-            {
-                await Shell.Current.DisplayAlertAsync("Error", $"An error occurred during activation: {ex.Message}", "OK");
-            });
-        }
-    }
-
-    public static SynchronizationContext MainSyncContext { get; private set; }
-    // A thread-safe collection to gather file paths from multiple, rapid activations.
-    private readonly ConcurrentQueue<string> _activatedFilePaths = new();
-
-    // A debouncer to process files in a single batch after a short delay.
-    private readonly Debouncer _fileProcessingDebouncer = new(delayMilliseconds: 300);
-
-    protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
-    {
-        base.OnLaunched(args);
-        MainSyncContext = SynchronizationContext.Current!;
-
-        this.DebugSettings.LayoutCycleTracingLevel = LayoutCycleTracingLevel.High;
-        this.DebugSettings.LayoutCycleDebugBreakLevel = LayoutCycleDebugBreakLevel.High;
-
-
-        Utils.StaticUtils.UiThreads.EnsureInitialized();
-    }
- 
-
-
-    /// <summary>
-    /// A unified handler for all app activations.
-    /// It extracts file paths and queues them for batch processing.
-    /// </summary>
-    private void HandleActivation(AppActivationArguments args)
-    {
-        if (args.Kind == ExtendedActivationKind.File && args.Data is IFileActivatedEventArgs fileArgs)
-        {
-            // Extract valid paths from the activation arguments
-            var validPaths = fileArgs.Files
-                .Select(file => (file as StorageFile)?.Path)
-                .Where(path => !string.IsNullOrEmpty(path))
-                .ToList(); // ToList to realize the query
-
-            if (validPaths.Count != 0)
-            {
-                // Add the new paths to our central queue
-                foreach (var path in validPaths)
-                {
-                    _activatedFilePaths.Enqueue(path!);
-                }
-
-                // Trigger the debouncer. It will wait 200ms for more files.
-                // If another activation comes in within 200ms, it will reset the timer.
-                // This ensures we only process the final batch of files once.
-                _fileProcessingDebouncer.Debounce(ProcessFileBatch);
-            }
-        }
-    }
-    private void ProcessFileBatch()
-    {
-        m_window = PlatUtils.GetNativeWindowFromMAUIWindow();
-        // Drain the queue to get all file paths collected so far
-        var pathsToProcess = new List<string>();
-        while (_activatedFilePaths.TryDequeue(out var path))
-        {
-            pathsToProcess.Add(path);
-        }
-
-        if (pathsToProcess.Count == 0)
-        {
-            return; // Nothing to do
-        }
-
-        // IMPORTANT: Ensure this runs on the UI thread, as it will likely
-        // interact with a ViewModel that updates the UI.
-        m_window.DispatcherQueue.TryEnqueue(() =>
-        {
-            // Resolve the specific ViewModel you need
-            var homePageVM = IPlatformApplication.Current?.Services.GetService<BaseViewModel>();
-            if (homePageVM != null)
-            {
-                // *** THE CORE OPTIMIZATION ***
-                // Call a single method on your ViewModel to handle the entire batch.
-                // This is vastly more performant than a loop.
-                homePageVM.AddMusicFoldersByPassingToService(pathsToProcess);
-            }
-            else
-            {
-                Debug.WriteLine("Error: HomePageViewModel could not be resolved. Cannot process files.");
-            }
-        });
-    }
-
-    private static void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
-    {
-        string errorDetails = $"********** UNHANDLED EXCEPTION! **********\n" +
-                                 $"Exception Type: {e.Exception.GetType()}\n" +
-                                 $"ChatMessage: {e.Exception.Message}\n" +
-                                 $"Source: {e.Exception.Source}\n" +
-                                 $"Stack Trace: {e.Exception.StackTrace}\n";
-
-        if (e.Exception.InnerException != null)
-        {
-            errorDetails += "***** Inner Exception *****\n" +
-                            $"ChatMessage: {e.Exception.InnerException.Message}\n" +
-                            $"Stack Trace: {e.Exception.InnerException.StackTrace}\n";
-        }
-
-        // Print to Debug Console
-        Debug.WriteLine(errorDetails);
-
-        // Log to file
-        LogException(e.Exception);
-
-    }
-    private static readonly object _logLock = new();
-
-    private static readonly ExceptionFilterPolicy _filterPolicy = new ExceptionFilterPolicy();
     public static void LogException(Exception ex)
     {
         if (!_filterPolicy.ShouldLog(ex))
@@ -263,8 +140,14 @@ public partial class App : MauiWinUIApplication
                 Directory.CreateDirectory(directoryPath);
             }
 
-            // Use a date-specific file name.
-            string fileName = $"WinUIcrashlog_{DateTime.Now:yyyy-MM-dd}.txt";
+            // Use a date-specific file name
+
+            string fileName;
+#if DEBUG
+            fileName = $"WinUIcrashlogDebug_{DateTime.Now:yyyy-MM-dd}.txt";
+#elif RELEASE
+            fileName = $"WinUIcrashlogRelease_{DateTime.Now:yyyy-MM-dd}.txt";
+#endif
             string filePath = Path.Combine(directoryPath, fileName);
 
             string logContent = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}]\nMsg: {ex.Message}\nStackTraceWinUI: {ex.StackTrace}\n\n";
@@ -303,6 +186,195 @@ public partial class App : MauiWinUIApplication
             Debug.WriteLine($"Failed to log exception: {loggingEx}");
         }
     }
+    private void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+    {
+        Debug.WriteLine($"UNOBSERVED TASK EXCEPTION: {e.Exception}");
+        var errorHandler = Services.GetService<IErrorHandler>();
+        errorHandler?.HandleError(e.Exception);
+        e.SetObserved(); // Prevent app from crashing due to unobserved exception
+    }
+
+    // This event handler is for the MAIN INSTANCE when it's activated by a redirected instance
+    private void MainInstance_Activated(object? sender, AppActivationArguments e)
+    {
+        try
+        {
+            if (e.Kind == ExtendedActivationKind.ToastNotification)
+            {
+                Debug.WriteLine("OK");
+                return;
+            }
+
+            // Remove m_window.DispatcherQueue entirely here. 
+            // HandleActivation uses a thread-safe ConcurrentQueue and is safe to call from the RPC thread.
+            HandleActivation(e);
+        }
+        catch (Exception ex)
+        {
+            RxSchedulers.UI.Schedule(async () =>
+            {
+                if (Shell.Current != null)
+                    await Shell.Current.DisplayAlertAsync("Error", $"An error occurred during activation: {ex.Message}", "OK");
+            });
+        }
+    }
+
+    public static SynchronizationContext MainSyncContext { get; private set; }
+    // A thread-safe collection to gather file paths from multiple, rapid activations.
+    private readonly ConcurrentQueue<string> _activatedFilePaths = new();
+
+    // A debouncer to process files in a single batch after a short delay.
+    private readonly Debouncer _fileProcessingDebouncer = new(delayMilliseconds: 300);
+    
+    
+    protected async override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
+    {
+        base.OnLaunched(args);
+        MainSyncContext = SynchronizationContext.Current!;
+
+        this.DebugSettings.LayoutCycleTracingLevel = LayoutCycleTracingLevel.High;
+        this.DebugSettings.LayoutCycleDebugBreakLevel = LayoutCycleDebugBreakLevel.High;
+
+
+        Utils.StaticUtils.UiThreads.EnsureInitialized();
+        //ContextMenuItem menu = new ContextMenuItem
+        //{
+        //    Title = "Open Dimmer Here",
+        //    Param = @"""{path}""",
+        //    AcceptFileFlag = (int)FileMatchFlagEnum.All,
+        //    AcceptDirectoryFlag = (int)(DirectoryMatchFlagEnum.Directory | DirectoryMatchFlagEnum.Background | DirectoryMatchFlagEnum.Desktop),
+        //    AcceptMultipleFilesFlag = (int)FilesMatchFlagEnum.Each,
+        //    Index = 0,
+        //    Enabled = true,
+        //    Icon = ProcessInfoHelper.GetFileVersionInfo().FileName,
+        //    Exe = "Dimmer.WinUI.exe"
+        //};
+        //var menuFolder = await ContextMenuService.CreateDefualtMenusFolderAsync();
+        //ContextMenuService menuService = new ContextMenuService(menuFolder);
+        //await menuService.SaveAsync(menu);
+    }
+ 
+
+
+    /// <summary>
+    /// A unified handler for all app activations.
+    /// It extracts file paths and queues them for batch processing.
+    /// </summary>
+    private void HandleActivation(AppActivationArguments args)
+    {
+        if (args.Kind == ExtendedActivationKind.File && args.Data is IFileActivatedEventArgs fileArgs)
+        {
+            // Extract valid paths from the activation arguments
+            var validPaths = fileArgs.Files
+                .Select(file => (file as StorageFile)?.Path)
+                .Where(path => !string.IsNullOrEmpty(path))
+                .ToList(); // ToList to realize the query
+
+            if (validPaths.Count != 0)
+            {
+                // Add the new paths to our central queue
+                foreach (var path in validPaths)
+                {
+                    _activatedFilePaths.Enqueue(path!);
+                }
+
+                // Trigger the debouncer. It will wait 200ms for more files.
+                // If another activation comes in within 200ms, it will reset the timer.
+                // This ensures we only process the final batch of files once.
+                _fileProcessingDebouncer.Debounce(ProcessFileBatch);
+            }
+        }
+    }
+    private void ProcessFileBatch()
+    {
+        m_window = PlatUtils.GetNativeWindowFromMAUIWindow();
+
+        // Safety check: MAUI might not have created the window yet
+        if (m_window == null)
+        {
+            Task.Delay(300).ContinueWith(_ => ProcessFileBatch());
+            return;
+        }
+
+        var pathsToProcess = new List<string>();
+        while (_activatedFilePaths.TryDequeue(out var path))
+        {
+            pathsToProcess.Add(path);
+        }
+
+        if (pathsToProcess.Count == 0) return;
+
+        m_window.DispatcherQueue.TryEnqueue(() =>
+        {
+    
+    var mainVM = IPlatformApplication.Current?.Services.GetService<BaseViewModel>();
+            if (mainVM == null) return;
+
+            // NEW LOGIC: Check if this was a direct media file activation
+            var firstFile = pathsToProcess.First();
+            var isSingleAudioFile = pathsToProcess.Count == 1 &&
+                                    (firstFile.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase) ||
+                                     firstFile.EndsWith(".flac", StringComparison.OrdinalIgnoreCase) ||
+                                     firstFile.EndsWith(".opus", StringComparison.OrdinalIgnoreCase) ||
+                                     firstFile.EndsWith(".m4a", StringComparison.OrdinalIgnoreCase) ||
+                                     firstFile.EndsWith(".wav", StringComparison.OrdinalIgnoreCase));
+
+            if (isSingleAudioFile)
+            {
+                // The user double-clicked a specific song from File Explorer!
+                // 1. Pass to service to read metadata
+                //var singleSongModel = await mainVM.ParseSingleFileToSongModel(firstFile);
+
+                //// 2. Play immediately
+                //if (singleSongModel != null)
+                //{
+                //    // Add to queue if you want, but force play immediately
+                //    await mainVM.PlaySongAsync(singleSongModel);
+                //}
+            }
+            else
+            {
+                // The user dragged a folder, or selected 50 songs and pressed "Open"
+                // Use your existing bulk library logic
+                mainVM.AddMusicFoldersByPassingToService(pathsToProcess);
+            }
+
+            // Bring the window to the front!
+            var hwnd = PlatUtils.GetHWIdnInt(m_window);
+            PlatUtils.ShowWindow(hwnd, PlatUtils.SW_RESTORE);
+        });
+    }
+
+    private static void CurrentDomain_FirstChanceException(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
+    {
+        string errorDetails = $"********** UNHANDLED EXCEPTION! **********\n" +
+                                 $"Exception Type: {e.Exception.GetType()}\n" +
+                                 $"ChatMessage: {e.Exception.Message}\n" +
+                                 $"Source: {e.Exception.Source}\n" +
+                                 $"Stack Trace: {e.Exception.StackTrace}\n";
+
+        if (e.Exception.InnerException != null)
+        {
+            errorDetails += "***** Inner Exception *****\n" +
+                            $"ChatMessage: {e.Exception.InnerException.Message}\n" +
+                            $"Stack Trace: {e.Exception.InnerException.StackTrace}\n";
+        }
+
+        if (e.Exception.Message.Contains("Unable to read data from the transport connection: The I/O operation has been aborted because of either a thread exit or an application request.."))
+        {
+           return; // Ignore this specific exception
+        }
+
+        // Print to Debug Console
+        Debug.WriteLine(errorDetails);
+
+        // Log to file
+        LogException(e.Exception);
+
+    }
+    private static readonly object _logLock = new();
+
+    private static readonly ExceptionFilterPolicy _filterPolicy = new ExceptionFilterPolicy();
     private static void CurrentDomain_ProcessExit(object? sender, EventArgs e)
     {
         if (!AppSettingsService.IsSticktoTopPreference.GetIsSticktoTopState())

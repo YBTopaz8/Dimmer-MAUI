@@ -1234,4 +1234,74 @@ public sealed partial class AllSongsListPage : Page
         //send.Flyout = menuFlyout;
     }
 
+    private void MenuFlyout_Opening(object sender, object e)
+    {
+        var senderMF = (MenuFlyout)sender;
+
+        if (senderMF is null) return;
+        var senderTargetUI = (TableViewRowPresenter)senderMF.Target;
+
+        if (senderTargetUI is null) return;
+        var song = (SongModelView)senderTargetUI.DataContext;
+        if (song is null) return;
+        MyViewModel.SelectedSong = song;
+    }
+
+    private void Grid_Loaded(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void AddEndAppBarBtn_Click(object sender, RoutedEventArgs e)
+    {
+        MyViewModel.AddListOfSongsToQueueEnd(new List<SongModelView>() { MyViewModel.SelectedSong! });
+    }
+
+    private async void PlayNextAppBarBtn_Click(object sender, RoutedEventArgs e)
+    {
+       await MyViewModel.PlayNextSongsImmediatelyAsync(new List<SongModelView>() { MyViewModel.SelectedSong! });
+    }
+
+    private async void PlayAppBarBtn_Click(object sender, RoutedEventArgs e)
+    {
+        await MyViewModel.PlaySongAsync(MyViewModel.SelectedSong!);
+    }
+
+    private async void AddNoteAppBarBtn_Click(object sender, RoutedEventArgs e)
+    {
+        await MyViewModel.AddNoteToSongAsync();
+    }
+
+    private void PlayAppBarBtn_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        var updateKind = e.GetCurrentPoint(null).Properties.PointerUpdateKind;
+        switch (updateKind)
+        {
+            case Microsoft.UI.Input.PointerUpdateKind.Other:
+                break;
+            case Microsoft.UI.Input.PointerUpdateKind.LeftButtonPressed:
+                break;
+            case Microsoft.UI.Input.PointerUpdateKind.LeftButtonReleased:
+                break;
+            case Microsoft.UI.Input.PointerUpdateKind.RightButtonPressed:
+                break;
+            case Microsoft.UI.Input.PointerUpdateKind.RightButtonReleased:
+                break;
+            case Microsoft.UI.Input.PointerUpdateKind.MiddleButtonPressed:
+                MyViewModel.AddToNext(new List<SongModelView>() { MyViewModel.SelectedSong! });
+                break;
+            case Microsoft.UI.Input.PointerUpdateKind.MiddleButtonReleased:
+                break;
+            case Microsoft.UI.Input.PointerUpdateKind.XButton1Pressed:
+                break;
+            case Microsoft.UI.Input.PointerUpdateKind.XButton1Released:
+                break;
+            case Microsoft.UI.Input.PointerUpdateKind.XButton2Pressed:
+                break;
+            case Microsoft.UI.Input.PointerUpdateKind.XButton2Released:
+                break;
+            default:
+                break;
+        }
+    }
 }

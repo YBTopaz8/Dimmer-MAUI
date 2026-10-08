@@ -122,6 +122,7 @@ public partial class OwnAudioService : IDimmerAudioService
 
     public OwnAudioService()
     {
+
         // Smooth UI Polling (60fps equivalent) - only ticks when playing
         Observable.Interval(TimeSpan.FromMilliseconds(16))
             .Where(_ => IsPlaying)
@@ -160,6 +161,20 @@ public partial class OwnAudioService : IDimmerAudioService
             _mainSource?.SetTempoSmooth(clamped);
         }
     }
+    private double _duckingMultiplier = 1.0;
+
+    // Add this to your interface (IDimmerAudioService) or cast to OwnAudioService
+    public void SetDucking(bool isDucked)
+    {
+        _duckingMultiplier = isDucked ? 0.2 : 1.0;
+        ApplyVolume();
+    }
+
+    private void ApplyVolume()
+    {
+        if (_mixer != null)
+            _mixer.MasterVolume = (float)(_volume.Value * _duckingMultiplier);
+    }
 
 
     // ==========================================================
@@ -177,8 +192,6 @@ public partial class OwnAudioService : IDimmerAudioService
             config.EnableInput = false;
             config.OutputDeviceId = outputDeviceId;
 
-            // MAGIC: This forces the Rust engine to automatically switch to the phone speaker 
-            // if Bluetooth headphones disconnect, preventing a crash!
             config.FallbackToDefaultOnDisconnect = true;
 
             await OwnaudioNet.InitializeAsync(config);
@@ -198,11 +211,14 @@ public partial class OwnAudioService : IDimmerAudioService
 
             _mixer.PlaybackEnded += (s, e) =>
             {
-                if (_currentSong.Value != null)
+                Task.Run(() =>
                 {
-                    _playbackState.OnNext(DimmerPlaybackState.PlayCompleted);
-                    _playEnded.OnNext(_currentSong.Value);
-                }
+                    if (_currentSong.Value != null)
+                    {
+                        _playbackState.OnNext(DimmerPlaybackState.PlayCompleted);
+                        _playEnded.OnNext(_currentSong.Value);
+                    }
+                });
             };
 
             _mixer.Start();
@@ -282,18 +298,30 @@ public partial class OwnAudioService : IDimmerAudioService
     public async Task InitializeAsync(SongModelView songModel, double pos)
     {
         ArgumentNullException.ThrowIfNull(songModel);
-        await _transportLock.WaitAsync();
+        if (!await _transportLock.WaitAsync(TimeSpan.FromSeconds(2)))
+        {
+            Debug.WriteLine("Engine is hung! at InitializeAsync");
+            return;
+        }
         try
         {
+            
             _playbackState.OnNext(DimmerPlaybackState.Opening);
             _currentSong.OnNext(songModel);
 
             if (_mainSource != null)
             {
                 _mixer?.RemoveSource(_mainSource.Id);
-                _mainSource.Dispose();
+                SafeDisposeSource(_mainSource);
+                _mainSource = null;
             }
-            if(OwnaudioNet.Engine is null)
+            if (_secondarySource != null)
+            {
+                _mixer?.RemoveSource(_secondarySource.Id);
+                SafeDisposeSource(_secondarySource);
+                _secondarySource = null;
+            }
+            if (OwnaudioNet.Engine is null)
             {
                 await InitializeEngineAsync();
             }
@@ -328,9 +356,14 @@ public partial class OwnAudioService : IDimmerAudioService
 
     public async Task PlayAsync(double pos = -1)
     {
-        await _transportLock.WaitAsync();
+        if (!await _transportLock.WaitAsync(TimeSpan.FromSeconds(2)))
+        {
+            Debug.WriteLine("Engine is hung! at PlayAsync");
+            return;
+        }
         try
         {
+            
             if (_mainSource != null)
             {
                 if (pos >= 0)
@@ -338,7 +371,7 @@ public partial class OwnAudioService : IDimmerAudioService
                     _mixer?.Seek(pos);
                     _mainSource.Seek(pos);
                 }
-                _mainSource.Play();
+                //_mainSource.Play();
                 _mixer?.Start();
                 _playbackState.OnNext(DimmerPlaybackState.Playing);
 
@@ -351,9 +384,15 @@ public partial class OwnAudioService : IDimmerAudioService
 
     public async Task PauseAsync()
     {
-        await _transportLock.WaitAsync();
+        if (!await _transportLock.WaitAsync(TimeSpan.FromSeconds(2)))
+        {
+            Debug.WriteLine("Engine is hung! at PauseAsync");
+            return;
+        }
+
         try
         {
+            
             _mainSource?.Pause();
             _ambienceSource?.Pause();
             _mixer?.Pause();
@@ -366,9 +405,14 @@ public partial class OwnAudioService : IDimmerAudioService
 
     public async Task SeekAsync(double positionSeconds)
     {
-        await _transportLock.WaitAsync();
+        if (!await _transportLock.WaitAsync(TimeSpan.FromSeconds(2)))
+        {
+            Debug.WriteLine("Engine is hung! at SeekAsync");
+            return;
+        }
         try
         {
+           
             if (_mainSource != null && _mixer != null)
             {
                 var safePos = Math.Clamp(positionSeconds, 0, _duration.Value);
@@ -376,6 +420,7 @@ public partial class OwnAudioService : IDimmerAudioService
                 _mainSource.Seek(safePos);
 
                 _lastEnginePos = safePos;
+                _lastEnginePosAt = _watch.Elapsed.TotalSeconds;
                 _currentPosition.OnNext(safePos);
                 _seekCompleted.OnNext(safePos);
             }
@@ -387,6 +432,8 @@ public partial class OwnAudioService : IDimmerAudioService
     {
         _mainSource?.Stop();
         _ambienceSource?.Stop();
+        _mixer?.Pause();
+        _mixer?.Seek(0);  
         _currentPosition.OnNext(0);
         _peakLevels.OnNext((-60.0, -60.0));
         _playbackState.OnNext(DimmerPlaybackState.PlayCompleted);
@@ -440,8 +487,8 @@ public partial class OwnAudioService : IDimmerAudioService
         set
         {
             var clamped = Math.Clamp(value, 0.0, 1.0);
-            if (_mixer != null) _mixer.MasterVolume = (float)clamped;
             _volume.OnNext(clamped);
+            ApplyVolume(); 
         }
     }
     public bool IsMuted => _volume.Value == 0;
@@ -508,64 +555,74 @@ public partial class OwnAudioService : IDimmerAudioService
         _crossfadeCts?.Cancel();
         _crossfadeCts = new CancellationTokenSource();
         var token = _crossfadeCts.Token;
-        await _transportLock.WaitAsync();
-        // 4. Execute the crossfade asynchronously
-        var oldSource = _mainSource;
-        _mainSource = _secondarySource;
+
+        if (!await _transportLock.WaitAsync(TimeSpan.FromSeconds(2)))
+        {
+            Debug.WriteLine("Engine is hung! at CrossfadeToNextAsync");
+            return;
+        }
+
+        FileSource? oldSource = _mainSource;
         try
         {
             int sr = OwnaudioNet.Engine!.Config.SampleRate;
             int ch = OwnaudioNet.Engine!.Config.Channels;
 
-            // 1. Decode the next track completely silently in the background
-            _secondarySource = new FileSource(nextSong.FilePath, targetSampleRate: sr, targetChannels: ch);
-            _secondarySource.SetPitchSmooth(_currentPitchSemitones);
-            _secondarySource.SetTempoSmooth(_currentTempoRatio);
-            _secondarySource.Volume = 0f; // Start silent for the fade in
+            // 1. Prepare new source
+            var newSource = new FileSource(nextSong.FilePath, targetSampleRate: sr, targetChannels: ch);
+            newSource.SetPitchSmooth(_currentPitchSemitones);
+            newSource.SetTempoSmooth(_currentTempoRatio);
+            newSource.Volume = 0f; // Start silent for fade-in
 
-            // 2. Attach it to the master clock so it doesn't drift
-            _mixer?.AddSourcePrepared(_secondarySource);
-
-            // 3. Start it exactly NOW
+            _mixer?.AddSourcePrepared(newSource);
             _mixer?.StartPreparedSources(0);
 
-
-            
+            // 2. Correctly update engine pointers
+            _mainSource = newSource;
+            _secondarySource = null;
 
             _currentSong.OnNext(nextSong);
             _duration.OnNext(_mainSource.Duration);
 
-            // Fire & Forget the volume fade (100 steps over 'overlapSeconds')
+            // 3. Fire-and-forget the volume crossfade
             _ = Task.Run(async () =>
             {
-                int steps = 50;
-                int delayMs = (int)((overlapSeconds * 1000) / steps);
-
-                for (int i = 0; i <= steps; i++)
+                try
                 {
-                    if (token.IsCancellationRequested) break;
-                    float ratio = (float)i / steps;
-                    if (oldSource != null) oldSource.Volume = 1f - ratio;
-                    if (_mainSource != null) _mainSource.Volume = ratio;
+                    int steps = 50;
+                    int delayMs = (int)((overlapSeconds * 1000) / steps);
 
-                    await Task.Delay(delayMs);
+                    for (int i = 0; i <= steps; i++)
+                    {
+                        if (token.IsCancellationRequested) break;
+                        float ratio = (float)i / steps;
+                        if (oldSource != null) oldSource.Volume = 1f - ratio;
+                        if (newSource != null) newSource.Volume = ratio;
+
+                        await Task.Delay(delayMs);
+                    }
                 }
+                finally
+                {
+                    if (oldSource != null)
+                    {
+                        _mixer?.RemoveSource(oldSource.Id);
+                        SafeDisposeSource(oldSource);
 
-                
+                    }
+                }
             });
         }
-        catch (Exception ex) { _errors.OnNext(ex); }
+        catch (Exception ex)
+        {
+            _errors.OnNext(ex);
+        }
         finally
         {
-            // Guarantee cleanup happens
-            if (oldSource != null)
-            {
-                _mixer?.RemoveSource(oldSource.Id);
-                oldSource.Stop();
-                oldSource.Dispose();
-            }
+            _transportLock.Release(); // MUST RELEASE THE LOCK
         }
     }
+
 
     // ==========================================================
     // AUDIO EFFECTS & TWEAKS
@@ -676,9 +733,14 @@ public partial class OwnAudioService : IDimmerAudioService
     }
     public async Task TransitionToNextGaplessAsync(SongModelView nextSong)
     {
-        await _transportLock.WaitAsync();
+        if (!await _transportLock.WaitAsync(TimeSpan.FromSeconds(2)))
+        {
+            Debug.WriteLine("Engine is hung! at TransitionToNextGaplessAsync");
+            return;
+        }
         try
         {
+           
             int sr = OwnaudioNet.Engine!.Config.SampleRate;
             int ch = OwnaudioNet.Engine!.Config.Channels;
 
@@ -709,8 +771,7 @@ public partial class OwnAudioService : IDimmerAudioService
                 RxSchedulers.Background.ScheduleTo(() =>
                 {
                     _mixer?.RemoveSource(oldSource.Id);
-                    oldSource.Stop();
-                    oldSource.Dispose();
+                    SafeDisposeSource(oldSource);
                 });
             }
         }
@@ -719,9 +780,8 @@ public partial class OwnAudioService : IDimmerAudioService
     }
     public void SetVolume(double volume)
     {
-        var clamped = Math.Clamp(volume, 0.0, 1.0);
-        if (_mixer != null) _mixer.MasterVolume = (float)clamped;
-        _volume.OnNext(clamped);
+
+        Volume = volume;
     }
     public void MuteDevice(bool mute)
     {
@@ -730,12 +790,26 @@ public partial class OwnAudioService : IDimmerAudioService
     }
     public async Task InitializeDjModeAsync(SongModelView trackA, SongModelView trackB)
     {
-        await _transportLock.WaitAsync();
+        if (!await _transportLock.WaitAsync(TimeSpan.FromSeconds(2)))
+        {
+            Debug.WriteLine("Engine is hung! at InitializeDjModeAsync");
+            return;
+        }
         try
         {
+            
             // 1. Clean up old sources
-            if (_mainSource != null) { _mixer?.RemoveSource(_mainSource.Id); _mainSource.Dispose(); }
-            if (_secondarySource != null) { _mixer?.RemoveSource(_secondarySource.Id); _secondarySource.Dispose(); }
+            if (_mainSource != null) 
+            { 
+                _mixer?.RemoveSource(_mainSource.Id); 
+                
+                SafeDisposeSource(_mainSource); 
+            }
+            if (_secondarySource != null)
+            {
+                _mixer?.RemoveSource(_secondarySource.Id);
+                SafeDisposeSource(_secondarySource);
+            }
 
             int sr = OwnaudioNet.Engine!.Config.SampleRate;
             int ch = OwnaudioNet.Engine!.Config.Channels;
@@ -778,10 +852,19 @@ public partial class OwnAudioService : IDimmerAudioService
     // ==========================================================
     public async Task InitializeAmbienceAsync(string filePath)
     {
-        await _transportLock.WaitAsync();
+        if (!await _transportLock.WaitAsync(TimeSpan.FromSeconds(2)))
+        {
+            Debug.WriteLine("Engine is hung! at InitializeAmbienceAsync");
+            return;
+        }
         try
         {
-            _ambienceSource?.Dispose();
+
+            if (_ambienceSource != null)
+            {
+                _mixer?.RemoveSource(_ambienceSource.Id);
+                SafeDisposeSource(_ambienceSource);
+            }
 
             _ambienceSource = new FileSource(filePath)
             {
@@ -805,7 +888,26 @@ public partial class OwnAudioService : IDimmerAudioService
         if (isEnabled && IsPlaying) _ambienceSource.Play();
         else _ambienceSource.Pause();
     }
+    private void SafeDisposeSource(FileSource? source)
+    {
+        if (source == null) return;
 
+        // Fire and forget: Give the native C++ audio thread 250ms to 
+        // finish its current buffer and detach before we wipe the memory.
+        Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(250);
+                source.Stop();
+                source.Dispose();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"SafeDispose error: {ex}");
+            }
+        });
+    }
 
     // ==========================================================
     // CLEANUP

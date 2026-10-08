@@ -8,6 +8,7 @@ global using Dimmer.WinUI.Views.WinuiPages.DimmerLive;
 global using Dimmer.WinUI.Views.WinuiPages.LastFMSection;
 global using Dimmer.WinUI.Views.WinuiPages.SingleSongPage;
 global using Dimmer.WinUI.Views.WinuiPages.Utilities;
+using Dimmer.WinUI.DimmerAudioWin;
 using Syncfusion.Maui.Toolkit.Hosting;
 
 namespace Dimmer.WinUI;
@@ -39,6 +40,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<SettingsViewModelWin>();
 
         builder.Services.AddSingleton<BluetoothServiceClient>();
+        builder.Services.AddSingleton<WindowsMediaTransportService>();
 
 
         builder.Services.AddSingleton<IAppUtil, AppUtil>();

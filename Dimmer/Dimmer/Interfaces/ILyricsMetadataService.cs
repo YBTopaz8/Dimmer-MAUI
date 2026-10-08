@@ -10,7 +10,7 @@ public interface ILyricsMetadataService
     Task<LrcLibLyrics?> GetLyricsOnlineAsync(SongModelView song, CancellationToken token);
     Task<bool> PublishLyricsAsync(LrcLibPublishRequest lyricsToPublish, CancellationToken token);
     Task<bool> SaveLyricsForSongAsync(ObjectId SongID, bool PublishAfterSave, string? plainLyrics, string? syncedLyrics, bool isInstrument = false);
-    Task<bool> SaveLyricsToDB(bool IsInstru, string planLyrics, SongModel song, string lrcContent, LyricsInfo? lyrics);
+    Task<bool> SaveLyricsToDB(bool? IsInstru, string planLyrics, SongModel song, string lrcContent, LyricsInfo? lyrics);
     bool SaveLyricsToSongFile(SongModelView song, string? plainLyrics, string? syncedLyrics);
     Task<IEnumerable<LrcLibLyrics>?> SearchLyricsAsync(string trackName, string? artistName, string? albumName, CancellationToken token);
 }

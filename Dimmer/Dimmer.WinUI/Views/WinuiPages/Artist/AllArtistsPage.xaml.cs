@@ -154,4 +154,12 @@ public sealed partial class AllArtistsPage : Page
     {
 
     }
+
+    private void ViewArtistButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (MyViewModel.SelectedArtist != null)
+        {
+            MyViewModel.NavigateToArtistPageWithArtistId(MyViewModel.SelectedArtist.Id);
+        }
+    }
 }

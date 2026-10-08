@@ -76,7 +76,7 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial int ReleaseYear { get; set; }
     [ObservableProperty]
-    public partial int? TrackNumber { get; set; }
+    public partial double TrackNumber { get; set; }
     [ObservableProperty]
     public partial string FileFormat { get; set; } = string.Empty;
     [ObservableProperty]
@@ -95,7 +95,7 @@ public partial class SongModelView : ObservableObject
   
 
     [ObservableProperty]
-    public partial bool? IsInstrumental { get; set; }
+    public partial bool IsInstrumental { get; set; }
     [ObservableProperty]
     public partial string CoverImagePath { get; set; } = string.Empty;
     [ObservableProperty]
@@ -135,7 +135,7 @@ public partial class SongModelView : ObservableObject
     public partial ObservableCollection<LyricPhraseModelView> SyncLyricsCol { get; set; }
 
     [ObservableProperty]
-    public partial float? BPM { get; set; }
+    public partial double BPM { get; set; }
     [ObservableProperty]
     public partial string Composer { get; set; } = string.Empty;
     [ObservableProperty]
@@ -145,9 +145,9 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial string Language { get; set; } = string.Empty;
     [ObservableProperty]
-    public partial int? DiscNumber { get; set; }
+    public partial double DiscNumber { get; set; }
     [ObservableProperty]
-    public partial int? DiscTotal { get; set; }
+    public partial double DiscTotal { get; set; }
     [ObservableProperty]
     public partial string? UserIDOnline { get; set; }
     [ObservableProperty]
@@ -318,7 +318,7 @@ public partial class SongModelView : ObservableObject
     [ObservableProperty]
     public partial double EngagementScore { get;  set; }
     [ObservableProperty]
-    public partial int? TrackTotal { get;  set; }
+    public partial double TrackTotal { get;  set; }
     [ObservableProperty]
     public partial double SampleRate { get;  set; }
     [ObservableProperty]

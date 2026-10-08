@@ -1,5 +1,6 @@
 using CommunityToolkit.Maui.Behaviors;
 using Dimmer.DimmerAudio;
+using Dimmer.WinUI.DimmerAudioWin;
 using Dimmer.WinUI.Views.WinuiPages.DimmsSection;
 //using Dimmer.DimmerLive;
 //using Dimmer.DimmerSearch;
@@ -60,6 +61,10 @@ public partial class HomePage : ContentPage
 
         Debug.WriteLine($"[UI VIEW] Bound to ViewModel Instance: {MyViewModel.InstanceId}");
         compositeDisposable = new();
+
+        var ss = IPlatformApplication.Current?.Services.GetService<WindowsMediaTransportService>();
+
+        ss?.Initialize();
     }
 
     private async Task InitializeAsync()
@@ -1201,13 +1206,6 @@ public partial class HomePage : ContentPage
 
     }
 
-    private void ViewLyricsChip_Loaded(object sender, EventArgs e)
-    {
-
-
-
-
-    }
     private bool _isUserDragging = false;
     private double _pendingSeekValue;
     private Timer _debounceTimer;

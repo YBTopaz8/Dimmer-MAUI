@@ -336,8 +336,8 @@ public class MusicDataService
             // These are direct assignments from the view model to the database model.
             songInDb.SetTitleAndDuration(songView.Title, songView.DurationInSeconds); // Use the setter to update the key
             songInDb.ReleaseYear = songView.ReleaseYear;
-            songInDb.TrackNumber = songView.TrackNumber;
-            songInDb.DiscNumber = songView.DiscNumber;
+            songInDb.TrackNumber = Convert.ToInt32(songView.TrackNumber);
+            songInDb.DiscNumber = Convert.ToInt32(songView.DiscNumber);
             songInDb.Rating = songView.Rating;
             songInDb.IsFavorite = songView.IsFavorite;
             songInDb.Composer = songView.Composer;
@@ -351,7 +351,7 @@ public class MusicDataService
             songInDb.Achievement = songView.Achievement;
             songInDb.Conductor = songView.Conductor;
             songInDb.BitDepth = songView.BitDepth;
-            songInDb.BPM = songView.BPM;
+            //songInDb.BPM = float.Parse(songView.BPM);
             songInDb.Description = songView.Description;
             
 
