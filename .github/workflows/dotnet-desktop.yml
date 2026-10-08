@@ -105,8 +105,11 @@ jobs:
             </PropertyGroup>
           </Project>
           '@
+          # Create both filenames in the workspace root and parent directory
           Set-Content -Path "externals.props" -Value $propsContent -Encoding UTF8
-          Write-Host "Created externals.props"
+          Set-Content -Path "DimmerExternals.props" -Value $propsContent -Encoding UTF8
+          Set-Content -Path "..\DimmerExternals.props" -Value $propsContent -Encoding UTF8
+          Write-Host "Created externals.props and DimmerExternals.props"
 
       # 6. LOCATE PROJECT FILES - FIXED: Look for DimmerDroid.Droid.csproj
       - name: Locate Project Files
@@ -152,14 +155,15 @@ jobs:
             Write-Host "Fixing $projectType project: $csprojPath"
             $content = Get-Content $csprojPath -Raw
             
-            # Fix import path to externals.props
-            if ($content -match '<Import Project=".*externals\.props"') {
-              $content = $content -replace '<Import Project="\.\.\\externals\.props"', '<Import Project="..\..\externals.props"'
-              $content = $content -replace '<Import Project="\.\.\\\.\.\\externals\.props"', '<Import Project="..\..\externals.props"'
-            } else {
-              # Add import after Project tag
-              $content = $content -replace '(<Project[^>]*>)', "`$1`n  <Import Project=`"..\..\externals.props`" Condition=`"Exists('..\..\externals.props')`" />"
-            }
+            # Remove any old/broken externals import
+            $content = $content -replace '<Import Project=".*[Ee]xternals\.props"[^>]*/>', ''
+            
+            # Inject guaranteed imports for both local and CI paths right after <Project ...>
+            $importSnippet = "  <Import Project=`"`$(MSBuildThisFileDirectory)..\..\externals.props`" Condition=`"Exists('`$(MSBuildThisFileDirectory)..\..\externals.props')`" />`n" +
+                             "  <Import Project=`"`$(MSBuildThisFileDirectory)..\..\DimmerExternals.props`" Condition=`"Exists('`$(MSBuildThisFileDirectory)..\..\DimmerExternals.props')`" />`n" +
+                             "  <Import Project=`"`$(MSBuildThisFileDirectory)..\..\..\DimmerExternals.props`" Condition=`"Exists('`$(MSBuildThisFileDirectory)..\..\..\DimmerExternals.props')`" />"
+            
+            $content = $content -replace '(<Project[^>]*>)', "`$1`n$importSnippet"
             
             # Replace hardcoded project references
             $content = $content -replace '<ProjectReference Include="\.\.\\\.\.\\\.\.\\Last\.fm\\src\\Hqub\.Lastfm\\Hqub\.Lastfm\.csproj" />', '<ProjectReference Include="$(LastFmProjectPath)" />'
@@ -209,8 +213,9 @@ jobs:
       - name: Install MAUI Workloads
         run: dotnet workload install maui-android maui-windows
         
-        # 11. BUILD WINDOWS
+      # 11. BUILD WINDOWS
       - name: Build Windows
+        shell: pwsh
         run: |
           dotnet publish "${{ env.PATH_WINUI }}" `
             -f net10.0-windows10.0.19041.0 `
