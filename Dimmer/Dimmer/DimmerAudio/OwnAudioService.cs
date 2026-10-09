@@ -363,23 +363,31 @@ public partial class OwnAudioService : IDimmerAudioService
         }
         try
         {
-            
             if (_mainSource != null)
             {
                 if (pos >= 0)
                 {
                     _mixer?.Seek(pos);
                     _mainSource.Seek(pos);
+                    _lastEnginePos = pos;
                 }
-                //_mainSource.Play();
+
                 _mixer?.Start();
+                _watch.Start();
                 _playbackState.OnNext(DimmerPlaybackState.Playing);
 
-                if (_isAmbienceEnabled) _ambienceSource?.Play();
+                if (_isAmbienceEnabled) 
+                    _ambienceSource?.Play();
             }
         }
-        catch (Exception ex) { _errors.OnNext(ex); }
-        finally { _transportLock.Release(); }
+        catch (Exception ex) 
+        { 
+            _errors.OnNext(ex); 
+        }
+        finally 
+        { 
+            _transportLock.Release(); 
+        }
     }
 
     public async Task PauseAsync()
@@ -405,29 +413,25 @@ public partial class OwnAudioService : IDimmerAudioService
 
     public async Task SeekAsync(double positionSeconds)
     {
-        if (!await _transportLock.WaitAsync(TimeSpan.FromSeconds(2)))
-        {
-            Debug.WriteLine("Engine is hung! at SeekAsync");
-            return;
-        }
+        var safePos = Math.Clamp(positionSeconds, 0, _duration.Value);
+
+        // Update position immediately to silence the 16ms poller
+        _lastEnginePos = safePos;
+        _lastEnginePosAt = _watch.Elapsed.TotalSeconds;
+        _currentPosition.OnNext(safePos);
+
+        if (!await _transportLock.WaitAsync(TimeSpan.FromSeconds(2))) return;
         try
         {
-           
             if (_mainSource != null && _mixer != null)
             {
-                var safePos = Math.Clamp(positionSeconds, 0, _duration.Value);
                 _mixer.Seek(safePos);
                 _mainSource.Seek(safePos);
-
-                _lastEnginePos = safePos;
-                _lastEnginePosAt = _watch.Elapsed.TotalSeconds;
-                _currentPosition.OnNext(safePos);
                 _seekCompleted.OnNext(safePos);
             }
         }
         finally { _transportLock.Release(); }
     }
-
     public void Stop()
     {
         _mainSource?.Stop();
@@ -442,6 +446,9 @@ public partial class OwnAudioService : IDimmerAudioService
     => linear > 0f ? Math.Max(20.0 * Math.Log10(linear), -60.0) : -60.0;
     private void UpdatePositionFromEngine()
     {
+        var mixer = _mixer;
+        var source = _mainSource;
+
         if (_mixer == null || _mainSource == null || _mainSource.IsEndOfStream) return;
 
         // 1. Update Position
@@ -452,6 +459,11 @@ public partial class OwnAudioService : IDimmerAudioService
         {
             _lastEnginePos = enginePos;
             _lastEnginePosAt = now;
+            if (!_watch.IsRunning && IsPlaying) _watch.Start();
+        }
+        else if (now - _lastEnginePosAt > 0.5)
+        {
+            _watch.Stop();
         }
         double smoothPos = _lastEnginePos + (now - _lastEnginePosAt);
         _currentPosition.OnNext(Math.Clamp(smoothPos, 0, _duration.Value));
@@ -783,6 +795,10 @@ public partial class OwnAudioService : IDimmerAudioService
 
         Volume = volume;
     }
+    public void UpdateAndroidStateImmediately(double targetSec)
+    {
+        throw new NotImplementedException();
+    }
     public void MuteDevice(bool mute)
     {
         
@@ -845,7 +861,15 @@ public partial class OwnAudioService : IDimmerAudioService
     // ==========================================================
     public void TriggerNext() { if (_currentSong.Value != null) _nextRequested.OnNext(_currentSong.Value); }
     public void TriggerPrevious() { if (_currentSong.Value != null) _prevRequested.OnNext(_currentSong.Value); }
-    public void TriggerFavorite() { if (_currentSong.Value != null) _favRequested.OnNext(_currentSong.Value); }
+    public void TriggerFavorite() 
+    {
+
+        if (_currentSong.Value != null)
+        {
+            _favRequested.OnNext(_currentSong.Value);
+        }
+
+    }
 
     // ==========================================================
     // AMBIENCE
