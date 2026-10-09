@@ -93,21 +93,22 @@ jobs:
       - name: Create externals.props
         shell: pwsh
         run: |
-          $propsContent = @'
+          $ws = $env:GITHUB_WORKSPACE.TrimEnd('\')
+          $propsContent = @"
           <Project>
             <PropertyGroup>
-              <ExternalDepsPath>$(MSBuildThisFileDirectory)ExternalDeps\</ExternalDepsPath>
-              <LastFmProjectPath>$(ExternalDepsPath)Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj</LastFmProjectPath>
-              <AtlProjectPath>$(ExternalDepsPath)atldotnet-main\ATL\ATL.csproj</AtlProjectPath>
+              <ExternalDepsPath>$ws\ExternalDeps\</ExternalDepsPath>
+              <LastFmProjectPath>`$(ExternalDepsPath)Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj</LastFmProjectPath>
+              <AtlProjectPath>`$(ExternalDepsPath)atldotnet-main\ATL\ATL.csproj</AtlProjectPath>
             </PropertyGroup>
           </Project>
-          '@
-          # Create both filenames in workspace root and parent directory
+          "@
+          # Create in root and all parent/sub-directories so any relative path finds it
           Set-Content -Path "externals.props" -Value $propsContent -Encoding UTF8
           Set-Content -Path "DimmerExternals.props" -Value $propsContent -Encoding UTF8
           Set-Content -Path "..\DimmerExternals.props" -Value $propsContent -Encoding UTF8
           Set-Content -Path "Dimmer\DimmerExternals.props" -Value $propsContent -Encoding UTF8
-          Write-Host "Created externals.props and DimmerExternals.props"
+          Write-Host "Created externals.props pointing to $ws\ExternalDeps\"
 
       # 6. LOCATE PROJECT FILES - FIXED: Look for DimmerDroid.Droid.csproj
       - name: Locate Project Files
