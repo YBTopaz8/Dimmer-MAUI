@@ -905,8 +905,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                 .Subscribe(
                     async song =>
                     {
-                        // Call whatever method you use to toggle favorites!
-                        // Example: await ToggleFavoriteAsync(song);
+                        await AddFavoriteRatingToSongAsync(song);
                     },
                     ex => _logger.LogError(ex, "Error in FavoriteRequestedObs subscription")));
 

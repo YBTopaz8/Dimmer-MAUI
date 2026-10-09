@@ -262,12 +262,15 @@
                                 <Setter Property="IsVisible" Value="False" />
                             </DataTrigger>
                         </Grid.Triggers>
-                        <dx:Chip
-                            x:Name="CurrentTQLUI"
-                            Grid.Column="0"
-                            IsVisible="{Binding CurrentTqlQueryUI, Converter={toolkit:IsStringNotNullOrEmptyConverter}}"
-                            Text="{Binding CurrentTqlQueryUI}" />
+                        <dx:DXStackLayout Grid.Column="0">
+                            <Label FontSize="28" Text="Dimmer" />
 
+                            <dx:Chip
+                                x:Name="CurrentTQLUI"
+                                IsVisible="{Binding CurrentTqlQueryUI, Converter={toolkit:IsStringNotNullOrEmptyConverter}}"
+                                Text="{Binding CurrentTqlQueryUI}" />
+
+                        </dx:DXStackLayout>
                         <dx:DXStackLayout
                             Grid.Column="1"
                             HorizontalOptions="End"
