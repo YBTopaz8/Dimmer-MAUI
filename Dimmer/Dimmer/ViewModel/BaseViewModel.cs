@@ -2478,7 +2478,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial double CrossfadeBalance { get; set; } = 0.5;
     partial void OnCrossfadeBalanceChanged(double value)
     => _audioService.SetDjCrossFade(value);
-    public static string CurrentAppVersion = "1.9.9a";
+    public static string CurrentAppVersion = "2.0.0";
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]
