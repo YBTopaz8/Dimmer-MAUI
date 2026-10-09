@@ -144,7 +144,7 @@
 
 		
 		
-		<ItemGroup>
+		<!--<ItemGroup>
 		  <MauiXaml Include="AppShell.xaml">
 			<Generator>MSBuild:Compile</Generator>
 		  </MauiXaml>
@@ -153,9 +153,13 @@
 		  </MauiXaml>
 		  <MauiXaml Include="Views\MAUIPages\HomePage.xaml" />
 		 
-		</ItemGroup>
+		</ItemGroup>-->
 
-		
+		<ItemGroup>
+		  <MauiXaml Include="AppShell.xaml" />
+		  <MauiXaml Include="Views\CustomViews\MauiViews\SyncLyricsPopUpViewWindow.xaml" />
+		  <MauiXaml Include="Views\MAUIPages\HomePage.xaml" />
+		</ItemGroup>
 		
 		<ItemGroup>
 		  <Page Update="Views\CustomViews\WinuiViews\NativeLyricsOverlayWindow.xaml">
