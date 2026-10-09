@@ -2477,7 +2477,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial double CrossfadeBalance { get; set; } = 0.5;
     partial void OnCrossfadeBalanceChanged(double value)
     => _audioService.SetDjCrossFade(value);
-    public static string CurrentAppVersion = "2.0.0";
+    public static string CurrentAppVersion = "2.0.1";
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]
@@ -2752,9 +2752,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                     return;
                 }
                 
-                ObservableCollection<DimmerPlayEventView> evts = songInDb.PlayHistory.AsEnumerable().Select(x => x.ToDimmerPlayEventView())
-                    .ToObservableCollection()!;
-                newValue.PlayEvents = evts;
+
                 
             }
         }
