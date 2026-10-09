@@ -935,31 +935,6 @@ public partial class HomePage : ContentPage
 
     
 
-    private void SortArtistAsc_Swiped(object sender, SwipedEventArgs e)
-    {
-        MyViewModel.CurrentSortOrderInt = (int)DataSortOrder.Ascending;
-        MyViewModel.CurrentSortOrder = SortOrder.Asc;
-        SongsCV.SortDescriptions.Clear();
-        SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
-        {
-            FieldName = nameof(SongModelView.OtherArtistsName)
-        ,
-            SortOrder = (DataSortOrder)MyViewModel.CurrentSortOrderInt
-        });
-    }
-
-    private void SortArtistDesc_Swiped(object sender, SwipedEventArgs e)
-    {
-        MyViewModel.CurrentSortOrderInt = (int)DataSortOrder.Descending;
-        MyViewModel.CurrentSortOrder = SortOrder.Desc;
-        SongsCV.SortDescriptions.Clear();
-        SongsCV.SortDescriptions.Add(new DevExpress.Maui.CollectionView.SortDescription()
-        {
-            FieldName = nameof(SongModelView.OtherArtistsName)
-        ,
-            SortOrder = (DataSortOrder)MyViewModel.CurrentSortOrderInt
-        });
-    }
 
     private void SingleSongBtmSheet_StateChanged(object sender, ValueChangedEventArgs<BottomSheetState> e)
     {

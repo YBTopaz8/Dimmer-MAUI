@@ -1,6 +1,8 @@
 ﻿namespace Dimmer.DimmerAudio;
 
+using Android.App.Admin;
 using Android.Support.V4.Media.Session;
+using DevExpress.XtraPrinting;
 using System.Diagnostics;
 
 public partial class DimmerMediaSessionCallback : MediaSessionCompat.Callback
@@ -14,13 +16,19 @@ public partial class DimmerMediaSessionCallback : MediaSessionCompat.Callback
     {
         _audioService = audioService;
     }
-
+    
     public override void OnPlay() => _ = _audioService.PlayAsync(_audioService.CurrentPosition);
     public override void OnPause() => _ = _audioService.PauseAsync();
 
-    // Handles the user dragging the seekbar in the notification!
-    public override void OnSeekTo(long pos) => _ = _audioService.SeekAsync(pos / 1000.0);
 
+    public override async void OnSeekTo(long posMS)
+    {
+        double targetSec = posMS / 1000.0;
+        if (_audioService != null)
+        {
+            await _audioService.SeekAsync(targetSec);
+        }
+    }
     public override void OnSkipToNext()
     {
         if (_audioService is OwnAudioService srv) srv.TriggerNext();
@@ -30,15 +38,23 @@ public partial class DimmerMediaSessionCallback : MediaSessionCompat.Callback
     {
         if (_audioService is OwnAudioService srv) srv.TriggerPrevious();
     }
+    public Action<double>? OnOptimisticSeek { get; set; }
+
 
     public override void OnCustomAction(string? action, Bundle? extras)
     {
 
         if (action == ActionFavorite)
         {
-            if (_audioService is OwnAudioService srv) 
+            if (_audioService is OwnAudioService srv)
+            {
+                
                 srv.TriggerFavorite();
+            }
+        }
+        else
+        {
+            Debug.WriteLine($"Unknown custom action: {action}");
         }
     }
-
 }

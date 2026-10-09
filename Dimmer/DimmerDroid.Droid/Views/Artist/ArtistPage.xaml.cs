@@ -34,7 +34,7 @@ public partial class ArtistPage : ContentPage
         base.OnAppearing();
 
 
-        StatsVM.LoadArtist(MyViewModel.SelectedArtist.Id);
+        //StatsVM.LoadArtist(MyViewModel.SelectedArtist.Id);
 
     }
 

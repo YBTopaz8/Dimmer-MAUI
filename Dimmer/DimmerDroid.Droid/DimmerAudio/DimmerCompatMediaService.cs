@@ -57,7 +57,6 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
         _notificationManager = NotificationManagerCompat.From(this);
 
 
-;
 
 
         var powerManager = (PowerManager)GetSystemService(PowerService)!;
@@ -71,13 +70,36 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
         // 2. MediaSession setup
         var componentName = new ComponentName(this, Java.Lang.Class.FromType(typeof(DimmerMediaButtonReceiver)));
         _mediaSession = new MediaSessionCompat(this, "DimmerRxSession", componentName, null);
-        _mediaSession.SetCallback(new DimmerMediaSessionCallback(_audioService));
+     
+        var sessionCallback = new DimmerMediaSessionCallback(_audioService)
+        {
+            OnOptimisticSeek = targetSec => UpdateSeekPositionOptimistic(targetSec)
+        };
+        _mediaSession.SetCallback(sessionCallback);
+
+
         _mediaSession.Active = true;
+
+
+        _audioService.FavoriteRequestedObs
+            .Subscribe(_ =>
+            {
+                // Force the notification & media session to refresh the heart icon
+                UpdateAndroidPlaybackState(_lastState, _audioService.CurrentPosition);
+                RedrawNotification();
+            })
+            .DisposeWith(_disposables);
 
         // 3. Rx Bindings (Direct execution, no UI scheduler required)
         _audioService.CurrentSongObs
             .Where(song => song != null)
-            .Subscribe(async song => await LoadCoverArtAndSetMetadataAsync(song!, 0))
+            .Subscribe(async song =>
+            {
+                double duration = song!.DurationInSeconds > 0
+            ? song.DurationInSeconds
+            : (_audioService.CurrentTrackMetadata?.DurationInSeconds ?? 0);
+                await LoadCoverArtAndSetMetadataAsync(song!, duration);
+            })
             .DisposeWith(_disposables);
 
         _audioService.DurationObs
@@ -86,23 +108,22 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
             .DisposeWith(_disposables);
 
         _audioService.PlaybackStateObs
-            .CombineLatest(_audioService.PositionObs, (state, pos) => new { state, pos })
-            .Sample(TimeSpan.FromMilliseconds(250))
-            .Subscribe(x =>
-            {
-                _lastState = x.state;
+    .DistinctUntilChanged()
+    .Subscribe(state =>
+    {
+        _lastState = state;
+        UpdateAndroidPlaybackState(state, _audioService.CurrentPosition);
+        RedrawNotification(); // Only redraw icons on Play/Pause/Stop!
 
-                double currentPos = _audioService?.CurrentPosition ?? 0;
-
-                UpdateAndroidPlaybackState(x.state, currentPos);
-
-                if (x.state == DimmerPlaybackState.Playing)
-                    RequestAudioFocus();
-                else if (x.state == DimmerPlaybackState.PausedUser || x.state == DimmerPlaybackState.PlayCompleted)
-                    _audioManager?.AbandonAudioFocus(this);
-            })
-            .DisposeWith(_disposables);
+        if (state == DimmerPlaybackState.Playing)
+            RequestAudioFocus();
+        else if (state == DimmerPlaybackState.PausedUser || state == DimmerPlaybackState.PlayCompleted)
+            _audioManager?.AbandonAudioFocus(this);
+    })
+    .DisposeWith(_disposables);
     }
+
+    
     private void RequestAudioFocus()
     {
         if (_audioManager == null) return;
@@ -196,6 +217,8 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
                 if (_audioService is OwnAudioService srv)
                 { 
                     srv.TriggerFavorite();
+                    UpdateAndroidPlaybackState(_lastState, _audioService.CurrentPosition);
+                    RedrawNotification();
                 }
             }
             else
@@ -229,18 +252,45 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
             _currentCoverArt.Dispose();
         }
         _currentCoverArt = newCoverArt;
-        
+
+        long durationMs = (long)(durationInSeconds * 1000);
+        if (durationMs <= 0)
+        {
+            var existingDuration = _mediaSession?.Controller?.Metadata?.GetLong(MediaMetadataCompat.MetadataKeyDuration) ?? 0;
+            if (existingDuration > 0)
+            {
+                durationMs = existingDuration;
+            }
+        }
+
+
         var builder = new MediaMetadataCompat.Builder()?
             .PutString(MediaMetadataCompat.MetadataKeyTitle, song.Title)?
             .PutString(MediaMetadataCompat.MetadataKeyArtist, song.ArtistName)?
-            .PutString(MediaMetadataCompat.MetadataKeyAlbum, song.AlbumName)?
-        .PutLong(MediaMetadataCompat.MetadataKeyDuration, (long)(durationInSeconds * 1000));
+            .PutString(MediaMetadataCompat.MetadataKeyAlbum, song.AlbumName);
+        if (durationMs > 0)
+        {
+            builder?.PutLong(MediaMetadataCompat.MetadataKeyDuration, durationMs);
+        }
 
         if (_currentCoverArt != null)
             builder?.PutBitmap(MediaMetadataCompat.MetadataKeyAlbumArt, _currentCoverArt);
 
         _mediaSession!.SetMetadata(builder?.Build());
         RedrawNotification();
+    }
+
+    public void UpdateSeekPositionOptimistic(double targetSec)
+    {
+        if (_mediaSession == null) return;
+
+        // Send the user's tapped position with speed = 0 while scrubbing/seeking
+        var state = _mediaSession.Controller?.PlaybackState?.State ?? PlaybackStateCompat.StatePlaying;
+
+        var stateBuilder = new PlaybackStateCompat.Builder(_mediaSession.Controller?.PlaybackState)
+            .SetState(state, (long)(targetSec * 1000), 1.0f);
+
+        _mediaSession.SetPlaybackState(stateBuilder?.Build());
     }
 
     private void PromoteToForeground()
@@ -321,7 +371,6 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
             .SetState(compatState, (long)(positionSec * 1000), playbackSpeed);
 
         _mediaSession.SetPlaybackState(stateBuilder?.Build());
-        RedrawNotification();
     }
 
     private void RedrawNotification()
