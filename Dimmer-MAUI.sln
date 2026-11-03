@@ -18,6 +18,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DimmerDroid.Droid", "Dimmer
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hqub.Lastfm", "..\Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj", "{BC63A063-98DB-4E36-2BFC-ADF891F208E3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Material.Components.Maui", "..\Material.Components.Maui\Material.Components.Maui\Material.Components.Maui.csproj", "{F998F080-40E8-8067-4C0D-17415C6E6017}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaterialColorUtilities", "..\YBTopaz8\MaterialColorUtilities\MaterialColorUtilities\MaterialColorUtilities.csproj", "{1951D764-4C9C-7B76-48BA-E49B6A8766C6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaterialColorUtilities.SourceGenerators", "..\YBTopaz8\MaterialColorUtilities\MaterialColorUtilities.SourceGenerators\MaterialColorUtilities.SourceGenerators.csproj", "{02DB8486-4B95-7EC8-52D1-83C4A6545F19}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -46,6 +52,18 @@ Global
 		{BC63A063-98DB-4E36-2BFC-ADF891F208E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BC63A063-98DB-4E36-2BFC-ADF891F208E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BC63A063-98DB-4E36-2BFC-ADF891F208E3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F998F080-40E8-8067-4C0D-17415C6E6017}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F998F080-40E8-8067-4C0D-17415C6E6017}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F998F080-40E8-8067-4C0D-17415C6E6017}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F998F080-40E8-8067-4C0D-17415C6E6017}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1951D764-4C9C-7B76-48BA-E49B6A8766C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1951D764-4C9C-7B76-48BA-E49B6A8766C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1951D764-4C9C-7B76-48BA-E49B6A8766C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1951D764-4C9C-7B76-48BA-E49B6A8766C6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{02DB8486-4B95-7EC8-52D1-83C4A6545F19}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{02DB8486-4B95-7EC8-52D1-83C4A6545F19}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{02DB8486-4B95-7EC8-52D1-83C4A6545F19}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{02DB8486-4B95-7EC8-52D1-83C4A6545F19}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

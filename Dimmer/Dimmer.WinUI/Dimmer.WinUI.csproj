@@ -105,12 +105,12 @@
 		
 		<ItemGroup>
 			
-			<PackageReference Include="DevWinUI" Version="10.6.0" />
+			<PackageReference Include="DevWinUI" Version="10.9.1" />
 			
 			<PackageReference Include="LiveChartsCore.SkiaSharpView.WinUI" Version="2.0.5" />
 
-			<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.110" />
-			<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.12" />
+			<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.120" />
+			<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.14" />
 
 			<!--<PackageReference Include="DevWinUI" Version="10.4.2" />
 			<PackageReference Include="DevWinUI.ContextMenu" Version="10.0.0" />-->
@@ -122,11 +122,11 @@
 			<!--<PackageReference Include="Microsoft.WindowsAppSDK.Base" Version="1.8.251216001" />-->
 			<!--<PackageReference Include="Microsoft.WindowsAppSDK.Base" Version="2.0.4" />-->
 			<PackageReference Include="CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.1.2" />
-			<PackageReference Include="Microsoft.WindowsAppSDK.InteractiveExperiences" Version="2.1.9" />
-			<PackageReference Include="Microsoft.WindowsAppSDK.WinUI" Version="2.3.9" />
-			<PackageReference Include="SkiaSharp.HarfBuzz" Version="4.153.1" />
-			<PackageReference Include="WinUI.TableView" Version="1.5.0" />
-			<PackageReference Include="Microsoft.WindowsAppSDK.Foundation" Version="2.3.12" />
+			<PackageReference Include="Microsoft.WindowsAppSDK.InteractiveExperiences" Version="2.6.5" />
+			<PackageReference Include="Microsoft.WindowsAppSDK.WinUI" Version="2.6.5" />
+			<PackageReference Include="SkiaSharp.HarfBuzz" Version="4.154.0" />
+			<PackageReference Include="WinUI.TableView" Version="1.5.1" />
+			<PackageReference Include="Microsoft.WindowsAppSDK.Foundation" Version="2.6.5" />
 			
 			<!--<PackageReference Include="Microsoft.WindowsAppSDK.Base" Version="2.0.4" />-->
 		</ItemGroup>

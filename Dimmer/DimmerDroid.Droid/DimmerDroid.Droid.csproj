@@ -6,7 +6,7 @@
 	<PropertyGroup>
 		<TargetFramework>net10.0-android</TargetFramework>
 		<SupportedOSPlatformVersion>24.0</SupportedOSPlatformVersion>
-
+		<UseMaterial3>true</UseMaterial3>
     <!--<RuntimeIdentifiers>android-arm;android-arm64;android-x86;android-x64</RuntimeIdentifiers>
     <RuntimeIdentifiers>android-arm64</RuntimeIdentifiers>-->
 
@@ -37,35 +37,35 @@
 		
 		
 		<!--<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.120" />-->
-		<PackageReference Include="DevExpress.Maui.Charts" Version="26.1.5" />
-		<PackageReference Include="DevExpress.Maui.CollectionView" Version="26.1.5" />
-		<PackageReference Include="DevExpress.Maui.Controls" Version="26.1.5" />
-		<PackageReference Include="DevExpress.Maui.Core" Version="26.1.5" />
-		<PackageReference Include="DevExpress.Maui.DataGrid" Version="26.1.5" />
-		<PackageReference Include="DevExpress.Maui.Editors" Version="26.1.5" />
-		<PackageReference Include="DevExpress.Maui.DataGrid.Export" Version="26.1.5" />
+		<PackageReference Include="DevExpress.Maui.Charts" Version="26.1.6" />
+		<PackageReference Include="DevExpress.Maui.CollectionView" Version="26.1.6" />
+		<PackageReference Include="DevExpress.Maui.Controls" Version="26.1.6" />
+		<PackageReference Include="DevExpress.Maui.Core" Version="26.1.6" />
+		<PackageReference Include="DevExpress.Maui.DataGrid" Version="26.1.6" />
+		<PackageReference Include="DevExpress.Maui.Editors" Version="26.1.6" />
+		<PackageReference Include="DevExpress.Maui.DataGrid.Export" Version="26.1.6" />
 		
 		
-		<PackageReference Include="DevExpress.Maui.Scheduler" Version="26.1.5" />
-		<PackageReference Include="DevExpress.Maui.Gauges" Version="26.1.5" />
-		<PackageReference Include="DevExpress.Maui.ProjectTemplates" Version="26.1.5" />
-		<PackageReference Include="DevExpress.Maui.TreeView" Version="26.1.5" />
+		<PackageReference Include="DevExpress.Maui.Scheduler" Version="26.1.6" />
+		<PackageReference Include="DevExpress.Maui.Gauges" Version="26.1.6" />
+		<PackageReference Include="DevExpress.Maui.ProjectTemplates" Version="26.1.6" />
+		<PackageReference Include="DevExpress.Maui.TreeView" Version="26.1.6" />
     
 		
-		<PackageReference Include="SkiaSharp.Views" Version="4.153.1" />
+		<PackageReference Include="SkiaSharp.Views" Version="4.154.0" />
 		<PackageReference Include="Xamarin.AndroidX.Activity.Ktx" Version="1.13.0.1" />
 
 
-		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.12" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.14" />
 
 
 		<PackageReference Include="Xamarin.AndroidX.Collection.Ktx" Version="1.6.0.1" />
 
-		<PackageReference Include="Xamarin.AndroidX.Fragment" Version="1.9.0" />
+		<PackageReference Include="Xamarin.AndroidX.Fragment" Version="1.9.1" />
 
 
 
-		<PackageReference Include="Xamarin.AndroidX.Fragment.Ktx" Version="1.9.0" />
+		<PackageReference Include="Xamarin.AndroidX.Fragment.Ktx" Version="1.9.1" />
 
 
 
@@ -111,10 +111,10 @@
 		<PackageReference Include="Xamarin.AndroidX.Window" Version="1.5.1.3" />
 		<PackageReference Include="Xamarin.Google.Android.Material" Version="1.14.0.6" />
 
-		<PackageReference Include="OwnAudioSharp.Mobile" Version="4.0.8" />
+		<PackageReference Include="OwnAudioSharp.Mobile" Version="4.0.11" />
 
-		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.110" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.12" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.120" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.14" />
 
 		<PackageReference Include="Xamarin.AndroidX.Compose.Runtime.Annotation.Jvm" Version="1.12.1" ExcludeAssets="all" />
 	</ItemGroup>

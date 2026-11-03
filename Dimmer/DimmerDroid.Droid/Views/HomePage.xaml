@@ -18,6 +18,8 @@
     Title="HomePage"
     x:DataType="vm:BaseViewModelAnd"
     Loaded="MyPage_Loaded"
+     xmlns:mdc="clr-namespace:Material.Components.Maui;assembly=Material.Components.Maui"
+   
     Shell.NavBarIsVisible="False">
 
     <ContentPage.Resources>

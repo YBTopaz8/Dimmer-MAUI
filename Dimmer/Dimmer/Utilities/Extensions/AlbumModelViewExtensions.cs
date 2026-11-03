@@ -1,5 +1,4 @@
-﻿using Avalonia.Controls.Shapes;
-
+﻿
 namespace Dimmer.Utilities.Extensions;
 
 public static class AlbumModelViewExtensions

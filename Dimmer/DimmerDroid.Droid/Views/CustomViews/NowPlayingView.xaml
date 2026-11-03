@@ -534,8 +534,7 @@
                     <Style x:Key="ValueLabel" TargetType="Label">
                         <Setter Property="FontSize" Value="12" />
                         <Setter Property="Opacity" Value="0.7" />
-                        <Setter Property="FontFamily" Value="Monospace" />
-                    </Style>
+                       </Style>
                 </ResourceDictionary>
             </dx:BottomSheet.Resources>
 

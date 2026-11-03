@@ -1,4 +1,5 @@
 ﻿
+using Material.Components.Maui.Extensions;
 
 
 namespace Dimmer;
@@ -16,7 +17,7 @@ public static class MauiProgramExtensions
                 options.SetShouldSuppressExceptionsInConverters(true);
 
 
-            })
+            }).UseMaterialComponents()
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("nothingfont.otf", "AleySans");

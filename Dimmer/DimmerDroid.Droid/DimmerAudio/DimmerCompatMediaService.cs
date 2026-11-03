@@ -8,7 +8,6 @@ using Android.Support.V4.Media;
 using Android.Support.V4.Media.Session;
 using AndroidX.Core.App;
 using AndroidX.Media.Session;
-using Avalonia.Controls.Notifications;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 
@@ -128,7 +127,7 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
     {
         if (_audioManager == null) return;
 
-        int focusResult;
+        int focusResult=0;
 
         if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
         {
@@ -144,7 +143,11 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
                     .SetOnAudioFocusChangeListener(this)
                     .Build();
             }
-            focusResult = (int)_audioManager.RequestAudioFocus(_audioFocusRequest);
+            if (_audioFocusRequest is not null)
+            {
+
+                focusResult = (int)_audioManager.RequestAudioFocus(_audioFocusRequest);
+            }
         }
         else
         {
