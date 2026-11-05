@@ -109,6 +109,8 @@
 		<ProjectReference Include="$(LastFmProjectPath)" />
 		<ProjectReference Include="$(AtlProjectPath)" />
 		<ProjectReference Include="..\..\..\Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj" />
+		<ProjectReference Include="..\..\..\Material.Components.Maui\Material.Components.Maui\Material.Components.Maui.csproj" />
+		
 		<ProjectReference Include="..\..\ATL\ATL.csproj" />
 	
   </ItemGroup>

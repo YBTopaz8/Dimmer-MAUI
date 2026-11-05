@@ -21,6 +21,7 @@ public static class MauiProgramExtensions
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("nothingfont.otf", "AleySans");
+                fonts.AddFont("OpenSansRegular.ttf", "OpenSansRegular");
                 fonts.AddFont("MaterialIconsOutlined-Regular.otf", "MatOutReg");
                 fonts.AddFont("MaterialIconsRound-Regular.otf", "MatRoundReg");
                 fonts.AddFont("MaterialIcons-Regular.otf", "MatReg");

@@ -1318,4 +1318,23 @@ public partial class HomePage : ContentPage
         await MainScrollView.ScrollToAsync(BtmPart, position: ScrollToPosition.Start, true);
     }
 
+    private void ComboBox_StartHoverInteraction(object sender, TouchEventArgs e)
+    {
+
+    }
+
+    private async void ComboBox_Loaded(object sender, EventArgs e)
+    {
+       await MyViewModel.LoadAllAudioDevices();
+    }
+
+    private void ComboBox_DropDownOpened(object sender, EventArgs e)
+    {
+
+    }
+
+    private void ComboBox_DropDownClosed(object sender, EventArgs e)
+    {
+
+    }
 }

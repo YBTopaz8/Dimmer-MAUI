@@ -256,8 +256,6 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     }
 
     [ObservableProperty]
-    public partial string GeneratedTqlQuery { get; set; }
-    [ObservableProperty]
     public partial string PopUpHeaderText { get; set; }
 
     [ObservableProperty]

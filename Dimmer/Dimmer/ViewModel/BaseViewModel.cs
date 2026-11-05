@@ -908,7 +908,16 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                         await AddFavoriteRatingToSongAsync(song);
                     },
                     ex => _logger.LogError(ex, "Error in FavoriteRequestedObs subscription")));
-
+        // 10. Set Current AudioDevice:
+        _subsMgr.Add(
+            _audioService.CurrentDeviceObs
+                .ObserveOn(RxSchedulers.UI)
+                .Subscribe(
+                    async device =>
+                    {
+                        SelectedAudioDevice = device;
+                    },
+                    ex => _logger.LogError(ex, "Error in FavoriteRequestedObs subscription")));
         InitializeEqBands();
     }
     public void StartTQLPipeLine()
@@ -3693,13 +3702,13 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         IsAppScanning = false;
         //IsShowScanLoadingActivityIndicator = true;
-        //SearchToTQL("asc added");
+        SearchToTQL("desc added");
 
         //IsShowScanLoadingActivityIndicator = false;
-        
+
         //_ = EnsureAllCoverArtCachedForSongsAsync();
 
-        
+
         _logger.LogInformation("Scan completed, but no new songs were passed to the UI.");
 
     }
