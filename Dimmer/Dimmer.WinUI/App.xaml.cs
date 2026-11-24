@@ -1,4 +1,5 @@
 ﻿using Avalonia.Controls;
+using Avalonia.Logging;
 using DevWinUI;
 using Dimmer.Utils;
 using Dimmer.WinUI.DimmerAudioWin;

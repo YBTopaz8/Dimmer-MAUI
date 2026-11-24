@@ -30,30 +30,8 @@ public sealed partial class BackupPage : Page
     {
        
         await MyViewModel.BackUpAppDataAsync();
-        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.MyBackupResult),v=>MyViewModel.MyBackupResult)
-            .ObserveOn(RxSchedulers.UI)
-            .Subscribe (async res =>
-            {
-                if (res is not null)
-                {
-                    if (res.IsBackUpComplete)
-                    {
-                        StatusInfoBar.Visibility= Microsoft.UI.Xaml.Visibility.Visible;
-                        await Task.Delay(3000);
+       
 
-                        StatusInfoBar.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
-                    }
-                    else
-                    {
-                        StatusInfoBar.Content = "BackUp Failed. Please check the logs for more information.";
-                        StatusInfoBar.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
-                        await Task.Delay(3000);
-                        StatusInfoBar.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
-
-                    }
-                    res = null;
-                }
-            });
     }
 
     private void StatusInfoBar_Tapped(object sender, TappedRoutedEventArgs e)

@@ -1,4 +1,5 @@
 using Dimmer.Data.ModelView.LibSanityModels;
+
 using System.Reactive.Disposables;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -24,9 +25,12 @@ public sealed partial class DimmerToolKit : Page
         MyViewModel = e.Parameter as BaseViewModelWin;
         if (MyViewModel is null) return;
         this.DataContext = MyViewModel;
-        if(MyViewModel.DuplicateSets.Count < 1)
+        if (MyViewModel.DuplicateSets is not null)
         {
-            _= MyViewModel.FindDuplicatesCommand.ExecuteAsync(true);
+            if (MyViewModel.DuplicateSets.Count < 1)
+            {
+                _ = MyViewModel.FindDuplicatesCommand.ExecuteAsync(true);
+            }
         }
         _composite = new();
 

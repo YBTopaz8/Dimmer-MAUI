@@ -1304,4 +1304,9 @@ public sealed partial class AllSongsListPage : Page
                 break;
         }
     }
+
+    private void LoadingIndicator_Unloaded(object sender, RoutedEventArgs e)
+    {
+
+    }
 }

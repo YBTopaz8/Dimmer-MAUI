@@ -5,7 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:WinUI.TableView"
     xmlns:converters="using:Dimmer.WinUI.Utils.Converters"
-    xmlns:local="using:Dimmer.WinUI" 
+    xmlns:local="using:Dimmer.WinUI"
     xmlns:maui="using:Microsoft.Maui">
     <maui:MauiWinUIApplication.Resources>
 

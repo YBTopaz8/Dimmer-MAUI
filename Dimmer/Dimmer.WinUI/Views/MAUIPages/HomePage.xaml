@@ -608,11 +608,20 @@
                             </mdc:ContextMenu.Menu>
                         </Label>
 
-                        <mdc:TextField InputType="None" Text="{Binding AvailableDevices.Count}" />
+                        <Label
+                            mdc:ContextMenu.Trigger="Click"
+                            HorizontalOptions="Center"
+                            Text="Test">
+                            <mdc:ContextMenu.Menu>
+                                <mdc:ContextMenu Placement="Up">
+                                    <mdc:MenuItem Text="ss" />
+                                </mdc:ContextMenu>
+                            </mdc:ContextMenu.Menu>
+                        </Label>
                         <mdc:ComboBox
                             ActiveIndicatorColor="Black"
                             BackgroundColor="Grey"
-                            CornerRadius="22"
+                            CornerRadius="5"
                             DisplayMemberPath="Name"
                             ItemsSource="{Binding AvailableDevices}"
                             LabelText="Audio Device"
@@ -624,6 +633,8 @@
                             ShowFloatingLabel="True"
                             StartHoverInteraction="ComboBox_StartHoverInteraction"
                             StateLayerColor="Blue" />
+
+
 
 
                     </VerticalStackLayout>

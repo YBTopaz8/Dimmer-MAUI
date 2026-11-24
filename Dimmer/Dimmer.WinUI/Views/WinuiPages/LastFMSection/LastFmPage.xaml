@@ -22,10 +22,12 @@
 
                 <TextBox
                     x:Name="LastFMUname"
+                    x:FieldModifier="Public"
                     FontSize="25"
                     Header="Enter your Last FM username:"
                     KeyUp="LastFMUname_KeyUp"
                     PlaceholderText="User Name"
+                    Text="{x:Bind MyViewModel.CurrentUserLocal.LastFMAccountInfo.Name, Mode=TwoWay}"
                     TextChanged="LastFMUname_TextChanged" />
 
                 <Button
@@ -214,18 +216,22 @@
                     </Grid>
 
                     <!--  ROW 2: ANALYTICS (Charts)  -->
-                    <Grid
-                        Height="300"
-                        ColumnDefinitions="*, 350"
-                        ColumnSpacing="24">
-
+                    <Grid Height="300" ColumnSpacing="24">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="350" />
+                        </Grid.ColumnDefinitions>
                         <!--  Weekly Chart  -->
                         <Border
                             Grid.Column="0"
                             Padding="24"
                             Background="#111116"
                             CornerRadius="16">
-                            <Grid RowDefinitions="Auto,*">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
                                 <StackPanel
                                     Grid.Row="0"
                                     Margin="0,0,0,16"
@@ -257,7 +263,11 @@
                             Padding="24"
                             Background="#111116"
                             CornerRadius="16">
-                            <Grid RowDefinitions="Auto,*">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
                                 <TextBlock
                                     Grid.Row="0"
                                     Margin="0,0,0,8"
