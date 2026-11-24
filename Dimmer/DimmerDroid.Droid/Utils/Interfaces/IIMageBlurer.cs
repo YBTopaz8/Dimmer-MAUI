@@ -13,7 +13,7 @@ public class ImageBlurrer : IImageBlurrer
 {
     // Simple Stack Blur implementation (example, not as good as Gaussian)
     // For production, prefer RenderScript (if supporting < API 31) or RenderEffect
-    public Task<Bitmap> BlurBitmapAsync(Bitmap source, float radius, Context context)
+    public Task<Bitmap?> BlurBitmapAsync(Bitmap source, float radius, Context context)
     {
         // --- RenderEffect example (API 31+) ---
         if (Build.VERSION.SdkInt >= BuildVersionCodes.S)
@@ -36,7 +36,7 @@ public class ImageBlurrer : IImageBlurrer
         return Task.Run(() => BlurWithRenderScript(source, radius, context));
     }
 
-    private Bitmap BlurWithRenderScript(Bitmap source, float radius, Context context)
+    private Bitmap? BlurWithRenderScript(Bitmap source, float radius, Context context)
     {
         if (source == null || source.IsRecycled)
             return null;
@@ -44,24 +44,24 @@ public class ImageBlurrer : IImageBlurrer
         Bitmap outputBitmap = Bitmap.CreateBitmap(source.Width, source.Height, source.GetConfig());
         try
         {
-            RenderScript rs = RenderScript.Create(context);
-            ScriptIntrinsicBlur blurScript = ScriptIntrinsicBlur.Create(rs, Element.U8_4(rs)); // Or Element.A_8 for alpha
+            RenderScript? rs = RenderScript.Create(context);
+            ScriptIntrinsicBlur? blurScript = ScriptIntrinsicBlur.Create(rs, Element.U8_4(rs)); // Or Element.A_8 for alpha
 
-            Allocation allocIn = Allocation.CreateFromBitmap(rs, source);
-            Allocation allocOut = Allocation.CreateFromBitmap(rs, outputBitmap);
+            Allocation? allocIn = Allocation.CreateFromBitmap(rs, source);
+            Allocation? allocOut = Allocation.CreateFromBitmap(rs, outputBitmap);
 
             // Ensure radius is within RenderScript's valid range (0 < radius <= 25)
             float validatedRadius = Math.Max(0.1f, Math.Min(25.0f, radius));
-            blurScript.SetRadius(validatedRadius);
+            blurScript?.SetRadius(validatedRadius);
 
-            blurScript.SetInput(allocIn);
-            blurScript.ForEach(allocOut); // Apply blur
-            allocOut.CopyTo(outputBitmap); // Copy result to output bitmap
+            blurScript?.SetInput(allocIn);
+            blurScript?.ForEach(allocOut); // Apply blur
+            allocOut?.CopyTo(outputBitmap); // Copy result to output bitmap
 
-            rs.Destroy(); // Crucial to release RenderScript resources
-            blurScript.Destroy();
-            allocIn.Destroy();
-            allocOut.Destroy();
+            rs?.Destroy(); // Crucial to release RenderScript resources
+            blurScript?.Destroy();
+            allocIn?.Destroy();
+            allocOut?.Destroy();
         }
         catch (System.Exception ex)
         {

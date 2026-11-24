@@ -153,7 +153,6 @@
                             <!--  Timestamp Display  -->
                             <Label
                                 Grid.Column="0"
-                                FontFamily="Monospace"
                                 FontSize="12"
                                 Text="{Binding Timestamp}"
                                 VerticalOptions="Center">

@@ -318,96 +318,232 @@ public class ParseDeviceSessionService : ILiveSessionManagerService, IDisposable
         //throw new NotImplementedException();
     }
 
-
     public async Task<bool> CreateFullBackupAsync(string? devId)
     {
+        var currentUser = ParseUser.CurrentUser;
+        if (currentUser == null) return false;
 
-            if (ParseClient.Instance.CurrentUser == null) return false;
+        var myDevId = _myCurrentSession?.DeviceId ?? MyDeviceId;
 
-        if (devId == _myCurrentSession.DeviceId)
+        if (string.IsNullOrEmpty(devId) || devId == myDevId)
         {
+            string tempRealmPath = Path.Combine(FileSystem.CacheDirectory, $"cloud_snap_{Guid.NewGuid():N}.realm");
+            string tempGzPath = tempRealmPath + ".gz";
+
             try
             {
-                _logger.LogInformation("Gathering local data...");
-                var realm = _vm.RealmFactory.GetRealmInstance();
-
-                // 1. Gather ALL Data into the container
-                // Note: Ensure your .ToView() methods map all properties correctly!
-                var backupData = new FullBackupData
+                var (songCount, eventCount, schemaVer) = await Task.Run(() =>
                 {
-                    Platform = DeviceInfo.Platform.ToString(),
-                    Songs = realm.All<SongModel>().AsEnumerable(),
-                    PlayEvents = realm.All<DimmerPlayEvent>().AsEnumerable(),
-                    //Playlists = realm.All<PlaylistModel>().AsEnumerable(),
-                    Settings = realm.All<AppStateModel>().FirstOrDefault(),
-                    // Map UserStats if you have a ToView() for it, or direct object if no circular refs
-                    //Stats = realm.All<UserStats>().AsEnumerable()
-                };
+                    using var realm = _vm.RealmFactory.GetRealmInstance();
+                    int songs = realm.All<SongModel>().Count();
+                    int events = realm.All<DimmerPlayEvent>().Count();
+                    if (songs == 0 && events == 0)
+                        return (0, 0, 0UL);
 
-                if (!backupData.Songs.Any() && !backupData.PlayEvents.Any())
-                    return false;
-
-                _logger.LogInformation($"Serializing {backupData.Songs.Count()} songs and {backupData.PlayEvents.Count()} events...");
-
-                // 2. Serialize to JSON
-                string jsonString = JsonSerializer.Serialize(backupData);
-                byte[] jsonBytes = System.Text.Encoding.UTF8.GetBytes(jsonString);
-
-                // 3. Compress (GZip)
-                byte[] compressedBytes;
-                using (var outStream = new MemoryStream())
-                {
-                    using (var archive = new GZipStream(outStream, CompressionLevel.Optimal))
+                    var copyConfig = new Realms.RealmConfiguration(tempRealmPath)
                     {
-                        archive.Write(jsonBytes, 0, jsonBytes.Length);
-                    }
-                    compressedBytes = outStream.ToArray();
-                }
+                        SchemaVersion = realm.Config.SchemaVersion
+                    };
+                    realm.WriteCopy(copyConfig);
 
-                _logger.LogInformation($"Compressed size: {compressedBytes.Length / 1024} KB");
+                    // Stream-compress to disk (minimal RAM usage even for 50k+ rows)
+                    using var input = File.OpenRead(tempRealmPath);
+                    using var output = File.Create(tempGzPath);
+                    using var gzip = new GZipStream(output, CompressionLevel.Optimal);
+                    input.CopyTo(gzip);
 
-                // 4. Create ParseFile
-                // Important: .json.gz extension helps identify content type
-                string fileName = $"backup_{ParseClient.Instance.CurrentUser.ObjectId}_{DateTime.UtcNow.Ticks}.json.gz";
-                ParseFile backupFile = new ParseFile(fileName, compressedBytes, "application/gzip");
+                    return (songs, events, realm.Config.SchemaVersion);
+                }).ConfigureAwait(false);
 
-                // Upload the file to Parse Storage
+                if (songCount == 0 && eventCount == 0) return false;
+
+                byte[] compressedBytes = await File.ReadAllBytesAsync(tempGzPath).ConfigureAwait(false);
+                _logger.LogInformation("Compressed .realm backup: {KB} KB ({Songs} songs, {Events} events)",
+                    compressedBytes.Length / 1024, songCount, eventCount);
+
+                string fileName = $"backup_{currentUser.ObjectId}_{DateTime.UtcNow.Ticks}.realm.gz";
+                var backupFile = new ParseFile(fileName, compressedBytes, "application/gzip");
                 await backupFile.SaveAsync(ParseClient.Instance);
 
-                // 5. Link to Cloud Code
                 var parameters = new Dictionary<string, object>
-        {
-            { "backupFile", backupFile },
-            { "songCount", backupData.Songs.Count() },
-            { "eventCount", backupData.PlayEvents.Count() },
-            { "deviceName", DeviceInfo.Name }
-        };
+            {
+                { "backupFile", backupFile },
+                { "songCount", songCount },
+                { "eventCount", eventCount },
+                { "deviceName", DeviceInfo.Name },
+                { "platform", DeviceInfo.Platform.ToString() },
+                { "schemaVersion", (long)schemaVer }
+            };
 
-                // This function will handle the "Keep Max 3" logic
-                var result = await ParseClient.Instance.CallCloudCodeFunctionAsync<IDictionary<string, object>>("saveBackupReference", parameters);
-
+                await ParseClient.Instance.CallCloudCodeFunctionAsync<IDictionary<string, object>>("saveBackupReference", parameters);
                 return true;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Backup failed");
-                return true;
+                return false;
+            }
+            finally
+            {
+                try { if (File.Exists(tempRealmPath)) File.Delete(tempRealmPath); } catch { }
+                try { if (File.Exists(tempGzPath)) File.Delete(tempGzPath); } catch { }
             }
         }
         else
         {
-            DeviceCommand generateBackUpCommand = new();
-            generateBackUpCommand.ReceiverDeviceId = devId;
-            generateBackUpCommand.SenderDeviceId = _myCurrentSession.DeviceId;
-
-
-            await generateBackUpCommand.SaveAsync();
+            var cmd = new DeviceCommand
+            {
+                TargetDeviceId = devId,
+                SenderDeviceId = myDevId,
+                Command = "CREATE_BACKUP",
+                IsProcessed = false,
+                ACL = new ParseACL(currentUser)
+            };
+            await cmd.SaveAsync();
             return true;
         }
-
-        return false;
     }
+    private static readonly HttpClient _httpClient = new();
 
+    public async Task<bool> RestoreBackupAsync(string backupObjectId, bool replaceWholeDbIfSamePlatform = true)
+    {
+        string tempGz = Path.Combine(FileSystem.CacheDirectory, $"restore_{Guid.NewGuid():N}.realm.gz");
+        string tempRealm = Path.Combine(FileSystem.CacheDirectory, $"restore_{Guid.NewGuid():N}.realm");
+
+        try
+        {
+            var parameters = new Dictionary<string, object> { { "backupObjectId", backupObjectId } };
+            var metaData = await ParseClient.Instance.CallCloudCodeFunctionAsync<IDictionary<string, object>>("getLatestBackupUrl", parameters);
+
+            if (metaData == null || !metaData.TryGetValue("url", out var urlObj) || string.IsNullOrWhiteSpace(urlObj?.ToString()))
+            {
+                _logger.LogWarning("No backup URL returned.");
+                return false;
+            }
+
+            string fileUrl = urlObj.ToString()!;
+
+            // 1. Stream download & decompress to temp .realm file
+            using (var netStream = await _httpClient.GetStreamAsync(fileUrl).ConfigureAwait(false))
+            await using (var fs = File.Create(tempGz))
+            {
+                await netStream.CopyToAsync(fs).ConfigureAwait(false);
+            }
+
+            await Task.Run(() =>
+            {
+                using var input = File.OpenRead(tempGz);
+                using var gzip = new GZipStream(input, CompressionMode.Decompress);
+                using var output = File.Create(tempRealm);
+                gzip.CopyTo(output);
+            }).ConfigureAwait(false);
+
+            // 2. Validate it opens cleanly
+            string localDbPath;
+            ulong localSchemaVer;
+            using (var localRealm = _vm.RealmFactory.GetRealmInstance())
+            {
+                localDbPath = localRealm.Config.DatabasePath;
+                localSchemaVer = localRealm.Config.SchemaVersion;
+            }
+
+            if (replaceWholeDbIfSamePlatform)
+            {
+                // Stage for clean swap on next startup before Realm opens
+                using (var test = Realms.Realm.GetInstance(new Realms.RealmConfiguration(tempRealm)
+                {
+                    IsReadOnly = true,
+                    SchemaVersion = localSchemaVer
+                })) { }
+
+                File.Copy(tempRealm, localDbPath + ".restore_pending", overwrite: true);
+                _logger.LogInformation("Realm backup staged. Restart app to apply.");
+                return true;
+            }
+
+            // Cross-platform merge mode: open downloaded .realm read-only & merge favorites/play history by TitleDurationKey
+            await Task.Run(async () =>
+            {
+                using var backupRealm = Realms.Realm.GetInstance(new Realms.RealmConfiguration(tempRealm)
+                {
+                    IsReadOnly = true,
+                    SchemaVersion = localSchemaVer
+                });
+                using var targetRealm = _vm.RealmFactory.GetRealmInstance();
+
+                var localSongsByKey = targetRealm.All<SongModel>()
+                    .AsEnumerable()
+                    .Where(s => !string.IsNullOrEmpty(s.TitleDurationKey))
+                    .GroupBy(s => s.TitleDurationKey!, StringComparer.OrdinalIgnoreCase)
+                    .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+
+                var backupSongKeysById = backupRealm.All<SongModel>()
+                    .AsEnumerable()
+                    .Where(s => !string.IsNullOrEmpty(s.TitleDurationKey))
+                    .ToDictionary(s => s.Id, s => s.TitleDurationKey!);
+
+                await targetRealm.WriteAsync(() =>
+                {
+                    // Merge favorites
+                    foreach (var bSong in backupRealm.All<SongModel>().Filter("IsFavorite == true"))
+                    {
+                        if (!string.IsNullOrEmpty(bSong.TitleDurationKey) &&
+                            localSongsByKey.TryGetValue(bSong.TitleDurationKey, out var localSong))
+                        {
+                            localSong.IsFavorite = true;
+                        }
+                    }
+
+                    // Merge play events
+                    foreach (var bEvt in backupRealm.All<DimmerPlayEvent>())
+                    {
+                        if (targetRealm.Find<DimmerPlayEvent>(bEvt.Id) != null) continue;
+
+                        var cloned = new DimmerPlayEvent
+                        {
+                            Id = bEvt.Id,
+                            SongName = bEvt.SongName,
+                            IsFav = bEvt.IsFav,
+                            PlayType = bEvt.PlayType,
+                            PlayTypeStr = bEvt.PlayTypeStr,
+                            DatePlayed = bEvt.DatePlayed,
+                            WasPlayCompleted = bEvt.WasPlayCompleted,
+                            PositionInSeconds = bEvt.PositionInSeconds,
+                            EventDate = bEvt.EventDate,
+                            DeviceName = bEvt.DeviceName,
+                            DeviceFormFactor = bEvt.DeviceFormFactor,
+                            DeviceModel = bEvt.DeviceModel,
+                            DeviceManufacturer = bEvt.DeviceManufacturer,
+                            DeviceVersion = bEvt.DeviceVersion
+                        };
+
+                        if (bEvt.SongId.HasValue &&
+                            backupSongKeysById.TryGetValue(bEvt.SongId.Value, out var key) &&
+                            localSongsByKey.TryGetValue(key, out var localSong))
+                        {
+                            cloned.SongId = localSong.Id;
+                            cloned.SongName = localSong.Title;
+                            localSong.PlayHistory.Add(cloned);
+                        }
+
+                        targetRealm.Add(cloned);
+                    }
+                });
+            }).ConfigureAwait(false);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error restoring backup");
+            return false;
+        }
+        finally
+        {
+            try { if (File.Exists(tempGz)) File.Delete(tempGz); } catch { }
+            try { if (File.Exists(tempRealm)) File.Delete(tempRealm); } catch { }
+        }
+    }
     public async Task<List<BackupMetadata>?> GetAvailableBackupsAsync()
     {
         try

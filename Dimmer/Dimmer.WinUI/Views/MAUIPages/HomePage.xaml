@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
-    x:Name="myPage"
     x:Class="Dimmer.WinUI.Views.MAUIPages.HomePage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
@@ -11,16 +10,16 @@
     xmlns:dimmSearch="clr-namespace:Dimmer.Data.ModelView.DimmerSearch;assembly=Dimmer"
     xmlns:lang="clr-namespace:Dimmer.Resources.Localization;assembly=Dimmer"
     xmlns:local="clr-namespace:Dimmer.WinUI.Views"
-    
+    xmlns:mdc="clr-namespace:Material.Components.Maui;assembly=Material.Components.Maui"
     xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
     xmlns:modelsDb="clr-namespace:Dimmer.Data.Models;assembly=Dimmer"
     xmlns:modeltwo="clr-namespace:Dimmer.WinUI.Utils.Models"
     xmlns:syncf="http://schemas.syncfusion.com/maui/toolkit"
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:tql="clr-namespace:Dimmer.DimmerSearch.TQL;assembly=Dimmer"
-    
     xmlns:vm="clr-namespace:Dimmer.WinUI.ViewModel"
     xmlns:windows="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;assembly=Microsoft.Maui.Controls"
+    x:Name="myPage"
     Title="HomePage"
     x:DataType="vm:BaseViewModelWin"
     BackgroundColor="{AppThemeBinding Light=#F5F5F5,
@@ -386,8 +385,7 @@
                                     BorderWidth="0"
                                     Clicked="ViewLyricsChip_Clicked"
                                     CornerRadius="20"
-                                    HeightRequest="70" 
-                                    
+                                    HeightRequest="70"
                                     ImageSource="lyrics.png"
                                     WidthRequest="70" />
 
@@ -591,6 +589,54 @@
 
                         </HorizontalStackLayout>
 
+                        <Label mdc:ContextMenu.Trigger="Click">
+                            <mdc:ContextMenu.Menu>
+                                <mdc:ContextMenu BackgroundColor="#2B2D30" Placement="Down">
+                                    <mdc:MenuItem
+                                        Command="{Binding SortCommand}"
+                                        CommandParameter="TitleAsc"
+                                        Text="Title Asc" />
+                                    <mdc:MenuItem
+                                        Command="{Binding SortCommand}"
+                                        CommandParameter="TitleDesc"
+                                        Text="Title Desc" />
+                                    <mdc:MenuItem
+                                        Command="{Binding SortCommand}"
+                                        CommandParameter="Date"
+                                        Text="Date Added" />
+                                </mdc:ContextMenu>
+                            </mdc:ContextMenu.Menu>
+                        </Label>
+
+                        <Label
+                            mdc:ContextMenu.Trigger="Click"
+                            HorizontalOptions="Center"
+                            Text="Test">
+                            <mdc:ContextMenu.Menu>
+                                <mdc:ContextMenu Placement="Up">
+                                    <mdc:MenuItem Text="ss" />
+                                </mdc:ContextMenu>
+                            </mdc:ContextMenu.Menu>
+                        </Label>
+                        <mdc:ComboBox
+                            ActiveIndicatorColor="Black"
+                            BackgroundColor="Grey"
+                            CornerRadius="5"
+                            DisplayMemberPath="Name"
+                            ItemsSource="{Binding AvailableDevices}"
+                            LabelText="Audio Device"
+                            Loaded="ComboBox_Loaded"
+                            MenuBackgroundColor="Red"
+                            Placement="Left"
+                            SelectedItem="{Binding SelectedAudioDevice}"
+                            ShowDropDownArrow="False"
+                            ShowFloatingLabel="True"
+                            StartHoverInteraction="ComboBox_StartHoverInteraction"
+                            StateLayerColor="Blue" />
+
+
+
+
                     </VerticalStackLayout>
 
 
@@ -714,7 +760,7 @@
                             <Style x:Key="ValueLabel" TargetType="Label">
                                 <Setter Property="FontSize" Value="12" />
                                 <Setter Property="Opacity" Value="0.7" />
-                                <Setter Property="FontFamily" Value="Monospace" />
+
                             </Style>
                         </ResourceDictionary>
                     </Grid.Resources>

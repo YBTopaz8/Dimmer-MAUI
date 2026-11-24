@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
     x:Class="Dimmer.Views.DimmerCloud.DimmerHomeCenter"
-    x:Name="MyPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:conv="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
@@ -11,10 +10,10 @@
     xmlns:local="clr-namespace:Dimmer.Views.CustomViews"
     xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
     xmlns:vm="clr-namespace:Dimmer.ViewModels"
+    x:Name="MyPage"
     Title="Dimmer Live"
     x:DataType="globalVM:SessionManagementViewModel"
-    Shell.ForegroundColor="DarkSlateBlue"
-    >
+    Shell.ForegroundColor="DarkSlateBlue">
 
 
     <ContentPage.Resources>
@@ -29,8 +28,7 @@
         Padding="5"
         Loaded="MainGrid_Loaded"
         RowDefinitions="auto,*"
-        RowSpacing="10"
-        >
+        RowSpacing="10">
 
         <FlexLayout Grid.Row="0" JustifyContent="SpaceBetween">
             <dx:DXStackLayout Grid.Row="0" ItemSpacing="10">
@@ -44,8 +42,7 @@
                 HeightRequest="180"
                 HorizontalOptions="Start"
                 Source="{Binding CurrentUser.ProfileImagePath}"
-                WidthRequest="180"
-                />
+                WidthRequest="180" />
 
         </FlexLayout>
 
@@ -58,8 +55,7 @@
                 BorderColor="Gray"
                 BorderThickness="1"
                 CornerRadius="15"
-                VerticalOptions="Start"
-                >
+                VerticalOptions="Start">
                 <dx:DXStackLayout x:Name="HasBackUpSectionOnline" IsVisible="{Binding HasOnlineBackup}">
                     <FlexLayout JustifyContent="SpaceBetween" />
                 </dx:DXStackLayout>
@@ -68,14 +64,12 @@
                     x:Name="HasNoBackUpSectionOnline"
                     HorizontalOptions="Center"
                     IsVisible="{Binding HasOnlineBackup, Converter={conv:BoolToInverseConverter}}"
-                    ItemSpacing="10"
-                    >
+                    ItemSpacing="10">
                     <Label Text="Backup Account" />
                     <Button
                         x:Name="PerformOnlineBackup"
                         Clicked="PerformOnlineBackup_Clicked"
-                        Text="Backup"
-                        />
+                        Text="Backup" />
                 </dx:DXStackLayout>
 
 
@@ -90,8 +84,7 @@
                     Grid.Row="1"
                     Header="{Binding OtherDevices.Count, StringFormat='My Devices ({0})'}"
                     ItemSeparatorThickness="1"
-                    ItemsSource="{Binding OtherDevices}"
-                    >
+                    ItemsSource="{Binding OtherDevices}">
 
                     <dx:DXCollectionView.ItemTemplate>
                         <DataTemplate x:DataType="dimmerLiveModels:UserDeviceSession">
@@ -100,8 +93,7 @@
                                 BorderColor="Gray"
                                 BorderThickness="1"
                                 CornerRadius="15"
-                                ItemSpacing="10"
-                                >
+                                ItemSpacing="10">
                                 <Label Text="{Binding DeviceName, StringFormat='Device Name : {0}'}" />
                                 <Label Text="{Binding DeviceIdiom, StringFormat='Device Type : {0}'}" />
                                 <Label Text="{Binding DeviceOSVersion, StringFormat='Device OS Version : {0}'}" />
@@ -117,8 +109,7 @@
                                     Icon="pena.png"
                                     IconColor="DarkSlateBlue"
                                     ShowContent="False"
-                                    ShowIcon="True"
-                                    />
+                                    ShowIcon="True" />
 
                             </dx:DXStackLayout>
                         </DataTemplate>
@@ -131,24 +122,24 @@
             x:Name="LoginBottomSheet"
             x:DataType="globalVM:LoginViewModel"
             AllowedState="HalfExpanded"
-            BackgroundColor="Black"
-            HalfExpandedRatio="0.8"
-            >
+            BackgroundColor="{AppThemeBinding Dark=Black,
+                                              Light=#DDE3E9}"
+            HalfExpandedRatio="0.8">
             <dx:BottomSheet.Content>
 
                 <dx:DXStackLayout Padding="20" ItemSpacing="10">
                     <dx:DXStackLayout.Resources>
                         <ResourceDictionary>
                             <Style TargetType="Label">
-                                <Setter Property="TextColor" Value="White" />
+                                <Setter Property="TextColor" Value="{AppThemeBinding Light=Black, Dark=White}" />
                             </Style>
                             <Style TargetType="dx:Chip">
-                                <Setter Property="TextColor" Value="White" />
+                                <Setter Property="TextColor" Value="{AppThemeBinding Light=Black, Dark=White}" />
                             </Style>
                             <Style TargetType="dx:TextEdit">
-                                <Setter Property="PlaceholderColor" Value="White" />
-                                <Setter Property="LabelColor" Value="White" />
-                                <Setter Property="TextColor" Value="White" />
+                                <Setter Property="PlaceholderColor" Value="{AppThemeBinding Light=Black, Dark=White}" />
+                                <Setter Property="LabelColor" Value="{AppThemeBinding Light=Black, Dark=White}" />
+                                <Setter Property="TextColor" Value="{AppThemeBinding Light=Black, Dark=White}" />
                             </Style>
                         </ResourceDictionary>
                     </dx:DXStackLayout.Resources>
@@ -156,24 +147,20 @@
                         FontAttributes="Bold"
                         FontSize="20"
                         HorizontalOptions="Center"
-                        Text="Login To Dimmer"
-                        />
+                        Text="Login To Dimmer" />
                     <dx:TextEdit
                         LabelText="Enter User Name"
                         PlaceholderText="E.g. John Doe"
-                        Text="{Binding Username}"
-                        />
+                        Text="{Binding Username}" />
                     <dx:PasswordEdit
                         LabelText="Enter Password"
                         PlaceholderText="E.g. ********"
-                        Text="{Binding Password}"
-                        />
+                        Text="{Binding Password}" />
 
                     <dx:DXStackLayout
                         HorizontalOptions="Center"
                         ItemSpacing="10"
-                        Orientation="Horizontal"
-                        >
+                        Orientation="Horizontal">
 
                         <dx:DXButton Command="{Binding LoginCommand}" Content="Login" />
                         <dx:DXButton Command="{Binding RegisterCommand}" Content="Register" />
@@ -182,8 +169,7 @@
                     <dx:Chip
                         x:Name="CancelLoginChip"
                         Tap="CancelLoginChip_Tap"
-                        Text="Cancel Login"
-                        />
+                        Text="Cancel Login" />
                 </dx:DXStackLayout>
             </dx:BottomSheet.Content>
         </dx:BottomSheet>

@@ -256,8 +256,6 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     }
 
     [ObservableProperty]
-    public partial string GeneratedTqlQuery { get; set; }
-    [ObservableProperty]
     public partial string PopUpHeaderText { get; set; }
 
     [ObservableProperty]
@@ -1139,7 +1137,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
     public TextBlock DimmerStatusTextBlockView { get; internal set; }
 
     LastFMViewModel lastFMVM;
-    public async Task<bool> CheckToCompleteActivation(string typee)
+    public async Task<bool> CheckToCompleteActivation(string typee, string lastFMUname)
     {
         if (typee != "Confirm LastFM") return false;
 
@@ -1159,7 +1157,7 @@ public partial class BaseViewModelWin : BaseViewModel, IArtistActions
 
             if (result == ContentDialogResult.Primary)
             {
-                await lastFMVM.CompleteLastFMLoginAsync();
+                await lastFMVM.CompleteLastFMLoginAsync(lastFMUname);
             }
             else
             {

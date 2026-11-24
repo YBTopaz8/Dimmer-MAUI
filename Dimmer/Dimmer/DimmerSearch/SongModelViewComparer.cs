@@ -1,4 +1,6 @@
-﻿public enum LimiterType { First, Last, Random }
+﻿using System.Runtime.CompilerServices;
+
+public enum LimiterType { First, Last, Random }
 
 public class LimiterClause
 {
@@ -80,18 +82,21 @@ public partial class SongModelComparer : IComparer<SongModel>
 
 public partial class RandomSongComparer : IComparer<SongModel>
 {
-    private readonly Random _random = new();
+    private readonly int _seed = Random.Shared.Next();
 
     public int Compare(SongModel? x, SongModel? y)
     {
-        if (x == null && y == null)
-            return 0;
-        if (x == null)
-            return -1;
-        if (y == null)
-            return 1;
+        if (ReferenceEquals(x, y)) return 0;
+        if (x is null) return -1;
+        if (y is null) return 1;
 
-        // Use a more efficient random comparison
-        return _random.Next(-1, 2); // Returns -1, 0, or 1
+        int idX = RuntimeHelpers.GetHashCode(x);
+        int idY = RuntimeHelpers.GetHashCode(y);
+
+        int keyX = HashCode.Combine(_seed, idX);
+        int keyY = HashCode.Combine(_seed, idY);
+
+        int cmp = keyX.CompareTo(keyY);
+        return cmp != 0 ? cmp : idX.CompareTo(idY);
     }
 }

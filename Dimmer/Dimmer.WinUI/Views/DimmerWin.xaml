@@ -117,7 +117,7 @@
                         MaxWidth="150"
                         MaxHeight="150"
                         HorizontalAlignment="Center">
-                        <devWin:GooeyButton
+                        <!--<devWin:GooeyButton
                             x:Name="CurrentPlayingSongGooeyButton"
                             Background="#1e1e1e"
                             Canvas.ZIndex="1"
@@ -157,13 +157,14 @@
                                 </devWin:GooeyButtonItem>
 
                             </devWin:GooeyButton.Items>
-                        </devWin:GooeyButton>
+                        </devWin:GooeyButton>-->
                         <devWin:ImageEx
                             x:Name="CurrentPlayingSongImage"
                             VerticalAlignment="Top"
                             Canvas.ZIndex="0"
                             CornerRadius="20"
-                            Loaded="CurrentPlayingSongImage_Loaded" />
+                            Loaded="CurrentPlayingSongImage_Loaded"
+                            RightTapped="CurrentPlayingSongImage_RightTapped" />
                     </Grid>
 
                     <StackPanel
@@ -334,6 +335,39 @@
                         HorizontalAlignment="Left"
                         Source="Value"
                         Value="{x:Bind MyViewModel.MySongsTableViewItemsCount, Mode=OneWay}" />
+
+
+                    <StackPanel Grid.Row="0">
+                        <ItemsRepeater Background="Red" ItemsSource="{x:Bind MyViewModel.ActiveArtistFacets, Mode=OneWay}">
+                            <ItemsRepeater.Layout>
+                                <StackLayout Orientation="Horizontal" Spacing="10" />
+                            </ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid
+                                        BorderBrush="#272727"
+                                        BorderThickness="1"
+                                        CornerRadius="10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="auto" />
+                                            <ColumnDefinition Width="auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBlock
+                                            Grid.Column="0"
+                                            Margin="5,0,5,0"
+                                            Text="{Binding Count}" />
+
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            Margin="5,0,5,0"
+                                            Text="{Binding Value}" />
+                                    </Grid>
+                                </DataTemplate>
+
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+                    </StackPanel>
                 </StackPanel>
 
                 <StackPanel

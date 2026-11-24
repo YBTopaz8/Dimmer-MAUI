@@ -67,7 +67,7 @@ public partial class LastFMViewModel : ObservableObject
                      {
                          if (WindowActivationRequestTypeStatic == "Confirm LastFM")
                          {
-                             await CompleteLastFMLoginAsync();
+                             //await CompleteLastFMLoginAsync(_baseViewModel.LastFMUname.Text);
                          }
                      }
 
@@ -364,13 +364,13 @@ public partial class LastFMViewModel : ObservableObject
     [ObservableProperty]
     public partial bool IsBusy { get; set; }
     [RelayCommand]
-    public async Task CompleteLastFMLoginAsync()
+    public async Task CompleteLastFMLoginAsync(string lastfmUname)
     {
         IsBusy = true;
         try
         {
 
-            string? lastFMUName = LastFMName;
+            string? lastFMUName = lastfmUname;
             if (string.IsNullOrEmpty(lastFMUName)) return;
 
             IsLastfmAuthenticated = await lastfmService.CompleteAuthenticationAsync(lastFMUName);

@@ -1,3 +1,4 @@
+using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.NativeServices;
 using Dimmer.Views.LastFM;
 using Google.Android.Material.Dialog;
@@ -32,60 +33,117 @@ public partial class MainActivity : MauiAppCompatActivity
         base.OnDestroy();
 
     }
+    public static event Action? AudioStoragePermissionGranted;
+    public override void OnRequestPermissionsResult(
+    int requestCode,
+    string[] permissions,
+    [Android.Runtime.GeneratedEnum] Permission[] grantResults)
+    {
+        base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == REQUEST_AUDIO_PERMS && AndroidPermissionsService.HasAudioStoragePermission())
+        {
+            AudioStoragePermissionGranted?.Invoke();
+        }
+    }
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         base.OnCreate(savedInstanceState);
-       
-        
 
         Dimmer.Utils.UiThreads.InitializeMainHandler();
         ProcessIntent(Intent);
-
-        //RxSchedulers.Background.ScheduleTo(() =>
-        // {
-
-        // });
-
         SetupBackNavigation();
 
+        // 1. Single unified permissions check
+        if (!AndroidPermissionsService.HasAllPermissions())
+        {
+            AndroidPermissionsService.RequestAllPermissions(this, REQUEST_AUDIO_PERMS);
+        }
 
+        // 2. Do NOT run heavy DI synchronously in OnCreate.
+        // Post to the handler so MainActivity finishes its lifecycle startup immediately!
+        new Android.OS.Handler(Android.OS.Looper.MainLooper!).Post(() =>
+        {
+            TaggingUtils.PlatformSpecificScanner = AndroidPermissionsService.ScanAndroidFolderWithMediaStore;
+            SetupService();
+        });
 
-        CheckAndRequestPermissions();     
-        
-        SetupService();
-
-        // Increase thread pool for background operations
         ThreadPool.SetMinThreads(4, 4);
-
-
-        // Configure JsonSerializer for mobile
         ConfigureJsonOptions();
-    }
-
-    private void CheckAndRequestPermissions()
-    {
-        if (!AndroidPermissionsService.HasAudioPermissions())
+        TaggingUtils.PlatformSpecificStreamCopier = (treeUriString, fileName, sourceFilePath) =>
         {
+            var context = Android.App.Application.Context;
+            var treeUri = Android.Net.Uri.Parse(treeUriString)!;
+            var pickedDir = AndroidX.DocumentFile.Provider.DocumentFile.FromTreeUri(context, treeUri);
+            var newFile = pickedDir?.CreateFile("application/octet-stream", fileName);
+            if (newFile == null) throw new IOException("Could not create document in selected folder.");
 
-            AndroidPermissionsService.RequestAudioPermissions(this, REQUEST_AUDIO_PERMS);
-        }
-        if (!AndroidPermissionsService.HasStoragePermissions())
-
+            using var input = File.OpenRead(sourceFilePath);
+            using var output = context.ContentResolver!.OpenOutputStream(newFile.Uri!)
+                ?? throw new IOException("Could not open output stream.");
+            input.CopyTo(output);
+        };
+        TaggingUtils.PlatformWriteStreamHook = (destFolderOrUri, fileName, mimeType, sourceStream) =>
         {
-            AndroidPermissionsService.RequestStoragePermissions(this, REQUEST_STORAGE_PERMS);
-        }
+            var context = Android.App.Application.Context;
 
-        if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu) // API 33+
-        {
-            if (CheckSelfPermission(Android.Manifest.Permission.PostNotifications) != Permission.Granted)
+            if (destFolderOrUri.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
             {
-                RequestPermissions(new[] { Android.Manifest.Permission.PostNotifications }, 100);
-            }
-        }
+                var treeUri = Android.Net.Uri.Parse(destFolderOrUri);
+                var pickedDir = AndroidX.DocumentFile.Provider.DocumentFile.FromTreeUri(context, treeUri);
+                if (pickedDir == null || !pickedDir.CanWrite()) return false;
 
+                // Replace existing file with same name if present
+                pickedDir.FindFile(fileName)?.Delete();
+
+                var newFile = pickedDir.CreateFile(mimeType, fileName);
+                if (newFile == null) return false;
+
+                using var outStream = context.ContentResolver?.OpenOutputStream(newFile.Uri);
+                if (outStream == null) return false;
+
+                sourceStream.CopyTo(outStream);
+                outStream.Flush();
+                return true;
+            }
+
+            Directory.CreateDirectory(destFolderOrUri);
+            var destPath = Path.Combine(destFolderOrUri, fileName);
+            using var fs = new FileStream(destPath, FileMode.Create, FileAccess.Write);
+            sourceStream.CopyTo(fs);
+            return true;
+        };
     }
 
-   
+    //public void CheckAndRequestPermissions()
+    //{
+    //    var act = this;
+    //    if (act == null)
+    //    {
+    //        Debug.WriteLine("Current activity is null. Cannot check permissions.");
+    //        return;
+    //    }
+    //    if (!AndroidPermissionsService.HasAudioPermissions())
+    //    {
+
+    //        AndroidPermissionsService.RequestAudioPermissions(act, REQUEST_AUDIO_PERMS);
+    //    }
+    //    if (!AndroidPermissionsService.HasStoragePermissions())
+    //    {
+    //        AndroidPermissionsService.RequestStoragePermissions(act, REQUEST_STORAGE_PERMS);
+    //    }
+
+    //    if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu) // API 33+
+    //    {
+    //        if (CheckSelfPermission(Android.Manifest.Permission.PostNotifications) != Permission.Granted)
+    //        {
+    //            RequestPermissions(new[] { Android.Manifest.Permission.PostNotifications }, 100);
+    //        }
+    //    }
+
+    //}
+
+
 
     public static JsonSerializerOptions JsonOptions => _jsonOptions;
     private static JsonSerializerOptions _jsonOptions;
@@ -107,22 +165,20 @@ public partial class MainActivity : MauiAppCompatActivity
 
     public void SetupService()
     {
+        var appContext = ApplicationContext!;
         var audioService = IPlatformApplication.Current!.Services.GetRequiredService<IDimmerAudioService>();
 
-        // Wait until the user actually plays a song, then boot up the background service.
-        // Take(1) ensures we only send the Start Intent once per app lifecycle!
         _serviceStarter = audioService.PlaybackStateObs
-            .Where(state => state == DimmerPlaybackState.Playing)
-            .Take(1)
-            .Subscribe(_ =>
-            {
-                var intent = new Intent(this, typeof(DimmerCompatMediaService));
-                if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
-                    StartForegroundService(intent);
-                else
-                    StartService(intent);
-            });
-        
+         .Where(state => state == DimmerPlaybackState.Playing)
+         .Take(1)
+         .Subscribe(_ =>
+         {
+             var intent = new Intent(appContext, typeof(DimmerCompatMediaService));
+             if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+                 appContext.StartForegroundService(intent);
+             else
+                 appContext.StartService(intent);
+         });
     }
     private void ProcessIntent(Android.Content.Intent? intent)
     {
@@ -235,22 +291,22 @@ public partial class MainActivity : MauiAppCompatActivity
                 MyViewModel.HomePageIndex = 0;
                 return;
             }
-        new MaterialAlertDialogBuilder(this)?
-                                .SetTitle("Exit Dimmer")?
-                                .SetMessage("Close Application?")?
-                                .SetPositiveButton(
-            "Exit",
-            async (s, e) =>
-            {
-                await MyViewModel.OnAppClosingAsync();
-                FinishAffinity();
-            })
-            .SetNegativeButton(
-                "Cancel",
-                (s, e) =>
-                { /* Do nothing */
+            new MaterialAlertDialogBuilder(this)?
+                                    .SetTitle("Exit Dimmer")?
+                                    .SetMessage("Close Application?")?
+                                    .SetPositiveButton(
+                "Exit",
+                async (s, e) =>
+                {
+                    await MyViewModel.OnAppClosingAsync();
+                    FinishAffinity();
                 })
-            .Show();
+                .SetNegativeButton(
+                    "Cancel",
+                    (s, e) =>
+                    { /* Do nothing */
+                    })
+                .Show();
         return;
     }
         if (

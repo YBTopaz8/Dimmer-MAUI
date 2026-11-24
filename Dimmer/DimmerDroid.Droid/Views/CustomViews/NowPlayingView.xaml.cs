@@ -219,9 +219,9 @@ public partial class NowPlayingView : ContentView
         
     }
 
-    private void AudioMgtButton_TapPressed(object sender, DXTapEventArgs e)
+    private async void AudioMgtButton_TapPressed(object sender, DXTapEventArgs e)
     {
-//do a btm sheet having a tabview tab 1 being app volume management, tab 2 being app speaker choice
+;
     }
 
 
@@ -255,5 +255,11 @@ public partial class NowPlayingView : ContentView
         }
     }
 
-
+    private async void AllAudioDevicesCV_Loaded(object sender, EventArgs e)
+    {
+        if(MyViewModel.AvailableDevices?.Count<1)
+        {
+            await MyViewModel.LoadAllAudioDevices();
+        }
+    }
 }

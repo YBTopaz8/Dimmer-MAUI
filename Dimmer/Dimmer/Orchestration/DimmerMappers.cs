@@ -124,6 +124,10 @@ public static class DimmerMappers
             AlbumName = src.AlbumName,
             GenreName = src.Genre?.Name ?? string.Empty,
 
+            Artist = src.Artist?.ToArtistModelView(),
+            Album = src.Album?.ToAlbumModelView(),
+            Genre = src.Genre?.ToGenreModelView() ?? new GenreModelView()
+
         };
         if (!isShallow)
         {
@@ -132,10 +136,6 @@ public static class DimmerMappers
             // Warning: Your AutoMapper config IGNORED ArtistToSong list to prevent cycles. We do the same.
             dest.ArtistToSong = src.ArtistToSong.AsEnumerable().Select(x => x.ToArtistModelView()).ToObservableCollection();
 
-
-            dest.Artist = src.Artist?.ToArtistModelView();
-            dest.Album = src.Album?.ToAlbumModelView();
-            dest.Genre = src.Genre?.ToGenreModelView() ?? new GenreModelView();
 
             // --- Collections ---
             // Mapping RealmLists to ObservableCollections

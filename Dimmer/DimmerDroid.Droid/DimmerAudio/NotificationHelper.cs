@@ -32,7 +32,7 @@ public static class NotificationHelper
         SongModelView? currentSong,
         Bitmap? coverArt) // Pass null if you don't have it
     {
-        CreateNotificationChannel(context);
+        
 
         // 1. Standard Intents (Routed through MediaButtonReceiver)
         var playPauseIntent = MediaButtonReceiver.BuildMediaButtonPendingIntent(context, isPlaying ? PlaybackStateCompat.ActionPause : PlaybackStateCompat.ActionPlay);
@@ -51,7 +51,7 @@ public static class NotificationHelper
         // 4. Build the Notification UI
         var builder = new NotificationCompat.Builder(context, ChannelId)?
             .SetContentTitle(currentSong?.Title ?? "Unknown Title")?
-            .SetContentText(currentSong?.OtherArtistsName ?? "Unknown Artist")?
+            .SetContentText(currentSong?.ArtistName ?? currentSong?.OtherArtistsName ?? "Unknown Artist")?
             .SetSubText(currentSong?.AlbumName ?? "Unknown Album")?
             .SetSmallIcon(Resource.Drawable.dimmicoo)? 
             .SetLargeIcon(coverArt)?

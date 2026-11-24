@@ -17,13 +17,13 @@ public partial class SettingsViewModelWin : SettingsViewModel
     public async Task RestoreCompleteDataAsync()
     {
 
-        MyRestoredResult = new();
-        if (PickedUpBackup is not null)
-            MyRestoredResult = await BackupService.RestoreCompleteDataAsync(PickedUpBackup, MyRestoredResult);
-        IsRestoreDone = MyRestoredResult.Success;
-        PickedUpBackup = null;
-        var redoStats = new StatsRecalculator(RealmFactory, _logger);
-        _ = redoStats.RecalculateAllStatisticsAsync();
+        //MyRestoredResult = new();
+        //if (PickedUpBackup is not null)
+        //    MyRestoredResult = await BackupService.RestoreCompleteDataAsync(PickedUpBackup, MyRestoredResult);
+        //IsRestoreDone = MyRestoredResult.Success;
+        //PickedUpBackup = null;
+        //var redoStats = new StatsRecalculator(RealmFactory, _logger);
+        //_ = redoStats.RecalculateAllStatisticsAsync();
     }
     [RelayCommand]
     public async Task PickFolderToRestoreAppDataAsync()
@@ -71,7 +71,7 @@ public partial class SettingsViewModelWin : SettingsViewModel
         var (includeDefaultLocation, secondaryPath) = await tcs.Task;
 
         SelectedFile = secondaryPath;
-        PickedUpBackup = await BackupService.PickFolderTeRestoreFromBackupAsync(SelectedFile);
+        //PickedUpBackup = await BackupService.PickFolderTeRestoreFromBackupAsync(SelectedFile);
 
 
 
@@ -97,7 +97,7 @@ public partial class SettingsViewModelWin : SettingsViewModel
         restoreFolderPickerContentDialog.PrimaryButtonClick += async (s, e) =>
         {
             Debug.WriteLine($"BackUp started at {DateTime.Now}");
-            MyBackupResult = await BackupService.CreateCompleteBackupAsync(BaseViewModel.CurrentAppVersion);
+            //MyBackupResult = await BackupService.CreateCompleteBackupAsync(BaseViewModel.CurrentAppVersion);
 
 
             Debug.WriteLine($"BackUp ended at {DateTime.Now}");
@@ -110,8 +110,7 @@ public partial class SettingsViewModelWin : SettingsViewModel
 
         await restoreFolderPickerContentDialog.ShowAsync();
     }
-    [ObservableProperty]
-    public partial DimmerBackupService.BackUpCompleteResult? MyBackupResult { get; set; }
+
     internal void LoadApplicationDataForBackUpPage()
     {
         var realm = RealmFactory.GetRealmInstance();

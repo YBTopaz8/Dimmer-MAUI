@@ -42,17 +42,8 @@ public sealed partial class RestorePage : Page
     {
 
         await MyViewModel.PickFolderToRestoreAppDataAsync();
-        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.MyBackupResult), v => MyViewModel.MyBackupResult)
-            .ObserveOn(RxSchedulers.UI)
-            .Subscribe(async res =>
-            {
-                if (res is not null)
-                {
-                    
+       
 
-                    res = null;
-                }
-            });
     }
 
     private void StatusInfoBar_Tapped(object sender, TappedRoutedEventArgs e)

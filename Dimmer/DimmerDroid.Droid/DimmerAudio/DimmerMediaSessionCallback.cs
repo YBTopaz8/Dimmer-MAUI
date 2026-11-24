@@ -1,8 +1,6 @@
 ﻿namespace Dimmer.DimmerAudio;
 
-using Android.App.Admin;
 using Android.Support.V4.Media.Session;
-using DevExpress.XtraPrinting;
 using System.Diagnostics;
 
 public partial class DimmerMediaSessionCallback : MediaSessionCompat.Callback
@@ -17,16 +15,26 @@ public partial class DimmerMediaSessionCallback : MediaSessionCompat.Callback
         _audioService = audioService;
     }
     
-    public override void OnPlay() => _ = _audioService.PlayAsync(_audioService.CurrentPosition);
+    public override void OnPlay() => _ = _audioService.PlayAsync();
     public override void OnPause() => _ = _audioService.PauseAsync();
+
+
 
 
     public override async void OnSeekTo(long posMS)
     {
-        double targetSec = posMS / 1000.0;
-        if (_audioService != null)
+        try
         {
-            await _audioService.SeekAsync(targetSec);
+            double targetSec = posMS / 1000.0;
+            OnOptimisticSeek?.Invoke(targetSec);
+            if (_audioService != null)
+            {
+                await _audioService.SeekAsync(targetSec);
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"OnSeekTo error: {ex}");
         }
     }
     public override void OnSkipToNext()

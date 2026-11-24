@@ -41,33 +41,43 @@ public class LibraryScannerService : ILibraryScannerService
     {
         try
         {
-            // --- REALM BLOCK 1: GET FOLDERS ---
-            // Open, read, and close Realm entirely before we do any async work.
+            // 1. Get Folders
             using (var realm = _realmFactory.GetRealmInstance())
             {
                 if (folderPaths == null || folderPaths.Count == 0)
                 {
                     var existingState = realm.All<AppStateModel>().FirstOrDefault();
-                    folderPaths = existingState?.UserMusicFolders.Select(x => x.SystemFolderPath).ToList() ?? new List<string>();
+                    folderPaths = existingState?.UserMusicFolders
+                        .Select(x => x.SystemFolderPath)
+                        .Where(p => !string.IsNullOrWhiteSpace(p))
+                        .ToList() ?? new List<string>();
                 }
             }
 
-            if (folderPaths == null || folderPaths.Count == 0) return new LoadSongsResult { NewSongsAddedCount = 0 };
+            if (folderPaths.Count == 0)
+                return new LoadSongsResult { NewSongsAddedCount = 0 };
 
             _state.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderScanStarted, string.Join(";", folderPaths), null, null));
             _state.SetCurrentLogMsg("Starting music scan...", DimmerLogLevel.Info);
 
-            // --- ASYNC WORK: NO REALM ALLOWED HERE ---
+
+
+            // 2. Discover disk files
             List<string> allDiskFiles = await TaggingUtils.GetAllAudioFilesFromPathsAsync(folderPaths, _config.SupportedAudioExtensions).ConfigureAwait(false);
 
-            HashSet<string> existingPaths = new(StringComparer.OrdinalIgnoreCase);
-            HashSet<string> existingKeys = new(StringComparer.OrdinalIgnoreCase);
+            if (allDiskFiles.Count == 0)
+            {
+                _state.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderScanCompleted, "No files found.", null, null));
+                return new LoadSongsResult { NewSongsAddedCount = 0 };
+            }
 
-            // --- REALM BLOCK 2: CACHE DB STATE & HANDLE DELETIONS ---
+            var diskFilesSet = new HashSet<string>(allDiskFiles, StringComparer.OrdinalIgnoreCase);
+            var existingPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var existingKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            // 3. Handle Deletions & Cache DB state
             using (var realm = _realmFactory.GetRealmInstance())
             {
-                // Iterating through Realm is fast. We extract ONLY the strings we need and detach them from Realm.
-                // This prevents out-of-memory errors and thread issues.
                 foreach (var s in realm.All<SongModel>())
                 {
                     if (!string.IsNullOrEmpty(s.FilePath)) existingPaths.Add(s.FilePath);
@@ -76,37 +86,26 @@ public class LibraryScannerService : ILibraryScannerService
 
                 if (isIncremental)
                 {
-                    // Find songs in DB that belong to the scanned folders, but are NO LONGER on the disk
-                    var filesToDelete = new List<SongModel>();
-                    foreach (var dbSong in realm.All<SongModel>())
+                    var filesToDelete = realm.All<SongModel>()
+                        .AsEnumerable()
+                        .Where(dbSong => !string.IsNullOrEmpty(dbSong.FilePath) &&
+                                         folderPaths.Any(fp => dbSong.FilePath.StartsWith(fp, StringComparison.OrdinalIgnoreCase)) &&
+                                         !diskFilesSet.Contains(dbSong.FilePath)) // O(1) Lookup
+                        .ToList();
+
+                    if (filesToDelete.Count > 0)
                     {
-                        if (string.IsNullOrEmpty(dbSong.FilePath)) continue;
-
-                        bool inScannedFolder = folderPaths.Any(fp => dbSong.FilePath.StartsWith(fp, StringComparison.OrdinalIgnoreCase));
-                        bool missingFromDisk = !allDiskFiles.Contains(dbSong.FilePath, StringComparer.OrdinalIgnoreCase);
-
-                        if (inScannedFolder && missingFromDisk)
+                        _logger.LogInformation("Removing {Count} deleted files from database...", filesToDelete.Count);
+                        await realm.WriteAsync(() =>
                         {
-                            filesToDelete.Add(dbSong);
-                        }
-                    }
-
-                    if (filesToDelete.Count != 0)
-                    {
-                        _logger.LogInformation("Detected {Count} deleted files. Removing from database...", filesToDelete.Count);
-                       await realm.WriteAsync(() => // Synchronous Write guarantees we stay on the safe thread
-                        {
-                            foreach (var songToDelete in filesToDelete)
-                            {
-                                realm.Remove(songToDelete);
-                            }
+                            foreach (var song in filesToDelete) realm.Remove(song);
                         });
                     }
                 }
             }
 
-            // --- ASYNC WORK 2: METADATA PARSING (NO REALM ALLOWED HERE) ---
-            var newFilesToProcess = allDiskFiles.Where(file => !existingPaths.Contains(file)).ToList();
+            // 4. Extract only new files
+            var newFilesToProcess = allDiskFiles.Where(f => !existingPaths.Contains(f)).ToList();
 
             if (newFilesToProcess.Count == 0)
             {
@@ -114,138 +113,78 @@ public class LibraryScannerService : ILibraryScannerService
                 return new LoadSongsResult { NewSongsAddedCount = 0 };
             }
 
+            // 5. Parse Audio Metadata in Parallel
             MusicMetadataService currentScanMetadataService = new();
             var audioFileProcessor = new AudioFileProcessor(currentScanMetadataService, _config);
-
             var processedResults = await audioFileProcessor.ProcessFilesInParallelForEachAsync(newFilesToProcess).ConfigureAwait(false);
 
-            var successFullyProcessed = processedResults
-                .Where(r => r.Success && r.ProcessedSong != null);
+            var newSongs = processedResults
+                .Where(r => r.Success && r.ProcessedSong != null)
+                .Select(r => r.ProcessedSong!)
+                .DistinctBy(s => s.TitleDurationKey)
+                .Where(s => !existingKeys.Contains(s.TitleDurationKey))
+                .ToList();
 
-            var notnullProcessedSong = successFullyProcessed
-                .Select(r => r.ProcessedSong!);
-            var distinctSongsByTitleDur = notnullProcessedSong
-                .DistinctBy(s => s.TitleDurationKey);
-            var doubleCheckList = distinctSongsByTitleDur
-                .Where(s => !existingKeys.Contains(s.TitleDurationKey)) // Double check against DB
-                ;
-            var newSongs = doubleCheckList.ToList();
-
-            // --- REALM BLOCK 3: INSERT NEW SONGS ---
+            // 6. FAST BATCH INSERT TO REALM
             if (newSongs.Count > 0)
             {
                 using (var realm = _realmFactory.GetRealmInstance())
                 {
-                  await  realm.WriteAsync(() =>
+                    await realm.WriteAsync(() =>
                     {
-                        // Cache DB lookups into Dictionaries to prevent thousands of slow DB queries inside the loop
+                        // Pre-cache existing DB models into Dictionaries (O(1) lookups!)
+                        var genreCache = realm.All<GenreModel>().ToDictionary(g => g.Name, g => g, StringComparer.OrdinalIgnoreCase);
+                        var artistCache = realm.All<ArtistModel>().ToDictionary(a => a.Name, a => a, StringComparer.OrdinalIgnoreCase);
+                        var albumCache = realm.All<AlbumModel>().ToDictionary(al => al.Name, al => al, StringComparer.OrdinalIgnoreCase);
 
                         foreach (var songView in newSongs)
                         {
                             var songModel = songView.ToSongModel();
                             if (songModel is null) continue;
 
-                            var genreName = songView.GenreName;
                             // Link Genre
-                            if (!string.IsNullOrEmpty(genreName))
+                            if (!string.IsNullOrWhiteSpace(songView.GenreName))
                             {
-                                var genreInDb = realm.All<GenreModel>().Filter("Name == $0", genreName);
-                                var countgenre = genreInDb.Count();
-                                var genre = new GenreModel { Id = ObjectId.GenerateNewId(), Name = genreName };
-                         
-                                if (countgenre == 1)
+                                if (!genreCache.TryGetValue(songView.GenreName, out var genre))
                                 {
-                                        genre = genreInDb.First();
-                                }
-                           
-                                if (countgenre == 0)
-                                {
-
-                                    genre = realm.Add(genre, update: true);
-                                }
-                                else if(countgenre > 1) 
-                                {
-                                    var dupgenre = genreInDb.AsEnumerable().OrderByDescending(x => x.DateCreated).Skip(1).ToList();
-                                  foreach (var item in dupgenre)
-                                  {
-                                        
-                                        realm.Remove(item);
-                                  }
-
+                                    genre = realm.Add(new GenreModel { Id = ObjectId.GenerateNewId(), Name = songView.GenreName });
+                                    genreCache[songView.GenreName] = genre;
                                 }
                                 songModel.Genre = genre;
                             }
 
-                            // Link Artist
-                            if (!string.IsNullOrEmpty(songView.OtherArtistsName))
+                            // Link Artists
+                            if (!string.IsNullOrWhiteSpace(songView.OtherArtistsName))
                             {
-                                var artName = songView.OtherArtistsName.Split(",");
-                                foreach (var art in artName)
+                                var artNames = songView.OtherArtistsName.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                                foreach (var art in artNames)
                                 {
-
-                                    var ArtsInDb = realm.All<ArtistModel>().Filter("Name == $0", art);
-                                    var countArtInDb = ArtsInDb.Count();
-                                    var artist = new ArtistModel { Id = ObjectId.GenerateNewId(), Name = art };
-                                    if (countArtInDb == 0)
+                                    if (!artistCache.TryGetValue(art, out var artist))
                                     {
-
-                                        artist = realm.Add(artist, update: true);
-                                    }
-
-                                    else if (countArtInDb == 1)
-                                    {
-                                        artist = ArtsInDb.First();
-                                    }
-                                    else if (countArtInDb > 1)
-                                    {
-                                        var dupArtists = ArtsInDb.AsEnumerable().OrderByDescending(x => x.DateCreated).Skip(1).ToList();
-                                     
-                                        foreach (var item in dupArtists)
-                                        {
-                                            realm.Remove(item);
-                                        }
+                                        artist = realm.Add(new ArtistModel { Id = ObjectId.GenerateNewId(), Name = art });
+                                        artistCache[art] = artist;
                                     }
 
                                     songModel.Artist = artist;
                                     songModel.ArtistToSong.Add(artist);
                                     artist.TotalSongsByArtist++;
-
                                 }
                             }
 
-                            var alb = songView.AlbumName;
                             // Link Album
-                            if (!string.IsNullOrEmpty(alb))
+                            if (!string.IsNullOrWhiteSpace(songView.AlbumName))
                             {
-
-                                var albsInDb = realm.All<AlbumModel>().Filter("Name == $0", alb);
-                                var countArtInDb = albsInDb.Count();
-                                var album = new AlbumModel { Id = ObjectId.GenerateNewId(), Name = alb };
-                                if (countArtInDb ==0)
+                                if (!albumCache.TryGetValue(songView.AlbumName, out var album))
                                 {
-
-                                    album = realm.Add(album);
-
-                                   
+                                    album = realm.Add(new AlbumModel { Id = ObjectId.GenerateNewId(), Name = songView.AlbumName });
+                                    albumCache[songView.AlbumName] = album;
                                 }
-                                else if (countArtInDb == 1)
-                                {
-                                    album = albsInDb.First();
-                                }
-                                else if (countArtInDb > 1)
-                                {
-                                    var dupAlbs = albsInDb.AsEnumerable().OrderByDescending(x => x.DateCreated).Skip(1).ToList();
-                                    foreach (var item in dupAlbs)
-                                    {
-                                        realm.Remove(item);
-                                    }
 
-                                }
                                 if (songModel.Artist != null && !album.Artists.Contains(songModel.Artist))
+                                {
                                     album.Artists.Add(songModel.Artist);
-
+                                }
                                 songModel.Album = album;
-
                             }
 
                             songModel.IsNew = false;
@@ -255,7 +194,6 @@ public class LibraryScannerService : ILibraryScannerService
                 }
             }
 
-            // Cleanup & Return
             currentScanMetadataService.ClearAll();
             _state.SetCurrentState(new PlaybackStateInfo(DimmerUtilityEnum.FolderScanCompleted, extParam: newSongs, null, null));
 
@@ -271,7 +209,6 @@ public class LibraryScannerService : ILibraryScannerService
             return new LoadSongsResult { IsError = true, ErrorMessage = ex.Message };
         }
     }
-
     public async Task ScanSpecificPaths(List<string> pathsToScan, bool isIncremental = true)
     {
         _logger.LogInformation("Starting specific path scan (currently full scan of paths): {Paths}", string.Join(", ", pathsToScan));

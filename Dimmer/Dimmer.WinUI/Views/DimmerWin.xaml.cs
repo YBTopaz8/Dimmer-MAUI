@@ -123,7 +123,17 @@ public sealed partial class DimmerWin : Window
             _isDialogActive = true;
             try
             {
-                await MyViewModel.CheckToCompleteActivation(typee);
+                
+                var currPage = ContentFrame.CurrentSourcePageType;
+                if (currPage == typeof(LastFmPage))
+                {
+                    var lastFMPagee = MyViewModel.CurrentUserLocal.LastFMAccountInfo.Name;
+                    if (lastFMPagee is not null)
+                    {
+                        await MyViewModel.CheckToCompleteActivation(typee,
+                        lastFMPagee);
+                    }
+                }
             }
             finally
             {
@@ -932,54 +942,20 @@ public sealed partial class DimmerWin : Window
 
     private void CurrentPlayingSongGooeyButton_Loaded(object sender, RoutedEventArgs e)
     {
-        // Pass the static DependencyProperty identifier (e.g. GooeyButton.ExpandedProperty)
-        CurrentPlayingSongGooeyButton.RegisterPropertyChangedCallback(
-            GooeyButton.ExpandedProperty,
-            (s, dp) =>
-            {
-                FavCurrentSongGooeyBtnItem.Background = MyViewModel.CurrentPlayingSongView.IsFavorite ? new SolidColorBrush(Colors.DarkSlateBlue) : MyViewModel.WinUISolidDominantBrush;
-               
-
-                if (s is GooeyButton button)
-                {
-                    
-                    button.Opacity = button.Expanded ? 1.0 : 0.5;
-                }
-            });
-
-        // Also run it once on Loaded so the initial Opacity reflects the initial state
-        CurrentPlayingSongGooeyButton.Opacity = CurrentPlayingSongGooeyButton.Expanded ? 1.0 : 0.5;
+      
+        
     }
 
     private async void CurrentPlayingSongGooeyButton_ItemInvoked(object sender, GooeyButton.GooeyButtonItemInvokedEventArgs args)
     {
-        var ItemFE =args.Item as FrameworkElement;
-        if (ItemFE is null) return;
-        var ind = ItemFE.Name;
-        switch (ind)
-        {
-            case "ViewSymbol":
-                await MyViewModel.MySongsTableView.SmoothScrollIntoViewWithItemAsync(MyViewModel.CurrentPlayingSongView, ScrollItemPlacement.Center);
-                Growl.InfoWithToken( "Scrolled to current song in list", "Scroll Complete", "BottomCurrentPlayingSongPanel");
-                break;
-            case "FavCurrentSong":
-                
-                await MyViewModel.AddFavoriteRatingToSongAsync(MyViewModel.CurrentPlayingSongView);
-                Growl.Info2WithToken("Added to Favorites", "Song Favorited", "BottomCurrentPlayingSongPanel");
-                break;
-            case "OpenNowPlayingViewFontIcon":
+        
 
-                CurrentPlayingSongGooeyButton.Expanded = false;
-                MyViewModel.NavigateToAnyPageOfGivenType(typeof(NowPlayingPage));
+    }
 
-                return;
+    private void CurrentPlayingSongImage_RightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+        
+        MyViewModel.NavigateToAnyPageOfGivenType(typeof(NowPlayingPage));
 
-            default:
-                break;
-        }
-        CurrentPlayingSongGooeyButton.Expanded = false;
-
-        await Task.Delay(2000);
-        Growl.Clear("BottomCurrentPlayingSongPanel");
     }
 }
