@@ -1,6 +1,7 @@
 ﻿namespace Dimmer.Data.Models;
 
 [Dimmer.Utils.Preserve(AllMembers = true)]
+[MapTo(nameof(AppStateModel))]
 public partial class AppStateModel : RealmObject, IRealmObjectWithObjectId
 {
 

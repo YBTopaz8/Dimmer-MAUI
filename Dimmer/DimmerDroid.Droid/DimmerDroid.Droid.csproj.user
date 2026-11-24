@@ -5,6 +5,7 @@
     <SelectedPlatformGroup>Emulator</SelectedPlatformGroup>
     <ActiveDebugProfile>Phone M-DPI 5.4in - API 35.0 (1) (Android 15.0 - API 35)</ActiveDebugProfile>
     <DefaultDevice>phone_m-dpi_5_4in_-_api_35_0_1</DefaultDevice>
+    <ActiveDebugFramework>net10.0-android</ActiveDebugFramework>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DebuggerFlavor>ProjectDebugger</DebuggerFlavor>

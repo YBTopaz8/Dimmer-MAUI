@@ -332,10 +332,11 @@ public static class TaggingUtils
     public static Func<string, Stream>? PlatformGetStreamHook { get; set; }
     public static Func<string, string>? PlatformSpecificCleanPathGetter { get; set; }
     public static Action<string, string, string>? PlatformSpecificFileCreator { get; set; }
-
+    public static Func<string, string, string, Stream, bool>? PlatformWriteStreamHook { get; set; }
     public static Func<string, long>? PlatformGetFileSizeHook { get; set; }
     public static Func<string, bool>? PlatformSpecificDeleter { get; set; }
 
+    public static Action<string, string, string>? PlatformSpecificStreamCopier { get; set; }
     public static bool DeletePlatformFile(string path)
     {
         if (string.IsNullOrWhiteSpace(path)) return false;
@@ -367,58 +368,114 @@ public static class TaggingUtils
         catch { return 0; }
     }
 
-    public static Task<List<string>> GetAllAudioFilesFromPathsAsync(IEnumerable<string> pathsToScan, IReadOnlySet<string> supportedExtensions)
+    public static Task<List<string>> GetAllAudioFilesFromPathsAsync(
+    IEnumerable<string> pathsToScan,
+    IReadOnlySet<string> supportedExtensions,
+    Action<string>? logError = null,
+    CancellationToken ct = default)
     {
         return Task.Run(() =>
         {
-            var filesBag = new ConcurrentBag<string>();
+            // Normalize extensions once: case-insensitive + guaranteed leading '.'
+            var normalizedExts = new HashSet<string>(
+                supportedExtensions
+                    .Where(e => !string.IsNullOrWhiteSpace(e))
+                    .Select(e => e.StartsWith('.') ? e : "." + e),
+                StringComparer.OrdinalIgnoreCase);
 
-            // High-performance enumeration options
-            var enumOptions = new EnumerationOptions
+            var filesBag = new ConcurrentBag<string>();
+            var parallelOptions = new ParallelOptions
             {
-                IgnoreInaccessible = true,
-                RecurseSubdirectories = true
+                MaxDegreeOfParallelism = Math.Clamp(Environment.ProcessorCount / 2, 2, 4),
+                CancellationToken = ct
             };
 
+            // Use Ordinal on Android/Linux (case-sensitive FS), OrdinalIgnoreCase on Windows
+            var pathComparer = OperatingSystem.IsWindows()
+                ? StringComparer.OrdinalIgnoreCase
+                : StringComparer.Ordinal;
+
             Parallel.ForEach(
-                pathsToScan.Where(p => !string.IsNullOrWhiteSpace(p)).Distinct(StringComparer.OrdinalIgnoreCase),
-                path =>
+                pathsToScan.Where(p => !string.IsNullOrWhiteSpace(p)).Distinct(pathComparer),
+                parallelOptions,
+                rootPath =>
                 {
-                    try
+                    if (PlatformSpecificScanner != null)
                     {
-                        if (path.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
+                        try
                         {
-                            if (PlatformSpecificScanner != null)
-                            {
-                                foreach (var f in PlatformSpecificScanner(path, supportedExtensions)) filesBag.Add(f);
-                            }
-                            return;
+                            foreach (var f in PlatformSpecificScanner(rootPath, normalizedExts))
+                                filesBag.Add(f);
+                        }
+                        catch (Exception ex)
+                        {
+                            logError?.Invoke($"PlatformSpecificScanner error ({rootPath}): {ex.Message}");
+                        }
+                        return;
+                    }
+                    if (File.Exists(rootPath))
+                    {
+                        if (normalizedExts.Contains(Path.GetExtension(rootPath)))
+                            filesBag.Add(rootPath);
+                        return;
+                    }
+
+                    if (!Directory.Exists(rootPath))
+                    {
+                        logError?.Invoke($"Directory does not exist or is inaccessible: {rootPath}");
+                        return;
+                    }
+
+                    // Manual stack traversal: isolates IOException / UnauthorizedAccessException per folder
+                    var pendingDirs = new Stack<string>();
+                    pendingDirs.Push(rootPath);
+
+                    while (pendingDirs.Count > 0)
+                    {
+                        ct.ThrowIfCancellationRequested();
+                        var currentDir = pendingDirs.Pop();
+
+                        // Skip Android protected/cache trees that stall or throw on FUSE
+                        var dirName = Path.GetFileName(currentDir);
+                        if (dirName.Equals("Android", StringComparison.OrdinalIgnoreCase) &&
+                            currentDir.EndsWith("/Android", StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue;
                         }
 
-                        if (File.Exists(path) && supportedExtensions.Contains(Path.GetExtension(path)))
+                        try
                         {
-                            filesBag.Add(path);
-                            return;
-                        }
-
-                        if (Directory.Exists(path))
-                        {
-                            // Safely traverse directories
-                            var files = Directory.EnumerateFiles(path, "*.*", enumOptions);
-                            foreach (var file in files)
+                            foreach (var file in Directory.EnumerateFiles(currentDir))
                             {
-                                if (supportedExtensions.Contains(Path.GetExtension(file)))
-                                {
+                                if (normalizedExts.Contains(Path.GetExtension(file)))
                                     filesBag.Add(file);
-                                }
                             }
+                        }
+                        catch (Exception ex)
+                        {
+                            logError?.Invoke($"Skipped files in '{currentDir}': {ex.Message}");
+                        }
+
+                        try
+                        {
+                            foreach (var subDir in Directory.EnumerateDirectories(currentDir))
+                            {
+                                // Skip hidden dot-folders (e.g. .thumbnails, .Trash)
+                                if (Path.GetFileName(subDir).StartsWith('.'))
+                                    continue;
+
+                                pendingDirs.Push(subDir);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            logError?.Invoke($"Skipped subdirs in '{currentDir}': {ex.Message}");
                         }
                     }
-                    catch { /* ignored to prevent breaking parallel loop */ }
                 });
 
-            return filesBag.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
-        });
+            return filesBag.Distinct(pathComparer).ToList();
+        }, ct);
     }
     public static Task<List<string>> GetAllFilesFromPathsAsync(
     IEnumerable<string> pathsToScan,

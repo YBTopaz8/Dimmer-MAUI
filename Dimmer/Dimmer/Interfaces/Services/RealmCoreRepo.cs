@@ -375,7 +375,7 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
     {
         return ExecuteRead(realm =>
         {
-            var results = realm.All<T>().Filter(rqlQuery, args).ToList();
+            var results = realm.All<T>().Filter(rqlQuery, args).AsEnumerable();
             return results.Select(o => o.Freeze()).ToList();
         });
     }
@@ -515,6 +515,7 @@ public class RealmCoreRepo<T>(IRealmFactory factory) : IRepository<T> where T : 
             var liveEntity = _realm.Find<T>(id);
             if (liveEntity != null)
             {
+                
                 _realm.Remove(liveEntity);
                 Debug.WriteLine($"[RealmCoreRepo<{typeof(T).Name}>] (Async) Deleted entity with Id: {id}");
             }

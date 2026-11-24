@@ -13,7 +13,7 @@
 
                 <ResourceDictionary x:Name="appColors" Source="Resources/Styles/Colors.xaml" />
                 <ResourceDictionary x:Name="appStyles" Source="Resources/Styles/Styles.xaml" />
-
+                <ResourceDictionary Source="/Resources/Styles/SvgIcons.xaml;assembly=Dimmer" />
             </ResourceDictionary.MergedDictionaries>
             <converters:BoolToYesNoConverter x:Key="BoolToYesNoConverter" />
             <converters:BoolToInverseConverter x:Key="BoolToInverseConverter" />

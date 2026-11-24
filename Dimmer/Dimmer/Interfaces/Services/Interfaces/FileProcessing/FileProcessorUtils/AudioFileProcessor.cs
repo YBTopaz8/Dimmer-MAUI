@@ -167,7 +167,7 @@ public class AudioFileProcessor : IAudioFileProcessor
                 // Genre Info
                 Genre = genre,
                 GenreName = genre.Name,
-
+                IsInstrumental = track.Title.Contains("instrumental", StringComparison.OrdinalIgnoreCase) || track.Title.Contains("karaoke", StringComparison.OrdinalIgnoreCase),
                 // Technical Info
                 DurationInSeconds = track.Duration,
                 BitRate = track.Bitrate,

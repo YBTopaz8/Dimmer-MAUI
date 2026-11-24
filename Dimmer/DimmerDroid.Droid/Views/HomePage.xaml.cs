@@ -1,10 +1,14 @@
 
 global using Dimmer.Views.CustomViews;
 global using View = Microsoft.Maui.Controls.View;
+using CommunityToolkit.Maui.Alerts;
+using DevExpress.Data.Filtering;
 using DevExpress.Maui.CollectionView;
 using DevExpress.Maui.Editors;
+using Dimmer.Data.ModelView.DimmerSearch;
 using Dimmer.DimmerSearch.TQL;
 using Dimmer.Utilities;
+using DynamicData;
 using Syncfusion.Maui.Toolkit.Internals;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
@@ -167,7 +171,8 @@ public partial class HomePage : ContentPage
         var send = (View)sender;
         var song = (SongModelView)send.BindingContext;
         MyViewModel.SelectedSong = song;
-
+        SelectedSongMenuBtm.SetIsExpanded(true);
+        SelectedSongAlbumExp.SetIsExpanded(false);
         SingleSongBtmSheet.Show();
     }
 
@@ -569,7 +574,7 @@ public partial class HomePage : ContentPage
 
     private void SortPopUp_Clicked(object sender, EventArgs e)
     {
-        SortPopUp.Show();
+        //SortPopUp.Show();
         return;
 
        
@@ -582,7 +587,7 @@ public partial class HomePage : ContentPage
 
     private void CloseSortPopupBtn_Clicked(object sender, EventArgs e)
     {
-        SortPopUp.Close();
+        //SortPopUp.Close();
     }
     int currentSelectedSortIndex;
     private bool isTQLBtmSheetOpened;
@@ -617,7 +622,7 @@ public partial class HomePage : ContentPage
     }
     private void ConfirmSortAndClosePopupBtn_Clicked(object sender, EventArgs e)
     {
-        SortPopUp.Close();
+        //SortPopUp.Close();
 
         // Safe property name mapping using nameof() to prevent typos
         string propertyName = currentSelectedSortIndex switch
@@ -688,6 +693,7 @@ public partial class HomePage : ContentPage
 
     private async void SelectedSongArtistBtn_Clicked(object sender, EventArgs e)
     {
+        await SingleSongBtmSheet.CloseAsync();
         if(MyViewModel.SelectedSong?.ArtistToSong.Count >1)
         {
             ArtistsMgtBtmSheet.Show();
@@ -703,8 +709,11 @@ public partial class HomePage : ContentPage
     private async void GoToSelectedSongAlbumPage_Clicked(object sender, EventArgs e)
     {
         MyViewModel.SetSelectedAlbum(MyViewModel.SelectedSong!.Album);
-        await SingleSongBtmSheet.CloseAsync();
-        await Shell.Current.GoToAsync(nameof(AlbumPage));
+        SelectedSongMenuBtm.SetIsExpanded(false);
+        SelectedSongAlbumExp.SetIsExpanded(true);
+
+        //await SingleSongBtmSheet.CloseAsync();
+        //await Shell.Current.GoToAsync(nameof(AlbumPage));
     }
 
     private async void GoToSelectedSongOverViewPage_Clicked(object sender, EventArgs e)
@@ -727,14 +736,14 @@ public partial class HomePage : ContentPage
 
     private  void OpenSortBtn_Clicked(object sender, EventArgs e)
     {
-       FilterBottomSheet.Close();
-        SortPopUp.Show();
+       //FilterBottomSheet.Close();
+       // SortPopUp.Show();
     }
 
     private void OpenFilterBtn_Clicked(object sender, EventArgs e)
     {
-        SortPopUp.Close();
-        FilterBottomSheet.Show();
+        //SortPopUp.Close();
+        //FilterBottomSheet.Show();
         
     }
 
@@ -743,7 +752,7 @@ public partial class HomePage : ContentPage
         
         var songHandle = SongsCV.GetItemHandleByVisibleIndex(0);
         SongsCV.ScrollTo(songHandle, DXScrollToPosition.Start);
-        SortPopUp.Close();
+        //SortPopUp.Close();
     }
 
 
@@ -752,7 +761,7 @@ public partial class HomePage : ContentPage
 
         var songHandle = SongsCV.GetItemHandleByVisibleIndex(SongsCV.VisibleItemCount-1);
         SongsCV.ScrollTo(songHandle, DXScrollToPosition.Start);
-        SortPopUp.Close();
+        //SortPopUp.Close();
     }
 
     private void OtherArtistsName_Clicked(object sender, EventArgs e)
@@ -761,10 +770,7 @@ public partial class HomePage : ContentPage
         var song = dxBtn.CommandParameter as SongModelView;
         if (song is null) return;
         MyViewModel.SelectedSong = song;
-        var songHandle = SongsCV.FindItemHandle(song);
-
-        SongsCV.ScrollTo(songHandle, DXScrollToPosition.Start);
-        ArtistsMgtBtmSheet.Show(BottomSheetState.HalfExpanded);
+        
     }
 
     private async void SavePlayBackQueue_Clicked(object sender, EventArgs e)
@@ -971,24 +977,213 @@ public partial class HomePage : ContentPage
 
     private async void DeleteSongBtn_Tap(object sender, HandledEventArgs e)
     {
-        await MyViewModel.DeleteFileFromSystem(MyViewModel.SelectedSong);
+        //await MyViewModel.DeleteFileFromSystemAsync(MyViewModel.SelectedSong);
     }
 
-    private void ShowTQLShortBTMSheet_Loaded(object sender, EventArgs e)
-    {
-        var nativeView = ShowTQLShortBTMSheet.Handler?.PlatformView as Android.Views.View;
-        if (nativeView != null)
-        {
-            // Unsubscribe first to guarantee we never double-subscribe!
-            nativeView.LongClick -= NativeView_LongClick;
-            nativeView.LongClick += NativeView_LongClick;
-        }
-    }
 
-    private void NativeView_LongClick(object? sender, Android.Views.View.LongClickEventArgs e)
+
+    private void ScrollToBtn_Clicked(object sender, TouchEventArgs e)
     {
         var songHandle = SongsCV.FindItemHandle(MyViewModel.CurrentPlayingSongView);
         HapticFeedback.Default.Perform(HapticFeedbackType.Click);
         SongsCV.ScrollTo(songHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
+
+        Toast msgToast = new Toast() { Text = "Scrolled to Now Playing Song", Duration = CommunityToolkit.Maui.Core.ToastDuration.Short };
+        msgToast.Show();
+    }
+
+    private void Mainfab_LongPressed(object sender, TouchEventArgs e)
+    {
+
+    }
+
+    private void PlayNext_Tap(object sender, HandledEventArgs e)
+    {
+        Chip plNextChip = (Chip)sender;
+        var song = plNextChip.TapCommandParameter as SongModelView;
+        if (song is null)
+        {
+            return;
+        }
+        MyViewModel.AddToNext(new List<SongModelView>() { song });
+
+
+        var snackMsg = $"Added {song.Title} by {song.ArtistName} to Next in Queue";
+
+        CommunityToolkit.Maui.Alerts.Toast msgToast = new CommunityToolkit.Maui.Alerts.Toast() { Text = snackMsg, Duration = CommunityToolkit.Maui.Core.ToastDuration.Short };
+
+    }
+
+    private void ShowTQLShortBTMSheet_Loaded(object sender, EventArgs e)
+    {
+
+    }
+
+    private void ArtistFacet_TapConfirmed(object sender, CollectionViewGestureEventArgs e)
+    {
+
+    }
+
+    private void AlbumsFacet_TapConfirmed(object sender, CollectionViewGestureEventArgs e)
+    {
+
+    }
+
+    private void ScrollToFAB_Clicked(object sender, TouchEventArgs e)
+    {
+        var songHandle = SongsCV.FindItemHandle(MyViewModel.CurrentPlayingSongView);
+        HapticFeedback.Default.Perform(HapticFeedbackType.Click);
+        SongsCV.ScrollTo(songHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
+    }
+
+    private void MainFab_Clicked(object sender, TouchEventArgs e)
+    {
+
+    }
+
+    private void SearchTextFab_Clicked(object sender, TouchEventArgs e)
+    {
+        TQLSearchGrid.IsVisible = true;
+        SearchText.Focus();
+        SearchText.CursorPosition = SearchText.Text?.Length is null ? 0 : SearchText.Text.Length;
+    }
+
+    private void ShowFilterBtmSheet_Clicked(object sender, TouchEventArgs e)
+    {
+        FilterSortBottomSheet.Show();
+        FilterSortChoiceChipGroup.Chips[0].IsSelected = true;
+        MainPageGooeyBtn.IsOpen = false;
+    }
+
+    private void ShowSortBtmSheet_Clicked(object sender, TouchEventArgs e)
+    {
+        FilterSortBottomSheet.Show();
+        FilterSortChoiceChipGroup.Chips[1].IsSelected = true;
+        MainPageGooeyBtn.IsOpen = false;
+    }
+
+
+    private CriteriaOperator? _lastArtistFacetOp;
+    private CriteriaOperator? _lastAlbumFacetOp;
+    private CriteriaOperator? _lastGenreFacetOp;
+    private bool _isClearingFacets;
+
+    private void Facet_SelectionChanged(object sender, CollectionViewSelectionChangedEventArgs e)
+    {
+        if (_isClearingFacets)
+            return;
+
+        ApplyFacetCriteria();
+    }
+
+    private void ClearFacetsBtn_Clicked(object sender, EventArgs e)
+    {
+        ClearFacetSelections();
+    }
+
+    public void ClearFacetSelections()
+    {
+        _isClearingFacets = true;
+        try
+        {
+            // In DevExpress DXCollectionView, setting SelectedItems = null clears multi-selection
+            ArtistFacet.SelectedItems = null;
+            AlbumsFacet.SelectedItems = null;
+            //GenresFacet.SelectedItems = null;
+        }
+        finally
+        {
+            _isClearingFacets = false;
+        }
+
+        ApplyFacetCriteria();
+    }
+
+    private void ApplyFacetCriteria()
+    {
+        // 1. Strip previous facet clauses from SongsCV.FilterExpression while keeping
+        //    IsFavorite, HasSyncLyrics, DimsRangeSlider, etc.
+        CriteriaOperator? baseCriteria = RemovePreviousFacetClauses(SongsCV.FilterExpression);
+
+        // 2. Build OR-within-group (InOperator) for each facet group
+        _lastArtistFacetOp = BuildInOperator(
+            nameof(SongModelView.OtherArtistsName),
+            ArtistFacet.SelectedItems);
+
+        _lastAlbumFacetOp = BuildInOperator(
+            nameof(SongModelView.AlbumName),
+            AlbumsFacet.SelectedItems);
+
+        //_lastGenreFacetOp = BuildInOperator(
+        //    nameof(SongModelView.GenreName),
+        //    GenresFacet.SelectedItems);
+
+        // 3. Combine baseCriteria AND Artists AND Albums AND Genres
+        var activeClauses = new List<CriteriaOperator>();
+        if (baseCriteria is not null) activeClauses.Add(baseCriteria);
+        if (_lastArtistFacetOp is not null) activeClauses.Add(_lastArtistFacetOp);
+        if (_lastAlbumFacetOp is not null) activeClauses.Add(_lastAlbumFacetOp);
+        if (_lastGenreFacetOp is not null) activeClauses.Add(_lastGenreFacetOp);
+
+        SongsCV.FilterExpression = activeClauses.Count switch
+        {
+            0 => null,
+            1 => activeClauses[0],
+            _ => CriteriaOperator.And(activeClauses)
+        };
+
+        ClearFacetsBtn.IsVisible =
+            _lastArtistFacetOp is not null ||
+            _lastAlbumFacetOp is not null ||
+            _lastGenreFacetOp is not null;
+    }
+
+    private static CriteriaOperator? BuildInOperator(string fieldName, System.Collections.IEnumerable? selectedItems)
+    {
+        if (selectedItems is null)
+            return null;
+        var values = selectedItems
+            .OfType<FacetItem>()
+            .Select(f => f.Value)
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        return values.Length > 0 ? new InOperator(fieldName, values) : null;
+    }
+
+    private CriteriaOperator? RemovePreviousFacetClauses(CriteriaOperator? expr)
+    {
+        if (expr is null)
+            return null;
+
+        var remaining = new List<CriteriaOperator>();
+        CollectNonFacetOperands(expr, remaining);
+
+        return remaining.Count switch
+        {
+            0 => null,
+            1 => remaining[0],
+            _ => CriteriaOperator.And(remaining)
+        };
+    }
+
+    private void CollectNonFacetOperands(CriteriaOperator op, List<CriteriaOperator> output)
+    {
+        if (Equals(op, _lastArtistFacetOp) ||
+            Equals(op, _lastAlbumFacetOp) ||
+            Equals(op, _lastGenreFacetOp))
+        {
+            return;
+        }
+
+        if (op is GroupOperator grp && grp.OperatorType == GroupOperatorType.And)
+        {
+            foreach (var child in grp.Operands)
+                CollectNonFacetOperands(child, output);
+            return;
+        }
+
+        output.Add(op);
     }
 }

@@ -15,6 +15,12 @@ using System.Reactive.Disposables.Fluent;
 [Service(Name = "com.yvanbrunel.dimmer.DimmerCompatMediaService", Exported = true, ForegroundServiceType = global::Android.Content.PM.ForegroundService.TypeMediaPlayback)]
 public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFocusChangeListener
 {
+    public const string ActionPlayPause = "com.yvanbrunel.dimmer.ACTION_PLAY_PAUSE";
+    public const string ActionNext = "com.yvanbrunel.dimmer.ACTION_NEXT";
+    public const string ActionPrev = "com.yvanbrunel.dimmer.ACTION_PREV";
+    public const string ActionJumpQueue = "com.yvanbrunel.dimmer.ACTION_JUMP_QUEUE";
+    public const string ExtraQueueIndex = "extra_queue_index";
+    private readonly Android.OS.Handler _mainHandler = new(Android.OS.Looper.MainLooper!);
     private AudioFocusRequestClass? _audioFocusRequest;
     private double _volumeBeforeDuck = 1.0; // To remember volume before a
     private bool _isDucked = false; 
@@ -123,19 +129,19 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
              .DisposeWith(_disposables);
 
         _audioService.PlaybackStateObs
-            .DistinctUntilChanged()
-            .Subscribe(state =>
-            {
-                _lastState = state;
-                UpdateAndroidPlaybackState(state, _audioService.CurrentPosition);
-                RedrawNotification(); // Only redraw notification UI on Play/Pause/Stop
+             .DistinctUntilChanged()
+             .Subscribe(state =>
+             {
+                 _lastState = state;
+                 UpdateAndroidPlaybackState(state, _audioService.CurrentPosition);
+                 RedrawNotification();
 
-                if (state == DimmerPlaybackState.Playing)
-                    RequestAudioFocus();
-                else if (state == DimmerPlaybackState.PausedUser || state == DimmerPlaybackState.PlayCompleted)
-                    _audioManager?.AbandonAudioFocus(this);
-            })
-            .DisposeWith(_disposables);
+                 if (state == DimmerPlaybackState.Playing)
+                     RequestAudioFocus();
+                 else if (state is DimmerPlaybackState.PausedUser or DimmerPlaybackState.PlayCompleted)
+                     AbandonFocus();
+             })
+             .DisposeWith(_disposables);
 
         _audioService.SeekCompletedObs
            .Subscribe(pos => UpdateAndroidPlaybackState(_lastState, pos))
@@ -268,7 +274,14 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
         _audioManager?.RegisterAudioDeviceCallback(_audioDeviceCallback, null);
     }
 
-    
+    private void AbandonFocus()
+    {
+        if (_audioManager == null) return;
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.O && _audioFocusRequest != null)
+            _audioManager.AbandonAudioFocusRequest(_audioFocusRequest);
+        else
+            _audioManager.AbandonAudioFocus(this);
+    }
     private void RequestAudioFocus()
     {
         if (_audioManager == null) return;
@@ -357,32 +370,75 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
                 break;
         }
     }
+
     public override StartCommandResult OnStartCommand(Intent? intent, StartCommandFlags flags, int startId)
     {
-      
         if (!_isStartedInForeground)
-        {
             PromoteToForeground();
-        }
 
-        if (intent != null)
+        if (intent?.Action != null)
         {
-            if (intent.Action == DimmerMediaSessionCallback.ActionFavorite)
+            // Keep CPU awake long enough for OwnAudio / AAudio to reopen and start streaming
+            _wakeLock?.Acquire(10_000);
+
+            switch (intent.Action)
             {
-                if (_audioService is OwnAudioService srv)
-                { 
-                    srv.TriggerFavorite();
-                    UpdateAndroidPlaybackState(_lastState, _audioService.CurrentPosition);
-                    RedrawNotification();
-                }
-            }
-            else
-            {
-                MediaButtonReceiver.HandleIntent(_mediaSession, intent);
+                case DimmerMediaSessionCallback.ActionFavorite:
+                    if (_audioService is OwnAudioService srv)
+                    {
+                        srv.TriggerFavorite();
+                        UpdateAndroidPlaybackState(_lastState, _audioService.CurrentPosition);
+                        RedrawNotification();
+                    }
+                    break;
+
+                case ActionPlayPause:
+                    _ = SafeRunAudioActionAsync(async () =>
+                    {
+                        if (_audioService == null) return;
+                        if (_audioService.IsPlaying)
+                            await _audioService.PauseAsync();
+                        else
+                        {
+                            RequestAudioFocus();
+                            await _audioService.PlayAsync();
+                        }
+                    });
+                    break;
+
+                case ActionNext:
+                    _audioService?.TriggerNext();
+                    break;
+
+                case ActionPrev:
+
+                    _audioService?.TriggerPrevious();
+                    
+                    break;
+
+                case ActionJumpQueue:
+                    int idx = intent.GetIntExtra(ExtraQueueIndex, -1);
+                    if (idx >= 0)
+                    {
+                        // Hook into your queue service / ViewModel method to play item at `idx`
+                        //_ = SafeRunAudioActionAsync(() => PlayQueueIndexAsync(idx));
+                    }
+                    break;
+
+                default:
+                    MediaButtonReceiver.HandleIntent(_mediaSession, intent);
+                    break;
             }
         }
         return StartCommandResult.Sticky;
     }
+    private static async Task SafeRunAudioActionAsync(Func<Task> action)
+    {
+        try { await action().ConfigureAwait(false); }
+        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[MediaService] Action failed: {ex}"); }
+    }
+ 
+
     private async Task LoadCoverArtAndSetMetadataAsync(SongModelView song, CancellationToken ct)
     {
         Bitmap? newCoverArt = null;
@@ -418,7 +474,7 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
             if (existingDuration > 0) durationMs = existingDuration;
         }
 
-        RxSchedulers.UI.ScheduleTo(() =>
+        _mainHandler.Post(()=>
         {
             if (ct.IsCancellationRequested || _mediaSession == null)
             {
@@ -550,7 +606,7 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
     }
     private void RedrawNotification()
     {
-        RxSchedulers.UI.ScheduleTo(() =>
+        _mainHandler.Post(() =>
         {
             if (_mediaSession == null) return;
 

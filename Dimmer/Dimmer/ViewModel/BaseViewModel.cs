@@ -42,7 +42,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
     private ILastfmService lastfmService;
     public ILastfmService LastfmService => lastfmService;
+    private DimmerBackupService BackupService;
     public BaseViewModel(
+    DimmerBackupService backupService,
         IDimmerStateService dimmerStateService,
         MusicDataService musicDataService,
         IAppInitializerService appInitializerService,
@@ -69,6 +71,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         ILogger<BaseViewModel> logger)
     {
+        BackupService = backupService;
         lastfmService = lastFMServ;
         //_hoarderService = hService;
         _stateService = dimmerStateService ?? throw new ArgumentNullException(nameof(dimmerStateService));
@@ -463,6 +466,12 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         // subscribe to realm's directChanges for certain models to keep in sync
 
 
+        if (Preferences.Get("Dimmer_PendingPostRestoreStats", false))
+        {
+            Preferences.Remove("Dimmer_PendingPostRestoreStats");
+            //var redoStats = new StatsRecalculator(RealmFactory, _logger);
+            //_ = redoStats.RecalculateAllStatisticsAsync();
+        }
 
         _backgroundCachingCts = new();
 
@@ -928,19 +937,29 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         _facetGenerationTrigger
         .ObserveOn(RxSchedulers.Background) // Keep it off the UI thread
-        .Subscribe(songs =>
+        .Subscribe(async songIds =>
         {
-            var facets = FacetEngine.GenerateFacets(songs);
-            RxSchedulers.UI.ScheduleTo(() =>
+
+
+            var songsForFacet = await GetOrderedSongsFromIdsAsync(songIds.AsEnumerable());
+            if (songsForFacet is not null)
             {
-                // 2. Apply Facets
-                if(facets != null)
+
+                var facets = FacetEngine.GenerateFacets(songsForFacet);
+                RxSchedulers.UI.ScheduleTo(() =>
                 {
-                    ActiveArtistFacets = facets.Artists.Count > 1 ? facets.Artists : new List<FacetItem>();
-                    ActiveAlbumFacets = facets.Albums.Count > 1 ? facets.Albums : new List<FacetItem>();
-                    ActiveGenreFacets = facets.Genres.Count > 1 ? facets.Genres : new List<FacetItem>();
-                }
-            });
+                    // 2. Apply Facets
+                    if (facets != null)
+                    {
+                        ActiveArtistFacets = facets.Artists.Count > 1 ? facets.Artists : new List<FacetItem>();
+                        ActiveAlbumFacets = facets.Albums.Count > 1 ? facets.Albums : new List<FacetItem>();
+                        ActiveGenreFacets = facets.Genres.Count > 1 ? facets.Genres : new List<FacetItem>();
+                        HasAlbumFacets = facets.Albums.Count > 1 ? true : false;
+                        HasArtistsFacets = facets.Artists.Count > 1 ? true : false;
+
+                    }
+                });
+            }
         });
 
 
@@ -964,7 +983,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
        .ObserveOn(RxSchedulers.Background)
        .Select(query =>
        {
-           return Observable.FromAsync(ct => Task.Run(() => PerformSearchBackground(query, ct), ct));
+           return Observable.FromAsync(ct => Task.Run(async () => await PerformSearchBackgroundAsync(query, ct), ct));
        })
        
        .Switch() // Now switching between observables that already target UI
@@ -987,6 +1006,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     }
     [ObservableProperty] public partial IReadOnlyList<FacetItem> ActiveArtistFacets { get; set; }
     [ObservableProperty] public partial IReadOnlyList<FacetItem> ActiveAlbumFacets {get;set;}
+    [ObservableProperty] public partial bool HasAlbumFacets {get;set;}
+    [ObservableProperty] public partial bool HasArtistsFacets {get;set;}
     [ObservableProperty] public partial IReadOnlyList<FacetItem> ActiveGenreFacets {get;set;}
 
 
@@ -1002,7 +1023,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             ActiveArtistFacets = new List<FacetItem>();
             ActiveAlbumFacets = new List<FacetItem>();
             ActiveGenreFacets = new List<FacetItem>();
-
+            HasAlbumFacets = false;
+            HasArtistsFacets = false;
             // Wire up Autocomplete if the error implies a missing value
             if (result.ErrorMessage.Contains("Expected a value") || result.ErrorMessage.Contains("Unknown field"))
             {
@@ -1032,7 +1054,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
         IsTqlBusy = false;
     }
-    private SearchResult? PerformSearchBackground(string queryText, CancellationToken ct)
+    private async Task<SearchResult?> PerformSearchBackgroundAsync(string queryText, CancellationToken ct)
     {
         using var realmm = RealmFactory.GetRealmInstance();
         int totalDbCount = realmm.All<SongModel>().Count();
@@ -1040,13 +1062,26 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         if (string.IsNullOrWhiteSpace(queryText))
         {
             var allSongs = realmm.All<SongModel>().OrderByDescending(s => s.DateCreated).ToList();
+
+            var songsForFacet = await GetOrderedSongsFromIdsAsync(allSongs.Select(x => x.Id));
+            SearchResult searchR;
             RxSchedulers.UI.ScheduleTo(() => IsLibraryEmpty = allSongs.Count == 0);
 
-            return new SearchResult
+            //if (songsForFacet is not null)
+            //{
+
+
+            //    var facets = FacetEngine.GenerateFacets(songsForFacet);
+
+
+            searchR = new SearchResult
             {
-                Results = allSongs.Select(x => x.ToSongModelView(true)!).ToList(),
-                Facets = FacetEngine.GenerateFacets(allSongs)
+                Results = songsForFacet,
+                Facets = null
             };
+
+            //}
+            return searchR;
         }
 
         // 1. NLP & Parse
@@ -1137,7 +1172,8 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             // 7. Materialize final list and Map to ViewModels ON THE BACKGROUND THREAD
             var realizedFinalList = intermediateList.ToList();
 
-            _facetGenerationTrigger.OnNext(realizedFinalList);
+            ReadOnlyCollection<ObjectId>? nextList = intermediateList.AsEnumerable().Select(x => x.Id).ToList().AsReadOnly();
+            _facetGenerationTrigger.OnNext(nextList);
 
             var viewModels = realizedFinalList.Select(x => x.ToSongModelView()!).ToList();
 
@@ -1162,7 +1198,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
 
 
     }
-    private readonly Subject<IReadOnlyList<SongModel>> _facetGenerationTrigger = new();
+    private readonly Subject<IReadOnlyList<ObjectId>> _facetGenerationTrigger = new();
     [RelayCommand]
     public void ExcludeFacet(FacetItem facet)
     {
@@ -2297,7 +2333,22 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     [ObservableProperty] public partial SortOrder CurrentSortOrder { get; set; } = SortOrder.Asc;
 
     [ObservableProperty] public partial ObservableCollection<AudioOutputDevice>? AvailableDevices { get; set; }
+    [ObservableProperty] public partial ObservableCollection<string>? ActionNames { get; set; }
+    [ObservableProperty]
+    public partial ObservableCollection<SongAct>? SongActionNames { get; set; } = new()
+    {
+        new SongAct() {Name="Action1"},
+        new SongAct() {Name="Action2"},
+        new SongAct() {Name="Action3"},
+        new SongAct() {Name="Action4"},
 
+    };
+
+
+    public class SongAct
+    {
+        public string? Name { get; set; }
+    }
     #region audio device management
 
     [ObservableProperty] public partial AudioOutputDevice? SelectedAudioDevice { get; set; }
@@ -3667,18 +3718,33 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             oldValue.IsCurrentPlayingHighlight = false;
         if (newValue is null)
         {
-            Debugger.Break();
+            return;
         }
-        if (oldValue?.TitleDurationKey == newValue.TitleDurationKey) return;
+        if (oldValue?.TitleDurationKey == newValue!.TitleDurationKey) return;
         if(string.IsNullOrWhiteSpace(newValue.CoverImagePath))
         {
             newValue.CoverImagePath = string.Empty;
         }
         OnPropertyChanged(nameof(CurrentPlayingSongView));
         await ProcessSongChangeAsync(newValue);
-        CurrentPlaySongDominantColor = await ImageFilterUtils.GetDominantMauiColorAsync(newValue.CoverImagePath);
 
-        
+        RxSchedulers.Background.ScheduleTo(async () =>
+        {
+            var col = await ImageFilterUtils.GetDominantMauiColorAsync(newValue.CoverImagePath);
+            
+            RxSchedulers.UI.ScheduleTo(() => CurrentPlaySongDominantColor = col);
+
+            var SKCurrentPlaySongContrastingTextColor = ImageFilterUtils.GetContrastingTextColor(newValue.CoverImagePath);
+            RxSchedulers.UI.ScheduleTo(() =>
+            {
+
+                CurrentPlaySongContrastingTextColor = Color.FromRgb(
+                            SKCurrentPlaySongContrastingTextColor.Red,
+                            SKCurrentPlaySongContrastingTextColor.Green,
+                            SKCurrentPlaySongContrastingTextColor.Blue
+                );
+            });
+        });
     }
     public SongModelView? OldSongValue { get; internal set; }
     async partial void OnCurrentPlayingSongViewChanged(SongModelView oldValue, SongModelView newValue)
@@ -6457,8 +6523,7 @@ public record QueryComponents(
         }
     }
 
-    [ObservableProperty]
-    public partial RestoreResult MyRestoredResult { get; set; }
+
 
     #region Search Lyrics Online
     [ObservableProperty]
@@ -8568,6 +8633,9 @@ public record QueryComponents(
     [ObservableProperty]
     public partial Color? CurrentPlaySongDominantColor { get; set; }
 
+    [ObservableProperty]
+    public partial Color? CurrentPlaySongContrastingTextColor { get; set; }
+
     [RelayCommand]
     public async Task FindMissingTracksInAlbum(AlbumModelView? album)
     {
@@ -9070,6 +9138,142 @@ public void RemoveRule(VisualFilterRule rule)
         return Task.FromResult<SongModelView>(null!);
     }
 
+
+
+    [RelayCommand]
+    public async Task BackUpAppDataAsync()
+    {
+        var tempRealmPath = await BackupService.ExportRawRealmFileAsync(this.RealmFactory);
+        if (string.IsNullOrEmpty(tempRealmPath))
+            return;
+
+        try
+        {
+            await using var stream = File.OpenRead(tempRealmPath);
+            var saveResult = await CommunityToolkit.Maui.Storage.FileSaver.Default.SaveAsync(
+                Path.GetFileName(tempRealmPath), stream, CancellationToken.None);
+
+            IsBackUpDone = saveResult.IsSuccessful;
+            StatusLabelText = saveResult.IsSuccessful
+                ? $"Backup saved: {saveResult.FilePath}"
+                : "Backup cancelled.";
+        }
+        finally
+        {
+            try { if (File.Exists(tempRealmPath)) File.Delete(tempRealmPath); } catch { }
+        }
+    }
+
+    [RelayCommand]
+    public async Task PickAndRestoreRealmBackupAsync()
+    {
+        var realmFileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+    {
+        { DevicePlatform.Android, new[] { "application/octet-stream", "*/*" } },
+        { DevicePlatform.WinUI, new[] { ".realm" } },
+        { DevicePlatform.MacCatalyst, new[] { "public.data", "public.item" } },
+        { DevicePlatform.iOS, new[] { "public.data", "public.item" } }
+    });
+
+        var picked = await FilePicker.Default.PickAsync(new PickOptions
+        {
+            PickerTitle = "Select a Dimmer (.realm) backup",
+            FileTypes = realmFileTypes
+        });
+
+        if (picked == null) return;
+
+        StatusLabelText = "Validating backup...";
+
+        await using var stream = await picked.OpenReadAsync();
+        var result = await BackupService.StageRealmRestoreAsync(stream);
+
+        StatusLabelText = result.ToString();
+        IsRestoreDone = result.Success;
+
+        if (result.Success)
+        {
+            // Optional flag so startup recalculates stats after the swap completes
+            Preferences.Set("Dimmer_PendingPostRestoreStats", true);
+        }
+    }
+    [ObservableProperty]
+    public partial string StatusLabelText { get; set; }
+    [ObservableProperty]
+    public partial bool IsBackUpDone { get; set; }
+    [RelayCommand]
+    public async Task ShareBackupAsync()
+    {
+        var tempRealmPath = await BackupService.ExportRawRealmFileAsync(this.RealmFactory);
+        if (string.IsNullOrEmpty(tempRealmPath)) return;
+
+        await Share.Default.RequestAsync(new ShareFileRequest
+        {
+            Title = "Share Dimmer Backup",
+            File = new ShareFile(tempRealmPath)
+        });
+    }
+    private static readonly FilePickerFileType RealmFileTypes = new(new Dictionary<DevicePlatform, IEnumerable<string>>
+    {
+        { DevicePlatform.Android, new[] { "application/octet-stream", "*/*" } },
+        { DevicePlatform.WinUI, new[] { ".realm" } },
+        { DevicePlatform.MacCatalyst, new[] { "public.data", "public.item" } },
+        { DevicePlatform.iOS, new[] { "public.data", "public.item" } }
+    });
+
+
+    // BTN 4: "Import History & Favorites (Cross-Device / No Restart)" -> Live Merge
+    [RelayCommand]
+    public async Task PickAndMergeRealmBackupAsync()
+    {
+        var picked = await FilePicker.Default.PickAsync(new PickOptions
+        {
+            PickerTitle = "Select a Dimmer (.realm) backup to merge",
+            FileTypes = RealmFileTypes
+        });
+        if (picked == null) return;
+
+        StatusLabelText = "Merging backup...";
+
+        await using var stream = await picked.OpenReadAsync();
+        var result = await BackupService.MergeFromRealmBackupAsync(stream);
+
+        StatusLabelText = result.ToString();
+        IsRestoreDone = result.Success;
+
+        if (result.Success)
+        {
+            var redoStats = new StatsRecalculator(RealmFactory, _logger);
+            _ = redoStats.RecalculateAllStatisticsAsync();
+        }
+    }
+    [RelayCommand]
+    public async Task PickAndStageRealmRestoreAsync()
+    {
+        var picked = await FilePicker.Default.PickAsync(new PickOptions
+        {
+            PickerTitle = "Select a Dimmer (.realm) backup",
+            FileTypes = RealmFileTypes
+        });
+        if (picked == null) return;
+
+        StatusLabelText = "Validating backup...";
+
+        await using var stream = await picked.OpenReadAsync();
+        var result = await BackupService.StageRealmRestoreAsync(stream);
+
+        StatusLabelText = result.ToString();
+        IsRestoreDone = result.Success;
+
+        if (result.Success)
+        {
+            // Prompt user to restart the app so ApplyPendingRealmRestoreIfAny runs on next launch
+            await Shell.Current.DisplayAlertAsync(
+                "Restart Required",
+                result.ToString(),
+                "OK");
+        }
+    }
 
 }
 

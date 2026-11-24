@@ -1,698 +1,338 @@
-﻿using Newtonsoft.Json;
-using System.IO.Compression;
-using JsonReader = Newtonsoft.Json.JsonReader;
-using JsonToken = Newtonsoft.Json.JsonToken;
+﻿using Realms;
 
 namespace Dimmer.Interfaces.Services;
+
+public class RealmRestoreResult
+{
+    public bool Success => string.IsNullOrEmpty(ErrorMessage);
+    public string? ErrorMessage { get; set; }
+    public int SongsFound { get; set; }
+    public int PlayEventsFound { get; set; }
+    public bool RestartRequired { get; set; }
+
+    public override string ToString() => Success
+        ? (RestartRequired
+            ? $"Backup validated ({SongsFound} songs, {PlayEventsFound} play events). Restart the app to finish restoring."
+            : $"Restored {SongsFound} songs / {PlayEventsFound} play events.")
+        : $"Restore failed: {ErrorMessage}";
+}
+
 public class DimmerBackupService
 {
-    private readonly JsonSerializerSettings _jsonSettings;
-    public static string? BackupDirectory { get; internal set; }
-    IRealmFactory RealmFactory;
+    private const string PendingSuffix = ".restore_pending";
+    private const string RollbackSuffix = ".restore_rollback";
+
+    private readonly IRealmFactory _realmFactory;
+
     public DimmerBackupService(IRealmFactory factory)
     {
-        RealmFactory = factory;
-        _jsonSettings = new JsonSerializerSettings
-        {
-            Formatting = Formatting.Indented,
-            NullValueHandling = NullValueHandling.Ignore
-        };
-        // Add converter
-        _jsonSettings.Converters.Add(new ObjectIdNullableConverter());
-
-        BackupDirectory = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-            "DimmerBackUp");
+        _realmFactory = factory;
     }
 
-
-    public async Task<bool> SaveBackUpAsync(string logContent, string name, string fileExt, string? secondPath = null)
+    public async Task<string?> ExportRawRealmFileAsync(IRealmFactory realmF, string? exportFolderUriOrPath = null)
     {
+        string fileName = $"DimmerDB_{DateTime.Now:yyyy-MM-dd_HHmmss}.realm";
+        string tempPath = Path.Combine(FileSystem.CacheDirectory, fileName);
+
+        if (File.Exists(tempPath))
+            File.Delete(tempPath);
+
+        await Task.Run(() =>
+        {
+            using var realm = realmF.GetRealmInstance();
+            var exportConfig = new RealmConfiguration(tempPath)
+            {
+                EncryptionKey = realm.Config is RealmConfiguration rc ? rc.EncryptionKey : null,
+                SchemaVersion = realm.Config.SchemaVersion
+            };
+            realm.WriteCopy(exportConfig);
+        }).ConfigureAwait(false);
+
+        if (!string.IsNullOrEmpty(exportFolderUriOrPath) &&
+            !exportFolderUriOrPath.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
+        {
+            Directory.CreateDirectory(exportFolderUriOrPath);
+            string destPath = Path.Combine(exportFolderUriOrPath, fileName);
+            File.Copy(tempPath, destPath, overwrite: true);
+            return destPath;
+        }
+
+        if (!string.IsNullOrEmpty(exportFolderUriOrPath) &&
+            exportFolderUriOrPath.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
+        {
+            TaggingUtils.PlatformSpecificStreamCopier?.Invoke(exportFolderUriOrPath, fileName, tempPath);
+            return fileName;
+        }
+
+        return tempPath;
+    }
+
+    // --- RESTORE OPTION A: Staged Full-DB Swap (Exact 1:1 restore, applies on restart) ---
+    public async Task<RealmRestoreResult> StageRealmRestoreAsync(Stream backupStream)
+    {
+        var result = new RealmRestoreResult { RestartRequired = true };
+
+        string targetDbPath;
+        byte[]? encryptionKey = null;
+        ulong schemaVersion = 0;
+        RealmConfiguration.MigrationCallbackDelegate? migrationCallback = null;
+
+        using (var liveRealm = _realmFactory.GetRealmInstance())
+        {
+            targetDbPath = liveRealm.Config.DatabasePath;
+            schemaVersion = liveRealm.Config.SchemaVersion;
+            if (liveRealm.Config is RealmConfiguration rc)
+            {
+                encryptionKey = rc.EncryptionKey;
+                migrationCallback = rc.MigrationCallback;
+            }
+        }
+
+        string stagedPath = targetDbPath + PendingSuffix;
+
         try
         {
+            // Clean any prior incomplete staged file + sidecars
+            DeleteRealmFileAndSidecars(stagedPath);
 
-            // 2. Serialize to JSON
-
-            byte[] jsonBytes = System.Text.Encoding.UTF8.GetBytes(logContent);
-
-            // 3. Compress (GZip)
-            byte[] compressedBytes;
-            using (var outStream = new MemoryStream())
+            await using (var output = File.Create(stagedPath))
             {
-                using (var archive = new GZipStream(outStream, CompressionLevel.Optimal))
-                {
-                    archive.Write(jsonBytes, 0, jsonBytes.Length);
-                }
-                compressedBytes = outStream.ToArray();
-            }
-            // Use your FileExists method to check if we can write to the backup directory
-            if (!Directory.Exists(BackupDirectory))
-                Directory.CreateDirectory(BackupDirectory);
-
-            string fileName = $"DimmerBackUp_{DateTime.Now:yyyy-MM-dd_HHmmss}_{name}.{fileExt}";
-            string filePath = Path.Combine(BackupDirectory, fileName);
-
-            
-                await File.WriteAllBytesAsync(filePath, compressedBytes);
-            
-
-            if (!string.IsNullOrEmpty(secondPath))
-            {
-               
-                if (secondPath.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
-                {
-                    TaggingUtils.PlatformSpecificFileCreator?.Invoke(secondPath, fileName, logContent);
-                }
-                else
-                {
-                    string secondFilePath = Path.Combine(secondPath, fileName);
-                    await File.WriteAllBytesAsync(secondFilePath, compressedBytes);
-                }
-                
+                await backupStream.CopyToAsync(output).ConfigureAwait(false);
             }
 
-            Debug.WriteLine($"Backup saved: {fileName} at {filePath}");
+            if (new FileInfo(stagedPath).Length == 0)
+            {
+                DeleteRealmFileAndSidecars(stagedPath);
+                result.ErrorMessage = "Selected file is empty.";
+                return result;
+            }
+
+            // Validate & migrate (if from an older schema) on a background thread
+            await Task.Run(() =>
+            {
+                var testConfig = new RealmConfiguration(stagedPath)
+                {
+                    EncryptionKey = encryptionKey,
+                    SchemaVersion = schemaVersion,
+                    MigrationCallback = migrationCallback
+                };
+
+                using var testRealm = Realm.GetInstance(testConfig);
+                result.SongsFound = testRealm.All<SongModel>().Count();
+                result.PlayEventsFound = testRealm.All<DimmerPlayEvent>().Count();
+            }).ConfigureAwait(false);
+
+            // Remove .lock/.note/.management created during validation, keeping stagedPath itself
+            DeleteSidecarsOnly(stagedPath);
+            return result;
+        }
+        catch (Exception ex)
+        {
+            DeleteRealmFileAndSidecars(stagedPath);
+            result.ErrorMessage = ex.Message;
+            return result;
+        }
+    }
+
+    /// <summary>
+    /// Call ONCE at very early app startup BEFORE RealmFactory.GetRealmInstance() is ever called.
+    /// Returns true if a pending restore was applied (so you can recalculate stats if needed).
+    /// </summary>
+    public static bool ApplyPendingRealmRestoreIfAny(string defaultRealmPath)
+    {
+        string stagedPath = defaultRealmPath + PendingSuffix;
+        if (!File.Exists(stagedPath))
+            return false;
+
+        string rollbackPath = defaultRealmPath + RollbackSuffix;
+
+        try
+        {
+            DeleteSidecarsOnly(stagedPath);
+            DeleteSidecarsOnly(defaultRealmPath);
+
+            // Keep a rollback copy of current DB while moving
+            if (File.Exists(defaultRealmPath))
+            {
+                if (File.Exists(rollbackPath)) File.Delete(rollbackPath);
+                File.Move(defaultRealmPath, rollbackPath, overwrite: true);
+            }
+
+            File.Move(stagedPath, defaultRealmPath, overwrite: true);
+
+            if (File.Exists(rollbackPath))
+                File.Delete(rollbackPath);
+
             return true;
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Backup write failed: {ex}");
+            Debug.WriteLine($"ApplyPendingRealmRestoreIfAny failed: {ex}");
+
+            // Attempt rollback so the user isn't left without a DB
+            if (!File.Exists(defaultRealmPath) && File.Exists(rollbackPath))
+            {
+                try { File.Move(rollbackPath, defaultRealmPath, overwrite: true); } catch { }
+            }
             return false;
         }
     }
-    public class BackUpCompleteResult
+
+    // --- RESTORE OPTION B (Optional): Live Merge without Restart / Safe Across OSes ---
+    public async Task<RealmRestoreResult> MergeFromRealmBackupAsync(Stream backupStream)
     {
-        public string AppVersion { get; set; } = string.Empty;
-        public int FavoriteBackedUp { get; set; }
-        public int PlayEventsBackedUp { get; set; }
-        public DateTimeOffset BackupDate { get; set; }
-        public bool IsBackUpComplete { get; set; }
-    }
-    // New method: Create complete backup
-    public Task<BackUpCompleteResult>? CreateCompleteBackupAsync(string appVersion, string? exportPath = null)
-    {
-        return Task.Run(async () =>
+        var result = new RealmRestoreResult { RestartRequired = false };
+        string tempImportPath = Path.Combine(FileSystem.CacheDirectory, $"DimmerImport_{Guid.NewGuid():N}.realm");
+
+        try
         {
-
-            try
+            await using (var output = File.Create(tempImportPath))
             {
-                var realm = RealmFactory.GetRealmInstance();
+                await backupStream.CopyToAsync(output).ConfigureAwait(false);
+            }
 
-                var backupData = new CompleteBackupData
+            await Task.Run(async () =>
+            {
+                using var liveRealm = _realmFactory.GetRealmInstance();
+
+                var importConfig = new RealmConfiguration(tempImportPath)
                 {
-                    AppState = realm.All<AppStateModel>().FirstOrDefaultNullSafe()?.ToAppStateModelView(),
-                    FavoriteSongs = realm.All<SongModel>().Filter("IsFavorite == true").AsEnumerable().Select(x => x.ToSongModelView()).ToList(),
-                    PlayEvents = realm.All<DimmerPlayEvent>().AsEnumerable().Select(ConvertToBackup).ToList(),
-                    BackupDate = DateTime.UtcNow,
-                    Version = appVersion
+                    SchemaVersion = liveRealm.Config.SchemaVersion
                 };
-
-                if (!Directory.Exists(BackupDirectory)) Directory.CreateDirectory(BackupDirectory!);
-
-                // Note: Using a custom extension like .dimmerbak or .json.gz makes it clear it's compressed
-                string fileName = $"DimmerBackUp_{DateTime.Now:yyyy-MM-dd_HHmmss}.json.gz";
-                string filePath = Path.Combine(BackupDirectory!, fileName);
-
-                // 🚀 STREAMED SERIALIZATION: Writes directly to disk through the GZip compressor
-                await Task.Run(() =>
+                if (liveRealm.Config is RealmConfiguration rc)
                 {
-                    using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write);
-                    using var gzipStream = new GZipStream(fileStream, CompressionLevel.Optimal);
-                    using var streamWriter = new StreamWriter(gzipStream, System.Text.Encoding.UTF8);
-                    using var jsonWriter = new JsonTextWriter(streamWriter);
-
-                    var serializer = Newtonsoft.Json.JsonSerializer.Create(_jsonSettings);
-                    serializer.Serialize(jsonWriter, backupData);
-                }).ConfigureAwait(false);
-
-                // Optional: Copy to Android scoped storage if requested
-                if (!string.IsNullOrEmpty(exportPath))
-                {
-                    // Implementation depends on your TaggingUtils, but ideally you copy the FileStream, not byte[]
+                    importConfig.EncryptionKey = rc.EncryptionKey;
+                    importConfig.MigrationCallback = rc.MigrationCallback;
                 }
 
-                return new BackUpCompleteResult { IsBackUpComplete = true, PlayEventsBackedUp = backupData.PlayEvents.Count };
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Complete backup failed: {ex}");
-                return new BackUpCompleteResult { IsBackUpComplete = false };
-            }
+                using var backupRealm = Realm.GetInstance(importConfig);
 
-        });
-    }
+                // Snapshot values from backupRealm before writing to liveRealm
+                var favKeys = backupRealm.All<SongModel>()
+                    .Where(s => s.IsFavorite && s.TitleDurationKey != null)
+                    .AsEnumerable()
+                    .Select(s => s.TitleDurationKey!)
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-    private DimmerPlayEventBackup ConvertToBackup(DimmerPlayEvent playEvent)
-    {
-        var songg = playEvent.SongsLinkingToThisEvent.FirstOrDefaultNullSafe();
-        if(songg is null)
-        {
-            var tempRealm = RealmFactory.GetRealmInstance();
-            songg = tempRealm.Find<SongModel>
-                (playEvent.SongId);
-            if (songg is not null)
-            {
-                tempRealm.Write(() =>
+                var backupEvents = backupRealm.All<DimmerPlayEvent>()
+                    .AsEnumerable()
+                    .Select(e => new
+                    {
+                        e.Id,
+                        e.SongName,
+                        e.ArtistName,
+                        e.AlbumName,
+                        e.CoverImagePath,
+                        e.IsFav,
+                        e.PlayType,
+                        e.PlayTypeStr,
+                        e.DatePlayed,
+                        e.WasPlayCompleted,
+                        e.PositionInSeconds,
+                        e.EventDate,
+                        e.DeviceName,
+                        e.DeviceFormFactor,
+                        e.DeviceModel,
+                        e.DeviceManufacturer,
+                        e.DeviceVersion,
+                        TitleDurationKey = e.SongsLinkingToThisEvent.FirstOrDefault()?.TitleDurationKey
+                    })
+                    .ToList();
+
+                await liveRealm.WriteAsync(() =>
                 {
-                    if(!songg.PlayHistory.Contains(playEvent))
-                        songg.PlayHistory.Add(playEvent);
+                    var songsByKey = liveRealm.All<SongModel>()
+                        .AsEnumerable()
+                        .Where(s => !string.IsNullOrEmpty(s.TitleDurationKey))
+                        .GroupBy(s => s.TitleDurationKey!, StringComparer.OrdinalIgnoreCase)
+                        .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+
+                    foreach (var key in favKeys)
+                    {
+                        if (songsByKey.TryGetValue(key, out var song))
+                        {
+                            song.IsFavorite = true;
+                            result.SongsFound++;
+                        }
+                    }
+
+                    foreach (var evt in backupEvents)
+                    {
+                        if (liveRealm.Find<DimmerPlayEvent>(evt.Id) != null)
+                            continue;
+
+                        var newEvt = new DimmerPlayEvent
+                        {
+                            Id = evt.Id,
+                            SongName = evt.SongName,
+                            ArtistName = evt.ArtistName,
+                            AlbumName = evt.AlbumName,
+                            CoverImagePath = evt.CoverImagePath,
+                            IsFav = evt.IsFav,
+                            PlayType = evt.PlayType,
+                            PlayTypeStr = evt.PlayTypeStr,
+                            DatePlayed = evt.DatePlayed,
+                            WasPlayCompleted = evt.WasPlayCompleted,
+                            PositionInSeconds = evt.PositionInSeconds,
+                            EventDate = evt.EventDate,
+                            DeviceName = evt.DeviceName,
+                            DeviceFormFactor = evt.DeviceFormFactor,
+                            DeviceModel = evt.DeviceModel,
+                            DeviceManufacturer = evt.DeviceManufacturer,
+                            DeviceVersion = evt.DeviceVersion
+                        };
+
+                        if (!string.IsNullOrEmpty(evt.TitleDurationKey) &&
+                            songsByKey.TryGetValue(evt.TitleDurationKey, out var song))
+                        {
+                            newEvt.SongId = song.Id;
+                            newEvt.SongName = song.Title;
+                            newEvt.CoverImagePath = song.CoverImagePath;
+                            song.PlayHistory.Add(newEvt);
+                        }
+
+                        liveRealm.Add(newEvt);
+                        result.PlayEventsFound++;
+                    }
                 });
-            }
-        }
-        return new DimmerPlayEventBackup
-        {
-            Id = playEvent.Id.ToString(),
-            SongName = playEvent.SongName,
-            ArtistName = songg?.ArtistName,
-            AlbumName = songg?.AlbumName,
-            TitleAndDurationKey = songg?.TitleDurationKey,
-            CoverImagePath = songg?.CoverImagePath,
-            IsFav = playEvent.IsFav,
-            SongId = playEvent.SongId?.ToString(),
-            PlayType = playEvent.PlayType,
-            PlayTypeStr = playEvent.PlayTypeStr,
-            DatePlayed = playEvent.DatePlayed,
-            WasPlayCompleted = playEvent.WasPlayCompleted,
-            PositionInSeconds = playEvent.PositionInSeconds,
-            EventDate = playEvent.EventDate,
-            DeviceName = playEvent.DeviceName,
-            DeviceFormFactor = playEvent.DeviceFormFactor,
-            DeviceModel = playEvent.DeviceModel,
-            DeviceManufacturer = playEvent.DeviceManufacturer,
-            DeviceVersion = playEvent.DeviceVersion
-        };
-    }
+            }).ConfigureAwait(false);
 
-    public async Task<CompleteBackupData?> PickFolderTeRestoreFromBackupAsync(
-    string filePath,
-    IProgress<string>? progress = null)
-    {
-        if (string.IsNullOrEmpty(filePath)) return null;
-        try
-        {
-            Stream? stream = null;
-
-            if (filePath.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
-            {
-                if (TaggingUtils.PlatformGetStreamHook != null)
-                    stream = TaggingUtils.PlatformGetStreamHook(filePath);
-            }
-            else
-            {
-                stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-            }
-
-            if (stream == null) return null;
-
-            progress?.Report("Loading song cache...");
-            var songCache = await BuildSongCacheAsync(progress);
-
-            progress?.Report("Reading backup file...");
-
-            // If it ends in .gz, use the GZip decompressor!
-            if (filePath.EndsWith(".gz", StringComparison.OrdinalIgnoreCase))
-            {
-                return await DeserializeBackupWithStreamingAsync(stream, songCache, progress);
-            }
-            else
-            {
-                return await DeserializeJsonBackupWithStreamingAsync(stream, songCache, progress);
-            }
+            return result;
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Error during restore: {ex}");
-            return null;
+            result.ErrorMessage = ex.Message;
+            return result;
+        }
+        finally
+        {
+            DeleteRealmFileAndSidecars(tempImportPath);
         }
     }
 
-    private async Task<Dictionary<string, SongModelView>> BuildSongCacheAsync(IProgress<string>? progress = null)
+    private static void DeleteRealmFileAndSidecars(string realmPath)
     {
-        return await Task.Run(() =>
+        DeleteSidecarsOnly(realmPath);
+        try { if (File.Exists(realmPath)) File.Delete(realmPath); } catch { }
+    }
+
+    private static void DeleteSidecarsOnly(string realmPath)
+    {
+        foreach (var ext in new[] { ".lock", ".note" })
         {
             try
             {
-                var realm = RealmFactory.GetRealmInstance();
-                var allSongs = realm.All<SongModel>().ToList();
-
-                progress?.Report($"Caching {allSongs.Count} songs...");
-
-                var cache = new Dictionary<string, SongModelView>(
-                    allSongs.Count,
-                    StringComparer.OrdinalIgnoreCase);
-
-                foreach (var song in allSongs)
-                {
-                    if (!string.IsNullOrEmpty(song.TitleDurationKey))
-                    {
-                        cache[song.TitleDurationKey] = song.ToSongModelView()!;
-                    }
-                }
-
-                progress?.Report($"Cached {cache.Count} songs");
-                return cache;
+                var sidecar = realmPath + ext;
+                if (File.Exists(sidecar)) File.Delete(sidecar);
             }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error building song cache: {ex}");
-                return new Dictionary<string, SongModelView>(StringComparer.OrdinalIgnoreCase);
-            }
-        }).ConfigureAwait(false);
-    }
-
-    private async Task<CompleteBackupData?> DeserializeJsonBackupWithStreamingAsync(
-      Stream sourceStream,
-      Dictionary<string, SongModelView> songCache,
-      IProgress<string>? progress = null)
-    {
-        var completeData = new CompleteBackupData();
-        var dimmerPlayEvents = new List<DimmerPlayEventBackup>();
-
-        using var reader = new StreamReader(sourceStream, System.Text.Encoding.UTF8);
-        using var jsonReader = new JsonTextReader(reader);
-
-        int eventCount = 0;
-        int processedCount = 0;
-        var serializer = Newtonsoft.Json.JsonSerializer.Create(_jsonSettings);
-
-        while (await jsonReader.ReadAsync().ConfigureAwait(false))
-        {
-            if (jsonReader.TokenType == JsonToken.PropertyName)
-            {
-                string propertyName = jsonReader.Value?.ToString() ?? string.Empty;
-
-                // 1. Capture AppState (Single Object)
-                if (propertyName == "AppState")
-                {
-                    await jsonReader.ReadAsync().ConfigureAwait(false); // Move to start of object
-                    completeData.AppState = serializer.Deserialize<AppStateModelView>(jsonReader);
-                }
-                // 2. Capture FavoriteSongs (List)
-                else if (propertyName == "FavoriteSongs")
-                {
-                    await jsonReader.ReadAsync().ConfigureAwait(false); // Move to start of array
-                    completeData.FavoriteSongs = serializer.Deserialize<List<SongModelView>>(jsonReader);
-                }
-                // 3. Capture PlayEvents (Chunked stream-deserialization)
-                else if (propertyName == "PlayEvents")
-                {
-                    await jsonReader.ReadAsync().ConfigureAwait(false); // Move to start of array
-
-                    if (jsonReader.TokenType == JsonToken.StartArray)
-                    {
-                        while (await jsonReader.ReadAsync().ConfigureAwait(false) &&
-                               jsonReader.TokenType != JsonToken.EndArray)
-                        {
-                            if (jsonReader.TokenType == JsonToken.StartObject)
-                            {
-                                var playEvent = serializer.Deserialize<DimmerPlayEventBackup>(jsonReader);
-                                if (playEvent != null)
-                                {
-                                    dimmerPlayEvents.Add(playEvent);
-                                    eventCount++;
-
-                                    // Update progress every 1000 events
-                                    if (eventCount % 1000 == 0)
-                                    {
-                                        progress?.Report($"Processed {eventCount} events...");
-                                        await Task.Yield(); // Allow UI thread to breathe/update
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            catch { }
         }
 
-        progress?.Report($"Processing {eventCount} events with song cache...");
-
-        // Update cover paths using the in-memory cache
-        foreach (var evt in dimmerPlayEvents)
-        {
-            if (!string.IsNullOrEmpty(evt.TitleAndDurationKey) &&
-                songCache.TryGetValue(evt.TitleAndDurationKey, out var songInDb))
-            {
-                evt.CoverImagePath = songInDb.CoverImagePath;
-                processedCount++;
-
-                if (processedCount % 1000 == 0)
-                {
-                    progress?.Report($"Updated {processedCount}/{eventCount} events...");
-                    await Task.Yield();
-                }
-            }
-        }
-
-        progress?.Report($"Completed: {processedCount} events updated");
-
-        completeData.PlayEvents = dimmerPlayEvents;
-        return completeData;
-    }
-
-    private async Task<CompleteBackupData?> DeserializeBackupWithStreamingAsync(
-      Stream sourceStream,
-      Dictionary<string, SongModelView> songCache,
-      IProgress<string>? progress = null)
-    {
-        var completeData = new CompleteBackupData();
-        var dimmerPlayEvents = new List<DimmerPlayEventBackup>();
-        using var gzipStream = new GZipStream(sourceStream, CompressionMode.Decompress);
-        using var reader = new StreamReader(gzipStream, System.Text.Encoding.UTF8);
-        using var jsonReader = new JsonTextReader(reader);
-
-        int eventCount = 0;
-        int processedCount = 0;
-        var serializer = Newtonsoft.Json.JsonSerializer.Create(_jsonSettings);
-
-        while (await jsonReader.ReadAsync().ConfigureAwait(false))
-        {
-            if (jsonReader.TokenType == JsonToken.PropertyName)
-            {
-                string propertyName = jsonReader.Value?.ToString() ?? string.Empty;
-
-                // 1. Capture AppState (Single Object)
-                if (propertyName == "AppState")
-                {
-                    await jsonReader.ReadAsync().ConfigureAwait(false); // Move to start of object
-                    completeData.AppState = serializer.Deserialize<AppStateModelView>(jsonReader);
-                }
-                // 2. Capture FavoriteSongs (List)
-                else if (propertyName == "FavoriteSongs")
-                {
-                    await jsonReader.ReadAsync().ConfigureAwait(false); // Move to start of array
-                    completeData.FavoriteSongs = serializer.Deserialize<List<SongModelView>>(jsonReader);
-                }
-                // 3. Capture PlayEvents (Chunked stream-deserialization)
-                else if (propertyName == "PlayEvents")
-                {
-                    await jsonReader.ReadAsync().ConfigureAwait(false); // Move to start of array
-
-                    if (jsonReader.TokenType == JsonToken.StartArray)
-                    {
-                        while (await jsonReader.ReadAsync().ConfigureAwait(false) &&
-                               jsonReader.TokenType != JsonToken.EndArray)
-                        {
-                            if (jsonReader.TokenType == JsonToken.StartObject)
-                            {
-                                var playEvent = serializer.Deserialize<DimmerPlayEventBackup>(jsonReader);
-                                if (playEvent != null)
-                                {
-                                    dimmerPlayEvents.Add(playEvent);
-                                    eventCount++;
-
-                                    // Update progress every 1000 events
-                                    if (eventCount % 1000 == 0)
-                                    {
-                                        progress?.Report($"Processed {eventCount} events...");
-                                        await Task.Yield(); // Allow UI thread to breathe/update
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        progress?.Report($"Processing {eventCount} events with song cache...");
-
-        // Update cover paths using the in-memory cache
-        foreach (var evt in dimmerPlayEvents)
-        {
-            if (!string.IsNullOrEmpty(evt.TitleAndDurationKey) &&
-                songCache.TryGetValue(evt.TitleAndDurationKey, out var songInDb))
-            {
-                evt.CoverImagePath = songInDb.CoverImagePath;
-                processedCount++;
-
-                if (processedCount % 1000 == 0)
-                {
-                    progress?.Report($"Updated {processedCount}/{eventCount} events...");
-                    await Task.Yield();
-                }
-            }
-        }
-
-        progress?.Report($"Completed: {processedCount} events updated");
-
-        completeData.PlayEvents = dimmerPlayEvents;
-        return completeData;
-    }
-
-    // Restore complete data to Realm
-    public async Task<RestoreResult> RestoreCompleteDataAsync(CompleteBackupData data, RestoreResult result)
-    {
-        var realm = RealmFactory.GetRealmInstance();
-
-        await realm.WriteAsync(() =>
-        {
-            // Restore app state
-            if (data.AppState != null)
-            {
-                var existingAppState = realm.All<AppStateModel>().FirstOrDefaultNullSafe();
-                if (existingAppState != null)
-                {
-                    // Update existing
-                    UpdateAppStateFromView(existingAppState, data.AppState);
-                }
-                else
-                {
-                    // Create new
-                    var newAppState = new AppStateModel();
-                    UpdateAppStateFromView(newAppState, data.AppState);
-                    realm.Add(newAppState);
-                }
-                result.AppStateRestored = true;
-            }
-                Dictionary<string, SongModel> songsByKey=new();
-                var songs = realm.All<SongModel>();
-            foreach (var item in songs)
-            {
-
-                if (string.IsNullOrEmpty(item.TitleDurationKey))
-                    continue;
-
-                songsByKey[item.TitleDurationKey] = item;
-            }
-
-
-            // Restore favorite songs
-            if (data.FavoriteSongs?.Count >0)
-            {
-                foreach (var favView in data.FavoriteSongs)
-                {
-                    if (favView != null)
-                    {
-                        if (songsByKey.TryGetValue(favView.TitleDurationKey!, out var song))
-                        {
-
-                            song.IsFavorite = true;
-                        }
-                    }
-                }
-
-                result.FavoritesRestored = data.FavoriteSongs.Count;
-            }
-
-            // Restore play events
-            if (data.PlayEvents?.Count > 0)
-            {
-                foreach (var backupEvent in data.PlayEvents)
-                {
-                    var newEvent = ConvertFromBackup(backupEvent);
-
-                    if (newEvent != null)
-                    {
-                        var existingEvent = realm.Find<DimmerPlayEvent>(newEvent.Id);
-
-                        if (existingEvent != null)
-                        {
-                            // Update the existing event's properties
-                            if (backupEvent.TitleAndDurationKey is not null &&
-                                songsByKey.TryGetValue(backupEvent.TitleAndDurationKey, out var song))
-                            {
-                                existingEvent.SongId = song.Id;
-                                existingEvent.SongName = song.Title;
-
-                                if (!song.PlayHistory.Contains(existingEvent))
-                                {
-                                    song.PlayHistory.Add(existingEvent);
-                                }
-                            }
-
-                            // No need to add - it's already in the database
-                        }
-                        else
-                        {
-                            // This is a new event - set up its relationships
-                            if (backupEvent.TitleAndDurationKey is not null &&
-                                songsByKey.TryGetValue(backupEvent.TitleAndDurationKey, out var song))
-                            {
-                                newEvent.SongId = song.Id;
-                                newEvent.SongName = song.Title;
-                                song.PlayHistory.Add(newEvent);
-                            }
-
-                            // Add the new event to Realm
-                            realm.Add(newEvent);
-                        }
-                    }
-                }
-                result.EventsRestored = data.PlayEvents.Count;
-            }
-        });
-
-        return result;
-    }
-    
-
-
-
-    // Helper methods
-    private DimmerPlayEvent ConvertFromBackup(DimmerPlayEventBackup backup)
-    {
-        
-        return new DimmerPlayEvent
-        {
-            Id = ObjectId.Parse(backup.Id),
-            SongName = backup.SongName,
-
-            ArtistName = backup.ArtistName,
-            AlbumName = backup.AlbumName,
-            CoverImagePath = backup.CoverImagePath,
-            IsFav = backup.IsFav,
-            SongId = !string.IsNullOrEmpty(backup.SongId) ? ObjectId.Parse(backup.SongId) : null,
-            PlayType = backup.PlayType,
-            PlayTypeStr = backup.PlayTypeStr,
-            DatePlayed = backup.DatePlayed,
-            WasPlayCompleted = backup.WasPlayCompleted,
-            PositionInSeconds = backup.PositionInSeconds,
-            EventDate = backup.EventDate,
-            DeviceName = backup.DeviceName,
-            DeviceFormFactor = backup.DeviceFormFactor,
-            DeviceModel = backup.DeviceModel,
-            DeviceManufacturer = backup.DeviceManufacturer,
-            DeviceVersion = backup.DeviceVersion
-        };
-    }
-
-    private void UpdateAppStateFromView(AppStateModel model, AppStateModelView view)
-    {
-        // Map properties from view to model
-        // Add your property mappings here based on your AppStateModel structure
-        // Example:
-        // model.CurrentSongId = view.CurrentSongId != null ? ObjectId.Parse(view.CurrentSongId) : null;
-        // model.Volume = view.Volume;
-        // etc.
-    }
-
-    // Get all backup files
-    public async Task<List<string>> GetBackupFilesAsync(string? OptionalPath = null, bool includeDefaultPath = true)
-    {
-        if (!includeDefaultPath && string.IsNullOrEmpty(OptionalPath))
-            return new List<string>();
-
-        List<string> filesInDefaultPath = new();
-        List<string> filesInSecondPath = new();
-
-        // FIX: Handle optional path FIRST (this is the user-selected folder)
-        if (!string.IsNullOrEmpty(OptionalPath))
-        {
-            var supportedExtensions = new HashSet<string> { ".json" };
-
-            // Check if it's a content URI
-            if (OptionalPath.StartsWith("content://", StringComparison.OrdinalIgnoreCase))
-            {
-                // Use platform-specific scanner for content URIs
-                if (TaggingUtils.PlatformSpecificScanner != null)
-                {
-                    filesInSecondPath = TaggingUtils.PlatformSpecificScanner(OptionalPath, supportedExtensions);
-                }
-            }
-            else
-            {
-                // Regular path
-                filesInSecondPath = await TaggingUtils.GetAllFilesFromPathsAsync(
-                    new List<string> { OptionalPath },
-                    supportedExtensions);
-            }
-        }
-
-        // THEN handle default path if requested
-        if (includeDefaultPath && Directory.Exists(BackupDirectory))
-        {
-            var supportedExtensions = new HashSet<string> { ".json" };
-            filesInDefaultPath = await TaggingUtils.GetAllFilesFromPathsAsync(
-                new List<string> { BackupDirectory },
-                supportedExtensions);
-        }
-
-        return filesInDefaultPath.Concat(filesInSecondPath).ToList();
-    }
-    // Delete old backups (optional)
-    public void CleanupOldBackups(int keepLatest = 10)
-    {
         try
         {
-            if (!Directory.Exists(BackupDirectory))
-                return;
-
-            var files = Directory.GetFiles(BackupDirectory, "*.json")
-                .OrderByDescending(f => File.GetCreationTime(f))
-                .Skip(keepLatest)
-                .ToList();
-
-            foreach (var file in files)
-            {
-                File.Delete(file);
-                Debug.WriteLine($"Deleted old backup: {file}");
-            }
+            var mgmtDir = realmPath + ".management";
+            if (Directory.Exists(mgmtDir)) Directory.Delete(mgmtDir, recursive: true);
         }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Cleanup failed: {ex}");
-        }
-    }
-}
-
-// Result class for restore operations
-public class RestoreResult
-{
-    public bool Success => string.IsNullOrEmpty(ErrorMessage);
-    public string? ErrorMessage { get; set; }
-    public int FavoritesRestored { get; set; }
-    public int EventsRestored { get; set; }
-    public bool AppStateRestored { get; set; }
-
-    public override string ToString()
-    {
-        if (!string.IsNullOrEmpty(ErrorMessage))
-            return $"Restore failed: {ErrorMessage}";
-
-        return $"Restore completed: {FavoritesRestored} favorites, {EventsRestored} events, " +
-               $"AppState: {(AppStateRestored ? "Yes" : "No")}";
-    }
-}
-
-public class ObjectIdNullableConverter : Newtonsoft.Json.JsonConverter<ObjectId?>
-{
-   
-
-    public override void WriteJson(Newtonsoft.Json.JsonWriter writer, ObjectId? value, Newtonsoft.Json.JsonSerializer serializer)
-    {
-        if (value.HasValue)
-            writer.WriteValue(value.Value.ToString());
-        else
-            writer.WriteNull();
-    }
-
-    public override ObjectId? ReadJson(JsonReader reader, Type objectType, ObjectId? existingValue, bool hasExistingValue, Newtonsoft.Json.JsonSerializer serializer)
-    {
-        if (reader.TokenType == JsonToken.Null)
-            return null;
-
-        var str = reader.Value?.ToString();
-        return string.IsNullOrEmpty(str) ? null : new ObjectId(str);
+        catch { }
     }
 }

@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Maui.Storage;
+﻿using AndroidX.Lifecycle;
+using CommunityToolkit.Maui.Storage;
 using DevExpress.Maui.CollectionView;
 using Dimmer.Data;
 using Dimmer.Interfaces.IDatabase;
@@ -6,6 +7,7 @@ using Dimmer.Interfaces.Services.Interfaces.FileProcessing;
 using Dimmer.Interfaces.Services.Interfaces.FileProcessing.FileProcessorUtils;
 using Dimmer.LastFM;
 using Dimmer.Utilities.StatsUtils;
+using DynamicData;
 using Microsoft.Extensions.Logging;
 using System.Text.RegularExpressions;
 using TextEdit = DevExpress.Maui.Editors.TextEdit;
@@ -242,7 +244,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     }
 
     [RelayCommand]
-    public async Task DeleteFileFromSystem(SongModelView? song)
+    public async Task DeleteFileFromSystemAsync(SongModelView? song)
     {
         if (song is null) return;
         bool confirm = await Shell.Current.DisplayAlertAsync("Confirm Delete", $"Are you sure you want to delete '{song.Title}' from your device? This action cannot be undone.", "Delete", "Cancel");
@@ -258,7 +260,13 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
                     // Then, remove from the database.
                     await songRepository.DeleteAsync(song.Id);
                     // Optionally, you might want to refresh your UI or notify other components here.
+                    SearchResultsHolder.Edit(updater =>
+                    {
+                        var indx = updater.IndexOf(song);
+                        if(indx>0)
+                            updater.Remove(song);
 
+                    });
                 }
 
                 await Shell.Current.DisplayAlertAsync("Deleted", $"'{song.Title}' has been deleted from your device.", "OK");
@@ -306,104 +314,61 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
         }
     }
 
-    [RelayCommand]
-    public async Task RestoreCompleteDataAsync()
-    {
-        MyRestoredResult = new();
-        if (PickedUpBackup is not null)
-            MyRestoredResult = await BackupService.RestoreCompleteDataAsync(PickedUpBackup, MyRestoredResult);
-        IsRestoreDone=MyRestoredResult.Success;
-        PickedUpBackup = null;
-        var redoStats = new StatsRecalculator(RealmFactory, _logger);
-       _= redoStats.RecalculateAllStatisticsAsync();
-    }
-
-    [RelayCommand]
-    public async Task PickFolderToRestoreAppDataAsync()
-    {
-        // Allow both JSON and GZip files on Android
-        var customMimeTypes = new FilePickerFileType(
-            new Dictionary<DevicePlatform, IEnumerable<string>>
-            {
-            { DevicePlatform.Android, new[] { "application/json", "application/gzip", "application/x-gzip", "*/*" } },
-            { DevicePlatform.WinUI, new[] { ".json", ".gz" } },
-            { DevicePlatform.MacCatalyst, new[] { "public.json", "org.gnu.gnu-zip-archive" } },
-            { DevicePlatform.iOS, new[] { "public.json", "org.gnu.gnu-zip-archive" } }
-            });
-
-        var fPicker = await FilePicker.Default.PickAsync(new PickOptions { FileTypes = customMimeTypes });
-        if (fPicker == null || string.IsNullOrEmpty(fPicker.FullPath)) return;
-
-        SelectedFile = fPicker.FullPath;
-
-        var progress = new Progress<string>(msg =>
-        {
-            RxSchedulers.UI.ScheduleTo(() => {
-                StatusLabelText = msg;
-            });
-        });
-
-        // 1. Read & Deserialize the file
-        PickedUpBackup = await BackupService.PickFolderTeRestoreFromBackupAsync(SelectedFile, progress);
-
-        // 2. ACTUALLY RESTORE IT TO REALM!
-        if (PickedUpBackup != null)
-        {
-            var restoreResult = new RestoreResult();
-            await BackupService.RestoreCompleteDataAsync(PickedUpBackup, restoreResult);
-
-            StatusLabelText = restoreResult.ToString();
-            IsBackUpDone = restoreResult.Success;
-        }
-        else
-        {
-            StatusLabelText = "Failed to parse backup file.";
-        }
-    }
-
-    [ObservableProperty]
-    public partial string StatusLabelText { get; set; }
-
     [ObservableProperty]
     public partial bool IsBackUpDone { get; set; }
-    internal async Task BackUpAppDataAsync()
+    public async Task<bool> StageRealmRestoreAsync(string pickedFilePathOrUri)
     {
-        var picker = await FolderPicker.Default.PickAsync();
-        BackUpCompletResult = new();
-        if (picker != null)
+        try
         {
-            if(!picker.IsSuccessful)
-            {
-                return;
-            }
-            string path = picker.Folder.Path;
-            if(!string.IsNullOrEmpty(picker.Folder.Path))
-            {
-                _= Task.Run(async () =>
-                {
-                    DimmerBackupService.BackUpCompleteResult? res= await BackupService?.CreateCompleteBackupAsync(BaseViewModel.CurrentAppVersion, path);
-                    if(res is not null)
-                    {
-                        RxSchedulers.UI.ScheduleTo(() =>
-                        {
-                            BackUpCompletResult = res;
-                        });
-                    }
-                });
-                
-            }
+            string targetDbPath;
+            using (var realm = RealmFactory.GetRealmInstance())
+                targetDbPath = realm.Config.DatabasePath;
 
-            //_ = BackupService.CreateCompleteBackupAsync(path);
+            string stagedPath = targetDbPath + ".restore_pending";
+
+            await using Stream? input = pickedFilePathOrUri.StartsWith("content://", StringComparison.OrdinalIgnoreCase)
+                ? TaggingUtils.PlatformGetStreamHook?.Invoke(pickedFilePathOrUri)
+                : File.OpenRead(pickedFilePathOrUri);
+
+            if (input == null) return false;
+
+            await using (var output = File.Create(stagedPath))
+                await input.CopyToAsync(output);
+
+            // Validate it is a readable Realm database before accepting it
+            var testConfig = new Realms.RealmConfiguration(stagedPath) { IsReadOnly = true };
+            using var testRealm = Realms.Realm.GetInstance(testConfig);
+
+            return true; // Tell UI: "Backup staged! Please restart the app to finish restoring."
         }
-        else
+        catch (Exception ex)
         {
-
+            Debug.WriteLine($"StageRealmRestoreAsync failed: {ex}");
+            return false;
         }
     }
+
+    // 2. Call this ONCE at very early app startup BEFORE RealmFactory.GetRealmInstance() is ever called
+    public static void ApplyPendingRealmRestoreIfAny(string defaultRealmPath)
+    {
+        string stagedPath = defaultRealmPath + ".restore_pending";
+        if (!File.Exists(stagedPath)) return;
+
+        // Remove Realm sidecar files (.lock, .note, .management) so the swapped DB opens cleanly
+        foreach (var ext in new[] { ".lock", ".note" })
+        {
+            var sidecar = defaultRealmPath + ext;
+            if (File.Exists(sidecar)) File.Delete(sidecar);
+        }
+        var mgmtDir = defaultRealmPath + ".management";
+        if (Directory.Exists(mgmtDir)) Directory.Delete(mgmtDir, recursive: true);
+
+        File.Move(stagedPath, defaultRealmPath, overwrite: true);
+    }
+
     [ObservableProperty]
     public partial bool IsNowPlayingBtmSheetOpened { get; set; }
-    [ObservableProperty]
-    public partial DimmerBackupService.BackUpCompleteResult BackUpCompletResult { get; set; }
+    
     public override void UpdateIsSearchResultEmpty(bool isSearchResultEmpty)
     {
         if (SearchBarTextEdit is null) return;
@@ -429,7 +394,7 @@ public partial class BaseViewModelAnd : BaseViewModel, IDisposable
     public BaseViewModelAnd(IDimmerStateService dimmerStateService,
         IFolderPicker picker,
     DimmerBackupService backupService
-        , MusicDataService musicDataService, IAppInitializerService appInitializerService, IDimmerAudioService audioServ, ISettingsService settingsService, ILyricsMetadataService lyricsMetadataService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> songRepo, IDuplicateFinderService duplicateFinderService, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, IDialogueService dialogueService, IRepository<PlaylistModel> playlistRepo, IRealmFactory realmFact, IFolderMonitorService folderServ, ILibraryScannerService libScannerService, IRepository<DimmerPlayEvent> dimmerPlayEventRepo, BaseAppFlow baseAppClass, ILastfmService lastfmService, ILogger<BaseViewModel> logger) : base(dimmerStateService, musicDataService, appInitializerService, audioServ, settingsService, lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, songRepo, duplicateFinderService, artistRepo, albumModel, genreModel, dialogueService, playlistRepo, realmFact, folderServ, libScannerService, dimmerPlayEventRepo, baseAppClass, lastfmService, logger)
+        , MusicDataService musicDataService, IAppInitializerService appInitializerService, IDimmerAudioService audioServ, ISettingsService settingsService, ILyricsMetadataService lyricsMetadataService, SubscriptionManager subsManager, LyricsMgtFlow lyricsMgtFlow, ICoverArtService coverArtService, IFolderMgtService folderMgtService, IRepository<SongModel> songRepo, IDuplicateFinderService duplicateFinderService, IRepository<ArtistModel> artistRepo, IRepository<AlbumModel> albumModel, IRepository<GenreModel> genreModel, IDialogueService dialogueService, IRepository<PlaylistModel> playlistRepo, IRealmFactory realmFact, IFolderMonitorService folderServ, ILibraryScannerService libScannerService, IRepository<DimmerPlayEvent> dimmerPlayEventRepo, BaseAppFlow baseAppClass, ILastfmService lastfmService, ILogger<BaseViewModel> logger) : base(backupService,dimmerStateService, musicDataService, appInitializerService, audioServ, settingsService, lyricsMetadataService, subsManager, lyricsMgtFlow, coverArtService, folderMgtService, songRepo, duplicateFinderService, artistRepo, albumModel, genreModel, dialogueService, playlistRepo, realmFact, folderServ, libScannerService, dimmerPlayEventRepo, baseAppClass, lastfmService, logger)
     {
         fPicker = picker;
         BackupService = backupService;

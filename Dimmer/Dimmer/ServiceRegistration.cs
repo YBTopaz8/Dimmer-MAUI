@@ -16,6 +16,14 @@ public static class ServiceRegistration
     public static IServiceCollection AddDimmerCoreServices(this IServiceCollection services)
     {
 
+        bool restoredOnStartup = DimmerBackupService.ApplyPendingRealmRestoreIfAny(
+               RealmFactory.GetMainDatabasePath());
+
+        if (restoredOnStartup)
+        {
+            Preferences.Set("Dimmer_PendingPostRestoreStats", true);
+        }
+
 
         var assembly = Assembly.GetExecutingAssembly();
 

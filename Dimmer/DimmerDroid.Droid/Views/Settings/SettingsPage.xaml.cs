@@ -1,4 +1,6 @@
 global using Chip = DevExpress.Maui.Editors.Chip;
+using CommunityToolkit.Maui.Storage;
+using Dimmer.NativeServices;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 
@@ -48,9 +50,6 @@ public partial class SettingsPage : ContentPage
 
     private async void RestoreBackupDeviceBtn_Clicked(object sender, EventArgs e)
     {
-        FilePickedAndRestoreInProgressActIndic.IsVisible = true;
-        FilePickedAndRestoreInProgressActIndic.IsRunning = true;
-        await  MyViewModel.PickFolderToRestoreAppDataAsync();
 
     }
 
@@ -69,14 +68,7 @@ public partial class SettingsPage : ContentPage
     }
 
     LastFMViewModel MyLastFMViewModel;
-    private async void ConfirmRestoreBtn_Clicked(object sender, EventArgs e)
-    {
-        FilePickedAndRestoreInProgressActIndic.IsVisible = true;
-        FilePickedAndRestoreInProgressActIndic.IsRunning = true;
-        await MyViewModel.RestoreCompleteDataAsync();
-
-
-    }
+   
 
     private async void GoBackBtn_Clicked(object sender, EventArgs e)
     {
@@ -94,6 +86,10 @@ public partial class SettingsPage : ContentPage
     private async void OpenFolderScannerBtn_Clicked(object sender, EventArgs e)
     {
         await MyViewModel.AddMusicFolderViaPickerAsync();
+        var ress = await FilePicker.Default.PickMultipleAsync(new PickOptions() { FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>() { }) });
+        
+        var res = await FolderPicker.Default.PickAsync();
+        //res.Folder
     }
 
 
@@ -108,43 +104,4 @@ public partial class SettingsPage : ContentPage
     }
     CompositeDisposable pageDisposable;
 
-    private void ConfirmRestoreBtn_Loaded(object sender, EventArgs e)
-    {
-        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.PickedUpBackup), v => (MyViewModel.PickedUpBackup))
-          .Subscribe(
-              e =>
-              {
-                  if (e is null || e.PlayEvents is null || e.PlayEvents.Count <1)
-                  {
-                      ConfirmRestoreBtn.IsVisible = false;
-                  }
-                  else if(e.PlayEvents.Count >0)
-                  {
-                      ConfirmRestoreBtn.IsVisible = true;
-
-                      FilePickedAndRestoreInProgressActIndic.IsVisible = false;
-                      FilePickedAndRestoreInProgressActIndic.IsRunning = false;
-                  }
-              })
-          .DisposeWith(pageDisposable);
-
-        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.IsRestoreDone), v => (MyViewModel.IsRestoreDone))
-          .Subscribe(
-              e =>
-              {
-                  if (e)
-                  {
-                      ConfirmRestoreBtn.IsVisible = false;
-                      FilePickedAndRestoreInProgressActIndic.IsVisible = false;
-                      FilePickedAndRestoreInProgressActIndic.IsRunning = false;
-                  }
-                  else
-                  {
-
-                  }
-              })
-          .DisposeWith(pageDisposable);
-
-
-    }
 }

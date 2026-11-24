@@ -47,3 +47,12 @@ public partial class LogicalJoinerViewModel : ObservableObject, IQueryComponentV
         ToggleOperatorCommand = new RelayCommand(() => Operator = Operator == LogicalOperator.And ? LogicalOperator.Or : LogicalOperator.And);
     }
 }
+
+
+public record FacetItem(string Value,ObjectId objectId, int Count, string FieldAlias);
+
+public record SearchFacets(
+    IReadOnlyList<FacetItem> Artists,
+    IReadOnlyList<FacetItem> Albums,
+    IReadOnlyList<FacetItem> Genres
+);

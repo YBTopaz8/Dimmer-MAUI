@@ -6,63 +6,56 @@ public interface IRealmFactory
     Realm GetRealmInstance();
     Realm? GetLogRInstance();
 }
-
-public class RealmFactory : IRealmFactory
+public partial class RealmFactory : IRealmFactory
 {
     private readonly RealmConfiguration _config;
-    private RealmConfiguration _logConfig;
+    private readonly RealmConfiguration _logConfig;
+
+    public static string GetMainDatabasePath()
+    {
+        string dbPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+            "DimmerRealm");
+
+        if (!Directory.Exists(dbPath))
+            Directory.CreateDirectory(dbPath);
+
+#if RELEASE
+        return Path.Combine(dbPath, "DimmerDbB.realm");
+#elif DEBUG
+        return Path.Combine(dbPath, "DimmerDdebugB.realm");
+#endif
+    }
 
     public RealmFactory()
     {
-        // Create database directory.
-        string dbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "DimmerRealm");
-
-        if (!Directory.Exists(dbPath))
-        {
-            Directory.CreateDirectory(dbPath);
-        }
-      
+        string filePath = GetMainDatabasePath();
+        string dbPath = Path.GetDirectoryName(filePath)!;
 
 #if RELEASE
-        string filePath = Path.Combine(dbPath, "DimmerDbB.realm");
         string fileLogPath = Path.Combine(dbPath, "DimmerDbBLog.realm");
 #elif DEBUG
-        string filePath = Path.Combine(dbPath, "DimmerDdebugB.realm");
         string fileLogPath = Path.Combine(dbPath, "DimmerDDebugBLog.realm");
-
 #endif
+
         if (!TaggingUtils.FileExists(filePath))
         {
             AppUtils.IsUserFirstTimeOpening = true;
         }
-      
-        // Set schema version to 5.
+
         _config = new RealmConfiguration(filePath)
         {
             SchemaVersion = 24,
-      
-            MigrationCallback = (migration, oldSchemaVersion) =>
-            {
-
-            }
+            MigrationCallback = (migration, oldSchemaVersion) => { }
         };
+
         _logConfig = new RealmConfiguration(fileLogPath)
         {
             SchemaVersion = 2,
-            MigrationCallback = (migration, oldSchemaVersion) =>
-            {
-            }
+            MigrationCallback = (migration, oldSchemaVersion) => { }
         };
     }
 
-    public Realm GetRealmInstance()
-    {
-        return Realm.GetInstance(_config);
-    }
-
-    public Realm? GetLogRInstance()
-    {
-        return Realm.GetInstance(_logConfig);
-    }
+    public Realm GetRealmInstance() => Realm.GetInstance(_config);
+    public Realm? GetLogRInstance() => Realm.GetInstance(_logConfig);
 }
-

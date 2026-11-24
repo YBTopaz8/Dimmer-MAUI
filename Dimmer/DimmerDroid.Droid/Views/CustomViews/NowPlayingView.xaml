@@ -6,6 +6,7 @@
     xmlns:converters="clr-namespace:Dimmer.Utilities.TypeConverters;assembly=Dimmer"
     xmlns:dx="http://schemas.devexpress.com/maui"
     xmlns:localBehv="clr-namespace:Dimmer.Utils.Behaviors"
+    xmlns:mdc="clr-namespace:Material.Components.Maui;assembly=Material.Components.Maui"
     xmlns:models="clr-namespace:Dimmer.Data.ModelView;assembly=Dimmer"
     xmlns:statsModels="clr-namespace:Dimmer.Charts;assembly=Dimmer"
     xmlns:statsVM="clr-namespace:Dimmer.ViewModel.StatsVMs;assembly=Dimmer"
@@ -22,6 +23,7 @@
                 <Style TargetType="dx:DXButton">
                     <Setter Property="HeightRequest" Value="50" />
                 </Style>
+
             </ResourceDictionary>
         </Grid.Resources>
         <dx:DXImage
@@ -213,8 +215,9 @@
 
                     <Grid>
                         <dx:DXBorder
+                            Margin="5"
                             BackgroundColor="{Binding CurrentPlaySongDominantColor}"
-                            CornerRadius="20"
+                            CornerRadius="15"
                             Opacity="1" />
                         <dx:DXStackLayout
                             Padding="15"
@@ -222,6 +225,8 @@
                             BorderThickness="2"
                             CornerRadius="20"
                             ItemSpacing="5">
+                            
+                           
                             <FlexLayout JustifyContent="SpaceBetween">
                                 <dx:DXStackLayout Orientation="Horizontal">
 
@@ -249,6 +254,7 @@
                                         </dx:Chip.Triggers>
 
                                     </dx:Chip>
+
 
                                     <dx:Chip
                                         x:Name="LyricsChip"
@@ -293,16 +299,7 @@
                                         IconHeight="30"
                                         IconWidth="50"
                                         ShowIcon="True" />
-                                    <!--<dx:DXButton
-                                        x:Name="AudioMgtButton"
-                                        Padding="5"
-                                        BackgroundColor="Transparent"
-                                        Icon="volume.png"
-                                        IconColor="DarkSlateBlue"
-                                        IconHeight="30"
-                                        IconWidth="30"
-                                        TapPressed="AudioMgtButton_TapPressed"
-                                        />-->
+
 
                                     <dx:DXButton
                                         x:Name="PlaybackChip"
@@ -323,7 +320,7 @@
                                 DragCompleted="OnSliderDragCompleted"
                                 DragStarted="OnSliderDragStarted"
                                 Maximum="{Binding CurrentPlayingSongView.DurationInSeconds, Converter={StaticResource SafeSliderMaxConverter}, FallbackValue=1.0, TargetNullValue=1.0}"
-                                MaximumTrackColor="{AppThemeBinding Dark=White,
+                                MaximumTrackColor="{AppThemeBinding Dark=#1e1e1e,
                                                                     Light=Black}"
                                 Minimum="0"
                                 MinimumTrackColor="DarkSlateBlue"
@@ -500,6 +497,7 @@
 
                             </Grid>
 
+                          
                         </dx:DXStackLayout>
 
                     </Grid>
@@ -512,9 +510,8 @@
         </dx:DXExpander>
 
 
-        <!--  ==========================================================  -->
-        <!--  🔥 THE ULTIMATE AUDIO CONTROL CENTER (STUDIO SUITE)  -->
-        <!--  ==========================================================  -->
+
+
         <dx:BottomSheet
             x:Name="AudioControlCenterSheet"
             AllowDismiss="True"
@@ -540,7 +537,7 @@
 
             <dx:TabView
                 BackgroundColor="Transparent"
-                HeaderPanelPosition="Top"
+                HeaderPanelPosition="Bottom"
                 ItemHeaderTextColor="{AppThemeBinding Light=#666666,
                                                       Dark=#AAAAAA}"
                 SelectedItemHeaderTextColor="DarkSlateBlue">
@@ -554,7 +551,11 @@
 
                             <!--  Quick Vibe Presets  -->
                             <dx:DXStackLayout ItemSpacing="6">
-                                <Label Style="{StaticResource SectionHeader}" Text="QUICK PRESETS" />
+                                <Label
+                                    FontSize="21"
+                                    HorizontalOptions="Center"
+                                    Style="{StaticResource SectionHeader}"
+                                    Text="QUICK PRESETS" />
                                 <dx:ChoiceChipGroup
                                     ChipSelectedBackgroundColor="DarkSlateBlue"
                                     ChipSelectedTextColor="White"
@@ -604,10 +605,9 @@
                                                     Style="{StaticResource ValueLabel}"
                                                     Text="{Binding CurrentSpeed, StringFormat='{0:F2}x'}" />
                                             </Grid>
-                                            <dx:DXSlider
-                                                MaxValue="2.0"
-                                                MinValue="0.5"
-                                                ValueStep="0.5"
+                                            <Slider
+                                                Maximum="2.0"
+                                                Minimum="0.5"
                                                 Value="{Binding CurrentSpeed, Mode=OneWay}" />
                                         </dx:DXStackLayout>
 
@@ -676,6 +676,109 @@
                                     </Grid>
                                 </dx:DXBorder>
                             </dx:DXStackLayout>
+
+
+                            <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                                <Label
+                                    Grid.Column="0"
+                                    Style="{StaticResource SectionHeader}"
+                                    Text="OUTPUT DEVICE" />
+                                <dx:DXButton
+                                    Grid.Column="1"
+                                    BackgroundColor="Transparent"
+                                    Command="{Binding LoadAllAudioDevicesCommand}"
+                                    HeightRequest="32"
+                                    Icon="devices.png"
+                                    IconColor="DarkSlateBlue"
+                                    ShowContent="False"
+                                    ShowIcon="True"
+                                    WidthRequest="32" />
+                            </Grid>
+
+                            <dx:DXBorder
+                                BackgroundColor="{AppThemeBinding Light=White,
+                                                                  Dark=#1B1B28}"
+                                BorderColor="{AppThemeBinding Light=#E0E0E0,
+                                                              Dark=#262636}"
+                                BorderThickness="1"
+                                CornerRadius="16">
+                                <dx:DXCollectionView
+                                    x:Name="AllAudioDevicesCV"
+                                    HeightRequest="160"
+                                    ItemsSource="{Binding AvailableDevices}"
+                                    Loaded="AllAudioDevicesCV_Loaded"
+                                    SelectedItem="{Binding SelectedAudioDevice, Mode=TwoWay}"
+                                    SelectionMode="Single">
+                                    <dx:DXCollectionView.ItemTemplate>
+                                        <DataTemplate x:DataType="models:AudioOutputDevice">
+                                            <Grid Padding="14,10" ColumnDefinitions="Auto,*,Auto">
+                                                <dx:DXImage
+                                                    Grid.Column="0"
+                                                    Margin="0,0,12,0"
+                                                    HeightRequest="22"
+                                                    Source="airbuds.png"
+                                                    VerticalOptions="Center"
+                                                    WidthRequest="22" />
+
+                                                <Label
+                                                    Grid.Column="1"
+                                                    FontSize="14"
+                                                    Text="{Binding Name}"
+                                                    VerticalOptions="Center" />
+
+                                                <!--  🔥 ACTIVE DEVICE GREEN BADGE  -->
+                                                <dx:DXBorder
+                                                    Grid.Column="2"
+                                                    Padding="8,2"
+                                                    BackgroundColor="DarkGreen"
+                                                    CornerRadius="8"
+                                                    IsVisible="{Binding IsDefaultDevice}">
+                                                    <Label
+                                                        FontAttributes="Bold"
+                                                        FontSize="10"
+                                                        Text="ACTIVE"
+                                                        TextColor="White" />
+                                                </dx:DXBorder>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </dx:DXCollectionView.ItemTemplate>
+                                    <dx:DXCollectionView.SelectedItemTemplate>
+                                        <DataTemplate x:DataType="models:AudioOutputDevice">
+                                            <Grid Padding="14,10" ColumnDefinitions="Auto,*,Auto">
+                                                <dx:DXImage
+                                                    Grid.Column="0"
+                                                    Margin="0,0,12,0"
+                                                    HeightRequest="22"
+                                                    Source="airbuds.png"
+                                                    VerticalOptions="Center"
+                                                    WidthRequest="22" />
+
+                                                <Label
+                                                    Grid.Column="1"
+                                                    FontSize="14"
+                                                    Text="{Binding Name}"
+                                                    TextColor="Red"
+                                                    VerticalOptions="Center" />
+
+                                                <!--  🔥 ACTIVE DEVICE GREEN BADGE  -->
+                                                <dx:DXBorder
+                                                    Grid.Column="2"
+                                                    Padding="8,2"
+                                                    BackgroundColor="DarkGreen"
+                                                    CornerRadius="8"
+                                                    IsVisible="{Binding IsDefaultDevice}">
+                                                    <Label
+                                                        FontAttributes="Bold"
+                                                        FontSize="10"
+                                                        Text="ACTIVE"
+                                                        TextColor="White" />
+                                                </dx:DXBorder>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </dx:DXCollectionView.SelectedItemTemplate>
+                                </dx:DXCollectionView>
+                            </dx:DXBorder>
+
                         </dx:DXStackLayout>
                     </dx:DXScrollView>
                 </dx:TabViewItem>
@@ -1194,72 +1297,6 @@
                             </VerticalStackLayout>
 
                             <!--  🎧 AUDIO HARDWARE WITH GREEN ACTIVE INDICATOR  -->
-                            <VerticalStackLayout Spacing="6">
-                                <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
-                                    <Label
-                                        Grid.Column="0"
-                                        Style="{StaticResource SectionHeader}"
-                                        Text="OUTPUT DEVICE" />
-                                    <dx:DXButton
-                                        Grid.Column="1"
-                                        BackgroundColor="Transparent"
-                                        Command="{Binding LoadAllAudioDevicesCommand}"
-                                        HeightRequest="32"
-                                        Icon="devices.png"
-                                        IconColor="DarkSlateBlue"
-                                        ShowContent="False"
-                                        ShowIcon="True"
-                                        WidthRequest="32" />
-                                </Grid>
-
-                                <dx:DXBorder
-                                    BackgroundColor="{AppThemeBinding Light=White,
-                                                                      Dark=#1B1B28}"
-                                    BorderColor="{AppThemeBinding Light=#E0E0E0,
-                                                                  Dark=#262636}"
-                                    BorderThickness="1"
-                                    CornerRadius="16">
-                                    <dx:DXCollectionView
-                                        HeightRequest="160"
-                                        ItemsSource="{Binding AvailableDevices}"
-                                        SelectedItem="{Binding SelectedAudioDevice, Mode=TwoWay}"
-                                        SelectionMode="Single">
-                                        <dx:DXCollectionView.ItemTemplate>
-                                            <DataTemplate x:DataType="models:AudioOutputDevice">
-                                                <Grid Padding="14,10" ColumnDefinitions="Auto,*,Auto">
-                                                    <dx:DXImage
-                                                        Grid.Column="0"
-                                                        Margin="0,0,12,0"
-                                                        HeightRequest="22"
-                                                        Source="airbuds.png"
-                                                        VerticalOptions="Center"
-                                                        WidthRequest="22" />
-
-                                                    <Label
-                                                        Grid.Column="1"
-                                                        FontSize="14"
-                                                        Text="{Binding Name}"
-                                                        VerticalOptions="Center" />
-
-                                                    <!--  🔥 ACTIVE DEVICE GREEN BADGE  -->
-                                                    <dx:DXBorder
-                                                        Grid.Column="2"
-                                                        Padding="8,2"
-                                                        BackgroundColor="DarkGreen"
-                                                        CornerRadius="8"
-                                                        IsVisible="{Binding IsDefaultDevice}">
-                                                        <Label
-                                                            FontAttributes="Bold"
-                                                            FontSize="10"
-                                                            Text="ACTIVE"
-                                                            TextColor="White" />
-                                                    </dx:DXBorder>
-                                                </Grid>
-                                            </DataTemplate>
-                                        </dx:DXCollectionView.ItemTemplate>
-                                    </dx:DXCollectionView>
-                                </dx:DXBorder>
-                            </VerticalStackLayout>
 
                         </VerticalStackLayout>
                     </dx:DXScrollView>
@@ -1267,5 +1304,18 @@
 
             </dx:TabView>
         </dx:BottomSheet>
+
+        <dx:DXPopup x:Name="AudioDevicesPopup">
+            <Grid>
+                <dx:DXCollectionView ItemsSource="{Binding AvailableDevices}">
+                    <dx:DXCollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:AudioOutputDevice">
+                            <Label Text="{Binding Name}" />
+                        </DataTemplate>
+                    </dx:DXCollectionView.ItemTemplate>
+                </dx:DXCollectionView>
+            </Grid>
+        </dx:DXPopup>
+
     </Grid>
 </ContentView>

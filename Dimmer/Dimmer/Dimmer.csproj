@@ -26,6 +26,7 @@
 		       <MauiXaml Update="MyPage.xaml" Inflator="Runtime" /> (force runtime inflation) -->
 		<MauiXamlInflator>SourceGen</MauiXamlInflator>
 		<RuntimeIdentifier Condition="$(TargetFramework.Contains('-windows'))">win-x64</RuntimeIdentifier>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 
 	
@@ -65,7 +66,6 @@
 		<PackageReference Include="CommunityToolkit.Diagnostics" Version="8.4.2" />
 		<PackageReference Include="DynamicData" Version="9.5.0" />
 		<PackageReference Include="Fastenshtein" Version="1.0.12" />
-		<PackageReference Include="Material.Components.Maui" Version="0.3.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 		<PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="4.154.0" />
 
@@ -114,6 +114,14 @@
 		<ProjectReference Include="..\..\ATL\ATL.csproj" />
 	
   </ItemGroup>
+
+
+
+	<ItemGroup>
+	  <MauiXaml Update="Resources\Styles\SvgIcons.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	</ItemGroup>
 
 
 </Project>
