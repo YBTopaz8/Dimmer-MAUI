@@ -1,37 +1,47 @@
-﻿namespace Dimmer.DimmerSearch.TQL.RealmSection;
-/// <summary>
-/// A stateless utility to translate a TQL Abstract Syntax Tree (AST) into a Realm Query Language (RQL) string.
-/// This class is the core of the database-first query model and replaces the AstEvaluator.
-/// </summary>
+﻿using System.Globalization;
+
+namespace Dimmer.DimmerSearch.TQL.RealmSection;
+
 public static class RqlGenerator
 {
     private const string MatchAllPredicate = "TRUEPREDICATE";
+
     public static string Generate(IQueryNode node) => node switch
     {
-        LogicalNode n => HandleLogical(n), // Use a helper to clean up predicates
+        LogicalNode n => HandleLogical(n),
         NotNode n => $"NOT ({Generate(n.NodeToNegate)})",
         ClauseNode n => GenerateClause(n),
         InNode n => GenerateInClause(n),
         FuzzyDateNode n => GenerateFuzzyDateClause(n),
         _ => MatchAllPredicate
     };
+
     private static string GenerateInClause(InNode node)
     {
-        if (!FieldRegistry.FieldsByAlias.TryGetValue(node.Field, out var fieldDef))
+        if (!FieldRegistry.FieldsByAlias.TryGetValue(node.Field, out var fieldDef) || node.Values.Count == 0)
             return MatchAllPredicate;
 
-        // Realm RQL format: FieldName IN {'Val1', 'Val2'}
-        var formattedValues = node.Values.Select(v => FormatValue(v, fieldDef.Type));
-        string clause = $"{fieldDef.PropertyName} IN {{{string.Join(", ", formattedValues)}}}";
+        string clause;
+        if (fieldDef.Type == FieldType.Text)
+        {
+            // Realm RQL's IN operator is case-sensitive; expand to case-insensitive ORs for text
+            var comparisons = node.Values.Select(v => $"{fieldDef.PropertyName} ==[c] {FormatValue(v, FieldType.Text)}");
+            clause = $"({string.Join(" OR ", comparisons)})";
+        }
+        else
+        {
+            var formattedValues = node.Values.Select(v => FormatValue(v, fieldDef.Type));
+            clause = $"{fieldDef.PropertyName} IN {{{string.Join(", ", formattedValues)}}}";
+        }
 
         return node.IsNegated ? $"NOT ({clause})" : clause;
     }
+
     private static string HandleLogical(LogicalNode n)
     {
         string left = Generate(n.Left);
         string right = Generate(n.Right);
 
-        // Optimization: If either side of an AND is TRUEPREDICATE, just use the other side.
         if (n.Operator == LogicalOperator.And)
         {
             if (left == MatchAllPredicate) return right;
@@ -39,7 +49,6 @@ public static class RqlGenerator
             return $"({left} AND {right})";
         }
 
-        // Optimization: If either side of an OR is TRUEPREDICATE, the whole thing is TRUEPREDICATE.
         if (n.Operator == LogicalOperator.Or)
         {
             if (left == MatchAllPredicate || right == MatchAllPredicate) return MatchAllPredicate;
@@ -55,26 +64,19 @@ public static class RqlGenerator
             return MatchAllPredicate;
 
         if (!FieldRegistry.FieldsByAlias.TryGetValue(node.Field, out var fieldDef))
-        {
             fieldDef = FieldRegistry.FieldsByAlias["any"];
-        }
 
-
-        // Handle negation at the clause level by wrapping the result
         string clause = BuildClause(fieldDef, node.Operator, node.Value, node.UpperValue);
         return node.IsNegated ? $"NOT ({clause})" : clause;
     }
 
-
     private static string BuildClause(FieldDefinition fieldDef, string op, object value, object? upperValue)
     {
-        // RQL operators are case-sensitive, so we use mapping. [c] denotes case-insensitivity.
         return fieldDef.Type switch
         {
-                // --- ADD THIS NEW CASE BLOCK ---
-                FieldType.Date => BuildDateClause(fieldDef, op, value.ToString()),
+            FieldType.Date => BuildDateClause(fieldDef, op, value.ToString()),
 
-                FieldType.Boolean => $"{fieldDef.PropertyName} == {FormatValue(value, FieldType.Boolean)}",
+            FieldType.Boolean => $"{fieldDef.PropertyName} == {FormatValue(value, FieldType.Boolean)}",
 
             FieldType.Duration or FieldType.Numeric => op switch
             {
@@ -82,25 +84,22 @@ public static class RqlGenerator
                 "<" => $"{fieldDef.PropertyName} < {FormatValue(value, fieldDef.Type)}",
                 ">=" => $"{fieldDef.PropertyName} >= {FormatValue(value, fieldDef.Type)}",
                 "<=" => $"{fieldDef.PropertyName} <= {FormatValue(value, fieldDef.Type)}",
-                "-" => $"{fieldDef.PropertyName} >= {FormatValue(value, fieldDef.Type)} AND {fieldDef.PropertyName} <= {FormatValue(upperValue, fieldDef.Type)}",
-                _ => $"{fieldDef.PropertyName} == {FormatValue(value, fieldDef.Type)}", // Default to equality
+                "-" => $"({fieldDef.PropertyName} >= {FormatValue(value, fieldDef.Type)} AND {fieldDef.PropertyName} <= {FormatValue(upperValue, fieldDef.Type)})",
+                _ => $"{fieldDef.PropertyName} == {FormatValue(value, fieldDef.Type)}",
             },
 
-            // --- HANDLE TEXT TYPE LAST (AS IT'S THE MOST COMPLEX) ---
             FieldType.Text => op switch
             {
-                // ADD THIS CHECK:
                 _ when value?.ToString()?.ToLowerInvariant() is "empty" or "none" or "null"
                     => $"({fieldDef.PropertyName} == null OR {fieldDef.PropertyName} == '')",
 
-                "=" => $"{fieldDef.PropertyName} == {FormatValue(value)}",
+                "=" => $"{fieldDef.PropertyName} ==[c] {FormatValue(value)}",
                 "^" => $"{fieldDef.PropertyName} BEGINSWITH[c] {FormatValue(value)}",
                 "$" => $"{fieldDef.PropertyName} ENDSWITH[c] {FormatValue(value)}",
-                "~" => $"{fieldDef.PropertyName} LIKE[c] '*{value}*'",
+                "~" => $"{fieldDef.PropertyName} LIKE[c] {FormatValue($"*{value}*")}",
                 _ => $"{fieldDef.PropertyName} CONTAINS[c] {FormatValue(value)}",
             },
 
-            // Fallback for any unhandled types
             _ => $"{fieldDef.PropertyName} == {FormatValue(value)}"
         };
     }
@@ -118,17 +117,12 @@ public static class RqlGenerator
 
             case FuzzyDateNode.Qualifier.Ago when node.OlderThan.HasValue:
                 var boundaryDate = now.Subtract(node.OlderThan.Value);
-                // The TQL operator's meaning is inverted for date values.
-                // ">" (older than) means the date value is LESS THAN the boundary.
-                // "<" (newer than) means the date value is GREATER THAN the boundary.
                 string rqlOperator = node.Operator switch
                 {
                     ">" => "<",
                     "<" => ">",
                     ">=" => "<=",
                     "<=" => ">=",
-                    // Default to "newer than" for operators like 'contains' or '='.
-                    // e.g., played:ago("30d") means "played within the last 30 days".
                     _ => ">"
                 };
                 return $"{fieldDef.PropertyName} {rqlOperator} {FormatValue(boundaryDate, FieldType.Date)}";
@@ -136,13 +130,13 @@ public static class RqlGenerator
             case FuzzyDateNode.Qualifier.Between when node.OlderThan.HasValue && node.NewerThan.HasValue:
                 var olderBoundary = now.Subtract(node.OlderThan.Value);
                 var newerBoundary = now.Subtract(node.NewerThan.Value);
-
-                 return $"({fieldDef.PropertyName} >= {FormatValue(olderBoundary, FieldType.Date)} AND {fieldDef.PropertyName} <= {FormatValue(newerBoundary, FieldType.Date)})";
+                return $"({fieldDef.PropertyName} >= {FormatValue(olderBoundary, FieldType.Date)} AND {fieldDef.PropertyName} <= {FormatValue(newerBoundary, FieldType.Date)})";
 
             default:
                 return MatchAllPredicate;
         }
     }
+
     public static string FormatValue(object? value, FieldType type = FieldType.Text)
     {
         if (value is null)
@@ -150,94 +144,86 @@ public static class RqlGenerator
 
         return type switch
         {
-            FieldType.Text => $"'{value.ToString()?.Replace("'", "\\'")}'",
-            FieldType.Numeric => Convert.ToDouble(value, CultureInfo.InvariantCulture).ToString(CultureInfo.InvariantCulture),
+            FieldType.Text => $"'{value.ToString()?.Replace("\\", "\\\\").Replace("'", "\\'")}'",
+            FieldType.Numeric => double.TryParse(value.ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var num)
+                ? num.ToString(CultureInfo.InvariantCulture)
+                : "0",
             FieldType.Duration => TqlUtilities.ParseDuration(value.ToString()).ToString(CultureInfo.InvariantCulture),
-            FieldType.Boolean => ("true|yes|1".Contains(value.ToString()?.ToLowerInvariant() ?? "")) ? "true" : "false",
-            FieldType.Date when value is DateTimeOffset dto => $"TIMESTAMP({dto.ToString("o")})",
-            _ => $"'{value.ToString()?.Replace("'", "\\'")}'" // Default to string
+            FieldType.Boolean => (value.ToString()?.Trim().ToLowerInvariant() is "true" or "yes" or "1" or "oui") ? "true" : "false",
+            FieldType.Date when value is DateTimeOffset dto => dto.UtcDateTime.ToString("yyyy-MM-dd@HH:mm:ss", CultureInfo.InvariantCulture),
+            _ => $"'{value.ToString()?.Replace("\\", "\\\\").Replace("'", "\\'")}'"
         };
     }
 
     private static (DateTimeOffset start, DateTimeOffset end) ParseDateKeyword(string? text)
     {
         var now = DateTimeOffset.UtcNow.Date;
-        switch (text?.ToLowerInvariant())
+        switch (text?.Trim().ToLowerInvariant())
         {
             case "today":
                 return (now, now.AddDays(1).AddTicks(-1));
             case "yesterday":
                 var yesterday = now.AddDays(-1);
                 return (yesterday, yesterday.AddDays(1).AddTicks(-1));
-                case "thisweek":
-                    var startOfWeek = now.AddDays(-(int)now.DayOfWeek);
-                    return (startOfWeek, startOfWeek.AddDays(7).AddTicks(-1));
-                case "lastweek":
-                    var startOfLastWeek = now.AddDays(-(int)now.DayOfWeek - 7);
-                    return (startOfLastWeek, startOfLastWeek.AddDays(7).AddTicks(-1));
-                case "thismonth":
-                    var startOfMonth = new DateTimeOffset(now.Year, now.Month, 1, 0, 0, 0, TimeSpan.Zero);
-                    return (startOfMonth, startOfMonth.AddMonths(1).AddTicks(-1));
-                case "lastmonth":
-                    var startOfLastMonth = new DateTimeOffset(now.Year, now.Month, 1, 0, 0, 0, TimeSpan.Zero).AddMonths(-1);
-                    return (startOfLastMonth, startOfLastMonth.AddMonths(1).AddTicks(-1));
-                case "thisyear":
-                    var startOfYear = new DateTimeOffset(now.Year, 1, 1, 0, 0, 0, TimeSpan.Zero);
-                    return (startOfYear, startOfYear.AddYears(1).AddTicks(-1));
-                case "lastyear":
-                    var startOfLastYear = new DateTimeOffset(now.Year - 1, 1, 1, 0, 0, 0, TimeSpan.Zero);
-                    return (startOfLastYear, startOfLastYear.AddYears(1).AddTicks(-1));
-                //case "morning":
-                //    return (now.AddHours(5), now.AddHours(12).AddTicks(-1));
-                //case "afternoon":
-
-            // Add other keywords like "thisweek", "lastmonth", etc.
+            case "thisweek":
+            case "this week":
+                var startOfWeek = now.AddDays(-(int)now.DayOfWeek);
+                return (startOfWeek, startOfWeek.AddDays(7).AddTicks(-1));
+            case "lastweek":
+            case "last week":
+                var startOfLastWeek = now.AddDays(-(int)now.DayOfWeek - 7);
+                return (startOfLastWeek, startOfLastWeek.AddDays(7).AddTicks(-1));
+            case "thismonth":
+            case "this month":
+                var startOfMonth = new DateTimeOffset(now.Year, now.Month, 1, 0, 0, 0, TimeSpan.Zero);
+                return (startOfMonth, startOfMonth.AddMonths(1).AddTicks(-1));
+            case "lastmonth":
+            case "last month":
+                var startOfLastMonth = new DateTimeOffset(now.Year, now.Month, 1, 0, 0, 0, TimeSpan.Zero).AddMonths(-1);
+                return (startOfLastMonth, startOfLastMonth.AddMonths(1).AddTicks(-1));
+            case "thisyear":
+            case "this year":
+                var startOfYear = new DateTimeOffset(now.Year, 1, 1, 0, 0, 0, TimeSpan.Zero);
+                return (startOfYear, startOfYear.AddYears(1).AddTicks(-1));
+            case "lastyear":
+            case "last year":
+                var startOfLastYear = new DateTimeOffset(now.Year - 1, 1, 1, 0, 0, 0, TimeSpan.Zero);
+                return (startOfLastYear, startOfLastYear.AddYears(1).AddTicks(-1));
             default:
                 return (DateTimeOffset.MinValue, DateTimeOffset.MaxValue);
         }
     }
+
     private static string BuildDateClause(FieldDefinition fieldDef, string op, string? value)
     {
         if (string.IsNullOrWhiteSpace(value))
-            return "TRUEPREDICATE";
+            return MatchAllPredicate;
 
-        // 1. Resolve Keyword first (e.g. "thisweek")
         var parsedKeywordRange = ParseDateKeyword(value);
 
-        // 2. Handle specific operators (<, >, <=, >=)
         if (op is ">" or "<" or ">=" or "<=")
         {
             if (parsedKeywordRange.start != DateTimeOffset.MinValue)
-            {
                 return $"{fieldDef.PropertyName} {op} {FormatValue(parsedKeywordRange.start, FieldType.Date)}";
-            }
 
-            if (DateTimeOffset.TryParse(value, out var boundaryDate))
-            {
+            if (DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var boundaryDate))
                 return $"{fieldDef.PropertyName} {op} {FormatValue(boundaryDate, FieldType.Date)}";
-            }
+
             return "FALSEPREDICATE";
         }
 
-        // 3. Handle default range generation (no operator provided)
         var start = parsedKeywordRange.start;
         var end = parsedKeywordRange.end;
 
-        // If it wasn't a keyword, try to parse it as an exact date
-        if (start == DateTimeOffset.MinValue && DateTimeOffset.TryParse(value, out var singleDate))
+        if (start == DateTimeOffset.MinValue && DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var singleDate))
         {
-            start = singleDate.Date; // Start of the day
-            end = start.AddDays(1).AddTicks(-1); // End of the day
+            start = singleDate.Date;
+            end = start.AddDays(1).AddTicks(-1);
         }
 
-        // If we STILL don't have a valid date, the input is garbage
         if (start == DateTimeOffset.MinValue)
-        {
             return "FALSEPREDICATE";
-        }
 
-        // Return final range-based query
-        return $"{fieldDef.PropertyName} >= {FormatValue(start, FieldType.Date)} AND {fieldDef.PropertyName} <= {FormatValue(end, FieldType.Date)}";
-    }                   
-
+        return $"({fieldDef.PropertyName} >= {FormatValue(start, FieldType.Date)} AND {fieldDef.PropertyName} <= {FormatValue(end, FieldType.Date)})";
+    }
 }

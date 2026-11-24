@@ -1,18 +1,15 @@
-﻿using Fastenshtein;
-
+﻿using System.Globalization;
+using Fastenshtein;
 
 namespace Dimmer.DimmerSearch.TQLActions;
 
-
 public class AstEvaluator
 {
-
     public Func<SongModel, bool> CreatePredicate(IQueryNode rootNode)
     {
         return song => Evaluate(rootNode, song);
     }
 
-    private readonly Random _random = new();
     private bool Evaluate(IQueryNode node, SongModel song) => node switch
     {
         LogicalNode n => EvaluateLogical(n, song),
@@ -24,14 +21,13 @@ public class AstEvaluator
         InNode n => EvaluateInClause(n, song),
         _ => true
     };
+
     private bool EvaluateInClause(InNode node, SongModel song)
     {
         if (!FieldRegistry.FieldsByAlias.TryGetValue(node.Field, out var fieldDef))
             return false;
 
         string songValue = SemanticQueryHelpers.GetStringProp(song, fieldDef.PropertyName);
-
-        // Checks if ANY of the values in the list match the song's property
         bool result = node.Values.Any(val => songValue.Equals(val, StringComparison.OrdinalIgnoreCase));
 
         return node.IsNegated ? !result : result;
@@ -51,13 +47,9 @@ public class AstEvaluator
     {
         if (node.Operator == "matchall")
             return true;
-        // --- Step 1: Use FieldRegistry to get the field's definition ---
-        // This replaces the old _fieldMappings dictionary lookup.
+
         if (!FieldRegistry.FieldsByAlias.TryGetValue(node.Field, out var fieldDef))
-        {
-            // If the field alias is invalid, we can treat it as a search on the "any" field.
             fieldDef = FieldRegistry.FieldsByAlias["any"];
-        }
 
         bool result = false;
         switch (fieldDef.Type)
@@ -66,69 +58,43 @@ public class AstEvaluator
                 string songValue = SemanticQueryHelpers.GetStringProp(song, fieldDef.PropertyName);
                 string queryValue = node.Value.ToString() ?? "";
 
-                switch (node.Operator)
+                if (queryValue.ToLowerInvariant() is "empty" or "none" or "null")
                 {
-                    case "=":
-                        result = songValue.Equals(queryValue, StringComparison.OrdinalIgnoreCase);
-                        break;
-                    case "^":
-                        result = songValue.StartsWith(queryValue, StringComparison.OrdinalIgnoreCase);
-                        break;
-                    case "$":
-                        result = songValue.EndsWith(queryValue, StringComparison.OrdinalIgnoreCase);
-                        break;
-                    case "~":
-
-                        const int levenshteinThreshold = 2;
-                        if (Math.Abs(songValue.Length - queryValue.Length) > levenshteinThreshold)
-                        {
-                            result = false;
-                        }
-                        else
-                        {
-
-                            result = Levenshtein.Distance(songValue.ToLowerInvariant(), queryValue.ToLowerInvariant()) <= levenshteinThreshold;
-                        }
-                        break;
-                    default:
-                        result = songValue.Contains(queryValue, StringComparison.OrdinalIgnoreCase);
-                        break;
+                    result = string.IsNullOrWhiteSpace(songValue);
+                    break;
                 }
 
+                result = node.Operator switch
+                {
+                    "=" => songValue.Equals(queryValue, StringComparison.OrdinalIgnoreCase),
+                    "^" => songValue.StartsWith(queryValue, StringComparison.OrdinalIgnoreCase),
+                    "$" => songValue.EndsWith(queryValue, StringComparison.OrdinalIgnoreCase),
+                    "~" => Math.Abs(songValue.Length - queryValue.Length) <= 2 &&
+                           Levenshtein.Distance(songValue.ToLowerInvariant(), queryValue.ToLowerInvariant()) <= 2,
+                    _ => songValue.Contains(queryValue, StringComparison.OrdinalIgnoreCase),
+                };
                 break;
 
             case FieldType.Numeric:
             case FieldType.Duration:
                 double songNumericValue = SemanticQueryHelpers.GetNumericProp(song, fieldDef.PropertyName);
-                double queryNumericValue = fieldDef.Type == FieldType.Duration
-                    ? TqlUtilities.ParseDuration(node.Value.ToString())
-                    : Convert.ToDouble(node.Value, CultureInfo.InvariantCulture);
-
+                if (!TryParseNumericOrDuration(fieldDef.Type, node.Value?.ToString(), out double queryNumericValue))
+                {
+                    result = false;
+                    break;
+                }
 
                 switch (node.Operator)
                 {
-                    case ">":
-                        result = songNumericValue > queryNumericValue;
-                        break;
-
-                    case "<":
-                        result = songNumericValue < queryNumericValue;
-                        break;
-
-                    case ">=":
-                        result = songNumericValue >= queryNumericValue;
-                        break;
-
-                    case "<=":
-                        result = songNumericValue <= queryNumericValue;
-                        break;
-
+                    case ">": result = songNumericValue > queryNumericValue; break;
+                    case "<": result = songNumericValue < queryNumericValue; break;
+                    case ">=": result = songNumericValue >= queryNumericValue; break;
+                    case "<=": result = songNumericValue <= queryNumericValue; break;
                     case "-":
-                        double upperValue = TqlUtilities.ParseDuration(node.UpperValue?.ToString() ?? "0");
-                        result = songNumericValue >= queryNumericValue && songNumericValue <= upperValue;
+                        result = TryParseNumericOrDuration(fieldDef.Type, node.UpperValue?.ToString(), out double upperValue) &&
+                                 songNumericValue >= queryNumericValue && songNumericValue <= upperValue;
                         break;
-
-                    default: // This handles every other operator
+                    default:
                         result = Math.Abs(songNumericValue - queryNumericValue) < 0.001;
                         break;
                 }
@@ -136,76 +102,64 @@ public class AstEvaluator
 
             case FieldType.Boolean:
                 bool songBoolValue = SemanticQueryHelpers.GetBoolProp(song, fieldDef.PropertyName);
-                
-                bool queryBoolValue = "true|yes|1|oui".Contains(node.Value.ToString()?.ToLower() ?? "false");
+                string boolText = node.Value.ToString()?.Trim().ToLowerInvariant() ?? "false";
+                bool queryBoolValue = boolText is "true" or "yes" or "1" or "oui";
                 result = songBoolValue == queryBoolValue;
                 break;
 
-            case FieldType.Date: 
+            case FieldType.Date:
                 var songDate = SemanticQueryHelpers.GetDateProp(song, fieldDef.PropertyName);
                 if (songDate == null)
                 {
-                    result = false; // Song doesn't have a date for this field, so it can't match.
+                    result = false;
                     break;
                 }
 
                 var (startRange, endRange) = ParseDateValue(node.Value.ToString());
+                if (startRange == DateTimeOffset.MinValue && endRange == DateTimeOffset.MaxValue)
+                {
+                    result = false;
+                    break;
+                }
 
-                // Check if the query was a simple range check like ">" or "<"
                 switch (node.Operator)
                 {
-                    case ">":
-                        result = songDate.Value.Date > startRange.Date;
-                        break;
-                    case "<":
-                        result = songDate.Value.Date < startRange.Date;
-                        break;
-                    case ">=":
-                        result = songDate.Value.Date >= startRange.Date;
-                        break;
-                    case "<=":
-                        result = songDate.Value.Date <= startRange.Date;
-                        break;
-                    case "-": // Handle explicit date ranges like added:2022-2023
-                        var (upperStart, upperEnd) = ParseDateValue(node.UpperValue?.ToString());
+                    case ">": result = songDate.Value.Date > startRange.Date; break;
+                    case "<": result = songDate.Value.Date < startRange.Date; break;
+                    case ">=": result = songDate.Value.Date >= startRange.Date; break;
+                    case "<=": result = songDate.Value.Date <= startRange.Date; break;
+                    case "-":
+                        var (_, upperEnd) = ParseDateValue(node.UpperValue?.ToString());
                         result = songDate.Value.Date >= startRange.Date && songDate.Value.Date <= upperEnd.Date;
                         break;
                     default:
-                        // Default behavior for date fields is "is within this date range"
                         result = songDate.Value >= startRange && songDate.Value <= endRange;
                         break;
                 }
                 break;
-
         }
 
-        // Finally, apply negation if it exists.
         return node.IsNegated ? !result : result;
     }
 
-    /// <summary>
-    /// Parses a user's date query string into a start and end date range.
-    /// Handles relative terms like "today", absolute dates like "2023-01-15",
-    /// and ranges like "last month".
-    /// </summary>
+    private static bool TryParseNumericOrDuration(FieldType type, string? text, out double value)
+    {
+        if (type == FieldType.Duration)
+        {
+            value = TqlUtilities.ParseDuration(text);
+            return !string.IsNullOrWhiteSpace(text);
+        }
+
+        return double.TryParse(text, NumberStyles.Any, CultureInfo.InvariantCulture, out value);
+    }
+
     private static (DateTimeOffset start, DateTimeOffset end) ParseDateValue(string? text)
     {
         if (string.IsNullOrWhiteSpace(text))
             return (DateTimeOffset.MinValue, DateTimeOffset.MaxValue);
-        char firstChar = text[0];
-        if (firstChar == '>' || firstChar == '<')
-        {
-            string datePart = text[1..];
-            if (DateTimeOffset.TryParse(datePart, out var boundaryDate))
-            {
-                if (firstChar == '>')
-                    return (boundaryDate, DateTimeOffset.MaxValue);
-                if (firstChar == '<')
-                    return (DateTimeOffset.MinValue, boundaryDate);
-            }
-        }
-        var now = DateTimeOffset.UtcNow.Date; // Use start of day for consistency
-        text = text.ToLowerInvariant();
+
+        var now = DateTimeOffset.UtcNow.Date;
+        text = text.Trim().ToLowerInvariant();
 
         switch (text)
         {
@@ -214,50 +168,49 @@ public class AstEvaluator
             case "yesterday":
                 var yesterday = now.AddDays(-1);
                 return (yesterday, yesterday.AddDays(1).AddTicks(-1));
+            case "thisweek":
             case "this week":
-                var startOfWeek = now.AddDays(-(int)now.DayOfWeek); // Assumes Sunday is start of week
+                var startOfWeek = now.AddDays(-(int)now.DayOfWeek);
                 return (startOfWeek, startOfWeek.AddDays(7).AddTicks(-1));
+            case "lastweek":
             case "last week":
                 var startOfLastWeek = now.AddDays(-(int)now.DayOfWeek - 7);
                 return (startOfLastWeek, startOfLastWeek.AddDays(7).AddTicks(-1));
             case "last few days":
-                var startOfFewDays = now.AddDays(-(int)now.DayOfWeek - 4);
-                return (startOfFewDays, startOfFewDays.AddDays(4).AddTicks(-1));
+                var startOfFewDays = now.AddDays(-4);
+                return (startOfFewDays, now.AddDays(1).AddTicks(-1));
+            case "thismonth":
             case "this month":
-                var startOfMonth = new DateTimeOffset(now.Year, now.Month, 1, 0, 0, 0, now.TimeOfDay);
+                var startOfMonth = new DateTimeOffset(now.Year, now.Month, 1, 0, 0, 0, TimeSpan.Zero);
                 return (startOfMonth, startOfMonth.AddMonths(1).AddTicks(-1));
+            case "lastmonth":
             case "last month":
-                var startOfLastMonth = new DateTimeOffset(now.Year, now.Month, 1, 0, 0, 0, now.TimeOfDay).AddMonths(-1);
+                var startOfLastMonth = new DateTimeOffset(now.Year, now.Month, 1, 0, 0, 0, TimeSpan.Zero).AddMonths(-1);
                 return (startOfLastMonth, startOfLastMonth.AddMonths(1).AddTicks(-1));
+            case "thisyear":
             case "this year":
-                var startOfYear = new DateTimeOffset(now.Year, 1, 1, 0, 0, 0, now.TimeOfDay);
+                var startOfYear = new DateTimeOffset(now.Year, 1, 1, 0, 0, 0, TimeSpan.Zero);
                 return (startOfYear, startOfYear.AddYears(1).AddTicks(-1));
+            case "lastyear":
+            case "last year":
+                var startOfLastYear = new DateTimeOffset(now.Year - 1, 1, 1, 0, 0, 0, TimeSpan.Zero);
+                return (startOfLastYear, startOfLastYear.AddYears(1).AddTicks(-1));
             default:
-                // Try to parse as an absolute date, e.g., "2023-12-25"
-                if (DateTimeOffset.TryParse(text, out var absoluteDate))
-                {
+                if (DateTimeOffset.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var absoluteDate))
                     return (absoluteDate.Date, absoluteDate.Date.AddDays(1).AddTicks(-1));
-                }
-                // Could add more complex parsing here like "3 days ago"
-                return (DateTimeOffset.MinValue, DateTimeOffset.MaxValue); // Invalid format
+                return (DateTimeOffset.MinValue, DateTimeOffset.MaxValue);
         }
     }
 
     private bool EvaluateFuzzyDate(FuzzyDateNode node, SongModel song)
     {
-        // --- FIX: We must look up the real property name from the alias in the node.
         if (!FieldRegistry.FieldsByAlias.TryGetValue(node.DateField, out var fieldDef))
-        {
-            return false; // Invalid field alias used, e.g., "playedd:ago(...)"
-        }
-        var propertyName = fieldDef.PropertyName;
-        var songDate = SemanticQueryHelpers.GetDateProp(song, propertyName);
-        // --- END FIX ---
+            return false;
+
+        var songDate = SemanticQueryHelpers.GetDateProp(song, fieldDef.PropertyName);
 
         if (node.Type == FuzzyDateNode.Qualifier.Never)
-        {
             return songDate == null;
-        }
 
         if (songDate == null)
             return false;
@@ -265,53 +218,39 @@ public class AstEvaluator
         var now = DateTimeOffset.UtcNow;
         switch (node.Type)
         {
-            case FuzzyDateNode.Qualifier.Ago:
-                if (node.OlderThan.HasValue)
+            case FuzzyDateNode.Qualifier.Ago when node.OlderThan.HasValue:
+                var boundaryDate = now.Subtract(node.OlderThan.Value);
+                return node.Operator switch
                 {
-                    var boundaryDate = now.Subtract(node.OlderThan.Value);
-                    // Now we use the operator from the node
-                    return node.Operator switch
-                    {
-                        ">" => songDate.Value > boundaryDate,  // "more recent than 1 week ago"
-                        "<" => songDate.Value < boundaryDate,  // "older than 1 week ago"
-                        _ => songDate.Value > boundaryDate,  // Default 'ago' means "within this period"
-                    };
-                }
-                break;
+                    ">" => songDate.Value < boundaryDate,
+                    "<" => songDate.Value > boundaryDate,
+                    ">=" => songDate.Value <= boundaryDate,
+                    "<=" => songDate.Value >= boundaryDate,
+                    _ => songDate.Value > boundaryDate,
+                };
 
-            case FuzzyDateNode.Qualifier.Between:
-                if (node.OlderThan.HasValue && node.NewerThan.HasValue)
-                {
-                    var olderBoundary = now.Subtract(node.OlderThan.Value);
-                    var newerBoundary = now.Subtract(node.NewerThan.Value);
-                    // 'between' is a range, so it ignores other operators and implies an inclusive check.
-                    return songDate.Value >= olderBoundary && songDate.Value <= newerBoundary;
-                }
-                break;
+            case FuzzyDateNode.Qualifier.Between when node.OlderThan.HasValue && node.NewerThan.HasValue:
+                var olderBoundary = now.Subtract(node.OlderThan.Value);
+                var newerBoundary = now.Subtract(node.NewerThan.Value);
+                return songDate.Value >= olderBoundary && songDate.Value <= newerBoundary;
+
+            default:
+                return false;
         }
-        return false;
     }
 
     private bool EvaluateDaypart(DaypartNode node, SongModel song)
     {
-        // --- FIX: We must look up the real property name from the alias in the node.
         if (!FieldRegistry.FieldsByAlias.TryGetValue(node.DateField, out var fieldDef))
-        {
-            return false; // Invalid field alias used
-        }
-        var propertyName = fieldDef.PropertyName;
-        var songDate = SemanticQueryHelpers.GetDateProp(song, propertyName);
-        // --- END FIX ---
+            return false;
 
+        var songDate = SemanticQueryHelpers.GetDateProp(song, fieldDef.PropertyName);
         if (songDate == null)
             return false;
 
         var timeOfDay = songDate.Value.TimeOfDay;
-
         if (node.StartTime > node.EndTime)
-        {
             return timeOfDay >= node.StartTime || timeOfDay < node.EndTime;
-        }
 
         return timeOfDay >= node.StartTime && timeOfDay < node.EndTime;
     }

@@ -148,23 +148,38 @@ public static class SemanticQueryHelpers
     // This is used for sorting. It also benefits from the fast accessor.
     public static IComparable? GetComparableProp(SongModel song, string name)
     {
-        var accessor = GetAccessor<SongModel, object>(name);
-        var propValue = accessor(song);
+        object? propValue = name switch
+        {
+            nameof(SongModel.Title) => song.Title,
+            nameof(SongModel.OtherArtistsName) => song.OtherArtistsName,
+            nameof(SongModel.AlbumName) => song.AlbumName,
+            nameof(SongModel.GenreName) => song.GenreName,
+            nameof(SongModel.ReleaseYear) => song.ReleaseYear,
+            nameof(SongModel.TrackNumber) => song.TrackNumber,
+            nameof(SongModel.Rating) => song.Rating,
+            nameof(SongModel.PlayCount) => song.PlayCount,
+            nameof(SongModel.PlayCompletedCount) => song.PlayCompletedCount,
+            nameof(SongModel.SkipCount) => song.SkipCount,
+            nameof(SongModel.DurationInSeconds) => song.DurationInSeconds,
+            nameof(SongModel.DateCreated) => song.DateCreated,
+            nameof(SongModel.LastPlayed) => song.LastPlayed,
+            nameof(SongModel.BPM) => song.BPM,
+            nameof(SongModel.BitRate) => song.BitRate,
+            nameof(SongModel.FileSize) => song.FileSize,
+            nameof(SongModel.GlobalRank) => song.GlobalRank,
+            nameof(SongModel.RankInAlbum) => song.RankInAlbum,
+            nameof(SongModel.RankInArtist) => song.RankInArtist,
+            _ => GetAccessor<SongModel, object>(name)(song)
+        };
 
-        // If the property is null, return a default value to avoid crashes during sorting.
         if (propValue == null)
             return string.Empty;
 
-        // Return the value if it's naturally comparable (like a number, string, or date).
         if (propValue is IComparable comparable)
-        {
             return comparable;
-        }
 
-        // As a last resort, convert it to a string for comparison.
         return propValue.ToString();
     }
-
     // The Levenshtein Distance function doesn't rely on reflection,
     // so it can remain as it was. It's a pure string algorithm.
     public static int LevenshteinDistance(string s, string t)

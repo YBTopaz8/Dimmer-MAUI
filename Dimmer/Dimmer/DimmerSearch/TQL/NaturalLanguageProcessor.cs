@@ -8,7 +8,7 @@ namespace Dimmer.DimmerSearch.TQL;
 public static class NaturalLanguageProcessor
 {
     // A value is either a quoted string "like this", or a single word/number
-    private const string Value = @"((?:""(?:[^""]|"""")*""|\S+)+)";
+    private const string Value = @"(""(?:[^""]|"""")*""|\S+)";
 
     // 1. NORMALIZATION: Turn human slang into math before parsing
     private static readonly Dictionary<string, string> _normalizers = new(StringComparer.OrdinalIgnoreCase)

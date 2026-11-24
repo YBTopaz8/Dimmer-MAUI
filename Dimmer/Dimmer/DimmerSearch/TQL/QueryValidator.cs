@@ -1,13 +1,13 @@
 ﻿using Fastenshtein;
 
 namespace Dimmer.DimmerSearch.TQL;
+
 public record ValidationResult(bool IsValid, string Message = "", int Position = -1);
 
 public static class QueryValidator
 {
     public static ValidationResult Validate(List<Token> tokens)
     {
-        // Check for balanced parentheses
         int parenBalance = 0;
         foreach (var token in tokens)
         {
@@ -19,7 +19,6 @@ public static class QueryValidator
         if (parenBalance > 0)
             return new(false, "Missing ')' in query.", tokens[^1].Position);
 
-        // Iterate through tokens to find specific clause errors
         for (int i = 0; i < tokens.Count; i++)
         {
             var token = tokens[i];
@@ -27,16 +26,22 @@ public static class QueryValidator
             if (token.Type == TokenType.Identifier && i + 1 < tokens.Count && tokens[i + 1].Type == TokenType.Colon)
             {
                 if (!FieldRegistry.FieldsByAlias.TryGetValue(token.Text, out var fieldDef))
-                {
                     return new(false, $"Unknown field '{token.Text}'.", token.Position);
-                }
 
                 int valueIndex = i + 2;
 
-                // Check if the next token is an operator and skip it
                 if (valueIndex < tokens.Count && IsOperator(tokens[valueIndex].Type))
-                {
                     valueIndex++;
+
+                if (valueIndex < tokens.Count && tokens[valueIndex].Type is TokenType.Not or TokenType.Bang)
+                    valueIndex++;
+
+                if (valueIndex < tokens.Count &&
+                    tokens[valueIndex].Text.Equals("in", StringComparison.OrdinalIgnoreCase) &&
+                    valueIndex + 1 < tokens.Count &&
+                    tokens[valueIndex + 1].Type == TokenType.LeftParen)
+                {
+                    continue; // Skip list syntax; validated structurally by AstParser
                 }
 
                 if (valueIndex < tokens.Count)
@@ -51,7 +56,6 @@ public static class QueryValidator
         return new(true, "Query is valid.");
     }
 
-    // Add this helper method directly into QueryValidator!
     private static bool IsOperator(TokenType type) =>
         type is TokenType.GreaterThan or TokenType.LessThan or TokenType.GreaterThanOrEqual
              or TokenType.LessThanOrEqual or TokenType.Equals or TokenType.Tilde
@@ -63,23 +67,20 @@ public static class QueryValidator
         {
             case FieldType.Numeric:
                 if (!double.TryParse(valueToken.Text, NumberStyles.Any, CultureInfo.InvariantCulture, out _))
-                {
                     return new(false, $"Field '{field.PrimaryName}' expects a number, but got '{valueToken.Text}'.", valueToken.Position);
-                }
                 break;
+
             case FieldType.Boolean:
-                var val = valueToken.Text.ToLowerInvariant();
-                if (val != "true" && val != "false" && val != "yes" && val != "no" && val != "1" && val != "0")
-                {
+                var val = valueToken.Text.Trim().ToLowerInvariant();
+                if (val is not ("true" or "false" or "yes" or "no" or "1" or "0" or "oui"))
                     return new(false, $"Field '{field.PrimaryName}' expects a boolean (true/false), but got '{valueToken.Text}'.", valueToken.Position);
-                }
                 break;
+
             case FieldType.Duration:
-                // A simple check: must contain numbers and optionally colons.
-                if (!valueToken.Text.All(c => char.IsDigit(c) || c == ':'))
-                {
-                    return new(false, $"Field '{field.PrimaryName}' expects a duration (e.g., 3:30), but got '{valueToken.Text}'.", valueToken.Position);
-                }
+                bool isColonDuration = valueToken.Text.All(c => char.IsDigit(c) || c == ':') && valueToken.Text.Any(char.IsDigit);
+                bool isUnitDuration = Regex.IsMatch(valueToken.Text, @"^\d+(s|m|h)$", RegexOptions.IgnoreCase);
+                if (!isColonDuration && !isUnitDuration)
+                    return new(false, $"Field '{field.PrimaryName}' expects a duration (e.g., 3:30 or 3m), but got '{valueToken.Text}'.", valueToken.Position);
                 break;
         }
         return new(true);
@@ -87,12 +88,10 @@ public static class QueryValidator
 
     public static string? SuggestCorrectField(string invalidField)
     {
-        const int threshold = 2; // Suggest if distance is 1 or 2
-
+        const int threshold = 2;
         string? bestMatch = null;
         int bestDistance = int.MaxValue;
 
-        // Check against all known aliases
         foreach (var alias in FieldRegistry.FieldsByAlias.Keys)
         {
             int distance = Levenshtein.Distance(invalidField.ToLower(), alias.ToLower());
