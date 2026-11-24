@@ -404,7 +404,7 @@ public partial class OwnAudioService : IDimmerAudioService
                     _mainSource.Seek(pos);
                     _lastEnginePos = pos;
                 }
-
+                
                 _mixer?.Start();
                 _watch.Start();
                 _playbackState.OnNext(DimmerPlaybackState.Playing);
@@ -1000,5 +1000,188 @@ public partial class OwnAudioService : IDimmerAudioService
         _nextRequested.OnCompleted();
         _prevRequested.OnCompleted();
         _favRequested.OnCompleted();
+    }
+
+    private string? _ambienceFilePath;
+    private bool _isSwitchingDevice;
+    private bool _isVisualizerActive;
+
+    private void OnMixerPlaybackEnded(object? sender, EventArgs e)
+    {
+        if (_isSwitchingDevice || _isDisposed) return;
+
+        Task.Run(() =>
+        {
+            if (_isSwitchingDevice || _isDisposed) return;
+            if (_currentSong.Value != null)
+            {
+                _playbackState.OnNext(DimmerPlaybackState.PlayCompleted);
+                _playEnded.OnNext(_currentSong.Value);
+            }
+        });
+    }
+    public async Task SwitchOutputDeviceAsync(string? outputDeviceId)
+    {
+       
+        if (_isDisposed) return;
+
+        if (!await _transportLock.WaitAsync(TimeSpan.FromSeconds(5)))
+        {
+            _errors.OnNext(new TimeoutException("Audio engine locked during device switch."));
+            return;
+        }
+
+        _isSwitchingDevice = true;
+        try
+        {
+            var wasPlaying = IsPlaying;
+            var currentSong = _currentSong.Value;
+            var currentPos = _currentPosition.Value;
+            var wasVisualizerActive = _isVisualizerActive;
+
+            // 1. Stop visualizer tap BEFORE touching the mixer
+            if (wasVisualizerActive)
+                StopVisualizerInternal();
+
+            // 2. Detach PlaybackEnded so Stop/Dispose doesn't fire PlayCompleted
+            if (_mixer != null)
+            {
+                _mixer.PlaybackEnded -= OnMixerPlaybackEnded;
+                _mixer.Stop();
+            }
+
+            // 3. Synchronously remove & dispose all sources BEFORE ShutdownAsync
+            DisposeSourceImmediate(ref _mainSource);
+            DisposeSourceImmediate(ref _secondarySource);
+            DisposeSourceImmediate(ref _ambienceSource);
+
+            // 4. Dispose mixer & effects
+            _mixer?.Dispose();
+            _mixer = null;
+            _eqEffect = null;
+            _reverbEffect = null;
+            _compressorEffect = null;
+            _smartMasterEffect = null;
+
+            try { await OwnaudioNet.ShutdownAsync(); } catch { }
+
+            // Give Android AAudio / HAL a brief moment to release the previous stream
+            await Task.Delay(80);
+
+            // 5. Re-initialize on the target device (null = system default)
+            await InitializeEngineAsync(outputDeviceId);
+
+            // 6. Recreate FileSource with the NEW engine's SampleRate & Channels
+            if (currentSong != null && OwnaudioNet.Engine?.UnderlyingEngine != null && _mixer != null)
+            {
+                int sr = OwnaudioNet.Engine.Config.SampleRate;
+                int ch = OwnaudioNet.Engine.Config.Channels;
+
+                _mainSource = new FileSource(currentSong.FilePath, targetSampleRate: sr, targetChannels: ch);
+                _mainSource.SetPitchSmooth(_pitch.Value);
+                _mainSource.SetTempoSmooth(_speed.Value);
+
+                _duration.OnNext(_mainSource.Duration);
+
+                var safePos = Math.Clamp(currentPos, 0, _mainSource.Duration);
+                _lastEnginePos = safePos;
+                _lastEnginePosAt = _watch.Elapsed.TotalSeconds;
+
+                _mixer.Pause();
+                _mixer.Seek(safePos);
+                _mixer.AddSourcePrepared(_mainSource);
+                _mixer.StartPreparedSources(startPosition: safePos);
+
+                if (wasPlaying)
+                {
+                    _mixer.Start();
+                    _watch.Start();
+                    _playbackState.OnNext(DimmerPlaybackState.Playing);
+                }
+                else
+                {
+                    _playbackState.OnNext(DimmerPlaybackState.PausedUser);
+                }
+            }
+
+            // 7. Restore ambience if active
+            if (!string.IsNullOrEmpty(_ambienceFilePath) && _mixer != null)
+            {
+                _ambienceSource = new FileSource(_ambienceFilePath)
+                {
+                    Volume = (float)_ambienceVolume,
+                    Loop = true
+                };
+                _mixer.AddSource(_ambienceSource);
+                if (_isAmbienceEnabled && IsPlaying)
+                    _ambienceSource.Play();
+            }
+
+            if (wasVisualizerActive && _mixer != null)
+                StartVisualizerInternal(_visualizerFftSize);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[OwnAudioService] Device switch failed: {ex}");
+            _errors.OnNext(ex);
+        }
+        finally
+        {
+            _isSwitchingDevice = false;
+            _transportLock.Release();
+        }
+    }
+
+    private void DisposeSourceImmediate(ref FileSource? source)
+    {
+        if (source == null) return;
+        try
+        {
+            _mixer?.RemoveSource(source.Id);
+            source.Stop();
+            source.Dispose();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"DisposeSourceImmediate error: {ex.Message}");
+        }
+        finally
+        {
+            source = null;
+        }
+    }
+    private void StartVisualizerInternal(int fftSize)
+    {
+        if (_mixer == null) return;
+
+        StopVisualizerInternal();
+        _analyzer = new EffectSpectrumAnalyzer(_mixer.CreateMasterEffectTap(), fftSize);
+
+        _analyzerTimer = Observable.Interval(TimeSpan.FromMilliseconds(33))
+            .Where(_ => IsPlaying && !_isSwitchingDevice && !_isDisposed)
+            .Subscribe(_ =>
+            {
+                if (!_transportLock.Wait(0)) return;
+                try
+                {
+                    if (_analyzer != null && _mixer != null && _analyzer.Update())
+                        _spectrumData.OnNext(_analyzer.PostMagnitudesDb.ToArray());
+                }
+                catch { /* Ignore transient tap errors */ }
+                finally
+                {
+                    _transportLock.Release();
+                }
+            });
+    }
+
+    private int _visualizerFftSize = 2048;
+
+    private void StopVisualizerInternal()
+    {
+        _analyzerTimer?.Dispose();
+        _analyzerTimer = null;
+        _analyzer?.Dispose();
+        _analyzer = null;
     }
 }

@@ -8,6 +8,7 @@ using Android.Support.V4.Media;
 using Android.Support.V4.Media.Session;
 using AndroidX.Core.App;
 using AndroidX.Media.Session;
+using Ownaudio.Safe;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 
@@ -46,8 +47,20 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
         
         RedrawNotification();
     }
-    
-    public override void OnCreate()
+    static string[] GetTypeKeywords(AudioDeviceType type) => type switch
+    {
+        AudioDeviceType.WiredHeadset or AudioDeviceType.WiredHeadphones
+            => new[] { "(Headset)", "(Headphone", "Headset", "Headphone" },
+        AudioDeviceType.BluetoothA2dp or AudioDeviceType.BluetoothSco or AudioDeviceType.BleHeadset
+            => new[] { "(Bluetooth", "Bluetooth", "A2DP" },
+        AudioDeviceType.UsbHeadset or AudioDeviceType.UsbDevice
+            => new[] { "(USB", "USB" },
+        AudioDeviceType.BuiltinSpeaker
+            => new[] { "(Speaker)", "Speaker" },
+        AudioDeviceType.BuiltinEarpiece
+            => new[] { "(Earpiece)", "Earpiece" },
+        _ => Array.Empty<string>()
+    }; public override void OnCreate()
     {
         base.OnCreate();
 
@@ -55,16 +68,18 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
         _audioManager = (AudioManager?)GetSystemService(AudioService);
         _notificationManager = NotificationManagerCompat.From(this);
 
-
+      
 
 
         var powerManager = (PowerManager)GetSystemService(PowerService)!;
         _wakeLock = powerManager.NewWakeLock(WakeLockFlags.Partial, "Dimmer::AudioServiceLock");
         _wakeLock?.SetReferenceCounted(false);
 
+        NotificationHelper.CreateNotificationChannel(this);
         // 1. Headset unplug receiver
         _noisyReceiver = new AudioBecomingNoisyReceiver(_audioService);
         RegisterReceiver(_noisyReceiver, new IntentFilter(AudioManager.ActionAudioBecomingNoisy));
+       
 
         // 2. MediaSession setup
         var componentName = new ComponentName(this, Java.Lang.Class.FromType(typeof(DimmerMediaButtonReceiver)));
@@ -80,6 +95,7 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
         _mediaSession.Active = true;
 
 
+
         _audioService.FavoriteRequestedObs
             .Subscribe(_ =>
             {
@@ -92,34 +108,164 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
         // 3. Rx Bindings (Direct execution, no UI scheduler required)
         _audioService.CurrentSongObs
             .Where(song => song != null)
-            .Subscribe(async song =>
+            .Select(song => Observable.FromAsync(ct => LoadCoverArtAndSetMetadataAsync(song!, ct)))
+            .Switch() // Cancels stale cover decodes if user skips rapidly
+            .Subscribe(_ => { }, ex => System.Diagnostics.Debug.WriteLine($"Metadata error: {ex}"))
+            .DisposeWith(_disposables);
+        
+        _audioService.DurationObs
+             .Where(duration => duration > 0)
+             .Subscribe(duration =>
+             {
+                 UpdateDurationMetadataOnly(duration);
+                 UpdateAndroidPlaybackState(_lastState, _audioService.CurrentPosition);
+             })
+             .DisposeWith(_disposables);
+
+        _audioService.PlaybackStateObs
+            .DistinctUntilChanged()
+            .Subscribe(state =>
             {
-                double duration = song!.DurationInSeconds > 0
-            ? song.DurationInSeconds
-            : (_audioService.CurrentTrackMetadata?.DurationInSeconds ?? 0);
-                await LoadCoverArtAndSetMetadataAsync(song!, duration);
+                _lastState = state;
+                UpdateAndroidPlaybackState(state, _audioService.CurrentPosition);
+                RedrawNotification(); // Only redraw notification UI on Play/Pause/Stop
+
+                if (state == DimmerPlaybackState.Playing)
+                    RequestAudioFocus();
+                else if (state == DimmerPlaybackState.PausedUser || state == DimmerPlaybackState.PlayCompleted)
+                    _audioManager?.AbandonAudioFocus(this);
             })
             .DisposeWith(_disposables);
 
-        _audioService.DurationObs
-            .Where(duration => duration > 0)
-                .Subscribe(duration => UpdateDurationMetadataOnly(duration))
+        _audioService.SeekCompletedObs
+           .Subscribe(pos => UpdateAndroidPlaybackState(_lastState, pos))
+           .DisposeWith(_disposables);
+
+        if (_audioService is OwnAudioService ownAudioSvc)
+        {
+            ownAudioSvc.SpeedObs
+                .Subscribe(_ => UpdateAndroidPlaybackState(_lastState, _audioService.CurrentPosition))
+                .DisposeWith(_disposables);
+        }
+
+        // 1s heartbeat for MediaSession timeline (does NOT call RedrawNotification)
+        _audioService.PositionObs
+            .Sample(TimeSpan.FromSeconds(1))
+            .Where(_ => _lastState == DimmerPlaybackState.Playing)
+            .Subscribe(pos => UpdateAndroidPlaybackState(_lastState, pos))
             .DisposeWith(_disposables);
 
-        _audioService.PlaybackStateObs
-    .DistinctUntilChanged()
-    .Subscribe(state =>
-    {
-        _lastState = state;
-        UpdateAndroidPlaybackState(state, _audioService.CurrentPosition);
-        RedrawNotification(); // Only redraw icons on Play/Pause/Stop!
+        _audioDeviceCallback = new DimmerAudioDeviceCallback(
+      onAdded: added =>
+      {
+          var externalDevice = added.FirstOrDefault(IsExternalOutputDevice);
+          if (externalDevice == null) return;
 
-        if (state == DimmerPlaybackState.Playing)
-            RequestAudioFocus();
-        else if (state == DimmerPlaybackState.PausedUser || state == DimmerPlaybackState.PlayCompleted)
-            _audioManager?.AbandonAudioFocus(this);
-    })
-    .DisposeWith(_disposables);
+          _routeSwitchCts?.Cancel();
+          _routeSwitchCts = new CancellationTokenSource();
+          var token = _routeSwitchCts.Token;
+
+          _ = Task.Run(async () =>
+          {
+              try
+              {
+                  await Task.Delay(350, token);
+                  if (token.IsCancellationRequested || _audioService is not OwnAudioService ownAudio)
+                      return;
+
+                  var devices = await ownAudio.GetAllAudioDevicesAsync();
+                  if (devices == null) return;
+
+                  var keywords = GetTypeKeywords(externalDevice.Type);
+                  var productName = externalDevice.ProductName?.ToString();
+
+                  // 1. Best: matches ProductName AND device-type suffix (e.g. "25078RA3EA (Headset)")
+                  var matched = devices.FirstOrDefault(d =>
+                  {
+                      return !string.IsNullOrEmpty(productName) &&
+                                            d.Id.Contains(productName, StringComparison.OrdinalIgnoreCase) &&
+                                            keywords.Any(k => d.Id.Contains(k, StringComparison.OrdinalIgnoreCase));
+                  });
+
+                  // 2. Fallback: match by type suffix (e.g. "(Headset)", "(Bluetooth)")
+                  matched ??= devices.FirstOrDefault(d =>
+                      keywords.Any(k =>
+                      {
+                          return d.Id.Contains(k, StringComparison.OrdinalIgnoreCase);
+                      }));
+
+                  // 3. Fallback: match by ProductName alone (useful for named BT/USB DACs)
+                  matched ??= devices.FirstOrDefault(d =>
+                  {
+                      return !string.IsNullOrEmpty(productName) &&
+                                            d.Id.Contains(productName, StringComparison.OrdinalIgnoreCase);
+                  });
+
+                  System.Diagnostics.Debug.WriteLine($"[AudioService] Plugged {externalDevice.Type} ({productName}) -> OwnAudio targetId: {matched?.Id ?? "<null>"}");
+                  await ownAudio.SwitchOutputDeviceAsync(matched?.Id);
+              }
+              catch (System.OperationCanceledException) { }
+              catch (Exception ex)
+              {
+                  System.Diagnostics.Debug.WriteLine($"[AudioService] Auto route switch failed: {ex.Message}");
+              }
+          });
+      },
+      onRemoved: removed =>
+      {
+          if (!removed.Any(IsExternalOutputDevice)) return;
+
+          _routeSwitchCts?.Cancel();
+          _routeSwitchCts = new CancellationTokenSource();
+          var token = _routeSwitchCts.Token;
+
+          _ = Task.Run(async () =>
+          {
+              try
+              {
+                  await Task.Delay(300, token);
+                  if (token.IsCancellationRequested || _audioService is not OwnAudioService ownAudio)
+                      return;
+
+                  var devices = await ownAudio.GetAllAudioDevicesAsync();
+                  if (devices == null) return;
+
+                  // Check if another external output (e.g., BT while wired unplugged, or vice versa) is still connected
+                  var remainingExternal = _audioManager?
+                      .GetDevices(GetDevicesTargets.Outputs)?
+                      .FirstOrDefault(IsExternalOutputDevice);
+
+                  string? targetId = null;
+
+                  if (remainingExternal != null)
+                  {
+                      var keywords = GetTypeKeywords(remainingExternal.Type);
+                      var productName = remainingExternal.ProductName?.ToString();
+                      targetId = devices.FirstOrDefault(d =>
+                          !string.IsNullOrEmpty(productName) &&
+                          d.Id.Contains(productName, StringComparison.OrdinalIgnoreCase) &&
+                          keywords.Any(k => d.Id.Contains(k, StringComparison.OrdinalIgnoreCase)))?.Id
+                          ?? devices.FirstOrDefault(d =>
+                              keywords.Any(k => d.Id.Contains(k, StringComparison.OrdinalIgnoreCase)))?.Id;
+                  }
+                  else
+                  {
+                      // Explicitly pick "(Speaker)" so we don't fall back to Earpiece or leave a dead AAudio stream
+                      targetId = devices.FirstOrDefault(d =>
+                          d.Id.Contains("(Speaker)", StringComparison.OrdinalIgnoreCase))?.Id;
+                  }
+
+                  System.Diagnostics.Debug.WriteLine($"[AudioService] Unplugged -> OwnAudio fallback targetId: {targetId ?? "<null>"}");
+                  await ownAudio.SwitchOutputDeviceAsync(targetId);
+              }
+              catch (System.OperationCanceledException) { }
+              catch (Exception ex)
+              {
+                  System.Diagnostics.Debug.WriteLine($"[AudioService] Device removal sync failed: {ex.Message}");
+              }
+          });
+      });
+        _audioManager?.RegisterAudioDeviceCallback(_audioDeviceCallback, null);
     }
 
     
@@ -155,8 +301,14 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
             focusResult = (int)_audioManager.RequestAudioFocus(this, Stream.Music, AudioFocus.Gain);
         }
 
-        if (focusResult != (int)AudioFocusRequest.Granted)
+        if (focusResult == (int)AudioFocusRequest.Delayed)
         {
+            _wasPlayingBeforeFocusLoss = true;
+            _ = _audioService?.PauseAsync();
+        }
+        else if (focusResult != (int)AudioFocusRequest.Granted)
+        {
+            _wasPlayingBeforeFocusLoss = false;
             _ = _audioService?.PauseAsync();
         }
     }
@@ -231,67 +383,83 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
         }
         return StartCommandResult.Sticky;
     }
-    private async Task LoadCoverArtAndSetMetadataAsync(SongModelView song, double durationInSeconds)
+    private async Task LoadCoverArtAndSetMetadataAsync(SongModelView song, CancellationToken ct)
     {
-       
         Bitmap? newCoverArt = null;
-        // If you have local file paths for images:
         if (!string.IsNullOrEmpty(song.CoverImagePath) && File.Exists(song.CoverImagePath))
         {
             newCoverArt = await Task.Run(() =>
             {
+                if (ct.IsCancellationRequested) return null;
                 var options = new BitmapFactory.Options { InJustDecodeBounds = true };
                 BitmapFactory.DecodeFile(song.CoverImagePath, options);
 
-                // Calculate downsample ratio
                 options.InSampleSize = CalculateInSampleSize(options, 256, 256);
                 options.InJustDecodeBounds = false;
 
                 return BitmapFactory.DecodeFile(song.CoverImagePath, options);
-            });
+            }, ct);
         }
-        if (_currentCoverArt != null)
+
+        if (ct.IsCancellationRequested)
         {
-            _currentCoverArt.Dispose();
+            newCoverArt?.Dispose();
+            return;
         }
-        _currentCoverArt = newCoverArt;
+
+        double durationInSeconds = song.DurationInSeconds > 0
+            ? song.DurationInSeconds
+            : _audioService?.Duration ?? 0;
 
         long durationMs = (long)(durationInSeconds * 1000);
         if (durationMs <= 0)
         {
             var existingDuration = _mediaSession?.Controller?.Metadata?.GetLong(MediaMetadataCompat.MetadataKeyDuration) ?? 0;
-            if (existingDuration > 0)
-            {
-                durationMs = existingDuration;
-            }
+            if (existingDuration > 0) durationMs = existingDuration;
         }
 
-
-        var builder = new MediaMetadataCompat.Builder()?
-            .PutString(MediaMetadataCompat.MetadataKeyTitle, song.Title)?
-            .PutString(MediaMetadataCompat.MetadataKeyArtist, song.ArtistName)?
-            .PutString(MediaMetadataCompat.MetadataKeyAlbum, song.AlbumName);
-        if (durationMs > 0)
+        RxSchedulers.UI.ScheduleTo(() =>
         {
-            builder?.PutLong(MediaMetadataCompat.MetadataKeyDuration, durationMs);
-        }
+            if (ct.IsCancellationRequested || _mediaSession == null)
+            {
+                newCoverArt?.Dispose();
+                return;
+            }
 
-        if (_currentCoverArt != null)
-            builder?.PutBitmap(MediaMetadataCompat.MetadataKeyAlbumArt, _currentCoverArt);
+            var oldArt = _currentCoverArt;
+            _currentCoverArt = newCoverArt;
 
-        _mediaSession!.SetMetadata(builder?.Build());
-        RedrawNotification();
+            var builder = new MediaMetadataCompat.Builder()?
+                .PutString(MediaMetadataCompat.MetadataKeyTitle, song.Title)?
+                .PutString(MediaMetadataCompat.MetadataKeyArtist, song.ArtistName)?
+                .PutString(MediaMetadataCompat.MetadataKeyAlbum, song.AlbumName);
+
+            if (durationMs > 0)
+                builder?.PutLong(MediaMetadataCompat.MetadataKeyDuration, durationMs);
+
+            if (_currentCoverArt != null)
+                builder?.PutBitmap(MediaMetadataCompat.MetadataKeyAlbumArt, _currentCoverArt);
+
+            _mediaSession.SetMetadata(builder?.Build());
+            UpdateAndroidPlaybackState(_lastState, _audioService?.CurrentPosition ?? 0);
+            RedrawNotification();
+
+            // Dispose old bitmap AFTER NotificationManager has received the new one
+            oldArt?.Dispose();
+        });
     }
 
     public void UpdateSeekPositionOptimistic(double targetSec)
     {
         if (_mediaSession == null) return;
 
-        // Send the user's tapped position with speed = 0 while scrubbing/seeking
         var state = _mediaSession.Controller?.PlaybackState?.State ?? PlaybackStateCompat.StatePlaying;
+        float speed = state == PlaybackStateCompat.StatePlaying
+            ? (_audioService is OwnAudioService own ? own.CurrentSpeed : 1.0f)
+            : 0f;
 
         var stateBuilder = new PlaybackStateCompat.Builder(_mediaSession.Controller?.PlaybackState)
-            .SetState(state, (long)(targetSec * 1000), 1.0f);
+            .SetState(state, (long)(targetSec * 1000), speed, Android.OS.SystemClock.ElapsedRealtime());
 
         _mediaSession.SetPlaybackState(stateBuilder?.Build());
     }
@@ -357,47 +525,45 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
             _ => PlaybackStateCompat.StatePaused
         };
 
-        float playbackSpeed = compatState == PlaybackStateCompat.StatePlaying ? 1.0f : 0f;
+        float playbackSpeed = compatState == PlaybackStateCompat.StatePlaying
+            ? (_audioService is OwnAudioService own ? own.CurrentSpeed : 1.0f)
+            : 0f;
+
         var isFav = _audioService?.CurrentTrackMetadata?.IsFavorite ?? false;
         var favIcon = isFav ? Resource.Drawable.media3_icon_heart_filled : Resource.Drawable.media3_icon_heart_unfilled;
         var favCustomAction = new PlaybackStateCompat.CustomAction.Builder(
-      DimmerMediaSessionCallback.ActionFavorite,
-      "Favorite",
-      favIcon).Build();
+            DimmerMediaSessionCallback.ActionFavorite,
+            "Favorite",
+            favIcon).Build();
+
         var stateBuilder = new PlaybackStateCompat.Builder()?
             .SetActions(PlaybackStateCompat.ActionPlay |
                         PlaybackStateCompat.ActionPause |
+                        PlaybackStateCompat.ActionPlayPause |
                         PlaybackStateCompat.ActionSkipToNext |
                         PlaybackStateCompat.ActionSkipToPrevious |
                         PlaybackStateCompat.ActionSeekTo)?
-        .AddCustomAction(favCustomAction)?
-            .SetState(compatState, (long)(positionSec * 1000), playbackSpeed);
+            .AddCustomAction(favCustomAction)?
+            .SetState(compatState, (long)(positionSec * 1000), playbackSpeed, Android.OS.SystemClock.ElapsedRealtime());
 
         _mediaSession.SetPlaybackState(stateBuilder?.Build());
     }
-
     private void RedrawNotification()
     {
-        
         RxSchedulers.UI.ScheduleTo(() =>
         {
-           
+            if (_mediaSession == null) return;
+
             var isPlaying = _audioService?.IsPlaying ?? false;
             var currentSong = _audioService?.CurrentTrackMetadata;
 
-            var notification = NotificationHelper.BuildNotification(this, _mediaSession!, isPlaying, currentSong, _currentCoverArt);
+            var notification = NotificationHelper.BuildNotification(this, _mediaSession, isPlaying, currentSong, _currentCoverArt);
             if (notification is null) return;
 
             if (_isStartedInForeground)
-            {
                 _notificationManager?.Notify(NotificationHelper.NotificationId, notification);
-            }
             else
-            {
-                // Only promote if we haven't started foreground yet
                 PromoteToForeground();
-            }
-            _notificationManager?.Notify(NotificationHelper.NotificationId, notification);
 
             if (isPlaying)
             {
@@ -406,30 +572,83 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
             else
             {
                 if (_wakeLock?.IsHeld == true) _wakeLock.Release();
-              
-               
             }
-
-
         });
     }
-
     public override void OnDestroy()
     {
-        // CLEANUP: Zero Memory Leaks!
         _disposables.Dispose();
+
+        _routeSwitchCts?.Cancel();
+        _routeSwitchCts?.Dispose();
+        if (_audioDeviceCallback != null)
+            _audioManager?.UnregisterAudioDeviceCallback(_audioDeviceCallback);
+
         if (_noisyReceiver != null) UnregisterReceiver(_noisyReceiver);
         _audioManager?.AbandonAudioFocus(this);
 
-
         _currentCoverArt?.Dispose();
+        _currentCoverArt = null;
         _mediaSession?.Release();
 
         if (_wakeLock?.IsHeld == true) _wakeLock.Release();
-        StopForeground(StopForegroundFlags.Remove);
+        ServiceCompat.StopForeground(this, ServiceCompat.StopForegroundRemove);
         _isStartedInForeground = false;
+
         base.OnDestroy();
     }
+    private DimmerAudioDeviceCallback? _audioDeviceCallback;
+    private CancellationTokenSource? _routeSwitchCts;
 
+    private sealed class DimmerAudioDeviceCallback : AudioDeviceCallback
+    {
+        private readonly Action<AudioDeviceInfo[]> _onAdded;
+        private readonly Action<AudioDeviceInfo[]> _onRemoved;
+        private bool _initialSnapshotSkipped;
+
+        public DimmerAudioDeviceCallback(
+            Action<AudioDeviceInfo[]> onAdded,
+            Action<AudioDeviceInfo[]> onRemoved)
+        {
+            _onAdded = onAdded;
+            _onRemoved = onRemoved;
+        }
+
+        public override void OnAudioDevicesAdded(AudioDeviceInfo[]? addedDevices)
+        {
+            if (addedDevices == null || addedDevices.Length == 0) return;
+
+            // Android fires OnAudioDevicesAdded once immediately upon registration
+            // with already-connected devices (e.g. built-in speaker). Ignore that first call.
+            if (!_initialSnapshotSkipped)
+            {
+                _initialSnapshotSkipped = true;
+                return;
+            }
+
+            _onAdded(addedDevices);
+        }
+
+        public override void OnAudioDevicesRemoved(AudioDeviceInfo[]? removedDevices)
+        {
+            if (removedDevices == null || removedDevices.Length == 0) return;
+            _onRemoved(removedDevices);
+        }
+    }
+
+    private static bool IsExternalOutputDevice(AudioDeviceInfo info)
+    {
+        if (!info.IsSink) return false;
+
+        return info.Type is AudioDeviceType.WiredHeadphones
+            or AudioDeviceType.WiredHeadset
+            or AudioDeviceType.BluetoothA2dp
+            or AudioDeviceType.BluetoothSco
+            or AudioDeviceType.BleHeadset
+            or AudioDeviceType.UsbHeadset
+            or AudioDeviceType.UsbDevice
+            or AudioDeviceType.AuxLine
+            or AudioDeviceType.HearingAid;
+    }
     public override IBinder? OnBind(Intent? intent) => null;
 }
