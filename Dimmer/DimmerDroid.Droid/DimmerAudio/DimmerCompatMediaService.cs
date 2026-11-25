@@ -8,7 +8,10 @@ using Android.Support.V4.Media;
 using Android.Support.V4.Media.Session;
 using AndroidX.Core.App;
 using AndroidX.Media.Session;
+using Dimmer.DimmerAudio.Widgets;
+using DynamicData;
 using Ownaudio.Safe;
+using System.Collections.Specialized;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 
@@ -35,6 +38,12 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
     private readonly CompositeDisposable _disposables = new();
     private Bitmap? _currentCoverArt;
     private bool _isStartedInForeground = false;
+
+
+
+    private string? _publishedSongId;
+    private string? _loadingSongId;
+
     private DimmerPlaybackState _lastState = DimmerPlaybackState.None;
 
     private void UpdateDurationMetadataOnly(double durationInSeconds)
@@ -42,16 +51,15 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
         var song = _audioService?.CurrentTrackMetadata;
         if (song == null || _mediaSession == null) return;
 
-        var currentMetadata = _mediaSession.Controller?.Metadata;
-        var builder = currentMetadata is null
-            ? new MediaMetadataCompat.Builder()
-            : new MediaMetadataCompat.Builder(currentMetadata);
+        if (song.Id.ToString() != _publishedSongId)
+            return;
 
-        builder.PutLong(MediaMetadataCompat.MetadataKeyDuration, (long)(durationInSeconds * 1000));
-
-        _mediaSession.SetMetadata(builder.Build()); 
-        
-        RedrawNotification();
+        _mainHandler.Post(() =>
+        {
+            if (_mediaSession == null) return;
+            PublishMetadata(song, (long)(durationInSeconds * 1000), _currentCoverArt);
+            RedrawNotification();
+        });
     }
     static string[] GetTypeKeywords(AudioDeviceType type) => type switch
     {
@@ -60,13 +68,17 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
         AudioDeviceType.BluetoothA2dp or AudioDeviceType.BluetoothSco or AudioDeviceType.BleHeadset
             => new[] { "(Bluetooth", "Bluetooth", "A2DP" },
         AudioDeviceType.UsbHeadset or AudioDeviceType.UsbDevice
-            => new[] { "(USB", "USB" },
+            => new[] { "(USB)", "USB" },
         AudioDeviceType.BuiltinSpeaker
             => new[] { "(Speaker)", "Speaker" },
         AudioDeviceType.BuiltinEarpiece
             => new[] { "(Earpiece)", "Earpiece" },
         _ => Array.Empty<string>()
-    }; public override void OnCreate()
+    };
+
+
+    private PowerManager? _powerManager;
+    public override void OnCreate()
     {
         base.OnCreate();
 
@@ -74,11 +86,11 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
         _audioManager = (AudioManager?)GetSystemService(AudioService);
         _notificationManager = NotificationManagerCompat.From(this);
 
-      
 
 
-        var powerManager = (PowerManager)GetSystemService(PowerService)!;
-        _wakeLock = powerManager.NewWakeLock(WakeLockFlags.Partial, "Dimmer::AudioServiceLock");
+
+        _powerManager = (PowerManager)GetSystemService(PowerService)!;
+        _wakeLock = _powerManager.NewWakeLock(WakeLockFlags.Partial, "Dimmer::AudioServiceLock");
         _wakeLock?.SetReferenceCounted(false);
 
         NotificationHelper.CreateNotificationChannel(this);
@@ -134,14 +146,20 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
              {
                  _lastState = state;
                  UpdateAndroidPlaybackState(state, _audioService.CurrentPosition);
-                 RedrawNotification();
+                 var currentSong = _audioService.CurrentTrackMetadata;
+                 
+                 if (!_isStartedInForeground ||
+                     (currentSong != null && currentSong.Id.ToString() == _publishedSongId))
+                 {
+                     RedrawNotification();
+                 }
 
                  if (state == DimmerPlaybackState.Playing)
                      RequestAudioFocus();
                  else if (state is DimmerPlaybackState.PausedUser or DimmerPlaybackState.PlayCompleted)
                      AbandonFocus();
              })
-             .DisposeWith(_disposables);
+    .DisposeWith(_disposables);
 
         _audioService.SeekCompletedObs
            .Subscribe(pos => UpdateAndroidPlaybackState(_lastState, pos))
@@ -154,12 +172,46 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
                 .DisposeWith(_disposables);
         }
 
-        // 1s heartbeat for MediaSession timeline (does NOT call RedrawNotification)
+
+        var vm = IPlatformApplication.Current!.Services.GetService<BaseViewModel>();
+        if (vm != null)
+        {
+            // Seed initial queue snapshot in case queue was populated before service started
+            DimmerWidgetUpdater.SetQueueSnapshot(vm.PlaybackQueueSource.Items.ToList());
+
+            vm.PlaybackQueueSource
+                .Connect()
+                .ToCollection() // emits full IReadOnlyCollection<SongModelView> on every add/remove/clear/move
+                .Throttle(TimeSpan.FromMilliseconds(250))
+                .Subscribe(snapshot =>
+                {
+                    DimmerWidgetUpdater.SetQueueSnapshot(snapshot.ToList());
+                    _mainHandler.Post(() => DimmerWidgetUpdater.NotifyQueueDataChanged(this));
+                })
+                .DisposeWith(_disposables);
+        }
         _audioService.PositionObs
             .Sample(TimeSpan.FromSeconds(1))
             .Where(_ => _lastState == DimmerPlaybackState.Playing)
-            .Subscribe(pos => UpdateAndroidPlaybackState(_lastState, pos))
+               .Subscribe(pos =>
+               {
+                   UpdateAndroidPlaybackState(_lastState, pos);
+
+                   if (_powerManager?.IsInteractive == true)
+                   {
+                       _mainHandler.Post(() => DimmerWidgetUpdater.UpdateProgressOnly(this, _audioService));
+                   }
+               })
             .DisposeWith(_disposables);
+
+
+        //// 1s heartbeat for MediaSession timeline (does NOT call RedrawNotification)
+        //_audioService.PositionObs
+        //    .Sample(TimeSpan.FromSeconds(5))
+        //    .Where(_ => _lastState == DimmerPlaybackState.Playing)
+        //    .Subscribe(_ => _mainHandler.Post(() =>
+        //        DimmerWidgetUpdater.UpdateAllWidgets(this, _audioService, _currentCoverArt,false)))
+        //    .DisposeWith(_disposables);
 
         _audioDeviceCallback = new DimmerAudioDeviceCallback(
       onAdded: added =>
@@ -272,6 +324,11 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
           });
       });
         _audioManager?.RegisterAudioDeviceCallback(_audioDeviceCallback, null);
+
+        if (_audioService.CurrentTrackMetadata is { } initialSong)
+        {
+            _ = LoadCoverArtAndSetMetadataAsync(initialSong, CancellationToken.None);
+        }
     }
 
     private void AbandonFocus()
@@ -418,10 +475,19 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
 
                 case ActionJumpQueue:
                     int idx = intent.GetIntExtra(ExtraQueueIndex, -1);
-                    if (idx >= 0)
+                    var queue = DimmerWidgetUpdater.GetQueueSnapshot();
+                    if (idx >= 0 && idx < queue.Count)
                     {
-                        // Hook into your queue service / ViewModel method to play item at `idx`
-                        //_ = SafeRunAudioActionAsync(() => PlayQueueIndexAsync(idx));
+                        var song = queue[idx];
+                        _ = SafeRunAudioActionAsync(async () =>
+                        {
+                            var vm = IPlatformApplication.Current?.Services.GetService<BaseViewModel>();
+                            if (vm != null)
+                            {
+                                RequestAudioFocus();
+                                await vm.JumpToSongInQueueAsync(song); // replace with your play-song method
+                            }
+                        });
                     }
                     break;
 
@@ -437,17 +503,26 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
         try { await action().ConfigureAwait(false); }
         catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[MediaService] Action failed: {ex}"); }
     }
- 
+
+
+    private long _metadataSeq;
 
     private async Task LoadCoverArtAndSetMetadataAsync(SongModelView song, CancellationToken ct)
     {
+        long seq = Interlocked.Increment(ref _metadataSeq);
+        string songId = song.Id.ToString();
+        _loadingSongId = songId;
+
+        System.Diagnostics.Debug.WriteLine(
+            $"[MediaService] Loading metadata -> Id={songId}, Title='{song.Title}', Artist='{song.OtherArtistsName}', Cover='{song.CoverImagePath}'");
+
         Bitmap? newCoverArt = null;
         if (!string.IsNullOrEmpty(song.CoverImagePath) && File.Exists(song.CoverImagePath))
         {
             newCoverArt = await Task.Run(() =>
             {
                 if (ct.IsCancellationRequested) return null;
-                var options = new BitmapFactory.Options { InJustDecodeBounds = true };
+                var options = new BitmapFactory.Options {  InJustDecodeBounds = true };
                 BitmapFactory.DecodeFile(song.CoverImagePath, options);
 
                 options.InSampleSize = CalculateInSampleSize(options, 256, 256);
@@ -457,54 +532,62 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
             }, ct);
         }
 
-        if (ct.IsCancellationRequested)
-        {
-            newCoverArt?.Dispose();
+        if (seq != Volatile.Read(ref _metadataSeq))
             return;
-        }
+
 
         double durationInSeconds = song.DurationInSeconds > 0
             ? song.DurationInSeconds
             : _audioService?.Duration ?? 0;
 
         long durationMs = (long)(durationInSeconds * 1000);
-        if (durationMs <= 0)
-        {
-            var existingDuration = _mediaSession?.Controller?.Metadata?.GetLong(MediaMetadataCompat.MetadataKeyDuration) ?? 0;
-            if (existingDuration > 0) durationMs = existingDuration;
-        }
 
-        _mainHandler.Post(()=>
+        _mainHandler.Post(() =>
         {
-            if (ct.IsCancellationRequested || _mediaSession == null)
-            {
-                newCoverArt?.Dispose();
+            if (seq != Volatile.Read(ref _metadataSeq) || _mediaSession == null)
                 return;
-            }
 
-            var oldArt = _currentCoverArt;
             _currentCoverArt = newCoverArt;
+            _publishedSongId = songId;
 
-            var builder = new MediaMetadataCompat.Builder()?
-                .PutString(MediaMetadataCompat.MetadataKeyTitle, song.Title)?
-                .PutString(MediaMetadataCompat.MetadataKeyArtist, song.ArtistName)?
-                .PutString(MediaMetadataCompat.MetadataKeyAlbum, song.AlbumName);
-
-            if (durationMs > 0)
-                builder?.PutLong(MediaMetadataCompat.MetadataKeyDuration, durationMs);
-
-            if (_currentCoverArt != null)
-                builder?.PutBitmap(MediaMetadataCompat.MetadataKeyAlbumArt, _currentCoverArt);
-
-            _mediaSession.SetMetadata(builder?.Build());
+            PublishMetadata(song, durationMs, _currentCoverArt);
             UpdateAndroidPlaybackState(_lastState, _audioService?.CurrentPosition ?? 0);
             RedrawNotification();
-
-            // Dispose old bitmap AFTER NotificationManager has received the new one
-            oldArt?.Dispose();
+            DimmerWidgetUpdater.UpdateAllWidgets(this, _audioService, _currentCoverArt, refreshQueueList: true);
         });
     }
+    private void PublishMetadata(SongModelView song, long durationMs, Bitmap? coverArt)
+    {
+        if (_mediaSession == null) return;
 
+        string title = string.IsNullOrWhiteSpace(song.Title) ? "Unknown Title" : song.Title;
+        string artist = !string.IsNullOrWhiteSpace(song.OtherArtistsName)
+            ? song.OtherArtistsName
+            : (!string.IsNullOrWhiteSpace(song.ArtistName) ? song.ArtistName : "Unknown Artist");
+
+        var builder = new MediaMetadataCompat.Builder()
+            .PutString(MediaMetadataCompat.MetadataKeyMediaId, song.Id.ToString())?
+            .PutString(MediaMetadataCompat.MetadataKeyTitle, title)?
+            .PutString(MediaMetadataCompat.MetadataKeyDisplayTitle, title)?
+            .PutString(MediaMetadataCompat.MetadataKeyArtist, artist)?
+            .PutString(MediaMetadataCompat.MetadataKeyDisplaySubtitle, artist)?
+            .PutString(MediaMetadataCompat.MetadataKeyAlbum, song.AlbumName ?? string.Empty);
+        if (builder is not null)
+        {
+
+
+            if (durationMs > 0)
+                builder.PutLong(MediaMetadataCompat.MetadataKeyDuration, durationMs);
+
+            if (coverArt != null && !coverArt.IsRecycled)
+            {
+                builder.PutBitmap(MediaMetadataCompat.MetadataKeyAlbumArt, coverArt);
+                builder.PutBitmap(MediaMetadataCompat.MetadataKeyArt, coverArt);
+            }
+
+            _mediaSession.SetMetadata(builder.Build());
+        }
+    }
     public void UpdateSeekPositionOptimistic(double targetSec)
     {
         if (_mediaSession == null) return;
@@ -629,6 +712,8 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
             {
                 if (_wakeLock?.IsHeld == true) _wakeLock.Release();
             }
+
+            DimmerWidgetUpdater.UpdateAllWidgets(this, _audioService, _currentCoverArt, refreshQueueList: false);
         });
     }
     public override void OnDestroy()

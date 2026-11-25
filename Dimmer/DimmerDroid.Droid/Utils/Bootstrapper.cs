@@ -4,6 +4,7 @@ using Dimmer.Views.DimmerCloud;
 using Dimmer.Views.DimmerStats;
 using Dimmer.Views.LastFM;
 using Dimmer.Views.Toolkit;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Dimmer.Utils;
 
@@ -31,7 +32,9 @@ internal class Bootstrapper
 
         // 3. Register ViewModels
         services.AddSingleton<BaseViewModelAnd>();
-        services.AddSingleton<SettingsPage>();
+            services.Replace(ServiceDescriptor.Singleton<BaseViewModel>(
+    sp => sp.GetRequiredService<BaseViewModelAnd>()));
+            services.AddSingleton<SettingsPage>();
         services.AddSingleton<AllAlbumsPage>();
         services.AddSingleton<DimmerLiveLogin>();
         services.AddSingleton<RemoteDeviceViewPage>();
