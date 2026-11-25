@@ -88,6 +88,8 @@ jobs:
           git clone https://github.com/YBTopaz8/Parse-LiveQueries-DOTNET "$depsRoot\Parse-LiveQueries-DOTNET"
           git clone https://github.com/Zeugma440/atldotnet "$depsRoot\atldotnet-main"
           git clone https://github.com/xenolightning/AudioSwitcher "$depsRoot\AudioSwitcher-master"
+          git clone https://github.com/YBTopaz8/Material.Components.Maui "$depsRoot\Material.Components.Maui"
+          git clone https://github.com/YBTopaz8/MaterialColorUtilities "$env:GITHUB_WORKSPACE\MaterialColorUtilities"
 
       # 5. CREATE EXTERNALS.PROP
       - name: Create externals.props
@@ -100,6 +102,7 @@ jobs:
               <ExternalDepsPath>$ws\ExternalDeps\</ExternalDepsPath>
               <LastFmProjectPath>`$(ExternalDepsPath)Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj</LastFmProjectPath>
               <AtlProjectPath>`$(ExternalDepsPath)atldotnet-main\ATL\ATL.csproj</AtlProjectPath>
+              <MaterialProjectPath>`$(ExternalDepsPath)Material.Components.Maui\Material.Components.Maui\Material.Components.Maui.csproj</MaterialProjectPath>
             </PropertyGroup>
           </Project>
           "@
