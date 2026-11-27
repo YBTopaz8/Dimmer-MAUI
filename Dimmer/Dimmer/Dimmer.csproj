@@ -106,12 +106,17 @@
 
 	<ItemGroup>
 		
-		<ProjectReference Include="$(LastFmProjectPath)" />
-		<ProjectReference Include="$(AtlProjectPath)" />
-		<ProjectReference Include="..\..\..\Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj" />
-		<ProjectReference Include="..\..\..\Material.Components.Maui\Material.Components.Maui\Material.Components.Maui.csproj" />
+		<!--<ProjectReference Include="$(LastFmProjectPath)" />
+		<ProjectReference Include="$(AtlProjectPath)" />-->
+
+		<ProjectReference Include="$(LastFmProjectPath)" Condition="'$(LastFmProjectPath)' != ''" />
+		<ProjectReference Include="$(AtlProjectPath)" Condition="'$(AtlProjectPath)' != ''" />
+		<ProjectReference Include="$(MaterialProjectPath)" Condition="'$(MaterialProjectPath)' != ''" />
 		
-		<ProjectReference Include="..\..\ATL\ATL.csproj" />
+		<!-- Local fallback paths -->
+		<ProjectReference Include="..\..\..\Last.fm\src\Hqub.Lastfm\Hqub.Lastfm.csproj" Condition="'$(LastFmProjectPath)' == ''" />
+		<ProjectReference Include="..\..\ATL\ATL.csproj" Condition="'$(AtlProjectPath)' == ''" />
+		<ProjectReference Include="..\..\..\Material.Components.Maui\Material.Components.Maui\Material.Components.Maui.csproj" Condition="'$(MaterialProjectPath)' == ''" />
 	
   </ItemGroup>
 

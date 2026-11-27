@@ -53,12 +53,27 @@ public partial class HomePage : ContentPage
 
 
 
-
     }
     private async void MyPage_Loaded(object sender, EventArgs e)
     {
 
-
+        MyViewModel.WhenPropertyChanged(nameof(MyViewModel.HomePageIndex), v => MyViewModel.HomePageIndex)
+           .ObserveOn(RxSchedulers.UI)
+           .Subscribe(homePageIndex =>
+           {
+               switch (homePageIndex)
+               {
+                   case 0:
+                       if (!string.IsNullOrEmpty(MyViewModel.CurrentPlayingSongView.TitleDurationKey))
+                       {
+                           BtmBarMainExpander.IsExpanded = true;
+                       }
+                       break;
+                   default:
+                       BtmBarMainExpander.IsExpanded = false;
+                       break;
+               }
+           });
 
 
         if (!MyViewModel.IsInitialized)
@@ -171,9 +186,11 @@ public partial class HomePage : ContentPage
         var send = (View)sender;
         var song = (SongModelView)send.BindingContext;
         MyViewModel.SelectedSong = song;
-        SelectedSongMenuBtm.SetIsExpanded(true);
-        SelectedSongAlbumExp.SetIsExpanded(false);
-        SingleSongBtmSheet.Show();
+        MyViewModel.RefreshCurrentDominantAndContrastingColor(song);
+        BtmBarMainExpander.Commands.Expand.Execute(null);
+        
+
+        BtmBarExpander.Commands.Expand.Execute(null);
     }
 
     private async void ImageOnCollectionViewTapped(object sender, TappedEventArgs e)
@@ -214,7 +231,7 @@ public partial class HomePage : ContentPage
 
         CommunityToolkit.Maui.Alerts.Toast msgToast = new CommunityToolkit.Maui.Alerts.Toast() { Text = snackMsg, Duration = CommunityToolkit.Maui.Core.ToastDuration.Short };
 
-        SingleSongBtmSheet.Close();
+        BtmBarExpander.Commands.Collapse.Execute(null);
         msgToast.Show();
     }
 
@@ -233,7 +250,7 @@ public partial class HomePage : ContentPage
             return;
 
         MyViewModel.SetSelectedArtist(song.Artist);
-        await SingleSongBtmSheet.CloseAsync();
+        BtmBarExpander.Commands.Collapse.Execute(null);
         await Shell.Current.GoToAsync(nameof(ArtistPage), true);
     }
 
@@ -333,11 +350,13 @@ public partial class HomePage : ContentPage
             {
                 if (string.IsNullOrEmpty(song.TitleDurationKey))
                 {
-                    BtmBarGrid.IsVisible = false;
+                    BtmBarMainExpander.IsExpanded = false;
+                    
                 }
-                else
+                else if(!string.IsNullOrEmpty(song.TitleDurationKey) && MyViewModel.HomePageIndex==0)
                 {
-                    BtmBarGrid.IsVisible = true;
+                    BtmBarMainExpander.IsExpanded = true;
+                    
                 }
             });
 
@@ -448,7 +467,7 @@ public partial class HomePage : ContentPage
       
 
         MyViewModel.SetSelectedArtist(artist);
-        await ArtistsMgtBtmSheet.CloseAsync();
+        //await ArtistsMgtBtmSheet.CloseAsync();
         await Shell.Current.GoToAsync(nameof(ArtistPage), true);
     }
 
@@ -590,7 +609,6 @@ public partial class HomePage : ContentPage
         //SortPopUp.Close();
     }
     int currentSelectedSortIndex;
-    private bool isTQLBtmSheetOpened;
 
     public void ApplyTqlSortsToDevExpress(List<TQLSortDescription> sortDescriptions)
     {
@@ -693,17 +711,17 @@ public partial class HomePage : ContentPage
 
     private async void SelectedSongArtistBtn_Clicked(object sender, EventArgs e)
     {
-        await SingleSongBtmSheet.CloseAsync();
-        if(MyViewModel.SelectedSong?.ArtistToSong.Count >1)
-        {
-            ArtistsMgtBtmSheet.Show();
-        }
-        else
-        {
-            MyViewModel.SetSelectedArtist(MyViewModel.SelectedSong.Artist);
+        //BtmBarExpander.Commands.Collapse.Execute(null);
+        //if(MyViewModel.SelectedSong?.ArtistToSong.Count >1)
+        //{
+        //    ArtistsMgtBtmSheet.Show();
+        //}
+        //else
+        //{
+        //    MyViewModel.SetSelectedArtist(MyViewModel.SelectedSong.Artist);
 
-            await  Shell.Current.GoToAsync(nameof(ArtistPage));
-        }
+        //    await  Shell.Current.GoToAsync(nameof(ArtistPage));
+        //}
     }
 
     private async void GoToSelectedSongAlbumPage_Clicked(object sender, EventArgs e)
@@ -712,14 +730,13 @@ public partial class HomePage : ContentPage
         SelectedSongMenuBtm.SetIsExpanded(false);
         SelectedSongAlbumExp.SetIsExpanded(true);
 
-        //await SingleSongBtmSheet.CloseAsync();
-        //await Shell.Current.GoToAsync(nameof(AlbumPage));
+        
     }
 
     private async void GoToSelectedSongOverViewPage_Clicked(object sender, EventArgs e)
     {
-        await SingleSongBtmSheet.CloseAsync();
-                await Shell.Current.GoToAsync(nameof(DetailsOverview));
+        //BtmBarExpander.Commands.Collapse.Execute(null);
+        await Shell.Current.GoToAsync(nameof(DetailsOverview));
     }
 
     
@@ -819,22 +836,7 @@ public partial class HomePage : ContentPage
         //TQLSearchBottomSheet.Show(BottomSheetState.FullExpanded);
     }
 
-    private void TQLSearchBottomSheet_StateChanged(object sender, ValueChangedEventArgs<BottomSheetState> e)
-    {
-        switch (e.NewValue)
-        {
-            case BottomSheetState.FullExpanded:
-                isTQLBtmSheetOpened = true;
-                break;
-            case BottomSheetState.HalfExpanded:
-                break;
-            case BottomSheetState.Hidden:
-                isTQLBtmSheetOpened = false;
-                break;
-            default:
-                break;
-        }
-    }
+  
 
     private void DXButton_Clicked_1(object sender, EventArgs e)
     {
@@ -848,7 +850,7 @@ public partial class HomePage : ContentPage
 
     private async void ViewArtistPage_Clicked(object sender, EventArgs e)
     {
-        ArtistsMgtBtmSheet.Close();
+        //ArtistsMgtBtmSheet.Close();
         var art = ((DXButton)sender).CommandParameter as ArtistModelView;
         MyViewModel.SetSelectedArtist(art);
 
@@ -1034,6 +1036,7 @@ public partial class HomePage : ContentPage
         var songHandle = SongsCV.FindItemHandle(MyViewModel.CurrentPlayingSongView);
         HapticFeedback.Default.Perform(HapticFeedbackType.Click);
         SongsCV.ScrollTo(songHandle, DevExpress.Maui.Core.DXScrollToPosition.Start);
+        MainPageGooeyBtn.IsOpen = false;
     }
 
     private void MainFab_Clicked(object sender, TouchEventArgs e)
@@ -1046,19 +1049,20 @@ public partial class HomePage : ContentPage
         TQLSearchGrid.IsVisible = true;
         SearchText.Focus();
         SearchText.CursorPosition = SearchText.Text?.Length is null ? 0 : SearchText.Text.Length;
+        MainPageGooeyBtn.IsOpen = false;
     }
 
     private void ShowFilterBtmSheet_Clicked(object sender, TouchEventArgs e)
     {
-        FilterSortBottomSheet.Show();
-        FilterSortChoiceChipGroup.Chips[0].IsSelected = true;
+        //FilterSortBottomSheet.Show();
+        //FilterSortChoiceChipGroup.Chips[0].IsSelected = true;
         MainPageGooeyBtn.IsOpen = false;
     }
 
     private void ShowSortBtmSheet_Clicked(object sender, TouchEventArgs e)
     {
-        FilterSortBottomSheet.Show();
-        FilterSortChoiceChipGroup.Chips[1].IsSelected = true;
+        //FilterSortBottomSheet.Show();
+        //FilterSortChoiceChipGroup.Chips[1].IsSelected = true;
         MainPageGooeyBtn.IsOpen = false;
     }
 
@@ -1185,5 +1189,62 @@ public partial class HomePage : ContentPage
         }
 
         output.Add(op);
+    }
+
+    private void myPage_HandlerChanged(object sender, EventArgs e)
+    {
+        if (this.Handler is not null)
+        {
+
+            Debug.WriteLine(this.Handler?.PlatformView?.GetType());
+        }
+    }
+
+    private void ShowMenu_Clicked(object sender, EventArgs e)
+    {
+        var song = ((DXButton)sender)?.BindingContext as SongModelView;
+        if (song is not null)
+        {
+            MyViewModel.SelectedSong = song;
+            //SelectedSongMenuBtm.SetIsExpanded(true);
+            //SelectedSongAlbumExp.SetIsExpanded(false);
+            //BtmBarExpander.Commands.Expand.Execute(null);
+        }
+    }
+
+    private void CurrentPlayingArtistChip_Tap(object sender, HandledEventArgs e)
+    {
+        MyViewModel.SelectedSong = MyViewModel.CurrentPlayingSongView;
+    }
+
+    private void BtmBarMiddleGridSwipe_Swiped(object sender, SwipedEventArgs e)
+    {
+        MyViewModel.SelectedSong = MyViewModel.CurrentPlayingSongView;
+    }
+
+    private void PlayAllSongsinAlbumView_Tap(object sender, HandledEventArgs e)
+    {
+
+    }
+
+    private async void SongAlbumSongsCV_Tap(object sender, CollectionViewGestureEventArgs e)
+    {
+        var tappedSong = (SongModelView)e.Item;
+        if (tappedSong is not null)
+        {
+            MyViewModel.AddToNext(new List<SongModelView>() { tappedSong });
+            await MyViewModel.NextTrackAsync();
+        }
+    }
+
+    private async void AddToNext_Tap(object sender, HandledEventArgs e)
+    {
+        var tappedSong = (Chip)sender;
+        var song = tappedSong.BindingContext as SongModelView;
+        if (song is not null)
+        {
+            MyViewModel.AddToNext(new List<SongModelView>() { song });
+            await MyViewModel.NextTrackAsync();
+        }
     }
 }
