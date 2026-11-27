@@ -286,14 +286,32 @@ public partial class MainActivity : MauiAppCompatActivity
 
     if (typeOfCurrentPage == typeof(HomePage))
     {
+            var hPage = Shell.Current.CurrentPage as HomePage;
             if(MyViewModel.HomePageIndex != 0)
             {
                 MyViewModel.HomePageIndex = 0;
                 return;
             }
+            if (hPage!.BtmBarMainExpander.IsExpanded)
+            {
+                if (hPage.SelectedSongAlbumExp.IsExpanded)
+                {
+                    hPage.SelectedSongAlbumExp.IsExpanded = !hPage.SelectedSongAlbumExp.IsExpanded;
+                    return;
+                }
+                hPage.BtmBarMainExpander.Commands.Collapse.Execute(null);
+                return;
+            }
             new MaterialAlertDialogBuilder(this)?
                                     .SetTitle("Exit Dimmer")?
-                                    .SetMessage("Close Application?")?
+                                    .SetMessage("Close Application?")
+                                    .SetNeutralButton("Minimize App",handler:
+                                    async(s,e)=>
+                                    {
+                                        await MyViewModel.OnAppClosingAsync();
+                                        MoveTaskToBack(true);
+                                        
+                                    })
                                     .SetPositiveButton(
                 "Exit",
                 async (s, e) =>

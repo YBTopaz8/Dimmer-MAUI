@@ -222,6 +222,7 @@ IRepository<SongModel> songRepository, // Inject the repository
             return Enumerable.Empty<LrcLibLyrics>();
 
         var client = CreateClient();
+        client.Timeout = new TimeSpan(0,0,30);
         var query = HttpUtility.ParseQueryString(string.Empty);
         query["track_name"] = trackName;
         if (!string.IsNullOrWhiteSpace(artistName))

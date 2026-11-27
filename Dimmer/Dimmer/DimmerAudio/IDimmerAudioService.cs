@@ -111,6 +111,7 @@ public interface IDimmerAudioService : IAsyncDisposable
     double Volume { get; set; }
     bool IsMuted { get;  }
     IObservable<(double Left, double Right)> PeakLevelsObs { get; }
+    IObservable<SongModelView> PlayPauseToggleRequested { get; }
 
     AudioOutputDevice? GetCurrentAudioOutputDevice();
     void SetDucking(bool isDucked);

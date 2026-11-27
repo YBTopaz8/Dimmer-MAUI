@@ -4,6 +4,7 @@ namespace Dimmer.DimmerAudio;
 
 using Android.Graphics;
 using Android.Media;
+using Android.Speech.Tts;
 using Android.Support.V4.Media;
 using Android.Support.V4.Media.Session;
 using AndroidX.Core.App;
@@ -20,6 +21,7 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
 {
     public const string ActionPlayPause = "com.yvanbrunel.dimmer.ACTION_PLAY_PAUSE";
     public const string ActionNext = "com.yvanbrunel.dimmer.ACTION_NEXT";
+    public const string ActionFav= "com.yvanbrunel.dimmer.ACTION_FAV";
     public const string ActionPrev = "com.yvanbrunel.dimmer.ACTION_PREV";
     public const string ActionJumpQueue = "com.yvanbrunel.dimmer.ACTION_JUMP_QUEUE";
     public const string ExtraQueueIndex = "extra_queue_index";
@@ -339,48 +341,40 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
         else
             _audioManager.AbandonAudioFocus(this);
     }
-    private void RequestAudioFocus()
+    private bool RequestAudioFocus()
     {
-        if (_audioManager == null) return;
+        if (_audioManager == null) return true;
 
-        int focusResult=0;
+        int focusResult = 0;
 
         if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
         {
-            // Modern Android 8.0+ Focus Request
-            if (_audioFocusRequest == null)
-            {
-                _audioFocusRequest = new AudioFocusRequestClass.Builder(AudioFocus.Gain)
-                    .SetAudioAttributes(new AudioAttributes.Builder()?
-                        .SetUsage(AudioUsageKind.Media)?
-                        .SetContentType(AudioContentType.Music)?
-                        .Build()!)
-                    .SetAcceptsDelayedFocusGain(true)
-                    .SetOnAudioFocusChangeListener(this)
-                    .Build();
-            }
-            if (_audioFocusRequest is not null)
-            {
+            _audioFocusRequest ??= new AudioFocusRequestClass.Builder(AudioFocus.Gain)
+                .SetAudioAttributes(new AudioAttributes.Builder()?
+                    .SetUsage(AudioUsageKind.Media)?
+                    .SetContentType(AudioContentType.Music)?
+                    .Build()!)
+                .SetAcceptsDelayedFocusGain(true)
+                .SetOnAudioFocusChangeListener(this)
+                .Build();
 
+            if (_audioFocusRequest is not null)
                 focusResult = (int)_audioManager.RequestAudioFocus(_audioFocusRequest);
-            }
         }
         else
         {
-            // Legacy Android
             focusResult = (int)_audioManager.RequestAudioFocus(this, Stream.Music, AudioFocus.Gain);
         }
 
+        if (focusResult == (int)AudioFocusRequest.Granted)
+            return true;
+
         if (focusResult == (int)AudioFocusRequest.Delayed)
-        {
             _wasPlayingBeforeFocusLoss = true;
-            _ = _audioService?.PauseAsync();
-        }
-        else if (focusResult != (int)AudioFocusRequest.Granted)
-        {
+        else
             _wasPlayingBeforeFocusLoss = false;
-            _ = _audioService?.PauseAsync();
-        }
+
+        return false;
     }
 
     public void OnAudioFocusChange(AudioFocus focusChange)
@@ -441,6 +435,7 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
             switch (intent.Action)
             {
                 case DimmerMediaSessionCallback.ActionFavorite:
+                case ActionFav:
                     if (_audioService is OwnAudioService srv)
                     {
                         srv.TriggerFavorite();
@@ -452,14 +447,33 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
                 case ActionPlayPause:
                     _ = SafeRunAudioActionAsync(async () =>
                     {
-                        if (_audioService == null) return;
-                        if (_audioService.IsPlaying)
-                            await _audioService.PauseAsync();
-                        else
+                        var audio = _audioService ?? IPlatformApplication.Current?.Services.GetService<IDimmerAudioService>();
+                        if (audio == null) return;
+
+                        if (audio.IsPlaying)
                         {
-                            RequestAudioFocus();
-                            await _audioService.PlayAsync();
+                            await audio.PauseAsync();
                         }
+                        else if (RequestAudioFocus())
+                        {
+                            if (audio.CurrentTrackMetadata is null)
+                            {
+                                var vm = IPlatformApplication.Current?.Services.GetService<BaseViewModel>();
+                                if (vm != null)
+                                {
+                                    await vm.PlayPauseToggleAsync();
+                                }
+                            }
+                            else
+                            {
+                                await audio.PlayAsync(audio.CurrentPosition);
+                            }
+                        }
+                        
+                        UpdateAndroidPlaybackState(
+                            audio.IsPlaying ? DimmerPlaybackState.Playing:DimmerPlaybackState.PausedUser,
+                            audio.CurrentPosition);
+                        RedrawNotification();
                     });
                     break;
 
@@ -472,6 +486,7 @@ public partial class DimmerCompatMediaService : Service, AudioManager.IOnAudioFo
                     _audioService?.TriggerPrevious();
                     
                     break;
+
 
                 case ActionJumpQueue:
                     int idx = intent.GetIntExtra(ExtraQueueIndex, -1);

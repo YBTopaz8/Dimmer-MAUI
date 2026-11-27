@@ -81,7 +81,11 @@ internal partial class DimmerQueueRemoteViewsFactory : Java.Lang.Object, RemoteV
         var song = _items[position];
         rv.SetTextViewText(Resource.Id.widget_row_title, song.Title);
         rv.SetTextViewText(Resource.Id.widget_row_artist, song.OtherArtistsName ?? song.ArtistName);
-
+        
+        ////if (song.IsCurrentPlayingHighlight)
+        ////{
+        ////    rv.SetTextColor(Resource.Id.widget_row_title, Android.Graphics.Color.DarkSlateBlue);
+        ////}
         // Fill-in intent sends the tapped row index back to DimmerCompatMediaService
         var fillIn = new Intent();
         fillIn.PutExtra(DimmerCompatMediaService.ExtraQueueIndex, position);
@@ -116,6 +120,10 @@ public static class DimmerWidgetUpdater
         {
             var rv = new RemoteViews(context.PackageName, Resource.Layout.widget_player_compact);
             rv.SetProgressBar(Resource.Id.widget_progress, 1000, progress, false);
+
+
+
+            
             mgr.PartiallyUpdateAppWidget(compactIds, rv);
         }
 
@@ -124,6 +132,7 @@ public static class DimmerWidgetUpdater
         {
             var rv = new RemoteViews(context.PackageName, Resource.Layout.widget_player_queue);
             rv.SetProgressBar(Resource.Id.widget_progress, 1000, progress, false);
+            
             mgr.PartiallyUpdateAppWidget(queueIds, rv);
         }
     }
@@ -169,6 +178,7 @@ public static class DimmerWidgetUpdater
         var adapterIntent = new Intent(context, typeof(DimmerQueueRemoteViewsService));
         adapterIntent.PutExtra(AppWidgetManager.ExtraAppwidgetId, ids[0]);
         adapterIntent.SetData(Android.Net.Uri.Parse(adapterIntent.ToUri(IntentUriType.Scheme)));
+
         views.SetRemoteAdapter(Resource.Id.widget_queue_list, adapterIntent);
 
 
@@ -204,6 +214,29 @@ public static class DimmerWidgetUpdater
 
         rv.SetImageViewResource(Resource.Id.widget_btn_next, Resource.Drawable.media3_icon_next);
 
+        if (song is not null)
+        {
+            
+            if (song.IsFavorite)
+            {
+                int dsb = Android.Graphics.Color.DarkSlateBlue.ToArgb();
+
+        
+                rv.SetImageViewResource(Resource.Id.widget_btn_Fav, Resource.Drawable.media3_icon_heart_filled);
+
+                rv.SetInt(Resource.Id.widget_btn_Fav, "setColorFilter", dsb);
+            }
+            else
+            {
+                
+
+                rv.SetImageViewResource(Resource.Id.widget_btn_Fav, Resource.Drawable.media3_icon_heart_unfilled);
+
+                int whitee = Android.Graphics.Color.White.ToArgb();
+                rv.SetInt(Resource.Id.widget_btn_Fav, "setColorFilter", whitee);
+            }
+
+        }
         int white = Android.Graphics.Color.White.ToArgb();
         rv.SetInt(Resource.Id.widget_btn_prev, "setColorFilter", white);
         rv.SetInt(Resource.Id.widget_btn_play_pause, "setColorFilter", white);
@@ -226,6 +259,7 @@ public static class DimmerWidgetUpdater
             rv.SetImageViewResource(Resource.Id.widget_cover, Resource.Drawable.musicalbum);
         }
 
+
        
         // Wire buttons directly to DimmerCompatMediaService
         rv.SetOnClickPendingIntent(Resource.Id.widget_btn_prev,
@@ -234,13 +268,18 @@ public static class DimmerWidgetUpdater
             BuildForegroundServicePendingIntent(context, 102, new Intent(context, typeof(DimmerCompatMediaService)).SetAction(DimmerCompatMediaService.ActionPlayPause)));
         rv.SetOnClickPendingIntent(Resource.Id.widget_btn_next,
             BuildForegroundServicePendingIntent(context, 103, new Intent(context, typeof(DimmerCompatMediaService)).SetAction(DimmerCompatMediaService.ActionNext)));
+        rv.SetOnClickPendingIntent(Resource.Id.widget_btn_Fav,
+            BuildForegroundServicePendingIntent(context, 104, new Intent(context, typeof(DimmerCompatMediaService)).SetAction(DimmerCompatMediaService.ActionFav)));
 
         // Tapping cover/title opens the app
         var launchIntent = context.PackageManager?.GetLaunchIntentForPackage(context.PackageName!);
         if (launchIntent != null)
         {
             var flags = PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable;
-            rv.SetOnClickPendingIntent(Resource.Id.widget_cover, PendingIntent.GetActivity(context, 104, launchIntent, flags));
+            rv.SetOnClickPendingIntent(Resource.Id.widget_cover, PendingIntent.GetActivity(context, 105, launchIntent, flags));
+        
+            var flagParents = PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable;
+            rv.SetOnClickPendingIntent(Resource.Id.widgetCompactParent, PendingIntent.GetActivity(context, 106, launchIntent, flags));
         }
 
         return rv;

@@ -46,6 +46,7 @@ public partial class OwnAudioService : IDimmerAudioService
     private readonly Subject<SongModelView> _nextRequested = new();
     private readonly Subject<SongModelView> _prevRequested = new();
     private readonly Subject<SongModelView> _favRequested = new();
+    private readonly Subject<SongModelView> _playPauseToggleRequested = new();
 
     private readonly BehaviorSubject<(double? A, double? B)> _abLoopState = new((null, null));
    
@@ -71,6 +72,7 @@ public partial class OwnAudioService : IDimmerAudioService
     public IObservable<SongModelView> NextRequestedObs => _nextRequested.AsObservable();
     public IObservable<SongModelView> PreviousRequestedObs => _prevRequested.AsObservable();
     public IObservable<SongModelView> FavoriteRequestedObs => _favRequested.AsObservable();
+    public IObservable<SongModelView> PlayPauseToggleRequested => _playPauseToggleRequested.AsObservable();
     public IObservable<float[]> SpectrumDataObs => _spectrumData.AsObservable();
 
     // ==========================================================
@@ -437,6 +439,13 @@ public partial class OwnAudioService : IDimmerAudioService
             _mainSource?.Pause();
             _ambienceSource?.Pause();
             _mixer?.Pause();
+            _watch.Stop();
+            if (_mainSource != null)
+            {
+                _lastEnginePos = _mainSource.Position;
+                _lastEnginePosAt = _watch.Elapsed.TotalSeconds;
+                _currentPosition.OnNext(Math.Clamp(_lastEnginePos, 0, _duration.Value));
+            }
             _playbackState.OnNext(DimmerPlaybackState.PausedUser);
             _peakLevels.OnNext((-60.0, -60.0));
         }
@@ -482,23 +491,33 @@ public partial class OwnAudioService : IDimmerAudioService
         var mixer = _mixer;
         var source = _mainSource;
 
-        if (_mixer == null || _mainSource == null || _mainSource.IsEndOfStream) return;
+        if (_mixer == null || source == null || _mainSource == null || _mainSource.IsEndOfStream) return;
 
         // 1. Update Position
-        double enginePos = _mixer.MasterClock.CurrentTimestamp;
+        double enginePos = source.Position;
         double now = _watch.Elapsed.TotalSeconds;
+
+        if (!IsPlaying)
+        {
+            if (_watch.IsRunning) _watch.Stop();
+            _lastEnginePos = enginePos;
+            _lastEnginePosAt = now;
+            _currentPosition.OnNext(Math.Clamp(enginePos, 0, _duration.Value));
+            return;
+        }
+
+        if (!_watch.IsRunning)
+            _watch.Start();
+
 
         if (Math.Abs(enginePos - _lastEnginePos) > 0.001)
         {
             _lastEnginePos = enginePos;
             _lastEnginePosAt = now;
-            if (!_watch.IsRunning && IsPlaying) _watch.Start();
+
         }
-        else if (now - _lastEnginePosAt > 0.5)
-        {
-            _watch.Stop();
-        }
-        double smoothPos = _lastEnginePos + (now - _lastEnginePosAt);
+
+        double smoothPos = _lastEnginePos + Math.Min(now - _lastEnginePosAt, 0.25);
         _currentPosition.OnNext(Math.Clamp(smoothPos, 0, _duration.Value));
 
         if (IsAbLooping && _loopPointA.HasValue && _loopPointB.HasValue)
@@ -899,7 +918,22 @@ public partial class OwnAudioService : IDimmerAudioService
 
         if (_currentSong.Value != null)
         {
-            _favRequested.OnNext(_currentSong.Value);
+            var latestSong = _currentSong.Value;
+            if (latestSong is not null)
+            {
+                latestSong.IsCurrentPlayingHighlight = !latestSong.IsCurrentPlayingHighlight;
+                _currentSong.OnNext(latestSong);
+                _favRequested.OnNext(_currentSong.Value);
+            }
+        }
+
+    }
+    public void TriggerPlayPauseToggle() 
+    {
+
+        if (_currentSong.Value != null)
+        {
+            _playPauseToggleRequested.OnNext(_currentSong.Value);
         }
 
     }
@@ -1100,6 +1134,7 @@ public partial class OwnAudioService : IDimmerAudioService
                 }
                 else
                 {
+
                     _playbackState.OnNext(DimmerPlaybackState.PausedUser);
                 }
             }

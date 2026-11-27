@@ -320,8 +320,7 @@
                                 DragCompleted="OnSliderDragCompleted"
                                 DragStarted="OnSliderDragStarted"
                                 Maximum="{Binding CurrentPlayingSongView.DurationInSeconds, Converter={StaticResource SafeSliderMaxConverter}, FallbackValue=1.0, TargetNullValue=1.0}"
-                                MaximumTrackColor="{AppThemeBinding Dark=#1e1e1e,
-                                                                    Light=Black}"
+                                MaximumTrackColor="{Binding CurrentPlaySongContrastingTextColor}"
                                 Minimum="0"
                                 MinimumTrackColor="DarkSlateBlue"
                                 ThumbColor="{Binding CurrentPlaySongDominantColor}"

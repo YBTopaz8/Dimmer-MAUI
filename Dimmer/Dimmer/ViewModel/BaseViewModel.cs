@@ -927,6 +927,15 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
                         SelectedAudioDevice = device;
                     },
                     ex => _logger.LogError(ex, "Error in FavoriteRequestedObs subscription")));
+        _subsMgr.Add(
+            _audioService.PlayPauseToggleRequested
+                .ObserveOn(RxSchedulers.UI)
+                .Subscribe(
+                    async song =>
+                    {
+                        await this.PlayPauseToggleAsync();
+                    },
+                    ex => _logger.LogError(ex, "Error in FavoriteRequestedObs subscription")));
         InitializeEqBands();
     }
     public void StartTQLPipeLine()
@@ -2537,7 +2546,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     public partial double CrossfadeBalance { get; set; } = 0.5;
     partial void OnCrossfadeBalanceChanged(double value)
     => _audioService.SetDjCrossFade(value);
-    public static string CurrentAppVersion = "2.0.1";
+    public static string CurrentAppVersion = "2.0.2";
     public static string CurrentAppStage = "Beta";
 
     [ObservableProperty]
@@ -2823,7 +2832,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
         
         if (newValue is not null)
         {
-            SelectedSecondDominantColor = await ImageFilterUtils.GetDominantMauiColorAsync(newValue.CoverImagePath);
+            SelectedSecondDominantColor = await  ImageFilterUtils.GetDominantMauiColorAsync(newValue.CoverImagePath);
             
             if(SelectedSecondDominantColor is not null)
                 NotifySelectedSecondDomColorChange(SelectedSecondDominantColor.Red, SelectedSecondDominantColor.Green, SelectedSecondDominantColor.Blue, SelectedSecondDominantColor.Alpha);
@@ -3111,6 +3120,7 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             if (song is null)
             {
                 CurrentTrackDurationSeconds = 1;
+                CurrentPlayingSongView?.IsCurrentPlayingHighlight = false;
                 return;
             }
 
@@ -3714,19 +3724,26 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     async partial void OnCurrentPlayingSongViewChanging(SongModelView oldValue, SongModelView newValue)
     {
 
-        if(oldValue is not null)
+        if (oldValue is not null)
             oldValue.IsCurrentPlayingHighlight = false;
         if (newValue is null)
         {
             return;
         }
         if (oldValue?.TitleDurationKey == newValue!.TitleDurationKey) return;
-        if(string.IsNullOrWhiteSpace(newValue.CoverImagePath))
+        if (string.IsNullOrWhiteSpace(newValue.CoverImagePath))
         {
             newValue.CoverImagePath = string.Empty;
         }
         OnPropertyChanged(nameof(CurrentPlayingSongView));
         await ProcessSongChangeAsync(newValue);
+        RefreshCurrentDominantAndContrastingColor(newValue);
+    }
+
+    public void RefreshCurrentDominantAndContrastingColor(SongModelView? newValue)
+    {
+        if (string.IsNullOrWhiteSpace(newValue?.CoverImagePath))
+            return;
 
         RxSchedulers.Background.ScheduleTo(async () =>
         {
@@ -4158,7 +4175,9 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
             if (songToPlay == null)
             {
                 if (_audioService.IsPlaying)
+                {
                     _audioService.Stop();
+                }
                 await UpdateSongSpecificUi(null);
                 return false;
             }
@@ -4458,13 +4477,13 @@ public partial class BaseViewModel : ObservableObject,  IDisposable
     /// Jumps to a song that is already in the Now Playing queue. This does NOT create a new queue; it just changes the
     /// current track index.
     /// </summary>
-    [RelayCommand]
-    private async Task JumpToSongInQueueAsync(SongModelView? songToPlay)
+    
+    public async Task JumpToSongInQueueAsync(SongModelView? songToPlay=null, int songIndex=-1)
     {
-        if (songToPlay == null)
+        if (songToPlay == null && songIndex!=-1)
             return;
 
-        int index = PlaybackQueue.IndexOf(songToPlay);
+        int index = songIndex != -1 ? songIndex : PlaybackQueue.IndexOf(songToPlay!);
         if (index != -1)
         {
             await PlaySongAtIndexAsync(index);

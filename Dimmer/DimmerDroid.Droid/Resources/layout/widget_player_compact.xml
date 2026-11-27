@@ -15,53 +15,64 @@
 
 		<ImageView
             android:id="@+id/widget_cover"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:scaleType="centerCrop"
             android:src="@android:drawable/ic_menu_info_details" />
-
 		<LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
+			android:id="@+id/widgetCompactParent"
             android:layout_weight="1"
+			
             android:orientation="vertical">
 
-			<TextView
-                android:id="@+id/widget_title"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:text="@string/notPlaying"
-                android:textColor="#FFFFFF"
-                android:textSize="15sp"
-                android:textStyle="bold" />
+			    <TextView
+                    android:id="@+id/widget_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="@string/notPlaying"
+                    android:textColor="#FFFFFF"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
 
-			<TextView
-                android:id="@+id/widget_artist"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:text="Dimmer"
-                android:textColor="#B3FFFFFF"
-                android:textSize="13sp" />
+			    <TextView
+                    android:id="@+id/widget_artist"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="Dimmer"
+                    android:textColor="#B3FFFFFF"
+                    android:textSize="15sp" />
+
+			    <TextView
+                    android:id="@+id/widget_album"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text=""
+                    android:textColor="@android:color/darker_gray"
+                    android:textSize="13sp" />
 		</LinearLayout>
 
 		<ImageButton
             android:id="@+id/widget_btn_prev"
-            android:layout_width="34dp"
-android:contentDescription="BtnPrev"
-            android:layout_height="34dp"
+            android:layout_width="44dp"
+            android:contentDescription="BtnPrev"
+            android:layout_height="44dp"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:src="@android:drawable/ic_media_previous"
             android:tint="#FFFFFF" />
 
 		<ImageButton
             android:id="@+id/widget_btn_play_pause"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:src="@android:drawable/ic_media_play"
 android:contentDescription="PlayPause"
@@ -69,12 +80,22 @@ android:contentDescription="PlayPause"
 
 		<ImageButton
             android:id="@+id/widget_btn_next"
-            android:layout_width="34dp"
+            android:layout_width="44dp"
             android:contentDescription="btnNext"
-            android:layout_height="34dp"
+            android:layout_height="44dp"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:src="@android:drawable/ic_media_next"
             android:tint="#FFFFFF" />
+		
+		<ImageButton
+			android:id="@+id/widget_btn_Fav"
+			android:layout_width="44dp"
+			android:layout_height="44dp"
+			android:contentDescription="btnFavUnFav"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            
+			android:tint="#FFFFFF"
+			/>
 	</LinearLayout>
 
 	<ProgressBar
